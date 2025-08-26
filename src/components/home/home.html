@@ -1,0 +1,221 @@
+<section class="w-full h-full overflow-auto">
+  <div class="max-w-5xl mx-auto px-4 py-8 md:py-16" id="profile">
+    <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+      <tui-avatar [src]="global.user().picture" size="xxl"></tui-avatar>
+      <div class="flex-1">
+        <h1 class="text-3xl md:text-5xl font-bold leading-tight hero-title">
+          {{ 'home.title' | translate }}
+        </h1>
+        <p class="mt-4 text-base md:text-lg whitespace-pre-line opacity-80">
+          {{ 'home.subtitle' | translate }}
+        </p>
+        <div class="mt-6 flex gap-3">
+          <a
+            tuiButton
+            appearance="primary"
+            size="m"
+            [href]="github()"
+            target="_blank"
+            rel="noopener noreferrer"
+            iconStart="@tui.github"
+            [attr.aria-label]="('aria.open_github_profile' | translate)"
+          >
+            {{ 'common.github' | translate }}
+          </a>
+          <a
+            tuiButton
+            appearance="secondary"
+            size="m"
+            [href]="linkedin()"
+            target="_blank"
+            rel="noopener noreferrer"
+            iconStart="@tui.linkedin"
+            [attr.aria-label]="('aria.open_linkedin_profile' | translate)"
+          >
+            {{ 'common.linkedin' | translate }}
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-12 grid gap-6 md:grid-cols-2">
+      <div class="p-6 rounded-xl border border-[color:var(--tui-border-normal)] surface-card">
+        <h3 class="text-xl font-semibold">{{ 'home.about.title' | translate }}</h3>
+        <p class="mt-3 opacity-80">
+          {{ 'home.about.text' | translate }}
+        </p>
+      </div>
+      <div class="p-6 rounded-xl border border-[color:var(--tui-border-normal)] surface-card">
+        <h3 class="text-xl font-semibold">{{ 'home.skills.title' | translate }}</h3>
+        <ul class="mt-3 grid grid-cols-2 gap-2 text-sm opacity-90">
+          <li>{{ 'skill.angular' | translate }}</li>
+          <li>{{ 'skill.typescript' | translate }}</li>
+          <li>{{ 'skill.signals' | translate }}</li>
+          <li>{{ 'skill.ssr' | translate }}</li>
+          <li>{{ 'skill.zoneless' | translate }}</li>
+          <li>{{ 'skill.taiga' | translate }}</li>
+          <li>{{ 'skill.i18n' | translate }}</li>
+          <li>{{ 'skill.accessibility' | translate }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-12" id="experience">
+      <h3 class="text-xl font-semibold">{{ 'home.experience.title' | translate }}</h3>
+      <div class="mt-4 grid gap-4">
+        @for (exp of experiences(); track exp.company + exp.start) {
+          <article
+            class="p-5 rounded-xl border border-[color:var(--tui-border-normal)] hover:border-[color:var(--tui-border-hover)] transition-colors surface-card cursor-pointer select-none"
+            role="button"
+            tabindex="0"
+            [attr.aria-expanded]="isExpanded(exp)"
+            (click.zoneless)="toggleExp(exp, $event)"
+            (keydown.zoneless)="onExpKeydown($event, exp)">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <div class="text-base font-semibold">{{ exp.role }}</div>
+                <div class="opacity-80">{{ exp.company }}</div>
+              </div>
+              <div class="text-right text-sm opacity-70">
+                {{ exp.start }} - {{ exp.end ? exp.end : ('home.experience.present' | translate) }}
+                @if (exp.duration) {
+                  <span> · {{ exp.duration }}</span>
+                }
+              </div>
+            </div>
+            @if (isExpanded(exp)) {
+              <div class="mt-1 text-sm opacity-75">
+                @if (exp.location) {
+                  <span>{{ exp.location }}</span>
+                }
+              </div>
+              @if (exp.descriptionKey) {
+                <p class="mt-3 text-sm opacity-90 whitespace-pre-line">{{ exp.descriptionKey | translate }}</p>
+              }
+              @if (exp.skills?.length) {
+                <ul class="mt-3 flex flex-wrap gap-2 text-xs opacity-80">
+                  @for (s of exp.skills; track s) {
+                    <li class="px-2 py-1 rounded-full border border-[color:var(--tui-border-normal)]">{{ s }}</li>
+                  }
+                </ul>
+              }
+            }
+          </article>
+        }
+      </div>
+    </div>
+
+    <div class="mt-12" id="certifications">
+      <h3 class="text-xl font-semibold">{{ 'home.certifications.title' | translate }}</h3>
+      <div class="mt-4 grid gap-4">
+        @for (c of certifications(); track c.title + c.issueDate) {
+          <article
+            class="p-5 rounded-xl border border-[color:var(--tui-border-normal)] hover:border-[color:var(--tui-border-hover)] transition-colors surface-card">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <tui-avatar [src]="c.issuer === 'freeCodeCamp' ? fccLogo() : c.logo" size="s"></tui-avatar>
+                <div>
+                  <div class="text-base font-semibold">{{ c.title }}</div>
+                  <div class="opacity-80 text-sm">{{ c.issuer }}</div>
+                </div>
+              </div>
+              <div class="text-right text-sm opacity-70">
+                {{ 'home.certifications.issued' | translate }} {{ c.issueDate }}
+              </div>
+            </div>
+            @if (c.skills?.length) {
+              <ul class="mt-3 flex flex-wrap gap-2 text-xs opacity-80">
+                @for (s of c.skills; track s) {
+                  <li
+                    class="px-2 py-1 rounded-full border border-[color:var(--tui-border-normal)]">{{ s | translate }}
+                  </li>
+                }
+              </ul>
+            }
+            @if (c.credentialUrl) {
+              <div class="mt-3">
+                <a tuiButton appearance="flat" size="s" [href]="c.credentialUrl" target="_blank"
+                   rel="noopener noreferrer" iconStart="@tui.link">
+                  {{ 'home.certifications.show_credential' | translate }}
+                </a>
+              </div>
+            }
+          </article>
+        }
+      </div>
+    </div>
+
+    <div class="mt-12" id="projects">
+      <h3 class="text-xl font-semibold">{{ 'home.projects.title' | translate }}</h3>
+      <div class="mt-4 grid gap-4 md:grid-cols-2">
+        @for (p of projects(); track p.name) {
+          <a
+            class="p-5 rounded-xl border border-[color:var(--tui-border-normal)] hover:border-[color:var(--tui-border-hover)] transition-colors surface-card block"
+            [href]="p.url"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <div class="font-medium">{{ p.name }}</div>
+            <div class="opacity-70 text-sm">{{ p.descriptionKey | translate }}</div>
+            @if (p.example) {
+              <div class="mt-3">
+                <button tuiButton appearance="flat" size="s" type="button"
+                        [attr.aria-label]="('aria.open_example' | translate)" class="!text-sm block w-fit"
+                        iconStart="@tui.link"
+                        (click.zoneless)="openExample(p.example, $event)">
+                  {{ 'home.projects.show_example' | translate }}
+                </button>
+              </div>
+            }
+            @if (p.tags?.length) {
+              <ul class="mt-3 flex flex-wrap gap-2 text-xs opacity-80">
+                @for (t of p.tags; track t) {
+                  <li class="px-2 py-1 rounded-full border border-[color:var(--tui-border-normal)]">{{ t }}</li>
+                }
+              </ul>
+            }
+          </a>
+        }
+      </div>
+    </div>
+    <div class="mt-16" id="contact">
+      <h3 class="text-xl font-semibold">{{ 'home.contact.title' | translate }}</h3>
+      <p class="mt-3 opacity-80">{{ 'home.contact.text' | translate }}</p>
+      <div class="mt-4 flex gap-3">
+        <a
+          tuiButton
+          appearance="flat"
+          size="m"
+          [href]="linkedin()"
+          target="_blank"
+          rel="noopener noreferrer"
+          iconStart="@tui.linkedin"
+        >
+          <span class="md:block hidden">{{ 'common.linkedin' | translate }}</span>
+        </a>
+        <a
+          tuiButton
+          appearance="flat"
+          size="m"
+          [href]="github()"
+          target="_blank"
+          rel="noopener noreferrer"
+          iconStart="@tui.github"
+        >
+          <span class="md:block hidden">{{ 'common.github' | translate }}</span>
+        </a>
+        <a
+          tuiButton
+          appearance="flat"
+          size="m"
+          [href]="instagram()"
+          target="_blank"
+          rel="noopener noreferrer"
+          iconStart="@tui.instagram"
+        >
+          <span class="md:block hidden">{{ 'common.instagram' | translate }}</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

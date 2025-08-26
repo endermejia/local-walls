@@ -1,0 +1,67 @@
+{
+  "Menu": "Menu",
+  "Navigation": "Navigation",
+
+  "Portfolio": "Portfolio",
+  "Home": "Home",
+  "Experience": "Experience",
+  "Certifications": "Certifications",
+  "Projects": "Projects",
+  "Contact": "Contact",
+
+  "preferences": "Preferences",
+  "settings.language": "Language",
+  "settings.theme": "Theme",
+
+  "home.title": "Senior Frontend Developer",
+  "home.subtitle": "Hi, I'm Gabriel Mejía 👋\nI'm a Senior FrontEnd Developer.\nIn love with Angular and TypeScript since 2019.\nI’m a good and motivated programmer 👨‍💻 ... and a passionate climber 🧗‍♂️.",
+  "home.about.title": "About",
+  "home.about.text": "I build robust, accessible, and performant front-ends with Angular, modern TypeScript, signals, SSR, and zoneless CD. I love crafting delightful UX with Taiga UI and clean architecture.",
+  "home.skills.title": "Skills",
+  "skill.angular": "Angular 2+ / 20",
+  "skill.typescript": "TypeScript",
+  "skill.signals": "Signals / RxJS",
+  "skill.ssr": "SSR / Universal",
+  "skill.zoneless": "Zoneless",
+  "skill.taiga": "Taiga UI",
+  "skill.i18n": "i18n",
+  "skill.accessibility": "Accessibility",
+  "skill.javascript": "JavaScript",
+  "skill.webdev": "Web development",
+
+  "home.experience.title": "Professional experience",
+  "home.experience.present": "present",
+  "home.experience.convotis": "Frontend development and implementation for Prana Software, an ERP aimed at SMEs and freelancers, using Angular 19 and PrimeNG. Work focused on a robust and maintainable architecture, leveraging the latest framework capabilities: Signals, OnPush change detection strategy, standalone components, and granular lifecycle control.\nAdvanced experience with Angular core, including injector configuration, dependency management with providers, route control with the Router, state handling with reactive services, and observable-based structures (RxJS). Application of reactive programming principles to ensure efficient, decoupled data flows and a smooth, dynamic user experience.\nClose collaboration with multidisciplinary teams to define technical solutions, establish best practices, and ensure product scalability.",
+  "home.experience.clavei": "Frontend development and implementation for Prana Software, an ERP aimed at SMEs and freelancers, using Angular 19 and PrimeNG. Work focused on a robust and maintainable architecture, leveraging the latest framework capabilities: Signals, OnPush change detection strategy, standalone components, and granular lifecycle control.\nAdvanced experience with Angular core, including injector configuration, dependency management with providers, route control with the Router, state handling with reactive services, and observable-based structures (RxJS). Application of reactive programming principles to ensure efficient, decoupled data flows and a smooth, dynamic user experience.\nClose collaboration with multidisciplinary teams to define technical solutions, establish best practices, and ensure product scalability.",
+  "home.experience.ricoh": "As a Senior Frontend Developer at RICOH, I led projects focused on the Principality of Asturias, working closely with the development team to design, implement, and maintain high-quality solutions. As an Angular expert (mostly versions 12+), I used technologies such as HTML, CSS, and TypeScript to build intuitive and engaging user interfaces. I also played a key role in technical decision-making and mentoring other team members.",
+  "home.experience.nttdata": "As a Frontend Developer at NTTData, I contributed to significant projects for clients such as Santa Lucía and Orange. I was responsible for implementing and improving user interfaces using Angular (versions 9+). I worked closely with a multidisciplinary team and participated in the development of effective, high-quality solutions.",
+  "home.experience.inetum": "I am currently part of Inetum, collaborating on a project for the Principality of Asturias. I work with Angular 20 in a modern stack with SSR (Universal), incremental hydration, and a zoneless strategy (without Zone.js), prioritizing performance, accessibility, and maintainability. I contribute to technical design, feature implementation, and continuous improvement of the user experience, leveraging signals, i18n, and standalone components with Taiga UI.",
+
+  "home.certifications.title": "Licenses & certifications",
+  "home.certifications.issued": "Issued:",
+  "home.certifications.show_credential": "Show credential",
+
+  "home.projects.title": "Projects",
+  "home.projects.github.title": "Explore my repositories",
+  "home.projects.github.subtitle": "Open-source and experiments",
+  "home.projects.linkedin.title": "Professional experience",
+  "home.projects.linkedin.subtitle": "Timeline and endorsements",
+  "home.projects.show_example": "Example Website",
+
+  "home.projects.angular19.desc": "Base project for Angular 19 Web Applications",
+  "home.projects.angular20.desc": "This project 🥰",
+  "home.projects.clubescalada.desc": "Website for the Costa Blanca Climbing Club",
+  "home.projects.coffee.desc": "Management app for a coffee shop/bar/restaurant built with Next.js",
+  "home.projects.astro.desc": "Portfolio for a photographer built with Astro",
+
+  "home.contact.title": "Contact",
+  "home.contact.text": "Reach me on LinkedIn or GitHub, I’m open to interesting opportunities and collaborations.",
+
+  "aria.open_github_profile": "Open GitHub profile",
+  "aria.open_github_repositories": "Open GitHub repositories",
+  "aria.open_linkedin_profile": "Open LinkedIn profile",
+
+  "common.github": "GitHub",
+  "common.linkedin": "LinkedIn",
+  "common.instagram": "Instagram"
+}
