@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, AfterViewInit, OnDestroy, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { GlobalData } from '../services';
 import { RouterLink } from '@angular/router';
 import { TuiSurface, TuiTitle } from '@taiga-ui/core';
@@ -17,7 +18,7 @@ import { TranslatePipe } from '@ngx-translate/core';
     TranslatePipe,
     TuiSurface,
   ],
-  template: ` <section class="w-full h-full overflow-auto">
+  template: `<section class="w-full h-full overflow-auto">
     <div class="max-w-5xl mx-auto px-4 pt-6">
       <div
         id="cragsMap"
@@ -78,13 +79,81 @@ import { TranslatePipe } from '@ngx-translate/core';
     class: 'flex grow overflow-auto',
   },
 })
-export class HomeComponent {
+export class HomeComponent implements AfterViewInit, OnDestroy {
   protected readonly global = inject(GlobalData);
+  private readonly platformId = inject(PLATFORM_ID);
+
+  // Leaflet map instance reference
+  private _map: import('leaflet').Map | null = null;
+  private _mapInitialized = false;
 
   constructor() {
     this.global.setSelectedZone(null);
     this.global.setSelectedCrag(null);
     this.global.setSelectedTopo(null);
     this.global.setSelectedRoute(null);
+  }
+
+  async ngAfterViewInit(): Promise<void> {
+    // SSR-safe guard
+    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined') {
+      console.info('Not in browser environment, skipping map initialization');
+      return;
+    }
+    if (this._mapInitialized) return;
+
+    try {
+      const [{ default: L }] = await Promise.all([
+        import('leaflet'),
+      ]);
+
+      // Initialize map
+      const containerId = 'cragsMap';
+      const containerEl = document.getElementById(containerId);
+      if (!containerEl) return;
+
+      // Create map with a sensible default center; will fit to bounds later
+      this._map = L.map(containerId, {
+        center: [39.5, -0.5],
+        zoom: 7,
+      });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19,
+      }).addTo(this._map);
+
+      // Add markers for crags
+      const crags = this.global.crags();
+      const latLngs: [number, number][] = [];
+      for (const c of crags) {
+        const { lat, lng } = c.ubication;
+        const latLng: [number, number] = [lat, lng];
+        latLngs.push(latLng);
+        L.marker(latLng).addTo(this._map).bindPopup(c.name);
+      }
+
+      if (latLngs.length) {
+        const bounds = L.latLngBounds(latLngs);
+        this._map.fitBounds(bounds, { padding: [24, 24] });
+      }
+
+      this._mapInitialized = true;
+    } catch (err) {
+      console.error('Error initializing Leaflet map:', err);
+    }
+  }
+
+  ngOnDestroy(): void {
+    try {
+      if (this._map && typeof this._map.remove === 'function') {
+        this._map.remove();
+      }
+    } catch (e) {
+      // No-op: ensure cleanup does not throw during SSR/hot reload
+      console.debug('Map cleanup error ignored:', e);
+    }
+    this._map = null;
+    this._mapInitialized = false;
   }
 }
