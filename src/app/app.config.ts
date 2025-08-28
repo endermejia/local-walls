@@ -3,7 +3,12 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
-import { HttpClient, provideHttpClient, withFetch } from '@angular/common/http';
+import {
+  HttpClient,
+  provideHttpClient,
+  withFetch,
+  withInterceptors,
+} from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import {
@@ -17,6 +22,7 @@ import { provideEventPlugins } from '@taiga-ui/event-plugins';
 import { TUI_LANGUAGE } from '@taiga-ui/i18n';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { GlobalData } from '../services';
+import { errorInterceptor } from '../services';
 
 import { routes } from './app.routes';
 
@@ -30,7 +36,7 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideZonelessChangeDetection(),
     provideRouter(routes),
-    provideHttpClient(withFetch()),
+    provideHttpClient(withFetch(), withInterceptors([errorInterceptor])),
     provideClientHydration(withEventReplay(), withIncrementalHydration()),
     provideTranslateService({
       loader: {

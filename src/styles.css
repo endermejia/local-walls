@@ -6,48 +6,6 @@ tui-bottom-sheet {
   z-index: 9999 !important;
 }
 
-/* Professional surface card utility: subtle elevation, smooth hover */
-.surface-card {
-  /* theme-aware border with safe fallback */
-  border-color: color-mix(in oklab, var(--tui-border-normal, rgba(0,0,0,0.12)) 100%, transparent) !important;
-  box-shadow:
-    0 1px 1px rgba(0, 0, 0, 0.04),
-    0 6px 16px rgba(0, 0, 0, 0.08);
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+.leaflet-container {
+  z-index: 1;
 }
-
-.surface-card:hover,
-.surface-card:focus-visible {
-  border-color: var(--tui-border-hover, var(--tui-accent, #3b82f6)) !important;
-  box-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.08),
-    0 12px 24px rgba(0, 0, 0, 0.14);
-  transform: translateY(-2px);
-}
-
-/* Tasteful gradient for hero title */
-.hero-title {
-  background-image: linear-gradient(90deg, var(--tui-accent, #6366f1), #22d3ee);
-  background-image: linear-gradient(90deg, color-mix(in oklab, var(--tui-accent, #6366f1) 85%, #a855f7 15%), color-mix(in oklab, var(--tui-accent, #6366f1) 40%, #22d3ee 60%));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .surface-card { transition: border-color .2s ease; }
-  .surface-card:hover, .surface-card:focus-visible { transform: none; }
-}
-
-
-
-/* Inline skill icons */
-.skill-icon {
-  width: 18px;
-  height: 18px;
-  display: inline-block;
-  vertical-align: text-bottom;
-  margin-right: 0.5rem; /* 8px */
-  border-radius: 3px; /* soften sharp squares like TS */
-}
-

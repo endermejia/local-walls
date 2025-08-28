@@ -22,7 +22,9 @@ async function getAngularAppEngine(): Promise<AngularAppEngine> {
   return angularAppEngine;
 }
 
-export async function netlifyAppEngineHandler(request: Request): Promise<Response> {
+export async function netlifyAppEngineHandler(
+  request: Request,
+): Promise<Response> {
   const context = getContext();
 
   // Example API endpoints can be defined here.

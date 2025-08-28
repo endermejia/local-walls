@@ -44,9 +44,9 @@ export class AppComponent {
     }
 
     // SEO: Set title and meta tags (SSR-safe)
-    const appTitle = 'Gabriel Mejía | Angular Developer';
+    const appTitle = 'Local Walls | Croquis de tus equipadores';
     const description =
-      'Senior Frontend Developer specialized in Angular, TypeScript, Signals, SSR and zoneless change detection. Portfolio, projects and contact.';
+      'App de croquis de escalada hechos por equipadores locales. Encuentra y comparte zonas de escalada, sectores y vías cerca de ti.';
 
     this.title.setTitle(appTitle);
 
