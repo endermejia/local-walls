@@ -9,11 +9,16 @@
       "add": "Marcar como favorito",
       "remove": "Quitar favorito"
     },
+    "openMap": "Abrir ubicación en Google Maps",
     "signIn": "Entrar"
   },
   "labels": {
-    "crags": "Crags",
+    "crags": "Sectores",
+    "crags-singular": "sector",
+    "crags-plural": "sectores",
     "zones": "Zonas",
+    "zones-singular": "zona",
+    "zones-plural": "zonas",
     "approach": "Aproximación",
     "parkings": "Parkings",
     "username": "Usuario",

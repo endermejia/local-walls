@@ -6,8 +6,8 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { TuiButton, TuiTitle, TuiSurface } from '@taiga-ui/core';
-import { TuiAvatar, TuiBadge } from '@taiga-ui/kit';
+import { TuiTitle, TuiSurface } from '@taiga-ui/core';
+import { TuiBadge } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import { GlobalData } from '../services';
 import type { Topo, TopoRoute, Route } from '../models';
@@ -18,8 +18,6 @@ import { TranslatePipe } from '@ngx-translate/core';
   standalone: true,
   imports: [
     RouterLink,
-    TuiButton,
-    TuiAvatar,
     TuiHeader,
     TuiCardLarge,
     TuiTitle,
@@ -30,33 +28,33 @@ import { TranslatePipe } from '@ngx-translate/core';
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
       @if (topo(); as t) {
-        <header class="mb-4 flex items-start justify-between gap-2">
-          <div>
-            <h1 class="text-2xl font-bold">{{ t.name }}</h1>
-          </div>
-          <button
-            tuiButton
-            [appearance]="global.isTopoLiked(t.id) ? 'secondary' : 'flat'"
-            size="s"
-            (click.zoneless)="global.toggleLikeTopo(t.id)"
-            [attr.aria-label]="
-              (global.isTopoLiked(t.id)
-                ? 'actions.favorite.remove'
-                : 'actions.favorite.add'
-              ) | translate
-            "
-            [attr.title]="
-              (global.isTopoLiked(t.id)
-                ? 'actions.favorite.remove'
-                : 'actions.favorite.add'
-              ) | translate
-            "
-          >
-            <tui-avatar [src]="'@tui.heart'"></tui-avatar>
-          </button>
+        <header tuiHeader class="mb-4">
+          <h1 tuiTitle>{{ t.name }}</h1>
+          <aside tuiAccessories>
+            <tui-badge
+              [appearance]="global.isTopoLiked(t.id) ? 'negative' : 'neutral'"
+              iconStart="@tui.heart"
+              size="xl"
+              (click.zoneless)="global.toggleLikeTopo(t.id)"
+              [attr.aria-label]="
+                (global.isTopoLiked(t.id)
+                  ? 'actions.favorite.remove'
+                  : 'actions.favorite.add'
+                ) | translate
+              "
+              [attr.title]="
+                (global.isTopoLiked(t.id)
+                  ? 'actions.favorite.remove'
+                  : 'actions.favorite.add'
+                ) | translate
+              "
+            ></tui-badge>
+          </aside>
         </header>
 
-        <h2 class="text-xl font-semibold mt-6 mb-2">{{ 'labels.routes' | translate }}</h2>
+        <h2 class="text-xl font-semibold mt-6 mb-2">
+          {{ 'labels.routes' | translate }}
+        </h2>
         <div class="grid gap-2">
           @for (tr of topoRoutesDetailed(); track tr.id) {
             <div
@@ -66,7 +64,9 @@ import { TranslatePipe } from '@ngx-translate/core';
               [routerLink]="['/route', tr.routeId]"
             >
               <header tuiHeader>
-                <h2 tuiTitle>{{ tr.route?.name || ('labels.route' | translate) }}</h2>
+                <h2 tuiTitle>
+                  {{ tr.route?.name || ('labels.route' | translate) }}
+                </h2>
                 <aside tuiAccessories>
                   <tui-badge
                     [appearance]="
@@ -94,7 +94,9 @@ import { TranslatePipe } from '@ngx-translate/core';
                 </aside>
               </header>
               <section>
-                <div class="text-sm opacity-80">{{ 'labels.number' | translate }}: #{{ tr.number }}</div>
+                <div class="text-sm opacity-80">
+                  {{ 'labels.number' | translate }}: #{{ tr.number }}
+                </div>
                 <div class="text-sm mt-1">
                   {{ 'labels.grade' | translate }}: {{ tr.route?.grade || '—' }}
                 </div>

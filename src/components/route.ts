@@ -7,47 +7,46 @@ import {
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { GlobalData } from '../services';
-import { TuiButton } from '@taiga-ui/core';
-import { TuiAvatar } from '@taiga-ui/kit';
+import { TuiTitle } from '@taiga-ui/core';
+import { TuiBadge } from '@taiga-ui/kit';
+import { TuiHeader } from '@taiga-ui/layout';
 import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-route',
   standalone: true,
-  imports: [TuiButton, TuiAvatar, TranslatePipe],
+  imports: [TuiHeader, TuiTitle, TuiBadge, TranslatePipe],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
       @if (route(); as r) {
-        <header class="mb-4 flex items-start justify-between gap-2">
-          <div>
-            <h1 class="text-2xl font-bold">{{ r.name }}</h1>
-            @if (r.grade) {
-              <p class="mt-2 opacity-80">
-                {{ 'labels.grade' | translate }}: {{ r.grade }}
-              </p>
-            }
-          </div>
-          <button
-            tuiButton
-            [appearance]="global.isRouteLiked(r.id) ? 'secondary' : 'flat'"
-            size="s"
-            (click.zoneless)="global.toggleLikeRoute(r.id)"
-            [attr.aria-label]="
-              (global.isRouteLiked(r.id)
-                ? 'actions.favorite.remove'
-                : 'actions.favorite.add'
-              ) | translate
-            "
-            [attr.title]="
-              (global.isRouteLiked(r.id)
-                ? 'actions.favorite.remove'
-                : 'actions.favorite.add'
-              ) | translate
-            "
-          >
-            <tui-avatar [src]="'@tui.heart'"></tui-avatar>
-          </button>
+        <header tuiHeader class="mb-4">
+          <h1 tuiTitle>{{ r.name }}</h1>
+          <aside tuiAccessories>
+            <tui-badge
+              [appearance]="global.isRouteLiked(r.id) ? 'negative' : 'neutral'"
+              iconStart="@tui.heart"
+              size="xl"
+              (click.zoneless)="global.toggleLikeRoute(r.id)"
+              [attr.aria-label]="
+                (global.isRouteLiked(r.id)
+                  ? 'actions.favorite.remove'
+                  : 'actions.favorite.add'
+                ) | translate
+              "
+              [attr.title]="
+                (global.isRouteLiked(r.id)
+                  ? 'actions.favorite.remove'
+                  : 'actions.favorite.add'
+                ) | translate
+              "
+            ></tui-badge>
+          </aside>
         </header>
+        @if (r.grade) {
+          <p class="mt-2 opacity-80">
+            {{ 'labels.grade' | translate }}: {{ r.grade }}
+          </p>
+        }
       } @else {
         <p>{{ 'common.loading' | translate }}</p>
       }

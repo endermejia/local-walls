@@ -1,5 +1,6 @@
 import {
   computed,
+  effect,
   inject,
   Injectable,
   Signal,
@@ -10,6 +11,7 @@ import { Router } from '@angular/router';
 import { TuiFlagPipe } from '@taiga-ui/core';
 import { TranslateService } from '@ngx-translate/core';
 import { LocalStorage } from './local-storage';
+import { ApiService } from './api.service';
 import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
 import type {
   SearchData,
@@ -31,6 +33,7 @@ export class GlobalData {
   private translate = inject(TranslateService);
   private localStorage = inject(LocalStorage);
   private router = inject(Router);
+  private api = inject(ApiService);
   protected readonly flagPipe = new TuiFlagPipe();
 
   selectedLanguage: WritableSignal<'es' | 'en'> = signal('en');
@@ -65,7 +68,7 @@ export class GlobalData {
       },
       {
         name: 'settings.theme',
-        icon: `@tui.${this.selectedTheme() === 'dark' ? 'sun' : 'moon'}`,
+        icon: `@tui.${this.selectedTheme() === 'dark' ? 'moon' : 'sun'}`,
         fn: () => this.switchTheme(),
       },
       {
@@ -91,75 +94,25 @@ export class GlobalData {
     ascents: [],
   });
 
-  zones: WritableSignal<Zone[]> = signal([
-    {
-      id: 'z1',
-      name: 'Valencia',
-      description: 'Zona mediterránea',
-      cragIds: ['c1'],
-    },
-    {
-      id: 'z2',
-      name: 'Alicante',
-      description: 'Costa Blanca',
-      cragIds: ['c2'],
-    },
-  ]);
-
-  crags: WritableSignal<Crag[]> = signal([
-    {
-      id: 'c1',
-      name: 'Chulilla',
-      description: 'Limestone canyon',
-      ubication: { lat: 39.652, lng: -0.889 },
-      parkings: ['p1'],
-      approach: 20,
-      zoneId: 'z1',
-    },
-    {
-      id: 'c2',
-      name: 'Sella',
-      description: 'Classic multi-sector crag',
-      ubication: { lat: 38.612, lng: -0.268 },
-      parkings: ['p2'],
-      approach: 10,
-      zoneId: 'z2',
-    },
-  ]);
-
-  parkings: WritableSignal<Parking[]> = signal([
-    {
-      id: 'p1',
-      name: 'Parking Chulilla',
-      ubication: { lat: 39.653, lng: -0.891 },
-      cragId: 'c1',
-      capacity: 50,
-    },
-    {
-      id: 'p2',
-      name: 'Parking Sella',
-      ubication: { lat: 38.613, lng: -0.269 },
-      cragId: 'c2',
-      capacity: 30,
-    },
-  ]);
-
-  topos: WritableSignal<Topo[]> = signal([
-    { id: 't1', name: 'Topo Chulilla', cragId: 'c1', topoRouteIds: ['tr1'] },
-    { id: 't2', name: 'Topo Sella', cragId: 'c2', topoRouteIds: ['tr2'] },
-  ]);
-
-  routesData: WritableSignal<Route[]> = signal([
-    { id: 'r1', name: 'La Danza del Tigre', grade: '7b' },
-    { id: 'r2', name: 'Torrente', grade: '6c+' },
-  ]);
-
-  topoRoutes: WritableSignal<TopoRoute[]> = signal([
-    { id: 'tr1', number: 1, routeId: 'r1', topoId: 't1' },
-    { id: 'tr2', number: 2, routeId: 'r2', topoId: 't2' },
-  ]);
-
+  zones: WritableSignal<Zone[]> = signal([]);
+  crags: WritableSignal<Crag[]> = signal([]);
+  parkings: WritableSignal<Parking[]> = signal([]);
+  topos: WritableSignal<Topo[]> = signal([]);
+  routesData: WritableSignal<Route[]> = signal([]);
+  topoRoutes: WritableSignal<TopoRoute[]> = signal([]);
   ascents: WritableSignal<Ascent[]> = signal([]);
+
+  // Sync from ApiService when data is loaded (browser side)
+  private readonly syncFromApi = effect(() => {
+    if (this.api.loaded()) {
+      this.zones.set(this.api.zones());
+      this.crags.set(this.api.crags());
+      this.parkings.set(this.api.parkings());
+      this.topos.set(this.api.topos());
+      this.routesData.set(this.api.routes());
+      this.topoRoutes.set(this.api.topoRoutes());
+    }
+  });
 
   selectedZoneId: WritableSignal<string | null> = signal(null);
   selectedCragId: WritableSignal<string | null> = signal(null);
@@ -191,11 +144,6 @@ export class GlobalData {
     const id = this.selectedCragId();
     if (!id) return [] as Topo[];
     return this.topos().filter((t) => t.cragId === id);
-  });
-
-  zonesNotLiked = computed(() => {
-    const likedIds = new Set(this.appUser()?.likedZones ?? []);
-    return this.zones().filter((z) => !likedIds.has(z.id));
   });
 
   setSelectedZone(id: string | null) {
