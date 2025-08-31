@@ -36,18 +36,18 @@ import { TranslatePipe } from '@ngx-translate/core';
             }
           </div>
           <tui-badge
-            [appearance]="global.isZoneLiked(z.id) ? 'negative' : 'neutral'"
+            [appearance]="global.isZoneLiked()(z.id) ? 'negative' : 'neutral'"
             iconStart="@tui.heart"
             size="xl"
             (click.zoneless)="global.toggleLikeZone(z.id)"
             [attr.aria-label]="
-              (global.isZoneLiked(z.id)
+              (global.isZoneLiked()(z.id)
                 ? 'actions.favorite.remove'
                 : 'actions.favorite.add'
               ) | translate
             "
             [attr.title]="
-              (global.isZoneLiked(z.id)
+              (global.isZoneLiked()(z.id)
                 ? 'actions.favorite.remove'
                 : 'actions.favorite.add'
               ) | translate
@@ -71,7 +71,7 @@ import { TranslatePipe } from '@ngx-translate/core';
                 <aside tuiAccessories>
                   <tui-badge
                     [appearance]="
-                      global.isCragLiked(c.id) ? 'negative' : 'neutral'
+                      global.isCragLiked()(c.id) ? 'negative' : 'neutral'
                     "
                     iconStart="@tui.heart"
                     size="xl"
@@ -79,13 +79,13 @@ import { TranslatePipe } from '@ngx-translate/core';
                       $event.stopPropagation(); global.toggleLikeCrag(c.id)
                     "
                     [attr.aria-label]="
-                      (global.isCragLiked(c.id)
+                      (global.isCragLiked()(c.id)
                         ? 'actions.favorite.remove'
                         : 'actions.favorite.add'
                       ) | translate
                     "
                     [attr.title]="
-                      (global.isCragLiked(c.id)
+                      (global.isCragLiked()(c.id)
                         ? 'actions.favorite.remove'
                         : 'actions.favorite.add'
                       ) | translate

@@ -23,18 +23,20 @@ import { TranslatePipe } from '@ngx-translate/core';
           <h1 tuiTitle>{{ r.name }}</h1>
           <aside tuiAccessories>
             <tui-badge
-              [appearance]="global.isRouteLiked(r.id) ? 'negative' : 'neutral'"
+              [appearance]="
+                global.isRouteLiked()(r.id) ? 'negative' : 'neutral'
+              "
               iconStart="@tui.heart"
               size="xl"
               (click.zoneless)="global.toggleLikeRoute(r.id)"
               [attr.aria-label]="
-                (global.isRouteLiked(r.id)
+                (global.isRouteLiked()(r.id)
                   ? 'actions.favorite.remove'
                   : 'actions.favorite.add'
                 ) | translate
               "
               [attr.title]="
-                (global.isRouteLiked(r.id)
+                (global.isRouteLiked()(r.id)
                   ? 'actions.favorite.remove'
                   : 'actions.favorite.add'
                 ) | translate

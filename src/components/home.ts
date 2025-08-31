@@ -1,20 +1,26 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
-  AfterViewInit,
-  OnDestroy,
-  inject,
-  PLATFORM_ID,
   computed,
-  signal,
   ElementRef,
+  inject,
+  OnDestroy,
+  PLATFORM_ID,
+  signal,
   ViewChild,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { GlobalData } from '../services';
 import { RouterLink } from '@angular/router';
-import { TuiTitle, TuiLoader, TuiButton, TuiSurface } from '@taiga-ui/core';
-import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
+import {
+  TuiButton,
+  TuiLink,
+  TuiLoader,
+  TuiSurface,
+  TuiTitle,
+} from '@taiga-ui/core';
+import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { TuiBadge, TuiButtonClose } from '@taiga-ui/kit';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -33,6 +39,8 @@ import { TranslatePipe } from '@ngx-translate/core';
     TuiButton,
     TuiBadge,
     TuiButtonClose,
+    LowerCasePipe,
+    TuiLink,
   ],
   template: ` <div class="flex flex-col gap-4 h-full w-full relative">
     @let bottomSheetExpanded = isBottomSheetExpanded();
@@ -42,7 +50,7 @@ import { TranslatePipe } from '@ngx-translate/core';
         tuiIconButton
         size="s"
         appearance="primary-grayscale"
-        (click.zoneless)="toggleBottomSheet()"
+        (click.zoneless)="setBottomSheet('toggle')"
         [iconStart]="bottomSheetExpanded ? '@tui.map' : '@tui.list'"
         class="pointer-events-auto"
         [attr.aria-label]="
@@ -56,8 +64,9 @@ import { TranslatePipe } from '@ngx-translate/core';
     </div>
 
     <!-- Map -->
-    @defer {
+    @defer (on viewport) {
       <div
+        #mapContainer
         id="cragsMap"
         class="w-full grow min-h-0"
         aria-label="Interactive map"
@@ -70,32 +79,34 @@ import { TranslatePipe } from '@ngx-translate/core';
     @if (selectedCrag(); as c) {
       <!-- Sección de información del crag seleccionado con el mismo ancho que el bottom-sheet -->
       <div
-        class="absolute w-full max-w-[40rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-5"
+        class="absolute w-full max-w-[40rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0"
       >
         <div
           tuiCardLarge
           tuiSurface="floating"
-          class="tui-space_top-4 relative pointer-events-auto cursor-pointer mx-4"
+          class="tui-space_top-4 relative pointer-events-auto cursor-pointer m-4"
           [routerLink]="['/crag', c.id]"
         >
           <header tuiHeader>
             <h2 tuiTitle>{{ c.name }}</h2>
             <aside tuiAccessories class="flex items-center gap-2">
               <tui-badge
-                [appearance]="global.isCragLiked(c.id) ? 'negative' : 'neutral'"
+                [appearance]="
+                  global.isCragLiked()(c.id) ? 'negative' : 'neutral'
+                "
                 iconStart="@tui.heart"
                 size="xl"
                 (click.zoneless)="
                   $event.stopPropagation(); global.toggleLikeCrag(c.id)
                 "
                 [attr.aria-label]="
-                  (global.isCragLiked(c.id)
+                  (global.isCragLiked()(c.id)
                     ? 'actions.favorite.remove'
                     : 'actions.favorite.add'
                   ) | translate
                 "
                 [attr.title]="
-                  (global.isCragLiked(c.id)
+                  (global.isCragLiked()(c.id)
                     ? 'actions.favorite.remove'
                     : 'actions.favorite.add'
                   ) | translate
@@ -132,7 +143,13 @@ import { TranslatePipe } from '@ngx-translate/core';
           </header>
           <section>
             <div class="text-sm opacity-80">
-              {{ 'labels.zone' | translate }}: {{ zoneNameById(c.zoneId) }}
+              <a
+                tuiLink
+                appearance="action-grayscale"
+                [routerLink]="['/zone', c.zoneId]"
+                (click.zoneless)="$event.stopPropagation()"
+                >{{ global.zoneNameById()(c.zoneId) }}</a
+              >
             </div>
             @if (c.description) {
               <div class="text-sm mt-1 opacity-70">{{ c.description }}</div>
@@ -155,8 +172,9 @@ import { TranslatePipe } from '@ngx-translate/core';
           <span tuiTitle class="place-items-center">
             {{ zonesInMapSorted().length }}
             {{
-              'labels.zones-' + (numZonas === 1 ? 'singular' : 'plural')
+              'labels.' + (numZonas === 1 ? 'zone' : 'zones')
                 | translate
+                | lowercase
             }}
           </span>
         </h3>
@@ -174,7 +192,7 @@ import { TranslatePipe } from '@ngx-translate/core';
                   <aside tuiAccessories>
                     <tui-badge
                       [appearance]="
-                        global.isZoneLiked(z.id) ? 'negative' : 'neutral'
+                        global.isZoneLiked()(z.id) ? 'negative' : 'neutral'
                       "
                       iconStart="@tui.heart"
                       size="xl"
@@ -182,13 +200,13 @@ import { TranslatePipe } from '@ngx-translate/core';
                         $event.stopPropagation(); global.toggleLikeZone(z.id)
                       "
                       [attr.aria-label]="
-                        (global.isZoneLiked(z.id)
+                        (global.isZoneLiked()(z.id)
                           ? 'actions.favorite.remove'
                           : 'actions.favorite.add'
                         ) | translate
                       "
                       [attr.title]="
-                        (global.isZoneLiked(z.id)
+                        (global.isZoneLiked()(z.id)
                           ? 'actions.favorite.remove'
                           : 'actions.favorite.add'
                         ) | translate
@@ -217,8 +235,9 @@ import { TranslatePipe } from '@ngx-translate/core';
           <span tuiTitle class="place-items-center">
             {{ numCrags }}
             {{
-              'labels.crags-' + (numCrags === 1 ? 'singular' : 'plural')
+              'labels.' + (numCrags === 1 ? 'crag' : 'crags')
                 | translate
+                | lowercase
             }}
           </span>
         </h3>
@@ -236,7 +255,7 @@ import { TranslatePipe } from '@ngx-translate/core';
                   <aside tuiAccessories>
                     <tui-badge
                       [appearance]="
-                        global.isCragLiked(c.id) ? 'negative' : 'neutral'
+                        global.isCragLiked()(c.id) ? 'negative' : 'neutral'
                       "
                       iconStart="@tui.heart"
                       size="xl"
@@ -244,13 +263,13 @@ import { TranslatePipe } from '@ngx-translate/core';
                         $event.stopPropagation(); global.toggleLikeCrag(c.id)
                       "
                       [attr.aria-label]="
-                        (global.isCragLiked(c.id)
+                        (global.isCragLiked()(c.id)
                           ? 'actions.favorite.remove'
                           : 'actions.favorite.add'
                         ) | translate
                       "
                       [attr.title]="
-                        (global.isCragLiked(c.id)
+                        (global.isCragLiked()(c.id)
                           ? 'actions.favorite.remove'
                           : 'actions.favorite.add'
                         ) | translate
@@ -260,8 +279,13 @@ import { TranslatePipe } from '@ngx-translate/core';
                 </header>
                 <section>
                   <div class="text-sm opacity-80">
-                    {{ 'labels.zone' | translate }}:
-                    {{ zoneNameById(c.zoneId) }}
+                    <a
+                      tuiLink
+                      appearance="action-grayscale"
+                      [routerLink]="['/zone', c.zoneId]"
+                      (click.zoneless)="$event.stopPropagation()"
+                      >{{ global.zoneNameById()(c.zoneId) }}</a
+                    >
                   </div>
                   @if (c.description) {
                     <div class="text-sm mt-1 opacity-70">
@@ -284,58 +308,198 @@ import { TranslatePipe } from '@ngx-translate/core';
   },
 })
 export class HomeComponent implements AfterViewInit, OnDestroy {
-  // Actualiza señales del estado del bottom-sheet según el scroll
   onSheetScroll(event: Event): void {
-    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined') {
-      return;
-    }
+    if (!this.isBrowser()) return;
     const target =
       (event?.target as HTMLElement) || this.sheetRef?.nativeElement;
     if (!target) return;
-    // En zoneless, usamos señales para forzar la actualización de la vista
-    this._sheetClientHeight.set(target.clientHeight || 0);
-    this._sheetScrollTop.set(target.scrollTop || 0);
+    this.updateBottomSheetScrollSignals(target);
   }
   protected readonly global = inject(GlobalData);
   private readonly platformId = inject(PLATFORM_ID);
 
   protected readonly stops = ['6rem'] as const;
 
+  private remToPx(remOrPx: string): number {
+    if (!this.isBrowser()) {
+      const num = Number.parseFloat(remOrPx);
+      return isNaN(num)
+        ? 0
+        : Math.round(num * (remOrPx.includes('rem') ? 16 : 1));
+    }
+    const num = Number.parseFloat(remOrPx);
+    if (isNaN(num)) return 0;
+    if (remOrPx.trim().endsWith('rem')) {
+      const rootFont = window.getComputedStyle(
+        document.documentElement,
+      ).fontSize;
+      const base = Number.parseFloat(rootFont) || 16;
+      return Math.round(num * base);
+    }
+    return Math.round(num);
+  }
+
   @ViewChild('sheet', { read: ElementRef }) sheetRef?: ElementRef<HTMLElement>;
+  private _mapContainer?: HTMLElement;
+
+  @ViewChild('mapContainer', { read: ElementRef })
+  set mapContainerRef(ref: ElementRef<HTMLElement> | undefined) {
+    const el = ref?.nativeElement;
+    this._mapContainer = el ?? undefined;
+    if (
+      el &&
+      !this._mapInitialized &&
+      isPlatformBrowser(this.platformId) &&
+      typeof window !== 'undefined'
+    ) {
+      const raf =
+        typeof window !== 'undefined'
+          ? (window.requestAnimationFrame as
+              | undefined
+              | ((cb: FrameRequestCallback) => number))
+          : undefined;
+      if (typeof raf === 'function') {
+        raf(() =>
+          this.initMap().catch((e) =>
+            console.error('Error initializing Leaflet map:', e),
+          ),
+        );
+      } else {
+        Promise.resolve().then(() =>
+          this.initMap().catch((e) =>
+            console.error('Error initializing Leaflet map:', e),
+          ),
+        );
+      }
+    }
+  }
 
   private readonly _sheetClientHeight = signal(0);
   private readonly _sheetScrollTop = signal(0);
+
+  private isBrowser(): boolean {
+    return isPlatformBrowser(this.platformId) && typeof window !== 'undefined';
+  }
+
+  private scheduleNextFrame(run: () => void): void {
+    if (!this.isBrowser()) return;
+    const raf = (
+      window as unknown as {
+        requestAnimationFrame?: (cb: FrameRequestCallback) => number;
+      }
+    ).requestAnimationFrame;
+    if (typeof raf === 'function') {
+      raf(() => run());
+    } else {
+      Promise.resolve().then(run);
+    }
+  }
+
+  private computeBottomSheetTargetTop(node: HTMLElement): number {
+    const offsetPx = this.remToPx(this.stops[0] as string) || 0;
+    const clientHeight = node.clientHeight || 0;
+    return Math.max(0, clientHeight - offsetPx);
+  }
+
+  private updateBottomSheetScrollSignals(
+    node: HTMLElement,
+    targetTop?: number,
+  ): void {
+    const clientHeight = node.clientHeight || 0;
+    const top = typeof targetTop === 'number' ? targetTop : node.scrollTop || 0;
+    this._sheetClientHeight.set(clientHeight);
+    this._sheetScrollTop.set(top);
+  }
+
+  private scrollBottomSheetTo(node: HTMLElement, top: number): void {
+    this.updateBottomSheetScrollSignals(node, top);
+    try {
+      node.scrollTo({ top, behavior: 'smooth' });
+    } catch {
+      node.scrollTop = top;
+    }
+  }
 
   protected readonly isBottomSheetExpanded = computed(() => {
     const clientHeight = this._sheetClientHeight();
     const scrollTop = this._sheetScrollTop();
     if (clientHeight <= 0) return false;
-    const offset = Number.parseInt(this.stops[0] as string, 10) || 0;
+    const offset = this.remToPx(this.stops[0] as string) || 0;
     const maxTop = Math.max(0, clientHeight - offset);
     return scrollTop >= maxTop * 0.5;
   });
 
-  toggleBottomSheet(): void {
+  setBottomSheet(mode: 'open' | 'close' | 'toggle' = 'toggle'): void {
     if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined') {
       return;
     }
+
+    const hadCragSelected = !!this.global.selectedCragId();
+
+    if (hadCragSelected && mode !== 'open') {
+      this.global.setSelectedCrag(null);
+      this.global.setSelectedZone(null);
+    }
+
     const el = this.sheetRef?.nativeElement;
-    if (!el) return;
+    if (!el) {
+      const raf = (
+        window as unknown as {
+          requestAnimationFrame?: (cb: FrameRequestCallback) => number;
+        }
+      ).requestAnimationFrame;
+      if (typeof raf === 'function') {
+        raf(() => {
+          const node = this.sheetRef?.nativeElement;
+          if (!node) return;
+          raf(() => {
+            const target =
+              mode === 'close' ? 0 : this.computeBottomSheetTargetTop(node);
+            this.scrollBottomSheetTo(node, mode === 'open' ? target : target);
+            if (mode === 'close') {
+              this._sheetClientHeight.set(0);
+              this._sheetScrollTop.set(0);
+            }
+          });
+        });
+      }
+      return;
+    }
 
-    const offsetRaw = this.stops[0] as string;
-    const offset = Number.parseInt(offsetRaw, 10) || 0;
-    const clientHeight = el.clientHeight || 0;
-    const maxTop = Math.max(0, clientHeight - offset);
-    const current = el.scrollTop || 0;
-    const target = current < maxTop * 0.5 ? maxTop : 0;
+    const maxTop = this.computeBottomSheetTargetTop(el);
+    const currentTop = el.scrollTop || 0;
 
-    this._sheetClientHeight.set(clientHeight);
-    this._sheetScrollTop.set(target);
+    let targetTop = 0;
+    if (mode === 'open') {
+      targetTop = maxTop;
+    } else if (mode === 'close') {
+      targetTop = 0;
+    } else {
+      const shouldExpand = hadCragSelected ? true : currentTop < maxTop * 0.5;
+      targetTop = shouldExpand ? maxTop : 0;
+    }
 
-    try {
-      el.scrollTo({ top: target, behavior: 'smooth' });
-    } catch {
-      el.scrollTop = target;
+    const doScroll = (node: HTMLElement) => {
+      this.scrollBottomSheetTo(node, targetTop);
+      if (targetTop === 0) {
+        // reset signals when closing
+        this._sheetClientHeight.set(0);
+        this._sheetScrollTop.set(0);
+      }
+    };
+
+    const raf = (
+      window as unknown as {
+        requestAnimationFrame?: (cb: FrameRequestCallback) => number;
+      }
+    ).requestAnimationFrame;
+    if (typeof raf === 'function') {
+      raf(() => {
+        const nodeA = this.sheetRef?.nativeElement || el;
+        raf(() => doScroll(nodeA));
+      });
+    } else {
+      doScroll(el);
     }
   }
 
@@ -384,69 +548,70 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
   });
 
-  zoneNameById(id: string): string {
-    const z = this.global.zones().find((x) => x.id === id);
-    return z ? z.name : '';
-  }
-
   closeSelectedCrag(): void {
     this.global.setSelectedCrag(null);
     this.global.setSelectedZone(null);
   }
 
+  closeBottomSheet(): void {
+    this.setBottomSheet('close');
+  }
+
   private _map: import('leaflet').Map | null = null;
   private _mapInitialized = false;
-  private _pollHandle: number | null = null;
-  private _destroyed = false;
+
+  private cragLabelHtml(name: string, isSelected: boolean): string {
+    return `<div class="w-fit bg-black/70 text-white px-2 py-1 rounded-xl text-xs leading-tight whitespace-nowrap -translate-y-full pointer-events-auto border border-transparent shadow hover:bg-black/85 focus:outline-none focus:ring-2 focus:ring-white/70" role="button" tabindex="0" aria-label="${name}" aria-pressed="${isSelected}">${name}</div>`;
+  }
+
+  private attachMarkerKeyboardSelection(
+    marker: import('leaflet').Marker,
+    cragId: string,
+    zoneId: string,
+  ): void {
+    const el = marker.getElement();
+    if (!el) return;
+    el.addEventListener('keydown', (ev: KeyboardEvent) => {
+      const key = ev.key;
+      if (key === 'Enter' || key === ' ') {
+        ev.preventDefault();
+        this.selectCragFromMap(cragId, zoneId);
+      }
+    });
+  }
+
+  private selectCragFromMap(cragId: string, zoneId: string): void {
+    this.global.setSelectedCrag(cragId);
+    this.global.setSelectedZone(zoneId);
+    this.setBottomSheet('open');
+  }
+
+  private updateVisibleIdsFromCurrentBounds(L: typeof import('leaflet')): void {
+    if (!this._map) return;
+    const bounds = this._map.getBounds();
+    const visibleZones = new Set<string>();
+    const visibleCrags = new Set<string>();
+    for (const c of this.global.crags()) {
+      const { lat, lng } = c.ubication;
+      const wrapped = L.latLng(lat, lng).wrap();
+      if (bounds.contains(wrapped)) {
+        visibleZones.add(c.zoneId);
+        visibleCrags.add(c.id);
+      }
+    }
+    this._visibleZoneIds.set(visibleZones);
+    this._visibleCragIds.set(visibleCrags);
+  }
 
   constructor() {
     this.global.setSelectedZone(null);
     this.global.setSelectedCrag(null);
     this.global.setSelectedTopo(null);
     this.global.setSelectedRoute(null);
-
-    Promise.resolve().then(() => {
-      if (
-        !isPlatformBrowser(this.platformId) ||
-        typeof window === 'undefined'
-      ) {
-        return;
-      }
-    });
   }
 
   async ngAfterViewInit(): Promise<void> {
-    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined') {
-      console.info('Not in browser environment, skipping map initialization');
-      return;
-    }
-    this.waitForMapContainerAndInit();
-  }
-
-  private waitForMapContainerAndInit(attempt = 0): void {
-    if (this._destroyed) return;
-
-    const containerEl =
-      typeof document !== 'undefined'
-        ? document.getElementById('cragsMap')
-        : null;
-    if (!containerEl) {
-      this._mapInitialized = false;
-    }
-
-    if (containerEl && !this._mapInitialized) {
-      this.initMap().catch((err) =>
-        console.error('Error initializing Leaflet map:', err),
-      );
-      return;
-    }
-    if (attempt > 50) return;
-    if (typeof window !== 'undefined') {
-      this._pollHandle = window.setTimeout(
-        () => this.waitForMapContainerAndInit(attempt + 1),
-        100,
-      );
-    }
+    if (!this.isBrowser()) return;
   }
 
   private async initMap(): Promise<void> {
@@ -454,11 +619,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
     const [{ default: L }] = await Promise.all([import('leaflet')]);
 
-    const containerId = 'cragsMap';
-    const containerEl = document.getElementById(containerId);
+    const containerEl = this._mapContainer;
     if (!containerEl) return;
 
-    this._map = L.map(containerId, {
+    this._map = L.map(containerEl, {
       center: [39.5, -0.5],
       zoom: 7,
       worldCopyJump: true,
@@ -478,39 +642,20 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       const { lat, lng } = c.ubication;
       const latLng: [number, number] = [lat, lng];
       latLngs.push(latLng);
-      const labelHtml = `<div class="w-fit bg-black/70 text-white px-2 py-1 rounded-xl text-xs leading-tight whitespace-nowrap -translate-y-full pointer-events-auto border border-transparent shadow hover:bg-black/85 focus:outline-none focus:ring-2 focus:ring-white/70" role="button" tabindex="0" aria-label="${c.name}" aria-pressed="${this.global.selectedCragId() === c.id}">${c.name}</div>`;
       const icon = L.divIcon({
-        html: labelHtml,
+        html: this.cragLabelHtml(c.name, this.global.selectedCragId() === c.id),
         className: 'pointer-events-none',
         iconSize: [0, 0],
         iconAnchor: [0, 0],
       });
       const marker = L.marker(latLng, { icon }).addTo(this._map);
-      marker.on('click', () => {
-        this.global.setSelectedCrag(c.id);
-        this.global.setSelectedZone(c.zoneId);
-      });
-      // Keyboard accessibility: Enter/Space select marker
-      const el = marker.getElement();
-      if (el) {
-        el.addEventListener('keydown', (ev: KeyboardEvent) => {
-          const key = ev.key;
-          if (key === 'Enter' || key === ' ') {
-            ev.preventDefault();
-            this.global.setSelectedCrag(c.id);
-            this.global.setSelectedZone(c.zoneId);
-          }
-        });
-      }
+      marker.on('click', () => this.selectCragFromMap(c.id, c.zoneId));
+      this.attachMarkerKeyboardSelection(marker, c.id, c.zoneId);
     }
 
     this._map.on('click', () => {
-      this.global.setSelectedCrag(null);
-      this.global.setSelectedZone(null);
-
-      if (this.isBottomSheetExpanded()) {
-        this.toggleBottomSheet();
-      }
+      this.closeSelectedCrag();
+      this.closeBottomSheet();
     });
 
     if (latLngs.length) {
@@ -518,22 +663,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this._map.fitBounds(bounds, { padding: [24, 24] });
     }
 
-    const recalcVisible = () => {
-      if (!this._map) return;
-      const b = this._map.getBounds();
-      const visibleZones = new Set<string>();
-      const visibleCrags = new Set<string>();
-      for (const c of this.global.crags()) {
-        const { lat, lng } = c.ubication;
-        const wrapped = L.latLng(lat, lng).wrap();
-        if (b.contains(wrapped)) {
-          visibleZones.add(c.zoneId);
-          visibleCrags.add(c.id);
-        }
-      }
-      this._visibleZoneIds.set(visibleZones);
-      this._visibleCragIds.set(visibleCrags);
-    };
+    const recalcVisible = () => this.updateVisibleIdsFromCurrentBounds(L);
     recalcVisible();
     this._map.on('moveend', recalcVisible);
     this._map.on('zoomend', recalcVisible);
@@ -541,26 +671,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this._mapInitialized = true;
 
     if (typeof window !== 'undefined') {
-      const raf = (
-        window as unknown as {
-          requestAnimationFrame?: (cb: FrameRequestCallback) => number;
-        }
-      ).requestAnimationFrame;
-      if (typeof raf === 'function') {
-        raf(() => this._map?.invalidateSize?.());
-      } else {
-        setTimeout(() => this._map?.invalidateSize?.(), 0);
-      }
-      setTimeout(() => this._map?.invalidateSize?.(), 250);
+      this.scheduleNextFrame(() => {
+        this._map?.invalidateSize?.();
+        this.scheduleNextFrame(() => this._map?.invalidateSize?.());
+      });
     }
   }
 
   ngOnDestroy(): void {
-    this._destroyed = true;
-    if (this._pollHandle !== null) {
-      clearTimeout(this._pollHandle);
-      this._pollHandle = null;
-    }
     try {
       if (this._map && typeof this._map.remove === 'function') {
         this._map.remove();

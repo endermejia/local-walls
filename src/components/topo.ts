@@ -32,18 +32,18 @@ import { TranslatePipe } from '@ngx-translate/core';
           <h1 tuiTitle>{{ t.name }}</h1>
           <aside tuiAccessories>
             <tui-badge
-              [appearance]="global.isTopoLiked(t.id) ? 'negative' : 'neutral'"
+              [appearance]="global.isTopoLiked()(t.id) ? 'negative' : 'neutral'"
               iconStart="@tui.heart"
               size="xl"
               (click.zoneless)="global.toggleLikeTopo(t.id)"
               [attr.aria-label]="
-                (global.isTopoLiked(t.id)
+                (global.isTopoLiked()(t.id)
                   ? 'actions.favorite.remove'
                   : 'actions.favorite.add'
                 ) | translate
               "
               [attr.title]="
-                (global.isTopoLiked(t.id)
+                (global.isTopoLiked()(t.id)
                   ? 'actions.favorite.remove'
                   : 'actions.favorite.add'
                 ) | translate
@@ -70,7 +70,7 @@ import { TranslatePipe } from '@ngx-translate/core';
                 <aside tuiAccessories>
                   <tui-badge
                     [appearance]="
-                      global.isRouteLiked(tr.routeId) ? 'negative' : 'neutral'
+                      global.isRouteLiked()(tr.routeId) ? 'negative' : 'neutral'
                     "
                     iconStart="@tui.heart"
                     size="xl"
@@ -79,13 +79,13 @@ import { TranslatePipe } from '@ngx-translate/core';
                       global.toggleLikeRoute(tr.routeId)
                     "
                     [attr.aria-label]="
-                      (global.isRouteLiked(tr.routeId)
+                      (global.isRouteLiked()(tr.routeId)
                         ? 'actions.favorite.remove'
                         : 'actions.favorite.add'
                       ) | translate
                     "
                     [attr.title]="
-                      (global.isRouteLiked(tr.routeId)
+                      (global.isRouteLiked()(tr.routeId)
                         ? 'actions.favorite.remove'
                         : 'actions.favorite.add'
                       ) | translate

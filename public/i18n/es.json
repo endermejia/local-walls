@@ -13,12 +13,10 @@
     "signIn": "Entrar"
   },
   "labels": {
+    "crag": "Sector",
     "crags": "Sectores",
-    "crags-singular": "sector",
-    "crags-plural": "sectores",
+    "zone": "Zona",
     "zones": "Zonas",
-    "zones-singular": "zona",
-    "zones-plural": "zonas",
     "approach": "Aproximación",
     "parkings": "Parkings",
     "username": "Usuario",

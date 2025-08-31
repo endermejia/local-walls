@@ -36,24 +36,33 @@ import { TranslatePipe } from '@ngx-translate/core';
             }
           </div>
           <tui-badge
-            [appearance]="global.isCragLiked(c.id) ? 'negative' : 'neutral'"
+            [appearance]="global.isCragLiked()(c.id) ? 'negative' : 'neutral'"
             iconStart="@tui.heart"
             size="xl"
             (click.zoneless)="global.toggleLikeCrag(c.id)"
             [attr.aria-label]="
-              (global.isCragLiked(c.id)
+              (global.isCragLiked()(c.id)
                 ? 'actions.favorite.remove'
                 : 'actions.favorite.add'
               ) | translate
             "
             [attr.title]="
-              (global.isCragLiked(c.id)
+              (global.isCragLiked()(c.id)
                 ? 'actions.favorite.remove'
                 : 'actions.favorite.add'
               ) | translate
             "
           ></tui-badge>
         </header>
+
+        <div class="text-sm opacity-80">
+          {{ 'labels.zone' | translate }}:
+          <a
+            [routerLink]="['/zone', c.zoneId]"
+            class="underline hover:no-underline"
+            >{{ global.zoneNameById()(c.zoneId) }}</a
+          >
+        </div>
 
         <div class="mt-4">
           <h2 class="text-xl font-semibold">
@@ -94,7 +103,7 @@ import { TranslatePipe } from '@ngx-translate/core';
                   <aside tuiAccessories>
                     <tui-badge
                       [appearance]="
-                        global.isTopoLiked(t.id) ? 'negative' : 'neutral'
+                        global.isTopoLiked()(t.id) ? 'negative' : 'neutral'
                       "
                       iconStart="@tui.heart"
                       size="xl"
@@ -102,13 +111,13 @@ import { TranslatePipe } from '@ngx-translate/core';
                         $event.stopPropagation(); global.toggleLikeTopo(t.id)
                       "
                       [attr.aria-label]="
-                        (global.isTopoLiked(t.id)
+                        (global.isTopoLiked()(t.id)
                           ? 'actions.favorite.remove'
                           : 'actions.favorite.add'
                         ) | translate
                       "
                       [attr.title]="
-                        (global.isTopoLiked(t.id)
+                        (global.isTopoLiked()(t.id)
                           ? 'actions.favorite.remove'
                           : 'actions.favorite.add'
                         ) | translate
@@ -143,7 +152,7 @@ import { TranslatePipe } from '@ngx-translate/core';
                 <aside tuiAccessories>
                   <tui-badge
                     [appearance]="
-                      global.isTopoLiked(t.id) ? 'negative' : 'neutral'
+                      global.isTopoLiked()(t.id) ? 'negative' : 'neutral'
                     "
                     iconStart="@tui.heart"
                     size="xl"
@@ -151,13 +160,13 @@ import { TranslatePipe } from '@ngx-translate/core';
                       $event.stopPropagation(); global.toggleLikeTopo(t.id)
                     "
                     [attr.aria-label]="
-                      (global.isTopoLiked(t.id)
+                      (global.isTopoLiked()(t.id)
                         ? 'actions.favorite.remove'
                         : 'actions.favorite.add'
                       ) | translate
                     "
                     [attr.title]="
-                      (global.isTopoLiked(t.id)
+                      (global.isTopoLiked()(t.id)
                         ? 'actions.favorite.remove'
                         : 'actions.favorite.add'
                       ) | translate

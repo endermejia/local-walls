@@ -140,6 +140,11 @@ export class GlobalData {
     return this.crags().filter((c) => c.zoneId === id);
   });
 
+  zoneNameById = computed(() => {
+    const map = new Map(this.zones().map(z => [z.id, z.name] as const));
+    return (id: string) => map.get(id) ?? '';
+  });
+
   selectedCragTopos = computed(() => {
     const id = this.selectedCragId();
     if (!id) return [] as Topo[];
@@ -163,18 +168,22 @@ export class GlobalData {
   }
 
   // ---- Likes helpers ----
-  isZoneLiked(id: string): boolean {
-    return new Set(this.appUser()?.likedZones ?? []).has(id);
-  }
-  isCragLiked(id: string): boolean {
-    return new Set(this.appUser()?.likedCrags ?? []).has(id);
-  }
-  isTopoLiked(id: string): boolean {
-    return new Set(this.appUser()?.likedTopos ?? []).has(id);
-  }
-  isRouteLiked(id: string): boolean {
-    return new Set(this.appUser()?.likedRoutes ?? []).has(id);
-  }
+  isZoneLiked = computed(() => {
+    const liked = new Set(this.appUser()?.likedZones ?? []);
+    return (id: string) => liked.has(id);
+  });
+  isCragLiked = computed(() => {
+    const liked = new Set(this.appUser()?.likedCrags ?? []);
+    return (id: string) => liked.has(id);
+  });
+  isTopoLiked = computed(() => {
+    const liked = new Set(this.appUser()?.likedTopos ?? []);
+    return (id: string) => liked.has(id);
+  });
+  isRouteLiked = computed(() => {
+    const liked = new Set(this.appUser()?.likedRoutes ?? []);
+    return (id: string) => liked.has(id);
+  });
 
   private toggleInList(list: string[] | undefined, id: string): string[] {
     const s = new Set(list ?? []);
