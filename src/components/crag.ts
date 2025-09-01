@@ -108,7 +108,6 @@ import { TranslatePipe } from '@ngx-translate/core';
           </div>
         </div>
 
-
         <h2 class="text-xl font-semibold mt-6 mb-2">
           {{ 'labels.topos' | translate }}
         </h2>

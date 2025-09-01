@@ -25,6 +25,8 @@
     "capacity": "Capacity",
     "routes": "Routes",
     "route": "Route",
+    "number": "Number",
+    "grade": "Grade",
     "topos": "Topos",
     "toposFavorites": "Favorite topos",
     "topo": "Topo",
@@ -39,6 +41,15 @@
     "min": "min"
   },
   "common": {
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "menu": "Menu",
+    "search": "Search",
+    "appName": "Local Walls"
+  },
+  "errors": {
+    "invalidCredentials": "Invalid credentials"
+  },
+  "nav": {
+    "home": "Home"
   }
 }

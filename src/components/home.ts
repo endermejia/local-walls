@@ -146,7 +146,9 @@ import { MapComponent } from './map';
               @for (z of zones; track z.id) {
                 <div
                   tuiCardLarge
-                  [tuiSurface]="global.isZoneLiked()(z.id) ? 'accent' : 'neutral'"
+                  [tuiSurface]="
+                    global.isZoneLiked()(z.id) ? 'accent' : 'neutral'
+                  "
                   class="tui-space_top-4 cursor-pointer"
                   [routerLink]="['/zone', z.id]"
                 >
@@ -199,7 +201,9 @@ import { MapComponent } from './map';
               @for (c of crags; track c.id) {
                 <div
                   tuiCardLarge
-                  [tuiSurface]="global.isCragLiked()(c.id) ? 'accent' : 'neutral'"
+                  [tuiSurface]="
+                    global.isCragLiked()(c.id) ? 'accent' : 'neutral'
+                  "
                   class="tui-space_top-4 cursor-pointer"
                   [routerLink]="['/crag', c.id]"
                 >

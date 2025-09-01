@@ -25,12 +25,11 @@
     "capacity": "Capacidad",
     "username": "Usuario",
     "password": "Contraseña",
-    "routes": "Rutas",
-    "route": "Ruta",
+    "routes": "Vías",
+    "route": "Vía",
     "number": "Número",
     "grade": "Grado",
-    "topos": "Topos",
-    "toposFavorites": "Topos favoritos"
+    "topos": "Croquis"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -42,6 +41,7 @@
   "common": {
     "loading": "Cargando...",
     "menu": "Menú",
+    "search": "Buscar",
     "appName": "Local Walls"
   },
   "errors": {

@@ -156,34 +156,52 @@ interface BreadcrumbItem {
         }
       </div>
       <div class="flex items-center gap-2 sm:gap-4" ngSkipHydration>
-        <tui-textfield ngSkipHydration class="!m-0">
-          <input
-            tuiSearchHotkey
-            [formControl]="control"
-            [tuiInputSearch]="search"
-            ngSkipHydration
-          />
-          <ng-template #search>
-            <tui-search-results [results]="results$ | async" ngSkipHydration>
-              <tui-search-history
-                [popular]="globalService.searchPopular()"
-                ngSkipHydration
-              />
-              <ng-template let-item>
-                <a tuiCell [href]="item.href" ngSkipHydration>
-                  <tui-avatar
-                    [src]="item.icon || '@tui.file'"
-                    ngSkipHydration
-                  />
-                  <span tuiTitle ngSkipHydration>
-                    {{ item.title }}
-                    <span tuiSubtitle ngSkipHydration>{{ item.subtitle }}</span>
-                  </span>
-                </a>
-              </ng-template>
-            </tui-search-results>
-          </ng-template>
-        </tui-textfield>
+        <!-- Desktop: show full search input -->
+        <div class="hidden sm:block" ngSkipHydration>
+          <tui-textfield ngSkipHydration class="!m-0">
+            <input
+              #input
+              tuiSearchHotkey
+              [formControl]="control"
+              [tuiInputSearch]="search"
+              ngSkipHydration
+            />
+            <ng-template #search>
+              <tui-search-results [results]="results$ | async" ngSkipHydration>
+                <tui-search-history
+                  [popular]="globalService.searchPopular()"
+                  ngSkipHydration
+                />
+                <ng-template let-item>
+                  <a tuiCell [href]="item.href" ngSkipHydration>
+                    <tui-avatar
+                      [src]="item.icon || '@tui.file'"
+                      ngSkipHydration
+                    />
+                    <span tuiTitle ngSkipHydration>
+                      {{ item.title }}
+                      <span tuiSubtitle ngSkipHydration>{{
+                        item.subtitle
+                      }}</span>
+                    </span>
+                  </a>
+                </ng-template>
+              </tui-search-results>
+            </ng-template>
+          </tui-textfield>
+        </div>
+        <!-- Mobile: show icon button to open search -->
+        <button
+          tuiIconButton
+          type="button"
+          class="sm:hidden"
+          [iconStart]="'@tui.search'"
+          [title]="'common.search' | translate"
+          (click.zoneless)="input.open()"
+          ngSkipHydration
+        >
+          Search
+        </button>
       </div>
     </header>
   `,
