@@ -73,6 +73,18 @@ ng e2e
 
 Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
 
+## Pre-commit formatting
+
+This repo runs the formatter automatically before each commit via a Git pre-commit hook.
+
+How to enable locally:
+- Ensure dependencies are installed: `npm install` (this runs the `prepare` script that sets up Husky).
+- Husky will execute `.husky/pre-commit`, which runs `npm run format`.
+
+Notes:
+- You can run the formatter manually with `npm run format`.
+- If you had installed dependencies before this change, run `npm run prepare` once to install Git hooks.
+
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

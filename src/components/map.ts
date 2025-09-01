@@ -183,14 +183,16 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
       const marker = L.marker(latLng, { icon }).addTo(this._map);
       marker.on('click', (e: import('leaflet').LeafletMouseEvent) => {
         // Prevent map click and any default zoom behavior on marker click
-        (e.originalEvent as MouseEvent | PointerEvent | TouchEvent)?.preventDefault?.();
-        (e.originalEvent as MouseEvent | PointerEvent | TouchEvent)?.stopPropagation?.();
+        (
+          e.originalEvent as MouseEvent | PointerEvent | TouchEvent
+        )?.preventDefault?.();
+        (
+          e.originalEvent as MouseEvent | PointerEvent | TouchEvent
+        )?.stopPropagation?.();
         this.cragSelect.emit({ cragId: c.id, zoneId: c.zoneId });
       });
       this.attachMarkerKeyboardSelection(marker, c.id, c.zoneId);
     }
-
-    // Do not auto-fit bounds here; it should only happen once on init
   }
 
   private cragLabelHtml(name: string, isSelected: boolean): string {

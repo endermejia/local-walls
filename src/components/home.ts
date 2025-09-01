@@ -21,7 +21,7 @@ import {
   TuiTitle,
 } from '@taiga-ui/core';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
-import { TuiBadge, TuiButtonClose, TuiAvatar } from '@taiga-ui/kit';
+import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import { TranslatePipe } from '@ngx-translate/core';
 import { MapComponent } from './map';
