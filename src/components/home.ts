@@ -95,7 +95,7 @@ import { MapComponent } from './map';
             <tui-avatar
               tuiThumbnail
               size="l"
-              src="/image/crag.png"
+              src="/image/crag.svg"
               class="self-center"
               [attr.aria-label]="'labels.crag' | translate"
             />
@@ -209,7 +209,7 @@ import { MapComponent } from './map';
                     <tui-avatar
                       tuiThumbnail
                       size="l"
-                      src="/image/zone.png"
+                      src="/image/zone.svg"
                       class="self-center"
                       [attr.aria-label]="'labels.zone' | translate"
                     />
@@ -289,7 +289,7 @@ import { MapComponent } from './map';
                     <tui-avatar
                       tuiThumbnail
                       size="l"
-                      src="/image/crag.png"
+                      src="/image/crag.svg"
                       class="self-center"
                       [attr.aria-label]="'labels.crag' | translate"
                     />

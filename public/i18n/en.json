@@ -9,13 +9,25 @@
       "add": "Mark as favorite",
       "remove": "Remove favorite"
     },
+    "openMap": "Open location in Google Maps",
     "signIn": "Sign in"
   },
   "labels": {
+    "crag": "Crag",
     "crags": "Crags",
+    "zone": "Zone",
     "zones": "Zones",
     "approach": "Approach",
     "parkings": "Parkings",
+    "parking": "Parking",
+    "lat": "Lat",
+    "lng": "Lng",
+    "capacity": "Capacity",
+    "routes": "Routes",
+    "route": "Route",
+    "topos": "Topos",
+    "toposFavorites": "Favorite topos",
+    "topo": "Topo",
     "username": "Username",
     "password": "Password"
   },

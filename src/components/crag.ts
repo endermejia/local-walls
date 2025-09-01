@@ -56,35 +56,56 @@ import { TranslatePipe } from '@ngx-translate/core';
           ></tui-badge>
         </header>
 
-        <div class="text-sm opacity-80">
-          {{ 'labels.zone' | translate }}:
-          <a
-            [routerLink]="['/zone', c.zoneId]"
-            class="underline hover:no-underline"
-            >{{ global.zoneNameById()(c.zoneId) }}</a
-          >
-        </div>
-
         <div class="mt-4">
           <h2 class="text-xl font-semibold">
             {{ 'labels.parkings' | translate }}
           </h2>
-          <ul class="mt-2 grid gap-2">
+          <div class="mt-2 grid gap-2">
             @for (p of cragParkings(); track p.id) {
-              <li class="p-3 rounded border">
-                <div class="font-medium">{{ p.name }}</div>
-                <div class="text-sm opacity-70">
-                  {{ 'labels.lat' | translate }}: {{ p.ubication.lat }} ·
-                  {{ 'labels.lng' | translate }}: {{ p.ubication.lng }}
-                </div>
-                @if (p.capacity) {
-                  <div class="text-sm opacity-70">
-                    {{ 'labels.capacity' | translate }}: {{ p.capacity }}
+              <a
+                class="block"
+                [href]="parkingMapUrl(p)"
+                target="_blank"
+                rel="noopener noreferrer"
+                [attr.aria-label]="'actions.openMap' | translate"
+                [attr.title]="'actions.openMap' | translate"
+              >
+                <div
+                  tuiCardLarge
+                  tuiSurface="neutral"
+                  class="tui-space_top-2 cursor-pointer"
+                >
+                  <div class="flex items-center gap-3">
+                    <tui-avatar
+                      tuiThumbnail
+                      size="l"
+                      src="@tui.square-parking"
+                      class="self-center"
+                      [attr.aria-label]="'labels.parking' | translate"
+                    />
+                    <div class="flex flex-col min-w-0 grow">
+                      <header tuiHeader>
+                        <h2 tuiTitle>{{ p.name }}</h2>
+                      </header>
+                      <section>
+                        <div class="text-sm opacity-80">
+                          {{ 'labels.lat' | translate }}:
+                          {{ p.ubication.lat }} ·
+                          {{ 'labels.lng' | translate }}: {{ p.ubication.lng }}
+                        </div>
+                        @if (p.capacity) {
+                          <div class="text-sm opacity-80">
+                            {{ 'labels.capacity' | translate }}:
+                            {{ p.capacity }}
+                          </div>
+                        }
+                      </section>
+                    </div>
                   </div>
-                }
-              </li>
+                </div>
+              </a>
             }
-          </ul>
+          </div>
         </div>
 
         @if (likedTopos().length) {
@@ -103,7 +124,7 @@ import { TranslatePipe } from '@ngx-translate/core';
                   <tui-avatar
                     tuiThumbnail
                     size="l"
-                    src="/image/topo.png"
+                    src="/image/topo.svg"
                     class="self-center"
                     [attr.aria-label]="'labels.topo' | translate"
                   />
@@ -164,7 +185,7 @@ import { TranslatePipe } from '@ngx-translate/core';
                 <tui-avatar
                   tuiThumbnail
                   size="l"
-                  src="/image/topo.png"
+                  src="/image/topo.svg"
                   class="self-center"
                   [attr.aria-label]="'labels.topo' | translate"
                 />
@@ -256,5 +277,11 @@ export class CragComponent {
 
   topoRouteCount(topoId: string): number {
     return this.global.topoRoutes().filter((r) => r.topoId === topoId).length;
+  }
+
+  parkingMapUrl(p: Parking): string {
+    const lat = p.ubication.lat;
+    const lng = p.ubication.lng;
+    return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
   }
 }

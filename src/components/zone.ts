@@ -71,7 +71,7 @@ import { TranslatePipe } from '@ngx-translate/core';
                 <tui-avatar
                   tuiThumbnail
                   size="l"
-                  src="/image/crag.png"
+                  src="/image/crag.svg"
                   class="self-center"
                   [attr.aria-label]="'labels.crag' | translate"
                 />

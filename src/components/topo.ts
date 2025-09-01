@@ -68,7 +68,7 @@ import { TranslatePipe } from '@ngx-translate/core';
                 <tui-avatar
                   tuiThumbnail
                   size="l"
-                  src="/image/route.png"
+                  src="/image/route.svg"
                   class="self-center"
                   [attr.aria-label]="'labels.route' | translate"
                 />

@@ -79,8 +79,52 @@ export class GlobalData {
     ],
   }));
 
-  searchPopular: WritableSignal<string[]> = signal(['GitHub', 'LinkedIn']);
+  searchPopular: WritableSignal<string[]> = signal([
+    'Wild Side',
+    'Aixortà',
+    'Rincón Bello',
+  ]);
   searchData: WritableSignal<SearchData> = signal({});
+  private readonly i18nTick: WritableSignal<number> = signal(0);
+
+  private readonly buildSearchData = effect(() => {
+    this.i18nTick();
+    const zones = this.zones();
+    const crags = this.crags();
+    const routes = this.routesData();
+
+    // translate group labels
+    const t = (key: string) => this.translate.instant(key);
+    const zonesLabel = t('labels.zones');
+    const cragsLabel = t('labels.crags');
+    const routesLabel = t('labels.routes');
+
+    // quick helper for zone name by id
+    const zoneNameById = new Map(zones.map((z) => [z.id, z.name] as const));
+
+    const search: SearchData = {
+      [zonesLabel]: zones.map((z) => ({
+        href: `/zone/${z.id}`,
+        title: z.name,
+        subtitle: `${z.cragIds?.length ?? 0} ${t('labels.crags')}`,
+        icon: '@tui.map-pinned',
+      })),
+      [cragsLabel]: crags.map((c) => ({
+        href: `/crag/${c.id}`,
+        title: c.name,
+        subtitle: zoneNameById.get(c.zoneId) ?? '',
+        icon: '@tui.mountain',
+      })),
+      [routesLabel]: routes.map((r) => ({
+        href: `/route/${r.id}`,
+        title: r.name,
+        subtitle: r.grade ?? '',
+        icon: '@tui.route',
+      })),
+    };
+
+    this.searchData.set(search);
+  });
 
   // ---- Climbing App State (signals) ----
   appUser: WritableSignal<User | null> = signal({
@@ -257,6 +301,19 @@ export class GlobalData {
   errorMessage: WritableSignal<string | null> = signal(null);
   setError(message: string | null) {
     this.errorMessage.set(message);
+  }
+
+  constructor() {
+    // Rebuild search labels when translations load or language changes
+    this.translate.onLangChange.subscribe(() =>
+      this.i18nTick.update((v) => v + 1),
+    );
+    this.translate.onTranslationChange.subscribe(() =>
+      this.i18nTick.update((v) => v + 1),
+    );
+    this.translate.onDefaultLangChange.subscribe(() =>
+      this.i18nTick.update((v) => v + 1),
+    );
   }
 
   private switchLanguage(): void {
