@@ -167,12 +167,12 @@ import { TranslatePipe } from '@ngx-translate/core';
         aria-labelledby="zones-title crags-title"
         (scroll.zoneless)="onSheetScroll($any($event))"
       >
+        @let zones = zonesInMapSorted();
         <h3 tuiHeader id="zones-title">
-          @let numZonas = zonesInMapSorted().length;
           <span tuiTitle class="place-items-center">
-            {{ zonesInMapSorted().length }}
+            {{ zones.length }}
             {{
-              'labels.' + (numZonas === 1 ? 'zone' : 'zones')
+              'labels.' + (zones.length === 1 ? 'zone' : 'zones')
                 | translate
                 | lowercase
             }}
@@ -180,7 +180,7 @@ import { TranslatePipe } from '@ngx-translate/core';
         </h3>
         <section class="w-full max-w-5xl mx-auto p-4 overflow-auto">
           <div class="grid gap-2">
-            @for (z of zonesInMapSorted(); track z.id) {
+            @for (z of zones; track z.id) {
               <div
                 tuiCardLarge
                 tuiSurface="neutral"
@@ -230,12 +230,12 @@ import { TranslatePipe } from '@ngx-translate/core';
             }
           </div>
         </section>
+        @let crags = cragsInMapSorted();
         <h3 tuiHeader id="crags-title">
-          @let numCrags = cragsInMapSorted().length;
           <span tuiTitle class="place-items-center">
-            {{ numCrags }}
+            {{ crags.length }}
             {{
-              'labels.' + (numCrags === 1 ? 'crag' : 'crags')
+              'labels.' + (crags.length === 1 ? 'crag' : 'crags')
                 | translate
                 | lowercase
             }}
@@ -243,7 +243,7 @@ import { TranslatePipe } from '@ngx-translate/core';
         </h3>
         <section class="w-full max-w-5xl mx-auto p-4 overflow-auto">
           <div class="grid gap-2">
-            @for (c of cragsInMapSorted(); track c.id) {
+            @for (c of crags; track c.id) {
               <div
                 tuiCardLarge
                 tuiSurface="neutral"
