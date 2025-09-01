@@ -21,7 +21,7 @@ import {
   TuiTitle,
 } from '@taiga-ui/core';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
-import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
+import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import { TranslatePipe } from '@ngx-translate/core';
 import { MapComponent } from './map';
@@ -38,7 +38,6 @@ import { MapComponent } from './map';
     TuiSurface,
     TuiBottomSheet,
     TuiButton,
-    TuiBadge,
     LowerCasePipe,
     TuiLink,
     MapComponent,
@@ -101,30 +100,6 @@ import { MapComponent } from './map';
             <div class="flex flex-col min-w-0 grow">
               <header tuiHeader>
                 <h2 tuiTitle>{{ c.name }}</h2>
-                <aside tuiAccessories class="flex items-center gap-2">
-                  <tui-badge
-                    [appearance]="
-                      global.isCragLiked()(c.id) ? 'negative' : 'neutral'
-                    "
-                    iconStart="@tui.heart"
-                    size="xl"
-                    (click.zoneless)="
-                      $event.stopPropagation(); global.toggleLikeCrag(c.id)
-                    "
-                    [attr.aria-label]="
-                      (global.isCragLiked()(c.id)
-                        ? 'actions.favorite.remove'
-                        : 'actions.favorite.add'
-                      ) | translate
-                    "
-                    [attr.title]="
-                      (global.isCragLiked()(c.id)
-                        ? 'actions.favorite.remove'
-                        : 'actions.favorite.add'
-                      ) | translate
-                    "
-                  ></tui-badge>
-                </aside>
               </header>
               <section>
                 <div class="text-sm opacity-80">
@@ -171,7 +146,7 @@ import { MapComponent } from './map';
               @for (z of zones; track z.id) {
                 <div
                   tuiCardLarge
-                  tuiSurface="neutral"
+                  [tuiSurface]="global.isZoneLiked()(z.id) ? 'accent' : 'neutral'"
                   class="tui-space_top-4 cursor-pointer"
                   [routerLink]="['/zone', z.id]"
                 >
@@ -186,33 +161,6 @@ import { MapComponent } from './map';
                     <div class="flex flex-col min-w-0 grow">
                       <header tuiHeader>
                         <h2 tuiTitle>{{ z.name }}</h2>
-                        <aside tuiAccessories>
-                          <tui-badge
-                            [appearance]="
-                              global.isZoneLiked()(z.id)
-                                ? 'negative'
-                                : 'neutral'
-                            "
-                            iconStart="@tui.heart"
-                            size="xl"
-                            (click.zoneless)="
-                              $event.stopPropagation();
-                              global.toggleLikeZone(z.id)
-                            "
-                            [attr.aria-label]="
-                              (global.isZoneLiked()(z.id)
-                                ? 'actions.favorite.remove'
-                                : 'actions.favorite.add'
-                              ) | translate
-                            "
-                            [attr.title]="
-                              (global.isZoneLiked()(z.id)
-                                ? 'actions.favorite.remove'
-                                : 'actions.favorite.add'
-                              ) | translate
-                            "
-                          ></tui-badge>
-                        </aside>
                       </header>
                       <section>
                         <div class="text-sm opacity-80">
@@ -251,7 +199,7 @@ import { MapComponent } from './map';
               @for (c of crags; track c.id) {
                 <div
                   tuiCardLarge
-                  tuiSurface="neutral"
+                  [tuiSurface]="global.isCragLiked()(c.id) ? 'accent' : 'neutral'"
                   class="tui-space_top-4 cursor-pointer"
                   [routerLink]="['/crag', c.id]"
                 >
@@ -266,33 +214,6 @@ import { MapComponent } from './map';
                     <div class="flex flex-col min-w-0 grow">
                       <header tuiHeader>
                         <h2 tuiTitle>{{ c.name }}</h2>
-                        <aside tuiAccessories>
-                          <tui-badge
-                            [appearance]="
-                              global.isCragLiked()(c.id)
-                                ? 'negative'
-                                : 'neutral'
-                            "
-                            iconStart="@tui.heart"
-                            size="xl"
-                            (click.zoneless)="
-                              $event.stopPropagation();
-                              global.toggleLikeCrag(c.id)
-                            "
-                            [attr.aria-label]="
-                              (global.isCragLiked()(c.id)
-                                ? 'actions.favorite.remove'
-                                : 'actions.favorite.add'
-                              ) | translate
-                            "
-                            [attr.title]="
-                              (global.isCragLiked()(c.id)
-                                ? 'actions.favorite.remove'
-                                : 'actions.favorite.add'
-                              ) | translate
-                            "
-                          ></tui-badge>
-                        </aside>
                       </header>
                       <section>
                         <div class="text-sm opacity-80">

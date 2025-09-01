@@ -63,7 +63,7 @@ import { TranslatePipe } from '@ngx-translate/core';
           @for (c of cragsSorted(); track c.id) {
             <div
               tuiCardLarge
-              tuiSurface="neutral"
+              [tuiSurface]="global.isCragLiked()(c.id) ? 'accent' : 'neutral'"
               class="tui-space_top-4 cursor-pointer"
               [routerLink]="['/crag', c.id]"
             >
@@ -78,30 +78,6 @@ import { TranslatePipe } from '@ngx-translate/core';
                 <div class="flex flex-col min-w-0 grow">
                   <header tuiHeader>
                     <h2 tuiTitle>{{ c.name }}</h2>
-                    <aside tuiAccessories>
-                      <tui-badge
-                        [appearance]="
-                          global.isCragLiked()(c.id) ? 'negative' : 'neutral'
-                        "
-                        iconStart="@tui.heart"
-                        size="xl"
-                        (click.zoneless)="
-                          $event.stopPropagation(); global.toggleLikeCrag(c.id)
-                        "
-                        [attr.aria-label]="
-                          (global.isCragLiked()(c.id)
-                            ? 'actions.favorite.remove'
-                            : 'actions.favorite.add'
-                          ) | translate
-                        "
-                        [attr.title]="
-                          (global.isCragLiked()(c.id)
-                            ? 'actions.favorite.remove'
-                            : 'actions.favorite.add'
-                          ) | translate
-                        "
-                      ></tui-badge>
-                    </aside>
                   </header>
                   <section>
                     <div class="text-sm opacity-80">

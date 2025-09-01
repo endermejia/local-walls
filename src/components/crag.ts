@@ -108,76 +108,15 @@ import { TranslatePipe } from '@ngx-translate/core';
           </div>
         </div>
 
-        @if (likedTopos().length) {
-          <h2 class="text-xl font-semibold mt-6 mb-2">
-            {{ 'labels.toposFavorites' | translate }}
-          </h2>
-          <div class="grid gap-2">
-            @for (t of likedTopos(); track t.id) {
-              <div
-                tuiCardLarge
-                tuiSurface="neutral"
-                class="tui-space_top-4 cursor-pointer"
-                [routerLink]="['/topo', t.id]"
-              >
-                <div class="flex items-center gap-3">
-                  <tui-avatar
-                    tuiThumbnail
-                    size="l"
-                    [src]="global.iconSrc()('topo')"
-                    class="self-center"
-                    [attr.aria-label]="'labels.topo' | translate"
-                  />
-                  <div class="flex flex-col min-w-0 grow">
-                    <header tuiHeader>
-                      <h2 tuiTitle>{{ t.name }}</h2>
-                      <aside tuiAccessories>
-                        <tui-badge
-                          [appearance]="
-                            global.isTopoLiked()(t.id) ? 'negative' : 'neutral'
-                          "
-                          iconStart="@tui.heart"
-                          size="xl"
-                          (click.zoneless)="
-                            $event.stopPropagation();
-                            global.toggleLikeTopo(t.id)
-                          "
-                          [attr.aria-label]="
-                            (global.isTopoLiked()(t.id)
-                              ? 'actions.favorite.remove'
-                              : 'actions.favorite.add'
-                            ) | translate
-                          "
-                          [attr.title]="
-                            (global.isTopoLiked()(t.id)
-                              ? 'actions.favorite.remove'
-                              : 'actions.favorite.add'
-                            ) | translate
-                          "
-                        ></tui-badge>
-                      </aside>
-                    </header>
-                    <section>
-                      <div class="text-sm opacity-80">
-                        {{ 'labels.routes' | translate }}:
-                        {{ topoRouteCount(t.id) }}
-                      </div>
-                    </section>
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-        }
 
         <h2 class="text-xl font-semibold mt-6 mb-2">
           {{ 'labels.topos' | translate }}
         </h2>
         <div class="grid gap-2">
-          @for (t of otherTopos(); track t.id) {
+          @for (t of toposSorted(); track t.id) {
             <div
               tuiCardLarge
-              tuiSurface="neutral"
+              [tuiSurface]="global.isTopoLiked()(t.id) ? 'accent' : 'neutral'"
               class="tui-space_top-4 cursor-pointer"
               [routerLink]="['/topo', t.id]"
             >
@@ -192,30 +131,6 @@ import { TranslatePipe } from '@ngx-translate/core';
                 <div class="flex flex-col min-w-0 grow">
                   <header tuiHeader>
                     <h2 tuiTitle>{{ t.name }}</h2>
-                    <aside tuiAccessories>
-                      <tui-badge
-                        [appearance]="
-                          global.isTopoLiked()(t.id) ? 'negative' : 'neutral'
-                        "
-                        iconStart="@tui.heart"
-                        size="xl"
-                        (click.zoneless)="
-                          $event.stopPropagation(); global.toggleLikeTopo(t.id)
-                        "
-                        [attr.aria-label]="
-                          (global.isTopoLiked()(t.id)
-                            ? 'actions.favorite.remove'
-                            : 'actions.favorite.add'
-                          ) | translate
-                        "
-                        [attr.title]="
-                          (global.isTopoLiked()(t.id)
-                            ? 'actions.favorite.remove'
-                            : 'actions.favorite.add'
-                          ) | translate
-                        "
-                      ></tui-badge>
-                    </aside>
                   </header>
                   <section>
                     <div class="text-sm opacity-80">
@@ -247,13 +162,15 @@ export class CragComponent {
   });
 
   toposAll = this.global.selectedCragTopos;
-  likedTopos = computed<Topo[]>(() => {
+  toposSorted = computed<Topo[]>(() => {
     const liked = new Set(this.global.appUser()?.likedTopos ?? []);
-    return this.toposAll().filter((t) => liked.has(t.id));
-  });
-  otherTopos = computed<Topo[]>(() => {
-    const liked = new Set(this.global.appUser()?.likedTopos ?? []);
-    return this.toposAll().filter((t) => !liked.has(t.id));
+    // favorites first; then by name for stable ordering
+    return [...this.toposAll()].sort((a, b) => {
+      const la = liked.has(a.id) ? 1 : 0;
+      const lb = liked.has(b.id) ? 1 : 0;
+      if (la !== lb) return lb - la; // liked first
+      return a.name.localeCompare(b.name);
+    });
   });
 
   cragParkings = computed<Parking[]>(() => {
