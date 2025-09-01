@@ -10,7 +10,8 @@
       "remove": "Remove favorite"
     },
     "openMap": "Open location in Google Maps",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "back": "Back"
   },
   "labels": {
     "crag": "Crag",

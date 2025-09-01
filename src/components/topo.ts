@@ -6,6 +6,7 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Location } from '@angular/common';
 import { TuiTitle, TuiSurface } from '@taiga-ui/core';
 import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
@@ -32,6 +33,14 @@ import { TranslatePipe } from '@ngx-translate/core';
         <header tuiHeader class="mb-4">
           <h1 tuiTitle>{{ t.name }}</h1>
           <aside tuiAccessories>
+            <tui-badge
+              [appearance]="'neutral'"
+              iconStart="@tui.chevron-left"
+              size="l"
+              (click.zoneless)="goBack()"
+              [attr.aria-label]="'actions.back' | translate"
+              [attr.title]="'actions.back' | translate"
+            ></tui-badge>
             <tui-badge
               [appearance]="global.isTopoLiked()(t.id) ? 'negative' : 'neutral'"
               iconStart="@tui.heart"
@@ -130,6 +139,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 export class TopoComponent {
   private readonly route = inject(ActivatedRoute);
   protected readonly global = inject(GlobalData);
+  private readonly location = inject(Location);
 
   topoId = signal<string | null>(null);
   topo = computed<Topo | null>(() => {
@@ -163,5 +173,9 @@ export class TopoComponent {
       // entering a topo clears any specific route selection
       this.global.setSelectedRoute(null);
     }
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

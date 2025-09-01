@@ -6,6 +6,7 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Location } from '@angular/common';
 import { GlobalData } from '../services';
 import { TuiTitle, TuiSurface } from '@taiga-ui/core';
 import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
@@ -31,7 +32,17 @@ import { TranslatePipe } from '@ngx-translate/core';
       @if (crag(); as c) {
         <header class="mb-4 flex items-start justify-between gap-2">
           <div>
-            <h1 class="text-2xl font-bold">{{ c.name }}</h1>
+            <div class="flex items-center gap-2">
+              <tui-badge
+                [appearance]="'neutral'"
+                iconStart="@tui.chevron-left"
+                size="l"
+                (click.zoneless)="goBack()"
+                [attr.aria-label]="'actions.back' | translate"
+                [attr.title]="'actions.back' | translate"
+              ></tui-badge>
+              <h1 class="text-2xl font-bold">{{ c.name }}</h1>
+            </div>
             @if (c.description) {
               <p class="mt-2 opacity-80">{{ c.description }}</p>
             }
@@ -153,6 +164,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 export class CragComponent {
   private readonly route = inject(ActivatedRoute);
   protected readonly global = inject(GlobalData);
+  private readonly location = inject(Location);
 
   cragId = signal<string | null>(null);
   crag = computed<Crag | null>(() => {
@@ -199,5 +211,9 @@ export class CragComponent {
     const lat = p.ubication.lat;
     const lng = p.ubication.lng;
     return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

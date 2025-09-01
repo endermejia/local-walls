@@ -6,6 +6,7 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Location } from '@angular/common';
 import { TuiSurface, TuiTitle } from '@taiga-ui/core';
 import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
@@ -31,7 +32,17 @@ import { TranslatePipe } from '@ngx-translate/core';
       @if (zone(); as z) {
         <header class="mb-4 flex items-start justify-between gap-2">
           <div>
-            <h1 class="text-2xl font-bold">{{ z.name }}</h1>
+            <div class="flex items-center gap-2">
+              <tui-badge
+                [appearance]="'neutral'"
+                iconStart="@tui.chevron-left"
+                size="l"
+                (click.zoneless)="goBack()"
+                [attr.aria-label]="'actions.back' | translate"
+                [attr.title]="'actions.back' | translate"
+              ></tui-badge>
+              <h1 class="text-2xl font-bold">{{ z.name }}</h1>
+            </div>
             @if (z.description) {
               <p class="mt-2 opacity-80">{{ z.description }}</p>
             }
@@ -106,6 +117,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 export class ZoneComponent {
   private readonly route = inject(ActivatedRoute);
   protected readonly global = inject(GlobalData);
+  private readonly location = inject(Location);
 
   zoneId = signal<string | null>(null);
   zone = computed<Zone | null>(() => {
@@ -132,5 +144,9 @@ export class ZoneComponent {
     this.global.setSelectedCrag(null);
     this.global.setSelectedTopo(null);
     this.global.setSelectedRoute(null);
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

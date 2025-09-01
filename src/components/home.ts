@@ -46,7 +46,7 @@ import { MapComponent } from './map';
   template: ` <div class="flex flex-col gap-4 h-full w-full relative">
     @let bottomSheetExpanded = isBottomSheetExpanded();
     <!-- Toggle view button -->
-    <div class="absolute right-4 top-4 z-100 flex gap-2">
+    <div class="absolute right-4 top-4 z-100">
       <button
         tuiIconButton
         size="s"

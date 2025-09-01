@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { GlobalData } from '../services';
+import { Location } from '@angular/common';
 import { TuiTitle } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
@@ -19,30 +20,34 @@ import { TranslatePipe } from '@ngx-translate/core';
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
       @if (route(); as r) {
-        <header tuiHeader class="mb-4">
+        <header tuiHeader class="mb-4 gap-2">
+          <tui-badge
+            [appearance]="'neutral'"
+            iconStart="@tui.chevron-left"
+            size="l"
+            (click.zoneless)="goBack()"
+            [attr.aria-label]="'actions.back' | translate"
+            [attr.title]="'actions.back' | translate"
+          ></tui-badge>
           <h1 tuiTitle>{{ r.name }}</h1>
-          <aside tuiAccessories>
-            <tui-badge
-              [appearance]="
-                global.isRouteLiked()(r.id) ? 'negative' : 'neutral'
-              "
-              iconStart="@tui.heart"
-              size="xl"
-              (click.zoneless)="global.toggleLikeRoute(r.id)"
-              [attr.aria-label]="
-                (global.isRouteLiked()(r.id)
-                  ? 'actions.favorite.remove'
-                  : 'actions.favorite.add'
-                ) | translate
-              "
-              [attr.title]="
-                (global.isRouteLiked()(r.id)
-                  ? 'actions.favorite.remove'
-                  : 'actions.favorite.add'
-                ) | translate
-              "
-            ></tui-badge>
-          </aside>
+          <tui-badge
+            [appearance]="global.isRouteLiked()(r.id) ? 'negative' : 'neutral'"
+            iconStart="@tui.heart"
+            size="xl"
+            (click.zoneless)="global.toggleLikeRoute(r.id)"
+            [attr.aria-label]="
+              (global.isRouteLiked()(r.id)
+                ? 'actions.favorite.remove'
+                : 'actions.favorite.add'
+              ) | translate
+            "
+            [attr.title]="
+              (global.isRouteLiked()(r.id)
+                ? 'actions.favorite.remove'
+                : 'actions.favorite.add'
+              ) | translate
+            "
+          ></tui-badge>
         </header>
         @if (r.grade) {
           <p class="mt-2 opacity-80">
@@ -60,6 +65,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 export class RouteComponent {
   private readonly routeParam = inject(ActivatedRoute);
   protected readonly global = inject(GlobalData);
+  private readonly location = inject(Location);
 
   routeId = signal<string | null>(null);
   route = computed(() => {
@@ -84,5 +90,9 @@ export class RouteComponent {
         if (crag) this.global.setSelectedZone(crag.zoneId);
       }
     }
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

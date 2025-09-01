@@ -10,7 +10,8 @@
       "remove": "Quitar favorito"
     },
     "openMap": "Abrir ubicación en Google Maps",
-    "signIn": "Entrar"
+    "signIn": "Entrar",
+    "back": "Volver"
   },
   "labels": {
     "crag": "Sector",
