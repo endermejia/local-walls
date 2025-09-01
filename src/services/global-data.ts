@@ -326,4 +326,10 @@ export class GlobalData {
     this.selectedTheme.set(this.selectedTheme() === 'dark' ? 'light' : 'dark');
     this.localStorage.setItem('theme', this.selectedTheme());
   }
+
+  // Themed icon source as a computed signal
+  iconSrc = computed(() => {
+    const theme = this.selectedTheme();
+    return (name: 'crag' | 'route' | 'topo' | 'zone') => `/image/${name}-${theme}.svg`;
+  });
 }

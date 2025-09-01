@@ -124,7 +124,7 @@ import { TranslatePipe } from '@ngx-translate/core';
                   <tui-avatar
                     tuiThumbnail
                     size="l"
-                    src="/image/topo.svg"
+                    [src]="global.iconSrc()('topo')"
                     class="self-center"
                     [attr.aria-label]="'labels.topo' | translate"
                   />
@@ -185,7 +185,7 @@ import { TranslatePipe } from '@ngx-translate/core';
                 <tui-avatar
                   tuiThumbnail
                   size="l"
-                  src="/image/topo.svg"
+                  [src]="global.iconSrc()('topo')"
                   class="self-center"
                   [attr.aria-label]="'labels.topo' | translate"
                 />
