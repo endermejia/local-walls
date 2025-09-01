@@ -118,6 +118,16 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
 
     await this.rebuildMarkers();
 
+    // Fit bounds only once on initial component init
+    if (this.crags && this.crags.length) {
+      const latLngs: [number, number][] = this.crags.map((c) => [
+        c.ubication.lat,
+        c.ubication.lng,
+      ]);
+      const bounds = L.latLngBounds(latLngs);
+      this._map.fitBounds(bounds, { padding: [24, 24] });
+    }
+
     this._map.on('click', () => this.mapClick.emit());
 
     const recalcVisible = () => this.updateVisibleIdsFromCurrentBounds(L);
@@ -171,16 +181,16 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
         iconAnchor: [0, 0],
       });
       const marker = L.marker(latLng, { icon }).addTo(this._map);
-      marker.on('click', () =>
-        this.cragSelect.emit({ cragId: c.id, zoneId: c.zoneId }),
-      );
+      marker.on('click', (e: import('leaflet').LeafletMouseEvent) => {
+        // Prevent map click and any default zoom behavior on marker click
+        (e.originalEvent as MouseEvent | PointerEvent | TouchEvent)?.preventDefault?.();
+        (e.originalEvent as MouseEvent | PointerEvent | TouchEvent)?.stopPropagation?.();
+        this.cragSelect.emit({ cragId: c.id, zoneId: c.zoneId });
+      });
       this.attachMarkerKeyboardSelection(marker, c.id, c.zoneId);
     }
 
-    if (latLngs.length) {
-      const bounds = L.latLngBounds(latLngs);
-      this._map.fitBounds(bounds, { padding: [24, 24] });
-    }
+    // Do not auto-fit bounds here; it should only happen once on init
   }
 
   private cragLabelHtml(name: string, isSelected: boolean): string {

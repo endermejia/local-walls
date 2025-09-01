@@ -39,7 +39,6 @@ import { MapComponent } from './map';
     TuiBottomSheet,
     TuiButton,
     TuiBadge,
-    TuiButtonClose,
     LowerCasePipe,
     TuiLink,
     MapComponent,
@@ -125,35 +124,6 @@ import { MapComponent } from './map';
                       ) | translate
                     "
                   ></tui-badge>
-                  @if (mapUrl(); as m) {
-                    <a
-                      [href]="m"
-                      rel="noopener noreferrer"
-                      target="_blank"
-                      (click.zoneless)="$event.stopPropagation()"
-                      [attr.aria-label]="'actions.openMap' | translate"
-                      [attr.title]="'actions.openMap' | translate"
-                    >
-                      <tui-badge
-                        appearance="neutral"
-                        iconStart="@tui.map-pin"
-                        size="xl"
-                      ></tui-badge>
-                    </a>
-                  }
-                  <button
-                    size="s"
-                    tuiButtonClose
-                    tuiIconButton
-                    type="button"
-                    (click.zoneless)="
-                      $event.stopPropagation(); closeSelectedCrag()
-                    "
-                    [attr.aria-label]="'common.close' | translate"
-                    title="Close"
-                  >
-                    Close
-                  </button>
                 </aside>
               </header>
               <section>
@@ -385,13 +355,6 @@ export class HomeComponent implements AfterViewInit {
   protected readonly selectedCrag = computed(() => {
     const id = this.global.selectedCragId();
     return id ? (this.global.crags().find((c) => c.id === id) ?? null) : null;
-  });
-
-  protected readonly mapUrl = computed(() => {
-    const c = this.selectedCrag();
-    if (!c) return null;
-    const { lat, lng } = c.ubication;
-    return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
   });
 
   protected readonly zonesInMapSorted = computed(() => {
