@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TuiTitle, TuiSurface } from '@taiga-ui/core';
-import { TuiBadge } from '@taiga-ui/kit';
+import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import { GlobalData } from '../services';
 import type { Topo, TopoRoute, Route } from '../models';
@@ -23,6 +23,7 @@ import { TranslatePipe } from '@ngx-translate/core';
     TuiTitle,
     TuiSurface,
     TuiBadge,
+    TuiAvatar,
     TranslatePipe,
   ],
   template: `
@@ -63,44 +64,58 @@ import { TranslatePipe } from '@ngx-translate/core';
               class="tui-space_top-4 cursor-pointer"
               [routerLink]="['/route', tr.routeId]"
             >
-              <header tuiHeader>
-                <h2 tuiTitle>
-                  {{ tr.route?.name || ('labels.route' | translate) }}
-                </h2>
-                <aside tuiAccessories>
-                  <tui-badge
-                    [appearance]="
-                      global.isRouteLiked()(tr.routeId) ? 'negative' : 'neutral'
-                    "
-                    iconStart="@tui.heart"
-                    size="xl"
-                    (click.zoneless)="
-                      $event.stopPropagation();
-                      global.toggleLikeRoute(tr.routeId)
-                    "
-                    [attr.aria-label]="
-                      (global.isRouteLiked()(tr.routeId)
-                        ? 'actions.favorite.remove'
-                        : 'actions.favorite.add'
-                      ) | translate
-                    "
-                    [attr.title]="
-                      (global.isRouteLiked()(tr.routeId)
-                        ? 'actions.favorite.remove'
-                        : 'actions.favorite.add'
-                      ) | translate
-                    "
-                  ></tui-badge>
-                </aside>
-              </header>
-              <section>
-                <div class="text-sm opacity-80">
-                  {{ 'labels.number' | translate }}: #{{ tr.number }}
+              <div class="flex items-center gap-3">
+                <tui-avatar
+                  tuiThumbnail
+                  size="l"
+                  src="/image/route.png"
+                  class="self-center"
+                  [attr.aria-label]="'labels.route' | translate"
+                />
+                <div class="flex flex-col min-w-0 grow">
+                  <header tuiHeader>
+                    <h2 tuiTitle>
+                      {{ tr.route?.name || ('labels.route' | translate) }}
+                    </h2>
+                    <aside tuiAccessories>
+                      <tui-badge
+                        [appearance]="
+                          global.isRouteLiked()(tr.routeId)
+                            ? 'negative'
+                            : 'neutral'
+                        "
+                        iconStart="@tui.heart"
+                        size="xl"
+                        (click.zoneless)="
+                          $event.stopPropagation();
+                          global.toggleLikeRoute(tr.routeId)
+                        "
+                        [attr.aria-label]="
+                          (global.isRouteLiked()(tr.routeId)
+                            ? 'actions.favorite.remove'
+                            : 'actions.favorite.add'
+                          ) | translate
+                        "
+                        [attr.title]="
+                          (global.isRouteLiked()(tr.routeId)
+                            ? 'actions.favorite.remove'
+                            : 'actions.favorite.add'
+                          ) | translate
+                        "
+                      ></tui-badge>
+                    </aside>
+                  </header>
+                  <section>
+                    <div class="text-sm opacity-80">
+                      {{ 'labels.number' | translate }}: #{{ tr.number }}
+                    </div>
+                    <div class="text-sm mt-1">
+                      {{ 'labels.grade' | translate }}:
+                      {{ tr.route?.grade || '—' }}
+                    </div>
+                  </section>
                 </div>
-                <div class="text-sm mt-1">
-                  {{ 'labels.grade' | translate }}: {{ tr.route?.grade || '—' }}
-                </div>
-              </section>
+              </div>
             </div>
           }
         </div>

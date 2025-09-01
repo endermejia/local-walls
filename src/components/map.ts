@@ -46,7 +46,8 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     cragIds: string[];
   }>();
 
-  @ViewChild('container', { read: ElementRef }) private containerRef?: ElementRef<HTMLElement>;
+  @ViewChild('container', { read: ElementRef })
+  private containerRef?: ElementRef<HTMLElement>;
 
   private _map: import('leaflet').Map | null = null;
   private _mapInitialized = false;
@@ -56,7 +57,10 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if ((changes['crags'] || changes['selectedCragId']) && this._mapInitialized) {
+    if (
+      (changes['crags'] || changes['selectedCragId']) &&
+      this._mapInitialized
+    ) {
       // Rebuild markers if crags or selection changes after init
       void this.rebuildMarkers();
     }
@@ -79,7 +83,11 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   private tryInit(): void {
     const el = this.containerRef?.nativeElement;
     if (!el || this._mapInitialized || !this.isBrowser()) return;
-    const raf = (window as unknown as { requestAnimationFrame?: (cb: FrameRequestCallback) => number }).requestAnimationFrame;
+    const raf = (
+      window as unknown as {
+        requestAnimationFrame?: (cb: FrameRequestCallback) => number;
+      }
+    ).requestAnimationFrame;
     if (typeof raf === 'function') {
       raf(() => void this.initMap());
     } else {
@@ -124,7 +132,11 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     this._mapInitialized = true;
 
     if (typeof window !== 'undefined') {
-      const raf = (window as unknown as { requestAnimationFrame?: (cb: FrameRequestCallback) => number }).requestAnimationFrame;
+      const raf = (
+        window as unknown as {
+          requestAnimationFrame?: (cb: FrameRequestCallback) => number;
+        }
+      ).requestAnimationFrame;
       if (typeof raf === 'function') {
         raf(() => {
           this._map?.invalidateSize?.();
@@ -159,7 +171,9 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
         iconAnchor: [0, 0],
       });
       const marker = L.marker(latLng, { icon }).addTo(this._map);
-      marker.on('click', () => this.cragSelect.emit({ cragId: c.id, zoneId: c.zoneId }));
+      marker.on('click', () =>
+        this.cragSelect.emit({ cragId: c.id, zoneId: c.zoneId }),
+      );
       this.attachMarkerKeyboardSelection(marker, c.id, c.zoneId);
     }
 
@@ -189,7 +203,9 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     });
   }
 
-  private async updateVisibleIdsFromCurrentBounds(L: typeof import('leaflet')): Promise<void> {
+  private async updateVisibleIdsFromCurrentBounds(
+    L: typeof import('leaflet'),
+  ): Promise<void> {
     if (!this._map) return;
     const bounds = this._map.getBounds();
     const visibleZones = new Set<string>();

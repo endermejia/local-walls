@@ -141,7 +141,7 @@ export class GlobalData {
   });
 
   zoneNameById = computed(() => {
-    const map = new Map(this.zones().map(z => [z.id, z.name] as const));
+    const map = new Map(this.zones().map((z) => [z.id, z.name] as const));
     return (id: string) => map.get(id) ?? '';
   });
 

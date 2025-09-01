@@ -11,8 +11,12 @@ export const errorInterceptor: HttpInterceptorFn = (
   const injector = inject(Injector);
   return next(req).pipe(
     catchError((err: unknown) => {
-      const anyErr = err as { error?: { message?: string }; message?: string } | null;
-      const msg = anyErr?.error?.message ?? anyErr?.message ?? 'Unexpected error';
+      const anyErr = err as {
+        error?: { message?: string };
+        message?: string;
+      } | null;
+      const msg =
+        anyErr?.error?.message ?? anyErr?.message ?? 'Unexpected error';
       try {
         const global = injector.get(GlobalData);
         // Update global error state if available

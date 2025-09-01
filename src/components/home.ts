@@ -21,7 +21,7 @@ import {
   TuiTitle,
 } from '@taiga-ui/core';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
-import { TuiBadge, TuiButtonClose } from '@taiga-ui/kit';
+import { TuiBadge, TuiButtonClose, TuiAvatar } from '@taiga-ui/kit';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import { TranslatePipe } from '@ngx-translate/core';
 import { MapComponent } from './map';
@@ -43,6 +43,7 @@ import { MapComponent } from './map';
     LowerCasePipe,
     TuiLink,
     MapComponent,
+    TuiAvatar,
   ],
   template: ` <div class="flex flex-col gap-4 h-full w-full relative">
     @let bottomSheetExpanded = isBottomSheetExpanded();
@@ -90,74 +91,87 @@ import { MapComponent } from './map';
           class="tui-space_top-4 relative pointer-events-auto cursor-pointer m-4"
           [routerLink]="['/crag', c.id]"
         >
-          <header tuiHeader>
-            <h2 tuiTitle>{{ c.name }}</h2>
-            <aside tuiAccessories class="flex items-center gap-2">
-              <tui-badge
-                [appearance]="
-                  global.isCragLiked()(c.id) ? 'negative' : 'neutral'
-                "
-                iconStart="@tui.heart"
-                size="xl"
-                (click.zoneless)="
-                  $event.stopPropagation(); global.toggleLikeCrag(c.id)
-                "
-                [attr.aria-label]="
-                  (global.isCragLiked()(c.id)
-                    ? 'actions.favorite.remove'
-                    : 'actions.favorite.add'
-                  ) | translate
-                "
-                [attr.title]="
-                  (global.isCragLiked()(c.id)
-                    ? 'actions.favorite.remove'
-                    : 'actions.favorite.add'
-                  ) | translate
-                "
-              ></tui-badge>
-              @if (mapUrl(); as m) {
-                <a
-                  [href]="m"
-                  rel="noopener noreferrer"
-                  target="_blank"
-                  (click.zoneless)="$event.stopPropagation()"
-                  [attr.aria-label]="'actions.openMap' | translate"
-                  [attr.title]="'actions.openMap' | translate"
-                >
+          <div class="flex items-center gap-3">
+            <tui-avatar
+              tuiThumbnail
+              size="l"
+              src="/image/crag.png"
+              class="self-center"
+              [attr.aria-label]="'labels.crag' | translate"
+            />
+            <div class="flex flex-col min-w-0 grow">
+              <header tuiHeader>
+                <h2 tuiTitle>{{ c.name }}</h2>
+                <aside tuiAccessories class="flex items-center gap-2">
                   <tui-badge
-                    appearance="neutral"
-                    iconStart="@tui.map-pin"
+                    [appearance]="
+                      global.isCragLiked()(c.id) ? 'negative' : 'neutral'
+                    "
+                    iconStart="@tui.heart"
                     size="xl"
+                    (click.zoneless)="
+                      $event.stopPropagation(); global.toggleLikeCrag(c.id)
+                    "
+                    [attr.aria-label]="
+                      (global.isCragLiked()(c.id)
+                        ? 'actions.favorite.remove'
+                        : 'actions.favorite.add'
+                      ) | translate
+                    "
+                    [attr.title]="
+                      (global.isCragLiked()(c.id)
+                        ? 'actions.favorite.remove'
+                        : 'actions.favorite.add'
+                      ) | translate
+                    "
                   ></tui-badge>
-                </a>
-              }
-              <button
-                size="s"
-                tuiButtonClose
-                tuiIconButton
-                type="button"
-                (click.zoneless)="$event.stopPropagation(); closeSelectedCrag()"
-                [attr.aria-label]="'common.close' | translate"
-                title="Close"
-              >
-                Close
-              </button>
-            </aside>
-          </header>
-          <section>
-            <div class="text-sm opacity-80">
-              <a
-                tuiLink
-                appearance="action-grayscale"
-                [routerLink]="['/zone', c.zoneId]"
-                (click.zoneless)="$event.stopPropagation()"
-                >{{ global.zoneNameById()(c.zoneId) }}</a
-              >
+                  @if (mapUrl(); as m) {
+                    <a
+                      [href]="m"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                      (click.zoneless)="$event.stopPropagation()"
+                      [attr.aria-label]="'actions.openMap' | translate"
+                      [attr.title]="'actions.openMap' | translate"
+                    >
+                      <tui-badge
+                        appearance="neutral"
+                        iconStart="@tui.map-pin"
+                        size="xl"
+                      ></tui-badge>
+                    </a>
+                  }
+                  <button
+                    size="s"
+                    tuiButtonClose
+                    tuiIconButton
+                    type="button"
+                    (click.zoneless)="
+                      $event.stopPropagation(); closeSelectedCrag()
+                    "
+                    [attr.aria-label]="'common.close' | translate"
+                    title="Close"
+                  >
+                    Close
+                  </button>
+                </aside>
+              </header>
+              <section>
+                <div class="text-sm opacity-80">
+                  <a
+                    tuiLink
+                    appearance="action-grayscale"
+                    [routerLink]="['/zone', c.zoneId]"
+                    (click.zoneless)="$event.stopPropagation()"
+                    >{{ global.zoneNameById()(c.zoneId) }}</a
+                  >
+                </div>
+                @if (c.description) {
+                  <div class="text-sm mt-1 opacity-70">{{ c.description }}</div>
+                }
+              </section>
             </div>
-            @if (c.description) {
-              <div class="text-sm mt-1 opacity-70">{{ c.description }}</div>
-            }
-          </section>
+          </div>
         </div>
       </div>
     } @else {
@@ -191,43 +205,58 @@ import { MapComponent } from './map';
                   class="tui-space_top-4 cursor-pointer"
                   [routerLink]="['/zone', z.id]"
                 >
-                  <header tuiHeader>
-                    <h2 tuiTitle>{{ z.name }}</h2>
-                    <aside tuiAccessories>
-                      <tui-badge
-                        [appearance]="
-                          global.isZoneLiked()(z.id) ? 'negative' : 'neutral'
-                        "
-                        iconStart="@tui.heart"
-                        size="xl"
-                        (click.zoneless)="
-                          $event.stopPropagation(); global.toggleLikeZone(z.id)
-                        "
-                        [attr.aria-label]="
-                          (global.isZoneLiked()(z.id)
-                            ? 'actions.favorite.remove'
-                            : 'actions.favorite.add'
-                          ) | translate
-                        "
-                        [attr.title]="
-                          (global.isZoneLiked()(z.id)
-                            ? 'actions.favorite.remove'
-                            : 'actions.favorite.add'
-                          ) | translate
-                        "
-                      ></tui-badge>
-                    </aside>
-                  </header>
-                  <section>
-                    <div class="text-sm opacity-80">
-                      {{ 'labels.crags' | translate }}: {{ z.cragIds.length }}
+                  <div class="flex items-center gap-3">
+                    <tui-avatar
+                      tuiThumbnail
+                      size="l"
+                      src="/image/zone.png"
+                      class="self-center"
+                      [attr.aria-label]="'labels.zone' | translate"
+                    />
+                    <div class="flex flex-col min-w-0 grow">
+                      <header tuiHeader>
+                        <h2 tuiTitle>{{ z.name }}</h2>
+                        <aside tuiAccessories>
+                          <tui-badge
+                            [appearance]="
+                              global.isZoneLiked()(z.id)
+                                ? 'negative'
+                                : 'neutral'
+                            "
+                            iconStart="@tui.heart"
+                            size="xl"
+                            (click.zoneless)="
+                              $event.stopPropagation();
+                              global.toggleLikeZone(z.id)
+                            "
+                            [attr.aria-label]="
+                              (global.isZoneLiked()(z.id)
+                                ? 'actions.favorite.remove'
+                                : 'actions.favorite.add'
+                              ) | translate
+                            "
+                            [attr.title]="
+                              (global.isZoneLiked()(z.id)
+                                ? 'actions.favorite.remove'
+                                : 'actions.favorite.add'
+                              ) | translate
+                            "
+                          ></tui-badge>
+                        </aside>
+                      </header>
+                      <section>
+                        <div class="text-sm opacity-80">
+                          {{ 'labels.crags' | translate }}:
+                          {{ z.cragIds.length }}
+                        </div>
+                        @if (z.description) {
+                          <div class="text-sm mt-1 opacity-70">
+                            {{ z.description }}
+                          </div>
+                        }
+                      </section>
                     </div>
-                    @if (z.description) {
-                      <div class="text-sm mt-1 opacity-70">
-                        {{ z.description }}
-                      </div>
-                    }
-                  </section>
+                  </div>
                 </div>
               } @empty {
                 <div class="opacity-70">
@@ -256,49 +285,63 @@ import { MapComponent } from './map';
                   class="tui-space_top-4 cursor-pointer"
                   [routerLink]="['/crag', c.id]"
                 >
-                  <header tuiHeader>
-                    <h2 tuiTitle>{{ c.name }}</h2>
-                    <aside tuiAccessories>
-                      <tui-badge
-                        [appearance]="
-                          global.isCragLiked()(c.id) ? 'negative' : 'neutral'
-                        "
-                        iconStart="@tui.heart"
-                        size="xl"
-                        (click.zoneless)="
-                          $event.stopPropagation(); global.toggleLikeCrag(c.id)
-                        "
-                        [attr.aria-label]="
-                          (global.isCragLiked()(c.id)
-                            ? 'actions.favorite.remove'
-                            : 'actions.favorite.add'
-                          ) | translate
-                        "
-                        [attr.title]="
-                          (global.isCragLiked()(c.id)
-                            ? 'actions.favorite.remove'
-                            : 'actions.favorite.add'
-                          ) | translate
-                        "
-                      ></tui-badge>
-                    </aside>
-                  </header>
-                  <section>
-                    <div class="text-sm opacity-80">
-                      <a
-                        tuiLink
-                        appearance="action-grayscale"
-                        [routerLink]="['/zone', c.zoneId]"
-                        (click.zoneless)="$event.stopPropagation()"
-                        >{{ global.zoneNameById()(c.zoneId) }}</a
-                      >
+                  <div class="flex items-center gap-3">
+                    <tui-avatar
+                      tuiThumbnail
+                      size="l"
+                      src="/image/crag.png"
+                      class="self-center"
+                      [attr.aria-label]="'labels.crag' | translate"
+                    />
+                    <div class="flex flex-col min-w-0 grow">
+                      <header tuiHeader>
+                        <h2 tuiTitle>{{ c.name }}</h2>
+                        <aside tuiAccessories>
+                          <tui-badge
+                            [appearance]="
+                              global.isCragLiked()(c.id)
+                                ? 'negative'
+                                : 'neutral'
+                            "
+                            iconStart="@tui.heart"
+                            size="xl"
+                            (click.zoneless)="
+                              $event.stopPropagation();
+                              global.toggleLikeCrag(c.id)
+                            "
+                            [attr.aria-label]="
+                              (global.isCragLiked()(c.id)
+                                ? 'actions.favorite.remove'
+                                : 'actions.favorite.add'
+                              ) | translate
+                            "
+                            [attr.title]="
+                              (global.isCragLiked()(c.id)
+                                ? 'actions.favorite.remove'
+                                : 'actions.favorite.add'
+                              ) | translate
+                            "
+                          ></tui-badge>
+                        </aside>
+                      </header>
+                      <section>
+                        <div class="text-sm opacity-80">
+                          <a
+                            tuiLink
+                            appearance="action-grayscale"
+                            [routerLink]="['/zone', c.zoneId]"
+                            (click.zoneless)="$event.stopPropagation()"
+                            >{{ global.zoneNameById()(c.zoneId) }}</a
+                          >
+                        </div>
+                        @if (c.description) {
+                          <div class="text-sm mt-1 opacity-70">
+                            {{ c.description }}
+                          </div>
+                        }
+                      </section>
                     </div>
-                    @if (c.description) {
-                      <div class="text-sm mt-1 opacity-70">
-                        {{ c.description }}
-                      </div>
-                    }
-                  </section>
+                  </div>
                 </div>
               } @empty {
                 <div class="opacity-70">

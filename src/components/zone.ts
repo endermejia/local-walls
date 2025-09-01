@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TuiSurface, TuiTitle } from '@taiga-ui/core';
-import { TuiBadge } from '@taiga-ui/kit';
+import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import { GlobalData } from '../services';
 import type { Crag, Zone } from '../models';
@@ -24,6 +24,7 @@ import { TranslatePipe } from '@ngx-translate/core';
     TuiBadge,
     TranslatePipe,
     TuiSurface,
+    TuiAvatar,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -66,42 +67,55 @@ import { TranslatePipe } from '@ngx-translate/core';
               class="tui-space_top-4 cursor-pointer"
               [routerLink]="['/crag', c.id]"
             >
-              <header tuiHeader>
-                <h2 tuiTitle>{{ c.name }}</h2>
-                <aside tuiAccessories>
-                  <tui-badge
-                    [appearance]="
-                      global.isCragLiked()(c.id) ? 'negative' : 'neutral'
-                    "
-                    iconStart="@tui.heart"
-                    size="xl"
-                    (click.zoneless)="
-                      $event.stopPropagation(); global.toggleLikeCrag(c.id)
-                    "
-                    [attr.aria-label]="
-                      (global.isCragLiked()(c.id)
-                        ? 'actions.favorite.remove'
-                        : 'actions.favorite.add'
-                      ) | translate
-                    "
-                    [attr.title]="
-                      (global.isCragLiked()(c.id)
-                        ? 'actions.favorite.remove'
-                        : 'actions.favorite.add'
-                      ) | translate
-                    "
-                  ></tui-badge>
-                </aside>
-              </header>
-              <section>
-                <div class="text-sm opacity-80">
-                  {{ 'labels.approach' | translate }} : {{ c.approach || '—' }}
-                  {{ 'units.min' | translate }}
+              <div class="flex items-center gap-3">
+                <tui-avatar
+                  tuiThumbnail
+                  size="l"
+                  src="/image/crag.png"
+                  class="self-center"
+                  [attr.aria-label]="'labels.crag' | translate"
+                />
+                <div class="flex flex-col min-w-0 grow">
+                  <header tuiHeader>
+                    <h2 tuiTitle>{{ c.name }}</h2>
+                    <aside tuiAccessories>
+                      <tui-badge
+                        [appearance]="
+                          global.isCragLiked()(c.id) ? 'negative' : 'neutral'
+                        "
+                        iconStart="@tui.heart"
+                        size="xl"
+                        (click.zoneless)="
+                          $event.stopPropagation(); global.toggleLikeCrag(c.id)
+                        "
+                        [attr.aria-label]="
+                          (global.isCragLiked()(c.id)
+                            ? 'actions.favorite.remove'
+                            : 'actions.favorite.add'
+                          ) | translate
+                        "
+                        [attr.title]="
+                          (global.isCragLiked()(c.id)
+                            ? 'actions.favorite.remove'
+                            : 'actions.favorite.add'
+                          ) | translate
+                        "
+                      ></tui-badge>
+                    </aside>
+                  </header>
+                  <section>
+                    <div class="text-sm opacity-80">
+                      {{ 'labels.approach' | translate }} :
+                      {{ c.approach || '—' }}
+                      {{ 'units.min' | translate }}
+                    </div>
+                    <div class="text-sm mt-1">
+                      {{ 'labels.parkings' | translate }}:
+                      {{ c.parkings.length }}
+                    </div>
+                  </section>
                 </div>
-                <div class="text-sm mt-1">
-                  {{ 'labels.parkings' | translate }}: {{ c.parkings.length }}
-                </div>
-              </section>
+              </div>
             </div>
           }
         </div>

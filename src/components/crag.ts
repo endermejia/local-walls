@@ -8,7 +8,7 @@ import {
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { GlobalData } from '../services';
 import { TuiTitle, TuiSurface } from '@taiga-ui/core';
-import { TuiBadge } from '@taiga-ui/kit';
+import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import type { Crag, Topo, Parking } from '../models';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -24,6 +24,7 @@ import { TranslatePipe } from '@ngx-translate/core';
     TuiSurface,
     TuiBadge,
     TranslatePipe,
+    TuiAvatar,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -98,39 +99,51 @@ import { TranslatePipe } from '@ngx-translate/core';
                 class="tui-space_top-4 cursor-pointer"
                 [routerLink]="['/topo', t.id]"
               >
-                <header tuiHeader>
-                  <h2 tuiTitle>{{ t.name }}</h2>
-                  <aside tuiAccessories>
-                    <tui-badge
-                      [appearance]="
-                        global.isTopoLiked()(t.id) ? 'negative' : 'neutral'
-                      "
-                      iconStart="@tui.heart"
-                      size="xl"
-                      (click.zoneless)="
-                        $event.stopPropagation(); global.toggleLikeTopo(t.id)
-                      "
-                      [attr.aria-label]="
-                        (global.isTopoLiked()(t.id)
-                          ? 'actions.favorite.remove'
-                          : 'actions.favorite.add'
-                        ) | translate
-                      "
-                      [attr.title]="
-                        (global.isTopoLiked()(t.id)
-                          ? 'actions.favorite.remove'
-                          : 'actions.favorite.add'
-                        ) | translate
-                      "
-                    ></tui-badge>
-                  </aside>
-                </header>
-                <section>
-                  <div class="text-sm opacity-80">
-                    {{ 'labels.routes' | translate }}:
-                    {{ topoRouteCount(t.id) }}
+                <div class="flex items-center gap-3">
+                  <tui-avatar
+                    tuiThumbnail
+                    size="l"
+                    src="/image/topo.png"
+                    class="self-center"
+                    [attr.aria-label]="'labels.topo' | translate"
+                  />
+                  <div class="flex flex-col min-w-0 grow">
+                    <header tuiHeader>
+                      <h2 tuiTitle>{{ t.name }}</h2>
+                      <aside tuiAccessories>
+                        <tui-badge
+                          [appearance]="
+                            global.isTopoLiked()(t.id) ? 'negative' : 'neutral'
+                          "
+                          iconStart="@tui.heart"
+                          size="xl"
+                          (click.zoneless)="
+                            $event.stopPropagation();
+                            global.toggleLikeTopo(t.id)
+                          "
+                          [attr.aria-label]="
+                            (global.isTopoLiked()(t.id)
+                              ? 'actions.favorite.remove'
+                              : 'actions.favorite.add'
+                            ) | translate
+                          "
+                          [attr.title]="
+                            (global.isTopoLiked()(t.id)
+                              ? 'actions.favorite.remove'
+                              : 'actions.favorite.add'
+                            ) | translate
+                          "
+                        ></tui-badge>
+                      </aside>
+                    </header>
+                    <section>
+                      <div class="text-sm opacity-80">
+                        {{ 'labels.routes' | translate }}:
+                        {{ topoRouteCount(t.id) }}
+                      </div>
+                    </section>
                   </div>
-                </section>
+                </div>
               </div>
             }
           </div>
@@ -147,38 +160,50 @@ import { TranslatePipe } from '@ngx-translate/core';
               class="tui-space_top-4 cursor-pointer"
               [routerLink]="['/topo', t.id]"
             >
-              <header tuiHeader>
-                <h2 tuiTitle>{{ t.name }}</h2>
-                <aside tuiAccessories>
-                  <tui-badge
-                    [appearance]="
-                      global.isTopoLiked()(t.id) ? 'negative' : 'neutral'
-                    "
-                    iconStart="@tui.heart"
-                    size="xl"
-                    (click.zoneless)="
-                      $event.stopPropagation(); global.toggleLikeTopo(t.id)
-                    "
-                    [attr.aria-label]="
-                      (global.isTopoLiked()(t.id)
-                        ? 'actions.favorite.remove'
-                        : 'actions.favorite.add'
-                      ) | translate
-                    "
-                    [attr.title]="
-                      (global.isTopoLiked()(t.id)
-                        ? 'actions.favorite.remove'
-                        : 'actions.favorite.add'
-                      ) | translate
-                    "
-                  ></tui-badge>
-                </aside>
-              </header>
-              <section>
-                <div class="text-sm opacity-80">
-                  {{ 'labels.routes' | translate }}: {{ topoRouteCount(t.id) }}
+              <div class="flex items-center gap-3">
+                <tui-avatar
+                  tuiThumbnail
+                  size="l"
+                  src="/image/topo.png"
+                  class="self-center"
+                  [attr.aria-label]="'labels.topo' | translate"
+                />
+                <div class="flex flex-col min-w-0 grow">
+                  <header tuiHeader>
+                    <h2 tuiTitle>{{ t.name }}</h2>
+                    <aside tuiAccessories>
+                      <tui-badge
+                        [appearance]="
+                          global.isTopoLiked()(t.id) ? 'negative' : 'neutral'
+                        "
+                        iconStart="@tui.heart"
+                        size="xl"
+                        (click.zoneless)="
+                          $event.stopPropagation(); global.toggleLikeTopo(t.id)
+                        "
+                        [attr.aria-label]="
+                          (global.isTopoLiked()(t.id)
+                            ? 'actions.favorite.remove'
+                            : 'actions.favorite.add'
+                          ) | translate
+                        "
+                        [attr.title]="
+                          (global.isTopoLiked()(t.id)
+                            ? 'actions.favorite.remove'
+                            : 'actions.favorite.add'
+                          ) | translate
+                        "
+                      ></tui-badge>
+                    </aside>
+                  </header>
+                  <section>
+                    <div class="text-sm opacity-80">
+                      {{ 'labels.routes' | translate }}:
+                      {{ topoRouteCount(t.id) }}
+                    </div>
+                  </section>
                 </div>
-              </section>
+              </div>
             </div>
           }
         </div>

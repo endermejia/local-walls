@@ -1,4 +1,11 @@
-import { Injectable, WritableSignal, signal, computed, inject, PLATFORM_ID } from '@angular/core';
+import {
+  Injectable,
+  WritableSignal,
+  signal,
+  computed,
+  inject,
+  PLATFORM_ID,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import type { Zone, Crag, Topo, Route, TopoRoute, Parking } from '../models';
 import { LocalStorage } from './local-storage';
@@ -88,7 +95,7 @@ export class ApiService {
     this.zones.set(data.zones ?? []);
 
     // Ensure all crag locations are distinct (some mock datasets may repeat coords)
-    const incomingCrags = (data.crags ?? []).map(c => ({ ...c }));
+    const incomingCrags = (data.crags ?? []).map((c) => ({ ...c }));
     const seen = new Set<string>();
     for (const c of incomingCrags) {
       if (!c.ubication) continue;
@@ -127,13 +134,19 @@ export class ApiService {
     this.persist();
   }
   updateZone(id: string, patch: Partial<Zone>): void {
-    this.zones.set(this.zones().map(z => z.id === id ? { ...z, ...patch } : z));
+    this.zones.set(
+      this.zones().map((z) => (z.id === id ? { ...z, ...patch } : z)),
+    );
     this.persist();
   }
   deleteZone(id: string): void {
-    this.zones.set(this.zones().filter(z => z.id !== id));
+    this.zones.set(this.zones().filter((z) => z.id !== id));
     // Also cascade: remove crags in that zone
-    const cragIds = new Set(this.crags().filter(c => c.zoneId === id).map(c => c.id));
+    const cragIds = new Set(
+      this.crags()
+        .filter((c) => c.zoneId === id)
+        .map((c) => c.id),
+    );
     if (cragIds.size) {
       this.deleteCrags(Array.from(cragIds));
     }
@@ -144,24 +157,46 @@ export class ApiService {
   addCrag(crag: Crag): void {
     this.crags.set([...this.crags(), crag]);
     // also reflect in zone.cragIds
-    this.zones.set(this.zones().map(z => z.id === crag.zoneId ? { ...z, cragIds: Array.from(new Set([...(z.cragIds ?? []), crag.id])) } : z));
+    this.zones.set(
+      this.zones().map((z) =>
+        z.id === crag.zoneId
+          ? {
+              ...z,
+              cragIds: Array.from(new Set([...(z.cragIds ?? []), crag.id])),
+            }
+          : z,
+      ),
+    );
     this.persist();
   }
   updateCrag(id: string, patch: Partial<Crag>): void {
-    this.crags.set(this.crags().map(c => c.id === id ? { ...c, ...patch } : c));
+    this.crags.set(
+      this.crags().map((c) => (c.id === id ? { ...c, ...patch } : c)),
+    );
     this.persist();
   }
   deleteCrag(id: string): void {
-    this.crags.set(this.crags().filter(c => c.id !== id));
+    this.crags.set(this.crags().filter((c) => c.id !== id));
     // remove from zone.cragIds
-    this.zones.set(this.zones().map(z => ({ ...z, cragIds: (z.cragIds ?? []).filter(cid => cid !== id) })));
+    this.zones.set(
+      this.zones().map((z) => ({
+        ...z,
+        cragIds: (z.cragIds ?? []).filter((cid) => cid !== id),
+      })),
+    );
     // cascade topos, parkings
-    const topoIds = new Set(this.topos().filter(t => t.cragId === id).map(t => t.id));
+    const topoIds = new Set(
+      this.topos()
+        .filter((t) => t.cragId === id)
+        .map((t) => t.id),
+    );
     if (topoIds.size) this.deleteTopos(Array.from(topoIds));
-    this.parkings.set(this.parkings().filter(p => p.cragId !== id));
+    this.parkings.set(this.parkings().filter((p) => p.cragId !== id));
     this.persist();
   }
-  deleteCrags(ids: string[]): void { ids.forEach(id => this.deleteCrag(id)); }
+  deleteCrags(ids: string[]): void {
+    ids.forEach((id) => this.deleteCrag(id));
+  }
 
   // Parkings
   addParking(parking: Parking): void {
@@ -169,11 +204,13 @@ export class ApiService {
     this.persist();
   }
   updateParking(id: string, patch: Partial<Parking>): void {
-    this.parkings.set(this.parkings().map(p => p.id === id ? { ...p, ...patch } : p));
+    this.parkings.set(
+      this.parkings().map((p) => (p.id === id ? { ...p, ...patch } : p)),
+    );
     this.persist();
   }
   deleteParking(id: string): void {
-    this.parkings.set(this.parkings().filter(p => p.id !== id));
+    this.parkings.set(this.parkings().filter((p) => p.id !== id));
     this.persist();
   }
 
@@ -183,28 +220,43 @@ export class ApiService {
     this.persist();
   }
   updateTopo(id: string, patch: Partial<Topo>): void {
-    this.topos.set(this.topos().map(t => t.id === id ? { ...t, ...patch } : t));
+    this.topos.set(
+      this.topos().map((t) => (t.id === id ? { ...t, ...patch } : t)),
+    );
     this.persist();
   }
   deleteTopo(id: string): void {
-    this.topos.set(this.topos().filter(t => t.id !== id));
+    this.topos.set(this.topos().filter((t) => t.id !== id));
     // cascade topoRoutes
-    const trIds = new Set(this.topoRoutes().filter(tr => tr.topoId === id).map(tr => tr.id));
+    const trIds = new Set(
+      this.topoRoutes()
+        .filter((tr) => tr.topoId === id)
+        .map((tr) => tr.id),
+    );
     if (trIds.size) this.deleteTopoRoutes(Array.from(trIds));
     this.persist();
   }
-  deleteTopos(ids: string[]): void { ids.forEach(id => this.deleteTopo(id)); }
+  deleteTopos(ids: string[]): void {
+    ids.forEach((id) => this.deleteTopo(id));
+  }
 
   // Routes
-  addRoute(route: Route): void { this.routes.set([...this.routes(), route]); this.persist(); }
+  addRoute(route: Route): void {
+    this.routes.set([...this.routes(), route]);
+    this.persist();
+  }
   updateRoute(id: string, patch: Partial<Route>): void {
-    this.routes.set(this.routes().map(r => r.id === id ? { ...r, ...patch } : r));
+    this.routes.set(
+      this.routes().map((r) => (r.id === id ? { ...r, ...patch } : r)),
+    );
     this.persist();
   }
   deleteRoute(id: string): void {
-    this.routes.set(this.routes().filter(r => r.id !== id));
+    this.routes.set(this.routes().filter((r) => r.id !== id));
     // Also remove linked topoRoutes
-    const trIds = this.topoRoutes().filter(tr => tr.routeId === id).map(tr => tr.id);
+    const trIds = this.topoRoutes()
+      .filter((tr) => tr.routeId === id)
+      .map((tr) => tr.id);
     if (trIds.length) this.deleteTopoRoutes(trIds);
     this.persist();
   }
@@ -213,17 +265,37 @@ export class ApiService {
   addTopoRoute(tr: TopoRoute): void {
     this.topoRoutes.set([...this.topoRoutes(), tr]);
     // reflect in topo.topoRouteIds
-    this.topos.set(this.topos().map(t => t.id === tr.topoId ? { ...t, topoRouteIds: Array.from(new Set([...(t.topoRouteIds ?? []), tr.id])) } : t));
+    this.topos.set(
+      this.topos().map((t) =>
+        t.id === tr.topoId
+          ? {
+              ...t,
+              topoRouteIds: Array.from(
+                new Set([...(t.topoRouteIds ?? []), tr.id]),
+              ),
+            }
+          : t,
+      ),
+    );
     this.persist();
   }
   updateTopoRoute(id: string, patch: Partial<TopoRoute>): void {
-    this.topoRoutes.set(this.topoRoutes().map(x => x.id === id ? { ...x, ...patch } : x));
+    this.topoRoutes.set(
+      this.topoRoutes().map((x) => (x.id === id ? { ...x, ...patch } : x)),
+    );
     this.persist();
   }
   deleteTopoRoute(id: string): void {
-    this.topoRoutes.set(this.topoRoutes().filter(x => x.id !== id));
-    this.topos.set(this.topos().map(t => ({ ...t, topoRouteIds: (t.topoRouteIds ?? []).filter(x => x !== id) })));
+    this.topoRoutes.set(this.topoRoutes().filter((x) => x.id !== id));
+    this.topos.set(
+      this.topos().map((t) => ({
+        ...t,
+        topoRouteIds: (t.topoRouteIds ?? []).filter((x) => x !== id),
+      })),
+    );
     this.persist();
   }
-  deleteTopoRoutes(ids: string[]): void { ids.forEach(id => this.deleteTopoRoute(id)); }
+  deleteTopoRoutes(ids: string[]): void {
+    ids.forEach((id) => this.deleteTopoRoute(id));
+  }
 }
