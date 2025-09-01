@@ -159,147 +159,153 @@ import { TranslatePipe } from '@ngx-translate/core';
       </div>
     } @else {
       <!-- BottomSheet -->
-      <tui-bottom-sheet
-        #sheet
-        [stops]="stops"
-        class="z-50"
-        role="dialog"
-        aria-labelledby="zones-title crags-title"
-        (scroll.zoneless)="onSheetScroll($any($event))"
-      >
-        @let zones = zonesInMapSorted();
-        <h3 tuiHeader id="zones-title">
-          <span tuiTitle class="place-items-center">
-            {{ zones.length }}
-            {{
-              'labels.' + (zones.length === 1 ? 'zone' : 'zones')
-                | translate
-                | lowercase
-            }}
-          </span>
-        </h3>
-        <section class="w-full max-w-5xl mx-auto p-4 overflow-auto">
-          <div class="grid gap-2">
-            @for (z of zones; track z.id) {
-              <div
-                tuiCardLarge
-                tuiSurface="neutral"
-                class="tui-space_top-4 cursor-pointer"
-                [routerLink]="['/zone', z.id]"
-              >
-                <header tuiHeader>
-                  <h2 tuiTitle>{{ z.name }}</h2>
-                  <aside tuiAccessories>
-                    <tui-badge
-                      [appearance]="
-                        global.isZoneLiked()(z.id) ? 'negative' : 'neutral'
-                      "
-                      iconStart="@tui.heart"
-                      size="xl"
-                      (click.zoneless)="
-                        $event.stopPropagation(); global.toggleLikeZone(z.id)
-                      "
-                      [attr.aria-label]="
-                        (global.isZoneLiked()(z.id)
-                          ? 'actions.favorite.remove'
-                          : 'actions.favorite.add'
-                        ) | translate
-                      "
-                      [attr.title]="
-                        (global.isZoneLiked()(z.id)
-                          ? 'actions.favorite.remove'
-                          : 'actions.favorite.add'
-                        ) | translate
-                      "
-                    ></tui-badge>
-                  </aside>
-                </header>
-                <section>
-                  <div class="text-sm opacity-80">
-                    {{ 'labels.crags' | translate }}: {{ z.cragIds.length }}
-                  </div>
-                  @if (z.description) {
-                    <div class="text-sm mt-1 opacity-70">
-                      {{ z.description }}
+      @if (sheetMounted()) {
+        <tui-bottom-sheet
+          #sheet
+          [stops]="stops"
+          class="z-50"
+          role="dialog"
+          aria-labelledby="zones-title crags-title"
+          (scroll.zoneless)="onSheetScroll($any($event))"
+        >
+          @let zones = zonesInMapSorted();
+          <h3 tuiHeader id="zones-title">
+            <span tuiTitle class="place-items-center">
+              {{ zones.length }}
+              {{
+                'labels.' + (zones.length === 1 ? 'zone' : 'zones')
+                  | translate
+                  | lowercase
+              }}
+            </span>
+          </h3>
+          <section class="w-full max-w-5xl mx-auto p-4 overflow-auto">
+            <div class="grid gap-2">
+              @for (z of zones; track z.id) {
+                <div
+                  tuiCardLarge
+                  tuiSurface="neutral"
+                  class="tui-space_top-4 cursor-pointer"
+                  [routerLink]="['/zone', z.id]"
+                >
+                  <header tuiHeader>
+                    <h2 tuiTitle>{{ z.name }}</h2>
+                    <aside tuiAccessories>
+                      <tui-badge
+                        [appearance]="
+                          global.isZoneLiked()(z.id) ? 'negative' : 'neutral'
+                        "
+                        iconStart="@tui.heart"
+                        size="xl"
+                        (click.zoneless)="
+                          $event.stopPropagation(); global.toggleLikeZone(z.id)
+                        "
+                        [attr.aria-label]="
+                          (global.isZoneLiked()(z.id)
+                            ? 'actions.favorite.remove'
+                            : 'actions.favorite.add'
+                          ) | translate
+                        "
+                        [attr.title]="
+                          (global.isZoneLiked()(z.id)
+                            ? 'actions.favorite.remove'
+                            : 'actions.favorite.add'
+                          ) | translate
+                        "
+                      ></tui-badge>
+                    </aside>
+                  </header>
+                  <section>
+                    <div class="text-sm opacity-80">
+                      {{ 'labels.crags' | translate }}: {{ z.cragIds.length }}
                     </div>
-                  }
-                </section>
-              </div>
-            } @empty {
-              <div class="opacity-70">{{ 'common.noResults' | translate }}</div>
-            }
-          </div>
-        </section>
-        @let crags = cragsInMapSorted();
-        <h3 tuiHeader id="crags-title">
-          <span tuiTitle class="place-items-center">
-            {{ crags.length }}
-            {{
-              'labels.' + (crags.length === 1 ? 'crag' : 'crags')
-                | translate
-                | lowercase
-            }}
-          </span>
-        </h3>
-        <section class="w-full max-w-5xl mx-auto p-4 overflow-auto">
-          <div class="grid gap-2">
-            @for (c of crags; track c.id) {
-              <div
-                tuiCardLarge
-                tuiSurface="neutral"
-                class="tui-space_top-4 cursor-pointer"
-                [routerLink]="['/crag', c.id]"
-              >
-                <header tuiHeader>
-                  <h2 tuiTitle>{{ c.name }}</h2>
-                  <aside tuiAccessories>
-                    <tui-badge
-                      [appearance]="
-                        global.isCragLiked()(c.id) ? 'negative' : 'neutral'
-                      "
-                      iconStart="@tui.heart"
-                      size="xl"
-                      (click.zoneless)="
-                        $event.stopPropagation(); global.toggleLikeCrag(c.id)
-                      "
-                      [attr.aria-label]="
-                        (global.isCragLiked()(c.id)
-                          ? 'actions.favorite.remove'
-                          : 'actions.favorite.add'
-                        ) | translate
-                      "
-                      [attr.title]="
-                        (global.isCragLiked()(c.id)
-                          ? 'actions.favorite.remove'
-                          : 'actions.favorite.add'
-                        ) | translate
-                      "
-                    ></tui-badge>
-                  </aside>
-                </header>
-                <section>
-                  <div class="text-sm opacity-80">
-                    <a
-                      tuiLink
-                      appearance="action-grayscale"
-                      [routerLink]="['/zone', c.zoneId]"
-                      (click.zoneless)="$event.stopPropagation()"
-                      >{{ global.zoneNameById()(c.zoneId) }}</a
-                    >
-                  </div>
-                  @if (c.description) {
-                    <div class="text-sm mt-1 opacity-70">
-                      {{ c.description }}
+                    @if (z.description) {
+                      <div class="text-sm mt-1 opacity-70">
+                        {{ z.description }}
+                      </div>
+                    }
+                  </section>
+                </div>
+              } @empty {
+                <div class="opacity-70">
+                  {{ 'common.noResults' | translate }}
+                </div>
+              }
+            </div>
+          </section>
+          @let crags = cragsInMapSorted();
+          <h3 tuiHeader id="crags-title">
+            <span tuiTitle class="place-items-center">
+              {{ crags.length }}
+              {{
+                'labels.' + (crags.length === 1 ? 'crag' : 'crags')
+                  | translate
+                  | lowercase
+              }}
+            </span>
+          </h3>
+          <section class="w-full max-w-5xl mx-auto p-4 overflow-auto">
+            <div class="grid gap-2">
+              @for (c of crags; track c.id) {
+                <div
+                  tuiCardLarge
+                  tuiSurface="neutral"
+                  class="tui-space_top-4 cursor-pointer"
+                  [routerLink]="['/crag', c.id]"
+                >
+                  <header tuiHeader>
+                    <h2 tuiTitle>{{ c.name }}</h2>
+                    <aside tuiAccessories>
+                      <tui-badge
+                        [appearance]="
+                          global.isCragLiked()(c.id) ? 'negative' : 'neutral'
+                        "
+                        iconStart="@tui.heart"
+                        size="xl"
+                        (click.zoneless)="
+                          $event.stopPropagation(); global.toggleLikeCrag(c.id)
+                        "
+                        [attr.aria-label]="
+                          (global.isCragLiked()(c.id)
+                            ? 'actions.favorite.remove'
+                            : 'actions.favorite.add'
+                          ) | translate
+                        "
+                        [attr.title]="
+                          (global.isCragLiked()(c.id)
+                            ? 'actions.favorite.remove'
+                            : 'actions.favorite.add'
+                          ) | translate
+                        "
+                      ></tui-badge>
+                    </aside>
+                  </header>
+                  <section>
+                    <div class="text-sm opacity-80">
+                      <a
+                        tuiLink
+                        appearance="action-grayscale"
+                        [routerLink]="['/zone', c.zoneId]"
+                        (click.zoneless)="$event.stopPropagation()"
+                        >{{ global.zoneNameById()(c.zoneId) }}</a
+                      >
                     </div>
-                  }
-                </section>
-              </div>
-            } @empty {
-              <div class="opacity-70">{{ 'common.noResults' | translate }}</div>
-            }
-          </div>
-        </section>
-      </tui-bottom-sheet>
+                    @if (c.description) {
+                      <div class="text-sm mt-1 opacity-70">
+                        {{ c.description }}
+                      </div>
+                    }
+                  </section>
+                </div>
+              } @empty {
+                <div class="opacity-70">
+                  {{ 'common.noResults' | translate }}
+                </div>
+              }
+            </div>
+          </section>
+        </tui-bottom-sheet>
+      }
     }
   </div>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -376,6 +382,18 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   private readonly _sheetClientHeight = signal(0);
   private readonly _sheetScrollTop = signal(0);
+  protected readonly sheetMounted = signal(true);
+
+  private remountBottomSheet(): void {
+    if (!this.isBrowser()) return;
+    // Only remount if the bottom sheet is the visible branch (no crag selected)
+    if (this.selectedCrag()) return;
+    this.sheetMounted.set(false);
+    // Remount on the next frames to ensure destroy then recreate in zoneless mode
+    this.scheduleNextFrame(() =>
+      this.scheduleNextFrame(() => this.sheetMounted.set(true)),
+    );
+  }
 
   private isBrowser(): boolean {
     return isPlatformBrowser(this.platformId) && typeof window !== 'undefined';
@@ -429,7 +447,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     return scrollTop >= maxTop * 0.5;
   });
 
-  setBottomSheet(mode: 'open' | 'close' | 'toggle' = 'toggle'): void {
+  protected setBottomSheet(mode: 'open' | 'close' | 'toggle' = 'toggle'): void {
     if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined') {
       return;
     }
@@ -553,10 +571,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.global.setSelectedZone(null);
   }
 
-  closeBottomSheet(): void {
-    this.setBottomSheet('close');
-  }
-
   private _map: import('leaflet').Map | null = null;
   private _mapInitialized = false;
 
@@ -601,6 +615,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     }
     this._visibleZoneIds.set(visibleZones);
     this._visibleCragIds.set(visibleCrags);
+    this.remountBottomSheet();
   }
 
   constructor() {
@@ -655,7 +670,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
     this._map.on('click', () => {
       this.closeSelectedCrag();
-      this.closeBottomSheet();
+      this.setBottomSheet('close');
     });
 
     if (latLngs.length) {
@@ -665,6 +680,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
     const recalcVisible = () => this.updateVisibleIdsFromCurrentBounds(L);
     recalcVisible();
+    const collapseOnInteraction = () => this.setBottomSheet('close');
+    this._map.on('movestart', collapseOnInteraction);
+    this._map.on('zoomstart', collapseOnInteraction);
     this._map.on('moveend', recalcVisible);
     this._map.on('zoomend', recalcVisible);
 
