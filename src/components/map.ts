@@ -14,7 +14,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import type { Crag } from '../models/crag.model';
+import type { Crag } from '../models';
 
 @Component({
   selector: 'app-map',
@@ -118,7 +118,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
 
     await this.rebuildMarkers();
 
-    // Fit bounds only once on initial component init
+    // Fit bounds only once on the initial component init
     if (this.crags && this.crags.length) {
       const latLngs: [number, number][] = this.crags.map((c) => [
         c.ubication.lat,
@@ -131,7 +131,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     this._map.on('click', () => this.mapClick.emit());
 
     const recalcVisible = () => this.updateVisibleIdsFromCurrentBounds(L);
-    recalcVisible();
+    await recalcVisible();
 
     const collapseOnInteraction = () => this.interactionStart.emit();
     this._map.on('movestart', collapseOnInteraction);
@@ -169,11 +169,9 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
       }
     });
 
-    const latLngs: [number, number][] = [];
     for (const c of this.crags) {
       const { lat, lng } = c.ubication;
       const latLng: [number, number] = [lat, lng];
-      latLngs.push(latLng);
       const icon = L.divIcon({
         html: this.cragLabelHtml(c.name, this.selectedCragId === c.id),
         className: 'pointer-events-none',

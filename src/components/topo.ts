@@ -3,7 +3,9 @@ import {
   Component,
   computed,
   inject,
+  Signal,
   signal,
+  WritableSignal,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
@@ -77,13 +79,16 @@ import { TranslatePipe } from '@ngx-translate/core';
                 <tui-avatar
                   tuiThumbnail
                   size="l"
-                  [src]="global.iconSrc()('route')"
-                  class="self-center"
-                  [attr.aria-label]="'labels.route' | translate"
-                />
+                  class="self-center font-semibold select-none"
+                  [attr.aria-label]="'labels.grade' | translate"
+                >
+                  {{ tr.route?.grade || '—' }}
+                </tui-avatar>
                 <div class="flex flex-col min-w-0 grow">
                   <header tuiHeader>
                     <h2 tuiTitle>
+                      {{ tr.number }}
+                      -
                       {{ tr.route?.name || ('labels.route' | translate) }}
                     </h2>
                     <aside tuiAccessories>
@@ -114,15 +119,6 @@ import { TranslatePipe } from '@ngx-translate/core';
                       ></tui-badge>
                     </aside>
                   </header>
-                  <section>
-                    <div class="text-sm opacity-80">
-                      {{ 'labels.number' | translate }}: #{{ tr.number }}
-                    </div>
-                    <div class="text-sm mt-1">
-                      {{ 'labels.grade' | translate }}:
-                      {{ tr.route?.grade || '—' }}
-                    </div>
-                  </section>
                 </div>
               </div>
             </div>
@@ -141,30 +137,32 @@ export class TopoComponent {
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
 
-  topoId = signal<string | null>(null);
-  topo = computed<Topo | null>(() => {
+  topoId: WritableSignal<string | null> = signal<string | null>(null);
+  topo: Signal<Topo | null> = computed<Topo | null>(() => {
     const id = this.topoId();
     return id ? this.global.topos().find((t) => t.id === id) || null : null;
   });
 
-  topoRoutesDetailed = computed(() => {
-    const id = this.topoId();
-    if (!id) return [] as (TopoRoute & { route?: Route })[];
-    const tr = this.global.topoRoutes().filter((r) => r.topoId === id);
-    const routesIndex = new Map(
-      this.global.routesData().map((r) => [r.id, r] as const),
-    );
-    return tr.map((item) => ({
-      ...item,
-      route: routesIndex.get(item.routeId),
-    }));
-  });
+  topoRoutesDetailed: Signal<(TopoRoute & { route?: Route })[]> = computed(
+    () => {
+      const id = this.topoId();
+      if (!id) return [] as (TopoRoute & { route?: Route })[];
+      const tr = this.global.topoRoutes().filter((r) => r.topoId === id);
+      const routesIndex = new Map(
+        this.global.routesData().map((r) => [r.id, r] as const),
+      );
+      return tr.map((item) => ({
+        ...item,
+        route: routesIndex.get(item.routeId),
+      }));
+    },
+  );
 
   constructor() {
     const id = this.route.snapshot.paramMap.get('id');
     this.topoId.set(id);
     this.global.setSelectedTopo(id);
-    // set selected crag and zone from topo context if possible
+    // set the selected crag and zone from topo context if possible
     const topo = this.global.topos().find((t) => t.id === id);
     if (topo) {
       this.global.setSelectedCrag(topo.cragId);

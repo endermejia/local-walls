@@ -6,8 +6,10 @@ import {
   ElementRef,
   inject,
   PLATFORM_ID,
+  Signal,
   signal,
   ViewChild,
+  WritableSignal,
 } from '@angular/core';
 import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { GlobalData } from '../services';
@@ -25,6 +27,7 @@ import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import { TranslatePipe } from '@ngx-translate/core';
 import { MapComponent } from './map';
+import { Crag } from '../models';
 
 @Component({
   selector: 'app-home',
@@ -255,20 +258,24 @@ import { MapComponent } from './map';
   },
 })
 export class HomeComponent implements AfterViewInit {
+  private readonly _platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
-  private readonly platformId = inject(PLATFORM_ID);
 
   protected readonly stops = ['6rem'] as const;
 
   @ViewChild('sheet', { read: ElementRef }) sheetRef?: ElementRef<HTMLElement>;
 
-  private readonly _sheetClientHeight = signal(0);
-  private readonly _sheetScrollTop = signal(0);
-  private readonly _visibleZoneIds = signal<Set<string>>(new Set());
-  private readonly _visibleCragIds = signal<Set<string>>(new Set());
-  protected readonly sheetMounted = signal(true);
+  private readonly _sheetClientHeight: WritableSignal<number> = signal(0);
+  private readonly _sheetScrollTop: WritableSignal<number> = signal(0);
+  private readonly _visibleZoneIds: WritableSignal<Set<string>> = signal<
+    Set<string>
+  >(new Set());
+  private readonly _visibleCragIds: WritableSignal<Set<string>> = signal<
+    Set<string>
+  >(new Set());
+  protected readonly sheetMounted: WritableSignal<boolean> = signal(true);
 
-  protected readonly isBottomSheetExpanded = computed(() => {
+  protected readonly isBottomSheetExpanded: Signal<boolean> = computed(() => {
     const clientHeight = this._sheetClientHeight();
     const scrollTop = this._sheetScrollTop();
     if (clientHeight <= 0) return false;
@@ -277,7 +284,7 @@ export class HomeComponent implements AfterViewInit {
     return scrollTop >= maxTop * 0.5;
   });
 
-  protected readonly selectedCrag = computed(() => {
+  protected readonly selectedCrag: Signal<Crag | null> = computed(() => {
     const id = this.global.selectedCragId();
     return id ? (this.global.crags().find((c) => c.id === id) ?? null) : null;
   });
@@ -322,7 +329,7 @@ export class HomeComponent implements AfterViewInit {
   }
 
   private isBrowser(): boolean {
-    return isPlatformBrowser(this.platformId) && typeof window !== 'undefined';
+    return isPlatformBrowser(this._platformId) && typeof window !== 'undefined';
   }
 
   private scheduleNextFrame(run: () => void): void {
@@ -373,7 +380,7 @@ export class HomeComponent implements AfterViewInit {
   }
 
   protected setBottomSheet(mode: 'open' | 'close' | 'toggle' = 'toggle'): void {
-    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined') {
+    if (!isPlatformBrowser(this._platformId) || typeof window === 'undefined') {
       return;
     }
 

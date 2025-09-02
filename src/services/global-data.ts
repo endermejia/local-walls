@@ -36,8 +36,8 @@ export class GlobalData {
   private api = inject(ApiService);
   protected readonly flagPipe = new TuiFlagPipe();
 
-  selectedLanguage: WritableSignal<'es' | 'en'> = signal('en');
-  selectedTheme: WritableSignal<'light' | 'dark'> = signal('dark');
+  selectedLanguage: WritableSignal<'es' | 'en'> = signal('es');
+  selectedTheme: WritableSignal<'light' | 'dark'> = signal('light');
 
   // Computed signal for Taiga UI language based on selectedLanguage
   tuiLanguage: Signal<

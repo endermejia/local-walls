@@ -18,7 +18,7 @@ import { TuiButton } from '@taiga-ui/core';
       class="w-full max-w-sm mx-auto p-6 rounded-2xl border border-[color:var(--tui-border-normal)] shadow-sm bg-[color:var(--tui-base-01)]"
       (submit.zoneless)="submit($event)"
     >
-      <div class="flex items-center gap-3 mb-4">
+      <div class="flex items-center mb-4">
         <div>
           <h1 class="text-xl font-semibold leading-5">
             {{ 'auth.login' | translate }}
