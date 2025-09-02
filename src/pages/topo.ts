@@ -79,6 +79,17 @@ export interface Row {
           </aside>
         </header>
 
+        @if (t.photo) {
+          <div class="w-full mb-4">
+            <img
+              [src]="t.photo"
+              alt="{{ t.name }}"
+              class="w-full h-auto rounded-md object-cover"
+              decoding="async"
+            />
+          </div>
+        }
+
         <h2 class="text-xl font-semibold mt-6 mb-2">
           {{ 'labels.routes' | translate }}
         </h2>
@@ -158,12 +169,12 @@ export interface Row {
                               target="_blank"
                               rel="noopener noreferrer"
                               [attr.aria-label]="'8a.nu'"
-                              class="inline-flex items-center"
                             >
                               <img
-                                src="/image/8anu.svg"
                                 alt="8a.nu"
-                                style="width: 1.25rem; height: 1.25rem;"
+                                [src]="global.iconSrc()('8anu')"
+                                tuiBadge
+                                size="l"
                               />
                             </a>
                           }
@@ -174,7 +185,7 @@ export interface Row {
                                 : 'neutral'
                             "
                             iconStart="@tui.heart"
-                            size="l"
+                            size="xl"
                             (click.zoneless)="
                               global.toggleLikeRoute(item._ref.routeId)
                             "

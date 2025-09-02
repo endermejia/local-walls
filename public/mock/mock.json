@@ -1,4 +1,5 @@
 {
+  "version": "2025-09-03T00:32",
   "zones": [
     {
       "id": "z1",
@@ -1329,6 +1330,7 @@
     {
       "id": "z1-c1-t1",
       "name": "Topo 1-1-1",
+      "photo": "/image/crag-light.svg",
       "cragId": "z1-c1",
       "topoRouteIds": [
         "tr-z1-c1-t1-1",
@@ -1346,6 +1348,7 @@
     {
       "id": "z1-c1-t2",
       "name": "Topo 1-1-2",
+      "photo": "/image/crag-light.svg",
       "cragId": "z1-c1",
       "topoRouteIds": [
         "tr-z1-c1-t2-1",
@@ -1363,6 +1366,7 @@
     {
       "id": "z1-c1-t3",
       "name": "Topo 1-1-3",
+      "photo": "/image/crag-light.svg",
       "cragId": "z1-c1",
       "topoRouteIds": [
         "tr-z1-c1-t3-1",
@@ -1380,6 +1384,7 @@
     {
       "id": "z1-c1-t4",
       "name": "Topo 1-1-4",
+      "photo": "/image/crag-light.svg",
       "cragId": "z1-c1",
       "topoRouteIds": [
         "tr-z1-c1-t4-1",
@@ -1397,6 +1402,7 @@
     {
       "id": "z1-c2-t1",
       "name": "Topo 1-2-1",
+      "photo": "/image/crag-light.svg",
       "cragId": "z1-c2",
       "topoRouteIds": [
         "tr-z1-c2-t1-1",
@@ -4732,61 +4738,71 @@
       "id": "z1-c1-t1-r1",
       "name": "Route 1-1-1-1",
       "grade": "6b",
-      "height": 14
+      "height": 14,
+      "url_8anu": "https://www.8a.nu/route/z1-c1-t1-r1"
     },
     {
       "id": "z1-c1-t1-r2",
       "name": "Route 1-1-1-2",
       "grade": "6b+",
-      "height": 16
+      "height": 16,
+      "url_8anu": "https://www.8a.nu/route/z1-c1-t1-r2"
     },
     {
       "id": "z1-c1-t1-r3",
       "name": "Route 1-1-1-3",
       "grade": "6c",
-      "height": 18
+      "height": 18,
+      "url_8anu": "https://www.8a.nu/route/z1-c1-t1-r3"
     },
     {
       "id": "z1-c1-t1-r4",
       "name": "Route 1-1-1-4",
       "grade": "6c+",
-      "height": 20
+      "height": 20,
+      "url_8anu": "https://www.8a.nu/route/z1-c1-t1-r4"
     },
     {
       "id": "z1-c1-t1-r5",
       "name": "Route 1-1-1-5",
       "grade": "7a",
-      "height": 22
+      "height": 22,
+      "url_8anu": "https://www.8a.nu/route/z1-c1-t1-r5"
     },
     {
       "id": "z1-c1-t1-r6",
       "name": "Route 1-1-1-6",
       "grade": "7a+",
-      "height": 24
+      "height": 24,
+      "url_8anu": "https://www.8a.nu/route/z1-c1-t1-r6"
     },
     {
       "id": "z1-c1-t1-r7",
       "name": "Route 1-1-1-7",
       "grade": "7b",
-      "height": 26
+      "height": 26,
+      "url_8anu": "https://www.8a.nu/route/z1-c1-t1-r7"
     },
     {
       "id": "z1-c1-t1-r8",
       "name": "Route 1-1-1-8",
       "grade": "7b+",
-      "height": 28
+      "height": 28,
+      "url_8anu": "https://www.8a.nu/route/z1-c1-t1-r8"
     },
     {
       "id": "z1-c1-t1-r9",
       "name": "Route 1-1-1-9",
       "grade": "7c",
-      "height": 30
+      "height": 30,
+      "url_8anu": "https://www.8a.nu/route/z1-c1-t1-r9"
     },
     {
       "id": "z1-c1-t1-r10",
       "name": "Route 1-1-1-10",
       "grade": "7c+",
-      "height": 12
+      "height": 12,
+      "url_8anu": "https://www.8a.nu/route/z1-c1-t1-r10"
     },
     {
       "id": "z1-c1-t2-r1",

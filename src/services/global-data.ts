@@ -330,7 +330,7 @@ export class GlobalData {
   // Themed icon source as a computed signal
   iconSrc = computed(() => {
     const theme = this.selectedTheme();
-    return (name: 'crag' | 'route' | 'topo' | 'zone') =>
+    return (name: 'crag' | 'route' | 'topo' | 'zone' | '8anu') =>
       `/image/${name}-${theme}.svg`;
   });
 }

@@ -11,6 +11,7 @@ import type { Zone, Crag, Topo, Route, TopoRoute, Parking } from '../models';
 import { LocalStorage } from './local-storage';
 
 export interface MockData {
+  version?: string;
   zones: Zone[];
   crags: Crag[];
   parkings: Parking[];
@@ -54,23 +55,25 @@ export class ApiService {
     if (this.isBrowser) {
       // Try local storage first
       const cached = this.storage.getItem(this.storageKey);
+      let cachedData: MockData | null = null;
       if (cached) {
         try {
-          const parsed: MockData = JSON.parse(cached);
-          this.applyAll(parsed);
+          cachedData = JSON.parse(cached) as MockData;
+          this.applyAll(cachedData);
           this.loaded.set(true);
         } catch {
           // ignore and fetch fresh
         }
       }
-      if (!this.loaded()) {
-        // fire and forget
-        this.loadAll();
-      }
+      // Always fetch fresh in background to detect updates; log errors to error signal
+      this.loadAll(cachedData?.version).catch((e: unknown) => {
+        const message = e instanceof Error ? e.message : String(e);
+        this.error.set(message);
+      });
     }
   }
 
-  async loadAll(): Promise<void> {
+  async loadAll(cachedVersion?: string): Promise<void> {
     if (!this.isBrowser) return; // avoid SSR fetch
     try {
       this.loading.set(true);
@@ -78,10 +81,13 @@ export class ApiService {
       const res = await fetch('/mock/mock.json', { cache: 'no-cache' });
       if (!res.ok) throw new Error('Failed to load mock data');
       const data = (await res.json()) as MockData;
-      this.applyAll(data);
-      // persist in browser to avoid refetch
-      this.storage.setItem(this.storageKey, JSON.stringify(data));
-      this.loaded.set(true);
+      // If versions differ or not provided, update state and cache
+      const shouldUpdate = data.version !== cachedVersion;
+      if (shouldUpdate) {
+        this.applyAll(data);
+        this.storage.setItem(this.storageKey, JSON.stringify(data));
+        this.loaded.set(true);
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       this.error.set(message);
