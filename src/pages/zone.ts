@@ -8,11 +8,12 @@ import {
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
 import { TuiSurface, TuiTitle } from '@taiga-ui/core';
-import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
+import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import { GlobalData } from '../services';
 import type { Crag, Zone } from '../models';
 import { TranslatePipe } from '@ngx-translate/core';
+import { SectionHeaderComponent } from '../components/section-header';
 
 @Component({
   selector: 'app-zone',
@@ -22,45 +23,20 @@ import { TranslatePipe } from '@ngx-translate/core';
     TuiHeader,
     TuiCardLarge,
     TuiTitle,
-    TuiBadge,
     TranslatePipe,
     TuiSurface,
     TuiAvatar,
+    SectionHeaderComponent,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
       @if (zone(); as z) {
-        <header class="mb-4 flex items-start justify-between gap-2">
-          <div class="flex items-center gap-2">
-            <tui-badge
-              [appearance]="'neutral'"
-              iconStart="@tui.chevron-left"
-              size="l"
-              (click.zoneless)="goBack()"
-              [attr.aria-label]="'actions.back' | translate"
-              [attr.title]="'actions.back' | translate"
-            ></tui-badge>
-            <h1 class="text-2xl font-bold">{{ z.name }}</h1>
-          </div>
-          <tui-badge
-            [appearance]="global.isZoneLiked()(z.id) ? 'negative' : 'neutral'"
-            iconStart="@tui.heart"
-            size="xl"
-            (click.zoneless)="global.toggleLikeZone(z.id)"
-            [attr.aria-label]="
-              (global.isZoneLiked()(z.id)
-                ? 'actions.favorite.remove'
-                : 'actions.favorite.add'
-              ) | translate
-            "
-            [attr.title]="
-              (global.isZoneLiked()(z.id)
-                ? 'actions.favorite.remove'
-                : 'actions.favorite.add'
-              ) | translate
-            "
-          ></tui-badge>
-        </header>
+        <app-section-header
+          [title]="z.name"
+          [liked]="global.isZoneLiked()(z.id)"
+          (back)="goBack()"
+          (toggleLike)="global.toggleLikeZone(z.id)"
+        ></app-section-header>
 
         @if (z.description) {
           <p class="mt-2 opacity-80">{{ z.description }}</p>
