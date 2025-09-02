@@ -289,7 +289,6 @@ export class HomeComponent implements AfterViewInit {
     return id ? (this.global.crags().find((c) => c.id === id) ?? null) : null;
   });
 
-
   protected readonly zonesInMapSorted: Signal<Zone[]> = computed(() => {
     const zones = this.global.zones();
     const crags = this.global.crags();
@@ -319,7 +318,6 @@ export class HomeComponent implements AfterViewInit {
           +!liked.has(a.id) - +!liked.has(b.id) || a.name.localeCompare(b.name),
       );
   });
-
 
   private remountBottomSheet(): void {
     if (!this.isBrowser()) return;
@@ -455,17 +453,11 @@ export class HomeComponent implements AfterViewInit {
     }
   }
 
-  // Handlers from app-map component
-  protected onCragSelect(crag: Crag): void {
+  protected onSelectedCragChange(crag: Crag | null): void {
+    if (!crag) return;
     this.global.setSelectedCrag(crag.id);
     this.global.setSelectedZone(crag.zoneId);
     this.setBottomSheet('open');
-  }
-
-  protected onSelectedCragChange(event: Crag | null): void {
-    // MapComponent may emit null on map clicks; ignore here to avoid double handling
-    if (!event) return;
-    this.onCragSelect(event);
   }
 
   protected onMapClick(): void {

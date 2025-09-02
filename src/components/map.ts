@@ -10,13 +10,11 @@ import {
   PLATFORM_ID,
   ViewChild,
   effect,
-  model,
   InputSignal,
   OutputEmitterRef,
-  ModelSignal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import type { Crag } from '../models';
+import type { Crag, MapOptions, MapVisibleElements } from '../models';
 
 @Component({
   selector: 'app-map',
@@ -37,17 +35,18 @@ import type { Crag } from '../models';
 export class MapComponent implements AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
 
-  crags: InputSignal<Crag[]> = input<Crag[]>([]);
-  selectedCrag: ModelSignal<Crag | null> = model<Crag | null>(null);
-  mapClick: OutputEmitterRef<void> = output<void>();
-  interactionStart: OutputEmitterRef<void> = output<void>();
-  visibleChange: OutputEmitterRef<{
-    zoneIds: string[];
-    cragIds: string[];
-  }> = output<{
-    zoneIds: string[];
-    cragIds: string[];
-  }>();
+  crags: InputSignal<readonly Crag[]> = input<readonly Crag[]>([]);
+  selectedCrag: InputSignal<Crag | null> = input<Crag | null>(null);
+  selectedCragChange: OutputEmitterRef<Crag | null> = output<Crag | null>();
+  options: InputSignal<MapOptions> = input<MapOptions>({
+    center: [39.5, -0.5],
+    zoom: 7,
+    maxZoom: 19,
+    minZoom: 5,
+  });
+  mapClick = output<void>();
+  interactionStart = output<void>();
+  visibleChange = output<MapVisibleElements>();
 
   @ViewChild('container', { read: ElementRef })
   private containerRef?: ElementRef<HTMLElement>;
@@ -105,17 +104,18 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     const el = this.containerRef?.nativeElement;
     if (!el) return;
 
+    const mapOptions = this.options();
     this._map = L.map(el, {
-      center: [39.5, -0.5],
-      zoom: 7,
+      center: mapOptions.center ?? [39.5, -0.5],
+      zoom: mapOptions.zoom ?? 7,
       worldCopyJump: true,
     });
 
     L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
-        maxZoom: 19,
-        minZoom: 5,
+        maxZoom: mapOptions.maxZoom ?? 19,
+        minZoom: mapOptions.minZoom ?? 5,
       },
     ).addTo(this._map);
 
@@ -133,7 +133,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     }
 
     this._map.on('click', () => {
-      this.selectedCrag.set(null);
+      this.selectedCragChange.emit(null);
       this.mapClick.emit();
     });
 
@@ -194,7 +194,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         (
           e.originalEvent as MouseEvent | PointerEvent | TouchEvent
         )?.stopPropagation?.();
-        this.selectedCrag.set(c);
+        this.selectedCragChange.emit(c);
       });
       this.attachMarkerKeyboardSelection(marker, c);
     }
@@ -214,7 +214,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       const key = ev.key;
       if (key === 'Enter' || key === ' ') {
         ev.preventDefault();
-        this.selectedCrag.set(crag);
+        this.selectedCragChange.emit(crag);
       }
     });
   }
