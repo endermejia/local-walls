@@ -72,10 +72,10 @@ import { Crag, Zone } from '../models';
       <app-map
         [crags]="global.crags()"
         [selectedCrag]="selectedCrag()"
-        (selectedCragChange)="onSelectedCragChange($event)"
-        (mapClick)="onMapClick()"
-        (interactionStart)="onInteractionStart()"
-        (visibleChange)="onVisibleChange($event)"
+        (selectedCragChange)="selectCrag($event)"
+        (mapClick)="closeAll()"
+        (interactionStart)="setBottomSheet('close')"
+        (visibleChange)="updateBottomSheet($event)"
       ></app-map>
     } @placeholder {
       <tui-loader class="w-full h-full flex" />
@@ -453,24 +453,20 @@ export class HomeComponent implements AfterViewInit {
     }
   }
 
-  protected onSelectedCragChange(crag: Crag | null): void {
+  protected selectCrag(crag: Crag | null): void {
     if (!crag) return;
     this.global.setSelectedCrag(crag.id);
     this.global.setSelectedZone(crag.zoneId);
     this.setBottomSheet('open');
   }
 
-  protected onMapClick(): void {
+  protected closeAll(): void {
     this.global.setSelectedCrag(null);
     this.global.setSelectedZone(null);
     this.setBottomSheet('close');
   }
 
-  protected onInteractionStart(): void {
-    this.setBottomSheet('close');
-  }
-
-  protected onVisibleChange(event: {
+  protected updateBottomSheet(event: {
     zoneIds: string[];
     cragIds: string[];
   }): void {

@@ -15,6 +15,8 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import type { Crag, MapOptions, MapVisibleElements } from '../models';
+import { MapBuilder } from '../services/map-builder';
+import type { MapBuilderCallbacks } from '../services/map-builder';
 
 @Component({
   selector: 'app-map',
@@ -34,6 +36,7 @@ import type { Crag, MapOptions, MapVisibleElements } from '../models';
 })
 export class MapComponent implements AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly mapBuilder = inject(MapBuilder);
 
   crags: InputSignal<readonly Crag[]> = input<readonly Crag[]>([]);
   selectedCrag: InputSignal<Crag | null> = input<Crag | null>(null);
@@ -48,18 +51,24 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   interactionStart = output<void>();
   visibleChange = output<MapVisibleElements>();
 
+  private readonly callbacks: MapBuilderCallbacks = {
+    onSelectedCragChange: (crag) => this.selectedCragChange.emit(crag),
+    onMapClick: () => this.mapClick.emit(),
+    onInteractionStart: () => this.interactionStart.emit(),
+    onVisibleChange: (visible) => this.visibleChange.emit(visible),
+  };
+
   @ViewChild('container', { read: ElementRef })
   private containerRef?: ElementRef<HTMLElement>;
 
-  private _map: import('leaflet').Map | null = null;
   private _mapInitialized = false;
 
   constructor() {
     effect(() => {
-      this.crags();
-      this.selectedCrag();
+      const crags = this.crags();
+      const selected = this.selectedCrag();
       if (this._mapInitialized) {
-        void this.rebuildMarkers();
+        void this.mapBuilder.updateData(crags, selected, this.callbacks);
       }
     });
   }
@@ -70,11 +79,10 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     try {
-      this._map?.remove?.();
+      this.mapBuilder.destroy();
     } catch {
       // ignore
     }
-    this._map = null;
     this._mapInitialized = false;
   }
 
@@ -99,144 +107,15 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   private async initMap(): Promise<void> {
     if (this._mapInitialized || !this.isBrowser()) return;
-    const [{ default: L }] = await Promise.all([import('leaflet')]);
-
     const el = this.containerRef?.nativeElement;
     if (!el) return;
-
-    const mapOptions = this.options();
-    this._map = L.map(el, {
-      center: mapOptions.center ?? [39.5, -0.5],
-      zoom: mapOptions.zoom ?? 7,
-      worldCopyJump: true,
-    });
-
-    L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      {
-        maxZoom: mapOptions.maxZoom ?? 19,
-        minZoom: mapOptions.minZoom ?? 5,
-      },
-    ).addTo(this._map);
-
-    await this.rebuildMarkers();
-
-    // Fit bounds only once on the initial component init
-    const crags = this.crags();
-    if (crags && crags.length) {
-      const latLngs: [number, number][] = crags.map((c) => [
-        c.ubication.lat,
-        c.ubication.lng,
-      ]);
-      const bounds = L.latLngBounds(latLngs);
-      this._map.fitBounds(bounds, { padding: [24, 24] });
-    }
-
-    this._map.on('click', () => {
-      this.selectedCragChange.emit(null);
-      this.mapClick.emit();
-    });
-
-    const recalcVisible = () => this.updateVisibleIdsFromCurrentBounds(L);
-    await recalcVisible();
-
-    const collapseOnInteraction = () => this.interactionStart.emit();
-    this._map.on('movestart', collapseOnInteraction);
-    this._map.on('zoomstart', collapseOnInteraction);
-    this._map.on('moveend', recalcVisible);
-    this._map.on('zoomend', recalcVisible);
-
+    await this.mapBuilder.init(
+      el,
+      this.options(),
+      this.crags(),
+      this.selectedCrag(),
+      this.callbacks,
+    );
     this._mapInitialized = true;
-
-    if (typeof window !== 'undefined') {
-      const raf = (
-        window as unknown as {
-          requestAnimationFrame?: (cb: FrameRequestCallback) => number;
-        }
-      ).requestAnimationFrame;
-      if (typeof raf === 'function') {
-        raf(() => {
-          this._map?.invalidateSize?.();
-          raf(() => this._map?.invalidateSize?.());
-        });
-      } else {
-        this._map?.invalidateSize?.();
-      }
-    }
-  }
-
-  private async rebuildMarkers(): Promise<void> {
-    if (!this._map) return;
-    const [{ default: L }] = await Promise.all([import('leaflet')]);
-
-    // Remove existing markers only
-    this._map.eachLayer((layer: import('leaflet').Layer) => {
-      if (layer instanceof L.Marker) {
-        this._map!.removeLayer(layer);
-      }
-    });
-
-    for (const c of this.crags()) {
-      const { lat, lng } = c.ubication;
-      const latLng: [number, number] = [lat, lng];
-      const icon = L.divIcon({
-        html: this.cragLabelHtml(c.name, this.selectedCrag()?.id === c.id),
-        className: 'pointer-events-none',
-        iconSize: [0, 0],
-        iconAnchor: [0, 0],
-      });
-      const marker = L.marker(latLng, { icon }).addTo(this._map);
-      marker.on('click', (e: import('leaflet').LeafletMouseEvent) => {
-        // Prevent map click and any default zoom behavior on marker click
-        (
-          e.originalEvent as MouseEvent | PointerEvent | TouchEvent
-        )?.preventDefault?.();
-        (
-          e.originalEvent as MouseEvent | PointerEvent | TouchEvent
-        )?.stopPropagation?.();
-        this.selectedCragChange.emit(c);
-      });
-      this.attachMarkerKeyboardSelection(marker, c);
-    }
-  }
-
-  private cragLabelHtml(name: string, isSelected: boolean): string {
-    return `<div class="w-fit bg-black/70 text-white px-2 py-1 rounded-xl text-xs leading-tight whitespace-nowrap -translate-y-full pointer-events-auto border border-transparent shadow hover:bg-black/85 focus:outline-none focus:ring-2 focus:ring-white/70" role="button" tabindex="0" aria-label="${name}" aria-pressed="${isSelected}">${name}</div>`;
-  }
-
-  private attachMarkerKeyboardSelection(
-    marker: import('leaflet').Marker,
-    crag: Crag,
-  ): void {
-    const el = marker.getElement();
-    if (!el) return;
-    el.addEventListener('keydown', (ev: KeyboardEvent) => {
-      const key = ev.key;
-      if (key === 'Enter' || key === ' ') {
-        ev.preventDefault();
-        this.selectedCragChange.emit(crag);
-      }
-    });
-  }
-
-  private async updateVisibleIdsFromCurrentBounds(
-    L: typeof import('leaflet'),
-  ): Promise<void> {
-    if (!this._map) return;
-    const bounds = this._map.getBounds();
-    const visibleZones = new Set<string>();
-    const visibleCrags = new Set<string>();
-    for (const c of this.crags()) {
-      const { lat, lng } = c.ubication;
-      const wrapped = L.latLng(lat, lng).wrap();
-      if (bounds.contains(wrapped)) {
-        visibleZones.add(c.zoneId);
-        visibleCrags.add(c.id);
-      }
-    }
-    this.visibleChange.emit({
-      zoneIds: Array.from(visibleZones),
-      cragIds: Array.from(visibleCrags),
-    });
   }
 }
