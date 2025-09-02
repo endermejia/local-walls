@@ -5,38 +5,32 @@ import { authGuard } from '../services';
 export const routes: Routes = [
   {
     path: 'login',
-    loadComponent: () =>
-      import('../components/login').then((m) => m.LoginComponent),
+    loadComponent: () => import('../pages/login').then((m) => m.LoginComponent),
   },
   {
     path: 'home',
     canMatch: [authGuard],
-    loadComponent: () =>
-      import('../components/home').then((m) => m.HomeComponent),
+    loadComponent: () => import('../pages/home').then((m) => m.HomeComponent),
   },
   {
     path: 'zone/:id',
     canMatch: [authGuard],
-    loadComponent: () =>
-      import('../components/zone').then((m) => m.ZoneComponent),
+    loadComponent: () => import('../pages/zone').then((m) => m.ZoneComponent),
   },
   {
     path: 'crag/:id',
     canMatch: [authGuard],
-    loadComponent: () =>
-      import('../components/crag').then((m) => m.CragComponent),
+    loadComponent: () => import('../pages/crag').then((m) => m.CragComponent),
   },
   {
     path: 'topo/:id',
     canMatch: [authGuard],
-    loadComponent: () =>
-      import('../components/topo').then((m) => m.TopoComponent),
+    loadComponent: () => import('../pages/topo').then((m) => m.TopoComponent),
   },
   {
     path: 'route/:id',
     canMatch: [authGuard],
-    loadComponent: () =>
-      import('../components/route').then((m) => m.RouteComponent),
+    loadComponent: () => import('../pages/route').then((m) => m.RouteComponent),
   },
   {
     path: '',

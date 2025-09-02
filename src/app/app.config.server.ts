@@ -12,7 +12,7 @@ interface TranslationData {
   [key: string]: string | TranslationData;
 }
 
-// Custom TranslateLoader for SSR that loads translations from filesystem
+// Custom TranslateLoader for SSR that loads translations from the filesystem
 export class TranslateServerLoader implements TranslateLoader {
   constructor(
     private prefix = 'i18n',

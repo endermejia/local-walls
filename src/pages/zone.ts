@@ -31,21 +31,16 @@ import { TranslatePipe } from '@ngx-translate/core';
     <section class="w-full max-w-5xl mx-auto p-4">
       @if (zone(); as z) {
         <header class="mb-4 flex items-start justify-between gap-2">
-          <div>
-            <div class="flex items-center gap-2">
-              <tui-badge
-                [appearance]="'neutral'"
-                iconStart="@tui.chevron-left"
-                size="l"
-                (click.zoneless)="goBack()"
-                [attr.aria-label]="'actions.back' | translate"
-                [attr.title]="'actions.back' | translate"
-              ></tui-badge>
-              <h1 class="text-2xl font-bold">{{ z.name }}</h1>
-            </div>
-            @if (z.description) {
-              <p class="mt-2 opacity-80">{{ z.description }}</p>
-            }
+          <div class="flex items-center gap-2">
+            <tui-badge
+              [appearance]="'neutral'"
+              iconStart="@tui.chevron-left"
+              size="l"
+              (click.zoneless)="goBack()"
+              [attr.aria-label]="'actions.back' | translate"
+              [attr.title]="'actions.back' | translate"
+            ></tui-badge>
+            <h1 class="text-2xl font-bold">{{ z.name }}</h1>
           </div>
           <tui-badge
             [appearance]="global.isZoneLiked()(z.id) ? 'negative' : 'neutral'"
@@ -66,6 +61,10 @@ import { TranslatePipe } from '@ngx-translate/core';
             "
           ></tui-badge>
         </header>
+
+        @if (z.description) {
+          <p class="mt-2 opacity-80">{{ z.description }}</p>
+        }
 
         <h2 class="text-xl font-semibold mt-6 mb-2">
           {{ 'labels.crags' | translate }}

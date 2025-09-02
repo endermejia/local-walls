@@ -26,7 +26,7 @@ import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import { TranslatePipe } from '@ngx-translate/core';
-import { MapComponent } from './map';
+import { MapComponent } from '../components';
 import { Crag } from '../models';
 
 @Component({

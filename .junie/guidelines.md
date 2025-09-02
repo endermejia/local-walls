@@ -53,6 +53,7 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
 - Usa `track` en `@for` para listas.
 
 ## 9) Estructura del proyecto
+- `/src/pages` — Pantallas de la app (standalone).
 - `/src/components` — Componentes de la app (standalone).
 - `/src/services` — Servicios/estado (señales, wrappers SSR-safe).
 - `/src/app` — Configuración core, rutas y raíz.

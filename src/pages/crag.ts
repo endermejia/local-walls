@@ -31,21 +31,16 @@ import { TranslatePipe } from '@ngx-translate/core';
     <section class="w-full max-w-5xl mx-auto p-4">
       @if (crag(); as c) {
         <header class="mb-4 flex items-start justify-between gap-2">
-          <div>
-            <div class="flex items-center gap-2">
-              <tui-badge
-                [appearance]="'neutral'"
-                iconStart="@tui.chevron-left"
-                size="l"
-                (click.zoneless)="goBack()"
-                [attr.aria-label]="'actions.back' | translate"
-                [attr.title]="'actions.back' | translate"
-              ></tui-badge>
-              <h1 class="text-2xl font-bold">{{ c.name }}</h1>
-            </div>
-            @if (c.description) {
-              <p class="mt-2 opacity-80">{{ c.description }}</p>
-            }
+          <div class="flex items-center gap-2">
+            <tui-badge
+              [appearance]="'neutral'"
+              iconStart="@tui.chevron-left"
+              size="l"
+              (click.zoneless)="goBack()"
+              [attr.aria-label]="'actions.back' | translate"
+              [attr.title]="'actions.back' | translate"
+            ></tui-badge>
+            <h1 class="text-2xl font-bold">{{ c.name }}</h1>
           </div>
           <tui-badge
             [appearance]="global.isCragLiked()(c.id) ? 'negative' : 'neutral'"
@@ -67,56 +62,57 @@ import { TranslatePipe } from '@ngx-translate/core';
           ></tui-badge>
         </header>
 
-        <div class="mt-4">
-          <h2 class="text-xl font-semibold">
-            {{ 'labels.parkings' | translate }}
-          </h2>
-          <div class="mt-2 grid gap-2">
-            @for (p of cragParkings(); track p.id) {
-              <a
-                class="block"
-                [href]="parkingMapUrl(p)"
-                target="_blank"
-                rel="noopener noreferrer"
-                [attr.aria-label]="'actions.openMap' | translate"
-                [attr.title]="'actions.openMap' | translate"
+        @if (c.description) {
+          <p class="mt-2 opacity-80">{{ c.description }}</p>
+        }
+
+        <h2 class="text-xl font-semibold">
+          {{ 'labels.parkings' | translate }}
+        </h2>
+        <div class="mt-2 grid gap-2">
+          @for (p of cragParkings(); track p.id) {
+            <a
+              class="block"
+              [href]="parkingMapUrl(p)"
+              target="_blank"
+              rel="noopener noreferrer"
+              [attr.aria-label]="'actions.openMap' | translate"
+              [attr.title]="'actions.openMap' | translate"
+            >
+              <div
+                tuiCardLarge
+                tuiSurface="neutral"
+                class="tui-space_top-2 cursor-pointer"
               >
-                <div
-                  tuiCardLarge
-                  tuiSurface="neutral"
-                  class="tui-space_top-2 cursor-pointer"
-                >
-                  <div class="flex items-center gap-3">
-                    <tui-avatar
-                      tuiThumbnail
-                      size="l"
-                      src="@tui.square-parking"
-                      class="self-center"
-                      [attr.aria-label]="'labels.parking' | translate"
-                    />
-                    <div class="flex flex-col min-w-0 grow">
-                      <header tuiHeader>
-                        <h2 tuiTitle>{{ p.name }}</h2>
-                      </header>
-                      <section>
+                <div class="flex items-center gap-3">
+                  <tui-avatar
+                    tuiThumbnail
+                    size="l"
+                    src="@tui.square-parking"
+                    class="self-center"
+                    [attr.aria-label]="'labels.parking' | translate"
+                  />
+                  <div class="flex flex-col min-w-0 grow">
+                    <header tuiHeader>
+                      <h2 tuiTitle>{{ p.name }}</h2>
+                    </header>
+                    <section>
+                      <div class="text-sm opacity-80">
+                        {{ 'labels.lat' | translate }}: {{ p.ubication.lat }} ·
+                        {{ 'labels.lng' | translate }}: {{ p.ubication.lng }}
+                      </div>
+                      @if (p.capacity) {
                         <div class="text-sm opacity-80">
-                          {{ 'labels.lat' | translate }}:
-                          {{ p.ubication.lat }} ·
-                          {{ 'labels.lng' | translate }}: {{ p.ubication.lng }}
+                          {{ 'labels.capacity' | translate }}:
+                          {{ p.capacity }}
                         </div>
-                        @if (p.capacity) {
-                          <div class="text-sm opacity-80">
-                            {{ 'labels.capacity' | translate }}:
-                            {{ p.capacity }}
-                          </div>
-                        }
-                      </section>
-                    </div>
+                      }
+                    </section>
                   </div>
                 </div>
-              </a>
-            }
-          </div>
+              </div>
+            </a>
+          }
         </div>
 
         <h2 class="text-xl font-semibold mt-6 mb-2">
