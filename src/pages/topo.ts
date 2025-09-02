@@ -9,15 +9,15 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
-import { TuiTitle } from '@taiga-ui/core';
 import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
-import { TuiHeader, TuiCell } from '@taiga-ui/layout';
+import { TuiCell } from '@taiga-ui/layout';
 import { TuiTable, TuiSortDirection } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { TuiLet, tuiDefaultSort } from '@taiga-ui/cdk';
 import { GlobalData } from '../services';
 import type { Topo, TopoRoute, Route } from '../models';
 import { TranslatePipe } from '@ngx-translate/core';
+import { SectionHeaderComponent } from '../components/section-header';
 
 type TableKey = 'grade' | 'number' | 'route' | 'height';
 
@@ -35,49 +35,23 @@ export interface Row {
   standalone: true,
   imports: [
     RouterLink,
-    TuiHeader,
-    TuiTitle,
     TuiBadge,
     TuiAvatar,
     TranslatePipe,
     TuiTable,
     TuiCell,
     TuiLet,
+    SectionHeaderComponent,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
       @if (topo(); as t) {
-        <header tuiHeader class="mb-4">
-          <h1 tuiTitle>{{ t.name }}</h1>
-          <aside tuiAccessories>
-            <tui-badge
-              [appearance]="'neutral'"
-              iconStart="@tui.chevron-left"
-              size="l"
-              (click.zoneless)="goBack()"
-              [attr.aria-label]="'actions.back' | translate"
-              [attr.title]="'actions.back' | translate"
-            ></tui-badge>
-            <tui-badge
-              [appearance]="global.isTopoLiked()(t.id) ? 'negative' : 'neutral'"
-              iconStart="@tui.heart"
-              size="xl"
-              (click.zoneless)="global.toggleLikeTopo(t.id)"
-              [attr.aria-label]="
-                (global.isTopoLiked()(t.id)
-                  ? 'actions.favorite.remove'
-                  : 'actions.favorite.add'
-                ) | translate
-              "
-              [attr.title]="
-                (global.isTopoLiked()(t.id)
-                  ? 'actions.favorite.remove'
-                  : 'actions.favorite.add'
-                ) | translate
-              "
-            ></tui-badge>
-          </aside>
-        </header>
+        <app-section-header
+          [title]="t.name"
+          [liked]="global.isTopoLiked()(t.id)"
+          (back)="goBack()"
+          (toggleLike)="global.toggleLikeTopo(t.id)"
+        />
 
         @if (t.photo) {
           <div class="w-full mb-4">

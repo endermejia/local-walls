@@ -38,7 +38,7 @@ import { SectionHeaderComponent } from '../components/section-header';
           [liked]="global.isZoneLiked()(z.id)"
           (back)="goBack()"
           (toggleLike)="global.toggleLikeZone(z.id)"
-        ></app-section-header>
+        />
 
         @if (z.description) {
           <p class="mt-2 opacity-80">{{ z.description }}</p>

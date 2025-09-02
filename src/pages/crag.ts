@@ -36,7 +36,7 @@ import { SectionHeaderComponent } from '../components/section-header';
           [liked]="global.isCragLiked()(c.id)"
           (back)="goBack()"
           (toggleLike)="global.toggleLikeCrag(c.id)"
-        ></app-section-header>
+        />
 
         @if (c.description) {
           <p class="mt-2 opacity-80">{{ c.description }}</p>

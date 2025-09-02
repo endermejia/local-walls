@@ -76,7 +76,7 @@ import { Crag, Zone } from '../models';
         (mapClick)="closeAll()"
         (interactionStart)="setBottomSheet('close')"
         (visibleChange)="updateBottomSheet($event)"
-      ></app-map>
+      />
     } @placeholder {
       <tui-loader class="w-full h-full flex" />
     }
