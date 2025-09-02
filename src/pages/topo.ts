@@ -18,6 +18,7 @@ import { GlobalData } from '../services';
 import type { Topo, TopoRoute, Route } from '../models';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '../components/section-header';
+import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 
 type TableKey = 'grade' | 'number' | 'route' | 'height';
 
@@ -42,158 +43,165 @@ export interface Row {
     TuiCell,
     TuiLet,
     SectionHeaderComponent,
+    TuiBottomSheet,
   ],
   template: `
-    <section class="w-full max-w-5xl mx-auto p-4">
+    <div class="flex flex-col h-full w-full relative">
       @if (topo(); as t) {
-        <app-section-header
-          [title]="t.name"
-          [liked]="global.isTopoLiked()(t.id)"
-          (back)="goBack()"
-          (toggleLike)="global.toggleLikeTopo(t.id)"
+        <img
+          [src]="t.photo || global.iconSrc()('topo')"
+          alt="{{ t.name }}"
+          class="absolute inset-0 w-full h-full object-cover"
+          decoding="async"
         />
 
-        @if (t.photo) {
-          <div class="w-full mb-4">
-            <img
-              [src]="t.photo"
-              alt="{{ t.name }}"
-              class="w-full h-auto rounded-md object-cover"
-              decoding="async"
-            />
-          </div>
-        }
-
-        <h2 class="text-xl font-semibold mt-6 mb-2">
-          {{ 'labels.routes' | translate }}
-        </h2>
-
-        <table
-          tuiTable
-          class="w-full"
-          [columns]="columns"
-          [direction]="direction()"
-          [sorter]="tableSorter"
+        <tui-bottom-sheet
+          [stops]="stops"
+          class="z-50"
+          role="dialog"
+          aria-label="Routes"
         >
-          <thead tuiThead>
-            <tr tuiThGroup>
-              @for (col of columns; track col) {
-                <th *tuiHead="col" tuiTh [sorter]="getSorter(col)">
-                  <div>
-                    {{ 'labels.' + col | translate }}
-                  </div>
-                </th>
-              }
-            </tr>
-          </thead>
-          <tbody
-            *tuiLet="tableData() | tuiTableSort as sortedData"
-            tuiTbody
-            [data]="sortedData"
-          >
-            @for (item of sortedData; track item._ref.routeId) {
-              <tr tuiTr>
-                @for (col of columns; track col) {
-                  <td *tuiCell="col" tuiTd>
-                    @switch (col) {
-                      @case ('grade') {
-                        <div tuiCell size="m">
-                          <tui-avatar
-                            tuiThumbnail
-                            size="l"
-                            class="self-center font-semibold select-none"
-                            [attr.aria-label]="'labels.grade' | translate"
-                          >
-                            {{ item._ref.route?.grade || '—' }}
-                          </tui-avatar>
-                        </div>
-                      }
-                      @case ('number') {
-                        <div tuiCell size="m">
-                          <span>{{ item._ref.number }}</span>
-                        </div>
-                      }
-                      @case ('route') {
-                        <div tuiCell size="m">
-                          <a
-                            [routerLink]="['/route', item._ref.routeId]"
-                            class="tui-link"
-                            >{{
-                              item._ref.route?.name ||
-                                ('labels.route' | translate)
-                            }}</a
-                          >
-                        </div>
-                      }
-                      @case ('height') {
-                        <div tuiCell size="m">
-                          <span>{{
-                            item._ref.route?.height !== null &&
-                            item._ref.route?.height !== undefined
-                              ? item._ref.route?.height + ' m'
-                              : '—'
-                          }}</span>
-                        </div>
-                      }
-                      @case ('actions') {
-                        <div tuiCell size="m" class="flex items-center gap-2">
-                          @if (item._ref.route?.url_8anu; as url) {
-                            <a
-                              [href]="url"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              [attr.aria-label]="'8a.nu'"
-                            >
-                              <img
-                                alt="8a.nu"
-                                [src]="global.iconSrc()('8anu')"
-                                tuiBadge
+          <section class="w-full max-w-5xl mx-auto p-4 overflow-auto">
+            <app-section-header
+              [title]="t.name"
+              [liked]="global.isTopoLiked()(t.id)"
+              (back)="goBack()"
+              (toggleLike)="global.toggleLikeTopo(t.id)"
+            />
+
+            <table
+              tuiTable
+              class="w-full"
+              [columns]="columns"
+              [direction]="direction()"
+              [sorter]="tableSorter"
+            >
+              <thead tuiThead>
+                <tr tuiThGroup>
+                  @for (col of columns; track col) {
+                    <th *tuiHead="col" tuiTh [sorter]="getSorter(col)">
+                      <div>
+                        {{ 'labels.' + col | translate }}
+                      </div>
+                    </th>
+                  }
+                </tr>
+              </thead>
+              <tbody
+                *tuiLet="tableData() | tuiTableSort as sortedData"
+                tuiTbody
+                [data]="sortedData"
+              >
+                @for (item of sortedData; track item._ref.routeId) {
+                  <tr tuiTr>
+                    @for (col of columns; track col) {
+                      <td *tuiCell="col" tuiTd>
+                        @switch (col) {
+                          @case ('grade') {
+                            <div tuiCell size="m">
+                              <tui-avatar
+                                tuiThumbnail
                                 size="l"
-                              />
-                            </a>
+                                class="self-center font-semibold select-none"
+                                [attr.aria-label]="'labels.grade' | translate"
+                              >
+                                {{ item._ref.route?.grade || '—' }}
+                              </tui-avatar>
+                            </div>
                           }
-                          <tui-badge
-                            [appearance]="
-                              global.isRouteLiked()(item._ref.routeId)
-                                ? 'negative'
-                                : 'neutral'
-                            "
-                            iconStart="@tui.heart"
-                            size="xl"
-                            (click.zoneless)="
-                              global.toggleLikeRoute(item._ref.routeId)
-                            "
-                            [attr.aria-label]="
-                              (global.isRouteLiked()(item._ref.routeId)
-                                ? 'actions.favorite.remove'
-                                : 'actions.favorite.add'
-                              ) | translate
-                            "
-                            [attr.title]="
-                              (global.isRouteLiked()(item._ref.routeId)
-                                ? 'actions.favorite.remove'
-                                : 'actions.favorite.add'
-                              ) | translate
-                            "
-                          ></tui-badge>
-                        </div>
-                      }
+                          @case ('number') {
+                            <div tuiCell size="m">
+                              <span>{{ item._ref.number }}</span>
+                            </div>
+                          }
+                          @case ('route') {
+                            <div tuiCell size="m">
+                              <a
+                                [routerLink]="['/route', item._ref.routeId]"
+                                class="tui-link"
+                                >{{
+                                  item._ref.route?.name ||
+                                    ('labels.route' | translate)
+                                }}</a
+                              >
+                            </div>
+                          }
+                          @case ('height') {
+                            <div tuiCell size="m">
+                              <span>{{
+                                item._ref.route?.height !== null &&
+                                item._ref.route?.height !== undefined
+                                  ? item._ref.route?.height + ' m'
+                                  : '—'
+                              }}</span>
+                            </div>
+                          }
+                          @case ('actions') {
+                            <div
+                              tuiCell
+                              size="m"
+                              class="flex items-center gap-2"
+                            >
+                              @if (item._ref.route?.url_8anu; as url) {
+                                <a
+                                  [href]="url"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  [attr.aria-label]="'8a.nu'"
+                                >
+                                  <img
+                                    alt="8a.nu"
+                                    [src]="global.iconSrc()('8anu')"
+                                    tuiBadge
+                                    size="l"
+                                  />
+                                </a>
+                              }
+                              <tui-badge
+                                [appearance]="
+                                  global.isRouteLiked()(item._ref.routeId)
+                                    ? 'negative'
+                                    : 'neutral'
+                                "
+                                iconStart="@tui.heart"
+                                size="xl"
+                                (click.zoneless)="
+                                  global.toggleLikeRoute(item._ref.routeId)
+                                "
+                                [attr.aria-label]="
+                                  (global.isRouteLiked()(item._ref.routeId)
+                                    ? 'actions.favorite.remove'
+                                    : 'actions.favorite.add'
+                                  ) | translate
+                                "
+                                [attr.title]="
+                                  (global.isRouteLiked()(item._ref.routeId)
+                                    ? 'actions.favorite.remove'
+                                    : 'actions.favorite.add'
+                                  ) | translate
+                                "
+                              ></tui-badge>
+                            </div>
+                          }
+                        }
+                      </td>
                     }
-                  </td>
+                  </tr>
                 }
-              </tr>
-            }
-          </tbody>
-        </table>
+              </tbody>
+            </table>
+          </section>
+        </tui-bottom-sheet>
       } @else {
         <p>{{ 'common.loading' | translate }}</p>
       }
-    </section>
+    </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow overflow-auto p-4' },
+  host: { class: 'flex grow' },
 })
 export class TopoComponent {
+  protected readonly stops = ['6rem'] as const;
   private readonly route = inject(ActivatedRoute);
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
