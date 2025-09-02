@@ -9,12 +9,26 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
-import { TuiTitle, TuiSurface } from '@taiga-ui/core';
+import { TuiTitle } from '@taiga-ui/core';
 import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
-import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
+import { TuiHeader, TuiCell } from '@taiga-ui/layout';
+import { TuiTable, TuiSortDirection } from '@taiga-ui/addon-table';
+import type { TuiComparator } from '@taiga-ui/addon-table/types';
+import { TuiLet, tuiDefaultSort } from '@taiga-ui/cdk';
 import { GlobalData } from '../services';
 import type { Topo, TopoRoute, Route } from '../models';
 import { TranslatePipe } from '@ngx-translate/core';
+
+type TableKey = 'grade' | 'number' | 'route' | 'height';
+
+// Row shape for table sorting
+export interface Row {
+  grade: number;
+  number: number;
+  route: string;
+  height: number | null;
+  _ref: TopoRoute & { route?: Route };
+}
 
 @Component({
   selector: 'app-topo',
@@ -22,12 +36,13 @@ import { TranslatePipe } from '@ngx-translate/core';
   imports: [
     RouterLink,
     TuiHeader,
-    TuiCardLarge,
     TuiTitle,
-    TuiSurface,
     TuiBadge,
     TuiAvatar,
     TranslatePipe,
+    TuiTable,
+    TuiCell,
+    TuiLet,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -67,63 +82,124 @@ import { TranslatePipe } from '@ngx-translate/core';
         <h2 class="text-xl font-semibold mt-6 mb-2">
           {{ 'labels.routes' | translate }}
         </h2>
-        <div class="grid gap-2">
-          @for (tr of topoRoutesDetailed(); track tr.id) {
-            <div
-              tuiCardLarge
-              tuiSurface="neutral"
-              class="tui-space_top-4 cursor-pointer"
-              [routerLink]="['/route', tr.routeId]"
-            >
-              <div class="flex items-center gap-3">
-                <tui-avatar
-                  tuiThumbnail
-                  size="l"
-                  class="self-center font-semibold select-none"
-                  [attr.aria-label]="'labels.grade' | translate"
-                >
-                  {{ tr.route?.grade || '—' }}
-                </tui-avatar>
-                <div class="flex flex-col min-w-0 grow">
-                  <header tuiHeader>
-                    <h2 tuiTitle>
-                      {{ tr.number }}
-                      -
-                      {{ tr.route?.name || ('labels.route' | translate) }}
-                    </h2>
-                    <aside tuiAccessories>
-                      <tui-badge
-                        [appearance]="
-                          global.isRouteLiked()(tr.routeId)
-                            ? 'negative'
-                            : 'neutral'
-                        "
-                        iconStart="@tui.heart"
-                        size="xl"
-                        (click.zoneless)="
-                          $event.stopPropagation();
-                          global.toggleLikeRoute(tr.routeId)
-                        "
-                        [attr.aria-label]="
-                          (global.isRouteLiked()(tr.routeId)
-                            ? 'actions.favorite.remove'
-                            : 'actions.favorite.add'
-                          ) | translate
-                        "
-                        [attr.title]="
-                          (global.isRouteLiked()(tr.routeId)
-                            ? 'actions.favorite.remove'
-                            : 'actions.favorite.add'
-                          ) | translate
-                        "
-                      ></tui-badge>
-                    </aside>
-                  </header>
-                </div>
-              </div>
-            </div>
-          }
-        </div>
+
+        <table
+          tuiTable
+          class="w-full"
+          [columns]="columns"
+          [direction]="direction()"
+          [sorter]="tableSorter"
+        >
+          <thead tuiThead>
+            <tr tuiThGroup>
+              @for (col of columns; track col) {
+                <th *tuiHead="col" tuiTh [sorter]="getSorter(col)">
+                  <div>
+                    {{ 'labels.' + col | translate }}
+                  </div>
+                </th>
+              }
+            </tr>
+          </thead>
+          <tbody
+            *tuiLet="tableData() | tuiTableSort as sortedData"
+            tuiTbody
+            [data]="sortedData"
+          >
+            @for (item of sortedData; track item._ref.routeId) {
+              <tr tuiTr>
+                @for (col of columns; track col) {
+                  <td *tuiCell="col" tuiTd>
+                    @switch (col) {
+                      @case ('grade') {
+                        <div tuiCell size="m">
+                          <tui-avatar
+                            tuiThumbnail
+                            size="l"
+                            class="self-center font-semibold select-none"
+                            [attr.aria-label]="'labels.grade' | translate"
+                          >
+                            {{ item._ref.route?.grade || '—' }}
+                          </tui-avatar>
+                        </div>
+                      }
+                      @case ('number') {
+                        <div tuiCell size="m">
+                          <span>{{ item._ref.number }}</span>
+                        </div>
+                      }
+                      @case ('route') {
+                        <div tuiCell size="m">
+                          <a
+                            [routerLink]="['/route', item._ref.routeId]"
+                            class="tui-link"
+                            >{{
+                              item._ref.route?.name ||
+                                ('labels.route' | translate)
+                            }}</a
+                          >
+                        </div>
+                      }
+                      @case ('height') {
+                        <div tuiCell size="m">
+                          <span>{{
+                            item._ref.route?.height !== null &&
+                            item._ref.route?.height !== undefined
+                              ? item._ref.route?.height + ' m'
+                              : '—'
+                          }}</span>
+                        </div>
+                      }
+                      @case ('actions') {
+                        <div tuiCell size="m" class="flex items-center gap-2">
+                          @if (item._ref.route?.url_8anu; as url) {
+                            <a
+                              [href]="url"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              [attr.aria-label]="'8a.nu'"
+                              class="inline-flex items-center"
+                            >
+                              <img
+                                src="/image/8anu.svg"
+                                alt="8a.nu"
+                                style="width: 1.25rem; height: 1.25rem;"
+                              />
+                            </a>
+                          }
+                          <tui-badge
+                            [appearance]="
+                              global.isRouteLiked()(item._ref.routeId)
+                                ? 'negative'
+                                : 'neutral'
+                            "
+                            iconStart="@tui.heart"
+                            size="l"
+                            (click.zoneless)="
+                              global.toggleLikeRoute(item._ref.routeId)
+                            "
+                            [attr.aria-label]="
+                              (global.isRouteLiked()(item._ref.routeId)
+                                ? 'actions.favorite.remove'
+                                : 'actions.favorite.add'
+                              ) | translate
+                            "
+                            [attr.title]="
+                              (global.isRouteLiked()(item._ref.routeId)
+                                ? 'actions.favorite.remove'
+                                : 'actions.favorite.add'
+                              ) | translate
+                            "
+                          ></tui-badge>
+                        </div>
+                      }
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
       } @else {
         <p>{{ 'common.loading' | translate }}</p>
       }
@@ -157,6 +233,67 @@ export class TopoComponent {
       }));
     },
   );
+
+  // Table columns for Taiga UI table
+  protected readonly columns: string[] = [
+    'grade',
+    'number',
+    'route',
+    'height',
+    'actions',
+  ];
+
+  protected readonly sortKey: WritableSignal<TableKey> =
+    signal<TableKey>('number');
+  protected readonly direction: WritableSignal<TuiSortDirection> =
+    signal<TuiSortDirection>(TuiSortDirection.Asc);
+
+  private gradeRank(grade?: string): number {
+    if (!grade) return Number.POSITIVE_INFINITY;
+    const m = /^\s*(\d)\s*([a-cA-C])?\s*(\+)?\s*$/i.exec(grade);
+    if (!m) return Number.POSITIVE_INFINITY;
+    const base = parseInt(m[1], 10);
+    const letter = (m[2] || '').toLowerCase();
+    const plus = !!m[3];
+    const letterVal =
+      letter === 'a' ? 0 : letter === 'b' ? 1 : letter === 'c' ? 2 : 0;
+    return base * 10 + letterVal + (plus ? 0.5 : 0);
+  }
+
+  // Data source for tuiTableSort, includes comparable values and original ref
+  protected readonly tableData: Signal<Row[]> = computed(() =>
+    this.topoRoutesDetailed().map((tr) => ({
+      grade: this.gradeRank(tr.route?.grade),
+      number: tr.number,
+      route: tr.route?.name || '',
+      height:
+        tr.route?.height !== null && tr.route?.height !== undefined
+          ? tr.route.height
+          : null,
+      _ref: tr,
+    })),
+  );
+
+  // Row type used by the table and comparators
+  protected readonly sorters: Record<TableKey, TuiComparator<Row>> = {
+    grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
+    number: (a, b) => tuiDefaultSort(a.number, b.number),
+    route: (a, b) => tuiDefaultSort(a.route, b.route),
+    height: (a, b) =>
+      tuiDefaultSort(
+        a.height ?? Number.POSITIVE_INFINITY,
+        b.height ?? Number.POSITIVE_INFINITY,
+      ),
+  };
+
+  protected getSorter(col: string): TuiComparator<Row> | null {
+    if (col === 'actions') return null;
+    return this.sorters[col as TableKey] ?? null;
+  }
+
+  protected get tableSorter(): TuiComparator<Row> {
+    return this.sorters[this.sortKey()];
+  }
 
   constructor() {
     const id = this.route.snapshot.paramMap.get('id');

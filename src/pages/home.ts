@@ -89,7 +89,7 @@ import { Crag, Zone } from '../models';
         <div
           tuiCardLarge
           tuiSurface="floating"
-          class="tui-space_top-4 relative pointer-events-auto cursor-pointer m-4"
+          class="relative pointer-events-auto cursor-pointer m-4"
           [routerLink]="['/crag', c.id]"
         >
           <div class="flex items-center gap-3">
@@ -152,7 +152,7 @@ import { Crag, Zone } from '../models';
                   [tuiSurface]="
                     global.isZoneLiked()(z.id) ? 'accent' : 'neutral'
                   "
-                  class="tui-space_top-4 cursor-pointer"
+                  class="cursor-pointer"
                   [routerLink]="['/zone', z.id]"
                 >
                   <div class="flex items-center gap-3">
@@ -207,7 +207,7 @@ import { Crag, Zone } from '../models';
                   [tuiSurface]="
                     global.isCragLiked()(c.id) ? 'accent' : 'neutral'
                   "
-                  class="tui-space_top-4 cursor-pointer"
+                  class="cursor-pointer"
                   [routerLink]="['/crag', c.id]"
                 >
                   <div class="flex items-center gap-3">

@@ -55,11 +55,7 @@ import { SectionHeaderComponent } from '../components/section-header';
               [attr.aria-label]="'actions.openMap' | translate"
               [attr.title]="'actions.openMap' | translate"
             >
-              <div
-                tuiCardLarge
-                tuiSurface="neutral"
-                class="tui-space_top-2 cursor-pointer"
-              >
+              <div tuiCardLarge tuiSurface="neutral" class="cursor-pointer">
                 <div class="flex items-center gap-3">
                   <tui-avatar
                     tuiThumbnail
@@ -99,7 +95,7 @@ import { SectionHeaderComponent } from '../components/section-header';
             <div
               tuiCardLarge
               [tuiSurface]="global.isTopoLiked()(t.id) ? 'accent' : 'neutral'"
-              class="tui-space_top-4 cursor-pointer"
+              class="cursor-pointer"
               [routerLink]="['/topo', t.id]"
             >
               <div class="flex items-center gap-3">

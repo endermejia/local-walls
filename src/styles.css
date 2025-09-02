@@ -3,3 +3,16 @@
 .leaflet-container {
   z-index: 1;
 }
+
+[tuiTh],
+[tuiTd] {
+  border-inline-start: none !important;
+  border-inline-end: none !important;
+}
+
+
+/* Ensure table header text is visible */
+th[tuiTh] {
+  color: currentColor;
+  font-weight: 600;
+}

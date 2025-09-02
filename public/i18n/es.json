@@ -30,6 +30,8 @@
     "route": "Vía",
     "number": "Número",
     "grade": "Grado",
+    "height": "Altura",
+    "actions": "Acciones",
     "topos": "Croquis"
   },
   "auth": {

@@ -28,6 +28,8 @@
     "route": "Route",
     "number": "Number",
     "grade": "Grade",
+    "height": "Height",
+    "actions": "Actions",
     "topos": "Topos",
     "toposFavorites": "Favorite topos",
     "topo": "Topo",

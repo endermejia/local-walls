@@ -3,7 +3,9 @@ import {
   Component,
   computed,
   inject,
+  Signal,
   signal,
+  WritableSignal,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
@@ -50,7 +52,7 @@ import { SectionHeaderComponent } from '../components/section-header';
             <div
               tuiCardLarge
               [tuiSurface]="global.isCragLiked()(c.id) ? 'accent' : 'neutral'"
-              class="tui-space_top-4 cursor-pointer"
+              class="cursor-pointer"
               [routerLink]="['/crag', c.id]"
             >
               <div class="flex items-center gap-3">
@@ -94,18 +96,16 @@ export class ZoneComponent {
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
 
-  zoneId = signal<string | null>(null);
-  zone = computed<Zone | null>(() => {
+  zoneId: WritableSignal<string | null> = signal<string | null>(null);
+  zone: Signal<Zone | null> = computed<Zone | null>(() => {
     const id = this.zoneId();
     return id ? this.global.zones().find((z) => z.id === id) || null : null;
   });
 
-  cragsAll = this.global.selectedZoneCrags;
-
-  // Single sorted list: favorites first, then alphabetical
-  cragsSorted = computed<Crag[]>(() => {
+  crags: Signal<Crag[]> = this.global.selectedZoneCrags;
+  cragsSorted: Signal<Crag[]> = computed<Crag[]>(() => {
     const likedIds = new Set(this.global.appUser()?.likedCrags ?? []);
-    return [...this.cragsAll()].sort(
+    return [...this.crags()].sort(
       (a, b) =>
         +!likedIds.has(a.id) - +!likedIds.has(b.id) ||
         a.name.localeCompare(b.name),

@@ -9,5 +9,11 @@
   status = 301
   force = true
 
+# This rule is for handling specific routes
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+
 [[plugins]]
   package = "@netlify/angular-runtime"
