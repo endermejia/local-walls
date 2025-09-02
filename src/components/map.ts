@@ -12,6 +12,7 @@ import {
   effect,
   InputSignal,
   OutputEmitterRef,
+  signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import type { Crag, MapOptions, MapVisibleElements } from '../models';
@@ -38,18 +39,20 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly mapBuilder = inject(MapBuilder);
 
-  crags: InputSignal<readonly Crag[]> = input<readonly Crag[]>([]);
-  selectedCrag: InputSignal<Crag | null> = input<Crag | null>(null);
-  selectedCragChange: OutputEmitterRef<Crag | null> = output<Crag | null>();
-  options: InputSignal<MapOptions> = input<MapOptions>({
+  private readonly mapInitialized = signal(false);
+  public crags: InputSignal<readonly Crag[]> = input<readonly Crag[]>([]);
+  public selectedCrag: InputSignal<Crag | null> = input<Crag | null>(null);
+  public selectedCragChange: OutputEmitterRef<Crag | null> =
+    output<Crag | null>();
+  public options: InputSignal<MapOptions> = input<MapOptions>({
     center: [39.5, -0.5],
     zoom: 7,
     maxZoom: 19,
     minZoom: 5,
   });
-  mapClick = output<void>();
-  interactionStart = output<void>();
-  visibleChange = output<MapVisibleElements>();
+  public mapClick = output<void>();
+  public interactionStart = output<void>();
+  public visibleChange = output<MapVisibleElements>();
 
   private readonly callbacks: MapBuilderCallbacks = {
     onSelectedCragChange: (crag) => this.selectedCragChange.emit(crag),
@@ -61,13 +64,11 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   @ViewChild('container', { read: ElementRef })
   private containerRef?: ElementRef<HTMLElement>;
 
-  private _mapInitialized = false;
-
   constructor() {
     effect(() => {
       const crags = this.crags();
       const selected = this.selectedCrag();
-      if (this._mapInitialized) {
+      if (this.mapInitialized()) {
         void this.mapBuilder.updateData(crags, selected, this.callbacks);
       }
     });
@@ -83,7 +84,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     } catch {
       // ignore
     }
-    this._mapInitialized = false;
+    this.mapInitialized.set(false);
   }
 
   private isBrowser(): boolean {
@@ -92,7 +93,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   private tryInit(): void {
     const el = this.containerRef?.nativeElement;
-    if (!el || this._mapInitialized || !this.isBrowser()) return;
+    if (!el || this.mapInitialized() || !this.isBrowser()) return;
     const raf = (
       window as unknown as {
         requestAnimationFrame?: (cb: FrameRequestCallback) => number;
@@ -106,7 +107,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   }
 
   private async initMap(): Promise<void> {
-    if (this._mapInitialized || !this.isBrowser()) return;
+    if (this.mapInitialized() || !this.isBrowser()) return;
     const el = this.containerRef?.nativeElement;
     if (!el) return;
     await this.mapBuilder.init(
@@ -116,6 +117,6 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.selectedCrag(),
       this.callbacks,
     );
-    this._mapInitialized = true;
+    this.mapInitialized.set(true);
   }
 }
