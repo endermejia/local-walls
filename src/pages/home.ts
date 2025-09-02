@@ -27,7 +27,7 @@ import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import { TranslatePipe } from '@ngx-translate/core';
 import { MapComponent } from '../components';
-import { Crag } from '../models';
+import { Crag, Zone } from '../models';
 
 @Component({
   selector: 'app-home',
@@ -289,7 +289,7 @@ export class HomeComponent implements AfterViewInit {
     return id ? (this.global.crags().find((c) => c.id === id) ?? null) : null;
   });
 
-  protected readonly zonesInMapSorted = computed(() => {
+  protected readonly zonesInMapSorted: Signal<Zone[]> = computed(() => {
     const zones = this.global.zones();
     const crags = this.global.crags();
     const zoneHasCrag = new Set(crags.map((c) => c.zoneId));
@@ -306,7 +306,7 @@ export class HomeComponent implements AfterViewInit {
       );
   });
 
-  protected readonly cragsInMapSorted = computed(() => {
+  protected readonly cragsInMapSorted: Signal<Crag[]> = computed(() => {
     const crags = this.global.crags();
     const visible = this._visibleCragIds();
     const useAll = visible.size === 0;
@@ -453,11 +453,6 @@ export class HomeComponent implements AfterViewInit {
     }
   }
 
-  closeSelectedCrag(): void {
-    this.global.setSelectedCrag(null);
-    this.global.setSelectedZone(null);
-  }
-
   // Handlers from app-map component
   protected onCragSelect(event: { cragId: string; zoneId: string }): void {
     this.global.setSelectedCrag(event.cragId);
@@ -466,7 +461,8 @@ export class HomeComponent implements AfterViewInit {
   }
 
   protected onMapClick(): void {
-    this.closeSelectedCrag();
+    this.global.setSelectedCrag(null);
+    this.global.setSelectedZone(null);
     this.setBottomSheet('close');
   }
 
