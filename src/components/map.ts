@@ -3,15 +3,17 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   inject,
-  Input,
+  input,
   OnDestroy,
-  OnChanges,
-  Output,
+  output,
   PLATFORM_ID,
-  SimpleChanges,
   ViewChild,
+  effect,
+  model,
+  InputSignal,
+  OutputEmitterRef,
+  ModelSignal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import type { Crag } from '../models';
@@ -32,16 +34,17 @@ import type { Crag } from '../models';
     class: 'flex grow min-h-0 w-full',
   },
 })
-export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
+export class MapComponent implements AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
 
-  @Input() crags: Crag[] = [];
-  @Input() selectedCragId: string | null = null;
-
-  @Output() cragSelect = new EventEmitter<{ cragId: string; zoneId: string }>();
-  @Output() mapClick = new EventEmitter<void>();
-  @Output() interactionStart = new EventEmitter<void>();
-  @Output() visibleChange = new EventEmitter<{
+  crags: InputSignal<Crag[]> = input<Crag[]>([]);
+  selectedCrag: ModelSignal<Crag | null> = model<Crag | null>(null);
+  mapClick: OutputEmitterRef<void> = output<void>();
+  interactionStart: OutputEmitterRef<void> = output<void>();
+  visibleChange: OutputEmitterRef<{
+    zoneIds: string[];
+    cragIds: string[];
+  }> = output<{
     zoneIds: string[];
     cragIds: string[];
   }>();
@@ -52,18 +55,18 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   private _map: import('leaflet').Map | null = null;
   private _mapInitialized = false;
 
-  ngAfterViewInit(): void {
-    this.tryInit();
+  constructor() {
+    effect(() => {
+      this.crags();
+      this.selectedCrag();
+      if (this._mapInitialized) {
+        void this.rebuildMarkers();
+      }
+    });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (
-      (changes['crags'] || changes['selectedCragId']) &&
-      this._mapInitialized
-    ) {
-      // Rebuild markers if crags or selection changes after init
-      void this.rebuildMarkers();
-    }
+  ngAfterViewInit(): void {
+    this.tryInit();
   }
 
   ngOnDestroy(): void {
@@ -119,8 +122,9 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     await this.rebuildMarkers();
 
     // Fit bounds only once on the initial component init
-    if (this.crags && this.crags.length) {
-      const latLngs: [number, number][] = this.crags.map((c) => [
+    const crags = this.crags();
+    if (crags && crags.length) {
+      const latLngs: [number, number][] = crags.map((c) => [
         c.ubication.lat,
         c.ubication.lng,
       ]);
@@ -128,7 +132,10 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
       this._map.fitBounds(bounds, { padding: [24, 24] });
     }
 
-    this._map.on('click', () => this.mapClick.emit());
+    this._map.on('click', () => {
+      this.selectedCrag.set(null);
+      this.mapClick.emit();
+    });
 
     const recalcVisible = () => this.updateVisibleIdsFromCurrentBounds(L);
     await recalcVisible();
@@ -169,11 +176,11 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
       }
     });
 
-    for (const c of this.crags) {
+    for (const c of this.crags()) {
       const { lat, lng } = c.ubication;
       const latLng: [number, number] = [lat, lng];
       const icon = L.divIcon({
-        html: this.cragLabelHtml(c.name, this.selectedCragId === c.id),
+        html: this.cragLabelHtml(c.name, this.selectedCrag()?.id === c.id),
         className: 'pointer-events-none',
         iconSize: [0, 0],
         iconAnchor: [0, 0],
@@ -187,9 +194,9 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
         (
           e.originalEvent as MouseEvent | PointerEvent | TouchEvent
         )?.stopPropagation?.();
-        this.cragSelect.emit({ cragId: c.id, zoneId: c.zoneId });
+        this.selectedCrag.set(c);
       });
-      this.attachMarkerKeyboardSelection(marker, c.id, c.zoneId);
+      this.attachMarkerKeyboardSelection(marker, c);
     }
   }
 
@@ -199,8 +206,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
 
   private attachMarkerKeyboardSelection(
     marker: import('leaflet').Marker,
-    cragId: string,
-    zoneId: string,
+    crag: Crag,
   ): void {
     const el = marker.getElement();
     if (!el) return;
@@ -208,7 +214,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
       const key = ev.key;
       if (key === 'Enter' || key === ' ') {
         ev.preventDefault();
-        this.cragSelect.emit({ cragId, zoneId });
+        this.selectedCrag.set(crag);
       }
     });
   }
@@ -220,7 +226,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     const bounds = this._map.getBounds();
     const visibleZones = new Set<string>();
     const visibleCrags = new Set<string>();
-    for (const c of this.crags) {
+    for (const c of this.crags()) {
       const { lat, lng } = c.ubication;
       const wrapped = L.latLng(lat, lng).wrap();
       if (bounds.contains(wrapped)) {

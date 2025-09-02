@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  output,
+} from '@angular/core';
 import { TuiBadge } from '@taiga-ui/kit';
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -25,10 +30,12 @@ import { TranslatePipe } from '@ngx-translate/core';
         size="xl"
         (click.zoneless)="toggleLike.emit()"
         [attr.aria-label]="
-          (liked() ? 'actions.favorite.remove' : 'actions.favorite.add') | translate
+          (liked() ? 'actions.favorite.remove' : 'actions.favorite.add')
+            | translate
         "
         [attr.title]="
-          (liked() ? 'actions.favorite.remove' : 'actions.favorite.add') | translate
+          (liked() ? 'actions.favorite.remove' : 'actions.favorite.add')
+            | translate
         "
       ></tui-badge>
     </header>
