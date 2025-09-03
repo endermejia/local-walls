@@ -2,9 +2,18 @@
   publish = "dist/angular20/browser"
   command = "npm run build"
 
-# SPA fallback for Angular routes
+# Redirect root to /home so that landing at the site base goes to the Home route
+[[redirects]]
+  from = "/"
+  to = "/home"
+  status = 301
+  force = true
+
+# This rule is for handling specific routes
 [[redirects]]
 from = "/*"
 to = "/index.html"
 status = 200
 
+[[plugins]]
+  package = "@netlify/angular-runtime"
