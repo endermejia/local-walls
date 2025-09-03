@@ -4,7 +4,7 @@
 
 # Redirect root to /home so that landing at the site base goes to the Home route
 [[redirects]]
-  from = "/"
+  from = "/*"
   to = "/home"
   status = 301
   force = true
