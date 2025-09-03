@@ -9,7 +9,28 @@
   status = 301
   force = true
 
-# This rule is for handling specific routes
+# Specific SPA route fallbacks for Angular client-side routes
+[[redirects]]
+  from = "/zone/*"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/crag/*"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/topo/*"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/ts/*"
+  to = "/index.html"
+  status = 200
+
+# Generic catch-all for remaining client-side routes
 [[redirects]]
 from = "/*"
 to = "/index.html"
