@@ -27,7 +27,8 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
   - `@defer { } @placeholder { } @loading { } @error { }` para cargas diferidas.
 - Standalone y DI moderna: usa `inject(...)` en vez de `constructor` donde sea apropiado.
 - Guards/Resolvers/Interceptors funcionales.
-- Inputs requeridos, señales (`signal`, `computed`, `effect`) para estado, y `toObservable`/`toSignal` cuando haga falta interoperar con RxJS.
+- Uso de signals (`signal`, `computed`, `effect`) para estado, y `toObservable`/`toSignal` cuando haga falta interoperar con RxJS.
+- Usar input (InputSignal) y output (OutputEmitterRef) en lugar de `@Input()` y `@Output()` para mejorar la compatibilidad con SSR.
 
 ## 4) Rutas, división de código y cargas diferidas
 - Usa importaciones dinámicas en rutas: `loadComponent: () => import('...').then(m => m.X)` (ya presente en `app.routes.ts`).
@@ -49,19 +50,19 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
 
 ## 8) Rendimiento
 - Incremental Hydration y Event Replay ya están habilitados; evita mutaciones de DOM fuera de Angular.
-- Prefiere señales sobre `@Input()` mutables para evitar renders innecesarios.
 - Usa `track` en `@for` para listas.
 
 ## 9) Estructura del proyecto
 - `/src/pages` — Pantallas de la app (standalone).
 - `/src/components` — Componentes de la app (standalone).
 - `/src/services` — Servicios/estado (señales, wrappers SSR-safe).
+- `/src/models` — Interfaces, tipos y modelos de datos.
 - `/src/app` — Configuración core, rutas y raíz.
 - `/public` — Estáticos e i18n.
 
 ## 10) Desarrollo y SSR local
 - Desarrollo SPA: `npm start` (sin SSR).
-- Build SSR: `npm run build` y luego `npm run serve:ssr:angular20` para servir SSR desde `dist/`.
+- Build SSR: `npm run build` y luego `npm run serve:ssr:local-walls` para servir SSR desde `dist/`.
 - Verifica siempre que:
   - No hay errores de acceso a `window/document` en servidor.
   - Las vistas hidratan sin errores en cliente.

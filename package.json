@@ -1,5 +1,5 @@
 {
-  "name": "angular20",
+  "name": "local-walls",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -8,7 +8,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:angular20": "node dist/angular20/server/server.mjs",
+    "serve:ssr:local-walls": "node dist/local-walls/server/server.mjs",
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
     "format": "prettier --write ./src",
