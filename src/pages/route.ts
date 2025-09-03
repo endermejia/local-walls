@@ -38,7 +38,7 @@ import { Route } from '../models';
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow overflow-auto p-4' },
+  host: { class: 'flex grow overflow-auto sm:p-4' },
 })
 export class RouteComponent {
   private readonly routeParam = inject(ActivatedRoute);

@@ -89,7 +89,7 @@ import { SectionHeaderComponent } from '../components/section-header';
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow overflow-auto p-4' },
+  host: { class: 'flex grow overflow-auto sm:p-4' },
 })
 export class ZoneComponent {
   private readonly route = inject(ActivatedRoute);

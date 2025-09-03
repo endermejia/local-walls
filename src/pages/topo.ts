@@ -120,7 +120,7 @@ export interface Row {
           role="dialog"
           aria-label="Routes"
         >
-          <section class="w-full max-w-5xl mx-auto p-4 overflow-auto">
+          <section class="w-full max-w-5xl mx-auto sm:p-4 overflow-auto">
             <app-section-header
               [title]="t.name"
               [liked]="global.isTopoLiked()(t.id)"

@@ -144,7 +144,7 @@ import { Crag, Zone } from '../models';
               }}
             </span>
           </h3>
-          <section class="w-full max-w-5xl mx-auto p-4 overflow-auto">
+          <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 overflow-auto">
             <div class="grid gap-2">
               @for (z of zones; track z.id) {
                 <div
@@ -199,7 +199,7 @@ import { Crag, Zone } from '../models';
               }}
             </span>
           </h3>
-          <section class="w-full max-w-5xl mx-auto p-4 overflow-auto">
+          <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 overflow-auto">
             <div class="grid gap-2">
               @for (c of crags; track c.id) {
                 <div
