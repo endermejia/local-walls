@@ -1,10 +1,12 @@
 {
-  "version": "2025-09-03T00:32",
+  "version": "2025-09-03T12:03",
+  "source": "realistic-demo-v2",
+  "notes": "Zones z1..z10 converted to realistic Spanish areas and sectors; ids kept for compatibility.",
   "zones": [
     {
       "id": "z1",
-      "name": "Zone 1",
-      "description": "Demo Zone 1",
+      "name": "Rodellar",
+      "description": "Valle de Mascún (Huesca). Caliza desplomada, chorreras y cuevas míticas.",
       "cragIds": [
         "z1-c1",
         "z1-c2",
@@ -15,8 +17,8 @@
     },
     {
       "id": "z2",
-      "name": "Zone 2",
-      "description": "Demo Zone 2",
+      "name": "Siurana",
+      "description": "Tarragona. Placa y continuidad sobre caliza naranja de ensueño.",
       "cragIds": [
         "z2-c1",
         "z2-c2",
@@ -27,8 +29,8 @@
     },
     {
       "id": "z3",
-      "name": "Zone 3",
-      "description": "Demo Zone 3",
+      "name": "Margalef",
+      "description": "Priorat (Tarragona). Caliza con agujeros. Resistencia y bloque.",
       "cragIds": [
         "z3-c1",
         "z3-c2",
@@ -39,8 +41,8 @@
     },
     {
       "id": "z4",
-      "name": "Zone 4",
-      "description": "Demo Zone 4",
+      "name": "Chulilla",
+      "description": "Valencia. Cañón con muros de continuidad larguísimos.",
       "cragIds": [
         "z4-c1",
         "z4-c2",
@@ -51,8 +53,8 @@
     },
     {
       "id": "z5",
-      "name": "Zone 5",
-      "description": "Demo Zone 5",
+      "name": "El Chorro",
+      "description": "Málaga. Caliza variada, sol invernal y sectores icónicos.",
       "cragIds": [
         "z5-c1",
         "z5-c2",
@@ -63,8 +65,8 @@
     },
     {
       "id": "z6",
-      "name": "Zone 6",
-      "description": "Demo Zone 6",
+      "name": "Montserrat",
+      "description": "Barcelona. Agujas y placas de conglomerado, aventura y tradición.",
       "cragIds": [
         "z6-c1",
         "z6-c2",
@@ -75,8 +77,8 @@
     },
     {
       "id": "z7",
-      "name": "Zone 7",
-      "description": "Demo Zone 7",
+      "name": "Cuenca",
+      "description": "Castilla-La Mancha. Grandes paredes de caliza, continuidad y variedad.",
       "cragIds": [
         "z7-c1",
         "z7-c2",
@@ -87,8 +89,8 @@
     },
     {
       "id": "z8",
-      "name": "Zone 8",
-      "description": "Demo Zone 8",
+      "name": "Albarracín",
+      "description": "Teruel. Paraíso del búlder en pinar de arenisca roja.",
       "cragIds": [
         "z8-c1",
         "z8-c2",
@@ -99,8 +101,8 @@
     },
     {
       "id": "z9",
-      "name": "Zone 9",
-      "description": "Demo Zone 9",
+      "name": "Picos de Europa",
+      "description": "Asturias/Cantabria/León. Caliza alpina, grandes paredes y aventura.",
       "cragIds": [
         "z9-c1",
         "z9-c2",
@@ -111,25 +113,41 @@
     },
     {
       "id": "z10",
-      "name": "Zone 10",
-      "description": "Demo Zone 10",
+      "name": "Granada",
+      "description": "Provincia con escuelas como Loja, Cahorros (Monachil) y Cogollos.",
       "cragIds": [
-        "z10-c1",
-        "z10-c2",
-        "z10-c3",
-        "z10-c4",
-        "z10-c5"
+        "granada-loja",
+        "granada-cahorros",
+        "granada-cogollos",
+        "granada-dilar",
+        "granada-los-vados"
+      ]
+    },
+    {
+      "id": "zone-sella",
+      "name": "Sella",
+      "description": "Zona de escalada deportiva en la Marina Baja (Alicante), famosa por caliza de calidad. Sectores clásicos como Wild Side.",
+      "cragIds": [
+        "crag-sella-wild-side"
+      ]
+    },
+    {
+      "id": "zone-alicante",
+      "name": "Alicante",
+      "description": "Provincia con múltiples escuelas de escalada. Incluye el sector Rincón Bello.",
+      "cragIds": [
+        "crag-alicante-rincon-bello"
       ]
     }
   ],
   "crags": [
     {
       "id": "z1-c1",
-      "name": "Crag 1-1",
-      "description": "Demo crag z1-c1",
+      "name": "Gran Bóveda",
+      "description": "Rodellar: gran cueva desplomada con chorreras y resistencia.",
       "ubication": {
-        "lat": 38.21,
-        "lng": -3.21
+        "lat": 42.2856,
+        "lng": -0.0380
       },
       "parkings": [
         "p-z1-c1-1"
@@ -139,11 +157,11 @@
     },
     {
       "id": "z1-c2",
-      "name": "Crag 1-2",
-      "description": "Demo crag z1-c2",
+      "name": "Ventanas",
+      "description": "Rodellar: placas y desplomes técnicos junto al río Mascún.",
       "ubication": {
-        "lat": 38.22,
-        "lng": -3.22
+        "lat": 42.2870,
+        "lng": -0.0375
       },
       "parkings": [
         "p-z1-c2-1"
@@ -153,11 +171,11 @@
     },
     {
       "id": "z1-c3",
-      "name": "Crag 1-3",
-      "description": "Demo crag z1-c3",
+      "name": "Surgencia",
+      "description": "Rodellar: chorreras y continuidad con vías largas.",
       "ubication": {
-        "lat": 38.23,
-        "lng": -3.23
+        "lat": 42.2890,
+        "lng": -0.0360
       },
       "parkings": [
         "p-z1-c3-1"
@@ -167,11 +185,11 @@
     },
     {
       "id": "z1-c4",
-      "name": "Crag 1-4",
-      "description": "Demo crag z1-c4",
+      "name": "Cueva de los Cazadores",
+      "description": "Rodellar: desplomes marcados, canto generoso y resistencia.",
       "ubication": {
-        "lat": 38.24,
-        "lng": -3.24
+        "lat": 42.2845,
+        "lng": -0.0408
       },
       "parkings": [
         "p-z1-c4-1"
@@ -181,11 +199,11 @@
     },
     {
       "id": "z1-c5",
-      "name": "Crag 1-5",
-      "description": "Demo crag z1-c5",
+      "name": "Camino",
+      "description": "Rodellar: placa técnica y vías asequibles con buen canto.",
       "ubication": {
-        "lat": 38.25,
-        "lng": -3.25
+        "lat": 42.2862,
+        "lng": -0.0388
       },
       "parkings": [
         "p-z1-c5-1"
@@ -195,11 +213,11 @@
     },
     {
       "id": "z2-c1",
-      "name": "Crag 2-1",
-      "description": "Demo crag z2-c1",
+      "name": "El Pati",
+      "description": "Siurana: muro mítico de continuidad y resistencia.",
       "ubication": {
-        "lat": 38.41,
-        "lng": -3.41
+        "lat": 41.2719,
+        "lng": 0.9333
       },
       "parkings": [
         "p-z2-c1-1"
@@ -209,11 +227,11 @@
     },
     {
       "id": "z2-c2",
-      "name": "Crag 2-2",
-      "description": "Demo crag z2-c2",
+      "name": "Can Melafots",
+      "description": "Siurana: agujeros afilados y vías de continuidad.",
       "ubication": {
-        "lat": 38.42,
-        "lng": -3.42
+        "lat": 41.2746,
+        "lng": 0.9346
       },
       "parkings": [
         "p-z2-c2-1"
@@ -223,11 +241,11 @@
     },
     {
       "id": "z2-c3",
-      "name": "Crag 2-3",
-      "description": "Demo crag z2-c3",
+      "name": "El Cargol",
+      "description": "Siurana: placa técnica con pasos finos.",
       "ubication": {
-        "lat": 38.43,
-        "lng": -3.43
+        "lat": 41.2735,
+        "lng": 0.9360
       },
       "parkings": [
         "p-z2-c3-1"
@@ -237,11 +255,11 @@
     },
     {
       "id": "z2-c4",
-      "name": "Crag 2-4",
-      "description": "Demo crag z2-c4",
+      "name": "La Siuranella",
+      "description": "Siurana: variedad de estilos, continuidad y bloque técnico.",
       "ubication": {
-        "lat": 38.44,
-        "lng": -3.44
+        "lat": 41.2765,
+        "lng": 0.9310
       },
       "parkings": [
         "p-z2-c4-1"
@@ -251,11 +269,11 @@
     },
     {
       "id": "z2-c5",
-      "name": "Crag 2-5",
-      "description": "Demo crag z2-c5",
+      "name": "L'Olla",
+      "description": "Siurana: placa soleada con vías de continuidad.",
       "ubication": {
-        "lat": 38.45,
-        "lng": -3.45
+        "lat": 41.2710,
+        "lng": 0.9355
       },
       "parkings": [
         "p-z2-c5-1"
@@ -265,11 +283,11 @@
     },
     {
       "id": "z3-c1",
-      "name": "Crag 3-1",
-      "description": "Demo crag z3-c1",
+      "name": "Racó de la Finestra",
+      "description": "Margalef: techos con grandes agujeros, pura resistencia.",
       "ubication": {
-        "lat": 38.61,
-        "lng": -3.61
+        "lat": 41.2794,
+        "lng": 0.7759
       },
       "parkings": [
         "p-z3-c1-1"
@@ -279,11 +297,11 @@
     },
     {
       "id": "z3-c2",
-      "name": "Crag 3-2",
-      "description": "Demo crag z3-c2",
+      "name": "Culample 4",
+      "description": "Margalef: continuidad sobre agujeros, vertical a desplomado.",
       "ubication": {
-        "lat": 38.62,
-        "lng": -3.62
+        "lat": 41.2830,
+        "lng": 0.7705
       },
       "parkings": [
         "p-z3-c2-1"
@@ -293,11 +311,11 @@
     },
     {
       "id": "z3-c3",
-      "name": "Crag 3-3",
-      "description": "Demo crag z3-c3",
+      "name": "El Laboratori",
+      "description": "Margalef: secciones explosivas y movimientos a bloque en agujeros.",
       "ubication": {
-        "lat": 38.63,
-        "lng": -3.63
+        "lat": 41.2820,
+        "lng": 0.7730
       },
       "parkings": [
         "p-z3-c3-1"
@@ -307,11 +325,11 @@
     },
     {
       "id": "z3-c4",
-      "name": "Crag 3-4",
-      "description": "Demo crag z3-c4",
+      "name": "Espadelles",
+      "description": "Margalef: muro largo de continuidad sobre agujeros cómodos.",
       "ubication": {
-        "lat": 38.64,
-        "lng": -3.64
+        "lat": 41.2797,
+        "lng": 0.7608
       },
       "parkings": [
         "p-z3-c4-1"
@@ -321,11 +339,11 @@
     },
     {
       "id": "z3-c5",
-      "name": "Crag 3-5",
-      "description": "Demo crag z3-c5",
+      "name": "El Balcó",
+      "description": "Margalef: desplome cómodo con canto y vías disfrutonas.",
       "ubication": {
-        "lat": 38.65,
-        "lng": -3.65
+        "lat": 41.2818,
+        "lng": 0.7700
       },
       "parkings": [
         "p-z3-c5-1"
@@ -335,11 +353,11 @@
     },
     {
       "id": "z4-c1",
-      "name": "Crag 4-1",
-      "description": "Demo crag z4-c1",
+      "name": "El Balconcito",
+      "description": "Chulilla: repisas aéreas y muros de continuidad.",
       "ubication": {
-        "lat": 38.81,
-        "lng": -3.81
+        "lat": 39.6570,
+        "lng": -0.8910
       },
       "parkings": [
         "p-z4-c1-1"
@@ -349,11 +367,11 @@
     },
     {
       "id": "z4-c2",
-      "name": "Crag 4-2",
-      "description": "Demo crag z4-c2",
+      "name": "Pared de Enfrente",
+      "description": "Chulilla: pared larga de continuidad con vías de 30-40m.",
       "ubication": {
-        "lat": 38.82,
-        "lng": -3.82
+        "lat": 39.6539,
+        "lng": -0.8890
       },
       "parkings": [
         "p-z4-c2-1"
@@ -363,11 +381,11 @@
     },
     {
       "id": "z4-c3",
-      "name": "Crag 4-3",
-      "description": "Demo crag z4-c3",
+      "name": "Oasis",
+      "description": "Chulilla: continuidad pura en roca naranja, muy popular.",
       "ubication": {
-        "lat": 38.83,
-        "lng": -3.83
+        "lat": 39.6488,
+        "lng": -0.8899
       },
       "parkings": [
         "p-z4-c3-1"
@@ -377,11 +395,11 @@
     },
     {
       "id": "z4-c4",
-      "name": "Crag 4-4",
-      "description": "Demo crag z4-c4",
+      "name": "Masterwall",
+      "description": "Chulilla: muro continuo con vías exigentes de resistencia.",
       "ubication": {
-        "lat": 38.84,
-        "lng": -3.84
+        "lat": 39.6579,
+        "lng": -0.8932
       },
       "parkings": [
         "p-z4-c4-1"
@@ -391,11 +409,11 @@
     },
     {
       "id": "z4-c5",
-      "name": "Crag 4-5",
-      "description": "Demo crag z4-c5",
+      "name": "El Cañaveral",
+      "description": "Chulilla: sector tranquilo con buenas opciones de medio grado.",
       "ubication": {
-        "lat": 38.85,
-        "lng": -3.85
+        "lat": 39.6605,
+        "lng": -0.8940
       },
       "parkings": [
         "p-z4-c5-1"
@@ -405,11 +423,11 @@
     },
     {
       "id": "z5-c1",
-      "name": "Crag 5-1",
-      "description": "Demo crag z5-c1",
+      "name": "Frontales",
+      "description": "El Chorro: extensa pared con vías largas y variadas.",
       "ubication": {
-        "lat": 39.01,
-        "lng": -4.01
+        "lat": 36.9230,
+        "lng": -4.7570
       },
       "parkings": [
         "p-z5-c1-1"
@@ -419,67 +437,67 @@
     },
     {
       "id": "z5-c2",
-      "name": "Crag 5-2",
-      "description": "Demo crag z5-c2",
+      "name": "Makinodromo",
+      "description": "El Chorro: desplome histórico con chorreras, sede de vías clásicas como 'Orujo'.",
       "ubication": {
-        "lat": 39.02,
-        "lng": -4.02
+        "lat": 36.9148,
+        "lng": -4.7569
       },
       "parkings": [
         "p-z5-c2-1"
+      ],
+      "approach": 30,
+      "zoneId": "z5"
+    },
+    {
+      "id": "z5-c3",
+      "name": "El Camino del Rey (Sectores)",
+      "description": "El Chorro: paredes junto a la pasarela del Caminito del Rey, mezcla de vías históricas y modernas.",
+      "ubication": {
+        "lat": 36.9209,
+        "lng": -4.7602
+      },
+      "parkings": [
+        "p-z5-c3-1"
+      ],
+      "approach": 25,
+      "zoneId": "z5"
+    },
+    {
+      "id": "z5-c4",
+      "name": "Desplomilandia",
+      "description": "El Chorro: sectores como 'Poema de Roca' y 'Chorreras', desplome continuo y chorreras.",
+      "ubication": {
+        "lat": 36.9142,
+        "lng": -4.7802
+      },
+      "parkings": [
+        "p-z5-c4-1"
       ],
       "approach": 15,
       "zoneId": "z5"
     },
     {
-      "id": "z5-c3",
-      "name": "Crag 5-3",
-      "description": "Demo crag z5-c3",
+      "id": "z5-c5",
+      "name": "Escalera Árabe",
+      "description": "El Chorro: zonas alrededor de la Escalera Árabe con muros de continuidad y buenos pies de vía.",
       "ubication": {
-        "lat": 39.03,
-        "lng": -4.03
+        "lat": 36.9074,
+        "lng": -4.7599
       },
       "parkings": [
-        "p-z5-c3-1"
+        "p-z5-c5-1"
       ],
       "approach": 20,
       "zoneId": "z5"
     },
     {
-      "id": "z5-c4",
-      "name": "Crag 5-4",
-      "description": "Demo crag z5-c4",
-      "ubication": {
-        "lat": 39.04,
-        "lng": -4.04
-      },
-      "parkings": [
-        "p-z5-c4-1"
-      ],
-      "approach": 10,
-      "zoneId": "z5"
-    },
-    {
-      "id": "z5-c5",
-      "name": "Crag 5-5",
-      "description": "Demo crag z5-c5",
-      "ubication": {
-        "lat": 39.05,
-        "lng": -4.05
-      },
-      "parkings": [
-        "p-z5-c5-1"
-      ],
-      "approach": 15,
-      "zoneId": "z5"
-    },
-    {
       "id": "z6-c1",
-      "name": "Crag 6-1",
-      "description": "Demo crag z6-c1",
+      "name": "Gorros (Montserrat)",
+      "description": "Montserrat: agujas y placas de conglomerado con vistas al Llobregat.",
       "ubication": {
-        "lat": 39.21,
-        "lng": -4.21
+        "lat": 41.5950,
+        "lng": 1.8320
       },
       "parkings": [
         "p-z6-c1-1"
@@ -489,67 +507,67 @@
     },
     {
       "id": "z6-c2",
-      "name": "Crag 6-2",
-      "description": "Demo crag z6-c2",
+      "name": "Cavall Bernat",
+      "description": "Montserrat: emblemática aguja; escalada clásica y deportiva en conglomerado.",
       "ubication": {
-        "lat": 39.22,
-        "lng": -4.22
+        "lat": 41.6082,
+        "lng": 1.8379
       },
       "parkings": [
         "p-z6-c2-1"
       ],
-      "approach": 20,
+      "approach": 40,
       "zoneId": "z6"
     },
     {
       "id": "z6-c3",
-      "name": "Crag 6-3",
-      "description": "Demo crag z6-c3",
+      "name": "Sant Benet",
+      "description": "Montserrat: sector con agujas clásicas como La Prenyada y pared soleada.",
       "ubication": {
-        "lat": 39.23,
-        "lng": -4.23
+        "lat": 41.6030,
+        "lng": 1.8209
       },
       "parkings": [
         "p-z6-c3-1"
+      ],
+      "approach": 25,
+      "zoneId": "z6"
+    },
+    {
+      "id": "z6-c4",
+      "name": "Monestir",
+      "description": "Montserrat: cerca del monasterio, múltiples escuelas de iniciación y placa técnica.",
+      "ubication": {
+        "lat": 41.5964,
+        "lng": 1.8334
+      },
+      "parkings": [
+        "p-z6-c4-1"
       ],
       "approach": 10,
       "zoneId": "z6"
     },
     {
-      "id": "z6-c4",
-      "name": "Crag 6-4",
-      "description": "Demo crag z6-c4",
-      "ubication": {
-        "lat": 39.24,
-        "lng": -4.24
-      },
-      "parkings": [
-        "p-z6-c4-1"
-      ],
-      "approach": 15,
-      "zoneId": "z6"
-    },
-    {
       "id": "z6-c5",
-      "name": "Crag 6-5",
-      "description": "Demo crag z6-c5",
+      "name": "Agulles",
+      "description": "Montserrat: el macizo de las Agulles, aventura con aproximaciones más largas.",
       "ubication": {
-        "lat": 39.25,
-        "lng": -4.25
+        "lat": 41.6101,
+        "lng": 1.8035
       },
       "parkings": [
         "p-z6-c5-1"
       ],
-      "approach": 20,
+      "approach": 35,
       "zoneId": "z6"
     },
     {
       "id": "z7-c1",
-      "name": "Crag 7-1",
-      "description": "Demo crag z7-c1",
+      "name": "Fortaleza (Cuenca)",
+      "description": "Cuenca: largas paredes de caliza con continuidad y canto escondido.",
       "ubication": {
-        "lat": 39.41,
-        "lng": -4.41
+        "lat": 40.0790,
+        "lng": -2.1360
       },
       "parkings": [
         "p-z7-c1-1"
@@ -559,39 +577,39 @@
     },
     {
       "id": "z7-c2",
-      "name": "Crag 7-2",
-      "description": "Demo crag z7-c2",
+      "name": "Valdecabras Sur",
+      "description": "Cuenca: muro clásico de continuidad, orientación sur y buen invierno.",
       "ubication": {
-        "lat": 39.42,
-        "lng": -4.42
+        "lat": 40.0716,
+        "lng": -2.1217
       },
       "parkings": [
         "p-z7-c2-1"
-      ],
-      "approach": 10,
-      "zoneId": "z7"
-    },
-    {
-      "id": "z7-c3",
-      "name": "Crag 7-3",
-      "description": "Demo crag z7-c3",
-      "ubication": {
-        "lat": 39.43,
-        "lng": -4.43
-      },
-      "parkings": [
-        "p-z7-c3-1"
       ],
       "approach": 15,
       "zoneId": "z7"
     },
     {
-      "id": "z7-c4",
-      "name": "Crag 7-4",
-      "description": "Demo crag z7-c4",
+      "id": "z7-c3",
+      "name": "Alfar",
+      "description": "Cuenca: sector técnico de regletas, vías de continuidad y pies cómodos.",
       "ubication": {
-        "lat": 39.44,
-        "lng": -4.44
+        "lat": 40.0748,
+        "lng": -2.1481
+      },
+      "parkings": [
+        "p-z7-c3-1"
+      ],
+      "approach": 10,
+      "zoneId": "z7"
+    },
+    {
+      "id": "z7-c4",
+      "name": "Museo",
+      "description": "Cuenca: sector sombrío con vías de regleta fina y continuidad.",
+      "ubication": {
+        "lat": 40.0812,
+        "lng": -2.1544
       },
       "parkings": [
         "p-z7-c4-1"
@@ -601,11 +619,11 @@
     },
     {
       "id": "z7-c5",
-      "name": "Crag 7-5",
-      "description": "Demo crag z7-c5",
+      "name": "Los Hocinos",
+      "description": "Cuenca: sector variado con vías de todos los grados y buena roca.",
       "ubication": {
-        "lat": 39.45,
-        "lng": -4.45
+        "lat": 40.0799,
+        "lng": -2.1321
       },
       "parkings": [
         "p-z7-c5-1"
@@ -615,11 +633,11 @@
     },
     {
       "id": "z8-c1",
-      "name": "Crag 8-1",
-      "description": "Demo crag z8-c1",
+      "name": "Arrastre (Albarracín)",
+      "description": "Albarracín: bloques de arenisca roja en pinar, clásico del búlder.",
       "ubication": {
-        "lat": 39.61,
-        "lng": -4.61
+        "lat": 40.4090,
+        "lng": -1.4540
       },
       "parkings": [
         "p-z8-c1-1"
@@ -629,151 +647,249 @@
     },
     {
       "id": "z8-c2",
-      "name": "Crag 8-2",
-      "description": "Demo crag z8-c2",
+      "name": "Arrastradero",
+      "description": "Albarracín: sector de búlder clásico con gran densidad de bloques.",
       "ubication": {
-        "lat": 39.62,
-        "lng": -4.62
+        "lat": 40.4081,
+        "lng": -1.4530
       },
       "parkings": [
         "p-z8-c2-1"
       ],
-      "approach": 15,
+      "approach": 10,
       "zoneId": "z8"
     },
     {
       "id": "z8-c3",
-      "name": "Crag 8-3",
-      "description": "Demo crag z8-c3",
+      "name": "Techos",
+      "description": "Albarracín: bloques desplomados y techos famosos.",
       "ubication": {
-        "lat": 39.63,
-        "lng": -4.63
+        "lat": 40.4102,
+        "lng": -1.4552
       },
       "parkings": [
         "p-z8-c3-1"
       ],
-      "approach": 20,
+      "approach": 15,
       "zoneId": "z8"
     },
     {
       "id": "z8-c4",
-      "name": "Crag 8-4",
-      "description": "Demo crag z8-c4",
+      "name": "Arrastradero Alto",
+      "description": "Albarracín: extensión superior del Arrastradero con bloques nuevos.",
       "ubication": {
-        "lat": 39.64,
-        "lng": -4.64
+        "lat": 40.4111,
+        "lng": -1.4522
       },
       "parkings": [
         "p-z8-c4-1"
       ],
-      "approach": 10,
+      "approach": 15,
       "zoneId": "z8"
     },
     {
       "id": "z8-c5",
-      "name": "Crag 8-5",
-      "description": "Demo crag z8-c5",
+      "name": "Sol",
+      "description": "Albarracín: sector soleado, ideal en invierno.",
       "ubication": {
-        "lat": 39.65,
-        "lng": -4.65
+        "lat": 40.4070,
+        "lng": -1.4489
       },
       "parkings": [
         "p-z8-c5-1"
       ],
-      "approach": 15,
+      "approach": 10,
       "zoneId": "z8"
     },
     {
       "id": "z9-c1",
-      "name": "Crag 9-1",
-      "description": "Demo crag z9-c1",
+      "name": "Picu Urriellu (Naranjo de Bulnes)",
+      "description": "Picos de Europa: emblemático macizo calizo, vías de pared y clásicas.",
       "ubication": {
-        "lat": 39.81,
-        "lng": -4.81
+        "lat": 43.2046,
+        "lng": -4.8317
       },
       "parkings": [
         "p-z9-c1-1"
       ],
-      "approach": 15,
+      "approach": 180,
       "zoneId": "z9"
     },
     {
       "id": "z9-c2",
-      "name": "Crag 9-2",
-      "description": "Demo crag z9-c2",
+      "name": "Peña Santa de Castilla",
+      "description": "Picos de Europa: macizo occidental, grandes rutas alpinas en caliza.",
       "ubication": {
-        "lat": 39.82,
-        "lng": -4.82
+        "lat": 43.1926,
+        "lng": -4.9557
       },
       "parkings": [
         "p-z9-c2-1"
       ],
-      "approach": 20,
+      "approach": 150,
       "zoneId": "z9"
     },
     {
       "id": "z9-c3",
-      "name": "Crag 9-3",
-      "description": "Demo crag z9-c3",
+      "name": "Urriellu — Jou de los Boches",
+      "description": "Picos de Europa: paredes alrededor del Jou de los Boches, alta montaña.",
       "ubication": {
-        "lat": 39.83,
-        "lng": -4.83
+        "lat": 43.1968,
+        "lng": -4.8290
       },
       "parkings": [
         "p-z9-c3-1"
       ],
-      "approach": 10,
+      "approach": 160,
       "zoneId": "z9"
     },
     {
       "id": "z9-c4",
-      "name": "Crag 9-4",
-      "description": "Demo crag z9-c4",
+      "name": "Peña Vieja",
+      "description": "Picos de Europa: macizo central, vías de pared y crestas.",
       "ubication": {
-        "lat": 39.84,
-        "lng": -4.84
+        "lat": 43.1578,
+        "lng": -4.6844
       },
       "parkings": [
         "p-z9-c4-1"
       ],
-      "approach": 15,
+      "approach": 120,
       "zoneId": "z9"
     },
     {
       "id": "z9-c5",
-      "name": "Crag 9-5",
-      "description": "Demo crag z9-c5",
+      "name": "Torre de Altaiz",
+      "description": "Picos de Europa: agujas del macizo oriental, roca de calidad.",
       "ubication": {
-        "lat": 39.85,
-        "lng": -4.85
+        "lat": 43.1884,
+        "lng": -4.6444
       },
       "parkings": [
         "p-z9-c5-1"
       ],
-      "approach": 20,
+      "approach": 140,
       "zoneId": "z9"
     },
     {
       "id": "z10-c1",
-      "name": "Crag 10-1",
-      "description": "Demo crag z10-c1",
+      "name": "Los Galayos",
+      "description": "Sierra de Gredos: conjunto de agujas graníticas, escalada clásica y de aventura.",
       "ubication": {
-        "lat": 40.01,
-        "lng": -5.01
+        "lat": 40.2529,
+        "lng": -5.3006
       },
       "parkings": [
         "p-z10-c1-1"
       ],
-      "approach": 20,
+      "approach": 120,
       "zoneId": "z10"
     },
     {
       "id": "z10-c2",
-      "name": "Crag 10-2",
-      "description": "Demo crag z10-c2",
+      "name": "Plataforma de Gredos — Morezón",
+      "description": "Sierra de Gredos: paredes de granito cercanas a la plataforma; aproximación cómoda.",
       "ubication": {
-        "lat": 40.02,
-        "lng": -5.02
+        "lat": 40.2508,
+        "lng": -5.2818
+      },
+      "parkings": [
+        "p-z10-c2-1"
+      ],
+      "approach": 90,
+      "zoneId": "z10"
+    },
+    {
+      "id": "z10-c3",
+      "name": "Ameal de Pablo",
+      "description": "Sierra de Gredos: agujas y paredes cerca del Circo de Gredos.",
+      "ubication": {
+        "lat": 40.2459,
+        "lng": -5.3015
+      },
+      "parkings": [
+        "p-z10-c3-1"
+      ],
+      "approach": 160,
+      "zoneId": "z10"
+    },
+    {
+      "id": "z10-c4",
+      "name": "Peñón del Mediodía",
+      "description": "Sierra de Gredos: pared de granito con rutas clásicas y vistas al circo.",
+      "ubication": {
+        "lat": 40.2395,
+        "lng": -5.2670
+      },
+      "parkings": [
+        "p-z10-c4-1"
+      ],
+      "approach": 140,
+      "zoneId": "z10"
+    },
+    {
+      "id": "z10-c5",
+      "name": "Torozo",
+      "description": "Sierra de Gredos: clásica pared de granito en la zona oriental (Serranillos).",
+      "ubication": {
+        "lat": 40.2579,
+        "lng": -5.0871
+      },
+      "parkings": [
+        "p-z10-c5-1"
+      ],
+      "approach": 90,
+      "zoneId": "z10"
+    },
+    {
+      "id": "crag-sella-wild-side",
+      "name": "Wild Side",
+      "description": "Sector desplomado de Sella con vías de alta dificultad sobre chorreras.",
+      "ubication": {
+        "lat": 38.612,
+        "lng": -0.245
+      },
+      "parkings": [
+        "p-sella-wild-side-1"
+      ],
+      "approach": 25,
+      "zoneId": "zone-sella"
+    },
+    {
+      "id": "crag-alicante-rincon-bello",
+      "name": "Rincón Bello",
+      "description": "Clásico de Alicante con caliza técnica y placas verticales.",
+      "ubication": {
+        "lat": 38.529,
+        "lng": -0.560
+      },
+      "parkings": [
+        "p-alicante-rincon-bello-1"
+      ],
+      "approach": 15,
+      "zoneId": "zone-alicante"
+    },
+    {
+      "id": "granada-loja",
+      "name": "Loja",
+      "description": "Granada: caliza en sectores como Monte Hacho; deportiva variada.",
+      "ubication": {
+        "lat": 37.1640,
+        "lng": -4.1510
+      },
+      "parkings": [
+        "p-z10-c1-1"
+      ],
+      "approach": 15,
+      "zoneId": "z10"
+    },
+    {
+      "id": "granada-cahorros",
+      "name": "Los Cahorros (Monachil)",
+      "description": "Granada: paredones de conglomerado y caliza junto al río Monachil.",
+      "ubication": {
+        "lat": 37.1367,
+        "lng": -3.5115
       },
       "parkings": [
         "p-z10-c2-1"
@@ -782,58 +898,58 @@
       "zoneId": "z10"
     },
     {
-      "id": "z10-c3",
-      "name": "Crag 10-3",
-      "description": "Demo crag z10-c3",
+      "id": "granada-cogollos",
+      "name": "Cogollos Vega",
+      "description": "Granada: caliza compacta; sectores cercanos en la Vega.",
       "ubication": {
-        "lat": 40.03,
-        "lng": -5.03
+        "lat": 37.2770,
+        "lng": -3.5630
       },
       "parkings": [
         "p-z10-c3-1"
-      ],
-      "approach": 15,
-      "zoneId": "z10"
-    },
-    {
-      "id": "z10-c4",
-      "name": "Crag 10-4",
-      "description": "Demo crag z10-c4",
-      "ubication": {
-        "lat": 40.04,
-        "lng": -5.04
-      },
-      "parkings": [
-        "p-z10-c4-1"
       ],
       "approach": 20,
       "zoneId": "z10"
     },
     {
-      "id": "z10-c5",
-      "name": "Crag 10-5",
-      "description": "Demo crag z10-c5",
+      "id": "granada-dilar",
+      "name": "Dílar",
+      "description": "Sierra Nevada (Granada): deportiva en caliza y esquistos; entorno fresco.",
       "ubication": {
-        "lat": 40.05,
-        "lng": -5.05
+        "lat": 37.0870,
+        "lng": -3.5990
+      },
+      "parkings": [
+        "p-z10-c4-1"
+      ],
+      "approach": 15,
+      "zoneId": "z10"
+    },
+    {
+      "id": "granada-los-vados",
+      "name": "Los Vados (Motril)",
+      "description": "Granada: paredes sobre el río Guadalfeo; clásica escuela invernal.",
+      "ubication": {
+        "lat": 36.7770,
+        "lng": -3.4920
       },
       "parkings": [
         "p-z10-c5-1"
       ],
-      "approach": 10,
+      "approach": 5,
       "zoneId": "z10"
     }
   ],
   "parkings": [
     {
       "id": "p-z1-c1-1",
-      "name": "Parking 1-1",
+      "name": "Rodellar — Aparcamiento del Camping El Puente",
       "ubication": {
-        "lat": 38.213,
-        "lng": -3.207
+        "lat": 42.2847,
+        "lng": -0.0389
       },
       "cragId": "z1-c1",
-      "capacity": 40
+      "capacity": 60
     },
     {
       "id": "p-z1-c2-1",
@@ -877,13 +993,13 @@
     },
     {
       "id": "p-z2-c1-1",
-      "name": "Parking 2-1",
+      "name": "Siurana — Aparcamiento del Coll de la Creueta",
       "ubication": {
-        "lat": 38.413,
-        "lng": -3.407
+        "lat": 41.2709,
+        "lng": 0.9360
       },
       "cragId": "z2-c1",
-      "capacity": 50
+      "capacity": 80
     },
     {
       "id": "p-z2-c2-1",
@@ -927,13 +1043,13 @@
     },
     {
       "id": "p-z3-c1-1",
-      "name": "Parking 3-1",
+      "name": "Margalef — Aparcamiento Pantano de Margalef",
       "ubication": {
-        "lat": 38.613,
-        "lng": -3.607
+        "lat": 41.2815,
+        "lng": 0.7776
       },
       "cragId": "z3-c1",
-      "capacity": 20
+      "capacity": 70
     },
     {
       "id": "p-z3-c2-1",
@@ -977,13 +1093,13 @@
     },
     {
       "id": "p-z4-c1-1",
-      "name": "Parking 4-1",
+      "name": "Chulilla — Parking Ermita de Santa Bárbara",
       "ubication": {
-        "lat": 38.813,
-        "lng": -3.807
+        "lat": 39.6549,
+        "lng": -0.8889
       },
       "cragId": "z4-c1",
-      "capacity": 30
+      "capacity": 80
     },
     {
       "id": "p-z4-c2-1",
@@ -1027,13 +1143,13 @@
     },
     {
       "id": "p-z5-c1-1",
-      "name": "Parking 5-1",
+      "name": "El Chorro — Aparcamiento Estación",
       "ubication": {
-        "lat": 39.013,
-        "lng": -4.007
+        "lat": 36.9225,
+        "lng": -4.7590
       },
       "cragId": "z5-c1",
-      "capacity": 40
+      "capacity": 100
     },
     {
       "id": "p-z5-c2-1",
@@ -1077,13 +1193,13 @@
     },
     {
       "id": "p-z6-c1-1",
-      "name": "Parking 6-1",
+      "name": "Montserrat — Aparcamiento Monistrol (Funicular)",
       "ubication": {
-        "lat": 39.213,
-        "lng": -4.207
+        "lat": 41.6167,
+        "lng": 1.8428
       },
       "cragId": "z6-c1",
-      "capacity": 50
+      "capacity": 200
     },
     {
       "id": "p-z6-c2-1",
@@ -1127,13 +1243,13 @@
     },
     {
       "id": "p-z7-c1-1",
-      "name": "Parking 7-1",
+      "name": "Cuenca — Parking Barrio del Castillo",
       "ubication": {
-        "lat": 39.413,
-        "lng": -4.407
+        "lat": 40.0807,
+        "lng": -2.1289
       },
       "cragId": "z7-c1",
-      "capacity": 20
+      "capacity": 120
     },
     {
       "id": "p-z7-c2-1",
@@ -1177,13 +1293,13 @@
     },
     {
       "id": "p-z8-c1-1",
-      "name": "Parking 8-1",
+      "name": "Albarracín — Parking Pinares de Rodeno",
       "ubication": {
-        "lat": 39.613,
-        "lng": -4.607
+        "lat": 40.4097,
+        "lng": -1.4528
       },
       "cragId": "z8-c1",
-      "capacity": 30
+      "capacity": 150
     },
     {
       "id": "p-z8-c2-1",
@@ -1277,53 +1393,73 @@
     },
     {
       "id": "p-z10-c1-1",
-      "name": "Parking 10-1",
+      "name": "Parking Loja",
       "ubication": {
-        "lat": 40.013,
-        "lng": -5.007
+        "lat": 37.160,
+        "lng": -4.152
       },
-      "cragId": "z10-c1",
+      "cragId": "granada-loja",
       "capacity": 50
     },
     {
       "id": "p-z10-c2-1",
-      "name": "Parking 10-2",
+      "name": "Parking Los Cahorros",
       "ubication": {
-        "lat": 40.023,
-        "lng": -5.017
+        "lat": 37.132,
+        "lng": -3.539
       },
-      "cragId": "z10-c2",
+      "cragId": "granada-cahorros",
       "capacity": 20
     },
     {
       "id": "p-z10-c3-1",
-      "name": "Parking 10-3",
+      "name": "Parking Cogollos",
       "ubication": {
-        "lat": 40.033,
-        "lng": -5.027
+        "lat": 37.278,
+        "lng": -3.564
       },
-      "cragId": "z10-c3",
+      "cragId": "granada-cogollos",
       "capacity": 30
     },
     {
       "id": "p-z10-c4-1",
-      "name": "Parking 10-4",
+      "name": "Parking Dílar",
       "ubication": {
-        "lat": 40.043,
-        "lng": -5.037
+        "lat": 37.090,
+        "lng": -3.600
       },
-      "cragId": "z10-c4",
+      "cragId": "granada-dilar",
       "capacity": 40
     },
     {
       "id": "p-z10-c5-1",
-      "name": "Parking 10-5",
+      "name": "Parking Los Vados",
       "ubication": {
-        "lat": 40.053,
-        "lng": -5.047
+        "lat": 36.780,
+        "lng": -3.494
       },
-      "cragId": "z10-c5",
+      "cragId": "granada-los-vados",
       "capacity": 50
+    },
+    {
+      "id": "p-sella-wild-side-1",
+      "name": "Parking Sella - Wild Side",
+      "ubication": {
+        "lat": 38.610,
+        "lng": -0.250
+      },
+      "cragId": "crag-sella-wild-side",
+      "capacity": 30
+    },
+    {
+      "id": "p-alicante-rincon-bello-1",
+      "name": "Parking Alicante - Rincón Bello",
+      "ubication": {
+        "lat": 38.532,
+        "lng": -0.565
+      },
+      "cragId": "crag-alicante-rincon-bello",
+      "capacity": 40
     }
   ],
   "topos": [
@@ -4395,7 +4531,7 @@
     {
       "id": "z10-c1-t1",
       "name": "Topo 10-1-1",
-      "cragId": "z10-c1",
+      "cragId": "granada-loja",
       "topoRouteIds": [
         "tr-z10-c1-t1-1",
         "tr-z10-c1-t1-2",
@@ -4412,7 +4548,7 @@
     {
       "id": "z10-c1-t2",
       "name": "Topo 10-1-2",
-      "cragId": "z10-c1",
+      "cragId": "granada-loja",
       "topoRouteIds": [
         "tr-z10-c1-t2-1",
         "tr-z10-c1-t2-2",
@@ -4429,7 +4565,7 @@
     {
       "id": "z10-c1-t3",
       "name": "Topo 10-1-3",
-      "cragId": "z10-c1",
+      "cragId": "granada-loja",
       "topoRouteIds": [
         "tr-z10-c1-t3-1",
         "tr-z10-c1-t3-2",
@@ -4446,7 +4582,7 @@
     {
       "id": "z10-c1-t4",
       "name": "Topo 10-1-4",
-      "cragId": "z10-c1",
+      "cragId": "granada-loja",
       "topoRouteIds": [
         "tr-z10-c1-t4-1",
         "tr-z10-c1-t4-2",
@@ -4730,6 +4866,26 @@
         "tr-z10-c5-t4-8",
         "tr-z10-c5-t4-9",
         "tr-z10-c5-t4-10"
+      ]
+    },
+    {
+      "id": "topo-sella-wild-side",
+      "name": "Wild Side - Principal",
+      "photo": "/image/crag-light.svg",
+      "cragId": "crag-sella-wild-side",
+      "topoRouteIds": [
+        "tr-topo-sella-wild-side-1"
+      ]
+    },
+    {
+      "id": "topo-alicante-rincon-bello",
+      "name": "Rincón Bello - Principal",
+      "photo": "/image/crag-light.svg",
+      "cragId": "crag-alicante-rincon-bello",
+      "topoRouteIds": [
+        "tr-topo-alicante-rincon-bello-1",
+        "tr-topo-alicante-rincon-bello-2",
+        "tr-topo-alicante-rincon-bello-3"
       ]
     }
   ],
@@ -16743,6 +16899,31 @@
       "name": "Route 10-5-4-10",
       "grade": "8a",
       "height": 12
+    },
+    {
+      "id": "route-sella-mediterraneo",
+      "name": "Mediterraneo",
+      "grade": "8a",
+      "height": 25,
+      "url_8anu": "https://www.8a.nu/route/mediterraneo-sella"
+    },
+    {
+      "id": "route-rincon-bello-lagrimas-negras",
+      "name": "Lágrimas negras",
+      "grade": "7b+",
+      "height": 28
+    },
+    {
+      "id": "route-rincon-bello-mar-de-incertidumbre",
+      "name": "Mar de incertidumbre",
+      "grade": "7c",
+      "height": 30
+    },
+    {
+      "id": "route-rincon-bello-hotel-glase",
+      "name": "Hotel Glasé",
+      "grade": "8a",
+      "height": 30
     }
   ],
   "topoRoutes": [
@@ -28745,6 +28926,30 @@
       "number": 10,
       "routeId": "z10-c5-t4-r10",
       "topoId": "z10-c5-t4"
+    },
+    {
+      "id": "tr-topo-sella-wild-side-1",
+      "number": 1,
+      "routeId": "route-sella-mediterraneo",
+      "topoId": "topo-sella-wild-side"
+    },
+    {
+      "id": "tr-topo-alicante-rincon-bello-1",
+      "number": 1,
+      "routeId": "route-rincon-bello-lagrimas-negras",
+      "topoId": "topo-alicante-rincon-bello"
+    },
+    {
+      "id": "tr-topo-alicante-rincon-bello-2",
+      "number": 2,
+      "routeId": "route-rincon-bello-mar-de-incertidumbre",
+      "topoId": "topo-alicante-rincon-bello"
+    },
+    {
+      "id": "tr-topo-alicante-rincon-bello-3",
+      "number": 3,
+      "routeId": "route-rincon-bello-hotel-glase",
+      "topoId": "topo-alicante-rincon-bello"
     }
   ]
 }
