@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
-import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
+import { TuiBadge, TuiAvatar, TuiButtonClose } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
 import { TuiTable, TuiSortDirection } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
@@ -19,6 +19,9 @@ import type { Topo, TopoRoute, Route } from '../models';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
+import { TuiButton } from '@taiga-ui/core';
+import { TuiDialog } from '@taiga-ui/experimental';
+import { gradeRank } from '../utils';
 
 type TableKey = 'grade' | 'number' | 'route' | 'height';
 
@@ -44,6 +47,9 @@ export interface Row {
     TuiLet,
     SectionHeaderComponent,
     TuiBottomSheet,
+    TuiButton,
+    TuiDialog,
+    TuiButtonClose,
   ],
   template: `
     <div class="flex flex-col h-full w-full relative">
@@ -51,9 +57,62 @@ export interface Row {
         <img
           [src]="t.photo || global.iconSrc()('topo')"
           alt="{{ t.name }}"
-          class="absolute inset-0 w-full h-full object-cover"
+          [class]="imgClass() + ' cursor-zoom-in'"
           decoding="async"
+          (click.zoneless)="openPhoto.set(true)"
         />
+
+        <!-- Toggle image fit button -->
+        <div class="absolute right-4 top-4 z-100">
+          <button
+            tuiIconButton
+            size="s"
+            appearance="primary-grayscale"
+            (click.zoneless)="toggleImageFit()"
+            [iconStart]="
+              imageFit() === 'cover'
+                ? '@tui.unfold-horizontal'
+                : '@tui.unfold-vertical'
+            "
+            class="pointer-events-auto"
+            [attr.aria-label]="
+              (imageFit() === 'cover'
+                ? 'actions.fit.contain'
+                : 'actions.fit.cover'
+              ) | translate
+            "
+            [attr.title]="
+              (imageFit() === 'cover'
+                ? 'actions.fit.contain'
+                : 'actions.fit.cover'
+              ) | translate
+            "
+          >
+            Toggle image fit
+          </button>
+        </div>
+
+        <!-- Fullscreen photo dialog -->
+        <ng-template
+          [tuiDialogOptions]="{ appearance: 'fullscreen', closable: false }"
+          [(tuiDialog)]="openPhoto"
+        >
+          <button
+            tuiButtonClose
+            tuiIconButton
+            type="button"
+            class="!absolute top-3 right-3 z-50"
+            (click.zoneless)="openPhoto.set(false)"
+            [attr.aria-label]="'actions.close' | translate"
+            [attr.title]="'actions.close' | translate"
+          >
+            {{ 'actions.close' | translate }}
+          </button>
+          <img
+            [src]="topo()?.photo || global.iconSrc()('topo')"
+            alt="{{ topo()?.name }}"
+          />
+        </ng-template>
 
         <tui-bottom-sheet
           [stops]="stops"
@@ -202,6 +261,14 @@ export interface Row {
   host: { class: 'flex grow' },
 })
 export class TopoComponent {
+  protected readonly openPhoto: WritableSignal<boolean> = signal(false);
+  protected readonly imageFit: WritableSignal<'cover' | 'contain'> =
+    signal('cover');
+  protected readonly imgClass: Signal<string> = computed(() =>
+    this.imageFit() === 'cover'
+      ? 'absolute inset-0 w-full h-full object-cover'
+      : 'absolute inset-0 w-full h-full object-contain',
+  );
   protected readonly stops = ['6rem'] as const;
   private readonly route = inject(ActivatedRoute);
   protected readonly global = inject(GlobalData);
@@ -228,7 +295,6 @@ export class TopoComponent {
     },
   );
 
-  // Table columns for Taiga UI table
   protected readonly columns: string[] = [
     'grade',
     'number',
@@ -242,22 +308,9 @@ export class TopoComponent {
   protected readonly direction: WritableSignal<TuiSortDirection> =
     signal<TuiSortDirection>(TuiSortDirection.Asc);
 
-  private gradeRank(grade?: string): number {
-    if (!grade) return Number.POSITIVE_INFINITY;
-    const m = /^\s*(\d)\s*([a-cA-C])?\s*(\+)?\s*$/i.exec(grade);
-    if (!m) return Number.POSITIVE_INFINITY;
-    const base = parseInt(m[1], 10);
-    const letter = (m[2] || '').toLowerCase();
-    const plus = !!m[3];
-    const letterVal =
-      letter === 'a' ? 0 : letter === 'b' ? 1 : letter === 'c' ? 2 : 0;
-    return base * 10 + letterVal + (plus ? 0.5 : 0);
-  }
-
-  // Data source for tuiTableSort, includes comparable values and original ref
   protected readonly tableData: Signal<Row[]> = computed(() =>
     this.topoRoutesDetailed().map((tr) => ({
-      grade: this.gradeRank(tr.route?.grade),
+      grade: gradeRank(tr.route?.grade),
       number: tr.number,
       route: tr.route?.name || '',
       height:
@@ -268,7 +321,6 @@ export class TopoComponent {
     })),
   );
 
-  // Row type used by the table and comparators
   protected readonly sorters: Record<TableKey, TuiComparator<Row>> = {
     grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
     number: (a, b) => tuiDefaultSort(a.number, b.number),
@@ -293,18 +345,20 @@ export class TopoComponent {
     const id = this.route.snapshot.paramMap.get('id');
     this.topoId.set(id);
     this.global.setSelectedTopo(id);
-    // set the selected crag and zone from topo context if possible
     const topo = this.global.topos().find((t) => t.id === id);
     if (topo) {
       this.global.setSelectedCrag(topo.cragId);
       const crag = this.global.crags().find((c) => c.id === topo.cragId);
       if (crag) this.global.setSelectedZone(crag.zoneId);
-      // entering a topo clears any specific route selection
       this.global.setSelectedRoute(null);
     }
   }
 
   goBack(): void {
     this.location.back();
+  }
+
+  protected toggleImageFit(): void {
+    this.imageFit.update((v) => (v === 'cover' ? 'contain' : 'cover'));
   }
 }

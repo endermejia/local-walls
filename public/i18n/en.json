@@ -9,9 +9,14 @@
       "add": "Mark as favorite",
       "remove": "Remove favorite"
     },
+    "fit": {
+      "cover": "Fit to height",
+      "contain": "Fit to width"
+    },
     "openMap": "Open location in Google Maps",
     "signIn": "Sign in",
-    "back": "Back"
+    "back": "Back",
+    "close": "Close"
   },
   "labels": {
     "crag": "Crag",
@@ -31,10 +36,11 @@
     "height": "Height",
     "actions": "Actions",
     "topos": "Topos",
-    "toposFavorites": "Favorite topos",
     "topo": "Topo",
     "username": "Username",
-    "password": "Password"
+    "password": "Password",
+    "map": "Map",
+    "list": "List"
   },
   "auth": {
     "login": "Log in",
@@ -49,7 +55,8 @@
     "search": "Search",
     "appName": "Local Walls",
     "fullscreen": "Fullscreen",
-    "exit_fullscreen": "Exit fullscreen"
+    "exit_fullscreen": "Exit fullscreen",
+    "noResults": "No results"
   },
   "errors": {
     "invalidCredentials": "Invalid credentials"
