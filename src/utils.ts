@@ -42,6 +42,7 @@ export function gradeRank(grade?: string): number {
   const base = parseInt(m[1], 10);
   const letter = (m[2] || '').toLowerCase();
   const plus = !!m[3];
-  const letterVal = letter === 'a' ? 0 : letter === 'b' ? 1 : letter === 'c' ? 2 : 0;
+  const letterVal =
+    letter === 'a' ? 0 : letter === 'b' ? 1 : letter === 'c' ? 2 : 0;
   return base * 10 + letterVal + (plus ? 0.5 : 0);
 }
