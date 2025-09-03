@@ -1,9 +1,12 @@
-import { AsyncPipe, KeyValuePipe } from '@angular/common';
+import { AsyncPipe, KeyValuePipe, isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID, Signal, WritableSignal } from '@angular/core';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
   inject,
+  OnDestroy,
+  signal,
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -190,30 +193,64 @@ interface BreadcrumbItem {
             </ng-template>
           </tui-textfield>
         </div>
-        <!-- Mobile: show icon button to open search -->
-        <button
-          tuiIconButton
-          type="button"
-          class="sm:hidden"
-          [iconStart]="'@tui.search'"
-          [title]="'common.search' | translate"
-          (click.zoneless)="input.open()"
-          ngSkipHydration
-        >
-          Search
-        </button>
+
+        <!-- Mobile: Search and fullscreen buttons -->
+        <div class="sm:hidden">
+          <button
+            tuiIconButton
+            type="button"
+            [iconStart]="'@tui.search'"
+            [title]="'common.search' | translate"
+            (click.zoneless)="input.open()"
+            ngSkipHydration
+          >
+            {{ 'common.search' | translate }}
+          </button>
+          <button
+            tuiIconButton
+            type="button"
+            size="s"
+            (click.zoneless)="toggleFullscreen()"
+            [iconStart]="isFullscreen() ? '@tui.minimize' : '@tui.fullscreen'"
+            [title]="
+              (isFullscreen() ? 'common.exit_fullscreen' : 'common.fullscreen')
+                | translate
+            "
+            ngSkipHydration
+          >
+            {{
+              isFullscreen() ? 'common.exit_fullscreen' : 'common.fullscreen'
+            }}
+          </button>
+        </div>
       </div>
     </header>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnDestroy {
   protected globalService = inject(GlobalData);
+
+  private readonly platformId: object = inject(PLATFORM_ID);
+  private readonly isBrowser =
+    isPlatformBrowser(this.platformId) && typeof document !== 'undefined';
+  private readonly onFsChange = () => {
+    if (this.isBrowser) this.isFullscreen.set(!!document.fullscreenElement);
+  };
+
+  isFullscreen: WritableSignal<boolean> = signal(false);
 
   open = false;
   protected readonly control = new FormControl('');
 
-  items = computed<BreadcrumbItem[]>(() => {
+  constructor() {
+    if (this.isBrowser) {
+      this.isFullscreen.set(!!document.fullscreenElement);
+      document.addEventListener('fullscreenchange', this.onFsChange);
+    }
+  }
+
+  items: Signal<BreadcrumbItem[]> = computed<BreadcrumbItem[]>(() => {
     const items: BreadcrumbItem[] = [
       { caption: 'nav.home', routerLink: ['/home'] },
     ];
@@ -270,5 +307,25 @@ export class HeaderComponent {
       }),
       {},
     );
+  }
+
+  toggleFullscreen() {
+    if (!this.isBrowser) return;
+    const docEl = document.documentElement as HTMLElement & {
+      requestFullscreen?: () => Promise<void>;
+    };
+    if (!document.fullscreenElement) {
+      if (docEl.requestFullscreen) {
+        docEl.requestFullscreen();
+      }
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.isBrowser) {
+      document.removeEventListener('fullscreenchange', this.onFsChange);
+    }
   }
 }

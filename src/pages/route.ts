@@ -3,13 +3,16 @@ import {
   Component,
   computed,
   inject,
+  Signal,
   signal,
+  WritableSignal,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { GlobalData } from '../services';
 import { Location } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '../components/section-header';
+import { Route } from '../models';
 
 @Component({
   selector: 'app-route',
@@ -42,8 +45,8 @@ export class RouteComponent {
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
 
-  routeId = signal<string | null>(null);
-  route = computed(() => {
+  routeId: WritableSignal<string | null> = signal<string | null>(null);
+  route: Signal<Route | null> = computed(() => {
     const id = this.routeId();
     return id
       ? this.global.routesData().find((r) => r.id === id) || null

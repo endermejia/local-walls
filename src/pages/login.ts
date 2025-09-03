@@ -3,6 +3,7 @@ import {
   Component,
   inject,
   signal,
+  WritableSignal,
 } from '@angular/core';
 import { GlobalData } from '../services';
 import { Router } from '@angular/router';
@@ -75,9 +76,9 @@ export class LoginComponent {
   private readonly global = inject(GlobalData);
   private readonly router = inject(Router);
 
-  username = signal('');
-  password = signal('');
-  error = signal<string | null>(null);
+  username: WritableSignal<string> = signal('');
+  password: WritableSignal<string> = signal('');
+  error: WritableSignal<string | null> = signal<string | null>(null);
 
   onInputUsername(value: string) {
     this.username.set(value);
