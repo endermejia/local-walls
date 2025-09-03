@@ -3,17 +3,11 @@
   command = "npm run build"
 
 # Redirect root to /home so that landing at the site base goes to the Home route
-[[redirects]]
-  from = "/"
-  to = "/home"
-  status = 301
-  force = true
-
-# SSR, all routes must go to Netlify runtime function
-[[redirects]]
-  from = "/*"
-  to = "/.netlify/functions/server"
-  status = 200
+#[[redirects]]
+#  from = "/"
+#  to = "/home"
+#  status = 301
+#  force = true
 
 [[plugins]]
   package = "@netlify/angular-runtime"
