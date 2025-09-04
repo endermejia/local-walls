@@ -1,5 +1,5 @@
 [build]
-  publish = "dist/angular20/browser"
+  publish = "dist/local-walls/browser"
   command = "npm run build"
 
 # Redirect root to /home so that landing at the site base goes to the Home route
