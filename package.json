@@ -6,6 +6,7 @@
     "start": "ng serve --hmr=false",
     "start:hmr": "ng serve",
     "build": "ng build",
+    "build:ssr": "ng build --configuration=production --ssr",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:local-walls": "node dist/local-walls/server/server.mjs",
