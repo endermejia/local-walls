@@ -1,11 +1,11 @@
 [build]
   publish = "dist/local-walls/browser"
-  command = "npm run build:ssr"
+  command = "npm run build"
 
 # Redirect root to /home so that landing at the site base goes to the Home route
-[functions]
-  directory = "dist/local-walls/server"
-
+#[functions]
+#  directory = "dist/local-walls/server"
+#
 
 [[plugins]]
   package = "@netlify/angular-runtime"
