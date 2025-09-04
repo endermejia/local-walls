@@ -4,6 +4,16 @@
 
 [[plugins]]
   package = "@netlify/angular-runtime"
+  [plugins.inputs]
+    appName = "local-walls"
+    serverBundlePath = "dist/local-walls/server/main.server.mjs"
 
 [functions]
   directory = "dist/local-walls/server"
+  node_bundler = "esbuild"
+
+[functions.angular-ssr]
+  included_files = ["dist/local-walls/server/**"]
+
+[build.environment]
+  ANGULAR_SSR_ENABLED = "true"
