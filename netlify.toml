@@ -4,10 +4,14 @@
 
 # Redirect root to /home so that landing at the site base goes to the Home route
 [[redirects]]
-  from = "/"
-  to = "/home"
-  status = 301
-  force = true
+from = "/*"
+to = "/index.html"
+status = 200
+#[[redirects]]
+#  from = "/"
+#  to = "/home"
+#  status = 301
+#  force = true
 
 [[plugins]]
   package = "@netlify/angular-runtime"
