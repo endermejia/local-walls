@@ -4,3 +4,6 @@
 
 [[plugins]]
   package = "@netlify/angular-runtime"
+
+[functions]
+  directory = "dist/local-walls/server"
