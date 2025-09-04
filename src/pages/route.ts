@@ -34,7 +34,9 @@ import { Route } from '../models';
           </p>
         }
       } @else {
-        <div class="flex items-center justify-center w-full min-h-[50vh]"><tui-loader size="xxl"></tui-loader></div>
+        <div class="flex items-center justify-center w-full min-h-[50vh]">
+          <tui-loader size="xxl"></tui-loader>
+        </div>
       }
     </section>
   `,

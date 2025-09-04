@@ -254,7 +254,9 @@ export interface Row {
           </section>
         </tui-bottom-sheet>
       } @else {
-        <div class="absolute inset-0 flex items-center justify-center"><tui-loader size="xxl"></tui-loader></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <tui-loader size="xxl"></tui-loader>
+        </div>
       }
     </div>
   `,
