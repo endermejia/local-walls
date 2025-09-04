@@ -2,6 +2,5 @@
   publish = "dist/local-walls/browser"
   command = "npm run build"
 
-[functions]
-  directory = "dist/local-walls/server"
-  node_bundler = "esbuild"
+[[plugins]]
+  package = "@netlify/angular-runtime"
