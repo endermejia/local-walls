@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
-import { TuiSurface, TuiTitle } from '@taiga-ui/core';
+import { TuiSurface, TuiTitle, TuiLoader } from '@taiga-ui/core';
 import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import { GlobalData } from '../services';
@@ -29,6 +29,7 @@ import { SectionHeaderComponent } from '../components/section-header';
     TuiSurface,
     TuiAvatar,
     SectionHeaderComponent,
+    TuiLoader,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -84,7 +85,7 @@ import { SectionHeaderComponent } from '../components/section-header';
           }
         </div>
       } @else {
-        <p>{{ 'common.loading' | translate }}</p>
+        <div class="flex items-center justify-center w-full min-h-[50vh]"><tui-loader size="xxl"></tui-loader></div>
       }
     </section>
   `,

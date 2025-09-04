@@ -12,12 +12,13 @@ import { GlobalData } from '../services';
 import { Location } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '../components/section-header';
+import { TuiLoader } from '@taiga-ui/core';
 import { Route } from '../models';
 
 @Component({
   selector: 'app-route',
   standalone: true,
-  imports: [SectionHeaderComponent, TranslatePipe],
+  imports: [SectionHeaderComponent, TranslatePipe, TuiLoader],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
       @if (route(); as r) {
@@ -33,7 +34,7 @@ import { Route } from '../models';
           </p>
         }
       } @else {
-        <p>{{ 'common.loading' | translate }}</p>
+        <div class="flex items-center justify-center w-full min-h-[50vh]"><tui-loader size="xxl"></tui-loader></div>
       }
     </section>
   `,

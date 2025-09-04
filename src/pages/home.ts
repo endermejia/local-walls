@@ -78,7 +78,7 @@ import { Crag, Zone } from '../models';
         (visibleChange)="updateBottomSheet($event)"
       />
     } @placeholder {
-      <tui-loader class="w-full h-full flex" />
+      <tui-loader size="xxl" class="w-full h-full flex" />
     }
 
     @if (selectedCrag(); as c) {

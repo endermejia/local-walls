@@ -19,7 +19,7 @@ import type { Topo, TopoRoute, Route } from '../models';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
-import { TuiButton } from '@taiga-ui/core';
+import { TuiButton, TuiLoader } from '@taiga-ui/core';
 import { TuiDialog } from '@taiga-ui/experimental';
 import { gradeRank } from '../utils';
 
@@ -50,6 +50,7 @@ export interface Row {
     TuiButton,
     TuiDialog,
     TuiButtonClose,
+    TuiLoader,
   ],
   template: `
     <div class="flex flex-col h-full w-full relative">
@@ -253,7 +254,7 @@ export interface Row {
           </section>
         </tui-bottom-sheet>
       } @else {
-        <p>{{ 'common.loading' | translate }}</p>
+        <div class="absolute inset-0 flex items-center justify-center"><tui-loader size="xxl"></tui-loader></div>
       }
     </div>
   `,
