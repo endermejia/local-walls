@@ -8,7 +8,7 @@
     "start:hmr": "ng serve",
     "build": "ng build",
     "build:ssr": "ng build --configuration=production --ssr",
-    "serve:ssr:local-walls": "node dist/local-walls/server/main.server.mjs",
+    "serve:ssr:local-walls": "node dist/local-walls/server/main-server.mjs",
     "build:ssr:serve": "npm run build:ssr && npm run serve:ssr:local-walls",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
