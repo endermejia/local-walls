@@ -6,8 +6,11 @@ import {
   Signal,
   signal,
   WritableSignal,
+  input,
+  effect,
+  InputSignal,
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
 import { TuiSurface, TuiTitle, TuiLoader } from '@taiga-ui/core';
 import { TuiAvatar } from '@taiga-ui/kit';
@@ -95,14 +98,13 @@ import { SectionHeaderComponent } from '../components/section-header';
   host: { class: 'flex grow overflow-auto sm:p-4' },
 })
 export class ZoneComponent {
-  private readonly route = inject(ActivatedRoute);
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
 
-  zoneId: WritableSignal<string | null> = signal<string | null>(null);
+  id: InputSignal<string> = input.required<string>();
   zone: Signal<Zone | null> = computed<Zone | null>(() => {
-    const id = this.zoneId();
-    return id ? this.global.zones().find((z) => z.id === id) || null : null;
+    const id = this.id();
+    return this.global.zones().find((z) => z.id === id) || null;
   });
 
   crags: Signal<Crag[]> = this.global.selectedZoneCrags;
@@ -116,12 +118,13 @@ export class ZoneComponent {
   });
 
   constructor() {
-    const id = this.route.snapshot.paramMap.get('id');
-    this.zoneId.set(id);
-    this.global.setSelectedZone(id);
-    this.global.setSelectedCrag(null);
-    this.global.setSelectedTopo(null);
-    this.global.setSelectedRoute(null);
+    effect(() => {
+      const id = this.id();
+      this.global.setSelectedZone(id);
+      this.global.setSelectedCrag(null);
+      this.global.setSelectedTopo(null);
+      this.global.setSelectedRoute(null);
+    });
   }
 
   goBack(): void {

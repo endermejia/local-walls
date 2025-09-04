@@ -6,8 +6,11 @@ import {
   Signal,
   signal,
   WritableSignal,
+  input,
+  effect,
+  InputSignal,
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
 import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
@@ -266,20 +269,18 @@ export class TopoComponent {
       : 'absolute inset-0 w-full h-full object-contain',
   );
   protected readonly stops = ['6rem'] as const;
-  private readonly route = inject(ActivatedRoute);
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
 
-  topoId: WritableSignal<string | null> = signal<string | null>(null);
+  id: InputSignal<string> = input.required<string>();
   topo: Signal<Topo | null> = computed<Topo | null>(() => {
-    const id = this.topoId();
-    return id ? this.global.topos().find((t) => t.id === id) || null : null;
+    const id = this.id();
+    return this.global.topos().find((t) => t.id === id) || null;
   });
 
   topoRoutesDetailed: Signal<(TopoRoute & { route?: Route })[]> = computed(
     () => {
-      const id = this.topoId();
-      if (!id) return [] as (TopoRoute & { route?: Route })[];
+      const id = this.id();
       const tr = this.global.topoRoutes().filter((r) => r.topoId === id);
       const routesIndex = new Map(
         this.global.routesData().map((r) => [r.id, r] as const),
@@ -328,6 +329,20 @@ export class TopoComponent {
       ),
   };
 
+  constructor() {
+    effect(() => {
+      const id = this.id();
+      this.global.setSelectedTopo(id);
+      const topo = this.global.topos().find((t) => t.id === id);
+      if (topo) {
+        this.global.setSelectedCrag(topo.cragId);
+        const crag = this.global.crags().find((c) => c.id === topo.cragId);
+        if (crag) this.global.setSelectedZone(crag.zoneId);
+        this.global.setSelectedRoute(null);
+      }
+    });
+  }
+
   protected getSorter(col: string): TuiComparator<Row> | null {
     if (col === 'actions') return null;
     return this.sorters[col as TableKey] ?? null;
@@ -335,19 +350,6 @@ export class TopoComponent {
 
   protected get tableSorter(): TuiComparator<Row> {
     return this.sorters[this.sortKey()];
-  }
-
-  constructor() {
-    const id = this.route.snapshot.paramMap.get('id');
-    this.topoId.set(id);
-    this.global.setSelectedTopo(id);
-    const topo = this.global.topos().find((t) => t.id === id);
-    if (topo) {
-      this.global.setSelectedCrag(topo.cragId);
-      const crag = this.global.crags().find((c) => c.id === topo.cragId);
-      if (crag) this.global.setSelectedZone(crag.zoneId);
-      this.global.setSelectedRoute(null);
-    }
   }
 
   goBack(): void {
