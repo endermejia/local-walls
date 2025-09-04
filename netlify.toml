@@ -2,18 +2,9 @@
   publish = "dist/local-walls/browser"
   command = "npm run build"
 
-# Redirect root to /home so that landing at the site base goes to the Home route
-[[redirects]]
-  from = "/"
-  to = "/home"
-  status = 301
-  force = true
+[functions]
+  directory = "dist/local-walls/server"
 
-# This rule is for handling specific routes
-[[redirects]]
-from = "/*"
-to = "/index.html"
-status = 200
 
-[[plugins]]
-  package = "@netlify/angular-runtime"
+#[[plugins]]
+#  package = "@netlify/angular-runtime"
