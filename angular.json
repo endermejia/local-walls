@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "angular20": {
+    "local-walls": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -22,7 +22,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist/angular20",
+            "outputPath": "dist/local-walls",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [],
@@ -80,10 +80,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "angular20:build:production"
+              "buildTarget": "local-walls:build:production"
             },
             "development": {
-              "buildTarget": "angular20:build:development"
+              "buildTarget": "local-walls:build:development"
             }
           },
           "defaultConfiguration": "development"

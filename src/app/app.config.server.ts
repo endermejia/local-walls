@@ -42,9 +42,12 @@ export function translateServerLoaderFactory(): TranslateLoader {
   return new TranslateServerLoader();
 }
 
+import { withRoutes } from '@angular/ssr';
+import { serverRoutes } from './app.routes.server';
+
 const serverConfig: ApplicationConfig = {
   providers: [
-    provideServerRendering(),
+    provideServerRendering(withRoutes(serverRoutes)),
     UNIVERSAL_PROVIDERS,
     // Override the TranslateLoader for server-side rendering
     {

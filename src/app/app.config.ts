@@ -9,7 +9,7 @@ import {
   withFetch,
   withInterceptors,
 } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import {
   provideClientHydration,
@@ -35,7 +35,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideAnimations(),
     provideZonelessChangeDetection(),
-    provideRouter(routes),
+    provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withFetch(), withInterceptors([errorInterceptor])),
     provideClientHydration(withEventReplay(), withIncrementalHydration()),
     provideTranslateService({

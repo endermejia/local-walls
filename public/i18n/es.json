@@ -9,9 +9,14 @@
       "add": "Marcar como favorito",
       "remove": "Quitar favorito"
     },
+    "fit": {
+      "cover": "Ajustar al alto",
+      "contain": "Ajustar al ancho"
+    },
     "openMap": "Abrir ubicación en Google Maps",
     "signIn": "Entrar",
-    "back": "Volver"
+    "back": "Volver",
+    "close": "Cerrar"
   },
   "labels": {
     "crag": "Sector",
@@ -32,7 +37,10 @@
     "grade": "Grado",
     "height": "Altura",
     "actions": "Acciones",
-    "topos": "Croquis"
+    "topos": "Croquis",
+    "topo": "Croquis",
+    "map": "Mapa",
+    "list": "Lista"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -47,7 +55,8 @@
     "search": "Buscar",
     "appName": "Local Walls",
     "fullscreen": "Pantalla completa",
-    "exit_fullscreen": "Salir de pantalla completa"
+    "exit_fullscreen": "Salir de pantalla completa",
+    "noResults": "Sin resultados"
   },
   "errors": {
     "invalidCredentials": "Credenciales inválidas"

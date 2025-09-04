@@ -3,12 +3,15 @@ import {
   Component,
   computed,
   inject,
-  signal,
+  input,
+  effect,
+  Signal,
+  InputSignal,
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
 import { GlobalData } from '../services';
-import { TuiTitle, TuiSurface } from '@taiga-ui/core';
+import { TuiTitle, TuiSurface, TuiLoader } from '@taiga-ui/core';
 import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import type { Crag, Topo, Parking } from '../models';
@@ -27,6 +30,7 @@ import { SectionHeaderComponent } from '../components/section-header';
     TranslatePipe,
     TuiAvatar,
     SectionHeaderComponent,
+    TuiLoader,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -122,29 +126,28 @@ import { SectionHeaderComponent } from '../components/section-header';
           }
         </div>
       } @else {
-        <p>{{ 'common.loading' | translate }}</p>
+        <div class="flex items-center justify-center w-full min-h-[50vh]">
+          <tui-loader size="xxl"></tui-loader>
+        </div>
       }
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow overflow-auto p-4' },
+  host: { class: 'flex grow overflow-auto sm:p-4' },
 })
 export class CragComponent {
-  private readonly route = inject(ActivatedRoute);
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
 
-  cragId = signal<string | null>(null);
-  crag = computed<Crag | null>(() => {
-    const id = this.cragId();
-    return id ? this.global.crags().find((c) => c.id === id) || null : null;
+  id: InputSignal<string> = input.required<string>();
+  crag: Signal<Crag | null> = computed<Crag | null>(() => {
+    const id = this.id();
+    return this.global.crags().find((c) => c.id === id) || null;
   });
 
-  toposAll = this.global.selectedCragTopos;
-  toposSorted = computed<Topo[]>(() => {
+  toposSorted: Signal<Topo[]> = computed<Topo[]>(() => {
     const liked = new Set(this.global.appUser()?.likedTopos ?? []);
-    // favorites first; then by name for stable ordering
-    return [...this.toposAll()].sort((a, b) => {
+    return [...this.global.selectedCragTopos()].sort((a, b) => {
       const la = liked.has(a.id) ? 1 : 0;
       const lb = liked.has(b.id) ? 1 : 0;
       if (la !== lb) return lb - la; // liked first
@@ -152,7 +155,7 @@ export class CragComponent {
     });
   });
 
-  cragParkings = computed<Parking[]>(() => {
+  cragParkings: Signal<Parking[]> = computed<Parking[]>(() => {
     const c = this.crag();
     if (!c) return [];
     const ids = new Set(c.parkings);
@@ -160,15 +163,16 @@ export class CragComponent {
   });
 
   constructor() {
-    const id = this.route.snapshot.paramMap.get('id');
-    this.cragId.set(id);
-    this.global.setSelectedCrag(id);
-    const crag = this.global.crags().find((c) => c.id === id);
-    if (crag) {
-      this.global.setSelectedZone(crag.zoneId);
-    }
-    this.global.setSelectedTopo(null);
-    this.global.setSelectedRoute(null);
+    effect(() => {
+      const id = this.id();
+      this.global.setSelectedCrag(id);
+      const crag = this.global.crags().find((c) => c.id === id);
+      if (crag) {
+        this.global.setSelectedZone(crag.zoneId);
+      }
+      this.global.setSelectedTopo(null);
+      this.global.setSelectedRoute(null);
+    });
   }
 
   topoRouteCount(topoId: string): number {

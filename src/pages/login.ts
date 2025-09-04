@@ -8,65 +8,85 @@ import {
 import { GlobalData } from '../services';
 import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { TuiButton } from '@taiga-ui/core';
+import {
+  TuiAppearance,
+  TuiButton,
+  TuiNotification,
+  TuiTextfield,
+  TuiTitle,
+} from '@taiga-ui/core';
+import { TuiHeader, TuiCardLarge, TuiForm } from '@taiga-ui/layout';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [TranslatePipe, TuiButton],
+  imports: [
+    TranslatePipe,
+    TuiAppearance,
+    TuiButton,
+    TuiNotification,
+    TuiTextfield,
+    TuiTitle,
+    TuiHeader,
+    TuiCardLarge,
+    TuiForm,
+  ],
   template: `
     <form
-      class="w-full max-w-sm mx-auto p-6 rounded-2xl border border-[color:var(--tui-border-normal)] shadow-sm bg-[color:var(--tui-base-01)]"
+      tuiAppearance="floating"
+      tuiCardLarge
+      tuiForm="m"
+      class="w-full max-w-sm mx-auto"
       (submit.zoneless)="submit($event)"
     >
-      <div class="flex items-center mb-4">
-        <div>
-          <h1 class="text-xl font-semibold leading-5">
-            {{ 'auth.login' | translate }}
-          </h1>
-          <p class="text-xs opacity-70 mt-1">
-            {{ 'common.appName' | translate }}
-          </p>
-        </div>
-      </div>
+      <header tuiHeader>
+        <h2 tuiTitle>
+          {{ 'auth.login' | translate }}
+          <span tuiSubtitle>{{ 'common.appName' | translate }}</span>
+        </h2>
+      </header>
+
       @let err = error();
       @if (err) {
-        <div class="mb-3 text-red-500 text-sm" role="alert">
-          {{ err | translate }}
-        </div>
+        <tui-notification appearance="warning">
+          <h3 tuiTitle>
+            {{ err | translate }}
+          </h3>
+        </tui-notification>
       }
-      <label class="block mb-3">
-        <span class="text-sm opacity-80">{{
+
+      <tui-textfield>
+        <label tuiLabel for="usernameInput">{{
           'labels.username' | translate
-        }}</span>
+        }}</label>
         <input
-          class="mt-1 w-full px-3 py-2 rounded-lg border bg-transparent"
+          id="usernameInput"
+          tuiTextfield
           [value]="username()"
           (input.zoneless)="onInputUsername($any($event.target).value)"
           autocomplete="username"
         />
-      </label>
-      <label class="block mb-5">
-        <span class="text-sm opacity-80">{{
+      </tui-textfield>
+
+      <tui-textfield>
+        <label tuiLabel for="passwordInput">{{
           'labels.password' | translate
-        }}</span>
+        }}</label>
         <input
+          id="passwordInput"
+          tuiTextfield
           type="password"
-          class="mt-1 w-full px-3 py-2 rounded-lg border bg-transparent"
           [value]="password()"
           (input.zoneless)="onInputPassword($any($event.target).value)"
           autocomplete="current-password"
         />
-      </label>
-      <button
-        tuiButton
-        appearance="primary"
-        size="l"
-        type="submit"
-        class="w-full"
-      >
-        {{ 'actions.signIn' | translate }}
-      </button>
+      </tui-textfield>
+
+      <footer>
+        <button tuiButton type="submit" class="w-full">
+          {{ 'actions.signIn' | translate }}
+        </button>
+      </footer>
     </form>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

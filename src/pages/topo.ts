@@ -6,8 +6,11 @@ import {
   Signal,
   signal,
   WritableSignal,
+  input,
+  effect,
+  InputSignal,
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
 import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
@@ -19,6 +22,9 @@ import type { Topo, TopoRoute, Route } from '../models';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
+import { TuiButton, TuiLoader } from '@taiga-ui/core';
+import { TuiDialog } from '@taiga-ui/experimental';
+import { gradeRank } from '../utils';
 
 type TableKey = 'grade' | 'number' | 'route' | 'height';
 
@@ -44,6 +50,9 @@ export interface Row {
     TuiLet,
     SectionHeaderComponent,
     TuiBottomSheet,
+    TuiButton,
+    TuiDialog,
+    TuiLoader,
   ],
   template: `
     <div class="flex flex-col h-full w-full relative">
@@ -51,9 +60,56 @@ export interface Row {
         <img
           [src]="t.photo || global.iconSrc()('topo')"
           alt="{{ t.name }}"
-          class="absolute inset-0 w-full h-full object-cover"
+          [class]="imgClass() + ' cursor-zoom-in'"
           decoding="async"
+          (click.zoneless)="openPhoto.set(true)"
         />
+
+        <!-- Toggle image fit button -->
+        <div class="absolute right-4 top-4 z-100">
+          <button
+            tuiIconButton
+            size="s"
+            appearance="primary-grayscale"
+            (click.zoneless)="toggleImageFit()"
+            [iconStart]="
+              imageFit() === 'cover'
+                ? '@tui.unfold-horizontal'
+                : '@tui.unfold-vertical'
+            "
+            class="pointer-events-auto"
+            [attr.aria-label]="
+              (imageFit() === 'cover'
+                ? 'actions.fit.contain'
+                : 'actions.fit.cover'
+              ) | translate
+            "
+            [attr.title]="
+              (imageFit() === 'cover'
+                ? 'actions.fit.contain'
+                : 'actions.fit.cover'
+              ) | translate
+            "
+          >
+            Toggle image fit
+          </button>
+        </div>
+
+        <!-- Fullscreen photo dialog -->
+        <ng-template
+          [tuiDialogOptions]="{ appearance: 'fullscreen', closable: false }"
+          [(tuiDialog)]="openPhoto"
+        >
+          <div
+            class="absolute inset-0 flex items-center justify-center"
+            (click.zoneless)="openPhoto.set(false)"
+          >
+            <img
+              [src]="topo()?.photo || global.iconSrc()('topo')"
+              alt="{{ topo()?.name }}"
+            />
+          </div>
+        </ng-template>
 
         <tui-bottom-sheet
           [stops]="stops"
@@ -61,7 +117,7 @@ export interface Row {
           role="dialog"
           aria-label="Routes"
         >
-          <section class="w-full max-w-5xl mx-auto p-4 overflow-auto">
+          <section class="w-full max-w-5xl mx-auto sm:p-4 overflow-auto">
             <app-section-header
               [title]="t.name"
               [liked]="global.isTopoLiked()(t.id)"
@@ -194,7 +250,9 @@ export interface Row {
           </section>
         </tui-bottom-sheet>
       } @else {
-        <p>{{ 'common.loading' | translate }}</p>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <tui-loader size="xxl"></tui-loader>
+        </div>
       }
     </div>
   `,
@@ -202,21 +260,27 @@ export interface Row {
   host: { class: 'flex grow' },
 })
 export class TopoComponent {
+  protected readonly openPhoto: WritableSignal<boolean> = signal(false);
+  protected readonly imageFit: WritableSignal<'cover' | 'contain'> =
+    signal('cover');
+  protected readonly imgClass: Signal<string> = computed(() =>
+    this.imageFit() === 'cover'
+      ? 'absolute inset-0 w-full h-full object-cover'
+      : 'absolute inset-0 w-full h-full object-contain',
+  );
   protected readonly stops = ['6rem'] as const;
-  private readonly route = inject(ActivatedRoute);
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
 
-  topoId: WritableSignal<string | null> = signal<string | null>(null);
+  id: InputSignal<string> = input.required<string>();
   topo: Signal<Topo | null> = computed<Topo | null>(() => {
-    const id = this.topoId();
-    return id ? this.global.topos().find((t) => t.id === id) || null : null;
+    const id = this.id();
+    return this.global.topos().find((t) => t.id === id) || null;
   });
 
   topoRoutesDetailed: Signal<(TopoRoute & { route?: Route })[]> = computed(
     () => {
-      const id = this.topoId();
-      if (!id) return [] as (TopoRoute & { route?: Route })[];
+      const id = this.id();
       const tr = this.global.topoRoutes().filter((r) => r.topoId === id);
       const routesIndex = new Map(
         this.global.routesData().map((r) => [r.id, r] as const),
@@ -228,7 +292,6 @@ export class TopoComponent {
     },
   );
 
-  // Table columns for Taiga UI table
   protected readonly columns: string[] = [
     'grade',
     'number',
@@ -242,22 +305,9 @@ export class TopoComponent {
   protected readonly direction: WritableSignal<TuiSortDirection> =
     signal<TuiSortDirection>(TuiSortDirection.Asc);
 
-  private gradeRank(grade?: string): number {
-    if (!grade) return Number.POSITIVE_INFINITY;
-    const m = /^\s*(\d)\s*([a-cA-C])?\s*(\+)?\s*$/i.exec(grade);
-    if (!m) return Number.POSITIVE_INFINITY;
-    const base = parseInt(m[1], 10);
-    const letter = (m[2] || '').toLowerCase();
-    const plus = !!m[3];
-    const letterVal =
-      letter === 'a' ? 0 : letter === 'b' ? 1 : letter === 'c' ? 2 : 0;
-    return base * 10 + letterVal + (plus ? 0.5 : 0);
-  }
-
-  // Data source for tuiTableSort, includes comparable values and original ref
   protected readonly tableData: Signal<Row[]> = computed(() =>
     this.topoRoutesDetailed().map((tr) => ({
-      grade: this.gradeRank(tr.route?.grade),
+      grade: gradeRank(tr.route?.grade),
       number: tr.number,
       route: tr.route?.name || '',
       height:
@@ -268,7 +318,6 @@ export class TopoComponent {
     })),
   );
 
-  // Row type used by the table and comparators
   protected readonly sorters: Record<TableKey, TuiComparator<Row>> = {
     grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
     number: (a, b) => tuiDefaultSort(a.number, b.number),
@@ -280,6 +329,20 @@ export class TopoComponent {
       ),
   };
 
+  constructor() {
+    effect(() => {
+      const id = this.id();
+      this.global.setSelectedTopo(id);
+      const topo = this.global.topos().find((t) => t.id === id);
+      if (topo) {
+        this.global.setSelectedCrag(topo.cragId);
+        const crag = this.global.crags().find((c) => c.id === topo.cragId);
+        if (crag) this.global.setSelectedZone(crag.zoneId);
+        this.global.setSelectedRoute(null);
+      }
+    });
+  }
+
   protected getSorter(col: string): TuiComparator<Row> | null {
     if (col === 'actions') return null;
     return this.sorters[col as TableKey] ?? null;
@@ -289,22 +352,11 @@ export class TopoComponent {
     return this.sorters[this.sortKey()];
   }
 
-  constructor() {
-    const id = this.route.snapshot.paramMap.get('id');
-    this.topoId.set(id);
-    this.global.setSelectedTopo(id);
-    // set the selected crag and zone from topo context if possible
-    const topo = this.global.topos().find((t) => t.id === id);
-    if (topo) {
-      this.global.setSelectedCrag(topo.cragId);
-      const crag = this.global.crags().find((c) => c.id === topo.cragId);
-      if (crag) this.global.setSelectedZone(crag.zoneId);
-      // entering a topo clears any specific route selection
-      this.global.setSelectedRoute(null);
-    }
-  }
-
   goBack(): void {
     this.location.back();
+  }
+
+  protected toggleImageFit(): void {
+    this.imageFit.update((v) => (v === 'cover' ? 'contain' : 'cover'));
   }
 }

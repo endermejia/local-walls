@@ -1,4 +1,4 @@
-# Angular20
+# Local Walls
 Base project for Web Applications:
 - [Angular 20](https://github.com/angular/angular-cli)
   - SSR
@@ -96,12 +96,12 @@ This project is configured for SSR on Netlify using the official Netlify Angular
 Steps:
 - Connect this repository to Netlify.
 - Ensure the build command is: `npm run build`.
-- Publish directory: `dist/angular20/browser`.
+- Publish directory: `dist/local-walls/browser`.
 - Netlify will detect `@netlify/angular-runtime` from `netlify.toml` and configure SSR automatically.
 
 Notes:
 - No custom redirects are needed; the plugin manages them for SSR and CSR fallback.
-- The server bundle is built to `dist/angular20/server` by Angular.
+- The server bundle is built to `dist/local-walls/server` by Angular.
 
 ## Notes on Server-Side Rendering (SSR)
 
