@@ -97,7 +97,10 @@ export interface Row {
           [tuiDialogOptions]="{ appearance: 'fullscreen', closable: false }"
           [(tuiDialog)]="openPhoto"
         >
-          <div class="absolute inset-0 flex items-center justify-center" (click.zoneless)="openPhoto.set(false)">
+          <div
+            class="absolute inset-0 flex items-center justify-center"
+            (click.zoneless)="openPhoto.set(false)"
+          >
             <img
               [src]="topo()?.photo || global.iconSrc()('topo')"
               alt="{{ topo()?.name }}"

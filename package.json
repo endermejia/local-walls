@@ -9,7 +9,7 @@
     "build:ssr": "ng build --configuration=production --ssr",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:local-walls": "node dist/local-walls/server/server.mjs",
+    "serve:ssr:local-walls": "node dist/local-walls/server/main.server.mjs",
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
     "format": "prettier --write ./src",

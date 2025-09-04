@@ -1,6 +1,6 @@
 [build]
   publish = "dist/local-walls/browser"
-  command = "npm run build"
+  command = "npm run build:ssr"
 
 # Redirect root to /home so that landing at the site base goes to the Home route
 [[redirects]]
