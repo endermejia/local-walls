@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
-import { TuiBadge, TuiAvatar, TuiButtonClose } from '@taiga-ui/kit';
+import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
 import { TuiTable, TuiSortDirection } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
@@ -49,7 +49,6 @@ export interface Row {
     TuiBottomSheet,
     TuiButton,
     TuiDialog,
-    TuiButtonClose,
     TuiLoader,
   ],
   template: `
@@ -98,21 +97,12 @@ export interface Row {
           [tuiDialogOptions]="{ appearance: 'fullscreen', closable: false }"
           [(tuiDialog)]="openPhoto"
         >
-          <button
-            tuiButtonClose
-            tuiIconButton
-            type="button"
-            class="!absolute top-3 right-3 z-50"
-            (click.zoneless)="openPhoto.set(false)"
-            [attr.aria-label]="'actions.close' | translate"
-            [attr.title]="'actions.close' | translate"
-          >
-            {{ 'actions.close' | translate }}
-          </button>
-          <img
-            [src]="topo()?.photo || global.iconSrc()('topo')"
-            alt="{{ topo()?.name }}"
-          />
+          <div class="absolute inset-0 flex items-center justify-center" (click.zoneless)="openPhoto.set(false)">
+            <img
+              [src]="topo()?.photo || global.iconSrc()('topo')"
+              alt="{{ topo()?.name }}"
+            />
+          </div>
         </ng-template>
 
         <tui-bottom-sheet
