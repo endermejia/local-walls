@@ -2,8 +2,3 @@
 [build]
   publish = "dist/local-walls/browser"
   command = "npm run build:ssr"
-
-# Disable Tailwind's Lightning CSS during Netlify builds to avoid native binary resolution issues
-# Ref: https://tailwindcss.com/docs/installation#disable-lightningcss
-[build.environment]
-  TAILWIND_DISABLE_LIGHTNINGCSS = "true"
