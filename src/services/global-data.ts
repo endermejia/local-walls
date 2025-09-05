@@ -24,6 +24,7 @@ import type {
   TopoRoute,
   Ascent,
   User,
+  IconName,
 } from '../models';
 
 @Injectable({
@@ -39,7 +40,6 @@ export class GlobalData {
   selectedLanguage: WritableSignal<'es' | 'en'> = signal('es');
   selectedTheme: WritableSignal<'light' | 'dark'> = signal('light');
 
-  // Computed signal for Taiga UI language based on selectedLanguage
   tuiLanguage: Signal<
     typeof TUI_SPANISH_LANGUAGE | typeof TUI_ENGLISH_LANGUAGE
   > = computed(() =>
@@ -53,6 +53,12 @@ export class GlobalData {
       {
         name: 'Home',
         icon: '@tui.home',
+        fn: () => this.router.navigateByUrl('/'),
+      },
+      {
+        name: 'Not found',
+        icon: '@tui.alert-circle',
+        fn: () => this.router.navigateByUrl('/404'),
       },
     ],
   });
@@ -93,13 +99,11 @@ export class GlobalData {
     const crags = this.crags();
     const routes = this.routesData();
 
-    // translate group labels
     const t = (key: string) => this.translate.instant(key);
     const zonesLabel = t('labels.zones');
     const cragsLabel = t('labels.crags');
     const routesLabel = t('labels.routes');
 
-    // quick helper for zone name by id
     const zoneNameById = new Map(zones.map((z) => [z.id, z.name] as const));
 
     const search: SearchData = {
@@ -126,7 +130,6 @@ export class GlobalData {
     this.searchData.set(search);
   });
 
-  // ---- Climbing App State (signals) ----
   appUser: WritableSignal<User | null> = signal({
     id: 'u1',
     name: 'Climber One',
@@ -146,7 +149,6 @@ export class GlobalData {
   topoRoutes: WritableSignal<TopoRoute[]> = signal([]);
   ascents: WritableSignal<Ascent[]> = signal([]);
 
-  // Sync from ApiService when data is loaded (browser side)
   private readonly syncFromApi = effect(() => {
     if (this.api.loaded()) {
       this.zones.set(this.api.zones());
@@ -304,7 +306,6 @@ export class GlobalData {
   }
 
   constructor() {
-    // Rebuild search labels when translations load or language changes
     this.translate.onLangChange.subscribe(() =>
       this.i18nTick.update((v) => v + 1),
     );
@@ -327,10 +328,8 @@ export class GlobalData {
     this.localStorage.setItem('theme', this.selectedTheme());
   }
 
-  // Themed icon source as a computed signal
-  iconSrc = computed(() => {
+  iconSrc: Signal<(name: IconName) => string> = computed(() => {
     const theme = this.selectedTheme();
-    return (name: 'crag' | 'route' | 'topo' | 'zone' | '8anu') =>
-      `/image/${name}-${theme}.svg`;
+    return (name: IconName) => `/image/${name}-${theme}.svg`;
   });
 }

@@ -14,8 +14,7 @@ export const serverRoutes: ServerRoute[] = [
     status: 302,
   },
 
-  // Client render for login only
-  { path: 'login', renderMode: RenderMode.Client },
+  { path: 'login', renderMode: RenderMode.Server },
 
   // Home can be prerendered safely
   { path: 'home', renderMode: RenderMode.Prerender },
@@ -63,7 +62,10 @@ export const serverRoutes: ServerRoute[] = [
       return ids.map((id) => ({ id }));
     },
   },
-
-  // Wildcard: render everything else on the server and mark 404
-  { path: '**', renderMode: RenderMode.Server, status: 404 },
+  {
+    path: '**',
+    renderMode: RenderMode.Server,
+    headers: { Location: '/page-not-found' },
+    status: 404,
+  },
 ];

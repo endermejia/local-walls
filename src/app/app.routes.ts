@@ -38,8 +38,13 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'page-not-found',
+    loadComponent: () =>
+      import('../pages/page-not-found').then((m) => m.PageNotFoundComponent),
+  },
+  {
     path: '**',
     loadComponent: () =>
-      import('../pages/not-found').then((m) => m.NotFoundComponent),
+      import('../pages/page-not-found').then((m) => m.PageNotFoundComponent),
   },
 ];

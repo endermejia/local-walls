@@ -62,5 +62,11 @@
   },
   "nav": {
     "home": "Inicio"
+  },
+  "notFound": {
+    "title": "No encontrado",
+    "description": "Intenta buscar por número o vuelve a la página de inicio.",
+    "goHome": "Ir al inicio",
+    "imageAlt": "no encontrado"
   }
 }

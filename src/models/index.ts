@@ -9,3 +9,4 @@ export * from './topo-route.model';
 export * from './ascent.model';
 export * from './user.model';
 export * from './map.model';
+export * from './icon-name.model';
