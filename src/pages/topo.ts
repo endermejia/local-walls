@@ -56,6 +56,7 @@ export interface Row {
     <div class="h-full w-full">
       @if (topo(); as t) {
         <section class="w-full h-full max-w-5xl mx-auto p-4">
+          @let imgFit = imageFit();
           <div class="flex gap-2">
             <app-section-header
               class="flex-grow"
@@ -71,19 +72,19 @@ export interface Row {
               appearance="primary-grayscale"
               (click.zoneless)="toggleImageFit()"
               [iconStart]="
-                imageFit() === 'cover'
+                imgFit === 'cover'
                   ? '@tui.unfold-horizontal'
                   : '@tui.unfold-vertical'
               "
               class="pointer-events-auto"
               [attr.aria-label]="
-                (imageFit() === 'cover'
+                (imgFit === 'cover'
                   ? 'actions.fit.contain'
                   : 'actions.fit.cover'
                 ) | translate
               "
               [attr.title]="
-                (imageFit() === 'cover'
+                (imgFit === 'cover'
                   ? 'actions.fit.contain'
                   : 'actions.fit.cover'
                 ) | translate
@@ -96,7 +97,7 @@ export interface Row {
           <img
             [src]="t.photo || global.iconSrc()('topo')"
             alt="{{ t.name }}"
-            [class]="'w-full h-full overflow-visible object-' + imageFit()"
+            [class]="'w-full h-full overflow-visible object-' + imgFit"
             decoding="async"
           />
         </section>

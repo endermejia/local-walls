@@ -158,7 +158,10 @@ interface BreadcrumbItem {
           </div>
         }
       </div>
-      <div class="flex items-center gap-2 sm:gap-4" ngSkipHydration>
+      <div
+        class="flex items-center gap-2 sm:gap-4 whitespace-nowrap"
+        ngSkipHydration
+      >
         <!-- Desktop: show full search input -->
         <div class="hidden sm:block" ngSkipHydration>
           <tui-textfield ngSkipHydration class="!m-0">
