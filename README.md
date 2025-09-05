@@ -91,17 +91,16 @@ For more information on using the Angular CLI, including detailed command refere
 
 ## Deploying to Netlify
 
-This project is configured for SSR on Netlify using the official Netlify Angular Runtime.
+This project targets Angular 20 with SSR and does not require the Netlify Angular Runtime plugin.
 
 Steps:
 - Connect this repository to Netlify.
-- Ensure the build command is: `npm run build`.
-- Publish directory: `dist/local-walls/browser`.
-- Netlify will detect `@netlify/angular-runtime` from `netlify.toml` and configure SSR automatically.
+- Set Build command: `npm run build:ssr`.
+- Set Publish directory: `dist/local-walls/browser`.
 
 Notes:
-- No custom redirects are needed; the plugin manages them for SSR and CSR fallback.
-- The server bundle is built to `dist/local-walls/server` by Angular.
+- Netlify automatically detects Angular SSR output (Angular 18+) and serves using the generated server bundle at `dist/local-walls/server/main.server.mjs`.
+- Configure redirects/status codes for SSR in `src/app/app.routes.server.ts` using Angular Server Routes (headers + status). Avoid Netlify redirects for SSR paths.
 
 ## Notes on Server-Side Rendering (SSR)
 

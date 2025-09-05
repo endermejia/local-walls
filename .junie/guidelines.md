@@ -212,12 +212,9 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
     });
     ```
   - Para heredar parámetros de rutas padre: `provideRouter(routes, withComponentInputBinding(), withRouterConfig({ paramsInheritanceStrategy: 'always' }))`.
-- netlify.toml: activa el runtime de Angular para SSR en Netlify añadiendo el plugin (ver ejemplo debajo). No uses redirects en Netlify para SSR, hazlos en `serverRoutes`.
+- netlify.toml: No uses redirects en Netlify para SSR, hazlos en `serverRoutes`.
   ```toml
   [build]
     publish = "dist/local-walls/browser"
     command = "npm run build:ssr"
-
-  [[plugins]]
-    package = "@netlify/angular-runtime"
   ```

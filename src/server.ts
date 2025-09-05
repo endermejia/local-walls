@@ -1,14 +1,13 @@
 import { AngularAppEngine, createRequestHandler } from '@angular/ssr';
-import { getContext } from '@netlify/angular-runtime/context.mjs';
 
 // Lazily create the Angular App Engine after ensuring manifests are loaded.
 let angularAppEngine: AngularAppEngine | undefined;
 
 async function getAngularAppEngine(): Promise<AngularAppEngine> {
   if (!angularAppEngine) {
-    // Netlify Edge (and some other adapters) require Angular engine/app manifests
-    // to be imported as side-effects before creating the engine. These files are
-    // emitted by the Angular builder into the same directory as the server bundle.
+    // Some adapters may require Angular engine/app manifests to be imported
+    // as side-effects before creating the engine. These files are emitted by
+    // the Angular builder into the same directory as the server bundle.
     try {
       // @ts-expect-error: These files are generated at build time next to server.mjs
       await import('./angular-app-engine-manifest.mjs');
@@ -25,8 +24,6 @@ async function getAngularAppEngine(): Promise<AngularAppEngine> {
 export async function netlifyAppEngineHandler(
   request: Request,
 ): Promise<Response> {
-  const context = getContext();
-
   // Example API endpoints can be defined here.
   // Uncomment and define endpoints as necessary.
   // const pathname = new URL(request.url).pathname;
@@ -35,7 +32,7 @@ export async function netlifyAppEngineHandler(
   // }
 
   const engine = await getAngularAppEngine();
-  const result = await engine.handle(request, context);
+  const result = await engine.handle(request);
   return result || new Response('Not found', { status: 404 });
 }
 
