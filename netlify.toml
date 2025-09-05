@@ -2,3 +2,9 @@
 [build]
   publish = "dist/local-walls/browser"
   command = "npm run build:ssr"
+
+# Redirección de SPA fallback
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

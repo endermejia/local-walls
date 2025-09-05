@@ -65,7 +65,5 @@ export const serverRoutes: ServerRoute[] = [
   {
     path: '**',
     renderMode: RenderMode.Server,
-    headers: { Location: '/page-not-found' },
-    status: 404,
   },
 ];
