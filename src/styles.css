@@ -15,3 +15,37 @@ th[tuiTh] {
   color: currentColor;
   font-weight: 600;
 }
+
+/* Map marker/cluster styles using Taiga UI theme variables */
+.lw-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  /* Primary (cluster) */
+  background: var(--tui-background-accent-1);
+  color: var(--tui-text-primary-on-accent-1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  font-weight: 600;
+}
+
+.lw-marker {
+  /* Base styles shared by both variants */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  transition: filter 150ms ease-in-out, opacity 150ms ease-in-out;
+}
+.lw-marker--accent {
+  /* Accent (favorites) */
+  background: var(--tui-background-accent-2);
+  color: var(--tui-text-primary-on-accent-2);
+}
+.lw-marker--primary {
+  /* Primary (non-favorites) */
+  background: var(--tui-background-accent-1);
+  color: var(--tui-text-primary-on-accent-1);
+}
+.lw-marker:hover {
+  filter: brightness(0.95);
+}

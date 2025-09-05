@@ -1,6 +1,7 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import type { Crag, MapOptions, MapVisibleElements } from '../models';
+import { GlobalData } from './global-data';
 
 export interface MapBuilderCallbacks {
   onSelectedCragChange: (crag: Crag | null) => void;
@@ -18,6 +19,7 @@ interface ClusterGroup {
 @Injectable({ providedIn: 'root' })
 export class MapBuilder {
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly global = inject(GlobalData);
   private map!: import('leaflet').Map;
   private initialized = false;
   private L: typeof import('leaflet') | null = null;
@@ -244,7 +246,11 @@ export class MapBuilder {
         const { lat, lng } = crag.ubication;
         const latLng: [number, number] = [lat, lng];
         const icon = new (L as any).DivIcon({
-          html: this.cragLabelHtml(crag.name, selectedCrag?.id === crag.id),
+          html: this.cragLabelHtml(
+            crag.name,
+            selectedCrag?.id === crag.id,
+            this.global.isCragLiked()(crag.id),
+          ),
           className: 'pointer-events-none',
           iconSize: [0, 0],
           iconAnchor: [0, 0],
@@ -308,16 +314,17 @@ export class MapBuilder {
     }
   }
 
-  private cragLabelHtml(name: string, isSelected: boolean): string {
-    return `<div class="w-fit bg-black/70 text-white px-2 py-1 rounded-xl text-xs leading-tight whitespace-nowrap -translate-y-full pointer-events-auto border border-transparent shadow hover:bg-black/85 focus:outline-none focus:ring-2 focus:ring-white/70" role="button" tabindex="0" aria-label="${name}" aria-pressed="${isSelected}">${name}</div>`;
+  private cragLabelHtml(
+    name: string,
+    isSelected: boolean,
+    isFavorite: boolean,
+  ): string {
+    const variant = isFavorite ? 'lw-marker--accent' : 'lw-marker--primary';
+    return `<div class="lw-marker ${variant} w-fit px-2 py-1 rounded-xl text-xs leading-tight whitespace-nowrap -translate-y-full pointer-events-auto border border-transparent focus:outline-none" role="button" tabindex="0" aria-label="${name}" aria-pressed="${isSelected}">${name}</div>`;
   }
 
   private clusterLabelHtml(count: number): string {
-    return `
-      <div class="flex items-center justify-center bg-blue-600 text-white rounded-full font-medium p-2 shadow-md w-10 h-10">
-        ${count}
-      </div>
-    `;
+    return `<div class="lw-cluster">${count}</div>`;
   }
 
   private attachMarkerKeyboardSelection(
