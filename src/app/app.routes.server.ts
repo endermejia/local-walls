@@ -9,6 +9,7 @@ export const serverRoutes: ServerRoute[] = [
   // SSR redirect for root to home (Netlify SSR ignores _redirects)
   {
     path: '',
+    renderMode: RenderMode.Server,
     headers: { Location: '/home' },
     status: 302,
   },
