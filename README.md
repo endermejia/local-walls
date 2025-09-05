@@ -11,7 +11,7 @@ Base project for Web Applications:
 
 With love, by Gabri Mejía ❤
 
-[Live DEMO](https://gabri-mejia.netlify.app/home) 🚀
+[Live DEMO](https://local-walls.netlify.app/home) 🚀
 
 ## Development server
 
