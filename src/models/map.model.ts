@@ -16,4 +16,6 @@ export interface MapOptions {
   zoom?: number;
   maxZoom?: number;
   minZoom?: number;
+  clusteringEnabled?: boolean;
+  clusterRadius?: number;
 }

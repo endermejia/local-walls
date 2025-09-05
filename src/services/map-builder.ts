@@ -9,6 +9,12 @@ export interface MapBuilderCallbacks {
   onVisibleChange: (visible: MapVisibleElements) => void;
 }
 
+interface ClusterGroup {
+  markers: any[];
+  center: [number, number];
+  count: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MapBuilder {
   private readonly platformId = inject(PLATFORM_ID);
@@ -16,6 +22,10 @@ export class MapBuilder {
   private initialized = false;
   private L: typeof import('leaflet') | null = null;
   private cragsData: readonly Crag[] = [];
+  private markers: any[] = [];
+  private clusterGroups: ClusterGroup[] = [];
+  private clusteringEnabled = true;
+  private clusterRadius = 50; // Radio para agrupar marcadores en píxeles
 
   private isBrowser(): boolean {
     return isPlatformBrowser(this.platformId) && typeof window !== 'undefined';
@@ -70,8 +80,16 @@ export class MapBuilder {
     const collapseOnInteraction = () => cb.onInteractionStart();
     this.map.on('movestart', collapseOnInteraction);
     this.map.on('zoomstart', collapseOnInteraction);
-    this.map.on('moveend', recalcVisible);
-    this.map.on('zoomend', recalcVisible);
+
+    // Recalcular clusters al cambiar el zoom o mover el mapa
+    this.map.on('moveend', async () => {
+      await this.updateVisibleIdsFromCurrentBounds(cb);
+      await this.rebuildMarkers(this.cragsData, selectedCrag, cb);
+    });
+    this.map.on('zoomend', async () => {
+      await this.updateVisibleIdsFromCurrentBounds(cb);
+      await this.rebuildMarkers(this.cragsData, selectedCrag, cb);
+    });
 
     this.initialized = true;
 
@@ -105,12 +123,102 @@ export class MapBuilder {
 
   destroy(): void {
     try {
+      // Limpiar todos los marcadores
+      this.cleanMarkers();
       this.map?.remove?.();
     } catch {
       // ignore
     }
     this.initialized = false;
     this.L = null;
+  }
+
+  private cleanMarkers(): void {
+    if (!this.map || !this.L) return;
+
+    // Eliminar todos los marcadores
+    this.markers.forEach((marker) => {
+      this.map.removeLayer(marker);
+    });
+    this.markers = [];
+    this.clusterGroups = [];
+  }
+
+  private shouldCluster(): boolean {
+    // Determinar si se debe hacer clustering basado en el nivel de zoom
+    // A niveles de zoom altos (>15) mostramos marcadores individuales
+    if (!this.map) return true;
+    const zoom = this.map.getZoom();
+    return this.clusteringEnabled && zoom < 15;
+  }
+
+  private groupMarkersByProximity(crags: readonly Crag[]): ClusterGroup[] {
+    if (!this.map || !this.L) return [];
+    const L = this.L;
+
+    if (!this.shouldCluster()) {
+      // Si no se agrupan, cada marcador es su propio "grupo"
+      return crags.map((c) => ({
+        markers: [c],
+        center: [c.ubication.lat, c.ubication.lng],
+        count: 1,
+      }));
+    }
+
+    const groups: ClusterGroup[] = [];
+    const processed = new Set<string>();
+
+    // Para cada crag, buscar otros crags cercanos
+    for (const crag of crags) {
+      if (processed.has(crag.id)) continue;
+
+      // Calcular la posición del marcador en píxeles
+      const latlng = new (L as any).LatLng(
+        crag.ubication.lat,
+        crag.ubication.lng,
+      );
+      const point = this.map.latLngToContainerPoint(latlng);
+
+      const group: ClusterGroup = {
+        markers: [crag],
+        center: [crag.ubication.lat, crag.ubication.lng],
+        count: 1,
+      };
+
+      processed.add(crag.id);
+
+      // Buscar otros crags cercanos
+      for (const otherCrag of crags) {
+        if (otherCrag.id === crag.id || processed.has(otherCrag.id)) continue;
+
+        const otherLatLng = new (L as any).LatLng(
+          otherCrag.ubication.lat,
+          otherCrag.ubication.lng,
+        );
+        const otherPoint = this.map.latLngToContainerPoint(otherLatLng);
+
+        // Calcular distancia en píxeles
+        const distance = point.distanceTo(otherPoint);
+
+        if (distance <= this.clusterRadius) {
+          group.markers.push(otherCrag);
+          group.count++;
+          processed.add(otherCrag.id);
+
+          // Actualizar el centro (promedio de latitudes y longitudes)
+          group.center = [
+            (group.center[0] * (group.count - 1) + otherCrag.ubication.lat) /
+              group.count,
+            (group.center[1] * (group.count - 1) + otherCrag.ubication.lng) /
+              group.count,
+          ];
+        }
+      }
+
+      groups.push(group);
+    }
+
+    return groups;
   }
 
   private async rebuildMarkers(
@@ -121,43 +229,95 @@ export class MapBuilder {
     if (!this.map || !this.L) return;
     const L = this.L;
 
-    // Remove existing markers only
-    this.map.eachLayer((layer: import('leaflet').Layer) => {
-      if (layer instanceof (L as any).Marker) {
-        this.map!.removeLayer(layer);
-      }
-    });
+    // Limpiar marcadores existentes
+    this.cleanMarkers();
 
-    for (const c of crags) {
-      const { lat, lng } = c.ubication;
-      const latLng: [number, number] = [lat, lng];
-      const icon = new (L as any).DivIcon({
-        html: this.cragLabelHtml(c.name, selectedCrag?.id === c.id),
-        className: 'pointer-events-none',
-        iconSize: [0, 0],
-        iconAnchor: [0, 0],
-      });
-      const marker = new (L as any).Marker(latLng as any, { icon }).addTo(
-        this.map,
-      );
-      marker.on('click', (e: import('leaflet').LeafletEvent) => {
-        // Prevent map click and any default zoom behavior on marker click
-        (
-          (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
-        )?.preventDefault?.();
-        (
-          (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
-        )?.stopPropagation?.();
-        cb.onSelectedCragChange(c);
-      });
-      this.attachMarkerKeyboardSelection(marker, () =>
-        cb.onSelectedCragChange(c),
-      );
+    // Agrupar marcadores por proximidad
+    const groups = this.groupMarkersByProximity(crags);
+    this.clusterGroups = groups;
+
+    // Crear marcadores para cada grupo
+    for (const group of groups) {
+      if (group.count === 1) {
+        // Marcador individual
+        const crag = group.markers[0];
+        const { lat, lng } = crag.ubication;
+        const latLng: [number, number] = [lat, lng];
+        const icon = new (L as any).DivIcon({
+          html: this.cragLabelHtml(crag.name, selectedCrag?.id === crag.id),
+          className: 'pointer-events-none',
+          iconSize: [0, 0],
+          iconAnchor: [0, 0],
+        });
+
+        const marker = new (L as any).Marker(latLng as any, { icon }).addTo(
+          this.map,
+        );
+        this.markers.push(marker);
+
+        marker.on('click', (e: import('leaflet').LeafletEvent) => {
+          // Prevent map click and any default zoom behavior on marker click
+          (
+            (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
+          )?.preventDefault?.();
+          (
+            (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
+          )?.stopPropagation?.();
+          cb.onSelectedCragChange(crag);
+        });
+
+        this.attachMarkerKeyboardSelection(marker, () =>
+          cb.onSelectedCragChange(crag),
+        );
+      } else {
+        // Grupo de marcadores (cluster)
+        const latLng = group.center;
+        const icon = new (L as any).DivIcon({
+          html: this.clusterLabelHtml(group.count),
+          className: 'marker-cluster',
+          iconSize: new (L as any).Point(40, 40),
+          iconAnchor: [20, 20],
+        });
+
+        const marker = new (L as any).Marker(latLng as any, { icon }).addTo(
+          this.map,
+        );
+        this.markers.push(marker);
+
+        marker.on('click', (e: import('leaflet').LeafletEvent) => {
+          // Prevent map click
+          (
+            (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
+          )?.preventDefault?.();
+          (
+            (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
+          )?.stopPropagation?.();
+
+          // Zoom hacia el grupo al hacer clic
+          const bounds = new (L as any).LatLngBounds(
+            group.markers.map((c) => [c.ubication.lat, c.ubication.lng]),
+          );
+
+          this.map.fitBounds(bounds, {
+            padding: [50, 50],
+            maxZoom: 15, // Limitar el zoom para evitar acercarse demasiado
+            animate: true,
+          });
+        });
+      }
     }
   }
 
   private cragLabelHtml(name: string, isSelected: boolean): string {
     return `<div class="w-fit bg-black/70 text-white px-2 py-1 rounded-xl text-xs leading-tight whitespace-nowrap -translate-y-full pointer-events-auto border border-transparent shadow hover:bg-black/85 focus:outline-none focus:ring-2 focus:ring-white/70" role="button" tabindex="0" aria-label="${name}" aria-pressed="${isSelected}">${name}</div>`;
+  }
+
+  private clusterLabelHtml(count: number): string {
+    return `
+      <div class="flex items-center justify-center bg-blue-600 text-white rounded-full font-medium p-2 shadow-md w-10 h-10">
+        ${count}
+      </div>
+    `;
   }
 
   private attachMarkerKeyboardSelection(
