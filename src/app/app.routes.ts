@@ -39,7 +39,7 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'home',
-    pathMatch: 'full',
+    loadComponent: () =>
+      import('../pages/not-found').then((m) => m.NotFoundComponent),
   },
 ];

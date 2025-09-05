@@ -2,14 +2,18 @@ import { RenderMode, ServerRoute, PrerenderFallback } from '@angular/ssr';
 import { inject } from '@angular/core';
 import { GlobalData } from '../services';
 
-// Define server routes with prerendering for parameterized paths.
-// We prerender a subset of IDs available at build time. Since data is mocked
-// in GlobalData and filled from ApiService on the client, we rely on the
-// initial signals values which are empty arrays by default. To ensure we have
-// some useful prerendered pages, we'll prerender the home and a minimal set
-// of dynamic paths derived from searchPopular when possible.
+// Define server routes with prerendering for parameterized paths and
+// proper SSR redirects/HTTP statuses for Netlify Edge SSR.
 
 export const serverRoutes: ServerRoute[] = [
+  // SSR redirect for root to home (Netlify SSR ignores _redirects)
+  {
+    path: '',
+    renderMode: RenderMode.Server,
+    headers: { Location: '/home' },
+    status: 302,
+  },
+
   // Client render for login only
   { path: 'login', renderMode: RenderMode.Client },
 
@@ -60,6 +64,6 @@ export const serverRoutes: ServerRoute[] = [
     },
   },
 
-  // Default: render everything else on the server
-  { path: '**', renderMode: RenderMode.Server },
+  // Wildcard: render everything else on the server and mark 404
+  { path: '**', renderMode: RenderMode.Server, status: 404 },
 ];

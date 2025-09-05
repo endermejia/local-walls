@@ -171,3 +171,53 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
 ## 11) Estilo y lint
 - Sigue Angular Style Guide (nombres en PascalCase para componentes, sufijos adecuados, coherencia en señales/propiedades).
 - Usa ESLint del proyecto (`npm run lint` y `npm run lint:fix`).
+
+
+## 12) Netlify SSR y Redirects (Angular Router)
+- Netlify: en SSR las redirecciones definidas en `_redirects` o `netlify.toml` NO se aplican porque SSR usa Edge Functions que corren antes de evaluar redirects. Debes usar redirecciones del enrutador de Angular en los server routes. Fuente: Netlify “Redirects on SSR”.
+- Redirecciones SSR con Angular (server routes):
+  ```ts
+  // src/app/app.routes.server.ts
+  import { RenderMode, ServerRoute } from '@angular/ssr';
+  export const serverRoutes: ServerRoute[] = [
+    // Redirección HTTP desde raíz a /home en SSR
+    { path: '', headers: { Location: '/home' }, status: 302 },
+
+    // Rutas normales
+    { path: 'home', renderMode: RenderMode.Prerender },
+
+    // Wildcard con status 404 para SSR
+    { path: '**', renderMode: RenderMode.Server, status: 404 },
+  ];
+  ```
+  - Usa cabecera `Location` y `status` para devolver 301/302/308 en SSR desde Edge.
+  - Para páginas no encontradas, marca `status: 404` en el wildcard del server y muestra un componente 404 en el cliente (ver abajo).
+- 404 en cliente: configura una ruta wildcard que cargue un componente 404 dedicado en vez de redirigir a Home.
+  ```ts
+  // src/app/app.routes.ts
+  { path: '**', loadComponent: () => import('../pages/not-found').then(m => m.NotFoundComponent) }
+  ```
+- Binding de parámetros de ruta (Angular 17+):
+  - Habilita `withComponentInputBinding()` en `provideRouter(...)` (ya hecho en este repo).
+  - Declara inputs en componentes que coincidan con los nombres de los parámetros:
+    ```ts
+    import { input, computed } from '@angular/core';
+    id = input.required<string>();
+    // hero = computed(() => this.service.getHero(this.id()));
+    ```
+  - Si un parámetro puede faltar, usa un valor por defecto con `transform` o `linkedSignal`:
+    ```ts
+    id = input<string | undefined>({
+      transform: (maybe: string | undefined) => maybe ?? '0'
+    });
+    ```
+  - Para heredar parámetros de rutas padre: `provideRouter(routes, withComponentInputBinding(), withRouterConfig({ paramsInheritanceStrategy: 'always' }))`.
+- netlify.toml: activa el runtime de Angular para SSR en Netlify añadiendo el plugin (ver ejemplo debajo). No uses redirects en Netlify para SSR, hazlos en `serverRoutes`.
+  ```toml
+  [build]
+    publish = "dist/local-walls/browser"
+    command = "npm run build:ssr"
+
+  [[plugins]]
+    package = "@netlify/angular-runtime"
+  ```
