@@ -95,7 +95,7 @@ This project targets Angular 20 with SSR and does not require the Netlify Angula
 
 Steps:
 - Connect this repository to Netlify.
-- Set Build command: `npm run build:ssr`.
+- Set Build command: `npm run build`.
 - Set Publish directory: `dist/local-walls/browser`.
 
 Notes:

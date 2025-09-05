@@ -216,7 +216,7 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
   ```toml
   [build]
     publish = "dist/local-walls/browser"
-    command = "npm run build:ssr"
+    command = "npm run build"
   ```
 
 

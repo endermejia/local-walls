@@ -1,7 +1,7 @@
 # Netlify configuration for Angular 20 SSR
 [build]
   publish = "dist/local-walls/browser"
-  command = "npm run build:ssr"
+  command = "npm run build"
 
 # Redirección de SPA fallback
 [[redirects]]
