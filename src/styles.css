@@ -34,7 +34,9 @@ th[tuiTh] {
 .lw-marker {
   /* Base styles shared by both variants */
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-  transition: filter 150ms ease-in-out, opacity 150ms ease-in-out;
+  transition:
+    filter 150ms ease-in-out,
+    opacity 150ms ease-in-out;
 }
 .lw-marker--accent {
   /* Accent (favorites) */
