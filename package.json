@@ -46,17 +46,16 @@
     "@taiga-ui/icons": "^4.51.0",
     "@taiga-ui/kit": "^4.51.0",
     "@taiga-ui/layout": "^4.51.0",
-    "@tailwindcss/postcss": "^4.0.11",
+    "@tailwindcss/postcss": "^4.1.13",
+    "@tailwindcss/vite": "^4.1.13",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
     "eslint-config-prettier": "^10.0.2",
     "eslint-plugin-prettier": "^5.2.3",
     "express": "^4.18.2",
     "leaflet": "2.0.0-alpha.1",
-    "postcss": "^8.5.3",
     "prettier-eslint": "^16.3.0",
     "rxjs": "~7.8.0",
-    "tailwindcss": "^4.0.11",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
@@ -67,6 +66,7 @@
     "@types/jasmine": "~5.1.0",
     "@types/node": "^22.7.5",
     "angular-eslint": "19.2.0",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9.32.0",
     "husky": "^9.1.6",
     "jasmine-core": "~5.4.0",
@@ -76,8 +76,9 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "less": "^4.4.0",
-    "postcss": "^8.5.3",
+    "postcss": "^8.5.6",
     "prettier": "^3.5.3",
+    "tailwindcss": "^4.1.13",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.0"
   }
