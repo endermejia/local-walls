@@ -17,13 +17,12 @@ import { TuiCell } from '@taiga-ui/layout';
 import { TuiTable, TuiSortDirection } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { TuiLet, tuiDefaultSort } from '@taiga-ui/cdk';
-import { GlobalData, BrowserViewportService } from '../services';
+import { GlobalData } from '../services';
 import type { Topo, TopoRoute, Route } from '../models';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import { TuiButton, TuiLoader } from '@taiga-ui/core';
-import { TuiDialog } from '@taiga-ui/experimental';
 import { gradeRank } from '../utils';
 
 type TableKey = 'grade' | 'number' | 'route' | 'height';
@@ -51,7 +50,6 @@ export interface Row {
     SectionHeaderComponent,
     TuiBottomSheet,
     TuiButton,
-    TuiDialog,
     TuiLoader,
   ],
   template: `
@@ -98,30 +96,10 @@ export interface Row {
           <img
             [src]="t.photo || global.iconSrc()('topo')"
             alt="{{ t.name }}"
-            [class]="
-              'w-full h-full overflow-visible cursor-zoom-in object-' +
-              imageFit()
-            "
+            [class]="'w-full h-full overflow-visible object-' + imageFit()"
             decoding="async"
-            (click.zoneless)="openPhoto.set(true)"
           />
         </section>
-
-        <!-- Fullscreen photo dialog -->
-        <ng-template
-          [tuiDialogOptions]="{ appearance: 'fullscreen', closable: false }"
-          [(tuiDialog)]="openPhoto"
-        >
-          <div
-            class="absolute inset-0 flex items-center justify-center"
-            (click.zoneless)="closePhoto()"
-          >
-            <img
-              [src]="topo()?.photo || global.iconSrc()('topo')"
-              alt="{{ topo()?.name }}"
-            />
-          </div>
-        </ng-template>
 
         <tui-bottom-sheet
           [stops]="stops"
@@ -266,14 +244,12 @@ export interface Row {
   host: { class: 'flex grow' },
 })
 export class TopoComponent {
-  protected readonly openPhoto: WritableSignal<boolean> = signal(false);
   protected readonly imageFit: WritableSignal<'cover' | 'contain'> =
     signal('cover');
 
   protected readonly stops = ['6rem'] as const;
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
-  private readonly viewport = inject(BrowserViewportService);
 
   id: InputSignal<string> = input.required<string>();
   topo: Signal<Topo | null> = computed<Topo | null>(() => {
@@ -361,10 +337,5 @@ export class TopoComponent {
 
   protected toggleImageFit(): void {
     this.imageFit.update((v) => (v === 'cover' ? 'contain' : 'cover'));
-  }
-
-  protected closePhoto(): void {
-    this.openPhoto.set(false);
-    this.viewport.resetEffectiveZoom();
   }
 }
