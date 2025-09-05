@@ -46,7 +46,7 @@ import { Crag, Zone } from '../models';
     MapComponent,
     TuiAvatar,
   ],
-  template: ` <div class="flex flex-col gap-4 h-full w-full relative">
+  template: ` <div class="h-full w-full">
     @let bottomSheetExpanded = isBottomSheetExpanded();
     <!-- Toggle view button -->
     <div class="absolute right-4 top-4 z-100">
@@ -70,6 +70,7 @@ import { Crag, Zone } from '../models';
     <!-- Map -->
     @defer (on viewport) {
       <app-map
+        class="w-full h-full"
         [crags]="global.crags()"
         [selectedCrag]="selectedCrag()"
         (selectedCragChange)="selectCrag($event)"
