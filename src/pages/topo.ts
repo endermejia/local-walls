@@ -17,7 +17,7 @@ import { TuiCell } from '@taiga-ui/layout';
 import { TuiTable, TuiSortDirection } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { TuiLet, tuiDefaultSort } from '@taiga-ui/cdk';
-import { GlobalData } from '../services';
+import { GlobalData, BrowserViewportService } from '../services';
 import type { Topo, TopoRoute, Route } from '../models';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '../components/section-header';
@@ -114,7 +114,7 @@ export interface Row {
         >
           <div
             class="absolute inset-0 flex items-center justify-center"
-            (click.zoneless)="openPhoto.set(false)"
+            (click.zoneless)="closePhoto()"
           >
             <img
               [src]="topo()?.photo || global.iconSrc()('topo')"
@@ -273,6 +273,7 @@ export class TopoComponent {
   protected readonly stops = ['6rem'] as const;
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
+  private readonly viewport = inject(BrowserViewportService);
 
   id: InputSignal<string> = input.required<string>();
   topo: Signal<Topo | null> = computed<Topo | null>(() => {
@@ -360,5 +361,10 @@ export class TopoComponent {
 
   protected toggleImageFit(): void {
     this.imageFit.update((v) => (v === 'cover' ? 'contain' : 'cover'));
+  }
+
+  protected closePhoto(): void {
+    this.openPhoto.set(false);
+    this.viewport.resetEffectiveZoom();
   }
 }
