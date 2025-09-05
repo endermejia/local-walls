@@ -49,7 +49,7 @@ import { Crag, Zone } from '../models';
   template: ` <div class="h-full w-full">
     @let bottomSheetExpanded = isBottomSheetExpanded();
     <!-- Toggle view button -->
-    <div class="absolute right-4 top-4 z-100">
+    <div class="absolute right-4 top-16 z-100">
       <button
         tuiIconButton
         size="s"
