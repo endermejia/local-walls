@@ -55,45 +55,57 @@ export interface Row {
     TuiLoader,
   ],
   template: `
-    <div class="flex flex-col h-full w-full relative">
+    <div class="h-full w-full">
       @if (topo(); as t) {
-        <img
-          [src]="t.photo || global.iconSrc()('topo')"
-          alt="{{ t.name }}"
-          [class]="imgClass() + ' cursor-zoom-in'"
-          decoding="async"
-          (click.zoneless)="openPhoto.set(true)"
-        />
+        <section class="w-full h-full max-w-5xl mx-auto p-4">
+          <div class="flex gap-2">
+            <app-section-header
+              class="flex-grow"
+              [title]="t.name"
+              [liked]="global.isTopoLiked()(t.id)"
+              (back)="goBack()"
+              (toggleLike)="global.toggleLikeTopo(t.id)"
+            />
+            <!-- Toggle image fit button -->
+            <button
+              tuiIconButton
+              size="s"
+              appearance="primary-grayscale"
+              (click.zoneless)="toggleImageFit()"
+              [iconStart]="
+                imageFit() === 'cover'
+                  ? '@tui.unfold-horizontal'
+                  : '@tui.unfold-vertical'
+              "
+              class="pointer-events-auto"
+              [attr.aria-label]="
+                (imageFit() === 'cover'
+                  ? 'actions.fit.contain'
+                  : 'actions.fit.cover'
+                ) | translate
+              "
+              [attr.title]="
+                (imageFit() === 'cover'
+                  ? 'actions.fit.contain'
+                  : 'actions.fit.cover'
+                ) | translate
+              "
+            >
+              Toggle image fit
+            </button>
+          </div>
 
-        <!-- Toggle image fit button -->
-        <div class="absolute right-4 top-4 z-100">
-          <button
-            tuiIconButton
-            size="s"
-            appearance="primary-grayscale"
-            (click.zoneless)="toggleImageFit()"
-            [iconStart]="
-              imageFit() === 'cover'
-                ? '@tui.unfold-horizontal'
-                : '@tui.unfold-vertical'
+          <img
+            [src]="t.photo || global.iconSrc()('topo')"
+            alt="{{ t.name }}"
+            [class]="
+              'w-full h-full overflow-visible cursor-zoom-in object-' +
+              imageFit()
             "
-            class="pointer-events-auto"
-            [attr.aria-label]="
-              (imageFit() === 'cover'
-                ? 'actions.fit.contain'
-                : 'actions.fit.cover'
-              ) | translate
-            "
-            [attr.title]="
-              (imageFit() === 'cover'
-                ? 'actions.fit.contain'
-                : 'actions.fit.cover'
-              ) | translate
-            "
-          >
-            Toggle image fit
-          </button>
-        </div>
+            decoding="async"
+            (click.zoneless)="openPhoto.set(true)"
+          />
+        </section>
 
         <!-- Fullscreen photo dialog -->
         <ng-template
@@ -118,12 +130,6 @@ export interface Row {
           aria-label="Routes"
         >
           <section class="w-full max-w-5xl mx-auto sm:p-4 overflow-auto">
-            <app-section-header
-              [title]="t.name"
-              [liked]="global.isTopoLiked()(t.id)"
-              (back)="goBack()"
-              (toggleLike)="global.toggleLikeTopo(t.id)"
-            />
             <div class="overflow-auto">
               <table
                 tuiTable
@@ -263,11 +269,7 @@ export class TopoComponent {
   protected readonly openPhoto: WritableSignal<boolean> = signal(false);
   protected readonly imageFit: WritableSignal<'cover' | 'contain'> =
     signal('cover');
-  protected readonly imgClass: Signal<string> = computed(() =>
-    this.imageFit() === 'cover'
-      ? 'absolute inset-0 w-full h-full object-cover'
-      : 'absolute inset-0 w-full h-full object-contain',
-  );
+
   protected readonly stops = ['6rem'] as const;
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
