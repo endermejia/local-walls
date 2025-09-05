@@ -56,7 +56,6 @@ export interface Row {
     <div class="h-full w-full">
       @if (topo(); as t) {
         <section class="w-full h-full max-w-5xl mx-auto p-4">
-          @let imgFit = imageFit();
           <div class="flex gap-2">
             <app-section-header
               class="flex-grow"
@@ -66,38 +65,41 @@ export interface Row {
               (toggleLike)="global.toggleLikeTopo(t.id)"
             />
             <!-- Toggle image fit button -->
-            <button
-              tuiIconButton
-              size="s"
-              appearance="primary-grayscale"
-              (click.zoneless)="toggleImageFit()"
-              [iconStart]="
-                imgFit === 'cover'
-                  ? '@tui.unfold-horizontal'
-                  : '@tui.unfold-vertical'
-              "
-              class="pointer-events-auto"
-              [attr.aria-label]="
-                (imgFit === 'cover'
-                  ? 'actions.fit.contain'
-                  : 'actions.fit.cover'
-                ) | translate
-              "
-              [attr.title]="
-                (imgFit === 'cover'
-                  ? 'actions.fit.contain'
-                  : 'actions.fit.cover'
-                ) | translate
-              "
-            >
-              Toggle image fit
-            </button>
+            @let imgFit = imageFit();
+            @if (t.photo) {
+              <button
+                tuiIconButton
+                size="s"
+                appearance="primary-grayscale"
+                (click.zoneless)="toggleImageFit()"
+                [iconStart]="
+                  imgFit === 'cover'
+                    ? '@tui.unfold-horizontal'
+                    : '@tui.unfold-vertical'
+                "
+                class="pointer-events-auto"
+                [attr.aria-label]="
+                  (imgFit === 'cover'
+                    ? 'actions.fit.contain'
+                    : 'actions.fit.cover'
+                  ) | translate
+                "
+                [attr.title]="
+                  (imgFit === 'cover'
+                    ? 'actions.fit.contain'
+                    : 'actions.fit.cover'
+                  ) | translate
+                "
+              >
+                Toggle image fit
+              </button>
+            }
           </div>
 
           <img
             [src]="t.photo || global.iconSrc()('topo')"
             alt="{{ t.name }}"
-            [class]="'w-full h-full overflow-visible object-' + imgFit"
+            [class]="'w-full h-full overflow-visible ' + topoPhotoClass()"
             decoding="async"
           />
         </section>
@@ -247,6 +249,10 @@ export interface Row {
 export class TopoComponent {
   protected readonly imageFit: WritableSignal<'cover' | 'contain'> =
     signal('cover');
+  protected readonly topoPhotoClass: Signal<'object-cover' | 'object-contain'> =
+    computed(() =>
+      this.imageFit() === 'cover' ? 'object-cover' : 'object-contain',
+    );
 
   protected readonly stops = ['6rem'] as const;
   protected readonly global = inject(GlobalData);
