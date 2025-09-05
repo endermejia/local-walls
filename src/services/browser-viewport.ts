@@ -13,8 +13,9 @@ export class BrowserViewportService {
   }) as Document | null;
 
   /**
-   * Best-effort reset to effective 100% zoom by compensating current visualViewport scale
-   * using CSS zoom. Does nothing on the server.
+   * Resets zoom to effective 100% for both mobile and desktop devices.
+   * Equivalent to pressing Ctrl+0 in browsers.
+   * Does nothing on the server.
    */
   resetEffectiveZoom(): void {
     if (
@@ -25,18 +26,17 @@ export class BrowserViewportService {
       return;
 
     try {
-      const scale = (window as any).visualViewport?.scale ?? 1;
-      const inverse = Number.isFinite(scale) && scale > 0 ? 1 / scale : 1;
       const html = this.document.documentElement as HTMLElement | null;
       const body = this.document.body as HTMLElement | null;
 
+      // Establecer zoom al 100% para cualquier dispositivo
       if (html) {
-        html.style.zoom = String(inverse);
+        html.style.zoom = '1';
         (html.style as any).WebkitTextSizeAdjust = '100%';
         html.style.setProperty('text-size-adjust', '100%');
       }
       if (body) {
-        body.style.zoom = String(inverse);
+        body.style.zoom = '1';
       }
     } catch {
       // no-op: best effort only
