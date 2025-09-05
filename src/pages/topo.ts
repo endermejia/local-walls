@@ -58,7 +58,7 @@ export interface Row {
         <section class="w-full h-full max-w-5xl mx-auto p-4">
           <div class="flex gap-2">
             <app-section-header
-              class="flex-grow"
+              class="w-full  "
               [title]="t.name"
               [liked]="global.isTopoLiked()(t.id)"
               (back)="goBack()"
@@ -244,7 +244,7 @@ export interface Row {
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow' },
+  host: { class: 'flex grow h-full sm:p-4' },
 })
 export class TopoComponent {
   protected readonly imageFit: WritableSignal<'cover' | 'contain'> =

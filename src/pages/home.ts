@@ -251,7 +251,7 @@ import { Crag, Zone } from '../models';
   </div>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'flex grow',
+    class: 'flex grow h-full',
   },
 })
 export class HomeComponent implements AfterViewInit {
