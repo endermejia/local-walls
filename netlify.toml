@@ -1,3 +1,8 @@
+# Netlify configuration for Angular 20 SSR
 [build]
   publish = "dist/local-walls/browser"
   command = "npm run build:ssr"
+
+# Ensure Netlify uses the Angular SSR runtime so that serverRoutes are respected
+[[plugins]]
+  package = "@netlify/angular-runtime"
