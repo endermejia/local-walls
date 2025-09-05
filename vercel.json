@@ -1,5 +1,8 @@
 {
-  "buildCommand": "TAILWIND_DISABLE_LIGHTNINGCSS=true npm run build",
+  "buildCommand": "npm run build",
   "installCommand": "npm ci",
-  "outputDirectory": "dist/local-walls/browser"
+  "outputDirectory": "dist/local-walls/browser",
+  "env": {
+    "TAILWIND_DISABLE_LIGHTNINGCSS": "true"
+  }
 }
