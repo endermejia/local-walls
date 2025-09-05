@@ -1,6 +1,7 @@
-import { provideServerRendering } from '@angular/ssr';
+import { provideServerRendering, withRoutes } from '@angular/ssr';
 import { mergeApplicationConfig, ApplicationConfig } from '@angular/core';
 import { appConfig } from './app.config';
+import { serverRoutes } from './app.routes.server';
 import { UNIVERSAL_PROVIDERS } from '@ng-web-apis/universal';
 import { TranslateLoader } from '@ngx-translate/core';
 import { Observable, of } from 'rxjs';
@@ -41,9 +42,6 @@ export class TranslateServerLoader implements TranslateLoader {
 export function translateServerLoaderFactory(): TranslateLoader {
   return new TranslateServerLoader();
 }
-
-import { withRoutes } from '@angular/ssr';
-import { serverRoutes } from './app.routes.server';
 
 const serverConfig: ApplicationConfig = {
   providers: [

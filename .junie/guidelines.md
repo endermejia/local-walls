@@ -218,3 +218,44 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
     publish = "dist/local-walls/browser"
     command = "npm run build:ssr"
   ```
+
+
+## 13) Leaflet 2.0 (ESM)
+- Versión: actualizado el proyecto a Leaflet 2.0.0-alpha.1 con soporte ESM nativo. No hay `L` global en core: importa desde el paquete y usa constructores.
+- Importación ESM (recomendado):
+  ```ts
+  import { Map, TileLayer, Marker, DivIcon, LatLng, LatLngBounds } from 'leaflet';
+  const map = new Map('map-id').setView([51.5, -0.09], 13);
+  new TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+  new Marker(new LatLng(51.5, -0.09)).addTo(map);
+  ```
+- Sin factorías: reemplaza `L.map`, `L.tileLayer`, `L.marker`, etc. por constructores: `new Map(...)`, `new TileLayer(...)`, `new Marker(...)`, etc.
+- SSR/zoneless seguro (patrón del repo): no importes Leaflet de forma estática en archivos que se ejecutan en SSR. Usa importación dinámica dentro de un guardia de navegador y sólo cuando se necesite el DOM:
+  ```ts
+  import { inject, PLATFORM_ID } from '@angular/core';
+  import { isPlatformBrowser } from '@angular/common';
+  // ...
+  if (isPlatformBrowser(inject(PLATFORM_ID)) && typeof window !== 'undefined') {
+    const L = (await import('leaflet')).default; // default export de Leaflet 2
+    const map = new (L as any).Map(el, { center: [39.5, -0.5], zoom: 7 });
+    new (L as any).TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  }
+  ```
+  - Nota: el repo ya implementa este patrón en `src/services/map-builder.ts`.
+- CSS: mantenemos `node_modules/leaflet/dist/leaflet.css` en `angular.json`. Se eliminó el `<link>` CDN en `src/index.html` para evitar duplicidad y desajustes de versión.
+- Activos de Leaflet: 2.0 cambia `layers.png` por `layers.svg` para `Control.Layers`. El builder de Angular copia los assets referenciados por la hoja de estilos automáticamente; no es necesario configurarlos manualmente.
+- Eventos: Leaflet 2.0 usa Pointer Events. Tipos como `LeafletMouseEvent` ya no aplican; usa eventos genéricos (`LeafletEvent`) o accede a `originalEvent` que será `PointerEvent` en navegadores modernos.
+- APIs renombradas/eliminadas relevantes:
+  - `mouseEventToContainerPoint/LayerPoint/LatLng` → `pointerEventToContainerPoint/LayerPoint/LatLng`.
+  - Factorías eliminadas; usa constructores.
+  - `L` global no existe en core (sólo en build `leaflet-global.js`). En ESM importa símbolos explícitos.
+- Plugins: muchos plugins v1x requieren polyfills o actualización. Si necesitas compatibilidad, evalúa `Leaflet V1 Polyfill` o sustituir el plugin. En este repo se eliminó la dependencia no usada `leaflet.markercluster` y sus tipos.
+- Ejemplo SSR-safe (resumen):
+  ```ts
+  // extracto de MapBuilder del repo
+  const [{ default: L }] = await Promise.all([import('leaflet')]);
+  const map = new (L as any).Map(el, { center: [39.5, -0.5], zoom: 7 });
+  new (L as any).TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  const bounds = new (L as any).LatLngBounds([[lat1, lng1], [lat2, lng2]]);
+  map.fitBounds(bounds);
+  ```

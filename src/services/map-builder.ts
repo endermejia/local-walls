@@ -12,7 +12,7 @@ export interface MapBuilderCallbacks {
 @Injectable({ providedIn: 'root' })
 export class MapBuilder {
   private readonly platformId = inject(PLATFORM_ID);
-  private map: import('leaflet').Map | null = null;
+  private map!: import('leaflet').Map;
   private initialized = false;
   private L: typeof import('leaflet') | null = null;
   private cragsData: readonly Crag[] = [];
@@ -32,13 +32,13 @@ export class MapBuilder {
     const [{ default: L }] = await Promise.all([import('leaflet')]);
     this.L = L;
 
-    this.map = L.map(el, {
+    this.map = new (L as any).Map(el, {
       center: options.center ?? [39.5, -0.5],
       zoom: options.zoom ?? 7,
       worldCopyJump: true,
     });
 
-    L.tileLayer(
+    new (L as any).TileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
         maxZoom: options.maxZoom ?? 19,
@@ -55,7 +55,7 @@ export class MapBuilder {
         c.ubication.lat,
         c.ubication.lng,
       ]);
-      const bounds = L.latLngBounds(latLngs);
+      const bounds = new (L as any).LatLngBounds(latLngs as any);
       this.map.fitBounds(bounds, { padding: [24, 24] });
     }
 
@@ -109,7 +109,6 @@ export class MapBuilder {
     } catch {
       // ignore
     }
-    this.map = null;
     this.initialized = false;
     this.L = null;
   }
@@ -124,7 +123,7 @@ export class MapBuilder {
 
     // Remove existing markers only
     this.map.eachLayer((layer: import('leaflet').Layer) => {
-      if (layer instanceof L.Marker) {
+      if (layer instanceof (L as any).Marker) {
         this.map!.removeLayer(layer);
       }
     });
@@ -132,20 +131,22 @@ export class MapBuilder {
     for (const c of crags) {
       const { lat, lng } = c.ubication;
       const latLng: [number, number] = [lat, lng];
-      const icon = L.divIcon({
+      const icon = new (L as any).DivIcon({
         html: this.cragLabelHtml(c.name, selectedCrag?.id === c.id),
         className: 'pointer-events-none',
         iconSize: [0, 0],
         iconAnchor: [0, 0],
       });
-      const marker = L.marker(latLng, { icon }).addTo(this.map);
-      marker.on('click', (e: import('leaflet').LeafletMouseEvent) => {
+      const marker = new (L as any).Marker(latLng as any, { icon }).addTo(
+        this.map,
+      );
+      marker.on('click', (e: import('leaflet').LeafletEvent) => {
         // Prevent map click and any default zoom behavior on marker click
         (
-          e.originalEvent as MouseEvent | PointerEvent | TouchEvent
+          (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
         )?.preventDefault?.();
         (
-          e.originalEvent as MouseEvent | PointerEvent | TouchEvent
+          (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
         )?.stopPropagation?.();
         cb.onSelectedCragChange(c);
       });
@@ -185,7 +186,7 @@ export class MapBuilder {
 
     for (const c of this.cragsData) {
       const { lat, lng } = c.ubication;
-      const wrapped = L.latLng(lat, lng).wrap();
+      const wrapped = new (L as any).LatLng(lat, lng).wrap();
       if (bounds.contains(wrapped)) {
         visibleZones.add(c.zoneId);
         visibleCrags.add(c.id);
