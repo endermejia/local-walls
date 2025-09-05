@@ -13,7 +13,8 @@ async function getAngularAppEngine(): Promise<AngularAppEngine> {
       await import('./angular-app-engine-manifest.mjs');
       // @ts-expect-error: These files are generated at build time next to server.mjs
       await import('./angular-app-manifest.mjs');
-    } catch {
+    } catch (error) {
+      console.error('Error loading manifests:', error);
       // Ignore if not present in certain environments (e.g., dev server)
     }
     angularAppEngine = new AngularAppEngine();
@@ -24,16 +25,30 @@ async function getAngularAppEngine(): Promise<AngularAppEngine> {
 export async function netlifyAppEngineHandler(
   request: Request,
 ): Promise<Response> {
-  // Example API endpoints can be defined here.
-  // Uncomment and define endpoints as necessary.
-  // const pathname = new URL(request.url).pathname;
-  // if (pathname === '/api/hello') {
-  //   return Response.json({ message: 'Hello from the API' });
-  // }
+  try {
+    // Obtener la URL de la solicitud
+    const url = new URL(request.url);
+    const pathname = url.pathname;
 
-  const engine = await getAngularAppEngine();
-  const result = await engine.handle(request);
-  return result || new Response('Not found', { status: 404 });
+    // API endpoints can be defined here if needed
+    // if (pathname === '/api/hello') {
+    //   return Response.json({ message: 'Hello from the API' });
+    // }
+
+    // Verificar si se debe manejar como SPA fallback para rutas no encontradas
+    const engine = await getAngularAppEngine();
+    const result = await engine.handle(request);
+
+    if (result) {
+      return result;
+    }
+
+    // Si no hay resultado del motor, redirigir al SPA
+    return Response.redirect(`${url.origin}/page-not-found`, 302);
+  } catch (error) {
+    console.error('Error handling request:', error);
+    return new Response('Server error', { status: 500 });
+  }
 }
 
 /**
