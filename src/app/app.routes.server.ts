@@ -63,7 +63,13 @@ export const serverRoutes: ServerRoute[] = [
     },
   },
   {
+    path: 'page-not-found',
+    renderMode: RenderMode.Prerender,
+  },
+  {
     path: '**',
     renderMode: RenderMode.Server,
+    headers: { Location: '/page-not-found' },
+    status: 302,
   },
 ];
