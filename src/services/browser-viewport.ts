@@ -26,17 +26,36 @@ export class BrowserViewportService {
       return;
 
     try {
-      const html = this.document.documentElement as HTMLElement | null;
-      const body = this.document.body as HTMLElement | null;
-
-      // Establecer zoom al 100% para cualquier dispositivo
-      if (html) {
-        html.style.zoom = '1';
-        (html.style as any).WebkitTextSizeAdjust = '100%';
-        html.style.setProperty('text-size-adjust', '100%');
+      // Restablecer el zoom nativo del navegador al 100%
+      if (typeof window.document.body.style.zoom !== 'undefined') {
+        // Para navegadores que soportan zoom en CSS (Chrome, Safari)
+        window.document.body.style.zoom = '100%';
+        window.document.documentElement.style.zoom = '100%';
+      } else {
+        // Para otros navegadores usar transform estándar
+        window.document.body.style.transform = 'scale(1)';
+        window.document.body.style.transformOrigin = '0 0';
+        window.document.documentElement.style.transform = 'scale(1)';
+        window.document.documentElement.style.transformOrigin = '0 0';
       }
-      if (body) {
-        body.style.zoom = '1';
+
+      // Restaurar también la configuración de viewport para dispositivos móviles
+      let viewportMeta = this.document.querySelector('meta[name="viewport"]');
+      if (!viewportMeta) {
+        viewportMeta = this.document.createElement('meta');
+        viewportMeta.setAttribute('name', 'viewport');
+        this.document.head.appendChild(viewportMeta);
+      }
+
+      // Restaurar la escala inicial sin restricciones
+      viewportMeta.setAttribute(
+        'content',
+        'width=device-width, initial-scale=1.0, user-scalable=yes',
+      );
+
+      // Forzar el refresco del navegador para aplicar los cambios
+      if (window.scrollTo) {
+        window.scrollTo(0, 0);
       }
     } catch {
       // no-op: best effort only

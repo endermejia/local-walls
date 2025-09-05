@@ -182,9 +182,7 @@ import { Crag, Zone } from '../models';
                   </div>
                 </div>
               } @empty {
-                <div class="opacity-70">
-                  {{ 'common.noResults' | translate }}
-                </div>
+                <tui-loader size="xxl" />
               }
             </div>
           </section>
@@ -242,9 +240,7 @@ import { Crag, Zone } from '../models';
                   </div>
                 </div>
               } @empty {
-                <div class="opacity-70">
-                  {{ 'common.noResults' | translate }}
-                </div>
+                <tui-loader size="xl" />
               }
             </div>
           </section>

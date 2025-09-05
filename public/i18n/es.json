@@ -55,8 +55,7 @@
     "search": "Buscar",
     "appName": "Local Walls",
     "fullscreen": "Pantalla completa",
-    "exit_fullscreen": "Salir de pantalla completa",
-    "noResults": "Sin resultados"
+    "exit_fullscreen": "Salir de pantalla completa"
   },
   "errors": {
     "invalidCredentials": "Credenciales inválidas"
