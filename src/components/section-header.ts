@@ -15,6 +15,7 @@ import { TranslatePipe } from '@ngx-translate/core';
     <header class="mb-4 flex items-start justify-between gap-2">
       <div class="flex items-center gap-2">
         <tui-badge
+          class="cursor-pointer hidden sm:block"
           [appearance]="'neutral'"
           iconStart="@tui.chevron-left"
           size="l"

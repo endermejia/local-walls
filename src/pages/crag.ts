@@ -17,6 +17,7 @@ import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import type { Crag, Topo, Parking } from '../models';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '../components/section-header';
+import { parkingMapUrl } from '../utils';
 
 @Component({
   selector: 'app-crag',
@@ -138,6 +139,7 @@ import { SectionHeaderComponent } from '../components/section-header';
 export class CragComponent {
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
+  protected readonly parkingMapUrl = parkingMapUrl;
 
   id: InputSignal<string> = input.required<string>();
   crag: Signal<Crag | null> = computed<Crag | null>(() => {
@@ -177,12 +179,6 @@ export class CragComponent {
 
   topoRouteCount(topoId: string): number {
     return this.global.topoRoutes().filter((r) => r.topoId === topoId).length;
-  }
-
-  parkingMapUrl(p: Parking): string {
-    const lat = p.ubication.lat;
-    const lng = p.ubication.lng;
-    return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
   }
 
   goBack(): void {

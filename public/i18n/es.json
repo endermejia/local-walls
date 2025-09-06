@@ -14,6 +14,7 @@
       "contain": "Ajustar al ancho"
     },
     "openMap": "Abrir ubicación en Google Maps",
+    "share": "Compartir",
     "signIn": "Entrar",
     "back": "Volver",
     "close": "Cerrar"
@@ -62,6 +63,9 @@
   },
   "nav": {
     "home": "Inicio"
+  },
+  "messages": {
+    "copied": "Enlace copiado!"
   },
   "notFound": {
     "title": "No encontrado",

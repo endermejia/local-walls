@@ -1,3 +1,5 @@
+import { Parking } from './models';
+
 /**
  * Convert a CSS length expressed in rem or px to device pixels (integer, rounded).
  * - On the server (no window/document), assumes 1rem = 16px.
@@ -45,4 +47,15 @@ export function gradeRank(grade?: string): number {
   const letterVal =
     letter === 'a' ? 0 : letter === 'b' ? 1 : letter === 'c' ? 2 : 0;
   return base * 10 + letterVal + (plus ? 0.5 : 0);
+}
+
+/**
+ * Generates a Google Maps URL to display the location of a parking spot
+ * @param p - The parking object containing location coordinates
+ * @returns A Google Maps URL string that when opened will show the parking location
+ */
+export function parkingMapUrl(p: Parking): string {
+  const lat = p.ubication.lat;
+  const lng = p.ubication.lng;
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 }

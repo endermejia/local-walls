@@ -125,7 +125,7 @@ interface BreadcrumbItem {
           </tui-data-list>
         </button>
         @let breadcrumbItems = items();
-        @if (breadcrumbItems.length > 1) {
+        @if (breadcrumbItems.length > 0) {
           <!-- Mobile -->
           <div class="sm:hidden overflow-hidden">
             <tui-breadcrumbs ngSkipHydration [itemsLimit]="2">
@@ -283,7 +283,7 @@ export class HeaderComponent implements OnDestroy {
       if (route)
         items.push({ caption: route.name, routerLink: ['/route', route.id] });
     }
-    return items;
+    return items.slice(0, -1);
   });
 
   protected readonly results$ = this.control.valueChanges.pipe(

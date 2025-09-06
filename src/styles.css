@@ -4,6 +4,10 @@
   z-index: 1;
 }
 
+._loading {
+  overflow: visible !important;
+}
+
 [tuiTh],
 [tuiTd] {
   border-inline-start: none !important;
