@@ -57,5 +57,7 @@ export function gradeRank(grade?: string): number {
 export function parkingMapUrl(p: Parking): string {
   const lat = p.ubication.lat;
   const lng = p.ubication.lng;
-  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+  // Encodes lat/lng to be safe in URLs (even though numbers are safe, keeps consistency)
+  const q = `${encodeURIComponent(lat)},${encodeURIComponent(lng)}`;
+  return `https://www.google.com/maps/search/?api=1&query=${q}`;
 }
