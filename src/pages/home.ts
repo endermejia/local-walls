@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { GlobalData } from '../services';
-import { remToPx, parkingMapUrl } from '../utils';
+import { remToPx } from '../utils';
 import { RouterLink } from '@angular/router';
 import {
   TuiButton,
@@ -21,50 +21,30 @@ import {
   TuiLoader,
   TuiSurface,
   TuiTitle,
-  TuiDataListComponent,
 } from '@taiga-ui/core';
-import {
-  TuiDropdown,
-  TuiDropdownOpen,
-} from '@taiga-ui/core/directives/dropdown';
-import { TuiOptionNew } from '@taiga-ui/core/components/data-list';
-import { TuiCardLarge, TuiHeader, TuiCell } from '@taiga-ui/layout';
-import { TuiAvatar, TuiCopy } from '@taiga-ui/kit';
-import { TuiBottomSheet, TuiSwipeActions } from '@taiga-ui/addon-mobile';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { TuiAlertService } from '@taiga-ui/core';
-import { TuiCopyProcessor } from '@taiga-ui/cdk';
+import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
+import { TuiAvatar } from '@taiga-ui/kit';
+import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
+import { TranslatePipe } from '@ngx-translate/core';
 import { MapComponent } from '../components';
 import { Crag, Zone } from '../models';
 
 @Component({
   selector: 'app-home',
-  host: {
-    class: 'flex grow h-full',
-    '(copy)': 'onCopy()',
-  },
   imports: [
     RouterLink,
     TuiHeader,
     TuiCardLarge,
-    TuiCell,
     TuiTitle,
     TranslatePipe,
     TuiLoader,
     TuiSurface,
     TuiBottomSheet,
-    TuiSwipeActions,
     TuiButton,
     LowerCasePipe,
     TuiLink,
     MapComponent,
     TuiAvatar,
-    TuiDataListComponent,
-    TuiDropdown,
-    TuiDropdownOpen,
-    TuiOptionNew,
-    TuiCopy,
-    TuiCopyProcessor,
   ],
   template: ` <div class="h-full w-full">
     @let bottomSheetExpanded = isBottomSheetExpanded();
@@ -107,47 +87,21 @@ import { Crag, Zone } from '../models';
       <div
         class="absolute w-full max-w-[40rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0"
       >
-        <tui-swipe-actions class="m-4 pointer-events-auto">
-          <ng-template #content>
-            <tui-data-list>
-              <tui-copy
-                tuiOption
-                new
-                (click.zoneless)="$event.stopPropagation()"
-                [tuiCopyProcessor]="copyProcessor"
-              >
-                {{ selectedCragShareUrl() }}
-              </tui-copy>
-              @if (selectedCragParkingUrl(); as url) {
-                <a
-                  tuiOption
-                  new
-                  [href]="url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  (click.zoneless)="$event.stopPropagation()"
-                >
-                  {{ 'actions.openMap' | translate }}
-                </a>
-              }
-            </tui-data-list>
-          </ng-template>
-          <div
-            tuiCardLarge
-            tuiSurface="floating"
-            tuiCell
-            class="relative cursor-pointer"
-            [routerLink]="['/crag', c.id]"
-          >
+        <div
+          tuiCardLarge
+          tuiSurface="floating"
+          class="relative pointer-events-auto cursor-pointer m-4"
+          [routerLink]="['/crag', c.id]"
+        >
+          <div class="flex items-center gap-3">
             <tui-avatar
-              appearance="primary"
               tuiThumbnail
               size="l"
               [src]="global.iconSrc()('crag')"
               class="self-center"
               [attr.aria-label]="'labels.crag' | translate"
             />
-            <div tuiTitle class="flex flex-col min-w-0 grow">
+            <div class="flex flex-col min-w-0 grow">
               <header tuiHeader>
                 <h2 tuiTitle>{{ c.name }}</h2>
               </header>
@@ -166,60 +120,8 @@ import { Crag, Zone } from '../models';
                 }
               </section>
             </div>
-            <button
-              appearance="flat"
-              iconStart="@tui.ellipsis-vertical"
-              size="s"
-              tuiDropdownOpen
-              tuiIconButton
-              type="button"
-              class="fallback hidden"
-              [tuiDropdown]="content"
-              [attr.aria-label]="'labels.actions' | translate"
-              (click.zoneless)="$event.stopPropagation()"
-            >
-              {{ 'labels.actions' | translate }}
-            </button>
           </div>
-
-          <tui-copy
-            tuiSwipeAction
-            [tuiCopyProcessor]="copyProcessor"
-            [attr.aria-label]="'actions.share' | translate"
-            (click.zoneless)="$event.stopPropagation()"
-          >
-            <button
-              tuiIconButton
-              appearance="flat"
-              size="m"
-              iconStart="@tui.share-2"
-              type="button"
-              (click.zoneless)="$event.stopPropagation()"
-              [attr.aria-label]="'actions.share' | translate"
-            >
-              Share
-            </button>
-            <span class="sr-only">{{ selectedCragShareUrl() }}</span>
-          </tui-copy>
-
-          @if (selectedCragParkingUrl(); as url) {
-            <a
-              tuiButton
-              appearance="flat"
-              tuiIconButton
-              tuiSwipeAction
-              size="m"
-              [iconStart]="'@tui.map'"
-              [attr.aria-label]="'actions.openMap' | translate"
-              [href]="url"
-              target="_blank"
-              rel="noopener noreferrer"
-              (click.zoneless)="$event.stopPropagation()"
-            >
-              {{ 'actions.openMap' | translate }}
-            </a>
-          }
-        </tui-swipe-actions>
+        </div>
       </div>
     } @else {
       <!-- BottomSheet -->
@@ -348,12 +250,11 @@ import { Crag, Zone } from '../models';
     }
   </div>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'flex grow h-full',
+  },
 })
 export class HomeComponent implements AfterViewInit {
-  private readonly alerts = inject(TuiAlertService);
-  private readonly i18n = inject(TranslateService);
-
-  protected readonly copyProcessor = (text: string) => text;
   private readonly _platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
 
@@ -383,37 +284,6 @@ export class HomeComponent implements AfterViewInit {
   protected readonly selectedCrag: Signal<Crag | null> = computed(() => {
     const id = this.global.selectedCragId();
     return id ? (this.global.crags().find((c) => c.id === id) ?? null) : null;
-  });
-
-  protected readonly selectedCragParkingUrl: Signal<string | null> = computed(
-    () => {
-      const c = this.selectedCrag();
-      if (!c) return null;
-      const ids = Array.isArray((c as any).parkings)
-        ? ((c as any).parkings as string[])
-        : [];
-      const firstId = ids.length ? ids[0] : null;
-      if (!firstId) return null;
-      const p = this.global.parkings().find((x) => x.id === firstId);
-      return p ? parkingMapUrl(p as any) : null;
-    },
-  );
-
-  protected readonly selectedCragShareUrl: Signal<string> = computed(() => {
-    const c = this.selectedCrag();
-    if (!c) return '';
-    // Build absolute URL based on current location in browser. SSR-safe fallback to relative.
-    if (isPlatformBrowser(this._platformId) && typeof window !== 'undefined') {
-      const loc = window.location;
-      const origin = loc.origin;
-      // current path without query/hash
-      let path = loc.pathname || '';
-      // strip trailing /home (with or without trailing slash) and then a trailing slash
-      path = path.replace(/\/home\/?$/i, '').replace(/\/$/, '');
-      const base = path ? `${origin}${path}` : origin;
-      return `${base}/crag/${c.id}`;
-    }
-    return `/crag/${c.id}`;
   });
 
   protected readonly zonesInMapSorted: Signal<Zone[]> = computed(() => {
@@ -611,10 +481,5 @@ export class HomeComponent implements AfterViewInit {
 
   async ngAfterViewInit(): Promise<void> {
     if (!this.isBrowser()) return;
-  }
-
-  protected onCopy(): void {
-    const message = this.i18n.instant('messages.copied');
-    this.alerts.open(message).subscribe();
   }
 }
