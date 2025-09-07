@@ -4,7 +4,9 @@ import {
   computed,
   input,
   InputSignal,
+  Signal,
   signal,
+  WritableSignal,
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiLegendItem, TuiRingChart } from '@taiga-ui/addon-charts';
@@ -40,8 +42,16 @@ import { ORDERED_GRADE_VALUES, Grade, RoutesByGrade } from '../models';
         [activeItemIndex]="activeItemIndex()"
         (activeItemIndexChange)="activeItemIndex.set($event)"
       >
-        <span class="text-xl font-semibold">{{ total() }}</span>
-        <div>{{ 'labels.routes' | translate }}</div>
+        @if (hasActive()) {
+          <span>
+            {{ total() }}
+            {{ 'labels.routes' | translate }}
+          </span>
+          <div [innerHtml]="breakdownText()"></div>
+        } @else {
+          <span class="text-xl font-semibold">{{ total() }}</span>
+          <div>{{ 'labels.routes' | translate }}</div>
+        }
       </tui-ring-chart>
 
       <div class="flex flex-row gap-2 flex-wrap">
@@ -64,27 +74,14 @@ import { ORDERED_GRADE_VALUES, Grade, RoutesByGrade } from '../models';
   `,
 })
 export class ChartRoutesByGradeComponent {
-  // Input: object of counts per grade. The parent can pass a plain object or a signal binding.
   counts: InputSignal<RoutesByGrade> = input<RoutesByGrade>({});
+  activeItemIndex: WritableSignal<number> = signal<number>(Number.NaN);
 
-  // Active slice index for ring chart hover interaction
-  activeItemIndex = signal<number>(Number.NaN);
-
-  // X axis: grades from 5 to 9a inclusive, as requested
   private readonly allGrades = ORDERED_GRADE_VALUES;
 
-  private readonly fromGrade: Grade = '5';
-  private readonly toGrade: Grade = '9a';
-
-  readonly gradeSlice = computed(() => {
-    const start = this.allGrades.indexOf(this.fromGrade);
-    const end = this.allGrades.indexOf(this.toGrade);
-    if (start === -1 || end === -1) return this.allGrades;
-    return this.allGrades.slice(start, end + 1) as readonly Grade[];
-  });
-
-  // Axis only shows base numbers 5, 6, 7, 8, 9
-  readonly axisXLabels = computed(() => ['5', '6', '7', '8', '9'] as const);
+  readonly axisXLabels: Signal<readonly string[]> = computed(
+    () => ['5:', '6:', '7:', '8:', '9:'] as const,
+  );
 
   private bandForGrade(g: Grade): 0 | 1 | 2 | 3 | 4 {
     const base = parseInt(g.charAt(0), 10);
@@ -96,8 +93,7 @@ export class ChartRoutesByGradeComponent {
     return 4; // 9
   }
 
-  // Totals per band in order 5,6,7,8,9
-  readonly values = computed(() => {
+  readonly values: Signal<readonly number[]> = computed(() => {
     const counts = this.counts();
     const bands = [0, 0, 0, 0, 0];
     for (const g of this.allGrades) {
@@ -109,7 +105,37 @@ export class ChartRoutesByGradeComponent {
     return bands as readonly number[];
   });
 
-  readonly total = computed(() => this.values().reduce((a, b) => a + b, 0));
+  readonly total: Signal<number> = computed(() =>
+    this.values().reduce((a, b) => a + b, 0),
+  );
+  readonly hasActive: Signal<boolean> = computed(() =>
+    Number.isFinite(this.activeItemIndex()),
+  );
+
+  private gradesForBand(band: 0 | 1 | 2 | 3 | 4): readonly Grade[] {
+    return this.allGrades.filter(
+      (g) => this.bandForGrade(g) === band,
+    ) as readonly Grade[];
+  }
+
+  readonly breakdown = computed(() => {
+    const idx = this.activeItemIndex();
+    if (!Number.isFinite(idx)) return [] as { grade: Grade; count: number }[];
+    const counts = this.counts();
+    const grades = this.gradesForBand(idx as 0 | 1 | 2 | 3 | 4);
+    const items: { grade: Grade; count: number }[] = [];
+    for (const g of grades) {
+      const c = counts[g] ?? 0;
+      if (c > 0) items.push({ grade: g, count: c });
+    }
+    return items;
+  });
+
+  readonly breakdownText = computed(() => {
+    const items = this.breakdown();
+    if (items.length === 0) return '';
+    return items.map((it) => `${it.grade}:</> <b>${it.count}</b>`).join(' | ');
+  });
 
   onHover(index: number, hovered: boolean): void {
     this.activeItemIndex.set(hovered ? index : Number.NaN);
