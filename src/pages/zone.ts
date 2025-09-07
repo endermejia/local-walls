@@ -4,8 +4,6 @@ import {
   computed,
   inject,
   Signal,
-  signal,
-  WritableSignal,
   input,
   effect,
   InputSignal,
@@ -19,6 +17,8 @@ import { GlobalData } from '../services';
 import type { Crag, Zone } from '../models';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '../components/section-header';
+import { ChartRoutesByGradeComponent } from '../components';
+import type { RoutesByGrade } from '../models';
 
 @Component({
   selector: 'app-zone',
@@ -32,6 +32,7 @@ import { SectionHeaderComponent } from '../components/section-header';
     TuiSurface,
     TuiAvatar,
     SectionHeaderComponent,
+    ChartRoutesByGradeComponent,
     TuiLoader,
   ],
   template: `
@@ -47,6 +48,8 @@ import { SectionHeaderComponent } from '../components/section-header';
         @if (z.description) {
           <p class="mt-2 opacity-80">{{ z.description }}</p>
         }
+
+        <app-chart-routes-by-grade class="mt-2" [counts]="routesByGrade()" />
 
         <h2 class="text-xl font-semibold mt-6 mb-2">
           {{ 'labels.crags' | translate }}
@@ -98,6 +101,31 @@ import { SectionHeaderComponent } from '../components/section-header';
   host: { class: 'flex grow overflow-auto sm:p-4' },
 })
 export class ZoneComponent {
+  routesByGrade = computed(() => {
+    const z = this.zone();
+    if (!z) return {} as RoutesByGrade;
+
+    const cragIds = new Set(z.cragIds ?? []);
+    const topos = this.global.topos().filter((t) => cragIds.has(t.cragId));
+    if (!topos.length) return {} as RoutesByGrade;
+
+    const topoIds = new Set(topos.map((t) => t.id));
+    const routeIds = new Set(
+      this.global
+        .topoRoutes()
+        .filter((tr) => topoIds.has(tr.topoId))
+        .map((tr) => tr.routeId),
+    );
+
+    const counts: Record<string, number> = {};
+    for (const r of this.global.routesData()) {
+      if (!routeIds.has(r.id)) continue;
+      const g = (r.grade || '').trim();
+      if (!g) continue;
+      counts[g] = (counts[g] ?? 0) + 1;
+    }
+    return counts as RoutesByGrade;
+  });
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
 

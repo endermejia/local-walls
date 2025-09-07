@@ -72,5 +72,10 @@
     "description": "Try to find by number or go back to the home page.",
     "goHome": "Go to Home",
     "imageAlt": "not found"
+  },
+  "charts": {
+    "routesByGrade": {
+      "title": "Routes by grade"
+    }
   }
 }

@@ -14,9 +14,10 @@ import { GlobalData } from '../services';
 import { TuiTitle, TuiSurface, TuiLoader } from '@taiga-ui/core';
 import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
-import type { Crag, Topo, Parking } from '../models';
+import type { Crag, Topo, Parking, RoutesByGrade } from '../models';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '../components/section-header';
+import { ChartRoutesByGradeComponent } from '../components';
 import { parkingMapUrl } from '../utils';
 
 @Component({
@@ -31,6 +32,7 @@ import { parkingMapUrl } from '../utils';
     TranslatePipe,
     TuiAvatar,
     SectionHeaderComponent,
+    ChartRoutesByGradeComponent,
     TuiLoader,
   ],
   template: `
@@ -47,7 +49,9 @@ import { parkingMapUrl } from '../utils';
           <p class="mt-2 opacity-80">{{ c.description }}</p>
         }
 
-        <h2 class="text-xl font-semibold">
+        <app-chart-routes-by-grade class="mt-2" [counts]="routesByGrade()" />
+
+        <h2 class="text-xl font-semibold mt-6">
           {{ 'labels.parkings' | translate }}
         </h2>
         <div class="mt-2 grid gap-2">
@@ -137,6 +141,30 @@ import { parkingMapUrl } from '../utils';
   host: { class: 'flex grow overflow-auto sm:p-4' },
 })
 export class CragComponent {
+  routesByGrade = computed(() => {
+    const c = this.crag();
+    if (!c) return {} as RoutesByGrade;
+
+    const topos = this.global.selectedCragTopos();
+    if (!topos.length) return {} as RoutesByGrade;
+
+    const topoIds = new Set(topos.map((t) => t.id));
+    const routeIds = new Set(
+      this.global
+        .topoRoutes()
+        .filter((tr) => topoIds.has(tr.topoId))
+        .map((tr) => tr.routeId),
+    );
+
+    const counts: Record<string, number> = {};
+    for (const r of this.global.routesData()) {
+      if (!routeIds.has(r.id)) continue;
+      const g = (r.grade || '').trim();
+      if (!g) continue;
+      counts[g] = (counts[g] ?? 0) + 1;
+    }
+    return counts as RoutesByGrade;
+  });
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
   protected readonly parkingMapUrl = parkingMapUrl;

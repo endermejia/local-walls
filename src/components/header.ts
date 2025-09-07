@@ -128,7 +128,10 @@ interface BreadcrumbItem {
         @if (breadcrumbItems.length > 0) {
           <!-- Mobile -->
           <div class="sm:hidden overflow-hidden">
-            <tui-breadcrumbs ngSkipHydration [itemsLimit]="2">
+            <tui-breadcrumbs
+              ngSkipHydration
+              [itemsLimit]="breadcrumbItems.length > 1 ? 2 : 0"
+            >
               @for (item of breadcrumbItems; track item.caption) {
                 <a
                   class="overflow-hidden"
