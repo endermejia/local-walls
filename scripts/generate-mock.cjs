@@ -1,12 +1,28 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 const ZONES = 10; // min 10
 const CRAGS_PER_ZONE = 5; // min 5
 const TOPOS_PER_CRAG = 4; // min 4
 const ROUTES_PER_TOPO = 10; // min 10
 
-const grades = ['5', '5+', '6a', '6a+', '6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a'];
+const grades = [
+  "5",
+  "5+",
+  "6a",
+  "6a+",
+  "6b",
+  "6b+",
+  "6c",
+  "6c+",
+  "7a",
+  "7a+",
+  "7b",
+  "7b+",
+  "7c",
+  "7c+",
+  "8a",
+];
 
 function gen() {
   /** @type {{
@@ -17,7 +33,14 @@ function gen() {
    *  routes: any[];
    *  topoRoutes: any[];
    * }} */
-  const data = { zones: [], crags: [], parkings: [], topos: [], routes: [], topoRoutes: [] };
+  const data = {
+    zones: [],
+    crags: [],
+    parkings: [],
+    topos: [],
+    routes: [],
+    topoRoutes: [],
+  };
 
   for (let z = 1; z <= ZONES; z++) {
     const zoneId = `z${z}`;
@@ -31,7 +54,7 @@ function gen() {
         id: cragId,
         name: `Crag ${z}-${c}`,
         description: `Demo crag ${cragId}`,
-        ubication: { lat: +lat.toFixed(6), lng: +lng.toFixed(6) },
+        location: { lat: +lat.toFixed(6), lng: +lng.toFixed(6) },
         parkings: [`p-${cragId}-1`],
         approach: 10 + ((c + z) % 3) * 5,
         zoneId: zoneId,
@@ -39,7 +62,10 @@ function gen() {
       data.parkings.push({
         id: `p-${cragId}-1`,
         name: `Parking ${z}-${c}`,
-        ubication: { lat: +(lat + 0.003).toFixed(6), lng: +(lng + 0.003).toFixed(6) },
+        location: {
+          lat: +(lat + 0.003).toFixed(6),
+          lng: +(lng + 0.003).toFixed(6),
+        },
         cragId: cragId,
         capacity: 20 + ((c + z) % 4) * 10,
       });
@@ -72,19 +98,24 @@ function gen() {
         });
       }
     }
-    data.zones.push({ id: zoneId, name: `Zone ${z}`, description: `Demo Zone ${z}`, cragIds });
+    data.zones.push({
+      id: zoneId,
+      name: `Zone ${z}`,
+      description: `Demo Zone ${z}`,
+      cragIds,
+    });
   }
   return data;
 }
 
 function main() {
   const data = gen();
-  const outDir = path.join(__dirname, '..', 'public', 'mock');
-  const outFile = path.join(outDir, 'mock.json');
+  const outDir = path.join(__dirname, "..", "public", "mock");
+  const outFile = path.join(outDir, "mock.json");
   fs.mkdirSync(outDir, { recursive: true });
-  fs.writeFileSync(outFile, JSON.stringify(data, null, 2), 'utf8');
-  console.log('Generated mock at', outFile);
-  console.log('Counts:', {
+  fs.writeFileSync(outFile, JSON.stringify(data, null, 2), "utf8");
+  console.log("Generated mock at", outFile);
+  console.log("Counts:", {
     zones: data.zones.length,
     crags: data.crags.length,
     topos: data.topos.length,

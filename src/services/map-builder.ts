@@ -64,8 +64,8 @@ export class MapBuilder {
     // Fit bounds only once on the initial map init
     if (crags && crags.length) {
       const latLngs: [number, number][] = crags.map((c) => [
-        c.ubication.lat,
-        c.ubication.lng,
+        c.location.lat,
+        c.location.lng,
       ]);
       const bounds = new (L as any).LatLngBounds(latLngs as any);
       this.map.fitBounds(bounds, { padding: [24, 24] });
@@ -162,7 +162,7 @@ export class MapBuilder {
       // Si no se agrupan, cada marcador es su propio "grupo"
       return crags.map((c) => ({
         markers: [c],
-        center: [c.ubication.lat, c.ubication.lng],
+        center: [c.location.lat, c.location.lng],
         count: 1,
       }));
     }
@@ -176,14 +176,14 @@ export class MapBuilder {
 
       // Calcular la posición del marcador en píxeles
       const latlng = new (L as any).LatLng(
-        crag.ubication.lat,
-        crag.ubication.lng,
+        crag.location.lat,
+        crag.location.lng,
       );
       const point = this.map.latLngToContainerPoint(latlng);
 
       const group: ClusterGroup = {
         markers: [crag],
-        center: [crag.ubication.lat, crag.ubication.lng],
+        center: [crag.location.lat, crag.location.lng],
         count: 1,
       };
 
@@ -194,8 +194,8 @@ export class MapBuilder {
         if (otherCrag.id === crag.id || processed.has(otherCrag.id)) continue;
 
         const otherLatLng = new (L as any).LatLng(
-          otherCrag.ubication.lat,
-          otherCrag.ubication.lng,
+          otherCrag.location.lat,
+          otherCrag.location.lng,
         );
         const otherPoint = this.map.latLngToContainerPoint(otherLatLng);
 
@@ -209,9 +209,9 @@ export class MapBuilder {
 
           // Actualizar el centro (promedio de latitudes y longitudes)
           group.center = [
-            (group.center[0] * (group.count - 1) + otherCrag.ubication.lat) /
+            (group.center[0] * (group.count - 1) + otherCrag.location.lat) /
               group.count,
-            (group.center[1] * (group.count - 1) + otherCrag.ubication.lng) /
+            (group.center[1] * (group.count - 1) + otherCrag.location.lng) /
               group.count,
           ];
         }
@@ -243,7 +243,7 @@ export class MapBuilder {
       if (group.count === 1) {
         // Marcador individual
         const crag = group.markers[0];
-        const { lat, lng } = crag.ubication;
+        const { lat, lng } = crag.location;
         const latLng: [number, number] = [lat, lng];
         const icon = new (L as any).DivIcon({
           html: this.cragLabelHtml(
@@ -301,7 +301,7 @@ export class MapBuilder {
 
           // Zoom hacia el grupo al hacer clic
           const bounds = new (L as any).LatLngBounds(
-            group.markers.map((c) => [c.ubication.lat, c.ubication.lng]),
+            group.markers.map((c) => [c.location.lat, c.location.lng]),
           );
 
           this.map.fitBounds(bounds, {
@@ -352,7 +352,7 @@ export class MapBuilder {
     const visibleCrags = new Set<string>();
 
     for (const c of this.cragsData) {
-      const { lat, lng } = c.ubication;
+      const { lat, lng } = c.location;
       const wrapped = new (L as any).LatLng(lat, lng).wrap();
       if (bounds.contains(wrapped)) {
         visibleZones.add(c.zoneId);

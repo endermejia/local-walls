@@ -104,8 +104,8 @@ export class ApiService {
     const incomingCrags = (data.crags ?? []).map((c) => ({ ...c }));
     const seen = new Set<string>();
     for (const c of incomingCrags) {
-      if (!c.ubication) continue;
-      let { lat, lng } = c.ubication;
+      if (!c.location) continue;
+      let { lat, lng } = c.location;
       let key = `${lat},${lng}`;
       let n = 0;
       // Nudge coordinates slightly until unique
@@ -115,7 +115,7 @@ export class ApiService {
         lng = +(lng + 0.0001 * n).toFixed(6);
         key = `${lat},${lng}`;
       }
-      c.ubication = { lat, lng };
+      c.location = { lat, lng };
       seen.add(key);
     }
     this.crags.set(incomingCrags);

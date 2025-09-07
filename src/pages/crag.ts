@@ -49,50 +49,52 @@ import { parkingMapUrl } from '../utils';
           <p class="mt-2 opacity-80">{{ c.description }}</p>
         }
 
-        <app-chart-routes-by-grade class="mt-2" [counts]="routesByGrade()" />
+        <app-chart-routes-by-grade class="mt-4" [counts]="routesByGrade()" />
 
         <h2 class="text-xl font-semibold mt-6">
           {{ 'labels.parkings' | translate }}
         </h2>
         <div class="mt-2 grid gap-2">
           @for (p of cragParkings(); track p.id) {
-            <a
-              class="block"
-              [href]="parkingMapUrl(p)"
-              target="_blank"
-              rel="noopener noreferrer"
-              [attr.aria-label]="'actions.openMap' | translate"
-              [attr.title]="'actions.openMap' | translate"
-            >
-              <div tuiCardLarge tuiSurface="neutral" class="cursor-pointer">
-                <div class="flex items-center gap-3">
-                  <tui-avatar
-                    tuiThumbnail
-                    size="l"
-                    src="@tui.square-parking"
-                    class="self-center"
-                    [attr.aria-label]="'labels.parking' | translate"
-                  />
-                  <div class="flex flex-col min-w-0 grow">
-                    <header tuiHeader>
-                      <h2 tuiTitle>{{ p.name }}</h2>
-                    </header>
-                    <section>
-                      <div class="text-sm opacity-80">
-                        {{ 'labels.lat' | translate }}: {{ p.ubication.lat }} ·
-                        {{ 'labels.lng' | translate }}: {{ p.ubication.lng }}
-                      </div>
-                      @if (p.capacity) {
+            @if (p.location; as pLocation) {
+              <a
+                class="block"
+                [href]="parkingMapUrl(p)"
+                target="_blank"
+                rel="noopener noreferrer"
+                [attr.aria-label]="'actions.openMap' | translate"
+                [attr.title]="'actions.openMap' | translate"
+              >
+                <div tuiCardLarge tuiSurface="neutral" class="cursor-pointer">
+                  <div class="flex items-center gap-3">
+                    <tui-avatar
+                      tuiThumbnail
+                      size="l"
+                      src="@tui.square-parking"
+                      class="self-center"
+                      [attr.aria-label]="'labels.parking' | translate"
+                    />
+                    <div class="flex flex-col min-w-0 grow">
+                      <header tuiHeader>
+                        <h2 tuiTitle>{{ p.name }}</h2>
+                      </header>
+                      <section>
                         <div class="text-sm opacity-80">
-                          {{ 'labels.capacity' | translate }}:
-                          {{ p.capacity }}
+                          {{ 'labels.lat' | translate }}: {{ pLocation.lat }} ·
+                          {{ 'labels.lng' | translate }}: {{ pLocation.lng }}
                         </div>
-                      }
-                    </section>
+                        @if (p.capacity) {
+                          <div class="text-sm opacity-80">
+                            {{ 'labels.capacity' | translate }}:
+                            {{ p.capacity }}
+                          </div>
+                        }
+                      </section>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </a>
+              </a>
+            }
           }
         </div>
 
@@ -125,6 +127,13 @@ import { parkingMapUrl } from '../utils';
                       {{ topoRouteCount(t.id) }}
                     </div>
                   </section>
+                  <div (click.zoneless)="$event.stopPropagation()">
+                    <app-chart-routes-by-grade
+                      class="mt-2"
+                      [counts]="topoRoutesByGrade(t.id)()"
+                      [showLegends]="false"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -141,6 +150,24 @@ import { parkingMapUrl } from '../utils';
   host: { class: 'flex grow overflow-auto sm:p-4' },
 })
 export class CragComponent {
+  topoRoutesByGrade = (topoId: string) =>
+    computed<RoutesByGrade>(() => {
+      const routeIds = new Set(
+        this.global
+          .topoRoutes()
+          .filter((tr) => tr.topoId === topoId)
+          .map((tr) => tr.routeId),
+      );
+      if (routeIds.size === 0) return {} as RoutesByGrade;
+      const counts: Record<string, number> = {};
+      for (const r of this.global.routesData()) {
+        if (!routeIds.has(r.id)) continue;
+        const g = (r.grade || '').trim();
+        if (!g) continue;
+        counts[g] = (counts[g] ?? 0) + 1;
+      }
+      return counts as RoutesByGrade;
+    });
   routesByGrade = computed(() => {
     const c = this.crag();
     if (!c) return {} as RoutesByGrade;

@@ -26,7 +26,7 @@ import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import { TranslatePipe } from '@ngx-translate/core';
-import { MapComponent } from '../components';
+import { MapComponent, ChartRoutesByGradeComponent } from '../components';
 import { Crag, Zone } from '../models';
 
 @Component({
@@ -44,6 +44,7 @@ import { Crag, Zone } from '../models';
     LowerCasePipe,
     TuiLink,
     MapComponent,
+    ChartRoutesByGradeComponent,
     TuiAvatar,
   ],
   template: ` <div class="h-full w-full">
@@ -119,6 +120,12 @@ import { Crag, Zone } from '../models';
                   <div class="text-sm mt-1 opacity-70">{{ c.description }}</div>
                 }
               </section>
+              <div (click.zoneless)="$event.stopPropagation()">
+              <app-chart-routes-by-grade
+                class="mt-2"
+                [counts]="cragRoutesByGrade(c.id)()"
+              />
+            </div>
             </div>
           </div>
         </div>
@@ -179,6 +186,13 @@ import { Crag, Zone } from '../models';
                           </div>
                         }
                       </section>
+                      <div (click.zoneless)="$event.stopPropagation()">
+                      <app-chart-routes-by-grade
+                        class="mt-2"
+                        [counts]="zoneRoutesByGrade(z.id)()"
+                        [showLegends]="false"
+                      />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -237,6 +251,13 @@ import { Crag, Zone } from '../models';
                           </div>
                         }
                       </section>
+                      <div (click.zoneless)="$event.stopPropagation()">
+                      <app-chart-routes-by-grade
+                        class="mt-2"
+                        [counts]="cragRoutesByGrade(c.id)()"
+                        [showLegends]="false"
+                      />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -255,6 +276,56 @@ import { Crag, Zone } from '../models';
   },
 })
 export class HomeComponent implements AfterViewInit {
+  // Computes routes-by-grade for given crag id as a memoized computed factory
+  protected readonly cragRoutesByGrade = (cragId: string) =>
+    computed<import('../models').RoutesByGrade>(() => {
+      const topos = this.global.topos().filter((t) => t.cragId === cragId);
+      if (!topos.length) return {} as import('../models').RoutesByGrade;
+      const topoIds = new Set(topos.map((t) => t.id));
+      const routeIds = new Set(
+        this.global
+          .topoRoutes()
+          .filter((tr) => topoIds.has(tr.topoId))
+          .map((tr) => tr.routeId),
+      );
+      const counts: Record<string, number> = {};
+      for (const r of this.global.routesData()) {
+        if (!routeIds.has(r.id)) continue;
+        const g = (r.grade || '').trim();
+        if (!g) continue;
+        counts[g] = (counts[g] ?? 0) + 1;
+      }
+      return counts as import('../models').RoutesByGrade;
+    });
+
+  // Computes routes-by-grade for a zone id
+  protected readonly zoneRoutesByGrade = (zoneId: string) =>
+    computed<import('../models').RoutesByGrade>(() => {
+      const cragIds = new Set(
+        this.global
+          .crags()
+          .filter((c) => c.zoneId === zoneId)
+          .map((c) => c.id),
+      );
+      if (cragIds.size === 0) return {} as import('../models').RoutesByGrade;
+      const topos = this.global.topos().filter((t) => cragIds.has(t.cragId));
+      if (!topos.length) return {} as import('../models').RoutesByGrade;
+      const topoIds = new Set(topos.map((t) => t.id));
+      const routeIds = new Set(
+        this.global
+          .topoRoutes()
+          .filter((tr) => topoIds.has(tr.topoId))
+          .map((tr) => tr.routeId),
+      );
+      const counts: Record<string, number> = {};
+      for (const r of this.global.routesData()) {
+        if (!routeIds.has(r.id)) continue;
+        const g = (r.grade || '').trim();
+        if (!g) continue;
+        counts[g] = (counts[g] ?? 0) + 1;
+      }
+      return counts as import('../models').RoutesByGrade;
+    });
   private readonly _platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
 

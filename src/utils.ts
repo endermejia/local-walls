@@ -55,8 +55,8 @@ export function gradeRank(grade?: string): number {
  * @returns A Google Maps URL string that when opened will show the parking location
  */
 export function parkingMapUrl(p: Parking): string {
-  const lat = p.ubication.lat;
-  const lng = p.ubication.lng;
+  const lat = p.location.lat;
+  const lng = p.location.lng;
   // Encodes lat/lng to be safe in URLs (even though numbers are safe, keeps consistency)
   const q = `${encodeURIComponent(lat)},${encodeURIComponent(lng)}`;
   return `https://www.google.com/maps/search/?api=1&query=${q}`;

@@ -49,7 +49,7 @@ import type { RoutesByGrade } from '../models';
           <p class="mt-2 opacity-80">{{ z.description }}</p>
         }
 
-        <app-chart-routes-by-grade class="mt-2" [counts]="routesByGrade()" />
+        <app-chart-routes-by-grade class="mt-4" [counts]="routesByGrade()" />
 
         <h2 class="text-xl font-semibold mt-6 mb-2">
           {{ 'labels.crags' | translate }}
@@ -85,6 +85,9 @@ import type { RoutesByGrade } from '../models';
                       {{ c.parkings.length }}
                     </div>
                   </section>
+                  <div (click.zoneless)="$event.stopPropagation()">
+                                    <app-chart-routes-by-grade class="mt-2" [counts]="cragRoutesByGrade(c.id)()" [showLegends]="false" />
+                                    </div>
                 </div>
               </div>
             </div>
@@ -101,6 +104,25 @@ import type { RoutesByGrade } from '../models';
   host: { class: 'flex grow overflow-auto sm:p-4' },
 })
 export class ZoneComponent {
+  cragRoutesByGrade = (cragId: string) => computed<RoutesByGrade>(() => {
+    const topos = this.global.topos().filter((t) => t.cragId === cragId);
+    if (!topos.length) return {} as RoutesByGrade;
+    const topoIds = new Set(topos.map((t) => t.id));
+    const routeIds = new Set(
+      this.global
+        .topoRoutes()
+        .filter((tr) => topoIds.has(tr.topoId))
+        .map((tr) => tr.routeId),
+    );
+    const counts: Record<string, number> = {};
+    for (const r of this.global.routesData()) {
+      if (!routeIds.has(r.id)) continue;
+      const g = (r.grade || '').trim();
+      if (!g) continue;
+      counts[g] = (counts[g] ?? 0) + 1;
+    }
+    return counts as RoutesByGrade;
+  });
   routesByGrade = computed(() => {
     const z = this.zone();
     if (!z) return {} as RoutesByGrade;
