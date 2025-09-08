@@ -14,7 +14,6 @@ import {
 import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { GlobalData } from '../services';
 import { remToPx } from '../utils';
-// import removed: use GlobalData aggregations
 import { RouterLink } from '@angular/router';
 import {
   TuiButton,
@@ -169,8 +168,8 @@ import { Crag, Zone } from '../models';
                       </header>
                       <section>
                         <div class="text-sm opacity-80">
-                          {{ 'labels.crags' | translate }}:
                           {{ z.cragIds.length }}
+                          {{ 'labels.crags' | translate | lowercase }}
                         </div>
                         @if (z.description) {
                           <div class="text-sm mt-1 opacity-70">

@@ -9,7 +9,7 @@ import {
   InputSignal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Location } from '@angular/common';
+import { Location, LowerCasePipe } from '@angular/common';
 import { TuiSurface, TuiTitle, TuiLoader } from '@taiga-ui/core';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import { GlobalData } from '../services';
@@ -32,6 +32,7 @@ import { ChartRoutesByGradeComponent } from '../components';
     SectionHeaderComponent,
     ChartRoutesByGradeComponent,
     TuiLoader,
+    LowerCasePipe,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -72,8 +73,8 @@ import { ChartRoutesByGradeComponent } from '../components';
                       {{ 'units.min' | translate }}
                     </div>
                     <div class="text-sm mt-1">
-                      {{ 'labels.parkings' | translate }}:
                       {{ c.parkings.length }}
+                      {{ 'labels.parkings' | translate | lowercase }}
                     </div>
                   </section>
                 </div>

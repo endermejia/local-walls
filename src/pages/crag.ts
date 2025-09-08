@@ -9,7 +9,7 @@ import {
   InputSignal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Location } from '@angular/common';
+import { Location, LowerCasePipe } from '@angular/common';
 import { GlobalData } from '../services';
 import { TuiTitle, TuiSurface, TuiLoader } from '@taiga-ui/core';
 import { TuiAvatar } from '@taiga-ui/kit';
@@ -19,7 +19,6 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '../components/section-header';
 import { ChartRoutesByGradeComponent } from '../components';
 import { mapLocationUrl } from '../utils';
-// routes-by-grade computeds moved to GlobalData
 
 @Component({
   selector: 'app-crag',
@@ -35,6 +34,7 @@ import { mapLocationUrl } from '../utils';
     SectionHeaderComponent,
     ChartRoutesByGradeComponent,
     TuiLoader,
+    LowerCasePipe,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -117,8 +117,8 @@ import { mapLocationUrl } from '../utils';
                   </header>
                   <section>
                     <div class="text-sm opacity-80">
-                      {{ 'labels.routes' | translate }}:
                       {{ topoRouteCount(t.id) }}
+                      {{ 'labels.routes' | translate | lowercase }}
                     </div>
                   </section>
                 </div>
