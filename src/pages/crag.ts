@@ -14,11 +14,12 @@ import { GlobalData } from '../services';
 import { TuiTitle, TuiSurface, TuiLoader } from '@taiga-ui/core';
 import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
-import type { Crag, Topo, Parking, RoutesByGrade } from '../models';
+import type { Crag, Topo, Parking } from '../models';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '../components/section-header';
 import { ChartRoutesByGradeComponent } from '../components';
-import { parkingMapUrl } from '../utils';
+import { mapLocationUrl } from '../utils';
+// routes-by-grade computeds moved to GlobalData
 
 @Component({
   selector: 'app-crag',
@@ -59,7 +60,7 @@ import { parkingMapUrl } from '../utils';
             @if (p.location; as pLocation) {
               <a
                 class="block"
-                [href]="parkingMapUrl(p)"
+                [href]="mapLocationUrl(pLocation)"
                 target="_blank"
                 rel="noopener noreferrer"
                 [attr.aria-label]="'actions.openMap' | translate"
@@ -110,13 +111,6 @@ import { parkingMapUrl } from '../utils';
               [routerLink]="['/topo', t.id]"
             >
               <div class="flex items-center gap-3">
-                <tui-avatar
-                  tuiThumbnail
-                  size="l"
-                  [src]="global.iconSrc()('topo')"
-                  class="self-center"
-                  [attr.aria-label]="'labels.topo' | translate"
-                />
                 <div class="flex flex-col min-w-0 grow">
                   <header tuiHeader>
                     <h2 tuiTitle>{{ t.name }}</h2>
@@ -127,13 +121,12 @@ import { parkingMapUrl } from '../utils';
                       {{ topoRouteCount(t.id) }}
                     </div>
                   </section>
-                  <div (click.zoneless)="$event.stopPropagation()">
-                    <app-chart-routes-by-grade
-                      class="mt-2"
-                      [counts]="topoRoutesByGrade(t.id)()"
-                      [showLegends]="false"
-                    />
-                  </div>
+                </div>
+                <div (click.zoneless)="$event.stopPropagation()">
+                  <app-chart-routes-by-grade
+                    class="mt-2"
+                    [counts]="topoRoutesByGrade()(t.id)"
+                  />
                 </div>
               </div>
             </div>
@@ -150,51 +143,9 @@ import { parkingMapUrl } from '../utils';
   host: { class: 'flex grow overflow-auto sm:p-4' },
 })
 export class CragComponent {
-  topoRoutesByGrade = (topoId: string) =>
-    computed<RoutesByGrade>(() => {
-      const routeIds = new Set(
-        this.global
-          .topoRoutes()
-          .filter((tr) => tr.topoId === topoId)
-          .map((tr) => tr.routeId),
-      );
-      if (routeIds.size === 0) return {} as RoutesByGrade;
-      const counts: Record<string, number> = {};
-      for (const r of this.global.routesData()) {
-        if (!routeIds.has(r.id)) continue;
-        const g = (r.grade || '').trim();
-        if (!g) continue;
-        counts[g] = (counts[g] ?? 0) + 1;
-      }
-      return counts as RoutesByGrade;
-    });
-  routesByGrade = computed(() => {
-    const c = this.crag();
-    if (!c) return {} as RoutesByGrade;
-
-    const topos = this.global.selectedCragTopos();
-    if (!topos.length) return {} as RoutesByGrade;
-
-    const topoIds = new Set(topos.map((t) => t.id));
-    const routeIds = new Set(
-      this.global
-        .topoRoutes()
-        .filter((tr) => topoIds.has(tr.topoId))
-        .map((tr) => tr.routeId),
-    );
-
-    const counts: Record<string, number> = {};
-    for (const r of this.global.routesData()) {
-      if (!routeIds.has(r.id)) continue;
-      const g = (r.grade || '').trim();
-      if (!g) continue;
-      counts[g] = (counts[g] ?? 0) + 1;
-    }
-    return counts as RoutesByGrade;
-  });
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
-  protected readonly parkingMapUrl = parkingMapUrl;
+  protected readonly mapLocationUrl = mapLocationUrl;
 
   id: InputSignal<string> = input.required<string>();
   crag: Signal<Crag | null> = computed<Crag | null>(() => {
@@ -218,6 +169,9 @@ export class CragComponent {
     const ids = new Set(c.parkings);
     return this.global.parkings().filter((p) => ids.has(p.id));
   });
+
+  topoRoutesByGrade = computed(() => this.global.topoRoutesByGrade());
+  routesByGrade = computed(() => this.global.routesByGradeForSelectedCrag());
 
   constructor() {
     effect(() => {

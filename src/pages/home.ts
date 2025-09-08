@@ -14,6 +14,7 @@ import {
 import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { GlobalData } from '../services';
 import { remToPx } from '../utils';
+// import removed: use GlobalData aggregations
 import { RouterLink } from '@angular/router';
 import {
   TuiButton,
@@ -95,13 +96,6 @@ import { Crag, Zone } from '../models';
           [routerLink]="['/crag', c.id]"
         >
           <div class="flex items-center gap-3">
-            <tui-avatar
-              tuiThumbnail
-              size="l"
-              [src]="global.iconSrc()('crag')"
-              class="self-center"
-              [attr.aria-label]="'labels.crag' | translate"
-            />
             <div class="flex flex-col min-w-0 grow">
               <header tuiHeader>
                 <h2 tuiTitle>{{ c.name }}</h2>
@@ -120,12 +114,9 @@ import { Crag, Zone } from '../models';
                   <div class="text-sm mt-1 opacity-70">{{ c.description }}</div>
                 }
               </section>
-              <div (click.zoneless)="$event.stopPropagation()">
-              <app-chart-routes-by-grade
-                class="mt-2"
-                [counts]="cragRoutesByGrade(c.id)()"
-              />
             </div>
+            <div (click.zoneless)="$event.stopPropagation()">
+              <app-chart-routes-by-grade [counts]="cragRoutesByGrade()(c.id)" />
             </div>
           </div>
         </div>
@@ -142,15 +133,23 @@ import { Crag, Zone } from '../models';
           (scroll.zoneless)="onSheetScroll($any($event))"
         >
           @let zones = zonesInMapSorted();
-          <h3 tuiHeader id="zones-title">
-            <span tuiTitle class="place-items-center">
-              {{ zones.length }}
-              {{
-                'labels.' + (zones.length === 1 ? 'zone' : 'zones')
-                  | translate
-                  | lowercase
-              }}
-            </span>
+          <h3 tuiHeader id="zones-title" class="justify-center">
+            <div class="flex flex-row align-items-center justify-center gap-2">
+              <tui-avatar
+                tuiThumbnail
+                size="l"
+                [src]="global.iconSrc()('zone')"
+                [attr.aria-label]="'labels.zone' | translate"
+              />
+              <span tuiTitle class="justify-center">
+                {{ zones.length }}
+                {{
+                  'labels.' + (zones.length === 1 ? 'zone' : 'zones')
+                    | translate
+                    | lowercase
+                }}
+              </span>
+            </div>
           </h3>
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 overflow-auto">
             <div class="grid gap-2">
@@ -164,13 +163,6 @@ import { Crag, Zone } from '../models';
                   [routerLink]="['/zone', z.id]"
                 >
                   <div class="flex items-center gap-3">
-                    <tui-avatar
-                      tuiThumbnail
-                      size="l"
-                      [src]="global.iconSrc()('zone')"
-                      class="self-center"
-                      [attr.aria-label]="'labels.zone' | translate"
-                    />
                     <div class="flex flex-col min-w-0 grow">
                       <header tuiHeader>
                         <h2 tuiTitle>{{ z.name }}</h2>
@@ -186,13 +178,12 @@ import { Crag, Zone } from '../models';
                           </div>
                         }
                       </section>
-                      <div (click.zoneless)="$event.stopPropagation()">
+                    </div>
+                    <div (click.zoneless)="$event.stopPropagation()">
                       <app-chart-routes-by-grade
                         class="mt-2"
-                        [counts]="zoneRoutesByGrade(z.id)()"
-                        [showLegends]="false"
+                        [counts]="zoneRoutesByGrade()(z.id)"
                       />
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -202,15 +193,24 @@ import { Crag, Zone } from '../models';
             </div>
           </section>
           @let crags = cragsInMapSorted();
-          <h3 tuiHeader id="crags-title">
-            <span tuiTitle class="place-items-center">
-              {{ crags.length }}
-              {{
-                'labels.' + (crags.length === 1 ? 'crag' : 'crags')
-                  | translate
-                  | lowercase
-              }}
-            </span>
+          <h3 tuiHeader id="crags-title" class="justify-center">
+            <div class="flex flex-row align-items-center justify-center gap-2">
+              <tui-avatar
+                tuiThumbnail
+                size="l"
+                [src]="global.iconSrc()('crag')"
+                class="self-center"
+                [attr.aria-label]="'labels.crag' | translate"
+              />
+              <span tuiTitle class="justify-center">
+                {{ crags.length }}
+                {{
+                  'labels.' + (crags.length === 1 ? 'crag' : 'crags')
+                    | translate
+                    | lowercase
+                }}
+              </span>
+            </div>
           </h3>
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 overflow-auto">
             <div class="grid gap-2">
@@ -224,13 +224,6 @@ import { Crag, Zone } from '../models';
                   [routerLink]="['/crag', c.id]"
                 >
                   <div class="flex items-center gap-3">
-                    <tui-avatar
-                      tuiThumbnail
-                      size="l"
-                      [src]="global.iconSrc()('crag')"
-                      class="self-center"
-                      [attr.aria-label]="'labels.crag' | translate"
-                    />
                     <div class="flex flex-col min-w-0 grow">
                       <header tuiHeader>
                         <h2 tuiTitle>{{ c.name }}</h2>
@@ -251,13 +244,12 @@ import { Crag, Zone } from '../models';
                           </div>
                         }
                       </section>
-                      <div (click.zoneless)="$event.stopPropagation()">
+                    </div>
+                    <div (click.zoneless)="$event.stopPropagation()">
                       <app-chart-routes-by-grade
                         class="mt-2"
-                        [counts]="cragRoutesByGrade(c.id)()"
-                        [showLegends]="false"
+                        [counts]="cragRoutesByGrade()(c.id)"
                       />
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -276,56 +268,6 @@ import { Crag, Zone } from '../models';
   },
 })
 export class HomeComponent implements AfterViewInit {
-  // Computes routes-by-grade for given crag id as a memoized computed factory
-  protected readonly cragRoutesByGrade = (cragId: string) =>
-    computed<import('../models').RoutesByGrade>(() => {
-      const topos = this.global.topos().filter((t) => t.cragId === cragId);
-      if (!topos.length) return {} as import('../models').RoutesByGrade;
-      const topoIds = new Set(topos.map((t) => t.id));
-      const routeIds = new Set(
-        this.global
-          .topoRoutes()
-          .filter((tr) => topoIds.has(tr.topoId))
-          .map((tr) => tr.routeId),
-      );
-      const counts: Record<string, number> = {};
-      for (const r of this.global.routesData()) {
-        if (!routeIds.has(r.id)) continue;
-        const g = (r.grade || '').trim();
-        if (!g) continue;
-        counts[g] = (counts[g] ?? 0) + 1;
-      }
-      return counts as import('../models').RoutesByGrade;
-    });
-
-  // Computes routes-by-grade for a zone id
-  protected readonly zoneRoutesByGrade = (zoneId: string) =>
-    computed<import('../models').RoutesByGrade>(() => {
-      const cragIds = new Set(
-        this.global
-          .crags()
-          .filter((c) => c.zoneId === zoneId)
-          .map((c) => c.id),
-      );
-      if (cragIds.size === 0) return {} as import('../models').RoutesByGrade;
-      const topos = this.global.topos().filter((t) => cragIds.has(t.cragId));
-      if (!topos.length) return {} as import('../models').RoutesByGrade;
-      const topoIds = new Set(topos.map((t) => t.id));
-      const routeIds = new Set(
-        this.global
-          .topoRoutes()
-          .filter((tr) => topoIds.has(tr.topoId))
-          .map((tr) => tr.routeId),
-      );
-      const counts: Record<string, number> = {};
-      for (const r of this.global.routesData()) {
-        if (!routeIds.has(r.id)) continue;
-        const g = (r.grade || '').trim();
-        if (!g) continue;
-        counts[g] = (counts[g] ?? 0) + 1;
-      }
-      return counts as import('../models').RoutesByGrade;
-    });
   private readonly _platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
 
@@ -386,6 +328,13 @@ export class HomeComponent implements AfterViewInit {
           +!liked.has(a.id) - +!liked.has(b.id) || a.name.localeCompare(b.name),
       );
   });
+
+  protected readonly cragRoutesByGrade = computed(() =>
+    this.global.cragRoutesByGrade(),
+  );
+  protected readonly zoneRoutesByGrade = computed(() =>
+    this.global.zoneRoutesByGrade(),
+  );
 
   private remountBottomSheet(): void {
     if (!this.isBrowser()) return;

@@ -11,14 +11,13 @@ import {
 import { RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
 import { TuiSurface, TuiTitle, TuiLoader } from '@taiga-ui/core';
-import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import { GlobalData } from '../services';
 import type { Crag, Zone } from '../models';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SectionHeaderComponent } from '../components/section-header';
 import { ChartRoutesByGradeComponent } from '../components';
-import type { RoutesByGrade } from '../models';
+// routes-by-grade computeds moved to GlobalData
 
 @Component({
   selector: 'app-zone',
@@ -30,7 +29,6 @@ import type { RoutesByGrade } from '../models';
     TuiTitle,
     TranslatePipe,
     TuiSurface,
-    TuiAvatar,
     SectionHeaderComponent,
     ChartRoutesByGradeComponent,
     TuiLoader,
@@ -63,13 +61,6 @@ import type { RoutesByGrade } from '../models';
               [routerLink]="['/crag', c.id]"
             >
               <div class="flex items-center gap-3">
-                <tui-avatar
-                  tuiThumbnail
-                  size="l"
-                  [src]="global.iconSrc()('crag')"
-                  class="self-center"
-                  [attr.aria-label]="'labels.crag' | translate"
-                />
                 <div class="flex flex-col min-w-0 grow">
                   <header tuiHeader>
                     <h2 tuiTitle>{{ c.name }}</h2>
@@ -85,9 +76,12 @@ import type { RoutesByGrade } from '../models';
                       {{ c.parkings.length }}
                     </div>
                   </section>
-                  <div (click.zoneless)="$event.stopPropagation()">
-                                    <app-chart-routes-by-grade class="mt-2" [counts]="cragRoutesByGrade(c.id)()" [showLegends]="false" />
-                                    </div>
+                </div>
+                <div (click.zoneless)="$event.stopPropagation()">
+                  <app-chart-routes-by-grade
+                    class="mt-2"
+                    [counts]="cragRoutesByGrade()(c.id)"
+                  />
                 </div>
               </div>
             </div>
@@ -104,50 +98,6 @@ import type { RoutesByGrade } from '../models';
   host: { class: 'flex grow overflow-auto sm:p-4' },
 })
 export class ZoneComponent {
-  cragRoutesByGrade = (cragId: string) => computed<RoutesByGrade>(() => {
-    const topos = this.global.topos().filter((t) => t.cragId === cragId);
-    if (!topos.length) return {} as RoutesByGrade;
-    const topoIds = new Set(topos.map((t) => t.id));
-    const routeIds = new Set(
-      this.global
-        .topoRoutes()
-        .filter((tr) => topoIds.has(tr.topoId))
-        .map((tr) => tr.routeId),
-    );
-    const counts: Record<string, number> = {};
-    for (const r of this.global.routesData()) {
-      if (!routeIds.has(r.id)) continue;
-      const g = (r.grade || '').trim();
-      if (!g) continue;
-      counts[g] = (counts[g] ?? 0) + 1;
-    }
-    return counts as RoutesByGrade;
-  });
-  routesByGrade = computed(() => {
-    const z = this.zone();
-    if (!z) return {} as RoutesByGrade;
-
-    const cragIds = new Set(z.cragIds ?? []);
-    const topos = this.global.topos().filter((t) => cragIds.has(t.cragId));
-    if (!topos.length) return {} as RoutesByGrade;
-
-    const topoIds = new Set(topos.map((t) => t.id));
-    const routeIds = new Set(
-      this.global
-        .topoRoutes()
-        .filter((tr) => topoIds.has(tr.topoId))
-        .map((tr) => tr.routeId),
-    );
-
-    const counts: Record<string, number> = {};
-    for (const r of this.global.routesData()) {
-      if (!routeIds.has(r.id)) continue;
-      const g = (r.grade || '').trim();
-      if (!g) continue;
-      counts[g] = (counts[g] ?? 0) + 1;
-    }
-    return counts as RoutesByGrade;
-  });
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
 
@@ -166,6 +116,9 @@ export class ZoneComponent {
         a.name.localeCompare(b.name),
     );
   });
+
+  cragRoutesByGrade = computed(() => this.global.cragRoutesByGrade());
+  routesByGrade = computed(() => this.global.routesByGradeForSelectedZone());
 
   constructor() {
     effect(() => {

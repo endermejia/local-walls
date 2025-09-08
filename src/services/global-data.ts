@@ -13,6 +13,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { LocalStorage } from './local-storage';
 import { ApiService } from './api.service';
 import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
+import { countRoutesByGrade } from '../utils/grades';
 import type {
   SearchData,
   OptionsData,
@@ -25,6 +26,7 @@ import type {
   Ascent,
   User,
   IconName,
+  RoutesByGrade,
 } from '../models';
 
 @Injectable({
@@ -148,6 +150,73 @@ export class GlobalData {
   routesData: WritableSignal<Route[]> = signal([]);
   topoRoutes: WritableSignal<TopoRoute[]> = signal([]);
   ascents: WritableSignal<Ascent[]> = signal([]);
+
+  cragRoutesByGrade = computed(() => {
+    void this.topos();
+    void this.topoRoutes();
+    void this.routesData();
+    return (cragId: string): RoutesByGrade => {
+      const topos = this.topos().filter((t) => t.cragId === cragId);
+      if (!topos.length) return {} as RoutesByGrade;
+      const topoIds = new Set(topos.map((t) => t.id));
+      const routeIds = new Set(
+        this.topoRoutes()
+          .filter((tr) => topoIds.has(tr.topoId))
+          .map((tr) => tr.routeId),
+      );
+      return countRoutesByGrade(routeIds, this.routesData());
+    };
+  });
+
+  zoneRoutesByGrade = computed(() => {
+    void this.crags();
+    void this.topos();
+    void this.topoRoutes();
+    void this.routesData();
+    return (zoneId: string): RoutesByGrade => {
+      const cragIds = new Set(
+        this.crags()
+          .filter((c) => c.zoneId === zoneId)
+          .map((c) => c.id),
+      );
+      if (cragIds.size === 0) return {} as RoutesByGrade;
+      const topos = this.topos().filter((t) => cragIds.has(t.cragId));
+      if (!topos.length) return {} as RoutesByGrade;
+      const topoIds = new Set(topos.map((t) => t.id));
+      const routeIds = new Set(
+        this.topoRoutes()
+          .filter((tr) => topoIds.has(tr.topoId))
+          .map((tr) => tr.routeId),
+      );
+      return countRoutesByGrade(routeIds, this.routesData());
+    };
+  });
+
+  routesByGradeForSelectedZone = computed(() => {
+    const zId = this.selectedZoneId();
+    if (!zId) return {} as RoutesByGrade;
+    return this.zoneRoutesByGrade()(zId);
+  });
+
+  routesByGradeForSelectedCrag = computed(() => {
+    const cId = this.selectedCragId();
+    if (!cId) return {} as RoutesByGrade;
+    return this.cragRoutesByGrade()(cId);
+  });
+
+  topoRoutesByGrade = computed(() => {
+    void this.topoRoutes();
+    void this.routesData();
+    return (topoId: string): RoutesByGrade => {
+      const routeIds = new Set(
+        this.topoRoutes()
+          .filter((tr) => tr.topoId === topoId)
+          .map((tr) => tr.routeId),
+      );
+      if (routeIds.size === 0) return {} as RoutesByGrade;
+      return countRoutesByGrade(routeIds, this.routesData());
+    };
+  });
 
   private readonly syncFromApi = effect(() => {
     if (this.api.loaded()) {
