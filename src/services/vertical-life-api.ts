@@ -70,20 +70,7 @@ interface VarticalLifeRoutesResponse {
 @Injectable({ providedIn: 'root' })
 export class VerticalLifeApi extends ApiCore {
   constructor() {
-    // Prefer direct 8a.nu origin in production; fall back to same-origin proxy path otherwise
-    // SSR-safe: guard window usage
-    let origin = '/api/8anu';
-    try {
-      if (
-        typeof window !== 'undefined' &&
-        window.location?.host?.includes('local-walls.vercel.app')
-      ) {
-        origin = 'https://web.8a.nu';
-      }
-    } catch {
-      // ignore, keep default
-    }
-    super(origin);
+    super('/api/8anu');
   }
 
   async getMapLocations(

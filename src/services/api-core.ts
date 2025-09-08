@@ -47,6 +47,7 @@ export class ApiCore {
       method: 'GET',
       headers: {
         accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
         ...(opts.headers ?? {}),
       },
       cache: opts.cache ?? 'default',
