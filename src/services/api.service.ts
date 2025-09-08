@@ -240,7 +240,7 @@ export class ApiService {
         north_east_longitude: 180,
         zoom: 15,
         page_index: 0,
-        page_size: 1000,
+        page_size: 50,
       });
       const target = locations.find((l) => String(l.id) === String(zoneId));
       if (!target) return; // Not found; keep silent for now

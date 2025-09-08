@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { ApiCore } from './api-core';
-import type { Zone } from '../models';
 
 // 8a.nu raw models (subset)
 interface VerticalLifeMapItemArea {
@@ -12,7 +11,7 @@ interface VerticalLifeMapItemArea {
   area_type?: number; // 0 == area, ignore
 }
 interface VerticalLifeMapItemLocation {
-  id: number;
+  id?: number;
   name: string;
   slug: string;
   latitude: number;
@@ -29,7 +28,7 @@ function isArea(
 }
 
 interface VerticalLifeMapResponse {
-  items: (VerticalLifeMapItemArea | VerticalLifeMapItemLocation)[];
+  items: VerticalLifeMapItem[];
   counts: unknown;
 }
 
@@ -76,50 +75,28 @@ export class VerticalLifeApi extends ApiCore {
   async getMapLocations(
     bounds: MapBounds,
   ): Promise<VerticalLifeMapItemLocation[]> {
-    // TODO: corregir error
     const resp = await this.get<VerticalLifeMapResponse>(
       '/api/unification/collection/v1/web/map/items',
       {
         query: {
           ...bounds,
           page_index: bounds.page_index ?? 0,
-          page_size: bounds.page_size ?? 1000,
-        },
-      },
-    ); // Está ejecutando esto
-    return (resp.items ?? []).filter(
-      (it): it is VerticalLifeMapItemLocation => !isArea(it),
-    ); // Pero no llega a este punto
-  }
-
-  async getZonesByMapLocation(bounds: MapBounds): Promise<Zone[]> {
-    const resp = await this.get<VerticalLifeMapResponse>(
-      '/api/unification/collection/v1/web/map/items',
-      {
-        query: {
-          ...bounds,
-          page_index: bounds.page_index ?? 0,
-          page_size: bounds.page_size ?? 1000,
+          categories: 1,
+          page_size: bounds.page_size ?? 50,
         },
       },
     );
-    // Map only location items (those without area_type === 0)
-    const zones: Zone[] = [];
-    for (const it of resp.items ?? []) {
-      // ignore pure areas (area_type === 0)
-      if (isArea(it)) continue;
-      const loc = it as VerticalLifeMapItemLocation;
-      // Use id and name, cragIds empty initially
-      zones.push({ id: String(loc.id), name: loc.name, cragIds: [] });
-    }
-    return zones;
+    const filtered = resp.items.filter(
+      (it): it is VerticalLifeMapItemLocation => !isArea(it),
+    );
+    console.log('getMapLocations', filtered);
+    return (filtered as VerticalLifeMapItemLocation[]) ?? [];
   }
 
   async getCrags(
     country: string,
     areaSlug: string,
   ): Promise<VerticalLifeSectorDto[]> {
-    // This endpoint returns sectors for a crag; keeping raw dto for now
     return this.get<VerticalLifeSectorDto[]>(
       `/api/unification/outdoor/v1/web/crags/sportclimbing/${encodeURIComponent(country)}/${encodeURIComponent(areaSlug)}/sectors`,
     );

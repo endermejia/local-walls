@@ -93,7 +93,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
           north_east_longitude: v.north_east_longitude,
           zoom: v.zoom,
           page_index: 0,
-          page_size: 1000,
+          page_size: 50,
         });
 
         // Prefetch a few visible crags routes if not already loaded
