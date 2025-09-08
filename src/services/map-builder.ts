@@ -279,9 +279,7 @@ export class MapBuilder {
           iconAnchor: [0, 0],
         });
 
-        const marker = new (L as any).Marker(latLng as any, { icon }).addTo(
-          this.map,
-        );
+        const marker = new (L as any).Marker(latLng, { icon }).addTo(this.map);
         this.markers.push(marker);
 
         marker.on('click', (e: import('leaflet').LeafletEvent) => {
@@ -436,12 +434,12 @@ export class MapBuilder {
       this.userMarker = null;
     }
 
-    this.userMarker = new (L as any).Marker(latLng as any, {
+    this.userMarker = new (L as any).Marker(latLng, {
       icon,
       zIndexOffset: 1000,
     }).addTo(this.map);
 
-    const nextZoom = Math.max(14, this.map.getZoom());
-    this.map.setView(latLng as any, nextZoom, { animate: true });
+    const nextZoom = Math.max(5, this.map.getZoom());
+    this.map.setView(latLng, nextZoom, { animate: true });
   }
 }

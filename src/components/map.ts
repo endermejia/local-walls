@@ -19,7 +19,6 @@ import type { Crag, MapOptions, MapVisibleElements } from '../models';
 import { MapBuilder } from '../services/map-builder';
 import type { MapBuilderCallbacks } from '../services/map-builder';
 import { GlobalData } from '../services';
-import { ApiService } from '../services';
 import { TuiButton } from '@taiga-ui/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -36,7 +35,7 @@ import { TranslatePipe } from '@ngx-translate/core';
         role="application"
       ></div>
       <!-- Locate button -->
-      <div class="absolute right-4 bottom-4 z-100 pointer-events-none">
+      <div class="absolute right-4 top-14 z-100 pointer-events-none">
         <button
           tuiIconButton
           size="s"
@@ -59,7 +58,6 @@ import { TranslatePipe } from '@ngx-translate/core';
 export class MapComponent implements AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly mapBuilder = inject(MapBuilder);
-  private readonly api = inject(ApiService);
   private readonly global = inject(GlobalData);
 
   private readonly mapInitialized = signal(false);
@@ -69,21 +67,13 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     output<Crag | null>();
   public options: InputSignal<MapOptions> = input<MapOptions>({
     center: [39.5, -0.5],
-    zoom: 7,
+    zoom: 5,
     maxZoom: 15,
     minZoom: 5,
   });
   public mapClick = output<void>();
   public interactionStart = output<void>();
   public visibleChange = output<MapVisibleElements>();
-  // Deprecated output: Home no longer listens; kept for backward compatibility in templates
-  public viewportChange = output<{
-    south_west_latitude: number;
-    south_west_longitude: number;
-    north_east_latitude: number;
-    north_east_longitude: number;
-    zoom: number;
-  }>();
 
   private _visibleCragIds: Set<string> = new Set<string>();
   private _viewportDebounce?: ReturnType<typeof setTimeout>;
@@ -99,13 +89,11 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this._visibleCragIds = new Set(visible.cragIds);
     },
     onViewportChange: (v) => {
-      // Keep output for backwards compatibility
-      this.viewportChange.emit(v);
       // Drive data loading from here (map owns fetching)
       if (!this.isBrowser()) return;
       if (this._viewportDebounce) clearTimeout(this._viewportDebounce);
       this._viewportDebounce = setTimeout(() => {
-        void this.api.loadZonesAndCragsFromBounds({
+        void this.global.loadZonesAndCragsFromBounds({
           south_west_latitude: v.south_west_latitude,
           south_west_longitude: v.south_west_longitude,
           north_east_latitude: v.north_east_latitude,
@@ -136,7 +124,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
             }
           }
           for (const id of toPrefetch) {
-            void this.api.loadCragRoutes(id);
+            void this.global.loadCragRoutes(id);
           }
         }
       }, 300);

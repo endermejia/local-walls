@@ -1,4 +1,3 @@
-export * from './api.service';
 export * from './vertical-life-api';
 export * from './api-core';
 export * from './auth.guard';

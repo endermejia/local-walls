@@ -10,6 +10,7 @@ interface VerticalLifeMapItemArea {
   country_slug: string;
   area_type?: number; // 0 == area, ignore
 }
+
 interface VerticalLifeMapItemLocation {
   id?: number;
   name: string;
@@ -23,6 +24,7 @@ interface VerticalLifeMapItemLocation {
   total_ascendables?: number;
   total_ascents?: number;
 }
+
 function isArea(
   item: VerticalLifeMapItemArea | VerticalLifeMapItemLocation,
 ): item is VerticalLifeMapItemArea {
@@ -82,8 +84,8 @@ export class VerticalLifeApi extends ApiCore {
         query: {
           ...bounds,
           page_index: bounds.page_index ?? 0,
-          categories: 1,
           page_size: bounds.page_size ?? 20,
+          categories: 1,
         },
       },
     );

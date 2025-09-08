@@ -9,7 +9,6 @@ import {
   InputSignal,
 } from '@angular/core';
 import type { Crag, Topo, Parking } from '../models';
-import { ApiService } from '../services';
 import { ChartRoutesByGradeComponent } from '../components';
 import { GlobalData } from '../services';
 import { Location, LowerCasePipe } from '@angular/common';
@@ -144,7 +143,6 @@ import { mapLocationUrl } from '../utils';
   host: { class: 'flex grow overflow-auto sm:p-4' },
 })
 export class CragComponent {
-  private readonly api = inject(ApiService);
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
   protected readonly mapLocationUrl = mapLocationUrl;
@@ -189,7 +187,7 @@ export class CragComponent {
           return t?.cragId === id;
         });
         if (!hasTopo || !hasTopoRoutes) {
-          void this.api.loadCragRoutes(id);
+          void this.global.loadCragRoutes(id);
         }
       }
       this.global.setSelectedTopo(null);

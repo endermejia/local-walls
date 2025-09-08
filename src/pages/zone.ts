@@ -11,7 +11,6 @@ import {
 import type { Crag, Zone } from '../models';
 import { ChartRoutesByGradeComponent } from '../components';
 import { GlobalData } from '../services';
-import { ApiService } from '../services';
 import { Location, LowerCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { SectionHeaderComponent } from '../components/section-header';
@@ -99,7 +98,6 @@ import { TuiSurface, TuiTitle, TuiLoader } from '@taiga-ui/core';
   host: { class: 'flex grow overflow-auto sm:p-4' },
 })
 export class ZoneComponent {
-  private readonly api = inject(ApiService);
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
 
@@ -128,7 +126,7 @@ export class ZoneComponent {
       const id = this.id();
       if (!this.zone()) {
         // Try to load from remote if not available yet
-        void this.api.loadZoneById(id);
+        void this.global.loadZoneById(id);
       }
     });
     effect(() => {

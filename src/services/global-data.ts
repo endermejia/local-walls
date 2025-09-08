@@ -7,7 +7,9 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { ApiService } from './api.service';
+import { VerticalLifeApi } from './vertical-life-api';
+import { PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { LocalStorage } from './local-storage';
 import { Router } from '@angular/router';
 import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
@@ -36,8 +38,14 @@ export class GlobalData {
   private translate = inject(TranslateService);
   private localStorage = inject(LocalStorage);
   private router = inject(Router);
-  private api = inject(ApiService);
+  private verticalLifeApi = inject(VerticalLifeApi);
+  private platformId = inject(PLATFORM_ID);
   protected readonly flagPipe = new TuiFlagPipe();
+
+  // Loading/Status state
+  readonly loaded = signal(true);
+  readonly loading = signal(false);
+  readonly error: WritableSignal<string | null> = signal(null);
 
   selectedLanguage: WritableSignal<'es' | 'en'> = signal('es');
   selectedTheme: WritableSignal<'light' | 'dark'> = signal('light');
@@ -151,6 +159,211 @@ export class GlobalData {
   topoRoutes: WritableSignal<TopoRoute[]> = signal([]);
   ascents: WritableSignal<Ascent[]> = signal([]);
 
+  // ---- CRUD helpers ----
+  // Zones
+  addZone(zone: Zone): void {
+    this.zones.set([...this.zones(), zone]);
+  }
+  // Crags
+  addCrag(crag: Crag): void {
+    this.crags.set([...this.crags(), crag]);
+    // also reflect in zone.cragIds
+    this.zones.set(
+      this.zones().map((z) =>
+        z.id === crag.zoneId
+          ? {
+              ...z,
+              cragIds: Array.from(new Set([...(z.cragIds ?? []), crag.id])),
+            }
+          : z,
+      ),
+    );
+  }
+  // Topos
+  addTopo(topo: Topo): void {
+    this.topos.set([...this.topos(), topo]);
+  }
+  // Routes
+  addRoute(route: Route): void {
+    this.routesData.set([...this.routesData(), route]);
+  }
+  // TopoRoutes
+  addTopoRoute(tr: TopoRoute): void {
+    this.topoRoutes.set([...this.topoRoutes(), tr]);
+    // reflect in topo.topoRouteIds
+    this.topos.set(
+      this.topos().map((t) =>
+        t.id === tr.topoId
+          ? {
+              ...t,
+              topoRouteIds: Array.from(
+                new Set([...(t.topoRouteIds ?? []), tr.id]),
+              ),
+            }
+          : t,
+      ),
+    );
+  }
+
+  // ---- Remote loading (8a.nu) ----
+  async loadZonesAndCragsFromBounds(bounds: {
+    south_west_latitude: number;
+    south_west_longitude: number;
+    north_east_latitude: number;
+    north_east_longitude: number;
+    zoom: number;
+    page_index?: number;
+    page_size?: number;
+  }): Promise<void> {
+    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
+      return;
+    try {
+      this.loading.set(true);
+      const locations = await this.verticalLifeApi.getMapLocations(bounds);
+      const zonesIndex = new Map(this.zones().map((z) => [z.id, z] as const));
+      const cragsIndex = new Map(this.crags().map((c) => [c.id, c] as const));
+      for (const loc of locations) {
+        const zoneId = String(loc.id);
+        if (!zonesIndex.has(zoneId)) {
+          const z: Zone = {
+            id: zoneId,
+            name: loc.name,
+            cragIds: [],
+            slug: loc.slug,
+            countrySlug: loc.country_slug,
+          };
+          this.addZone(z);
+          zonesIndex.set(zoneId, z);
+        }
+        const cragId = loc.slug;
+        if (!cragsIndex.has(cragId)) {
+          const c: Crag = {
+            id: cragId,
+            name: loc.name,
+            location: { lat: loc.latitude, lng: loc.longitude },
+            parkings: [],
+            zoneId,
+          };
+          this.addCrag(c);
+          cragsIndex.set(cragId, c);
+        }
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.error.set(msg);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async loadZoneById(zoneId: string): Promise<void> {
+    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
+      return;
+    if (this.zones().some((z) => z.id === zoneId)) return;
+    try {
+      this.loading.set(true);
+      const locations = await this.verticalLifeApi.getMapLocations({
+        south_west_latitude: -90,
+        south_west_longitude: -180,
+        north_east_latitude: 90,
+        north_east_longitude: 180,
+        zoom: 5,
+        page_index: 0,
+        page_size: 20,
+      });
+      const target = locations.find((l) => String(l.id) === String(zoneId));
+      if (!target) return;
+      const z: Zone = {
+        id: String(target.id),
+        name: target.name,
+        cragIds: [],
+        slug: target.slug,
+        countrySlug: target.country_slug,
+      };
+      if (!this.zones().some((x) => x.id === z.id)) {
+        this.addZone(z);
+      }
+      const cragId = target.slug;
+      if (!this.crags().some((c) => c.id === cragId)) {
+        const c: Crag = {
+          id: cragId,
+          name: target.name,
+          location: { lat: target.latitude, lng: target.longitude },
+          parkings: [],
+          zoneId: z.id,
+        };
+        this.addCrag(c);
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.error.set(msg);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async loadCragRoutes(cragId: string): Promise<void> {
+    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
+      return;
+    const crag = this.crags().find((c) => c.id === cragId);
+    if (!crag) return;
+    const zone = this.zones().find((z) => z.id === crag.zoneId);
+    const country = zone?.countrySlug || 'spain';
+    const cragSlug = crag.id;
+    try {
+      this.loading.set(true);
+      const res = await this.verticalLifeApi.getRoutesByCrag(
+        country,
+        cragSlug,
+        { pageIndex: 0, sortField: 'totalascents', order: 'desc' },
+      );
+      let topo = this.topos().find((t) => t.cragId === cragId);
+      if (!topo) {
+        topo = {
+          id: `topo-${cragId}`,
+          name: `${crag.name}`,
+          cragId,
+          topoRouteIds: [],
+        };
+        this.addTopo(topo);
+      }
+      const routeIndex = new Map(
+        this.routesData().map((r) => [r.id, r] as const),
+      );
+      let nextNumber =
+        this.topoRoutes().filter((tr) => tr.topoId === topo!.id).length + 1;
+      for (const item of res.items ?? []) {
+        const routeId = String(item.zlaggableId);
+        if (!routeIndex.has(routeId)) {
+          const r: Route = {
+            id: routeId,
+            name: item.zlaggableName,
+            grade: item.difficulty,
+            url_8anu: undefined,
+          };
+          this.addRoute(r);
+          routeIndex.set(routeId, r);
+        }
+        const already = this.topoRoutes().some(
+          (x) => x.topoId === topo!.id && x.routeId === routeId,
+        );
+        if (!already) {
+          this.addTopoRoute({
+            id: `${topo!.id}-${routeId}`,
+            number: nextNumber++,
+            routeId,
+            topoId: topo!.id,
+          });
+        }
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.error.set(msg);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
   cragRoutesByGrade = computed(() => {
     void this.topos();
     void this.topoRoutes();
@@ -216,17 +429,6 @@ export class GlobalData {
       if (routeIds.size === 0) return {} as RoutesByGrade;
       return countRoutesByGrade(routeIds, this.routesData());
     };
-  });
-
-  private readonly syncFromApi = effect(() => {
-    if (this.api.loaded()) {
-      this.zones.set(this.api.zones());
-      this.crags.set(this.api.crags());
-      this.parkings.set(this.api.parkings());
-      this.topos.set(this.api.topos());
-      this.routesData.set(this.api.routes());
-      this.topoRoutes.set(this.api.topoRoutes());
-    }
   });
 
   selectedZoneId: WritableSignal<string | null> = signal(null);
