@@ -18,7 +18,7 @@ export interface MapBuilderCallbacks {
 }
 
 interface ClusterGroup {
-  markers: any[];
+  markers: Crag[];
   center: [number, number];
   count: number;
 }
@@ -31,9 +31,8 @@ export class MapBuilder {
   private initialized = false;
   private L: typeof import('leaflet') | null = null;
   private cragsData: readonly Crag[] = [];
-  private markers: any[] = [];
-  private userMarker: any | null = null;
-  private clusterGroups: ClusterGroup[] = [];
+  private markers: import('leaflet').Marker[] = [];
+  private userMarker: import('leaflet').Marker | null = null;
   private clusteringEnabled = true;
   private clusterRadius = 50; // Radio para agrupar marcadores en píxeles
 
@@ -52,13 +51,13 @@ export class MapBuilder {
     const [{ default: L }] = await Promise.all([import('leaflet')]);
     this.L = L;
 
-    this.map = new (L as any).Map(el, {
+    this.map = new L.Map(el, {
       center: options.center ?? [39.5, -0.5],
       zoom: options.zoom ?? 5,
       worldCopyJump: true,
     });
 
-    new (L as any).TileLayer(
+    new L.TileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
         maxZoom: options.maxZoom ?? 15,
@@ -69,7 +68,6 @@ export class MapBuilder {
     this.cragsData = crags;
     await this.rebuildMarkers(crags, selectedCrag, cb);
 
-    // Try to center on user location initially to reduce loaded data
     try {
       if (
         this.isBrowser() &&
@@ -77,12 +75,14 @@ export class MapBuilder {
         'geolocation' in navigator
       ) {
         navigator.geolocation.getCurrentPosition(
-          (pos) => {
+          async (pos) => {
             const { latitude, longitude } = pos.coords;
             this.map.setView(
-              [latitude, longitude] as any,
+              [latitude, longitude],
               Math.max(12, options.zoom ?? 7),
             );
+            // Also create the user location marker on first load
+            await this.goToCurrentLocation();
           },
           () => {
             // Fallback: fit to existing crags if any
@@ -91,7 +91,7 @@ export class MapBuilder {
                 c.location.lat,
                 c.location.lng,
               ]);
-              const bounds = new (L as any).LatLngBounds(latLngs as any);
+              const bounds = new L.LatLngBounds(latLngs);
               this.map.fitBounds(bounds, { padding: [24, 24] });
             }
           },
@@ -102,13 +102,12 @@ export class MapBuilder {
       // ignore and fallback below
     }
 
-    // Fit bounds only once on the initial map init if geolocation not used
     if (crags && crags.length) {
       const latLngs: [number, number][] = crags.map((c) => [
         c.location.lat,
         c.location.lng,
       ]);
-      const bounds = new (L as any).LatLngBounds(latLngs as any);
+      const bounds = new L.LatLngBounds(latLngs);
       this.map.fitBounds(bounds, { padding: [24, 24] });
     }
 
@@ -124,7 +123,6 @@ export class MapBuilder {
     this.map.on('movestart', collapseOnInteraction);
     this.map.on('zoomstart', collapseOnInteraction);
 
-    // Recalcular clusters al cambiar el zoom o mover el mapa
     this.map.on('moveend', async () => {
       await this.updateVisibleIdsFromCurrentBounds(cb);
       await this.rebuildMarkers(this.cragsData, selectedCrag, cb);
@@ -166,7 +164,6 @@ export class MapBuilder {
 
   destroy(): void {
     try {
-      // Limpiar todos los marcadores
       this.cleanMarkers();
       this.map?.remove?.();
     } catch {
@@ -179,23 +176,10 @@ export class MapBuilder {
   private cleanMarkers(): void {
     if (!this.map || !this.L) return;
 
-    // Eliminar todos los marcadores
     this.markers.forEach((marker) => {
       this.map.removeLayer(marker);
     });
     this.markers = [];
-
-    // Eliminar marcador de usuario si existe
-    if (this.userMarker) {
-      try {
-        this.map.removeLayer(this.userMarker);
-      } catch {
-        // ignore
-      }
-      this.userMarker = null;
-    }
-
-    this.clusterGroups = [];
   }
 
   private shouldCluster(): boolean {
@@ -209,7 +193,6 @@ export class MapBuilder {
     const L = this.L;
 
     if (!this.shouldCluster()) {
-      // Si no se agrupan, cada marcador es su propio "grupo"
       return crags.map((c) => ({
         markers: [c],
         center: [c.location.lat, c.location.lng],
@@ -220,11 +203,9 @@ export class MapBuilder {
     const groups: ClusterGroup[] = [];
     const processed = new Set<string>();
 
-    // Para cada crag, buscar otros crags cercanos
     for (const crag of crags) {
       if (processed.has(crag.id)) continue;
 
-      // Calcular la posición del marcador en píxeles
       const latlng = new (L as any).LatLng(
         crag.location.lat,
         crag.location.lng,
@@ -239,7 +220,6 @@ export class MapBuilder {
 
       processed.add(crag.id);
 
-      // Buscar otros crags cercanos
       for (const otherCrag of crags) {
         if (otherCrag.id === crag.id || processed.has(otherCrag.id)) continue;
 
@@ -249,7 +229,6 @@ export class MapBuilder {
         );
         const otherPoint = this.map.latLngToContainerPoint(otherLatLng);
 
-        // Calcular distancia en píxeles
         const distance = point.distanceTo(otherPoint);
 
         if (distance <= this.clusterRadius) {
@@ -257,7 +236,6 @@ export class MapBuilder {
           group.count++;
           processed.add(otherCrag.id);
 
-          // Actualizar el centro (promedio de latitudes y longitudes)
           group.center = [
             (group.center[0] * (group.count - 1) + otherCrag.location.lat) /
               group.count,
@@ -281,17 +259,12 @@ export class MapBuilder {
     if (!this.map || !this.L) return;
     const L = this.L;
 
-    // Limpiar marcadores existentes
     this.cleanMarkers();
 
-    // Agrupar marcadores por proximidad
     const groups = this.groupMarkersByProximity(crags);
-    this.clusterGroups = groups;
 
-    // Crear marcadores para cada grupo
     for (const group of groups) {
       if (group.count === 1) {
-        // Marcador individual
         const crag = group.markers[0];
         const { lat, lng } = crag.location;
         const latLng: [number, number] = [lat, lng];
@@ -312,7 +285,6 @@ export class MapBuilder {
         this.markers.push(marker);
 
         marker.on('click', (e: import('leaflet').LeafletEvent) => {
-          // Prevent map click and any default zoom behavior on marker click
           (
             (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
           )?.preventDefault?.();
@@ -326,7 +298,6 @@ export class MapBuilder {
           cb.onSelectedCragChange(crag),
         );
       } else {
-        // Grupo de marcadores (cluster)
         const latLng = group.center;
         const icon = new (L as any).DivIcon({
           html: this.clusterLabelHtml(group.count),
@@ -341,7 +312,6 @@ export class MapBuilder {
         this.markers.push(marker);
 
         marker.on('click', (e: import('leaflet').LeafletEvent) => {
-          // Prevent map click
           (
             (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
           )?.preventDefault?.();
@@ -349,14 +319,13 @@ export class MapBuilder {
             (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
           )?.stopPropagation?.();
 
-          // Zoom hacia el grupo al hacer clic
           const bounds = new (L as any).LatLngBounds(
             group.markers.map((c) => [c.location.lat, c.location.lng]),
           );
 
           this.map.fitBounds(bounds, {
             padding: [50, 50],
-            maxZoom: 15, // Limitar el zoom para evitar acercarse demasiado
+            maxZoom: 15,
             animate: true,
           });
         });
@@ -410,13 +379,11 @@ export class MapBuilder {
       }
     }
 
-    // Emit visible IDs for UI updates
     cb.onVisibleChange({
       zoneIds: Array.from(visibleZones),
       cragIds: Array.from(visibleCrags),
     });
 
-    // Also emit precise viewport bounds for data fetching
     const sw = bounds.getSouthWest();
     const ne = bounds.getNorthEast();
     cb.onViewportChange({
@@ -457,9 +424,8 @@ export class MapBuilder {
     const { latitude, longitude } = position.coords;
     const latLng: [number, number] = [latitude, longitude];
 
-    // Create or update the user marker (simple blue dot)
     const icon = new (L as any).DivIcon({
-      html: '<div aria-hidden="true" style="width:12px;height:12px;border-radius:9999px;background:#2563eb;border:2px solid #ffffff;box-shadow:0 0 0 2px rgba(37,99,235,0.3);"></div>',
+      html: '<div class="lw-user-marker" aria-hidden="true"></div>',
       className: '',
       iconSize: [0, 0],
       iconAnchor: [0, 0],
@@ -470,11 +436,11 @@ export class MapBuilder {
       this.userMarker = null;
     }
 
-    this.userMarker = new (L as any).Marker(latLng as any, { icon }).addTo(
-      this.map,
-    );
+    this.userMarker = new (L as any).Marker(latLng as any, {
+      icon,
+      zIndexOffset: 1000,
+    }).addTo(this.map);
 
-    // Smoothly center and zoom in a bit
     const nextZoom = Math.max(14, this.map.getZoom());
     this.map.setView(latLng as any, nextZoom, { animate: true });
   }

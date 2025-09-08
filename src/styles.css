@@ -56,6 +56,18 @@ th[tuiTh] {
   filter: brightness(0.95);
 }
 
+/* User location marker styled with Taiga UI theme variables */
+.lw-user-marker {
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  background: var(--tui-background-accent-2);
+  box-shadow:
+    0 0 0 2px rgba(0, 0, 0, 0.08), /* subtle outer */
+    0 0 0 4px color-mix(in oklab, var(--tui-background-accent-2) 30%, transparent); /* halo */
+  border: 2px solid var(--tui-background-base);
+}
+
 .leaflet-bottom.leaflet-right {
   display: none;
 }

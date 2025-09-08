@@ -35,18 +35,18 @@ import { TranslatePipe } from '@ngx-translate/core';
         aria-label="Interactive map"
         role="application"
       ></div>
-      <!-- Locate button: same aesthetics as Home's Toggle view button -->
+      <!-- Locate button -->
       <div class="absolute right-4 bottom-4 z-100 pointer-events-none">
         <button
           tuiIconButton
           size="s"
           appearance="primary-grayscale"
-          class="pointer-events-auto"
+          class="pointer-events-auto sm:hidden"
           (click.zoneless)="onLocateClick()"
           [iconStart]="'@tui.map-pinned'"
           [attr.aria-label]="'labels.myLocation' | translate"
         >
-          My location
+          {{ 'labels.myLocation' | translate }}
         </button>
       </div>
     </div>

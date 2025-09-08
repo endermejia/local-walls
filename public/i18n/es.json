@@ -41,7 +41,8 @@
     "topos": "Croquis",
     "topo": "Croquis",
     "map": "Mapa",
-    "list": "Lista"
+    "list": "Lista",
+    "myLocation": "Mi ubicación"
   },
   "auth": {
     "login": "Iniciar sesión",

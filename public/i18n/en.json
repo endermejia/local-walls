@@ -41,7 +41,8 @@
     "username": "Username",
     "password": "Password",
     "map": "Map",
-    "list": "List"
+    "list": "List",
+    "myLocation": "My location"
   },
   "auth": {
     "login": "Log in",
