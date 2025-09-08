@@ -4,7 +4,7 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/api/8anu/:path*", "destination": "https://web.8a.nu/:path*" },
+    { "source": "/api/8anu/:path*", "destination": "https://www.8a.nu/:path*" },
     { "source": "/(.*)", "destination": "/" }
   ]
 }
