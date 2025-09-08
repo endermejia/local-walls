@@ -56,4 +56,6 @@ th[tuiTh] {
   filter: brightness(0.95);
 }
 
-.leaflet-bottom.leaflet-right { display: none; }
+.leaflet-bottom.leaflet-right {
+  display: none;
+}
