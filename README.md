@@ -1,4 +1,4 @@
-# Local Walls
+# Ñasca!
 Base project for Web Applications:
 - [Angular 20](https://github.com/angular/angular-cli)
   - SSR

@@ -4,6 +4,7 @@ import { TuiBlockStatus } from '@taiga-ui/layout';
 import { TuiButton } from '@taiga-ui/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { GlobalData } from '../services';
+import { Location } from '@angular/common';
 
 @Component({
   standalone: true,
@@ -31,6 +32,15 @@ import { GlobalData } from '../services';
         >
           {{ 'notFound.goHome' | translate }}
         </button>
+
+        <button
+          tuiButton
+          type="button"
+          appearance="secondary"
+          (click.zoneless)="$event.stopPropagation(); location.back()"
+        >
+          {{ 'actions.back' | translate }}
+        </button>
       </tui-block-status>
     </div>
   `,
@@ -42,4 +52,5 @@ import { GlobalData } from '../services';
 export class PageNotFoundComponent {
   // Keep reference to translate for potential programmatic usage and DI tree stability
   readonly global = inject(GlobalData);
+  readonly location = inject(Location);
 }

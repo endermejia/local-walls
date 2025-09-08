@@ -1,34 +1,9 @@
-import {
-  Injectable,
-  WritableSignal,
-  signal,
-  computed,
-  inject,
-  PLATFORM_ID,
-} from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { Injectable, WritableSignal, signal } from '@angular/core';
 import type { Zone, Crag, Topo, Route, TopoRoute, Parking } from '../models';
-import { LocalStorage } from './local-storage';
-
-export interface MockData {
-  version?: string;
-  zones: Zone[];
-  crags: Crag[];
-  parkings: Parking[];
-  topos: Topo[];
-  routes: Route[];
-  topoRoutes: TopoRoute[];
-}
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private readonly platformId = inject(PLATFORM_ID);
-  private readonly isBrowser = isPlatformBrowser(this.platformId);
-  private readonly storage = inject(LocalStorage);
-
-  private readonly storageKey = 'mock-data';
-
-  // Entity state
+  // Entity state (in-memory). Real API wiring will replace direct mutations.
   readonly zones: WritableSignal<Zone[]> = signal([]);
   readonly crags: WritableSignal<Crag[]> = signal([]);
   readonly parkings: WritableSignal<Parking[]> = signal([]);
@@ -36,114 +11,19 @@ export class ApiService {
   readonly routes: WritableSignal<Route[]> = signal([]);
   readonly topoRoutes: WritableSignal<TopoRoute[]> = signal([]);
 
-  readonly loaded = signal(false);
+  readonly loaded = signal(true);
   readonly loading = signal(false);
   readonly error: WritableSignal<string | null> = signal(null);
-
-  // Composite snapshot
-  readonly data = computed<MockData>(() => ({
-    zones: this.zones(),
-    crags: this.crags(),
-    parkings: this.parkings(),
-    topos: this.topos(),
-    routes: this.routes(),
-    topoRoutes: this.topoRoutes(),
-  }));
-
-  constructor() {
-    // Auto-load on browser (after hydration)
-    if (this.isBrowser) {
-      // Try local storage first
-      const cached = this.storage.getItem(this.storageKey);
-      let cachedData: MockData | null = null;
-      if (cached) {
-        try {
-          cachedData = JSON.parse(cached) as MockData;
-          this.applyAll(cachedData);
-          this.loaded.set(true);
-        } catch {
-          // ignore and fetch fresh
-        }
-      }
-      // Always fetch fresh in background to detect updates; log errors to error signal
-      this.loadAll(cachedData?.version).catch((e: unknown) => {
-        const message = e instanceof Error ? e.message : String(e);
-        this.error.set(message);
-      });
-    }
-  }
-
-  async loadAll(cachedVersion?: string): Promise<void> {
-    if (!this.isBrowser) return; // avoid SSR fetch
-    try {
-      this.loading.set(true);
-      this.error.set(null);
-      const res = await fetch('/mock/mock.json', { cache: 'no-cache' });
-      if (!res.ok) throw new Error('Failed to load mock data');
-      const data = (await res.json()) as MockData;
-      // If versions differ or not provided, update state and cache
-      const shouldUpdate = data.version !== cachedVersion;
-      if (shouldUpdate) {
-        this.applyAll(data);
-        this.storage.setItem(this.storageKey, JSON.stringify(data));
-        this.loaded.set(true);
-      }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.error.set(message);
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  private applyAll(data: MockData): void {
-    // Zones and other entities as-is
-    this.zones.set(data.zones ?? []);
-
-    // Ensure all crag locations are distinct (some mock datasets may repeat coords)
-    const incomingCrags = (data.crags ?? []).map((c) => ({ ...c }));
-    const seen = new Set<string>();
-    for (const c of incomingCrags) {
-      if (!c.location) continue;
-      let { lat, lng } = c.location;
-      let key = `${lat},${lng}`;
-      let n = 0;
-      // Nudge coordinates slightly until unique
-      while (seen.has(key)) {
-        n++;
-        lat = +(lat + 0.0001 * n).toFixed(6);
-        lng = +(lng + 0.0001 * n).toFixed(6);
-        key = `${lat},${lng}`;
-      }
-      c.location = { lat, lng };
-      seen.add(key);
-    }
-    this.crags.set(incomingCrags);
-
-    this.parkings.set(data.parkings ?? []);
-    this.topos.set(data.topos ?? []);
-    this.routes.set(data.routes ?? []);
-    this.topoRoutes.set(data.topoRoutes ?? []);
-  }
-
-  private persist(): void {
-    if (this.isBrowser) {
-      const snapshot = this.data();
-      this.storage.setItem(this.storageKey, JSON.stringify(snapshot));
-    }
-  }
 
   // ---- CRUD helpers ----
   // Zones
   addZone(zone: Zone): void {
     this.zones.set([...this.zones(), zone]);
-    this.persist();
   }
   updateZone(id: string, patch: Partial<Zone>): void {
     this.zones.set(
       this.zones().map((z) => (z.id === id ? { ...z, ...patch } : z)),
     );
-    this.persist();
   }
   deleteZone(id: string): void {
     this.zones.set(this.zones().filter((z) => z.id !== id));
@@ -156,7 +36,6 @@ export class ApiService {
     if (cragIds.size) {
       this.deleteCrags(Array.from(cragIds));
     }
-    this.persist();
   }
 
   // Crags
@@ -173,13 +52,11 @@ export class ApiService {
           : z,
       ),
     );
-    this.persist();
   }
   updateCrag(id: string, patch: Partial<Crag>): void {
     this.crags.set(
       this.crags().map((c) => (c.id === id ? { ...c, ...patch } : c)),
     );
-    this.persist();
   }
   deleteCrag(id: string): void {
     this.crags.set(this.crags().filter((c) => c.id !== id));
@@ -198,7 +75,6 @@ export class ApiService {
     );
     if (topoIds.size) this.deleteTopos(Array.from(topoIds));
     this.parkings.set(this.parkings().filter((p) => p.cragId !== id));
-    this.persist();
   }
   deleteCrags(ids: string[]): void {
     ids.forEach((id) => this.deleteCrag(id));
@@ -207,29 +83,24 @@ export class ApiService {
   // Parkings
   addParking(parking: Parking): void {
     this.parkings.set([...this.parkings(), parking]);
-    this.persist();
   }
   updateParking(id: string, patch: Partial<Parking>): void {
     this.parkings.set(
       this.parkings().map((p) => (p.id === id ? { ...p, ...patch } : p)),
     );
-    this.persist();
   }
   deleteParking(id: string): void {
     this.parkings.set(this.parkings().filter((p) => p.id !== id));
-    this.persist();
   }
 
   // Topos
   addTopo(topo: Topo): void {
     this.topos.set([...this.topos(), topo]);
-    this.persist();
   }
   updateTopo(id: string, patch: Partial<Topo>): void {
     this.topos.set(
       this.topos().map((t) => (t.id === id ? { ...t, ...patch } : t)),
     );
-    this.persist();
   }
   deleteTopo(id: string): void {
     this.topos.set(this.topos().filter((t) => t.id !== id));
@@ -240,7 +111,6 @@ export class ApiService {
         .map((tr) => tr.id),
     );
     if (trIds.size) this.deleteTopoRoutes(Array.from(trIds));
-    this.persist();
   }
   deleteTopos(ids: string[]): void {
     ids.forEach((id) => this.deleteTopo(id));
@@ -249,13 +119,11 @@ export class ApiService {
   // Routes
   addRoute(route: Route): void {
     this.routes.set([...this.routes(), route]);
-    this.persist();
   }
   updateRoute(id: string, patch: Partial<Route>): void {
     this.routes.set(
       this.routes().map((r) => (r.id === id ? { ...r, ...patch } : r)),
     );
-    this.persist();
   }
   deleteRoute(id: string): void {
     this.routes.set(this.routes().filter((r) => r.id !== id));
@@ -264,7 +132,6 @@ export class ApiService {
       .filter((tr) => tr.routeId === id)
       .map((tr) => tr.id);
     if (trIds.length) this.deleteTopoRoutes(trIds);
-    this.persist();
   }
 
   // TopoRoutes
@@ -283,13 +150,11 @@ export class ApiService {
           : t,
       ),
     );
-    this.persist();
   }
   updateTopoRoute(id: string, patch: Partial<TopoRoute>): void {
     this.topoRoutes.set(
       this.topoRoutes().map((x) => (x.id === id ? { ...x, ...patch } : x)),
     );
-    this.persist();
   }
   deleteTopoRoute(id: string): void {
     this.topoRoutes.set(this.topoRoutes().filter((x) => x.id !== id));
@@ -299,7 +164,6 @@ export class ApiService {
         topoRouteIds: (t.topoRouteIds ?? []).filter((x) => x !== id),
       })),
     );
-    this.persist();
   }
   deleteTopoRoutes(ids: string[]): void {
     ids.forEach((id) => this.deleteTopoRoute(id));

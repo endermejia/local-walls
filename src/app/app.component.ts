@@ -44,7 +44,7 @@ export class AppComponent {
     }
 
     // SEO: Set title and meta tags (SSR-safe)
-    const appTitle = 'Local Walls | Croquis de tus equipadores';
+    const appTitle = 'Ñasca! | Croquis de tus equipadores';
     const description =
       'App de croquis de escalada hechos por equipadores locales. Encuentra y comparte zonas de escalada, sectores y vías cerca de ti.';
 
