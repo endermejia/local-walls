@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, InputSignal, Signal, computed, input, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  InputSignal,
+  Signal,
+  computed,
+  input,
+  inject,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
@@ -52,7 +60,11 @@ export interface RoutesTableRow {
             }
           </tr>
         </thead>
-        <tbody *tuiLet="tableData() | tuiTableSort as sortedData" tuiTbody [data]="sortedData">
+        <tbody
+          *tuiLet="tableData() | tuiTableSort as sortedData"
+          tuiTbody
+          [data]="sortedData"
+        >
           @for (item of sortedData; track item._ref.routeId) {
             <tr tuiTr>
               @for (col of columns; track col) {
@@ -77,30 +89,67 @@ export interface RoutesTableRow {
                     }
                     @case ('route') {
                       <div tuiCell size="m">
-                        <a [routerLink]="['/route', item._ref.routeId]" class="tui-link">
-                          {{ item._ref.route?.name || ('labels.route' | translate) }}
+                        <a
+                          [routerLink]="['/route', item._ref.routeId]"
+                          class="tui-link"
+                        >
+                          {{
+                            item._ref.route?.name ||
+                              ('labels.route' | translate)
+                          }}
                         </a>
                       </div>
                     }
                     @case ('height') {
                       <div tuiCell size="m">
-                        <span>{{ item._ref.route?.height !== null && item._ref.route?.height !== undefined ? item._ref.route?.height + ' m' : '—' }}</span>
+                        <span>{{
+                          item._ref.route?.height !== null &&
+                          item._ref.route?.height !== undefined
+                            ? item._ref.route?.height + ' m'
+                            : '—'
+                        }}</span>
                       </div>
                     }
                     @case ('actions') {
                       <div tuiCell size="m" class="flex items-center gap-2">
                         @if (item._ref.route?.url_8anu; as url) {
-                          <a [href]="url" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'8a.nu'">
-                            <img alt="8a.nu" [src]="global.iconSrc()('8anu')" tuiBadge size="l" />
+                          <a
+                            [href]="url"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            [attr.aria-label]="'8a.nu'"
+                          >
+                            <img
+                              alt="8a.nu"
+                              [src]="global.iconSrc()('8anu')"
+                              tuiBadge
+                              size="l"
+                            />
                           </a>
                         }
                         <tui-badge
-                          [appearance]="global.isRouteLiked()(item._ref.routeId) ? 'negative' : 'neutral'"
+                          [appearance]="
+                            global.isRouteLiked()(item._ref.routeId)
+                              ? 'negative'
+                              : 'neutral'
+                          "
                           iconStart="@tui.heart"
                           size="xl"
-                          (click.zoneless)="global.toggleLikeRoute(item._ref.routeId)"
-                          [attr.aria-label]="(global.isRouteLiked()(item._ref.routeId) ? 'actions.favorite.remove' : 'actions.favorite.add') | translate"
-                          [attr.title]="(global.isRouteLiked()(item._ref.routeId) ? 'actions.favorite.remove' : 'actions.favorite.add') | translate"
+                          (click.zoneless)="
+                            global.toggleLikeRoute(item._ref.routeId)
+                          "
+                          [attr.aria-label]="
+                            (global.isRouteLiked()(item._ref.routeId)
+                              ? 'actions.favorite.remove'
+                              : 'actions.favorite.add'
+                            ) | translate
+                          "
+                          [attr.title]="
+                            (global.isRouteLiked()(item._ref.routeId)
+                              ? 'actions.favorite.remove'
+                              : 'actions.favorite.add'
+                            ) | translate
+                          "
                         ></tui-badge>
                       </div>
                     }
@@ -119,21 +168,35 @@ export class RoutesTableComponent {
   protected readonly global = inject(GlobalData);
 
   data: InputSignal<(TopoRoute & { route?: Route })[]> = input.required();
-  direction: InputSignal<TuiSortDirection> = input<TuiSortDirection>(TuiSortDirection.Asc);
+  direction: InputSignal<TuiSortDirection> = input<TuiSortDirection>(
+    TuiSortDirection.Asc,
+  );
 
-  protected readonly columns: string[] = ['grade', 'number', 'route', 'height', 'actions'];
+  protected readonly columns: string[] = [
+    'grade',
+    'number',
+    'route',
+    'height',
+    'actions',
+  ];
 
   protected readonly tableData: Signal<RoutesTableRow[]> = computed(() =>
     this.data().map((tr) => ({
       grade: gradeRank(tr.route?.grade),
       number: tr.number,
       route: tr.route?.name || '',
-      height: tr.route?.height !== null && tr.route?.height !== undefined ? tr.route.height : null,
+      height:
+        tr.route?.height !== null && tr.route?.height !== undefined
+          ? tr.route.height
+          : null,
       _ref: tr,
     })),
   );
 
-  protected readonly sorters: Record<RoutesTableKey, TuiComparator<RoutesTableRow>> = {
+  protected readonly sorters: Record<
+    RoutesTableKey,
+    TuiComparator<RoutesTableRow>
+  > = {
     grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
     number: (a, b) => tuiDefaultSort(a.number, b.number),
     route: (a, b) => tuiDefaultSort(a.route, b.route),

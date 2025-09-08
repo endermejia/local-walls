@@ -90,7 +90,10 @@ import { RoutesTableComponent } from '../components/routes-table';
           aria-label="Routes"
         >
           <section class="w-full max-w-5xl mx-auto sm:p-4 overflow-auto">
-            <app-routes-table [data]="topoRoutesDetailed()" [direction]="direction()" />
+            <app-routes-table
+              [data]="topoRoutesDetailed()"
+              [direction]="direction()"
+            />
           </section>
         </tui-bottom-sheet>
       } @else {
