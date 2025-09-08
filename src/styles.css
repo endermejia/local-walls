@@ -63,8 +63,9 @@ th[tuiTh] {
   border-radius: 9999px;
   background: var(--tui-background-accent-2);
   box-shadow:
-    0 0 0 2px rgba(0, 0, 0, 0.08), /* subtle outer */
-    0 0 0 4px color-mix(in oklab, var(--tui-background-accent-2) 30%, transparent); /* halo */
+    0 0 0 2px rgba(0, 0, 0, 0.08),
+    /* subtle outer */ 0 0 0 4px
+      color-mix(in oklab, var(--tui-background-accent-2) 30%, transparent); /* halo */
   border: 2px solid var(--tui-background-base);
 }
 

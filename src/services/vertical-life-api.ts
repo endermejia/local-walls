@@ -20,6 +20,8 @@ interface VerticalLifeMapItemLocation {
   area_name: string;
   country_slug: string;
   country_name: string;
+  total_ascendables?: number;
+  total_ascents?: number;
 }
 function isArea(
   item: VerticalLifeMapItemArea | VerticalLifeMapItemLocation,
@@ -82,12 +84,13 @@ export class VerticalLifeApi extends ApiCore {
           ...bounds,
           page_index: bounds.page_index ?? 0,
           categories: 1,
-          page_size: bounds.page_size ?? 50,
+          page_size: bounds.page_size ?? 20,
         },
       },
     );
     const filtered = resp.items.filter(
-      (it): it is VerticalLifeMapItemLocation => !isArea(it),
+      (it): it is VerticalLifeMapItemLocation =>
+        !isArea(it) && !!it.id && !!it.total_ascendables && !!it.total_ascents,
     );
     console.log('getMapLocations', filtered);
     return (filtered as VerticalLifeMapItemLocation[]) ?? [];
