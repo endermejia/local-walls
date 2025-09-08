@@ -32,6 +32,7 @@ export class MapBuilder {
   private L: typeof import('leaflet') | null = null;
   private cragsData: readonly Crag[] = [];
   private markers: any[] = [];
+  private userMarker: any | null = null;
   private clusterGroups: ClusterGroup[] = [];
   private clusteringEnabled = true;
   private clusterRadius = 50; // Radio para agrupar marcadores en píxeles
@@ -183,6 +184,17 @@ export class MapBuilder {
       this.map.removeLayer(marker);
     });
     this.markers = [];
+
+    // Eliminar marcador de usuario si existe
+    if (this.userMarker) {
+      try {
+        this.map.removeLayer(this.userMarker);
+      } catch {
+        // ignore
+      }
+      this.userMarker = null;
+    }
+
     this.clusterGroups = [];
   }
 
@@ -414,5 +426,56 @@ export class MapBuilder {
       north_east_longitude: ne.lng,
       zoom: this.map.getZoom(),
     });
+  }
+
+  /**
+   * Centers the map on the user's current location and draws/updates a marker.
+   * Safe for SSR: does nothing on the server.
+   */
+  async goToCurrentLocation(): Promise<void> {
+    if (!this.isBrowser() || !this.map || !this.L) return;
+    if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
+      return;
+    }
+    const L = this.L;
+
+    const position = await new Promise<GeolocationPosition | null>(
+      (resolve) => {
+        try {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => resolve(pos),
+            () => resolve(null),
+            { enableHighAccuracy: true, maximumAge: 120000, timeout: 7000 },
+          );
+        } catch {
+          resolve(null);
+        }
+      },
+    );
+
+    if (!position) return;
+    const { latitude, longitude } = position.coords;
+    const latLng: [number, number] = [latitude, longitude];
+
+    // Create or update the user marker (simple blue dot)
+    const icon = new (L as any).DivIcon({
+      html: '<div aria-hidden="true" style="width:12px;height:12px;border-radius:9999px;background:#2563eb;border:2px solid #ffffff;box-shadow:0 0 0 2px rgba(37,99,235,0.3);"></div>',
+      className: '',
+      iconSize: [0, 0],
+      iconAnchor: [0, 0],
+    });
+
+    if (this.userMarker) {
+      this.map.removeLayer(this.userMarker);
+      this.userMarker = null;
+    }
+
+    this.userMarker = new (L as any).Marker(latLng as any, { icon }).addTo(
+      this.map,
+    );
+
+    // Smoothly center and zoom in a bit
+    const nextZoom = Math.max(14, this.map.getZoom());
+    this.map.setView(latLng as any, nextZoom, { animate: true });
   }
 }

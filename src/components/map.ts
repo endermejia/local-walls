@@ -20,17 +20,36 @@ import { MapBuilder } from '../services/map-builder';
 import type { MapBuilderCallbacks } from '../services/map-builder';
 import { GlobalData } from '../services';
 import { ApiService } from '../services';
+import { TuiButton } from '@taiga-ui/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-map',
   standalone: true,
+  imports: [TuiButton, TranslatePipe],
   template: `
-    <div
-      #container
-      class="w-full grow min-h-0"
-      aria-label="Interactive map"
-      role="application"
-    ></div>
+    <div class="relative w-full h-full">
+      <div
+        #container
+        class="absolute inset-0"
+        aria-label="Interactive map"
+        role="application"
+      ></div>
+      <!-- Locate button: same aesthetics as Home's Toggle view button -->
+      <div class="absolute right-4 bottom-4 z-100 pointer-events-none">
+        <button
+          tuiIconButton
+          size="s"
+          appearance="primary-grayscale"
+          class="pointer-events-auto"
+          (click.zoneless)="onLocateClick()"
+          [iconStart]="'@tui.map-pinned'"
+          [attr.aria-label]="'labels.myLocation' | translate"
+        >
+          My location
+        </button>
+      </div>
+    </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -139,6 +158,11 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.tryInit();
+  }
+
+  onLocateClick(): void {
+    if (!this.isBrowser()) return;
+    void this.mapBuilder.goToCurrentLocation();
   }
 
   ngOnDestroy(): void {

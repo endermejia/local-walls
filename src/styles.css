@@ -55,3 +55,5 @@ th[tuiTh] {
 .lw-marker:hover {
   filter: brightness(0.95);
 }
+
+.leaflet-bottom.leaflet-right { display: none; }
