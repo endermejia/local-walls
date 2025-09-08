@@ -1,5 +1,5 @@
 export * from './api.service';
-export * from './8anu-api';
+export * from './vertical-life-api';
 export * from './api-core';
 export * from './auth.guard';
 export * from './error.interceptor';

@@ -3,7 +3,7 @@ import { ApiCore } from './api-core';
 import type { Zone } from '../models';
 
 // 8a.nu raw models (subset)
-interface EightaMapItemArea {
+interface VerticalLifeMapItemArea {
   id: number;
   name: string;
   slug: string;
@@ -11,7 +11,7 @@ interface EightaMapItemArea {
   country_slug: string;
   area_type?: number; // 0 == area, ignore
 }
-interface EightaMapItemLocation {
+interface VerticalLifeMapItemLocation {
   id: number;
   name: string;
   slug: string;
@@ -23,15 +23,19 @@ interface EightaMapItemLocation {
   country_name: string;
 }
 function isArea(
-  item: EightaMapItemArea | EightaMapItemLocation,
-): item is EightaMapItemArea {
-  return (item as EightaMapItemArea).area_type === 0;
+  item: VerticalLifeMapItemArea | VerticalLifeMapItemLocation,
+): item is VerticalLifeMapItemArea {
+  return (item as VerticalLifeMapItemArea).area_type === 0;
 }
 
-interface EightaMapResponse {
-  items: (EightaMapItemArea | EightaMapItemLocation)[];
+interface VerticalLifeMapResponse {
+  items: (VerticalLifeMapItemArea | VerticalLifeMapItemLocation)[];
   counts: unknown;
 }
+
+export type VerticalLifeMapItem =
+  | VerticalLifeMapItemArea
+  | VerticalLifeMapItemLocation;
 
 export interface MapBounds {
   south_west_latitude: number;
@@ -43,14 +47,14 @@ export interface MapBounds {
   page_size?: number;
 }
 
-interface EightaSectorDto {
+interface VerticalLifeSectorDto {
   sectorId: number;
   sectorName: string;
   sectorSlug: string;
   totalZlaggables: number;
 }
 
-interface EightaRoutesResponse {
+interface VarticalLifeRoutesResponse {
   items: {
     zlaggableId: number;
     zlaggableName: string;
@@ -63,19 +67,39 @@ interface EightaRoutesResponse {
 }
 
 @Injectable({ providedIn: 'root' })
-export class EightaApi extends ApiCore {
+export class VerticalLifeApi extends ApiCore {
   constructor() {
-    super('https://www.8a.nu');
+    // Use same-origin SSR proxy to avoid CORS in browser
+    super('/api/8anu');
   }
 
-  async getZonesByMapLocation(bounds: MapBounds): Promise<Zone[]> {
-    const resp = await this.get<EightaMapResponse>(
+  async getMapLocations(
+    bounds: MapBounds,
+  ): Promise<VerticalLifeMapItemLocation[]> {
+    // TODO: corregir error
+    const resp = await this.get<VerticalLifeMapResponse>(
       '/api/unification/collection/v1/web/map/items',
       {
         query: {
           ...bounds,
           page_index: bounds.page_index ?? 0,
-          page_size: bounds.page_size ?? 20,
+          page_size: bounds.page_size ?? 1000,
+        },
+      },
+    ); // Está ejecutando esto
+    return (resp.items ?? []).filter(
+      (it): it is VerticalLifeMapItemLocation => !isArea(it),
+    ); // Pero no llega a este punto
+  }
+
+  async getZonesByMapLocation(bounds: MapBounds): Promise<Zone[]> {
+    const resp = await this.get<VerticalLifeMapResponse>(
+      '/api/unification/collection/v1/web/map/items',
+      {
+        query: {
+          ...bounds,
+          page_index: bounds.page_index ?? 0,
+          page_size: bounds.page_size ?? 1000,
         },
       },
     );
@@ -84,7 +108,7 @@ export class EightaApi extends ApiCore {
     for (const it of resp.items ?? []) {
       // ignore pure areas (area_type === 0)
       if (isArea(it)) continue;
-      const loc = it as EightaMapItemLocation;
+      const loc = it as VerticalLifeMapItemLocation;
       // Use id and name, cragIds empty initially
       zones.push({ id: String(loc.id), name: loc.name, cragIds: [] });
     }
@@ -94,9 +118,9 @@ export class EightaApi extends ApiCore {
   async getCrags(
     country: string,
     areaSlug: string,
-  ): Promise<EightaSectorDto[]> {
+  ): Promise<VerticalLifeSectorDto[]> {
     // This endpoint returns sectors for a crag; keeping raw dto for now
-    return this.get<EightaSectorDto[]>(
+    return this.get<VerticalLifeSectorDto[]>(
       `/api/unification/outdoor/v1/web/crags/sportclimbing/${encodeURIComponent(country)}/${encodeURIComponent(areaSlug)}/sectors`,
     );
   }
@@ -112,7 +136,7 @@ export class EightaApi extends ApiCore {
       grade?: string;
       searchQuery?: string;
     },
-  ): Promise<EightaRoutesResponse> {
+  ): Promise<VarticalLifeRoutesResponse> {
     const query = {
       sectorSlug: params?.sectorSlug,
       pageIndex: params?.pageIndex ?? 0,
@@ -122,7 +146,7 @@ export class EightaApi extends ApiCore {
       order: params?.order ?? 'desc',
       cragSlug,
     } as const;
-    return this.get<EightaRoutesResponse>(
+    return this.get<VarticalLifeRoutesResponse>(
       `/api/unification/outdoor/v1/web/zlaggables/sportclimbing/${encodeURIComponent(country)}`,
       { query },
     );

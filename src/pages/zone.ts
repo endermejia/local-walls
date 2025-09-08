@@ -8,16 +8,16 @@ import {
   effect,
   InputSignal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { Location, LowerCasePipe } from '@angular/common';
-import { TuiSurface, TuiTitle, TuiLoader } from '@taiga-ui/core';
-import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
-import { GlobalData } from '../services';
 import type { Crag, Zone } from '../models';
-import { TranslatePipe } from '@ngx-translate/core';
-import { SectionHeaderComponent } from '../components/section-header';
 import { ChartRoutesByGradeComponent } from '../components';
-// routes-by-grade computeds moved to GlobalData
+import { GlobalData } from '../services';
+import { ApiService } from '../services';
+import { Location, LowerCasePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { SectionHeaderComponent } from '../components/section-header';
+import { TranslatePipe } from '@ngx-translate/core';
+import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
+import { TuiSurface, TuiTitle, TuiLoader } from '@taiga-ui/core';
 
 @Component({
   selector: 'app-zone',
@@ -99,6 +99,7 @@ import { ChartRoutesByGradeComponent } from '../components';
   host: { class: 'flex grow overflow-auto sm:p-4' },
 })
 export class ZoneComponent {
+  private readonly api = inject(ApiService);
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
 
@@ -122,6 +123,14 @@ export class ZoneComponent {
   routesByGrade = computed(() => this.global.routesByGradeForSelectedZone());
 
   constructor() {
+    // Ensure data is present when directly navigating by ID
+    effect(() => {
+      const id = this.id();
+      if (!this.zone()) {
+        // Try to load from remote if not available yet
+        void this.api.loadZoneById(id);
+      }
+    });
     effect(() => {
       const id = this.id();
       this.global.setSelectedZone(id);

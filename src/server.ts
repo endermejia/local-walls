@@ -24,12 +24,45 @@ async function getAngularAppEngine(): Promise<AngularAppEngine> {
 export async function netlifyAppEngineHandler(
   request: Request,
 ): Promise<Response> {
-  // Example API endpoints can be defined here.
-  // Uncomment and define endpoints as necessary.
-  // const pathname = new URL(request.url).pathname;
-  // if (pathname === '/api/hello') {
-  //   return Response.json({ message: 'Hello from the API' });
-  // }
+  const url = new URL(request.url);
+  const pathname = url.pathname;
+
+  // Proxy 8a.nu calls to avoid browser CORS.
+  // Example: /api/8anu/api/unification/... -> https://www.8a.nu/api/unification/...
+  if (pathname.startsWith('/api/8anu/')) {
+    const upstream = 'https://www.8a.nu' + pathname.replace('/api/8anu', '');
+    const proxyUrl = new URL(upstream);
+    proxyUrl.search = url.search; // preserve query string
+
+    try {
+      const resp = await fetch(proxyUrl.toString(), {
+        method: request.method,
+        headers: {
+          // forward minimal headers
+          accept: 'application/json',
+        },
+        // Do not forward credentials/cookies
+      });
+      const body = await resp.arrayBuffer();
+      // Mirror status and pass-through JSON content-type when available
+      const headers = new Headers();
+      headers.set(
+        'Content-Type',
+        resp.headers.get('Content-Type') || 'application/json',
+      );
+      // Allow same-origin callers
+      headers.set('Cache-Control', 'public, max-age=120');
+      return new Response(body, { status: resp.status, headers });
+    } catch (e) {
+      return new Response(
+        JSON.stringify({
+          error: 'Upstream fetch failed',
+          message: e instanceof Error ? e.message : String(e),
+        }),
+        { status: 502, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
+  }
 
   const engine = await getAngularAppEngine();
   const result = await engine.handle(request);

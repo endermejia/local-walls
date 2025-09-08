@@ -7,7 +7,6 @@ import {
 } from '@angular/core';
 import { GlobalData } from '../services';
 import { Router } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
 import {
   TuiAppearance,
   TuiButton,
@@ -15,6 +14,7 @@ import {
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { TuiHeader, TuiCardLarge, TuiForm } from '@taiga-ui/layout';
 
 @Component({

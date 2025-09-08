@@ -14,7 +14,20 @@ export class ApiCore {
   constructor(private readonly baseUrl = '') {}
 
   protected buildUrl(path: string, query?: HttpOptions['query']): string {
-    const url = new URL(path.startsWith('http') ? path : this.baseUrl + path);
+    // Compose full path first
+    const composed = path.startsWith('http') ? path : this.baseUrl + path;
+
+    // Build URL. For relative paths, provide origin when in browser.
+    let url: URL;
+    if (composed.startsWith('http')) {
+      url = new URL(composed);
+    } else if (this.isBrowser && typeof window !== 'undefined') {
+      url = new URL(composed, window.location.origin);
+    } else {
+      // In non-browser contexts we should not be building relative URLs
+      throw new Error('Cannot build relative URL outside of the browser');
+    }
+
     if (query) {
       for (const [k, v] of Object.entries(query)) {
         if (v === undefined || v === null || v === '') continue;

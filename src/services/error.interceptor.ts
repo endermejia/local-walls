@@ -1,8 +1,8 @@
-import { HttpInterceptorFn, HttpEvent } from '@angular/common/http';
-import { inject, Injector } from '@angular/core';
 import { GlobalData } from './global-data';
+import { HttpInterceptorFn, HttpEvent } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { inject, Injector } from '@angular/core';
 
 export const errorInterceptor: HttpInterceptorFn = (
   req,

@@ -1,13 +1,20 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import type { Crag, MapOptions, MapVisibleElements } from '../models';
 import { GlobalData } from './global-data';
+import type { Crag, MapOptions, MapVisibleElements } from '../models';
 
 export interface MapBuilderCallbacks {
   onSelectedCragChange: (crag: Crag | null) => void;
   onMapClick: () => void;
   onInteractionStart: () => void;
   onVisibleChange: (visible: MapVisibleElements) => void;
+  onViewportChange: (v: {
+    south_west_latitude: number;
+    south_west_longitude: number;
+    north_east_latitude: number;
+    north_east_longitude: number;
+    zoom: number;
+  }) => void;
 }
 
 interface ClusterGroup {
@@ -46,14 +53,14 @@ export class MapBuilder {
 
     this.map = new (L as any).Map(el, {
       center: options.center ?? [39.5, -0.5],
-      zoom: options.zoom ?? 7,
+      zoom: options.zoom ?? 5,
       worldCopyJump: true,
     });
 
     new (L as any).TileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
-        maxZoom: options.maxZoom ?? 19,
+        maxZoom: options.maxZoom ?? 15,
         minZoom: options.minZoom ?? 5,
       },
     ).addTo(this.map);
@@ -61,7 +68,40 @@ export class MapBuilder {
     this.cragsData = crags;
     await this.rebuildMarkers(crags, selectedCrag, cb);
 
-    // Fit bounds only once on the initial map init
+    // Try to center on user location initially to reduce loaded data
+    try {
+      if (
+        this.isBrowser() &&
+        typeof navigator !== 'undefined' &&
+        'geolocation' in navigator
+      ) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const { latitude, longitude } = pos.coords;
+            this.map.setView(
+              [latitude, longitude] as any,
+              Math.max(12, options.zoom ?? 7),
+            );
+          },
+          () => {
+            // Fallback: fit to existing crags if any
+            if (crags && crags.length) {
+              const latLngs: [number, number][] = crags.map((c) => [
+                c.location.lat,
+                c.location.lng,
+              ]);
+              const bounds = new (L as any).LatLngBounds(latLngs as any);
+              this.map.fitBounds(bounds, { padding: [24, 24] });
+            }
+          },
+          { enableHighAccuracy: false, maximumAge: 600000, timeout: 5000 },
+        );
+      }
+    } catch {
+      // ignore and fallback below
+    }
+
+    // Fit bounds only once on the initial map init if geolocation not used
     if (crags && crags.length) {
       const latLngs: [number, number][] = crags.map((c) => [
         c.location.lat,
@@ -147,8 +187,6 @@ export class MapBuilder {
   }
 
   private shouldCluster(): boolean {
-    // Determinar si se debe hacer clustering basado en el nivel de zoom
-    // A niveles de zoom altos (>15) mostramos marcadores individuales
     if (!this.map) return true;
     const zoom = this.map.getZoom();
     return this.clusteringEnabled && zoom < 15;
@@ -360,9 +398,21 @@ export class MapBuilder {
       }
     }
 
+    // Emit visible IDs for UI updates
     cb.onVisibleChange({
       zoneIds: Array.from(visibleZones),
       cragIds: Array.from(visibleCrags),
+    });
+
+    // Also emit precise viewport bounds for data fetching
+    const sw = bounds.getSouthWest();
+    const ne = bounds.getNorthEast();
+    cb.onViewportChange({
+      south_west_latitude: sw.lat,
+      south_west_longitude: sw.lng,
+      north_east_latitude: ne.lat,
+      north_east_longitude: ne.lng,
+      zoom: this.map.getZoom(),
     });
   }
 }

@@ -10,10 +10,10 @@ import {
 } from '@angular/core';
 import { GlobalData } from '../services';
 import { Location } from '@angular/common';
-import { TranslatePipe } from '@ngx-translate/core';
-import { SectionHeaderComponent } from '../components/section-header';
-import { TuiLoader } from '@taiga-ui/core';
 import { Route } from '../models';
+import { SectionHeaderComponent } from '../components/section-header';
+import { TranslatePipe } from '@ngx-translate/core';
+import { TuiLoader } from '@taiga-ui/core';
 
 @Component({
   selector: 'app-route',

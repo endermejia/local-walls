@@ -8,16 +8,17 @@ import {
   Signal,
   InputSignal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { Location, LowerCasePipe } from '@angular/common';
+import type { Crag, Topo, Parking } from '../models';
+import { ApiService } from '../services';
+import { ChartRoutesByGradeComponent } from '../components';
 import { GlobalData } from '../services';
-import { TuiTitle, TuiSurface, TuiLoader } from '@taiga-ui/core';
+import { Location, LowerCasePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { SectionHeaderComponent } from '../components/section-header';
+import { TranslatePipe } from '@ngx-translate/core';
 import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
-import type { Crag, Topo, Parking } from '../models';
-import { TranslatePipe } from '@ngx-translate/core';
-import { SectionHeaderComponent } from '../components/section-header';
-import { ChartRoutesByGradeComponent } from '../components';
+import { TuiTitle, TuiSurface, TuiLoader } from '@taiga-ui/core';
 import { mapLocationUrl } from '../utils';
 
 @Component({
@@ -143,6 +144,7 @@ import { mapLocationUrl } from '../utils';
   host: { class: 'flex grow overflow-auto sm:p-4' },
 })
 export class CragComponent {
+  private readonly api = inject(ApiService);
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
   protected readonly mapLocationUrl = mapLocationUrl;
@@ -180,6 +182,15 @@ export class CragComponent {
       const crag = this.global.crags().find((c) => c.id === id);
       if (crag) {
         this.global.setSelectedZone(crag.zoneId);
+        // Load routes/topo for this crag if missing
+        const hasTopo = this.global.topos().some((t) => t.cragId === id);
+        const hasTopoRoutes = this.global.topoRoutes().some((tr) => {
+          const t = this.global.topos().find((x) => x.id === tr.topoId);
+          return t?.cragId === id;
+        });
+        if (!hasTopo || !hasTopoRoutes) {
+          void this.api.loadCragRoutes(id);
+        }
       }
       this.global.setSelectedTopo(null);
       this.global.setSelectedRoute(null);

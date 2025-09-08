@@ -11,10 +11,13 @@ import {
   ViewChild,
   WritableSignal,
 } from '@angular/core';
-import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
+import { Crag, Zone } from '../models';
 import { GlobalData } from '../services';
-import { remToPx } from '../utils';
+import { MapComponent, ChartRoutesByGradeComponent } from '../components';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
+import { TuiAvatar } from '@taiga-ui/kit';
+import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import {
   TuiButton,
   TuiLink,
@@ -23,11 +26,8 @@ import {
   TuiTitle,
 } from '@taiga-ui/core';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
-import { TuiAvatar } from '@taiga-ui/kit';
-import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
-import { TranslatePipe } from '@ngx-translate/core';
-import { MapComponent, ChartRoutesByGradeComponent } from '../components';
-import { Crag, Zone } from '../models';
+import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
+import { remToPx } from '../utils';
 
 @Component({
   selector: 'app-home',
@@ -253,7 +253,7 @@ import { Crag, Zone } from '../models';
                   </div>
                 </div>
               } @empty {
-                <tui-loader size="xl" />
+                <tui-loader size="xxl" />
               }
             </div>
           </section>
@@ -266,7 +266,7 @@ import { Crag, Zone } from '../models';
     class: 'flex grow h-full',
   },
 })
-export class HomeComponent implements AfterViewInit {
+export class HomeComponent {
   private readonly _platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
 
@@ -496,9 +496,5 @@ export class HomeComponent implements AfterViewInit {
     this.global.setSelectedCrag(null);
     this.global.setSelectedTopo(null);
     this.global.setSelectedRoute(null);
-  }
-
-  async ngAfterViewInit(): Promise<void> {
-    if (!this.isBrowser()) return;
   }
 }

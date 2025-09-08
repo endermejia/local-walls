@@ -7,13 +7,13 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { Router } from '@angular/router';
-import { TuiFlagPipe } from '@taiga-ui/core';
-import { TranslateService } from '@ngx-translate/core';
-import { LocalStorage } from './local-storage';
 import { ApiService } from './api.service';
+import { LocalStorage } from './local-storage';
+import { Router } from '@angular/router';
 import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
-import { countRoutesByGrade } from '../utils/grades';
+import { TranslateService } from '@ngx-translate/core';
+import { TuiFlagPipe } from '@taiga-ui/core';
+import { countRoutesByGrade } from '../utils';
 import type {
   SearchData,
   OptionsData,

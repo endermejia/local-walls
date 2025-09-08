@@ -226,7 +226,7 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
   ```ts
   import { Map, TileLayer, Marker, DivIcon, LatLng, LatLngBounds } from 'leaflet';
   const map = new Map('map-id').setView([51.5, -0.09], 13);
-  new TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+  new TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 15 }).addTo(map);
   new Marker(new LatLng(51.5, -0.09)).addTo(map);
   ```
 - Sin factorías: reemplaza `L.map`, `L.tileLayer`, `L.marker`, etc. por constructores: `new Map(...)`, `new TileLayer(...)`, `new Marker(...)`, etc.

@@ -10,15 +10,15 @@ import {
   effect,
   InputSignal,
 } from '@angular/core';
-import { Location } from '@angular/common';
-import { TuiSortDirection } from '@taiga-ui/addon-table';
 import { GlobalData } from '../services';
-import type { Topo, TopoRoute, Route } from '../models';
-import { TranslatePipe } from '@ngx-translate/core';
+import { Location } from '@angular/common';
+import { RoutesTableComponent } from '../components';
 import { SectionHeaderComponent } from '../components/section-header';
+import { TranslatePipe } from '@ngx-translate/core';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import { TuiButton, TuiLoader } from '@taiga-ui/core';
-import { RoutesTableComponent } from '../components/routes-table';
+import { TuiSortDirection } from '@taiga-ui/addon-table';
+import type { Topo, TopoRoute, Route } from '../models';
 
 @Component({
   selector: 'app-topo',

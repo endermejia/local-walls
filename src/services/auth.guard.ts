@@ -1,6 +1,6 @@
 import { CanMatchFn, Router, UrlTree } from '@angular/router';
-import { inject, PLATFORM_ID } from '@angular/core';
 import { GlobalData } from './global-data';
+import { inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 export const authGuard: CanMatchFn = (): boolean | UrlTree => {
