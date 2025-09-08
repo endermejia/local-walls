@@ -3,8 +3,7 @@
   "outputDirectory": "dist/local-walls/browser",
   "cleanUrls": true,
   "trailingSlash": false,
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/api/ssr" }
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
   ]
 }
