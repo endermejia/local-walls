@@ -267,9 +267,9 @@ export class GlobalData {
         south_west_longitude: -180,
         north_east_latitude: 90,
         north_east_longitude: 180,
-        zoom: 5,
+        zoom: 8,
         page_index: 0,
-        page_size: 20,
+        page_size: 50,
       });
       const target = locations.find((l) => String(l.id) === String(zoneId));
       if (!target) return;

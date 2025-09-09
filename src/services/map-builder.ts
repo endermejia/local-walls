@@ -68,35 +68,28 @@ export class MapBuilder {
     this.cragsData = crags;
     await this.rebuildMarkers(crags, selectedCrag, cb);
 
+    // Determine if we should attempt geolocation: only on mobile devices
+    const isMobileClient = (() => {
+      if (!this.isBrowser() || typeof navigator === 'undefined') return false;
+      const ua = (navigator.userAgent || '').toLowerCase();
+      // Simple mobile heuristic; avoids desktops where geolocation UX is worse
+      return /iphone|ipad|ipod|android|mobile/.test(ua);
+    })();
+
     try {
       if (
-        this.isBrowser() &&
+        isMobileClient &&
         typeof navigator !== 'undefined' &&
         'geolocation' in navigator
       ) {
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            const { latitude, longitude } = pos.coords;
-            this.map.setView(
-              [latitude, longitude],
-              Math.min(9, (options.maxZoom ?? 15)),
-            );
-            // Also create the user location marker on first load
-            await this.goToCurrentLocation();
-          },
-          () => {
-            // Fallback: fit to existing crags if any
-            if (crags && crags.length) {
-              const latLngs: [number, number][] = crags.map((c) => [
-                c.location.lat,
-                c.location.lng,
-              ]);
-              const bounds = new L.LatLngBounds(latLngs);
-              this.map.fitBounds(bounds, { padding: [24, 24], maxZoom: Math.min(9, (options.maxZoom ?? 15)) });
-            }
-          },
-          { enableHighAccuracy: false, maximumAge: 600000, timeout: 5000 },
-        );
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          const { latitude, longitude } = pos.coords;
+          this.map.setView(
+            [latitude, longitude],
+            Math.min(9, options.maxZoom ?? 15),
+          );
+          await this.goToCurrentLocation();
+        });
       }
     } catch {
       // ignore and fallback below
@@ -108,7 +101,10 @@ export class MapBuilder {
         c.location.lng,
       ]);
       const bounds = new L.LatLngBounds(latLngs);
-      this.map.fitBounds(bounds, { padding: [24, 24], maxZoom: Math.min(9, (options.maxZoom ?? 15)) });
+      this.map.fitBounds(bounds, {
+        padding: [24, 24],
+        maxZoom: Math.min(9, options.maxZoom ?? 15),
+      });
     }
 
     this.map.on('click', () => {

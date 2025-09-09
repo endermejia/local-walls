@@ -66,8 +66,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   public selectedCragChange: OutputEmitterRef<Crag | null> =
     output<Crag | null>();
   public options: InputSignal<MapOptions> = input<MapOptions>({
-    center: [39.5, -0.5],
-    zoom: 5,
+    center: [38.7, -0.7],
+    zoom: 10,
     maxZoom: 15,
     minZoom: 5,
   });
@@ -100,7 +100,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
           north_east_longitude: v.north_east_longitude,
           zoom: v.zoom,
           page_index: 0,
-          page_size: 20,
+          page_size: 500,
         });
 
         // Prefetch a few visible crags routes if not already loaded
