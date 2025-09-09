@@ -79,7 +79,7 @@ export class MapBuilder {
             const { latitude, longitude } = pos.coords;
             this.map.setView(
               [latitude, longitude],
-              Math.max(12, options.zoom ?? 7),
+              Math.min(9, (options.maxZoom ?? 15)),
             );
             // Also create the user location marker on first load
             await this.goToCurrentLocation();
@@ -92,7 +92,7 @@ export class MapBuilder {
                 c.location.lng,
               ]);
               const bounds = new L.LatLngBounds(latLngs);
-              this.map.fitBounds(bounds, { padding: [24, 24] });
+              this.map.fitBounds(bounds, { padding: [24, 24], maxZoom: Math.min(9, (options.maxZoom ?? 15)) });
             }
           },
           { enableHighAccuracy: false, maximumAge: 600000, timeout: 5000 },
@@ -108,7 +108,7 @@ export class MapBuilder {
         c.location.lng,
       ]);
       const bounds = new L.LatLngBounds(latLngs);
-      this.map.fitBounds(bounds, { padding: [24, 24] });
+      this.map.fitBounds(bounds, { padding: [24, 24], maxZoom: Math.min(9, (options.maxZoom ?? 15)) });
     }
 
     this.map.on('click', () => {
