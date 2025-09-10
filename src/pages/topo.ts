@@ -18,7 +18,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import { TuiButton, TuiLoader } from '@taiga-ui/core';
 import { TuiSortDirection } from '@taiga-ui/addon-table';
-import type { Topo, TopoRoute, Route } from '../models';
+import type { ClimbingTopo, TopoRoute, ClimbingRoute } from '../models';
 
 @Component({
   selector: 'app-topo',
@@ -39,9 +39,9 @@ import type { Topo, TopoRoute, Route } from '../models';
             <app-section-header
               class="w-full  "
               [title]="t.name"
-              [liked]="global.isTopoLiked()(t.id)"
+              [liked]="global.liked()"
               (back)="goBack()"
-              (toggleLike)="global.toggleLikeTopo(t.id)"
+              (toggleLike)="global.toggleLikeTopo(t.slug)"
             />
             <!-- Toggle image fit button -->
             @let imgFit = imageFit();
@@ -90,10 +90,7 @@ import type { Topo, TopoRoute, Route } from '../models';
           aria-label="Routes"
         >
           <section class="w-full max-w-5xl mx-auto sm:p-4 overflow-auto">
-            <app-routes-table
-              [data]="topoRoutesDetailed()"
-              [direction]="direction()"
-            />
+            <app-routes-table [data]="[]" [direction]="direction()" />
           </section>
         </tui-bottom-sheet>
       } @else {
@@ -119,23 +116,8 @@ export class TopoComponent {
   private readonly location = inject(Location);
 
   id: InputSignal<string> = input.required<string>();
-  topo: Signal<Topo | null> = computed<Topo | null>(() => {
-    const id = this.id();
-    return this.global.topos().find((t) => t.id === id) || null;
-  });
-
-  topoRoutesDetailed: Signal<(TopoRoute & { route?: Route })[]> = computed(
-    () => {
-      const id = this.id();
-      const tr = this.global.topoRoutes().filter((r) => r.topoId === id);
-      const routesIndex = new Map(
-        this.global.routesData().map((r) => [r.id, r] as const),
-      );
-      return tr.map((item) => ({
-        ...item,
-        route: routesIndex.get(item.routeId),
-      }));
-    },
+  topo: Signal<ClimbingTopo | null> = computed<ClimbingTopo | null>(() =>
+    this.global.topo(),
   );
 
   protected readonly direction: WritableSignal<TuiSortDirection> =
@@ -144,14 +126,6 @@ export class TopoComponent {
   constructor() {
     effect(() => {
       const id = this.id();
-      this.global.setSelectedTopo(id);
-      const topo = this.global.topos().find((t) => t.id === id);
-      if (topo) {
-        this.global.setSelectedCrag(topo.cragId);
-        const crag = this.global.crags().find((c) => c.id === topo.cragId);
-        if (crag) this.global.setSelectedZone(crag.zoneId);
-        this.global.setSelectedRoute(null);
-      }
     });
   }
 

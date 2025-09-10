@@ -15,7 +15,7 @@ import {
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import type { Crag, MapOptions, MapVisibleElements } from '../models';
+import type { MapCragItem, MapOptions } from '../models';
 import { MapBuilder } from '../services/map-builder';
 import type { MapBuilderCallbacks } from '../services/map-builder';
 import { GlobalData } from '../services';
@@ -61,10 +61,13 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private readonly global = inject(GlobalData);
 
   private readonly mapInitialized = signal(false);
-  public crags: InputSignal<readonly Crag[]> = input<readonly Crag[]>([]);
-  public selectedCrag: InputSignal<Crag | null> = input<Crag | null>(null);
-  public selectedCragChange: OutputEmitterRef<Crag | null> =
-    output<Crag | null>();
+  public mapCragItems: InputSignal<readonly MapCragItem[]> = input<
+    readonly MapCragItem[]
+  >([]);
+  public selectedMapCragItem: InputSignal<MapCragItem | null> =
+    input<MapCragItem | null>(null);
+  public selectedMapCragItemChange: OutputEmitterRef<MapCragItem | null> =
+    output<MapCragItem | null>();
   public options: InputSignal<MapOptions> = input<MapOptions>({
     center: [38.7, -0.7],
     zoom: 10,
@@ -73,60 +76,27 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   });
   public mapClick = output<void>();
   public interactionStart = output<void>();
-  public visibleChange = output<MapVisibleElements>();
 
-  private _visibleCragIds: Set<string> = new Set<string>();
   private _viewportDebounce?: ReturnType<typeof setTimeout>;
 
   private readonly callbacks: MapBuilderCallbacks = {
-    onSelectedCragChange: (crag) => this.selectedCragChange.emit(crag),
+    onSelectedCragChange: (crag) => this.selectedMapCragItemChange.emit(crag),
     onMapClick: () => this.mapClick.emit(),
     onInteractionStart: () => this.interactionStart.emit(),
-    onVisibleChange: (visible) => {
-      // Keep UI in sync
-      this.visibleChange.emit(visible);
-      // Track for prefetch
-      this._visibleCragIds = new Set(visible.cragIds);
-    },
     onViewportChange: (v) => {
       // Drive data loading from here (map owns fetching)
       if (!this.isBrowser()) return;
       if (this._viewportDebounce) clearTimeout(this._viewportDebounce);
       this._viewportDebounce = setTimeout(() => {
-        void this.global.loadZonesAndCragsFromBounds({
+        void this.global.loadMapItems({
           south_west_latitude: v.south_west_latitude,
           south_west_longitude: v.south_west_longitude,
           north_east_latitude: v.north_east_latitude,
           north_east_longitude: v.north_east_longitude,
           zoom: v.zoom,
           page_index: 0,
-          page_size: 500,
+          page_size: 50,
         });
-
-        // Prefetch a few visible crags routes if not already loaded
-        const visible = Array.from(this._visibleCragIds);
-        if (visible.length) {
-          const LIMIT = 5;
-          const toPrefetch: string[] = [];
-          for (const cragId of visible) {
-            const hasTopo = this.global
-              .topos()
-              .some((t) => t.cragId === cragId);
-            const hasTopoRoutes =
-              hasTopo &&
-              this.global.topoRoutes().some((tr) => {
-                const t = this.global.topos().find((x) => x.id === tr.topoId);
-                return t?.cragId === cragId;
-              });
-            if (!hasTopo || !hasTopoRoutes) {
-              toPrefetch.push(cragId);
-              if (toPrefetch.length >= LIMIT) break;
-            }
-          }
-          for (const id of toPrefetch) {
-            void this.global.loadCragRoutes(id);
-          }
-        }
       }, 300);
     },
   };
@@ -136,8 +106,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   constructor() {
     effect(() => {
-      const crags = this.crags();
-      const selected = this.selectedCrag();
+      const crags = this.mapCragItems();
+      const selected = this.selectedMapCragItem();
       if (this.mapInitialized()) {
         void this.mapBuilder.updateData(crags, selected, this.callbacks);
       }
@@ -188,8 +158,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     await this.mapBuilder.init(
       el,
       this.options(),
-      this.crags(),
-      this.selectedCrag(),
+      this.mapCragItems(),
+      this.selectedMapCragItem(),
       this.callbacks,
     );
     this.mapInitialized.set(true);

@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiRingChart } from '@taiga-ui/addon-charts';
-import { ORDERED_GRADE_VALUES, Grade, RoutesByGrade } from '../models';
+import { ORDERED_GRADE_VALUES, GradeLabel, RoutesByGrade } from '../models';
 import { LowerCasePipe } from '@angular/common';
 
 @Component({
@@ -69,7 +69,7 @@ export class ChartRoutesByGradeComponent {
 
   private readonly allGrades = ORDERED_GRADE_VALUES;
 
-  private bandForGrade(g: Grade): 0 | 1 | 2 | 3 | 4 {
+  private bandForGrade(g: GradeLabel): 0 | 1 | 2 | 3 | 4 {
     const base = parseInt(g.charAt(0), 10);
     if (!Number.isFinite(base)) return 0;
     if (base <= 5) return 0;
@@ -98,18 +98,19 @@ export class ChartRoutesByGradeComponent {
     Number.isFinite(this.activeItemIndex()),
   );
 
-  private gradesForBand(band: 0 | 1 | 2 | 3 | 4): readonly Grade[] {
+  private gradesForBand(band: 0 | 1 | 2 | 3 | 4): readonly GradeLabel[] {
     return this.allGrades.filter(
       (g) => this.bandForGrade(g) === band,
-    ) as readonly Grade[];
+    ) as readonly GradeLabel[];
   }
 
   readonly breakdown = computed(() => {
     const idx = this.activeItemIndex();
-    if (!Number.isFinite(idx)) return [] as { grade: Grade; count: number }[];
+    if (!Number.isFinite(idx))
+      return [] as { grade: GradeLabel; count: number }[];
     const counts = this.counts();
     const grades = this.gradesForBand(idx as 0 | 1 | 2 | 3 | 4);
-    const items: { grade: Grade; count: number }[] = [];
+    const items: { grade: GradeLabel; count: number }[] = [];
     for (const g of grades) {
       const c = counts[g] ?? 0;
       if (c > 0) items.push({ grade: g, count: c });

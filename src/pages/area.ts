@@ -7,8 +7,9 @@ import {
   input,
   effect,
   InputSignal,
+  OnDestroy,
 } from '@angular/core';
-import type { Crag, Zone } from '../models';
+import type { ClimbingArea, ClimbingCrag } from '../models';
 import { ChartRoutesByGradeComponent } from '../components';
 import { GlobalData } from '../services';
 import { Location, LowerCasePipe } from '@angular/common';
@@ -17,6 +18,7 @@ import { SectionHeaderComponent } from '../components/section-header';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import { TuiSurface, TuiTitle, TuiLoader } from '@taiga-ui/core';
+import { PageableResponse } from '../models/pagination.model';
 
 @Component({
   selector: 'app-zone',
@@ -35,16 +37,16 @@ import { TuiSurface, TuiTitle, TuiLoader } from '@taiga-ui/core';
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
-      @if (zone(); as z) {
+      @if (area(); as a) {
         <app-section-header
-          [title]="z.name"
-          [liked]="global.isZoneLiked()(z.id)"
+          [title]="a.areaName"
+          [liked]="global.liked()"
           (back)="goBack()"
-          (toggleLike)="global.toggleLikeZone(z.id)"
+          (toggleLike)="global.toggleLikeZone(a.areaSlug)"
         />
 
-        @if (z.description) {
-          <p class="mt-2 opacity-80">{{ z.description }}</p>
+        @if (a.description) {
+          <p class="mt-2 opacity-80">{{ a.description }}</p>
         }
 
         <app-chart-routes-by-grade class="mt-4" [counts]="routesByGrade()" />
@@ -53,26 +55,26 @@ import { TuiSurface, TuiTitle, TuiLoader } from '@taiga-ui/core';
           {{ 'labels.crags' | translate }}
         </h2>
         <div class="grid gap-2">
-          @for (c of cragsSorted(); track c.id) {
+          @for (c of crags()?.items; track c.cragSlug) {
             <div
               tuiCardLarge
-              [tuiSurface]="global.isCragLiked()(c.id) ? 'accent' : 'neutral'"
+              [tuiSurface]="global.liked() ? 'accent' : 'neutral'"
               class="cursor-pointer"
-              [routerLink]="['/crag', c.id]"
+              [routerLink]="['/crag', c.countrySlug, c.cragSlug]"
             >
               <div class="flex items-center gap-3">
                 <div class="flex flex-col min-w-0 grow">
                   <header tuiHeader>
-                    <h2 tuiTitle>{{ c.name }}</h2>
+                    <h2 tuiTitle>{{ c.cragName }}</h2>
                   </header>
                   <section>
                     <div class="text-sm opacity-80">
                       {{ 'labels.approach' | translate }} :
-                      {{ c.approach || '—' }}
+                      {{ c.totalAscents || '—' }}
                       {{ 'units.min' | translate }}
                     </div>
                     <div class="text-sm mt-1">
-                      {{ c.parkings.length }}
+                      {{ '// TODO: ' }}
                       {{ 'labels.parkings' | translate | lowercase }}
                     </div>
                   </section>
@@ -80,7 +82,7 @@ import { TuiSurface, TuiTitle, TuiLoader } from '@taiga-ui/core';
                 <div (click.zoneless)="$event.stopPropagation()">
                   <app-chart-routes-by-grade
                     class="mt-2"
-                    [counts]="cragRoutesByGrade()(c.id)"
+                    [counts]="cragRoutesByGrade()"
                   />
                 </div>
               </div>
@@ -97,48 +99,37 @@ import { TuiSurface, TuiTitle, TuiLoader } from '@taiga-ui/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex grow overflow-auto sm:p-4' },
 })
-export class ZoneComponent {
+export class AreaComponent implements OnDestroy {
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
 
-  id: InputSignal<string> = input.required<string>();
-  zone: Signal<Zone | null> = computed<Zone | null>(() => {
-    const id = this.id();
-    return this.global.zones().find((z) => z.id === id) || null;
-  });
+  countrySlug: InputSignal<string> = input.required<string>();
+  areaSlug: InputSignal<string> = input.required<string>();
+  area: Signal<ClimbingArea | null> = computed(() => this.global.area());
+  crags: Signal<PageableResponse<ClimbingCrag> | null> = computed(() =>
+    this.global.cragsPageable(),
+  );
 
-  crags: Signal<Crag[]> = this.global.selectedZoneCrags;
-  cragsSorted: Signal<Crag[]> = computed<Crag[]>(() => {
-    const likedIds = new Set(this.global.appUser()?.likedCrags ?? []);
-    return [...this.crags()].sort(
-      (a, b) =>
-        +!likedIds.has(a.id) - +!likedIds.has(b.id) ||
-        a.name.localeCompare(b.name),
-    );
-  });
-
-  cragRoutesByGrade = computed(() => this.global.cragRoutesByGrade());
-  routesByGrade = computed(() => this.global.routesByGradeForSelectedZone());
+  cragRoutesByGrade = computed(() => ({}) as any);
+  routesByGrade = computed(() => ({}) as any);
 
   constructor() {
     // Ensure data is present when directly navigating by ID
     effect(() => {
-      const id = this.id();
-      if (!this.zone()) {
-        // Try to load from remote if not available yet
-        void this.global.loadZoneById(id);
-      }
-    });
-    effect(() => {
-      const id = this.id();
-      this.global.setSelectedZone(id);
-      this.global.setSelectedCrag(null);
-      this.global.setSelectedTopo(null);
-      this.global.setSelectedRoute(null);
+      const countrySlug = this.countrySlug();
+      const areaSlug = this.areaSlug();
+      this.global.loadArea(countrySlug, areaSlug);
+
+      // TODO: implement pageable list for climbing crags (on Area page)
+      // using @defer for lazy loading and infinite scroll
     });
   }
 
   goBack(): void {
     this.location.back();
+  }
+
+  ngOnDestroy() {
+    this.global.area.set(null);
   }
 }

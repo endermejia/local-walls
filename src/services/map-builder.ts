@@ -1,13 +1,12 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { GlobalData } from './global-data';
-import type { Crag, MapOptions, MapVisibleElements } from '../models';
+import { MapCragItem, MapOptions } from '../models';
 
 export interface MapBuilderCallbacks {
-  onSelectedCragChange: (crag: Crag | null) => void;
+  onSelectedCragChange: (mapCragItem: MapCragItem | null) => void;
   onMapClick: () => void;
   onInteractionStart: () => void;
-  onVisibleChange: (visible: MapVisibleElements) => void;
   onViewportChange: (v: {
     south_west_latitude: number;
     south_west_longitude: number;
@@ -18,7 +17,7 @@ export interface MapBuilderCallbacks {
 }
 
 interface ClusterGroup {
-  markers: Crag[];
+  markers: MapCragItem[];
   center: [number, number];
   count: number;
 }
@@ -30,7 +29,7 @@ export class MapBuilder {
   private map!: import('leaflet').Map;
   private initialized = false;
   private L: typeof import('leaflet') | null = null;
-  private cragsData: readonly Crag[] = [];
+  private mapCragItems: readonly MapCragItem[] = [];
   private markers: import('leaflet').Marker[] = [];
   private userMarker: import('leaflet').Marker | null = null;
   private clusteringEnabled = true;
@@ -43,8 +42,8 @@ export class MapBuilder {
   async init(
     el: HTMLElement,
     options: MapOptions,
-    crags: readonly Crag[],
-    selectedCrag: Crag | null,
+    mapCragItem: readonly MapCragItem[],
+    selectedMapCragItem: MapCragItem | null,
     cb: MapBuilderCallbacks,
   ): Promise<void> {
     if (this.initialized || !this.isBrowser()) return;
@@ -65,8 +64,8 @@ export class MapBuilder {
       },
     ).addTo(this.map);
 
-    this.cragsData = crags;
-    await this.rebuildMarkers(crags, selectedCrag, cb);
+    this.mapCragItems = mapCragItem;
+    await this.rebuildMarkers(mapCragItem, selectedMapCragItem, cb);
 
     // Determine if we should attempt geolocation: only on mobile devices
     const isMobileClient = (() => {
@@ -95,11 +94,10 @@ export class MapBuilder {
       // ignore and fallback below
     }
 
-    if (crags && crags.length) {
-      const latLngs: [number, number][] = crags.map((c) => [
-        c.location.lat,
-        c.location.lng,
-      ]);
+    if (mapCragItem && mapCragItem.length) {
+      const latLngs: [number, number][] = mapCragItem.map(
+        (mapItem: MapCragItem) => [mapItem.latitude, mapItem.longitude],
+      );
       const bounds = new L.LatLngBounds(latLngs);
       this.map.fitBounds(bounds, {
         padding: [24, 24],
@@ -112,20 +110,15 @@ export class MapBuilder {
       cb.onMapClick();
     });
 
-    const recalcVisible = () => this.updateVisibleIdsFromCurrentBounds(cb);
-    await recalcVisible();
-
     const collapseOnInteraction = () => cb.onInteractionStart();
     this.map.on('movestart', collapseOnInteraction);
     this.map.on('zoomstart', collapseOnInteraction);
 
     this.map.on('moveend', async () => {
-      await this.updateVisibleIdsFromCurrentBounds(cb);
-      await this.rebuildMarkers(this.cragsData, selectedCrag, cb);
+      await this.rebuildMarkers(this.mapCragItems, selectedMapCragItem, cb);
     });
     this.map.on('zoomend', async () => {
-      await this.updateVisibleIdsFromCurrentBounds(cb);
-      await this.rebuildMarkers(this.cragsData, selectedCrag, cb);
+      await this.rebuildMarkers(this.mapCragItems, selectedMapCragItem, cb);
     });
 
     this.initialized = true;
@@ -148,14 +141,13 @@ export class MapBuilder {
   }
 
   async updateData(
-    crags: readonly Crag[],
-    selectedCrag: Crag | null,
+    mapCragItem: readonly MapCragItem[],
+    selectedMapCragItem: MapCragItem | null,
     cb: MapBuilderCallbacks,
   ): Promise<void> {
     if (!this.map) return;
-    this.cragsData = crags;
-    await this.rebuildMarkers(crags, selectedCrag, cb);
-    await this.updateVisibleIdsFromCurrentBounds(cb);
+    this.mapCragItems = mapCragItem;
+    await this.rebuildMarkers(mapCragItem, selectedMapCragItem, cb);
   }
 
   destroy(): void {
@@ -184,14 +176,16 @@ export class MapBuilder {
     return this.clusteringEnabled && zoom < 15;
   }
 
-  private groupMarkersByProximity(crags: readonly Crag[]): ClusterGroup[] {
+  private groupMarkersByProximity(
+    mapCragItems: readonly MapCragItem[],
+  ): ClusterGroup[] {
     if (!this.map || !this.L) return [];
     const L = this.L;
 
     if (!this.shouldCluster()) {
-      return crags.map((c) => ({
-        markers: [c],
-        center: [c.location.lat, c.location.lng],
+      return mapCragItems.map((mapCragItem) => ({
+        markers: [mapCragItem],
+        center: [mapCragItem.latitude, mapCragItem.longitude],
         count: 1,
       }));
     }
@@ -199,29 +193,33 @@ export class MapBuilder {
     const groups: ClusterGroup[] = [];
     const processed = new Set<string>();
 
-    for (const crag of crags) {
-      if (processed.has(crag.id)) continue;
+    for (const mapCragItem of mapCragItems) {
+      if (processed.has(mapCragItem.slug)) continue;
 
       const latlng = new (L as any).LatLng(
-        crag.location.lat,
-        crag.location.lng,
+        mapCragItem.latitude,
+        mapCragItem.longitude,
       );
       const point = this.map.latLngToContainerPoint(latlng);
 
       const group: ClusterGroup = {
-        markers: [crag],
-        center: [crag.location.lat, crag.location.lng],
+        markers: [mapCragItem],
+        center: [mapCragItem.latitude, mapCragItem.longitude],
         count: 1,
       };
 
-      processed.add(crag.id);
+      processed.add(mapCragItem.slug);
 
-      for (const otherCrag of crags) {
-        if (otherCrag.id === crag.id || processed.has(otherCrag.id)) continue;
+      for (const otherCrag of mapCragItems) {
+        if (
+          otherCrag.slug === mapCragItem.slug ||
+          processed.has(otherCrag.slug)
+        )
+          continue;
 
         const otherLatLng = new (L as any).LatLng(
-          otherCrag.location.lat,
-          otherCrag.location.lng,
+          otherCrag.latitude,
+          otherCrag.longitude,
         );
         const otherPoint = this.map.latLngToContainerPoint(otherLatLng);
 
@@ -230,12 +228,12 @@ export class MapBuilder {
         if (distance <= this.clusterRadius) {
           group.markers.push(otherCrag);
           group.count++;
-          processed.add(otherCrag.id);
+          processed.add(otherCrag.slug);
 
           group.center = [
-            (group.center[0] * (group.count - 1) + otherCrag.location.lat) /
+            (group.center[0] * (group.count - 1) + otherCrag.latitude) /
               group.count,
-            (group.center[1] * (group.count - 1) + otherCrag.location.lng) /
+            (group.center[1] * (group.count - 1) + otherCrag.longitude) /
               group.count,
           ];
         }
@@ -248,8 +246,8 @@ export class MapBuilder {
   }
 
   private async rebuildMarkers(
-    crags: readonly Crag[],
-    selectedCrag: Crag | null,
+    mapCragItems: readonly MapCragItem[],
+    selectedMapCragItem: MapCragItem | null,
     cb: MapBuilderCallbacks,
   ): Promise<void> {
     if (!this.map || !this.L) return;
@@ -257,18 +255,18 @@ export class MapBuilder {
 
     this.cleanMarkers();
 
-    const groups = this.groupMarkersByProximity(crags);
+    const groups = this.groupMarkersByProximity(mapCragItems);
 
     for (const group of groups) {
       if (group.count === 1) {
-        const crag = group.markers[0];
-        const { lat, lng } = crag.location;
-        const latLng: [number, number] = [lat, lng];
+        const mapCragItem = group.markers[0];
+        const { latitude, longitude } = mapCragItem;
+        const latLng: [number, number] = [latitude, longitude];
         const icon = new (L as any).DivIcon({
           html: this.cragLabelHtml(
-            crag.name,
-            selectedCrag?.id === crag.id,
-            this.global.isCragLiked()(crag.id),
+            mapCragItem.name,
+            selectedMapCragItem?.id === mapCragItem.id,
+            this.global.liked(),
           ),
           className: 'pointer-events-none',
           iconSize: [0, 0],
@@ -285,11 +283,11 @@ export class MapBuilder {
           (
             (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
           )?.stopPropagation?.();
-          cb.onSelectedCragChange(crag);
+          cb.onSelectedCragChange(mapCragItem);
         });
 
         this.attachMarkerKeyboardSelection(marker, () =>
-          cb.onSelectedCragChange(crag),
+          cb.onSelectedCragChange(mapCragItem),
         );
       } else {
         const latLng = group.center;
@@ -314,7 +312,7 @@ export class MapBuilder {
           )?.stopPropagation?.();
 
           const bounds = new (L as any).LatLngBounds(
-            group.markers.map((c) => [c.location.lat, c.location.lng]),
+            group.markers.map((c) => [c.latitude, c.longitude]),
           );
 
           this.map.fitBounds(bounds, {
@@ -352,40 +350,6 @@ export class MapBuilder {
         ev.preventDefault();
         onSelect();
       }
-    });
-  }
-
-  private async updateVisibleIdsFromCurrentBounds(
-    cb: MapBuilderCallbacks,
-  ): Promise<void> {
-    if (!this.map || !this.L) return;
-    const L = this.L;
-    const bounds = this.map.getBounds();
-    const visibleZones = new Set<string>();
-    const visibleCrags = new Set<string>();
-
-    for (const c of this.cragsData) {
-      const { lat, lng } = c.location;
-      const wrapped = new (L as any).LatLng(lat, lng).wrap();
-      if (bounds.contains(wrapped)) {
-        visibleZones.add(c.zoneId);
-        visibleCrags.add(c.id);
-      }
-    }
-
-    cb.onVisibleChange({
-      zoneIds: Array.from(visibleZones),
-      cragIds: Array.from(visibleCrags),
-    });
-
-    const sw = bounds.getSouthWest();
-    const ne = bounds.getNorthEast();
-    cb.onViewportChange({
-      south_west_latitude: sw.lat,
-      south_west_longitude: sw.lng,
-      north_east_latitude: ne.lat,
-      north_east_longitude: ne.lng,
-      zoom: this.map.getZoom(),
     });
   }
 

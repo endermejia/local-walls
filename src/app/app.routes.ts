@@ -13,22 +13,22 @@ export const routes: Routes = [
     loadComponent: () => import('../pages/home').then((m) => m.HomeComponent),
   },
   {
-    path: 'zone/:id',
+    path: 'zone/:countrySlug/:areaSlug',
     canMatch: [authGuard],
-    loadComponent: () => import('../pages/zone').then((m) => m.ZoneComponent),
+    loadComponent: () => import('../pages/area').then((m) => m.AreaComponent),
   },
   {
-    path: 'crag/:id',
+    path: 'crag/:countrySlug/:cragSlug',
     canMatch: [authGuard],
     loadComponent: () => import('../pages/crag').then((m) => m.CragComponent),
   },
   {
-    path: 'topo/:id',
+    path: 'topo/:countrySlug/:cragSlug/:id',
     canMatch: [authGuard],
     loadComponent: () => import('../pages/topo').then((m) => m.TopoComponent),
   },
   {
-    path: 'route/:id',
+    path: 'route/:countrySlug/:cragSlug/sector/:sectorSlug/:zlaggableId',
     canMatch: [authGuard],
     loadComponent: () => import('../pages/route').then((m) => m.RouteComponent),
   },

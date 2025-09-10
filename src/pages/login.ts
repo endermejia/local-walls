@@ -96,8 +96,8 @@ export class LoginComponent {
   private readonly global = inject(GlobalData);
   private readonly router = inject(Router);
 
-  username: WritableSignal<string> = signal('');
-  password: WritableSignal<string> = signal('');
+  username: WritableSignal<string> = signal('usuario-prueba');
+  password: WritableSignal<string> = signal('!dfd3DSDxx#@$%&*()_+');
   error: WritableSignal<string | null> = signal<string | null>(null);
 
   onInputUsername(value: string) {

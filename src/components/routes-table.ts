@@ -15,7 +15,7 @@ import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { TuiLet, tuiDefaultSort } from '@taiga-ui/cdk';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GlobalData } from '../services';
-import type { Route, TopoRoute } from '../models';
+import type { ClimbingRoute, TopoRoute } from '../models';
 import { gradeRank } from '../utils';
 
 export type RoutesTableKey = 'grade' | 'number' | 'route' | 'height';
@@ -25,7 +25,7 @@ export interface RoutesTableRow {
   number: number;
   route: string;
   height: number | null;
-  _ref: TopoRoute & { route?: Route };
+  _ref: TopoRoute & { route?: ClimbingRoute };
 }
 
 @Component({
@@ -167,7 +167,8 @@ export interface RoutesTableRow {
 export class RoutesTableComponent {
   protected readonly global = inject(GlobalData);
 
-  data: InputSignal<(TopoRoute & { route?: Route })[]> = input.required();
+  data: InputSignal<(TopoRoute & { route?: ClimbingRoute })[]> =
+    input.required();
   direction: InputSignal<TuiSortDirection> = input<TuiSortDirection>(
     TuiSortDirection.Asc,
   );

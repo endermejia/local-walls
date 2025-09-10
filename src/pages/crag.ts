@@ -8,7 +8,7 @@ import {
   Signal,
   InputSignal,
 } from '@angular/core';
-import type { Crag, Topo, Parking } from '../models';
+import type { ClimbingCrag, ClimbingTopo, Parking } from '../models';
 import { ChartRoutesByGradeComponent } from '../components';
 import { GlobalData } from '../services';
 import { Location, LowerCasePipe } from '@angular/common';
@@ -40,10 +40,10 @@ import { mapLocationUrl } from '../utils';
     <section class="w-full max-w-5xl mx-auto p-4">
       @if (crag(); as c) {
         <app-section-header
-          [title]="c.name"
-          [liked]="global.isCragLiked()(c.id)"
+          [title]="c.cragName"
+          [liked]="global.liked()"
           (back)="goBack()"
-          (toggleLike)="global.toggleLikeCrag(c.id)"
+          (toggleLike)="global.toggleLikeCrag(c.cragSlug)"
         />
 
         @if (c.description) {
@@ -81,8 +81,10 @@ import { mapLocationUrl } from '../utils';
                       </header>
                       <section>
                         <div class="text-sm opacity-80">
-                          {{ 'labels.lat' | translate }}: {{ pLocation.lat }} ·
-                          {{ 'labels.lng' | translate }}: {{ pLocation.lng }}
+                          {{ 'labels.lat' | translate }}:
+                          {{ pLocation.latitude }} ·
+                          {{ 'labels.lng' | translate }}:
+                          {{ pLocation.longitude }}
                         </div>
                         @if (p.capacity) {
                           <div class="text-sm opacity-80">
@@ -106,7 +108,7 @@ import { mapLocationUrl } from '../utils';
           @for (t of toposSorted(); track t.id) {
             <div
               tuiCardLarge
-              [tuiSurface]="global.isTopoLiked()(t.id) ? 'accent' : 'neutral'"
+              [tuiSurface]="global.liked() ? 'accent' : 'neutral'"
               class="cursor-pointer"
               [routerLink]="['/topo', t.id]"
             >
@@ -117,7 +119,7 @@ import { mapLocationUrl } from '../utils';
                   </header>
                   <section>
                     <div class="text-sm opacity-80">
-                      {{ topoRouteCount(t.id) }}
+                      {{ toposSorted() }}
                       {{ 'labels.routes' | translate | lowercase }}
                     </div>
                   </section>
@@ -147,56 +149,25 @@ export class CragComponent {
   private readonly location = inject(Location);
   protected readonly mapLocationUrl = mapLocationUrl;
 
-  id: InputSignal<string> = input.required<string>();
-  crag: Signal<Crag | null> = computed<Crag | null>(() => {
-    const id = this.id();
-    return this.global.crags().find((c) => c.id === id) || null;
-  });
+  countrySlug: InputSignal<string> = input.required<string>();
+  cragSlug: InputSignal<string> = input.required<string>();
+  crag: Signal<ClimbingCrag | null> = computed(() => this.global.crag());
 
-  toposSorted: Signal<Topo[]> = computed<Topo[]>(() => {
-    const liked = new Set(this.global.appUser()?.likedTopos ?? []);
-    return [...this.global.selectedCragTopos()].sort((a, b) => {
-      const la = liked.has(a.id) ? 1 : 0;
-      const lb = liked.has(b.id) ? 1 : 0;
-      if (la !== lb) return lb - la; // liked first
-      return a.name.localeCompare(b.name);
-    });
-  });
+  // TODO: implement topos
+  toposSorted: Signal<ClimbingTopo[]> = computed<ClimbingTopo[]>(() => []);
 
-  cragParkings: Signal<Parking[]> = computed<Parking[]>(() => {
-    const c = this.crag();
-    if (!c) return [];
-    const ids = new Set(c.parkings);
-    return this.global.parkings().filter((p) => ids.has(p.id));
-  });
+  // TODO: implement crag parkings
+  cragParkings: Signal<Parking[]> = computed<Parking[]>(() => []);
 
-  topoRoutesByGrade = computed(() => this.global.topoRoutesByGrade());
-  routesByGrade = computed(() => this.global.routesByGradeForSelectedCrag());
+  topoRoutesByGrade = computed(() => ({}) as any);
+  routesByGrade = computed(() => ({}) as any);
 
   constructor() {
     effect(() => {
-      const id = this.id();
-      this.global.setSelectedCrag(id);
-      const crag = this.global.crags().find((c) => c.id === id);
-      if (crag) {
-        this.global.setSelectedZone(crag.zoneId);
-        // Load routes/topo for this crag if missing
-        const hasTopo = this.global.topos().some((t) => t.cragId === id);
-        const hasTopoRoutes = this.global.topoRoutes().some((tr) => {
-          const t = this.global.topos().find((x) => x.id === tr.topoId);
-          return t?.cragId === id;
-        });
-        if (!hasTopo || !hasTopoRoutes) {
-          void this.global.loadCragRoutes(id);
-        }
-      }
-      this.global.setSelectedTopo(null);
-      this.global.setSelectedRoute(null);
+      const countrySlug = this.countrySlug();
+      const cragSlug = this.cragSlug();
+      this.global.loadCrag(countrySlug, cragSlug);
     });
-  }
-
-  topoRouteCount(topoId: string): number {
-    return this.global.topoRoutes().filter((r) => r.topoId === topoId).length;
   }
 
   goBack(): void {

@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -11,7 +10,7 @@ import {
   ViewChild,
   WritableSignal,
 } from '@angular/core';
-import { Crag, Zone } from '../models';
+import { MapCragItem, MapAreaItem } from '../models';
 import { GlobalData } from '../services';
 import { MapComponent, ChartRoutesByGradeComponent } from '../components';
 import { RouterLink } from '@angular/router';
@@ -72,18 +71,18 @@ import { remToPx } from '../utils';
     @defer (on viewport) {
       <app-map
         class="w-full h-full"
-        [crags]="global.crags()"
-        [selectedCrag]="selectedCrag()"
-        (selectedCragChange)="selectCrag($event)"
+        [mapCragItems]="mapCragItems()"
+        [selectedMapCragItem]="global.selectedMapCragItem()"
+        (selectedMapCragItemChange)="selectMapCragItem($event)"
         (mapClick)="closeAll()"
         (interactionStart)="setBottomSheet('close')"
-        (visibleChange)="updateBottomSheet($event)"
       />
+      <!-- (visibleChange)="remountBottomSheet()" -->
     } @placeholder {
       <tui-loader size="xxl" class="w-full h-full flex" />
     }
 
-    @if (selectedCrag(); as c) {
+    @if (global.selectedMapCragItem(); as c) {
       <!-- Sección de información del crag seleccionado con el mismo ancho que el bottom-sheet -->
       <div
         class="absolute w-full max-w-[40rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0"
@@ -92,7 +91,7 @@ import { remToPx } from '../utils';
           tuiCardLarge
           tuiSurface="floating"
           class="relative pointer-events-auto cursor-pointer m-4"
-          [routerLink]="['/crag', c.id]"
+          [routerLink]="['/crag', c.country_slug, c.slug]"
         >
           <div class="flex items-center gap-3">
             <div class="flex flex-col min-w-0 grow">
@@ -104,18 +103,15 @@ import { remToPx } from '../utils';
                   <a
                     tuiLink
                     appearance="action-grayscale"
-                    [routerLink]="['/zone', c.zoneId]"
+                    [routerLink]="['/zone', c.country_slug, c.area_slug]"
                     (click.zoneless)="$event.stopPropagation()"
-                    >{{ global.zoneNameById()(c.zoneId) }}</a
+                    >{{ c.area_name }}</a
                   >
                 </div>
-                @if (c.description) {
-                  <div class="text-sm mt-1 opacity-70">{{ c.description }}</div>
-                }
               </section>
             </div>
             <div (click.zoneless)="$event.stopPropagation()">
-              <app-chart-routes-by-grade [counts]="cragRoutesByGrade()(c.id)" />
+              <app-chart-routes-by-grade [counts]="cragRoutesByGrade()" />
             </div>
           </div>
         </div>
@@ -131,7 +127,7 @@ import { remToPx } from '../utils';
           aria-labelledby="zones-title crags-title"
           (scroll.zoneless)="onSheetScroll($any($event))"
         >
-          @let zones = zonesInMapSorted();
+          @let areas = mapAreaItems();
           <h3 tuiHeader id="zones-title" class="justify-center">
             <div class="flex flex-row align-items-center justify-center gap-2">
               <tui-avatar
@@ -141,9 +137,9 @@ import { remToPx } from '../utils';
                 [attr.aria-label]="'labels.zone' | translate"
               />
               <span tuiTitle class="justify-center">
-                {{ zones.length }}
+                {{ areas.length }}
                 {{
-                  'labels.' + (zones.length === 1 ? 'zone' : 'zones')
+                  'labels.' + (areas.length === 1 ? 'zone' : 'zones')
                     | translate
                     | lowercase
                 }}
@@ -152,36 +148,28 @@ import { remToPx } from '../utils';
           </h3>
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 overflow-auto">
             <div class="grid gap-2">
-              @for (z of zones; track z.id) {
+              @for (a of areas; track a.id) {
                 <div
                   tuiCardLarge
-                  [tuiSurface]="
-                    global.isZoneLiked()(z.id) ? 'accent' : 'neutral'
-                  "
+                  [tuiSurface]="global.liked() ? 'accent' : 'neutral'"
                   class="cursor-pointer"
-                  [routerLink]="['/zone', z.id]"
+                  [routerLink]="['/zone', a.id]"
                 >
                   <div class="flex items-center gap-3">
                     <div class="flex flex-col min-w-0 grow">
                       <header tuiHeader>
-                        <h2 tuiTitle>{{ z.name }}</h2>
+                        <h2 tuiTitle>{{ a.name }}</h2>
                       </header>
                       <section>
                         <div class="text-sm opacity-80">
-                          {{ z.cragIds.length }}
-                          {{ 'labels.crags' | translate | lowercase }}
+                          {{ a.country_name }}
                         </div>
-                        @if (z.description) {
-                          <div class="text-sm mt-1 opacity-70">
-                            {{ z.description }}
-                          </div>
-                        }
                       </section>
                     </div>
                     <div (click.zoneless)="$event.stopPropagation()">
                       <app-chart-routes-by-grade
                         class="mt-2"
-                        [counts]="zoneRoutesByGrade()(z.id)"
+                        [counts]="zoneRoutesByGrade()"
                       />
                     </div>
                   </div>
@@ -191,7 +179,7 @@ import { remToPx } from '../utils';
               }
             </div>
           </section>
-          @let crags = cragsInMapSorted();
+          @let crags = mapCragItems();
           <h3 tuiHeader id="crags-title" class="justify-center">
             <div class="flex flex-row align-items-center justify-center gap-2">
               <tui-avatar
@@ -213,14 +201,12 @@ import { remToPx } from '../utils';
           </h3>
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 overflow-auto">
             <div class="grid gap-2">
-              @for (c of crags; track c.id) {
+              @for (c of crags; track c.slug) {
                 <div
                   tuiCardLarge
-                  [tuiSurface]="
-                    global.isCragLiked()(c.id) ? 'accent' : 'neutral'
-                  "
+                  [tuiSurface]="global.liked() ? 'accent' : 'neutral'"
                   class="cursor-pointer"
-                  [routerLink]="['/crag', c.id]"
+                  [routerLink]="['/crag', c.country_slug, c.slug]"
                 >
                   <div class="flex items-center gap-3">
                     <div class="flex flex-col min-w-0 grow">
@@ -232,22 +218,21 @@ import { remToPx } from '../utils';
                           <a
                             tuiLink
                             appearance="action-grayscale"
-                            [routerLink]="['/zone', c.zoneId]"
+                            [routerLink]="[
+                              '/zone',
+                              c.country_slug,
+                              c.area_slug,
+                            ]"
                             (click.zoneless)="$event.stopPropagation()"
-                            >{{ global.zoneNameById()(c.zoneId) }}</a
+                            >{{ c.area_name }}</a
                           >
                         </div>
-                        @if (c.description) {
-                          <div class="text-sm mt-1 opacity-70">
-                            {{ c.description }}
-                          </div>
-                        }
                       </section>
                     </div>
                     <div (click.zoneless)="$event.stopPropagation()">
                       <app-chart-routes-by-grade
                         class="mt-2"
-                        [counts]="cragRoutesByGrade()(c.id)"
+                        [counts]="c.grades"
                       />
                     </div>
                   </div>
@@ -276,13 +261,24 @@ export class HomeComponent {
 
   private readonly _sheetClientHeight: WritableSignal<number> = signal(0);
   private readonly _sheetScrollTop: WritableSignal<number> = signal(0);
-  private readonly _visibleZoneIds: WritableSignal<Set<string>> = signal<
-    Set<string>
-  >(new Set());
-  private readonly _visibleCragIds: WritableSignal<Set<string>> = signal<
-    Set<string>
-  >(new Set());
+
   protected readonly sheetMounted: WritableSignal<boolean> = signal(true);
+
+  protected mapCragItems: Signal<MapCragItem[]> = computed(() =>
+    this.global
+      .mapItems()
+      .filter(
+        (item): item is MapCragItem => (item as MapAreaItem).area_type !== 0,
+      ),
+  );
+
+  protected mapAreaItems: Signal<MapAreaItem[]> = computed(() =>
+    this.global
+      .mapItems()
+      .filter(
+        (item): item is MapAreaItem => (item as MapAreaItem).area_type === 0,
+      ),
+  );
 
   protected readonly isBottomSheetExpanded: Signal<boolean> = computed(() => {
     const clientHeight = this._sheetClientHeight();
@@ -293,56 +289,8 @@ export class HomeComponent {
     return scrollTop >= maxTop * 0.5;
   });
 
-  protected readonly selectedCrag: Signal<Crag | null> = computed(() => {
-    const id = this.global.selectedCragId();
-    return id ? (this.global.crags().find((c) => c.id === id) ?? null) : null;
-  });
-
-  protected readonly zonesInMapSorted: Signal<Zone[]> = computed(() => {
-    const zones = this.global.zones();
-    const crags = this.global.crags();
-    const zoneHasCrag = new Set(crags.map((c) => c.zoneId));
-    const liked = new Set(this.global.appUser()?.likedZones ?? []);
-    const visible = this._visibleZoneIds();
-    const visibleFilter = visible.size
-      ? (zId: string) => visible.has(zId)
-      : (zId: string) => zoneHasCrag.has(zId);
-    return zones
-      .filter((z) => visibleFilter(z.id))
-      .sort(
-        (a, b) =>
-          +!liked.has(a.id) - +!liked.has(b.id) || a.name.localeCompare(b.name),
-      );
-  });
-
-  protected readonly cragsInMapSorted: Signal<Crag[]> = computed(() => {
-    const crags = this.global.crags();
-    const visible = this._visibleCragIds();
-    const useAll = visible.size === 0;
-    const liked = new Set(this.global.appUser()?.likedCrags ?? []);
-    return crags
-      .filter((c) => (useAll ? true : visible.has(c.id)))
-      .sort(
-        (a, b) =>
-          +!liked.has(a.id) - +!liked.has(b.id) || a.name.localeCompare(b.name),
-      );
-  });
-
-  protected readonly cragRoutesByGrade = computed(() =>
-    this.global.cragRoutesByGrade(),
-  );
-  protected readonly zoneRoutesByGrade = computed(() =>
-    this.global.zoneRoutesByGrade(),
-  );
-
-  private remountBottomSheet(): void {
-    if (!this.isBrowser()) return;
-    if (this.selectedCrag()) return;
-    this.sheetMounted.set(false);
-    this.scheduleNextFrame(() =>
-      this.scheduleNextFrame(() => this.sheetMounted.set(true)),
-    );
-  }
+  protected readonly cragRoutesByGrade = computed(() => ({}) as any);
+  protected readonly zoneRoutesByGrade = computed(() => ({}) as any);
 
   private isBrowser(): boolean {
     return isPlatformBrowser(this._platformId) && typeof window !== 'undefined';
@@ -387,6 +335,15 @@ export class HomeComponent {
     }
   }
 
+  protected remountBottomSheet(): void {
+    if (!this.isBrowser()) return;
+    if (this.global.selectedMapCragItem()) return;
+    this.sheetMounted.set(false);
+    this.scheduleNextFrame(() =>
+      this.scheduleNextFrame(() => this.sheetMounted.set(true)),
+    );
+  }
+
   protected onSheetScroll(event: Event): void {
     if (!this.isBrowser()) return;
     const target =
@@ -400,11 +357,10 @@ export class HomeComponent {
       return;
     }
 
-    const hadCragSelected = !!this.global.selectedCragId();
+    const hadSelectedMapItem = !!this.global.selectedMapCragItem();
 
-    if (hadCragSelected && mode !== 'open') {
-      this.global.setSelectedCrag(null);
-      this.global.setSelectedZone(null);
+    if (hadSelectedMapItem && mode !== 'open') {
+      this.global.selectedMapCragItem.set(null);
     }
 
     const el = this.sheetRef?.nativeElement;
@@ -441,7 +397,9 @@ export class HomeComponent {
     } else if (mode === 'close') {
       targetTop = 0;
     } else {
-      const shouldExpand = hadCragSelected ? true : currentTop < maxTop * 0.5;
+      const shouldExpand = hadSelectedMapItem
+        ? true
+        : currentTop < maxTop * 0.5;
       targetTop = shouldExpand ? maxTop : 0;
     }
 
@@ -469,32 +427,14 @@ export class HomeComponent {
     }
   }
 
-  protected selectCrag(crag: Crag | null): void {
-    if (!crag) return;
-    this.global.setSelectedCrag(crag.id);
-    this.global.setSelectedZone(crag.zoneId);
+  protected selectMapCragItem(mapCragItem: MapCragItem | null): void {
+    if (!mapCragItem) return;
+    this.global.selectedMapCragItem.set(mapCragItem);
     this.setBottomSheet('open');
   }
 
   protected closeAll(): void {
-    this.global.setSelectedCrag(null);
-    this.global.setSelectedZone(null);
+    this.global.selectedMapCragItem.set(null);
     this.setBottomSheet('close');
-  }
-
-  protected updateBottomSheet(event: {
-    zoneIds: string[];
-    cragIds: string[];
-  }): void {
-    this._visibleZoneIds.set(new Set(event.zoneIds));
-    this._visibleCragIds.set(new Set(event.cragIds));
-    this.remountBottomSheet();
-  }
-
-  constructor() {
-    this.global.setSelectedZone(null);
-    this.global.setSelectedCrag(null);
-    this.global.setSelectedTopo(null);
-    this.global.setSelectedRoute(null);
   }
 }

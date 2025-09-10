@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { GlobalData } from '../services';
 import { Location } from '@angular/common';
-import { Route } from '../models';
+import { ClimbingRoute } from '../models';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiLoader } from '@taiga-ui/core';
@@ -23,14 +23,14 @@ import { TuiLoader } from '@taiga-ui/core';
     <section class="w-full max-w-5xl mx-auto p-4">
       @if (route(); as r) {
         <app-section-header
-          [title]="r.name"
-          [liked]="global.isRouteLiked()(r.id)"
+          [title]="r.zlaggableName"
+          [liked]="false"
           (back)="goBack()"
-          (toggleLike)="global.toggleLikeRoute(r.id)"
+          (toggleLike)="global.toggleLikeRoute(r.zlaggableId + '')"
         />
-        @if (r.grade) {
+        @if (r.difficulty) {
           <p class="mt-2 opacity-80">
-            {{ 'labels.grade' | translate }}: {{ r.grade }}
+            {{ 'labels.grade' | translate }}: {{ r.difficulty }}
           </p>
         }
       } @else {
@@ -47,27 +47,19 @@ export class RouteComponent {
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
 
-  id: InputSignal<string> = input.required<string>();
-  route: Signal<Route | null> = computed(() => {
-    const id = this.id();
-    return this.global.routesData().find((r) => r.id === id) || null;
-  });
+  countrySlug: InputSignal<string> = input.required<string>();
+  cragSlug: InputSignal<string> = input.required<string>();
+  sectorSlug: InputSignal<string> = input.required<string>();
+  zlaggableId: InputSignal<string> = input.required<string>();
+  route: Signal<ClimbingRoute | null> = computed(() => this.global.route());
 
   constructor() {
     effect(() => {
-      const id = this.id();
-      this.global.setSelectedRoute(id);
-      // Try to derive topo from topoRoutes and set parent crag and zone for breadcrumb
-      const tr = this.global.topoRoutes().find((x) => x.routeId === id);
-      if (tr) {
-        const topo = this.global.topos().find((t) => t.id === tr.topoId);
-        if (topo) {
-          this.global.setSelectedTopo(topo.id);
-          this.global.setSelectedCrag(topo.cragId);
-          const crag = this.global.crags().find((c) => c.id === topo.cragId);
-          if (crag) this.global.setSelectedZone(crag.zoneId);
-        }
-      }
+      const countrySlug = this.countrySlug();
+      const cragSlug = this.cragSlug();
+      const sectorSlug = this.sectorSlug();
+      const zlaggableId = this.zlaggableId();
+      this.global.loadRoute(countrySlug, cragSlug, sectorSlug, zlaggableId);
     });
   }
 

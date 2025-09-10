@@ -5,7 +5,7 @@ import { Coordinates } from '../models/coordinates.model';
  * @returns A Google Maps URL string that when opened will show the location
  * @param c
  */
-export function mapLocationUrl({ lat, lng }: Coordinates): string {
-  const q = `${encodeURIComponent(lat)},${encodeURIComponent(lng)}`;
+export function mapLocationUrl({ latitude, longitude }: Coordinates): string {
+  const q = `${encodeURIComponent(latitude)},${encodeURIComponent(longitude)}`;
   return `https://www.google.com/maps/search/?api=1&query=${q}`;
 }

@@ -1,4 +1,4 @@
-import { RenderMode, ServerRoute, PrerenderFallback } from '@angular/ssr';
+import { PrerenderFallback, RenderMode, ServerRoute } from '@angular/ssr';
 import { inject } from '@angular/core';
 import { GlobalData } from '../services';
 
@@ -21,45 +21,64 @@ export const serverRoutes: ServerRoute[] = [
 
   // Parameterized routes prerendered with fallback to Server for non-listed ids
   {
-    path: 'zone/:id',
+    path: 'zone/:countrySlug/:areaSlug',
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,
     async getPrerenderParams() {
-      // Note: inject must be called synchronously
       const global = inject(GlobalData);
-      // Use any available IDs at build time. If none, return empty to skip.
-      const ids = (global.zones?.() ?? []).map((z) => z.id);
-      return ids.map((id) => ({ id }));
+      const area = global.area();
+      return area ? [{ areaSlug: area.areaSlug }] : [];
     },
   },
   {
-    path: 'crag/:id',
+    path: 'crag/:countrySlug/:cragSlug',
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,
     async getPrerenderParams() {
       const global = inject(GlobalData);
-      const ids = (global.crags?.() ?? []).map((c) => c.id);
-      return ids.map((id) => ({ id }));
+      const crag = global.crag();
+      return crag
+        ? [
+            {
+              countrySlug: crag?.countrySlug,
+              cragSlug: crag?.cragSlug,
+            },
+          ]
+        : [];
     },
   },
   {
-    path: 'topo/:id',
+    path: 'topo/:countrySlug/:cragSlug/:id',
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,
     async getPrerenderParams() {
       const global = inject(GlobalData);
-      const ids = (global.topos?.() ?? []).map((t) => t.id);
-      return ids.map((id) => ({ id }));
+      const crag = global.crag();
+      return crag
+        ? [
+            {
+              countrySlug: crag.countrySlug,
+              cragSlug: crag.cragSlug,
+              id: '', // TODO: Topos
+            },
+          ]
+        : [];
     },
   },
   {
-    path: 'route/:id',
+    path: 'route/:countrySlug/:cragSlug/sector/:sectorSlug/:zlaggableId',
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,
     async getPrerenderParams() {
       const global = inject(GlobalData);
-      const ids = (global.routesData?.() ?? []).map((r) => r.id);
-      return ids.map((id) => ({ id }));
+      const route = global.route();
+      return route
+        ? [
+            {
+              zlaggableId: `${route.zlaggableId}`,
+            },
+          ]
+        : [];
     },
   },
   {

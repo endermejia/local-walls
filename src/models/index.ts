@@ -7,7 +7,5 @@ export * from './options-item.model';
 export * from './parking.model';
 export * from './route.model';
 export * from './search-item.model';
-export * from './topo-route.model';
 export * from './topo.model';
-export * from './user.model';
-export * from './zone.model';
+export * from './area.model';

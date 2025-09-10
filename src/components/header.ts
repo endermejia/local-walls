@@ -262,15 +262,23 @@ export class HeaderComponent implements OnDestroy {
     ];
     const zoneId = this.globalService.selectedZoneId();
     if (zoneId) {
-      const zone = this.globalService.zones().find((z) => z.id === zoneId);
+      const zone = this.globalService.areas().find((z) => z.id === zoneId);
       if (zone)
         items.push({ caption: zone.name, routerLink: ['/zone', zone.id] });
     }
     const cragId = this.globalService.selectedCragId();
     if (cragId) {
       const crag = this.globalService.crags().find((c) => c.id === cragId);
-      if (crag)
-        items.push({ caption: crag.name, routerLink: ['/crag', crag.id] });
+      if (crag) {
+        const zone = this.globalService
+          .areas()
+          .find((z) => z.id === crag.zoneId);
+        const country = zone?.countrySlug || 'spain';
+        items.push({
+          caption: crag.name,
+          routerLink: ['/crag', country, crag.id],
+        });
+      }
     }
     const topoId = this.globalService.selectedTopoId();
     if (topoId) {
