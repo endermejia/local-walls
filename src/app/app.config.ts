@@ -49,8 +49,8 @@ export const appConfig: ApplicationConfig = {
     provideEventPlugins(),
     {
       provide: TUI_LANGUAGE,
-      useFactory: (globalService: GlobalData) => {
-        return toObservable(globalService.tuiLanguage);
+      useFactory: (global: GlobalData) => {
+        return toObservable(global.tuiLanguage);
       },
       deps: [GlobalData],
     },

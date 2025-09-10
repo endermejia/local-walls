@@ -1,12 +1,20 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   InputSignal,
+  OnDestroy,
+  OutputEmitterRef,
+  PLATFORM_ID,
   Signal,
+  ViewChild,
   computed,
-  input,
   inject,
+  input,
+  output,
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
@@ -15,17 +23,16 @@ import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { TuiLet, tuiDefaultSort } from '@taiga-ui/cdk';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GlobalData } from '../services';
-import type { ClimbingRoute, TopoRoute } from '../models';
+import type { ClimbingRoute } from '../models';
 import { gradeRank } from '../utils';
 
-export type RoutesTableKey = 'grade' | 'number' | 'route' | 'height';
+export type RoutesTableKey = 'grade' | 'route' | 'ascents';
 
 export interface RoutesTableRow {
   grade: number;
-  number: number;
   route: string;
-  height: number | null;
-  _ref: TopoRoute & { route?: ClimbingRoute };
+  ascents: number;
+  _ref: ClimbingRoute;
 }
 
 @Component({
@@ -41,7 +48,7 @@ export interface RoutesTableRow {
     TuiLet,
   ],
   template: `
-    <div class="overflow-auto">
+    <div class="overflow-auto" #scroller>
       <table
         tuiTable
         class="w-full"
@@ -65,7 +72,7 @@ export interface RoutesTableRow {
           tuiTbody
           [data]="sortedData"
         >
-          @for (item of sortedData; track item._ref.routeId) {
+          @for (item of sortedData; track item._ref.zlaggableId) {
             <tr tuiTr>
               @for (col of columns; track col) {
                 <td *tuiCell="col" tuiTd>
@@ -78,78 +85,44 @@ export interface RoutesTableRow {
                           class="self-center font-semibold select-none"
                           [attr.aria-label]="'labels.grade' | translate"
                         >
-                          {{ item._ref.route?.grade || '—' }}
+                          {{ item._ref.difficulty || '—' }}
                         </tui-avatar>
-                      </div>
-                    }
-                    @case ('number') {
-                      <div tuiCell size="m">
-                        <span>{{ item._ref.number }}</span>
                       </div>
                     }
                     @case ('route') {
                       <div tuiCell size="m">
                         <a
-                          [routerLink]="['/route', item._ref.routeId]"
+                          [routerLink]="[
+                            '/route',
+                            item._ref.cragSlug,
+                            item._ref.sectorSlug,
+                            item._ref.zlaggableId,
+                          ]"
                           class="tui-link"
                         >
                           {{
-                            item._ref.route?.name ||
+                            item._ref.zlaggableName ||
                               ('labels.route' | translate)
                           }}
                         </a>
                       </div>
                     }
-                    @case ('height') {
+                    @case ('ascents') {
                       <div tuiCell size="m">
-                        <span>{{
-                          item._ref.route?.height !== null &&
-                          item._ref.route?.height !== undefined
-                            ? item._ref.route?.height + ' m'
-                            : '—'
-                        }}</span>
+                        <span>{{ item._ref.totalAscents ?? 0 }}</span>
                       </div>
                     }
                     @case ('actions') {
                       <div tuiCell size="m" class="flex items-center gap-2">
-                        @if (item._ref.route?.url_8anu; as url) {
-                          <a
-                            [href]="url"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            [attr.aria-label]="'8a.nu'"
-                          >
-                            <img
-                              alt="8a.nu"
-                              [src]="global.iconSrc()('8anu')"
-                              tuiBadge
-                              size="l"
-                            />
-                          </a>
-                        }
                         <tui-badge
-                          [appearance]="
-                            global.isRouteLiked()(item._ref.routeId)
-                              ? 'negative'
-                              : 'neutral'
-                          "
+                          appearance="neutral"
                           iconStart="@tui.heart"
                           size="xl"
                           (click.zoneless)="
-                            global.toggleLikeRoute(item._ref.routeId)
+                            global.toggleLikeRoute(item._ref.zlaggableId)
                           "
-                          [attr.aria-label]="
-                            (global.isRouteLiked()(item._ref.routeId)
-                              ? 'actions.favorite.remove'
-                              : 'actions.favorite.add'
-                            ) | translate
-                          "
-                          [attr.title]="
-                            (global.isRouteLiked()(item._ref.routeId)
-                              ? 'actions.favorite.remove'
-                              : 'actions.favorite.add'
-                            ) | translate
-                          "
+                          [attr.aria-label]="'actions.favorite.add' | translate"
+                          [attr.title]="'actions.favorite.add' | translate"
                         ></tui-badge>
                       </div>
                     }
@@ -160,37 +133,47 @@ export interface RoutesTableRow {
           }
         </tbody>
       </table>
+      <!-- Sentinel for infinite scroll -->
+      <div #sentinel class="h-6 w-full"></div>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RoutesTableComponent {
+export class RoutesTableComponent implements AfterViewInit, OnDestroy {
+  private readonly platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
 
-  data: InputSignal<(TopoRoute & { route?: ClimbingRoute })[]> =
-    input.required();
+  // Inputs
+  data: InputSignal<ClimbingRoute[]> = input.required<ClimbingRoute[]>();
   direction: InputSignal<TuiSortDirection> = input<TuiSortDirection>(
     TuiSortDirection.Asc,
   );
+  loading: InputSignal<boolean> = input(false);
+  hasNext: InputSignal<boolean> = input(false);
+
+  // Output to request more items when reaching the end
+  loadMore: OutputEmitterRef<void> = output<void>();
+
+  @ViewChild('sentinel', { read: ElementRef })
+  private sentinelRef?: ElementRef<HTMLElement>;
+  @ViewChild('scroller', { read: ElementRef })
+  private scrollerRef?: ElementRef<HTMLElement>;
+
+  private observer?: IntersectionObserver;
 
   protected readonly columns: string[] = [
     'grade',
-    'number',
     'route',
-    'height',
+    'ascents',
     'actions',
   ];
 
   protected readonly tableData: Signal<RoutesTableRow[]> = computed(() =>
-    this.data().map((tr) => ({
-      grade: gradeRank(tr.route?.grade),
-      number: tr.number,
-      route: tr.route?.name || '',
-      height:
-        tr.route?.height !== null && tr.route?.height !== undefined
-          ? tr.route.height
-          : null,
-      _ref: tr,
+    this.data().map((r) => ({
+      grade: gradeRank(r.difficulty),
+      route: r.zlaggableName || '',
+      ascents: r.totalAscents ?? 0,
+      _ref: r,
     })),
   );
 
@@ -199,13 +182,8 @@ export class RoutesTableComponent {
     TuiComparator<RoutesTableRow>
   > = {
     grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
-    number: (a, b) => tuiDefaultSort(a.number, b.number),
     route: (a, b) => tuiDefaultSort(a.route, b.route),
-    height: (a, b) =>
-      tuiDefaultSort(
-        a.height ?? Number.POSITIVE_INFINITY,
-        b.height ?? Number.POSITIVE_INFINITY,
-      ),
+    ascents: (a, b) => tuiDefaultSort(a.ascents, b.ascents),
   };
 
   protected getSorter(col: string): TuiComparator<RoutesTableRow> | null {
@@ -214,6 +192,49 @@ export class RoutesTableComponent {
   }
 
   protected get tableSorter(): TuiComparator<RoutesTableRow> {
-    return this.sorters['number'];
+    return this.sorters['ascents'];
+  }
+
+  ngAfterViewInit(): void {
+    this.setupObserver();
+  }
+
+  ngOnDestroy(): void {
+    this.teardownObserver();
+  }
+
+  private isBrowser(): boolean {
+    return isPlatformBrowser(this.platformId) && typeof window !== 'undefined';
+  }
+
+  private setupObserver(): void {
+    if (!this.isBrowser()) return;
+    const sentinel = this.sentinelRef?.nativeElement;
+    if (!sentinel) return;
+
+    // If there is an existing observer, disconnect it
+    this.teardownObserver();
+
+    const root = this.scrollerRef?.nativeElement ?? null;
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry?.isIntersecting) return;
+        // Only emit if not loading and there are more pages
+        if (this.loading() || !this.hasNext()) return;
+        this.loadMore.emit();
+      },
+      { root, threshold: 0.1 },
+    );
+    this.observer.observe(sentinel);
+  }
+
+  private teardownObserver(): void {
+    try {
+      this.observer?.disconnect();
+    } catch {
+      // ignore
+    }
+    this.observer = undefined;
   }
 }

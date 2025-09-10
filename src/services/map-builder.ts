@@ -114,11 +114,28 @@ export class MapBuilder {
     this.map.on('movestart', collapseOnInteraction);
     this.map.on('zoomstart', collapseOnInteraction);
 
+    const emitViewport = () => {
+      if (!this.map) return;
+      const b = this.map.getBounds();
+      const sw = b.getSouthWest();
+      const ne = b.getNorthEast();
+      const zoom = this.map.getZoom();
+      cb.onViewportChange({
+        south_west_latitude: sw.lat,
+        south_west_longitude: sw.lng,
+        north_east_latitude: ne.lat,
+        north_east_longitude: ne.lng,
+        zoom,
+      });
+    };
+
     this.map.on('moveend', async () => {
       await this.rebuildMarkers(this.mapCragItems, selectedMapCragItem, cb);
+      emitViewport();
     });
     this.map.on('zoomend', async () => {
       await this.rebuildMarkers(this.mapCragItems, selectedMapCragItem, cb);
+      emitViewport();
     });
 
     this.initialized = true;
@@ -132,10 +149,14 @@ export class MapBuilder {
       if (typeof raf === 'function') {
         raf(() => {
           this.map?.invalidateSize?.();
-          raf(() => this.map?.invalidateSize?.());
+          raf(() => {
+            this.map?.invalidateSize?.();
+            emitViewport();
+          });
         });
       } else {
         this.map?.invalidateSize?.();
+        emitViewport();
       }
     }
   }

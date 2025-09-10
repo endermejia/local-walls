@@ -235,7 +235,7 @@ export class GlobalData {
     console.log('toggleLikeTopo', id);
   }
 
-  toggleLikeRoute(id: string): void {
+  toggleLikeRoute(id: number): void {
     console.log('toggleLikeRoute', id);
   }
 

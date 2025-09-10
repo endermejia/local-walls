@@ -38,7 +38,7 @@ export type MapAnyItem = MapCragItem | MapAreaItem | MapUnknownItem;
 export type MapItem = MapCragItem | MapAreaItem;
 
 export interface MapResponse {
-  mapItems: MapAnyItem[];
+  items: MapAnyItem[];
   counts: {
     locations: number; // crags
     map_collections: number; // areas

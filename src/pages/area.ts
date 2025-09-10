@@ -49,7 +49,7 @@ import { PageableResponse } from '../models/pagination.model';
           <p class="mt-2 opacity-80">{{ a.description }}</p>
         }
 
-        <app-chart-routes-by-grade class="mt-4" [counts]="routesByGrade()" />
+        <app-chart-routes-by-grade class="mt-4" [grades]="routesByGrade()" />
 
         <h2 class="text-xl font-semibold mt-6 mb-2">
           {{ 'labels.crags' | translate }}
@@ -82,7 +82,7 @@ import { PageableResponse } from '../models/pagination.model';
                 <div (click.zoneless)="$event.stopPropagation()">
                   <app-chart-routes-by-grade
                     class="mt-2"
-                    [counts]="cragRoutesByGrade()"
+                    [grades]="cragRoutesByGrade()"
                   />
                 </div>
               </div>
@@ -110,8 +110,12 @@ export class AreaComponent implements OnDestroy {
     this.global.cragsPageable(),
   );
 
-  cragRoutesByGrade = computed(() => ({}) as any);
-  routesByGrade = computed(() => ({}) as any);
+  cragRoutesByGrade = computed<
+    import('../models').AmountByEveryVerticalLifeGrade
+  >(() => ({}) as import('../models').AmountByEveryVerticalLifeGrade);
+  routesByGrade = computed<import('../models').AmountByEveryVerticalLifeGrade>(
+    () => ({}) as import('../models').AmountByEveryVerticalLifeGrade,
+  );
 
   constructor() {
     // Ensure data is present when directly navigating by ID

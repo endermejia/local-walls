@@ -4,7 +4,7 @@ Base project for Web Applications:
   - SSR
   - Zoneless
   - OnPush and Standalone components
-  - GlobalService using Signals
+  - GlobalData using Signals
 - [Taiga UI](https://taiga-ui.dev/), with mobile first templates
 - [Tailwind 4](https://tailwindcss.com/)
 - ESLINT

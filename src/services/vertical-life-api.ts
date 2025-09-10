@@ -30,7 +30,7 @@ export class VerticalLifeApi extends ApiCore {
   }
 
   async getMapItems(bounds: MapBounds): Promise<MapItem[]> {
-    const { mapItems = [] } = await this.get<MapResponse>(
+    const { items = [] } = await this.get<MapResponse>(
       '/api/unification/collection/v1/web/map/items',
       {
         query: {
@@ -42,10 +42,11 @@ export class VerticalLifeApi extends ApiCore {
       },
     );
     // TODO: Delete console.log when done
-    const mapFilteredItems = mapItems.filter((i) => i.id) as MapItem[];
-    const mapUnknownItems = mapItems.filter((i) => !i.id);
+    const mapFilteredItems = items.filter((i) => i.id) as MapItem[];
+    const mapUnknownItems = items.filter((i) => !i.id);
     console.log('mapFilteredItems', mapFilteredItems);
     console.log('mapUnknownItems', mapUnknownItems);
+    // Only elements with id
     return mapFilteredItems;
   }
 
@@ -62,11 +63,11 @@ export class VerticalLifeApi extends ApiCore {
         showOnMap: params.showOnMap ?? true,
       },
     };
-    const { mapItems = [] } = await this.get<MapResponse>(
+    const { items = [] } = await this.get<MapResponse>(
       '/api/unification/collection/v1/web/search',
       opts,
     );
-    return mapItems.filter((i) => i.id) as MapItem[];
+    return items.filter((i) => i.id) as MapItem[];
   }
 
   // TODO: implement pageable list for climbing crags (on Area page)

@@ -10,10 +10,7 @@ import { Meta, Title } from '@angular/platform-browser';
   selector: 'app-root',
   imports: [RouterOutlet, TuiRoot, HeaderComponent],
   template: `
-    <tui-root
-      class="overflow-hidden"
-      [attr.tuiTheme]="globalService.selectedTheme()"
-    >
+    <tui-root class="overflow-hidden" [attr.tuiTheme]="global.selectedTheme()">
       <div class="h-[100dvh] flex flex-col">
         <app-header />
         <router-outlet />
@@ -22,7 +19,7 @@ import { Meta, Title } from '@angular/platform-browser';
   `,
 })
 export class AppComponent {
-  protected globalService = inject(GlobalData);
+  protected global = inject(GlobalData);
   private localStorage = inject(LocalStorage);
   private translate = inject(TranslateService);
   private title = inject(Title);
@@ -31,16 +28,14 @@ export class AppComponent {
   constructor() {
     const localStorageLang = this.localStorage.getItem('language');
     if (localStorageLang === 'es' || localStorageLang === 'en') {
-      this.globalService.selectedLanguage.set(localStorageLang);
+      this.global.selectedLanguage.set(localStorageLang);
       this.translate.use(localStorageLang);
     } else {
-      this.translate.use(this.globalService.selectedLanguage());
+      this.translate.use(this.global.selectedLanguage());
     }
     const localStorageTheme = this.localStorage.getItem('theme');
     if (localStorageTheme === 'dark' || localStorageTheme === 'light') {
-      this.globalService.selectedTheme.set(
-        localStorageTheme as 'dark' | 'light',
-      );
+      this.global.selectedTheme.set(localStorageTheme as 'dark' | 'light');
     }
 
     // SEO: Set title and meta tags (SSR-safe)

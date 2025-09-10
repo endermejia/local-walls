@@ -50,7 +50,7 @@ import { mapLocationUrl } from '../utils';
           <p class="mt-2 opacity-80">{{ c.description }}</p>
         }
 
-        <app-chart-routes-by-grade class="mt-4" [counts]="routesByGrade()" />
+        <app-chart-routes-by-grade class="mt-4" [grades]="routesByGrade()" />
 
         <h2 class="text-xl font-semibold mt-6">
           {{ 'labels.parkings' | translate }}
@@ -125,10 +125,7 @@ import { mapLocationUrl } from '../utils';
                   </section>
                 </div>
                 <div (click.zoneless)="$event.stopPropagation()">
-                  <app-chart-routes-by-grade
-                    class="mt-2"
-                    [counts]="topoRoutesByGrade()(t.id)"
-                  />
+                  <app-chart-routes-by-grade class="mt-2" [grades]="t.grades" />
                 </div>
               </div>
             </div>
@@ -159,8 +156,12 @@ export class CragComponent {
   // TODO: implement crag parkings
   cragParkings: Signal<Parking[]> = computed<Parking[]>(() => []);
 
-  topoRoutesByGrade = computed(() => ({}) as any);
-  routesByGrade = computed(() => ({}) as any);
+  topoRoutesByGrade = computed(
+    () => () => ({}) as import('../models').AmountByEveryVerticalLifeGrade,
+  );
+  routesByGrade = computed<import('../models').AmountByEveryVerticalLifeGrade>(
+    () => ({}) as import('../models').AmountByEveryVerticalLifeGrade,
+  );
 
   constructor() {
     effect(() => {

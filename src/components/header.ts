@@ -79,7 +79,7 @@ interface BreadcrumbItem {
           ngSkipHydration
         >
           <tui-data-list ngSkipHydration>
-            @for (group of globalService.drawer() | keyvalue; track group.key) {
+            @for (group of global.drawer() | keyvalue; track group.key) {
               <tui-opt-group [label]="group.key | translate" ngSkipHydration>
                 @for (item of group.value; track item.name) {
                   <button
@@ -99,10 +99,7 @@ interface BreadcrumbItem {
                 }
               </tui-opt-group>
             }
-            @for (
-              group of globalService.settings() | keyvalue;
-              track group.key
-            ) {
+            @for (group of global.settings() | keyvalue; track group.key) {
               <tui-opt-group [label]="group.key | translate" ngSkipHydration>
                 @for (item of group.value; track item.name) {
                   <button
@@ -178,7 +175,7 @@ interface BreadcrumbItem {
             <ng-template #search>
               <tui-search-results [results]="results$ | async" ngSkipHydration>
                 <tui-search-history
-                  [popular]="globalService.searchPopular()"
+                  [popular]="global.searchPopular()"
                   ngSkipHydration
                 />
                 <ng-template let-item>
@@ -235,7 +232,7 @@ interface BreadcrumbItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderComponent implements OnDestroy {
-  protected globalService = inject(GlobalData);
+  protected global = inject(GlobalData);
 
   private readonly platformId: object = inject(PLATFORM_ID);
   private readonly isBrowser =
@@ -260,40 +257,45 @@ export class HeaderComponent implements OnDestroy {
     const items: BreadcrumbItem[] = [
       { caption: 'nav.home', routerLink: ['/home'] },
     ];
-    const zoneId = this.globalService.selectedZoneId();
-    if (zoneId) {
-      const zone = this.globalService.areas().find((z) => z.id === zoneId);
-      if (zone)
-        items.push({ caption: zone.name, routerLink: ['/zone', zone.id] });
+
+    const area = this.global.area();
+    if (area) {
+      items.push({
+        caption: area.areaName,
+        routerLink: ['/zone', area.countrySlug, area.areaSlug],
+      });
     }
-    const cragId = this.globalService.selectedCragId();
-    if (cragId) {
-      const crag = this.globalService.crags().find((c) => c.id === cragId);
-      if (crag) {
-        const zone = this.globalService
-          .areas()
-          .find((z) => z.id === crag.zoneId);
-        const country = zone?.countrySlug || 'spain';
+
+    const crag = this.global.crag();
+    if (crag) {
+      items.push({
+        caption: crag.cragName,
+        routerLink: ['/crag', crag.countrySlug, crag.cragSlug],
+      });
+    }
+
+    const topo = this.global.topo();
+    if (topo && crag) {
+      items.push({
+        caption: topo.name,
+        routerLink: ['/topo', crag.countrySlug, crag.cragSlug, String(topo.id)],
+      });
+    }
+
+    const route = this.global.route();
+    if (route) {
+      const country = route.countrySlug || crag?.countrySlug || area?.countrySlug;
+      const cragSlug = route.cragSlug || crag?.cragSlug;
+      const sectorSlug = route.sectorSlug;
+      const zlaggableId = route.zlaggableId;
+      if (country && cragSlug && sectorSlug && zlaggableId != null) {
         items.push({
-          caption: crag.name,
-          routerLink: ['/crag', country, crag.id],
+          caption: route.zlaggableName,
+          routerLink: ['/route', country, cragSlug, 'sector', sectorSlug, String(zlaggableId)],
         });
       }
     }
-    const topoId = this.globalService.selectedTopoId();
-    if (topoId) {
-      const topo = this.globalService.topos().find((t) => t.id === topoId);
-      if (topo)
-        items.push({ caption: topo.name, routerLink: ['/topo', topo.id] });
-    }
-    const routeId = this.globalService.selectedRouteId();
-    if (routeId) {
-      const route = this.globalService
-        .routesData()
-        .find((r) => r.id === routeId);
-      if (route)
-        items.push({ caption: route.name, routerLink: ['/route', route.id] });
-    }
+
     return items.slice(0, -1);
   });
 
@@ -312,7 +314,7 @@ export class HeaderComponent implements OnDestroy {
   }
 
   private filter(query: string): SearchData {
-    return Object.entries(this.globalService.searchData()).reduce(
+    return Object.entries(this.global.searchData()).reduce(
       (result, [key, value]) => ({
         ...result,
         [key]: value.filter(({ title, href, subtitle = '' }) =>

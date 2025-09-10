@@ -110,9 +110,11 @@ import { remToPx } from '../utils';
                 </div>
               </section>
             </div>
-            <div (click.zoneless)="$event.stopPropagation()">
-              <app-chart-routes-by-grade [counts]="cragRoutesByGrade()" />
-            </div>
+            @if (global.selectedMapCragItem()?.grades; as grades) {
+              <div (click.zoneless)="$event.stopPropagation()">
+                <app-chart-routes-by-grade [grades]="grades" />
+              </div>
+            }
           </div>
         </div>
       </div>
@@ -165,12 +167,6 @@ import { remToPx } from '../utils';
                           {{ a.country_name }}
                         </div>
                       </section>
-                    </div>
-                    <div (click.zoneless)="$event.stopPropagation()">
-                      <app-chart-routes-by-grade
-                        class="mt-2"
-                        [counts]="zoneRoutesByGrade()"
-                      />
                     </div>
                   </div>
                 </div>
@@ -232,7 +228,7 @@ import { remToPx } from '../utils';
                     <div (click.zoneless)="$event.stopPropagation()">
                       <app-chart-routes-by-grade
                         class="mt-2"
-                        [counts]="c.grades"
+                        [grades]="c.grades"
                       />
                     </div>
                   </div>
@@ -289,8 +285,9 @@ export class HomeComponent {
     return scrollTop >= maxTop * 0.5;
   });
 
-  protected readonly cragRoutesByGrade = computed(() => ({}) as any);
-  protected readonly zoneRoutesByGrade = computed(() => ({}) as any);
+  protected readonly zoneRoutesByGrade = computed<
+    import('../models').AmountByEveryVerticalLifeGrade
+  >(() => ({}) as import('../models').AmountByEveryVerticalLifeGrade);
 
   private isBrowser(): boolean {
     return isPlatformBrowser(this._platformId) && typeof window !== 'undefined';

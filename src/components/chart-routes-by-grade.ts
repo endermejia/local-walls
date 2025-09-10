@@ -10,7 +10,13 @@ import {
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiRingChart } from '@taiga-ui/addon-charts';
-import { ORDERED_GRADE_VALUES, GradeLabel, RoutesByGrade } from '../models';
+import {
+  ORDERED_GRADE_VALUES,
+  GradeLabel,
+  RoutesByGrade,
+  AmountByEveryVerticalLifeGrade,
+  VERTICAL_LIFE_GRADES,
+} from '../models';
 import { LowerCasePipe } from '@angular/common';
 
 @Component({
@@ -64,10 +70,67 @@ import { LowerCasePipe } from '@angular/common';
   `,
 })
 export class ChartRoutesByGradeComponent {
-  counts: InputSignal<RoutesByGrade> = input<RoutesByGrade>({});
+  // Accept only the new AmountByEveryVerticalLifeGrade shape
+  grades: InputSignal<AmountByEveryVerticalLifeGrade> =
+    input.required<AmountByEveryVerticalLifeGrade>();
   activeItemIndex: WritableSignal<number> = signal<number>(Number.NaN);
 
   private readonly allGrades = ORDERED_GRADE_VALUES;
+
+  // Map GradeLabel -> corresponding Vertical Life enum (when applicable)
+  private readonly labelToVl: Partial<
+    Record<GradeLabel, VERTICAL_LIFE_GRADES>
+  > = {
+    '3a': VERTICAL_LIFE_GRADES.G3a,
+    '3b': VERTICAL_LIFE_GRADES.G3b,
+    '3c': VERTICAL_LIFE_GRADES.G3c,
+    '4a': VERTICAL_LIFE_GRADES.G4a,
+    '4b': VERTICAL_LIFE_GRADES.G4b,
+    '4c': VERTICAL_LIFE_GRADES.G4c,
+    // Note: '5' has no exact enum bucket; keep it only if provided by legacy data
+    '5a': VERTICAL_LIFE_GRADES.G5a,
+    '5a+': VERTICAL_LIFE_GRADES.G5aPlus,
+    '5b': VERTICAL_LIFE_GRADES.G5b,
+    '5b+': VERTICAL_LIFE_GRADES.G5bPlus,
+    '5c': VERTICAL_LIFE_GRADES.G5c,
+    '5c+': VERTICAL_LIFE_GRADES.G5cPlus,
+    '6a': VERTICAL_LIFE_GRADES.G6a,
+    '6a+': VERTICAL_LIFE_GRADES.G6aPlus,
+    '6b': VERTICAL_LIFE_GRADES.G6b,
+    '6b+': VERTICAL_LIFE_GRADES.G6bPlus,
+    '6c': VERTICAL_LIFE_GRADES.G6c,
+    '6c+': VERTICAL_LIFE_GRADES.G6cPlus,
+    '7a': VERTICAL_LIFE_GRADES.G7a,
+    '7a+': VERTICAL_LIFE_GRADES.G7aPlus,
+    '7b': VERTICAL_LIFE_GRADES.G7b,
+    '7b+': VERTICAL_LIFE_GRADES.G7bPlus,
+    '7c': VERTICAL_LIFE_GRADES.G7c,
+    '7c+': VERTICAL_LIFE_GRADES.G7cPlus,
+    '8a': VERTICAL_LIFE_GRADES.G8a,
+    '8a+': VERTICAL_LIFE_GRADES.G8aPlus,
+    '8b': VERTICAL_LIFE_GRADES.G8b,
+    '8b+': VERTICAL_LIFE_GRADES.G8bPlus,
+    '8c': VERTICAL_LIFE_GRADES.G8c,
+    '8c+': VERTICAL_LIFE_GRADES.G8cPlus,
+    '9a': VERTICAL_LIFE_GRADES.G9a,
+    '9a+': VERTICAL_LIFE_GRADES.G9aPlus,
+    '9b': VERTICAL_LIFE_GRADES.G9b,
+    '9b+': VERTICAL_LIFE_GRADES.G9bPlus,
+    '9c': VERTICAL_LIFE_GRADES.G9c,
+  };
+
+  // Normalize input (AmountByEveryVerticalLifeGrade) into label-based record for charting
+  private readonly normalizedCounts: Signal<RoutesByGrade> = computed(() => {
+    const vl = this.grades();
+    const out: RoutesByGrade = {};
+    for (const label of this.allGrades) {
+      const vlKey = this.labelToVl[label];
+      if (vlKey === undefined) continue;
+      const v = vl?.[vlKey] ?? 0;
+      if (v) out[label] = v;
+    }
+    return out;
+  });
 
   private bandForGrade(g: GradeLabel): 0 | 1 | 2 | 3 | 4 {
     const base = parseInt(g.charAt(0), 10);
@@ -80,7 +143,7 @@ export class ChartRoutesByGradeComponent {
   }
 
   readonly values: Signal<readonly number[]> = computed(() => {
-    const counts = this.counts();
+    const counts = this.normalizedCounts();
     const bands = [0, 0, 0, 0, 0];
     for (const g of this.allGrades) {
       const v = counts[g] ?? 0;
@@ -108,7 +171,7 @@ export class ChartRoutesByGradeComponent {
     const idx = this.activeItemIndex();
     if (!Number.isFinite(idx))
       return [] as { grade: GradeLabel; count: number }[];
-    const counts = this.counts();
+    const counts = this.normalizedCounts();
     const grades = this.gradesForBand(idx as 0 | 1 | 2 | 3 | 4);
     const items: { grade: GradeLabel; count: number }[] = [];
     for (const g of grades) {
@@ -123,7 +186,7 @@ export class ChartRoutesByGradeComponent {
    * Examples: "6b", "6b – 8a+". Empty string if there are no routes.
    */
   readonly gradeRange: Signal<string> = computed(() => {
-    const counts = this.counts();
+    const counts = this.normalizedCounts();
     const present = this.allGrades.filter((g) => (counts[g] ?? 0) > 0);
     if (present.length === 0) return '';
     const first = present[0];
