@@ -24,12 +24,11 @@ import { TuiLet, tuiDefaultSort } from '@taiga-ui/cdk';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GlobalData } from '../services';
 import type { ClimbingRoute } from '../models';
-import { gradeRank } from '../utils';
 
 export type RoutesTableKey = 'grade' | 'route' | 'ascents';
 
 export interface RoutesTableRow {
-  grade: number;
+  grade: string;
   route: string;
   ascents: number;
   _ref: ClimbingRoute;
@@ -170,7 +169,7 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
 
   protected readonly tableData: Signal<RoutesTableRow[]> = computed(() =>
     this.data().map((r) => ({
-      grade: gradeRank(r.difficulty),
+      grade: r.difficulty || '',
       route: r.zlaggableName || '',
       ascents: r.totalAscents ?? 0,
       _ref: r,

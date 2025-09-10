@@ -7,7 +7,8 @@ export interface MapAreaItem {
   slug: string;
   country_name: string;
   country_slug: string;
-  area_type?: number; // 0 == area, ignore
+  area_type?: 0;
+  b_box: [[number, number], [number, number]];
 }
 
 export interface MapCragItem {
@@ -28,21 +29,16 @@ export interface MapCragItem {
   total_ascents?: number; // ascents
 }
 
-// To filter response items without an id
-interface MapUnknownItem {
-  id?: number;
-}
-
-export type MapAnyItem = MapCragItem | MapAreaItem | MapUnknownItem;
-
 export type MapItem = MapCragItem | MapAreaItem;
 
+export interface MapCounts {
+  locations: number; // crags
+  map_collections: number; // areas
+}
+
 export interface MapResponse {
-  items: MapAnyItem[];
-  counts: {
-    locations: number; // crags
-    map_collections: number; // areas
-  };
+  items: MapItem[];
+  counts: MapCounts;
 }
 
 export interface MapBounds {

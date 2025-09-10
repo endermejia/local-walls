@@ -1,20 +1,20 @@
 import { Injectable } from '@angular/core';
 import { ApiCore, HttpOptions } from './api-core';
 import {
+  ClimbingArea,
+  ClimbingAreaResponse,
+  ClimbingCrag,
   ClimbingCragResponse,
+  ClimbingRoute,
   MapBounds,
   MapItem,
   MapResponse,
-  ClimbingRoute,
-  ClimbingCrag,
-  ClimbingAreaResponse,
-  ClimbingArea,
 } from '../models';
+import { PageableResponse } from '../models/pagination.model';
 
 interface ClimbingRouteResponse {
   route: ClimbingRoute;
 }
-import { PageableResponse } from '../models/pagination.model';
 
 export interface ClimbingSector {
   sectorId: number;
@@ -29,8 +29,8 @@ export class VerticalLifeApi extends ApiCore {
     super('/api/8anu');
   }
 
-  async getMapItems(bounds: MapBounds): Promise<MapItem[]> {
-    const { items = [] } = await this.get<MapResponse>(
+  async getMapResponse(bounds: MapBounds): Promise<MapResponse> {
+    return await this.get<MapResponse>(
       '/api/unification/collection/v1/web/map/items',
       {
         query: {
@@ -41,13 +41,6 @@ export class VerticalLifeApi extends ApiCore {
         },
       },
     );
-    // TODO: Delete console.log when done
-    const mapFilteredItems = items.filter((i) => i.id) as MapItem[];
-    const mapUnknownItems = items.filter((i) => !i.id);
-    console.log('mapFilteredItems', mapFilteredItems);
-    console.log('mapUnknownItems', mapUnknownItems);
-    // Only elements with id
-    return mapFilteredItems;
   }
 
   // TODO: Use on header search

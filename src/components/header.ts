@@ -284,14 +284,22 @@ export class HeaderComponent implements OnDestroy {
 
     const route = this.global.route();
     if (route) {
-      const country = route.countrySlug || crag?.countrySlug || area?.countrySlug;
+      const country =
+        route.countrySlug || crag?.countrySlug || area?.countrySlug;
       const cragSlug = route.cragSlug || crag?.cragSlug;
       const sectorSlug = route.sectorSlug;
       const zlaggableId = route.zlaggableId;
       if (country && cragSlug && sectorSlug && zlaggableId != null) {
         items.push({
           caption: route.zlaggableName,
-          routerLink: ['/route', country, cragSlug, 'sector', sectorSlug, String(zlaggableId)],
+          routerLink: [
+            '/route',
+            country,
+            cragSlug,
+            'sector',
+            sectorSlug,
+            String(zlaggableId),
+          ],
         });
       }
     }

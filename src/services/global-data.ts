@@ -22,6 +22,7 @@ import type {
   IconName,
   MapCragItem,
   MapItem,
+  MapResponse,
   OptionsData,
   SearchData,
 } from '../models';
@@ -104,7 +105,8 @@ export class GlobalData {
   // TODO: implement likes
   liked: WritableSignal<boolean> = signal(false);
 
-  mapItems: WritableSignal<MapItem[]> = signal([]);
+  mapResponse: WritableSignal<MapResponse | null> = signal(null);
+  mapItems: Signal<MapItem[]> = computed(() => this.mapResponse()?.items ?? []);
   selectedMapCragItem: WritableSignal<MapCragItem | null> = signal(null);
   area: WritableSignal<ClimbingArea | null> = signal(null);
   crag: WritableSignal<ClimbingCrag | null> = signal(null);
@@ -130,9 +132,9 @@ export class GlobalData {
       return;
     try {
       this.loading.set(true);
-      const mapItems: MapItem[] =
-        await this.verticalLifeApi.getMapItems(bounds);
-      this.mapItems.set(mapItems);
+      const mapResponse: MapResponse =
+        await this.verticalLifeApi.getMapResponse(bounds);
+      this.mapResponse.set(mapResponse);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       this.error.set(msg);

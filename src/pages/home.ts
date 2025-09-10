@@ -10,7 +10,7 @@ import {
   ViewChild,
   WritableSignal,
 } from '@angular/core';
-import { MapCragItem, MapAreaItem } from '../models';
+import { MapCragItem, MapAreaItem, MapCounts } from '../models';
 import { GlobalData } from '../services';
 import { MapComponent, ChartRoutesByGradeComponent } from '../components';
 import { RouterLink } from '@angular/router';
@@ -121,6 +121,7 @@ import { remToPx } from '../utils';
     } @else {
       <!-- BottomSheet -->
       @if (sheetMounted()) {
+        @let counts = mapCounts();
         <tui-bottom-sheet
           #sheet
           [stops]="stops"
@@ -130,23 +131,15 @@ import { remToPx } from '../utils';
           (scroll.zoneless)="onSheetScroll($any($event))"
         >
           @let areas = mapAreaItems();
-          <h3 tuiHeader id="zones-title" class="justify-center">
-            <div class="flex flex-row align-items-center justify-center gap-2">
-              <tui-avatar
-                tuiThumbnail
-                size="l"
-                [src]="global.iconSrc()('zone')"
-                [attr.aria-label]="'labels.zone' | translate"
-              />
-              <span tuiTitle class="justify-center">
-                {{ areas.length }}
-                {{
-                  'labels.' + (areas.length === 1 ? 'zone' : 'zones')
-                    | translate
-                    | lowercase
-                }}
-              </span>
-            </div>
+          <h3 tuiHeader id="zones-title">
+            <span tuiTitle class="items-center">
+              {{ counts?.map_collections ?? 0 }}
+              {{
+                'labels.' + (counts?.map_collections === 1 ? 'zone' : 'zones')
+                  | translate
+                  | lowercase
+              }}
+            </span>
           </h3>
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 overflow-auto">
             <div class="grid gap-2">
@@ -158,6 +151,12 @@ import { remToPx } from '../utils';
                   [routerLink]="['/zone', a.id]"
                 >
                   <div class="flex items-center gap-3">
+                    <tui-avatar
+                      tuiThumbnail
+                      size="l"
+                      [src]="global.iconSrc()('zone')"
+                      [attr.aria-label]="'labels.zone' | translate"
+                    />
                     <div class="flex flex-col min-w-0 grow">
                       <header tuiHeader>
                         <h2 tuiTitle>{{ a.name }}</h2>
@@ -177,7 +176,7 @@ import { remToPx } from '../utils';
           </section>
           @let crags = mapCragItems();
           <h3 tuiHeader id="crags-title" class="justify-center">
-            <div class="flex flex-row align-items-center justify-center gap-2">
+            <div class="flex flex-col align-items-center justify-center gap-2">
               <tui-avatar
                 tuiThumbnail
                 size="l"
@@ -186,9 +185,9 @@ import { remToPx } from '../utils';
                 [attr.aria-label]="'labels.crag' | translate"
               />
               <span tuiTitle class="justify-center">
-                {{ crags.length }}
+                {{ counts?.locations ?? 0 }}
                 {{
-                  'labels.' + (crags.length === 1 ? 'crag' : 'crags')
+                  'labels.' + (counts?.locations === 1 ? 'crag' : 'crags')
                     | translate
                     | lowercase
                 }}
@@ -264,7 +263,9 @@ export class HomeComponent {
     this.global
       .mapItems()
       .filter(
-        (item): item is MapCragItem => (item as MapAreaItem).area_type !== 0,
+        (item): item is MapCragItem =>
+          (item as MapAreaItem).area_type !== 0 &&
+          !!(item as MapCragItem).total_ascendables,
       ),
   );
 
@@ -274,6 +275,9 @@ export class HomeComponent {
       .filter(
         (item): item is MapAreaItem => (item as MapAreaItem).area_type === 0,
       ),
+  );
+  protected mapCounts: Signal<MapCounts | null> = computed(
+    () => this.global.mapResponse()?.counts ?? null,
   );
 
   protected readonly isBottomSheetExpanded: Signal<boolean> = computed(() => {

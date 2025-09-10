@@ -15,7 +15,8 @@ import {
   GradeLabel,
   RoutesByGrade,
   AmountByEveryVerticalLifeGrade,
-  VERTICAL_LIFE_GRADES,
+  normalizeRoutesByGrade,
+  bandForGradeLabel,
 } from '../models';
 import { LowerCasePipe } from '@angular/common';
 
@@ -77,70 +78,10 @@ export class ChartRoutesByGradeComponent {
 
   private readonly allGrades = ORDERED_GRADE_VALUES;
 
-  // Map GradeLabel -> corresponding Vertical Life enum (when applicable)
-  private readonly labelToVl: Partial<
-    Record<GradeLabel, VERTICAL_LIFE_GRADES>
-  > = {
-    '3a': VERTICAL_LIFE_GRADES.G3a,
-    '3b': VERTICAL_LIFE_GRADES.G3b,
-    '3c': VERTICAL_LIFE_GRADES.G3c,
-    '4a': VERTICAL_LIFE_GRADES.G4a,
-    '4b': VERTICAL_LIFE_GRADES.G4b,
-    '4c': VERTICAL_LIFE_GRADES.G4c,
-    // Note: '5' has no exact enum bucket; keep it only if provided by legacy data
-    '5a': VERTICAL_LIFE_GRADES.G5a,
-    '5a+': VERTICAL_LIFE_GRADES.G5aPlus,
-    '5b': VERTICAL_LIFE_GRADES.G5b,
-    '5b+': VERTICAL_LIFE_GRADES.G5bPlus,
-    '5c': VERTICAL_LIFE_GRADES.G5c,
-    '5c+': VERTICAL_LIFE_GRADES.G5cPlus,
-    '6a': VERTICAL_LIFE_GRADES.G6a,
-    '6a+': VERTICAL_LIFE_GRADES.G6aPlus,
-    '6b': VERTICAL_LIFE_GRADES.G6b,
-    '6b+': VERTICAL_LIFE_GRADES.G6bPlus,
-    '6c': VERTICAL_LIFE_GRADES.G6c,
-    '6c+': VERTICAL_LIFE_GRADES.G6cPlus,
-    '7a': VERTICAL_LIFE_GRADES.G7a,
-    '7a+': VERTICAL_LIFE_GRADES.G7aPlus,
-    '7b': VERTICAL_LIFE_GRADES.G7b,
-    '7b+': VERTICAL_LIFE_GRADES.G7bPlus,
-    '7c': VERTICAL_LIFE_GRADES.G7c,
-    '7c+': VERTICAL_LIFE_GRADES.G7cPlus,
-    '8a': VERTICAL_LIFE_GRADES.G8a,
-    '8a+': VERTICAL_LIFE_GRADES.G8aPlus,
-    '8b': VERTICAL_LIFE_GRADES.G8b,
-    '8b+': VERTICAL_LIFE_GRADES.G8bPlus,
-    '8c': VERTICAL_LIFE_GRADES.G8c,
-    '8c+': VERTICAL_LIFE_GRADES.G8cPlus,
-    '9a': VERTICAL_LIFE_GRADES.G9a,
-    '9a+': VERTICAL_LIFE_GRADES.G9aPlus,
-    '9b': VERTICAL_LIFE_GRADES.G9b,
-    '9b+': VERTICAL_LIFE_GRADES.G9bPlus,
-    '9c': VERTICAL_LIFE_GRADES.G9c,
-  };
-
   // Normalize input (AmountByEveryVerticalLifeGrade) into label-based record for charting
-  private readonly normalizedCounts: Signal<RoutesByGrade> = computed(() => {
-    const vl = this.grades();
-    const out: RoutesByGrade = {};
-    for (const label of this.allGrades) {
-      const vlKey = this.labelToVl[label];
-      if (vlKey === undefined) continue;
-      const v = vl?.[vlKey] ?? 0;
-      if (v) out[label] = v;
-    }
-    return out;
-  });
-
-  private bandForGrade(g: GradeLabel): 0 | 1 | 2 | 3 | 4 {
-    const base = parseInt(g.charAt(0), 10);
-    if (!Number.isFinite(base)) return 0;
-    if (base <= 5) return 0;
-    if (base === 6) return 1;
-    if (base === 7) return 2;
-    if (base === 8) return 3;
-    return 4; // 9
-  }
+  private readonly normalizedCounts: Signal<RoutesByGrade> = computed(() =>
+    normalizeRoutesByGrade(this.grades()),
+  );
 
   readonly values: Signal<readonly number[]> = computed(() => {
     const counts = this.normalizedCounts();
@@ -148,7 +89,7 @@ export class ChartRoutesByGradeComponent {
     for (const g of this.allGrades) {
       const v = counts[g] ?? 0;
       if (!v) continue;
-      const b = this.bandForGrade(g);
+      const b = bandForGradeLabel(g);
       bands[b] += v;
     }
     return bands as readonly number[];
@@ -163,7 +104,7 @@ export class ChartRoutesByGradeComponent {
 
   private gradesForBand(band: 0 | 1 | 2 | 3 | 4): readonly GradeLabel[] {
     return this.allGrades.filter(
-      (g) => this.bandForGrade(g) === band,
+      (g) => bandForGradeLabel(g) === band,
     ) as readonly GradeLabel[];
   }
 

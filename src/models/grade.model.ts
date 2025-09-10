@@ -47,84 +47,124 @@ export type AmountByEveryVerticalLifeGrade = Partial<
   Record<VERTICAL_LIFE_GRADES, number>
 >;
 
-export enum GradeEnum {
-  ThreeA = '3a',
-  ThreeB = '3b',
-  ThreeC = '3c',
-  FourA = '4a',
-  FourB = '4b',
-  FourC = '4c',
-  Five = '5',
-  FiveA = '5a',
-  FiveAPlus = '5a+',
-  FiveB = '5b',
-  FiveBPlus = '5b+',
-  FiveC = '5c',
-  FiveCPlus = '5c+',
-  SixA = '6a',
-  SixAPlus = '6a+',
-  SixB = '6b',
-  SixBPlus = '6b+',
-  SixC = '6c',
-  SixCPlus = '6c+',
-  SevenA = '7a',
-  SevenAPlus = '7a+',
-  SevenB = '7b',
-  SevenBPlus = '7b+',
-  SevenC = '7c',
-  SevenCPlus = '7c+',
-  EightA = '8a',
-  EightAPlus = '8a+',
-  EightB = '8b',
-  EightBPlus = '8b+',
-  EightC = '8c',
-  EightCPlus = '8c+',
-  NineA = '9a',
-  NineAPlus = '9a+',
-  NineB = '9b',
-  NineBPlus = '9b+',
-  NineC = '9c',
+// Generate grade labels programmatically to avoid repetition
+export type GradeLetter = 'a' | 'b' | 'c';
+export type GradeSuffix = '' | '+';
+export type Digit = '3' | '4' | '5' | '6' | '7' | '8' | '9';
+
+export type GradeLabel =
+  | `${'3' | '4'}${GradeLetter}`
+  | `${'5' | '6' | '7' | '8' | '9'}${GradeLetter}${GradeSuffix}`
+  | '5';
+
+// Ordered grade values derived from a single source of truth
+const LETTERS: readonly GradeLetter[] = ['a', 'b', 'c'] as const;
+const SUFFIXES: readonly GradeSuffix[] = ['', '+'] as const;
+
+function buildOrderedGrades(): GradeLabel[] {
+  const out: string[] = [];
+  // 3a..3c and 4a..4c
+  for (const d of ['3', '4'] as const) {
+    for (const l of LETTERS) out.push(`${d}${l}`);
+  }
+  // plain 5 (legacy bucket)
+  out.push('5');
+  // 5a..9c with optional +
+  for (const d of ['5', '6', '7', '8', '9'] as const) {
+    for (const l of LETTERS) {
+      for (const s of SUFFIXES) {
+        if (d === '5' && s === '' && l === 'a') {
+          // '5a' will appear later; keep legacy plain '5' only once
+        }
+        out.push(`${d}${l}${s}`);
+      }
+    }
+  }
+  // Deduplicate while preserving order
+  return Array.from(new Set(out)) as GradeLabel[];
 }
 
-export type GradeLabel = `${GradeEnum}`;
-
-export const ORDERED_GRADE_VALUES: readonly GradeLabel[] = [
-  GradeEnum.ThreeA,
-  GradeEnum.ThreeB,
-  GradeEnum.ThreeC,
-  GradeEnum.FourA,
-  GradeEnum.FourB,
-  GradeEnum.FourC,
-  GradeEnum.Five,
-  GradeEnum.FiveA,
-  GradeEnum.FiveAPlus,
-  GradeEnum.FiveB,
-  GradeEnum.FiveBPlus,
-  GradeEnum.FiveC,
-  GradeEnum.FiveCPlus,
-  GradeEnum.SixA,
-  GradeEnum.SixAPlus,
-  GradeEnum.SixB,
-  GradeEnum.SixBPlus,
-  GradeEnum.SixC,
-  GradeEnum.SixCPlus,
-  GradeEnum.SevenA,
-  GradeEnum.SevenAPlus,
-  GradeEnum.SevenB,
-  GradeEnum.SevenBPlus,
-  GradeEnum.SevenC,
-  GradeEnum.SevenCPlus,
-  GradeEnum.EightA,
-  GradeEnum.EightAPlus,
-  GradeEnum.EightB,
-  GradeEnum.EightBPlus,
-  GradeEnum.EightC,
-  GradeEnum.EightCPlus,
-  GradeEnum.NineA,
-  GradeEnum.NineAPlus,
-  GradeEnum.NineB,
-  GradeEnum.NineBPlus,
-  GradeEnum.NineC,
-] as const;
+export const ORDERED_GRADE_VALUES: readonly GradeLabel[] = buildOrderedGrades();
 
 export type RoutesByGrade = Partial<Record<GradeLabel, number>>;
+
+// Centralized mappings between Vertical Life enum and GradeLabel
+export const VERTICAL_LIFE_TO_LABEL: Partial<Record<VERTICAL_LIFE_GRADES, GradeLabel>> = {
+  [VERTICAL_LIFE_GRADES.G3a]: '3a',
+  [VERTICAL_LIFE_GRADES.G3b]: '3b',
+  [VERTICAL_LIFE_GRADES.G3c]: '3c',
+  [VERTICAL_LIFE_GRADES.G4a]: '4a',
+  [VERTICAL_LIFE_GRADES.G4b]: '4b',
+  [VERTICAL_LIFE_GRADES.G4c]: '4c',
+  [VERTICAL_LIFE_GRADES.G5a]: '5a',
+  [VERTICAL_LIFE_GRADES.G5aPlus]: '5a+',
+  [VERTICAL_LIFE_GRADES.G5b]: '5b',
+  [VERTICAL_LIFE_GRADES.G5bPlus]: '5b+',
+  [VERTICAL_LIFE_GRADES.G5c]: '5c',
+  [VERTICAL_LIFE_GRADES.G5cPlus]: '5c+',
+  [VERTICAL_LIFE_GRADES.G6a]: '6a',
+  [VERTICAL_LIFE_GRADES.G6aPlus]: '6a+',
+  [VERTICAL_LIFE_GRADES.G6b]: '6b',
+  [VERTICAL_LIFE_GRADES.G6bPlus]: '6b+',
+  [VERTICAL_LIFE_GRADES.G6c]: '6c',
+  [VERTICAL_LIFE_GRADES.G6cPlus]: '6c+',
+  [VERTICAL_LIFE_GRADES.G7a]: '7a',
+  [VERTICAL_LIFE_GRADES.G7aPlus]: '7a+',
+  [VERTICAL_LIFE_GRADES.G7b]: '7b',
+  [VERTICAL_LIFE_GRADES.G7bPlus]: '7b+',
+  [VERTICAL_LIFE_GRADES.G7c]: '7c',
+  [VERTICAL_LIFE_GRADES.G7cPlus]: '7c+',
+  [VERTICAL_LIFE_GRADES.G8a]: '8a',
+  [VERTICAL_LIFE_GRADES.G8aPlus]: '8a+',
+  [VERTICAL_LIFE_GRADES.G8b]: '8b',
+  [VERTICAL_LIFE_GRADES.G8bPlus]: '8b+',
+  [VERTICAL_LIFE_GRADES.G8c]: '8c',
+  [VERTICAL_LIFE_GRADES.G8cPlus]: '8c+',
+  [VERTICAL_LIFE_GRADES.G9a]: '9a',
+  [VERTICAL_LIFE_GRADES.G9aPlus]: '9a+',
+  [VERTICAL_LIFE_GRADES.G9b]: '9b',
+  [VERTICAL_LIFE_GRADES.G9bPlus]: '9b+',
+  [VERTICAL_LIFE_GRADES.G9c]: '9c',
+};
+
+export const LABEL_TO_VERTICAL_LIFE: Partial<Record<GradeLabel, VERTICAL_LIFE_GRADES>> = Object.entries(VERTICAL_LIFE_TO_LABEL)
+  .reduce((acc, [k, v]) => {
+    if (v) acc[v as GradeLabel] = Number(k) as VERTICAL_LIFE_GRADES;
+    return acc;
+  }, {} as Partial<Record<GradeLabel, VERTICAL_LIFE_GRADES>>);
+
+export function bandForGradeLabel(g: GradeLabel): 0 | 1 | 2 | 3 | 4 {
+  const base = parseInt(g.charAt(0), 10);
+  if (!Number.isFinite(base)) return 0;
+  if (base <= 5) return 0;
+  if (base === 6) return 1;
+  if (base === 7) return 2;
+  if (base === 8) return 3;
+  return 4; // 9
+}
+
+export function normalizeRoutesByGrade(
+  input: AmountByEveryVerticalLifeGrade | RoutesByGrade | undefined,
+): RoutesByGrade {
+  const out: RoutesByGrade = {};
+  if (!input) return out;
+
+  // If keys look like enum numbers, map through VERTICAL_LIFE_TO_LABEL
+  const isEnumLike = Object.keys(input as object).some((k) => /^\d+$/.test(k));
+  if (isEnumLike) {
+    for (const [k, v] of Object.entries(input as AmountByEveryVerticalLifeGrade)) {
+      const num = Number(k) as VERTICAL_LIFE_GRADES;
+      const label = VERTICAL_LIFE_TO_LABEL[num];
+      if (label && v) out[label] = v;
+    }
+    return out;
+  }
+
+  // Otherwise assume it's label-based already
+  for (const [k, v] of Object.entries(input as RoutesByGrade)) {
+    if ((ORDERED_GRADE_VALUES as readonly string[]).includes(k) && v) {
+      out[k as GradeLabel] = v;
+    }
+  }
+  return out;
+}
