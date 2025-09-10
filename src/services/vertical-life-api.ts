@@ -9,8 +9,8 @@ import {
   MapBounds,
   MapItem,
   MapResponse,
+  PageableResponse,
 } from '../models';
-import { PageableResponse } from '../models/pagination.model';
 
 interface ClimbingRouteResponse {
   route: ClimbingRoute;

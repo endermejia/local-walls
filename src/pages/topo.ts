@@ -159,8 +159,22 @@ export class TopoComponent {
       const crag = this.cragSlug();
       const sector = this.sectorSlug();
       if (sector) {
+        // Ensure crag info is available for breadcrumbs on sector routes
+        this.global.loadCrag(country, crag);
         this.global.loadCragSectors(country, crag);
         this.global.loadCragRoutes(country, crag, sector);
+      } else {
+        // Clear selected sector in global state when not on a sector route
+        this.global.sector.set(null);
+      }
+    });
+
+    // Keep global.selected sector in sync for breadcrumbs
+    effect(() => {
+      const s = this.selectedSector();
+      // Only set when a sector is actually selected
+      if (s) {
+        this.global.sector.set(s);
       }
     });
   }

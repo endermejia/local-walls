@@ -283,6 +283,20 @@ export class HeaderComponent implements OnDestroy {
       });
     }
 
+    // Sector (when viewing a sector page)
+    const sector = this.global.sector();
+    if (sector && crag) {
+      items.push({
+        caption: sector.sectorName,
+        routerLink: [
+          '/sector',
+          crag.countrySlug,
+          crag.cragSlug,
+          sector.sectorSlug,
+        ],
+      });
+    }
+
     const topo = this.global.topo();
     if (topo && crag) {
       items.push({

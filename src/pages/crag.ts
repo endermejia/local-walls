@@ -11,20 +11,15 @@ import {
 import type { ClimbingCrag } from '../models';
 import { ChartRoutesByGradeComponent } from '../components';
 import { GlobalData } from '../services';
-import {
-  Location,
-  LowerCasePipe,
-  DecimalPipe,
-  KeyValuePipe,
-} from '@angular/common';
+import { Location, LowerCasePipe, DecimalPipe } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TranslatePipe } from '@ngx-translate/core';
-import { TuiLoader, TuiTitle } from '@taiga-ui/core';
-import { mapLocationUrl } from '../utils';
-import { Router, RouterLink } from '@angular/router';
-import { normalizeRoutesByGrade, RoutesByGrade } from '../models/grade.model';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
+import { TuiLoader, TuiTitle } from '@taiga-ui/core';
 import { TuiSurface } from '@taiga-ui/core';
+import { mapLocationUrl } from '../utils';
+import { normalizeRoutesByGrade, RoutesByGrade } from '../models';
 
 @Component({
   selector: 'app-crag',
@@ -32,7 +27,6 @@ import { TuiSurface } from '@taiga-ui/core';
   imports: [
     ChartRoutesByGradeComponent,
     DecimalPipe,
-    KeyValuePipe,
     LowerCasePipe,
     RouterLink,
     SectionHeaderComponent,
@@ -107,14 +101,8 @@ import { TuiSurface } from '@taiga-ui/core';
           }
         </div>
 
-        @if (routesByGrade() | keyvalue; as kv) {
-          @if (kv.length > 0) {
-            <app-chart-routes-by-grade
-              class="mt-4"
-              [grades]="routesByGrade()"
-            />
-          }
-        }
+        <!-- TODO: get cragInfo -->
+        <app-chart-routes-by-grade class="mt-4" [grades]="routesByGrade()" />
 
         <!-- Sectors list with app aesthetics (cards) -->
         @if (sectors().length > 0) {
@@ -201,6 +189,12 @@ export class CragComponent {
     effect(() => {
       const countrySlug = this.countrySlug();
       const cragSlug = this.cragSlug();
+
+      // Navigating to a Crag: clear deeper context so breadcrumbs reset
+      this.global.sector.set(null);
+      this.global.topo.set(null);
+      this.global.route.set(null);
+
       // Load crag basic info
       this.global.loadCrag(countrySlug, cragSlug);
       // Load routes to build grades chart

@@ -24,9 +24,9 @@ import type {
   MapItem,
   MapResponse,
   OptionsData,
+  PageableResponse,
   SearchData,
 } from '../models';
-import { PageableResponse } from '../models/pagination.model';
 
 @Injectable({
   providedIn: 'root',
@@ -132,6 +132,9 @@ export class GlobalData {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       this.error.set(msg);
+      if (msg.includes('HTTP 404')) {
+        this.router.navigateByUrl('/page-not-found');
+      }
     } finally {
       this.loading.set(false);
     }
@@ -174,6 +177,9 @@ export class GlobalData {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       this.error.set(msg);
+      if (msg.includes('HTTP 404')) {
+        this.router.navigateByUrl('/page-not-found');
+      }
     } finally {
       this.loading.set(false);
     }
@@ -220,6 +226,9 @@ export class GlobalData {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       this.error.set(msg);
+      if (msg.includes('HTTP 404')) {
+        this.router.navigateByUrl('/page-not-found');
+      }
     } finally {
       this.loading.set(false);
     }
@@ -243,6 +252,9 @@ export class GlobalData {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       this.error.set(msg);
+      if (msg.includes('HTTP 404')) {
+        this.router.navigateByUrl('/page-not-found');
+      }
     } finally {
       this.loading.set(false);
     }

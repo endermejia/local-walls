@@ -253,6 +253,18 @@ export class HomeComponent {
   private readonly _platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
 
+  constructor() {
+    // Reset navigation context when entering Home so breadcrumbs disappear
+    this.global.area.set(null);
+    this.global.crag.set(null);
+    this.global.sector.set(null);
+    this.global.topo.set(null);
+    this.global.route.set(null);
+    this.global.cragSectors.set([]);
+    this.global.routesPageable.set(null);
+    this.global.selectedMapCragItem.set(null);
+  }
+
   protected readonly stops = ['6rem'] as const;
 
   @ViewChild('sheet', { read: ElementRef }) sheetRef?: ElementRef<HTMLElement>;

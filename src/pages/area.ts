@@ -7,9 +7,8 @@ import {
   input,
   effect,
   InputSignal,
-  OnDestroy,
 } from '@angular/core';
-import type { ClimbingArea, ClimbingCrag } from '../models';
+import type { ClimbingArea, ClimbingCrag, PageableResponse } from '../models';
 import { ChartRoutesByGradeComponent } from '../components';
 import { GlobalData } from '../services';
 import { Location, LowerCasePipe, DecimalPipe } from '@angular/common';
@@ -18,7 +17,6 @@ import { SectionHeaderComponent } from '../components/section-header';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import { TuiSurface, TuiTitle, TuiLoader } from '@taiga-ui/core';
-import { PageableResponse } from '../models/pagination.model';
 
 @Component({
   selector: 'app-zone',
@@ -149,7 +147,7 @@ import { PageableResponse } from '../models/pagination.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex grow overflow-auto sm:p-4' },
 })
-export class AreaComponent implements OnDestroy {
+export class AreaComponent {
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
 
@@ -164,6 +162,15 @@ export class AreaComponent implements OnDestroy {
     effect(() => {
       const countrySlug = this.countrySlug();
       const areaSlug = this.areaSlug();
+
+      // Navigating to an Area: clear lower-level context so breadcrumbs reset
+      this.global.crag.set(null);
+      this.global.sector.set(null);
+      this.global.topo.set(null);
+      this.global.route.set(null);
+      this.global.cragSectors.set([]);
+      this.global.routesPageable.set(null);
+
       this.global.loadArea(countrySlug, areaSlug);
       this.global.loadAreaCrags(countrySlug, areaSlug, {
         pageIndex: 0,
@@ -175,9 +182,5 @@ export class AreaComponent implements OnDestroy {
 
   goBack(): void {
     this.location.back();
-  }
-
-  ngOnDestroy() {
-    this.global.area.set(null);
   }
 }
