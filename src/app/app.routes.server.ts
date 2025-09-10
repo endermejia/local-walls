@@ -66,6 +66,15 @@ export const serverRoutes: ServerRoute[] = [
     },
   },
   {
+    path: 'sector/:countrySlug/:cragSlug/:sectorSlug',
+    renderMode: RenderMode.Prerender,
+    fallback: PrerenderFallback.Server,
+    async getPrerenderParams() {
+      // No static params; prerender will be empty and fallback to Server
+      return [];
+    },
+  },
+  {
     path: 'route/:countrySlug/:cragSlug/sector/:sectorSlug/:zlaggableId',
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,

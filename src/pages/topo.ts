@@ -19,6 +19,7 @@ import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import { TuiButton, TuiLoader } from '@taiga-ui/core';
 import { TuiSortDirection } from '@taiga-ui/addon-table';
 import type { ClimbingTopo, TopoRoute, ClimbingRoute } from '../models';
+import type { ClimbingSector } from '../services/vertical-life-api';
 
 @Component({
   selector: 'app-topo',
@@ -33,19 +34,21 @@ import type { ClimbingTopo, TopoRoute, ClimbingRoute } from '../models';
   ],
   template: `
     <div class="h-full w-full">
-      @if (topo(); as t) {
+      @let t = topo();
+      @let s = selectedSector();
+      @if (t || s) {
         <section class="w-full h-full max-w-5xl mx-auto p-4">
           <div class="flex gap-2">
             <app-section-header
               class="w-full  "
-              [title]="t.name"
+              [title]="titleText()"
               [liked]="global.liked()"
               (back)="goBack()"
-              (toggleLike)="global.toggleLikeTopo(t.slug)"
+              (toggleLike)="onToggleLike()"
             />
             <!-- Toggle image fit button -->
             @let imgFit = imageFit();
-            @if (t.photo) {
+            @if (t?.photo) {
               <button
                 tuiIconButton
                 size="s"
@@ -76,8 +79,8 @@ import type { ClimbingTopo, TopoRoute, ClimbingRoute } from '../models';
           </div>
 
           <img
-            [src]="t.photo || global.iconSrc()('topo')"
-            alt="{{ t.name }}"
+            [src]="t?.photo || global.iconSrc()('topo')"
+            [alt]="titleText()"
             [class]="'w-full h-full overflow-visible ' + topoPhotoClass()"
             decoding="async"
           />
@@ -115,10 +118,31 @@ export class TopoComponent {
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
 
-  id: InputSignal<string> = input.required<string>();
+  // Route params (both /topo and /sector routes map here)
+  countrySlug: InputSignal<string> = input.required<string>();
+  cragSlug: InputSignal<string> = input.required<string>();
+  id: InputSignal<string | undefined> = input<string | undefined>();
+  sectorSlug: InputSignal<string | undefined> = input<string | undefined>();
+
   topo: Signal<ClimbingTopo | null> = computed<ClimbingTopo | null>(() =>
     this.global.topo(),
   );
+
+  // Selected sector when navigating via /sector route
+  selectedSector: Signal<ClimbingSector | null> = computed(() => {
+    const slug = this.sectorSlug();
+    if (!slug) return null;
+    const sectors = this.global.cragSectors();
+    return sectors.find((s) => s.sectorSlug === slug) ?? null;
+  });
+
+  // Title to show in header: topo.name or sector name
+  titleText: Signal<string> = computed(() => {
+    const t = this.topo();
+    if (t) return t.name;
+    const s = this.selectedSector();
+    return s?.sectorName ?? '';
+  });
 
   // Routes currently loaded for the crag (used to populate the table)
   routes: Signal<ClimbingRoute[]> = computed<ClimbingRoute[]>(
@@ -129,9 +153,26 @@ export class TopoComponent {
     signal<TuiSortDirection>(TuiSortDirection.Asc);
 
   constructor() {
+    // Load sector-specific data when sectorSlug present
     effect(() => {
-      const id = this.id();
+      const country = this.countrySlug();
+      const crag = this.cragSlug();
+      const sector = this.sectorSlug();
+      if (sector) {
+        this.global.loadCragSectors(country, crag);
+        this.global.loadCragRoutes(country, crag, sector);
+      }
     });
+  }
+
+  onToggleLike(): void {
+    const t = this.topo();
+    if (t) {
+      this.global.toggleLikeTopo(t.slug);
+    } else {
+      // Fallback to crag like when viewing a sector
+      this.global.toggleLikeCrag(this.cragSlug());
+    }
   }
 
   goBack(): void {

@@ -113,7 +113,7 @@ import { PageableResponse } from '../models/pagination.model';
         <h2 class="text-xl font-semibold mt-6 mb-2">
           {{ 'labels.crags' | translate }}
         </h2>
-        <div class="grid gap-2 mb-2">
+        <div class="grid gap-2 pb-4">
           @for (c of crags()?.items; track c.cragSlug) {
             <div
               tuiCardLarge

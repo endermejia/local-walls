@@ -119,6 +119,24 @@ export class GlobalData {
     signal(null);
   topo: WritableSignal<ClimbingTopo | null> = signal(null);
 
+  async loadCragSectors(countrySlug: string, cragSlug: string): Promise<void> {
+    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
+      return;
+    try {
+      this.loading.set(true);
+      const sectors = await this.verticalLifeApi.getClimbingSectors(
+        countrySlug,
+        cragSlug,
+      );
+      this.cragSectors.set(sectors);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.error.set(msg);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
   async loadMapItems(bounds: {
     south_west_latitude: number;
     south_west_longitude: number;
@@ -207,7 +225,11 @@ export class GlobalData {
     }
   }
 
-  async loadCragRoutes(countrySlug: string, cragSlug: string): Promise<void> {
+  async loadCragRoutes(
+    countrySlug: string,
+    cragSlug: string,
+    sectorSlug?: string,
+  ): Promise<void> {
     if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
       return;
     try {
@@ -215,7 +237,7 @@ export class GlobalData {
       const res = await this.verticalLifeApi.getClimbingCragRoutesPageable(
         countrySlug,
         cragSlug,
-        { pageIndex: 0, sortField: 'totalascents', order: 'desc' },
+        { pageIndex: 0, sortField: 'totalascents', order: 'desc', sectorSlug },
       );
       this.routesPageable.set(res);
     } catch (e) {

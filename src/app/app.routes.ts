@@ -28,6 +28,11 @@ export const routes: Routes = [
     loadComponent: () => import('../pages/topo').then((m) => m.TopoComponent),
   },
   {
+    path: 'sector/:countrySlug/:cragSlug/:sectorSlug',
+    canMatch: [authGuard],
+    loadComponent: () => import('../pages/topo').then((m) => m.TopoComponent),
+  },
+  {
     path: 'route/:countrySlug/:cragSlug/sector/:sectorSlug/:zlaggableId',
     canMatch: [authGuard],
     loadComponent: () => import('../pages/route').then((m) => m.RouteComponent),

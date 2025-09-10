@@ -24,7 +24,6 @@ interface ClusterGroup {
 
 @Injectable({ providedIn: 'root' })
 export class MapBuilder {
-  private areaItems: readonly MapAreaItem[] = [];
   private areaLayers: import('leaflet').Layer[] = [];
   private readonly platformId = inject(PLATFORM_ID);
   private readonly global = inject(GlobalData);
@@ -68,7 +67,6 @@ export class MapBuilder {
     ).addTo(this.map);
 
     this.mapCragItems = mapCragItem;
-    this.areaItems = areaItems;
     await this.rebuildMarkers(mapCragItem, selectedMapCragItem, cb);
     await this.rebuildAreas(areaItems);
 
@@ -174,7 +172,6 @@ export class MapBuilder {
   ): Promise<void> {
     if (!this.map) return;
     this.mapCragItems = mapCragItem;
-    this.areaItems = areaItems;
     await this.rebuildMarkers(mapCragItem, selectedMapCragItem, cb);
     await this.rebuildAreas(areaItems);
   }

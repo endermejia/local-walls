@@ -8,7 +8,7 @@ import {
   Signal,
   InputSignal,
 } from '@angular/core';
-import type { ClimbingCrag, ClimbingTopo } from '../models';
+import type { ClimbingCrag } from '../models';
 import { ChartRoutesByGradeComponent } from '../components';
 import { GlobalData } from '../services';
 import {
@@ -19,23 +19,29 @@ import {
 } from '@angular/common';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TranslatePipe } from '@ngx-translate/core';
-import { TuiLoader, TuiButton } from '@taiga-ui/core';
+import { TuiLoader, TuiTitle } from '@taiga-ui/core';
 import { mapLocationUrl } from '../utils';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { normalizeRoutesByGrade, RoutesByGrade } from '../models/grade.model';
+import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
+import { TuiSurface } from '@taiga-ui/core';
 
 @Component({
   selector: 'app-crag',
   standalone: true,
   imports: [
-    TranslatePipe,
-    SectionHeaderComponent,
     ChartRoutesByGradeComponent,
-    TuiLoader,
-    TuiButton,
-    LowerCasePipe,
     DecimalPipe,
     KeyValuePipe,
+    LowerCasePipe,
+    RouterLink,
+    SectionHeaderComponent,
+    TranslatePipe,
+    TuiCardLarge,
+    TuiHeader,
+    TuiLoader,
+    TuiSurface,
+    TuiTitle,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -107,18 +113,45 @@ import { normalizeRoutesByGrade, RoutesByGrade } from '../models/grade.model';
               class="mt-4"
               [grades]="routesByGrade()"
             />
-
-            <!-- Generate Topo button -->
-            <div class="mt-4">
-              <button
-                tuiButton
-                appearance="primary"
-                (click.zoneless)="openTopo()"
-              >
-                {{ 'labels.topo' | translate }}
-              </button>
-            </div>
           }
+        }
+
+        <!-- Sectors list with app aesthetics (cards) -->
+        @if (sectors().length > 0) {
+          <div class="mt-6">
+            <h2 class="text-lg font-semibold mb-2">
+              {{ 'labels.sectors' | translate }}
+            </h2>
+            <div class="grid gap-2 pb-4">
+              @for (s of sectors(); track s.sectorSlug) {
+                <div
+                  tuiCardLarge
+                  [tuiSurface]="global.liked() ? 'accent' : 'neutral'"
+                  class="cursor-pointer"
+                  [routerLink]="[
+                    '/sector',
+                    c.countrySlug,
+                    c.cragSlug,
+                    s.sectorSlug,
+                  ]"
+                >
+                  <div class="flex items-center gap-3">
+                    <div class="flex flex-col min-w-0 grow">
+                      <header tuiHeader>
+                        <h2 tuiTitle>{{ s.sectorName }}</h2>
+                      </header>
+                      <section>
+                        <div class="text-sm opacity-80">
+                          {{ s.totalZlaggables }}
+                          {{ 'labels.routes' | translate | lowercase }}
+                        </div>
+                      </section>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
         }
       } @else {
         <div class="flex items-center justify-center w-full min-h-[50vh]">
@@ -139,6 +172,14 @@ export class CragComponent {
   countrySlug: InputSignal<string> = input.required<string>();
   cragSlug: InputSignal<string> = input.required<string>();
   crag: Signal<ClimbingCrag | null> = computed(() => this.global.crag());
+  sectors: Signal<
+    readonly {
+      sectorId: number;
+      sectorName: string;
+      sectorSlug: string;
+      totalZlaggables: number;
+    }[]
+  > = computed(() => this.global.cragSectors());
 
   // Routes pageable items from global state
   private readonly routes = computed(
@@ -164,6 +205,8 @@ export class CragComponent {
       this.global.loadCrag(countrySlug, cragSlug);
       // Load routes to build grades chart
       this.global.loadCragRoutes(countrySlug, cragSlug);
+      // Load sectors for this crag
+      this.global.loadCragSectors(countrySlug, cragSlug);
     });
   }
 
@@ -171,30 +214,9 @@ export class CragComponent {
     this.location.back();
   }
 
-  openTopo(): void {
-    const crag = this.crag();
+  openSector(sectorSlug: string): void {
     const countrySlug = this.countrySlug();
     const cragSlug = this.cragSlug();
-    const routes = this.routes();
-    if (!crag) return;
-
-    // Build a minimal synthetic topo using current routes
-    const topoId = Date.now();
-    const topo: ClimbingTopo = {
-      id: topoId,
-      slug: `${cragSlug}-topo`,
-      name: `${crag.cragName} — Topo`,
-      cragId: String(cragSlug),
-      photo: undefined,
-      grades: {},
-      topoRoutes: routes.map((r, i) => ({
-        id: r.zlaggableId,
-        routeId: r.zlaggableId,
-        orderNumber: i + 1,
-      })),
-    } as any;
-
-    this.global.topo.set(topo);
-    this.router.navigate(['/topo', countrySlug, cragSlug, topoId.toString()]);
+    this.router.navigate(['/sector', countrySlug, cragSlug, sectorSlug]);
   }
 }
