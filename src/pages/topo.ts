@@ -121,8 +121,8 @@ export class TopoComponent {
   );
 
   // Routes currently loaded for the crag (used to populate the table)
-  routes: Signal<ClimbingRoute[]> = computed<ClimbingRoute[]>(() =>
-    this.global.routesPageable()?.items ?? []
+  routes: Signal<ClimbingRoute[]> = computed<ClimbingRoute[]>(
+    () => this.global.routesPageable()?.items ?? [],
   );
 
   protected readonly direction: WritableSignal<TuiSortDirection> =

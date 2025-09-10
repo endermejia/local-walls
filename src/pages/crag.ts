@@ -11,16 +11,18 @@ import {
 import type { ClimbingCrag, ClimbingTopo } from '../models';
 import { ChartRoutesByGradeComponent } from '../components';
 import { GlobalData } from '../services';
-import { Location, LowerCasePipe, DecimalPipe, KeyValuePipe } from '@angular/common';
+import {
+  Location,
+  LowerCasePipe,
+  DecimalPipe,
+  KeyValuePipe,
+} from '@angular/common';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiLoader, TuiButton } from '@taiga-ui/core';
 import { mapLocationUrl } from '../utils';
 import { Router } from '@angular/router';
-import {
-  normalizeRoutesByGrade,
-  RoutesByGrade,
-} from '../models/grade.model';
+import { normalizeRoutesByGrade, RoutesByGrade } from '../models/grade.model';
 
 @Component({
   selector: 'app-crag',
@@ -49,7 +51,9 @@ import {
           <p class="mt-2 opacity-80">{{ c.description }}</p>
         }
 
-        <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm opacity-80">
+        <div
+          class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm opacity-80"
+        >
           <div>
             <strong>{{ 'labels.country' | translate }}:</strong>
             {{ c.countryName }}
@@ -79,7 +83,7 @@ import {
           @if (c.averageRating) {
             <div>
               <strong>{{ 'labels.rating' | translate | lowercase }}:</strong>
-              {{ c.averageRating | number:'1.1-2' }}
+              {{ c.averageRating | number: '1.1-2' }}
             </div>
           }
           @if (c.location) {
@@ -99,11 +103,18 @@ import {
 
         @if (routesByGrade() | keyvalue; as kv) {
           @if (kv.length > 0) {
-            <app-chart-routes-by-grade class="mt-4" [grades]="routesByGrade()" />
+            <app-chart-routes-by-grade
+              class="mt-4"
+              [grades]="routesByGrade()"
+            />
 
             <!-- Generate Topo button -->
             <div class="mt-4">
-              <button tuiButton appearance="primary" (click.zoneless)="openTopo()">
+              <button
+                tuiButton
+                appearance="primary"
+                (click.zoneless)="openTopo()"
+              >
                 {{ 'labels.topo' | translate }}
               </button>
             </div>
@@ -130,8 +141,8 @@ export class CragComponent {
   crag: Signal<ClimbingCrag | null> = computed(() => this.global.crag());
 
   // Routes pageable items from global state
-  private readonly routes = computed(() =>
-    this.global.routesPageable()?.items ?? [],
+  private readonly routes = computed(
+    () => this.global.routesPageable()?.items ?? [],
   );
 
   // Aggregate number of routes per difficulty label

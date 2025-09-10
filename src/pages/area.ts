@@ -58,33 +58,51 @@ import { PageableResponse } from '../models/pagination.model';
         <!-- Quick stats -->
         <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div class="text-center">
-            <div class="text-lg font-semibold">{{ a.totalRoutes ?? a.totalBoulders ?? a.totalZlaggables ?? 0 }}</div>
-            <div class="text-xs uppercase opacity-80">{{ 'labels.routes' | translate | lowercase }}</div>
+            <div class="text-lg font-semibold">
+              {{ a.totalRoutes ?? a.totalBoulders ?? a.totalZlaggables ?? 0 }}
+            </div>
+            <div class="text-xs uppercase opacity-80">
+              {{ 'labels.routes' | translate | lowercase }}
+            </div>
           </div>
           <div class="text-center">
             <div class="text-lg font-semibold">{{ a.totalBoulders ?? 0 }}</div>
-            <div class="text-xs uppercase opacity-80">{{ 'labels.boulders' | translate | lowercase }}</div>
+            <div class="text-xs uppercase opacity-80">
+              {{ 'labels.boulders' | translate | lowercase }}
+            </div>
           </div>
           <div class="text-center">
-            <div class="text-lg font-semibold">{{ a.totalZlaggables ?? a.totalAscents ?? 0 }}</div>
-            <div class="text-xs uppercase opacity-80">{{ 'labels.ascents' | translate | lowercase }}</div>
+            <div class="text-lg font-semibold">
+              {{ a.totalZlaggables ?? a.totalAscents ?? 0 }}
+            </div>
+            <div class="text-xs uppercase opacity-80">
+              {{ 'labels.ascents' | translate | lowercase }}
+            </div>
           </div>
           <div class="text-center">
             <div class="text-lg font-semibold">{{ a.totalFollowers ?? 0 }}</div>
-            <div class="text-xs uppercase opacity-80">{{ 'labels.followers' | translate | lowercase }}</div>
+            <div class="text-xs uppercase opacity-80">
+              {{ 'labels.followers' | translate | lowercase }}
+            </div>
           </div>
         </div>
 
         <!-- Disciplines / rating -->
         <div class="mt-3 flex flex-wrap gap-2 text-xs">
           @if (a.hasSportClimbing) {
-            <span class="px-2 py-1 rounded-full bg-[--tui-background-neutral-2]">Sport</span>
+            <span class="px-2 py-1 rounded-full bg-[--tui-background-neutral-2]"
+              >Sport</span
+            >
           }
           @if (a.hasBouldering) {
-            <span class="px-2 py-1 rounded-full bg-[--tui-background-neutral-2]">Boulder</span>
+            <span class="px-2 py-1 rounded-full bg-[--tui-background-neutral-2]"
+              >Boulder</span
+            >
           }
           @if (a.averageRating) {
-            <span class="px-2 py-1 rounded-full bg-[--tui-background-neutral-2]">
+            <span
+              class="px-2 py-1 rounded-full bg-[--tui-background-neutral-2]"
+            >
               ★ {{ a.averageRating | number: '1.1-1' }}
             </span>
           }
@@ -110,8 +128,10 @@ import { PageableResponse } from '../models/pagination.model';
                   </header>
                   <section>
                     <div class="text-sm opacity-80">
-                      {{ (c.totalZlaggables ?? 0) }} {{ 'labels.routes' | translate | lowercase }} ·
-                      {{ (c.totalAscents ?? 0) }} {{ 'labels.ascents' | translate | lowercase }}
+                      {{ c.totalZlaggables ?? 0 }}
+                      {{ 'labels.routes' | translate | lowercase }} ·
+                      {{ c.totalAscents ?? 0 }}
+                      {{ 'labels.ascents' | translate | lowercase }}
                     </div>
                   </section>
                 </div>
