@@ -1,12 +1,5 @@
 #!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
 
-# Run formatter before commit
-echo "Running formatter (npm run format) before commit..."
-npm run format
-RESULT=$?
-if [ $RESULT -ne 0 ]; then
-  echo "Formatter failed. Commit aborted."
-  exit $RESULT
-fi
-
-exit 0
+# Run linters on staged files only
+npx --no-install lint-staged

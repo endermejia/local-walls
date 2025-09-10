@@ -1,5 +1,7 @@
 # Ñasca!
+
 Base project for Web Applications:
+
 - [Angular 20](https://github.com/angular/angular-cli)
   - SSR
   - Zoneless
@@ -75,14 +77,16 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 
 ## Pre-commit formatting
 
-This repo runs the formatter automatically before each commit via a Git pre-commit hook.
+This repo runs Prettier automatically before each commit via Husky + lint-staged. Only staged files are formatted and re-staged, so your other unstaged changes are not affected.
 
 How to enable locally:
+
 - Ensure dependencies are installed: `npm install` (this runs the `prepare` script that sets up Husky).
-- Husky will execute `.husky/pre-commit`, which runs `npm run format`.
+- Husky executes `.husky/pre-commit`, which runs `lint-staged`.
 
 Notes:
-- You can run the formatter manually with `npm run format`.
+
+- You can run the formatter manually with `npm run format` (formats the entire `src` directory).
 - If you had installed dependencies before this change, run `npm run prepare` once to install Git hooks.
 
 ## Additional Resources
@@ -94,11 +98,13 @@ For more information on using the Angular CLI, including detailed command refere
 This project targets Angular 20 with SSR and does not require the Netlify Angular Runtime plugin.
 
 Steps:
+
 - Connect this repository to Netlify.
 - Set Build command: `npm run build`.
 - Set Publish directory: `dist/local-walls/browser`.
 
 Notes:
+
 - Netlify automatically detects Angular SSR output (Angular 18+) and serves using the generated server bundle at `dist/local-walls/server/main.server.mjs`.
 - Configure redirects/status codes for SSR in `src/app/app.routes.server.ts` using Angular Server Routes (headers + status). Avoid Netlify redirects for SSR paths.
 
