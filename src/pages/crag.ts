@@ -8,33 +8,32 @@ import {
   Signal,
   InputSignal,
 } from '@angular/core';
-import type { ClimbingCrag, ClimbingTopo, Parking } from '../models';
+import type { ClimbingCrag, ClimbingTopo } from '../models';
 import { ChartRoutesByGradeComponent } from '../components';
 import { GlobalData } from '../services';
-import { Location, LowerCasePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Location, LowerCasePipe, DecimalPipe, KeyValuePipe } from '@angular/common';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TranslatePipe } from '@ngx-translate/core';
-import { TuiAvatar } from '@taiga-ui/kit';
-import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
-import { TuiTitle, TuiSurface, TuiLoader } from '@taiga-ui/core';
+import { TuiLoader, TuiButton } from '@taiga-ui/core';
 import { mapLocationUrl } from '../utils';
+import { Router } from '@angular/router';
+import {
+  normalizeRoutesByGrade,
+  RoutesByGrade,
+} from '../models/grade.model';
 
 @Component({
   selector: 'app-crag',
   standalone: true,
   imports: [
-    RouterLink,
-    TuiHeader,
-    TuiCardLarge,
-    TuiTitle,
-    TuiSurface,
     TranslatePipe,
-    TuiAvatar,
     SectionHeaderComponent,
     ChartRoutesByGradeComponent,
     TuiLoader,
+    TuiButton,
     LowerCasePipe,
+    DecimalPipe,
+    KeyValuePipe,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -50,87 +49,66 @@ import { mapLocationUrl } from '../utils';
           <p class="mt-2 opacity-80">{{ c.description }}</p>
         }
 
-        <app-chart-routes-by-grade class="mt-4" [grades]="routesByGrade()" />
-
-        <h2 class="text-xl font-semibold mt-6">
-          {{ 'labels.parkings' | translate }}
-        </h2>
-        <div class="mt-2 grid gap-2">
-          @for (p of cragParkings(); track p.id) {
-            @if (p.location; as pLocation) {
+        <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm opacity-80">
+          <div>
+            <strong>{{ 'labels.country' | translate }}:</strong>
+            {{ c.countryName }}
+          </div>
+          <div>
+            <strong>{{ 'labels.zone' | translate }}:</strong>
+            {{ c.areaName }}
+          </div>
+          @if (c.totalZlaggables) {
+            <div>
+              <strong>{{ 'labels.routes' | translate | lowercase }}:</strong>
+              {{ c.totalZlaggables }}
+            </div>
+          }
+          @if (c.totalSectors) {
+            <div>
+              <strong>{{ 'labels.sectors' | translate | lowercase }}:</strong>
+              {{ c.totalSectors }}
+            </div>
+          }
+          @if (c.totalAscents) {
+            <div>
+              <strong>{{ 'labels.ascents' | translate | lowercase }}:</strong>
+              {{ c.totalAscents }}
+            </div>
+          }
+          @if (c.averageRating) {
+            <div>
+              <strong>{{ 'labels.rating' | translate | lowercase }}:</strong>
+              {{ c.averageRating | number:'1.1-2' }}
+            </div>
+          }
+          @if (c.location) {
+            <div>
               <a
-                class="block"
-                [href]="mapLocationUrl(pLocation)"
+                class="tui-link"
+                [href]="mapLocationUrl(c.location)"
                 target="_blank"
                 rel="noopener noreferrer"
                 [attr.aria-label]="'actions.openMap' | translate"
                 [attr.title]="'actions.openMap' | translate"
+                >{{ 'actions.openMap' | translate }}</a
               >
-                <div tuiCardLarge tuiSurface="neutral" class="cursor-pointer">
-                  <div class="flex items-center gap-3">
-                    <tui-avatar
-                      tuiThumbnail
-                      size="l"
-                      src="@tui.square-parking"
-                      class="self-center"
-                      [attr.aria-label]="'labels.parking' | translate"
-                    />
-                    <div class="flex flex-col min-w-0 grow">
-                      <header tuiHeader>
-                        <h2 tuiTitle>{{ p.name }}</h2>
-                      </header>
-                      <section>
-                        <div class="text-sm opacity-80">
-                          {{ 'labels.lat' | translate }}:
-                          {{ pLocation.latitude }} ·
-                          {{ 'labels.lng' | translate }}:
-                          {{ pLocation.longitude }}
-                        </div>
-                        @if (p.capacity) {
-                          <div class="text-sm opacity-80">
-                            {{ 'labels.capacity' | translate }}:
-                            {{ p.capacity }}
-                          </div>
-                        }
-                      </section>
-                    </div>
-                  </div>
-                </div>
-              </a>
-            }
-          }
-        </div>
-
-        <h2 class="text-xl font-semibold mt-6 mb-2">
-          {{ 'labels.topos' | translate }}
-        </h2>
-        <div class="grid gap-2">
-          @for (t of toposSorted(); track t.id) {
-            <div
-              tuiCardLarge
-              [tuiSurface]="global.liked() ? 'accent' : 'neutral'"
-              class="cursor-pointer"
-              [routerLink]="['/topo', t.id]"
-            >
-              <div class="flex items-center gap-3">
-                <div class="flex flex-col min-w-0 grow">
-                  <header tuiHeader>
-                    <h2 tuiTitle>{{ t.name }}</h2>
-                  </header>
-                  <section>
-                    <div class="text-sm opacity-80">
-                      {{ toposSorted() }}
-                      {{ 'labels.routes' | translate | lowercase }}
-                    </div>
-                  </section>
-                </div>
-                <div (click.zoneless)="$event.stopPropagation()">
-                  <app-chart-routes-by-grade class="mt-2" [grades]="t.grades" />
-                </div>
-              </div>
             </div>
           }
         </div>
+
+        @if (routesByGrade() | keyvalue; as kv) {
+          @if (kv.length > 0) {
+            <app-chart-routes-by-grade class="mt-4" [grades]="routesByGrade()" />
+
+            <!-- Generate Topo button -->
+            <div class="mt-4">
+              <button tuiButton appearance="primary" (click.zoneless)="openTopo()">
+                {{ 'labels.topo' | translate }}
+              </button>
+            </div>
+          }
+        }
       } @else {
         <div class="flex items-center justify-center w-full min-h-[50vh]">
           <tui-loader size="xxl"></tui-loader>
@@ -144,34 +122,68 @@ import { mapLocationUrl } from '../utils';
 export class CragComponent {
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
+  private readonly router = inject(Router);
   protected readonly mapLocationUrl = mapLocationUrl;
 
   countrySlug: InputSignal<string> = input.required<string>();
   cragSlug: InputSignal<string> = input.required<string>();
   crag: Signal<ClimbingCrag | null> = computed(() => this.global.crag());
 
-  // TODO: implement topos
-  toposSorted: Signal<ClimbingTopo[]> = computed<ClimbingTopo[]>(() => []);
-
-  // TODO: implement crag parkings
-  cragParkings: Signal<Parking[]> = computed<Parking[]>(() => []);
-
-  topoRoutesByGrade = computed(
-    () => () => ({}) as import('../models').AmountByEveryVerticalLifeGrade,
+  // Routes pageable items from global state
+  private readonly routes = computed(() =>
+    this.global.routesPageable()?.items ?? [],
   );
-  routesByGrade = computed<import('../models').AmountByEveryVerticalLifeGrade>(
-    () => ({}) as import('../models').AmountByEveryVerticalLifeGrade,
-  );
+
+  // Aggregate number of routes per difficulty label
+  routesByGrade = computed<RoutesByGrade>(() => {
+    const acc: Record<string, number> = {};
+    for (const r of this.routes()) {
+      const label = r.difficulty;
+      if (!label) continue;
+      acc[label] = (acc[label] ?? 0) + 1;
+    }
+    return normalizeRoutesByGrade(acc);
+  });
 
   constructor() {
     effect(() => {
       const countrySlug = this.countrySlug();
       const cragSlug = this.cragSlug();
+      // Load crag basic info
       this.global.loadCrag(countrySlug, cragSlug);
+      // Load routes to build grades chart
+      this.global.loadCragRoutes(countrySlug, cragSlug);
     });
   }
 
   goBack(): void {
     this.location.back();
+  }
+
+  openTopo(): void {
+    const crag = this.crag();
+    const countrySlug = this.countrySlug();
+    const cragSlug = this.cragSlug();
+    const routes = this.routes();
+    if (!crag) return;
+
+    // Build a minimal synthetic topo using current routes
+    const topoId = Date.now();
+    const topo: ClimbingTopo = {
+      id: topoId,
+      slug: `${cragSlug}-topo`,
+      name: `${crag.cragName} — Topo`,
+      cragId: String(cragSlug),
+      photo: undefined,
+      grades: {},
+      topoRoutes: routes.map((r, i) => ({
+        id: r.zlaggableId,
+        routeId: r.zlaggableId,
+        orderNumber: i + 1,
+      })),
+    } as any;
+
+    this.global.topo.set(topo);
+    this.router.navigate(['/topo', countrySlug, cragSlug, topoId.toString()]);
   }
 }

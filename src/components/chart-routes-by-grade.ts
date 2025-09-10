@@ -50,10 +50,9 @@ import { LowerCasePipe } from '@angular/common';
       [activeItemIndex]="activeItemIndex()"
       (activeItemIndexChange)="activeItemIndex.set($event)"
     >
-      @let totalVias = total();
       @if (hasActive()) {
         <span>
-          {{ totalVias }}
+          {{ activeBandTotal() }}
           {{ 'labels.routes' | translate | lowercase }}
         </span>
         <div [innerHtml]="breakdownText()"></div>
@@ -62,7 +61,6 @@ import { LowerCasePipe } from '@angular/common';
           {{ total() }}
           {{ 'labels.routes' | translate | lowercase }}
         </span>
-        <!-- Rango de grados presentes -->
         @if (gradeRange(); as gradeRange) {
           <div class="text-sm">{{ gradeRange }}</div>
         }
@@ -71,7 +69,6 @@ import { LowerCasePipe } from '@angular/common';
   `,
 })
 export class ChartRoutesByGradeComponent {
-  // Accept only the new AmountByEveryVerticalLifeGrade shape
   grades: InputSignal<AmountByEveryVerticalLifeGrade> =
     input.required<AmountByEveryVerticalLifeGrade>();
   activeItemIndex: WritableSignal<number> = signal<number>(Number.NaN);
@@ -101,6 +98,14 @@ export class ChartRoutesByGradeComponent {
   readonly hasActive: Signal<boolean> = computed(() =>
     Number.isFinite(this.activeItemIndex()),
   );
+
+  readonly activeBandTotal: Signal<number> = computed(() => {
+    const idx = this.activeItemIndex();
+    if (!Number.isFinite(idx)) return this.total();
+    const vals = this.values();
+    const i = idx as number;
+    return (vals[i] ?? 0) as number;
+  });
 
   private gradesForBand(band: 0 | 1 | 2 | 3 | 4): readonly GradeLabel[] {
     return this.allGrades.filter(
@@ -136,13 +141,27 @@ export class ChartRoutesByGradeComponent {
   });
 
   readonly breakdownText = computed(() => {
-    const items = this.breakdown();
-    if (items.length === 0) return '';
-    return items
-      .map(
-        (it) =>
-          `<span class="whitespace-nowrap">${it.grade}:</> <b>${it.count}</b></span>`,
-      )
-      .join(' | ');
+    const idx = this.activeItemIndex();
+    if (!Number.isFinite(idx)) return '';
+
+    if (this.activeBandTotal() < 1000) {
+      const items = this.breakdown();
+      if (items.length === 0) return '';
+      return items
+        .map(
+          (it) =>
+            `<span class="whitespace-nowrap">${it.grade}:</> <b>${it.count}</b></span>`,
+        )
+        .join(' | ');
+    }
+
+    // Compact: show the grade range within the active band
+    const counts = this.normalizedCounts();
+    const grades = this.gradesForBand(idx as 0 | 1 | 2 | 3 | 4);
+    const present = grades.filter((g) => (counts[g] ?? 0) > 0);
+    if (present.length === 0) return '';
+    const first = present[0];
+    const last = present[present.length - 1];
+    return first === last ? `${first}` : `${first} – ${last}`;
   });
 }

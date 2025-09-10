@@ -12,7 +12,7 @@ import {
 import type { ClimbingArea, ClimbingCrag } from '../models';
 import { ChartRoutesByGradeComponent } from '../components';
 import { GlobalData } from '../services';
-import { Location, LowerCasePipe } from '@angular/common';
+import { Location, LowerCasePipe, DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -34,6 +34,7 @@ import { PageableResponse } from '../models/pagination.model';
     ChartRoutesByGradeComponent,
     TuiLoader,
     LowerCasePipe,
+    DecimalPipe,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -45,16 +46,56 @@ import { PageableResponse } from '../models/pagination.model';
           (toggleLike)="global.toggleLikeZone(a.areaSlug)"
         />
 
+        <!-- Country / meta -->
+        <div class="mt-2 text-sm opacity-80">
+          {{ a.countryName }}
+        </div>
+
         @if (a.description) {
           <p class="mt-2 opacity-80">{{ a.description }}</p>
         }
 
-        <app-chart-routes-by-grade class="mt-4" [grades]="routesByGrade()" />
+        <!-- Quick stats -->
+        <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="text-center">
+            <div class="text-lg font-semibold">{{ a.totalRoutes ?? a.totalBoulders ?? a.totalZlaggables ?? 0 }}</div>
+            <div class="text-xs uppercase opacity-80">{{ 'labels.routes' | translate | lowercase }}</div>
+          </div>
+          <div class="text-center">
+            <div class="text-lg font-semibold">{{ a.totalBoulders ?? 0 }}</div>
+            <div class="text-xs uppercase opacity-80">{{ 'labels.boulders' | translate | lowercase }}</div>
+          </div>
+          <div class="text-center">
+            <div class="text-lg font-semibold">{{ a.totalZlaggables ?? a.totalAscents ?? 0 }}</div>
+            <div class="text-xs uppercase opacity-80">{{ 'labels.ascents' | translate | lowercase }}</div>
+          </div>
+          <div class="text-center">
+            <div class="text-lg font-semibold">{{ a.totalFollowers ?? 0 }}</div>
+            <div class="text-xs uppercase opacity-80">{{ 'labels.followers' | translate | lowercase }}</div>
+          </div>
+        </div>
+
+        <!-- Disciplines / rating -->
+        <div class="mt-3 flex flex-wrap gap-2 text-xs">
+          @if (a.hasSportClimbing) {
+            <span class="px-2 py-1 rounded-full bg-[--tui-background-neutral-2]">Sport</span>
+          }
+          @if (a.hasBouldering) {
+            <span class="px-2 py-1 rounded-full bg-[--tui-background-neutral-2]">Boulder</span>
+          }
+          @if (a.averageRating) {
+            <span class="px-2 py-1 rounded-full bg-[--tui-background-neutral-2]">
+              ★ {{ a.averageRating | number: '1.1-1' }}
+            </span>
+          }
+        </div>
+
+        <app-chart-routes-by-grade class="mt-4" [grades]="a.grades" />
 
         <h2 class="text-xl font-semibold mt-6 mb-2">
           {{ 'labels.crags' | translate }}
         </h2>
-        <div class="grid gap-2">
+        <div class="grid gap-2 mb-2">
           @for (c of crags()?.items; track c.cragSlug) {
             <div
               tuiCardLarge
@@ -69,21 +110,10 @@ import { PageableResponse } from '../models/pagination.model';
                   </header>
                   <section>
                     <div class="text-sm opacity-80">
-                      {{ 'labels.approach' | translate }} :
-                      {{ c.totalAscents || '—' }}
-                      {{ 'units.min' | translate }}
-                    </div>
-                    <div class="text-sm mt-1">
-                      {{ '// TODO: ' }}
-                      {{ 'labels.parkings' | translate | lowercase }}
+                      {{ (c.totalZlaggables ?? 0) }} {{ 'labels.routes' | translate | lowercase }} ·
+                      {{ (c.totalAscents ?? 0) }} {{ 'labels.ascents' | translate | lowercase }}
                     </div>
                   </section>
-                </div>
-                <div (click.zoneless)="$event.stopPropagation()">
-                  <app-chart-routes-by-grade
-                    class="mt-2"
-                    [grades]="cragRoutesByGrade()"
-                  />
                 </div>
               </div>
             </div>
@@ -110,22 +140,16 @@ export class AreaComponent implements OnDestroy {
     this.global.cragsPageable(),
   );
 
-  cragRoutesByGrade = computed<
-    import('../models').AmountByEveryVerticalLifeGrade
-  >(() => ({}) as import('../models').AmountByEveryVerticalLifeGrade);
-  routesByGrade = computed<import('../models').AmountByEveryVerticalLifeGrade>(
-    () => ({}) as import('../models').AmountByEveryVerticalLifeGrade,
-  );
-
   constructor() {
-    // Ensure data is present when directly navigating by ID
     effect(() => {
       const countrySlug = this.countrySlug();
       const areaSlug = this.areaSlug();
       this.global.loadArea(countrySlug, areaSlug);
-
-      // TODO: implement pageable list for climbing crags (on Area page)
-      // using @defer for lazy loading and infinite scroll
+      this.global.loadAreaCrags(countrySlug, areaSlug, {
+        pageIndex: 0,
+        sortField: 'totalascents',
+        order: 'desc',
+      });
     });
   }
 

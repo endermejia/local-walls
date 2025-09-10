@@ -259,14 +259,23 @@ export class HeaderComponent implements OnDestroy {
     ];
 
     const area = this.global.area();
+    const crag = this.global.crag();
+
+    // If area is loaded, use it. Otherwise, when we only have a crag,
+    // synthesize the area breadcrumb from the crag metadata so breadcrumbs
+    // are correct on direct navigation to a crag route.
     if (area) {
       items.push({
         caption: area.areaName,
         routerLink: ['/zone', area.countrySlug, area.areaSlug],
       });
+    } else if (crag) {
+      items.push({
+        caption: crag.areaName,
+        routerLink: ['/zone', crag.countrySlug, crag.areaSlug],
+      });
     }
 
-    const crag = this.global.crag();
     if (crag) {
       items.push({
         caption: crag.cragName,

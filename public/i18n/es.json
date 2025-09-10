@@ -34,6 +34,9 @@
     "password": "Contraseña",
     "routes": "Vías",
     "route": "Vía",
+    "boulders": "Bloques",
+    "ascents": "Ascensiones",
+    "followers": "Seguidores",
     "number": "Número",
     "grade": "Grado",
     "height": "Altura",
@@ -42,7 +45,10 @@
     "topo": "Croquis",
     "map": "Mapa",
     "list": "Lista",
-    "myLocation": "Mi ubicación"
+    "myLocation": "Mi ubicación",
+    "country": "País",
+    "sectors": "Sectores",
+    "rating": "Valoración"
   },
   "auth": {
     "login": "Iniciar sesión",

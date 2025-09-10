@@ -26,7 +26,7 @@ import { TuiLoader } from '@taiga-ui/core';
           [title]="r.zlaggableName"
           [liked]="false"
           (back)="goBack()"
-          (toggleLike)="global.toggleLikeRoute(r.zlaggableId + '')"
+          (toggleLike)="global.toggleLikeRoute(r.zlaggableId)"
         />
         @if (r.difficulty) {
           <p class="mt-2 opacity-80">

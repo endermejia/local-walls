@@ -72,6 +72,7 @@ import { remToPx } from '../utils';
       <app-map
         class="w-full h-full"
         [mapCragItems]="mapCragItems()"
+        [mapAreaItems]="mapAreaItems()"
         [selectedMapCragItem]="global.selectedMapCragItem()"
         (selectedMapCragItemChange)="selectMapCragItem($event)"
         (mapClick)="closeAll()"
@@ -131,32 +132,34 @@ import { remToPx } from '../utils';
           (scroll.zoneless)="onSheetScroll($any($event))"
         >
           @let areas = mapAreaItems();
-          <h3 tuiHeader id="zones-title">
-            <span tuiTitle class="items-center">
-              {{ counts?.map_collections ?? 0 }}
-              {{
-                'labels.' + (counts?.map_collections === 1 ? 'zone' : 'zones')
-                  | translate
-                  | lowercase
-              }}
-            </span>
+          <h3 tuiHeader id="zones-title" class="justify-center">
+            <div class="flex flex-row align-items-center justify-center gap-2">
+              <tui-avatar
+                tuiThumbnail
+                size="l"
+                [src]="global.iconSrc()('zone')"
+                [attr.aria-label]="'labels.zone' | translate"
+              />
+              <span tuiTitle class="justify-center">
+                {{ counts?.map_collections ?? 0 }}
+                {{
+                  'labels.' + (counts?.map_collections === 1 ? 'zone' : 'zones')
+                    | translate
+                    | lowercase
+                }}
+              </span>
+            </div>
           </h3>
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 overflow-auto">
             <div class="grid gap-2">
               @for (a of areas; track a.id) {
                 <div
                   tuiCardLarge
-                  [tuiSurface]="global.liked() ? 'accent' : 'neutral'"
+                  [tuiSurface]="a.liked ? 'accent' : 'neutral'"
                   class="cursor-pointer"
-                  [routerLink]="['/zone', a.id]"
+                  [routerLink]="['/zone', a.country_slug, a.slug]"
                 >
                   <div class="flex items-center gap-3">
-                    <tui-avatar
-                      tuiThumbnail
-                      size="l"
-                      [src]="global.iconSrc()('zone')"
-                      [attr.aria-label]="'labels.zone' | translate"
-                    />
                     <div class="flex flex-col min-w-0 grow">
                       <header tuiHeader>
                         <h2 tuiTitle>{{ a.name }}</h2>
@@ -176,7 +179,7 @@ import { remToPx } from '../utils';
           </section>
           @let crags = mapCragItems();
           <h3 tuiHeader id="crags-title" class="justify-center">
-            <div class="flex flex-col align-items-center justify-center gap-2">
+            <div class="flex flex-row align-items-center justify-center gap-2">
               <tui-avatar
                 tuiThumbnail
                 size="l"
@@ -199,7 +202,7 @@ import { remToPx } from '../utils';
               @for (c of crags; track c.slug) {
                 <div
                   tuiCardLarge
-                  [tuiSurface]="global.liked() ? 'accent' : 'neutral'"
+                  [tuiSurface]="c.liked ? 'accent' : 'neutral'"
                   class="cursor-pointer"
                   [routerLink]="['/crag', c.country_slug, c.slug]"
                 >

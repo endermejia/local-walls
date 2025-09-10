@@ -89,7 +89,9 @@ export const ORDERED_GRADE_VALUES: readonly GradeLabel[] = buildOrderedGrades();
 export type RoutesByGrade = Partial<Record<GradeLabel, number>>;
 
 // Centralized mappings between Vertical Life enum and GradeLabel
-export const VERTICAL_LIFE_TO_LABEL: Partial<Record<VERTICAL_LIFE_GRADES, GradeLabel>> = {
+export const VERTICAL_LIFE_TO_LABEL: Partial<
+  Record<VERTICAL_LIFE_GRADES, GradeLabel>
+> = {
   [VERTICAL_LIFE_GRADES.G3a]: '3a',
   [VERTICAL_LIFE_GRADES.G3b]: '3b',
   [VERTICAL_LIFE_GRADES.G3c]: '3c',
@@ -127,11 +129,15 @@ export const VERTICAL_LIFE_TO_LABEL: Partial<Record<VERTICAL_LIFE_GRADES, GradeL
   [VERTICAL_LIFE_GRADES.G9c]: '9c',
 };
 
-export const LABEL_TO_VERTICAL_LIFE: Partial<Record<GradeLabel, VERTICAL_LIFE_GRADES>> = Object.entries(VERTICAL_LIFE_TO_LABEL)
-  .reduce((acc, [k, v]) => {
+export const LABEL_TO_VERTICAL_LIFE: Partial<
+  Record<GradeLabel, VERTICAL_LIFE_GRADES>
+> = Object.entries(VERTICAL_LIFE_TO_LABEL).reduce(
+  (acc, [k, v]) => {
     if (v) acc[v as GradeLabel] = Number(k) as VERTICAL_LIFE_GRADES;
     return acc;
-  }, {} as Partial<Record<GradeLabel, VERTICAL_LIFE_GRADES>>);
+  },
+  {} as Partial<Record<GradeLabel, VERTICAL_LIFE_GRADES>>,
+);
 
 export function bandForGradeLabel(g: GradeLabel): 0 | 1 | 2 | 3 | 4 {
   const base = parseInt(g.charAt(0), 10);
@@ -152,7 +158,9 @@ export function normalizeRoutesByGrade(
   // If keys look like enum numbers, map through VERTICAL_LIFE_TO_LABEL
   const isEnumLike = Object.keys(input as object).some((k) => /^\d+$/.test(k));
   if (isEnumLike) {
-    for (const [k, v] of Object.entries(input as AmountByEveryVerticalLifeGrade)) {
+    for (const [k, v] of Object.entries(
+      input as AmountByEveryVerticalLifeGrade,
+    )) {
       const num = Number(k) as VERTICAL_LIFE_GRADES;
       const label = VERTICAL_LIFE_TO_LABEL[num];
       if (label && v) out[label] = v;

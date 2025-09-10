@@ -1,7 +1,7 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { GlobalData } from './global-data';
-import { MapCragItem, MapOptions } from '../models';
+import { MapCragItem, MapOptions, MapAreaItem } from '../models';
 
 export interface MapBuilderCallbacks {
   onSelectedCragChange: (mapCragItem: MapCragItem | null) => void;
@@ -24,6 +24,8 @@ interface ClusterGroup {
 
 @Injectable({ providedIn: 'root' })
 export class MapBuilder {
+  private areaItems: readonly MapAreaItem[] = [];
+  private areaLayers: import('leaflet').Layer[] = [];
   private readonly platformId = inject(PLATFORM_ID);
   private readonly global = inject(GlobalData);
   private map!: import('leaflet').Map;
@@ -43,6 +45,7 @@ export class MapBuilder {
     el: HTMLElement,
     options: MapOptions,
     mapCragItem: readonly MapCragItem[],
+    areaItems: readonly MapAreaItem[],
     selectedMapCragItem: MapCragItem | null,
     cb: MapBuilderCallbacks,
   ): Promise<void> {
@@ -52,20 +55,22 @@ export class MapBuilder {
 
     this.map = new L.Map(el, {
       center: options.center ?? [39.5, -0.5],
-      zoom: options.zoom ?? 5,
+      zoom: options.zoom ?? 6,
       worldCopyJump: true,
     });
 
     new L.TileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
-        maxZoom: options.maxZoom ?? 15,
-        minZoom: options.minZoom ?? 5,
+        maxZoom: options.maxZoom ?? 12,
+        minZoom: options.minZoom ?? 6,
       },
     ).addTo(this.map);
 
     this.mapCragItems = mapCragItem;
+    this.areaItems = areaItems;
     await this.rebuildMarkers(mapCragItem, selectedMapCragItem, cb);
+    await this.rebuildAreas(areaItems);
 
     // Determine if we should attempt geolocation: only on mobile devices
     const isMobileClient = (() => {
@@ -85,7 +90,7 @@ export class MapBuilder {
           const { latitude, longitude } = pos.coords;
           this.map.setView(
             [latitude, longitude],
-            Math.min(9, options.maxZoom ?? 15),
+            Math.min(9, options.maxZoom ?? 12),
           );
           await this.goToCurrentLocation();
         });
@@ -98,10 +103,10 @@ export class MapBuilder {
       const latLngs: [number, number][] = mapCragItem.map(
         (mapItem: MapCragItem) => [mapItem.latitude, mapItem.longitude],
       );
-      const bounds = new L.LatLngBounds(latLngs);
+      const bounds = new (L as any).LatLngBounds(latLngs);
       this.map.fitBounds(bounds, {
         padding: [24, 24],
-        maxZoom: Math.min(9, options.maxZoom ?? 15),
+        maxZoom: Math.min(9, options.maxZoom ?? 12),
       });
     }
 
@@ -163,17 +168,21 @@ export class MapBuilder {
 
   async updateData(
     mapCragItem: readonly MapCragItem[],
+    areaItems: readonly MapAreaItem[],
     selectedMapCragItem: MapCragItem | null,
     cb: MapBuilderCallbacks,
   ): Promise<void> {
     if (!this.map) return;
     this.mapCragItems = mapCragItem;
+    this.areaItems = areaItems;
     await this.rebuildMarkers(mapCragItem, selectedMapCragItem, cb);
+    await this.rebuildAreas(areaItems);
   }
 
   destroy(): void {
     try {
       this.cleanMarkers();
+      this.cleanAreas();
       this.map?.remove?.();
     } catch {
       // ignore
@@ -191,10 +200,90 @@ export class MapBuilder {
     this.markers = [];
   }
 
+  private cleanAreas(): void {
+    if (!this.map || !this.L) return;
+    this.areaLayers.forEach((rect) => {
+      this.map.removeLayer(rect);
+    });
+    this.areaLayers = [];
+  }
+
+  private async rebuildAreas(areas: readonly MapAreaItem[]): Promise<void> {
+    if (!this.map || !this.L) return;
+    const L = this.L;
+    // Clear previous
+    this.cleanAreas();
+
+    // Helper to normalize a coordinate pair into [lat, lng]
+    const toLatLng = (pair: [number, number]): [number, number] => {
+      let [a, b] = pair;
+      // If the first value looks like longitude (>|90|) or the second looks like latitude (>|90|), swap.
+      const looksLikeLon =
+        Math.abs(a) > 90 ||
+        (Math.abs(a) <= 180 && Math.abs(b) <= 90 && Math.abs(a) >= Math.abs(b));
+      const looksLikeLatSecond =
+        Math.abs(b) <= 90 && Math.abs(a) <= 180 && Math.abs(a) > 90;
+      if (
+        Math.abs(a) > 90 ||
+        Math.abs(b) > 180 ||
+        looksLikeLatSecond ||
+        looksLikeLon
+      ) {
+        // Swap assuming input is [lng, lat]
+        [a, b] = [b, a];
+      }
+      return [a, b];
+    };
+
+    // Draw each area as rectangle from bounding box
+    for (const area of areas) {
+      const bbox = area.b_box; // Expected either [[south, west], [north, east]] or [[west, south], [east, north]]
+      if (!bbox || bbox.length !== 2) continue;
+
+      const [p1, p2] = bbox as unknown as [[number, number], [number, number]];
+
+      const [lat1, lng1] = toLatLng(p1);
+      const [lat2, lng2] = toLatLng(p2);
+
+      // Validate ranges after normalization
+      if (
+        !isFinite(lat1) ||
+        !isFinite(lng1) ||
+        !isFinite(lat2) ||
+        !isFinite(lng2)
+      )
+        continue;
+
+      // Ensure south<north and west<east
+      const south = Math.min(lat1, lat2);
+      const north = Math.max(lat1, lat2);
+      const west = Math.min(lng1, lng2);
+      const east = Math.max(lng1, lng2);
+
+      // Skip degenerate bounds
+      if (south === north || west === east) continue;
+
+      const bounds = new (L as any).LatLngBounds([
+        [south, west],
+        [north, east],
+      ] as [number, number][]);
+
+      const rect = new (L as any).Rectangle(bounds, {
+        color: '#22c55e',
+        weight: 1,
+        fill: true,
+        fillColor: '#22c55e',
+        fillOpacity: 0.15,
+        interactive: false,
+      }).addTo(this.map);
+      this.areaLayers.push(rect);
+    }
+  }
+
   private shouldCluster(): boolean {
     if (!this.map) return true;
     const zoom = this.map.getZoom();
-    return this.clusteringEnabled && zoom < 15;
+    return this.clusteringEnabled && zoom < 12;
   }
 
   private groupMarkersByProximity(
@@ -338,7 +427,7 @@ export class MapBuilder {
 
           this.map.fitBounds(bounds, {
             padding: [50, 50],
-            maxZoom: 15,
+            maxZoom: 12,
             animate: true,
           });
         });

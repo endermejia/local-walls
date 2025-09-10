@@ -15,7 +15,7 @@ import {
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import type { MapCragItem, MapOptions } from '../models';
+import type { MapCragItem, MapOptions, MapAreaItem } from '../models';
 import { MapBuilder } from '../services/map-builder';
 import type { MapBuilderCallbacks } from '../services/map-builder';
 import { GlobalData } from '../services';
@@ -64,6 +64,9 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   public mapCragItems: InputSignal<readonly MapCragItem[]> = input<
     readonly MapCragItem[]
   >([]);
+  public mapAreaItems: InputSignal<readonly MapAreaItem[]> = input<
+    readonly MapAreaItem[]
+  >([]);
   public selectedMapCragItem: InputSignal<MapCragItem | null> =
     input<MapCragItem | null>(null);
   public selectedMapCragItemChange: OutputEmitterRef<MapCragItem | null> =
@@ -71,8 +74,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   public options: InputSignal<MapOptions> = input<MapOptions>({
     center: [38.7, -0.7],
     zoom: 10,
-    maxZoom: 15,
-    minZoom: 5,
+    maxZoom: 12,
+    minZoom: 6,
   });
   public mapClick = output<void>();
   public interactionStart = output<void>();
@@ -95,7 +98,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
           north_east_longitude: v.north_east_longitude,
           zoom: v.zoom,
           page_index: 0,
-          page_size: 50,
+          page_size: 20,
         });
       }, 300);
     },
@@ -107,9 +110,10 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   constructor() {
     effect(() => {
       const crags = this.mapCragItems();
+      const areas = this.mapAreaItems();
       const selected = this.selectedMapCragItem();
       if (this.mapInitialized()) {
-        void this.mapBuilder.updateData(crags, selected, this.callbacks);
+        void this.mapBuilder.updateData(crags, areas, selected, this.callbacks);
       }
     });
   }
@@ -159,6 +163,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       el,
       this.options(),
       this.mapCragItems(),
+      this.mapAreaItems(),
       this.selectedMapCragItem(),
       this.callbacks,
     );

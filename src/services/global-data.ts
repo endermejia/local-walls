@@ -161,6 +161,34 @@ export class GlobalData {
     }
   }
 
+  async loadAreaCrags(
+    countrySlug: string,
+    areaSlug: string,
+    params?: {
+      pageIndex?: number;
+      sortField?: 'totalascents' | 'grade' | 'name';
+      order?: 'asc' | 'desc';
+      category?: number;
+    },
+  ): Promise<void> {
+    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
+      return;
+    try {
+      this.loading.set(true);
+      const resp = await this.verticalLifeApi.getClimbingCragsPageable(
+        countrySlug,
+        areaSlug,
+        params,
+      );
+      this.cragsPageable.set(resp);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.error.set(msg);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
   async loadCrag(countrySlug: string, cragSlug: string): Promise<void> {
     if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
       return;

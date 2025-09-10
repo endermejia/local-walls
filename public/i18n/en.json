@@ -32,6 +32,9 @@
     "capacity": "Capacity",
     "routes": "Routes",
     "route": "Route",
+    "boulders": "Boulders",
+    "ascents": "Ascents",
+    "followers": "Followers",
     "number": "Number",
     "grade": "Grade",
     "height": "Height",
@@ -42,7 +45,10 @@
     "password": "Password",
     "map": "Map",
     "list": "List",
-    "myLocation": "My location"
+    "myLocation": "My location",
+    "country": "Country",
+    "sectors": "Sectors",
+    "rating": "Rating"
   },
   "auth": {
     "login": "Log in",

@@ -9,6 +9,7 @@ export interface MapAreaItem {
   country_slug: string;
   area_type?: 0;
   b_box: [[number, number], [number, number]];
+  liked?: boolean; // TODO: pending
 }
 
 export interface MapCragItem {
@@ -27,6 +28,7 @@ export interface MapCragItem {
   country_name: string;
   total_ascendables?: number; // routes
   total_ascents?: number; // ascents
+  liked?: boolean; // TODO: pending
 }
 
 export type MapItem = MapCragItem | MapAreaItem;

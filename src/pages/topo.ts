@@ -90,7 +90,7 @@ import type { ClimbingTopo, TopoRoute, ClimbingRoute } from '../models';
           aria-label="Routes"
         >
           <section class="w-full max-w-5xl mx-auto sm:p-4 overflow-auto">
-            <app-routes-table [data]="[]" [direction]="direction()" />
+            <app-routes-table [data]="routes()" [direction]="direction()" />
           </section>
         </tui-bottom-sheet>
       } @else {
@@ -118,6 +118,11 @@ export class TopoComponent {
   id: InputSignal<string> = input.required<string>();
   topo: Signal<ClimbingTopo | null> = computed<ClimbingTopo | null>(() =>
     this.global.topo(),
+  );
+
+  // Routes currently loaded for the crag (used to populate the table)
+  routes: Signal<ClimbingRoute[]> = computed<ClimbingRoute[]>(() =>
+    this.global.routesPageable()?.items ?? []
   );
 
   protected readonly direction: WritableSignal<TuiSortDirection> =
