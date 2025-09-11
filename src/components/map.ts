@@ -23,6 +23,7 @@ import type {
   MapAreasData,
   MapCragsData,
   MapPolygonsData,
+  MapBounds,
 } from '../models';
 import { MapBuilder } from '../services/map-builder';
 import type { MapBuilderCallbacks } from '../services/map-builder';
@@ -92,27 +93,18 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   public mapClick = output<void>();
   public interactionStart = output<void>();
 
-  private _viewportDebounce?: ReturnType<typeof setTimeout>;
-
   private readonly callbacks: MapBuilderCallbacks = {
     onSelectedCragChange: (crag) => this.selectedMapCragItemChange.emit(crag),
     onMapClick: () => this.mapClick.emit(),
     onInteractionStart: () => this.interactionStart.emit(),
-    onViewportChange: (v) => {
-      // Drive data loading from here (map owns fetching)
+    onViewportChange: (v: Partial<MapBounds>) => {
       if (!this.isBrowser()) return;
-      if (this._viewportDebounce) clearTimeout(this._viewportDebounce);
-      this._viewportDebounce = setTimeout(() => {
-        void this.global.loadMapItems({
-          south_west_latitude: v.south_west_latitude,
-          south_west_longitude: v.south_west_longitude,
-          north_east_latitude: v.north_east_latitude,
-          north_east_longitude: v.north_east_longitude,
-          zoom: v.zoom,
-          page_index: 0,
-          page_size: 20,
-        });
-      }, 300);
+      const previousViewport = this.global.mapBounds();
+      const viewport = {
+        ...previousViewport,
+        ...v,
+      };
+      this.global.mapBounds.set(viewport as MapBounds);
     },
   };
 

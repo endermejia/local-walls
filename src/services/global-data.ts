@@ -1,5 +1,6 @@
 import {
   computed,
+  effect,
   inject,
   Injectable,
   Signal,
@@ -21,6 +22,7 @@ import type {
   ClimbingSector,
   ClimbingTopo,
   IconName,
+  MapBounds,
   MapCragItem,
   MapItem,
   MapResponse,
@@ -106,6 +108,7 @@ export class GlobalData {
   // TODO: implement likes
   liked: WritableSignal<boolean> = signal(false);
 
+  mapBounds: WritableSignal<MapBounds | null> = signal(null);
   mapResponse: WritableSignal<MapResponse | null> = signal(null);
   mapItems: Signal<MapItem[]> = computed(() => this.mapResponse()?.items ?? []);
   selectedMapCragItem: WritableSignal<MapCragItem | null> = signal(null);
@@ -120,15 +123,7 @@ export class GlobalData {
     signal(null);
   topo: WritableSignal<ClimbingTopo | null> = signal(null);
 
-  async loadMapItems(bounds: {
-    south_west_latitude: number;
-    south_west_longitude: number;
-    north_east_latitude: number;
-    north_east_longitude: number;
-    zoom: number;
-    page_index?: number;
-    page_size?: number;
-  }): Promise<void> {
+  async loadMapItems(bounds: MapBounds): Promise<void> {
     if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
       return;
     try {
@@ -353,6 +348,13 @@ export class GlobalData {
     this.translate.onDefaultLangChange.subscribe(() =>
       this.i18nTick.update((v) => v + 1),
     );
+
+    effect(() => {
+      const mapBounds = this.mapBounds();
+      if (mapBounds) {
+        this.loadMapItems(mapBounds);
+      }
+    });
   }
 
   private switchLanguage(): void {
