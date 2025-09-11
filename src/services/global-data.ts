@@ -42,6 +42,47 @@ export class GlobalData {
   private platformId = inject(PLATFORM_ID);
   protected readonly flagPipe = new TuiFlagPipe();
 
+  // ---- Map cache (keeps already downloaded items) ----
+  private readonly mapCache = new Map<number, MapItem>();
+  private readonly mapCacheStorageKey = 'map_cache_items_v1';
+  private readonly maxCacheItems = 1000;
+  private readonly cachedMapItems: WritableSignal<MapItem[]> = signal([]);
+
+  /**
+   * Refresh a single map item by id by calling 8a.nu item endpoint.
+   * Merges it into cache and updates selected item if it matches.
+   * SSR-safe: no-op on server.
+   */
+  async refreshMapItemById(id: number): Promise<void> {
+    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
+      return;
+    try {
+      const item = await this.verticalLifeApi.getMapItemById(id);
+      if (!item || typeof (item as any).id !== 'number') return;
+      this.mapCache.set((item as any).id as number, item);
+      const arr = Array.from(this.mapCache.values());
+      this.cachedMapItems.set(arr);
+      try {
+        this.localStorage.setItem(this.mapCacheStorageKey, JSON.stringify(arr));
+      } catch {
+        // ignore storage errors
+      }
+      const selected = this.selectedMapCragItem();
+      if (selected && selected.id === id) {
+        // Only set if the refreshed item is a crag (has latitude/longitude)
+        if (
+          (item as any)?.latitude != null &&
+          (item as any)?.longitude != null
+        ) {
+          this.selectedMapCragItem.set(item as any);
+        }
+      }
+    } catch (e) {
+      // Keep it silent for UX; optional logging
+      // console.error('Failed to refresh map item', e);
+    }
+  }
+
   // Loading/Status state
   readonly loading = signal(false);
   readonly error: WritableSignal<string | null> = signal(null);
@@ -109,8 +150,9 @@ export class GlobalData {
   liked: WritableSignal<boolean> = signal(false);
 
   mapBounds: WritableSignal<MapBounds | null> = signal(null);
+  private readonly mapBoundsStorageKey = 'map_bounds_v1';
   mapResponse: WritableSignal<MapResponse | null> = signal(null);
-  mapItems: Signal<MapItem[]> = computed(() => this.mapResponse()?.items ?? []);
+  mapItems: Signal<MapItem[]> = computed(() => this.cachedMapItems());
   selectedMapCragItem: WritableSignal<MapCragItem | null> = signal(null);
   area: WritableSignal<ClimbingArea | null> = signal(null);
   crag: WritableSignal<ClimbingCrag | null> = signal(null);
@@ -131,6 +173,37 @@ export class GlobalData {
       const mapResponse: MapResponse =
         await this.verticalLifeApi.getMapResponse(bounds);
       this.mapResponse.set(mapResponse);
+
+      // Merge fetched items into cache (dedupe by id)
+      const items = mapResponse?.items ?? [];
+      if (Array.isArray(items)) {
+        for (const it of items) {
+          const id = (it as any)?.id as number | undefined;
+          if (typeof id === 'number') {
+            this.mapCache.set(id, it);
+          }
+        }
+        // Enforce cache size limit and update signal
+        let arr = Array.from(this.mapCache.values());
+        if (arr.length > this.maxCacheItems) {
+          arr = arr.slice(arr.length - this.maxCacheItems);
+          // Rebuild map to keep only the last N (approximate LRU by recency of merge)
+          this.mapCache.clear();
+          for (const it of arr) {
+            this.mapCache.set((it as any).id as number, it);
+          }
+        }
+        this.cachedMapItems.set(arr);
+        // Persist cache for future sessions (SSR-safe wrapper handles server)
+        try {
+          this.localStorage.setItem(
+            this.mapCacheStorageKey,
+            JSON.stringify(arr),
+          );
+        } catch {
+          // ignore storage errors
+        }
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       this.error.set(msg);
@@ -339,6 +412,23 @@ export class GlobalData {
   }
 
   constructor() {
+    // Hydrate map cache from LocalStorage on browser (SSR-safe wrapper)
+    try {
+      const raw = this.localStorage.getItem(this.mapCacheStorageKey);
+      if (raw) {
+        const arr = JSON.parse(raw) as MapItem[];
+        if (Array.isArray(arr)) {
+          for (const item of arr) {
+            if (item && typeof (item as any).id === 'number') {
+              this.mapCache.set((item as any).id as number, item as MapItem);
+            }
+          }
+          this.cachedMapItems.set(Array.from(this.mapCache.values()));
+        }
+      }
+    } catch {
+      // ignore corrupted cache
+    }
     this.translate.onLangChange.subscribe(() =>
       this.i18nTick.update((v) => v + 1),
     );
@@ -349,9 +439,37 @@ export class GlobalData {
       this.i18nTick.update((v) => v + 1),
     );
 
+    // Hydrate last map bounds from storage on browser
+    try {
+      const rawBounds = this.localStorage.getItem(this.mapBoundsStorageKey);
+      if (rawBounds) {
+        const parsed = JSON.parse(rawBounds) as MapBounds;
+        if (
+          parsed &&
+          typeof parsed.south_west_latitude === 'number' &&
+          typeof parsed.south_west_longitude === 'number' &&
+          typeof parsed.north_east_latitude === 'number' &&
+          typeof parsed.north_east_longitude === 'number' &&
+          typeof parsed.zoom === 'number'
+        ) {
+          this.mapBounds.set(parsed);
+        }
+      }
+    } catch {
+      // ignore corrupted viewport state
+    }
+
+    // Persist and react to map bounds changes
     effect(() => {
       const mapBounds = this.mapBounds();
       if (mapBounds) {
+        // Save last viewport for next sessions (SSR-safe local storage wrapper)
+        try {
+          this.localStorage.setItem(
+            this.mapBoundsStorageKey,
+            JSON.stringify(mapBounds),
+          );
+        } catch {}
         this.loadMapItems(mapBounds);
       }
     });

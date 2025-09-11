@@ -26,8 +26,20 @@ export interface MapBuilderCallbacks {
   }) => void;
 }
 
+interface ClusterItem {
+  latitude: number;
+  longitude: number;
+  name: string;
+  key: string;
+  markerType: 'api' | 'area' | 'crag';
+  liked?: boolean;
+  apiItem?: MapCragItem;
+  cragFeature?: MapCragDataFeature;
+  areaKeys?: string[];
+}
+
 interface ClusterGroup {
-  markers: MapCragItem[];
+  markers: ClusterItem[];
   center: [number, number];
   count: number;
 }
@@ -48,7 +60,7 @@ export class MapBuilder {
   private markers: import('leaflet').Marker[] = [];
   private userMarker: import('leaflet').Marker | null = null;
   private clusteringEnabled = true;
-  private clusterRadius = 50; // Radio para agrupar marcadores en píxeles
+  private clusterRadius = 5; // Radio para agrupar marcadores en píxeles
 
   // Store initial datasets to be able to re-filter them on viewport changes
   private initialCragsData: MapCragsData | null = null;
@@ -85,11 +97,36 @@ export class MapBuilder {
     });
 
     new L.TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: options.maxZoom ?? 12,
+      maxZoom: options.maxZoom ?? 18,
       minZoom: options.minZoom ?? 6,
     }).addTo(this.map);
 
     this.mapCragItems = mapCragItem;
+
+    // Restore last saved viewport (bounds + zoom) if available
+    const savedViewport = this.global.mapBounds();
+    if (savedViewport) {
+      try {
+        const bounds = new (L as any).LatLngBounds([
+          [
+            savedViewport.south_west_latitude,
+            savedViewport.south_west_longitude,
+          ],
+          [
+            savedViewport.north_east_latitude,
+            savedViewport.north_east_longitude,
+          ],
+        ]);
+        this.map.fitBounds(bounds);
+        // Ensure zoom matches saved value within configured min/max
+        const minZ = options.minZoom ?? 6;
+        const maxZ = options.maxZoom ?? 18;
+        const targetZ = Math.max(minZ, Math.min(maxZ, savedViewport.zoom));
+        this.map.setZoom(targetZ);
+      } catch {
+        // ignore malformed saved viewport
+      }
+    }
 
     // Load initial GeoJSON datasets if provided
     this.initialCragsData = initialCragsData;
@@ -125,7 +162,7 @@ export class MapBuilder {
           const { latitude, longitude } = pos.coords;
           this.map.setView(
             [latitude, longitude],
-            Math.min(9, options.maxZoom ?? 12),
+            Math.min(9, options.maxZoom ?? 18),
           );
           await this.goToCurrentLocation();
         });
@@ -134,14 +171,14 @@ export class MapBuilder {
       // ignore and fallback below
     }
 
-    if (mapCragItem && mapCragItem.length) {
+    if (!savedViewport && mapCragItem && mapCragItem.length) {
       const latLngs: [number, number][] = mapCragItem.map(
         (mapItem: MapCragItem) => [mapItem.latitude, mapItem.longitude],
       );
       const bounds = new (L as any).LatLngBounds(latLngs);
       this.map.fitBounds(bounds, {
         padding: [24, 24],
-        maxZoom: Math.min(9, options.maxZoom ?? 12),
+        maxZoom: Math.min(9, options.maxZoom ?? 18),
       });
     }
 
@@ -315,6 +352,15 @@ export class MapBuilder {
     if (!this.map || !this.L) return;
     const L = this.L;
 
+    // When clustering is active, skip rendering individual GeoJSON crag markers
+    if (this.shouldCluster()) {
+      if (this.cragsGeoJsonLayer) {
+        this.map.removeLayer(this.cragsGeoJsonLayer);
+        this.cragsGeoJsonLayer = null;
+      }
+      return;
+    }
+
     // Remove previous crag geojson layer
     if (this.cragsGeoJsonLayer) {
       this.map.removeLayer(this.cragsGeoJsonLayer);
@@ -322,6 +368,14 @@ export class MapBuilder {
     }
 
     const viewBounds = this.map.getBounds().pad(0.1);
+    const normalize = (s: string) => (s ?? '').trim().toLowerCase();
+    const apiNameSet = new Set(
+      this.mapCragItems
+        .filter((c) =>
+          viewBounds.contains(new (L as any).LatLng(c.latitude, c.longitude)),
+        )
+        .map((c) => normalize(c.name)),
+    );
     const cragsLayer = new (L as any).GeoJSON(cragsData as any, {
       className: 'geojson-crag',
       filter: (feature: MapCragDataFeature) => {
@@ -330,7 +384,11 @@ export class MapBuilder {
           if (!coords || coords.length < 2) return false;
           const lat = coords[1] as number;
           const lng = coords[0] as number;
-          return viewBounds.contains(new (L as any).LatLng(lat, lng));
+          const inBounds = viewBounds.contains(new (L as any).LatLng(lat, lng));
+          if (!inBounds) return false;
+          const name = (feature?.properties?.name as string | undefined) ?? '';
+          if (apiNameSet.has(normalize(name))) return false; // suppress duplicates by label, prefer API
+          return true;
         } catch {
           return false;
         }
@@ -345,6 +403,7 @@ export class MapBuilder {
             feature?.properties?.name ?? '',
             isSelected,
             isFavorite,
+            'crag',
           ),
           className: 'pointer-events-none',
           iconSize: [0, 0],
@@ -385,6 +444,9 @@ export class MapBuilder {
                 | undefined,
               liked: feature.properties?.liked as boolean | undefined,
             };
+            if (coords && (coords as any[]).length >= 2) {
+              this.centerOn(coords[1] as number, coords[0] as number, 10);
+            }
             cb.onSelectedCragChange(cragItem);
           });
         }
@@ -575,8 +637,23 @@ export class MapBuilder {
   ): Promise<void> {
     if (!this.map || !this.L || !areasData) return;
     const L = this.L as any;
+
+    // When clustering is active, we don't render separate area name markers
+    if (this.shouldCluster()) {
+      this.clearAreaNameMarkers();
+      return;
+    }
+
     this.clearAreaNameMarkers();
     const viewBounds = this.map.getBounds().pad(0.1);
+    const normalize = (s: string) => (s ?? '').trim().toLowerCase();
+    const apiNameSet = new Set(
+      this.mapCragItems
+        .filter((c) =>
+          viewBounds.contains(new (L as any).LatLng(c.latitude, c.longitude)),
+        )
+        .map((c) => normalize(c.name)),
+    );
     for (const feature of areasData.features ?? []) {
       const name = feature?.properties?.name ?? '';
       if (!name) continue;
@@ -585,7 +662,7 @@ export class MapBuilder {
       const latlng = new L.LatLng(center[0], center[1]);
       if (!viewBounds.contains(latlng)) continue;
       const icon = new L.DivIcon({
-        html: this.cragLabelHtml(name, false, false),
+        html: this.cragLabelHtml(name, false, false, 'area'),
         className: 'pointer-events-none',
         iconSize: [0, 0],
         iconAnchor: [0, 0],
@@ -602,6 +679,7 @@ export class MapBuilder {
         (
           (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
         )?.stopPropagation?.();
+        this.centerOn(center[0], center[1], 10);
         this.showOrToggleAreaPolygonByKeys(areaKeys, name);
       });
       // Keyboard accessibility
@@ -672,16 +750,102 @@ export class MapBuilder {
     return this.clusteringEnabled && zoom < 12;
   }
 
+  // Build a unified list of clusterable items across API crags, GeoJSON crags and area labels
+  private buildVisibleClusterItems(
+    apiItems: readonly MapCragItem[],
+  ): ClusterItem[] {
+    if (!this.map || !this.L) return [];
+    const L = this.L as any;
+    const bounds = this.map.getBounds().pad(0.1);
+    const items: ClusterItem[] = [];
+    const normalize = (s: string) => (s ?? '').trim().toLowerCase();
+
+    // API items
+    for (const c of apiItems) {
+      const latlng = new L.LatLng(c.latitude, c.longitude);
+      if (!bounds.contains(latlng)) continue;
+      items.push({
+        latitude: c.latitude,
+        longitude: c.longitude,
+        name: c.name,
+        key: `api:${c.id ?? c.slug ?? c.name}:${c.latitude.toFixed(5)},${c.longitude.toFixed(5)}`,
+        markerType: 'api',
+        liked: c.liked,
+        apiItem: c,
+      });
+    }
+
+    // Build a set of API names to suppress duplicates from other sources
+    const apiNameSet = new Set(
+      items.filter((i) => i.markerType === 'api').map((i) => normalize(i.name)),
+    );
+
+    // GeoJSON crags (points only)
+    const cragsData = this.initialCragsData;
+    if (cragsData?.features?.length) {
+      for (const feature of cragsData.features as any[]) {
+        try {
+          const coords = feature?.geometry?.coordinates as number[] | undefined;
+          if (!coords || coords.length < 2) continue;
+          const lat = coords[1] as number;
+          const lng = coords[0] as number;
+          const latlng = new L.LatLng(lat, lng);
+          if (!bounds.contains(latlng)) continue;
+          const name = feature?.properties?.name ?? '';
+          if (apiNameSet.has(normalize(name))) continue; // suppress duplicates by label, prefer API
+          const id = feature?.properties?.id ?? '';
+          items.push({
+            latitude: lat,
+            longitude: lng,
+            name,
+            key: `crag:${id || name}:${lat.toFixed(5)},${lng.toFixed(5)}`,
+            markerType: 'crag',
+            liked: !!feature?.properties?.liked,
+            cragFeature: feature,
+          });
+        } catch {
+          // ignore invalid features
+        }
+      }
+    }
+
+    // Area labels (computed centers)
+    const areasData = this.initialAreasData;
+    if (areasData?.features?.length) {
+      for (const feature of areasData.features as any[]) {
+        const name = feature?.properties?.name ?? '';
+        if (!name) continue;
+        if (apiNameSet.has(normalize(name))) continue; // suppress duplicates by label, prefer API
+        const center = this.computeAreaCenter(feature);
+        if (!center) continue;
+        const latlng = new L.LatLng(center[0], center[1]);
+        if (!bounds.contains(latlng)) continue;
+        const keys = this.getAreaKeysFromFeature(feature);
+        const idKey = keys[0] ?? name;
+        items.push({
+          latitude: center[0],
+          longitude: center[1],
+          name,
+          key: `area:${idKey}:${center[0].toFixed(5)},${center[1].toFixed(5)}`,
+          markerType: 'area',
+          areaKeys: keys,
+        });
+      }
+    }
+
+    return items;
+  }
+
   private groupMarkersByProximity(
-    mapCragItems: readonly MapCragItem[],
+    items: readonly ClusterItem[],
   ): ClusterGroup[] {
     if (!this.map || !this.L) return [];
-    const L = this.L;
+    const L = this.L as any;
 
     if (!this.shouldCluster()) {
-      return mapCragItems.map((mapCragItem) => ({
-        markers: [mapCragItem],
-        center: [mapCragItem.latitude, mapCragItem.longitude],
+      return items.map((it) => ({
+        markers: [it],
+        center: [it.latitude, it.longitude],
         count: 1,
       }));
     }
@@ -689,47 +853,37 @@ export class MapBuilder {
     const groups: ClusterGroup[] = [];
     const processed = new Set<string>();
 
-    for (const mapCragItem of mapCragItems) {
-      if (processed.has(mapCragItem.slug)) continue;
+    for (const it of items) {
+      if (processed.has(it.key)) continue;
 
-      const latlng = new (L as any).LatLng(
-        mapCragItem.latitude,
-        mapCragItem.longitude,
-      );
+      const latlng = new L.LatLng(it.latitude, it.longitude);
       const point = this.map.latLngToContainerPoint(latlng);
 
       const group: ClusterGroup = {
-        markers: [mapCragItem],
-        center: [mapCragItem.latitude, mapCragItem.longitude],
+        markers: [it],
+        center: [it.latitude, it.longitude],
         count: 1,
       };
 
-      processed.add(mapCragItem.slug);
+      processed.add(it.key);
 
-      for (const otherCrag of mapCragItems) {
-        if (
-          otherCrag.slug === mapCragItem.slug ||
-          processed.has(otherCrag.slug)
-        )
-          continue;
+      for (const other of items) {
+        if (other.key === it.key || processed.has(other.key)) continue;
 
-        const otherLatLng = new (L as any).LatLng(
-          otherCrag.latitude,
-          otherCrag.longitude,
-        );
+        const otherLatLng = new L.LatLng(other.latitude, other.longitude);
         const otherPoint = this.map.latLngToContainerPoint(otherLatLng);
 
         const distance = point.distanceTo(otherPoint);
 
         if (distance <= this.clusterRadius) {
-          group.markers.push(otherCrag);
+          group.markers.push(other);
           group.count++;
-          processed.add(otherCrag.slug);
+          processed.add(other.key);
 
           group.center = [
-            (group.center[0] * (group.count - 1) + otherCrag.latitude) /
+            (group.center[0] * (group.count - 1) + other.latitude) /
               group.count,
-            (group.center[1] * (group.count - 1) + otherCrag.longitude) /
+            (group.center[1] * (group.count - 1) + other.longitude) /
               group.count,
           ];
         }
@@ -751,6 +905,149 @@ export class MapBuilder {
 
     this.cleanMarkers();
 
+    const clustering = this.shouldCluster();
+
+    if (clustering) {
+      const items = this.buildVisibleClusterItems(mapCragItems);
+      if (!items.length) return;
+      const groups = this.groupMarkersByProximity(items);
+
+      for (const group of groups) {
+        if (group.count === 1) {
+          const it = group.markers[0];
+          const latLng: [number, number] = [it.latitude, it.longitude];
+          const isSelected = (() => {
+            if (!selectedMapCragItem) return false;
+            if (it.markerType === 'api')
+              return it.apiItem?.id === selectedMapCragItem.id;
+            if (it.markerType === 'crag')
+              return (
+                (it.cragFeature?.properties?.id ?? null) ===
+                selectedMapCragItem.id
+              );
+            return false;
+          })();
+          const isFavorite = !!it.liked;
+
+          const icon = new (L as any).DivIcon({
+            html: this.cragLabelHtml(
+              it.name,
+              isSelected,
+              isFavorite,
+              it.markerType,
+            ),
+            className: 'pointer-events-none',
+            iconSize: [0, 0],
+            iconAnchor: [0, 0],
+          });
+
+          const marker = new (L as any).Marker(latLng, { icon }).addTo(
+            this.map,
+          );
+          this.markers.push(marker);
+
+          const onSelect = () => {
+            // Center the map on the clicked item
+            this.centerOn(it.latitude, it.longitude, 10);
+            switch (it.markerType) {
+              case 'api':
+                if (it.apiItem) {
+                  cb.onSelectedCragChange(it.apiItem);
+                  // If the API item lacks details, fetch and refresh it
+                  if (
+                    it.apiItem.total_ascendables == null &&
+                    it.apiItem.total_ascents == null
+                  ) {
+                    void this.global.refreshMapItemById(it.apiItem.id);
+                  }
+                }
+                break;
+              case 'crag': {
+                const f = it.cragFeature as any;
+                const coords = f?.geometry?.coordinates as number[] | undefined;
+                const cragItem: MapCragItem = {
+                  id: f?.properties?.id ?? 0,
+                  name: f?.properties?.name ?? '',
+                  slug: f?.properties?.slug ?? '',
+                  area_name: f?.properties?.area_name ?? '',
+                  area_slug: f?.properties?.area_slug ?? '',
+                  country_name: f?.properties?.country_name ?? '',
+                  country_slug: f?.properties?.country_slug ?? '',
+                  category: f?.properties?.category as number,
+                  avg_rating: (f?.properties?.avg_rating as number) ?? 0,
+                  latitude: coords ? (coords[1] as number) : it.latitude,
+                  longitude: coords ? (coords[0] as number) : it.longitude,
+                  grades: (f?.properties?.grades as any) ?? {},
+                  season: (f?.properties?.season as any) ?? [],
+                  total_ascendables: f?.properties?.total_ascendables as
+                    | number
+                    | undefined,
+                  total_ascents: f?.properties?.total_ascents as
+                    | number
+                    | undefined,
+                  liked: f?.properties?.liked as boolean | undefined,
+                };
+                cb.onSelectedCragChange(cragItem);
+                // Always try to refresh the crag from the API when coming from GeoJSON
+                if (cragItem.id) {
+                  void this.global.refreshMapItemById(cragItem.id);
+                }
+                break;
+              }
+              case 'area':
+                this.showOrToggleAreaPolygonByKeys(it.areaKeys ?? [], it.name);
+                break;
+            }
+          };
+
+          marker.on('click', (e: import('leaflet').LeafletEvent) => {
+            (
+              (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
+            )?.preventDefault?.();
+            (
+              (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
+            )?.stopPropagation?.();
+            onSelect();
+          });
+          this.attachMarkerKeyboardSelection(marker, onSelect);
+        } else {
+          const latLng = group.center;
+          const icon = new (L as any).DivIcon({
+            html: this.clusterLabelHtml(group.count),
+            className: 'marker-cluster',
+            iconSize: new (L as any).Point(40, 40),
+            iconAnchor: [20, 20],
+          });
+
+          const marker = new (L as any).Marker(latLng as any, { icon }).addTo(
+            this.map,
+          );
+          this.markers.push(marker);
+
+          marker.on('click', (e: import('leaflet').LeafletEvent) => {
+            (
+              (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
+            )?.preventDefault?.();
+            (
+              (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
+            )?.stopPropagation?.();
+
+            const bounds = new (L as any).LatLngBounds(
+              group.markers.map((c) => [c.latitude, c.longitude]),
+            );
+
+            this.map.fitBounds(bounds, {
+              padding: [50, 50],
+              maxZoom: 18,
+              animate: true,
+            });
+          });
+        }
+      }
+      return;
+    }
+
+    // Non-clustered: render API items as before
     // Only render markers within the current viewport (with slight padding)
     const bounds = this.map.getBounds().pad(0.1);
     const Lb = this.L as any;
@@ -758,75 +1055,38 @@ export class MapBuilder {
       bounds.contains(new Lb.LatLng(c.latitude, c.longitude)),
     );
 
-    if (!visibleItems.length) return;
+    for (const mapCragItem of visibleItems) {
+      const { latitude, longitude } = mapCragItem;
+      const latLng: [number, number] = [latitude, longitude];
+      const icon = new (L as any).DivIcon({
+        html: this.cragLabelHtml(
+          mapCragItem.name,
+          selectedMapCragItem?.id === mapCragItem.id,
+          this.global.liked(),
+          'api',
+        ),
+        className: 'pointer-events-none',
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+      });
 
-    const groups = this.groupMarkersByProximity(visibleItems);
+      const marker = new (L as any).Marker(latLng, { icon }).addTo(this.map);
+      this.markers.push(marker);
 
-    for (const group of groups) {
-      if (group.count === 1) {
-        const mapCragItem = group.markers[0];
-        const { latitude, longitude } = mapCragItem;
-        const latLng: [number, number] = [latitude, longitude];
-        const icon = new (L as any).DivIcon({
-          html: this.cragLabelHtml(
-            mapCragItem.name,
-            selectedMapCragItem?.id === mapCragItem.id,
-            this.global.liked(),
-          ),
-          className: 'pointer-events-none',
-          iconSize: [0, 0],
-          iconAnchor: [0, 0],
-        });
+      marker.on('click', (e: import('leaflet').LeafletEvent) => {
+        (
+          (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
+        )?.preventDefault?.();
+        (
+          (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
+        )?.stopPropagation?.();
+        this.centerOn(latitude, longitude, 10);
+        cb.onSelectedCragChange(mapCragItem);
+      });
 
-        const marker = new (L as any).Marker(latLng, { icon }).addTo(this.map);
-        this.markers.push(marker);
-
-        marker.on('click', (e: import('leaflet').LeafletEvent) => {
-          (
-            (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
-          )?.preventDefault?.();
-          (
-            (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
-          )?.stopPropagation?.();
-          cb.onSelectedCragChange(mapCragItem);
-        });
-
-        this.attachMarkerKeyboardSelection(marker, () =>
-          cb.onSelectedCragChange(mapCragItem),
-        );
-      } else {
-        const latLng = group.center;
-        const icon = new (L as any).DivIcon({
-          html: this.clusterLabelHtml(group.count),
-          className: 'marker-cluster',
-          iconSize: new (L as any).Point(40, 40),
-          iconAnchor: [20, 20],
-        });
-
-        const marker = new (L as any).Marker(latLng as any, { icon }).addTo(
-          this.map,
-        );
-        this.markers.push(marker);
-
-        marker.on('click', (e: import('leaflet').LeafletEvent) => {
-          (
-            (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
-          )?.preventDefault?.();
-          (
-            (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
-          )?.stopPropagation?.();
-
-          const bounds = new (L as any).LatLngBounds(
-            group.markers.map((c) => [c.latitude, c.longitude]),
-          );
-
-          this.map.fitBounds(bounds, {
-            padding: [50, 50],
-            maxZoom: 12,
-            animate: true,
-          });
-        });
-      }
+      this.attachMarkerKeyboardSelection(marker, () =>
+        cb.onSelectedCragChange(mapCragItem),
+      );
     }
   }
 
@@ -834,9 +1094,29 @@ export class MapBuilder {
     name: string,
     isSelected: boolean,
     isFavorite: boolean,
+    markerType: 'api' | 'area' | 'crag' = 'api',
   ): string {
-    const variant = isFavorite ? 'lw-marker--accent' : 'lw-marker--primary';
-    return `<div class="lw-marker ${variant} w-fit px-2 py-1 rounded-xl text-xs leading-tight whitespace-nowrap -translate-y-full pointer-events-auto border border-transparent focus:outline-none" role="button" tabindex="0" aria-label="${name}" aria-pressed="${isSelected}">${name}</div>`;
+    let backgroundColorClass = 'lw-marker--primary';
+    switch (markerType) {
+      case 'area':
+        backgroundColorClass = 'lw-marker--secondary';
+        break;
+      case 'crag':
+        backgroundColorClass = 'lw-marker--accent';
+        break;
+    }
+
+    // El resto del código se mantiene igual
+    const scale = isSelected ? 1.4 : isFavorite ? 1.2 : 1;
+
+    return `<div
+        class="lw-marker ${backgroundColorClass} scale-[${scale}] w-fit px-2 py-1 rounded-xl text-xs leading-tight whitespace-nowrap -translate-y-full pointer-events-auto border border-transparent focus:outline-none"
+        role="button"
+        tabindex="0"
+        aria-label="${name}"
+        aria-pressed="${isSelected}">
+        ${name}
+        </div>`;
   }
 
   private clusterLabelHtml(count: number): string {
@@ -856,6 +1136,12 @@ export class MapBuilder {
         onSelect();
       }
     });
+  }
+
+  private centerOn(lat: number, lng: number, minZoom = 6): void {
+    if (!this.map) return;
+    const targetZoom = Math.max(minZoom, this.map.getZoom());
+    this.map.setView([lat, lng], targetZoom, { animate: true });
   }
 
   /**

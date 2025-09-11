@@ -13,6 +13,11 @@ A modern climbing guide application built with Angular 20 that helps climbers di
 
 ## Future Features
 
+- Mapa
+  - Filtros
+    - Sport Climbing / Bouldering
+    - Difficulty
+    - Morning shade / Afternoon shade / All-day shade
 - Roles
   - Admin
   - Equipper

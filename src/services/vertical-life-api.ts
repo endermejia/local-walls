@@ -20,7 +20,25 @@ export class VerticalLifeApi extends ApiCore {
     super('/api/8anu');
   }
 
-  async getMapResponse(bounds: MapBounds): Promise<MapResponse> {
+  /**
+   * Fetches a single map item (crag/area) by its id from 8a.nu and returns it.
+   * The backend proxy base is configured in ApiCore.
+   * Note: The 8a endpoint returns either `{ item: MapItem }` or the item itself depending on context.
+   */
+  async getMapItemById(id: number): Promise<MapItem> {
+    const data = await this.get<any>(
+      `/api/unification/collection/v1/web/map/item/0/${encodeURIComponent(String(id))}`,
+    );
+    return (data?.item ?? data) as MapItem;
+  }
+
+  async getMapResponse(
+    bounds: MapBounds,
+    sportClibming = false,
+    bouldering = false,
+  ): Promise<MapResponse> {
+    const categories = (sportClibming ? 1 : 0) + (bouldering ? 2 : 0) || 3;
+
     return await this.get<MapResponse>(
       '/api/unification/collection/v1/web/map/items',
       {
@@ -28,7 +46,7 @@ export class VerticalLifeApi extends ApiCore {
           ...bounds,
           page_index: bounds.page_index ?? 0,
           page_size: bounds.page_size ?? 20,
-          categories: 1,
+          categories,
         },
       },
     );

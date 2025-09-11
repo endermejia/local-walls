@@ -87,7 +87,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   public options: InputSignal<MapOptions> = input<MapOptions>({
     center: [38.7, -0.7],
     zoom: 10,
-    maxZoom: 12,
+    maxZoom: 18,
     minZoom: 6,
   });
   public mapClick = output<void>();
@@ -149,7 +149,17 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.initialAreasData.set(await areasResponse.json());
       }
       if (cragsResponse.ok) {
-        this.initialCragsData.set(await cragsResponse.json());
+        const cragsJson = (await cragsResponse.json()) as MapCragsData;
+        const filtered: MapCragsData = {
+          ...cragsJson,
+          features: Array.isArray(cragsJson.features)
+            ? cragsJson.features.filter((f) => {
+                const cat = (f as any)?.properties?.category;
+                return cat === 1 || cat === 2;
+              })
+            : [],
+        };
+        this.initialCragsData.set(filtered);
       }
       if (polygonsResponse.ok) {
         this.initialPolygonsData.set(await polygonsResponse.json());
