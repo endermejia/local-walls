@@ -1,6 +1,46 @@
 # Ñasca!
 
-Base project for Web Applications:
+A modern climbing guide application built with Angular 20 that helps climbers discover and navigate climbing locations. The app features an interactive map interface for exploring climbing spots, detailed route information, and mobile-friendly design. It uses server-side rendering (SSR) for improved performance and SEO, and implements a fully reactive architecture with Angular Signals for state management.
+
+## Features
+
+- 🗺️ Interactive map with climbing locations
+- 📱 Mobile-first responsive design
+- 🚀 Fast loading with SSR and lazy loading
+- 🔍 Search and filter climbing spots
+- 📍 Geolocation support
+- 🌐 Multilingual support
+
+## Future Features
+
+- Roles
+  - Admin
+  - Equipper
+  - User
+- User
+  - Profile
+  - Settings
+  - Favorites
+  - Ascents
+    - Onsight, Flash, RedPoint
+    - Photo of the day
+    - Grade
+    - Climbing route
+      - Follow climbing routes, crags and areas
+  - Notifications
+  - Activity/Logbook
+- Topos
+  - List
+  - Type:
+    - Global (everyone can see it)
+    - Payment (everyone can buy it)
+      - Contribution for the equipper
+    - Secretive (only for equipper and users with invitation)
+      - Admin and Equipper can invite users to secretive topos
+
+- Private Database with new Api
+
+## Tech Stack
 
 - [Angular 20](https://github.com/angular/angular-cli)
   - SSR
@@ -13,7 +53,7 @@ Base project for Web Applications:
 
 With love, by Gabri Mejía ❤
 
-[Live DEMO](https://local-walls.netlify.app/home) 🚀
+[Live DEMO](https://local-walls.vercel.app) 🚀
 
 ## Development server
 

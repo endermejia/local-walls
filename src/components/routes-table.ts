@@ -147,7 +147,7 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
   // Inputs
   data: InputSignal<ClimbingRoute[]> = input.required<ClimbingRoute[]>();
   direction: InputSignal<TuiSortDirection> = input<TuiSortDirection>(
-    TuiSortDirection.Asc,
+    TuiSortDirection.Desc,
   );
   loading: InputSignal<boolean> = input(false);
   hasNext: InputSignal<boolean> = input(false);
