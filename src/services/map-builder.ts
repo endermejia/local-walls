@@ -84,13 +84,10 @@ export class MapBuilder {
       worldCopyJump: true,
     });
 
-    new L.TileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      {
-        maxZoom: options.maxZoom ?? 12,
-        minZoom: options.minZoom ?? 6,
-      },
-    ).addTo(this.map);
+    new L.TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: options.maxZoom ?? 12,
+      minZoom: options.minZoom ?? 6,
+    }).addTo(this.map);
 
     this.mapCragItems = mapCragItem;
 

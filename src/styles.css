@@ -72,3 +72,18 @@ th[tuiTh] {
 .leaflet-bottom.leaflet-right {
   display: none;
 }
+
+.leaflet-control-zoom {
+  border: none !important;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  border: none !important;
+  border-radius: 0.5rem !important;
+  background-color: var(--tui-background-accent-opposite-hover) !important;
+  color: var(--tui-background-base) !important;
+}
