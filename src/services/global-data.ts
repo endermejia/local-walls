@@ -6,7 +6,7 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { ClimbingSector, VerticalLifeApi } from './vertical-life-api';
+import { VerticalLifeApi } from './vertical-life-api';
 import { PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { LocalStorage } from './local-storage';
@@ -18,6 +18,7 @@ import type {
   ClimbingArea,
   ClimbingCrag,
   ClimbingRoute,
+  ClimbingSector,
   ClimbingTopo,
   IconName,
   MapCragItem,
@@ -43,6 +44,7 @@ export class GlobalData {
   readonly loading = signal(false);
   readonly error: WritableSignal<string | null> = signal(null);
 
+  private readonly i18nTick: WritableSignal<number> = signal(0);
   selectedLanguage: WritableSignal<'es' | 'en'> = signal('es');
   tuiLanguage: Signal<
     typeof TUI_SPANISH_LANGUAGE | typeof TUI_ENGLISH_LANGUAGE
@@ -98,9 +100,8 @@ export class GlobalData {
     'Aixortà',
     'Rincón Bello',
   ]);
-  // TODO: transform to use verticalLifeApi => getMapItemsBySearch
+  // TODO: use verticalLifeApi => getMapItemsBySearch
   searchData: WritableSignal<SearchData> = signal({});
-  private readonly i18nTick: WritableSignal<number> = signal(0);
 
   // TODO: implement likes
   liked: WritableSignal<boolean> = signal(false);
@@ -118,27 +119,6 @@ export class GlobalData {
   routesPageable: WritableSignal<PageableResponse<ClimbingRoute> | null> =
     signal(null);
   topo: WritableSignal<ClimbingTopo | null> = signal(null);
-
-  async loadCragSectors(countrySlug: string, cragSlug: string): Promise<void> {
-    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
-      return;
-    try {
-      this.loading.set(true);
-      const sectors = await this.verticalLifeApi.getClimbingSectors(
-        countrySlug,
-        cragSlug,
-      );
-      this.cragSectors.set(sectors);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      this.error.set(msg);
-      if (msg.includes('HTTP 404')) {
-        this.router.navigateByUrl('/page-not-found');
-      }
-    } finally {
-      this.loading.set(false);
-    }
-  }
 
   async loadMapItems(bounds: {
     south_west_latitude: number;
@@ -234,6 +214,27 @@ export class GlobalData {
     }
   }
 
+  async loadCragSectors(countrySlug: string, cragSlug: string): Promise<void> {
+    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
+      return;
+    try {
+      this.loading.set(true);
+      const sectors = await this.verticalLifeApi.getClimbingSectors(
+        countrySlug,
+        cragSlug,
+      );
+      this.cragSectors.set(sectors);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.error.set(msg);
+      if (msg.includes('HTTP 404')) {
+        this.router.navigateByUrl('/page-not-found');
+      }
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
   async loadCragRoutes(
     countrySlug: string,
     cragSlug: string,
@@ -264,7 +265,7 @@ export class GlobalData {
     countrySlug: string,
     cragSlug: string,
     sectorSlug: string,
-    zlaggableId: string,
+    zlaggableSlug: string,
   ): Promise<void> {
     if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
       return;
@@ -274,7 +275,7 @@ export class GlobalData {
         countrySlug,
         cragSlug,
         sectorSlug,
-        zlaggableId,
+        zlaggableSlug,
       );
       this.route.set(resp);
     } catch (e) {

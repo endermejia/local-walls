@@ -99,9 +99,9 @@ export interface MapAreasData {
 
 /**
  * GeoJSON de items del mapa (FeatureCollection con puntos)
- * Basado en public/map/map_items.json
+ * Basado en public/map/map_crags.json
  */
-export interface MapItemDataFeature {
+export interface MapCragDataFeature {
   type: 'Feature';
   id?: string | number;
   bbox?: [number, number, number, number];
@@ -135,11 +135,11 @@ export interface MapItemDataFeature {
   };
 }
 
-export interface MapItemsData {
+export interface MapCragsData {
   type: 'FeatureCollection';
   name?: string;
   bbox?: [number, number, number, number];
-  features: MapItemDataFeature[];
+  features: MapCragDataFeature[];
 }
 
 /**

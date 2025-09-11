@@ -48,24 +48,6 @@ export const serverRoutes: ServerRoute[] = [
     },
   },
   {
-    path: 'topo/:countrySlug/:cragSlug/:id',
-    renderMode: RenderMode.Prerender,
-    fallback: PrerenderFallback.Server,
-    async getPrerenderParams() {
-      const global = inject(GlobalData);
-      const crag = global.crag();
-      return crag
-        ? [
-            {
-              countrySlug: crag.countrySlug,
-              cragSlug: crag.cragSlug,
-              id: '', // TODO: Topos
-            },
-          ]
-        : [];
-    },
-  },
-  {
     path: 'sector/:countrySlug/:cragSlug/:sectorSlug',
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,
@@ -75,7 +57,7 @@ export const serverRoutes: ServerRoute[] = [
     },
   },
   {
-    path: 'route/:countrySlug/:cragSlug/sector/:sectorSlug/:zlaggableId',
+    path: 'route/:countrySlug/:cragSlug/sector/:sectorSlug/:zlaggableSlug',
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,
     async getPrerenderParams() {
@@ -84,7 +66,7 @@ export const serverRoutes: ServerRoute[] = [
       return route
         ? [
             {
-              zlaggableId: `${route.zlaggableId}`,
+              zlaggableSlug: `${route.zlaggableSlug}`,
             },
           ]
         : [];

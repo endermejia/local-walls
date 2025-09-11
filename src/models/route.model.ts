@@ -1,5 +1,12 @@
 import { AmountByEveryVerticalLifeGrade, GradeLabel } from './grade.model';
 
+export interface ClimbingRouteResponse {
+  zlaggable: ClimbingRoute;
+  isEditable?: boolean;
+  isFollowed?: boolean;
+  isGradeEditable?: boolean;
+}
+
 export interface ClimbingRoute {
   zlaggableId: number;
   zlaggableName: string;

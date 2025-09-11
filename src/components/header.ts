@@ -311,8 +311,8 @@ export class HeaderComponent implements OnDestroy {
         route.countrySlug || crag?.countrySlug || area?.countrySlug;
       const cragSlug = route.cragSlug || crag?.cragSlug;
       const sectorSlug = route.sectorSlug;
-      const zlaggableId = route.zlaggableId;
-      if (country && cragSlug && sectorSlug && zlaggableId != null) {
+      const zlaggableSlug = route.zlaggableSlug;
+      if (country && cragSlug && sectorSlug && zlaggableSlug) {
         items.push({
           caption: route.zlaggableName,
           routerLink: [
@@ -321,7 +321,7 @@ export class HeaderComponent implements OnDestroy {
             cragSlug,
             'sector',
             sectorSlug,
-            String(zlaggableId),
+            String(zlaggableSlug),
           ],
         });
       }

@@ -93,9 +93,11 @@ export interface RoutesTableRow {
                         <a
                           [routerLink]="[
                             '/route',
+                            item._ref.countrySlug,
                             item._ref.cragSlug,
+                            'sector',
                             item._ref.sectorSlug,
-                            item._ref.zlaggableId,
+                            item._ref.zlaggableSlug,
                           ]"
                           class="tui-link"
                         >

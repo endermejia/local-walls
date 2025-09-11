@@ -6,22 +6,13 @@ import {
   ClimbingCrag,
   ClimbingCragResponse,
   ClimbingRoute,
+  ClimbingRouteResponse,
+  ClimbingSector,
   MapBounds,
   MapItem,
   MapResponse,
   PageableResponse,
 } from '../models';
-
-interface ClimbingRouteResponse {
-  route: ClimbingRoute;
-}
-
-export interface ClimbingSector {
-  sectorId: number;
-  sectorName: string;
-  sectorSlug: string;
-  totalZlaggables: number;
-}
 
 @Injectable({ providedIn: 'root' })
 export class VerticalLifeApi extends ApiCore {
@@ -149,11 +140,11 @@ export class VerticalLifeApi extends ApiCore {
     countrySlug: string,
     cragSlug: string,
     sectorSlug: string,
-    zlaggableId: string,
+    zlaggableSlug: string,
   ): Promise<ClimbingRoute> {
     const response = await this.get<ClimbingRouteResponse>(
-      `/api/unification/outdoor/v1/web/crags/sportclimbing/${encodeURIComponent(countrySlug)}/${encodeURIComponent(cragSlug)}/sectors/${encodeURIComponent(sectorSlug)}/routes/${encodeURIComponent(zlaggableId)}`,
+      `/api/unification/outdoor/v1/web/crags/sportclimbing/${encodeURIComponent(countrySlug)}/${encodeURIComponent(cragSlug)}/sectors/${encodeURIComponent(sectorSlug)}/routes/${encodeURIComponent(zlaggableSlug)}`,
     );
-    return response.route;
+    return response.zlaggable;
   }
 }

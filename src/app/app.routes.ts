@@ -23,17 +23,12 @@ export const routes: Routes = [
     loadComponent: () => import('../pages/crag').then((m) => m.CragComponent),
   },
   {
-    path: 'topo/:countrySlug/:cragSlug/:id',
-    canMatch: [authGuard],
-    loadComponent: () => import('../pages/topo').then((m) => m.TopoComponent),
-  },
-  {
     path: 'sector/:countrySlug/:cragSlug/:sectorSlug',
     canMatch: [authGuard],
     loadComponent: () => import('../pages/topo').then((m) => m.TopoComponent),
   },
   {
-    path: 'route/:countrySlug/:cragSlug/sector/:sectorSlug/:zlaggableId',
+    path: 'route/:countrySlug/:cragSlug/sector/:sectorSlug/:zlaggableSlug',
     canMatch: [authGuard],
     loadComponent: () => import('../pages/route').then((m) => m.RouteComponent),
   },

@@ -18,8 +18,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import { TuiButton, TuiLoader } from '@taiga-ui/core';
 import { TuiSortDirection } from '@taiga-ui/addon-table';
-import type { ClimbingTopo, TopoRoute, ClimbingRoute } from '../models';
-import type { ClimbingSector } from '../services/vertical-life-api';
+import type { ClimbingRoute } from '../models';
 
 @Component({
   selector: 'app-topo',
@@ -34,21 +33,20 @@ import type { ClimbingSector } from '../services/vertical-life-api';
   ],
   template: `
     <div class="h-full w-full">
-      @let t = topo();
-      @let s = selectedSector();
-      @if (t || s) {
+      @let s = global.sector();
+      @if (s) {
         <section class="w-full h-full max-w-5xl mx-auto p-4">
           <div class="flex gap-2">
             <app-section-header
               class="w-full  "
-              [title]="titleText()"
+              [title]="s.sectorName"
               [liked]="global.liked()"
               (back)="goBack()"
               (toggleLike)="onToggleLike()"
             />
             <!-- Toggle image fit button -->
             @let imgFit = imageFit();
-            @if (t?.photo) {
+            @if (global.topo()?.photo) {
               <button
                 tuiIconButton
                 size="s"
@@ -79,8 +77,8 @@ import type { ClimbingSector } from '../services/vertical-life-api';
           </div>
 
           <img
-            [src]="t?.photo || global.iconSrc()('topo')"
-            [alt]="titleText()"
+            [src]="global.topo()?.photo || global.iconSrc()('topo')"
+            [alt]="s.sectorName"
             [class]="'w-full h-full overflow-visible ' + topoPhotoClass()"
             decoding="async"
           />
@@ -119,30 +117,10 @@ export class TopoComponent {
   private readonly location = inject(Location);
 
   // Route params (both /topo and /sector routes map here)
-  countrySlug: InputSignal<string> = input.required<string>();
-  cragSlug: InputSignal<string> = input.required<string>();
-  id: InputSignal<string | undefined> = input<string | undefined>();
-  sectorSlug: InputSignal<string | undefined> = input<string | undefined>();
-
-  topo: Signal<ClimbingTopo | null> = computed<ClimbingTopo | null>(() =>
-    this.global.topo(),
-  );
-
-  // Selected sector when navigating via /sector route
-  selectedSector: Signal<ClimbingSector | null> = computed(() => {
-    const slug = this.sectorSlug();
-    if (!slug) return null;
-    const sectors = this.global.cragSectors();
-    return sectors.find((s) => s.sectorSlug === slug) ?? null;
-  });
-
-  // Title to show in header: topo.name or sector name
-  titleText: Signal<string> = computed(() => {
-    const t = this.topo();
-    if (t) return t.name;
-    const s = this.selectedSector();
-    return s?.sectorName ?? '';
-  });
+  countrySlug: InputSignal<string> = input.required();
+  cragSlug: InputSignal<string> = input.required();
+  id: InputSignal<string | undefined> = input();
+  sectorSlug: InputSignal<string | undefined> = input();
 
   // Routes currently loaded for the crag (used to populate the table)
   routes: Signal<ClimbingRoute[]> = computed<ClimbingRoute[]>(
@@ -155,38 +133,27 @@ export class TopoComponent {
   constructor() {
     // Load sector-specific data when sectorSlug present
     effect(() => {
-      const country = this.countrySlug();
-      const crag = this.cragSlug();
-      const sector = this.sectorSlug();
-      if (sector) {
-        // Ensure crag info is available for breadcrumbs on sector routes
-        this.global.loadCrag(country, crag);
-        this.global.loadCragSectors(country, crag);
-        this.global.loadCragRoutes(country, crag, sector);
-      } else {
-        // Clear selected sector in global state when not on a sector route
-        this.global.sector.set(null);
-      }
-    });
-
-    // Keep global.selected sector in sync for breadcrumbs
-    effect(() => {
-      const s = this.selectedSector();
-      // Only set when a sector is actually selected
-      if (s) {
-        this.global.sector.set(s);
-      }
+      const countrySlug = this.countrySlug();
+      const cragSlug = this.cragSlug();
+      const sectorSlug = this.sectorSlug();
+      // Ensure crag info is available for breadcrumbs on sector routes
+      this.global.loadCrag(countrySlug, cragSlug);
+      this.global
+        .loadCragSectors(countrySlug, cragSlug)
+        .then(() =>
+          this.global.sector.set(
+            this.global
+              .cragSectors()
+              .find((s) => s.sectorSlug === sectorSlug) ?? null,
+          ),
+        );
+      this.global.loadCragRoutes(countrySlug, cragSlug, sectorSlug);
+      this.global.route.set(null);
     });
   }
 
   onToggleLike(): void {
-    const t = this.topo();
-    if (t) {
-      this.global.toggleLikeTopo(t.slug);
-    } else {
-      // Fallback to crag like when viewing a sector
-      this.global.toggleLikeCrag(this.cragSlug());
-    }
+    this.global.toggleLikeCrag(this.cragSlug());
   }
 
   goBack(): void {
