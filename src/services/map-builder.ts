@@ -50,6 +50,8 @@ export class MapBuilder {
   private userMarker: import('leaflet').Marker | null = null;
   private clusteringEnabled = true;
   private clusterRadius = 50; // Radio para agrupar marcadores en píxeles
+  // Control whether cluster markers should animate on next rebuild
+  private animateClustersOnNextBuild = true;
 
   // Store initial datasets to be able to re-filter them on viewport changes
   private initialCragsData: MapCragsData | null = null;
@@ -121,6 +123,8 @@ export class MapBuilder {
     }
 
     await this.rebuildMarkers(mapCragItem, selectedMapCragItem, cb);
+    // Disable cluster spawn animation after the first render to avoid flicker on pans
+    this.animateClustersOnNextBuild = false;
 
     // Determine if we should attempt geolocation: only on mobile devices
     const isMobileClient = (() => {
@@ -180,6 +184,8 @@ export class MapBuilder {
     };
 
     this.map.on('moveend', async () => {
+      // Do not animate clusters on regular pan updates to prevent flicker
+      this.animateClustersOnNextBuild = false;
       await this.rebuildMarkers(this.mapCragItems, selectedMapCragItem, cb);
       if (this.initialCragsData) {
         await this.loadGeoJsonCrags(this.initialCragsData);
@@ -187,6 +193,8 @@ export class MapBuilder {
       emitViewport();
     });
     this.map.on('zoomend', async () => {
+      // Also suppress spawn animation on zoom updates (can be adjusted if desired)
+      this.animateClustersOnNextBuild = false;
       await this.rebuildMarkers(this.mapCragItems, selectedMapCragItem, cb);
       if (this.initialCragsData) {
         await this.loadGeoJsonCrags(this.initialCragsData);
@@ -561,11 +569,22 @@ export class MapBuilder {
           this.attachMarkerKeyboardSelection(marker, onSelect);
         } else {
           const latLng = group.center;
+          // Dynamic cluster size based on count
+          const size =
+            group.count >= 200
+              ? 72
+              : group.count >= 100
+                ? 58
+                : group.count >= 50
+                  ? 46
+                  : group.count >= 10
+                    ? 36
+                    : 28;
           const icon = new (L as any).DivIcon({
             html: this.clusterLabelHtml(group.count),
             className: 'marker-cluster',
-            iconSize: new (L as any).Point(40, 40),
-            iconAnchor: [20, 20],
+            iconSize: new (L as any).Point(size, size),
+            iconAnchor: [size / 2, size / 2],
           });
 
           const marker = new (L as any).Marker(latLng as any, { icon }).addTo(
@@ -669,7 +688,20 @@ export class MapBuilder {
   }
 
   private clusterLabelHtml(count: number): string {
-    return `<div class="lw-cluster">${count}</div>`;
+    const sizeClass =
+      count >= 200
+        ? 'xl'
+        : count >= 100
+          ? 'lg'
+          : count >= 50
+            ? 'md'
+            : count >= 10
+              ? 'sm'
+              : 'xs';
+    const spawnClass = this.animateClustersOnNextBuild
+      ? ' lw-cluster--spawn'
+      : '';
+    return `<div class="lw-cluster lw-cluster--${sizeClass}${spawnClass}" data-count="${count}">${count}</div>`;
   }
 
   private attachMarkerKeyboardSelection(

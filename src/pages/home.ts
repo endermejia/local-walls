@@ -24,7 +24,11 @@ import {
   TuiSurface,
   TuiTitle,
 } from '@taiga-ui/core';
-import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
+import {
+  TuiBlockStatusDirective,
+  TuiCardLarge,
+  TuiHeader,
+} from '@taiga-ui/layout';
 import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { remToPx } from '../utils';
 
@@ -45,6 +49,7 @@ import { remToPx } from '../utils';
     MapComponent,
     ChartRoutesByGradeComponent,
     TuiAvatar,
+    TuiBlockStatusDirective,
   ],
   template: ` <div class="h-full w-full">
     @let bottomSheetExpanded = isBottomSheetExpanded();
@@ -240,7 +245,15 @@ import { remToPx } from '../utils';
                   </div>
                 </div>
               } @empty {
-                <tui-loader size="xxl" />
+                @if (global.loading()) {
+                  <tui-loader size="xxl" />
+                } @else {
+                  <img
+                    alt="{{ 'notFound.imageAlt' | translate }}"
+                    [src]="global.iconSrc()('404')"
+                    tuiSlot="top"
+                  />
+                }
               }
             </div>
           </section>

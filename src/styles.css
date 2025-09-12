@@ -25,14 +25,84 @@ th[tuiTh] {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
   border-radius: 9999px;
   /* Primary (cluster) */
   background: var(--tui-background-accent-1);
   color: var(--tui-text-primary-on-accent-1);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
   font-weight: 600;
+  line-height: 1;
+  will-change: transform, opacity;
+}
+/* Size modifiers */
+.lw-cluster--xs {
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+}
+.lw-cluster--sm {
+  width: 36px;
+  height: 36px;
+  font-size: 12px;
+}
+.lw-cluster--md {
+  width: 46px;
+  height: 46px;
+  font-size: 13px;
+}
+.lw-cluster--lg {
+  width: 58px;
+  height: 58px;
+  font-size: 14px;
+}
+.lw-cluster--xl {
+  width: 72px;
+  height: 72px;
+  font-size: 16px;
+}
+
+/* Spawn/merge animation */
+@keyframes lw-cluster-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes lw-cluster-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.45;
+  }
+  70% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.lw-cluster--spawn {
+  animation: lw-cluster-pop 220ms ease-out;
+  position: relative;
+}
+.lw-cluster--spawn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 3px solid
+    color-mix(in oklab, var(--tui-background-accent-1) 65%, transparent);
+  animation: lw-cluster-ring 360ms ease-out;
+  pointer-events: none;
 }
 
 .lw-marker {
