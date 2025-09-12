@@ -10,9 +10,9 @@ import {
   ViewChild,
   WritableSignal,
 } from '@angular/core';
-import { MapCragItem, MapAreaItem, MapCounts } from '../models';
+import { MapAreaItem, MapCounts, MapCragItem } from '../models';
 import { GlobalData } from '../services';
-import { MapComponent, ChartRoutesByGradeComponent } from '../components';
+import { ChartRoutesByGradeComponent, MapComponent } from '../components';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiAvatar } from '@taiga-ui/kit';
@@ -72,7 +72,6 @@ import { remToPx } from '../utils';
       <app-map
         class="w-full h-full"
         [mapCragItems]="mapCragItems()"
-        [mapAreaItems]="mapAreaItems()"
         [selectedMapCragItem]="global.selectedMapCragItem()"
         (selectedMapCragItemChange)="selectMapCragItem($event)"
         (mapClick)="closeAll()"
@@ -132,51 +131,56 @@ import { remToPx } from '../utils';
           (scroll.zoneless)="onSheetScroll($any($event))"
         >
           @let areas = mapAreaItems();
-          <h3 tuiHeader id="zones-title" class="justify-center">
-            <div class="flex flex-row align-items-center justify-center gap-2">
-              <tui-avatar
-                tuiThumbnail
-                size="l"
-                [src]="global.iconSrc()('zone')"
-                [attr.aria-label]="'labels.zone' | translate"
-              />
-              <span tuiTitle class="justify-center">
-                {{ counts?.map_collections ?? 0 }}
-                {{
-                  'labels.' + (counts?.map_collections === 1 ? 'zone' : 'zones')
-                    | translate
-                    | lowercase
-                }}
-              </span>
-            </div>
-          </h3>
-          <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 overflow-auto">
-            <div class="grid gap-2">
-              @for (a of areas; track a.id) {
-                <div
-                  tuiCardLarge
-                  [tuiSurface]="a.liked ? 'accent' : 'neutral'"
-                  class="cursor-pointer"
-                  [routerLink]="['/zone', a.country_slug, a.slug]"
-                >
-                  <div class="flex items-center gap-3">
-                    <div class="flex flex-col min-w-0 grow">
-                      <header tuiHeader>
-                        <h2 tuiTitle>{{ a.name }}</h2>
-                      </header>
-                      <section>
-                        <div class="text-sm opacity-80">
-                          {{ a.country_name }}
-                        </div>
-                      </section>
+          @if (areas.length) {
+            <h3 tuiHeader id="zones-title" class="justify-center">
+              <div
+                class="flex flex-row align-items-center justify-center gap-2"
+              >
+                <tui-avatar
+                  tuiThumbnail
+                  size="l"
+                  [src]="global.iconSrc()('zone')"
+                  [attr.aria-label]="'labels.zone' | translate"
+                />
+                <span tuiTitle class="justify-center">
+                  {{ counts?.map_collections ?? 0 }}
+                  {{
+                    'labels.' +
+                      (counts?.map_collections === 1 ? 'zone' : 'zones')
+                      | translate
+                      | lowercase
+                  }}
+                </span>
+              </div>
+            </h3>
+            <section
+              class="w-full max-w-5xl mx-auto sm:px-4 py-4 overflow-auto"
+            >
+              <div class="grid gap-2">
+                @for (a of areas; track a.id) {
+                  <div
+                    tuiCardLarge
+                    [tuiSurface]="a.liked ? 'accent' : 'neutral'"
+                    class="cursor-pointer"
+                    [routerLink]="['/zone', a.country_slug, a.slug]"
+                  >
+                    <div class="flex items-center gap-3">
+                      <div class="flex flex-col min-w-0 grow">
+                        <header tuiHeader>
+                          <h2 tuiTitle>{{ a.name }}</h2>
+                        </header>
+                        <section>
+                          <div class="text-sm opacity-80">
+                            {{ a.country_name }}
+                          </div>
+                        </section>
+                      </div>
                     </div>
                   </div>
-                </div>
-              } @empty {
-                <tui-loader size="xxl" />
-              }
-            </div>
-          </section>
+                }
+              </div>
+            </section>
+          }
           @let crags = mapCragItems();
           <h3 tuiHeader id="crags-title" class="justify-center">
             <div class="flex flex-row align-items-center justify-center gap-2">
@@ -199,7 +203,7 @@ import { remToPx } from '../utils';
           </h3>
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 overflow-auto">
             <div class="grid gap-2">
-              @for (c of crags; track c.slug) {
+              @for (c of crags; track c.id) {
                 <div
                   tuiCardLarge
                   [tuiSurface]="c.liked ? 'accent' : 'neutral'"
@@ -254,15 +258,7 @@ export class HomeComponent {
   protected readonly global = inject(GlobalData);
 
   constructor() {
-    // Reset navigation context when entering Home so breadcrumbs disappear
-    this.global.area.set(null);
-    this.global.crag.set(null);
-    this.global.sector.set(null);
-    this.global.topo.set(null);
-    this.global.route.set(null);
-    this.global.cragSectors.set([]);
-    this.global.routesPageable.set(null);
-    this.global.selectedMapCragItem.set(null);
+    this.global.resetDataByPage('home');
   }
 
   protected readonly stops = ['6rem'] as const;
@@ -274,23 +270,22 @@ export class HomeComponent {
 
   protected readonly sheetMounted: WritableSignal<boolean> = signal(true);
 
-  protected mapCragItems: Signal<MapCragItem[]> = computed(() =>
-    this.global
-      .mapItems()
-      .filter(
-        (item): item is MapCragItem =>
-          (item as MapAreaItem).area_type !== 0 &&
-          !!(item as MapCragItem).total_ascendables,
-      ),
-  );
+  protected mapCragItems: Signal<MapCragItem[]> = computed(() => {
+    const items = this.global.mapItemsOnViewport();
+    return items.filter(
+      (item): item is MapCragItem =>
+        (item as MapAreaItem).area_type !== 0 &&
+        !!(item as MapCragItem).total_ascendables,
+    );
+  });
 
-  protected mapAreaItems: Signal<MapAreaItem[]> = computed(() =>
-    this.global
-      .mapItems()
-      .filter(
-        (item): item is MapAreaItem => (item as MapAreaItem).area_type === 0,
-      ),
-  );
+  protected mapAreaItems: Signal<MapAreaItem[]> = computed(() => {
+    const items = this.global.mapItemsOnViewport();
+
+    return items.filter(
+      (item): item is MapAreaItem => (item as MapAreaItem).area_type === 0,
+    );
+  });
   protected mapCounts: Signal<MapCounts | null> = computed(
     () => this.global.mapResponse()?.counts ?? null,
   );

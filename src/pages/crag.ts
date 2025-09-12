@@ -187,19 +187,11 @@ export class CragComponent {
 
   constructor() {
     effect(() => {
+      this.global.resetDataByPage('crag');
       const countrySlug = this.countrySlug();
       const cragSlug = this.cragSlug();
-
-      // Navigating to a Crag: clear deeper context so breadcrumbs reset
-      this.global.sector.set(null);
-      this.global.topo.set(null);
-      this.global.route.set(null);
-
-      // Load crag basic info
       this.global.loadCrag(countrySlug, cragSlug);
-      // Load routes to build grades chart
       this.global.loadCragRoutes(countrySlug, cragSlug);
-      // Load sectors for this crag
       this.global.loadCragSectors(countrySlug, cragSlug);
     });
   }

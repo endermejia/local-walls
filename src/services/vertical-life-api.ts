@@ -34,18 +34,18 @@ export class VerticalLifeApi extends ApiCore {
 
   async getMapResponse(
     bounds: MapBounds,
-    sportClibming = false,
+    sportClimbing = false,
     bouldering = false,
   ): Promise<MapResponse> {
-    const categories = (sportClibming ? 1 : 0) + (bouldering ? 2 : 0) || 3;
+    const categories = (sportClimbing ? 1 : 0) + (bouldering ? 2 : 0) || 3;
 
     return await this.get<MapResponse>(
       '/api/unification/collection/v1/web/map/items',
       {
         query: {
           ...bounds,
-          page_index: bounds.page_index ?? 0,
-          page_size: bounds.page_size ?? 20,
+          page_index: 0,
+          page_size: 20,
           categories,
         },
       },

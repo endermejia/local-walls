@@ -44,7 +44,6 @@ export class GlobalData {
 
   // ---- Map cache (keeps already downloaded items) ----
   private readonly mapCache = new Map<number, MapItem>();
-  private readonly mapCacheStorageKey = 'map_cache_items_v1';
   private readonly maxCacheItems = 1000;
   private readonly cachedMapItems: WritableSignal<MapItem[]> = signal([]);
 
@@ -56,31 +55,11 @@ export class GlobalData {
   async refreshMapItemById(id: number): Promise<void> {
     if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
       return;
-    try {
-      const item = await this.verticalLifeApi.getMapItemById(id);
-      if (!item || typeof (item as any).id !== 'number') return;
-      this.mapCache.set((item as any).id as number, item);
-      const arr = Array.from(this.mapCache.values());
-      this.cachedMapItems.set(arr);
-      try {
-        this.localStorage.setItem(this.mapCacheStorageKey, JSON.stringify(arr));
-      } catch {
-        // ignore storage errors
-      }
-      const selected = this.selectedMapCragItem();
-      if (selected && selected.id === id) {
-        // Only set if the refreshed item is a crag (has latitude/longitude)
-        if (
-          (item as any)?.latitude != null &&
-          (item as any)?.longitude != null
-        ) {
-          this.selectedMapCragItem.set(item as any);
-        }
-      }
-    } catch (e) {
-      // Keep it silent for UX; optional logging
-      // console.error('Failed to refresh map item', e);
-    }
+    const item = await this.verticalLifeApi.getMapItemById(id);
+    if (!item || typeof (item as any).id !== 'number') return;
+    this.mapCache.set((item as any).id as number, item);
+    const arr = Array.from(this.mapCache.values());
+    this.cachedMapItems.set(arr);
   }
 
   // Loading/Status state
@@ -153,6 +132,87 @@ export class GlobalData {
   private readonly mapBoundsStorageKey = 'map_bounds_v1';
   mapResponse: WritableSignal<MapResponse | null> = signal(null);
   mapItems: Signal<MapItem[]> = computed(() => this.cachedMapItems());
+  /**
+   * Items currently visible in the viewport defined by mapBounds.
+   * - Crags: included when their [lat,lng] is inside bounds.
+   * - Areas: included when their bbox intersects bounds.
+   * If no bounds yet, returns all cached mapItems.
+   */
+  mapItemsOnViewport: Signal<MapItem[]> = computed(() => {
+    const bounds = this.mapBounds();
+    const items = this.mapItems();
+    if (!bounds) return items;
+
+    const south = bounds.south_west_latitude;
+    const west = bounds.south_west_longitude;
+    const north = bounds.north_east_latitude;
+    const east = bounds.north_east_longitude;
+
+    const pointIn = (lat: number, lng: number): boolean => {
+      if (Number.isNaN(lat) || Number.isNaN(lng)) return false;
+      // Handle normal case where east >= west; if anti-meridian crossed (east < west), allow wrap.
+      const inLat = lat >= south && lat <= north;
+      const inLng =
+        east >= west ? lng >= west && lng <= east : lng >= west || lng <= east;
+      return inLat && inLng;
+    };
+
+    const rectIntersect = (rect: {
+      south: number;
+      west: number;
+      north: number;
+      east: number;
+    }): boolean => {
+      const eastWrap = east < west; // viewport crosses anti-meridian
+      if (!eastWrap) {
+        // Standard AABB overlap on lon/lat
+        return !(
+          rect.west > east ||
+          rect.east < west ||
+          rect.south > north ||
+          rect.north < south
+        );
+      }
+      // When viewport wraps, we split it into two: [west, 180] and [-180, east]
+      const left = { south, west, north, east: 180 };
+      const right = { south, west: -180, north, east };
+      const overlap = (a: typeof left, b: typeof rect) =>
+        !(
+          b.west > a.east ||
+          b.east < a.west ||
+          b.south > a.north ||
+          b.north < a.south
+        );
+      return overlap(left, rect) || overlap(right, rect);
+    };
+
+    return items.filter((it) => {
+      const area = (it as any).area_type === 0;
+      if (!area) {
+        const lat = (it as any).latitude as number | undefined;
+        const lng = (it as any).longitude as number | undefined;
+        return (
+          typeof lat === 'number' &&
+          typeof lng === 'number' &&
+          pointIn(lat, lng)
+        );
+      }
+      const box = (it as any).b_box as
+        | [[number, number], [number, number]]
+        | undefined;
+      if (!box || !Array.isArray(box) || box.length !== 2) return false;
+      // Vertical-Life API b_box order is [[westLng, southLat], [eastLng, northLat]]
+      const [w, s] = box[0] ?? [];
+      const [e, n] = box[1] ?? [];
+      if ([w, s, e, n].some((v) => typeof v !== 'number')) return false;
+      return rectIntersect({
+        south: s as number,
+        west: w as number,
+        north: n as number,
+        east: e as number,
+      });
+    });
+  });
   selectedMapCragItem: WritableSignal<MapCragItem | null> = signal(null);
   area: WritableSignal<ClimbingArea | null> = signal(null);
   crag: WritableSignal<ClimbingCrag | null> = signal(null);
@@ -174,7 +234,7 @@ export class GlobalData {
         await this.verticalLifeApi.getMapResponse(bounds);
       this.mapResponse.set(mapResponse);
 
-      // Merge fetched items into cache (dedupe by id)
+      // Merge fetched items into a cache (dedupe by id)
       const items = mapResponse?.items ?? [];
       if (Array.isArray(items)) {
         for (const it of items) {
@@ -194,15 +254,6 @@ export class GlobalData {
           }
         }
         this.cachedMapItems.set(arr);
-        // Persist cache for future sessions (SSR-safe wrapper handles server)
-        try {
-          this.localStorage.setItem(
-            this.mapCacheStorageKey,
-            JSON.stringify(arr),
-          );
-        } catch {
-          // ignore storage errors
-        }
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -412,23 +463,6 @@ export class GlobalData {
   }
 
   constructor() {
-    // Hydrate map cache from LocalStorage on browser (SSR-safe wrapper)
-    try {
-      const raw = this.localStorage.getItem(this.mapCacheStorageKey);
-      if (raw) {
-        const arr = JSON.parse(raw) as MapItem[];
-        if (Array.isArray(arr)) {
-          for (const item of arr) {
-            if (item && typeof (item as any).id === 'number') {
-              this.mapCache.set((item as any).id as number, item as MapItem);
-            }
-          }
-          this.cachedMapItems.set(Array.from(this.mapCache.values()));
-        }
-      }
-    } catch {
-      // ignore corrupted cache
-    }
     this.translate.onLangChange.subscribe(() =>
       this.i18nTick.update((v) => v + 1),
     );
@@ -439,21 +473,12 @@ export class GlobalData {
       this.i18nTick.update((v) => v + 1),
     );
 
-    // Hydrate last map bounds from storage on browser
+    // Hydrate last map bounds from storage on a browser
     try {
       const rawBounds = this.localStorage.getItem(this.mapBoundsStorageKey);
       if (rawBounds) {
         const parsed = JSON.parse(rawBounds) as MapBounds;
-        if (
-          parsed &&
-          typeof parsed.south_west_latitude === 'number' &&
-          typeof parsed.south_west_longitude === 'number' &&
-          typeof parsed.north_east_latitude === 'number' &&
-          typeof parsed.north_east_longitude === 'number' &&
-          typeof parsed.zoom === 'number'
-        ) {
-          this.mapBounds.set(parsed);
-        }
+        this.mapBounds.set(parsed);
       }
     } catch {
       // ignore corrupted viewport state
@@ -463,13 +488,15 @@ export class GlobalData {
     effect(() => {
       const mapBounds = this.mapBounds();
       if (mapBounds) {
-        // Save last viewport for next sessions (SSR-safe local storage wrapper)
+        // Save the last viewport for next sessions (SSR-safe local storage wrapper)
         try {
           this.localStorage.setItem(
             this.mapBoundsStorageKey,
             JSON.stringify(mapBounds),
           );
-        } catch {}
+        } catch {
+          // ignore corrupted viewport state
+        }
         this.loadMapItems(mapBounds);
       }
     });
@@ -484,5 +511,39 @@ export class GlobalData {
   private switchTheme(): void {
     this.selectedTheme.set(this.selectedTheme() === 'dark' ? 'light' : 'dark');
     this.localStorage.setItem('theme', this.selectedTheme());
+  }
+
+  resetDataByPage(page: 'home' | 'area' | 'crag' | 'sector' | 'route'): void {
+    switch (page) {
+      case 'home': {
+        this.area.set(null);
+        this.crag.set(null);
+        this.sector.set(null);
+        this.topo.set(null);
+        this.route.set(null);
+        this.cragSectors.set([]);
+        this.routesPageable.set(null);
+        this.selectedMapCragItem.set(null);
+        break;
+      }
+      case 'area': {
+        this.crag.set(null);
+        this.sector.set(null);
+        this.topo.set(null);
+        this.route.set(null);
+        this.cragSectors.set([]);
+        this.routesPageable.set(null);
+        break;
+      }
+      case 'crag': {
+        this.sector.set(null);
+        this.route.set(null);
+        break;
+      }
+      case 'sector': {
+        this.topo.set(null);
+        break;
+      }
+    }
   }
 }

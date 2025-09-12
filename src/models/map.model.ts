@@ -49,8 +49,6 @@ export interface MapBounds {
   north_east_latitude: number;
   north_east_longitude: number;
   zoom: number;
-  page_index?: number;
-  page_size?: number;
 }
 
 /**

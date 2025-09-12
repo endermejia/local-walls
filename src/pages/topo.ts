@@ -133,6 +133,7 @@ export class TopoComponent {
   constructor() {
     // Load sector-specific data when sectorSlug present
     effect(() => {
+      this.global.resetDataByPage('sector');
       const countrySlug = this.countrySlug();
       const cragSlug = this.cragSlug();
       const sectorSlug = this.sectorSlug();
@@ -148,7 +149,6 @@ export class TopoComponent {
           ),
         );
       this.global.loadCragRoutes(countrySlug, cragSlug, sectorSlug);
-      this.global.route.set(null);
     });
   }
 

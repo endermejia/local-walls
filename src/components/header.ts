@@ -327,7 +327,7 @@ export class HeaderComponent implements OnDestroy {
       }
     }
 
-    return items.slice(0, -1);
+    return items.filter((i) => !!i.caption).slice(0, -1);
   });
 
   protected readonly results$ = this.control.valueChanges.pipe(

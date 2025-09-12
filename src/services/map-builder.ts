@@ -4,26 +4,17 @@ import { GlobalData } from './global-data';
 import {
   MapCragItem,
   MapOptions,
-  MapAreaItem,
-  MapAreasData,
   MapCragsData,
-  MapPolygonsData,
-  MapAreaDataFeature,
   MapCragDataFeature,
-  MapPolygonDataFeature,
+  MapBounds,
 } from '../models';
+import { LocalStorage } from './local-storage';
 
 export interface MapBuilderCallbacks {
   onSelectedCragChange: (mapCragItem: MapCragItem | null) => void;
   onMapClick: () => void;
   onInteractionStart: () => void;
-  onViewportChange: (v: {
-    south_west_latitude: number;
-    south_west_longitude: number;
-    north_east_latitude: number;
-    north_east_longitude: number;
-    zoom: number;
-  }) => void;
+  onViewportChange: (v: MapBounds) => void;
 }
 
 interface ClusterItem {
@@ -31,7 +22,7 @@ interface ClusterItem {
   longitude: number;
   name: string;
   key: string;
-  markerType: 'api' | 'area' | 'crag';
+  markerType: 'api' | 'crag';
   liked?: boolean;
   apiItem?: MapCragItem;
   cragFeature?: MapCragDataFeature;
@@ -46,13 +37,11 @@ interface ClusterGroup {
 
 @Injectable({ providedIn: 'root' })
 export class MapBuilder {
-  private areaLayers: import('leaflet').Layer[] = [];
-  private polygonLayers: import('leaflet').Layer[] = [];
   private geoJsonLayers: import('leaflet').Layer[] = [];
-  private areaGeoJsonLayer: import('leaflet').Layer | null = null;
   private cragsGeoJsonLayer: import('leaflet').Layer | null = null;
   private readonly platformId = inject(PLATFORM_ID);
   private readonly global = inject(GlobalData);
+  private readonly localStorage = inject(LocalStorage);
   private map!: import('leaflet').Map;
   private initialized = false;
   private L: typeof import('leaflet') | null = null;
@@ -60,31 +49,31 @@ export class MapBuilder {
   private markers: import('leaflet').Marker[] = [];
   private userMarker: import('leaflet').Marker | null = null;
   private clusteringEnabled = true;
-  private clusterRadius = 5; // Radio para agrupar marcadores en píxeles
+  private clusterRadius = 50; // Radio para agrupar marcadores en píxeles
 
   // Store initial datasets to be able to re-filter them on viewport changes
   private initialCragsData: MapCragsData | null = null;
-  private initialAreasData: MapAreasData | null = null;
-  private initialPolygonsData: MapPolygonsData | null = null;
-  private polygonsIndexByAreaKey: Map<string, any[]> = new Map();
-  private areaNameMarkers: import('leaflet').Marker[] = [];
-  private areaPolygonsVisibleByKey: Map<string, import('leaflet').Layer> =
-    new Map();
 
   private isBrowser(): boolean {
     return isPlatformBrowser(this.platformId) && typeof window !== 'undefined';
   }
 
+  /**
+   * Initializes the map with provided configuration and data.
+   * @param el - HTML element to render the map into
+   * @param options - Map configuration options
+   * @param mapCragItem - Array of crag items to display on the map
+   * @param selectedMapCragItem - Currently selected crag item, if any
+   * @param cb - Callback functions for map interactions
+   * @param initialCragsData - Initial GeoJSON crag data to load
+   */
   async init(
     el: HTMLElement,
     options: MapOptions,
     mapCragItem: readonly MapCragItem[],
-    areaItems: readonly MapAreaItem[],
     selectedMapCragItem: MapCragItem | null,
     cb: MapBuilderCallbacks,
-    initialAreasData: MapAreasData | null = null,
     initialCragsData: MapCragsData | null = null,
-    initialPolygonsData: MapPolygonsData | null = null,
   ): Promise<void> {
     if (this.initialized || !this.isBrowser()) return;
     const [{ default: L }] = await Promise.all([import('leaflet')]);
@@ -103,46 +92,35 @@ export class MapBuilder {
 
     this.mapCragItems = mapCragItem;
 
-    // Restore last saved viewport (bounds + zoom) if available
-    const savedViewport = this.global.mapBounds();
+    // Restore the last saved viewport (bounds and zoom) if available
+    let savedViewport = this.global.mapBounds();
     if (savedViewport) {
-      try {
-        const bounds = new (L as any).LatLngBounds([
-          [
-            savedViewport.south_west_latitude,
-            savedViewport.south_west_longitude,
-          ],
-          [
-            savedViewport.north_east_latitude,
-            savedViewport.north_east_longitude,
-          ],
-        ]);
-        this.map.fitBounds(bounds);
-        // Ensure zoom matches saved value within configured min/max
-        const minZ = options.minZoom ?? 6;
-        const maxZ = options.maxZoom ?? 18;
-        const targetZ = Math.max(minZ, Math.min(maxZ, savedViewport.zoom));
-        this.map.setZoom(targetZ);
-      } catch {
-        // ignore malformed saved viewport
+      const bounds = new (L as any).LatLngBounds([
+        [savedViewport.south_west_latitude, savedViewport.south_west_longitude],
+        [savedViewport.north_east_latitude, savedViewport.north_east_longitude],
+      ]);
+      this.map.fitBounds(bounds);
+      const minZ = options.minZoom ?? 6;
+      const maxZ = options.maxZoom ?? 18;
+      const targetZ = Math.max(minZ, Math.min(maxZ, savedViewport.zoom));
+      this.map.setZoom(targetZ);
+    } else {
+      // Fallback: read directly from LocalStorage if GlobalData not hydrated yet
+      const raw = this.localStorage.getItem('map_bounds_v1');
+      if (raw) {
+        const parsed = JSON.parse(raw) as MapBounds;
+        savedViewport = parsed;
+        this.global.mapBounds.set(parsed);
       }
     }
 
     // Load initial GeoJSON datasets if provided
     this.initialCragsData = initialCragsData;
-    this.initialAreasData = initialAreasData;
-    if (initialPolygonsData) {
-      await this.loadGeoJsonPolygons(initialPolygonsData);
-    }
-    if (initialAreasData) {
-      await this.rebuildAreaNameMarkers(initialAreasData, cb);
-    }
     if (initialCragsData) {
-      await this.loadGeoJsonCrags(initialCragsData, selectedMapCragItem, cb);
+      await this.loadGeoJsonCrags(initialCragsData);
     }
 
     await this.rebuildMarkers(mapCragItem, selectedMapCragItem, cb);
-    await this.rebuildAreas(areaItems);
 
     // Determine if we should attempt geolocation: only on mobile devices
     const isMobileClient = (() => {
@@ -153,19 +131,14 @@ export class MapBuilder {
     })();
 
     try {
-      if (
-        isMobileClient &&
-        typeof navigator !== 'undefined' &&
-        'geolocation' in navigator
-      ) {
-        navigator.geolocation.getCurrentPosition(async (pos) => {
-          const { latitude, longitude } = pos.coords;
-          this.map.setView(
-            [latitude, longitude],
-            Math.min(9, options.maxZoom ?? 18),
-          );
-          await this.goToCurrentLocation();
-        });
+      // If we already have a cached user location, use it on any device.
+      const hasCachedUserLocation =
+        !!this.localStorage.getItem('lw_user_location');
+      if (hasCachedUserLocation) {
+        await this.goToCurrentLocation();
+      } else if (isMobileClient) {
+        // Otherwise, only attempt geolocation automatically on mobile clients
+        await this.goToCurrentLocation();
       }
     } catch {
       // ignore and fallback below
@@ -209,28 +182,14 @@ export class MapBuilder {
     this.map.on('moveend', async () => {
       await this.rebuildMarkers(this.mapCragItems, selectedMapCragItem, cb);
       if (this.initialCragsData) {
-        await this.loadGeoJsonCrags(
-          this.initialCragsData,
-          selectedMapCragItem,
-          cb,
-        );
-      }
-      if (this.initialAreasData) {
-        await this.rebuildAreaNameMarkers(this.initialAreasData, cb);
+        await this.loadGeoJsonCrags(this.initialCragsData);
       }
       emitViewport();
     });
     this.map.on('zoomend', async () => {
       await this.rebuildMarkers(this.mapCragItems, selectedMapCragItem, cb);
       if (this.initialCragsData) {
-        await this.loadGeoJsonCrags(
-          this.initialCragsData,
-          selectedMapCragItem,
-          cb,
-        );
-      }
-      if (this.initialAreasData) {
-        await this.rebuildAreaNameMarkers(this.initialAreasData, cb);
+        await this.loadGeoJsonCrags(this.initialCragsData);
       }
       emitViewport();
     });
@@ -258,38 +217,36 @@ export class MapBuilder {
     }
   }
 
+  /**
+   * Updates the map with new data while preserving the current view state.
+   * @param mapCragItem - New array of crag items to display
+   * @param selectedMapCragItem - Currently selected crag item, if any
+   * @param cb - Callback functions for map interactions
+   * @param initialCragsData - New GeoJSON crag data to load
+   */
   async updateData(
     mapCragItem: readonly MapCragItem[],
-    areaItems: readonly MapAreaItem[],
     selectedMapCragItem: MapCragItem | null,
     cb: MapBuilderCallbacks,
-    initialAreasData: MapAreasData | null = null,
     initialCragsData: MapCragsData | null = null,
-    initialPolygonsData: MapPolygonsData | null = null,
   ): Promise<void> {
     if (!this.map) return;
     this.mapCragItems = mapCragItem;
     if (initialCragsData) this.initialCragsData = initialCragsData;
-    if (initialAreasData) this.initialAreasData = initialAreasData;
 
-    if (initialPolygonsData) {
-      await this.loadGeoJsonPolygons(initialPolygonsData);
-    }
-    if (initialAreasData) {
-      await this.rebuildAreaNameMarkers(initialAreasData, cb);
-    }
     if (initialCragsData) {
-      await this.loadGeoJsonCrags(initialCragsData, selectedMapCragItem, cb);
+      await this.loadGeoJsonCrags(initialCragsData);
     }
 
     await this.rebuildMarkers(mapCragItem, selectedMapCragItem, cb);
-    await this.rebuildAreas(areaItems);
   }
 
+  /**
+   * Cleans up and removes the map instance and all associated markers and layers.
+   */
   destroy(): void {
     try {
       this.cleanMarkers();
-      this.cleanAreas();
       this.cleanGeoJsonLayers();
       this.map?.remove?.();
     } catch {
@@ -306,20 +263,10 @@ export class MapBuilder {
       this.map.removeLayer(layer);
     });
     this.geoJsonLayers = [];
-    // Remove specific stored layers
-    if (this.areaGeoJsonLayer) {
-      this.map.removeLayer(this.areaGeoJsonLayer);
-      this.areaGeoJsonLayer = null;
-    }
     if (this.cragsGeoJsonLayer) {
       this.map.removeLayer(this.cragsGeoJsonLayer);
       this.cragsGeoJsonLayer = null;
     }
-    // Remove polygon layers (tracked separately)
-    this.polygonLayers.forEach((layer) => {
-      this.map.removeLayer(layer);
-    });
-    this.polygonLayers = [];
   }
 
   private cleanMarkers(): void {
@@ -331,24 +278,7 @@ export class MapBuilder {
     this.markers = [];
   }
 
-  private cleanAreas(): void {
-    if (!this.map || !this.L) return;
-    this.areaLayers.forEach((rect) => {
-      this.map.removeLayer(rect);
-    });
-    this.areaLayers = [];
-  }
-
-  private async loadGeoJsonAreas(areasData: MapAreasData): Promise<void> {
-    // Deprecated behavior: drawing polygons for areas. Now we render label markers instead.
-    await this.rebuildAreaNameMarkers(areasData);
-  }
-
-  private async loadGeoJsonCrags(
-    cragsData: MapCragsData,
-    selectedMapCragItem: MapCragItem | null,
-    cb: MapBuilderCallbacks,
-  ): Promise<void> {
+  private async loadGeoJsonCrags(cragsData: MapCragsData): Promise<void> {
     if (!this.map || !this.L) return;
     const L = this.L;
 
@@ -393,355 +323,29 @@ export class MapBuilder {
           return false;
         }
       },
-      pointToLayer: (feature: MapCragDataFeature, latlng: any) => {
-        const isSelected =
-          !!selectedMapCragItem &&
-          feature?.properties?.id === selectedMapCragItem.id;
-        const isFavorite = !!feature?.properties?.liked;
-        const icon = new (L as any).DivIcon({
-          html: this.cragLabelHtml(
-            feature?.properties?.name ?? '',
-            isSelected,
-            isFavorite,
-            'crag',
-          ),
-          className: 'pointer-events-none',
-          iconSize: [0, 0],
-          iconAnchor: [0, 0],
-        });
-        return new (L as any).Marker(latlng, { icon });
-      },
-      onEachFeature: (feature: MapCragDataFeature, layer: any) => {
-        if (feature?.properties?.id) {
-          layer.on('click', (e: import('leaflet').LeafletEvent) => {
-            (
-              (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
-            )?.preventDefault?.();
-            (
-              (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
-            )?.stopPropagation?.();
-
-            const coords = feature.geometry?.coordinates;
-            const cragItem: MapCragItem = {
-              id: feature.properties?.id ?? 0,
-              name: feature.properties?.name ?? '',
-              slug: feature.properties?.slug ?? '',
-              area_name: feature.properties?.area_name ?? '',
-              area_slug: feature.properties?.area_slug ?? '',
-              country_name: feature.properties?.country_name ?? '',
-              country_slug: feature.properties?.country_slug ?? '',
-              category: feature.properties?.category as number,
-              avg_rating: (feature.properties?.avg_rating as number) ?? 0,
-              latitude: coords ? (coords[1] as number) : 0,
-              longitude: coords ? (coords[0] as number) : 0,
-              grades: (feature.properties?.grades as any) ?? {},
-              season: (feature.properties?.season as any) ?? [],
-              total_ascendables: feature.properties?.total_ascendables as
-                | number
-                | undefined,
-              total_ascents: feature.properties?.total_ascents as
-                | number
-                | undefined,
-              liked: feature.properties?.liked as boolean | undefined,
+      onEachFeature: (_feature: MapCragDataFeature, layer: any) => {
+        try {
+          layer.on('click', (e: any) => {
+            const ev = e as {
+              latlng?: { lat: number; lng: number };
+              originalEvent?: Event;
             };
-            if (coords && (coords as any[]).length >= 2) {
-              this.centerOn(coords[1] as number, coords[0] as number, 10);
+            ev.originalEvent?.preventDefault?.();
+            ev.originalEvent?.stopPropagation?.();
+            const lat = ev?.latlng?.lat;
+            const lng = ev?.latlng?.lng;
+            if (typeof lat === 'number' && typeof lng === 'number') {
+              this.centerOn(lat, lng, 10);
             }
-            cb.onSelectedCragChange(cragItem);
           });
+        } catch {
+          // ignore
         }
       },
     }).addTo(this.map);
 
     this.geoJsonLayers.push(cragsLayer);
     this.cragsGeoJsonLayer = cragsLayer;
-  }
-
-  private async loadGeoJsonPolygons(
-    polygonsData: MapPolygonsData,
-  ): Promise<void> {
-    // Do not draw all polygons by default. Index them to toggle on area click.
-    this.initialPolygonsData = polygonsData;
-    this.buildPolygonsIndex(polygonsData);
-    // Clear any previously visible polygons that no longer exist in dataset
-    if (this.map) {
-      for (const [key, layer] of this.areaPolygonsVisibleByKey.entries()) {
-        this.map.removeLayer(layer);
-        this.areaPolygonsVisibleByKey.delete(key);
-      }
-    }
-  }
-
-  private async rebuildAreas(areas: readonly MapAreaItem[]): Promise<void> {
-    if (!this.map || !this.L) return;
-    const L = this.L;
-    // Clear previous
-    this.cleanAreas();
-
-    // Helper to normalize a coordinate pair into [lat, lng]
-    const toLatLng = (pair: [number, number]): [number, number] => {
-      let [a, b] = pair;
-      // If the first value looks like longitude (>|90|) or the second looks like latitude (>|90|), swap.
-      const looksLikeLon =
-        Math.abs(a) > 90 ||
-        (Math.abs(a) <= 180 && Math.abs(b) <= 90 && Math.abs(a) >= Math.abs(b));
-      const looksLikeLatSecond =
-        Math.abs(b) <= 90 && Math.abs(a) <= 180 && Math.abs(a) > 90;
-      if (
-        Math.abs(a) > 90 ||
-        Math.abs(b) > 180 ||
-        looksLikeLatSecond ||
-        looksLikeLon
-      ) {
-        // Swap assuming input is [lng, lat]
-        [a, b] = [b, a];
-      }
-      return [a, b];
-    };
-
-    // Draw each area as rectangle from bounding box
-    for (const area of areas) {
-      const bbox = area.b_box; // Expected either [[south, west], [north, east]] or [[west, south], [east, north]]
-      if (!bbox || bbox.length !== 2) continue;
-
-      const [p1, p2] = bbox as unknown as [[number, number], [number, number]];
-
-      const [lat1, lng1] = toLatLng(p1);
-      const [lat2, lng2] = toLatLng(p2);
-
-      // Validate ranges after normalization
-      if (
-        !isFinite(lat1) ||
-        !isFinite(lng1) ||
-        !isFinite(lat2) ||
-        !isFinite(lng2)
-      )
-        continue;
-
-      // Ensure south<north and west<east
-      const south = Math.min(lat1, lat2);
-      const north = Math.max(lat1, lat2);
-      const west = Math.min(lng1, lng2);
-      const east = Math.max(lng1, lng2);
-
-      // Skip degenerate bounds
-      if (south === north || west === east) continue;
-
-      const bounds = new (L as any).LatLngBounds([
-        [south, west],
-        [north, east],
-      ] as [number, number][]);
-
-      const rect = new (L as any).Rectangle(bounds, {
-        color: '#22c55e',
-        weight: 1,
-        fill: true,
-        fillColor: '#22c55e',
-        fillOpacity: 0.15,
-        interactive: false,
-      }).addTo(this.map);
-      this.areaLayers.push(rect);
-    }
-  }
-
-  // Build index to find polygon features by area-related keys
-  private buildPolygonsIndex(polygonsData: MapPolygonsData): void {
-    this.polygonsIndexByAreaKey.clear();
-    const features = polygonsData?.features ?? [];
-    for (const f of features) {
-      const keys: string[] = [];
-      const pid = f.properties?.id;
-      const pslug = (f.properties?.slug as string | undefined)?.toLowerCase();
-      const areaSlug = (
-        f.properties?.area_slug as string | undefined
-      )?.toLowerCase();
-      const name = (f.properties?.name as string | undefined)?.toLowerCase();
-      if (pid != null) keys.push(String(pid));
-      if (pslug) keys.push(pslug);
-      if (areaSlug) keys.push(areaSlug);
-      if (name) keys.push(name);
-      for (const k of keys) {
-        const arr = this.polygonsIndexByAreaKey.get(k) ?? [];
-        arr.push(f as any);
-        this.polygonsIndexByAreaKey.set(k, arr);
-      }
-    }
-  }
-
-  // Remove existing area name markers from map
-  private clearAreaNameMarkers(): void {
-    if (!this.map) return;
-    for (const m of this.areaNameMarkers) {
-      this.map.removeLayer(m);
-    }
-    this.areaNameMarkers = [];
-  }
-
-  // Compute a reasonable center for area polygon feature by using bbox of coordinates
-  private computeAreaCenter(
-    feature: MapAreaDataFeature,
-  ): [number, number] | null {
-    const geom = feature?.geometry;
-    if (!geom) return null;
-    const addPoint = (lng: number, lat: number) => {
-      if (Number.isFinite(lat) && Number.isFinite(lng)) {
-        minLat = Math.min(minLat, lat);
-        maxLat = Math.max(maxLat, lat);
-        minLng = Math.min(minLng, lng);
-        maxLng = Math.max(maxLng, lng);
-        has = true;
-      }
-    };
-    let minLat = Infinity,
-      maxLat = -Infinity,
-      minLng = Infinity,
-      maxLng = -Infinity,
-      has = false;
-    if (geom.type === 'Polygon') {
-      const rings = geom.coordinates as number[][][];
-      for (const ring of rings) {
-        for (const v of ring) addPoint(v[0] as number, v[1] as number);
-      }
-    } else if (geom.type === 'MultiPolygon') {
-      const polys = geom.coordinates as number[][][][];
-      for (const poly of polys) {
-        for (const ring of poly) {
-          for (const v of ring) addPoint(v[0] as number, v[1] as number);
-        }
-      }
-    }
-    if (!has) return null;
-    const lat = (minLat + maxLat) / 2;
-    const lng = (minLng + maxLng) / 2;
-    return [lat, lng];
-  }
-
-  private getAreaKeysFromFeature(feature: MapAreaDataFeature): string[] {
-    const keys: string[] = [];
-    const id = feature?.properties?.id;
-    const slug = (
-      feature?.properties?.slug as string | undefined
-    )?.toLowerCase();
-    const name = (
-      feature?.properties?.name as string | undefined
-    )?.toLowerCase();
-    if (id != null) keys.push(String(id));
-    if (slug) keys.push(slug);
-    if (name) keys.push(name);
-    return keys;
-  }
-
-  private async rebuildAreaNameMarkers(
-    areasData: MapAreasData,
-    cb?: MapBuilderCallbacks,
-  ): Promise<void> {
-    if (!this.map || !this.L || !areasData) return;
-    const L = this.L as any;
-
-    // When clustering is active, we don't render separate area name markers
-    if (this.shouldCluster()) {
-      this.clearAreaNameMarkers();
-      return;
-    }
-
-    this.clearAreaNameMarkers();
-    const viewBounds = this.map.getBounds().pad(0.1);
-    const normalize = (s: string) => (s ?? '').trim().toLowerCase();
-    const apiNameSet = new Set(
-      this.mapCragItems
-        .filter((c) =>
-          viewBounds.contains(new (L as any).LatLng(c.latitude, c.longitude)),
-        )
-        .map((c) => normalize(c.name)),
-    );
-    for (const feature of areasData.features ?? []) {
-      const name = feature?.properties?.name ?? '';
-      if (!name) continue;
-      const center = this.computeAreaCenter(feature);
-      if (!center) continue;
-      const latlng = new L.LatLng(center[0], center[1]);
-      if (!viewBounds.contains(latlng)) continue;
-      const icon = new L.DivIcon({
-        html: this.cragLabelHtml(name, false, false, 'area'),
-        className: 'pointer-events-none',
-        iconSize: [0, 0],
-        iconAnchor: [0, 0],
-      });
-      const marker = new L.Marker([center[0], center[1]], { icon }).addTo(
-        this.map,
-      );
-      this.areaNameMarkers.push(marker);
-      const areaKeys = this.getAreaKeysFromFeature(feature);
-      marker.on('click', (e: import('leaflet').LeafletEvent) => {
-        (
-          (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
-        )?.preventDefault?.();
-        (
-          (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
-        )?.stopPropagation?.();
-        this.centerOn(center[0], center[1], 10);
-        this.showOrToggleAreaPolygonByKeys(areaKeys, name);
-      });
-      // Keyboard accessibility
-      this.attachMarkerKeyboardSelection(marker, () =>
-        this.showOrToggleAreaPolygonByKeys(areaKeys, name),
-      );
-    }
-  }
-
-  private showOrToggleAreaPolygonByKeys(keys: string[], name: string): void {
-    if (!this.map || !this.L) return;
-    const L = this.L as any;
-    const key = keys.find((k) => !!k) ?? '';
-    if (!key) return;
-
-    // Toggle: if already visible, remove it
-    const existing = this.areaPolygonsVisibleByKey.get(key);
-    if (existing) {
-      this.map.removeLayer(existing);
-      this.areaPolygonsVisibleByKey.delete(key);
-      return;
-    }
-
-    // Find polygon features by any of the keys
-    let features: any[] | undefined;
-    for (const k of keys) {
-      const list = this.polygonsIndexByAreaKey.get(k);
-      if (list && list.length) {
-        features = list;
-        break;
-      }
-    }
-    if (!features || !features.length) return;
-
-    const polygonStyle: any = {
-      color: '#3b82f6',
-      weight: 2,
-      fillColor: '#3b82f6',
-      fillOpacity: 0.1,
-      className: 'area-polygon',
-    };
-
-    const layer = new L.GeoJSON(
-      {
-        type: 'FeatureCollection',
-        features: features as any,
-      } as any,
-      {
-        style: polygonStyle,
-        onEachFeature: (feature: MapPolygonDataFeature, layer: any) => {
-          if (name) {
-            layer.bindTooltip(name, {
-              permanent: false,
-              direction: 'center',
-              className: 'polygon-tooltip',
-            });
-          }
-        },
-      },
-    ).addTo(this.map);
-
-    this.areaPolygonsVisibleByKey.set(key, layer);
   }
 
   private shouldCluster(): boolean {
@@ -808,31 +412,6 @@ export class MapBuilder {
         }
       }
     }
-
-    // Area labels (computed centers)
-    const areasData = this.initialAreasData;
-    if (areasData?.features?.length) {
-      for (const feature of areasData.features as any[]) {
-        const name = feature?.properties?.name ?? '';
-        if (!name) continue;
-        if (apiNameSet.has(normalize(name))) continue; // suppress duplicates by label, prefer API
-        const center = this.computeAreaCenter(feature);
-        if (!center) continue;
-        const latlng = new L.LatLng(center[0], center[1]);
-        if (!bounds.contains(latlng)) continue;
-        const keys = this.getAreaKeysFromFeature(feature);
-        const idKey = keys[0] ?? name;
-        items.push({
-          latitude: center[0],
-          longitude: center[1],
-          name,
-          key: `area:${idKey}:${center[0].toFixed(5)},${center[1].toFixed(5)}`,
-          markerType: 'area',
-          areaKeys: keys,
-        });
-      }
-    }
-
     return items;
   }
 
@@ -963,40 +542,10 @@ export class MapBuilder {
                 }
                 break;
               case 'crag': {
-                const f = it.cragFeature as any;
-                const coords = f?.geometry?.coordinates as number[] | undefined;
-                const cragItem: MapCragItem = {
-                  id: f?.properties?.id ?? 0,
-                  name: f?.properties?.name ?? '',
-                  slug: f?.properties?.slug ?? '',
-                  area_name: f?.properties?.area_name ?? '',
-                  area_slug: f?.properties?.area_slug ?? '',
-                  country_name: f?.properties?.country_name ?? '',
-                  country_slug: f?.properties?.country_slug ?? '',
-                  category: f?.properties?.category as number,
-                  avg_rating: (f?.properties?.avg_rating as number) ?? 0,
-                  latitude: coords ? (coords[1] as number) : it.latitude,
-                  longitude: coords ? (coords[0] as number) : it.longitude,
-                  grades: (f?.properties?.grades as any) ?? {},
-                  season: (f?.properties?.season as any) ?? [],
-                  total_ascendables: f?.properties?.total_ascendables as
-                    | number
-                    | undefined,
-                  total_ascents: f?.properties?.total_ascents as
-                    | number
-                    | undefined,
-                  liked: f?.properties?.liked as boolean | undefined,
-                };
-                cb.onSelectedCragChange(cragItem);
-                // Always try to refresh the crag from the API when coming from GeoJSON
-                if (cragItem.id) {
-                  void this.global.refreshMapItemById(cragItem.id);
-                }
+                // For crags coming from local JSON: only center map, do not change selectedMapCragItem
+                // This allows users to adjust position over those points without selecting them
                 break;
               }
-              case 'area':
-                this.showOrToggleAreaPolygonByKeys(it.areaKeys ?? [], it.name);
-                break;
             }
           };
 
@@ -1147,6 +696,8 @@ export class MapBuilder {
   /**
    * Centers the map on the user's current location and draws/updates a marker.
    * Safe for SSR: does nothing on the server.
+   * Uses browser's geolocation API to get current position.
+   * @returns Promise that resolves when location is set or fails silently
    */
   async goToCurrentLocation(): Promise<void> {
     if (!this.isBrowser() || !this.map || !this.L) return;

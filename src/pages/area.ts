@@ -160,17 +160,9 @@ export class AreaComponent {
 
   constructor() {
     effect(() => {
+      this.global.resetDataByPage('area');
       const countrySlug = this.countrySlug();
       const areaSlug = this.areaSlug();
-
-      // Navigating to an Area: clear lower-level context so breadcrumbs reset
-      this.global.crag.set(null);
-      this.global.sector.set(null);
-      this.global.topo.set(null);
-      this.global.route.set(null);
-      this.global.cragSectors.set([]);
-      this.global.routesPageable.set(null);
-
       this.global.loadArea(countrySlug, areaSlug);
       this.global.loadAreaCrags(countrySlug, areaSlug, {
         pageIndex: 0,

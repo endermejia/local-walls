@@ -19,10 +19,7 @@ import { isPlatformBrowser } from '@angular/common';
 import type {
   MapCragItem,
   MapOptions,
-  MapAreaItem,
-  MapAreasData,
   MapCragsData,
-  MapPolygonsData,
   MapBounds,
 } from '../models';
 import { MapBuilder } from '../services/map-builder';
@@ -70,16 +67,11 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly global = inject(GlobalData);
 
   private readonly mapInitialized = signal(false);
-  private geoJsonDataLoaded = signal(false);
-  private initialAreasData = signal<MapAreasData | null>(null);
   private initialCragsData = signal<MapCragsData | null>(null);
-  private initialPolygonsData = signal<MapPolygonsData | null>(null);
   public mapCragItems: InputSignal<readonly MapCragItem[]> = input<
     readonly MapCragItem[]
   >([]);
-  public mapAreaItems: InputSignal<readonly MapAreaItem[]> = input<
-    readonly MapAreaItem[]
-  >([]);
+
   public selectedMapCragItem: InputSignal<MapCragItem | null> =
     input<MapCragItem | null>(null);
   public selectedMapCragItemChange: OutputEmitterRef<MapCragItem | null> =
@@ -114,17 +106,13 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor() {
     effect(() => {
       const crags = this.mapCragItems();
-      const areas = this.mapAreaItems();
       const selected = this.selectedMapCragItem();
       if (this.mapInitialized()) {
         void this.mapBuilder.updateData(
           crags,
-          areas,
           selected,
           this.callbacks,
-          this.initialAreasData(),
           this.initialCragsData(),
-          this.initialPolygonsData(),
         );
       }
     });
@@ -139,32 +127,19 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   async loadGeoJsonData(): Promise<void> {
     if (!this.isBrowser()) return;
     try {
-      const [areasResponse, cragsResponse, polygonsResponse] =
-        await Promise.all([
-          fetch('/map/map_areas.json'),
-          fetch('/map/map_crags.json'),
-          fetch('/map/map_polygons.json'),
-        ]);
-      if (areasResponse.ok) {
-        this.initialAreasData.set(await areasResponse.json());
-      }
-      if (cragsResponse.ok) {
-        const cragsJson = (await cragsResponse.json()) as MapCragsData;
-        const filtered: MapCragsData = {
-          ...cragsJson,
-          features: Array.isArray(cragsJson.features)
-            ? cragsJson.features.filter((f) => {
-                const cat = (f as any)?.properties?.category;
-                return cat === 1 || cat === 2;
-              })
-            : [],
-        };
-        this.initialCragsData.set(filtered);
-      }
-      if (polygonsResponse.ok) {
-        this.initialPolygonsData.set(await polygonsResponse.json());
-      }
-      this.geoJsonDataLoaded.set(true);
+      const cragsJson = (await fetch('/map/map_crags.json').then((res) =>
+        res.json(),
+      )) as MapCragsData;
+      const filtered: MapCragsData = {
+        ...cragsJson,
+        features: Array.isArray(cragsJson.features)
+          ? cragsJson.features.filter((f) => {
+              const cat = (f as any)?.properties?.category;
+              return cat === 1 || cat === 2;
+            })
+          : [],
+      };
+      this.initialCragsData.set(filtered);
     } catch (error) {
       console.error('Error loading GeoJSON data:', error);
     }
@@ -215,12 +190,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       el,
       this.options(),
       this.mapCragItems(),
-      this.mapAreaItems(),
       this.selectedMapCragItem(),
       this.callbacks,
-      this.initialAreasData(),
       this.initialCragsData(),
-      this.initialPolygonsData(),
     );
     this.mapInitialized.set(true);
   }
