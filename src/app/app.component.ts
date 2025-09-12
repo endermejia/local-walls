@@ -2,7 +2,7 @@ import { TuiRoot } from '@taiga-ui/core';
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from '../components';
-import { GlobalData, LocalStorage } from '../services';
+import { GlobalData, LocalStorage, OfflineService } from '../services';
 import { TranslateService } from '@ngx-translate/core';
 import { Meta, Title } from '@angular/platform-browser';
 
@@ -12,6 +12,12 @@ import { Meta, Title } from '@angular/platform-browser';
   template: `
     <tui-root class="overflow-hidden" [attr.tuiTheme]="global.selectedTheme()">
       <div class="h-[100dvh] flex flex-col">
+        <!-- Offline banner -->
+        @if (!offline.isOnline()) {
+          <div class="bg-amber-500 text-black text-sm px-3 py-2 text-center">
+            Estás sin conexión. Algunas funciones pueden no estar disponibles.
+          </div>
+        }
         <app-header />
         <router-outlet />
       </div>
@@ -20,6 +26,7 @@ import { Meta, Title } from '@angular/platform-browser';
 })
 export class AppComponent {
   protected global = inject(GlobalData);
+  protected offline = inject(OfflineService);
   private localStorage = inject(LocalStorage);
   private translate = inject(TranslateService);
   private title = inject(Title);
