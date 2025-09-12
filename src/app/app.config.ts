@@ -1,5 +1,6 @@
 import {
   ApplicationConfig,
+  isDevMode,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
@@ -10,13 +11,13 @@ import {
   withInterceptors,
 } from '@angular/common/http';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
-import { provideAnimations } from '@angular/platform-browser/animations';
 import {
   provideClientHydration,
   withEventReplay,
   withIncrementalHydration,
 } from '@angular/platform-browser';
 import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
+import { provideServiceWorker } from '@angular/service-worker';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { provideEventPlugins } from '@taiga-ui/event-plugins';
 import { TUI_LANGUAGE } from '@taiga-ui/i18n';
@@ -33,11 +34,14 @@ const httpLoaderFactory: (http: HttpClient) => TranslateHttpLoader = (
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideAnimations(),
     provideZonelessChangeDetection(),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withFetch(), withInterceptors([errorInterceptor])),
     provideClientHydration(withEventReplay(), withIncrementalHydration()),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
     provideTranslateService({
       loader: {
         provide: TranslateLoader,

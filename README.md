@@ -153,6 +153,27 @@ Notes:
 - Netlify automatically detects Angular SSR output (Angular 18+) and serves using the generated server bundle at `dist/local-walls/server/main.server.mjs`.
 - Configure redirects/status codes for SSR in `src/app/app.routes.server.ts` using Angular Server Routes (headers + status). Avoid Netlify redirects for SSR paths.
 
+## Progressive Web App (PWA)
+
+This app is configured as a PWA with Angular Service Worker.
+
+How to test locally:
+
+- Development mode (no SW): `npm start` (service worker is disabled in dev to simplify debugging).
+- Production build (with SW):
+  - `npm run build`
+  - Serve the browser output with any static server from `dist/local-walls/browser` over HTTP(S). For SSR locally, use `npm run serve:ssr:local-walls` and open the site in the browser; the SW will register on the client.
+
+Features provided:
+
+- Offline caching of app shell and static assets (icons, i18n, CSS, JS).
+- Cache-first for assets; freshness strategy for API calls with small timeout.
+
+Notes:
+
+- Service Worker only runs in the browser. SSR on the server is unaffected.
+- Manifest is available at `/manifest.webmanifest` with installable icons.
+
 ## Notes on Server-Side Rendering (SSR)
 
 When running the application with SSR, you may see the following message in the console:

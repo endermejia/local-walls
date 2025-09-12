@@ -1,0 +1,51 @@
+{
+  "$schema": "https://raw.githubusercontent.com/angular/angular/20.1.x/packages/service-worker/config/schema.json",
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/favicon.ico",
+          "/index.html",
+          "/manifest.webmanifest",
+          "/assets/**",
+          "/**/*.css",
+          "/**/*.js"
+        ]
+      }
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/i18n/**",
+          "/icons/**",
+          "/logo/**",
+          "/assets/**",
+          "/*.(png|jpg|jpeg|svg|webp|gif)"
+        ]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "api-data",
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 100,
+        "maxAge": "1d",
+        "timeout": "5s"
+      },
+      "urls": [
+        "/api/**",
+        "https://api.vertical-life.info/**",
+        "https://*.tile.openstreetmap.org/**"
+      ]
+    }
+  ]
+}
