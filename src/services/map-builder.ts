@@ -331,25 +331,6 @@ export class MapBuilder {
           return false;
         }
       },
-      onEachFeature: (_feature: MapCragDataFeature, layer: any) => {
-        try {
-          layer.on('click', (e: any) => {
-            const ev = e as {
-              latlng?: { lat: number; lng: number };
-              originalEvent?: Event;
-            };
-            ev.originalEvent?.preventDefault?.();
-            ev.originalEvent?.stopPropagation?.();
-            const lat = ev?.latlng?.lat;
-            const lng = ev?.latlng?.lng;
-            if (typeof lat === 'number' && typeof lng === 'number') {
-              this.centerOn(lat, lng, 10);
-            }
-          });
-        } catch {
-          // ignore
-        }
-      },
     }).addTo(this.map);
 
     this.geoJsonLayers.push(cragsLayer);

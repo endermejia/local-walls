@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   ElementRef,
   inject,
   PLATFORM_ID,
@@ -272,6 +273,12 @@ export class HomeComponent {
 
   constructor() {
     this.global.resetDataByPage('home');
+
+    effect(() => {
+      if (this.global.mapItems()) {
+        this.remountBottomSheet();
+      }
+    });
   }
 
   protected readonly stops = ['6rem'] as const;
@@ -311,10 +318,6 @@ export class HomeComponent {
     const maxTop = Math.max(0, clientHeight - offset);
     return scrollTop >= maxTop * 0.5;
   });
-
-  protected readonly zoneRoutesByGrade = computed<
-    import('../models').AmountByEveryVerticalLifeGrade
-  >(() => ({}) as import('../models').AmountByEveryVerticalLifeGrade);
 
   private isBrowser(): boolean {
     return isPlatformBrowser(this._platformId) && typeof window !== 'undefined';
