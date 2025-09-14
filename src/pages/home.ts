@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   ElementRef,
   inject,
   PLATFORM_ID,
@@ -25,11 +24,7 @@ import {
   TuiSurface,
   TuiTitle,
 } from '@taiga-ui/core';
-import {
-  TuiBlockStatusDirective,
-  TuiCardLarge,
-  TuiHeader,
-} from '@taiga-ui/layout';
+import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { remToPx } from '../utils';
 
@@ -50,7 +45,6 @@ import { remToPx } from '../utils';
     MapComponent,
     ChartRoutesByGradeComponent,
     TuiAvatar,
-    TuiBlockStatusDirective,
   ],
   template: ` <div class="h-full w-full">
     @let bottomSheetExpanded = isBottomSheetExpanded();
@@ -126,8 +120,14 @@ import { remToPx } from '../utils';
       </div>
     } @else {
       <!-- BottomSheet -->
-      @if (sheetMounted()) {
-        @let counts = mapCounts();
+      @let counts = mapCounts();
+      @let areas = mapAreaItems();
+      @let crags = mapCragItems();
+      @if (global.loading()) {
+        <div class="absolute w-full h-full top-0">
+          <tui-loader size="xxl" class="absolute w-full h-full z-50" />
+        </div>
+      } @else if (areas.length || crags.length) {
         <tui-bottom-sheet
           #sheet
           [stops]="stops"
@@ -136,7 +136,6 @@ import { remToPx } from '../utils';
           aria-labelledby="zones-title crags-title"
           (scroll.zoneless)="onSheetScroll($any($event))"
         >
-          @let areas = mapAreaItems();
           @if (areas.length) {
             <h3 tuiHeader id="zones-title" class="justify-center">
               <div
@@ -187,77 +186,72 @@ import { remToPx } from '../utils';
               </div>
             </section>
           }
-          @let crags = mapCragItems();
-          <h3 tuiHeader id="crags-title" class="justify-center">
-            <div class="flex flex-row align-items-center justify-center gap-2">
-              <tui-avatar
-                tuiThumbnail
-                size="l"
-                [src]="global.iconSrc()('crag')"
-                class="self-center"
-                [attr.aria-label]="'labels.crag' | translate"
-              />
-              <span tuiTitle class="justify-center">
-                {{ counts?.locations ?? 0 }}
-                {{
-                  'labels.' + (counts?.locations === 1 ? 'crag' : 'crags')
-                    | translate
-                    | lowercase
-                }}
-              </span>
-            </div>
-          </h3>
-          <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 overflow-auto">
-            <div class="grid gap-2">
-              @for (c of crags; track c.id) {
-                <div
-                  tuiCardLarge
-                  [tuiSurface]="c.liked ? 'accent' : 'neutral'"
-                  class="cursor-pointer"
-                  [routerLink]="['/crag', c.country_slug, c.slug]"
-                >
-                  <div class="flex items-center gap-3">
-                    <div class="flex flex-col min-w-0 grow">
-                      <header tuiHeader>
-                        <h2 tuiTitle>{{ c.name }}</h2>
-                      </header>
-                      <section>
-                        <div class="text-sm opacity-80">
-                          <a
-                            tuiLink
-                            appearance="action-grayscale"
-                            [routerLink]="[
-                              '/zone',
-                              c.country_slug,
-                              c.area_slug,
-                            ]"
-                            (click.zoneless)="$event.stopPropagation()"
-                            >{{ c.area_name }}</a
-                          >
-                        </div>
-                      </section>
-                    </div>
-                    <div (click.zoneless)="$event.stopPropagation()">
-                      <app-chart-routes-by-grade
-                        class="mt-2"
-                        [grades]="c.grades"
-                      />
+          @if (crags.length) {
+            <h3 tuiHeader id="crags-title" class="justify-center">
+              <div
+                class="flex flex-row align-items-center justify-center gap-2"
+              >
+                <tui-avatar
+                  tuiThumbnail
+                  size="l"
+                  [src]="global.iconSrc()('crag')"
+                  class="self-center"
+                  [attr.aria-label]="'labels.crag' | translate"
+                />
+                <span tuiTitle class="justify-center">
+                  {{ counts?.locations ?? 0 }}
+                  {{
+                    'labels.' + (counts?.locations === 1 ? 'crag' : 'crags')
+                      | translate
+                      | lowercase
+                  }}
+                </span>
+              </div>
+            </h3>
+            <section
+              class="w-full max-w-5xl mx-auto sm:px-4 py-4 overflow-auto"
+            >
+              <div class="grid gap-2">
+                @for (c of crags; track c.id) {
+                  <div
+                    tuiCardLarge
+                    [tuiSurface]="c.liked ? 'accent' : 'neutral'"
+                    class="cursor-pointer"
+                    [routerLink]="['/crag', c.country_slug, c.slug]"
+                  >
+                    <div class="flex items-center gap-3">
+                      <div class="flex flex-col min-w-0 grow">
+                        <header tuiHeader>
+                          <h2 tuiTitle>{{ c.name }}</h2>
+                        </header>
+                        <section>
+                          <div class="text-sm opacity-80">
+                            <a
+                              tuiLink
+                              appearance="action-grayscale"
+                              [routerLink]="[
+                                '/zone',
+                                c.country_slug,
+                                c.area_slug,
+                              ]"
+                              (click.zoneless)="$event.stopPropagation()"
+                              >{{ c.area_name }}</a
+                            >
+                          </div>
+                        </section>
+                      </div>
+                      <div (click.zoneless)="$event.stopPropagation()">
+                        <app-chart-routes-by-grade
+                          class="mt-2"
+                          [grades]="c.grades"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              } @empty {
-                @if (global.loading()) {
-                  <tui-loader size="xxl" />
-                } @else {
-                  <img
-                    alt="{{ 'notFound.imageAlt' | translate }}"
-                    [src]="global.iconSrc()('404')"
-                    tuiSlot="top"
-                  />
                 }
-              }
-            </div>
-          </section>
+              </div>
+            </section>
+          }
         </tui-bottom-sheet>
       }
     }
@@ -273,12 +267,6 @@ export class HomeComponent {
 
   constructor() {
     this.global.resetDataByPage('home');
-
-    effect(() => {
-      if (this.global.mapItems()) {
-        this.remountBottomSheet();
-      }
-    });
   }
 
   protected readonly stops = ['6rem'] as const;
@@ -287,8 +275,6 @@ export class HomeComponent {
 
   private readonly _sheetClientHeight: WritableSignal<number> = signal(0);
   private readonly _sheetScrollTop: WritableSignal<number> = signal(0);
-
-  protected readonly sheetMounted: WritableSignal<boolean> = signal(true);
 
   protected mapCragItems: Signal<MapCragItem[]> = computed(() => {
     const items = this.global.mapItemsOnViewport();
@@ -323,20 +309,6 @@ export class HomeComponent {
     return isPlatformBrowser(this._platformId) && typeof window !== 'undefined';
   }
 
-  private scheduleNextFrame(run: () => void): void {
-    if (!this.isBrowser()) return;
-    const raf = (
-      window as unknown as {
-        requestAnimationFrame?: (cb: FrameRequestCallback) => number;
-      }
-    ).requestAnimationFrame;
-    if (typeof raf === 'function') {
-      raf(() => run());
-    } else {
-      Promise.resolve().then(run);
-    }
-  }
-
   private computeBottomSheetTargetTop(node: HTMLElement): number {
     const offsetPx = remToPx(this.stops[0] as string) || 0;
     const clientHeight = node.clientHeight || 0;
@@ -360,15 +332,6 @@ export class HomeComponent {
     } catch {
       node.scrollTop = top;
     }
-  }
-
-  protected remountBottomSheet(): void {
-    if (!this.isBrowser()) return;
-    if (this.global.selectedMapCragItem()) return;
-    this.sheetMounted.set(false);
-    this.scheduleNextFrame(() =>
-      this.scheduleNextFrame(() => this.sheetMounted.set(true)),
-    );
   }
 
   protected onSheetScroll(event: Event): void {
