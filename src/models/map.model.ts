@@ -105,6 +105,7 @@ export interface MapCragDataFeature {
   bbox?: [number, number, number, number];
   properties: {
     // Comunes
+    item_id?: number; // reference id for GeoJSON
     id?: number; // zone id o area id
     name?: string;
     slug?: string;

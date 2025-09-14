@@ -9,6 +9,7 @@ import {
   ClimbingRouteResponse,
   ClimbingSector,
   MapBounds,
+  MapCragItem,
   MapItem,
   MapResponse,
   PageableResponse,
@@ -25,11 +26,11 @@ export class VerticalLifeApi extends ApiCore {
    * The backend proxy base is configured in ApiCore.
    * Note: The 8a endpoint returns either `{ item: MapItem }` or the item itself depending on context.
    */
-  async getMapItemById(id: number): Promise<MapItem> {
-    const data = await this.get<any>(
+  async getMapItemById(id: number): Promise<MapCragItem> {
+    const data = await this.get<{ item?: MapCragItem }>(
       `/api/unification/collection/v1/web/map/item/0/${encodeURIComponent(String(id))}`,
     );
-    return (data?.item ?? data) as MapItem;
+    return (data?.item ?? data) as MapCragItem;
   }
 
   async getMapResponse(

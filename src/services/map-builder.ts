@@ -9,6 +9,14 @@ import {
   MapBounds,
 } from '../models';
 import { LocalStorage } from './local-storage';
+import {
+  Map,
+  Marker,
+  Layer,
+  LeafletNamespace,
+  LatLng,
+  LeafletEvent,
+} from 'leaflet';
 
 export interface MapBuilderCallbacks {
   onSelectedCragChange: (mapCragItem: MapCragItem | null) => void;
@@ -37,17 +45,17 @@ interface ClusterGroup {
 
 @Injectable({ providedIn: 'root' })
 export class MapBuilder {
-  private geoJsonLayers: import('leaflet').Layer[] = [];
-  private cragsGeoJsonLayer: import('leaflet').Layer | null = null;
+  private geoJsonLayers: Layer[] = [];
+  private cragsGeoJsonLayer: Layer | null = null;
   private readonly platformId = inject(PLATFORM_ID);
   private readonly global = inject(GlobalData);
   private readonly localStorage = inject(LocalStorage);
-  private map!: import('leaflet').Map;
+  private map!: Map;
   private initialized = false;
-  private L: import('leaflet').LeafletNamespace | null = null;
+  private L: LeafletNamespace | null = null;
   private mapCragItems: readonly MapCragItem[] = [];
-  private markers: import('leaflet').Marker[] = [];
-  private userMarker: import('leaflet').Marker | null = null;
+  private markers: Marker[] = [];
+  private userMarker: Marker | null = null;
   private clusteringEnabled = true;
   private clusterRadius = 50; // Radio para agrupar marcadores en píxeles
   // Control whether cluster markers should animate on next rebuild
@@ -331,10 +339,7 @@ export class MapBuilder {
           return false;
         }
       },
-      pointToLayer: (
-        feature: MapCragDataFeature,
-        latlng: import('leaflet').LatLng,
-      ) => {
+      pointToLayer: (feature: MapCragDataFeature, latlng: LatLng) => {
         // Render GeoJSON crag points with the same DivIcon label style used elsewhere
         const name = (feature?.properties?.name as string | undefined) ?? '';
         const liked = !!feature?.properties?.liked;
@@ -345,7 +350,7 @@ export class MapBuilder {
           iconAnchor: [0, 0],
         });
         const marker = new L.Marker(latlng, { icon });
-        marker.on('click', (e: import('leaflet').LeafletEvent) => {
+        marker.on('click', (e: LeafletEvent) => {
           e.originalEvent?.preventDefault?.();
           (e.originalEvent as Event | undefined)?.stopPropagation?.();
           this.centerOn(latlng.lat, latlng.lng, 10);
@@ -536,7 +541,7 @@ export class MapBuilder {
           const marker = new L.Marker(latLng, { icon }).addTo(this.map);
           this.markers.push(marker);
 
-          const onSelect = () => {
+          const onSelect = async () => {
             // Center the map on the clicked item
             this.centerOn(it.latitude, it.longitude, 10);
             switch (it.markerType) {
@@ -553,14 +558,21 @@ export class MapBuilder {
                 }
                 break;
               case 'crag': {
-                // For crags coming from local JSON: only center map, do not change selectedMapCragItem
-                // This allows users to adjust position over those points without selecting them
+                if (it.cragFeature?.properties?.item_id) {
+                  const item: void | MapCragItem =
+                    await this.global.refreshMapItemById(
+                      Number(it.cragFeature.properties.item_id),
+                    );
+                  if (item) {
+                    cb.onSelectedCragChange(item);
+                  }
+                }
                 break;
               }
             }
           };
 
-          marker.on('click', (e: import('leaflet').LeafletEvent) => {
+          marker.on('click', (e: LeafletEvent) => {
             e.originalEvent?.preventDefault?.();
             (e.originalEvent as Event | undefined)?.stopPropagation?.();
             onSelect();
@@ -591,7 +603,7 @@ export class MapBuilder {
           }).addTo(this.map);
           this.markers.push(marker);
 
-          marker.on('click', (e: import('leaflet').LeafletEvent) => {
+          marker.on('click', (e: LeafletEvent) => {
             e.originalEvent?.preventDefault?.();
             (e.originalEvent as Event | undefined)?.stopPropagation?.();
 
@@ -635,7 +647,7 @@ export class MapBuilder {
       const marker = new L.Marker(latLng, { icon }).addTo(this.map);
       this.markers.push(marker);
 
-      marker.on('click', (e: import('leaflet').LeafletEvent) => {
+      marker.on('click', (e: LeafletEvent) => {
         e.originalEvent?.preventDefault?.();
         (e.originalEvent as Event | undefined)?.stopPropagation?.();
         this.centerOn(latitude, longitude, 10);
@@ -696,7 +708,7 @@ export class MapBuilder {
   }
 
   private attachMarkerKeyboardSelection(
-    marker: import('leaflet').Marker,
+    marker: Marker,
     onSelect: () => void,
   ): void {
     const el = marker.getElement();

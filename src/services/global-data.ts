@@ -52,7 +52,7 @@ export class GlobalData {
    * Merges it into cache and updates selected item if it matches.
    * SSR-safe: no-op on server.
    */
-  async refreshMapItemById(id: number): Promise<void> {
+  async refreshMapItemById(id: number): Promise<MapCragItem | void> {
     if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
       return;
     const item = await this.verticalLifeApi.getMapItemById(id);
@@ -60,6 +60,7 @@ export class GlobalData {
     this.mapCache.set((item as any).id as number, item);
     const arr = Array.from(this.mapCache.values());
     this.cachedMapItems.set(arr);
+    return item;
   }
 
   // Loading/Status state
