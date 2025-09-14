@@ -44,7 +44,7 @@ export class MapBuilder {
   private readonly localStorage = inject(LocalStorage);
   private map!: import('leaflet').Map;
   private initialized = false;
-  private L: typeof import('leaflet') | null = null;
+  private L: import('leaflet').LeafletNamespace | null = null;
   private mapCragItems: readonly MapCragItem[] = [];
   private markers: import('leaflet').Marker[] = [];
   private userMarker: import('leaflet').Marker | null = null;
@@ -97,7 +97,7 @@ export class MapBuilder {
     // Restore the last saved viewport (bounds and zoom) if available
     let savedViewport = this.global.mapBounds();
     if (savedViewport) {
-      const bounds = new (L as any).LatLngBounds([
+      const bounds = new L.LatLngBounds([
         [savedViewport.south_west_latitude, savedViewport.south_west_longitude],
         [savedViewport.north_east_latitude, savedViewport.north_east_longitude],
       ]);
@@ -152,7 +152,7 @@ export class MapBuilder {
       const latLngs: [number, number][] = mapCragItem.map(
         (mapItem: MapCragItem) => [mapItem.latitude, mapItem.longitude],
       );
-      const bounds = new (L as any).LatLngBounds(latLngs);
+      const bounds = new L.LatLngBounds(latLngs);
       this.map.fitBounds(bounds, {
         padding: [24, 24],
         maxZoom: Math.min(9, options.maxZoom ?? 18),
@@ -310,11 +310,11 @@ export class MapBuilder {
     const apiNameSet = new Set(
       this.mapCragItems
         .filter((c) =>
-          viewBounds.contains(new (L as any).LatLng(c.latitude, c.longitude)),
+          viewBounds.contains(new L.LatLng(c.latitude, c.longitude)),
         )
         .map((c) => normalize(c.name)),
     );
-    const cragsLayer = new (L as any).GeoJSON(cragsData as any, {
+    const cragsLayer = new L.GeoJSON(cragsData, {
       className: 'geojson-crag',
       filter: (feature: MapCragDataFeature) => {
         try {
@@ -322,7 +322,7 @@ export class MapBuilder {
           if (!coords || coords.length < 2) return false;
           const lat = coords[1] as number;
           const lng = coords[0] as number;
-          const inBounds = viewBounds.contains(new (L as any).LatLng(lat, lng));
+          const inBounds = viewBounds.contains(new L.LatLng(lat, lng));
           if (!inBounds) return false;
           const name = (feature?.properties?.name as string | undefined) ?? '';
           if (apiNameSet.has(normalize(name))) return false; // suppress duplicates by label, prefer API
@@ -330,6 +330,30 @@ export class MapBuilder {
         } catch {
           return false;
         }
+      },
+      pointToLayer: (
+        feature: MapCragDataFeature,
+        latlng: import('leaflet').LatLng,
+      ) => {
+        // Render GeoJSON crag points with the same DivIcon label style used elsewhere
+        const name = (feature?.properties?.name as string | undefined) ?? '';
+        const liked = !!feature?.properties?.liked;
+        const icon = new L.DivIcon({
+          html: this.cragLabelHtml(name, false, liked, 'crag'),
+          className: 'pointer-events-none',
+          iconSize: [0, 0],
+          iconAnchor: [0, 0],
+        });
+        const marker = new L.Marker(latlng, { icon });
+        marker.on('click', (e: import('leaflet').LeafletEvent) => {
+          e.originalEvent?.preventDefault?.();
+          (e.originalEvent as Event | undefined)?.stopPropagation?.();
+          this.centerOn(latlng.lat, latlng.lng, 10);
+        });
+        this.attachMarkerKeyboardSelection(marker, () =>
+          this.centerOn(latlng.lat, latlng.lng, 10),
+        );
+        return marker;
       },
     }).addTo(this.map);
 
@@ -348,7 +372,7 @@ export class MapBuilder {
     apiItems: readonly MapCragItem[],
   ): ClusterItem[] {
     if (!this.map || !this.L) return [];
-    const L = this.L as any;
+    const L = this.L!;
     const bounds = this.map.getBounds().pad(0.1);
     const items: ClusterItem[] = [];
     const normalize = (s: string) => (s ?? '').trim().toLowerCase();
@@ -376,7 +400,7 @@ export class MapBuilder {
     // GeoJSON crags (points only)
     const cragsData = this.initialCragsData;
     if (cragsData?.features?.length) {
-      for (const feature of cragsData.features as any[]) {
+      for (const feature of cragsData.features as MapCragDataFeature[]) {
         try {
           const coords = feature?.geometry?.coordinates as number[] | undefined;
           if (!coords || coords.length < 2) continue;
@@ -408,7 +432,7 @@ export class MapBuilder {
     items: readonly ClusterItem[],
   ): ClusterGroup[] {
     if (!this.map || !this.L) return [];
-    const L = this.L as any;
+    const L = this.L!;
 
     if (!this.shouldCluster()) {
       return items.map((it) => ({
@@ -497,7 +521,7 @@ export class MapBuilder {
           })();
           const isFavorite = !!it.liked;
 
-          const icon = new (L as any).DivIcon({
+          const icon = new L.DivIcon({
             html: this.cragLabelHtml(
               it.name,
               isSelected,
@@ -509,9 +533,7 @@ export class MapBuilder {
             iconAnchor: [0, 0],
           });
 
-          const marker = new (L as any).Marker(latLng, { icon }).addTo(
-            this.map,
-          );
+          const marker = new L.Marker(latLng, { icon }).addTo(this.map);
           this.markers.push(marker);
 
           const onSelect = () => {
@@ -539,12 +561,8 @@ export class MapBuilder {
           };
 
           marker.on('click', (e: import('leaflet').LeafletEvent) => {
-            (
-              (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
-            )?.preventDefault?.();
-            (
-              (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
-            )?.stopPropagation?.();
+            e.originalEvent?.preventDefault?.();
+            (e.originalEvent as Event | undefined)?.stopPropagation?.();
             onSelect();
           });
           this.attachMarkerKeyboardSelection(marker, onSelect);
@@ -561,27 +579,23 @@ export class MapBuilder {
                   : group.count >= 10
                     ? 36
                     : 28;
-          const icon = new (L as any).DivIcon({
+          const icon = new L.DivIcon({
             html: this.clusterLabelHtml(group.count),
             className: 'marker-cluster',
-            iconSize: new (L as any).Point(size, size),
+            iconSize: new L.Point(size, size),
             iconAnchor: [size / 2, size / 2],
           });
 
-          const marker = new (L as any).Marker(latLng as any, { icon }).addTo(
-            this.map,
-          );
+          const marker = new L.Marker(latLng as [number, number], {
+            icon,
+          }).addTo(this.map);
           this.markers.push(marker);
 
           marker.on('click', (e: import('leaflet').LeafletEvent) => {
-            (
-              (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
-            )?.preventDefault?.();
-            (
-              (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
-            )?.stopPropagation?.();
+            e.originalEvent?.preventDefault?.();
+            (e.originalEvent as Event | undefined)?.stopPropagation?.();
 
-            const bounds = new (L as any).LatLngBounds(
+            const bounds = new L.LatLngBounds(
               group.markers.map((c) => [c.latitude, c.longitude]),
             );
 
@@ -599,19 +613,18 @@ export class MapBuilder {
     // Non-clustered: render API items as before
     // Only render markers within the current viewport (with slight padding)
     const bounds = this.map.getBounds().pad(0.1);
-    const Lb = this.L as any;
     const visibleItems = mapCragItems.filter((c) =>
-      bounds.contains(new Lb.LatLng(c.latitude, c.longitude)),
+      bounds.contains(new L.LatLng(c.latitude, c.longitude)),
     );
 
     for (const mapCragItem of visibleItems) {
       const { latitude, longitude } = mapCragItem;
       const latLng: [number, number] = [latitude, longitude];
-      const icon = new (L as any).DivIcon({
+      const icon = new L.DivIcon({
         html: this.cragLabelHtml(
           mapCragItem.name,
           selectedMapCragItem?.id === mapCragItem.id,
-          this.global.liked(),
+          !!mapCragItem.liked, // Usar el liked del item directamente
           'api',
         ),
         className: 'pointer-events-none',
@@ -619,16 +632,12 @@ export class MapBuilder {
         iconAnchor: [0, 0],
       });
 
-      const marker = new (L as any).Marker(latLng, { icon }).addTo(this.map);
+      const marker = new L.Marker(latLng, { icon }).addTo(this.map);
       this.markers.push(marker);
 
       marker.on('click', (e: import('leaflet').LeafletEvent) => {
-        (
-          (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
-        )?.preventDefault?.();
-        (
-          (e as any).originalEvent as MouseEvent | PointerEvent | TouchEvent
-        )?.stopPropagation?.();
+        e.originalEvent?.preventDefault?.();
+        (e.originalEvent as Event | undefined)?.stopPropagation?.();
         this.centerOn(latitude, longitude, 10);
         cb.onSelectedCragChange(mapCragItem);
       });
@@ -656,10 +665,11 @@ export class MapBuilder {
     }
 
     // El resto del código se mantiene igual
-    const scale = isSelected ? 1.4 : isFavorite ? 1.2 : 1;
+    const scale = isSelected ? 1.1 : isFavorite ? 1.2 : 1;
 
     return `<div
-        class="lw-marker ${backgroundColorClass} scale-[${scale}] w-fit px-2 py-1 rounded-xl text-xs leading-tight whitespace-nowrap -translate-y-full pointer-events-auto border border-transparent focus:outline-none"
+        class="lw-marker ${backgroundColorClass} w-fit px-2 py-1 rounded-xl text-xs leading-tight whitespace-nowrap -translate-y-full pointer-events-auto border border-transparent focus:outline-none"
+        style="transform: scale(${scale});"
         role="button"
         tabindex="0"
         aria-label="${name}"
@@ -737,7 +747,7 @@ export class MapBuilder {
     const { latitude, longitude } = position.coords;
     const latLng: [number, number] = [latitude, longitude];
 
-    const icon = new (L as any).DivIcon({
+    const icon = new L.DivIcon({
       html: '<div class="lw-user-marker" aria-hidden="true"></div>',
       className: '',
       iconSize: [0, 0],
@@ -749,7 +759,7 @@ export class MapBuilder {
       this.userMarker = null;
     }
 
-    this.userMarker = new (L as any).Marker(latLng, {
+    this.userMarker = new L.Marker(latLng, {
       icon,
       zIndexOffset: 1000,
     }).addTo(this.map);
