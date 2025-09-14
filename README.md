@@ -1,4 +1,4 @@
-# Ñasca!
+# Rotpunkt
 
 A modern climbing guide application built with Angular 20 that helps climbers discover and navigate climbing locations. The app features an interactive map interface for exploring climbing spots, detailed route information, and mobile-friendly design. It uses server-side rendering (SSR) for improved performance and SEO, and implements a fully reactive architecture with Angular Signals for state management.
 
