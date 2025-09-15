@@ -226,7 +226,7 @@ interface BreadcrumbItem {
             type="button"
             size="s"
             (click.zoneless)="toggleFullscreen()"
-            [iconStart]="isFullscreen() ? '@tui.minimize' : '@tui.fullscreen'"
+            [iconStart]="isFullscreen() ? '@tui.shrink' : '@tui.expand'"
             [title]="
               (isFullscreen() ? 'common.exit_fullscreen' : 'common.fullscreen')
                 | translate

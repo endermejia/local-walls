@@ -14,6 +14,8 @@
       "contain": "Fit to width"
     },
     "openMap": "Open location in Google Maps",
+    "viewOnMap": "View on map",
+    "openGoogleMaps": "Open Google Maps",
     "share": "Share",
     "signIn": "Sign in",
     "back": "Back",

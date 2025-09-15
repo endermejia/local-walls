@@ -16,7 +16,7 @@ import { Router, RouterLink } from '@angular/router';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
-import { TuiLoader, TuiTitle } from '@taiga-ui/core';
+import { TuiLoader, TuiTitle, TuiButton } from '@taiga-ui/core';
 import { TuiSurface } from '@taiga-ui/core';
 import { mapLocationUrl } from '../utils';
 import { normalizeRoutesByGrade, RoutesByGrade } from '../models';
@@ -36,6 +36,7 @@ import { normalizeRoutesByGrade, RoutesByGrade } from '../models';
     TuiLoader,
     TuiSurface,
     TuiTitle,
+    TuiButton,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -87,16 +88,30 @@ import { normalizeRoutesByGrade, RoutesByGrade } from '../models';
             </div>
           }
           @if (c.location) {
-            <div>
+            <div class="flex gap-2 items-center">
+              <button
+                tuiButton
+                appearance="secondary"
+                size="s"
+                type="button"
+                (click.zoneless)="viewOnMap(c)"
+                [iconStart]="'@tui.map'"
+              >
+                {{ 'actions.viewOnMap' | translate }}
+              </button>
               <a
-                class="tui-link"
+                tuiButton
+                appearance="flat"
+                size="s"
                 [href]="mapLocationUrl(c.location)"
                 target="_blank"
                 rel="noopener noreferrer"
-                [attr.aria-label]="'actions.openMap' | translate"
-                [attr.title]="'actions.openMap' | translate"
-                >{{ 'actions.openMap' | translate }}</a
+                [iconStart]="'@tui.map-pin'"
+                [attr.aria-label]="'actions.openGoogleMaps' | translate"
+                [attr.title]="'actions.openGoogleMaps' | translate"
               >
+                {{ 'actions.openGoogleMaps' | translate }}
+              </a>
             </div>
           }
         </div>
@@ -204,5 +219,20 @@ export class CragComponent {
     const countrySlug = this.countrySlug();
     const cragSlug = this.cragSlug();
     this.router.navigate(['/sector', countrySlug, cragSlug, sectorSlug]);
+  }
+
+  viewOnMap(c: ClimbingCrag): void {
+    const loc = c.location;
+    if (!loc) return;
+    // Set viewport bounds centered on the crag with a target zoom
+    const zoom = 13;
+    this.global.mapBounds.set({
+      south_west_latitude: loc.latitude,
+      south_west_longitude: loc.longitude,
+      north_east_latitude: loc.latitude,
+      north_east_longitude: loc.longitude,
+      zoom,
+    });
+    this.router.navigateByUrl('/home');
   }
 }
