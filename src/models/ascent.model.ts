@@ -63,3 +63,24 @@ export interface AscentsQuery {
 }
 
 export type AscentsPage = PageableResponse<AscentListItem>;
+
+// Response shape for user ascents endpoint (different from pageable items)
+export interface UserAscentsResponse {
+  ascents: AscentListItem[];
+  totalItems: number;
+  pageIndex: number;
+}
+
+export interface UserAscentsQuery {
+  category?: 'sportclimbing' | 'bouldering' | 'alpine' | string; // defaults to sportclimbing
+  pageIndex?: number;
+  pageSize?: number;
+  sortField?: 'grade_desc' | 'date_desc' | 'date_asc' | string;
+  timeFilter?: number; // 0 = all time
+  gradeFilter?: number; // 0 = all
+  typeFilter?: string | null; // e.g. os/rp/f
+  includeProjects?: boolean;
+  searchQuery?: string | null;
+  showRepeats?: boolean;
+  showDuplicates?: boolean;
+}

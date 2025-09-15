@@ -190,4 +190,41 @@ export class VerticalLifeApi extends ApiCore {
       { query },
     );
   }
+
+  // Fetch ascents by user slug from 8a.nu unified ascent endpoint
+  async getUserAscents(
+    userSlug: string,
+    params?: {
+      category?: 'sportclimbing' | 'bouldering' | 'alpine' | string;
+      pageIndex?: number;
+      pageSize?: number;
+      sortField?: 'grade_desc' | 'date_desc' | 'date_asc' | string;
+      timeFilter?: number;
+      gradeFilter?: number;
+      typeFilter?: string | null;
+      includeProjects?: boolean;
+      searchQuery?: string | null;
+      showRepeats?: boolean;
+      showDuplicates?: boolean;
+    },
+  ): Promise<import('../models').UserAscentsResponse> {
+    const query = {
+      category: params?.category ?? 'sportclimbing',
+      pageIndex: params?.pageIndex ?? 0,
+      pageSize: params?.pageSize ?? 50,
+      sortField: params?.sortField ?? 'grade_desc',
+      timeFilter: params?.timeFilter ?? 0,
+      gradeFilter: params?.gradeFilter ?? 0,
+      typeFilter: params?.typeFilter ?? undefined,
+      includeProjects: params?.includeProjects ?? false,
+      searchQuery: params?.searchQuery ?? undefined,
+      showRepeats: params?.showRepeats ?? false,
+      showDuplicates: params?.showDuplicates ?? false,
+    } as const;
+
+    return this.get<import('../models').UserAscentsResponse>(
+      `/api/unification/ascent/v1/web/users/${encodeURIComponent(userSlug)}/ascents`,
+      { query },
+    );
+  }
 }
