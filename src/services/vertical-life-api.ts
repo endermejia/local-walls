@@ -13,6 +13,8 @@ import {
   MapItem,
   MapResponse,
   PageableResponse,
+  SearchApiItem,
+  SearchApiResponse,
 } from '../models';
 
 @Injectable({ providedIn: 'root' })
@@ -53,12 +55,12 @@ export class VerticalLifeApi extends ApiCore {
     );
   }
 
-  // TODO: Use on header search
+  // Used by header search; returns items from 8a unified search endpoint
   async getMapItemsBySearch(params: {
     query: string;
     pageSize?: number;
     showOnMap?: boolean;
-  }): Promise<MapItem[]> {
+  }): Promise<readonly SearchApiItem[]> {
     const opts: HttpOptions = {
       query: {
         query: params.query,
@@ -66,11 +68,12 @@ export class VerticalLifeApi extends ApiCore {
         showOnMap: params.showOnMap ?? true,
       },
     };
-    const { items = [] } = await this.get<MapResponse>(
+    const { items = [] } = await this.get<SearchApiResponse>(
       '/api/unification/collection/v1/web/search',
       opts,
     );
-    return items.filter((i) => i.id) as MapItem[];
+    // Do not filter by `id` here because search payload uses different id fields (cragId, zlaggableId, ...)
+    return items as readonly SearchApiItem[];
   }
 
   // TODO: implement pageable list for climbing crags (on Area page)

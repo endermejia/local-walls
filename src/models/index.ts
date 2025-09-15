@@ -9,5 +9,6 @@ export * from './pagination.model';
 export * from './parking.model';
 export * from './route.model';
 export * from './search-item.model';
+export * from './search-api.model';
 export * from './sector.model';
 export * from './topo.model';

@@ -10,7 +10,6 @@ import {
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { TUI_DEFAULT_MATCHER } from '@taiga-ui/cdk';
 import { RouterLink } from '@angular/router';
 import {
   TuiButton,
@@ -28,9 +27,22 @@ import {
 } from '@taiga-ui/experimental';
 import { TuiAvatar, TuiBreadcrumbs } from '@taiga-ui/kit';
 import { TuiCell, TuiInputSearch, TuiNavigation } from '@taiga-ui/layout';
-import { filter, map, startWith, switchMap, timer } from 'rxjs';
-import { GlobalData } from '../services';
-import { OptionsItem, SearchData } from '../models';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  map,
+  startWith,
+  switchMap,
+} from 'rxjs';
+import { GlobalData, VerticalLifeApi } from '../services';
+import {
+  OptionsItem,
+  SearchData,
+  SearchApiItem,
+  MapAreaItem,
+  MapCragItem,
+} from '../models';
 
 type RouterCommand = readonly (string | number)[] | string;
 
@@ -233,6 +245,7 @@ interface BreadcrumbItem {
 })
 export class HeaderComponent implements OnDestroy {
   protected global = inject(GlobalData);
+  private api = inject(VerticalLifeApi);
 
   private readonly platformId: object = inject(PLATFORM_ID);
   private readonly isBrowser =
@@ -331,29 +344,157 @@ export class HeaderComponent implements OnDestroy {
   });
 
   protected readonly results$ = this.control.valueChanges.pipe(
-    filter(Boolean),
-    switchMap((value: string) =>
-      timer(2000).pipe(
-        map(() => this.filter(value)),
-        startWith(null),
-      ),
+    map((v) => (v ?? '').trim()),
+    filter((v) => v.length >= 2),
+    debounceTime(300),
+    distinctUntilChanged(),
+    switchMap((query: string) =>
+      this.api
+        .getMapItemsBySearch({ query, pageSize: 10, showOnMap: false })
+        .then((items) => this.mapItemsToSearchData(items))
+        .catch(() => ({}) as SearchData),
     ),
+    startWith(null),
   );
 
   protected onClick(item: OptionsItem) {
     item?.fn?.(item);
   }
 
-  private filter(query: string): SearchData {
-    return Object.entries(this.global.searchData()).reduce(
-      (result, [key, value]) => ({
-        ...result,
-        [key]: value.filter(({ title, href, subtitle = '' }) =>
-          TUI_DEFAULT_MATCHER(title + href + subtitle, query),
-        ),
-      }),
-      {},
-    );
+  private mapItemsToSearchData(
+    items: readonly (SearchApiItem | MapCragItem | MapAreaItem)[],
+  ): SearchData {
+    const areas: {
+      href: string;
+      title: string;
+      subtitle?: string;
+      icon?: string;
+    }[] = [];
+    const crags: {
+      href: string;
+      title: string;
+      subtitle?: string;
+      icon?: string;
+    }[] = [];
+    const routes: {
+      href: string;
+      title: string;
+      subtitle?: string;
+      icon?: string;
+    }[] = [];
+
+    for (const it of items ?? []) {
+      // Normalize fields to support both snake_case (map items) and camelCase (search items)
+      const type: number | undefined = 'type' in it ? it.type : undefined;
+
+      const countrySlug: string | undefined =
+        'countrySlug' in it
+          ? it.countrySlug
+          : 'country_slug' in it
+            ? it.country_slug
+            : undefined;
+
+      const countryName: string | undefined =
+        'countryName' in it
+          ? it.countryName
+          : 'country_name' in it
+            ? it.country_name
+            : undefined;
+
+      // Prefer explicit area fields; check snake_case before generic 'slug/name' to avoid TS narrowing to never
+      const areaSlug: string | undefined =
+        'areaSlug' in it
+          ? it.areaSlug
+          : 'area_slug' in it
+            ? it.area_slug
+            : 'slug' in it
+              ? it.slug
+              : undefined; // area may use slug/name
+
+      const areaName: string | undefined =
+        'areaName' in it
+          ? it.areaName
+          : 'area_name' in it
+            ? it.area_name
+            : 'name' in it
+              ? it.name
+              : undefined;
+
+      const cragSlug: string | undefined =
+        'cragSlug' in it ? it.cragSlug : 'slug' in it ? it.slug : undefined;
+
+      const cragName: string | undefined =
+        'cragName' in it ? it.cragName : 'name' in it ? it.name : undefined;
+
+      const sectorSlug: string | undefined =
+        'sectorSlug' in it ? it.sectorSlug : undefined;
+
+      const zlaggableSlug: string | undefined =
+        'zlaggableSlug' in it ? it.zlaggableSlug : undefined;
+
+      const zlaggableName: string | undefined =
+        'zlaggableName' in it ? it.zlaggableName : undefined;
+
+      const difficulty: string | undefined =
+        'difficulty' in it ? it.difficulty : undefined;
+
+      // Decide kind
+      const isRoute =
+        type === 3 || (!!zlaggableSlug && !!sectorSlug && !!cragSlug);
+      const isArea =
+        type === 0 ||
+        (!!areaSlug &&
+          !cragSlug &&
+          !zlaggableSlug &&
+          !!countrySlug &&
+          !!areaName);
+      const isCrag = !isArea && (type === 1 || (!!cragSlug && !!countrySlug));
+
+      if (isRoute && countrySlug && cragSlug && sectorSlug && zlaggableSlug) {
+        const href = `/route/${countrySlug}/${cragSlug}/sector/${sectorSlug}/${zlaggableSlug}`;
+        const subtitleParts: string[] = [];
+        if (cragName) subtitleParts.push(cragName);
+        if (areaName) subtitleParts.push(areaName);
+        if (difficulty) subtitleParts.push(difficulty);
+        routes.push({
+          href,
+          title: zlaggableName ?? '',
+          subtitle: subtitleParts.join(' · '),
+          icon: '@tui.route',
+        });
+        continue;
+      }
+
+      if (isCrag && countrySlug && cragSlug) {
+        const href = `/crag/${countrySlug}/${cragSlug}`;
+        const subtitleParts: string[] = [];
+        if (areaName) subtitleParts.push(areaName);
+        if (countryName) subtitleParts.push(countryName);
+        crags.push({
+          href,
+          title: cragName ?? '',
+          subtitle: subtitleParts.join(' · '),
+          icon: '@tui.map-pin',
+        });
+        continue;
+      }
+
+      if (isArea && countrySlug && areaSlug) {
+        const href = `/zone/${countrySlug}/${areaSlug}`;
+        areas.push({
+          href,
+          title: areaName ?? '',
+          subtitle: countryName,
+          icon: '@tui.layers',
+        });
+      }
+    }
+
+    const result: SearchData = {};
+    if (areas.length) result['Areas'] = areas;
+    if (crags.length) result['Crags'] = crags;
+    if (routes.length) result['Routes'] = routes;
+    return result;
   }
 
   toggleFullscreen() {
