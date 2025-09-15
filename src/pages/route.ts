@@ -9,12 +9,14 @@ import {
   InputSignal,
 } from '@angular/core';
 import { GlobalData } from '../services';
-import { Location, LowerCasePipe, DecimalPipe } from '@angular/common';
+import { Location, LowerCasePipe } from '@angular/common';
 import { ClimbingRoute } from '../models';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiLoader } from '@taiga-ui/core';
 import { RouterLink } from '@angular/router';
+import { TuiRating } from '@taiga-ui/kit';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-route',
@@ -25,7 +27,8 @@ import { RouterLink } from '@angular/router';
     TuiLoader,
     RouterLink,
     LowerCasePipe,
-    DecimalPipe,
+    TuiRating,
+    FormsModule,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -99,14 +102,12 @@ import { RouterLink } from '@angular/router';
             </div>
           }
           @if (r.averageRating) {
-            <div class="text-center">
-              <div class="text-lg font-semibold">
-                {{ r.averageRating | number: '1.1-2' }}
-              </div>
-              <div class="text-xs uppercase opacity-80">
-                {{ 'labels.rating' | translate | lowercase }}
-              </div>
-            </div>
+            <tui-rating
+              [max]="5"
+              [ngModel]="r.averageRating"
+              [readOnly]="true"
+              [style.font-size.rem]="0.5"
+            />
           }
           @if (r.totalFollowers ?? r.totalRecommended) {
             <div class="text-center">

@@ -16,7 +16,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
+import { TuiBadge, TuiAvatar, TuiRating } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
 import { TuiTable, TuiSortDirection } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
@@ -24,12 +24,14 @@ import { TuiLet, tuiDefaultSort } from '@taiga-ui/cdk';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GlobalData } from '../services';
 import type { ClimbingRoute } from '../models';
+import { FormsModule } from '@angular/forms';
 
-export type RoutesTableKey = 'grade' | 'route' | 'ascents';
+export type RoutesTableKey = 'grade' | 'route' | 'rating' | 'ascents';
 
 export interface RoutesTableRow {
   grade: string;
   route: string;
+  rating: number;
   ascents: number;
   _ref: ClimbingRoute;
 }
@@ -41,10 +43,12 @@ export interface RoutesTableRow {
     RouterLink,
     TuiBadge,
     TuiAvatar,
+    TuiRating,
     TranslatePipe,
     TuiTable,
     TuiCell,
     TuiLet,
+    FormsModule,
   ],
   template: `
     <div class="overflow-auto" #scroller>
@@ -108,6 +112,16 @@ export interface RoutesTableRow {
                         </a>
                       </div>
                     }
+                    @case ('rating') {
+                      <div tuiCell size="m">
+                        <tui-rating
+                          [max]="5"
+                          [ngModel]="item.rating"
+                          [readOnly]="true"
+                          [style.font-size.rem]="0.5"
+                        />
+                      </div>
+                    }
                     @case ('ascents') {
                       <div tuiCell size="m">
                         <span>{{ item._ref.totalAscents ?? 0 }}</span>
@@ -165,6 +179,7 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
   protected readonly columns: string[] = [
     'grade',
     'route',
+    'rating',
     'ascents',
     'actions',
   ];
@@ -173,6 +188,7 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
     this.data().map((r) => ({
       grade: r.difficulty || '',
       route: r.zlaggableName || '',
+      rating: r.averageRating ?? 0,
       ascents: r.totalAscents ?? 0,
       _ref: r,
     })),
@@ -184,6 +200,7 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
   > = {
     grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
     route: (a, b) => tuiDefaultSort(a.route, b.route),
+    rating: (a, b) => tuiDefaultSort(a.rating, b.rating),
     ascents: (a, b) => tuiDefaultSort(a.ascents, b.ascents),
   };
 

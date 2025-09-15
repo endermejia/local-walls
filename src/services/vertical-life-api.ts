@@ -10,11 +10,13 @@ import {
   ClimbingSector,
   MapBounds,
   MapCragItem,
-  MapItem,
   MapResponse,
-  PageableResponse,
   SearchApiItem,
   SearchApiResponse,
+  AscentsPage,
+  AscentsQuery,
+  ClimbingCragsPage,
+  ClimbingRoutesPage,
 } from '../models';
 
 @Injectable({ providedIn: 'root' })
@@ -87,7 +89,7 @@ export class VerticalLifeApi extends ApiCore {
       order?: 'asc' | 'desc';
       category?: number;
     },
-  ): Promise<PageableResponse<ClimbingCrag>> {
+  ): Promise<ClimbingCragsPage> {
     const query = {
       pageIndex: params?.pageIndex ?? 0,
       sortField: params?.sortField ?? 'totalascents',
@@ -96,7 +98,7 @@ export class VerticalLifeApi extends ApiCore {
       countrySlug,
       areaSlug,
     } as const;
-    return this.get<PageableResponse<ClimbingCrag>>(
+    return this.get<ClimbingCragsPage>(
       '/api/unification/outdoor/v1/web/crags',
       { query },
     );
@@ -113,7 +115,7 @@ export class VerticalLifeApi extends ApiCore {
       grade?: string;
       searchQuery?: string;
     },
-  ): Promise<PageableResponse<ClimbingRoute>> {
+  ): Promise<ClimbingRoutesPage> {
     const query = {
       sectorSlug: params?.sectorSlug,
       pageIndex: params?.pageIndex ?? 0,
@@ -123,7 +125,7 @@ export class VerticalLifeApi extends ApiCore {
       order: params?.order ?? 'desc',
       cragSlug,
     } as const;
-    return this.get<PageableResponse<ClimbingRoute>>(
+    return this.get<ClimbingRoutesPage>(
       `/api/unification/outdoor/v1/web/zlaggables/sportclimbing/${encodeURIComponent(countrySlug)}`,
       { query },
     );
@@ -168,5 +170,24 @@ export class VerticalLifeApi extends ApiCore {
       `/api/unification/outdoor/v1/web/crags/sportclimbing/${encodeURIComponent(countrySlug)}/${encodeURIComponent(cragSlug)}/sectors/${encodeURIComponent(sectorSlug)}/routes/${encodeURIComponent(zlaggableSlug)}`,
     );
     return response.zlaggable;
+  }
+
+  async getCragAscentsPageable(
+    countrySlug: string,
+    cragSlug: string,
+    params?: AscentsQuery,
+  ): Promise<AscentsPage> {
+    const query = {
+      sectorSlug: params?.sectorSlug,
+      pageIndex: params?.pageIndex ?? 0,
+      pageSize: params?.pageSize ?? 20,
+      grade: params?.grade,
+      searchQuery: params?.searchQuery,
+    } as const;
+
+    return this.get<AscentsPage>(
+      `/api/unification/ascent/v1/web/crags/sportclimbing/${encodeURIComponent(countrySlug)}/${encodeURIComponent(cragSlug)}/ascents`,
+      { query },
+    );
   }
 }

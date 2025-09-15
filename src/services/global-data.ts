@@ -27,8 +27,9 @@ import type {
   MapItem,
   MapResponse,
   OptionsData,
-  PageableResponse,
-  SearchData,
+  AscentsPage,
+  ClimbingCragsPage,
+  ClimbingRoutesPage,
 } from '../models';
 
 @Injectable({
@@ -123,8 +124,6 @@ export class GlobalData {
     'Aixortà',
     'Rincón Bello',
   ]);
-  // TODO: use verticalLifeApi => getMapItemsBySearch
-  searchData: WritableSignal<SearchData> = signal({});
 
   // TODO: implement likes
   liked: WritableSignal<boolean> = signal(false);
@@ -217,13 +216,12 @@ export class GlobalData {
   selectedMapCragItem: WritableSignal<MapCragItem | null> = signal(null);
   area: WritableSignal<ClimbingArea | null> = signal(null);
   crag: WritableSignal<ClimbingCrag | null> = signal(null);
-  cragsPageable: WritableSignal<PageableResponse<ClimbingCrag> | null> =
-    signal(null);
+  cragsPageable: WritableSignal<ClimbingCragsPage | null> = signal(null);
   cragSectors: WritableSignal<ClimbingSector[]> = signal([]);
   sector: WritableSignal<ClimbingSector | null> = signal(null);
   route: WritableSignal<ClimbingRoute | null> = signal(null);
-  routesPageable: WritableSignal<PageableResponse<ClimbingRoute> | null> =
-    signal(null);
+  routesPageable: WritableSignal<ClimbingRoutesPage | null> = signal(null);
+  ascentsPageable: WritableSignal<AscentsPage | null> = signal(null);
   topo: WritableSignal<ClimbingTopo | null> = signal(null);
 
   async loadMapItems(bounds: MapBounds): Promise<void> {
@@ -381,6 +379,44 @@ export class GlobalData {
     }
   }
 
+  async loadCragAscents(
+    countrySlug: string,
+    cragSlug: string,
+    params?: {
+      sectorSlug?: string;
+      pageIndex?: number;
+      pageSize?: number;
+      grade?: string;
+      searchQuery?: string;
+    },
+  ): Promise<void> {
+    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
+      return;
+    try {
+      this.loading.set(true);
+      const pageIndex = params?.pageIndex ?? 0;
+      const resp = await this.verticalLifeApi.getCragAscentsPageable(
+        countrySlug,
+        cragSlug,
+        params,
+      );
+      if (pageIndex > 0 && this.ascentsPageable()) {
+        const prev = this.ascentsPageable()!;
+        this.ascentsPageable.set({
+          items: [...prev.items, ...resp.items],
+          pagination: resp.pagination,
+        });
+      } else {
+        this.ascentsPageable.set(resp);
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.error.set(msg);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
   async loadRoute(
     countrySlug: string,
     cragSlug: string,
@@ -524,6 +560,7 @@ export class GlobalData {
         this.route.set(null);
         this.cragSectors.set([]);
         this.routesPageable.set(null);
+        this.ascentsPageable.set(null);
         this.selectedMapCragItem.set(null);
         break;
       }
@@ -534,11 +571,13 @@ export class GlobalData {
         this.route.set(null);
         this.cragSectors.set([]);
         this.routesPageable.set(null);
+        this.ascentsPageable.set(null);
         break;
       }
       case 'crag': {
         this.sector.set(null);
         this.route.set(null);
+        this.ascentsPageable.set(null);
         break;
       }
       case 'sector': {

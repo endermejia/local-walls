@@ -9,6 +9,7 @@
       "add": "Marcar como favorito",
       "remove": "Quitar favorito"
     },
+    "loadMore": "Cargar más",
     "fit": {
       "cover": "Ajustar al alto",
       "contain": "Ajustar al ancho"
@@ -38,9 +39,14 @@
     "route": "Vía",
     "boulders": "Bloques",
     "ascents": "Ascensiones",
+    "latestAscents": "Últimos encadenes",
     "followers": "Seguidores",
     "number": "Número",
     "grade": "Grado",
+    "date": "Fecha",
+    "user": "Usuario",
+    "sector": "Sector",
+    "type": "Tipo",
     "height": "Altura",
     "actions": "Acciones",
     "topos": "Croquis",
@@ -51,7 +57,8 @@
     "myLocation": "Mi ubicación",
     "country": "País",
     "sectors": "Sectores",
-    "rating": "Valoración"
+    "rating": "Valoración",
+    "anonymous": "Anónimo"
   },
   "auth": {
     "login": "Iniciar sesión",

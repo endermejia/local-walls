@@ -1,4 +1,5 @@
 import { Coordinates } from './coordinates.model';
+import { PageableResponse } from './pagination.model';
 
 export interface ClimbingCrag {
   unifiedId?: number;
@@ -23,3 +24,5 @@ export interface ClimbingCragResponse {
   isEditable?: boolean;
   isFollowed?: boolean;
 }
+
+export type ClimbingCragsPage = PageableResponse<ClimbingCrag>;

@@ -11,22 +11,29 @@ import {
 import type { ClimbingCrag } from '../models';
 import { ChartRoutesByGradeComponent } from '../components';
 import { GlobalData } from '../services';
-import { Location, LowerCasePipe, DecimalPipe } from '@angular/common';
+import { Location, LowerCasePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TranslatePipe } from '@ngx-translate/core';
+import { TuiAvatar, TuiRating } from '@taiga-ui/kit';
+import { TuiCell } from '@taiga-ui/layout';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import { TuiLoader, TuiTitle, TuiButton } from '@taiga-ui/core';
 import { TuiSurface } from '@taiga-ui/core';
+import { TuiTable } from '@taiga-ui/addon-table';
 import { mapLocationUrl } from '../utils';
-import { normalizeRoutesByGrade, RoutesByGrade } from '../models';
+import {
+  normalizeRoutesByGrade,
+  RoutesByGrade,
+  AscentListItem,
+} from '../models';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-crag',
   standalone: true,
   imports: [
     ChartRoutesByGradeComponent,
-    DecimalPipe,
     LowerCasePipe,
     RouterLink,
     SectionHeaderComponent,
@@ -37,6 +44,11 @@ import { normalizeRoutesByGrade, RoutesByGrade } from '../models';
     TuiSurface,
     TuiTitle,
     TuiButton,
+    TuiTable,
+    TuiCell,
+    TuiAvatar,
+    TuiRating,
+    FormsModule,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -65,27 +77,29 @@ import { normalizeRoutesByGrade, RoutesByGrade } from '../models';
           </div>
           @if (c.totalZlaggables) {
             <div>
-              <strong>{{ 'labels.routes' | translate | lowercase }}:</strong>
-              {{ c.totalZlaggables }}
+              <strong>{{ c.totalZlaggables }}</strong>
+              {{ 'labels.routes' | translate | lowercase }}
             </div>
           }
           @if (c.totalSectors) {
             <div>
-              <strong>{{ 'labels.sectors' | translate | lowercase }}:</strong>
-              {{ c.totalSectors }}
+              <strong>{{ c.totalSectors }}</strong>
+              {{ 'labels.sectors' | translate | lowercase }}
             </div>
           }
           @if (c.totalAscents) {
             <div>
-              <strong>{{ 'labels.ascents' | translate | lowercase }}:</strong>
-              {{ c.totalAscents }}
+              <strong>{{ c.totalAscents }}</strong>
+              {{ 'labels.ascents' | translate | lowercase }}
             </div>
           }
           @if (c.averageRating) {
-            <div>
-              <strong>{{ 'labels.rating' | translate | lowercase }}:</strong>
-              {{ c.averageRating | number: '1.1-2' }}
-            </div>
+            <tui-rating
+              [max]="5"
+              [ngModel]="c.averageRating"
+              [readOnly]="true"
+              [style.font-size.rem]="0.5"
+            />
           }
           @if (c.location) {
             <div class="flex gap-2 items-center">
@@ -118,6 +132,99 @@ import { normalizeRoutesByGrade, RoutesByGrade } from '../models';
 
         <!-- TODO: get cragInfo -->
         <app-chart-routes-by-grade class="mt-4" [grades]="routesByGrade()" />
+
+        <!-- Latest ascents table -->
+        <div class="mt-6">
+          <h2 class="text-lg font-semibold mb-2">
+            {{ 'labels.latestAscents' | translate }}
+          </h2>
+
+          @if (ascents().length === 0 && global.loading()) {
+            <div class="flex items-center justify-center w-full min-h-[20vh]">
+              <tui-loader size="l"></tui-loader>
+            </div>
+          } @else {
+            <div class="overflow-auto">
+              <table tuiTable class="w-full" [columns]="ascColumns">
+                <thead tuiThead>
+                  <tr tuiThGroup>
+                    @for (col of ascColumns; track col) {
+                      <th *tuiHead="col" tuiTh>
+                        <div>
+                          {{ 'labels.' + col | translate }}
+                        </div>
+                      </th>
+                    }
+                  </tr>
+                </thead>
+                <tbody tuiTbody [data]="ascents()">
+                  @for (a of ascents(); track a.ascentId) {
+                    <tr tuiTr>
+                      <td *tuiCell="'user'" tuiTd>
+                        <div tuiCell size="m" class="flex items-center gap-2">
+                          <tui-avatar
+                            tuiThumbnail
+                            size="s"
+                            [src]="a.userAvatar || undefined"
+                            [attr.aria-label]="
+                              a.userName || ('labels.anonymous' | translate)
+                            "
+                          >
+                            {{ (a.userName || '?').charAt(0) }}
+                          </tui-avatar>
+                          <div class="truncate max-w-[160px]">
+                            {{
+                              a.userPrivate
+                                ? ('labels.anonymous' | translate)
+                                : a.userName || '—'
+                            }}
+                          </div>
+                        </div>
+                      </td>
+                      <td *tuiCell="'date'" tuiTd>
+                        <div tuiCell size="m">
+                          {{ (a.date || '').slice(0, 10) }}
+                        </div>
+                      </td>
+                      <td *tuiCell="'grade'" tuiTd>
+                        <div tuiCell size="m">{{ a.difficulty || '—' }}</div>
+                      </td>
+                      <td *tuiCell="'route'" tuiTd>
+                        <div tuiCell size="m" class="truncate max-w-[220px]">
+                          {{ a.zlaggableName || ('labels.route' | translate) }}
+                        </div>
+                      </td>
+                      <td *tuiCell="'sector'" tuiTd>
+                        <div tuiCell size="m" class="truncate max-w-[160px]">
+                          {{ a.sectorName || '—' }}
+                        </div>
+                      </td>
+                      <td *tuiCell="'type'" tuiTd>
+                        <div tuiCell size="m">{{ a.type.toUpperCase() }}</div>
+                      </td>
+                      <td *tuiCell="'rating'" tuiTd>
+                        <div tuiCell size="m">{{ a.rating || 0 }}</div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            @if (hasAscNext()) {
+              <div class="flex justify-center mt-3">
+                <button
+                  tuiButton
+                  appearance="flat"
+                  size="m"
+                  (click.zoneless)="loadMoreAscents()"
+                >
+                  {{ 'actions.loadMore' | translate }}
+                </button>
+              </div>
+            }
+          }
+        </div>
 
         <!-- Sectors list with app aesthetics (cards) -->
         @if (sectors().length > 0) {
@@ -184,23 +291,35 @@ export class CragComponent {
     }[]
   > = computed(() => this.global.cragSectors());
 
-  // Routes pageable items from global state
-  private readonly routes = computed(
-    () => this.global.routesPageable()?.items ?? [],
+  // Selected map crag item (used as source of truth for chart data)
+  private readonly selectedMapCragItem = computed(() =>
+    this.global.selectedMapCragItem(),
   );
 
-  // Aggregate number of routes per difficulty label
+  // Chart data: prefer grades from selected map crag item
   routesByGrade = computed<RoutesByGrade>(() => {
-    const acc: Record<string, number> = {};
-    for (const r of this.routes()) {
-      const label = r.difficulty;
-      if (!label) continue;
-      acc[label] = (acc[label] ?? 0) + 1;
-    }
-    return normalizeRoutesByGrade(acc);
+    const grades = this.selectedMapCragItem()?.grades;
+    return normalizeRoutesByGrade(grades);
   });
 
+  // Ascents table data
+  ascents = computed<readonly AscentListItem[]>(
+    () => this.global.ascentsPageable()?.items ?? [],
+  );
+  ascPagination = computed(() => this.global.ascentsPageable()?.pagination);
+  hasAscNext = computed(() => this.ascPagination()?.hasNext ?? false);
+  ascColumns: readonly string[] = [
+    'user',
+    'date',
+    'grade',
+    'route',
+    'sector',
+    'type',
+    'rating',
+  ];
+
   constructor() {
+    // Load crag data when route params change only
     effect(() => {
       this.global.resetDataByPage('crag');
       const countrySlug = this.countrySlug();
@@ -208,7 +327,31 @@ export class CragComponent {
       this.global.loadCrag(countrySlug, cragSlug);
       this.global.loadCragRoutes(countrySlug, cragSlug);
       this.global.loadCragSectors(countrySlug, cragSlug);
+      this.global.loadCragAscents(countrySlug, cragSlug, { pageIndex: 0 });
     });
+
+    // Keep selected map crag item in sync once crag is loaded
+    effect(() => {
+      const cragSlug = this.cragSlug();
+      const crag = this.global.crag();
+      const selected = this.global.selectedMapCragItem();
+      const needsSelect = !selected || selected.slug !== cragSlug;
+      const id = crag?.vlLocationId;
+      if (needsSelect && typeof id === 'number') {
+        // Fire-and-forget; SSR-safe inside service
+        this.global
+          .refreshMapItemById(id)
+          ?.then((item) => item && this.global.selectedMapCragItem.set(item))
+          .catch(() => void 0);
+      }
+    });
+  }
+
+  loadMoreAscents(): void {
+    const countrySlug = this.countrySlug();
+    const cragSlug = this.cragSlug();
+    const next = (this.ascPagination()?.pageIndex ?? 0) + 1;
+    this.global.loadCragAscents(countrySlug, cragSlug, { pageIndex: next });
   }
 
   goBack(): void {

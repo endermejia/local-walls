@@ -8,15 +8,17 @@ import {
   effect,
   InputSignal,
 } from '@angular/core';
-import type { ClimbingArea, ClimbingCrag, PageableResponse } from '../models';
+import type { ClimbingArea, ClimbingCragsPage } from '../models';
 import { ChartRoutesByGradeComponent } from '../components';
 import { GlobalData } from '../services';
-import { Location, LowerCasePipe, DecimalPipe } from '@angular/common';
+import { Location, LowerCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import { TuiSurface, TuiTitle, TuiLoader } from '@taiga-ui/core';
+import { TuiRating } from '@taiga-ui/kit';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-zone',
@@ -32,7 +34,8 @@ import { TuiSurface, TuiTitle, TuiLoader } from '@taiga-ui/core';
     ChartRoutesByGradeComponent,
     TuiLoader,
     LowerCasePipe,
-    DecimalPipe,
+    TuiRating,
+    FormsModule,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -98,11 +101,12 @@ import { TuiSurface, TuiTitle, TuiLoader } from '@taiga-ui/core';
             >
           }
           @if (a.averageRating) {
-            <span
-              class="px-2 py-1 rounded-full bg-[--tui-background-neutral-2]"
-            >
-              ★ {{ a.averageRating | number: '1.1-1' }}
-            </span>
+            <tui-rating
+              [max]="5"
+              [ngModel]="a.averageRating"
+              [readOnly]="true"
+              [style.font-size.rem]="0.5"
+            />
           }
         </div>
 
@@ -154,7 +158,7 @@ export class AreaComponent {
   countrySlug: InputSignal<string> = input.required<string>();
   areaSlug: InputSignal<string> = input.required<string>();
   area: Signal<ClimbingArea | null> = computed(() => this.global.area());
-  crags: Signal<PageableResponse<ClimbingCrag> | null> = computed(() =>
+  crags: Signal<ClimbingCragsPage | null> = computed(() =>
     this.global.cragsPageable(),
   );
 

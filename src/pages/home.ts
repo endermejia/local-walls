@@ -162,10 +162,9 @@ import { remToPx } from '../utils';
                   [attr.aria-label]="'labels.zone' | translate"
                 />
                 <span tuiTitle class="justify-center">
-                  {{ counts?.map_collections ?? 0 }}
+                  {{ areas.length }}
                   {{
-                    'labels.' +
-                      (counts?.map_collections === 1 ? 'zone' : 'zones')
+                    'labels.' + (areas.length === 1 ? 'zone' : 'zones')
                       | translate
                       | lowercase
                   }}

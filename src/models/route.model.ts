@@ -1,4 +1,5 @@
 import { AmountByEveryVerticalLifeGrade, GradeLabel } from './grade.model';
+import { PageableResponse } from './pagination.model';
 
 export interface ClimbingRouteResponse {
   zlaggable: ClimbingRoute;
@@ -40,3 +41,5 @@ export interface ClimbingRoute {
   totalFollowers?: number;
   unifiedId?: number;
 }
+
+export type ClimbingRoutesPage = PageableResponse<ClimbingRoute>;
