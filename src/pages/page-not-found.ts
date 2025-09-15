@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { GlobalData } from '../services';
-import { Location } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { TuiBlockStatus } from '@taiga-ui/layout';
@@ -32,15 +31,6 @@ import { TuiButton } from '@taiga-ui/core';
         >
           {{ 'notFound.goHome' | translate }}
         </button>
-
-        <button
-          tuiButton
-          type="button"
-          appearance="secondary"
-          (click.zoneless)="$event.stopPropagation(); location.back()"
-        >
-          {{ 'actions.back' | translate }}
-        </button>
       </tui-block-status>
     </div>
   `,
@@ -50,7 +40,5 @@ import { TuiButton } from '@taiga-ui/core';
   },
 })
 export class PageNotFoundComponent {
-  // Keep reference to translate for potential programmatic usage and DI tree stability
   readonly global = inject(GlobalData);
-  readonly location = inject(Location);
 }
