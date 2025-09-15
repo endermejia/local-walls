@@ -47,34 +47,38 @@ import { remToPx } from '../utils';
     TuiAvatar,
   ],
   template: ` <div class="h-full w-full">
-    <div class="absolute right-4 top-16 z-10 flex flex-col gap-2">
+    <div class="absolute right-4 top-16 flex flex-col gap-2">
       @let bottomSheetExpanded = isBottomSheetExpanded();
-      <button
-        tuiIconButton
-        size="s"
-        appearance="primary-grayscale"
-        (click.zoneless)="setBottomSheet('toggle')"
-        [iconStart]="bottomSheetExpanded ? '@tui.map' : '@tui.list'"
-        class="pointer-events-auto z-100"
-        [attr.aria-label]="
-          bottomSheetExpanded
-            ? ('labels.map' | translate)
-            : ('labels.list' | translate)
-        "
-      >
-        Toggle view
-      </button>
-      <button
-        tuiIconButton
-        size="s"
-        appearance="primary-grayscale"
-        (click.zoneless)="setBottomSheet('toggle')"
-        iconStart="@tui.sliders-horizontal"
-        class="pointer-events-auto"
-        [attr.aria-label]="'labels.filters' | translate"
-      >
-        Filter
-      </button>
+      <div class="z-100">
+        <button
+          tuiIconButton
+          size="s"
+          appearance="primary-grayscale"
+          (click.zoneless)="setBottomSheet('toggle')"
+          [iconStart]="bottomSheetExpanded ? '@tui.map' : '@tui.list'"
+          class="pointer-events-auto"
+          [attr.aria-label]="
+            bottomSheetExpanded
+              ? ('labels.map' | translate)
+              : ('labels.list' | translate)
+          "
+        >
+          Toggle view
+        </button>
+      </div>
+      <div class="z-10">
+        <button
+          tuiIconButton
+          size="s"
+          appearance="primary-grayscale"
+          (click.zoneless)="setBottomSheet('toggle')"
+          iconStart="@tui.sliders-horizontal"
+          class="pointer-events-auto"
+          [attr.aria-label]="'labels.filters' | translate"
+        >
+          Filter
+        </button>
+      </div>
     </div>
 
     <!-- Map -->
