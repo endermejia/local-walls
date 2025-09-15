@@ -143,14 +143,17 @@ export class MapBuilder {
     })();
 
     try {
-      // If we already have a cached user location, use it on any device.
-      const hasCachedUserLocation =
-        !!this.localStorage.getItem('lw_user_location');
-      if (hasCachedUserLocation) {
-        await this.goToCurrentLocation();
-      } else if (isMobileClient) {
-        // Otherwise, only attempt geolocation automatically on mobile clients
-        await this.goToCurrentLocation();
+      // Only attempt geolocation when no saved viewport is present.
+      if (!savedViewport) {
+        // If we already have a cached user location, use it on any device.
+        const hasCachedUserLocation =
+          !!this.localStorage.getItem('lw_user_location');
+        if (hasCachedUserLocation) {
+          await this.goToCurrentLocation();
+        } else if (isMobileClient) {
+          // Otherwise, only attempt geolocation automatically on mobile clients
+          await this.goToCurrentLocation();
+        }
       }
     } catch {
       // ignore and fallback below
