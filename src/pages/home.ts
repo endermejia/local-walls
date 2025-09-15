@@ -47,16 +47,15 @@ import { remToPx } from '../utils';
     TuiAvatar,
   ],
   template: ` <div class="h-full w-full">
-    @let bottomSheetExpanded = isBottomSheetExpanded();
-    <!-- Toggle view button -->
-    <div class="absolute right-4 top-16 z-100">
+    <div class="absolute right-4 top-16 z-10 flex flex-col gap-2">
+      @let bottomSheetExpanded = isBottomSheetExpanded();
       <button
         tuiIconButton
         size="s"
         appearance="primary-grayscale"
         (click.zoneless)="setBottomSheet('toggle')"
         [iconStart]="bottomSheetExpanded ? '@tui.map' : '@tui.list'"
-        class="pointer-events-auto"
+        class="pointer-events-auto z-100"
         [attr.aria-label]="
           bottomSheetExpanded
             ? ('labels.map' | translate)
@@ -64,6 +63,17 @@ import { remToPx } from '../utils';
         "
       >
         Toggle view
+      </button>
+      <button
+        tuiIconButton
+        size="s"
+        appearance="primary-grayscale"
+        (click.zoneless)="setBottomSheet('toggle')"
+        iconStart="@tui.sliders-horizontal"
+        class="pointer-events-auto"
+        [attr.aria-label]="'labels.filters' | translate"
+      >
+        Filter
       </button>
     </div>
 

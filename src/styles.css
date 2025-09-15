@@ -144,16 +144,30 @@ th[tuiTh] {
 }
 
 .leaflet-control-zoom {
+  cursor: grab;
   border: none !important;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.5rem;
+  margin: 1rem !important;
 }
 
 .leaflet-control-zoom-in,
 .leaflet-control-zoom-out {
+  cursor: pointer !important;
   border: none !important;
   border-radius: 0.5rem !important;
-  background-color: var(--tui-background-accent-opposite-hover) !important;
+  background-color: var(--tui-background-accent-opposite) !important;
   color: var(--tui-background-base) !important;
+}
+
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover {
+  background-color: var(--tui-background-accent-opposite-hover) !important;
+}
+
+.leaflet-touch .leaflet-bar a {
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
 }

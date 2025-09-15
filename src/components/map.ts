@@ -41,14 +41,14 @@ import { TranslatePipe } from '@ngx-translate/core';
         role="application"
       ></div>
       <!-- Locate button -->
-      <div class="absolute right-4 top-14 z-100 pointer-events-none">
+      <div class="absolute left-4 top-24 z-1 pointer-events-none">
         <button
           tuiIconButton
           size="s"
           appearance="primary-grayscale"
-          class="pointer-events-auto sm:hidden"
+          class="pointer-events-auto"
           (click.zoneless)="onLocateClick()"
-          [iconStart]="'@tui.map-pinned'"
+          [iconStart]="'@tui.locate'"
           [attr.aria-label]="'labels.myLocation' | translate"
         >
           {{ 'labels.myLocation' | translate }}
