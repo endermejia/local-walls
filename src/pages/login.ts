@@ -113,7 +113,7 @@ export class LoginComponent {
     const ok = this.global.login(this.username(), this.password());
     if (ok) {
       this.error.set(null);
-      this.router.navigateByUrl('/home');
+      void this.router.navigateByUrl('/home');
     } else {
       this.error.set('errors.invalidCredentials');
     }

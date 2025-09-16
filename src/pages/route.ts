@@ -189,7 +189,7 @@ export class RouteComponent {
       const cragSlug = this.cragSlug();
       const sectorSlug = this.sectorSlug();
       const zlaggableSlug = this.zlaggableSlug();
-      this.global.loadCrag(countrySlug, cragSlug);
+      void this.global.loadCrag(countrySlug, cragSlug);
       this.global
         .loadCragSectors(countrySlug, cragSlug)
         .then(() =>
@@ -199,8 +199,13 @@ export class RouteComponent {
               .find((s) => s.sectorSlug === sectorSlug) ?? null,
           ),
         );
-      this.global.loadCragRoutes(countrySlug, cragSlug, sectorSlug);
-      this.global.loadRoute(countrySlug, cragSlug, sectorSlug, zlaggableSlug);
+      void this.global.loadCragRoutes(countrySlug, cragSlug, sectorSlug);
+      void this.global.loadRoute(
+        countrySlug,
+        cragSlug,
+        sectorSlug,
+        zlaggableSlug,
+      );
     });
   }
 

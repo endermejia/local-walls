@@ -167,8 +167,8 @@ export class AreaComponent {
       this.global.resetDataByPage('area');
       const countrySlug = this.countrySlug();
       const areaSlug = this.areaSlug();
-      this.global.loadArea(countrySlug, areaSlug);
-      this.global.loadAreaCrags(countrySlug, areaSlug, {
+      void this.global.loadArea(countrySlug, areaSlug);
+      void this.global.loadAreaCrags(countrySlug, areaSlug, {
         pageIndex: 0,
         sortField: 'totalascents',
         order: 'desc',

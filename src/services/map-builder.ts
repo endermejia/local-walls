@@ -734,7 +734,7 @@ export class MapBuilder {
   /**
    * Centers the map on the user's current location and draws/updates a marker.
    * Safe for SSR: does nothing on the server.
-   * Uses browser's geolocation API to get current position.
+   * Uses browser's geolocation API to get the current position.
    * @returns Promise that resolves when location is set or fails silently
    */
   async goToCurrentLocation(): Promise<void> {

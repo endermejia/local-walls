@@ -144,7 +144,7 @@ export class ChartRoutesByGradeComponent {
     const idx = this.activeItemIndex();
     if (!Number.isFinite(idx)) return '';
 
-    if (this.activeBandTotal() < 1000) {
+    if (this.activeBandTotal() < 500) {
       const items = this.breakdown();
       if (items.length === 0) return '';
       return items

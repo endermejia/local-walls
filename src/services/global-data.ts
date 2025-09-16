@@ -30,6 +30,7 @@ import type {
   AscentsPage,
   ClimbingCragsPage,
   ClimbingRoutesPage,
+  MapAreaItem,
 } from '../models';
 
 @Injectable({
@@ -50,15 +51,15 @@ export class GlobalData {
 
   /**
    * Refresh a single map item by id by calling 8a.nu item endpoint.
-   * Merges it into cache and updates selected item if it matches.
+   * Merges it into a cache and updates the selected item if it matches.
    * SSR-safe: no-op on server.
    */
   async refreshMapItemById(id: number): Promise<MapCragItem | void> {
     if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
       return;
     const item = await this.verticalLifeApi.getMapItemById(id);
-    if (!item || typeof (item as any).id !== 'number') return;
-    this.mapCache.set((item as any).id as number, item);
+    if (!item || !item.id) return;
+    this.mapCache.set(item.id, item);
     const arr = Array.from(this.mapCache.values());
     this.cachedMapItems.set(arr);
     return item;
@@ -187,17 +188,17 @@ export class GlobalData {
     };
 
     return items.filter((it) => {
-      const area = (it as any).area_type === 0;
+      const area = (it as MapAreaItem).area_type === 0;
       if (!area) {
-        const lat = (it as any).latitude as number | undefined;
-        const lng = (it as any).longitude as number | undefined;
+        const lat = (it as MapCragItem).latitude as number | undefined;
+        const lng = (it as MapCragItem).longitude as number | undefined;
         return (
           typeof lat === 'number' &&
           typeof lng === 'number' &&
           pointIn(lat, lng)
         );
       }
-      const box = (it as any).b_box as
+      const box = (it as MapAreaItem).b_box as
         | [[number, number], [number, number]]
         | undefined;
       if (!box || !Array.isArray(box) || box.length !== 2) return false;
@@ -237,8 +238,8 @@ export class GlobalData {
       const items = mapResponse?.items ?? [];
       if (Array.isArray(items)) {
         for (const it of items) {
-          const id = (it as any)?.id as number | undefined;
-          if (typeof id === 'number') {
+          const id = it?.id;
+          if (id) {
             this.mapCache.set(id, it);
           }
         }
@@ -249,7 +250,7 @@ export class GlobalData {
           // Rebuild map to keep only the last N (approximate LRU by recency of merge)
           this.mapCache.clear();
           for (const it of arr) {
-            this.mapCache.set((it as any).id as number, it);
+            this.mapCache.set(it.id, it);
           }
         }
         this.cachedMapItems.set(arr);
@@ -452,10 +453,6 @@ export class GlobalData {
     console.log('toggleLikeCrag', id);
   }
 
-  toggleLikeTopo(id: string): void {
-    console.log('toggleLikeTopo', id);
-  }
-
   toggleLikeRoute(id: number): void {
     console.log('toggleLikeRoute', id);
   }
@@ -477,12 +474,7 @@ export class GlobalData {
   logout() {
     this.localStorage.removeItem(this.tokenKey);
     this.localStorage.removeItem(this.tokenExpKey);
-    // After logging out, redirect to login
-    this.router.navigateByUrl('/login');
-  }
-
-  getToken(): string | null {
-    return this.localStorage.getItem(this.tokenKey);
+    void this.router.navigateByUrl('/login');
   }
 
   isTokenValid(): boolean {
@@ -534,7 +526,7 @@ export class GlobalData {
         } catch {
           // ignore corrupted viewport state
         }
-        this.loadMapItems(mapBounds);
+        void this.loadMapItems(mapBounds);
       }
     });
   }

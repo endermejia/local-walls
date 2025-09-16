@@ -13,8 +13,8 @@ A modern climbing guide application built with Angular 20 that helps climbers di
 
 ## Future Features
 
-- Mapa
-  - Filtros
+- Map
+  - Filters
     - Sport Climbing / Bouldering
     - Difficulty
     - Morning shade / Afternoon shade / All-day shade
@@ -30,8 +30,11 @@ A modern climbing guide application built with Angular 20 that helps climbers di
     - Onsight, Flash, RedPoint
     - Photo of the day
     - Grade
-    - Climbing route
-      - Follow climbing routes, crags and areas
+  - Followed areas
+  - Followed crags
+  - Followed routes
+  - Followed users
+  - Project routes
   - Notifications
   - Activity/Logbook
 - Topos

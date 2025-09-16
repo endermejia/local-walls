@@ -8,9 +8,16 @@ import {
   Signal,
   InputSignal,
 } from '@angular/core';
-import type { ClimbingCrag } from '../models';
+import type {
+  AscentListItem,
+  ClimbingCrag,
+  MapAreaItem,
+  MapCragItem,
+  MapItem,
+} from '../models';
 import { ChartRoutesByGradeComponent } from '../components';
 import { GlobalData } from '../services';
+import { FormsModule } from '@angular/forms';
 import { Location, LowerCasePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { SectionHeaderComponent } from '../components/section-header';
@@ -22,12 +29,6 @@ import { TuiLoader, TuiTitle, TuiButton } from '@taiga-ui/core';
 import { TuiSurface } from '@taiga-ui/core';
 import { TuiTable } from '@taiga-ui/addon-table';
 import { mapLocationUrl } from '../utils';
-import {
-  normalizeRoutesByGrade,
-  RoutesByGrade,
-  AscentListItem,
-} from '../models';
-import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-crag',
@@ -130,8 +131,9 @@ import { FormsModule } from '@angular/forms';
           }
         </div>
 
-        <!-- TODO: get cragInfo -->
-        <app-chart-routes-by-grade class="mt-4" [grades]="routesByGrade()" />
+        @if (global.selectedMapCragItem()?.grades; as grades) {
+          <app-chart-routes-by-grade class="mt-4" [grades]="grades" />
+        }
 
         <!-- Latest ascents table -->
         <div class="mt-6">
@@ -291,17 +293,6 @@ export class CragComponent {
     }[]
   > = computed(() => this.global.cragSectors());
 
-  // Selected map crag item (used as source of truth for chart data)
-  private readonly selectedMapCragItem = computed(() =>
-    this.global.selectedMapCragItem(),
-  );
-
-  // Chart data: prefer grades from selected map crag item
-  routesByGrade = computed<RoutesByGrade>(() => {
-    const grades = this.selectedMapCragItem()?.grades;
-    return normalizeRoutesByGrade(grades);
-  });
-
   // Ascents table data
   ascents = computed<readonly AscentListItem[]>(
     () => this.global.ascentsPageable()?.items ?? [],
@@ -336,13 +327,27 @@ export class CragComponent {
       const crag = this.global.crag();
       const selected = this.global.selectedMapCragItem();
       const needsSelect = !selected || selected.slug !== cragSlug;
-      const id = crag?.vlLocationId;
-      if (needsSelect && typeof id === 'number') {
-        // Fire-and-forget; SSR-safe inside service
+      if (!needsSelect) return;
+
+      const id = crag?.unifiedId;
+      if (id) {
+        // Prefer fetching fresh item by id to ensure grades and metadata are present
         this.global
           .refreshMapItemById(id)
-          ?.then((item) => item && this.global.selectedMapCragItem.set(item))
+          .then((item) => item && this.global.selectedMapCragItem.set(item))
           .catch(() => void 0);
+        return;
+      }
+
+      // Fallback: try to resolve from cached map items by slug (e.g., when vlLocationId is absent)
+      const cached = this.global
+        .mapItems()
+        .find(
+          (it: MapItem) =>
+            it && it.slug === cragSlug && !(it as MapAreaItem)?.area_type,
+        ) as MapCragItem | undefined;
+      if (cached) {
+        this.global.selectedMapCragItem.set(cached);
       }
     });
   }
@@ -351,17 +356,13 @@ export class CragComponent {
     const countrySlug = this.countrySlug();
     const cragSlug = this.cragSlug();
     const next = (this.ascPagination()?.pageIndex ?? 0) + 1;
-    this.global.loadCragAscents(countrySlug, cragSlug, { pageIndex: next });
+    void this.global.loadCragAscents(countrySlug, cragSlug, {
+      pageIndex: next,
+    });
   }
 
   goBack(): void {
     this.location.back();
-  }
-
-  openSector(sectorSlug: string): void {
-    const countrySlug = this.countrySlug();
-    const cragSlug = this.cragSlug();
-    this.router.navigate(['/sector', countrySlug, cragSlug, sectorSlug]);
   }
 
   viewOnMap(c: ClimbingCrag): void {
@@ -376,6 +377,6 @@ export class CragComponent {
       north_east_longitude: loc.longitude,
       zoom,
     });
-    this.router.navigateByUrl('/home');
+    void this.router.navigateByUrl('/home');
   }
 }
