@@ -113,15 +113,13 @@ import { remToPx } from '../utils';
                 <h2 tuiTitle>{{ c.name }}</h2>
               </header>
               <section>
-                <div class="text-sm opacity-80">
-                  <a
-                    tuiLink
-                    appearance="action-grayscale"
-                    [routerLink]="['/zone', c.country_slug, c.area_slug]"
-                    (click.zoneless)="$event.stopPropagation()"
-                    >{{ c.area_name }}</a
-                  >
-                </div>
+                <a
+                  tuiLink
+                  appearance="action-grayscale"
+                  [routerLink]="['/zone', c.country_slug, c.area_slug]"
+                  (click.zoneless)="$event.stopPropagation()"
+                  >{{ c.area_name }}</a
+                >
               </section>
             </div>
             @if (global.selectedMapCragItem()?.grades; as grades) {
@@ -188,7 +186,7 @@ import { remToPx } from '../utils';
                           <h2 tuiTitle>{{ a.name }}</h2>
                         </header>
                         <section>
-                          <div class="text-sm opacity-80">
+                          <div class="opacity-80">
                             {{ a.country_name }}
                           </div>
                         </section>
@@ -238,19 +236,17 @@ import { remToPx } from '../utils';
                           <h2 tuiTitle>{{ c.name }}</h2>
                         </header>
                         <section>
-                          <div class="text-sm opacity-80">
-                            <a
-                              tuiLink
-                              appearance="action-grayscale"
-                              [routerLink]="[
-                                '/zone',
-                                c.country_slug,
-                                c.area_slug,
-                              ]"
-                              (click.zoneless)="$event.stopPropagation()"
-                              >{{ c.area_name }}</a
-                            >
-                          </div>
+                          <a
+                            tuiLink
+                            appearance="action-grayscale"
+                            [routerLink]="[
+                              '/zone',
+                              c.country_slug,
+                              c.area_slug,
+                            ]"
+                            (click.zoneless)="$event.stopPropagation()"
+                            >{{ c.area_name }}</a
+                          >
                         </section>
                       </div>
                       <div (click.zoneless)="$event.stopPropagation()">

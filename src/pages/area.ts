@@ -149,7 +149,7 @@ import { FormsModule } from '@angular/forms';
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow overflow-auto sm:p-4' },
+  host: { class: 'overflow-auto' },
 })
 export class AreaComponent {
   protected readonly global = inject(GlobalData);

@@ -135,6 +135,44 @@ import { mapLocationUrl } from '../utils';
           <app-chart-routes-by-grade class="mt-4" [grades]="grades" />
         }
 
+        <!-- Sectors list with app aesthetics (cards) -->
+        @if (sectors().length > 0) {
+          <div class="mt-6">
+            <h2 class="text-lg font-semibold mb-2">
+              {{ 'labels.sectors' | translate }}
+            </h2>
+            <div class="grid gap-2">
+              @for (s of sectors(); track s.sectorSlug) {
+                <div
+                  tuiCardLarge
+                  [tuiSurface]="global.liked() ? 'accent' : 'neutral'"
+                  class="cursor-pointer"
+                  [routerLink]="[
+                    '/sector',
+                    c.countrySlug,
+                    c.cragSlug,
+                    s.sectorSlug,
+                  ]"
+                >
+                  <div class="flex items-center gap-3">
+                    <div class="flex flex-col min-w-0 grow">
+                      <header tuiHeader>
+                        <h2 tuiTitle>{{ s.sectorName }}</h2>
+                      </header>
+                      <section>
+                        <div class="text-sm opacity-80">
+                          {{ s.totalZlaggables }}
+                          {{ 'labels.routes' | translate | lowercase }}
+                        </div>
+                      </section>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
         <!-- Latest ascents table -->
         <div class="mt-6">
           <h2 class="text-lg font-semibold mb-2">
@@ -227,44 +265,6 @@ import { mapLocationUrl } from '../utils';
             }
           }
         </div>
-
-        <!-- Sectors list with app aesthetics (cards) -->
-        @if (sectors().length > 0) {
-          <div class="mt-6">
-            <h2 class="text-lg font-semibold mb-2">
-              {{ 'labels.sectors' | translate }}
-            </h2>
-            <div class="grid gap-2 pb-4">
-              @for (s of sectors(); track s.sectorSlug) {
-                <div
-                  tuiCardLarge
-                  [tuiSurface]="global.liked() ? 'accent' : 'neutral'"
-                  class="cursor-pointer"
-                  [routerLink]="[
-                    '/sector',
-                    c.countrySlug,
-                    c.cragSlug,
-                    s.sectorSlug,
-                  ]"
-                >
-                  <div class="flex items-center gap-3">
-                    <div class="flex flex-col min-w-0 grow">
-                      <header tuiHeader>
-                        <h2 tuiTitle>{{ s.sectorName }}</h2>
-                      </header>
-                      <section>
-                        <div class="text-sm opacity-80">
-                          {{ s.totalZlaggables }}
-                          {{ 'labels.routes' | translate | lowercase }}
-                        </div>
-                      </section>
-                    </div>
-                  </div>
-                </div>
-              }
-            </div>
-          </div>
-        }
       } @else {
         <div class="flex items-center justify-center w-full min-h-[50vh]">
           <tui-loader size="xxl"></tui-loader>
@@ -273,7 +273,7 @@ import { mapLocationUrl } from '../utils';
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow overflow-auto sm:p-4' },
+  host: { class: 'overflow-auto' },
 })
 export class CragComponent {
   protected readonly global = inject(GlobalData);
@@ -310,18 +310,17 @@ export class CragComponent {
   ];
 
   constructor() {
-    // Load crag data when route params change only
     effect(() => {
       this.global.resetDataByPage('crag');
       const countrySlug = this.countrySlug();
       const cragSlug = this.cragSlug();
-      this.global.loadCrag(countrySlug, cragSlug);
-      this.global.loadCragRoutes(countrySlug, cragSlug);
-      this.global.loadCragSectors(countrySlug, cragSlug);
-      this.global.loadCragAscents(countrySlug, cragSlug, { pageIndex: 0 });
+      void this.global.loadCrag(countrySlug, cragSlug);
+      void this.global.loadCragRoutes(countrySlug, cragSlug);
+      void this.global.loadCragSectors(countrySlug, cragSlug);
+      void this.global.loadCragAscents(countrySlug, cragSlug, { pageIndex: 0 });
     });
 
-    // Keep selected map crag item in sync once crag is loaded
+    // Keep the selected map crag item in sync once crag is loaded
     effect(() => {
       const cragSlug = this.cragSlug();
       const crag = this.global.crag();
@@ -331,15 +330,12 @@ export class CragComponent {
 
       const id = crag?.unifiedId;
       if (id) {
-        // Prefer fetching fresh item by id to ensure grades and metadata are present
         this.global
           .refreshMapItemById(id)
           .then((item) => item && this.global.selectedMapCragItem.set(item))
           .catch(() => void 0);
         return;
       }
-
-      // Fallback: try to resolve from cached map items by slug (e.g., when vlLocationId is absent)
       const cached = this.global
         .mapItems()
         .find(
