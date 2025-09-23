@@ -11,6 +11,7 @@ import {
   WritableSignal,
 } from '@angular/core';
 import {
+  GradeLabel,
   MapAreaItem,
   MapCounts,
   MapCragItem,
@@ -325,9 +326,9 @@ export class HomeComponent {
       let minIdx = Number.POSITIVE_INFINITY;
       let maxIdx = Number.NEGATIVE_INFINITY;
       for (const lab of labels) {
-        const idx = ORDERED_GRADE_VALUES.indexOf(lab as any);
+        const idx = ORDERED_GRADE_VALUES.indexOf(lab as GradeLabel);
         if (idx === -1) continue;
-        const count = (byLabel as any)[lab] as number | undefined;
+        const count = (byLabel as never)[lab] as number | undefined;
         if (!count) continue;
         if (idx < minIdx) minIdx = idx;
         if (idx > maxIdx) maxIdx = idx;
@@ -505,6 +506,7 @@ export class HomeComponent {
       )
       .subscribe((result) => {
         if (!result) return;
+        this.global.loading.set(true);
         this.selectedCategories.set(result.categories ?? []);
         const [a, b] = result.gradeRange ?? [
           0,
@@ -516,42 +518,8 @@ export class HomeComponent {
           number,
           number,
         ]);
-        // Refresh bottom sheet: clear selection, reset scroll to top, and expand
-        this.global.selectedMapCragItem.set(null);
-        const node = this.sheetRef?.nativeElement;
-        if (node) {
-          try {
-            node.scrollTo({ top: 0 });
-          } catch {
-            node.scrollTop = 0;
-          }
-          this._sheetClientHeight.set(node.clientHeight || 0);
-          this._sheetScrollTop.set(0);
-          const target = this.computeBottomSheetTargetTop(node);
-          // Expand to show updated counts/lists
-          this.scrollBottomSheetTo(node, target);
-        } else {
-          const raf = (
-            window as unknown as {
-              requestAnimationFrame?: (cb: FrameRequestCallback) => number;
-            }
-          ).requestAnimationFrame;
-          if (typeof raf === 'function') {
-            raf(() => {
-              const n = this.sheetRef?.nativeElement;
-              if (!n) return;
-              try {
-                n.scrollTo({ top: 0 });
-              } catch {
-                n.scrollTop = 0;
-              }
-              this._sheetClientHeight.set(n.clientHeight || 0);
-              this._sheetScrollTop.set(0);
-              const targetTop = this.computeBottomSheetTargetTop(n);
-              this.scrollBottomSheetTo(n, targetTop);
-            });
-          }
-        }
+        this.closeAll();
+        this.global.loading.set(false);
       });
   }
 }
