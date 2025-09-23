@@ -88,12 +88,12 @@ export class GlobalData {
   drawer: WritableSignal<OptionsData> = signal({
     Navigation: [
       {
-        name: 'Home',
+        name: 'nav.home',
         icon: '@tui.home',
         fn: () => this.router.navigateByUrl('/'),
       },
       {
-        name: 'Not found',
+        name: 'nav.notFound',
         icon: '@tui.alert-circle',
         fn: () => this.router.navigateByUrl('/404'),
       },
@@ -225,36 +225,157 @@ export class GlobalData {
   ascentsPageable: WritableSignal<AscentsPage | null> = signal(null);
   topo: WritableSignal<ClimbingTopo | null> = signal(null);
 
+  // Cache for local areas loaded from public/map/map_areas.json
+  private _localAreasCache: MapAreaItem[] | null = null;
+
+  // Simple slugifier for area names when local data lacks slugs
+  private slugify(input: string | undefined | null): string {
+    const s = (input ?? '').toString().trim().toLowerCase();
+    return s
+      .normalize('NFD')
+      .replace(/\p{Diacritic}+/gu, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  // Load local areas from static JSON (browser-only). The JSON contains points with
+  // properties: { area_name, bounding_box }. We adapt them to MapAreaItem.
+  private async loadLocalAreasFromJson(): Promise<MapAreaItem[]> {
+    if (this._localAreasCache) return this._localAreasCache;
+    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined') {
+      return [];
+    }
+    try {
+      const res = await fetch('/map/map_areas.json', { cache: 'force-cache' });
+      if (!res.ok)
+        throw new Error(`Failed to load map_areas.json: HTTP ${res.status}`);
+      const data = (await res.json()) as {
+        type: string;
+        features: Array<{
+          id?: number | string;
+          properties?: {
+            area_name?: string;
+            bounding_box?: [[number, number], [number, number]];
+          };
+        }>;
+      };
+      const list: MapAreaItem[] = (data?.features ?? [])
+        .map((f) => {
+          const idRaw = f?.id as number | string | undefined;
+          const id = typeof idRaw === 'number' ? idRaw : Number(idRaw);
+          const name = f?.properties?.area_name ?? '';
+          const bbox = f?.properties?.bounding_box as
+            | [[number, number], [number, number]]
+            | undefined;
+          if (!id || !name || !bbox) return null;
+          return {
+            id,
+            name,
+            slug: this.slugify(name),
+            country_name: '',
+            country_slug: '',
+            area_type: 0,
+            b_box: bbox,
+          } as MapAreaItem;
+        })
+        .filter((x): x is MapAreaItem => !!x);
+      this._localAreasCache = list;
+      return list;
+    } catch (err) {
+      console.error(err);
+      return [];
+    }
+  }
+
   async loadMapItems(bounds: MapBounds): Promise<void> {
     if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
       return;
     try {
       this.loading.set(true);
-      const mapResponse: MapResponse =
+      // 1) Load API response (we will use only crags from it)
+      const apiResponse: MapResponse =
         await this.verticalLifeApi.getMapResponse(bounds);
-      this.mapResponse.set(mapResponse);
+      const apiItems = Array.isArray(apiResponse?.items)
+        ? apiResponse.items
+        : [];
+      const cragItems = apiItems.filter(
+        (it) => (it as MapAreaItem).area_type !== 0,
+      ) as MapCragItem[];
 
-      // Merge fetched items into a cache (dedupe by id)
-      const items = mapResponse?.items ?? [];
-      if (Array.isArray(items)) {
-        for (const it of items) {
-          const id = it?.id;
-          if (id) {
-            this.mapCache.set(id, it);
-          }
+      // 2) Load local areas from static JSON and filter by current viewport bounds
+      const localAreasAll = await this.loadLocalAreasFromJson();
+      const south = bounds.south_west_latitude;
+      const west = bounds.south_west_longitude;
+      const north = bounds.north_east_latitude;
+      const east = bounds.north_east_longitude;
+      const eastWrap = east < west; // viewport crosses anti-meridian
+      const intersects = (
+        box: [[number, number], [number, number]],
+      ): boolean => {
+        const [w, s] = box[0] ?? [];
+        const [e, n] = box[1] ?? [];
+        if ([w, s, e, n].some((v) => typeof v !== 'number')) return false;
+        if (!eastWrap) {
+          return !(w > east || e < west || s > north || n < south);
         }
-        // Enforce cache size limit and update signal
-        let arr = Array.from(this.mapCache.values());
-        if (arr.length > this.maxCacheItems) {
-          arr = arr.slice(arr.length - this.maxCacheItems);
-          // Rebuild map to keep only the last N (approximate LRU by recency of merge)
-          this.mapCache.clear();
-          for (const it of arr) {
-            this.mapCache.set(it.id, it);
-          }
+        // split viewport into two when wrapped
+        const left = { south, west, north, east: 180 };
+        const right = { south, west: -180, north, east };
+        const overlap = (a: typeof left) =>
+          !(w > a.east || e < a.west || s > a.north || n < a.south);
+        return overlap(left) || overlap(right);
+      };
+      const localAreas = localAreasAll.filter(
+        (a) => a.b_box && intersects(a.b_box),
+      );
+
+      // 2b) Enrich local areas with country fields from API areas (by id), but keep local bounding_box
+      const apiAreasById = new Map<number, MapAreaItem>(
+        apiItems
+          .filter((it) => (it as MapAreaItem).area_type === 0)
+          .map((it) => [it.id as number, it as MapAreaItem]),
+      );
+      const localAreasEnriched = localAreas.map((a) => {
+        const apiA = apiAreasById.get(a.id);
+        if (!apiA) return a;
+        return {
+          ...a,
+          country_name: apiA.country_name ?? a.country_name,
+          country_slug: apiA.country_slug ?? a.country_slug,
+          // keep a.b_box from local JSON on purpose
+        } as MapAreaItem;
+      });
+
+      // 3) Build merged response with crags from API and areas ONLY from local JSON (enriched with country fields)
+      const mergedItems: MapItem[] = [...cragItems, ...localAreasEnriched];
+      const mergedCounts = {
+        locations: apiResponse?.counts?.locations ?? cragItems.length,
+        map_collections: localAreasEnriched.length,
+      };
+      const mergedResponse: MapResponse = {
+        items: mergedItems,
+        counts: mergedCounts,
+      };
+      this.mapResponse.set(mergedResponse);
+
+      // 4) Merge into cache (dedupe by id)
+      for (const it of mergedItems) {
+        const id = it?.id;
+        if (id) {
+          this.mapCache.set(id, it);
         }
-        this.cachedMapItems.set(arr);
       }
+      // Enforce cache size limit and update signal
+      let arr = Array.from(this.mapCache.values());
+      if (arr.length > this.maxCacheItems) {
+        arr = arr.slice(arr.length - this.maxCacheItems);
+        // Rebuild map to keep only the last N (approximate LRU by recency of merge)
+        this.mapCache.clear();
+        for (const it of arr) {
+          this.mapCache.set(it.id, it);
+        }
+      }
+      this.cachedMapItems.set(arr);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       this.error.set(msg);

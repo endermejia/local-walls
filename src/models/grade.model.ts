@@ -57,34 +57,10 @@ export type GradeLabel =
   | `${'5' | '6' | '7' | '8' | '9'}${GradeLetter}${GradeSuffix}`
   | '5';
 
-// Ordered grade values derived from a single source of truth
-const LETTERS: readonly GradeLetter[] = ['a', 'b', 'c'] as const;
-const SUFFIXES: readonly GradeSuffix[] = ['', '+'] as const;
-
-function buildOrderedGrades(): GradeLabel[] {
-  const out: string[] = [];
-  // 3a..3c and 4a..4c
-  for (const d of ['3', '4'] as const) {
-    for (const l of LETTERS) out.push(`${d}${l}`);
-  }
-  // plain 5 (legacy bucket)
-  out.push('5');
-  // 5a..9c with optional +
-  for (const d of ['5', '6', '7', '8', '9'] as const) {
-    for (const l of LETTERS) {
-      for (const s of SUFFIXES) {
-        if (d === '5' && s === '' && l === 'a') {
-          // '5a' will appear later; keep legacy plain '5' only once
-        }
-        out.push(`${d}${l}${s}`);
-      }
-    }
-  }
-  // Deduplicate while preserving order
-  return Array.from(new Set(out)) as GradeLabel[];
-}
-
-export const ORDERED_GRADE_VALUES: readonly GradeLabel[] = buildOrderedGrades();
+// Ordered grade values must reflect exactly the enum VERTICAL_LIFE_GRADES.
+// We derive them from VERTICAL_LIFE_TO_LABEL in the numeric order of the enum
+// to avoid any labels that are not represented by the enum (e.g., plain '5').
+// The mapping is defined below; ORDERED_GRADE_VALUES is declared after it.
 
 export type RoutesByGrade = Partial<Record<GradeLabel, number>>;
 
@@ -138,6 +114,16 @@ export const LABEL_TO_VERTICAL_LIFE: Partial<
   },
   {} as Partial<Record<GradeLabel, VERTICAL_LIFE_GRADES>>,
 );
+
+// Ordered grade values derived strictly from the enum mapping above
+export const ORDERED_GRADE_VALUES: readonly GradeLabel[] = Object.entries(
+  VERTICAL_LIFE_TO_LABEL,
+)
+  .sort((a, b) => Number(a[0]) - Number(b[0]))
+  .map(([, v]) => v)
+  .filter(
+    (v): v is GradeLabel => typeof v === 'string',
+  ) as readonly GradeLabel[];
 
 export function bandForGradeLabel(g: GradeLabel): 0 | 1 | 2 | 3 | 4 {
   const base = parseInt(g.charAt(0), 10);

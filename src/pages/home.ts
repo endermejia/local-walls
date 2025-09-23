@@ -10,7 +10,19 @@ import {
   ViewChild,
   WritableSignal,
 } from '@angular/core';
-import { MapAreaItem, MapCounts, MapCragItem } from '../models';
+import {
+  MapAreaItem,
+  MapCounts,
+  MapCragItem,
+  normalizeRoutesByGrade,
+  ORDERED_GRADE_VALUES,
+} from '../models';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import {
+  HomeFilterDialogComponent,
+  HomeFilterData,
+} from './home-filter-dialog';
 import { GlobalData } from '../services';
 import { ChartRoutesByGradeComponent, MapComponent } from '../components';
 import { RouterLink } from '@angular/router';
@@ -27,6 +39,7 @@ import {
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { remToPx } from '../utils';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-home',
@@ -63,7 +76,7 @@ import { remToPx } from '../utils';
               : ('labels.list' | translate)
           "
         >
-          Toggle view
+          {{ 'home.toggleView' | translate }}
         </button>
       </div>
       <div class="z-10">
@@ -71,12 +84,12 @@ import { remToPx } from '../utils';
           tuiIconButton
           size="s"
           appearance="primary-grayscale"
-          (click.zoneless)="setBottomSheet('toggle')"
+          (click.zoneless)="openFilters()"
           iconStart="@tui.sliders-horizontal"
           class="pointer-events-auto"
           [attr.aria-label]="'labels.filters' | translate"
         >
-          Filter
+          {{ 'labels.filters' | translate }}
         </button>
       </div>
     </div>
@@ -132,7 +145,6 @@ import { remToPx } from '../utils';
       </div>
     } @else {
       <!-- BottomSheet -->
-      @let counts = mapCounts();
       @let areas = mapAreaItems();
       @let crags = mapCragItems();
       @if (global.loading()) {
@@ -210,9 +222,9 @@ import { remToPx } from '../utils';
                   [attr.aria-label]="'labels.crag' | translate"
                 />
                 <span tuiTitle class="justify-center">
-                  {{ counts?.locations ?? 0 }}
+                  {{ crags.length }}
                   {{
-                    'labels.' + (counts?.locations === 1 ? 'crag' : 'crags')
+                    'labels.' + (crags.length === 1 ? 'crag' : 'crags')
                       | translate
                       | lowercase
                   }}
@@ -271,6 +283,16 @@ import { remToPx } from '../utils';
   },
 })
 export class HomeComponent {
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
+
+  // Filter state: categories (0=Sport, 1=Boulder); empty => all
+  protected readonly selectedCategories: WritableSignal<number[]> = signal([
+    0, 1,
+  ]);
+  // Grade range in indices over ORDERED_GRADE_VALUES
+  protected readonly selectedGradeRange: WritableSignal<[number, number]> =
+    signal([0, ORDERED_GRADE_VALUES.length - 1]);
   private readonly _platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
 
@@ -287,11 +309,41 @@ export class HomeComponent {
 
   protected mapCragItems: Signal<MapCragItem[]> = computed(() => {
     const items = this.global.mapItemsOnViewport();
-    return items.filter(
-      (item): item is MapCragItem =>
-        (item as MapAreaItem).area_type !== 0 &&
-        !!(item as MapCragItem).total_ascendables,
-    );
+    const categories = this.selectedCategories();
+    const [selMin, selMax] = this.selectedGradeRange();
+
+    const withinSelectedCategories = (c: MapCragItem): boolean => {
+      // empty => all
+      return !categories.length || categories.includes(c.category);
+    };
+
+    const overlapsSelectedGrades = (c: MapCragItem): boolean => {
+      const byLabel = normalizeRoutesByGrade(c.grades);
+      const labels = Object.keys(byLabel);
+      if (!labels.length) return true; // no data, don't filter out
+      // compute min and max index present
+      let minIdx = Number.POSITIVE_INFINITY;
+      let maxIdx = Number.NEGATIVE_INFINITY;
+      for (const lab of labels) {
+        const idx = ORDERED_GRADE_VALUES.indexOf(lab as any);
+        if (idx === -1) continue;
+        const count = (byLabel as any)[lab] as number | undefined;
+        if (!count) continue;
+        if (idx < minIdx) minIdx = idx;
+        if (idx > maxIdx) maxIdx = idx;
+      }
+      if (!Number.isFinite(minIdx) || !Number.isFinite(maxIdx)) return true;
+      // overlap check between [minIdx,maxIdx] and [selMin, selMax]
+      return maxIdx >= selMin && minIdx <= selMax;
+    };
+
+    return items.filter((item): item is MapCragItem => {
+      const isCrag = (item as MapAreaItem).area_type !== 0;
+      if (!isCrag) return false;
+      const c = item as MapCragItem;
+      if (!c.total_ascendables) return false;
+      return withinSelectedCategories(c) && overlapsSelectedGrades(c);
+    });
   });
 
   protected mapAreaItems: Signal<MapAreaItem[]> = computed(() => {
@@ -435,5 +487,71 @@ export class HomeComponent {
   protected closeAll(): void {
     this.global.selectedMapCragItem.set(null);
     this.setBottomSheet('close');
+  }
+
+  protected openFilters(): void {
+    const data: HomeFilterData = {
+      categories: this.selectedCategories(),
+      gradeRange: this.selectedGradeRange(),
+    };
+    this.dialogs
+      .open<HomeFilterData>(
+        new PolymorpheusComponent(HomeFilterDialogComponent),
+        {
+          label: this.translate.instant('labels.filters'),
+          size: 'm',
+          data,
+        },
+      )
+      .subscribe((result) => {
+        if (!result) return;
+        this.selectedCategories.set(result.categories ?? []);
+        const [a, b] = result.gradeRange ?? [
+          0,
+          ORDERED_GRADE_VALUES.length - 1,
+        ];
+        const lo = Math.max(0, Math.min(a, ORDERED_GRADE_VALUES.length - 1));
+        const hi = Math.max(0, Math.min(b, ORDERED_GRADE_VALUES.length - 1));
+        this.selectedGradeRange.set([Math.min(lo, hi), Math.max(lo, hi)] as [
+          number,
+          number,
+        ]);
+        // Refresh bottom sheet: clear selection, reset scroll to top, and expand
+        this.global.selectedMapCragItem.set(null);
+        const node = this.sheetRef?.nativeElement;
+        if (node) {
+          try {
+            node.scrollTo({ top: 0 });
+          } catch {
+            node.scrollTop = 0;
+          }
+          this._sheetClientHeight.set(node.clientHeight || 0);
+          this._sheetScrollTop.set(0);
+          const target = this.computeBottomSheetTargetTop(node);
+          // Expand to show updated counts/lists
+          this.scrollBottomSheetTo(node, target);
+        } else {
+          const raf = (
+            window as unknown as {
+              requestAnimationFrame?: (cb: FrameRequestCallback) => number;
+            }
+          ).requestAnimationFrame;
+          if (typeof raf === 'function') {
+            raf(() => {
+              const n = this.sheetRef?.nativeElement;
+              if (!n) return;
+              try {
+                n.scrollTo({ top: 0 });
+              } catch {
+                n.scrollTop = 0;
+              }
+              this._sheetClientHeight.set(n.clientHeight || 0);
+              this._sheetScrollTop.set(0);
+              const targetTop = this.computeBottomSheetTargetTop(n);
+              this.scrollBottomSheetTo(n, targetTop);
+            });
+          }
+        }
+      });
   }
 }

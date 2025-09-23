@@ -167,6 +167,9 @@ th[tuiTh] {
 }
 
 .leaflet-touch .leaflet-bar a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 32px !important;
   height: 32px !important;
   line-height: 32px !important;

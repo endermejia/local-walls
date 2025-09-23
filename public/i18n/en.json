@@ -20,7 +20,9 @@
     "share": "Share",
     "signIn": "Sign in",
     "back": "Back",
-    "close": "Close"
+    "close": "Close",
+    "cancel": "Cancel",
+    "apply": "Apply"
   },
   "labels": {
     "crag": "Crag",
@@ -79,7 +81,23 @@
     "invalidCredentials": "Invalid credentials"
   },
   "nav": {
-    "home": "Home"
+    "home": "Home",
+    "notFound": "Not found"
+  },
+  "home": {
+    "toggleView": "Toggle view"
+  },
+  "filters": {
+    "selectedRange": "Selected range:",
+    "types": {
+      "sport": "Sport",
+      "boulder": "Boulder"
+    },
+    "shade": {
+      "morning": "Morning shade",
+      "afternoon": "Afternoon shade",
+      "allDay": "All day shade"
+    }
   },
   "messages": {
     "copied": "Link copied!"

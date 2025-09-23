@@ -20,7 +20,9 @@
     "share": "Compartir",
     "signIn": "Entrar",
     "back": "Volver",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "cancel": "Cancelar",
+    "apply": "Aplicar"
   },
   "labels": {
     "crag": "Sector",
@@ -79,7 +81,23 @@
     "invalidCredentials": "Credenciales inválidas"
   },
   "nav": {
-    "home": "Inicio"
+    "home": "Inicio",
+    "notFound": "No encontrado"
+  },
+  "home": {
+    "toggleView": "Cambiar vista"
+  },
+  "filters": {
+    "selectedRange": "Rango seleccionado:",
+    "types": {
+      "sport": "Deportiva",
+      "boulder": "Boulder"
+    },
+    "shade": {
+      "morning": "Sombra mañana",
+      "afternoon": "Sombra tarde",
+      "allDay": "Sombra todo el día"
+    }
   },
   "messages": {
     "copied": "Enlace copiado!"
