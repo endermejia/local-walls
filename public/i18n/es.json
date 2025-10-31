@@ -18,7 +18,10 @@
     "viewOnMap": "Ver en el mapa",
     "openGoogleMaps": "Abrir Google Maps",
     "share": "Compartir",
-    "signIn": "Entrar",
+    "signIn": "Iniciar sesión",
+    "signUp": "Crear cuenta",
+    "register": "Regístrate",
+    "continueWithGoogle": "Continuar con Google",
     "back": "Volver",
     "close": "Cerrar",
     "cancel": "Cancelar",
@@ -36,7 +39,10 @@
     "lng": "Lng",
     "capacity": "Capacidad",
     "username": "Usuario",
+    "email": "Correo electrónico",
     "password": "Contraseña",
+    "newPassword": "Nueva contraseña",
+    "confirmPassword": "Confirmar contraseña",
     "routes": "Vías",
     "route": "Vía",
     "boulders": "Bloques",
@@ -64,7 +70,17 @@
   },
   "auth": {
     "login": "Iniciar sesión",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "verifyEmail": "Por favor, verifica tu correo para completar el inicio de sesión.",
+    "registrationError": "Error de registro",
+    "registrationSuccess": "Registro exitoso. Revisa tu correo para confirmar tu cuenta.",
+    "forgotPassword": "¿Has olvidado tu contraseña?",
+    "noAccount": "¿Aún no tienes cuenta?",
+    "or": "o",
+    "resetEmailSent": "Te hemos enviado un correo para restablecer tu contraseña.",
+    "provideEmail": "Introduce tu correo electrónico para continuar.",
+    "setNewPassword": "Establecer nueva contraseña",
+    "passwordUpdated": "Tu contraseña ha sido actualizada."
   },
   "units": {
     "min": "min"
@@ -78,7 +94,8 @@
     "exit_fullscreen": "Salir de pantalla completa"
   },
   "errors": {
-    "invalidCredentials": "Credenciales inválidas"
+    "invalidCredentials": "Credenciales inválidas",
+    "unexpected": "Error inesperado"
   },
   "nav": {
     "home": "Inicio",

@@ -12,6 +12,7 @@ import { PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { LocalStorage } from './local-storage';
 import { Router } from '@angular/router';
+import { SupabaseService } from './supabase.service';
 import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
 import { TranslateService } from '@ngx-translate/core';
 import { TuiFlagPipe } from '@taiga-ui/core';
@@ -42,6 +43,7 @@ export class GlobalData {
   private router = inject(Router);
   private verticalLifeApi = inject(VerticalLifeApi);
   private platformId = inject(PLATFORM_ID);
+  private supabase = inject(SupabaseService);
   protected readonly flagPipe = new TuiFlagPipe();
 
   // ---- Map cache (keeps already downloaded items) ----
@@ -592,10 +594,14 @@ export class GlobalData {
     return true;
   }
 
-  logout() {
-    this.localStorage.removeItem(this.tokenKey);
-    this.localStorage.removeItem(this.tokenExpKey);
-    void this.router.navigateByUrl('/login');
+  async logout() {
+    try {
+      await this.supabase.logout();
+    } finally {
+      this.localStorage.removeItem(this.tokenKey);
+      this.localStorage.removeItem(this.tokenExpKey);
+      void this.router.navigateByUrl('/login');
+    }
   }
 
   isTokenValid(): boolean {

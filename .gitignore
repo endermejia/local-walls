@@ -43,3 +43,7 @@ Thumbs.db
 
 # Local Netlify folder
 .netlify
+
+
+# Local environment (do not commit real credentials)
+src/environments/environment.ts

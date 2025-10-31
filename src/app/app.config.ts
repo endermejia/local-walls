@@ -23,9 +23,14 @@ import { provideEventPlugins } from '@taiga-ui/event-plugins';
 import { TUI_LANGUAGE } from '@taiga-ui/i18n';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { GlobalData } from '../services';
+import {
+  ENV_SUPABASE_URL,
+  ENV_SUPABASE_ANON_KEY,
+} from '../environments/environment';
 import { errorInterceptor } from '../services';
 
 import { routes } from './app.routes';
+import { provideSupabaseConfig } from '../services';
 
 const httpLoaderFactory: (http: HttpClient) => TranslateHttpLoader = (
   http: HttpClient,
@@ -58,5 +63,9 @@ export const appConfig: ApplicationConfig = {
       },
       deps: [GlobalData],
     },
+    provideSupabaseConfig({
+      url: ENV_SUPABASE_URL,
+      anonKey: ENV_SUPABASE_ANON_KEY,
+    }),
   ],
 };

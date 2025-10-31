@@ -19,6 +19,9 @@
     "openGoogleMaps": "Open Google Maps",
     "share": "Share",
     "signIn": "Sign in",
+    "signUp": "Sign up",
+    "register": "Register",
+    "continueWithGoogle": "Continue with Google",
     "back": "Back",
     "close": "Close",
     "cancel": "Cancel",
@@ -52,7 +55,10 @@
     "topos": "Topos",
     "topo": "Topo",
     "username": "Username",
+    "email": "Email",
     "password": "Password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
     "map": "Map",
     "list": "List",
     "filters": "Filters",
@@ -64,7 +70,17 @@
   },
   "auth": {
     "login": "Log in",
-    "logout": "Log out"
+    "logout": "Log out",
+    "verifyEmail": "Please verify your email to complete sign in.",
+    "registrationError": "Registration error",
+    "registrationSuccess": "Registration successful. Check your email to confirm your account.",
+    "forgotPassword": "Forgot your password?",
+    "noAccount": "Don't have an account?",
+    "or": "or",
+    "resetEmailSent": "We have sent you an email to reset your password.",
+    "provideEmail": "Enter your email address to continue.",
+    "setNewPassword": "Set new password",
+    "passwordUpdated": "Your password has been updated."
   },
   "units": {
     "min": "min"
@@ -78,7 +94,9 @@
     "exit_fullscreen": "Exit fullscreen"
   },
   "errors": {
-    "invalidCredentials": "Invalid credentials"
+    "invalidCredentials": "Invalid credentials",
+    "unexpected": "Unexpected error",
+    "passwordMismatch": "Passwords do not match"
   },
   "nav": {
     "home": "Home",
