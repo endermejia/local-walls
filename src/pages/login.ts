@@ -6,6 +6,7 @@ import {
   WritableSignal,
   computed,
   PLATFORM_ID,
+  afterNextRender,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
@@ -46,7 +47,11 @@ import { SupabaseService } from '../services';
       <header tuiHeader>
         <h2 tuiTitle>
           @if (!isRecovery()) {
-            {{ 'auth.login' | translate }}
+            @if (!isRegister()) {
+              {{ 'auth.login' | translate }}
+            } @else {
+              {{ 'auth.register' | translate }}
+            }
           } @else {
             {{ 'auth.setNewPassword' | translate }}
           }
@@ -64,26 +69,6 @@ import { SupabaseService } from '../services';
       }
 
       @if (!isRecovery()) {
-        <!-- Continue with Google button -->
-        <button
-          tuiButton
-          appearance="outline"
-          type="button"
-          class="w-full"
-          (click.zoneless)="loginWithGoogle()"
-        >
-          {{ 'actions.continueWithGoogle' | translate }}
-        </button>
-
-        <!-- Separator -->
-        <div class="flex items-center gap-3 my-3" aria-hidden="true">
-          <div class="grow h-px bg-[var(--tui-base-04)]"></div>
-          <span class="text-[var(--tui-text-03)]">{{
-            'auth.or' | translate
-          }}</span>
-          <div class="grow h-px bg-[var(--tui-base-04)]"></div>
-        </div>
-
         <tui-textfield>
           <label tuiLabel for="emailInput">{{
             'labels.email' | translate
@@ -95,10 +80,16 @@ import { SupabaseService } from '../services';
             placeholder="{{ 'labels.email' | translate }}"
             [value]="email()"
             (input.zoneless)="onInputEmail($any($event.target).value)"
-            [attr.aria-invalid]="validate() && !email() ? 'true' : null"
+            [attr.aria-invalid]="validate() && !emailValid() ? 'true' : null"
             autocomplete="email"
           />
         </tui-textfield>
+
+        @if (validate() && !emailValid()) {
+          <tui-notification appearance="warning">
+            <h3 tuiTitle>{{ 'auth.enterValidEmail' | translate }}</h3>
+          </tui-notification>
+        }
 
         <tui-textfield>
           <label tuiLabel for="passwordInput">{{
@@ -111,40 +102,107 @@ import { SupabaseService } from '../services';
             placeholder="{{ 'labels.password' | translate }}"
             [value]="password()"
             (input.zoneless)="onInputPassword($any($event.target).value)"
-            [attr.aria-invalid]="validate() && !password() ? 'true' : null"
+            [attr.aria-invalid]="validate() && !passwordValid() ? 'true' : null"
             autocomplete="current-password"
           />
         </tui-textfield>
 
-        <div class="flex justify-end mb-2">
-          <button
-            type="button"
-            tuiButton
-            appearance="flat"
-            (click.zoneless)="forgotPassword()"
-          >
-            {{ 'auth.forgotPassword' | translate }}
-          </button>
-        </div>
+        @if (validate() && !passwordValid()) {
+          <tui-notification appearance="warning">
+            <h3 tuiTitle>
+              {{ 'auth.passwordMinLength' | translate: { min: 6 } }}
+            </h3>
+          </tui-notification>
+        }
 
-        <footer class="flex flex-col gap-2">
-          <button tuiButton type="submit" class="w-full">
-            {{ 'actions.signIn' | translate }}
-          </button>
-          <div class="text-center text-[var(--tui-text-02)]">
-            {{ 'auth.noAccount' | translate }}
+        @if (isRegister()) {
+          <tui-textfield>
+            <label tuiLabel for="confirmRegPasswordInput">{{
+              'labels.confirmPassword' | translate
+            }}</label>
+            <input
+              id="confirmRegPasswordInput"
+              tuiTextfield
+              type="password"
+              placeholder="{{ 'labels.confirmPassword' | translate }}"
+              [value]="confirmPassword()"
+              (input.zoneless)="confirmPassword.set($any($event.target).value)"
+              [attr.aria-invalid]="
+                validate() && confirmPassword() !== password() ? 'true' : null
+              "
+              autocomplete="new-password"
+            />
+          </tui-textfield>
+
+          @if (validate() && confirmPassword() !== password()) {
+            <tui-notification appearance="warning">
+              <h3 tuiTitle>{{ 'errors.passwordMismatch' | translate }}</h3>
+            </tui-notification>
+          }
+        }
+
+        @if (!isRegister()) {
+          <div class="flex justify-end mb-2">
             <button
               type="button"
               tuiButton
               appearance="flat"
-              (click.zoneless)="register()"
+              (click.zoneless)="forgotPassword()"
+            >
+              {{ 'auth.forgotPassword' | translate }}
+            </button>
+          </div>
+        }
+
+        <footer class="flex flex-col gap-2">
+          @if (!isRegister()) {
+            <button
+              tuiButton
+              type="submit"
+              class="w-full"
+              [disabled]="!canSignIn() || loading()"
+            >
+              {{ 'actions.signIn' | translate }}
+            </button>
+            <div class="text-center text-[var(--tui-text-02)]">
+              {{ 'auth.noAccount' | translate }}
+              <button
+                type="button"
+                tuiButton
+                appearance="flat"
+                (click.zoneless)="toggleRegister()"
+              >
+                {{ 'actions.register' | translate }}
+              </button>
+            </div>
+          } @else {
+            <button
+              tuiButton
+              type="button"
+              class="w-full"
+              [disabled]="!canRegister() || loading()"
+              (click.zoneless)="submitRegister()"
             >
               {{ 'actions.register' | translate }}
             </button>
-          </div>
+            <div class="text-center text-[var(--tui-text-02)]">
+              {{ 'auth.alreadyAccount' | translate }}
+              <button
+                type="button"
+                tuiButton
+                appearance="flat"
+                (click.zoneless)="toggleRegister(false)"
+              >
+                {{ 'actions.signIn' | translate }}
+              </button>
+            </div>
+          }
         </footer>
       } @else {
         <!-- Password recovery form -->
+        <tui-notification appearance="neutral">
+          <h3 tuiTitle>{{ 'auth.inRecoveryInfo' | translate }}</h3>
+        </tui-notification>
         <tui-textfield>
           <label tuiLabel for="newPasswordInput">{{
             'labels.newPassword' | translate
@@ -156,10 +214,20 @@ import { SupabaseService } from '../services';
             placeholder="{{ 'labels.newPassword' | translate }}"
             [value]="newPassword()"
             (input.zoneless)="newPassword.set($any($event.target).value)"
-            [attr.aria-invalid]="validate() && !newPassword() ? 'true' : null"
+            [attr.aria-invalid]="
+              validate() && !newPasswordValid() ? 'true' : null
+            "
             autocomplete="new-password"
           />
         </tui-textfield>
+
+        @if (validate() && !newPasswordValid()) {
+          <tui-notification appearance="warning">
+            <h3 tuiTitle>
+              {{ 'auth.passwordMinLength' | translate: { min: 6 } }}
+            </h3>
+          </tui-notification>
+        }
 
         <tui-textfield>
           <label tuiLabel for="confirmPasswordInput">{{
@@ -179,12 +247,19 @@ import { SupabaseService } from '../services';
           />
         </tui-textfield>
 
+        @if (validate() && confirmPassword() !== newPassword()) {
+          <tui-notification appearance="warning">
+            <h3 tuiTitle>{{ 'errors.passwordMismatch' | translate }}</h3>
+          </tui-notification>
+        }
+
         <footer class="flex flex-col gap-2">
           <button
             tuiButton
             type="button"
             class="w-full"
             (click.zoneless)="submitNewPassword()"
+            [disabled]="!canChangePassword() || loading()"
           >
             {{ 'auth.setNewPassword' | translate }}
           </button>
@@ -205,6 +280,7 @@ export class LoginComponent {
   error: WritableSignal<string | null> = signal<string | null>(null);
   loading: WritableSignal<boolean> = signal(false);
   validate: WritableSignal<boolean> = signal(false);
+  isRegister: WritableSignal<boolean> = signal(false);
 
   // Password recovery state
   readonly isRecovery = computed(() => {
@@ -220,6 +296,35 @@ export class LoginComponent {
   newPassword: WritableSignal<string> = signal('');
   confirmPassword: WritableSignal<string> = signal('');
 
+  // Validators
+  readonly emailValid = computed(() => /.+@.+\..+/.test(this.email().trim()));
+  readonly passwordValid = computed(() => this.password().length >= 6);
+  readonly newPasswordValid = computed(() => this.newPassword().length >= 6);
+  readonly canSignIn = computed(
+    () => this.emailValid() && this.passwordValid(),
+  );
+  readonly canRegister = computed(
+    () =>
+      this.emailValid() &&
+      this.passwordValid() &&
+      this.confirmPassword() === this.password(),
+  );
+  readonly canChangePassword = computed(
+    () =>
+      this.newPasswordValid() && this.confirmPassword() === this.newPassword(),
+  );
+
+  constructor() {
+    // Asegurar que, al entrar desde el enlace de recuperación, el token se intercambie y haya sesión activa
+    if (isPlatformBrowser(this.platformId) && typeof window !== 'undefined') {
+      afterNextRender(() => {
+        if (this.isRecovery()) {
+          void this.supabase.whenReady().then(() => this.supabase.getSession());
+        }
+      });
+    }
+  }
+
   onInputEmail(value: string) {
     this.email.set(value);
   }
@@ -232,8 +337,11 @@ export class LoginComponent {
     evt?.preventDefault?.();
     this.error.set(null);
     this.validate.set(true);
-    if (!this.email()?.trim() || !this.password()?.trim()) {
-      return; // Do not proceed; show validation state without native browser errors
+    if (this.isRegister()) {
+      return this.submitRegister();
+    }
+    if (!this.canSignIn()) {
+      return; // Do not proceed; show the validation state without native browser errors
     }
     this.loading.set(true);
     try {
@@ -254,19 +362,30 @@ export class LoginComponent {
       }
       this.error.set(null);
       void this.router.navigateByUrl('/home');
-    } catch (e: any) {
+    } catch {
       this.error.set('errors.unexpected');
     } finally {
       this.loading.set(false);
     }
   }
 
-  async register() {
+  toggleRegister(force?: boolean) {
+    const next = typeof force === 'boolean' ? force : !this.isRegister();
+    this.isRegister.set(next);
+    this.validate.set(false);
+    this.confirmPassword.set('');
+  }
+
+  async submitRegister() {
     this.error.set(null);
+    this.validate.set(true);
+    if (!this.canRegister()) {
+      return;
+    }
     this.loading.set(true);
     try {
       await this.supabase.whenReady();
-      const { data, error } = await this.supabase.register(
+      const { error } = await this.supabase.register(
         this.email(),
         this.password(),
       );
@@ -274,25 +393,11 @@ export class LoginComponent {
         this.error.set('auth.registrationError');
         return;
       }
-      // In most projects, sign up requires email confirmation
+      // In most projects, signup requires email confirmation
       this.error.set('auth.registrationSuccess');
-    } catch (e: any) {
-      this.error.set('errors.unexpected');
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  async loginWithGoogle() {
-    this.error.set(null);
-    this.loading.set(true);
-    try {
-      await this.supabase.whenReady();
-      const { error } = await this.supabase.loginWithProvider('google');
-      if (error) {
-        this.error.set('errors.unexpected');
-      }
-    } catch (e: any) {
+      // Volvemos a la vista de login
+      this.isRegister.set(false);
+    } catch {
       this.error.set('errors.unexpected');
     } finally {
       this.loading.set(false);
@@ -311,7 +416,10 @@ export class LoginComponent {
       await this.supabase.whenReady();
       let redirectTo: string | undefined = undefined;
       if (isPlatformBrowser(this.platformId) && typeof window !== 'undefined') {
-        redirectTo = window.location.origin + '/';
+        // Importante: redirigimos al login con flag de recuperación para evitar caer en '/home'
+        // por el redirect de la raíz tanto en SSR como en el router del cliente.
+        // Supabase añadirá su hash con tokens y 'type=recovery', que este componente detecta.
+        redirectTo = `${window.location.origin}/login?type=recovery`;
       }
       const { error } = await this.supabase.resetPassword(email, redirectTo);
       if (error) {
@@ -319,7 +427,7 @@ export class LoginComponent {
         return;
       }
       this.error.set('auth.resetEmailSent');
-    } catch (e: any) {
+    } catch {
       this.error.set('errors.unexpected');
     } finally {
       this.loading.set(false);
@@ -329,13 +437,17 @@ export class LoginComponent {
   async submitNewPassword() {
     this.error.set(null);
     this.validate.set(true);
-    const npw = this.newPassword()?.trim();
-    const cpw = this.confirmPassword()?.trim();
+    const npw = this.newPassword();
+    const cpw = this.confirmPassword();
     if (!npw || !cpw) {
       return;
     }
     if (npw !== cpw) {
       this.error.set('errors.passwordMismatch');
+      return;
+    }
+    if (npw.length < 6) {
+      this.error.set('auth.passwordMinLength');
       return;
     }
     this.loading.set(true);
@@ -350,7 +462,7 @@ export class LoginComponent {
       this.newPassword.set('');
       this.confirmPassword.set('');
       void this.router.navigateByUrl('/home');
-    } catch (e: any) {
+    } catch {
       this.error.set('errors.unexpected');
     } finally {
       this.loading.set(false);

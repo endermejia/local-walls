@@ -1,10 +1,12 @@
 import { TuiRoot } from '@taiga-ui/core';
-import { Component, inject } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject, computed } from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
 import { HeaderComponent } from '../components';
 import { GlobalData, LocalStorage, OfflineService } from '../services';
 import { TranslateService } from '@ngx-translate/core';
 import { Meta, Title } from '@angular/platform-browser';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -18,7 +20,9 @@ import { Meta, Title } from '@angular/platform-browser';
             Estás sin conexión. Algunas funciones pueden no estar disponibles.
           </div>
         }
-        <app-header />
+        @if (showHeader()) {
+          <app-header />
+        }
         <router-outlet />
       </div>
     </tui-root>
@@ -28,9 +32,22 @@ export class AppComponent {
   protected global = inject(GlobalData);
   protected offline = inject(OfflineService);
   private localStorage = inject(LocalStorage);
+  private router = inject(Router);
   private translate = inject(TranslateService);
   private title = inject(Title);
   private meta = inject(Meta);
+
+  // Señal derivada de la URL actual para decidir si mostrar el header
+  protected currentUrl = toSignal(
+    this.router.events.pipe(
+      startWith(null),
+      map(() => this.router.url),
+    ),
+    { initialValue: this.router.url },
+  );
+  protected showHeader = computed(
+    () => !this.currentUrl().startsWith('/login'),
+  );
 
   constructor() {
     const localStorageLang = this.localStorage.getItem('language');
@@ -46,7 +63,7 @@ export class AppComponent {
     }
 
     // SEO: Set title and meta tags (SSR-safe)
-    const appTitle = 'Rotpunkt | Croquis de tus equipadores';
+    const appTitle = 'Roca nostra 🤫';
     const description =
       'App de croquis de escalada hechos por equipadores locales. Encuentra y comparte zonas de escalada, sectores y vías cerca de ti.';
 

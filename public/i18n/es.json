@@ -21,7 +21,6 @@
     "signIn": "Iniciar sesión",
     "signUp": "Crear cuenta",
     "register": "Regístrate",
-    "continueWithGoogle": "Continuar con Google",
     "back": "Volver",
     "close": "Cerrar",
     "cancel": "Cancelar",
@@ -79,8 +78,13 @@
     "or": "o",
     "resetEmailSent": "Te hemos enviado un correo para restablecer tu contraseña.",
     "provideEmail": "Introduce tu correo electrónico para continuar.",
+    "enterValidEmail": "Introduce un correo electrónico válido.",
     "setNewPassword": "Establecer nueva contraseña",
-    "passwordUpdated": "Tu contraseña ha sido actualizada."
+    "passwordUpdated": "Tu contraseña ha sido actualizada.",
+    "passwordMinLength": "La contraseña debe tener al menos {{min}} caracteres.",
+    "register": "Registrarse",
+    "alreadyAccount": "¿Ya tienes cuenta?",
+    "inRecoveryInfo": "Estás cambiando tu contraseña. Introduce y confirma la nueva contraseña."
   },
   "units": {
     "min": "min"
@@ -89,7 +93,7 @@
     "loading": "Cargando...",
     "menu": "Menú",
     "search": "Buscar",
-    "appName": "Rotpunkt",
+    "appName": "Roca nostra",
     "fullscreen": "Pantalla completa",
     "exit_fullscreen": "Salir de pantalla completa"
   },

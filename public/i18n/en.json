@@ -21,7 +21,6 @@
     "signIn": "Sign in",
     "signUp": "Sign up",
     "register": "Register",
-    "continueWithGoogle": "Continue with Google",
     "back": "Back",
     "close": "Close",
     "cancel": "Cancel",
@@ -79,8 +78,13 @@
     "or": "or",
     "resetEmailSent": "We have sent you an email to reset your password.",
     "provideEmail": "Enter your email address to continue.",
+    "enterValidEmail": "Please enter a valid email address.",
     "setNewPassword": "Set new password",
-    "passwordUpdated": "Your password has been updated."
+    "passwordUpdated": "Your password has been updated.",
+    "passwordMinLength": "Password must be at least {{min}} characters.",
+    "register": "Register",
+    "alreadyAccount": "Already have an account?",
+    "inRecoveryInfo": "You are changing your password. Enter and confirm the new password."
   },
   "units": {
     "min": "min"
@@ -89,7 +93,7 @@
     "loading": "Loading...",
     "menu": "Menu",
     "search": "Search",
-    "appName": "Rotpunkt",
+    "appName": "Roca nostra",
     "fullscreen": "Fullscreen",
     "exit_fullscreen": "Exit fullscreen"
   },
