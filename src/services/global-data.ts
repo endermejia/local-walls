@@ -32,6 +32,7 @@ import type {
   ClimbingCragsPage,
   ClimbingRoutesPage,
   MapAreaItem,
+  UserRole,
 } from '../models';
 
 @Injectable({
@@ -88,11 +89,16 @@ export class GlobalData {
   });
 
   drawer: WritableSignal<OptionsData> = signal({
-    Navigation: [
+    ['Navigation']: [
       {
         name: 'nav.home',
         icon: '@tui.home',
         fn: () => this.router.navigateByUrl('/'),
+      },
+      {
+        name: 'nav.areas',
+        icon: '@tui.list',
+        fn: () => this.router.navigateByUrl('/areas'),
       },
       {
         name: 'nav.notFound',
@@ -122,6 +128,40 @@ export class GlobalData {
       },
     ],
   }));
+
+  // ---- AuthZ (roles) ----
+  readonly userRole: WritableSignal<UserRole | null> = signal<UserRole | null>(
+    null,
+  );
+  readonly isAdmin = computed(() => this.userRole() === 'admin');
+
+  /** Loads user role from Supabase user_profiles for current user (client only). Safe to call multiple times. */
+  async ensureUserRoleLoaded(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    // If already loaded, skip
+    if (this.userRole() !== null) return;
+    await this.supabase.whenReady();
+    const session = await this.supabase.getSession();
+    const userId = session?.user?.id;
+    if (!userId) {
+      this.userRole.set(null);
+      return;
+    }
+    try {
+      const { data, error } = await this.supabase.client
+        .from('user_profiles')
+        .select('role')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (error) throw error;
+      const role = (data?.role as UserRole | null) ?? null;
+      this.userRole.set(role);
+    } catch (e) {
+      console.warn('[GlobalData] ensureUserRoleLoaded error', e);
+      this.userRole.set(null);
+    }
+  }
+
   searchPopular: WritableSignal<string[]> = signal([
     'Wild Side',
     'Aixortà',
@@ -253,13 +293,13 @@ export class GlobalData {
         throw new Error(`Failed to load map_areas.json: HTTP ${res.status}`);
       const data = (await res.json()) as {
         type: string;
-        features: Array<{
+        features: {
           id?: number | string;
           properties?: {
             area_name?: string;
             bounding_box?: [[number, number], [number, number]];
           };
-        }>;
+        }[];
       };
       const list: MapAreaItem[] = (data?.features ?? [])
         .map((f) => {

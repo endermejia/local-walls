@@ -73,7 +73,7 @@ import { mapLocationUrl } from '../utils';
             {{ c.countryName }}
           </div>
           <div>
-            <strong>{{ 'labels.zone' | translate }}:</strong>
+            <strong>{{ 'labels.area' | translate }}:</strong>
             {{ c.areaName }}
           </div>
           @if (c.totalZlaggables) {
@@ -154,18 +154,16 @@ import { mapLocationUrl } from '../utils';
                     s.sectorSlug,
                   ]"
                 >
-                  <div class="flex items-center gap-3">
-                    <div class="flex flex-col min-w-0 grow">
-                      <header tuiHeader>
-                        <h2 tuiTitle>{{ s.sectorName }}</h2>
-                      </header>
-                      <section>
-                        <div class="text-sm opacity-80">
-                          {{ s.totalZlaggables }}
-                          {{ 'labels.routes' | translate | lowercase }}
-                        </div>
-                      </section>
-                    </div>
+                  <div class="flex flex-col min-w-0 grow">
+                    <header tuiHeader>
+                      <h2 tuiTitle>{{ s.sectorName }}</h2>
+                    </header>
+                    <section>
+                      <div class="text-sm opacity-80">
+                        {{ s.totalZlaggables }}
+                        {{ 'labels.routes' | translate | lowercase }}
+                      </div>
+                    </section>
                   </div>
                 </div>
               }
@@ -181,7 +179,7 @@ import { mapLocationUrl } from '../utils';
 
           @if (ascents().length === 0 && global.loading()) {
             <div class="flex items-center justify-center w-full min-h-[20vh]">
-              <tui-loader size="l"></tui-loader>
+              <tui-loader size="l" />
             </div>
           } @else {
             <div class="overflow-auto">
@@ -267,7 +265,7 @@ import { mapLocationUrl } from '../utils';
         </div>
       } @else {
         <div class="flex items-center justify-center w-full min-h-[50vh]">
-          <tui-loader size="xxl"></tui-loader>
+          <tui-loader size="xxl" />
         </div>
       }
     </section>

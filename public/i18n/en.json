@@ -6,13 +6,13 @@
   "settings.theme": "Theme",
   "actions": {
     "favorite": {
-      "add": "Mark as favorite",
-      "remove": "Remove favorite"
+      "add": "Add to favorites",
+      "remove": "Remove from favorites"
     },
     "loadMore": "Load more",
     "fit": {
-      "cover": "Fit to height",
-      "contain": "Fit to width"
+      "cover": "Fit height",
+      "contain": "Fit width"
     },
     "openMap": "Open location in Google Maps",
     "viewOnMap": "View on map",
@@ -20,23 +20,28 @@
     "share": "Share",
     "signIn": "Sign in",
     "signUp": "Sign up",
-    "register": "Register",
+    "register": "Sign up",
     "back": "Back",
     "close": "Close",
     "cancel": "Cancel",
     "apply": "Apply"
   },
   "labels": {
-    "crag": "Crag",
-    "crags": "Crags",
-    "zone": "Zone",
-    "zones": "Zones",
+    "crag": "Sector",
+    "crags": "Sectors",
+    "area": "Area",
+    "areas": "Areas",
     "approach": "Approach",
     "parkings": "Parkings",
     "parking": "Parking",
     "lat": "Lat",
     "lng": "Lng",
     "capacity": "Capacity",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
     "routes": "Routes",
     "route": "Route",
     "boulders": "Boulders",
@@ -53,11 +58,6 @@
     "actions": "Actions",
     "topos": "Topos",
     "topo": "Topo",
-    "username": "Username",
-    "email": "Email",
-    "password": "Password",
-    "newPassword": "New password",
-    "confirmPassword": "Confirm password",
     "map": "Map",
     "list": "List",
     "filters": "Filters",
@@ -68,17 +68,17 @@
     "anonymous": "Anonymous"
   },
   "auth": {
-    "login": "Log in",
-    "logout": "Log out",
+    "login": "Sign in",
+    "logout": "Sign out",
     "verifyEmail": "Please verify your email to complete sign in.",
     "registrationError": "Registration error",
     "registrationSuccess": "Registration successful. Check your email to confirm your account.",
     "forgotPassword": "Forgot your password?",
-    "noAccount": "Don't have an account?",
+    "noAccount": "Don't have an account yet?",
     "or": "or",
-    "resetEmailSent": "We have sent you an email to reset your password.",
-    "provideEmail": "Enter your email address to continue.",
-    "enterValidEmail": "Please enter a valid email address.",
+    "resetEmailSent": "We've sent you an email to reset your password.",
+    "provideEmail": "Enter your email to continue.",
+    "enterValidEmail": "Enter a valid email address.",
     "setNewPassword": "Set new password",
     "passwordUpdated": "Your password has been updated.",
     "passwordMinLength": "Password must be at least {{min}} characters.",
@@ -95,16 +95,22 @@
     "search": "Search",
     "appName": "Roca nostra",
     "fullscreen": "Fullscreen",
-    "exit_fullscreen": "Exit fullscreen"
+    "exit_fullscreen": "Exit fullscreen",
+    "create": "Create",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete"
   },
   "errors": {
     "invalidCredentials": "Invalid credentials",
     "unexpected": "Unexpected error",
-    "passwordMismatch": "Passwords do not match"
+    "required": "Required field"
   },
   "nav": {
     "home": "Home",
-    "notFound": "Not found"
+    "notFound": "Not found",
+    "areas": "Areas"
   },
   "home": {
     "toggleView": "Toggle view"
@@ -118,7 +124,7 @@
     "shade": {
       "morning": "Morning shade",
       "afternoon": "Afternoon shade",
-      "allDay": "All day shade"
+      "allDay": "All-day shade"
     }
   },
   "messages": {
@@ -126,13 +132,25 @@
   },
   "notFound": {
     "title": "Not found",
-    "description": "Try to find by number or go back to the home page.",
-    "goHome": "Go to Home",
+    "description": "Try searching by number or go back to the home page.",
+    "goHome": "Go home",
     "imageAlt": "not found"
   },
   "charts": {
     "routesByGrade": {
       "title": "Routes by grade"
     }
+  },
+  "areas": {
+    "title": "Areas",
+    "new": "New area",
+    "newTitle": "Create new area",
+    "editTitle": "Edit area",
+    "name": "Name",
+    "slug": "Slug",
+    "empty": "No areas yet",
+    "search_placeholder": "Search areas by name or slug…",
+    "detail_placeholder": "Area details. More information coming soon…",
+    "backToList": "Back to list"
   }
 }

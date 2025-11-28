@@ -52,7 +52,7 @@ import { FormsModule } from '@angular/forms';
           }
           @if (r.areaName) {
             <div>
-              <strong>{{ 'labels.zone' | translate }}:</strong>
+              <strong>{{ 'labels.area' | translate }}:</strong>
               {{ r.areaName }}
             </div>
           }
@@ -165,7 +165,7 @@ import { FormsModule } from '@angular/forms';
         }
       } @else {
         <div class="flex items-center justify-center w-full min-h-[50vh]">
-          <tui-loader size="xxl"></tui-loader>
+          <tui-loader size="xxl" />
         </div>
       }
     </section>

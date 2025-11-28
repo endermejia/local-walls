@@ -29,8 +29,8 @@
   "labels": {
     "crag": "Sector",
     "crags": "Sectores",
-    "zone": "Zona",
-    "zones": "Zonas",
+    "area": "Área",
+    "areas": "Áreas",
     "approach": "Aproximación",
     "parkings": "Parkings",
     "parking": "Parking",
@@ -95,15 +95,22 @@
     "search": "Buscar",
     "appName": "Roca nostra",
     "fullscreen": "Pantalla completa",
-    "exit_fullscreen": "Salir de pantalla completa"
+    "exit_fullscreen": "Salir de pantalla completa",
+    "create": "Crear",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar"
   },
   "errors": {
     "invalidCredentials": "Credenciales inválidas",
-    "unexpected": "Error inesperado"
+    "unexpected": "Error inesperado",
+    "required": "Campo obligatorio"
   },
   "nav": {
     "home": "Inicio",
-    "notFound": "No encontrado"
+    "notFound": "No encontrado",
+    "areas": "Áreas"
   },
   "home": {
     "toggleView": "Cambiar vista"
@@ -133,5 +140,17 @@
     "routesByGrade": {
       "title": "Vías por grado"
     }
+  },
+  "areas": {
+    "title": "Áreas",
+    "new": "Nueva área",
+    "newTitle": "Crear nueva área",
+    "editTitle": "Editar área",
+    "name": "Nombre",
+    "slug": "Slug",
+    "empty": "No hay áreas todavía",
+    "search_placeholder": "Buscar áreas por nombre o slug…",
+    "detail_placeholder": "Detalle del área. Próximamente más información…",
+    "backToList": "Volver al listado"
   }
 }

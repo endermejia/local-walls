@@ -20,15 +20,24 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'home', renderMode: RenderMode.Prerender },
 
   // Parameterized routes prerendered with fallback to Server for non-listed ids
+  // Areas list (static)
+  { path: 'areas', renderMode: RenderMode.Prerender },
+  // Area create (admin). Use Server to always render fresh form.
+  { path: 'area/new', renderMode: RenderMode.Server },
+  // Area detail by slug (no country)
   {
-    path: 'zone/:countrySlug/:areaSlug',
+    path: 'area/:areaSlug',
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,
     async getPrerenderParams() {
-      const global = inject(GlobalData);
-      const area = global.area();
-      return area ? [{ areaSlug: area.areaSlug }] : [];
+      // No predefined params; let SSR handle dynamic requests
+      return [];
     },
+  },
+  // Area edit (admin). Use Server to fetch latest data for the slug.
+  {
+    path: 'area/:areaSlug/edit',
+    renderMode: RenderMode.Server,
   },
   {
     path: 'crag/:countrySlug/:cragSlug',

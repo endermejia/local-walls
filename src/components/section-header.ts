@@ -12,21 +12,22 @@ import { TranslatePipe } from '@ngx-translate/core';
   standalone: true,
   imports: [TuiBadge, TranslatePipe],
   template: `
-    <header class="mb-4 flex items-start justify-between gap-2">
+    <header class="flex items-start justify-between gap-2">
       <div class="flex items-center gap-2">
         <tui-badge
-          class="cursor-pointer hidden sm:block"
-          [appearance]="'neutral'"
+          class="cursor-pointer"
+          appearance="neutral"
           iconStart="@tui.chevron-left"
-          size="l"
+          size="xl"
           (click.zoneless)="back.emit()"
           [attr.aria-label]="'actions.back' | translate"
           [attr.title]="'actions.back' | translate"
-        ></tui-badge>
+        />
         <h1 class="text-2xl font-bold">{{ title() }}</h1>
       </div>
       <tui-badge
-        [appearance]="liked() ? 'negative' : 'neutral'"
+        class="cursor-pointer"
+        [appearance]="liked() ? 'accent' : 'neutral'"
         iconStart="@tui.heart"
         size="xl"
         (click.zoneless)="toggleLike.emit()"
@@ -38,7 +39,7 @@ import { TranslatePipe } from '@ngx-translate/core';
           (liked() ? 'actions.favorite.remove' : 'actions.favorite.add')
             | translate
         "
-      ></tui-badge>
+      />
     </header>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

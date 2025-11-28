@@ -6,3 +6,5 @@ export * from './global-data';
 export * from './local-storage';
 export * from './offline.service';
 export * from './supabase.service';
+export * from './areas.service';
+export * from './admin.guard';

@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { authGuard } from '../services';
+import { authGuard, adminGuard } from '../services';
 
 export const routes: Routes = [
   {
@@ -13,7 +13,13 @@ export const routes: Routes = [
     loadComponent: () => import('../pages/home').then((m) => m.HomeComponent),
   },
   {
-    path: 'zone/:countrySlug/:areaSlug',
+    path: 'areas',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/area-list').then((m) => m.AreaListComponent),
+  },
+  {
+    path: 'area/:areaSlug',
     canMatch: [authGuard],
     loadComponent: () => import('../pages/area').then((m) => m.AreaComponent),
   },
@@ -26,6 +32,19 @@ export const routes: Routes = [
     path: 'sector/:countrySlug/:cragSlug/:sectorSlug',
     canMatch: [authGuard],
     loadComponent: () => import('../pages/topo').then((m) => m.TopoComponent),
+  },
+  // Admin-only area management
+  {
+    path: 'area/new',
+    canMatch: [authGuard, adminGuard],
+    loadComponent: () =>
+      import('../pages/area-form').then((m) => m.AreaFormComponent),
+  },
+  {
+    path: 'area/:areaSlug/edit',
+    canMatch: [authGuard, adminGuard],
+    loadComponent: () =>
+      import('../pages/area-form').then((m) => m.AreaFormComponent),
   },
   {
     path: 'route/:countrySlug/:cragSlug/sector/:sectorSlug/:zlaggableSlug',

@@ -138,7 +138,7 @@ export interface RoutesTableRow {
                           "
                           [attr.aria-label]="'actions.favorite.add' | translate"
                           [attr.title]="'actions.favorite.add' | translate"
-                        ></tui-badge>
+                        />
                       </div>
                     }
                   }

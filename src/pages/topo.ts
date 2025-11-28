@@ -96,7 +96,7 @@ import type { ClimbingRoute } from '../models';
         </tui-bottom-sheet>
       } @else {
         <div class="absolute inset-0 flex items-center justify-center">
-          <tui-loader size="xxl"></tui-loader>
+          <tui-loader size="xxl" />
         </div>
       }
     </div>

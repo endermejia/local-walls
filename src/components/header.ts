@@ -263,6 +263,8 @@ export class HeaderComponent implements OnDestroy {
     if (this.isBrowser) {
       this.isFullscreen.set(!!document.fullscreenElement);
       document.addEventListener('fullscreenchange', this.onFsChange);
+      // Ensure user role is loaded early to render admin options in menu
+      void this.global.ensureUserRoleLoaded();
     }
   }
 
@@ -280,12 +282,12 @@ export class HeaderComponent implements OnDestroy {
     if (area) {
       items.push({
         caption: area.areaName,
-        routerLink: ['/zone', area.countrySlug, area.areaSlug],
+        routerLink: ['/area', area.areaSlug],
       });
     } else if (crag) {
       items.push({
         caption: crag.areaName,
-        routerLink: ['/zone', crag.countrySlug, crag.areaSlug],
+        routerLink: ['/area', crag.areaSlug],
       });
     }
 
@@ -480,7 +482,7 @@ export class HeaderComponent implements OnDestroy {
       }
 
       if (isArea && countrySlug && areaSlug) {
-        const href = `/zone/${countrySlug}/${areaSlug}`;
+        const href = `/area/${areaSlug}`;
         areas.push({
           href,
           title: areaName ?? '',

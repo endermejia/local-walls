@@ -130,7 +130,7 @@ import { TranslateService } from '@ngx-translate/core';
                 <a
                   tuiLink
                   appearance="action-grayscale"
-                  [routerLink]="['/zone', c.country_slug, c.area_slug]"
+                  [routerLink]="['/area', c.area_slug]"
                   (click.zoneless)="$event.stopPropagation()"
                   >{{ c.area_name }}</a
                 >
@@ -158,11 +158,11 @@ import { TranslateService } from '@ngx-translate/core';
           [stops]="stops"
           class="z-50"
           role="dialog"
-          aria-labelledby="zones-title crags-title"
+          aria-labelledby="areas-title crags-title"
           (scroll.zoneless)="onSheetScroll($any($event))"
         >
           @if (areas.length) {
-            <h3 tuiHeader id="zones-title" class="justify-center">
+            <h3 tuiHeader id="areas-title" class="justify-center">
               <div
                 class="flex flex-row align-items-center justify-center gap-2"
               >
@@ -170,12 +170,12 @@ import { TranslateService } from '@ngx-translate/core';
                   tuiThumbnail
                   size="l"
                   [src]="global.iconSrc()('zone')"
-                  [attr.aria-label]="'labels.zone' | translate"
+                  [attr.aria-label]="'labels.area' | translate"
                 />
                 <span tuiTitle class="justify-center">
                   {{ areas.length }}
                   {{
-                    'labels.' + (areas.length === 1 ? 'zone' : 'zones')
+                    'labels.' + (areas.length === 1 ? 'area' : 'areas')
                       | translate
                       | lowercase
                   }}
@@ -191,7 +191,7 @@ import { TranslateService } from '@ngx-translate/core';
                     tuiCardLarge
                     [tuiSurface]="a.liked ? 'accent' : 'neutral'"
                     class="cursor-pointer"
-                    [routerLink]="['/zone', a.country_slug, a.slug]"
+                    [routerLink]="['/area', a.slug]"
                   >
                     <div class="flex items-center gap-3">
                       <div class="flex flex-col min-w-0 grow">
@@ -252,11 +252,7 @@ import { TranslateService } from '@ngx-translate/core';
                           <a
                             tuiLink
                             appearance="action-grayscale"
-                            [routerLink]="[
-                              '/zone',
-                              c.country_slug,
-                              c.area_slug,
-                            ]"
+                            [routerLink]="['/area', c.area_slug]"
                             (click.zoneless)="$event.stopPropagation()"
                             >{{ c.area_name }}</a
                           >

@@ -36,7 +36,7 @@ export class SupabaseService {
 
   private _client: SupabaseClient | null = null;
   private _readyResolve: (() => void) | null = null;
-  private _ready: Promise<void>;
+  private readonly _ready: Promise<void>;
 
   // Auth state
   private readonly _session: WritableSignal<Session | null> =
@@ -80,7 +80,7 @@ export class SupabaseService {
       // Subscribe to auth state changes
       this._client.auth.onAuthStateChange((event, sess) => {
         this._session.set(sess ?? null);
-        this._lastEvent.set(event ?? (null as any));
+        this._lastEvent.set(event ?? null);
       });
     } catch (e) {
       console.error('[SupabaseService] Failed to initialize client', e);
@@ -131,18 +131,6 @@ export class SupabaseService {
     if (!this._client) return;
     const { error } = await this._client.auth.signOut();
     if (error) console.error('[SupabaseService] signOut error', error);
-  }
-
-  /** OAuth login with provider (e.g., 'google') */
-  async loginWithProvider(
-    provider: 'google' | 'github' | string,
-    redirectTo?: string,
-  ) {
-    if (!this._client) throw new Error('Supabase client not ready');
-    return this._client.auth.signInWithOAuth({
-      provider: provider as any,
-      options: redirectTo ? { redirectTo } : undefined,
-    });
   }
 
   /** Send password reset email */
