@@ -1,4 +1,5 @@
 import { AmountByEveryVerticalLifeGrade } from './grade.model';
+import { CragListItem } from './crag.model';
 
 export interface ClimbingArea {
   areaName: string;
@@ -28,4 +29,29 @@ export interface ClimbingAreaResponse {
   area: ClimbingArea;
   isEditable?: boolean;
   isFollowed?: boolean;
+}
+
+// Supabase RPC get_areas_list response item
+export interface AreaListItem {
+  id: number;
+  name: string;
+  slug: string;
+  liked: boolean;
+  crags_count: number;
+  grades: AmountByEveryVerticalLifeGrade | null;
+}
+
+// Supabase RPC toggle_area_like response
+export interface AreaLikeToggleResult {
+  action: string; // e.g. 'inserted' | 'deleted'
+  total_likes: number;
+}
+
+export interface AreaDetail {
+  id: number;
+  name: string;
+  slug: string;
+  liked: boolean;
+  grades: AmountByEveryVerticalLifeGrade;
+  crags: CragListItem[];
 }

@@ -10,7 +10,7 @@ import { injectContext } from '@taiga-ui/polymorpheus';
   imports: [TuiButton, TranslatePipe],
   template: `
     <div class="grid gap-4">
-      <p class="whitespace-pre-line">{{ ctx.data?.message || '' }}</p>
+      <p class="whitespace-pre-line">{{ ctx.data.message }}</p>
 
       <div class="flex justify-end gap-2">
         <button
@@ -19,7 +19,7 @@ import { injectContext } from '@taiga-ui/polymorpheus';
           type="button"
           (click.zoneless)="ctx.$implicit.complete()"
         >
-          {{ ctx.data?.cancelLabel || 'common.cancel' | translate }}
+          {{ ctx.data.cancelLabel || 'common.cancel' | translate }}
         </button>
         <button
           tuiButton
@@ -27,7 +27,7 @@ import { injectContext } from '@taiga-ui/polymorpheus';
           type="button"
           (click.zoneless)="ctx.completeWith(true)"
         >
-          {{ ctx.data?.confirmLabel || 'common.delete' | translate }}
+          {{ ctx.data.confirmLabel || 'common.delete' | translate }}
         </button>
       </div>
     </div>

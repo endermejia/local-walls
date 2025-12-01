@@ -281,8 +281,8 @@ export class HeaderComponent implements OnDestroy {
     // are correct on direct navigation to a crag route.
     if (area) {
       items.push({
-        caption: area.areaName,
-        routerLink: ['/area', area.areaSlug],
+        caption: area.name,
+        routerLink: ['/area', area.slug],
       });
     } else if (crag) {
       items.push({
@@ -296,50 +296,6 @@ export class HeaderComponent implements OnDestroy {
         caption: crag.cragName,
         routerLink: ['/crag', crag.countrySlug, crag.cragSlug],
       });
-    }
-
-    // Sector (when viewing a sector page)
-    const sector = this.global.sector();
-    if (sector && crag) {
-      items.push({
-        caption: sector.sectorName,
-        routerLink: [
-          '/sector',
-          crag.countrySlug,
-          crag.cragSlug,
-          sector.sectorSlug,
-        ],
-      });
-    }
-
-    const topo = this.global.topo();
-    if (topo && crag) {
-      items.push({
-        caption: topo.name,
-        routerLink: ['/topo', crag.countrySlug, crag.cragSlug, String(topo.id)],
-      });
-    }
-
-    const route = this.global.route();
-    if (route) {
-      const country =
-        route.countrySlug || crag?.countrySlug || area?.countrySlug;
-      const cragSlug = route.cragSlug || crag?.cragSlug;
-      const sectorSlug = route.sectorSlug;
-      const zlaggableSlug = route.zlaggableSlug;
-      if (country && cragSlug && sectorSlug && zlaggableSlug) {
-        items.push({
-          caption: route.zlaggableName,
-          routerLink: [
-            '/route',
-            country,
-            cragSlug,
-            'sector',
-            sectorSlug,
-            String(zlaggableSlug),
-          ],
-        });
-      }
     }
 
     return items.filter((i) => !!i.caption).slice(0, -1);

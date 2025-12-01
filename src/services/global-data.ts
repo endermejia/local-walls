@@ -29,10 +29,10 @@ import type {
   MapResponse,
   OptionsData,
   AscentsPage,
-  ClimbingCragsPage,
   ClimbingRoutesPage,
   MapAreaItem,
   UserRole,
+  AreaDetail,
 } from '../models';
 
 @Injectable({
@@ -252,9 +252,8 @@ export class GlobalData {
     });
   });
   selectedMapCragItem: WritableSignal<MapCragItem | null> = signal(null);
-  area: WritableSignal<ClimbingArea | null> = signal(null);
+  area: WritableSignal<AreaDetail | null> = signal(null);
   crag: WritableSignal<ClimbingCrag | null> = signal(null);
-  cragsPageable: WritableSignal<ClimbingCragsPage | null> = signal(null);
   cragSectors: WritableSignal<ClimbingSector[]> = signal([]);
   sector: WritableSignal<ClimbingSector | null> = signal(null);
   route: WritableSignal<ClimbingRoute | null> = signal(null);
@@ -421,55 +420,6 @@ export class GlobalData {
     }
   }
 
-  async loadArea(countrySlug: string, areaSlug: string): Promise<void> {
-    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
-      return;
-    try {
-      this.loading.set(true);
-      const resp = await this.verticalLifeApi.getClimbingArea(
-        countrySlug,
-        areaSlug,
-      );
-      this.area.set(resp);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      this.error.set(msg);
-      if (msg.includes('HTTP 404')) {
-        this.router.navigateByUrl('/page-not-found');
-      }
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  async loadAreaCrags(
-    countrySlug: string,
-    areaSlug: string,
-    params?: {
-      pageIndex?: number;
-      sortField?: 'totalascents' | 'grade' | 'name';
-      order?: 'asc' | 'desc';
-      category?: number;
-    },
-  ): Promise<void> {
-    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
-      return;
-    try {
-      this.loading.set(true);
-      const resp = await this.verticalLifeApi.getClimbingCragsPageable(
-        countrySlug,
-        areaSlug,
-        params,
-      );
-      this.cragsPageable.set(resp);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      this.error.set(msg);
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
   async loadCrag(countrySlug: string, cragSlug: string): Promise<void> {
     if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
       return;
@@ -601,12 +551,6 @@ export class GlobalData {
     }
   }
 
-  // TODO: implement likes
-
-  toggleLikeZone(id: string): void {
-    console.log('toggleLikeZone', id);
-  }
-
   toggleLikeCrag(id: string): void {
     console.log('toggleLikeCrag', id);
   }
@@ -637,14 +581,6 @@ export class GlobalData {
       this.localStorage.removeItem(this.tokenExpKey);
       void this.router.navigateByUrl('/login');
     }
-  }
-
-  isTokenValid(): boolean {
-    const token = this.localStorage.getItem(this.tokenKey);
-    const expStr = this.localStorage.getItem(this.tokenExpKey);
-    if (!token || !expStr) return false;
-    const exp = Number(expStr);
-    return Date.now() < exp;
   }
 
   // ---- Error state for interceptor ----

@@ -903,6 +903,35 @@ export type Database = {
   };
   public: {
     Tables: {
+      area_likes: {
+        Row: {
+          area_id: number;
+          created_at: string;
+          id: number;
+          user_id: string;
+        };
+        Insert: {
+          area_id: number;
+          created_at?: string;
+          id?: number;
+          user_id: string;
+        };
+        Update: {
+          area_id?: number;
+          created_at?: string;
+          id?: number;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'area_likes_area_id_fkey';
+            columns: ['area_id'];
+            isOneToOne: false;
+            referencedRelation: 'areas';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       areas: {
         Row: {
           created_at: string;
@@ -957,6 +986,35 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'user_profiles';
             referencedColumns: ['user_id'];
+          },
+        ];
+      };
+      crag_likes: {
+        Row: {
+          crag_id: number;
+          created_at: string;
+          id: number;
+          user_id: string;
+        };
+        Insert: {
+          crag_id: number;
+          created_at?: string;
+          id?: number;
+          user_id: string;
+        };
+        Update: {
+          crag_id?: number;
+          created_at?: string;
+          id?: number;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'crag_likes_crag_id_fkey';
+            columns: ['crag_id'];
+            isOneToOne: false;
+            referencedRelation: 'crags';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -1100,6 +1158,71 @@ export type Database = {
         };
         Relationships: [];
       };
+      route_ascents: {
+        Row: {
+          ascent_date: string | null;
+          attempts: number | null;
+          comment: string | null;
+          created_at: string | null;
+          first_ascent: boolean | null;
+          grade: string | null;
+          hard: boolean | null;
+          id: number;
+          photo_path: string | null;
+          private_comment: boolean | null;
+          rate: number | null;
+          recommended: boolean | null;
+          route_id: number;
+          soft: boolean | null;
+          type: string | null;
+          user_id: string;
+        };
+        Insert: {
+          ascent_date?: string | null;
+          attempts?: number | null;
+          comment?: string | null;
+          created_at?: string | null;
+          first_ascent?: boolean | null;
+          grade?: string | null;
+          hard?: boolean | null;
+          id?: number;
+          photo_path?: string | null;
+          private_comment?: boolean | null;
+          rate?: number | null;
+          recommended?: boolean | null;
+          route_id: number;
+          soft?: boolean | null;
+          type?: string | null;
+          user_id: string;
+        };
+        Update: {
+          ascent_date?: string | null;
+          attempts?: number | null;
+          comment?: string | null;
+          created_at?: string | null;
+          first_ascent?: boolean | null;
+          grade?: string | null;
+          hard?: boolean | null;
+          id?: number;
+          photo_path?: string | null;
+          private_comment?: boolean | null;
+          rate?: number | null;
+          recommended?: boolean | null;
+          route_id?: number;
+          soft?: boolean | null;
+          type?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'route_ascents_route_id_fkey';
+            columns: ['route_id'];
+            isOneToOne: false;
+            referencedRelation: 'routes';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       route_equippers: {
         Row: {
           created_at: string;
@@ -1129,6 +1252,64 @@ export type Database = {
           },
           {
             foreignKeyName: 'route_equippers_route_id_fkey';
+            columns: ['route_id'];
+            isOneToOne: false;
+            referencedRelation: 'routes';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      route_likes: {
+        Row: {
+          created_at: string;
+          id: number;
+          route_id: number;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: number;
+          route_id: number;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: number;
+          route_id?: number;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'route_likes_route_id_fkey';
+            columns: ['route_id'];
+            isOneToOne: false;
+            referencedRelation: 'routes';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      route_projects: {
+        Row: {
+          created_at: string | null;
+          id: number;
+          route_id: number;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          id?: number;
+          route_id: number;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string | null;
+          id?: number;
+          route_id?: number;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'route_projects_route_id_fkey';
             columns: ['route_id'];
             isOneToOne: false;
             referencedRelation: 'routes';
@@ -1286,6 +1467,36 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      assign_crag_to_equipper: {
+        Args: {
+          p_admin: string;
+          p_assign: boolean;
+          p_crag_id: number;
+          p_equipper: string;
+        };
+        Returns: undefined;
+      };
+      equipper_has_crag: {
+        Args: { p_crag_id: number; p_user: string };
+        Returns: boolean;
+      };
+      get_area_by_slug: { Args: { p_slug: string }; Returns: Json };
+      get_areas_list: {
+        Args: {
+          _filter?: string;
+          _limit?: number;
+          _offset?: number;
+          _user_id?: string;
+        };
+        Returns: {
+          crags_count: number;
+          grades: Json;
+          id: number;
+          liked: boolean;
+          name: string;
+          slug: string;
+        }[];
+      };
       get_assigned_crags: {
         Args: never;
         Returns: {
@@ -1294,9 +1505,84 @@ export type Database = {
           crag_name: string;
         }[];
       };
+      insert_route_ascent: {
+        Args: {
+          p_ascent_date?: string;
+          p_attempts?: number;
+          p_comment?: string;
+          p_first_ascent?: boolean;
+          p_grade?: string;
+          p_hard?: boolean;
+          p_is_project?: boolean;
+          p_photo_path?: string;
+          p_private_comment?: boolean;
+          p_rate?: number;
+          p_recommended?: boolean;
+          p_route_id: number;
+          p_soft?: boolean;
+          p_type?: string;
+        };
+        Returns: {
+          ascent_date: string | null;
+          attempts: number | null;
+          comment: string | null;
+          created_at: string | null;
+          first_ascent: boolean | null;
+          grade: string | null;
+          hard: boolean | null;
+          id: number;
+          photo_path: string | null;
+          private_comment: boolean | null;
+          rate: number | null;
+          recommended: boolean | null;
+          route_id: number;
+          soft: boolean | null;
+          type: string | null;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'route_ascents';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       is_admin: { Args: never; Returns: boolean };
       is_equipper: { Args: never; Returns: boolean };
       is_equipper_for_crag: { Args: { p_crag_id: number }; Returns: boolean };
+      is_user_admin: { Args: { p_user: string }; Returns: boolean };
+      set_user_admin: {
+        Args: { p_admin: string; p_make_admin: boolean; p_target: string };
+        Returns: undefined;
+      };
+      toggle_area_like: {
+        Args: { p_area_id: number };
+        Returns: {
+          action: string;
+          total_likes: number;
+        }[];
+      };
+      toggle_crag_like: {
+        Args: { p_crag_id: number };
+        Returns: {
+          action: string;
+          total_likes: number;
+        }[];
+      };
+      toggle_route_like: {
+        Args: { p_route_id: number };
+        Returns: {
+          action: string;
+          total_likes: number;
+        }[];
+      };
+      toggle_route_project: {
+        Args: { p_route: number; p_user: string };
+        Returns: {
+          action: string;
+          id: number;
+        }[];
+      };
     };
     Enums: {
       app_role: 'admin' | 'equipper' | 'climber';

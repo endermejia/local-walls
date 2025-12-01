@@ -12,6 +12,7 @@ import type {
   AreaInsertDto,
   AreaUpdateDto,
 } from '../models/supabase-tables.dto';
+import type { AreaLikeToggleResult, AreaListItem, AreaDetail } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class AreasService {
@@ -21,6 +22,10 @@ export class AreasService {
   readonly loading = signal(false);
   readonly error: WritableSignal<string | null> = signal<string | null>(null);
   readonly areas: WritableSignal<AreaDto[]> = signal<AreaDto[]>([]);
+  // RPC-based list for areas with like info
+  readonly rpcAreas: WritableSignal<AreaListItem[]> = signal<AreaListItem[]>(
+    [],
+  );
 
   /** List all areas (client-only). On server returns empty list. */
   async listAll(): Promise<AreaDto[]> {
@@ -129,5 +134,105 @@ export class AreasService {
       this.areas.set(current.filter((a) => a.id !== id));
     } catch {}
     return true;
+  }
+
+  /**
+   * List areas using Supabase RPC get_areas_list, which includes user like information.
+   * Client-only. On server returns empty list.
+   */
+  async listFromRpc(
+    filter = '',
+    limit = 100,
+    offset = 0,
+  ): Promise<AreaListItem[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const { data, error } = await this.supabase.client.rpc('get_areas_list', {
+        _filter: filter || null,
+        _limit: limit,
+        _offset: offset,
+        // _user_id can be omitted to use auth context on RLS
+      });
+      if (error) throw error;
+      const items = (data as AreaListItem[] | null) ?? [];
+
+      this.rpcAreas.set(items);
+      return items;
+    } catch (e: any) {
+      console.error('[AreasService] listFromRpc error', e);
+      this.error.set(e?.message ?? 'Unknown error');
+      return [];
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  /** Toggle like for an area using Supabase RPC toggle_area_like */
+  async toggleAreaLike(areaId: number): Promise<AreaLikeToggleResult | null> {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    await this.supabase.whenReady();
+    try {
+      // Validate input to avoid sending RPC without parameters
+      if (
+        typeof areaId !== 'number' ||
+        !Number.isFinite(areaId) ||
+        areaId <= 0
+      ) {
+        throw new Error(
+          `[AreasService] toggleAreaLike invalid areaId: ${String(areaId)}`,
+        );
+      }
+
+      const params = { p_area_id: areaId } as const;
+      const { data, error } = await this.supabase.client.rpc(
+        'toggle_area_like',
+        params,
+      );
+      if (error) throw error;
+      const result = (Array.isArray(data) ? data[0] : data) as
+        | AreaLikeToggleResult
+        | undefined;
+      if (!result) return null;
+      // Optimistically update rpcAreas cache
+      try {
+        const list = this.rpcAreas();
+        const idx = list.findIndex((a) => a.id === areaId);
+        if (idx !== -1) {
+          const updated = [...list];
+          const liked = result.action === 'inserted';
+          updated[idx] = { ...updated[idx], liked };
+          this.rpcAreas.set(updated);
+        }
+      } catch {
+        /* empty */
+      }
+      return result;
+    } catch (e) {
+      console.error('[AreasService] toggleAreaLike error', e);
+      throw e;
+    }
+  }
+
+  /**
+   * Detail for an area using Supabase RPC get_area_by_slug.
+   * Returns null on server or on error.
+   */
+  async getAreaDetailBySlug(slug: string): Promise<AreaDetail | null> {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    await this.supabase.whenReady();
+    try {
+      const { data, error } = await this.supabase.client.rpc(
+        'get_area_by_slug',
+        { p_slug: slug },
+      );
+      if (error) throw error;
+      return data as AreaDetail;
+    } catch (e) {
+      console.error('[AreasService] getAreaDetailBySlug error', e);
+      return null;
+    }
   }
 }

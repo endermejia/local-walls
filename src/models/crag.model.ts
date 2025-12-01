@@ -1,5 +1,6 @@
 import { Coordinates } from './coordinates.model';
 import { PageableResponse } from './pagination.model';
+import { AmountByEveryVerticalLifeGrade } from './grade.model';
 
 export interface ClimbingCrag {
   unifiedId?: number;
@@ -26,3 +27,11 @@ export interface ClimbingCragResponse {
 }
 
 export type ClimbingCragsPage = PageableResponse<ClimbingCrag>;
+
+export interface CragListItem {
+  id: number;
+  name: string;
+  slug: string;
+  routes_count: number; // routes
+  grades: AmountByEveryVerticalLifeGrade;
+}

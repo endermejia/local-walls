@@ -8,13 +8,12 @@ import {
   signal,
   effect,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiCardLarge } from '@taiga-ui/layout';
-import { TuiSurface, TuiLoader } from '@taiga-ui/core';
+import { TuiSurface, TuiLoader, TuiTitle } from '@taiga-ui/core';
 import { AreasService, GlobalData } from '../services';
-import type { AreaDto } from '../models/supabase-tables.dto';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TuiBadge } from '@taiga-ui/kit';
 import { TuiDialogService } from '@taiga-ui/experimental';
@@ -22,6 +21,9 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { AreaFormComponent } from './area-form';
 import { Router } from '@angular/router';
 import { ConfirmDialogComponent } from '../components/confirm-dialog';
+import { AreaDetail } from '../models';
+import { ChartRoutesByGradeComponent } from '../components';
+import { TuiHeader } from '@taiga-ui/layout';
 
 @Component({
   selector: 'app-area',
@@ -33,6 +35,10 @@ import { ConfirmDialogComponent } from '../components/confirm-dialog';
     TuiLoader,
     SectionHeaderComponent,
     TuiBadge,
+    ChartRoutesByGradeComponent,
+    TuiHeader,
+    LowerCasePipe,
+    TuiTitle,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -45,8 +51,9 @@ import { ConfirmDialogComponent } from '../components/confirm-dialog';
           <app-section-header
             class="w-full"
             [title]="area()?.name || ''"
-            [liked]="global.liked()"
+            [liked]="area()?.liked || false"
             (back)="goBack()"
+            (toggleLike)="onToggleLike()"
           />
           @if (global.isAdmin()) {
             <tui-badge
@@ -70,11 +77,43 @@ import { ConfirmDialogComponent } from '../components/confirm-dialog';
           }
         </div>
 
-        <div tuiCardLarge [tuiSurface]="'neutral'" class="p-4">
-          <p class="mt-2 opacity-70">
-            {{ 'areas.detail_placeholder' | translate }}
-          </p>
-        </div>
+        <!-- Sectors list -->
+        @if (area()?.crags?.length) {
+          <div class="mt-2">
+            <h2 class="text-lg font-semibold mb-2">
+              {{ 'labels.sectors' | translate }}
+            </h2>
+            <div class="grid gap-2">
+              @for (c of area()!.crags; track c.slug) {
+                <div tuiCardLarge [tuiSurface]="'neutral'" class="p-4">
+                  <div class="flex flex-col min-w-0 grow">
+                    <header tuiHeader>
+                      <h2 tuiTitle>{{ c.name }}</h2>
+                    </header>
+                    <section>
+                      <div class="text-sm opacity-80">
+                        {{ c.routes_count }}
+                        {{ 'labels.routes' | translate | lowercase }}
+                      </div>
+                    </section>
+                    <div (click.zoneless)="$event.stopPropagation()">
+                      <app-chart-routes-by-grade
+                        class="mt-2"
+                        [grades]="c.grades"
+                      />
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        } @else {
+          <div tuiCardLarge [tuiSurface]="'neutral'" class="p-4">
+            <p class="mt-2 opacity-70">
+              {{ 'areas.detail_placeholder' | translate }}
+            </p>
+          </div>
+        }
       }
     </section>
   `,
@@ -90,7 +129,9 @@ export class AreaComponent {
   private readonly router = inject(Router);
 
   areaSlug: InputSignal<string> = input.required<string>();
-  readonly area: WritableSignal<AreaDto | null> = signal<AreaDto | null>(null);
+  readonly area: WritableSignal<AreaDetail | null> = signal<AreaDetail | null>(
+    null,
+  );
 
   constructor() {
     effect(() => {
@@ -102,8 +143,39 @@ export class AreaComponent {
 
   private async load(slug: string): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
-    const data = await this.areas.getBySlug(slug);
+    const data = await this.areas.getAreaDetailBySlug(slug);
     this.area.set(data);
+
+    // Reset liked state; do not trigger extra RPCs here
+    this.global.liked.set(false);
+
+    this.global.resetDataByPage('area');
+    if (data) {
+      this.global.area.set(data);
+    } else {
+      this.global.area.set(null);
+    }
+  }
+
+  async onToggleLike(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const current = this.area();
+    if (!current) return;
+    try {
+      const res = await this.areas.toggleAreaLike(current.id).then((a) => {
+        this.area.set({
+          ...current,
+          liked: !current.liked,
+        });
+        return a;
+      });
+      if (res) {
+        // Update liked signal so the UI reflects the new state immediately
+        this.global.liked.set(res.action === 'inserted');
+      }
+    } catch {
+      /* empty */
+    }
   }
 
   deleteArea(): void {
@@ -135,8 +207,8 @@ export class AreaComponent {
               try {
                 await this.areas.delete(current.id);
                 await this.router.navigateByUrl('/areas');
-              } catch (e) {
-                // Error already logged in service
+              } catch {
+                /* empty */
               }
             },
           });
@@ -144,7 +216,13 @@ export class AreaComponent {
   }
 
   goBack(): void {
-    this.router.navigateByUrl('/areas');
+    if (!isPlatformBrowser(this.platformId)) {
+      void this.router.navigateByUrl('/areas');
+      return;
+    }
+
+    const target = this.resolveBackUrl();
+    void this.router.navigateByUrl(target);
   }
 
   openEditDialog(): void {
@@ -158,7 +236,6 @@ export class AreaComponent {
       })
       .subscribe({
         next: async (result) => {
-          // When editing name/slug, dialog returns the new slug (string)
           if (typeof result === 'string' && result.length) {
             if (isPlatformBrowser(this.platformId)) {
               if (result !== current.slug) {
@@ -167,9 +244,21 @@ export class AreaComponent {
               }
             }
           }
-          // Fallback: just reload current data
           await this.load(current.slug);
         },
       });
+  }
+
+  private resolveBackUrl(): '/home' | '/areas' {
+    let nav = this.router.lastSuccessfulNavigation?.previousNavigation ?? null;
+    let steps = 0;
+    while (nav && steps < 10) {
+      const url = (nav.finalUrl ?? nav.initialUrl)?.toString() ?? '';
+      if (url.startsWith('/home')) return '/home';
+      if (url.startsWith('/areas')) return '/areas';
+      nav = nav.previousNavigation ?? null;
+      steps++;
+    }
+    return '/areas';
   }
 }

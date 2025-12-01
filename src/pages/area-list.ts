@@ -7,9 +7,8 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import type { AreaDto } from '../models/supabase-tables.dto';
 import { AreasService, GlobalData } from '../services';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
@@ -24,6 +23,7 @@ import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { AreaFormComponent } from './area-form';
 import { TranslateService } from '@ngx-translate/core';
+import { ChartRoutesByGradeComponent } from '../components';
 
 @Component({
   selector: 'app-area-list',
@@ -38,6 +38,8 @@ import { TranslateService } from '@ngx-translate/core';
     TuiSurface,
     TuiCardLarge,
     TuiHeader,
+    LowerCasePipe,
+    ChartRoutesByGradeComponent,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -75,7 +77,7 @@ import { TranslateService } from '@ngx-translate/core';
           @for (a of filtered(); track a.id) {
             <div
               tuiCardLarge
-              [tuiSurface]="global.liked() ? 'accent' : 'neutral'"
+              [tuiSurface]="a.liked ? 'accent' : 'neutral'"
               class="cursor-pointer"
               [routerLink]="['/area', a.slug]"
             >
@@ -85,9 +87,22 @@ import { TranslateService } from '@ngx-translate/core';
                 </header>
                 <section>
                   <div class="text-sm opacity-80">
-                    {{ a.id }}
+                    {{ a.crags_count }}
+                    {{
+                      'labels.' + (a.crags_count === 1 ? 'crag' : 'crags')
+                        | translate
+                        | lowercase
+                    }}
                   </div>
                 </section>
+                @if (a.grades) {
+                  <div (click.zoneless)="$event.stopPropagation()">
+                    <app-chart-routes-by-grade
+                      class="mt-2"
+                      [grades]="a.grades"
+                    />
+                  </div>
+                }
               </div>
             </div>
           } @empty {
@@ -116,10 +131,10 @@ export class AreaListComponent {
   private readonly translate = inject(TranslateService);
 
   readonly loading = computed(() => this.areasService.loading());
-  readonly areas = computed<AreaDto[]>(() => this.areasService.areas());
+  readonly areas = computed(() => this.areasService.rpcAreas());
 
   readonly query: WritableSignal<string> = signal('');
-  readonly filtered = computed<AreaDto[]>(() => {
+  readonly filtered = computed(() => {
     const q = this.query().trim().toLowerCase();
     const list = this.areas();
     if (!q) return list;
@@ -131,7 +146,7 @@ export class AreaListComponent {
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
-      void this.areasService.listAll();
+      void this.areasService.listFromRpc();
     }
   }
 
@@ -148,7 +163,7 @@ export class AreaListComponent {
       .subscribe({
         next: (created) => {
           if (created && isPlatformBrowser(this.platformId)) {
-            void this.areasService.listAll();
+            void this.areasService.listFromRpc();
           }
         },
       });
