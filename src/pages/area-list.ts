@@ -7,7 +7,7 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { isPlatformBrowser, Location } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import type { AreaDto } from '../models/supabase-tables.dto';
 import { AreasService, GlobalData } from '../services';
@@ -20,7 +20,10 @@ import {
   TuiSurface,
 } from '@taiga-ui/core';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
-import { TuiBadge } from '@taiga-ui/kit';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { AreaFormComponent } from './area-form';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-area-list',
@@ -35,27 +38,22 @@ import { TuiBadge } from '@taiga-ui/kit';
     TuiSurface,
     TuiCardLarge,
     TuiHeader,
-    TuiBadge,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
       <header class="mb-4 flex items-start justify-between gap-2">
-        <div class="flex items-center gap-2">
-          <tui-badge
-            class="cursor-pointer hidden sm:block"
-            [appearance]="'neutral'"
-            iconStart="@tui.chevron-left"
-            size="xl"
-            (click.zoneless)="goBack()"
-            [attr.aria-label]="'actions.back' | translate"
-            [attr.title]="'actions.back' | translate"
-          />
-          <h1 class="text-2xl font-bold">{{ 'areas.title' | translate }}</h1>
-        </div>
+        <h1 class="text-2xl font-bold">{{ 'areas.title' | translate }}</h1>
+
         @if (global.isAdmin()) {
-          <a tuiButton appearance="textfield" size="s" routerLink="/area/new">
+          <button
+            tuiButton
+            appearance="textfield"
+            size="m"
+            type="button"
+            (click.zoneless)="openCreateDialog()"
+          >
             {{ 'areas.new' | translate }}
-          </a>
+          </button>
         }
       </header>
 
@@ -114,7 +112,8 @@ export class AreaListComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly areasService = inject(AreasService);
   protected readonly global = inject(GlobalData);
-  private readonly location = inject(Location);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
 
   readonly loading = computed(() => this.areasService.loading());
   readonly areas = computed<AreaDto[]>(() => this.areasService.areas());
@@ -140,8 +139,19 @@ export class AreaListComponent {
     this.query.set(v);
   }
 
-  goBack(): void {
-    this.location.back();
+  openCreateDialog(): void {
+    this.dialogs
+      .open<boolean>(new PolymorpheusComponent(AreaFormComponent), {
+        label: this.translate.instant('areas.newTitle'),
+        size: 'm',
+      })
+      .subscribe({
+        next: (created) => {
+          if (created && isPlatformBrowser(this.platformId)) {
+            void this.areasService.listAll();
+          }
+        },
+      });
   }
 }
 

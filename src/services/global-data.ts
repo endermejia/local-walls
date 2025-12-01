@@ -92,18 +92,13 @@ export class GlobalData {
     ['Navigation']: [
       {
         name: 'nav.home',
-        icon: '@tui.home',
+        icon: '@tui.map',
         fn: () => this.router.navigateByUrl('/'),
       },
       {
         name: 'nav.areas',
         icon: '@tui.list',
         fn: () => this.router.navigateByUrl('/areas'),
-      },
-      {
-        name: 'nav.notFound',
-        icon: '@tui.alert-circle',
-        fn: () => this.router.navigateByUrl('/404'),
       },
     ],
   });

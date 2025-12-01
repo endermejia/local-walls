@@ -108,7 +108,7 @@
     "required": "Required field"
   },
   "nav": {
-    "home": "Home",
+    "home": "Map",
     "notFound": "Not found",
     "areas": "Areas"
   },
@@ -146,6 +146,8 @@
     "new": "New area",
     "newTitle": "Create new area",
     "editTitle": "Edit area",
+    "deleteTitle": "Delete area",
+    "deleteConfirm": "Are you sure you want to delete the area \"{{name}}\"? This action cannot be undone.",
     "name": "Name",
     "slug": "Slug",
     "empty": "No areas yet",

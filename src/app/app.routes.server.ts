@@ -22,8 +22,6 @@ export const serverRoutes: ServerRoute[] = [
   // Parameterized routes prerendered with fallback to Server for non-listed ids
   // Areas list (static)
   { path: 'areas', renderMode: RenderMode.Prerender },
-  // Area create (admin). Use Server to always render fresh form.
-  { path: 'area/new', renderMode: RenderMode.Server },
   // Area detail by slug (no country)
   {
     path: 'area/:areaSlug',
@@ -33,11 +31,6 @@ export const serverRoutes: ServerRoute[] = [
       // No predefined params; let SSR handle dynamic requests
       return [];
     },
-  },
-  // Area edit (admin). Use Server to fetch latest data for the slug.
-  {
-    path: 'area/:areaSlug/edit',
-    renderMode: RenderMode.Server,
   },
   {
     path: 'crag/:countrySlug/:cragSlug',

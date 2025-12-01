@@ -108,7 +108,7 @@
     "required": "Campo obligatorio"
   },
   "nav": {
-    "home": "Inicio",
+    "home": "Mapa",
     "notFound": "No encontrado",
     "areas": "Áreas"
   },
@@ -146,6 +146,8 @@
     "new": "Nueva área",
     "newTitle": "Crear nueva área",
     "editTitle": "Editar área",
+    "deleteTitle": "Eliminar área",
+    "deleteConfirm": "¿Seguro que quieres eliminar el área \"{{name}}\"? Esta acción no se puede deshacer.",
     "name": "Nombre",
     "slug": "Slug",
     "empty": "No hay áreas todavía",

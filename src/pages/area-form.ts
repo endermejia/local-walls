@@ -10,14 +10,14 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
 import { AreasService } from '../services';
 import type { AreaDto } from '../models/supabase-tables.dto';
 import { PLATFORM_ID } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Location } from '@angular/common';
-import { TuiBadge } from '@taiga-ui/kit';
+import { type TuiDialogContext } from '@taiga-ui/experimental';
+import { injectContext } from '@taiga-ui/polymorpheus';
 
 @Component({
   selector: 'app-area-form',
@@ -30,95 +30,76 @@ import { TuiBadge } from '@taiga-ui/kit';
     TuiLabel,
     TuiTextfield,
     TranslatePipe,
-    TuiBadge,
   ],
   template: `
-    <section class="w-full max-w-xl mx-auto p-4">
-      <header class="mb-4 flex items-start justify-between gap-2">
-        <div class="flex items-center gap-2">
-          <tui-badge
-            class="cursor-pointer hidden sm:block"
-            [appearance]="'neutral'"
-            iconStart="@tui.chevron-left"
-            size="xl"
-            (click.zoneless)="goBack()"
-            [attr.aria-label]="'actions.back' | translate"
-            [attr.title]="'actions.back' | translate"
-          />
-          <h1 class="text-2xl font-bold">
-            {{ (isEdit() ? 'areas.editTitle' : 'areas.newTitle') | translate }}
-          </h1>
-        </div>
-      </header>
+    <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
+      <tui-textfield class="block">
+        <label tuiLabel for="area-name">{{ 'areas.name' | translate }}</label>
+        <input
+          tuiTextfield
+          id="area-name"
+          [formControl]="name"
+          type="text"
+          required
+          [attr.aria-invalid]="name.invalid"
+        />
+        @if (name.invalid && name.touched) {
+          <tui-error>{{ 'errors.required' | translate }}</tui-error>
+        }
+      </tui-textfield>
 
-      <form class="grid gap-4" (submit.zoneless)="onSubmit()">
-        <tui-textfield class="block">
-          <label tuiLabel for="area-name">{{ 'areas.name' | translate }}</label>
-          <input
-            tuiTextfield
-            id="area-name"
-            [formControl]="name"
-            type="text"
-            required
-            [attr.aria-invalid]="name.invalid"
-          />
-          @if (name.invalid && name.touched) {
-            <tui-error>{{ 'errors.required' | translate }}</tui-error>
-          }
-        </tui-textfield>
-
-        <tui-textfield class="block">
-          <label tuiLabel for="area-slug">{{ 'areas.slug' | translate }}</label>
-          <input
-            tuiTextfield
-            id="area-slug"
-            [formControl]="slug"
-            type="text"
-            required
-            [attr.aria-invalid]="slug.invalid"
-          />
-          @if (slug.invalid && slug.touched) {
-            <tui-error>{{ 'errors.required' | translate }}</tui-error>
-          }
-        </tui-textfield>
-
-        <div class="flex gap-2 justify-end">
-          <button
-            tuiButton
-            appearance="secondary"
-            type="button"
-            (click.zoneless)="goBack()"
-          >
-            {{ 'common.cancel' | translate }}
-          </button>
-          <button tuiButton appearance="primary" type="submit">
-            {{ (isEdit() ? 'common.save' : 'common.create') | translate }}
-          </button>
-        </div>
-      </form>
-    </section>
+      <div class="flex gap-2 justify-end">
+        <button
+          tuiButton
+          appearance="secondary"
+          type="button"
+          (click.zoneless)="goBack()"
+        >
+          {{ 'common.cancel' | translate }}
+        </button>
+        <button tuiButton appearance="primary" type="submit">
+          {{ (isEdit() ? 'common.save' : 'common.create') | translate }}
+        </button>
+      </div>
+    </form>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'overflow-auto' },
 })
 export class AreaFormComponent {
   private readonly areas = inject(AreasService);
-  private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly location = inject(Location);
+  // Optional dialog context when used inside TuiDialogService
+  private readonly _dialogCtx: TuiDialogContext<
+    string | null,
+    { areaSlug?: string }
+  > | null = (() => {
+    try {
+      return injectContext<
+        TuiDialogContext<string | null, { areaSlug?: string }>
+      >();
+    } catch {
+      return null;
+    }
+  })();
 
   // areaSlug route param for edit variant (optional)
   areaSlug: InputSignal<string | undefined> = input<string | undefined>(
     undefined,
   );
 
-  readonly isEdit: Signal<boolean> = computed(() => !!this.areaSlug());
+  // slug that comes from dialog data when opened as a dialog
+  private readonly dialogDataSlug: string | undefined =
+    this._dialogCtx?.data?.areaSlug;
+
+  private readonly effectiveSlug: Signal<string | undefined> = computed(
+    () => this.dialogDataSlug ?? this.areaSlug(),
+  );
+
+  readonly isEdit: Signal<boolean> = computed(() => !!this.effectiveSlug());
 
   name = new FormControl<string>('', {
-    nonNullable: true,
-    validators: [Validators.required],
-  });
-  slug = new FormControl<string>('', {
     nonNullable: true,
     validators: [Validators.required],
   });
@@ -129,7 +110,7 @@ export class AreaFormComponent {
   constructor() {
     // When editing, load the area by slug
     effect(() => {
-      const slug = this.areaSlug();
+      const slug = this.effectiveSlug();
       if (!slug) return;
       void this.loadArea(slug);
     });
@@ -141,17 +122,20 @@ export class AreaFormComponent {
     if (area) {
       this.editingId = area.id;
       this.name.setValue(area.name);
-      this.slug.setValue(area.slug);
     }
   }
 
-  async onSubmit(): Promise<void> {
-    if (this.name.invalid || this.slug.invalid) {
+  async onSubmit(event?: Event): Promise<void> {
+    // Prevent native form submission when using (submit) instead of (ngSubmit)
+    event?.preventDefault();
+    event?.stopPropagation();
+    if (this.name.invalid) {
       this.name.markAsTouched();
-      this.slug.markAsTouched();
       return;
     }
-    const payload = { name: this.name.value, slug: this.slug.value } as const;
+    const name = this.name.value;
+    const slug = this.slugify(name);
+    const payload = { name, slug } as const;
     try {
       if (this.isEdit()) {
         if (this.editingId == null) return;
@@ -159,15 +143,40 @@ export class AreaFormComponent {
       } else {
         await this.areas.create(payload);
       }
-      this.goBack();
+      // Close the dialog if present, otherwise navigate back
+      if (this._dialogCtx) {
+        // Return the new slug so the caller can navigate if it changed
+        this._dialogCtx.completeWith(slug);
+      } else {
+        this.goBack();
+      }
     } catch (e) {
       // Errors ya se loguean en service
     }
   }
 
+  private slugify(value: string): string {
+    if (!value) return '';
+    // Normalize to NFD to separate diacritics, then remove them
+    let v = value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // remove diacritics
+      .toLowerCase()
+      .trim();
+    // Replace non-alphanumeric (a-z, 0-9) with hyphens
+    v = v.replace(/[^a-z0-9]+/g, '-');
+    // Collapse multiple hyphens
+    v = v.replace(/-+/g, '-');
+    // Trim leading/trailing hyphens
+    v = v.replace(/^-/g, '').replace(/-$/g, '');
+    return v;
+  }
+
   goBack(): void {
-    this.location.back();
+    if (this._dialogCtx) {
+      this._dialogCtx.$implicit.complete();
+    } else {
+      this.location.back();
+    }
   }
 }
-
-export default AreaFormComponent;

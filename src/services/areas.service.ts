@@ -110,4 +110,24 @@ export class AreasService {
     }
     return data as AreaDto;
   }
+
+  /** Delete an area by id (client-only). Returns true if deleted. */
+  async delete(id: number): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    await this.supabase.whenReady();
+    const { error } = await this.supabase.client
+      .from('areas')
+      .delete()
+      .eq('id', id);
+    if (error) {
+      console.error('[AreasService] delete error', error);
+      throw error;
+    }
+    // Optimistically update local cache
+    try {
+      const current = this.areas();
+      this.areas.set(current.filter((a) => a.id !== id));
+    } catch {}
+    return true;
+  }
 }

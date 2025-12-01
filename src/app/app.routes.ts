@@ -35,18 +35,6 @@ export const routes: Routes = [
   },
   // Admin-only area management
   {
-    path: 'area/new',
-    canMatch: [authGuard, adminGuard],
-    loadComponent: () =>
-      import('../pages/area-form').then((m) => m.AreaFormComponent),
-  },
-  {
-    path: 'area/:areaSlug/edit',
-    canMatch: [authGuard, adminGuard],
-    loadComponent: () =>
-      import('../pages/area-form').then((m) => m.AreaFormComponent),
-  },
-  {
     path: 'route/:countrySlug/:cragSlug/sector/:sectorSlug/:zlaggableSlug',
     canMatch: [authGuard],
     loadComponent: () => import('../pages/route').then((m) => m.RouteComponent),
