@@ -1,6 +1,6 @@
 import { Coordinates } from './coordinates.model';
 import { PageableResponse } from './pagination.model';
-import { AmountByEveryVerticalLifeGrade } from './grade.model';
+import { AmountByEveryGrade } from './grade.model';
 
 export interface ClimbingCrag {
   unifiedId?: number;
@@ -35,5 +35,5 @@ export interface CragListItem {
   slug: string;
   liked: boolean;
   topos_count: number;
-  grades: AmountByEveryVerticalLifeGrade;
+  grades: AmountByEveryGrade;
 }

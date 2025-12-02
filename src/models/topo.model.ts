@@ -1,5 +1,5 @@
 // TODO: Pending AdditionApi
-import { AmountByEveryVerticalLifeGrade } from './grade.model';
+import { AmountByEveryGrade } from './grade.model';
 
 export interface TopoRoute {
   id: number;
@@ -13,6 +13,6 @@ export interface ClimbingTopo {
   name: string;
   photo?: string;
   cragId: string;
-  grades: AmountByEveryVerticalLifeGrade;
+  grades: AmountByEveryGrade;
   topoRoutes: TopoRoute[];
 }

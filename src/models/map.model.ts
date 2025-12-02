@@ -1,4 +1,4 @@
-import { AmountByEveryVerticalLifeGrade } from './grade.model';
+import { AmountByEveryGrade } from './grade.model';
 import { VERTICAL_LIFE_SEASON } from './season.model';
 
 export interface MapAreaItem {
@@ -22,7 +22,7 @@ export interface MapCragItem {
   slug: string;
   latitude: number;
   longitude: number;
-  grades: AmountByEveryVerticalLifeGrade;
+  grades: AmountByEveryGrade;
   season: VERTICAL_LIFE_SEASON[];
   country_slug: string;
   country_name: string;
@@ -116,7 +116,7 @@ export interface MapCragDataFeature {
     area_slug?: string;
     category?: number; // tipo/categoría de crag
     avg_rating?: number;
-    grades?: AmountByEveryVerticalLifeGrade | Record<string, unknown>;
+    grades?: AmountByEveryGrade | Record<string, unknown>;
     season?: VERTICAL_LIFE_SEASON[] | number[];
     total_ascendables?: number;
     total_ascents?: number;

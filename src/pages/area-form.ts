@@ -8,12 +8,11 @@ import {
   computed,
   effect,
 } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
-import { AreasService } from '../services';
-import type { AreaDto } from '../models/supabase-tables.dto';
-import { PLATFORM_ID } from '@angular/core';
+import { AreasService, GlobalData } from '../services';
+import { slugify } from '../utils';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Location } from '@angular/common';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
@@ -41,10 +40,10 @@ import { injectContext } from '@taiga-ui/polymorpheus';
           [formControl]="name"
           type="text"
           required
-          [attr.aria-invalid]="name.invalid"
+          [invalid]="name.invalid && name.touched"
         />
         @if (name.invalid && name.touched) {
-          <tui-error>{{ 'errors.required' | translate }}</tui-error>
+          <tui-error [error]="'errors.required' | translate" />
         }
       </tui-textfield>
 
@@ -57,7 +56,12 @@ import { injectContext } from '@taiga-ui/polymorpheus';
         >
           {{ 'common.cancel' | translate }}
         </button>
-        <button tuiButton appearance="primary" type="submit">
+        <button
+          [disabled]="name.invalid || !name.dirty"
+          tuiButton
+          appearance="primary"
+          type="submit"
+        >
           {{ (isEdit() ? 'common.save' : 'common.create') | translate }}
         </button>
       </div>
@@ -68,36 +72,40 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 })
 export class AreaFormComponent {
   private readonly areas = inject(AreasService);
-  private readonly platformId = inject(PLATFORM_ID);
+  private readonly global = inject(GlobalData);
   private readonly location = inject(Location);
   // Optional dialog context when used inside TuiDialogService
   private readonly _dialogCtx: TuiDialogContext<
-    string | null,
-    { areaSlug?: string }
+    string | boolean | null,
+    { areaData?: { id: number; name: string; slug: string } }
   > | null = (() => {
     try {
       return injectContext<
-        TuiDialogContext<string | null, { areaSlug?: string }>
+        TuiDialogContext<
+          string | boolean | null,
+          { areaData?: { id: number; name: string; slug: string } }
+        >
       >();
     } catch {
       return null;
     }
   })();
 
-  // areaSlug route param for edit variant (optional)
-  areaSlug: InputSignal<string | undefined> = input<string | undefined>(
-    undefined,
-  );
+  // When using as a routed/page component, an input can provide the area data for editing
+  areaData: InputSignal<
+    { id: number; name: string; slug: string } | undefined
+  > = input<{ id: number; name: string; slug: string } | undefined>(undefined);
 
-  // slug that comes from dialog data when opened as a dialog
-  private readonly dialogDataSlug: string | undefined =
-    this._dialogCtx?.data?.areaSlug;
+  // Area data when opened as a dialog
+  private readonly dialogAreaData:
+    | { id: number; name: string; slug: string }
+    | undefined = this._dialogCtx?.data?.areaData;
 
-  private readonly effectiveSlug: Signal<string | undefined> = computed(
-    () => this.dialogDataSlug ?? this.areaSlug(),
-  );
+  private readonly effectiveAreaData: Signal<
+    { id: number; name: string; slug: string } | undefined
+  > = computed(() => this.dialogAreaData ?? this.areaData());
 
-  readonly isEdit: Signal<boolean> = computed(() => !!this.effectiveSlug());
+  readonly isEdit: Signal<boolean> = computed(() => !!this.effectiveAreaData());
 
   name = new FormControl<string>('', {
     nonNullable: true,
@@ -108,21 +116,13 @@ export class AreaFormComponent {
   private editingId: number | null = null;
 
   constructor() {
-    // When editing, load the area by slug
+    // When editing, prefill the form with provided data
     effect(() => {
-      const slug = this.effectiveSlug();
-      if (!slug) return;
-      void this.loadArea(slug);
+      const data = this.effectiveAreaData();
+      if (!data) return;
+      this.editingId = data.id;
+      this.name.setValue(data.name);
     });
-  }
-
-  private async loadArea(slug: string) {
-    if (!isPlatformBrowser(this.platformId)) return;
-    const area: AreaDto | null = await this.areas.getBySlug(slug);
-    if (area) {
-      this.editingId = area.id;
-      this.name.setValue(area.name);
-    }
   }
 
   async onSubmit(event?: Event): Promise<void> {
@@ -134,42 +134,30 @@ export class AreaFormComponent {
       return;
     }
     const name = this.name.value;
-    const slug = this.slugify(name);
+    const slug = slugify(name);
     const payload = { name, slug } as const;
     try {
       if (this.isEdit()) {
         if (this.editingId == null) return;
         await this.areas.update(this.editingId, payload);
+        // Keep GlobalData in sync when editing the currently loaded area
+        const g = this.global.area();
+        if (g && g.id === this.editingId) {
+          this.global.area.set({ ...g, name, slug });
+        }
       } else {
         await this.areas.create(payload);
       }
       // Close the dialog if present, otherwise navigate back
       if (this._dialogCtx) {
-        // Return the new slug so the caller can navigate if it changed
-        this._dialogCtx.completeWith(slug);
+        // Return a boolean on create, or the slug on edit
+        this._dialogCtx.completeWith(this.isEdit() ? slug : true);
       } else {
         this.goBack();
       }
-    } catch (e) {
-      // Errors ya se loguean en service
+    } catch {
+      /* empty */
     }
-  }
-
-  private slugify(value: string): string {
-    if (!value) return '';
-    // Normalize to NFD to separate diacritics, then remove them
-    let v = value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // remove diacritics
-      .toLowerCase()
-      .trim();
-    // Replace non-alphanumeric (a-z, 0-9) with hyphens
-    v = v.replace(/[^a-z0-9]+/g, '-');
-    // Collapse multiple hyphens
-    v = v.replace(/-+/g, '-');
-    // Trim leading/trailing hyphens
-    v = v.replace(/^-/g, '').replace(/-$/g, '');
-    return v;
   }
 
   goBack(): void {

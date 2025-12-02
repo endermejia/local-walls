@@ -1,4 +1,4 @@
-import { AmountByEveryVerticalLifeGrade } from './grade.model';
+import { AmountByEveryGrade } from './grade.model';
 import { CragListItem } from './crag.model';
 
 // Supabase RPC get_areas_list response item
@@ -8,7 +8,7 @@ export interface AreaListItem {
   slug: string;
   liked: boolean;
   crags_count: number;
-  grades: AmountByEveryVerticalLifeGrade | null;
+  grades: AmountByEveryGrade;
 }
 
 // Supabase RPC toggle_area_like response
@@ -22,6 +22,6 @@ export interface AreaDetail {
   name: string;
   slug: string;
   liked: boolean;
-  grades: AmountByEveryVerticalLifeGrade;
+  grades: AmountByEveryGrade;
   crags: CragListItem[];
 }

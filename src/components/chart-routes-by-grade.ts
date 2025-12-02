@@ -14,7 +14,7 @@ import {
   ORDERED_GRADE_VALUES,
   GradeLabel,
   RoutesByGrade,
-  AmountByEveryVerticalLifeGrade,
+  AmountByEveryGrade,
   normalizeRoutesByGrade,
   bandForGradeLabel,
 } from '../models';
@@ -69,13 +69,13 @@ import { LowerCasePipe } from '@angular/common';
   `,
 })
 export class ChartRoutesByGradeComponent {
-  grades: InputSignal<AmountByEveryVerticalLifeGrade> =
-    input.required<AmountByEveryVerticalLifeGrade>();
+  grades: InputSignal<AmountByEveryGrade> =
+    input.required<AmountByEveryGrade>();
   activeItemIndex: WritableSignal<number> = signal<number>(Number.NaN);
 
   private readonly allGrades = ORDERED_GRADE_VALUES;
 
-  // Normalize input (AmountByEveryVerticalLifeGrade) into label-based record for charting
+  // Normalize input (AmountByEveryVerticalLifeGrade) into a label-based record for charting
   private readonly normalizedCounts: Signal<RoutesByGrade> = computed(() =>
     normalizeRoutesByGrade(this.grades()),
   );

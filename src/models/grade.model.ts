@@ -43,14 +43,11 @@ export enum VERTICAL_LIFE_GRADES {
   G9c = 39, // 9c
 }
 
-export type AmountByEveryVerticalLifeGrade = Partial<
-  Record<VERTICAL_LIFE_GRADES, number>
->;
+export type AmountByEveryGrade = Partial<Record<VERTICAL_LIFE_GRADES, number>>;
 
 // Generate grade labels programmatically to avoid repetition
 export type GradeLetter = 'a' | 'b' | 'c';
 export type GradeSuffix = '' | '+';
-export type Digit = '3' | '4' | '5' | '6' | '7' | '8' | '9';
 
 export type GradeLabel =
   | `${'3' | '4'}${GradeLetter}`
@@ -105,16 +102,6 @@ export const VERTICAL_LIFE_TO_LABEL: Partial<
   [VERTICAL_LIFE_GRADES.G9c]: '9c',
 };
 
-export const LABEL_TO_VERTICAL_LIFE: Partial<
-  Record<GradeLabel, VERTICAL_LIFE_GRADES>
-> = Object.entries(VERTICAL_LIFE_TO_LABEL).reduce(
-  (acc, [k, v]) => {
-    if (v) acc[v as GradeLabel] = Number(k) as VERTICAL_LIFE_GRADES;
-    return acc;
-  },
-  {} as Partial<Record<GradeLabel, VERTICAL_LIFE_GRADES>>,
-);
-
 // Ordered grade values derived strictly from the enum mapping above
 export const ORDERED_GRADE_VALUES: readonly GradeLabel[] = Object.entries(
   VERTICAL_LIFE_TO_LABEL,
@@ -136,7 +123,7 @@ export function bandForGradeLabel(g: GradeLabel): 0 | 1 | 2 | 3 | 4 {
 }
 
 export function normalizeRoutesByGrade(
-  input: AmountByEveryVerticalLifeGrade | RoutesByGrade | undefined,
+  input: AmountByEveryGrade | RoutesByGrade | undefined,
 ): RoutesByGrade {
   const out: RoutesByGrade = {};
   if (!input) return out;
@@ -144,9 +131,7 @@ export function normalizeRoutesByGrade(
   // If keys look like enum numbers, map through VERTICAL_LIFE_TO_LABEL
   const isEnumLike = Object.keys(input as object).some((k) => /^\d+$/.test(k));
   if (isEnumLike) {
-    for (const [k, v] of Object.entries(
-      input as AmountByEveryVerticalLifeGrade,
-    )) {
+    for (const [k, v] of Object.entries(input as AmountByEveryGrade)) {
       const num = Number(k) as VERTICAL_LIFE_GRADES;
       const label = VERTICAL_LIFE_TO_LABEL[num];
       if (label && v) out[label] = v;

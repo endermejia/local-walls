@@ -95,14 +95,12 @@ import { ChartRoutesByGradeComponent } from '../components';
                     }}
                   </div>
                 </section>
-                @if (a.grades) {
-                  <div (click.zoneless)="$event.stopPropagation()">
-                    <app-chart-routes-by-grade
-                      class="mt-2"
-                      [grades]="a.grades"
-                    />
-                  </div>
-                }
+                <div
+                  class="mb-2 flex justify-end"
+                  (click.zoneless)="$event.stopPropagation()"
+                >
+                  <app-chart-routes-by-grade [grades]="a.grades" />
+                </div>
               </div>
             </div>
           } @empty {

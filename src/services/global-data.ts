@@ -11,6 +11,7 @@ import { VerticalLifeApi } from './vertical-life-api';
 import { PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { LocalStorage } from './local-storage';
+import { slugify } from '../utils/slugify';
 import { Router } from '@angular/router';
 import { SupabaseService } from './supabase.service';
 import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
@@ -260,15 +261,7 @@ export class GlobalData {
   // Cache for local areas loaded from public/map/map_areas.json
   private _localAreasCache: MapAreaItem[] | null = null;
 
-  // Simple slugifier for area names when local data lacks slugs
-  private slugify(input: string | undefined | null): string {
-    const s = (input ?? '').toString().trim().toLowerCase();
-    return s
-      .normalize('NFD')
-      .replace(/\p{Diacritic}+/gu, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-  }
+  // slugify moved to shared utils (see src/utils/slugify.ts)
 
   // Load local areas from static JSON (browser-only). The JSON contains points with
   // properties: { area_name, bounding_box }. We adapt them to MapAreaItem.
@@ -303,7 +296,7 @@ export class GlobalData {
           return {
             id,
             name,
-            slug: this.slugify(name),
+            slug: slugify(name),
             country_name: '',
             country_slug: '',
             area_type: 0,

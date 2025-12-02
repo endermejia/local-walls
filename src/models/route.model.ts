@@ -1,4 +1,4 @@
-import { AmountByEveryVerticalLifeGrade, GradeLabel } from './grade.model';
+import { AmountByEveryGrade, GradeLabel } from './grade.model';
 import { PageableResponse } from './pagination.model';
 
 export interface ClimbingRouteResponse {
@@ -34,7 +34,7 @@ export interface ClimbingRoute {
   countryName?: string;
   countrySlug?: string;
   gradeIndex?: number;
-  grades?: AmountByEveryVerticalLifeGrade;
+  grades?: AmountByEveryGrade;
   hasVlId?: boolean;
   premium?: boolean;
   season?: number[];

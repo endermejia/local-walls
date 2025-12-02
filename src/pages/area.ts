@@ -231,7 +231,7 @@ export class AreaComponent {
       .open<string | null>(new PolymorpheusComponent(AreaFormComponent), {
         label: this.translate.instant('areas.editTitle'),
         size: 'm',
-        data: { areaSlug: area.slug },
+        data: { areaData: { id: area.id, name: area.name, slug: area.slug } },
       })
       .subscribe({
         next: async (result) => {
