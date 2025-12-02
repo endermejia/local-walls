@@ -108,11 +108,14 @@
     "required": "Required field"
   },
   "nav": {
-    "home": "Map",
-    "notFound": "Not found",
-    "areas": "Areas"
+    "home": "Home",
+    "logbook": "Profile",
+    "explore": "Map",
+    "areas": "Areas",
+    "my-crags": "My crags",
+    "admin-users": "Admin users"
   },
-  "home": {
+  "explore": {
     "toggleView": "Toggle view"
   },
   "filters": {

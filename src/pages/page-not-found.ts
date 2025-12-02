@@ -26,7 +26,7 @@ import { TuiButton } from '@taiga-ui/core';
           tuiButton
           type="button"
           appearance="primary"
-          [routerLink]="['/home']"
+          [routerLink]="['/explore']"
           (click.zoneless)="$event.stopPropagation()"
         >
           {{ 'notFound.goHome' | translate }}

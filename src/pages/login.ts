@@ -361,7 +361,7 @@ export class LoginComponent {
         return;
       }
       this.error.set(null);
-      void this.router.navigateByUrl('/home');
+      void this.router.navigateByUrl('/explore');
     } catch {
       this.error.set('errors.unexpected');
     } finally {
@@ -416,7 +416,7 @@ export class LoginComponent {
       await this.supabase.whenReady();
       let redirectTo: string | undefined = undefined;
       if (isPlatformBrowser(this.platformId) && typeof window !== 'undefined') {
-        // Importante: redirigimos al login con flag de recuperación para evitar caer en '/home'
+        // Importante: redirigimos al login con flag de recuperación para evitar caer en '/explore'
         // por el redirect de la raíz tanto en SSR como en el router del cliente.
         // Supabase añadirá su hash con tokens y 'type=recovery', que este componente detecta.
         redirectTo = `${window.location.origin}/login?type=recovery`;
@@ -461,7 +461,7 @@ export class LoginComponent {
       this.error.set('auth.passwordUpdated');
       this.newPassword.set('');
       this.confirmPassword.set('');
-      void this.router.navigateByUrl('/home');
+      void this.router.navigateByUrl('/explore');
     } catch {
       this.error.set('errors.unexpected');
     } finally {

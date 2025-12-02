@@ -10,14 +10,14 @@ export const serverRoutes: ServerRoute[] = [
   {
     path: '',
     renderMode: RenderMode.Server,
-    headers: { Location: '/home' },
+    headers: { Location: '/explore' },
     status: 302,
   },
 
   { path: 'login', renderMode: RenderMode.Server },
 
   // Home can be prerendered safely
-  { path: 'home', renderMode: RenderMode.Prerender },
+  { path: 'explore', renderMode: RenderMode.Prerender },
 
   // Parameterized routes prerendered with fallback to Server for non-listed ids
   // Areas list (static)

@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { SupabaseService } from './supabase.service';
+import { GlobalData } from './global-data';
 import type {
   AreaDto,
   AreaInsertDto,
@@ -18,29 +19,10 @@ import type { AreaLikeToggleResult, AreaListItem, AreaDetail } from '../models';
 export class AreasService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
+  private readonly global = inject(GlobalData);
 
   readonly loading = signal(false);
   readonly error: WritableSignal<string | null> = signal<string | null>(null);
-  readonly areas: WritableSignal<AreaDto[]> = signal<AreaDto[]>([]);
-  // RPC-based list for areas with like info
-  readonly rpcAreas: WritableSignal<AreaListItem[]> = signal<AreaListItem[]>(
-    [],
-  );
-
-  async getBySlug(slug: string): Promise<AreaDto | null> {
-    if (!isPlatformBrowser(this.platformId)) return null;
-    await this.supabase.whenReady();
-    const { data, error } = await this.supabase.client
-      .from('areas')
-      .select('*')
-      .eq('slug', slug)
-      .maybeSingle();
-    if (error) {
-      console.warn('[AreasService] getBySlug error', error);
-      return null;
-    }
-    return data ?? null;
-  }
 
   async create(
     payload: Omit<AreaInsertDto, 'created_at' | 'id'>,
@@ -90,17 +72,12 @@ export class AreasService {
       console.error('[AreasService] delete error', error);
       throw error;
     }
-    // Optimistically update local cache
-    try {
-      const current = this.areas();
-      this.areas.set(current.filter((a) => a.id !== id));
-    } catch {}
     return true;
   }
 
   /**
    * List areas using Supabase RPC get_areas_list, which includes user like information.
-   * Client-only. On server returns empty list.
+   * Client-only. On server returns an empty list.
    */
   async listFromRpc(
     filter = '',
@@ -121,7 +98,8 @@ export class AreasService {
       if (error) throw error;
       const items = (data as AreaListItem[] | null) ?? [];
 
-      this.rpcAreas.set(items);
+      // Store in GlobalData as the single source of truth
+      this.global.areas.set(items);
       return items;
     } catch (e: any) {
       console.error('[AreasService] listFromRpc error', e);
@@ -158,15 +136,15 @@ export class AreasService {
         | AreaLikeToggleResult
         | undefined;
       if (!result) return null;
-      // Optimistically update rpcAreas cache
+      // Optimistically update GlobalData areas cache
       try {
-        const list = this.rpcAreas();
+        const list = this.global.areas();
         const idx = list.findIndex((a) => a.id === areaId);
         if (idx !== -1) {
           const updated = [...list];
           const liked = result.action === 'inserted';
           updated[idx] = { ...updated[idx], liked };
-          this.rpcAreas.set(updated);
+          this.global.areas.set(updated);
         }
       } catch {
         /* empty */

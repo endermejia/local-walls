@@ -20,10 +20,7 @@ import {
 } from '../models';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import {
-  HomeFilterDialogComponent,
-  HomeFilterData,
-} from './home-filter-dialog';
+import { HomeFilterDialogComponent, FilterDialog } from './filter-dialog';
 import { GlobalData } from '../services';
 import { ChartRoutesByGradeComponent, MapComponent } from '../components';
 import { RouterLink } from '@angular/router';
@@ -77,7 +74,7 @@ import { TranslateService } from '@ngx-translate/core';
               : ('labels.list' | translate)
           "
         >
-          {{ 'home.toggleView' | translate }}
+          {{ 'explore.toggleView' | translate }}
         </button>
       </div>
       <div class="z-10">
@@ -279,7 +276,7 @@ import { TranslateService } from '@ngx-translate/core';
     class: 'flex grow h-full',
   },
 })
-export class HomeComponent {
+export class ExploreComponent {
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
 
@@ -294,7 +291,7 @@ export class HomeComponent {
   protected readonly global = inject(GlobalData);
 
   constructor() {
-    this.global.resetDataByPage('home');
+    this.global.resetDataByPage('explore');
   }
 
   protected readonly stops = ['6rem'] as const;
@@ -487,12 +484,12 @@ export class HomeComponent {
   }
 
   protected openFilters(): void {
-    const data: HomeFilterData = {
+    const data: FilterDialog = {
       categories: this.selectedCategories(),
       gradeRange: this.selectedGradeRange(),
     };
     this.dialogs
-      .open<HomeFilterData>(
+      .open<FilterDialog>(
         new PolymorpheusComponent(HomeFilterDialogComponent),
         {
           label: this.translate.instant('labels.filters'),

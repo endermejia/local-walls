@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { authGuard, adminGuard } from '../services';
+import { authGuard } from '../services';
 
 export const routes: Routes = [
   {
@@ -8,9 +8,10 @@ export const routes: Routes = [
     loadComponent: () => import('../pages/login').then((m) => m.LoginComponent),
   },
   {
-    path: 'home',
+    path: 'explore',
     canMatch: [authGuard],
-    loadComponent: () => import('../pages/home').then((m) => m.HomeComponent),
+    loadComponent: () =>
+      import('../pages/explore').then((m) => m.ExploreComponent),
   },
   {
     path: 'areas',
@@ -41,7 +42,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'home',
+    redirectTo: 'explore',
     pathMatch: 'full',
   },
   {

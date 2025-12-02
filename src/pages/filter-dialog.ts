@@ -21,14 +21,14 @@ import { TuiRange, TuiFilter, type TuiKeySteps } from '@taiga-ui/kit';
 import { ORDERED_GRADE_VALUES } from '../models';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-export interface HomeFilterData {
+export interface FilterDialog {
   categories: number[]; // 0=Sport, 1=Boulder
   gradeRange: [number, number]; // indices into ORDERED_GRADE_VALUES
 }
 
 @Component({
   standalone: true,
-  selector: 'app-home-filter-dialog',
+  selector: 'app-filter-dialog',
   imports: [
     FormsModule,
     ReactiveFormsModule,
@@ -105,7 +105,7 @@ export interface HomeFilterData {
 export class HomeFilterDialogComponent {
   private readonly translate = inject(TranslateService);
   protected readonly context =
-    injectContext<TuiDialogContext<HomeFilterData, HomeFilterData>>();
+    injectContext<TuiDialogContext<FilterDialog, FilterDialog>>();
 
   // i18n tick to recompute signals when language/translation changes
   private readonly _i18nTick: WritableSignal<number> = signal(0);
@@ -259,7 +259,7 @@ export class HomeFilterDialogComponent {
     if (selected.includes(itemsNow[0])) categories.push(0);
     if (selected.includes(itemsNow[1])) categories.push(1);
 
-    const payload: HomeFilterData = {
+    const payload: FilterDialog = {
       categories: categories.length ? categories : [],
       gradeRange: this.sanitizeRange(this.gradeRange()),
     };

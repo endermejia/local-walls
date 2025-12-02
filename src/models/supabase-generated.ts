@@ -1058,6 +1058,7 @@ export type Database = {
         Row: {
           approach: number | null;
           area_id: number;
+          climb_kind: Database['public']['Enums']['climb_kind'];
           created_at: string;
           description_en: string | null;
           description_es: string | null;
@@ -1072,6 +1073,7 @@ export type Database = {
         Insert: {
           approach?: number | null;
           area_id: number;
+          climb_kind: Database['public']['Enums']['climb_kind'];
           created_at?: string;
           description_en?: string | null;
           description_es?: string | null;
@@ -1086,6 +1088,7 @@ export type Database = {
         Update: {
           approach?: number | null;
           area_id?: number;
+          climb_kind?: Database['public']['Enums']['climb_kind'];
           created_at?: string;
           description_en?: string | null;
           description_es?: string | null;
@@ -1322,6 +1325,7 @@ export type Database = {
           crag_id: number;
           created_at: string;
           grade: number;
+          height: number | null;
           id: number;
           name: string;
           slug: string;
@@ -1330,6 +1334,7 @@ export type Database = {
           crag_id: number;
           created_at?: string;
           grade: number;
+          height?: number | null;
           id?: number;
           name: string;
           slug: string;
@@ -1338,6 +1343,7 @@ export type Database = {
           crag_id?: number;
           created_at?: string;
           grade?: number;
+          height?: number | null;
           id?: number;
           name?: string;
           slug?: string;
@@ -1398,6 +1404,8 @@ export type Database = {
           id: number;
           name: string;
           photo: string | null;
+          shade_afternoon: boolean;
+          shade_morning: boolean;
           slug: string;
         };
         Insert: {
@@ -1406,6 +1414,8 @@ export type Database = {
           id?: number;
           name: string;
           photo?: string | null;
+          shade_afternoon?: boolean;
+          shade_morning?: boolean;
           slug: string;
         };
         Update: {
@@ -1414,6 +1424,8 @@ export type Database = {
           id?: number;
           name?: string;
           photo?: string | null;
+          shade_afternoon?: boolean;
+          shade_morning?: boolean;
           slug?: string;
         };
         Relationships: [
@@ -1505,6 +1517,7 @@ export type Database = {
           crag_name: string;
         }[];
       };
+      get_crag_by_slug: { Args: { p_slug: string }; Returns: Json };
       insert_route_ascent: {
         Args: {
           p_ascent_date?: string;
@@ -1586,6 +1599,7 @@ export type Database = {
     };
     Enums: {
       app_role: 'admin' | 'equipper' | 'climber';
+      climb_kind: 'sport' | 'boulder' | 'trad' | 'multipitch' | 'mixed';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -2242,6 +2256,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ['admin', 'equipper', 'climber'],
+      climb_kind: ['sport', 'boulder', 'trad', 'multipitch', 'mixed'],
     },
   },
   storage: {

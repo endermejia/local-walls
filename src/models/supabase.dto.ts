@@ -15,7 +15,11 @@ export interface BaseEntity {
 }
 
 // Roles de usuario a nivel de aplicación
-export type UserRole = 'admin' | 'equipper' | 'climber';
+export enum UserRole {
+  Admin = 'admin',
+  Equipper = 'equipper',
+  Climber = 'climber',
+}
 
 // Visibilidad/Tipo de Topo
 export type TopoVisibility = 'global' | 'paid' | 'secret';

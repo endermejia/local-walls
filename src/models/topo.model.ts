@@ -16,3 +16,11 @@ export interface ClimbingTopo {
   grades: AmountByEveryGrade;
   topoRoutes: TopoRoute[];
 }
+
+export interface TopoListItem {
+  id: number;
+  name: string;
+  slug: string;
+  photo?: string;
+  grades: AmountByEveryGrade;
+}

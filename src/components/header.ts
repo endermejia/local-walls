@@ -270,7 +270,7 @@ export class HeaderComponent implements OnDestroy {
 
   items: Signal<BreadcrumbItem[]> = computed<BreadcrumbItem[]>(() => {
     const items: BreadcrumbItem[] = [
-      { caption: 'nav.home', routerLink: ['/home'] },
+      { caption: 'nav.explore', routerLink: ['/explore'] },
     ];
 
     const area = this.global.area();

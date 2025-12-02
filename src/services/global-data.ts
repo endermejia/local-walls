@@ -11,7 +11,7 @@ import { VerticalLifeApi } from './vertical-life-api';
 import { PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { LocalStorage } from './local-storage';
-import { slugify } from '../utils/slugify';
+import { slugify } from '../utils';
 import { Router } from '@angular/router';
 import { SupabaseService } from './supabase.service';
 import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
@@ -31,9 +31,10 @@ import type {
   AscentsPage,
   ClimbingRoutesPage,
   MapAreaItem,
-  UserRole,
   AreaDetail,
 } from '../models';
+import type { AreaListItem } from '../models';
+import { UserRole } from '../models';
 
 @Injectable({
   providedIn: 'root',
@@ -88,10 +89,21 @@ export class GlobalData {
     return (name: IconName) => `/image/${name}-${theme}.svg`;
   });
 
-  drawer: WritableSignal<OptionsData> = signal({
-    ['Navigation']: [
+  drawer: Signal<OptionsData> = computed(() => {
+    const role = this.userRole();
+    const items = [
       {
         name: 'nav.home',
+        icon: '@tui.home',
+        fn: () => this.router.navigateByUrl('/home'),
+      },
+      {
+        name: 'nav.logbook',
+        icon: '@tui.user',
+        fn: () => this.router.navigateByUrl('/logbook'),
+      },
+      {
+        name: 'nav.explore',
         icon: '@tui.map',
         fn: () => this.router.navigateByUrl('/'),
       },
@@ -100,7 +112,30 @@ export class GlobalData {
         icon: '@tui.list',
         fn: () => this.router.navigateByUrl('/areas'),
       },
-    ],
+      // nav.my-crags: only for admin and equipper
+      ...(role === UserRole.Admin || role === UserRole.Equipper
+        ? ([
+            {
+              name: 'nav.my-crags',
+              icon: '@tui.list',
+              fn: () => this.router.navigateByUrl('/my-crags'),
+            },
+          ] as const)
+        : ([] as const)),
+      // nav.admin-users: only for admin
+      ...(role === UserRole.Admin
+        ? ([
+            {
+              name: 'nav.admin-users',
+              icon: '@tui.users',
+              fn: () => this.router.navigateByUrl('/admin-users'),
+            },
+          ] as const)
+        : ([] as const)),
+    ];
+    return {
+      ['Navigation']: items,
+    } satisfies OptionsData;
   });
   settings: Signal<OptionsData> = computed(() => ({
     preferences: [
@@ -128,7 +163,7 @@ export class GlobalData {
   readonly userRole: WritableSignal<UserRole | null> = signal<UserRole | null>(
     null,
   );
-  readonly isAdmin = computed(() => this.userRole() === 'admin');
+  readonly isAdmin = computed(() => this.userRole() === UserRole.Admin);
 
   /** Loads user role from Supabase user_profiles for current user (client only). Safe to call multiple times. */
   async ensureUserRoleLoaded(): Promise<void> {
@@ -250,6 +285,7 @@ export class GlobalData {
   });
   selectedMapCragItem: WritableSignal<MapCragItem | null> = signal(null);
   area: WritableSignal<AreaDetail | null> = signal(null);
+  areas: WritableSignal<AreaListItem[]> = signal<AreaListItem[]>([]);
   crag: WritableSignal<ClimbingCrag | null> = signal(null);
   cragSectors: WritableSignal<ClimbingSector[]> = signal([]);
   sector: WritableSignal<ClimbingSector | null> = signal(null);
@@ -629,9 +665,11 @@ export class GlobalData {
     this.localStorage.setItem('theme', this.selectedTheme());
   }
 
-  resetDataByPage(page: 'home' | 'area' | 'crag' | 'sector' | 'route'): void {
+  resetDataByPage(
+    page: 'explore' | 'area' | 'crag' | 'sector' | 'route',
+  ): void {
     switch (page) {
-      case 'home': {
+      case 'explore': {
         this.area.set(null);
         this.crag.set(null);
         this.sector.set(null);

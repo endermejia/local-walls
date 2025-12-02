@@ -125,7 +125,7 @@ export class AreaListComponent {
   private readonly translate = inject(TranslateService);
 
   readonly loading = computed(() => this.areasService.loading());
-  readonly areas = computed(() => this.areasService.rpcAreas());
+  readonly areas = computed(() => this.global.areas());
 
   readonly query: WritableSignal<string> = signal('');
   readonly filtered = computed(() => {

@@ -371,6 +371,6 @@ export class CragComponent {
       north_east_longitude: loc.longitude,
       zoom,
     });
-    void this.router.navigateByUrl('/home');
+    void this.router.navigateByUrl('/explore');
   }
 }

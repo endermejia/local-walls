@@ -153,6 +153,13 @@ export class AreaComponent {
 
   areaSlug: InputSignal<string> = input.required<string>();
 
+  // TODO:
+  // Añadir botón de filtro junto a input search para poder filtrar tambien las areas
+  // Editar FilterDialog para poder usarlo en toda la app
+  // Campos por tipo de escalada (sport, boulder, multipich...) - crag related
+  // Campos para sombra, sol, etc - topo related
+  // Filtro de grado - route related
+
   constructor() {
     effect(() => {
       const slug = this.areaSlug();
@@ -263,12 +270,12 @@ export class AreaComponent {
     void this.router.navigateByUrl(target);
   }
 
-  private resolveBackUrl(): '/home' | '/areas' {
+  private resolveBackUrl(): '/explore' | '/areas' {
     let nav = this.router.lastSuccessfulNavigation?.previousNavigation ?? null;
     let steps = 0;
     while (nav && steps < 10) {
       const url = (nav.finalUrl ?? nav.initialUrl)?.toString() ?? '';
-      if (url.startsWith('/home')) return '/home';
+      if (url.startsWith('/explore')) return '/explore';
       if (url.startsWith('/areas')) return '/areas';
       nav = nav.previousNavigation ?? null;
       steps++;

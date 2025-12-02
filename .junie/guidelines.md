@@ -200,11 +200,11 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
   // src/app/app.routes.server.ts
   import { RenderMode, ServerRoute } from "@angular/ssr";
   export const serverRoutes: ServerRoute[] = [
-    // Redirección HTTP desde raíz a /home en SSR
-    { path: "", headers: { Location: "/home" }, status: 302 },
+    // Redirección HTTP desde raíz a /explore en SSR
+    { path: "", headers: { Location: "/explore" }, status: 302 },
 
     // Rutas normales
-    { path: "home", renderMode: RenderMode.Prerender },
+    { path: "explore", renderMode: RenderMode.Prerender },
 
     // Wildcard con status 404 para SSR
     { path: "**", renderMode: RenderMode.Server, status: 404 },
@@ -253,6 +253,7 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
   ```
 - Sin factorías: reemplaza `L.map`, `L.tileLayer`, `L.marker`, etc. por constructores: `new Map(...)`, `new TileLayer(...)`, `new Marker(...)`, etc.
 - SSR/zoneless seguro (patrón del repo): no importes Leaflet de forma estática en archivos que se ejecutan en SSR. Usa importación dinámica dentro de un guardia de navegador y sólo cuando se necesite el DOM:
+
   ```ts
   import { inject, PLATFORM_ID } from "@angular/core";
   import { isPlatformBrowser } from "@angular/common";
@@ -265,6 +266,7 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
   ```
 
   - Nota: el repo ya implementa este patrón en `src/services/map-builder.ts`.
+
 - CSS: mantenemos `node_modules/leaflet/dist/leaflet.css` en `angular.json`. Se eliminó el `<link>` CDN en `src/index.html` para evitar duplicidad y desajustes de versión.
 - Activos de Leaflet: 2.0 cambia `layers.png` por `layers.svg` para `Control.Layers`. El builder de Angular copia los assets referenciados por la hoja de estilos automáticamente; no es necesario configurarlos manualmente.
 - Eventos: Leaflet 2.0 usa Pointer Events. Tipos como `LeafletMouseEvent` ya no aplican; usa eventos genéricos (`LeafletEvent`) o accede a `originalEvent` que será `PointerEvent` en navegadores modernos.

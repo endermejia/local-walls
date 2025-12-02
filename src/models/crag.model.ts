@@ -1,6 +1,8 @@
 import { Coordinates } from './coordinates.model';
 import { PageableResponse } from './pagination.model';
 import { AmountByEveryGrade } from './grade.model';
+import { TopoListItem } from './topo.model';
+import { Parking } from './parking.model';
 
 export interface ClimbingCrag {
   unifiedId?: number;
@@ -36,4 +38,23 @@ export interface CragListItem {
   liked: boolean;
   topos_count: number;
   grades: AmountByEveryGrade;
+}
+
+export interface CragDetail {
+  id: number;
+  name: string;
+  slug: string;
+  area_name: string;
+  area_slug: string;
+  description_es?: string;
+  description_en?: string;
+  warning_es?: string;
+  warning_en?: string;
+  liked: boolean;
+  grades: AmountByEveryGrade;
+  latitude: number;
+  longitude: number;
+  approach: number;
+  parkings: Parking[];
+  topos: TopoListItem[];
 }

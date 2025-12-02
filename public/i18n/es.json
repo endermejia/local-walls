@@ -108,11 +108,14 @@
     "required": "Campo obligatorio"
   },
   "nav": {
-    "home": "Mapa",
-    "notFound": "No encontrado",
-    "areas": "Áreas"
+    "home": "Inicio",
+    "logbook": "Perfil",
+    "explore": "Mapa",
+    "areas": "Áreas",
+    "my-crags": "Mis sectores",
+    "admin-users": "Administrar usuarios"
   },
-  "home": {
+  "explore": {
     "toggleView": "Cambiar vista"
   },
   "filters": {
