@@ -152,7 +152,14 @@
     "slug": "Slug",
     "empty": "No hay áreas todavía",
     "search_placeholder": "Buscar áreas por nombre o slug…",
-    "detail_placeholder": "Detalle del área. Próximamente más información…",
-    "backToList": "Volver al listado"
+    "detail_placeholder": "Próximamente más información…"
+  },
+  "crags": {
+    "title": "Sectores",
+    "new": "Nuevo sector",
+    "newTitle": "Crear nuevo sector",
+    "editTitle": "Editar sector",
+    "deleteTitle": "Eliminar sector",
+    "deleteConfirm": "¿Seguro que quieres eliminar el sector \"{{name}}\"? Esta acción no se puede deshacer."
   }
 }

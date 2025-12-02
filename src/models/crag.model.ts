@@ -18,6 +18,7 @@ export interface ClimbingCrag {
   location: Coordinates | null;
   description?: string | null;
   totalSectors?: number;
+  liked: boolean;
 }
 
 export interface ClimbingCragResponse {
@@ -32,6 +33,7 @@ export interface CragListItem {
   id: number;
   name: string;
   slug: string;
-  routes_count: number; // routes
+  liked: boolean;
+  topos_count: number;
   grades: AmountByEveryVerticalLifeGrade;
 }

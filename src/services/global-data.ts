@@ -17,7 +17,6 @@ import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
 import { TranslateService } from '@ngx-translate/core';
 import { TuiFlagPipe } from '@taiga-ui/core';
 import type {
-  ClimbingArea,
   ClimbingCrag,
   ClimbingRoute,
   ClimbingSector,
@@ -162,9 +161,6 @@ export class GlobalData {
     'Aixortà',
     'Rincón Bello',
   ]);
-
-  // TODO: implement likes
-  liked: WritableSignal<boolean> = signal(false);
 
   mapBounds: WritableSignal<MapBounds | null> = signal(null);
   private readonly mapBoundsStorageKey = 'map_bounds_v1';

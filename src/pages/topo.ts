@@ -40,7 +40,7 @@ import type { ClimbingRoute } from '../models';
             <app-section-header
               class="w-full  "
               [title]="s.sectorName"
-              [liked]="global.liked()"
+              [liked]="false"
               (back)="goBack()"
               (toggleLike)="onToggleLike()"
             />

@@ -56,7 +56,7 @@ import { mapLocationUrl } from '../utils';
       @if (crag(); as c) {
         <app-section-header
           [title]="c.cragName"
-          [liked]="global.liked()"
+          [liked]="c.liked"
           (back)="goBack()"
           (toggleLike)="global.toggleLikeCrag(c.cragSlug)"
         />
@@ -145,7 +145,7 @@ import { mapLocationUrl } from '../utils';
               @for (s of sectors(); track s.sectorSlug) {
                 <div
                   tuiCardLarge
-                  [tuiSurface]="global.liked() ? 'accent' : 'neutral'"
+                  [tuiSurface]="c.liked ? 'accent' : 'neutral'"
                   class="cursor-pointer"
                   [routerLink]="[
                     '/sector',

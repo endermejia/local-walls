@@ -4,24 +4,21 @@ import {
   inject,
   input,
   InputSignal,
-  WritableSignal,
-  signal,
   effect,
 } from '@angular/core';
 import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiCardLarge } from '@taiga-ui/layout';
-import { TuiSurface, TuiLoader, TuiTitle } from '@taiga-ui/core';
+import { TuiSurface, TuiLoader, TuiTitle, TuiButton } from '@taiga-ui/core';
 import { AreasService, GlobalData } from '../services';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TuiBadge } from '@taiga-ui/kit';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { AreaFormComponent } from './area-form';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ConfirmDialogComponent } from '../components/confirm-dialog';
-import { AreaDetail } from '../models';
 import { ChartRoutesByGradeComponent } from '../components';
 import { TuiHeader } from '@taiga-ui/layout';
 
@@ -39,19 +36,18 @@ import { TuiHeader } from '@taiga-ui/layout';
     TuiHeader,
     LowerCasePipe,
     TuiTitle,
+    RouterLink,
+    TuiButton,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
-      @if (!area()) {
-        <div class="flex items-center justify-center py-16">
-          <tui-loader size="xl" />
-        </div>
-      } @else {
+      @let area = global.area();
+      @if (area) {
         <div class="mb-4 flex items-center justify-between gap-2">
           <app-section-header
             class="w-full"
-            [title]="area()?.name || ''"
-            [liked]="area()?.liked || false"
+            [title]="area.name"
+            [liked]="area.liked"
             (back)="goBack()"
             (toggleLike)="onToggleLike()"
           />
@@ -61,7 +57,7 @@ import { TuiHeader } from '@taiga-ui/layout';
               appearance="neutral"
               iconStart="@tui.square-pen"
               size="xl"
-              (click.zoneless)="openEditDialog()"
+              (click.zoneless)="openEditArea()"
               [attr.aria-label]="'common.edit' | translate"
               [attr.title]="'common.edit' | translate"
             />
@@ -77,35 +73,58 @@ import { TuiHeader } from '@taiga-ui/layout';
           }
         </div>
 
+        <div class="mb-2 flex justify-end">
+          <app-chart-routes-by-grade [grades]="area.grades" />
+        </div>
+
         <!-- Sectors list -->
-        @if (area()?.crags?.length) {
-          <div class="mt-2">
+        @if (area.crags.length) {
+          <!-- Sectors list header -->
+          <div class="flex items-center justify-between gap-2">
             <h2 class="text-lg font-semibold mb-2">
               {{ 'labels.sectors' | translate }}
             </h2>
-            <div class="grid gap-2">
-              @for (c of area()!.crags; track c.slug) {
-                <div tuiCardLarge [tuiSurface]="'neutral'" class="p-4">
-                  <div class="flex flex-col min-w-0 grow">
-                    <header tuiHeader>
-                      <h2 tuiTitle>{{ c.name }}</h2>
-                    </header>
-                    <section>
-                      <div class="text-sm opacity-80">
-                        {{ c.routes_count }}
-                        {{ 'labels.routes' | translate | lowercase }}
-                      </div>
-                    </section>
-                    <div (click.zoneless)="$event.stopPropagation()">
-                      <app-chart-routes-by-grade
-                        class="mt-2"
-                        [grades]="c.grades"
-                      />
+            @if (global.isAdmin()) {
+              <button
+                tuiButton
+                appearance="textfield"
+                size="m"
+                type="button"
+                class="my-4"
+                (click.zoneless)="openCreateCrag()"
+              >
+                {{ 'crags.new' | translate }}
+              </button>
+            }
+          </div>
+
+          <div class="grid gap-2">
+            @for (crag of area.crags; track crag.slug) {
+              <div
+                tuiCardLarge
+                [tuiSurface]="crag.liked ? 'accent' : 'neutral'"
+                class="cursor-pointer"
+                [routerLink]="['/crag', crag.slug]"
+              >
+                <div class="flex flex-col min-w-0 grow">
+                  <header tuiHeader>
+                    <h2 tuiTitle>{{ crag.name }}</h2>
+                  </header>
+                  <section>
+                    <div class="text-sm opacity-80">
+                      {{ crag.topos_count }}
+                      {{ 'labels.topos' | translate | lowercase }}
                     </div>
+                  </section>
+                  <div
+                    class="mb-2 flex justify-end"
+                    (click.zoneless)="$event.stopPropagation()"
+                  >
+                    <app-chart-routes-by-grade [grades]="crag.grades" />
                   </div>
                 </div>
-              }
-            </div>
+              </div>
+            }
           </div>
         } @else {
           <div tuiCardLarge [tuiSurface]="'neutral'" class="p-4">
@@ -114,6 +133,10 @@ import { TuiHeader } from '@taiga-ui/layout';
             </p>
           </div>
         }
+      } @else {
+        <div class="flex items-center justify-center py-16">
+          <tui-loader size="xxl" />
+        </div>
       }
     </section>
   `,
@@ -129,13 +152,9 @@ export class AreaComponent {
   private readonly router = inject(Router);
 
   areaSlug: InputSignal<string> = input.required<string>();
-  readonly area: WritableSignal<AreaDetail | null> = signal<AreaDetail | null>(
-    null,
-  );
 
   constructor() {
     effect(() => {
-      // Track slug changes to reload data when navigating within the same component
       const slug = this.areaSlug();
       void this.load(slug);
     });
@@ -143,49 +162,39 @@ export class AreaComponent {
 
   private async load(slug: string): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
-    const data = await this.areas.getAreaDetailBySlug(slug);
-    this.area.set(data);
-
-    // Reset liked state; do not trigger extra RPCs here
-    this.global.liked.set(false);
-
+    const area = await this.areas.getAreaDetailBySlug(slug);
     this.global.resetDataByPage('area');
-    if (data) {
-      this.global.area.set(data);
+    if (area) {
+      this.global.area.set(area);
     } else {
       this.global.area.set(null);
     }
   }
 
-  async onToggleLike(): Promise<void> {
+  onToggleLike(): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    const current = this.area();
-    if (!current) return;
-    try {
-      const res = await this.areas.toggleAreaLike(current.id).then((a) => {
-        this.area.set({
-          ...current,
-          liked: !current.liked,
-        });
-        return a;
-      });
-      if (res) {
-        // Update liked signal so the UI reflects the new state immediately
-        this.global.liked.set(res.action === 'inserted');
-      }
-    } catch {
-      /* empty */
-    }
+    const area = this.global.area();
+    if (!area) return;
+    this.global.area.set({
+      ...area,
+      liked: !area.liked,
+    });
+    this.areas.toggleAreaLike(area.id).catch(() =>
+      this.global.area.set({
+        ...area,
+        liked: area.liked,
+      }),
+    );
   }
 
   deleteArea(): void {
-    const current = this.area();
-    if (!current) return;
+    const area = this.global.area();
+    if (!area) return;
     if (!isPlatformBrowser(this.platformId)) return;
 
     // Resolve translations asynchronously to ensure interpolation works
     this.translate
-      .get(['areas.deleteTitle', 'areas.deleteConfirm'], { name: current.name })
+      .get(['areas.deleteTitle', 'areas.deleteConfirm'], { name: area.name })
       .subscribe((t) => {
         const title = t['areas.deleteTitle'];
         const message = t['areas.deleteConfirm'];
@@ -205,7 +214,7 @@ export class AreaComponent {
             next: async (confirmed) => {
               if (!confirmed) return;
               try {
-                await this.areas.delete(current.id);
+                await this.areas.delete(area.id);
                 await this.router.navigateByUrl('/areas');
               } catch {
                 /* empty */
@@ -215,38 +224,43 @@ export class AreaComponent {
       });
   }
 
-  goBack(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      void this.router.navigateByUrl('/areas');
-      return;
-    }
-
-    const target = this.resolveBackUrl();
-    void this.router.navigateByUrl(target);
-  }
-
-  openEditDialog(): void {
-    const current = this.area();
-    if (!current) return;
+  openEditArea(): void {
+    const area = this.global.area();
+    if (!area) return;
     this.dialogs
       .open<string | null>(new PolymorpheusComponent(AreaFormComponent), {
         label: this.translate.instant('areas.editTitle'),
         size: 'm',
-        data: { areaSlug: current.slug },
+        data: { areaSlug: area.slug },
       })
       .subscribe({
         next: async (result) => {
           if (typeof result === 'string' && result.length) {
             if (isPlatformBrowser(this.platformId)) {
-              if (result !== current.slug) {
+              if (result !== area.slug) {
                 await this.router.navigateByUrl(`/area/${result}`);
                 return;
               }
             }
           }
-          await this.load(current.slug);
+          await this.load(area.slug);
         },
       });
+  }
+
+  openCreateCrag(): void {
+    const current = this.global.area();
+    if (!current) return;
+    // TODO: crag-form component
+  }
+
+  goBack(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      void this.router.navigateByUrl('/areas');
+      return;
+    }
+    const target = this.resolveBackUrl();
+    void this.router.navigateByUrl(target);
   }
 
   private resolveBackUrl(): '/home' | '/areas' {

@@ -27,44 +27,6 @@ export class AreasService {
     [],
   );
 
-  /** List all areas (client-only). On server returns empty list. */
-  async listAll(): Promise<AreaDto[]> {
-    if (!isPlatformBrowser(this.platformId)) return [];
-    await this.supabase.whenReady();
-    this.loading.set(true);
-    this.error.set(null);
-    try {
-      const { data, error } = await this.supabase.client
-        .from('areas')
-        .select('*')
-        .order('name', { ascending: true });
-      if (error) throw error;
-      this.areas.set(data ?? []);
-      return data ?? [];
-    } catch (e: any) {
-      console.error('[AreasService] listAll error', e);
-      this.error.set(e?.message ?? 'Unknown error');
-      return [];
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  async getById(id: number): Promise<AreaDto | null> {
-    if (!isPlatformBrowser(this.platformId)) return null;
-    await this.supabase.whenReady();
-    const { data, error } = await this.supabase.client
-      .from('areas')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-    if (error) {
-      console.warn('[AreasService] getById error', error);
-      return null;
-    }
-    return data ?? null;
-  }
-
   async getBySlug(slug: string): Promise<AreaDto | null> {
     if (!isPlatformBrowser(this.platformId)) return null;
     await this.supabase.whenReady();

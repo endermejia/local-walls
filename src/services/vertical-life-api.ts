@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ApiCore, HttpOptions } from './api-core';
 import {
-  ClimbingArea,
-  ClimbingAreaResponse,
   ClimbingCrag,
   ClimbingCragResponse,
   ClimbingRoute,
@@ -129,16 +127,6 @@ export class VerticalLifeApi extends ApiCore {
       `/api/unification/outdoor/v1/web/zlaggables/sportclimbing/${encodeURIComponent(countrySlug)}`,
       { query },
     );
-  }
-
-  async getClimbingArea(
-    countrySlug: string,
-    areaSlug: string,
-  ): Promise<ClimbingArea> {
-    const areaResponse = await this.get<ClimbingAreaResponse>(
-      `/api/unification/collection/v1/web/areas/${encodeURIComponent(countrySlug)}/${encodeURIComponent(areaSlug)}`,
-    );
-    return areaResponse.area;
   }
 
   async getClimbingCrag(

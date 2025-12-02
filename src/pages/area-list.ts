@@ -52,7 +52,7 @@ import { ChartRoutesByGradeComponent } from '../components';
             appearance="textfield"
             size="m"
             type="button"
-            (click.zoneless)="openCreateDialog()"
+            (click.zoneless)="openCreateArea()"
           >
             {{ 'areas.new' | translate }}
           </button>
@@ -72,7 +72,7 @@ import { ChartRoutesByGradeComponent } from '../components';
         />
       </tui-textfield>
 
-      @defer (when !loading()) {
+      @if (!loading()) {
         <div class="grid gap-2">
           @for (a of filtered(); track a.id) {
             <div
@@ -109,13 +109,9 @@ import { ChartRoutesByGradeComponent } from '../components';
             <div class="opacity-70">{{ 'areas.empty' | translate }}</div>
           }
         </div>
-      } @placeholder {
+      } @else {
         <div class="flex items-center justify-center py-8">
-          <tui-loader size="l" />
-        </div>
-      } @loading {
-        <div class="flex items-center justify-center py-8">
-          <tui-loader size="l" />
+          <tui-loader size="xxl" />
         </div>
       }
     </section>
@@ -154,7 +150,7 @@ export class AreaListComponent {
     this.query.set(v);
   }
 
-  openCreateDialog(): void {
+  openCreateArea(): void {
     this.dialogs
       .open<boolean>(new PolymorpheusComponent(AreaFormComponent), {
         label: this.translate.instant('areas.newTitle'),

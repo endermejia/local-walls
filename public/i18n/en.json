@@ -152,7 +152,14 @@
     "slug": "Slug",
     "empty": "No areas yet",
     "search_placeholder": "Search areas by name or slug…",
-    "detail_placeholder": "Area details. More information coming soon…",
-    "backToList": "Back to list"
+    "detail_placeholder": "Crags information coming soon…"
+  },
+  "crags": {
+    "title": "Crags",
+    "new": "New crag",
+    "newTitle": "Create new crag",
+    "editTitle": "Edit crag",
+    "deleteTitle": "Delete crag",
+    "deleteConfirm": "Are you sure you want to delete the crag \"{{name}}\"? This action cannot be undone."
   }
 }

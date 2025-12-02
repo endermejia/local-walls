@@ -35,7 +35,7 @@ import { FormsModule } from '@angular/forms';
       @if (route(); as r) {
         <app-section-header
           [title]="r.zlaggableName"
-          [liked]="global.liked()"
+          [liked]="false"
           (back)="goBack()"
           (toggleLike)="global.toggleLikeRoute(r.zlaggableId)"
         />
