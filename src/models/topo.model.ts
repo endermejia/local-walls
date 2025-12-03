@@ -1,4 +1,3 @@
-// TODO: Pending AdditionApi
 import { AmountByEveryGrade } from './grade.model';
 
 export interface TopoRoute {
@@ -23,4 +22,7 @@ export interface TopoListItem {
   slug: string;
   photo?: string;
   grades: AmountByEveryGrade;
+  shade_afternoon: boolean;
+  shade_change_hour: string | null;
+  shade_morning: boolean;
 }

@@ -9,7 +9,7 @@ import {
   afterNextRender,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser, NgOptimizedImage } from '@angular/common';
 import {
   TuiAppearance,
   TuiButton,
@@ -34,241 +34,269 @@ import { SupabaseService } from '../services';
     TuiHeader,
     TuiCardLarge,
     TuiForm,
+    NgOptimizedImage,
   ],
   template: `
-    <form
-      tuiAppearance="floating"
-      tuiCardLarge
-      tuiForm="m"
-      class="w-full max-w-sm mx-auto"
-      novalidate
-      (submit.zoneless)="submit($event)"
-    >
-      <header tuiHeader>
-        <h2 tuiTitle>
-          @if (!isRecovery()) {
-            @if (!isRegister()) {
-              {{ 'auth.login' | translate }}
-            } @else {
-              {{ 'auth.register' | translate }}
-            }
-          } @else {
-            {{ 'auth.setNewPassword' | translate }}
-          }
-          <span tuiSubtitle>{{ 'common.appName' | translate }}</span>
-        </h2>
-      </header>
+    <div class="relative h-full flex justify-center items-center bg-gray-50">
+      <div class="relative z-10 w-full md:w-3/5 flex justify-center p-6">
+        <form
+          tuiAppearance="floating"
+          tuiCardLarge
+          tuiForm="m"
+          class="w-full max-w-sm mx-auto"
+          novalidate
+          (submit.zoneless)="submit($event)"
+        >
+          <header tuiHeader>
+            <h2 tuiTitle>
+              @if (!isRecovery()) {
+                @if (!isRegister()) {
+                  {{ 'auth.login' | translate }}
+                } @else {
+                  {{ 'auth.register' | translate }}
+                }
+              } @else {
+                {{ 'auth.setNewPassword' | translate }}
+              }
+              <span tuiSubtitle>{{ 'common.appName' | translate }}</span>
+            </h2>
+          </header>
 
-      @let err = error();
-      @if (err) {
-        <tui-notification appearance="warning">
-          <h3 tuiTitle>
-            {{ err | translate }}
-          </h3>
-        </tui-notification>
-      }
-
-      @if (!isRecovery()) {
-        <tui-textfield>
-          <label tuiLabel for="emailInput">{{
-            'labels.email' | translate
-          }}</label>
-          <input
-            id="emailInput"
-            tuiTextfield
-            type="email"
-            placeholder="{{ 'labels.email' | translate }}"
-            [value]="email()"
-            (input.zoneless)="onInputEmail($any($event.target).value)"
-            [attr.aria-invalid]="validate() && !emailValid() ? 'true' : null"
-            autocomplete="email"
-          />
-        </tui-textfield>
-
-        @if (validate() && !emailValid()) {
-          <tui-notification appearance="warning">
-            <h3 tuiTitle>{{ 'auth.enterValidEmail' | translate }}</h3>
-          </tui-notification>
-        }
-
-        <tui-textfield>
-          <label tuiLabel for="passwordInput">{{
-            'labels.password' | translate
-          }}</label>
-          <input
-            id="passwordInput"
-            tuiTextfield
-            type="password"
-            placeholder="{{ 'labels.password' | translate }}"
-            [value]="password()"
-            (input.zoneless)="onInputPassword($any($event.target).value)"
-            [attr.aria-invalid]="validate() && !passwordValid() ? 'true' : null"
-            autocomplete="current-password"
-          />
-        </tui-textfield>
-
-        @if (validate() && !passwordValid()) {
-          <tui-notification appearance="warning">
-            <h3 tuiTitle>
-              {{ 'auth.passwordMinLength' | translate: { min: 6 } }}
-            </h3>
-          </tui-notification>
-        }
-
-        @if (isRegister()) {
-          <tui-textfield>
-            <label tuiLabel for="confirmRegPasswordInput">{{
-              'labels.confirmPassword' | translate
-            }}</label>
-            <input
-              id="confirmRegPasswordInput"
-              tuiTextfield
-              type="password"
-              placeholder="{{ 'labels.confirmPassword' | translate }}"
-              [value]="confirmPassword()"
-              (input.zoneless)="confirmPassword.set($any($event.target).value)"
-              [attr.aria-invalid]="
-                validate() && confirmPassword() !== password() ? 'true' : null
-              "
-              autocomplete="new-password"
-            />
-          </tui-textfield>
-
-          @if (validate() && confirmPassword() !== password()) {
+          @let err = error();
+          @if (err) {
             <tui-notification appearance="warning">
-              <h3 tuiTitle>{{ 'errors.passwordMismatch' | translate }}</h3>
+              <h3 tuiTitle>
+                {{ err | translate }}
+              </h3>
             </tui-notification>
           }
-        }
 
-        @if (!isRegister()) {
-          <div class="flex justify-end mb-2">
-            <button
-              type="button"
-              tuiButton
-              appearance="flat"
-              (click.zoneless)="forgotPassword()"
-            >
-              {{ 'auth.forgotPassword' | translate }}
-            </button>
-          </div>
-        }
+          @if (!isRecovery()) {
+            <tui-textfield>
+              <label tuiLabel for="emailInput">{{
+                'labels.email' | translate
+              }}</label>
+              <input
+                id="emailInput"
+                tuiTextfield
+                type="email"
+                placeholder="{{ 'labels.email' | translate }}"
+                [value]="email()"
+                (input.zoneless)="onInputEmail($any($event.target).value)"
+                [attr.aria-invalid]="
+                  validate() && !emailValid() ? 'true' : null
+                "
+                autocomplete="email"
+              />
+            </tui-textfield>
 
-        <footer class="flex flex-col gap-2">
-          @if (!isRegister()) {
-            <button
-              tuiButton
-              type="submit"
-              class="w-full"
-              [disabled]="!canSignIn() || loading()"
-            >
-              {{ 'actions.signIn' | translate }}
-            </button>
-            <div class="text-center text-[var(--tui-text-02)]">
-              {{ 'auth.noAccount' | translate }}
-              <button
-                type="button"
-                tuiButton
-                appearance="flat"
-                (click.zoneless)="toggleRegister()"
-              >
-                {{ 'actions.register' | translate }}
-              </button>
-            </div>
+            @if (validate() && !emailValid()) {
+              <tui-notification appearance="warning">
+                <h3 tuiTitle>{{ 'auth.enterValidEmail' | translate }}</h3>
+              </tui-notification>
+            }
+
+            <tui-textfield>
+              <label tuiLabel for="passwordInput">{{
+                'labels.password' | translate
+              }}</label>
+              <input
+                id="passwordInput"
+                tuiTextfield
+                type="password"
+                placeholder="{{ 'labels.password' | translate }}"
+                [value]="password()"
+                (input.zoneless)="onInputPassword($any($event.target).value)"
+                [attr.aria-invalid]="
+                  validate() && !passwordValid() ? 'true' : null
+                "
+                autocomplete="current-password"
+              />
+            </tui-textfield>
+
+            @if (validate() && !passwordValid()) {
+              <tui-notification appearance="warning">
+                <h3 tuiTitle>
+                  {{ 'auth.passwordMinLength' | translate: { min: 6 } }}
+                </h3>
+              </tui-notification>
+            }
+
+            @if (isRegister()) {
+              <tui-textfield>
+                <label tuiLabel for="confirmRegPasswordInput">{{
+                  'labels.confirmPassword' | translate
+                }}</label>
+                <input
+                  id="confirmRegPasswordInput"
+                  tuiTextfield
+                  type="password"
+                  placeholder="{{ 'labels.confirmPassword' | translate }}"
+                  [value]="confirmPassword()"
+                  (input.zoneless)="
+                    confirmPassword.set($any($event.target).value)
+                  "
+                  [attr.aria-invalid]="
+                    validate() && confirmPassword() !== password()
+                      ? 'true'
+                      : null
+                  "
+                  autocomplete="new-password"
+                />
+              </tui-textfield>
+
+              @if (validate() && confirmPassword() !== password()) {
+                <tui-notification appearance="warning">
+                  <h3 tuiTitle>{{ 'errors.passwordMismatch' | translate }}</h3>
+                </tui-notification>
+              }
+            }
+
+            @if (!isRegister()) {
+              <div class="flex justify-end mb-2">
+                <button
+                  type="button"
+                  tuiButton
+                  appearance="flat"
+                  (click.zoneless)="forgotPassword()"
+                >
+                  {{ 'auth.forgotPassword' | translate }}
+                </button>
+              </div>
+            }
+
+            <footer class="flex flex-col gap-2">
+              @if (!isRegister()) {
+                <button
+                  tuiButton
+                  type="submit"
+                  class="w-full"
+                  [disabled]="!canSignIn() || loading()"
+                >
+                  {{ 'actions.signIn' | translate }}
+                </button>
+                <div class="text-center text-[var(--tui-text-02)]">
+                  {{ 'auth.noAccount' | translate }}
+                  <button
+                    type="button"
+                    tuiButton
+                    appearance="flat"
+                    (click.zoneless)="toggleRegister()"
+                  >
+                    {{ 'actions.register' | translate }}
+                  </button>
+                </div>
+              } @else {
+                <button
+                  tuiButton
+                  type="button"
+                  class="w-full"
+                  [disabled]="!canRegister() || loading()"
+                  (click.zoneless)="submitRegister()"
+                >
+                  {{ 'actions.register' | translate }}
+                </button>
+                <div class="text-center text-[var(--tui-text-02)]">
+                  {{ 'auth.alreadyAccount' | translate }}
+                  <button
+                    type="button"
+                    tuiButton
+                    appearance="flat"
+                    (click.zoneless)="toggleRegister(false)"
+                  >
+                    {{ 'actions.signIn' | translate }}
+                  </button>
+                </div>
+              }
+            </footer>
           } @else {
-            <button
-              tuiButton
-              type="button"
-              class="w-full"
-              [disabled]="!canRegister() || loading()"
-              (click.zoneless)="submitRegister()"
-            >
-              {{ 'actions.register' | translate }}
-            </button>
-            <div class="text-center text-[var(--tui-text-02)]">
-              {{ 'auth.alreadyAccount' | translate }}
+            <!-- Password recovery form -->
+            <tui-notification appearance="neutral">
+              <h3 tuiTitle>{{ 'auth.inRecoveryInfo' | translate }}</h3>
+            </tui-notification>
+            <tui-textfield>
+              <label tuiLabel for="newPasswordInput">{{
+                'labels.newPassword' | translate
+              }}</label>
+              <input
+                id="newPasswordInput"
+                tuiTextfield
+                type="password"
+                placeholder="{{ 'labels.newPassword' | translate }}"
+                [value]="newPassword()"
+                (input.zoneless)="newPassword.set($any($event.target).value)"
+                [attr.aria-invalid]="
+                  validate() && !newPasswordValid() ? 'true' : null
+                "
+                autocomplete="new-password"
+              />
+            </tui-textfield>
+
+            @if (validate() && !newPasswordValid()) {
+              <tui-notification appearance="warning">
+                <h3 tuiTitle>
+                  {{ 'auth.passwordMinLength' | translate: { min: 6 } }}
+                </h3>
+              </tui-notification>
+            }
+
+            <tui-textfield>
+              <label tuiLabel for="confirmPasswordInput">{{
+                'labels.confirmPassword' | translate
+              }}</label>
+              <input
+                id="confirmPasswordInput"
+                tuiTextfield
+                type="password"
+                placeholder="{{ 'labels.confirmPassword' | translate }}"
+                [value]="confirmPassword()"
+                (input.zoneless)="
+                  confirmPassword.set($any($event.target).value)
+                "
+                [attr.aria-invalid]="
+                  validate() && confirmPassword() !== newPassword()
+                    ? 'true'
+                    : null
+                "
+                autocomplete="new-password"
+              />
+            </tui-textfield>
+
+            @if (validate() && confirmPassword() !== newPassword()) {
+              <tui-notification appearance="warning">
+                <h3 tuiTitle>{{ 'errors.passwordMismatch' | translate }}</h3>
+              </tui-notification>
+            }
+
+            <footer class="flex flex-col gap-2">
               <button
-                type="button"
                 tuiButton
-                appearance="flat"
-                (click.zoneless)="toggleRegister(false)"
+                type="button"
+                class="w-full"
+                (click.zoneless)="submitNewPassword()"
+                [disabled]="!canChangePassword() || loading()"
               >
-                {{ 'actions.signIn' | translate }}
+                {{ 'auth.setNewPassword' | translate }}
               </button>
-            </div>
+            </footer>
           }
-        </footer>
-      } @else {
-        <!-- Password recovery form -->
-        <tui-notification appearance="neutral">
-          <h3 tuiTitle>{{ 'auth.inRecoveryInfo' | translate }}</h3>
-        </tui-notification>
-        <tui-textfield>
-          <label tuiLabel for="newPasswordInput">{{
-            'labels.newPassword' | translate
-          }}</label>
-          <input
-            id="newPasswordInput"
-            tuiTextfield
-            type="password"
-            placeholder="{{ 'labels.newPassword' | translate }}"
-            [value]="newPassword()"
-            (input.zoneless)="newPassword.set($any($event.target).value)"
-            [attr.aria-invalid]="
-              validate() && !newPasswordValid() ? 'true' : null
-            "
-            autocomplete="new-password"
-          />
-        </tui-textfield>
-
-        @if (validate() && !newPasswordValid()) {
-          <tui-notification appearance="warning">
-            <h3 tuiTitle>
-              {{ 'auth.passwordMinLength' | translate: { min: 6 } }}
-            </h3>
-          </tui-notification>
-        }
-
-        <tui-textfield>
-          <label tuiLabel for="confirmPasswordInput">{{
-            'labels.confirmPassword' | translate
-          }}</label>
-          <input
-            id="confirmPasswordInput"
-            tuiTextfield
-            type="password"
-            placeholder="{{ 'labels.confirmPassword' | translate }}"
-            [value]="confirmPassword()"
-            (input.zoneless)="confirmPassword.set($any($event.target).value)"
-            [attr.aria-invalid]="
-              validate() && confirmPassword() !== newPassword() ? 'true' : null
-            "
-            autocomplete="new-password"
-          />
-        </tui-textfield>
-
-        @if (validate() && confirmPassword() !== newPassword()) {
-          <tui-notification appearance="warning">
-            <h3 tuiTitle>{{ 'errors.passwordMismatch' | translate }}</h3>
-          </tui-notification>
-        }
-
-        <footer class="flex flex-col gap-2">
-          <button
-            tuiButton
-            type="button"
-            class="w-full"
-            (click.zoneless)="submitNewPassword()"
-            [disabled]="!canChangePassword() || loading()"
-          >
-            {{ 'auth.setNewPassword' | translate }}
-          </button>
-        </footer>
-      }
-    </form>
+        </form>
+      </div>
+      <div
+        class="absolute inset-0 md:static w-full md:w-2/5 h-full z-0 pointer-events-none"
+      >
+        <img
+          ngSrc="/image/login-background.webp"
+          alt="Background image"
+          class="w-full h-full object-cover filter grayscale opacity-40 md:opacity-70"
+          height="446"
+          width="294"
+        />
+      </div>
+    </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow items-center justify-center p-6' },
+  host: { class: 'h-full' },
 })
 export class LoginComponent {
   private readonly supabase = inject(SupabaseService);

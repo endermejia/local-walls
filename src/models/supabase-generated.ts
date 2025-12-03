@@ -1405,6 +1405,7 @@ export type Database = {
           name: string;
           photo: string | null;
           shade_afternoon: boolean;
+          shade_change_hour: string | null;
           shade_morning: boolean;
           slug: string;
         };
@@ -1415,6 +1416,7 @@ export type Database = {
           name: string;
           photo?: string | null;
           shade_afternoon?: boolean;
+          shade_change_hour?: string | null;
           shade_morning?: boolean;
           slug: string;
         };
@@ -1425,6 +1427,7 @@ export type Database = {
           name?: string;
           photo?: string | null;
           shade_afternoon?: boolean;
+          shade_change_hour?: string | null;
           shade_morning?: boolean;
           slug?: string;
         };
