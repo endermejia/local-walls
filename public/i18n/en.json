@@ -10,6 +10,7 @@
       "remove": "Remove from favorites"
     },
     "loadMore": "Load more",
+    "addTopo": "Add topo",
     "fit": {
       "cover": "Fit height",
       "contain": "Fit width"
@@ -154,8 +155,7 @@
     "name": "Name",
     "slug": "Slug",
     "empty": "No areas yet",
-    "search_placeholder": "Search areas by name or slug…",
-    "detail_placeholder": "Crags information coming soon…"
+    "search_placeholder": "Search areas by name or slug…"
   },
   "crags": {
     "title": "Crags",

@@ -116,7 +116,7 @@ import { TranslateService } from '@ngx-translate/core';
           tuiCardLarge
           tuiSurface="floating"
           class="relative pointer-events-auto cursor-pointer m-4"
-          [routerLink]="['/crag', c.country_slug, c.slug]"
+          [routerLink]="['/crag', c.slug]"
         >
           <div class="flex items-center gap-3">
             <div class="flex flex-col min-w-0 grow">
@@ -238,7 +238,7 @@ import { TranslateService } from '@ngx-translate/core';
                     tuiCardLarge
                     [tuiSurface]="c.liked ? 'accent' : 'neutral'"
                     class="cursor-pointer"
-                    [routerLink]="['/crag', c.country_slug, c.slug]"
+                    [routerLink]="['/crag', c.slug]"
                   >
                     <div class="flex items-center gap-3">
                       <div class="flex flex-col min-w-0 grow">

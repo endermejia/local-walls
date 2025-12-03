@@ -8,6 +8,7 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { SupabaseService } from './supabase.service';
 import type { CragDetail } from '../models';
+import type { CragLikeToggleResult } from '../models/crag.model';
 
 @Injectable({ providedIn: 'root' })
 export class CragsService {
@@ -54,6 +55,36 @@ export class CragsService {
       return true;
     } catch (e) {
       console.error('[CragsService] delete error', e);
+      throw e;
+    }
+  }
+
+  /** Toggle like for a crag using Supabase RPC toggle_crag_like */
+  async toggleCragLike(cragId: number): Promise<CragLikeToggleResult | null> {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    await this.supabase.whenReady();
+    try {
+      if (
+        typeof cragId !== 'number' ||
+        !Number.isFinite(cragId) ||
+        cragId <= 0
+      ) {
+        throw new Error(
+          `[CragsService] toggleCragLike invalid cragId: ${String(cragId)}`,
+        );
+      }
+      const params = { p_crag_id: cragId } as const;
+      const { data, error } = await this.supabase.client.rpc(
+        'toggle_crag_like',
+        params,
+      );
+      if (error) throw error;
+      const result = (Array.isArray(data) ? data[0] : data) as
+        | CragLikeToggleResult
+        | undefined;
+      return result ?? null;
+    } catch (e) {
+      console.error('[CragsService] toggleCragLike error', e);
       throw e;
     }
   }

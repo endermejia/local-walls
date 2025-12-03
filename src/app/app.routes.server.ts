@@ -33,20 +33,13 @@ export const serverRoutes: ServerRoute[] = [
     },
   },
   {
-    path: 'crag/:countrySlug/:cragSlug',
+    path: 'crag/:cragSlug',
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,
     async getPrerenderParams() {
       const global = inject(GlobalData);
       const crag = global.crag();
-      return crag
-        ? [
-            {
-              countrySlug: crag?.countrySlug,
-              cragSlug: crag?.cragSlug,
-            },
-          ]
-        : [];
+      return crag ? [{ cragSlug: (crag as any)?.cragSlug }] : [];
     },
   },
   {

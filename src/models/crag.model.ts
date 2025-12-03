@@ -58,3 +58,9 @@ export interface CragDetail {
   parkings: Parking[];
   topos: TopoListItem[];
 }
+
+// Supabase RPC toggle_crag_like response
+export interface CragLikeToggleResult {
+  action: string; // 'inserted' | 'deleted'
+  total_likes: number;
+}

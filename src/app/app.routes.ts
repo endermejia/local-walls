@@ -25,7 +25,7 @@ export const routes: Routes = [
     loadComponent: () => import('../pages/area').then((m) => m.AreaComponent),
   },
   {
-    path: 'crag/:countrySlug/:cragSlug',
+    path: 'crag/:cragSlug',
     canMatch: [authGuard],
     loadComponent: () => import('../pages/crag').then((m) => m.CragComponent),
   },

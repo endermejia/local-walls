@@ -15,7 +15,7 @@ import { injectContext } from '@taiga-ui/polymorpheus';
       <div class="flex justify-end gap-2">
         <button
           tuiButton
-          appearance="neutral"
+          appearance="secondary"
           type="button"
           (click.zoneless)="ctx.$implicit.complete()"
         >
@@ -23,7 +23,7 @@ import { injectContext } from '@taiga-ui/polymorpheus';
         </button>
         <button
           tuiButton
-          appearance="negative"
+          appearance="primary-destructive"
           type="button"
           (click.zoneless)="ctx.completeWith(true)"
         >

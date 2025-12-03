@@ -10,6 +10,7 @@
       "remove": "Quitar favorito"
     },
     "loadMore": "Cargar más",
+    "addTopo": "Añadir croquis",
     "fit": {
       "cover": "Ajustar al alto",
       "contain": "Ajustar al ancho"
@@ -154,8 +155,7 @@
     "name": "Nombre",
     "slug": "Slug",
     "empty": "No hay áreas todavía",
-    "search_placeholder": "Buscar áreas por nombre o slug…",
-    "detail_placeholder": "Próximamente más información…"
+    "search_placeholder": "Buscar áreas por nombre o slug…"
   },
   "crags": {
     "title": "Sectores",

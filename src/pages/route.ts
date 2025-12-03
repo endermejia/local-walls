@@ -56,13 +56,10 @@ import { FormsModule } from '@angular/forms';
               {{ r.areaName }}
             </div>
           }
-          @if (r.cragName && r.countrySlug && r.cragSlug) {
+          @if (r.cragName && r.cragSlug) {
             <div>
               <strong>{{ 'labels.crag' | translate }}:</strong>
-              <a
-                class="tui-link"
-                [routerLink]="['/crag', r.countrySlug, r.cragSlug]"
-              >
+              <a class="tui-link" [routerLink]="['/crag', r.cragSlug]">
                 {{ r.cragName }}
               </a>
             </div>

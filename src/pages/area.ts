@@ -80,71 +80,64 @@ import { TuiHeader } from '@taiga-ui/layout';
 
         <!-- Sectors list -->
         @let areasLenght = area.crags.length;
-        @if (areasLenght) {
-          <!-- Sectors list header -->
-          <div class="flex items-center justify-between gap-2">
-            <h2 class="text-2xl font-semibold mb-2">
-              <tui-avatar
-                tuiThumbnail
-                size="l"
-                [src]="global.iconSrc()('crag')"
-                class="self-center"
-                [attr.aria-label]="'labels.crag' | translate"
-              />
-              {{ areasLenght }}
-              {{
-                'labels.' + (areasLenght === 1 ? 'crag' : 'crags')
-                  | translate
-                  | lowercase
-              }}
-            </h2>
-            @if (global.isAdmin()) {
-              <button
-                tuiButton
-                appearance="textfield"
-                size="m"
-                type="button"
-                class="my-4"
-                (click.zoneless)="openCreateCrag()"
-              >
-                {{ 'crags.new' | translate }}
-              </button>
-            }
-          </div>
 
-          <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
-            @for (crag of area.crags; track crag.slug) {
-              <div
-                tuiCardLarge
-                [tuiSurface]="crag.liked ? 'outline-destructive' : 'outline'"
-                class="cursor-pointer"
-                [routerLink]="['/crag', crag.slug]"
-              >
-                <div class="flex flex-col min-w-0 grow">
-                  <header tuiHeader>
-                    <h2 tuiTitle>{{ crag.name }}</h2>
-                  </header>
-                  <section class="flex items-center justify-between gap-2">
-                    <div class="text-xl">
-                      {{ crag.topos_count }}
-                      {{ 'labels.topos' | translate | lowercase }}
-                    </div>
-                    <app-chart-routes-by-grade
-                      (click.zoneless)="$event.stopPropagation()"
-                      [grades]="crag.grades"
-                    />
-                  </section>
-                </div>
+        <!-- Sectors list header -->
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="text-2xl font-semibold mb-2">
+            <tui-avatar
+              tuiThumbnail
+              size="l"
+              [src]="global.iconSrc()('crag')"
+              class="self-center"
+              [attr.aria-label]="'labels.crag' | translate"
+            />
+            {{ areasLenght }}
+            {{
+              'labels.' + (areasLenght === 1 ? 'crag' : 'crags')
+                | translate
+                | lowercase
+            }}
+          </h2>
+          @if (global.isAdmin()) {
+            <button
+              tuiButton
+              appearance="textfield"
+              size="m"
+              type="button"
+              class="my-4"
+              (click.zoneless)="openCreateCrag()"
+            >
+              {{ 'crags.new' | translate }}
+            </button>
+          }
+        </div>
+
+        <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
+          @for (crag of area.crags; track crag.slug) {
+            <div
+              tuiCardLarge
+              [tuiSurface]="crag.liked ? 'outline-destructive' : 'outline'"
+              class="cursor-pointer"
+              [routerLink]="['/crag', crag.slug]"
+            >
+              <div class="flex flex-col min-w-0 grow">
+                <header tuiHeader>
+                  <h2 tuiTitle>{{ crag.name }}</h2>
+                </header>
+                <section class="flex items-center justify-between gap-2">
+                  <div class="text-xl">
+                    {{ crag.topos_count }}
+                    {{ 'labels.topos' | translate | lowercase }}
+                  </div>
+                  <app-chart-routes-by-grade
+                    (click.zoneless)="$event.stopPropagation()"
+                    [grades]="crag.grades"
+                  />
+                </section>
               </div>
-            }
-          </div>
-        } @else {
-          <div tuiCardLarge [tuiSurface]="'neutral'" class="p-4">
-            <p class="mt-2 opacity-70">
-              {{ 'areas.detail_placeholder' | translate }}
-            </p>
-          </div>
-        }
+            </div>
+          }
+        </div>
       } @else {
         <div class="flex items-center justify-center py-16">
           <tui-loader size="xxl" />
@@ -164,13 +157,6 @@ export class AreaComponent {
   private readonly router = inject(Router);
 
   areaSlug: InputSignal<string> = input.required<string>();
-
-  // TODO:
-  // Añadir botón de filtro junto a input search para poder filtrar tambien las areas
-  // Editar FilterDialog para poder usarlo en toda la app
-  // Campos por tipo de escalada (sport, boulder, multipich...) - crag related
-  // Campos para sombra, sol, etc - topo related
-  // Filtro de grado - route related
 
   constructor() {
     effect(() => {

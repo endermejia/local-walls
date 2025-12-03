@@ -7,28 +7,31 @@ import {
   effect,
   Signal,
   InputSignal,
+  signal,
 } from '@angular/core';
-import type {
-  AscentListItem,
-  ClimbingCrag,
-  MapAreaItem,
-  MapCragItem,
-  MapItem,
-} from '../models';
+import type { CragDetail, TopoListItem, ClimbingCrag } from '../models';
 import { ChartRoutesByGradeComponent } from '../components';
 import { GlobalData } from '../services';
 import { FormsModule } from '@angular/forms';
-import { Location, LowerCasePipe } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { isPlatformBrowser, Location, LowerCasePipe } from '@angular/common';
+import { PLATFORM_ID } from '@angular/core';
+import { Router } from '@angular/router';
 import { SectionHeaderComponent } from '../components/section-header';
-import { TranslatePipe } from '@ngx-translate/core';
-import { TuiAvatar, TuiRating } from '@taiga-ui/kit';
-import { TuiCell } from '@taiga-ui/layout';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TuiBadge } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
-import { TuiLoader, TuiTitle, TuiButton } from '@taiga-ui/core';
+import {
+  TuiLoader,
+  TuiTitle,
+  TuiButton,
+  TuiNotification,
+} from '@taiga-ui/core';
 import { TuiSurface } from '@taiga-ui/core';
-import { TuiTable } from '@taiga-ui/addon-table';
 import { mapLocationUrl } from '../utils';
+import { CragsService } from '../services/crags.service';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { ConfirmDialogComponent } from '../components/confirm-dialog';
 
 @Component({
   selector: 'app-crag',
@@ -36,7 +39,6 @@ import { mapLocationUrl } from '../utils';
   imports: [
     ChartRoutesByGradeComponent,
     LowerCasePipe,
-    RouterLink,
     SectionHeaderComponent,
     TranslatePipe,
     TuiCardLarge,
@@ -45,71 +47,66 @@ import { mapLocationUrl } from '../utils';
     TuiSurface,
     TuiTitle,
     TuiButton,
-    TuiTable,
-    TuiCell,
-    TuiAvatar,
-    TuiRating,
+    TuiBadge,
     FormsModule,
+    TuiNotification,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
-      @if (crag(); as c) {
-        <app-section-header
-          [title]="c.cragName"
-          [liked]="c.liked"
-          (back)="goBack()"
-          (toggleLike)="global.toggleLikeCrag(c.cragSlug)"
-        />
-
-        @if (c.description) {
-          <p class="mt-2 opacity-80">{{ c.description }}</p>
-        }
-
-        <div
-          class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm opacity-80"
-        >
-          <div>
-            <strong>{{ 'labels.country' | translate }}:</strong>
-            {{ c.countryName }}
-          </div>
-          <div>
-            <strong>{{ 'labels.area' | translate }}:</strong>
-            {{ c.areaName }}
-          </div>
-          @if (c.totalZlaggables) {
-            <div>
-              <strong>{{ c.totalZlaggables }}</strong>
-              {{ 'labels.routes' | translate | lowercase }}
-            </div>
-          }
-          @if (c.totalSectors) {
-            <div>
-              <strong>{{ c.totalSectors }}</strong>
-              {{ 'labels.sectors' | translate | lowercase }}
-            </div>
-          }
-          @if (c.totalAscents) {
-            <div>
-              <strong>{{ c.totalAscents }}</strong>
-              {{ 'labels.ascents' | translate | lowercase }}
-            </div>
-          }
-          @if (c.averageRating) {
-            <tui-rating
-              [max]="5"
-              [ngModel]="c.averageRating"
-              [readOnly]="true"
-              [style.font-size.rem]="0.5"
+      @if (cragDetail(); as c) {
+        <div class="mb-4 flex items-center justify-between gap-2">
+          <app-section-header
+            class="w-full"
+            [title]="c.name"
+            [liked]="c.liked"
+            (back)="goBack()"
+            (toggleLike)="onToggleLike()"
+          />
+          @if (global.isAdmin()) {
+            <tui-badge
+              class="cursor-pointer"
+              appearance="neutral"
+              iconStart="@tui.square-pen"
+              size="xl"
+              (click.zoneless)="openEditCrag()"
+              [attr.aria-label]="'common.edit' | translate"
+              [attr.title]="'common.edit' | translate"
+            />
+            <tui-badge
+              class="cursor-pointer"
+              appearance="negative"
+              iconStart="@tui.trash"
+              size="xl"
+              (click.zoneless)="deleteCrag()"
+              [attr.aria-label]="'common.delete' | translate"
+              [attr.title]="'common.delete' | translate"
             />
           }
-          @if (c.location) {
+        </div>
+
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex flex-col gap-3">
+            @let lang = global.selectedLanguage();
+            @let desc = lang === 'es' ? c.description_es : c.description_en;
+            @let warn = lang === 'es' ? c.warning_es : c.warning_en;
+
+            @if (desc) {
+              <p class="text-lg">{{ desc }}</p>
+            }
+
+            @if (warn) {
+              <tui-notification appearance="warning">
+                {{ warn }}
+              </tui-notification>
+            }
+
             <div class="flex gap-2 items-center">
               <button
                 tuiButton
                 appearance="secondary"
                 size="s"
                 type="button"
-                (click.zoneless)="viewOnMap(c)"
+                (click.zoneless)="viewOnMap(c.latitude, c.longitude)"
                 [iconStart]="'@tui.map'"
               >
                 {{ 'actions.viewOnMap' | translate }}
@@ -118,7 +115,12 @@ import { mapLocationUrl } from '../utils';
                 tuiButton
                 appearance="flat"
                 size="s"
-                [href]="mapLocationUrl(c.location)"
+                [href]="
+                  mapLocationUrl({
+                    latitude: c.latitude,
+                    longitude: c.longitude,
+                  })
+                "
                 target="_blank"
                 rel="noopener noreferrer"
                 [iconStart]="'@tui.map-pin'"
@@ -128,42 +130,68 @@ import { mapLocationUrl } from '../utils';
                 {{ 'actions.openGoogleMaps' | translate }}
               </a>
             </div>
-          }
+          </div>
+          <app-chart-routes-by-grade [grades]="c.grades" />
         </div>
 
-        @if (global.selectedMapCragItem()?.grades; as grades) {
-          <app-chart-routes-by-grade class="mt-4" [grades]="grades" />
-        }
-
-        <!-- Sectors list with app aesthetics (cards) -->
-        @if (sectors().length > 0) {
-          <div class="mt-6">
-            <h2 class="text-lg font-semibold mb-2">
-              {{ 'labels.sectors' | translate }}
+        @if ((c.parkings || []).length) {
+          <div class="mt-6 grid gap-3">
+            <h2 class="text-2xl font-semibold">
+              {{ 'labels.parkings' | translate }}
             </h2>
             <div class="grid gap-2">
-              @for (s of sectors(); track s.sectorSlug) {
-                <div
-                  tuiCardLarge
-                  [tuiSurface]="c.liked ? 'accent' : 'neutral'"
-                  class="cursor-pointer"
-                  [routerLink]="[
-                    '/sector',
-                    c.countrySlug,
-                    c.cragSlug,
-                    s.sectorSlug,
-                  ]"
-                >
-                  <div class="flex flex-col min-w-0 grow">
+              @for (p of c.parkings; track p.id) {
+                <div tuiCardLarge [tuiSurface]="'neutral'">
+                  <div class="flex flex-col gap-2">
                     <header tuiHeader>
-                      <h2 tuiTitle>{{ s.sectorName }}</h2>
+                      <h3 tuiTitle class="truncate">{{ p.name }}</h3>
                     </header>
-                    <section>
-                      <div class="text-sm opacity-80">
-                        {{ s.totalZlaggables }}
-                        {{ 'labels.routes' | translate | lowercase }}
+                    <section
+                      class="text-sm opacity-80 grid grid-cols-1 sm:grid-cols-3 gap-2"
+                    >
+                      <div>
+                        <strong>{{ 'labels.capacity' | translate }}:</strong>
+                        {{ p.size }}
+                      </div>
+                      <div>
+                        <strong>{{ 'labels.lat' | translate }}:</strong>
+                        {{ p.latitude }}
+                      </div>
+                      <div>
+                        <strong>{{ 'labels.lng' | translate }}:</strong>
+                        {{ p.longitude }}
                       </div>
                     </section>
+                    <div class="flex gap-2">
+                      <button
+                        tuiButton
+                        appearance="secondary"
+                        size="s"
+                        type="button"
+                        (click.zoneless)="viewOnMap(p.latitude, p.longitude)"
+                        [iconStart]="'@tui.map'"
+                      >
+                        {{ 'actions.viewOnMap' | translate }}
+                      </button>
+                      <a
+                        tuiButton
+                        appearance="flat"
+                        size="s"
+                        [href]="
+                          mapLocationUrl({
+                            latitude: p.latitude,
+                            longitude: p.longitude,
+                          })
+                        "
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        [iconStart]="'@tui.map-pin'"
+                        [attr.aria-label]="'actions.openGoogleMaps' | translate"
+                        [attr.title]="'actions.openGoogleMaps' | translate"
+                      >
+                        {{ 'actions.openGoogleMaps' | translate }}
+                      </a>
+                    </div>
                   </div>
                 </div>
               }
@@ -171,97 +199,57 @@ import { mapLocationUrl } from '../utils';
           </div>
         }
 
-        <!-- Latest ascents table -->
-        <div class="mt-6">
-          <h2 class="text-lg font-semibold mb-2">
-            {{ 'labels.latestAscents' | translate }}
-          </h2>
-
-          @if (ascents().length === 0 && global.loading()) {
-            <div class="flex items-center justify-center w-full min-h-[20vh]">
-              <tui-loader size="l" />
-            </div>
-          } @else {
-            <div class="overflow-auto">
-              <table tuiTable class="w-full" [columns]="ascColumns">
-                <thead tuiThead>
-                  <tr tuiThGroup>
-                    @for (col of ascColumns; track col) {
-                      <th *tuiHead="col" tuiTh>
-                        <div>
-                          {{ 'labels.' + col | translate }}
-                        </div>
-                      </th>
+        <div class="mt-6 grid gap-3">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="text-2xl font-semibold m-0">
+              {{ 'labels.topos' | translate }}
+            </h2>
+            @if (global.isAdmin()) {
+              <button
+                tuiButton
+                appearance="primary"
+                size="s"
+                type="button"
+                (click.zoneless)="addTopo()"
+                [iconStart]="'@tui.plus'"
+                [attr.aria-label]="'actions.addTopo' | translate"
+                [attr.title]="'actions.addTopo' | translate"
+              >
+                {{ 'actions.addTopo' | translate }}
+              </button>
+            }
+          </div>
+          <div class="grid gap-3">
+            @for (t of c.topos; track t.id) {
+              <div tuiCardLarge [tuiSurface]="'neutral'">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
+                  <div class="md:col-span-2 flex gap-3">
+                    @if (t.photo) {
+                      <img
+                        [src]="t.photo"
+                        alt="topo"
+                        class="w-40 h-28 object-cover rounded"
+                        loading="lazy"
+                        decoding="async"
+                      />
                     }
-                  </tr>
-                </thead>
-                <tbody tuiTbody [data]="ascents()">
-                  @for (a of ascents(); track a.ascentId) {
-                    <tr tuiTr>
-                      <td *tuiCell="'user'" tuiTd>
-                        <div tuiCell size="m" class="flex items-center gap-2">
-                          <tui-avatar
-                            tuiThumbnail
-                            size="s"
-                            [src]="a.userAvatar || undefined"
-                            [attr.aria-label]="
-                              a.userName || ('labels.anonymous' | translate)
-                            "
-                          >
-                            {{ (a.userName || '?').charAt(0) }}
-                          </tui-avatar>
-                          <div class="truncate max-w-[160px]">
-                            {{
-                              a.userPrivate
-                                ? ('labels.anonymous' | translate)
-                                : a.userName || '—'
-                            }}
-                          </div>
-                        </div>
-                      </td>
-                      <td *tuiCell="'date'" tuiTd>
-                        <div tuiCell size="m">
-                          {{ (a.date || '').slice(0, 10) }}
-                        </div>
-                      </td>
-                      <td *tuiCell="'grade'" tuiTd>
-                        <div tuiCell size="m">{{ a.difficulty || '—' }}</div>
-                      </td>
-                      <td *tuiCell="'route'" tuiTd>
-                        <div tuiCell size="m" class="truncate max-w-[220px]">
-                          {{ a.zlaggableName || ('labels.route' | translate) }}
-                        </div>
-                      </td>
-                      <td *tuiCell="'sector'" tuiTd>
-                        <div tuiCell size="m" class="truncate max-w-[160px]">
-                          {{ a.sectorName || '—' }}
-                        </div>
-                      </td>
-                      <td *tuiCell="'type'" tuiTd>
-                        <div tuiCell size="m">{{ a.type.toUpperCase() }}</div>
-                      </td>
-                      <td *tuiCell="'rating'" tuiTd>
-                        <div tuiCell size="m">{{ a.rating || 0 }}</div>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-
-            @if (hasAscNext()) {
-              <div class="flex justify-center mt-3">
-                <button
-                  tuiButton
-                  appearance="flat"
-                  size="m"
-                  (click.zoneless)="loadMoreAscents()"
-                >
-                  {{ 'actions.loadMore' | translate }}
-                </button>
+                    <div class="flex-1">
+                      <h3 class="text-lg font-semibold mb-1">{{ t.name }}</h3>
+                      <div class="text-sm opacity-80">
+                        {{ shadeText(t) }}
+                        @if (t.shade_change_hour) {
+                          · {{ t.shade_change_hour }}
+                        }
+                      </div>
+                    </div>
+                  </div>
+                  <div class="md:col-span-1 flex justify-end">
+                    <app-chart-routes-by-grade [grades]="t.grades" />
+                  </div>
+                </div>
               </div>
             }
-          }
+          </div>
         </div>
       } @else {
         <div class="flex items-center justify-center w-full min-h-[50vh]">
@@ -275,83 +263,23 @@ import { mapLocationUrl } from '../utils';
 })
 export class CragComponent {
   protected readonly global = inject(GlobalData);
-  private readonly location = inject(Location);
   private readonly router = inject(Router);
+
+  private readonly location = inject(Location);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly translate = inject(TranslateService);
+  private readonly crags = inject(CragsService);
+  private readonly dialogs = inject(TuiDialogService);
   protected readonly mapLocationUrl = mapLocationUrl;
 
-  countrySlug: InputSignal<string> = input.required<string>();
   cragSlug: InputSignal<string> = input.required<string>();
-  crag: Signal<ClimbingCrag | null> = computed(() => this.global.crag());
-  sectors: Signal<
-    readonly {
-      sectorId: number;
-      sectorName: string;
-      sectorSlug: string;
-      totalZlaggables: number;
-    }[]
-  > = computed(() => this.global.cragSectors());
-
-  // Ascents table data
-  ascents = computed<readonly AscentListItem[]>(
-    () => this.global.ascentsPageable()?.items ?? [],
-  );
-  ascPagination = computed(() => this.global.ascentsPageable()?.pagination);
-  hasAscNext = computed(() => this.ascPagination()?.hasNext ?? false);
-  ascColumns: readonly string[] = [
-    'user',
-    'date',
-    'grade',
-    'route',
-    'sector',
-    'type',
-    'rating',
-  ];
+  readonly loading = this.crags.loading;
+  cragDetail = signal<CragDetail | null>(null);
 
   constructor() {
     effect(() => {
-      this.global.resetDataByPage('crag');
-      const countrySlug = this.countrySlug();
-      const cragSlug = this.cragSlug();
-      void this.global.loadCrag(countrySlug, cragSlug);
-      void this.global.loadCragRoutes(countrySlug, cragSlug);
-      void this.global.loadCragSectors(countrySlug, cragSlug);
-      void this.global.loadCragAscents(countrySlug, cragSlug, { pageIndex: 0 });
-    });
-
-    // Keep the selected map crag item in sync once crag is loaded
-    effect(() => {
-      const cragSlug = this.cragSlug();
-      const crag = this.global.crag();
-      const selected = this.global.selectedMapCragItem();
-      const needsSelect = !selected || selected.slug !== cragSlug;
-      if (!needsSelect) return;
-
-      const id = crag?.unifiedId;
-      if (id) {
-        this.global
-          .refreshMapItemById(id)
-          .then((item) => item && this.global.selectedMapCragItem.set(item))
-          .catch(() => void 0);
-        return;
-      }
-      const cached = this.global
-        .mapItems()
-        .find(
-          (it: MapItem) =>
-            it && it.slug === cragSlug && !(it as MapAreaItem)?.area_type,
-        ) as MapCragItem | undefined;
-      if (cached) {
-        this.global.selectedMapCragItem.set(cached);
-      }
-    });
-  }
-
-  loadMoreAscents(): void {
-    const countrySlug = this.countrySlug();
-    const cragSlug = this.cragSlug();
-    const next = (this.ascPagination()?.pageIndex ?? 0) + 1;
-    void this.global.loadCragAscents(countrySlug, cragSlug, {
-      pageIndex: next,
+      const slug = this.cragSlug();
+      void this.load(slug);
     });
   }
 
@@ -359,18 +287,113 @@ export class CragComponent {
     this.location.back();
   }
 
-  viewOnMap(c: ClimbingCrag): void {
-    const loc = c.location;
-    if (!loc) return;
-    // Set viewport bounds centered on the crag with a target zoom
+  viewOnMap(lat: number, lng: number): void {
     const zoom = 13;
     this.global.mapBounds.set({
-      south_west_latitude: loc.latitude,
-      south_west_longitude: loc.longitude,
-      north_east_latitude: loc.latitude,
-      north_east_longitude: loc.longitude,
+      south_west_latitude: lat,
+      south_west_longitude: lng,
+      north_east_latitude: lat,
+      north_east_longitude: lng,
       zoom,
     });
     void this.router.navigateByUrl('/explore');
+  }
+
+  private async load(slug: string): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const detail = await this.crags.getCragDetailBySlug(slug);
+    this.cragDetail.set(detail);
+    // Update global breadcrumb source with the new CragDetail shape
+    if (detail) {
+      const mapped: ClimbingCrag = {
+        cragSlug: detail.slug,
+        cragName: detail.name,
+        areaSlug: detail.area_slug,
+        areaName: detail.area_name,
+        liked: detail.liked,
+        location: {
+          latitude: detail.latitude,
+          longitude: detail.longitude,
+        },
+      } as ClimbingCrag;
+      this.global.crag.set(mapped);
+    } else {
+      this.global.crag.set(null);
+    }
+  }
+
+  onToggleLike(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const c = this.cragDetail();
+    if (!c) return;
+    this.cragDetail.set({ ...c, liked: !c.liked });
+    this.crags
+      .toggleCragLike(c.id)
+      .catch(() => this.cragDetail.set({ ...c, liked: c.liked }));
+  }
+
+  deleteCrag(): void {
+    const c = this.cragDetail();
+    if (!c) return;
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    this.translate
+      .get(['crags.deleteTitle', 'crags.deleteConfirm'], { name: c.name })
+      .subscribe((t) => {
+        const title = t['crags.deleteTitle'];
+        const message = t['crags.deleteConfirm'];
+        this.dialogs
+          .open<boolean>(new PolymorpheusComponent(ConfirmDialogComponent), {
+            label: title,
+            size: 's',
+            data: {
+              title,
+              message,
+              confirmLabel: 'common.delete',
+              cancelLabel: 'common.cancel',
+            },
+          })
+          .subscribe({
+            next: async (confirmed) => {
+              if (!confirmed) return;
+              try {
+                const ok = await this.crags.delete(c.id);
+                if (ok) {
+                  await this.router.navigateByUrl(`/area/${c.area_slug}`);
+                }
+              } catch {
+                /* empty */
+              }
+            },
+          });
+      });
+  }
+
+  openEditCrag(): void {
+    const c = this.cragDetail();
+    if (!c) return;
+    // TODO: open crag-form component when available
+  }
+
+  addTopo(): void {
+    const c = this.cragDetail();
+    if (!c) return;
+    // TODO: navigate to/create topo form for this crag
+  }
+
+  protected shadeText(t: TopoListItem): string {
+    const lang = this.global.selectedLanguage();
+    const morning = t.shade_morning;
+    const afternoon = t.shade_afternoon;
+    if (morning && afternoon) {
+      return this.translate.instant('filters.shade.allDay');
+    }
+    if (!morning && !afternoon) {
+      return lang === 'es' ? 'Sol todo el día' : 'Sun all day';
+    }
+    if (morning && !afternoon) {
+      return this.translate.instant('filters.shade.morning');
+    }
+    return this.translate.instant('filters.shade.afternoon');
   }
 }
