@@ -79,7 +79,8 @@ import { TuiHeader } from '@taiga-ui/layout';
         </div>
 
         <!-- Sectors list -->
-        @if (area.crags.length) {
+        @let areasLenght = area.crags.length;
+        @if (areasLenght) {
           <!-- Sectors list header -->
           <div class="flex items-center justify-between gap-2">
             <h2 class="text-2xl font-semibold mb-2">
@@ -90,7 +91,12 @@ import { TuiHeader } from '@taiga-ui/layout';
                 class="self-center"
                 [attr.aria-label]="'labels.crag' | translate"
               />
-              {{ 'labels.sectors' | translate }}
+              {{ areasLenght }}
+              {{
+                'labels.' + (areasLenght === 1 ? 'crag' : 'crags')
+                  | translate
+                  | lowercase
+              }}
             </h2>
             @if (global.isAdmin()) {
               <button
