@@ -13,7 +13,7 @@ import { TuiCardLarge } from '@taiga-ui/layout';
 import { TuiSurface, TuiLoader, TuiTitle, TuiButton } from '@taiga-ui/core';
 import { AreasService, GlobalData } from '../services';
 import { SectionHeaderComponent } from '../components/section-header';
-import { TuiBadge } from '@taiga-ui/kit';
+import { TuiAvatar, TuiBadge } from '@taiga-ui/kit';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { AreaFormComponent } from './area-form';
@@ -38,6 +38,7 @@ import { TuiHeader } from '@taiga-ui/layout';
     TuiTitle,
     RouterLink,
     TuiButton,
+    TuiAvatar,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -81,7 +82,14 @@ import { TuiHeader } from '@taiga-ui/layout';
         @if (area.crags.length) {
           <!-- Sectors list header -->
           <div class="flex items-center justify-between gap-2">
-            <h2 class="text-lg font-semibold mb-2">
+            <h2 class="text-2xl font-semibold mb-2">
+              <tui-avatar
+                tuiThumbnail
+                size="l"
+                [src]="global.iconSrc()('crag')"
+                class="self-center"
+                [attr.aria-label]="'labels.crag' | translate"
+              />
               {{ 'labels.sectors' | translate }}
             </h2>
             @if (global.isAdmin()) {
@@ -98,11 +106,11 @@ import { TuiHeader } from '@taiga-ui/layout';
             }
           </div>
 
-          <div class="grid gap-2">
+          <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
             @for (crag of area.crags; track crag.slug) {
               <div
                 tuiCardLarge
-                [tuiSurface]="crag.liked ? 'accent' : 'neutral'"
+                [tuiSurface]="crag.liked ? 'outline-destructive' : 'outline'"
                 class="cursor-pointer"
                 [routerLink]="['/crag', crag.slug]"
               >
@@ -110,18 +118,16 @@ import { TuiHeader } from '@taiga-ui/layout';
                   <header tuiHeader>
                     <h2 tuiTitle>{{ crag.name }}</h2>
                   </header>
-                  <section>
-                    <div class="text-sm opacity-80">
+                  <section class="flex items-center justify-between gap-2">
+                    <div class="text-xl">
                       {{ crag.topos_count }}
                       {{ 'labels.topos' | translate | lowercase }}
                     </div>
+                    <app-chart-routes-by-grade
+                      (click.zoneless)="$event.stopPropagation()"
+                      [grades]="crag.grades"
+                    />
                   </section>
-                  <div
-                    class="mb-2 flex justify-end"
-                    (click.zoneless)="$event.stopPropagation()"
-                  >
-                    <app-chart-routes-by-grade [grades]="crag.grades" />
-                  </div>
                 </div>
               </div>
             }

@@ -24,6 +24,9 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { AreaFormComponent } from './area-form';
 import { TranslateService } from '@ngx-translate/core';
 import { ChartRoutesByGradeComponent } from '../components';
+import { FilterDialog, HomeFilterDialogComponent } from './filter-dialog';
+import { ORDERED_GRADE_VALUES } from '../models';
+import { TuiAvatar } from '@taiga-ui/kit';
 
 @Component({
   selector: 'app-area-list',
@@ -40,11 +43,21 @@ import { ChartRoutesByGradeComponent } from '../components';
     TuiHeader,
     LowerCasePipe,
     ChartRoutesByGradeComponent,
+    TuiAvatar,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
-      <header class="mb-4 flex items-start justify-between gap-2">
-        <h1 class="text-2xl font-bold">{{ 'areas.title' | translate }}</h1>
+      <header class="mb-4 flex items-center justify-between gap-2">
+        <h1 class="text-2xl font-bold">
+          <tui-avatar
+            tuiThumbnail
+            size="l"
+            [src]="global.iconSrc()('zone')"
+            class="self-center"
+            [attr.aria-label]="'labels.area' | translate"
+          />
+          {{ 'areas.title' | translate }}
+        </h1>
 
         @if (global.isAdmin()) {
           <button
@@ -59,25 +72,36 @@ import { ChartRoutesByGradeComponent } from '../components';
         }
       </header>
 
-      <tui-textfield class="mb-4 block">
-        <label tuiLabel for="areas-search">{{
-          'areas.search_placeholder' | translate
-        }}</label>
-        <input
-          tuiTextfield
-          id="areas-search"
-          [placeholder]="'areas.search_placeholder' | translate"
-          [value]="query()"
-          (input.zoneless)="onQuery($any($event.target).value)"
-        />
-      </tui-textfield>
+      <div class="mb-4 flex items-end gap-2">
+        <tui-textfield class="grow block" tuiTextfieldSize="l">
+          <label tuiLabel for="areas-search">{{
+            'areas.search_placeholder' | translate
+          }}</label>
+          <input
+            tuiTextfield
+            id="areas-search"
+            [placeholder]="'areas.search_placeholder' | translate"
+            [value]="query()"
+            (input.zoneless)="onQuery($any($event.target).value)"
+          />
+        </tui-textfield>
+        <button
+          tuiButton
+          appearance="textfield"
+          size="l"
+          type="button"
+          iconStart="@tui.sliders-horizontal"
+          [attr.aria-label]="'labels.filters' | translate"
+          (click.zoneless)="openFilters()"
+        ></button>
+      </div>
 
       @if (!loading()) {
-        <div class="grid gap-2">
+        <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
           @for (a of filtered(); track a.id) {
             <div
               tuiCardLarge
-              [tuiSurface]="a.liked ? 'accent' : 'neutral'"
+              [tuiSurface]="a.liked ? 'outline-destructive' : 'outline'"
               class="cursor-pointer"
               [routerLink]="['/area', a.slug]"
             >
@@ -85,8 +109,8 @@ import { ChartRoutesByGradeComponent } from '../components';
                 <header tuiHeader>
                   <h2 tuiTitle>{{ a.name }}</h2>
                 </header>
-                <section>
-                  <div class="text-sm opacity-80">
+                <section class="flex items-center justify-between gap-2">
+                  <div class="text-xl">
                     {{ a.crags_count }}
                     {{
                       'labels.' + (a.crags_count === 1 ? 'crag' : 'crags')
@@ -94,13 +118,11 @@ import { ChartRoutesByGradeComponent } from '../components';
                         | lowercase
                     }}
                   </div>
+                  <app-chart-routes-by-grade
+                    (click.zoneless)="$event.stopPropagation()"
+                    [grades]="a.grades"
+                  />
                 </section>
-                <div
-                  class="mb-2 flex justify-end"
-                  (click.zoneless)="$event.stopPropagation()"
-                >
-                  <app-chart-routes-by-grade [grades]="a.grades" />
-                </div>
               </div>
             </div>
           } @empty {
@@ -128,14 +150,30 @@ export class AreaListComponent {
   readonly areas = computed(() => this.global.areas());
 
   readonly query: WritableSignal<string> = signal('');
+  readonly selectedGradeRange: WritableSignal<[number, number]> = signal([
+    0,
+    ORDERED_GRADE_VALUES.length - 1,
+  ]);
   readonly filtered = computed(() => {
     const q = this.query().trim().toLowerCase();
+    const [minIdx, maxIdx] = this.selectedGradeRange();
+    const allowedLabels = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1);
     const list = this.areas();
-    if (!q) return list;
-    return list.filter(
-      (a) =>
-        a.name.toLowerCase().includes(q) || a.slug.toLowerCase().includes(q),
-    );
+    const textMatches = (a: (typeof list)[number]) =>
+      !q ||
+      a.name.toLowerCase().includes(q) ||
+      a.slug.toLowerCase().includes(q);
+    const gradeMatches = (a: (typeof list)[number]) => {
+      const grades = a.grades || ({} as Record<string, number>);
+      for (const label of allowedLabels) {
+        if ((grades as any)[label] && Number((grades as any)[label]) > 0) {
+          return true;
+        }
+      }
+      // Allow all if no grades data
+      return allowedLabels.length === ORDERED_GRADE_VALUES.length;
+    };
+    return list.filter((a) => textMatches(a) && gradeMatches(a));
   });
 
   constructor() {
@@ -146,6 +184,40 @@ export class AreaListComponent {
 
   onQuery(v: string) {
     this.query.set(v);
+  }
+
+  openFilters(): void {
+    const data = {
+      categories: [],
+      gradeRange: this.selectedGradeRange(),
+      showCategories: false,
+      showShade: false,
+      showGradeRange: true,
+    } as FilterDialog;
+    this.dialogs
+      .open<FilterDialog>(
+        new PolymorpheusComponent(HomeFilterDialogComponent),
+        {
+          label: this.translate.instant('labels.filters'),
+          size: 'm',
+          data,
+        },
+      )
+      .subscribe((result) => {
+        if (!result) return;
+        const [a, b] = result.gradeRange ?? [
+          0,
+          ORDERED_GRADE_VALUES.length - 1,
+        ];
+        const clamp = (v: number) =>
+          Math.max(0, Math.min(ORDERED_GRADE_VALUES.length - 1, Math.round(v)));
+        const lo = clamp(a);
+        const hi = clamp(b);
+        this.selectedGradeRange.set([Math.min(lo, hi), Math.max(lo, hi)] as [
+          number,
+          number,
+        ]);
+      });
   }
 
   openCreateArea(): void {

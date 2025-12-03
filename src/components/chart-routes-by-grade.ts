@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiRingChart } from '@taiga-ui/addon-charts';
+import { TuiSkeleton } from '@taiga-ui/kit';
 import {
   ORDERED_GRADE_VALUES,
   GradeLabel,
@@ -23,7 +24,7 @@ import { LowerCasePipe } from '@angular/common';
 @Component({
   selector: 'app-chart-routes-by-grade',
   standalone: true,
-  imports: [TranslatePipe, TuiRingChart, LowerCasePipe],
+  imports: [TranslatePipe, TuiRingChart, LowerCasePipe, TuiSkeleton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   styles: [
@@ -46,6 +47,7 @@ import { LowerCasePipe } from '@angular/common';
   ],
   template: `
     <tui-ring-chart
+      [tuiSkeleton]="tuiSkeleton()"
       [value]="values()"
       [activeItemIndex]="activeItemIndex()"
       (activeItemIndexChange)="activeItemIndex.set($event)"
@@ -71,6 +73,7 @@ import { LowerCasePipe } from '@angular/common';
 export class ChartRoutesByGradeComponent {
   grades: InputSignal<AmountByEveryGrade> =
     input.required<AmountByEveryGrade>();
+  tuiSkeleton: InputSignal<boolean> = input(false);
   activeItemIndex: WritableSignal<number> = signal<number>(Number.NaN);
 
   private readonly allGrades = ORDERED_GRADE_VALUES;

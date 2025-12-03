@@ -2,17 +2,21 @@ import {
   ChangeDetectionStrategy,
   Component,
   input,
+  InputSignal,
   output,
 } from '@angular/core';
-import { TuiBadge } from '@taiga-ui/kit';
+import { TuiBadge, TuiSkeleton } from '@taiga-ui/kit';
 import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-section-header',
   standalone: true,
-  imports: [TuiBadge, TranslatePipe],
+  imports: [TuiBadge, TranslatePipe, TuiSkeleton],
   template: `
-    <header class="flex items-start justify-between gap-2">
+    <header
+      class="flex items-start justify-between gap-2"
+      [tuiSkeleton]="tuiSkeleton()"
+    >
       <div class="flex items-center gap-2">
         <tui-badge
           class="cursor-pointer"
@@ -47,6 +51,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 export class SectionHeaderComponent {
   title = input.required<string>();
   liked = input(false);
+  tuiSkeleton: InputSignal<boolean> = input(false);
 
   back = output<void>();
   toggleLike = output<void>();
