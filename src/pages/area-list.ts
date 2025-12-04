@@ -48,6 +48,7 @@ import { TuiAvatar } from '@taiga-ui/kit';
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
       <header class="mb-4 flex items-center justify-between gap-2">
+        @let areasCount = filtered().length;
         <h1 class="text-2xl font-bold">
           <tui-avatar
             tuiThumbnail
@@ -56,7 +57,12 @@ import { TuiAvatar } from '@taiga-ui/kit';
             class="self-center"
             [attr.aria-label]="'labels.area' | translate"
           />
-          {{ 'areas.title' | translate }}
+          {{ areasCount }}
+          {{
+            'labels.' + (areasCount === 1 ? 'area' : 'areas')
+              | translate
+              | lowercase
+          }}
         </h1>
 
         @if (global.isAdmin()) {
@@ -80,7 +86,6 @@ import { TuiAvatar } from '@taiga-ui/kit';
           <input
             tuiTextfield
             id="areas-search"
-            [placeholder]="'areas.search_placeholder' | translate"
             [value]="query()"
             (input.zoneless)="onQuery($any($event.target).value)"
           />
@@ -96,6 +101,7 @@ import { TuiAvatar } from '@taiga-ui/kit';
         ></button>
       </div>
 
+      <!-- Areas list -->
       @if (!loading()) {
         <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
           @for (a of filtered(); track a.id) {

@@ -80,7 +80,6 @@ import { SupabaseService } from '../services';
                 id="emailInput"
                 tuiTextfield
                 type="email"
-                placeholder="{{ 'labels.email' | translate }}"
                 [value]="email()"
                 (input.zoneless)="onInputEmail($any($event.target).value)"
                 [attr.aria-invalid]="
@@ -104,7 +103,6 @@ import { SupabaseService } from '../services';
                 id="passwordInput"
                 tuiTextfield
                 type="password"
-                placeholder="{{ 'labels.password' | translate }}"
                 [value]="password()"
                 (input.zoneless)="onInputPassword($any($event.target).value)"
                 [attr.aria-invalid]="
@@ -131,7 +129,6 @@ import { SupabaseService } from '../services';
                   id="confirmRegPasswordInput"
                   tuiTextfield
                   type="password"
-                  placeholder="{{ 'labels.confirmPassword' | translate }}"
                   [value]="confirmPassword()"
                   (input.zoneless)="
                     confirmPassword.set($any($event.target).value)
@@ -222,7 +219,6 @@ import { SupabaseService } from '../services';
                 id="newPasswordInput"
                 tuiTextfield
                 type="password"
-                placeholder="{{ 'labels.newPassword' | translate }}"
                 [value]="newPassword()"
                 (input.zoneless)="newPassword.set($any($event.target).value)"
                 [attr.aria-invalid]="
@@ -248,7 +244,6 @@ import { SupabaseService } from '../services';
                 id="confirmPasswordInput"
                 tuiTextfield
                 type="password"
-                placeholder="{{ 'labels.confirmPassword' | translate }}"
                 [value]="confirmPassword()"
                 (input.zoneless)="
                   confirmPassword.set($any($event.target).value)

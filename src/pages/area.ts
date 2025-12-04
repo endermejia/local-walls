@@ -78,10 +78,8 @@ import { TuiHeader } from '@taiga-ui/layout';
           <app-chart-routes-by-grade [grades]="area.grades" />
         </div>
 
-        <!-- Sectors list -->
-        @let areasLenght = area.crags.length;
-
-        <!-- Sectors list header -->
+        <!-- Crags list -->
+        @let cragsCount = area.crags.length;
         <div class="flex items-center justify-between gap-2">
           <h2 class="text-2xl font-semibold mb-2">
             <tui-avatar
@@ -91,9 +89,9 @@ import { TuiHeader } from '@taiga-ui/layout';
               class="self-center"
               [attr.aria-label]="'labels.crag' | translate"
             />
-            {{ areasLenght }}
+            {{ cragsCount }}
             {{
-              'labels.' + (areasLenght === 1 ? 'crag' : 'crags')
+              'labels.' + (cragsCount === 1 ? 'crag' : 'crags')
                 | translate
                 | lowercase
             }}
@@ -111,7 +109,6 @@ import { TuiHeader } from '@taiga-ui/layout';
             </button>
           }
         </div>
-
         <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
           @for (crag of area.crags; track crag.slug) {
             <div

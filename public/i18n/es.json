@@ -10,7 +10,6 @@
       "remove": "Quitar favorito"
     },
     "loadMore": "Cargar más",
-    "addTopo": "Añadir croquis",
     "fit": {
       "cover": "Ajustar al alto",
       "contain": "Ajustar al ancho"
@@ -38,6 +37,7 @@
     "lat": "Lat",
     "lng": "Lng",
     "capacity": "Capacidad",
+    "name": "Nombre",
     "username": "Usuario",
     "email": "Correo electrónico",
     "password": "Contraseña",
@@ -140,29 +140,34 @@
     "goHome": "Ir al inicio",
     "imageAlt": "no encontrado"
   },
-  "charts": {
-    "routesByGrade": {
-      "title": "Vías por grado"
-    }
-  },
   "areas": {
-    "title": "Áreas",
     "new": "Nueva área",
     "newTitle": "Crear nueva área",
     "editTitle": "Editar área",
     "deleteTitle": "Eliminar área",
     "deleteConfirm": "¿Seguro que quieres eliminar el área \"{{name}}\"? Esta acción no se puede deshacer.",
-    "name": "Nombre",
-    "slug": "Slug",
     "empty": "No hay áreas todavía",
     "search_placeholder": "Buscar áreas por nombre o slug…"
   },
   "crags": {
-    "title": "Sectores",
     "new": "Nuevo sector",
     "newTitle": "Crear nuevo sector",
     "editTitle": "Editar sector",
     "deleteTitle": "Eliminar sector",
     "deleteConfirm": "¿Seguro que quieres eliminar el sector \"{{name}}\"? Esta acción no se puede deshacer."
+  },
+  "topos": {
+    "new": "Nuevo croquis",
+    "newTitle": "Crear nuevo croquis",
+    "editTitle": "Editar croquis",
+    "deleteTitle": "Eliminar croquis",
+    "deleteConfirm": "¿Seguro que quieres eliminar el croquis \"{{name}}\"? Esta acción no se puede deshacer."
+  },
+  "routes": {
+    "new": "Nueva vía",
+    "newTitle": "Crear nueva vía",
+    "editTitle": "Editar vía",
+    "deleteTitle": "Eliminar vía",
+    "deleteConfirm": "¿Seguro que quieres eliminar la vía \"{{name}}\"? Esta acción no se puede deshacer."
   }
 }

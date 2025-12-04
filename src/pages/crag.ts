@@ -1,11 +1,9 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   inject,
   input,
   effect,
-  Signal,
   InputSignal,
   signal,
 } from '@angular/core';
@@ -18,7 +16,7 @@ import { PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { TuiBadge } from '@taiga-ui/kit';
+import { TuiAvatar, TuiBadge } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import {
   TuiLoader,
@@ -38,7 +36,6 @@ import { ConfirmDialogComponent } from '../components/confirm-dialog';
   standalone: true,
   imports: [
     ChartRoutesByGradeComponent,
-    LowerCasePipe,
     SectionHeaderComponent,
     TranslatePipe,
     TuiCardLarge,
@@ -50,6 +47,8 @@ import { ConfirmDialogComponent } from '../components/confirm-dialog';
     TuiBadge,
     FormsModule,
     TuiNotification,
+    TuiAvatar,
+    LowerCasePipe,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -84,7 +83,7 @@ import { ConfirmDialogComponent } from '../components/confirm-dialog';
           }
         </div>
 
-        <div class="flex items-center justify-between gap-2">
+        <div class="flex flex-col md:flex-row md:justify-between gap-2">
           <div class="flex flex-col gap-3">
             @let lang = global.selectedLanguage();
             @let desc = lang === 'es' ? c.description_es : c.description_en;
@@ -100,41 +99,43 @@ import { ConfirmDialogComponent } from '../components/confirm-dialog';
               </tui-notification>
             }
 
-            <div class="flex gap-2 items-center">
-              <button
-                tuiButton
-                appearance="secondary"
-                size="s"
-                type="button"
-                (click.zoneless)="viewOnMap(c.latitude, c.longitude)"
-                [iconStart]="'@tui.map'"
-              >
-                {{ 'actions.viewOnMap' | translate }}
-              </button>
-              <a
-                tuiButton
-                appearance="flat"
-                size="s"
-                [href]="
-                  mapLocationUrl({
-                    latitude: c.latitude,
-                    longitude: c.longitude,
-                  })
-                "
-                target="_blank"
-                rel="noopener noreferrer"
-                [iconStart]="'@tui.map-pin'"
-                [attr.aria-label]="'actions.openGoogleMaps' | translate"
-                [attr.title]="'actions.openGoogleMaps' | translate"
-              >
-                {{ 'actions.openGoogleMaps' | translate }}
-              </a>
-            </div>
+            @if (c.latitude && c.longitude) {
+              <div class="flex gap-2 items-center">
+                <button
+                  tuiButton
+                  appearance="secondary"
+                  size="s"
+                  type="button"
+                  (click.zoneless)="viewOnMap(c.latitude, c.longitude)"
+                  [iconStart]="'@tui.map'"
+                >
+                  {{ 'actions.viewOnMap' | translate }}
+                </button>
+                <a
+                  tuiButton
+                  appearance="flat"
+                  size="s"
+                  [href]="
+                    mapLocationUrl({
+                      latitude: c.latitude,
+                      longitude: c.longitude,
+                    })
+                  "
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  [iconStart]="'@tui.map-pin'"
+                  [attr.aria-label]="'actions.openGoogleMaps' | translate"
+                  [attr.title]="'actions.openGoogleMaps' | translate"
+                >
+                  {{ 'actions.openGoogleMaps' | translate }}
+                </a>
+              </div>
+            }
           </div>
-          <app-chart-routes-by-grade [grades]="c.grades" />
+          <app-chart-routes-by-grade class="self-end" [grades]="c.grades" />
         </div>
 
-        @if ((c.parkings || []).length) {
+        @if (c.parkings.length) {
           <div class="mt-6 grid gap-3">
             <h2 class="text-2xl font-semibold">
               {{ 'labels.parkings' | translate }}
@@ -162,36 +163,40 @@ import { ConfirmDialogComponent } from '../components/confirm-dialog';
                         {{ p.longitude }}
                       </div>
                     </section>
-                    <div class="flex gap-2">
-                      <button
-                        tuiButton
-                        appearance="secondary"
-                        size="s"
-                        type="button"
-                        (click.zoneless)="viewOnMap(p.latitude, p.longitude)"
-                        [iconStart]="'@tui.map'"
-                      >
-                        {{ 'actions.viewOnMap' | translate }}
-                      </button>
-                      <a
-                        tuiButton
-                        appearance="flat"
-                        size="s"
-                        [href]="
-                          mapLocationUrl({
-                            latitude: p.latitude,
-                            longitude: p.longitude,
-                          })
-                        "
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        [iconStart]="'@tui.map-pin'"
-                        [attr.aria-label]="'actions.openGoogleMaps' | translate"
-                        [attr.title]="'actions.openGoogleMaps' | translate"
-                      >
-                        {{ 'actions.openGoogleMaps' | translate }}
-                      </a>
-                    </div>
+                    @if (p.latitude && p.longitude) {
+                      <div class="flex gap-2">
+                        <button
+                          tuiButton
+                          appearance="secondary"
+                          size="s"
+                          type="button"
+                          (click.zoneless)="viewOnMap(p.latitude, p.longitude)"
+                          [iconStart]="'@tui.map'"
+                        >
+                          {{ 'actions.viewOnMap' | translate }}
+                        </button>
+                        <a
+                          tuiButton
+                          appearance="flat"
+                          size="s"
+                          [href]="
+                            mapLocationUrl({
+                              latitude: p.latitude,
+                              longitude: p.longitude,
+                            })
+                          "
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          [iconStart]="'@tui.map-pin'"
+                          [attr.aria-label]="
+                            'actions.openGoogleMaps' | translate
+                          "
+                          [attr.title]="'actions.openGoogleMaps' | translate"
+                        >
+                          {{ 'actions.openGoogleMaps' | translate }}
+                        </a>
+                      </div>
+                    }
                   </div>
                 </div>
               }
@@ -199,23 +204,34 @@ import { ConfirmDialogComponent } from '../components/confirm-dialog';
           </div>
         }
 
+        @let toposCount = c.topos.length;
         <div class="mt-6 grid gap-3">
           <div class="flex items-center justify-between gap-2">
-            <h2 class="text-2xl font-semibold m-0">
-              {{ 'labels.topos' | translate }}
+            <h2 class="text-2xl font-semibold m-2">
+              <tui-avatar
+                tuiThumbnail
+                size="l"
+                [src]="global.iconSrc()('topo')"
+                class="self-center"
+                [attr.aria-label]="'labels.topo' | translate"
+              />
+              {{ toposCount }}
+              {{
+                'labels.' + (toposCount === 1 ? 'topo' : 'topos')
+                  | translate
+                  | lowercase
+              }}
             </h2>
             @if (global.isAdmin()) {
               <button
                 tuiButton
-                appearance="primary"
-                size="s"
+                appearance="textfield"
+                size="m"
                 type="button"
-                (click.zoneless)="addTopo()"
-                [iconStart]="'@tui.plus'"
-                [attr.aria-label]="'actions.addTopo' | translate"
-                [attr.title]="'actions.addTopo' | translate"
+                class="my-4"
+                (click.zoneless)="openCreateTopo()"
               >
-                {{ 'actions.addTopo' | translate }}
+                {{ 'topos.new' | translate }}
               </button>
             }
           </div>
@@ -375,7 +391,7 @@ export class CragComponent {
     // TODO: open crag-form component when available
   }
 
-  addTopo(): void {
+  openCreateTopo(): void {
     const c = this.cragDetail();
     if (!c) return;
     // TODO: navigate to/create topo form for this crag

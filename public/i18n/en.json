@@ -10,7 +10,6 @@
       "remove": "Remove from favorites"
     },
     "loadMore": "Load more",
-    "addTopo": "Add topo",
     "fit": {
       "cover": "Fit height",
       "contain": "Fit width"
@@ -38,6 +37,7 @@
     "lat": "Lat",
     "lng": "Lng",
     "capacity": "Capacity",
+    "name": "Name",
     "username": "Username",
     "email": "Email",
     "password": "Password",
@@ -140,29 +140,34 @@
     "goHome": "Go home",
     "imageAlt": "not found"
   },
-  "charts": {
-    "routesByGrade": {
-      "title": "Routes by grade"
-    }
-  },
   "areas": {
-    "title": "Areas",
     "new": "New area",
     "newTitle": "Create new area",
     "editTitle": "Edit area",
     "deleteTitle": "Delete area",
     "deleteConfirm": "Are you sure you want to delete the area \"{{name}}\"? This action cannot be undone.",
-    "name": "Name",
-    "slug": "Slug",
     "empty": "No areas yet",
     "search_placeholder": "Search areas by name or slug…"
   },
   "crags": {
-    "title": "Crags",
     "new": "New crag",
     "newTitle": "Create new crag",
     "editTitle": "Edit crag",
     "deleteTitle": "Delete crag",
     "deleteConfirm": "Are you sure you want to delete the crag \"{{name}}\"? This action cannot be undone."
+  },
+  "topos": {
+    "new": "New topo",
+    "newTitle": "Create new topo",
+    "editTitle": "Edit topo",
+    "deleteTitle": "Delete topo",
+    "deleteConfirm": "Are you sure you want to delete the topo \"{{name}}\"? This action cannot be undone."
+  },
+  "routes": {
+    "new": "New route",
+    "newTitle": "Create new route",
+    "editTitle": "Edit route",
+    "deleteTitle": "Delete route",
+    "deleteConfirm": "Are you sure you want to delete the route \"{{name}}\"? This action cannot be undone."
   }
 }
