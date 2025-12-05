@@ -1,6 +1,6 @@
 {
   "Menu": "Menú",
-  "Navigation": "Navegación",
+  "navigation": "Navegación",
   "preferences": "Preferencias",
   "settings.language": "Idioma",
   "settings.theme": "Tema",
@@ -110,11 +110,12 @@
   },
   "nav": {
     "home": "Inicio",
-    "logbook": "Perfil",
+    "profile": "Perfil",
     "explore": "Mapa",
     "areas": "Áreas",
     "my-crags": "Mis sectores",
-    "admin-users": "Administrar usuarios"
+    "admin-users": "Usuarios",
+    "admin-equippers": "Equipadores"
   },
   "explore": {
     "toggleView": "Cambiar vista"
@@ -136,7 +137,7 @@
   },
   "notFound": {
     "title": "No encontrado",
-    "description": "Intenta buscar por número o vuelve a la página de inicio.",
+    "description": "Intenta refrescar o vuelve a la página de inicio.",
     "goHome": "Ir al inicio",
     "imageAlt": "no encontrado"
   },

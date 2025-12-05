@@ -1,6 +1,6 @@
 {
   "Menu": "Menu",
-  "Navigation": "Navigation",
+  "navigation": "Navigation",
   "preferences": "Preferences",
   "settings.language": "Language",
   "settings.theme": "Theme",
@@ -110,11 +110,12 @@
   },
   "nav": {
     "home": "Home",
-    "logbook": "Profile",
+    "profile": "Profile",
     "explore": "Map",
     "areas": "Areas",
     "my-crags": "My crags",
-    "admin-users": "Admin users"
+    "admin-users": "Users",
+    "admin-equippers": "Equippers"
   },
   "explore": {
     "toggleView": "Toggle view"

@@ -90,82 +90,86 @@ export class GlobalData {
   });
 
   drawer: Signal<OptionsData> = computed(() => {
-    const role = this.userRole();
-    const items = [
-      {
-        name: 'nav.home',
-        icon: '@tui.home',
-        fn: () => this.router.navigateByUrl('/home'),
-      },
-      {
-        name: 'nav.logbook',
-        icon: '@tui.user',
-        fn: () => this.router.navigateByUrl('/logbook'),
-      },
-      {
-        name: 'nav.explore',
-        icon: '@tui.map',
-        fn: () => this.router.navigateByUrl('/'),
-      },
-      {
-        name: 'nav.areas',
+    const isAdmin = this.isAdmin();
+    const isEquipper = this.isEquipper();
+
+    const admin = [];
+    if (isEquipper) {
+      admin.push({
+        name: 'nav.my-crags',
         icon: '@tui.list',
-        fn: () => this.router.navigateByUrl('/areas'),
-      },
-      // nav.my-crags: only for admin and equipper
-      ...(role === UserRole.Admin || role === UserRole.Equipper
-        ? ([
-            {
-              name: 'nav.my-crags',
-              icon: '@tui.list',
-              fn: () => this.router.navigateByUrl('/my-crags'),
-            },
-          ] as const)
-        : ([] as const)),
-      // nav.admin-users: only for admin
-      ...(role === UserRole.Admin
-        ? ([
-            {
-              name: 'nav.admin-users',
-              icon: '@tui.users',
-              fn: () => this.router.navigateByUrl('/admin-users'),
-            },
-          ] as const)
-        : ([] as const)),
-    ];
+        fn: () => this.router.navigateByUrl('/my-crags'),
+      });
+    }
+    if (isAdmin) {
+      admin.push({
+        name: 'nav.admin-users',
+        icon: '@tui.users',
+        fn: () => this.router.navigateByUrl('/admin-users'),
+      });
+    }
+    if (isAdmin || isEquipper) {
+      admin.push({
+        name: 'nav.admin-equippers',
+        icon: '@tui.hammer',
+        fn: () => this.router.navigateByUrl('/admin-equippers'),
+      });
+    }
     return {
-      ['Navigation']: items,
+      navigation: [
+        {
+          name: 'nav.home',
+          icon: '@tui.home',
+          fn: () => this.router.navigateByUrl('/home'),
+        },
+
+        {
+          name: 'nav.explore',
+          icon: '@tui.map',
+          fn: () => this.router.navigateByUrl('/'),
+        },
+        {
+          name: 'nav.areas',
+          icon: '@tui.list',
+          fn: () => this.router.navigateByUrl('/areas'),
+        },
+      ],
+      admin,
+      preferences: [
+        {
+          name: 'nav.profile',
+          icon: '@tui.user',
+          fn: () => this.router.navigateByUrl('/profile'),
+        },
+        {
+          name: 'settings.language',
+          icon: this.flagPipe.transform(
+            this.selectedLanguage() === 'es' ? 'es' : 'gb',
+          ),
+          fn: () => this.switchLanguage(),
+        },
+        {
+          name: 'settings.theme',
+          icon: `@tui.${this.selectedTheme() === 'dark' ? 'moon' : 'sun'}`,
+          fn: () => this.switchTheme(),
+        },
+        {
+          name: 'auth.logout',
+          icon: '@tui.log-out',
+          fn: () => this.supabase.logout(),
+        },
+      ],
     } satisfies OptionsData;
   });
-  settings: Signal<OptionsData> = computed(() => ({
-    preferences: [
-      {
-        name: 'settings.language',
-        icon: this.flagPipe.transform(
-          this.selectedLanguage() === 'es' ? 'es' : 'gb',
-        ),
-        fn: () => this.switchLanguage(),
-      },
-      {
-        name: 'settings.theme',
-        icon: `@tui.${this.selectedTheme() === 'dark' ? 'moon' : 'sun'}`,
-        fn: () => this.switchTheme(),
-      },
-      {
-        name: 'auth.logout',
-        icon: '@tui.log-out',
-        fn: () => this.supabase.logout(),
-      },
-    ],
-  }));
 
   // ---- AuthZ (roles) ----
   readonly userRole: WritableSignal<UserRole | null> = signal<UserRole | null>(
     null,
   );
   readonly isAdmin = computed(() => this.userRole() === UserRole.Admin);
+  readonly isEquipper = computed(() => this.userRole() === UserRole.Equipper);
 
-  /** Loads user role from Supabase user_profiles for current user (client only). Safe to call multiple times. */
+  /** Loads a user role from Supabase user_profiles for the current user (client only). Safe to call multiple times. */
   async ensureUserRoleLoaded(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     // If already loaded, skip

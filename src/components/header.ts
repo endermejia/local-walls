@@ -111,26 +111,6 @@ interface BreadcrumbItem {
                 }
               </tui-opt-group>
             }
-            @for (group of global.settings() | keyvalue; track group.key) {
-              <tui-opt-group [label]="group.key | translate" ngSkipHydration>
-                @for (item of group.value; track item.name) {
-                  <button
-                    tuiOption
-                    new
-                    type="button"
-                    (click.zoneless)="onClick(item)"
-                    class="gap-2"
-                    ngSkipHydration
-                  >
-                    <tui-avatar
-                      [src]="item.icon || '@tui.file'"
-                      ngSkipHydration
-                    />
-                    {{ item.name | translate }}
-                  </button>
-                }
-              </tui-opt-group>
-            }
           </tui-data-list>
         </button>
         @let breadcrumbItems = items();

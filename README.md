@@ -29,7 +29,6 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
   - Search bar: search areas, crags, routes, and users with typeahead
   - Locale selector (ES/EN)
   - Compact layout on mobile; collapsible drawer on small screens
-  <!-- Possible: Command palette (Ctrl/Cmd+K) to jump to entities -->
 
 - ### App header section
   - Go back button
@@ -39,16 +38,82 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
   <!-- Possible: Offline badge when HTTP transfer cache serves stale data -->
 
 - ### Profile page
-  - Name, email, avatar
-  - Settings section (only user owner)
-    - Edit profile button
-    - Language selector
-    - Change password button
-    - Logout button
+  - Info section (only editable by user owner. edit button is hidden for anonymous users)
+    - Edit button toggle inputs to edit mode
+    - Update with any change in the user profile.
+    - Example with <tui-input-inline
+      ```
+      @if (editing()) {
+        <tui-input-inline>
+          Type a heading
+          <input tuiAutoFocus [(ngModel)]="heading" (blur)="onBlur()" (keydown.enter.prevent)="toggle()"/>
+        </tui-input-inline>
+      } @else {
+        <span>{{ heading }}</span>
+        <button appearance="icon" iconStart="@tui.pencil" size="xs" tuiIconButton type="button" class="tui-space_left-1" (click)="toggle()">
+          Edit heading
+        </button>
+      }
+      ```
+    - Name
+    - Email (not editable)
+    - Avatar
+
+      ```
+          import {AsyncPipe, NgIf} from '@angular/common';
+          import {ChangeDetectionStrategy, Component} from '@angular/core';
+          import {FormControl, ReactiveFormsModule} from '@angular/forms';
+          import {type TuiFileLike, TuiFiles} from '@taiga-ui/kit';
+
+          @Component({
+          standalone: true,
+          exportAs: "Example6",
+          imports: [AsyncPipe, NgIf, ReactiveFormsModule, TuiFiles],
+          templateUrl: './index.html',
+          changeDetection: ChangeDetectionStrategy.OnPush,
+          })
+          export default class Example {
+          protected readonly control = new FormControl<TuiFileLike | null>(null);
+
+              protected removeFile(): void {
+                  this.control.setValue(null);
+              }
+          }
+
+          // TODO: replace *ngIf with @if
+          <label *ngIf="!control.value" tuiInputFiles>
+            <input
+                accept="image/*"
+                capture="user"
+                title="Choose files (no limits)"
+                tuiInputFiles
+                [formControl]="control"
+            />
+          </label>
+
+          <tui-files class="tui-space_top-1">
+            <tui-file
+                *ngIf="control.valueChanges | async as file"
+                [file]="file"
+                (remove)="removeFile()"
+            />
+          </tui-files>
+
+      ```
+
+    - Settings section
+      - Language selector (remove option from globalData.drawer)
+      - Theme selector (remove option from globalData.drawer)
+      - Change the password button
+      - Logout button (remove option from globalData.drawer)
+
   - Ascents section
     - Routes and boulders tabs
-    - List of ascents with sorting - Order by date or grade - Edit ascent button (only user owner)
-    <!-- Possible: Public profile toggle and vanity URL -->
+    - List of ascents
+      - Columns: date, grade, rating, comment, photo
+      - Sorting by date or grade
+      - Edit ascent button (only user owner)
+      <!-- Possible: Public profile toggle and vanity URL -->
 
 - ### Equipper profile page
   - Name, bio, avatar
