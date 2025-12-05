@@ -12,11 +12,11 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
 import { AreasService, GlobalData } from '../services';
-import { slugify } from '../utils';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Location } from '@angular/common';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { injectContext } from '@taiga-ui/polymorpheus';
+import { slugify } from '../utils';
 
 @Component({
   selector: 'app-area-form',

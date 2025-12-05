@@ -13,3 +13,4 @@ export * from './search-api.model';
 export * from './sector.model';
 export * from './topo.model';
 export * from './supabase.dto';
+export * from './supabase-tables.dto';

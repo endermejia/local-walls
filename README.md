@@ -17,86 +17,151 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 - ### Login/Register page
   - Form with email and password fields
-  - Resets password button
-  - Singup / Signin buttons
+  - Reset password button (sends magic link or reset email)
+  - Signup / Signin buttons
+  - Error and success toasts with accessible messages
+  - Link to privacy policy and terms
+  <!-- Possible: Social login providers (Google, Apple) -->
+
 - ### Navbar
-  - Button menu with page links
-  - Breadcrumbs
-  - Search bar: search areas, crags, routes, and users
+  - Button menu with page links (Explore, Areas, Profile, Login)
+  - Breadcrumbs synced with router, SSR-safe
+  - Search bar: search areas, crags, routes, and users with typeahead
+  - Locale selector (ES/EN)
+  - Compact layout on mobile; collapsible drawer on small screens
+  <!-- Possible: Command palette (Ctrl/Cmd+K) to jump to entities -->
+
 - ### App header section
   - Go back button
   - Section title
-  - Like button
+  - Like button (non-toggle for lists; toggle on detail when authenticated)
+  - Share button (uses Web Share API on browser only)
+  <!-- Possible: Offline badge when HTTP transfer cache serves stale data -->
+
 - ### Profile page
-  - Name, email, avatar,
-  - Setting section (only user owners)
-    - Edit profile button ()
+  - Name, email, avatar
+  - Settings section (only user owner)
+    - Edit profile button
     - Language selector
+    - Change password button
     - Logout button
   - Ascents section
     - Routes and boulders tabs
-    - List of routes and boulders
-      - Order by date or grade
-      - Edit ascent button (only user owners)
+    - List of ascents with sorting - Order by date or grade - Edit ascent button (only user owner)
+    <!-- Possible: Public profile toggle and vanity URL -->
+
 - ### Equipper profile page
-  - Name, email, avatar,
-  - Setting section (only for the equipper related or admin)
+  - Name, bio, avatar
+  - Settings section (only equipper related or admin)
     - Edit profile button
   - Assigned crags list (only admin can edit this list)
   - Equipped routes list
+
 - ### Explore page
   - Map
     - Current location
     - Zoom controls
-    - Filter button
+    - Filter button (grade range, climb type, shade, approach)
   - Bottom sheet
     - List of climbing areas and crags filtered by map bounds and filter
+    - Quick actions: open detail, start navigation, like (if authenticated)
+
 - ### Areas list page
   - Search bar and filter button
   - New area button (only admin)
   - List of areas (sorted by likes / name)
     - Click to view 'Area detail page'
     - Like indicator not togglable
-    - Chart-routes-by-grades (of selected area)
+    - Chart routes by grades (aggregated for the area)
+
 - ### Area detail page
   - App header section
   - Edit/delete area button (only admin)
-  - Chart-routes-by-grades (of selected area)
+  - Chart routes by grades (of selected area)
   - New crag button (only admin or equipper owner)
   - List of crags (sorted by likes / name)
     - Click to view 'Crag detail page'
     - Like indicator not togglable
-    - Chart-routes-by-grades (of selected crag)
+
 - ### Crag detail page
   - App header section
   - Edit/delete crag button (only admin or equipper owner)
-  - Chart-topo-by-grades (of selected crag)
+  - Chart topo by grades (of selected crag)
   - Tabs
     - Routes
       - New route button (only admin or equipper owner)
-      - Table of routes (editable routes by admin or equipper owner)
-        - Name
-        - Grade
-        - Height
-        - Equippers
+      - Table of routes (editable only admin or equipper owner)
     - Topos
       - New topo button (only admin or equipper owner)
       - List of topos (sorted by likes / name)
       - Like indicator not togglable
+
 - ### Topo detail page
-  - ...
+  - App header section with title and actions (edit/delete if authorized)
+  - Image viewer with pinch-zoom and pan
+  - Route overlays with numbers matching the route table
+  - Toggle overlays visibility and opacity
+  - Shade information (morning/afternoon + switch hour)
+  - Link to related routes and crag
+  - Like button and share
+
 - ### Route detail page
-  - ...
+  - App header section with route name and like button
+  - Main info: grade, height, pitches, climb kind, orientation
+  - Quality/UI rating (stars) and popularity
+  - Equippers and first ascent info
+  - Links to crag and related topo(s)
+  - Map snippet with exact location (browser-only)
+  - Ascents list (user ticks) with filters and stats
+  - Log ascent button (authenticated users)
+
 - ### Add/edit area dialog
-  - ...
+  - Form fields: name, slug, description (per locale)
+  - Validation: required, unique slug, length limits
+  - Submit/Cancel with optimistic UI
+  <!-- Possible: Slug auto-generation with transliteration -->
+
 - ### Add/edit crag dialog
-  - ...
+  - Form fields: name, slug, area selector, description/warnings, location (lat/lng)
+  - Validation: required, coordinate bounds, unique per area
+  - Map picker for coordinates (client-only, with SSR guard)
+  - Assign equippers (admin/equipper owner)
+  <!-- Possible: Approach time and parking suggestions -->
+
 - ### Add/edit topo dialog
-  - ...
+  - Form fields: name, photo upload, shade options, switch hour
+  - Drag-and-drop to place and order route numbers over the image
+  - Link existing routes to this topo
+  - Preview of overlays before save
+  <!-- Possible: Auto-detect lines from image using simple helpers -->
+
 - ### Add/edit route dialog
-  - ...
+  - Form fields: name, slug, grade, height, pitches, climb kind, equippers
+  - Validation with grade schema
+  - Optional GPS point selection
+  - Link to topo (optional)
+  <!-- Possible: Import from CSV for bulk creation (admin) -->
+
 - ### Add/edit ascent dialog
-  - Form with fields for ascent date, grade, rate, comment, photo...
+  - Form with fields for ascent date, style, grade opinion, rating, comment, photo
+  - Mark as flash/onsight/redpoint, attempts, and partner(s)
+  - Privacy control (public/private)
+  <!-- Possible: Attach media gallery and GPX track -->
+
+- ### Table routes component
+  - Columns
+    - Name
+    - Grade
+    - Height
+    - Equippers
+    - Pitches
+  - Pagination (client/server)
+  - Sorting by name, grade, height
+  - Column filters (grade range, climb kind)
+  - Editable signal input (when allowed)
+  - On-click cell/row actions (outputs a signal)
+  - Keyboard navigation and accessible row actions
+  <!-- Possible: Export visible rows to CSV -->
 
 ## Data tables and RLS
 

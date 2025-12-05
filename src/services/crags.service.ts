@@ -7,8 +7,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { SupabaseService } from './supabase.service';
-import type { CragDetail } from '../models';
-import type { CragLikeToggleResult } from '../models/crag.model';
+import type { CragDetail, CragLikeToggleResult } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class CragsService {

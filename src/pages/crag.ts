@@ -7,16 +7,17 @@ import {
   InputSignal,
   signal,
 } from '@angular/core';
-import type { CragDetail, TopoListItem, ClimbingCrag } from '../models';
-import { ChartRoutesByGradeComponent } from '../components';
-import { GlobalData } from '../services';
 import { FormsModule } from '@angular/forms';
 import { isPlatformBrowser, Location, LowerCasePipe } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
-import { SectionHeaderComponent } from '../components/section-header';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { TuiAvatar, TuiBadge } from '@taiga-ui/kit';
+import {
+  TuiAvatar,
+  TuiBadge,
+  TUI_CONFIRM,
+  type TuiConfirmData,
+} from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import {
   TuiLoader,
@@ -25,11 +26,14 @@ import {
   TuiNotification,
 } from '@taiga-ui/core';
 import { TuiSurface } from '@taiga-ui/core';
-import { mapLocationUrl } from '../utils';
-import { CragsService } from '../services/crags.service';
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { ConfirmDialogComponent } from '../components/confirm-dialog';
+import {
+  ChartRoutesByGradeComponent,
+  SectionHeaderComponent,
+} from '../components';
+import { CragsService, GlobalData } from '../services';
+import type { CragDetail, TopoListItem, ClimbingCrag } from '../models';
+import { mapLocationUrl } from '../utils';
 
 @Component({
   selector: 'app-crag',
@@ -358,16 +362,17 @@ export class CragComponent {
       .subscribe((t) => {
         const title = t['crags.deleteTitle'];
         const message = t['crags.deleteConfirm'];
+        const data: TuiConfirmData = {
+          content: message,
+          yes: this.translate.instant('common.delete'),
+          no: this.translate.instant('common.cancel'),
+          appearance: 'accent',
+        };
         this.dialogs
-          .open<boolean>(new PolymorpheusComponent(ConfirmDialogComponent), {
+          .open<boolean>(TUI_CONFIRM, {
             label: title,
             size: 's',
-            data: {
-              title,
-              message,
-              confirmLabel: 'common.delete',
-              cancelLabel: 'common.cancel',
-            },
+            data,
           })
           .subscribe({
             next: async (confirmed) => {

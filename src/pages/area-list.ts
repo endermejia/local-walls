@@ -21,12 +21,12 @@ import {
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { AreaFormComponent } from './area-form';
 import { TranslateService } from '@ngx-translate/core';
-import { ChartRoutesByGradeComponent } from '../components';
 import { FilterDialog, HomeFilterDialogComponent } from './filter-dialog';
-import { ORDERED_GRADE_VALUES } from '../models';
 import { TuiAvatar } from '@taiga-ui/kit';
+import { ChartRoutesByGradeComponent } from '../components';
+import { AreaFormComponent } from './area-form';
+import { ORDERED_GRADE_VALUES } from '../models';
 
 @Component({
   selector: 'app-area-list',

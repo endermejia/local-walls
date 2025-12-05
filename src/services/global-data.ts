@@ -154,7 +154,7 @@ export class GlobalData {
       {
         name: 'auth.logout',
         icon: '@tui.log-out',
-        fn: () => this.logout(),
+        fn: () => this.supabase.logout(),
       },
     ],
   }));
@@ -513,44 +513,6 @@ export class GlobalData {
     }
   }
 
-  async loadCragAscents(
-    countrySlug: string,
-    cragSlug: string,
-    params?: {
-      sectorSlug?: string;
-      pageIndex?: number;
-      pageSize?: number;
-      grade?: string;
-      searchQuery?: string;
-    },
-  ): Promise<void> {
-    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
-      return;
-    try {
-      this.loading.set(true);
-      const pageIndex = params?.pageIndex ?? 0;
-      const resp = await this.verticalLifeApi.getCragAscentsPageable(
-        countrySlug,
-        cragSlug,
-        params,
-      );
-      if (pageIndex > 0 && this.ascentsPageable()) {
-        const prev = this.ascentsPageable()!;
-        this.ascentsPageable.set({
-          items: [...prev.items, ...resp.items],
-          pagination: resp.pagination,
-        });
-      } else {
-        this.ascentsPageable.set(resp);
-      }
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      this.error.set(msg);
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
   async loadRoute(
     countrySlug: string,
     cragSlug: string,
@@ -582,30 +544,6 @@ export class GlobalData {
 
   toggleLikeRoute(id: number): void {
     console.log('toggleLikeRoute', id);
-  }
-
-  // ---- Auth helpers ----
-  readonly tokenKey = 'auth_token';
-  readonly tokenExpKey = 'auth_token_exp';
-
-  login(username: string, password: string): boolean {
-    // Mock login: any non-empty credentials
-    if (!username || !password) return false;
-    const token = 'mock-token-' + Math.random().toString(36).slice(2);
-    const exp = Date.now() + 1000 * 60 * 60; // 1 hour
-    this.localStorage.setItem(this.tokenKey, token);
-    this.localStorage.setItem(this.tokenExpKey, String(exp));
-    return true;
-  }
-
-  async logout() {
-    try {
-      await this.supabase.logout();
-    } finally {
-      this.localStorage.removeItem(this.tokenKey);
-      this.localStorage.removeItem(this.tokenExpKey);
-      void this.router.navigateByUrl('/login');
-    }
   }
 
   // ---- Error state for interceptor ----

@@ -9,11 +9,13 @@ import { isPlatformBrowser } from '@angular/common';
 import { SupabaseService } from './supabase.service';
 import { GlobalData } from './global-data';
 import type {
+  AreaDetail,
   AreaDto,
   AreaInsertDto,
+  AreaLikeToggleResult,
+  AreaListItem,
   AreaUpdateDto,
-} from '../models/supabase-tables.dto';
-import type { AreaLikeToggleResult, AreaListItem, AreaDetail } from '../models';
+} from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class AreasService {

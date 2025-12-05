@@ -1,6 +1,7 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { GlobalData } from './global-data';
+import { LocalStorage } from './local-storage';
 import {
   MapCragItem,
   MapOptions,
@@ -8,7 +9,6 @@ import {
   MapCragDataFeature,
   MapBounds,
 } from '../models';
-import { LocalStorage } from './local-storage';
 import {
   Map,
   Marker,

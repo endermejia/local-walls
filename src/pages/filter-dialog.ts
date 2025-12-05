@@ -18,8 +18,8 @@ import { TuiForm } from '@taiga-ui/layout';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiRange, TuiFilter, type TuiKeySteps } from '@taiga-ui/kit';
-import { ORDERED_GRADE_VALUES } from '../models';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { ORDERED_GRADE_VALUES } from '../models';
 
 export interface FilterDialog {
   categories: number[]; // 0=Sport, 1=Boulder

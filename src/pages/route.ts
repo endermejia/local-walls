@@ -8,15 +8,15 @@ import {
   effect,
   InputSignal,
 } from '@angular/core';
-import { GlobalData } from '../services';
 import { Location, LowerCasePipe } from '@angular/common';
-import { ClimbingRoute } from '../models';
-import { SectionHeaderComponent } from '../components/section-header';
+import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiLoader } from '@taiga-ui/core';
-import { RouterLink } from '@angular/router';
 import { TuiRating } from '@taiga-ui/kit';
-import { FormsModule } from '@angular/forms';
+import { SectionHeaderComponent } from '../components';
+import { GlobalData } from '../services';
+import { ClimbingRoute } from '../models';
 
 @Component({
   selector: 'app-route',

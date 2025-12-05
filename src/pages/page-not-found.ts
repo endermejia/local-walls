@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { GlobalData } from '../services';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { TuiBlockStatus } from '@taiga-ui/layout';
 import { TuiButton } from '@taiga-ui/core';
+import { GlobalData } from '../services';
 
 @Component({
   standalone: true,

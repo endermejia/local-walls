@@ -10,20 +10,11 @@ import {
   ViewChild,
   WritableSignal,
 } from '@angular/core';
-import {
-  GradeLabel,
-  MapAreaItem,
-  MapCounts,
-  MapCragItem,
-  normalizeRoutesByGrade,
-  ORDERED_GRADE_VALUES,
-} from '../models';
+import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { HomeFilterDialogComponent, FilterDialog } from './filter-dialog';
-import { GlobalData } from '../services';
-import { ChartRoutesByGradeComponent, MapComponent } from '../components';
-import { RouterLink } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
@@ -35,9 +26,18 @@ import {
   TuiTitle,
 } from '@taiga-ui/core';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
-import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
+import { ChartRoutesByGradeComponent, MapComponent } from '../components';
+import { HomeFilterDialogComponent, FilterDialog } from './filter-dialog';
+import { GlobalData } from '../services';
+import {
+  GradeLabel,
+  MapAreaItem,
+  MapCounts,
+  MapCragItem,
+  normalizeRoutesByGrade,
+  ORDERED_GRADE_VALUES,
+} from '../models';
 import { remToPx } from '../utils';
-import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-home',

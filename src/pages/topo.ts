@@ -10,14 +10,13 @@ import {
   effect,
   InputSignal,
 } from '@angular/core';
-import { GlobalData } from '../services';
 import { Location } from '@angular/common';
-import { RoutesTableComponent } from '../components';
-import { SectionHeaderComponent } from '../components/section-header';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import { TuiButton, TuiLoader } from '@taiga-ui/core';
 import { TuiSortDirection } from '@taiga-ui/addon-table';
+import { RoutesTableComponent, SectionHeaderComponent } from '../components';
+import { GlobalData } from '../services';
 import type { ClimbingRoute } from '../models';
 
 @Component({

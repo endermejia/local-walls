@@ -9,6 +9,7 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { Router } from '@angular/router';
 import type { SupabaseClient, Session } from '@supabase/supabase-js';
 
 export interface SupabaseConfig {
@@ -33,6 +34,7 @@ export class SupabaseService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly url = inject(SUPABASE_URL, { optional: true });
   private readonly anonKey = inject(SUPABASE_ANON_KEY, { optional: true });
+  private readonly router = inject(Router);
 
   private _client: SupabaseClient | null = null;
   private _readyResolve: (() => void) | null = null;
@@ -131,6 +133,7 @@ export class SupabaseService {
     if (!this._client) return;
     const { error } = await this._client.auth.signOut();
     if (error) console.error('[SupabaseService] signOut error', error);
+    else void this.router.navigateByUrl('/login');
   }
 
   /** Send password reset email */

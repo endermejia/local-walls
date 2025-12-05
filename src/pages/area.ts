@@ -6,21 +6,27 @@ import {
   InputSignal,
   effect,
 } from '@angular/core';
-import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
+import { isPlatformBrowser, Location, LowerCasePipe } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiCardLarge } from '@taiga-ui/layout';
 import { TuiSurface, TuiLoader, TuiTitle, TuiButton } from '@taiga-ui/core';
-import { AreasService, GlobalData } from '../services';
-import { SectionHeaderComponent } from '../components/section-header';
-import { TuiAvatar, TuiBadge } from '@taiga-ui/kit';
+import {
+  TuiAvatar,
+  TuiBadge,
+  TUI_CONFIRM,
+  type TuiConfirmData,
+} from '@taiga-ui/kit';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { AreaFormComponent } from './area-form';
 import { Router, RouterLink } from '@angular/router';
-import { ConfirmDialogComponent } from '../components/confirm-dialog';
-import { ChartRoutesByGradeComponent } from '../components';
 import { TuiHeader } from '@taiga-ui/layout';
+import { AreasService, GlobalData } from '../services';
+import {
+  ChartRoutesByGradeComponent,
+  SectionHeaderComponent,
+} from '../components';
+import { AreaFormComponent } from './area-form';
 
 @Component({
   selector: 'app-area',
@@ -152,6 +158,7 @@ export class AreaComponent {
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
 
   areaSlug: InputSignal<string> = input.required<string>();
 
@@ -194,23 +201,24 @@ export class AreaComponent {
     if (!area) return;
     if (!isPlatformBrowser(this.platformId)) return;
 
-    // Resolve translations asynchronously to ensure interpolation works
     this.translate
       .get(['areas.deleteTitle', 'areas.deleteConfirm'], { name: area.name })
       .subscribe((t) => {
         const title = t['areas.deleteTitle'];
         const message = t['areas.deleteConfirm'];
 
+        const data: TuiConfirmData = {
+          content: message,
+          yes: this.translate.instant('common.delete'),
+          no: this.translate.instant('common.cancel'),
+          appearance: 'accent',
+        };
+
         this.dialogs
-          .open<boolean>(new PolymorpheusComponent(ConfirmDialogComponent), {
+          .open<boolean>(TUI_CONFIRM, {
             label: title,
             size: 's',
-            data: {
-              title,
-              message,
-              confirmLabel: 'common.delete',
-              cancelLabel: 'common.cancel',
-            },
+            data,
           })
           .subscribe({
             next: async (confirmed) => {
@@ -257,24 +265,6 @@ export class AreaComponent {
   }
 
   goBack(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      void this.router.navigateByUrl('/areas');
-      return;
-    }
-    const target = this.resolveBackUrl();
-    void this.router.navigateByUrl(target);
-  }
-
-  private resolveBackUrl(): '/explore' | '/areas' {
-    let nav = this.router.lastSuccessfulNavigation?.previousNavigation ?? null;
-    let steps = 0;
-    while (nav && steps < 10) {
-      const url = (nav.finalUrl ?? nav.initialUrl)?.toString() ?? '';
-      if (url.startsWith('/explore')) return '/explore';
-      if (url.startsWith('/areas')) return '/areas';
-      nav = nav.previousNavigation ?? null;
-      steps++;
-    }
-    return '/areas';
+    this.location.back();
   }
 }
