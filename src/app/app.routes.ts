@@ -30,6 +30,12 @@ export const routes: Routes = [
     loadComponent: () => import('../pages/crag').then((m) => m.CragComponent),
   },
   {
+    path: 'profile',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/user-profile').then((m) => m.UserProfileComponent),
+  },
+  {
     path: 'sector/:countrySlug/:cragSlug/:sectorSlug',
     canMatch: [authGuard],
     loadComponent: () => import('../pages/topo').then((m) => m.TopoComponent),

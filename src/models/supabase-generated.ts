@@ -980,13 +980,6 @@ export type Database = {
             referencedRelation: 'crags';
             referencedColumns: ['id'];
           },
-          {
-            foreignKeyName: 'crag_equippers_equipper_id_fkey';
-            columns: ['equipper_id'];
-            isOneToOne: false;
-            referencedRelation: 'user_profiles';
-            referencedColumns: ['user_id'];
-          },
         ];
       };
       crag_likes: {
@@ -1113,21 +1106,21 @@ export type Database = {
       equippers: {
         Row: {
           created_at: string;
-          description: string;
+          description: string | null;
           id: number;
           name: string;
           photo: string | null;
         };
         Insert: {
           created_at?: string;
-          description: string;
+          description?: string | null;
           id?: number;
           name: string;
           photo?: string | null;
         };
         Update: {
           created_at?: string;
-          description?: string;
+          description?: string | null;
           id?: number;
           name?: string;
           photo?: string | null;
@@ -1163,58 +1156,124 @@ export type Database = {
       };
       route_ascents: {
         Row: {
-          ascent_date: string | null;
+          anchor_replaced_by_me: boolean | null;
+          athletic: boolean | null;
           attempts: number | null;
+          bad_anchor: boolean | null;
+          bad_bolts: boolean | null;
+          bad_clipping_position: boolean | null;
+          bolted_by_me: boolean | null;
+          chipped: boolean | null;
           comment: string | null;
           created_at: string | null;
+          crimpy: boolean | null;
+          cruxy: boolean | null;
+          date: string | null;
+          endurance: boolean | null;
           first_ascent: boolean | null;
           grade: string | null;
           hard: boolean | null;
+          high_first_bolt: boolean | null;
           id: number;
+          lose_rock: boolean | null;
+          no_score: boolean | null;
+          overhang: boolean | null;
           photo_path: string | null;
           private_comment: boolean | null;
           rate: number | null;
+          rebolted_by_me: boolean | null;
           recommended: boolean | null;
+          roof: boolean | null;
           route_id: number;
+          slab: boolean | null;
+          sloper: boolean | null;
           soft: boolean | null;
-          type: string | null;
+          technical: boolean | null;
+          traditional: boolean | null;
+          type: Database['public']['Enums']['ascent_type'] | null;
           user_id: string;
+          vertical: boolean | null;
+          with_kneepad: boolean | null;
         };
         Insert: {
-          ascent_date?: string | null;
+          anchor_replaced_by_me?: boolean | null;
+          athletic?: boolean | null;
           attempts?: number | null;
+          bad_anchor?: boolean | null;
+          bad_bolts?: boolean | null;
+          bad_clipping_position?: boolean | null;
+          bolted_by_me?: boolean | null;
+          chipped?: boolean | null;
           comment?: string | null;
           created_at?: string | null;
+          crimpy?: boolean | null;
+          cruxy?: boolean | null;
+          date?: string | null;
+          endurance?: boolean | null;
           first_ascent?: boolean | null;
           grade?: string | null;
           hard?: boolean | null;
+          high_first_bolt?: boolean | null;
           id?: number;
+          lose_rock?: boolean | null;
+          no_score?: boolean | null;
+          overhang?: boolean | null;
           photo_path?: string | null;
           private_comment?: boolean | null;
           rate?: number | null;
+          rebolted_by_me?: boolean | null;
           recommended?: boolean | null;
+          roof?: boolean | null;
           route_id: number;
+          slab?: boolean | null;
+          sloper?: boolean | null;
           soft?: boolean | null;
-          type?: string | null;
+          technical?: boolean | null;
+          traditional?: boolean | null;
+          type?: Database['public']['Enums']['ascent_type'] | null;
           user_id: string;
+          vertical?: boolean | null;
+          with_kneepad?: boolean | null;
         };
         Update: {
-          ascent_date?: string | null;
+          anchor_replaced_by_me?: boolean | null;
+          athletic?: boolean | null;
           attempts?: number | null;
+          bad_anchor?: boolean | null;
+          bad_bolts?: boolean | null;
+          bad_clipping_position?: boolean | null;
+          bolted_by_me?: boolean | null;
+          chipped?: boolean | null;
           comment?: string | null;
           created_at?: string | null;
+          crimpy?: boolean | null;
+          cruxy?: boolean | null;
+          date?: string | null;
+          endurance?: boolean | null;
           first_ascent?: boolean | null;
           grade?: string | null;
           hard?: boolean | null;
+          high_first_bolt?: boolean | null;
           id?: number;
+          lose_rock?: boolean | null;
+          no_score?: boolean | null;
+          overhang?: boolean | null;
           photo_path?: string | null;
           private_comment?: boolean | null;
           rate?: number | null;
+          rebolted_by_me?: boolean | null;
           recommended?: boolean | null;
+          roof?: boolean | null;
           route_id?: number;
+          slab?: boolean | null;
+          sloper?: boolean | null;
           soft?: boolean | null;
-          type?: string | null;
+          technical?: boolean | null;
+          traditional?: boolean | null;
+          type?: Database['public']['Enums']['ascent_type'] | null;
           user_id?: string;
+          vertical?: boolean | null;
+          with_kneepad?: boolean | null;
         };
         Relationships: [
           {
@@ -1443,37 +1502,37 @@ export type Database = {
       };
       user_profiles: {
         Row: {
-          allowed_crag_ids: number[] | null;
-          avatar_url: string | null;
+          avatar: string | null;
           bio: string | null;
           created_at: string | null;
-          display_name: string | null;
           id: string;
+          language: Database['public']['Enums']['language'] | null;
+          name: string;
           role: Database['public']['Enums']['app_role'];
+          theme: Database['public']['Enums']['theme'] | null;
           updated_at: string | null;
-          user_id: string;
         };
         Insert: {
-          allowed_crag_ids?: number[] | null;
-          avatar_url?: string | null;
+          avatar?: string | null;
           bio?: string | null;
           created_at?: string | null;
-          display_name?: string | null;
           id?: string;
+          language?: Database['public']['Enums']['language'] | null;
+          name: string;
           role?: Database['public']['Enums']['app_role'];
+          theme?: Database['public']['Enums']['theme'] | null;
           updated_at?: string | null;
-          user_id: string;
         };
         Update: {
-          allowed_crag_ids?: number[] | null;
-          avatar_url?: string | null;
+          avatar?: string | null;
           bio?: string | null;
           created_at?: string | null;
-          display_name?: string | null;
           id?: string;
+          language?: Database['public']['Enums']['language'] | null;
+          name?: string;
           role?: Database['public']['Enums']['app_role'];
+          theme?: Database['public']['Enums']['theme'] | null;
           updated_at?: string | null;
-          user_id?: string;
         };
         Relationships: [];
       };
@@ -1482,127 +1541,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      assign_crag_to_equipper: {
-        Args: {
-          p_admin: string;
-          p_assign: boolean;
-          p_crag_id: number;
-          p_equipper: string;
-        };
-        Returns: undefined;
-      };
-      equipper_has_crag: {
-        Args: { p_crag_id: number; p_user: string };
-        Returns: boolean;
-      };
-      get_area_by_slug: { Args: { p_slug: string }; Returns: Json };
-      get_areas_list: {
-        Args: {
-          _filter?: string;
-          _limit?: number;
-          _offset?: number;
-          _user_id?: string;
-        };
-        Returns: {
-          crags_count: number;
-          grades: Json;
-          id: number;
-          liked: boolean;
-          name: string;
-          slug: string;
-        }[];
-      };
-      get_assigned_crags: {
-        Args: never;
-        Returns: {
-          assigned_at: string;
-          crag_id: number;
-          crag_name: string;
-        }[];
-      };
-      get_crag_by_slug: { Args: { p_slug: string }; Returns: Json };
-      insert_route_ascent: {
-        Args: {
-          p_ascent_date?: string;
-          p_attempts?: number;
-          p_comment?: string;
-          p_first_ascent?: boolean;
-          p_grade?: string;
-          p_hard?: boolean;
-          p_is_project?: boolean;
-          p_photo_path?: string;
-          p_private_comment?: boolean;
-          p_rate?: number;
-          p_recommended?: boolean;
-          p_route_id: number;
-          p_soft?: boolean;
-          p_type?: string;
-        };
-        Returns: {
-          ascent_date: string | null;
-          attempts: number | null;
-          comment: string | null;
-          created_at: string | null;
-          first_ascent: boolean | null;
-          grade: string | null;
-          hard: boolean | null;
-          id: number;
-          photo_path: string | null;
-          private_comment: boolean | null;
-          rate: number | null;
-          recommended: boolean | null;
-          route_id: number;
-          soft: boolean | null;
-          type: string | null;
-          user_id: string;
-        };
-        SetofOptions: {
-          from: '*';
-          to: 'route_ascents';
-          isOneToOne: true;
-          isSetofReturn: false;
-        };
-      };
-      is_admin: { Args: never; Returns: boolean };
-      is_equipper: { Args: never; Returns: boolean };
-      is_equipper_for_crag: { Args: { p_crag_id: number }; Returns: boolean };
-      is_user_admin: { Args: { p_user: string }; Returns: boolean };
-      set_user_admin: {
-        Args: { p_admin: string; p_make_admin: boolean; p_target: string };
-        Returns: undefined;
-      };
-      toggle_area_like: {
-        Args: { p_area_id: number };
-        Returns: {
-          action: string;
-          total_likes: number;
-        }[];
-      };
-      toggle_crag_like: {
-        Args: { p_crag_id: number };
-        Returns: {
-          action: string;
-          total_likes: number;
-        }[];
-      };
-      toggle_route_like: {
-        Args: { p_route_id: number };
-        Returns: {
-          action: string;
-          total_likes: number;
-        }[];
-      };
-      toggle_route_project: {
-        Args: { p_route: number; p_user: string };
-        Returns: {
-          action: string;
-          id: number;
-        }[];
-      };
+      [_ in never]: never;
     };
     Enums: {
       app_role: 'admin' | 'equipper' | 'climber';
+      ascent_type: 'os' | 'rp' | 'f';
       climb_kind: 'sport' | 'boulder' | 'trad' | 'multipitch' | 'mixed';
+      language: 'es' | 'en';
+      theme: 'dark' | 'light';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -2259,7 +2205,10 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ['admin', 'equipper', 'climber'],
+      ascent_type: ['os', 'rp', 'f'],
       climb_kind: ['sport', 'boulder', 'trad', 'multipitch', 'mixed'],
+      language: ['es', 'en'],
+      theme: ['dark', 'light'],
     },
   },
   storage: {

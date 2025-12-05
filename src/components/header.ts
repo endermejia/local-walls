@@ -14,6 +14,7 @@ import { RouterLink } from '@angular/router';
 import {
   TuiButton,
   TuiDataListComponent,
+  TuiFallbackSrcPipe,
   TuiLink,
   TuiOptGroup,
   TuiTextfield,
@@ -74,6 +75,7 @@ interface BreadcrumbItem {
     TuiBreadcrumbs,
     TuiLink,
     TranslatePipe,
+    TuiFallbackSrcPipe,
   ],
   template: `
     <header
@@ -103,8 +105,7 @@ interface BreadcrumbItem {
                     ngSkipHydration
                   >
                     <tui-avatar
-                      [src]="item.icon || '@tui.file'"
-                      ngSkipHydration
+                      [src]="item.icon | tuiFallbackSrc: '@tui.file' | async"
                     />
                     {{ item.name | translate }}
                   </button>

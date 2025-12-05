@@ -170,5 +170,15 @@
     "editTitle": "Edit route",
     "deleteTitle": "Delete route",
     "deleteConfirm": "Are you sure you want to delete the route \"{{name}}\"? This action cannot be undone."
+  },
+  "profile": {
+    "title": "My profile",
+    "displayName": "Display name",
+    "avatarUrl": "Avatar URL",
+    "bio": "Bio",
+    "language": "Language",
+    "theme": "Theme",
+    "role": "Role",
+    "saveError": "There was an error saving your profile."
   }
 }

@@ -141,23 +141,6 @@ export class GlobalData {
           icon: '@tui.user',
           fn: () => this.router.navigateByUrl('/profile'),
         },
-        {
-          name: 'settings.language',
-          icon: this.flagPipe.transform(
-            this.selectedLanguage() === 'es' ? 'es' : 'gb',
-          ),
-          fn: () => this.switchLanguage(),
-        },
-        {
-          name: 'settings.theme',
-          icon: `@tui.${this.selectedTheme() === 'dark' ? 'moon' : 'sun'}`,
-          fn: () => this.switchTheme(),
-        },
-        {
-          name: 'auth.logout',
-          icon: '@tui.log-out',
-          fn: () => this.supabase.logout(),
-        },
       ],
     } satisfies OptionsData;
   });

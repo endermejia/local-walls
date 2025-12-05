@@ -170,5 +170,15 @@
     "editTitle": "Editar vía",
     "deleteTitle": "Eliminar vía",
     "deleteConfirm": "¿Seguro que quieres eliminar la vía \"{{name}}\"? Esta acción no se puede deshacer."
+  },
+  "profile": {
+    "title": "Mi perfil",
+    "displayName": "Nombre a mostrar",
+    "avatarUrl": "URL del avatar",
+    "bio": "Biografía",
+    "language": "Idioma",
+    "theme": "Tema",
+    "role": "Rol",
+    "saveError": "Ha ocurrido un error al guardar tu perfil."
   }
 }
