@@ -11,6 +11,7 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import type { SupabaseClient, Session } from '@supabase/supabase-js';
+import { Database } from '../models/supabase-generated';
 
 export interface SupabaseConfig {
   url: string;
@@ -36,7 +37,7 @@ export class SupabaseService {
   private readonly anonKey = inject(SUPABASE_ANON_KEY, { optional: true });
   private readonly router = inject(Router);
 
-  private _client: SupabaseClient | null = null;
+  private _client: SupabaseClient<Database> | null = null;
   private _readyResolve: (() => void) | null = null;
   private readonly _ready: Promise<void>;
 
@@ -75,7 +76,7 @@ export class SupabaseService {
     }
     try {
       const { createClient } = await import('@supabase/supabase-js');
-      this._client = createClient(this.url, this.anonKey);
+      this._client = createClient<Database>(this.url, this.anonKey);
       // Initial session fetch
       const { data } = await this._client.auth.getSession();
       this._session.set(data.session ?? null);
@@ -98,7 +99,7 @@ export class SupabaseService {
   }
 
   /** Direct access to Supabase client (browser only). Throws if not initialized. */
-  get client(): SupabaseClient {
+  get client() {
     if (!this._client) {
       throw new Error(
         'Supabase client is not initialized. Ensure you are in the browser and provideSupabaseConfig is set.',

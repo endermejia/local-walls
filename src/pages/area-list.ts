@@ -26,7 +26,7 @@ import { FilterDialog, HomeFilterDialogComponent } from './filter-dialog';
 import { TuiAvatar } from '@taiga-ui/kit';
 import { ChartRoutesByGradeComponent } from '../components';
 import { AreaFormComponent } from './area-form';
-import { ORDERED_GRADE_VALUES } from '../models';
+import { ORDERED_GRADE_VALUES, normalizeRoutesByGrade } from '../models';
 
 @Component({
   selector: 'app-area-list',
@@ -170,9 +170,9 @@ export class AreaListComponent {
       a.name.toLowerCase().includes(q) ||
       a.slug.toLowerCase().includes(q);
     const gradeMatches = (a: (typeof list)[number]) => {
-      const grades = a.grades || ({} as Record<string, number>);
+      const grades = normalizeRoutesByGrade(a.grades);
       for (const label of allowedLabels) {
-        if ((grades as any)[label] && Number((grades as any)[label]) > 0) {
+        if (grades[label] && Number(grades[label]) > 0) {
           return true;
         }
       }

@@ -91,12 +91,15 @@ export class AreasService {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const { data, error } = await this.supabase.client.rpc('get_areas_list', {
-        _filter: filter || null,
-        _limit: limit,
-        _offset: offset,
-        // _user_id can be omitted to use auth context on RLS
-      });
+      const { data, error } = await this.supabase.client.rpc(
+        'get_areas_list' as unknown as never,
+        {
+          _filter: filter || null,
+          _limit: limit,
+          _offset: offset,
+          // _user_id can be omitted to use auth context on RLS
+        } as unknown as never,
+      );
       if (error) throw error;
       const items = (data as AreaListItem[] | null) ?? [];
 
@@ -130,8 +133,8 @@ export class AreasService {
 
       const params = { p_area_id: areaId } as const;
       const { data, error } = await this.supabase.client.rpc(
-        'toggle_area_like',
-        params,
+        'toggle_area_like' as unknown as never,
+        params as unknown as undefined,
       );
       if (error) throw error;
       const result = (Array.isArray(data) ? data[0] : data) as
@@ -167,8 +170,8 @@ export class AreasService {
     await this.supabase.whenReady();
     try {
       const { data, error } = await this.supabase.client.rpc(
-        'get_area_by_slug',
-        { p_slug: slug },
+        'get_area_by_slug' as unknown as never,
+        { p_slug: slug } as unknown as undefined,
       );
       if (error) throw error;
       return data as AreaDetail;

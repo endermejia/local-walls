@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export type Database = {
+export interface Database {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
@@ -871,9 +871,7 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: {
-      [_ in never]: never;
-    };
+    Views: Record<never, never>;
     Functions: {
       email: { Args: never; Returns: string };
       jwt: { Args: never; Returns: Json };
@@ -897,9 +895,7 @@ export type Database = {
         | 'email_change_token_current'
         | 'phone_change_token';
     };
-    CompositeTypes: {
-      [_ in never]: never;
-    };
+    CompositeTypes: Record<never, never>;
   };
   public: {
     Tables: {
@@ -1537,12 +1533,8 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: {
-      [_ in never]: never;
-    };
-    Functions: {
-      [_ in never]: never;
-    };
+    Views: Record<never, never>;
+    Functions: Record<never, never>;
     Enums: {
       app_role: 'admin' | 'equipper' | 'climber';
       ascent_type: 'os' | 'rp' | 'f';
@@ -1550,9 +1542,7 @@ export type Database = {
       language: 'es' | 'en';
       theme: 'dark' | 'light';
     };
-    CompositeTypes: {
-      [_ in never]: never;
-    };
+    CompositeTypes: Record<never, never>;
   };
   storage: {
     Tables: {
@@ -1901,9 +1891,7 @@ export type Database = {
         ];
       };
     };
-    Views: {
-      [_ in never]: never;
-    };
+    Views: Record<never, never>;
     Functions: {
       add_prefixes: {
         Args: { _bucket_id: string; _name: string };
@@ -2055,11 +2043,9 @@ export type Database = {
     Enums: {
       buckettype: 'STANDARD' | 'ANALYTICS' | 'VECTOR';
     };
-    CompositeTypes: {
-      [_ in never]: never;
-    };
+    CompositeTypes: Record<never, never>;
   };
-};
+}
 
 type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>;
 

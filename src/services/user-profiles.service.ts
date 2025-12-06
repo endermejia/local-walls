@@ -30,7 +30,7 @@ export class UserProfilesService {
     await this.supabase.whenReady();
     try {
       const { data, error } = await this.supabase.client
-        .from('user_profiles')
+        .from('area_likes')
         .select('*')
         .eq('user_id', userId)
         .maybeSingle();

@@ -18,8 +18,8 @@ import {
   type TuiFileLike,
   TuiInputInline,
 } from '@taiga-ui/kit';
-import { GlobalData, UserProfilesService, SupabaseService } from '../services';
 import { TuiAutoFocus } from '@taiga-ui/cdk';
+import { GlobalData, UserProfilesService, SupabaseService } from '../services';
 
 @Component({
   selector: 'app-user-profile',
@@ -125,9 +125,6 @@ import { TuiAutoFocus } from '@taiga-ui/cdk';
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <tui-textfield tuiChevron class="w-full">
-                  <label class="block text-sm opacity-80 mb-1">
-                    {{ 'profile.language' | translate }}
-                  </label>
                   <input tuiSelect [(ngModel)]="language" name="language" />
                   <tui-data-list-wrapper
                     *tuiTextfieldDropdown
@@ -270,8 +267,12 @@ export class UserProfileComponent {
     try {
       await this.supabase.resetPassword(email);
       this.error.set(null);
-    } catch (e: any) {
-      this.error.set(e?.message ?? 'errors.unexpected');
+    } catch (e) {
+      const message =
+        typeof e === 'object' && e !== null && 'message' in e
+          ? String((e as any).message)
+          : 'errors.unexpected';
+      this.error.set(message);
     }
   }
 
@@ -302,8 +303,12 @@ export class UserProfileComponent {
       this.bio = saved?.bio ?? this.bio;
       this.role = saved?.role ?? this.role;
       this.error.set(null);
-    } catch (e: any) {
-      this.error.set(e?.message ?? 'profile.saveError');
+    } catch (e: unknown) {
+      const message =
+        typeof e === 'object' && e !== null && 'message' in e
+          ? String((e as any).message)
+          : 'profile.saveError';
+      this.error.set(message);
     } finally {
       this.loading.set(false);
     }

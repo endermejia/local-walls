@@ -25,10 +25,10 @@ export class CragsService {
     this.error.set(null);
     try {
       const { data, error } = await this.supabase.client.rpc(
-        'get_crag_by_slug',
+        'get_crag_by_slug' as unknown as never,
         {
           p_slug: slug,
-        },
+        } as unknown as never,
       );
       if (error) throw error;
       return (data as CragDetail) ?? null;
@@ -74,8 +74,8 @@ export class CragsService {
       }
       const params = { p_crag_id: cragId } as const;
       const { data, error } = await this.supabase.client.rpc(
-        'toggle_crag_like',
-        params,
+        'toggle_crag_like' as unknown as never,
+        params as unknown as undefined,
       );
       if (error) throw error;
       const result = (Array.isArray(data) ? data[0] : data) as
