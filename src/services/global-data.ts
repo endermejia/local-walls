@@ -7,16 +7,15 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { VerticalLifeApi } from './vertical-life-api';
 import { PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { LocalStorage } from './local-storage';
-import { slugify } from '../utils';
 import { Router } from '@angular/router';
-import { SupabaseService } from './supabase.service';
-import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
 import { TranslateService } from '@ngx-translate/core';
+import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
 import { TuiFlagPipe } from '@taiga-ui/core';
+import { LocalStorage } from './local-storage';
+import { SupabaseService } from './supabase.service';
+import { VerticalLifeApi } from './vertical-life-api';
 import type {
   ClimbingCrag,
   ClimbingRoute,
@@ -32,9 +31,9 @@ import type {
   ClimbingRoutesPage,
   MapAreaItem,
   AreaDetail,
+  AreaListItem,
 } from '../models';
-import type { AreaListItem } from '../models';
-import { UserRole } from '../models';
+import { slugify } from '../utils';
 
 @Injectable({
   providedIn: 'root',
@@ -146,38 +145,10 @@ export class GlobalData {
   });
 
   // ---- AuthZ (roles) ----
-  readonly userRole: WritableSignal<UserRole | null> = signal<UserRole | null>(
-    null,
-  );
-  readonly isAdmin = computed(() => this.userRole() === UserRole.Admin);
-  readonly isEquipper = computed(() => this.userRole() === UserRole.Equipper);
-
-  /** Loads a user role from Supabase user_profiles for the current user (client only). Safe to call multiple times. */
-  async ensureUserRoleLoaded(): Promise<void> {
-    if (!isPlatformBrowser(this.platformId)) return;
-    // If already loaded, skip
-    if (this.userRole() !== null) return;
-    await this.supabase.whenReady();
-    const session = await this.supabase.getSession();
-    const userId = session?.user?.id;
-    if (!userId) {
-      this.userRole.set(null);
-      return;
-    }
-    try {
-      const { data, error } = await this.supabase.client
-        .from('user_profiles')
-        .select('role')
-        .eq('user_id', userId)
-        .maybeSingle();
-      if (error) throw error;
-      const role = (data?.role as UserRole | null) ?? null;
-      this.userRole.set(role);
-    } catch (e) {
-      console.warn('[GlobalData] ensureUserRoleLoaded error', e);
-      this.userRole.set(null);
-    }
-  }
+  readonly userProfile = computed(() => this.supabase.userProfile());
+  readonly userRole = computed(() => this.userProfile()?.role);
+  readonly isAdmin = computed(() => this.userRole() === 'admin');
+  readonly isEquipper = computed(() => this.userRole() === 'equipper');
 
   searchPopular: WritableSignal<string[]> = signal([
     'Wild Side',

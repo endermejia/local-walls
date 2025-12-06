@@ -244,8 +244,6 @@ export class HeaderComponent implements OnDestroy {
     if (this.isBrowser) {
       this.isFullscreen.set(!!document.fullscreenElement);
       document.addEventListener('fullscreenchange', this.onFsChange);
-      // Ensure user role is loaded early to render admin options in menu
-      void this.global.ensureUserRoleLoaded();
     }
   }
 

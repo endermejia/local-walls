@@ -7,6 +7,7 @@ import {
   computed,
   signal,
   WritableSignal,
+  resource,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
@@ -48,7 +49,26 @@ export class SupabaseService {
     string | null
   >(null);
   readonly session = computed(() => this._session());
-  readonly isAuthenticated = computed(() => this._session() !== null);
+  readonly user = computed(() => this.session()?.user ?? null);
+  readonly userProfileResource = resource({
+    params: () => this.user(),
+    loader: async ({ params }) => {
+      if (!params?.id) return null;
+      const response = await this.client
+        .from('user_profiles')
+        .select('*')
+        .eq('id', params.id)
+        .maybeSingle();
+      if (response.error) {
+        console.error(
+          '[SupabaseService] userProfileResource error',
+          response.error,
+        );
+      }
+      return response.data ?? null;
+    },
+  });
+  readonly userProfile = computed(() => this.userProfileResource.value());
   readonly lastAuthEvent = computed(() => this._lastEvent());
 
   constructor() {
@@ -59,7 +79,7 @@ export class SupabaseService {
       // Fire and forget; guard/UI can await whenReady() if needed
       void this.initClient();
     } else {
-      // On server we consider service not ready and without client
+      // On server, we consider the service not ready and without a client
       this._readyResolve?.();
     }
   }

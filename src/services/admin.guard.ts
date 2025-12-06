@@ -11,8 +11,6 @@ export const adminGuard: CanMatchFn = async (): Promise<boolean | UrlTree> => {
 
   if (!isPlatformBrowser(platformId)) return true;
 
-  // Ensure role is loaded
-  await global.ensureUserRoleLoaded();
   if (global.isAdmin()) return true;
 
   // Redirige a la página 404 para mostrar el componente PageNotFound
