@@ -45,9 +45,13 @@ import { SupabaseService } from '../services';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <div class="max-h-[80dvh] overflow-auto m-4">
+      <pre>authUser: {{ supabase.authUser() | json }}</pre>
+      <pre>userProfile: {{ supabase.userProfile() | json }}</pre>
+      <pre>userRole: {{ supabase.userRole() | json }}</pre>
+    </div>
     <section class="w-full max-w-3xl mx-auto p-4">
       <form class="grid grid-cols-1 gap-4" (submit.zoneless)="save()">
-        <pre>{{ supabase.userProfile() | json }}</pre>
         @if (editingName()) {
           <tui-input-inline>
             <input

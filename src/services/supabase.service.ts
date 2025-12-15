@@ -49,9 +49,10 @@ export class SupabaseService {
     string | null
   >(null);
   readonly session = computed(() => this._session());
-  readonly user = computed(() => this.session()?.user ?? null);
+  readonly lastAuthEvent = computed(() => this._lastEvent());
+  readonly authUser = computed(() => this.session()?.user ?? null);
   readonly userProfileResource = resource({
-    params: () => this.user(),
+    params: () => this.authUser(),
     loader: async ({ params }) => {
       if (!params?.id) return null;
       const response = await this.client
@@ -69,7 +70,25 @@ export class SupabaseService {
     },
   });
   readonly userProfile = computed(() => this.userProfileResource.value());
-  readonly lastAuthEvent = computed(() => this._lastEvent());
+  readonly userRoleResource = resource({
+    params: () => this.authUser(),
+    loader: async ({ params }) => {
+      if (!params?.id) return null;
+      const response = await this.client
+        .from('user_roles')
+        .select('*')
+        .eq('id', params.id)
+        .maybeSingle();
+      if (response.error) {
+        console.error(
+          '[SupabaseService] userProfileResource error',
+          response.error,
+        );
+      }
+      return response.data ?? null;
+    },
+  });
+  readonly userRole = computed(() => this.userRoleResource.value()?.role);
 
   constructor() {
     this._ready = new Promise<void>(

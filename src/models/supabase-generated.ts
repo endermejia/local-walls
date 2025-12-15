@@ -358,6 +358,27 @@ export interface Database {
           },
         ];
       };
+      oauth_client_states: {
+        Row: {
+          code_verifier: string | null;
+          created_at: string;
+          id: string;
+          provider_type: string;
+        };
+        Insert: {
+          code_verifier?: string | null;
+          created_at: string;
+          id: string;
+          provider_type: string;
+        };
+        Update: {
+          code_verifier?: string | null;
+          created_at?: string;
+          id?: string;
+          provider_type?: string;
+        };
+        Relationships: [];
+      };
       oauth_clients: {
         Row: {
           client_name: string | null;
@@ -871,7 +892,9 @@ export interface Database {
         Relationships: [];
       };
     };
-    Views: Record<never, never>;
+    Views: {
+      [_ in never]: never;
+    };
     Functions: {
       email: { Args: never; Returns: string };
       jwt: { Args: never; Returns: Json };
@@ -895,7 +918,9 @@ export interface Database {
         | 'email_change_token_current'
         | 'phone_change_token';
     };
-    CompositeTypes: Record<never, never>;
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
   public: {
     Tables: {
@@ -1504,7 +1529,6 @@ export interface Database {
           id: string;
           language: Database['public']['Enums']['language'] | null;
           name: string;
-          role: Database['public']['Enums']['app_role'];
           theme: Database['public']['Enums']['theme'] | null;
           updated_at: string | null;
         };
@@ -1515,7 +1539,6 @@ export interface Database {
           id?: string;
           language?: Database['public']['Enums']['language'] | null;
           name: string;
-          role?: Database['public']['Enums']['app_role'];
           theme?: Database['public']['Enums']['theme'] | null;
           updated_at?: string | null;
         };
@@ -1526,15 +1549,33 @@ export interface Database {
           id?: string;
           language?: Database['public']['Enums']['language'] | null;
           name?: string;
-          role?: Database['public']['Enums']['app_role'];
           theme?: Database['public']['Enums']['theme'] | null;
           updated_at?: string | null;
         };
         Relationships: [];
       };
+      user_roles: {
+        Row: {
+          id: string;
+          role: Database['public']['Enums']['app_role'];
+        };
+        Insert: {
+          id?: string;
+          role: Database['public']['Enums']['app_role'];
+        };
+        Update: {
+          id?: string;
+          role?: Database['public']['Enums']['app_role'];
+        };
+        Relationships: [];
+      };
     };
-    Views: Record<never, never>;
-    Functions: Record<never, never>;
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
     Enums: {
       app_role: 'admin' | 'equipper' | 'climber';
       ascent_type: 'os' | 'rp' | 'f';
@@ -1542,7 +1583,9 @@ export interface Database {
       language: 'es' | 'en';
       theme: 'dark' | 'light';
     };
-    CompositeTypes: Record<never, never>;
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
   storage: {
     Tables: {
@@ -1891,7 +1934,9 @@ export interface Database {
         ];
       };
     };
-    Views: Record<never, never>;
+    Views: {
+      [_ in never]: never;
+    };
     Functions: {
       add_prefixes: {
         Args: { _bucket_id: string; _name: string };
@@ -2043,7 +2088,9 @@ export interface Database {
     Enums: {
       buckettype: 'STANDARD' | 'ANALYTICS' | 'VECTOR';
     };
-    CompositeTypes: Record<never, never>;
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
 }
 

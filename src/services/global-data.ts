@@ -136,7 +136,7 @@ export class GlobalData {
       admin,
       preferences: [
         {
-          name: 'nav.profile',
+          name: this.userProfile()?.name || 'nav.profile',
           icon: '@tui.user',
           fn: () => this.router.navigateByUrl('/profile'),
         },
@@ -146,7 +146,7 @@ export class GlobalData {
 
   // ---- AuthZ (roles) ----
   readonly userProfile = computed(() => this.supabase.userProfile());
-  readonly userRole = computed(() => this.userProfile()?.role);
+  readonly userRole = computed(() => this.supabase.userRole());
   readonly isAdmin = computed(() => this.userRole() === 'admin');
   readonly isEquipper = computed(() => this.userRole() === 'equipper');
 
