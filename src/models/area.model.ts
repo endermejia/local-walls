@@ -1,6 +1,6 @@
 import { AmountByEveryGrade } from './grade.model';
 import { CragListItem } from './crag.model';
-import { Database } from './supabase-generated';
+import { ClimbingKind } from './supabase-interfaces';
 
 // Supabase RPC get_areas_list response item
 export interface AreaListItem {
@@ -10,7 +10,7 @@ export interface AreaListItem {
   liked: boolean;
   crags_count: number;
   grades: AmountByEveryGrade;
-  climb_kind: Database['public']['Enums']['climb_kind'][keyof Database['public']['Enums']['climb_kind']];
+  climbing_kind: ClimbingKind;
 }
 
 // Supabase RPC toggle_area_like response

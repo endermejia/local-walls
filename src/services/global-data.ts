@@ -12,26 +12,30 @@ import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
-import { TuiFlagPipe } from '@taiga-ui/core';
 import { LocalStorage } from './local-storage';
 import { SupabaseService } from './supabase.service';
 import { VerticalLifeApi } from './vertical-life-api';
-import type {
+import {
+  AppRoles,
+  AreaDetail,
+  AreaListItem,
+  AscentsPage,
   ClimbingCrag,
   ClimbingRoute,
+  ClimbingRoutesPage,
   ClimbingSector,
   ClimbingTopo,
   IconName,
+  Language,
+  Languages,
+  MapAreaItem,
   MapBounds,
   MapCragItem,
   MapItem,
   MapResponse,
   OptionsData,
-  AscentsPage,
-  ClimbingRoutesPage,
-  MapAreaItem,
-  AreaDetail,
-  AreaListItem,
+  Theme,
+  Themes,
 } from '../models';
 import { slugify } from '../utils';
 
@@ -45,7 +49,6 @@ export class GlobalData {
   private verticalLifeApi = inject(VerticalLifeApi);
   private platformId = inject(PLATFORM_ID);
   private supabase = inject(SupabaseService);
-  protected readonly flagPipe = new TuiFlagPipe();
 
   // ---- Map cache (keeps already downloaded items) ----
   private readonly mapCache = new Map<number, MapItem>();
@@ -73,16 +76,20 @@ export class GlobalData {
   readonly error: WritableSignal<string | null> = signal(null);
 
   private readonly i18nTick: WritableSignal<number> = signal(0);
-  selectedLanguage: WritableSignal<'es' | 'en'> = signal('es');
+  selectedLanguage: Signal<Language> = computed(
+    () => this.userProfile()?.language || Languages.ES,
+  );
   tuiLanguage: Signal<
     typeof TUI_SPANISH_LANGUAGE | typeof TUI_ENGLISH_LANGUAGE
   > = computed(() =>
-    this.selectedLanguage() === 'es'
+    this.selectedLanguage() === Languages.ES
       ? TUI_SPANISH_LANGUAGE
       : TUI_ENGLISH_LANGUAGE,
   );
 
-  selectedTheme: WritableSignal<'light' | 'dark'> = signal('light');
+  selectedTheme: Signal<Theme> = computed(
+    () => this.userProfile()?.theme || Themes.LIGHT,
+  );
   iconSrc: Signal<(name: IconName) => string> = computed(() => {
     const theme = this.selectedTheme();
     return (name: IconName) => `/image/${name}-${theme}.svg`;
@@ -136,7 +143,7 @@ export class GlobalData {
       admin,
       preferences: [
         {
-          name: this.userProfile()?.name || 'nav.profile',
+          name: this.userProfile()?.name?.split('@')[0] || 'nav.profile',
           icon: '@tui.user',
           fn: () => this.router.navigateByUrl('/profile'),
         },
@@ -147,8 +154,8 @@ export class GlobalData {
   // ---- AuthZ (roles) ----
   readonly userProfile = computed(() => this.supabase.userProfile());
   readonly userRole = computed(() => this.supabase.userRole());
-  readonly isAdmin = computed(() => this.userRole() === 'admin');
-  readonly isEquipper = computed(() => this.userRole() === 'equipper');
+  readonly isAdmin = computed(() => this.userRole() === AppRoles.ADMIN);
+  readonly isEquipper = computed(() => this.userRole() === AppRoles.EQUIPPER);
 
   searchPopular: WritableSignal<string[]> = signal([
     'Wild Side',
@@ -548,17 +555,13 @@ export class GlobalData {
         void this.loadMapItems(mapBounds);
       }
     });
-  }
 
-  private switchLanguage(): void {
-    this.selectedLanguage.set(this.selectedLanguage() === 'es' ? 'en' : 'es');
-    this.translate.use(this.selectedLanguage());
-    this.localStorage.setItem('language', this.selectedLanguage());
-  }
-
-  private switchTheme(): void {
-    this.selectedTheme.set(this.selectedTheme() === 'dark' ? 'light' : 'dark');
-    this.localStorage.setItem('theme', this.selectedTheme());
+    effect(() => {
+      const selectedLanguage = this.selectedLanguage();
+      if (selectedLanguage) {
+        this.translate.use(selectedLanguage);
+      }
+    });
   }
 
   resetDataByPage(

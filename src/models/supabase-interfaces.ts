@@ -7,87 +7,119 @@ import type { Database } from './supabase-generated';
 
 type Tables = Database['public']['Tables'];
 
+// Enums
+export type AppRole = Database['public']['Enums']['app_role'];
+export const AppRoles: Record<Uppercase<AppRole>, AppRole> = {
+  ADMIN: 'admin',
+  EQUIPPER: 'equipper',
+  CLIMBER: 'climber',
+} as const;
+export type AscentType = Database['public']['Enums']['ascent_type'];
+export const AscentTypes: Record<Uppercase<AscentType>, AscentType> = {
+  RP: 'rp',
+  OS: 'os',
+  F: 'f',
+} as const;
+export type ClimbingKind = Database['public']['Enums']['climbing_kind'];
+export const ClimbingKinds: Record<Uppercase<ClimbingKind>, ClimbingKind> = {
+  SPORT: 'sport',
+  BOULDER: 'boulder',
+  MIXED: 'mixed',
+  MULTIPITCH: 'multipitch',
+  TRAD: 'trad',
+};
+export type Language = Database['public']['Enums']['language'];
+export const Languages: Record<Uppercase<Language>, Language> = {
+  ES: 'es',
+  EN: 'en',
+};
+export type Theme = Database['public']['Enums']['theme'];
+export const Themes: Record<Uppercase<Theme>, Theme> = {
+  LIGHT: 'light',
+  DARK: 'dark',
+};
+
 // Utilidades genéricas (opcionales) por si se necesitan en otros sitios
 export type TableRow<TTable extends keyof Tables> = Tables[TTable]['Row'];
 export type TableInsert<TTable extends keyof Tables> = Tables[TTable]['Insert'];
 export type TableUpdate<TTable extends keyof Tables> = Tables[TTable]['Update'];
 
 // Area Likes
-export type AreaLikeDto = Tables['area_likes']['Row'];
-export type AreaLikeInsertDto = Tables['area_likes']['Insert'];
-export type AreaLikeUpdateDto = Tables['area_likes']['Update'];
+export type AreaLikeDto = TableRow<'area_likes'>;
+export type AreaLikeInsertDto = TableInsert<'area_likes'>;
+export type AreaLikeUpdateDto = TableUpdate<'area_likes'>;
 
 // Areas
-export type AreaDto = Tables['areas']['Row'];
-export type AreaInsertDto = Tables['areas']['Insert'];
-export type AreaUpdateDto = Tables['areas']['Update'];
+export type AreaDto = TableRow<'areas'>;
+export type AreaInsertDto = TableInsert<'areas'>;
+export type AreaUpdateDto = TableUpdate<'areas'>;
 
 // Crag Equippers
-export type CragEquipperDto = Tables['crag_equippers']['Row'];
-export type CragEquipperInsertDto = Tables['crag_equippers']['Insert'];
-export type CragEquipperUpdateDto = Tables['crag_equippers']['Update'];
+export type CragEquipperDto = TableRow<'crag_equippers'>;
+export type CragEquipperInsertDto = TableInsert<'crag_equippers'>;
+export type CragEquipperUpdateDto = TableUpdate<'crag_equippers'>;
 
 // Crag Likes
-export type CragLikeDto = Tables['crag_likes']['Row'];
-export type CragLikeInsertDto = Tables['crag_likes']['Insert'];
-export type CragLikeUpdateDto = Tables['crag_likes']['Update'];
+export type CragLikeDto = TableRow<'crag_likes'>;
+export type CragLikeInsertDto = TableInsert<'crag_likes'>;
+export type CragLikeUpdateDto = TableUpdate<'crag_likes'>;
 
 // Crag Parkings
-export type CragParkingDto = Tables['crag_parkings']['Row'];
-export type CragParkingInsertDto = Tables['crag_parkings']['Insert'];
-export type CragParkingUpdateDto = Tables['crag_parkings']['Update'];
+export type CragParkingDto = TableRow<'crag_parkings'>;
+export type CragParkingInsertDto = TableInsert<'crag_parkings'>;
+export type CragParkingUpdateDto = TableUpdate<'crag_parkings'>;
 
 // Crags
-export type CragDto = Tables['crags']['Row'];
-export type CragInsertDto = Tables['crags']['Insert'];
-export type CragUpdateDto = Tables['crags']['Update'];
+export type CragDto = TableRow<'crags'>;
+export type CragInsertDto = TableInsert<'crags'>;
+export type CragUpdateDto = TableUpdate<'crags'>;
 
 // Equippers
-export type EquipperDto = Tables['equippers']['Row'];
-export type EquipperInsertDto = Tables['equippers']['Insert'];
-export type EquipperUpdateDto = Tables['equippers']['Update'];
+export type EquipperDto = TableRow<'equippers'>;
+export type EquipperInsertDto = TableInsert<'equippers'>;
+export type EquipperUpdateDto = TableUpdate<'equippers'>;
 
 // Parkings
-export type ParkingDto = Tables['parkings']['Row'];
-export type ParkingInsertDto = Tables['parkings']['Insert'];
-export type ParkingUpdateDto = Tables['parkings']['Update'];
+export type ParkingDto = TableRow<'parkings'>;
+export type ParkingInsertDto = TableInsert<'parkings'>;
+export type ParkingUpdateDto = TableUpdate<'parkings'>;
 
 // Route Ascents
-export type RouteAscentDto = Tables['route_ascents']['Row'];
-export type RouteAscentInsertDto = Tables['route_ascents']['Insert'];
-export type RouteAscentUpdateDto = Tables['route_ascents']['Update'];
+export type RouteAscentDto = TableRow<'route_ascents'>;
+export type RouteAscentInsertDto = TableInsert<'route_ascents'>;
+export type RouteAscentUpdateDto = TableUpdate<'route_ascents'>;
 
 // Route Equippers
-export type RouteEquipperDto = Tables['route_equippers']['Row'];
-export type RouteEquipperInsertDto = Tables['route_equippers']['Insert'];
-export type RouteEquipperUpdateDto = Tables['route_equippers']['Update'];
+export type RouteEquipperDto = TableRow<'route_equippers'>;
+export type RouteEquipperInsertDto = TableInsert<'route_equippers'>;
+export type RouteEquipperUpdateDto = TableUpdate<'route_equippers'>;
 
 // Route Likes
-export type RouteLikeDto = Tables['route_likes']['Row'];
-export type RouteLikeInsertDto = Tables['route_likes']['Insert'];
-export type RouteLikeUpdateDto = Tables['route_likes']['Update'];
+export type RouteLikeDto = TableRow<'route_likes'>;
+export type RouteLikeInsertDto = TableInsert<'route_likes'>;
+export type RouteLikeUpdateDto = TableUpdate<'route_likes'>;
 
 // Route Projects
-export type RouteProjectDto = Tables['route_projects']['Row'];
-export type RouteProjectInsertDto = Tables['route_projects']['Insert'];
-export type RouteProjectUpdateDto = Tables['route_projects']['Update'];
+export type RouteProjectDto = TableRow<'route_projects'>;
+export type RouteProjectInsertDto = TableInsert<'route_projects'>;
+export type RouteProjectUpdateDto = TableUpdate<'route_projects'>;
 
 // Routes
-export type RouteDto = Tables['routes']['Row'];
-export type RouteInsertDto = Tables['routes']['Insert'];
-export type RouteUpdateDto = Tables['routes']['Update'];
+export type RouteDto = TableRow<'routes'>;
+export type RouteInsertDto = TableInsert<'routes'>;
+export type RouteUpdateDto = TableUpdate<'routes'>;
 
 // Topo Routes
-export type TopoRouteDto = Tables['topo_routes']['Row'];
-export type TopoRouteInsertDto = Tables['topo_routes']['Insert'];
-export type TopoRouteUpdateDto = Tables['topo_routes']['Update'];
+export type TopoRouteDto = TableRow<'topo_routes'>;
+export type TopoRouteInsertDto = TableInsert<'topo_routes'>;
+export type TopoRouteUpdateDto = TableUpdate<'topo_routes'>;
 
 // Topos
-export type TopoDto = Tables['topos']['Row'];
-export type TopoInsertDto = Tables['topos']['Insert'];
-export type TopoUpdateDto = Tables['topos']['Update'];
+export type TopoDto = TableRow<'topos'>;
+export type TopoInsertDto = TableInsert<'topos'>;
+export type TopoUpdateDto = TableUpdate<'topos'>;
 
 // User Profiles
-export type UserProfileDto = Tables['user_profiles']['Row'];
-export type UserProfileInsertDto = Tables['user_profiles']['Insert'];
-export type UserProfileUpdateDto = Tables['user_profiles']['Update'];
+export type UserProfileDto = TableRow<'user_profiles'>;
+export type UserProfileInsertDto = TableInsert<'user_profiles'>;
+export type UserProfileUpdateDto = TableUpdate<'user_profiles'>;

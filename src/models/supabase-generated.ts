@@ -1072,7 +1072,6 @@ export interface Database {
         Row: {
           approach: number | null;
           area_id: number;
-          climb_kind: Database['public']['Enums']['climb_kind'];
           created_at: string;
           description_en: string | null;
           description_es: string | null;
@@ -1087,7 +1086,6 @@ export interface Database {
         Insert: {
           approach?: number | null;
           area_id: number;
-          climb_kind: Database['public']['Enums']['climb_kind'];
           created_at?: string;
           description_en?: string | null;
           description_es?: string | null;
@@ -1102,7 +1100,6 @@ export interface Database {
         Update: {
           approach?: number | null;
           area_id?: number;
-          climb_kind?: Database['public']['Enums']['climb_kind'];
           created_at?: string;
           description_en?: string | null;
           description_es?: string | null;
@@ -1402,6 +1399,7 @@ export interface Database {
       };
       routes: {
         Row: {
+          climbing_kind: Database['public']['Enums']['climbing_kind'];
           crag_id: number;
           created_at: string;
           grade: number;
@@ -1411,6 +1409,7 @@ export interface Database {
           slug: string;
         };
         Insert: {
+          climbing_kind: Database['public']['Enums']['climbing_kind'];
           crag_id: number;
           created_at?: string;
           grade: number;
@@ -1420,6 +1419,7 @@ export interface Database {
           slug: string;
         };
         Update: {
+          climbing_kind?: Database['public']['Enums']['climbing_kind'];
           crag_id?: number;
           created_at?: string;
           grade?: number;
@@ -1579,7 +1579,7 @@ export interface Database {
     Enums: {
       app_role: 'admin' | 'equipper' | 'climber';
       ascent_type: 'os' | 'rp' | 'f';
-      climb_kind: 'sport' | 'boulder' | 'trad' | 'multipitch' | 'mixed';
+      climbing_kind: 'sport' | 'boulder' | 'trad' | 'multipitch' | 'mixed';
       language: 'es' | 'en';
       theme: 'dark' | 'light';
     };
@@ -2239,7 +2239,7 @@ export const Constants = {
     Enums: {
       app_role: ['admin', 'equipper', 'climber'],
       ascent_type: ['os', 'rp', 'f'],
-      climb_kind: ['sport', 'boulder', 'trad', 'multipitch', 'mixed'],
+      climbing_kind: ['sport', 'boulder', 'trad', 'multipitch', 'mixed'],
       language: ['es', 'en'],
       theme: ['dark', 'light'],
     },

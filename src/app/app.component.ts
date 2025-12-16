@@ -2,8 +2,7 @@ import { TuiRoot } from '@taiga-ui/core';
 import { Component, inject, computed } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { HeaderComponent } from '../components';
-import { GlobalData, LocalStorage, OfflineService } from '../services';
-import { TranslateService } from '@ngx-translate/core';
+import { GlobalData, OfflineService } from '../services';
 import { Meta, Title } from '@angular/platform-browser';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, startWith } from 'rxjs';
@@ -31,9 +30,7 @@ import { map, startWith } from 'rxjs';
 export class AppComponent {
   protected global = inject(GlobalData);
   protected offline = inject(OfflineService);
-  private localStorage = inject(LocalStorage);
   private router = inject(Router);
-  private translate = inject(TranslateService);
   private title = inject(Title);
   private meta = inject(Meta);
 
@@ -50,18 +47,6 @@ export class AppComponent {
   );
 
   constructor() {
-    const localStorageLang = this.localStorage.getItem('language');
-    if (localStorageLang === 'es' || localStorageLang === 'en') {
-      this.global.selectedLanguage.set(localStorageLang);
-      this.translate.use(localStorageLang);
-    } else {
-      this.translate.use(this.global.selectedLanguage());
-    }
-    const localStorageTheme = this.localStorage.getItem('theme');
-    if (localStorageTheme === 'dark' || localStorageTheme === 'light') {
-      this.global.selectedTheme.set(localStorageTheme as 'dark' | 'light');
-    }
-
     // SEO: Set title and meta tags (SSR-safe)
     const appTitle = 'Roca nostra 🤫';
     const description =
