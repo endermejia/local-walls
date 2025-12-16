@@ -51,14 +51,15 @@ export class SupabaseService {
   readonly session = computed(() => this._session());
   readonly lastAuthEvent = computed(() => this._lastEvent());
   readonly authUser = computed(() => this.session()?.user ?? null);
+  readonly authUserId = computed(() => this.authUser()?.id ?? null);
   readonly userProfileResource = resource({
-    params: () => this.authUser(),
-    loader: async ({ params }) => {
-      if (!params?.id) return null;
+    params: () => this.authUserId(),
+    loader: async ({ params: userId }) => {
+      if (!userId) return null;
       const response = await this.client
         .from('user_profiles')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', userId)
         .maybeSingle();
       if (response.error) {
         console.error(
@@ -71,17 +72,17 @@ export class SupabaseService {
   });
   readonly userProfile = computed(() => this.userProfileResource.value());
   readonly userRoleResource = resource({
-    params: () => this.authUser(),
-    loader: async ({ params }) => {
-      if (!params?.id) return null;
+    params: () => this.authUserId(),
+    loader: async ({ params: userId }) => {
+      if (!userId) return null;
       const response = await this.client
         .from('user_roles')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', userId)
         .maybeSingle();
       if (response.error) {
         console.error(
-          '[SupabaseService] userProfileResource error',
+          '[SupabaseService] userRoleResource error',
           response.error,
         );
       }
