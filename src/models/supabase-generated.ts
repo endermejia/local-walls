@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export interface Database {
+export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
@@ -1525,32 +1525,53 @@ export interface Database {
         Row: {
           avatar: string | null;
           bio: string | null;
+          birth_date: string | null;
+          city: string | null;
+          country: string | null;
           created_at: string | null;
           id: string;
           language: Database['public']['Enums']['language'] | null;
           name: string;
+          sex: Database['public']['Enums']['sex'] | null;
+          size: number | null;
+          starting_climbing_year: number | null;
           theme: Database['public']['Enums']['theme'] | null;
           updated_at: string | null;
+          weight: number | null;
         };
         Insert: {
           avatar?: string | null;
           bio?: string | null;
+          birth_date?: string | null;
+          city?: string | null;
+          country?: string | null;
           created_at?: string | null;
           id?: string;
           language?: Database['public']['Enums']['language'] | null;
           name: string;
+          sex?: Database['public']['Enums']['sex'] | null;
+          size?: number | null;
+          starting_climbing_year?: number | null;
           theme?: Database['public']['Enums']['theme'] | null;
           updated_at?: string | null;
+          weight?: number | null;
         };
         Update: {
           avatar?: string | null;
           bio?: string | null;
+          birth_date?: string | null;
+          city?: string | null;
+          country?: string | null;
           created_at?: string | null;
           id?: string;
           language?: Database['public']['Enums']['language'] | null;
           name?: string;
+          sex?: Database['public']['Enums']['sex'] | null;
+          size?: number | null;
+          starting_climbing_year?: number | null;
           theme?: Database['public']['Enums']['theme'] | null;
           updated_at?: string | null;
+          weight?: number | null;
         };
         Relationships: [];
       };
@@ -1581,6 +1602,7 @@ export interface Database {
       ascent_type: 'os' | 'rp' | 'f';
       climbing_kind: 'sport' | 'boulder' | 'trad' | 'multipitch' | 'mixed';
       language: 'es' | 'en';
+      sex: 'male' | 'female' | 'other';
       theme: 'dark' | 'light';
     };
     CompositeTypes: {
@@ -2092,7 +2114,7 @@ export interface Database {
       [_ in never]: never;
     };
   };
-}
+};
 
 type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>;
 
@@ -2241,6 +2263,7 @@ export const Constants = {
       ascent_type: ['os', 'rp', 'f'],
       climbing_kind: ['sport', 'boulder', 'trad', 'multipitch', 'mixed'],
       language: ['es', 'en'],
+      sex: ['male', 'female', 'other'],
       theme: ['dark', 'light'],
     },
   },

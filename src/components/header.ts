@@ -26,7 +26,7 @@ import {
   TuiSearchHotkey,
   TuiSearchResultsComponent,
 } from '@taiga-ui/experimental';
-import { TuiAvatar, TuiBreadcrumbs } from '@taiga-ui/kit';
+import { TuiAvatar, TuiBreadcrumbs, TuiSkeleton } from '@taiga-ui/kit';
 import { TuiCell, TuiInputSearch, TuiNavigation } from '@taiga-ui/layout';
 import {
   debounceTime,
@@ -76,6 +76,7 @@ interface BreadcrumbItem {
     TuiLink,
     TranslatePipe,
     TuiFallbackSrcPipe,
+    TuiSkeleton,
   ],
   template: `
     <header
@@ -209,16 +210,25 @@ interface BreadcrumbItem {
             (click.zoneless)="toggleFullscreen()"
             [iconStart]="isFullscreen() ? '@tui.shrink' : '@tui.expand'"
             [title]="
-              (isFullscreen() ? 'common.exit_fullscreen' : 'common.fullscreen')
+              (isFullscreen() ? 'common.exitFullscreen' : 'common.fullscreen')
                 | translate
             "
             ngSkipHydration
           >
-            {{
-              isFullscreen() ? 'common.exit_fullscreen' : 'common.fullscreen'
-            }}
+            {{ isFullscreen() ? 'common.exitFullscreen' : 'common.fullscreen' }}
           </button>
         </div>
+
+        @let user = global.userProfile();
+        @if (user) {
+          <tui-avatar
+            [src]="user.name[0] || '@tui.user'"
+            routerLink="/profile"
+            style="cursor: pointer;"
+          />
+        } @else {
+          <tui-avatar tuiSkeleton />
+        }
       </div>
     </header>
   `,
@@ -338,7 +348,7 @@ export class HeaderComponent implements OnDestroy {
             ? it.country_name
             : undefined;
 
-      // Prefer explicit area fields; check snake_case before generic 'slug/name' to avoid TS narrowing to never
+      // Prefer explicit area fields; check snake_case before generic 'slug/displayName' to avoid TS narrowing to never
       const areaSlug: string | undefined =
         'areaSlug' in it
           ? it.areaSlug
@@ -346,7 +356,7 @@ export class HeaderComponent implements OnDestroy {
             ? it.area_slug
             : 'slug' in it
               ? it.slug
-              : undefined; // area may use slug/name
+              : undefined; // area may use slug/displayName
 
       const areaName: string | undefined =
         'areaName' in it

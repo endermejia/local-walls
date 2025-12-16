@@ -75,7 +75,7 @@ export class GlobalData {
   readonly loading = signal(false);
   readonly error: WritableSignal<string | null> = signal(null);
 
-  private readonly i18nTick: WritableSignal<number> = signal(0);
+  readonly i18nTick: WritableSignal<number> = signal(0);
   selectedLanguage: Signal<Language> = computed(
     () => this.userProfile()?.language || Languages.ES,
   );
@@ -141,13 +141,6 @@ export class GlobalData {
         },
       ],
       admin,
-      preferences: [
-        {
-          name: this.userProfile()?.name?.split('@')[0] || 'nav.profile',
-          icon: '@tui.user',
-          fn: () => this.router.navigateByUrl('/profile'),
-        },
-      ],
     } satisfies OptionsData;
   });
 

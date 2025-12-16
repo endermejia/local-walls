@@ -33,6 +33,12 @@ export const Languages: Record<Uppercase<Language>, Language> = {
   ES: 'es',
   EN: 'en',
 };
+export type Sex = Database['public']['Enums']['sex'];
+export const Sexes: Record<Uppercase<Sex>, Sex> = {
+  MALE: 'male',
+  FEMALE: 'female',
+  OTHER: 'other',
+} as const;
 export type Theme = Database['public']['Enums']['theme'];
 export const Themes: Record<Uppercase<Theme>, Theme> = {
   LIGHT: 'light',

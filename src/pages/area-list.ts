@@ -81,7 +81,7 @@ import { ORDERED_GRADE_VALUES, normalizeRoutesByGrade } from '../models';
       <div class="mb-4 flex items-end gap-2">
         <tui-textfield class="grow block" tuiTextfieldSize="l">
           <label tuiLabel for="areas-search">{{
-            'areas.search_placeholder' | translate
+            'areas.searchPlaceholder' | translate
           }}</label>
           <input
             tuiTextfield

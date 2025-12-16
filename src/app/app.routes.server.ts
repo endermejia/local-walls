@@ -33,6 +33,11 @@ export const serverRoutes: ServerRoute[] = [
     },
   },
   {
+    path: 'profile',
+    renderMode: RenderMode.Server,
+  },
+
+  {
     path: 'crag/:cragSlug',
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,

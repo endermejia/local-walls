@@ -6,13 +6,13 @@
   "settings.theme": "Theme",
   "actions": {
     "favorite": {
-      "add": "Add to favorites",
-      "remove": "Remove from favorites"
+      "add": "Mark as favorite",
+      "remove": "Remove favorite"
     },
     "loadMore": "Load more",
     "fit": {
-      "cover": "Fit height",
-      "contain": "Fit width"
+      "cover": "Fit to height",
+      "contain": "Fit to width"
     },
     "openMap": "Open location in Google Maps",
     "viewOnMap": "View on map",
@@ -20,53 +20,63 @@
     "share": "Share",
     "signIn": "Sign in",
     "signUp": "Sign up",
-    "register": "Sign up",
+    "register": "Register",
     "back": "Back",
     "close": "Close",
     "cancel": "Cancel",
     "apply": "Apply"
   },
   "labels": {
-    "crag": "Sector",
-    "crags": "Sectors",
+    "actions": "Actions",
+    "anonymous": "Anonymous",
+    "approach": "Approach",
     "area": "Area",
     "areas": "Areas",
-    "approach": "Approach",
-    "parkings": "Parkings",
-    "parking": "Parking",
-    "lat": "Lat",
-    "lng": "Lng",
-    "capacity": "Capacity",
-    "name": "Name",
-    "username": "Username",
-    "email": "Email",
-    "password": "Password",
-    "newPassword": "New password",
-    "confirmPassword": "Confirm password",
-    "routes": "Routes",
-    "route": "Route",
-    "boulders": "Boulders",
     "ascents": "Ascents",
-    "latestAscents": "Latest ascents",
-    "followers": "Followers",
-    "number": "Number",
-    "grade": "Grade",
-    "date": "Date",
-    "user": "User",
-    "sector": "Sector",
-    "type": "Type",
-    "height": "Height",
-    "actions": "Actions",
-    "topos": "Topos",
-    "topo": "Topo",
-    "map": "Map",
-    "list": "List",
-    "filters": "Filters",
-    "myLocation": "My location",
+    "bio": "Biography",
+    "birthDate": "Birth date",
+    "boulders": "Boulders",
+    "capacity": "Capacity",
+    "city": "City",
+    "confirmPassword": "Confirm password",
     "country": "Country",
-    "sectors": "Sectors",
+    "crag": "Crag",
+    "crags": "Crags",
+    "date": "Date",
+    "email": "Email",
+    "filters": "Filters",
+    "followers": "Followers",
+    "grade": "Grade",
+    "height": "Height",
+    "language": "Language",
+    "lat": "Lat",
+    "latestAscents": "Latest ascents",
+    "list": "List",
+    "lng": "Lng",
+    "map": "Map",
+    "myLocation": "My location",
+    "name": "Name",
+    "newPassword": "New password",
+    "number": "Number",
+    "parking": "Parking",
+    "parkings": "Parkings",
+    "password": "Password",
     "rating": "Rating",
-    "anonymous": "Anonymous"
+    "role": "Role",
+    "route": "Route",
+    "routes": "Routes",
+    "sector": "Sector",
+    "sectors": "Sectors",
+    "sex": "Sex",
+    "size": "Height",
+    "weight": "Weight",
+    "startingClimbingYear": "Starting climbing year",
+    "theme": "Theme",
+    "topo": "Topo",
+    "topos": "Topos",
+    "type": "Type",
+    "user": "User",
+    "username": "Username"
   },
   "auth": {
     "login": "Sign in",
@@ -74,7 +84,7 @@
     "verifyEmail": "Please verify your email to complete sign in.",
     "registrationError": "Registration error",
     "registrationSuccess": "Registration successful. Check your email to confirm your account.",
-    "forgotPassword": "Forgot your password?",
+    "forgotPassword": "Forgot password?",
     "noAccount": "Don't have an account yet?",
     "or": "or",
     "resetEmailSent": "We've sent you an email to reset your password.",
@@ -82,7 +92,7 @@
     "enterValidEmail": "Enter a valid email address.",
     "setNewPassword": "Set new password",
     "passwordUpdated": "Your password has been updated.",
-    "passwordMinLength": "Password must be at least {{min}} characters.",
+    "passwordMinLength": "Password must be at least {{min}} characters long.",
     "register": "Register",
     "alreadyAccount": "Already have an account?",
     "inRecoveryInfo": "You are changing your password. Enter and confirm the new password."
@@ -96,7 +106,7 @@
     "search": "Search",
     "appName": "Roca nostra",
     "fullscreen": "Fullscreen",
-    "exit_fullscreen": "Exit fullscreen",
+    "exitFullscreen": "Exit fullscreen",
     "create": "Create",
     "save": "Save",
     "cancel": "Cancel",
@@ -129,7 +139,7 @@
     "shade": {
       "morning": "Morning shade",
       "afternoon": "Afternoon shade",
-      "allDay": "All-day shade"
+      "allDay": "All day shade"
     }
   },
   "messages": {
@@ -137,7 +147,7 @@
   },
   "notFound": {
     "title": "Not found",
-    "description": "Try searching by number or go back to the home page.",
+    "description": "Try refreshing or go back to the home page.",
     "goHome": "Go home",
     "imageAlt": "not found"
   },
@@ -146,39 +156,48 @@
     "newTitle": "Create new area",
     "editTitle": "Edit area",
     "deleteTitle": "Delete area",
-    "deleteConfirm": "Are you sure you want to delete the area \"{{name}}\"? This action cannot be undone.",
+    "deleteConfirm": "Are you sure you want to delete area \"{{name}}\"? This action cannot be undone.",
     "empty": "No areas yet",
-    "search_placeholder": "Search areas by name or slug…"
+    "searchPlaceholder": "Search areas by name or slug..."
   },
   "crags": {
     "new": "New crag",
     "newTitle": "Create new crag",
     "editTitle": "Edit crag",
     "deleteTitle": "Delete crag",
-    "deleteConfirm": "Are you sure you want to delete the crag \"{{name}}\"? This action cannot be undone."
+    "deleteConfirm": "Are you sure you want to delete crag \"{{name}}\"? This action cannot be undone."
   },
   "topos": {
     "new": "New topo",
     "newTitle": "Create new topo",
     "editTitle": "Edit topo",
     "deleteTitle": "Delete topo",
-    "deleteConfirm": "Are you sure you want to delete the topo \"{{name}}\"? This action cannot be undone."
+    "deleteConfirm": "Are you sure you want to delete topo \"{{name}}\"? This action cannot be undone."
   },
   "routes": {
     "new": "New route",
     "newTitle": "Create new route",
     "editTitle": "Edit route",
     "deleteTitle": "Delete route",
-    "deleteConfirm": "Are you sure you want to delete the route \"{{name}}\"? This action cannot be undone."
+    "deleteConfirm": "Are you sure you want to delete route \"{{name}}\"? This action cannot be undone."
+  },
+  "options": {
+    "language": {
+      "es": "Spanish",
+      "en": "English"
+    },
+    "theme": {
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "sex": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    }
   },
   "profile": {
     "title": "My profile",
-    "displayName": "Display name",
-    "avatarUrl": "Avatar URL",
-    "bio": "Bio",
-    "language": "Language",
-    "theme": "Theme",
-    "role": "Role",
-    "saveError": "There was an error saving your profile."
+    "saveError": "An error occurred while saving your profile."
   }
 }

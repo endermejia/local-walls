@@ -8,4 +8,5 @@ export * from './global-data';
 export * from './local-storage';
 export * from './offline.service';
 export * from './supabase.service';
+export * from './user-profiles.service';
 export * from './vertical-life-api';

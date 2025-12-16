@@ -13,7 +13,7 @@ export const authGuard: CanMatchFn = async (): Promise<boolean | UrlTree> => {
     return true;
   }
 
-  // Ensure client is initialized and try to get session
+  // Ensure the client is initialized and try to get the session
   await supabase.whenReady();
   const session = await supabase.getSession();
   if (session) {
