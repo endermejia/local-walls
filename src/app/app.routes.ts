@@ -33,9 +33,13 @@ export const routes: Routes = [
     path: 'profile',
     canMatch: [authGuard],
     loadComponent: () =>
-      import('../pages/user-profile-config').then(
-        (m) => m.UserProfileConfigComponent,
-      ),
+      import('../pages/user-profile').then((m) => m.UserProfileComponent),
+  },
+  {
+    path: 'profile/:id',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/user-profile').then((m) => m.UserProfileComponent),
   },
   {
     path: 'sector/:countrySlug/:cragSlug/:sectorSlug',

@@ -54,7 +54,7 @@ interface Country {
 }
 
 @Component({
-  selector: 'app-user-profile',
+  selector: 'app-user-profile-config',
   standalone: true,
   imports: [
     TranslatePipe,
@@ -86,24 +86,6 @@ interface Country {
       class="w-full max-w-5xl mx-auto p-4 grid grid-cols-1 gap-4"
       xmlns="http://www.w3.org/1999/html"
     >
-      <!-- USER INFO -->
-      <div class="flex justify-between items-end">
-        <h2 class="text-lg font-bold">
-          {{ 'labels.userInfo' | translate }}
-        </h2>
-        <!-- Logout button -->
-        <div>
-          <button
-            tuiButton
-            appearance="action-destructive"
-            type="button"
-            size="m"
-            (click)="logout()"
-          >
-            {{ 'auth.logout' | translate }}
-          </button>
-        </div>
-      </div>
       <!-- Avatar y Nombre -->
       <div class="flex flex-col md:flex-row items-center gap-4">
         <div class="relative inline-block">
@@ -338,6 +320,21 @@ interface Country {
             />
           </div>
         </div>
+      </div>
+
+      <br />
+
+      <!-- Logout button -->
+      <div class="flex items-center justify-center">
+        <button
+          tuiButton
+          appearance="action-destructive"
+          type="button"
+          size="m"
+          (click)="logout()"
+        >
+          {{ 'auth.logout' | translate }}
+        </button>
       </div>
     </section>
   `,
