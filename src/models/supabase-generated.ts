@@ -1532,12 +1532,12 @@ export type Database = {
           id: string;
           language: Database['public']['Enums']['language'] | null;
           name: string;
+          private: boolean | null;
           sex: Database['public']['Enums']['sex'] | null;
           size: number | null;
           starting_climbing_year: number | null;
           theme: Database['public']['Enums']['theme'] | null;
           updated_at: string | null;
-          weight: number | null;
         };
         Insert: {
           avatar?: string | null;
@@ -1549,12 +1549,12 @@ export type Database = {
           id?: string;
           language?: Database['public']['Enums']['language'] | null;
           name: string;
+          private?: boolean | null;
           sex?: Database['public']['Enums']['sex'] | null;
           size?: number | null;
           starting_climbing_year?: number | null;
           theme?: Database['public']['Enums']['theme'] | null;
           updated_at?: string | null;
-          weight?: number | null;
         };
         Update: {
           avatar?: string | null;
@@ -1566,12 +1566,12 @@ export type Database = {
           id?: string;
           language?: Database['public']['Enums']['language'] | null;
           name?: string;
+          private?: boolean | null;
           sex?: Database['public']['Enums']['sex'] | null;
           size?: number | null;
           starting_climbing_year?: number | null;
           theme?: Database['public']['Enums']['theme'] | null;
           updated_at?: string | null;
-          weight?: number | null;
         };
         Relationships: [];
       };

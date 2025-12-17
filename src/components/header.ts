@@ -222,7 +222,7 @@ interface BreadcrumbItem {
         @let user = global.userProfile();
         @if (user) {
           <tui-avatar
-            [src]="user.name[0] || '@tui.user'"
+            [src]="global.userAvatar() || user.name[0] || '@tui.user'"
             routerLink="/profile"
             style="cursor: pointer;"
           />

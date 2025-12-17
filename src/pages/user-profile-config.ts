@@ -310,18 +310,33 @@ interface Country {
             />
           </tui-textfield>
         </div>
-        <!-- Theme -->
-        <div class="flex items-center justify-end gap-4">
-          <label tuiLabel for="themeSwitch">{{
-            'labels.darkMode' | translate
-          }}</label>
-          <input
-            id="themeSwitch"
-            tuiSwitch
-            type="checkbox"
-            [ngModel]="theme === Themes.DARK"
-            (ngModelChange)="toggleTheme($event)"
-          />
+        <!-- Theme & Private profile -->
+        <div class="flex flex-col items-end gap-4">
+          <div class="flex items-center gap-4">
+            <label tuiLabel for="themeSwitch">{{
+              'labels.darkMode' | translate
+            }}</label>
+            <input
+              id="themeSwitch"
+              tuiSwitch
+              type="checkbox"
+              [ngModel]="theme === Themes.DARK"
+              (ngModelChange)="toggleTheme($event)"
+            />
+          </div>
+
+          <div class="flex items-center gap-4">
+            <label tuiLabel for="privateSwitch">{{
+              'labels.privateProfile' | translate
+            }}</label>
+            <input
+              id="privateSwitch"
+              tuiSwitch
+              type="checkbox"
+              [ngModel]="isPrivate"
+              (ngModelChange)="togglePrivateProfile($event)"
+            />
+          </div>
         </div>
       </div>
     </section>
@@ -340,9 +355,9 @@ export class UserProfileConfigComponent {
   protected isUploadingAvatar = signal(false);
   protected avatarSrc = computed<string>(() => {
     const hovered = this.avatarHovered();
-    const profile = this.profile();
+    const avatar = this.global.userAvatar();
     if (hovered) return '@tui.image-up';
-    if (profile?.avatar) return this.supabase.buildAvatarUrl(profile.avatar);
+    if (avatar) return avatar;
     return '@tui.user';
   });
 
@@ -357,6 +372,8 @@ export class UserProfileConfigComponent {
   startingClimbingYear: number | null = null;
   size: number | null = null;
   sex: Sex | null = null;
+  // Private profile
+  isPrivate = false;
 
   // Theme switcher
   readonly Themes = Themes;
@@ -439,6 +456,7 @@ export class UserProfileConfigComponent {
     this.sex = (profile.sex as Sex) || null;
     this.size = profile.size || null;
     this.startingClimbingYear = profile.starting_climbing_year || null;
+    this.isPrivate = !!profile.private;
 
     if (profile.birth_date) {
       const date = new Date(profile.birth_date);
@@ -448,6 +466,14 @@ export class UserProfileConfigComponent {
         date.getDate(),
       );
     }
+  }
+
+  async togglePrivateProfile(isPrivate: boolean): Promise<void> {
+    if (this.isPrivate === isPrivate) {
+      return;
+    }
+    this.isPrivate = isPrivate;
+    await this.updateProfile({ private: this.isPrivate });
   }
 
   async saveName(): Promise<void> {

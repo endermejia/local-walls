@@ -149,6 +149,9 @@ export class GlobalData {
   readonly userRole = computed(() => this.supabase.userRole());
   readonly isAdmin = computed(() => this.userRole() === AppRoles.ADMIN);
   readonly isEquipper = computed(() => this.userRole() === AppRoles.EQUIPPER);
+  readonly userAvatar = computed(() =>
+    this.supabase.buildAvatarUrl(this.userProfile()?.avatar),
+  );
 
   searchPopular: WritableSignal<string[]> = signal([
     'Wild Side',
