@@ -1,9 +1,6 @@
 {
   "Menu": "Menu",
   "navigation": "Navigation",
-  "preferences": "Preferences",
-  "settings.language": "Language",
-  "settings.theme": "Theme",
   "actions": {
     "favorite": {
       "add": "Mark as favorite",
@@ -61,6 +58,7 @@
     "parking": "Parking",
     "parkings": "Parkings",
     "password": "Password",
+    "preferences": "Preferences",
     "rating": "Rating",
     "role": "Role",
     "route": "Route",
@@ -69,14 +67,14 @@
     "sectors": "Sectors",
     "sex": "Sex",
     "size": "Height",
-    "weight": "Weight",
-    "startingClimbingYear": "Starting climbing year",
-    "theme": "Theme",
+    "startingClimbingYear": "Climbing since",
+    "darkMode": "Dark mode",
     "topo": "Topo",
     "topos": "Topos",
     "type": "Type",
     "user": "User",
-    "username": "Username"
+    "userInfo": "User info",
+    "userName": "Username"
   },
   "auth": {
     "login": "Sign in",
@@ -185,10 +183,6 @@
     "language": {
       "es": "Spanish",
       "en": "English"
-    },
-    "theme": {
-      "light": "Light",
-      "dark": "Dark"
     },
     "sex": {
       "male": "Male",

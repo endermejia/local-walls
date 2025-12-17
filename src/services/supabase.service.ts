@@ -1,18 +1,19 @@
 import {
+  computed,
+  inject,
   Injectable,
   InjectionToken,
-  Provider,
-  inject,
   PLATFORM_ID,
-  computed,
+  Provider,
+  resource,
   signal,
   WritableSignal,
-  resource,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
-import type { SupabaseClient, Session } from '@supabase/supabase-js';
+import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '../models/supabase-generated';
+import { ENV_SUPABASE_URL } from '../environments/environment';
 
 export interface SupabaseConfig {
   url: string;
@@ -90,6 +91,18 @@ export class SupabaseService {
     },
   });
   readonly userRole = computed(() => this.userRoleResource.value()?.role);
+
+  /**
+   * Construye una URL pública completa para un avatar almacenado en el bucket
+   * "avatar" de Supabase a partir de un path relativo (p.ej.: "avatars/xyz.jpg").
+   * No accede a APIs del navegador; es SSR-safe.
+   */
+  buildAvatarUrl(path: string | null | undefined): string {
+    if (!path) return '';
+    const base = (ENV_SUPABASE_URL || '').replace(/\/$/, '');
+    const rel = String(path).replace(/^\//, '');
+    return `${base}/storage/v1/object/public/avatar/${rel}`;
+  }
 
   constructor() {
     this._ready = new Promise<void>(
@@ -190,5 +203,46 @@ export class SupabaseService {
   async updatePassword(newPassword: string) {
     if (!this._client) throw new Error('Supabase client not ready');
     return this._client.auth.updateUser({ password: newPassword });
+  }
+
+  /** Upload avatar image to Supabase Edge Function */
+  async uploadAvatar(
+    file: File,
+  ): Promise<{ path: string; publicUrl: string } | null> {
+    if (!this._client) throw new Error('Supabase client not ready');
+
+    const base64 = await this.fileToBase64(file);
+    const payload = {
+      file_name: file.name,
+      content_type: file.type,
+      base64: base64,
+    };
+
+    const response = await this.client.functions.invoke('upload-avatar', {
+      body: payload,
+    });
+
+    if (response.error) {
+      console.error('[SupabaseService] uploadAvatar error', response.error);
+      throw response.error;
+    }
+
+    console.log('[SupabaseService] uploadAvatar success', response.data);
+    return response.data;
+  }
+
+  /** Helper: Convert File to base64 string */
+  private fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        // Remove the data:...;base64, prefix
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 }

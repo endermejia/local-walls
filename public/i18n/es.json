@@ -1,9 +1,6 @@
 {
   "Menu": "Menú",
   "navigation": "Navegación",
-  "preferences": "Preferencias",
-  "settings.language": "Idioma",
-  "settings.theme": "Tema",
   "actions": {
     "favorite": {
       "add": "Marcar como favorito",
@@ -61,6 +58,7 @@
     "parking": "Parking",
     "parkings": "Parkings",
     "password": "Contraseña",
+    "preferences": "Preferencias",
     "rating": "Valoración",
     "role": "Rol",
     "route": "Vía",
@@ -69,14 +67,14 @@
     "sectors": "Sectores",
     "sex": "Sexo",
     "size": "Altura",
-    "weight": "Peso",
-    "startingClimbingYear": "Año de inicio en escalada",
-    "theme": "Tema",
+    "startingClimbingYear": "Escalando desde",
+    "darkMode": "Modo oscuro",
     "topo": "Croquis",
     "topos": "Croquis",
     "type": "Tipo",
     "user": "Usuario",
-    "username": "Usuario"
+    "userInfo": "Información",
+    "userName": "Nombre completo"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -185,10 +183,6 @@
     "language": {
       "es": "Español",
       "en": "Inglés"
-    },
-    "theme": {
-      "light": "Claro",
-      "dark": "Oscuro"
     },
     "sex": {
       "male": "Masculino",

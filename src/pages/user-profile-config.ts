@@ -5,11 +5,19 @@ import {
   inject,
   computed,
   effect,
+  signal,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { AsyncPipe, isPlatformBrowser } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { TuiButton, TuiFlagPipe, TuiTextfield } from '@taiga-ui/core';
+import {
+  TuiButton,
+  tuiDateFormatProvider,
+  TuiFallbackSrcPipe,
+  TuiFlagPipe,
+  TuiTextfield,
+} from '@taiga-ui/core';
 import {
   TuiChevron,
   TuiSelect,
@@ -21,8 +29,11 @@ import {
   TuiInputNumber,
   TuiInputDate,
   TuiInputYear,
+  TuiSwitch,
+  TuiAvatar,
 } from '@taiga-ui/kit';
-import { TuiAutoFocus, TuiStringMatcher, TuiDay, TuiYear } from '@taiga-ui/cdk';
+import { TuiAutoFocus, TuiStringMatcher, TuiDay } from '@taiga-ui/cdk';
+import { map } from 'rxjs';
 import { GlobalData, SupabaseService, UserProfilesService } from '../services';
 import {
   Language,
@@ -33,8 +44,6 @@ import {
   Themes,
   UserProfileDto,
 } from '../models';
-import { map } from 'rxjs';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 interface Country {
   id: string;
@@ -61,30 +70,64 @@ interface Country {
     TuiInputNumber,
     TuiInputDate,
     TuiInputYear,
+    TuiSwitch,
+    TuiFallbackSrcPipe,
+    TuiAvatar,
+    AsyncPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
   template: `
-    <section class="w-full max-w-5xl mx-auto p-4 grid grid-cols-1 gap-4">
-      <!-- Nombre -->
-      <div>
-        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-          <label tuiLabel for="nameInput">{{
-            'labels.username' | translate
-          }}</label>
-          <input
-            id="nameInput"
-            tuiTextfield
-            tuiAutoFocus
-            class="w-full"
-            type="text"
-            autocomplete="off"
-            [(ngModel)]="displayName"
-            (blur)="saveName()"
-            (keydown.enter)="saveName()"
-          />
-        </tui-textfield>
+    <section
+      class="w-full max-w-5xl mx-auto p-4 grid grid-cols-1 gap-4"
+      xmlns="http://www.w3.org/1999/html"
+    >
+      <!-- USER INFO -->
+      <div class="flex justify-between items-end">
+        <h2 class="text-lg font-bold">
+          {{ 'labels.userInfo' | translate }}
+        </h2>
+        <!-- Logout button -->
+        <div>
+          <button
+            tuiButton
+            appearance="action-destructive"
+            type="button"
+            size="m"
+            (click)="logout()"
+          >
+            {{ 'auth.logout' | translate }}
+          </button>
+        </div>
       </div>
-
+      <!-- Avatar y Nombre -->
+      <div class="flex flex-col md:flex-row items-center gap-4">
+        <tui-avatar
+          (mouseenter)="avatarHovered.set(true)"
+          (mouseleave)="avatarHovered.set(false)"
+          (click)="uploadAvatar()"
+          class="cursor-pointer"
+          size="xxl"
+          [src]="avatarSrc() | tuiFallbackSrc: '@tui.user' | async"
+        />
+        <div class="w-full">
+          <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+            <label tuiLabel for="nameInput">{{
+              'labels.userName' | translate
+            }}</label>
+            <input
+              id="nameInput"
+              tuiTextfield
+              tuiAutoFocus
+              type="text"
+              autocomplete="off"
+              [(ngModel)]="displayName"
+              (blur)="saveName()"
+              (keydown.enter)="saveName()"
+            />
+          </tui-textfield>
+        </div>
+      </div>
       <!-- Bio -->
       <div>
         <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
@@ -92,20 +135,18 @@ interface Country {
           <textarea
             id="bioInput"
             tuiTextarea
-            class="w-full"
             rows="4"
             [(ngModel)]="bio"
             (blur)="saveBio()"
           ></textarea>
         </tui-textfield>
       </div>
-
       <!-- Country & City -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Country -->
         <div>
           <tui-textfield
             tuiChevron
-            class="w-full"
             [tuiTextfieldCleaner]="false"
             [stringify]="stringifyCountryId"
           >
@@ -140,27 +181,28 @@ interface Country {
             </ng-template>
           </tui-textfield>
         </div>
-
+        <!-- City -->
         <div>
-          <tui-textfield tuiChevron class="w-full" [tuiTextfieldCleaner]="true">
-            <label tuiLabel for="citySelect">{{
+          <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+            <label tuiLabel for="cityInput">{{
               'labels.city' | translate
             }}</label>
             <input
-              id="citySelect"
-              tuiSelect
+              id="cityInput"
+              tuiTextfield
+              type="text"
+              autocomplete="off"
               [(ngModel)]="city"
               (ngModelChange)="saveCity()"
             />
-            <tui-data-list-wrapper *tuiTextfieldDropdown new [items]="cities" />
           </tui-textfield>
         </div>
       </div>
-
       <!-- Birth Date & Starting Climbing Year -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Birth Date -->
         <div>
-          <tui-textfield class="w-full" [tuiTextfieldCleaner]="true">
+          <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
             <label tuiLabel for="birthDateInput">{{
               'labels.birthDate' | translate
             }}</label>
@@ -170,11 +212,12 @@ interface Country {
               [(ngModel)]="birthDate"
               (ngModelChange)="saveBirthDate()"
             />
+            <tui-calendar *tuiTextfieldDropdown />
           </tui-textfield>
         </div>
-
+        <!-- Starting Climbing Year -->
         <div>
-          <tui-textfield class="w-full" [tuiTextfieldCleaner]="true">
+          <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
             <label tuiLabel for="startingClimbingYearInput">{{
               'labels.startingClimbingYear' | translate
             }}</label>
@@ -184,14 +227,15 @@ interface Country {
               [(ngModel)]="startingClimbingYear"
               (ngModelChange)="saveStartingClimbingYear()"
             />
+            <tui-calendar-year *tuiTextfieldDropdown />
           </tui-textfield>
         </div>
       </div>
-
-      <!-- Size, Weight & Sex -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Size & Sex -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Size -->
         <div>
-          <tui-textfield class="w-full" [tuiTextfieldCleaner]="true">
+          <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
             <label tuiLabel for="sizeInput">{{
               'labels.size' | translate
             }}</label>
@@ -206,24 +250,7 @@ interface Country {
             <span class="tui-textfield__suffix">cm</span>
           </tui-textfield>
         </div>
-
-        <div>
-          <tui-textfield class="w-full" [tuiTextfieldCleaner]="true">
-            <label tuiLabel for="weightInput">{{
-              'labels.weight' | translate
-            }}</label>
-            <input
-              id="weightInput"
-              tuiInputNumber
-              [min]="0"
-              [max]="500"
-              [(ngModel)]="weight"
-              (ngModelChange)="saveWeight()"
-            />
-            <span class="tui-textfield__suffix">kg</span>
-          </tui-textfield>
-        </div>
-
+        <!-- Sex -->
         <div>
           <tui-textfield
             tuiChevron
@@ -245,32 +272,18 @@ interface Country {
         </div>
       </div>
 
-      <!-- Theme & Language -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <tui-textfield
-            tuiChevron
-            class="w-full"
-            [tuiTextfieldCleaner]="false"
-            [stringify]="stringifyTheme()"
-          >
-            <label tuiLabel for="themeSelect">{{
-              'labels.theme' | translate
-            }}</label>
-            <input
-              id="themeSelect"
-              tuiSelect
-              [(ngModel)]="theme"
-              (ngModelChange)="saveTheme()"
-            />
-            <tui-data-list-wrapper *tuiTextfieldDropdown new [items]="themes" />
-          </tui-textfield>
-        </div>
+      <br />
 
+      <!-- PREFERENCES -->
+      <h2 class="text-lg font-bold">
+        {{ 'labels.preferences' | translate }}
+      </h2>
+      <!-- Language & Theme -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Language -->
         <div>
           <tui-textfield
             tuiChevron
-            class="w-full"
             [tuiTextfieldCleaner]="false"
             [stringify]="stringifyLanguage()"
           >
@@ -290,23 +303,24 @@ interface Country {
             />
           </tui-textfield>
         </div>
-      </div>
-
-      <!-- Logout button -->
-      <div class="mt-4">
-        <button
-          tuiButton
-          appearance="secondary"
-          type="button"
-          (click)="logout()"
-        >
-          {{ 'auth.logout' | translate }}
-        </button>
+        <!-- Theme -->
+        <div class="flex items-center justify-end gap-4">
+          <label tuiLabel for="themeSwitch">{{
+            'labels.darkMode' | translate
+          }}</label>
+          <input
+            id="themeSwitch"
+            tuiSwitch
+            type="checkbox"
+            [ngModel]="theme === Themes.DARK"
+            (ngModelChange)="toggleTheme($event)"
+          />
+        </div>
       </div>
     </section>
   `,
 })
-export class UserProfileComponent {
+export class UserProfileConfigComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly userProfilesService = inject(UserProfilesService);
@@ -314,6 +328,14 @@ export class UserProfileComponent {
   protected readonly global = inject(GlobalData);
 
   readonly profile = computed(() => this.global.userProfile());
+  protected avatarHovered = signal(false);
+  protected avatarSrc = computed<string>(() => {
+    const hovered = this.avatarHovered();
+    const profile = this.profile();
+    if (hovered) return '@tui.image-up';
+    if (profile?.avatar) return this.supabase.buildAvatarUrl(profile.avatar);
+    return '@tui.user';
+  });
 
   // Campos editables
   displayName = '';
@@ -323,24 +345,12 @@ export class UserProfileComponent {
   country: string | null = null;
   city: string | null = null;
   birthDate: TuiDay | null = null;
-  startingClimbingYear: TuiYear | null = null;
+  startingClimbingYear: number | null = null;
   size: number | null = null;
-  weight: number | null = null;
   sex: Sex | null = null;
 
-  // Cities - puedes expandir esta lista según necesites
-  readonly cities: string[] = [
-    'Barcelona',
-    'Madrid',
-    'Valencia',
-    'Sevilla',
-    'Zaragoza',
-    'Málaga',
-    'Murcia',
-    'Palma',
-    'Las Palmas',
-    'Bilbao',
-  ];
+  // Theme switcher
+  readonly Themes = Themes;
 
   // Language selector
   readonly languages: Language[] = [Languages.ES, Languages.EN];
@@ -350,19 +360,6 @@ export class UserProfileComponent {
     return (x: unknown): string => {
       if (typeof x !== 'string') return String(x);
       const key = `options.language.${x}`;
-      const tr = this.translate.instant(key);
-      return tr && tr !== key ? tr : x;
-    };
-  });
-
-  // Theme selector
-  readonly themes: Theme[] = [Themes.LIGHT, Themes.DARK];
-  readonly stringifyTheme = computed(() => {
-    this.profile();
-    this.global.i18nTick();
-    return (x: unknown): string => {
-      if (typeof x !== 'string') return String(x);
-      const key = `options.theme.${x}`;
       const tr = this.translate.instant(key);
       return tr && tr !== key ? tr : x;
     };
@@ -415,7 +412,6 @@ export class UserProfileComponent {
     const profile = this.profile();
     if (!profile) return;
 
-    // Inicializar campos editables
     this.displayName = profile.name || '';
     this.bio = profile.bio || '';
     this.language = (profile.language as Language) || Languages.ES;
@@ -424,9 +420,8 @@ export class UserProfileComponent {
     this.city = profile.city || null;
     this.sex = (profile.sex as Sex) || null;
     this.size = profile.size || null;
-    this.weight = profile.weight || null;
+    this.startingClimbingYear = profile.starting_climbing_year || null;
 
-    // Convertir birth_date string a TuiDay
     if (profile.birth_date) {
       const date = new Date(profile.birth_date);
       this.birthDate = new TuiDay(
@@ -434,11 +429,6 @@ export class UserProfileComponent {
         date.getMonth(),
         date.getDate(),
       );
-    }
-
-    // Convertir starting_climbing_year a TuiYear
-    if (profile.starting_climbing_year) {
-      this.startingClimbingYear = new TuiYear(profile.starting_climbing_year);
     }
   }
 
@@ -466,11 +456,12 @@ export class UserProfileComponent {
     await this.updateProfile({ bio: trimmed });
   }
 
-  async saveTheme(): Promise<void> {
-    const current = this.profile();
-    if (this.theme === (current?.theme ?? null)) {
+  async toggleTheme(isDark: boolean): Promise<void> {
+    const newTheme = isDark ? Themes.DARK : Themes.LIGHT;
+    if (this.theme === newTheme) {
       return;
     }
+    this.theme = newTheme;
     await this.updateProfile({ theme: this.theme });
   }
 
@@ -514,7 +505,7 @@ export class UserProfileComponent {
 
   async saveStartingClimbingYear(): Promise<void> {
     const current = this.profile();
-    const newYear = this.startingClimbingYear?.year ?? null;
+    const newYear = this.startingClimbingYear ?? null;
     if (newYear === (current?.starting_climbing_year ?? null)) {
       return;
     }
@@ -529,14 +520,6 @@ export class UserProfileComponent {
     await this.updateProfile({ size: this.size });
   }
 
-  async saveWeight(): Promise<void> {
-    const current = this.profile();
-    if (this.weight === (current?.weight ?? null)) {
-      return;
-    }
-    await this.updateProfile({ weight: this.weight });
-  }
-
   async saveSex(): Promise<void> {
     const current = this.profile();
     if (this.sex === (current?.sex ?? null)) {
@@ -545,12 +528,69 @@ export class UserProfileComponent {
     await this.updateProfile({ sex: this.sex });
   }
 
+  async uploadAvatar(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    // Create a file input element
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+
+    input.onchange = async (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      const file = target.files?.[0];
+
+      if (!file) return;
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        console.error('Please select an image file');
+        // TODO: show error toast
+        return;
+      }
+
+      // Validate file size (e.g., max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        console.error('File size must be less than 5MB');
+        // TODO: show error toast
+        return;
+      }
+
+      try {
+        // Upload the file
+        const result = await this.supabase.uploadAvatar(file);
+
+        if (result) {
+          console.log('Avatar uploaded successfully:', result);
+          // Force reload to show new avatar
+          this.supabase.userProfileResource.reload();
+          // TODO: show success toast
+        } else {
+          console.error('Failed to upload avatar');
+          // TODO: show error toast
+        }
+      } catch (e) {
+        const error = e as Error;
+        // Mejorar el manejo de errores
+        console.error('Error uploading avatar:', error);
+        if (error?.message) {
+          console.error('Error message:', error.message);
+        }
+        // TODO: show error toast with error.message
+      }
+    };
+
+    // Trigger file selection
+    input.click();
+  }
+
   private async updateProfile(updates: Partial<UserProfileDto>): Promise<void> {
     const result = await this.userProfilesService.updateUserProfile(updates);
 
     if (!result.success) {
       console.error('Error saving profile:', result.error);
-      // Aquí podrías mostrar un toast de error
+      // TODO: toast error
     }
   }
 
