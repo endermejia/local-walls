@@ -192,6 +192,14 @@
   },
   "profile": {
     "title": "Mi perfil",
-    "saveError": "Ha ocurrido un error al guardar tu perfil."
+    "saveError": "Ha ocurrido un error al guardar tu perfil.",
+    "avatar": {
+      "upload": {
+        "success": "Avatar actualizado correctamente.",
+        "error": "No se pudo subir el avatar.",
+        "invalidType": "Selecciona un archivo de imagen válido.",
+        "tooLarge": "El archivo debe pesar menos de 5 MB."
+      }
+    }
   }
 }

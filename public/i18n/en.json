@@ -192,6 +192,14 @@
   },
   "profile": {
     "title": "My profile",
-    "saveError": "An error occurred while saving your profile."
+    "saveError": "An error occurred while saving your profile.",
+    "avatar": {
+      "upload": {
+        "success": "Avatar updated successfully.",
+        "error": "Could not upload the avatar.",
+        "invalidType": "Please select a valid image file.",
+        "tooLarge": "The file must be smaller than 5 MB."
+      }
+    }
   }
 }

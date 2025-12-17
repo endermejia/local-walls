@@ -31,6 +31,9 @@ import {
   TuiInputYear,
   TuiSwitch,
   TuiAvatar,
+  TuiToastService,
+  TuiToastOptions,
+  TuiShimmer,
 } from '@taiga-ui/kit';
 import { TuiAutoFocus, TuiStringMatcher, TuiDay } from '@taiga-ui/cdk';
 import { map } from 'rxjs';
@@ -74,6 +77,7 @@ interface Country {
     TuiFallbackSrcPipe,
     TuiAvatar,
     AsyncPipe,
+    TuiShimmer,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
@@ -102,14 +106,17 @@ interface Country {
       </div>
       <!-- Avatar y Nombre -->
       <div class="flex flex-col md:flex-row items-center gap-4">
-        <tui-avatar
-          (mouseenter)="avatarHovered.set(true)"
-          (mouseleave)="avatarHovered.set(false)"
-          (click)="uploadAvatar()"
-          class="cursor-pointer"
-          size="xxl"
-          [src]="avatarSrc() | tuiFallbackSrc: '@tui.user' | async"
-        />
+        <div class="relative inline-block">
+          <tui-avatar
+            (mouseenter)="avatarHovered.set(true)"
+            (mouseleave)="avatarHovered.set(false)"
+            (click)="!isUploadingAvatar() && uploadAvatar()"
+            class="cursor-pointer"
+            size="xxl"
+            [src]="avatarSrc() | tuiFallbackSrc: '@tui.user' | async"
+            [tuiShimmer]="isUploadingAvatar()"
+          />
+        </div>
         <div class="w-full">
           <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
             <label tuiLabel for="nameInput">{{
@@ -324,11 +331,13 @@ export class UserProfileConfigComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly userProfilesService = inject(UserProfilesService);
+  private readonly toast = inject(TuiToastService);
   private readonly translate = inject(TranslateService);
   protected readonly global = inject(GlobalData);
 
-  readonly profile = computed(() => this.global.userProfile());
+  protected readonly profile = computed(() => this.global.userProfile());
   protected avatarHovered = signal(false);
+  protected isUploadingAvatar = signal(false);
   protected avatarSrc = computed<string>(() => {
     const hovered = this.avatarHovered();
     const profile = this.profile();
@@ -404,6 +413,15 @@ export class UserProfileConfigComponent {
       const userProfile = this.profile();
       if (userProfile) void this.loadProfile();
     });
+  }
+
+  private showToast(
+    messageKey: string,
+    options: Partial<TuiToastOptions<string>>,
+  ): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const message = this.translate.instant(messageKey);
+    this.toast.open(message, options).subscribe();
   }
 
   async loadProfile(): Promise<void> {
@@ -545,7 +563,9 @@ export class UserProfileConfigComponent {
       // Validate file type
       if (!file.type.startsWith('image/')) {
         console.error('Please select an image file');
-        // TODO: show error toast
+        this.showToast('profile.avatar.upload.invalidType', {
+          data: 'tui.circle-alert',
+        });
         return;
       }
 
@@ -553,31 +573,29 @@ export class UserProfileConfigComponent {
       const maxSize = 5 * 1024 * 1024; // 5MB
       if (file.size > maxSize) {
         console.error('File size must be less than 5MB');
-        // TODO: show error toast
+        this.showToast('profile.avatar.upload.tooLarge', {
+          data: '@tui.circle-alert',
+        });
         return;
       }
 
+      this.isUploadingAvatar.set(true);
       try {
-        // Upload the file
         const result = await this.supabase.uploadAvatar(file);
 
-        if (result) {
-          console.log('Avatar uploaded successfully:', result);
-          // Force reload to show new avatar
-          this.supabase.userProfileResource.reload();
-          // TODO: show success toast
-        } else {
-          console.error('Failed to upload avatar');
-          // TODO: show error toast
-        }
+        if (!result) return;
+
+        this.showToast('profile.avatar.upload.success', {
+          data: '@tui.circle-check',
+        });
+        this.supabase.userProfileResource.reload();
       } catch (e) {
-        const error = e as Error;
-        // Mejorar el manejo de errores
-        console.error('Error uploading avatar:', error);
-        if (error?.message) {
-          console.error('Error message:', error.message);
-        }
-        // TODO: show error toast with error.message
+        console.error('Error uploading avatar:', e);
+        this.showToast('profile.avatar.upload.error', {
+          data: '@tui.circle-x',
+        });
+      } finally {
+        this.isUploadingAvatar.set(false);
       }
     };
 
@@ -590,7 +608,7 @@ export class UserProfileConfigComponent {
 
     if (!result.success) {
       console.error('Error saving profile:', result.error);
-      // TODO: toast error
+      this.showToast('profile.saveError', {});
     }
   }
 
