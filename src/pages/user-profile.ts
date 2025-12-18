@@ -8,10 +8,10 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { AsyncPipe, isPlatformBrowser } from '@angular/common';
+import { AsyncPipe, isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
-import { TUI_COUNTRIES, TuiAvatar } from '@taiga-ui/kit';
-import { TuiButton, TuiFallbackSrcPipe, TuiFlagPipe } from '@taiga-ui/core';
+import { TUI_COUNTRIES, TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
+import { TuiButton, TuiFallbackSrcPipe } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { SupabaseService } from '../services';
@@ -31,21 +31,30 @@ import { TuiCountryIsoCode } from '@taiga-ui/i18n';
     TuiButton,
     TuiFallbackSrcPipe,
     AsyncPipe,
+    TuiSkeleton,
+    LowerCasePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="w-full max-w-3xl mx-auto p-4 grid gap-4">
       <div class="flex items-center gap-4">
+        @let avatar = profileAvatarSrc();
         <tui-avatar
-          [src]="profileAvatarSrc() | tuiFallbackSrc: '@tui.user' | async"
+          [src]="avatar | tuiFallbackSrc: '@tui.user' | async"
+          [tuiSkeleton]="!avatar"
           size="xxl"
         />
         <div class="grow">
           <div class="flex flex-row items-center justify-between">
+            @let name = profile()?.name;
+            <div class="text-xl font-semibold">
+              <span
+                [tuiSkeleton]="name ? false : 'name lastName secondLastName'"
+              >
+                {{ name }}
+              </span>
+            </div>
             @if (canEdit()) {
-              <div class="text-xl font-semibold">
-                {{ profile()?.name }}
-              </div>
               <button
                 iconStart="@tui.bolt"
                 size="m"
@@ -59,35 +68,46 @@ import { TuiCountryIsoCode } from '@taiga-ui/i18n';
             }
           </div>
 
-          <div class="flex items-center gap-2">
-            <span class="flex items-center gap-2">
-              @let country = profileCountry();
-              {{ (countriesNames$ | async)?.[country] }}
-              @if (profile()?.city; as city) {
-                , {{ city }}
-              }
+          <div class="flex items-center gap-x-2 flex-wrap">
+            @let country = profileCountry();
+            @let city = profile()?.city;
+            <span
+              class="flex items-center gap-2"
+              [tuiSkeleton]="country ? false : 'country, city'"
+            >
+              {{ (countriesNames$ | async)?.[country]
+              }}{{ city ? ', ' + city : '' }}
+            </span>
+            @if (profileAge(); as age) {
+              |
+              <span>
+                {{ age }}
+                {{ 'labels.years' | translate | lowercase }}
+              </span>
+            }
+
+            @if (profile()?.starting_climbing_year; as year) {
+              <span class="opacity-70">
+                (
+                {{ 'labels.startingClimbingYear' | translate | lowercase }}
+                {{ year }}
+                )
+              </span>
+            }
+          </div>
+          <div class="opacity-70">
+            @let bio = profile()?.bio;
+            <span
+              [tuiSkeleton]="
+                bio
+                  ? false
+                  : 'This text serves as the content behind the skeleton and adjusts the width.'
+              "
+            >
+              {{ bio }}
             </span>
           </div>
-          <div class="opacity-70">{{ profile()?.bio }}</div>
         </div>
-      </div>
-
-      <div class="grid grid-cols-1 gap-2">
-        @if (profileAge(); as age) {
-          <div class="flex items-center gap-2">
-            <span class="font-medium">{{ 'labels.age' | translate }}:</span>
-            <span>{{ age }}</span>
-          </div>
-        }
-
-        @if (profile()?.starting_climbing_year; as year) {
-          <div class="flex items-center gap-2">
-            <span class="font-medium"
-              >{{ 'labels.startingClimbingYear' | translate }}:</span
-            >
-            <span>{{ year }}</span>
-          </div>
-        }
       </div>
     </section>
   `,

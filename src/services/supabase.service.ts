@@ -93,9 +93,9 @@ export class SupabaseService {
   readonly userRole = computed(() => this.userRoleResource.value()?.role);
 
   /**
-   * Construye una URL pública completa para un avatar almacenado en el bucket
-   * "avatar" de Supabase a partir de un path relativo (p.ej.: "avatars/xyz.jpg").
-   * No accede a APIs del navegador; es SSR-safe.
+   * Builds a complete public URL for an avatar stored in the Supabase "avatar" bucket
+   * from a relative path (e.g.: "avatars/xyz.jpg").
+   * Does not access browser APIs; is SSR-safe.
    */
   buildAvatarUrl(path: string | null | undefined): string {
     if (!path) return '';

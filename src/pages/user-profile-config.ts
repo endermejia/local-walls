@@ -16,6 +16,7 @@ import {
   tuiDateFormatProvider,
   TuiFallbackSrcPipe,
   TuiFlagPipe,
+  TuiIcon,
   TuiTextfield,
 } from '@taiga-ui/core';
 import {
@@ -34,6 +35,8 @@ import {
   TuiToastService,
   TuiToastOptions,
   TuiShimmer,
+  TuiBadgedContentComponent,
+  TuiBadge,
 } from '@taiga-ui/kit';
 import { TuiAutoFocus, TuiStringMatcher, TuiDay } from '@taiga-ui/cdk';
 import { map } from 'rxjs';
@@ -47,6 +50,12 @@ import {
   Themes,
   UserProfileDto,
 } from '../models';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import {
+  AvatarCropperComponent,
+  type AvatarCropperResult,
+} from '../components/avatar-cropper';
 
 interface Country {
   id: string;
@@ -78,6 +87,9 @@ interface Country {
     TuiAvatar,
     AsyncPipe,
     TuiShimmer,
+    TuiBadgedContentComponent,
+    TuiBadge,
+    TuiIcon,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
@@ -89,15 +101,18 @@ interface Country {
       <!-- Avatar y Nombre -->
       <div class="flex flex-col md:flex-row items-center gap-4">
         <div class="relative inline-block">
-          <tui-avatar
-            (mouseenter)="avatarHovered.set(true)"
-            (mouseleave)="avatarHovered.set(false)"
-            (click)="!isUploadingAvatar() && uploadAvatar()"
-            class="cursor-pointer"
-            size="xxl"
-            [src]="avatarSrc() | tuiFallbackSrc: '@tui.user' | async"
-            [tuiShimmer]="isUploadingAvatar()"
-          />
+          <tui-badged-content [style.--tui-radius.%]="50">
+            <tui-icon icon="@tui.upload" tuiSlot="top" tuiBadge />
+            <tui-avatar
+              (mouseenter)="avatarHovered.set(true)"
+              (mouseleave)="avatarHovered.set(false)"
+              (click)="!isUploadingAvatar() && uploadAvatar()"
+              class="cursor-pointer"
+              size="xxl"
+              [src]="avatarSrc() | tuiFallbackSrc: '@tui.user' | async"
+              [tuiShimmer]="isUploadingAvatar()"
+            />
+          </tui-badged-content>
         </div>
         <div class="w-full">
           <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
@@ -345,6 +360,7 @@ export class UserProfileConfigComponent {
   private readonly userProfilesService = inject(UserProfilesService);
   private readonly toast = inject(TuiToastService);
   private readonly translate = inject(TranslateService);
+  private readonly dialogs = inject(TuiDialogService);
   protected readonly global = inject(GlobalData);
 
   protected readonly profile = computed(() => this.global.userProfile());
@@ -602,24 +618,42 @@ export class UserProfileConfigComponent {
         return;
       }
 
-      this.isUploadingAvatar.set(true);
-      try {
-        const result = await this.supabase.uploadAvatar(file);
-
-        if (!result) return;
-
-        this.showToast('profile.avatar.upload.success', {
-          data: '@tui.circle-check',
+      // Open the cropper dialog and wait for confirmation
+      this.dialogs
+        .open<AvatarCropperResult | null>(
+          new PolymorpheusComponent(AvatarCropperComponent),
+          {
+            size: 'm',
+            data: { file, size: 512 },
+            appearance: 'fullscreen',
+            closable: false,
+          },
+        )
+        .subscribe({
+          next: async (result) => {
+            if (!result) return; // canceled
+            const croppedFile = new File([result.blob], result.fileName, {
+              type: result.mimeType,
+              lastModified: Date.now(),
+            });
+            this.isUploadingAvatar.set(true);
+            try {
+              const upload = await this.supabase.uploadAvatar(croppedFile);
+              if (!upload) return;
+              this.showToast('profile.avatar.upload.success', {
+                data: '@tui.circle-check',
+              });
+              this.supabase.userProfileResource.reload();
+            } catch (e) {
+              console.error('Error uploading avatar:', e);
+              this.showToast('profile.avatar.upload.error', {
+                data: '@tui.circle-x',
+              });
+            } finally {
+              this.isUploadingAvatar.set(false);
+            }
+          },
         });
-        this.supabase.userProfileResource.reload();
-      } catch (e) {
-        console.error('Error uploading avatar:', e);
-        this.showToast('profile.avatar.upload.error', {
-          data: '@tui.circle-x',
-        });
-      } finally {
-        this.isUploadingAvatar.set(false);
-      }
     };
 
     // Trigger file selection

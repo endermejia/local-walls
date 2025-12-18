@@ -76,7 +76,9 @@
     "type": "Tipo",
     "user": "Usuario",
     "userInfo": "Información",
-    "userName": "Nombre completo"
+    "userName": "Nombre completo",
+    "year": "Año",
+    "years": "Años"
   },
   "auth": {
     "login": "Iniciar sesión",

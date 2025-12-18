@@ -76,7 +76,9 @@
     "type": "Type",
     "user": "User",
     "userInfo": "User info",
-    "userName": "Username"
+    "userName": "Username",
+    "year": "Year",
+    "years": "Years"
   },
   "auth": {
     "login": "Sign in",
