@@ -6,6 +6,7 @@ import {
   PLATFORM_ID,
   Provider,
   resource,
+  Signal,
   signal,
   WritableSignal,
 } from '@angular/core';
@@ -14,6 +15,7 @@ import { Router } from '@angular/router';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '../models/supabase-generated';
 import { ENV_SUPABASE_URL } from '../environments/environment';
+import { AppRole } from '../models';
 
 export interface SupabaseConfig {
   url: string;
@@ -57,23 +59,19 @@ export class SupabaseService {
     params: () => this.authUserId(),
     loader: async ({ params: userId }) => {
       if (!userId) return null;
-      const response = await this.client
+      const { data, error } = await this.client
         .from('user_profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
-      if (response.error) {
-        console.error(
-          '[SupabaseService] userProfileResource error',
-          response.error,
-        );
+      if (error) {
+        console.error('[SupabaseService] userProfileResource error', error);
       }
-      // Si no existe perfil de usuario, cerramos sesión
-      if (!response.data) {
+      if (!data) {
         await this.logout();
         return null;
       }
-      return response.data;
+      return data;
     },
   });
   readonly userProfile = computed(() => this.userProfileResource.value());
@@ -81,21 +79,24 @@ export class SupabaseService {
     params: () => this.authUserId(),
     loader: async ({ params: userId }) => {
       if (!userId) return null;
-      const response = await this.client
+      const { data, error } = await this.client
         .from('user_roles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
-      if (response.error) {
-        console.error(
-          '[SupabaseService] userRoleResource error',
-          response.error,
-        );
+      if (error) {
+        console.error('[SupabaseService] userRoleResource error', error);
       }
-      return response.data ?? null;
+      if (!data) {
+        await this.logout();
+        return null;
+      }
+      return data;
     },
   });
-  readonly userRole = computed(() => this.userRoleResource.value()?.role);
+  readonly userRole: Signal<AppRole | undefined> = computed(
+    () => this.userRoleResource.value()?.role,
+  );
 
   /**
    * Builds a complete public URL for an avatar stored in the Supabase "avatar" bucket

@@ -1595,7 +1595,39 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      get_areas_list: {
+        Args: never;
+        Returns: {
+          climbing_kind: Database['public']['Enums']['climbing_kind'][];
+          crags_count: number;
+          grades: Json;
+          id: number;
+          liked: boolean;
+          name: string;
+          shade_afternoon: boolean;
+          shade_all_day: boolean;
+          shade_morning: boolean;
+          slug: string;
+          sun_all_day: boolean;
+        }[];
+      };
+      get_crags_list_by_area_slug: {
+        Args: { p_area_slug: string };
+        Returns: {
+          climbing_kind: Database['public']['Enums']['climbing_kind'][];
+          grades: Json;
+          id: number;
+          liked: boolean;
+          name: string;
+          shade_afternoon: boolean;
+          shade_all_day: boolean;
+          shade_morning: boolean;
+          slug: string;
+          sun_all_day: boolean;
+          topos_count: number;
+        }[];
+      };
+      toggle_area_like: { Args: { p_area_id: number }; Returns: boolean };
     };
     Enums: {
       app_role: 'admin' | 'equipper' | 'climber';
@@ -1606,7 +1638,48 @@ export type Database = {
       theme: 'dark' | 'light';
     };
     CompositeTypes: {
-      [_ in never]: never;
+      grades_obj: {
+        '0': number | null;
+        '1': number | null;
+        '2': number | null;
+        '3': number | null;
+        '4': number | null;
+        '5': number | null;
+        '6': number | null;
+        '7': number | null;
+        '8': number | null;
+        '9': number | null;
+        '10': number | null;
+        '11': number | null;
+        '12': number | null;
+        '13': number | null;
+        '14': number | null;
+        '15': number | null;
+        '16': number | null;
+        '17': number | null;
+        '18': number | null;
+        '19': number | null;
+        '20': number | null;
+        '21': number | null;
+        '22': number | null;
+        '23': number | null;
+        '24': number | null;
+        '25': number | null;
+        '26': number | null;
+        '27': number | null;
+        '28': number | null;
+        '29': number | null;
+        '30': number | null;
+        '31': number | null;
+        '32': number | null;
+        '33': number | null;
+        '34': number | null;
+        '35': number | null;
+        '36': number | null;
+        '37': number | null;
+        '38': number | null;
+        '39': number | null;
+      };
     };
   };
   storage: {

@@ -6,6 +6,7 @@ import {
   Signal,
   signal,
   WritableSignal,
+  resource,
 } from '@angular/core';
 import { PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
@@ -17,8 +18,8 @@ import { SupabaseService } from './supabase.service';
 import { VerticalLifeApi } from './vertical-life-api';
 import {
   AppRoles,
-  AreaDetail,
   AreaListItem,
+  CragListItem,
   AscentsPage,
   ClimbingCrag,
   ClimbingRoute,
@@ -75,6 +76,7 @@ export class GlobalData {
   readonly loading = signal(false);
   readonly error: WritableSignal<string | null> = signal(null);
 
+  // ---- Language ----
   readonly i18nTick: WritableSignal<number> = signal(0);
   selectedLanguage: Signal<Language> = computed(
     () => this.userProfile()?.language || Languages.ES,
@@ -87,6 +89,7 @@ export class GlobalData {
       : TUI_ENGLISH_LANGUAGE,
   );
 
+  // ---- Theme ----
   selectedTheme: Signal<Theme> = computed(
     () => this.userProfile()?.theme || Themes.LIGHT,
   );
@@ -95,6 +98,7 @@ export class GlobalData {
     return (name: IconName) => `/image/${name}-${theme}.svg`;
   });
 
+  // ---- Drawer ----
   drawer: Signal<OptionsData> = computed(() => {
     const isAdmin = this.isAdmin();
     const isEquipper = this.isEquipper();
@@ -144,7 +148,14 @@ export class GlobalData {
     } satisfies OptionsData;
   });
 
-  // ---- AuthZ (roles) ----
+  // ---- Search ----
+  searchPopular: WritableSignal<string[]> = signal([
+    'Wild Side',
+    'Aixortà',
+    'Rincón Bello',
+  ]);
+
+  // ---- Auth (roles) ----
   readonly userProfile = computed(() => this.supabase.userProfile());
   readonly userRole = computed(() => this.supabase.userRole());
   readonly isAdmin = computed(() => this.userRole() === AppRoles.ADMIN);
@@ -153,12 +164,7 @@ export class GlobalData {
     this.supabase.buildAvatarUrl(this.userProfile()?.avatar),
   );
 
-  searchPopular: WritableSignal<string[]> = signal([
-    'Wild Side',
-    'Aixortà',
-    'Rincón Bello',
-  ]);
-
+  // ---- Map ----
   mapBounds: WritableSignal<MapBounds | null> = signal(null);
   private readonly mapBoundsStorageKey = 'map_bounds_v1';
   mapResponse: WritableSignal<MapResponse | null> = signal(null);
@@ -245,8 +251,75 @@ export class GlobalData {
     });
   });
   selectedMapCragItem: WritableSignal<MapCragItem | null> = signal(null);
-  area: WritableSignal<AreaDetail | null> = signal(null);
-  areas: WritableSignal<AreaListItem[]> = signal<AreaListItem[]>([]);
+
+  // ---- Areas ----
+  selectedAreaSlug: WritableSignal<string | null> = signal(null);
+  selectedArea: Signal<AreaListItem | null> = computed(() => {
+    const slug = this.selectedAreaSlug();
+    return slug ? this.areaList().find((a) => a.slug === slug) || null : null;
+  });
+  /**
+   * Lista de áreas (RPC get_areas_list)
+   * SSR-safe: en servidor devuelve [] y no accede a APIs del navegador.
+   */
+  readonly areaListResource = resource({
+    loader: async () => {
+      if (!isPlatformBrowser(this.platformId)) {
+        return [] as AreaListItem[];
+      }
+      try {
+        await this.supabase.whenReady();
+        const { data, error } =
+          await this.supabase.client.rpc('get_areas_list');
+        if (error) {
+          console.error('[GlobalData] areaListResource error', error);
+          return [] as AreaListItem[];
+        }
+        return (data as AreaListItem[]) ?? [];
+      } catch (e) {
+        console.error('[GlobalData] areaListResource exception', e);
+        return [] as AreaListItem[];
+      }
+    },
+  });
+  areaList: Signal<AreaListItem[]> = computed(
+    () => this.areaListResource.value() ?? [],
+  );
+
+  // ---- Crags list by selected area ----
+  /**
+   * Lista de sectores/crags para el área seleccionada usando RPC get_crags_list_by_area_slug.
+   * SSR-safe: en servidor devuelve [].
+   */
+  readonly cragsListResource = resource({
+    params: () => this.selectedAreaSlug(),
+    loader: async ({ params: areaSlug }) => {
+      if (!areaSlug) return [];
+      if (!isPlatformBrowser(this.platformId)) {
+        return [] as CragListItem[];
+      }
+      try {
+        await this.supabase.whenReady();
+        const { data, error } = await this.supabase.client.rpc(
+          'get_crags_list_by_area_slug',
+          { p_area_slug: areaSlug },
+        );
+        if (error) {
+          console.error('[GlobalData] cragsListResource error', error);
+          return [];
+        }
+        return (data as CragListItem[]) ?? [];
+      } catch (e) {
+        console.error('[GlobalData] cragsListResource exception', e);
+        return [];
+      }
+    },
+  });
+  readonly cragsList: Signal<CragListItem[]> = computed(
+    () => this.cragsListResource.value() ?? [],
+  );
+
+  // ---- Crags ----
   crag: WritableSignal<ClimbingCrag | null> = signal(null);
   cragSectors: WritableSignal<ClimbingSector[]> = signal([]);
   sector: WritableSignal<ClimbingSector | null> = signal(null);
@@ -303,8 +376,8 @@ export class GlobalData {
         .filter((x): x is MapAreaItem => !!x);
       this._localAreasCache = list;
       return list;
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
       return [];
     }
   }
@@ -565,7 +638,7 @@ export class GlobalData {
   ): void {
     switch (page) {
       case 'explore': {
-        this.area.set(null);
+        this.selectedAreaSlug.set(null);
         this.crag.set(null);
         this.sector.set(null);
         this.topo.set(null);

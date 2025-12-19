@@ -262,7 +262,7 @@ export class HeaderComponent implements OnDestroy {
       { caption: 'nav.explore', routerLink: ['/explore'] },
     ];
 
-    const area = this.global.area();
+    const area = this.global.selectedArea();
     const crag = this.global.crag();
 
     // If area is loaded, use it. Otherwise, when we only have a crag,

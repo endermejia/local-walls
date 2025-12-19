@@ -25,8 +25,8 @@ export class UserProfilesService {
       }
 
       return data;
-    } catch (error) {
-      console.error('[UserProfileService] Exception fetching profile:', error);
+    } catch (e) {
+      console.error('[UserProfileService] Exception fetching profile:', e);
       return null;
     }
   }
@@ -60,11 +60,11 @@ export class UserProfilesService {
       this.supabase.userProfileResource.reload();
 
       return { success: true };
-    } catch (error) {
-      console.error('[UserProfileService] Exception updating profile:', error);
+    } catch (e) {
+      console.error('[UserProfileService] Exception updating profile:', e);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Error desconocido',
+        error: e instanceof Error ? e.message : 'Error desconocido',
       };
     }
   }

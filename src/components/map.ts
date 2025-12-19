@@ -140,8 +140,8 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
           : [],
       };
       this.initialCragsData.set(filtered);
-    } catch (error) {
-      console.error('Error loading GeoJSON data:', error);
+    } catch (e) {
+      console.error('Error loading GeoJSON data:', e);
     }
   }
 

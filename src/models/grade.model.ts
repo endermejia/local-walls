@@ -43,7 +43,9 @@ export enum VERTICAL_LIFE_GRADES {
   G9c = 39, // 9c
 }
 
-export type AmountByEveryGrade = Partial<Record<VERTICAL_LIFE_GRADES, number>>;
+export type AmountByEveryGrade = Partial<
+  Record<VERTICAL_LIFE_GRADES, number | null>
+>;
 
 // Generate grade labels programmatically to avoid repetition
 export type GradeLetter = 'a' | 'b' | 'c';

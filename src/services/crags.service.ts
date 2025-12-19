@@ -32,9 +32,10 @@ export class CragsService {
       );
       if (error) throw error;
       return (data as CragDetail) ?? null;
-    } catch (e: any) {
-      console.error('[CragsService] getCragDetailBySlug error', e);
-      this.error.set(e?.message ?? 'Unknown error');
+    } catch (e) {
+      const error = e as Error;
+      console.error('[CragsService] getCragDetailBySlug error', error);
+      this.error.set(error?.message ?? 'Unknown error');
       return null;
     } finally {
       this.loading.set(false);

@@ -48,7 +48,7 @@ import { AreaFormComponent } from './area-form';
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
-      @let area = global.area();
+      @let area = global.selectedArea();
       @if (area) {
         <div class="mb-4 flex items-center justify-between gap-2">
           <app-section-header
@@ -85,7 +85,8 @@ import { AreaFormComponent } from './area-form';
         </div>
 
         <!-- Crags list -->
-        @let cragsCount = area.crags.length;
+        @let crags = global.cragsList();
+        @let cragsCount = crags.length;
         <div class="flex items-center justify-between gap-2">
           <h2 class="text-2xl font-semibold mb-2">
             <tui-avatar
@@ -116,7 +117,7 @@ import { AreaFormComponent } from './area-form';
           }
         </div>
         <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
-          @for (crag of area.crags; track crag.slug) {
+          @for (crag of crags; track crag.slug) {
             <div
               tuiCardLarge
               [tuiSurface]="crag.liked ? 'outline-destructive' : 'outline'"
@@ -165,39 +166,20 @@ export class AreaComponent {
   constructor() {
     effect(() => {
       const slug = this.areaSlug();
-      void this.load(slug);
+      this.global.resetDataByPage('area');
+      this.global.selectedAreaSlug.set(slug);
     });
-  }
-
-  private async load(slug: string): Promise<void> {
-    if (!isPlatformBrowser(this.platformId)) return;
-    const area = await this.areas.getAreaDetailBySlug(slug);
-    this.global.resetDataByPage('area');
-    if (area) {
-      this.global.area.set(area);
-    } else {
-      this.global.area.set(null);
-    }
   }
 
   onToggleLike(): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    const area = this.global.area();
+    const area = this.global.selectedArea();
     if (!area) return;
-    this.global.area.set({
-      ...area,
-      liked: !area.liked,
-    });
-    this.areas.toggleAreaLike(area.id).catch(() =>
-      this.global.area.set({
-        ...area,
-        liked: area.liked,
-      }),
-    );
+    void this.areas.toggleAreaLike(area.id);
   }
 
   deleteArea(): void {
-    const area = this.global.area();
+    const area = this.global.selectedArea();
     if (!area) return;
     if (!isPlatformBrowser(this.platformId)) return;
 
@@ -235,7 +217,7 @@ export class AreaComponent {
   }
 
   openEditArea(): void {
-    const area = this.global.area();
+    const area = this.global.selectedArea();
     if (!area) return;
     this.dialogs
       .open<string | null>(new PolymorpheusComponent(AreaFormComponent), {
@@ -253,13 +235,12 @@ export class AreaComponent {
               }
             }
           }
-          await this.load(area.slug);
         },
       });
   }
 
   openCreateCrag(): void {
-    const current = this.global.area();
+    const current = this.global.selectedArea();
     if (!current) return;
     // TODO: crag-form component
   }

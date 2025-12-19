@@ -50,16 +50,6 @@ export type TableRow<TTable extends keyof Tables> = Tables[TTable]['Row'];
 export type TableInsert<TTable extends keyof Tables> = Tables[TTable]['Insert'];
 export type TableUpdate<TTable extends keyof Tables> = Tables[TTable]['Update'];
 
-// Area Likes
-export type AreaLikeDto = TableRow<'area_likes'>;
-export type AreaLikeInsertDto = TableInsert<'area_likes'>;
-export type AreaLikeUpdateDto = TableUpdate<'area_likes'>;
-
-// Areas
-export type AreaDto = TableRow<'areas'>;
-export type AreaInsertDto = TableInsert<'areas'>;
-export type AreaUpdateDto = TableUpdate<'areas'>;
-
 // Crag Equippers
 export type CragEquipperDto = TableRow<'crag_equippers'>;
 export type CragEquipperInsertDto = TableInsert<'crag_equippers'>;

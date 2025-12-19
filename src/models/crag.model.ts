@@ -3,7 +3,7 @@ import { PageableResponse } from './pagination.model';
 import { AmountByEveryGrade } from './grade.model';
 import { TopoListItem } from './topo.model';
 import { Parking } from './parking.model';
-import { ClimbingKind } from './supabase-interfaces';
+import type { Database } from './supabase-generated';
 
 export interface ClimbingCrag {
   unifiedId?: number;
@@ -32,15 +32,12 @@ export interface ClimbingCragResponse {
 
 export type ClimbingCragsPage = PageableResponse<ClimbingCrag>;
 
-export interface CragListItem {
-  id: number;
-  name: string;
-  slug: string;
-  liked: boolean; // si el usuario le ha dado like a este crag (tabla crag_likes)
-  topos_count: number; // numero de topos que hay en este crag (tabla topos)
-  grades: AmountByEveryGrade; // suma de routes por grado que hay dentro de este crag (tabla routes)
-  climbing_kind: ClimbingKind[]; // los distintos climbing_kind que hay en las rutas de este crag (tabla routes)
-}
+export type CragListItem = Omit<
+  Database['public']['Functions']['get_crags_list_by_area_slug']['Returns'][number],
+  'grades'
+> & {
+  grades: AmountByEveryGrade;
+};
 
 export interface CragDetail {
   id: number;

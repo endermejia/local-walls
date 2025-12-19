@@ -153,7 +153,7 @@ export class AreaListComponent {
   private readonly translate = inject(TranslateService);
 
   readonly loading = computed(() => this.areasService.loading());
-  readonly areas = computed(() => this.global.areas());
+  readonly areas = computed(() => this.global.areaList());
 
   readonly query: WritableSignal<string> = signal('');
   readonly selectedGradeRange: WritableSignal<[number, number]> = signal([
@@ -183,9 +183,8 @@ export class AreaListComponent {
   });
 
   constructor() {
-    if (isPlatformBrowser(this.platformId)) {
-      void this.areasService.listFromRpc();
-    }
+    // Carga inicial: ya no forzamos llamada manual; el resource `areaListResource`
+    // de Supabase se encarga de cargar automáticamente al ser observado.
   }
 
   onQuery(v: string) {
@@ -232,13 +231,7 @@ export class AreaListComponent {
         label: this.translate.instant('areas.newTitle'),
         size: 'm',
       })
-      .subscribe({
-        next: (created) => {
-          if (created && isPlatformBrowser(this.platformId)) {
-            void this.areasService.listFromRpc();
-          }
-        },
-      });
+      .subscribe();
   }
 }
 

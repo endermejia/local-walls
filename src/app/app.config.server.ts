@@ -31,8 +31,8 @@ export class TranslateServerLoader implements TranslateLoader {
       );
       const content = readFileSync(path, 'utf8');
       return of(JSON.parse(content));
-    } catch (error) {
-      console.error(`Error loading translation file for ${lang}:`, error);
+    } catch (e) {
+      console.error(`Error loading translation file for ${lang}:`, e);
       return of({});
     }
   }
