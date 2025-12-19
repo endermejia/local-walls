@@ -16,11 +16,11 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { TuiBadge, TuiAvatar, TuiRating } from '@taiga-ui/kit';
+import { TuiAvatar, TuiRating } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
 import { TuiTable, TuiSortDirection } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
-import { TuiLet, tuiDefaultSort } from '@taiga-ui/cdk';
+import { tuiDefaultSort } from '@taiga-ui/cdk';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GlobalData } from '../services';
 import type { ClimbingRoute } from '../models';
@@ -42,13 +42,11 @@ export interface RoutesTableRow {
   standalone: true,
   imports: [
     RouterLink,
-    TuiBadge,
     TuiAvatar,
     TuiRating,
     TranslatePipe,
     TuiTable,
     TuiCell,
-    TuiLet,
     FormsModule,
     TuiButton,
   ],

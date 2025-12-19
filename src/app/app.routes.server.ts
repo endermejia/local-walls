@@ -42,13 +42,12 @@ export const serverRoutes: ServerRoute[] = [
   },
 
   {
-    path: 'crag/:cragSlug',
+    path: 'area/:areaSlug/:cragSlug',
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,
     async getPrerenderParams() {
-      const global = inject(GlobalData);
-      const crag = global.crag();
-      return crag ? [{ cragSlug: (crag as any)?.cragSlug }] : [];
+      // Sin prerender estático por defecto; delegamos a SSR
+      return [];
     },
   },
   {

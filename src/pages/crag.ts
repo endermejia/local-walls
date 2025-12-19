@@ -27,7 +27,12 @@ import {
   SectionHeaderComponent,
 } from '../components';
 import { CragsService, GlobalData } from '../services';
-import type { CragDetail, TopoListItem, ClimbingCrag } from '../models';
+import type {
+  CragDetail,
+  TopoListItem,
+  ClimbingCrag,
+  CragListItem,
+} from '../models';
 import { mapLocationUrl } from '../utils';
 
 @Component({
@@ -290,14 +295,46 @@ export class CragComponent {
   private readonly dialogs = inject(TuiDialogService);
   protected readonly mapLocationUrl = mapLocationUrl;
 
+  areaSlug: InputSignal<string> = input.required<string>();
   cragSlug: InputSignal<string> = input.required<string>();
   readonly loading = this.crags.loading;
   cragDetail = signal<CragDetail | null>(null);
 
   constructor() {
+    // Sincroniza área/crag seleccionados en el estado global desde la ruta
     effect(() => {
-      const slug = this.cragSlug();
-      void this.load(slug);
+      const aSlug = this.areaSlug();
+      const cSlug = this.cragSlug();
+      this.global.selectedAreaSlug.set(aSlug);
+      this.global.selectedCragSlug.set(cSlug);
+    });
+
+    // Mapea el crag seleccionado (lista por área) a un detalle mínimo
+    effect(() => {
+      const item = this.global.selectedCrag();
+      if (!item) {
+        this.cragDetail.set(null);
+        this.global.crag.set(null);
+        return;
+      }
+      const detail = this.mapListItemToDetail(item);
+      this.cragDetail.set(detail);
+      // Actualiza breadcrumb/source global
+      const mapped: ClimbingCrag = {
+        cragSlug: detail.slug,
+        cragName: detail.name,
+        areaSlug: detail.area_slug,
+        areaName: detail.area_name,
+        liked: detail.liked,
+        location: {
+          latitude: detail.latitude,
+          longitude: detail.longitude,
+        },
+        // Valores no disponibles en la lista
+        countrySlug: '',
+        countryName: '',
+      } as ClimbingCrag;
+      this.global.crag.set(mapped);
     });
   }
 
@@ -317,27 +354,26 @@ export class CragComponent {
     void this.router.navigateByUrl('/explore');
   }
 
-  private async load(slug: string): Promise<void> {
-    if (!isPlatformBrowser(this.platformId)) return;
-    const detail = await this.crags.getCragDetailBySlug(slug);
-    this.cragDetail.set(detail);
-    // Update global breadcrumb source with the new CragDetail shape
-    if (detail) {
-      const mapped: ClimbingCrag = {
-        cragSlug: detail.slug,
-        cragName: detail.name,
-        areaSlug: detail.area_slug,
-        areaName: detail.area_name,
-        liked: detail.liked,
-        location: {
-          latitude: detail.latitude,
-          longitude: detail.longitude,
-        },
-      } as ClimbingCrag;
-      this.global.crag.set(mapped);
-    } else {
-      this.global.crag.set(null);
-    }
+  private mapListItemToDetail(item: CragListItem): CragDetail {
+    return {
+      id: item.id,
+      name: item.name,
+      slug: item.slug,
+      // area_name: item.area_name,
+      // area_slug: item.area_slug,
+      // description_es: item.description_es ?? '',
+      // description_en: item.description_en ?? '',
+      // warning_es: item.warning_es ?? '',
+      // warning_en: item.warning_en ?? '',
+      liked: item.liked,
+      grades: item.grades,
+
+      // latitude: (item as any).latitude ?? 0,
+      // longitude: (item as any).longitude ?? 0,
+      // approach: (item as any).approach ?? 0,
+      // parkings: (item as any).parkings ?? [],
+      // topos: (item as any).topos ?? [],
+    } as CragDetail;
   }
 
   onToggleLike(): void {

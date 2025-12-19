@@ -1,9 +1,8 @@
 import { Coordinates } from './coordinates.model';
-import { PageableResponse } from './pagination.model';
 import { AmountByEveryGrade } from './grade.model';
-import { TopoListItem } from './topo.model';
-import { Parking } from './parking.model';
 import type { Database } from './supabase-generated';
+import { Parking } from './parking.model';
+import { TopoListItem } from './topo.model';
 
 export interface ClimbingCrag {
   unifiedId?: number;
@@ -23,14 +22,6 @@ export interface ClimbingCrag {
   totalSectors?: number;
   liked: boolean;
 }
-
-export interface ClimbingCragResponse {
-  crag: ClimbingCrag;
-  isEditable?: boolean;
-  isFollowed?: boolean;
-}
-
-export type ClimbingCragsPage = PageableResponse<ClimbingCrag>;
 
 export type CragListItem = Omit<
   Database['public']['Functions']['get_crags_list_by_area_slug']['Returns'][number],
@@ -57,6 +48,10 @@ export interface CragDetail {
   parkings: Parking[];
   topos: TopoListItem[];
 }
+
+// TODO: obtener topos y parkings
+// parkings: Parking[];
+// topos: TopoListItem[];
 
 // Supabase RPC toggle_crag_like response
 export interface CragLikeToggleResult {

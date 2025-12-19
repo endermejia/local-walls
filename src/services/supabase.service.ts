@@ -190,10 +190,29 @@ export class SupabaseService {
   }
 
   async logout() {
-    if (!this._client) return;
-    const { error } = await this._client.auth.signOut();
-    if (error) console.error('[SupabaseService] signOut error', error);
-    else void this.router.navigateByUrl('/login');
+    // Ensure we only attempt to sign out in the browser where the client exists
+    if (!this._client) {
+      // Even if no client (SSR or not initialized), navigate to login to reset UI state
+      void this.router.navigateByUrl('/login');
+      return;
+    }
+    try {
+      // Use local scope to clear client-side session without hitting the global logout endpoint.
+      // Supabase global sign-out (`scope: 'global'`) may return 403 in some environments
+      // (e.g., missing/expired tokens or restricted cookies during SSR/Edge). Local is sufficient
+      // for this SPA to clear the current device session.
+      const { error } = await this._client.auth.signOut({
+        scope: 'local' as const,
+      });
+      if (error) {
+        console.error('[SupabaseService] signOut(local) error', error);
+      }
+    } catch (e) {
+      console.error('[SupabaseService] signOut exception', e);
+    } finally {
+      // Always redirect to login to ensure predictable UX
+      void this.router.navigateByUrl('/login');
+    }
   }
 
   /** Send password reset email */

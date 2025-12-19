@@ -120,7 +120,7 @@ import { AreaFormComponent } from './area-form';
               tuiCardLarge
               [tuiSurface]="crag.liked ? 'outline-destructive' : 'outline'"
               class="cursor-pointer"
-              [routerLink]="['/crag', crag.slug]"
+              [routerLink]="['/area', area.slug, crag.slug]"
             >
               <div class="flex flex-col min-w-0 grow">
                 <header tuiHeader>

@@ -27,7 +27,7 @@ import {
 } from '@taiga-ui/core';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { ChartRoutesByGradeComponent, MapComponent } from '../components';
-import { HomeFilterDialogComponent, FilterDialog } from './filter-dialog';
+import { FilterDialogComponent, FilterDialog } from './filter-dialog';
 import { GlobalData } from '../services';
 import {
   GradeLabel,
@@ -116,7 +116,7 @@ import { remToPx } from '../utils';
           tuiCardLarge
           tuiSurface="floating"
           class="relative pointer-events-auto cursor-pointer m-4"
-          [routerLink]="['/crag', c.slug]"
+          [routerLink]="['/area', c.area_slug, c.slug]"
         >
           <div class="flex items-center gap-3">
             <div class="flex flex-col min-w-0 grow">
@@ -238,7 +238,7 @@ import { remToPx } from '../utils';
                     tuiCardLarge
                     [tuiSurface]="c.liked ? 'accent' : 'neutral'"
                     class="cursor-pointer"
-                    [routerLink]="['/crag', c.slug]"
+                    [routerLink]="['/area', c.area_slug, c.slug]"
                   >
                     <div class="flex items-center gap-3">
                       <div class="flex flex-col min-w-0 grow">
@@ -489,14 +489,11 @@ export class ExploreComponent {
       gradeRange: this.selectedGradeRange(),
     };
     this.dialogs
-      .open<FilterDialog>(
-        new PolymorpheusComponent(HomeFilterDialogComponent),
-        {
-          label: this.translate.instant('labels.filters'),
-          size: 'm',
-          data,
-        },
-      )
+      .open<FilterDialog>(new PolymorpheusComponent(FilterDialogComponent), {
+        label: this.translate.instant('labels.filters'),
+        size: 'm',
+        data,
+      })
       .subscribe((result) => {
         if (!result) return;
         this.global.loading.set(true);

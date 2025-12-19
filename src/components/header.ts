@@ -259,32 +259,23 @@ export class HeaderComponent implements OnDestroy {
 
   items: Signal<BreadcrumbItem[]> = computed<BreadcrumbItem[]>(() => {
     const items: BreadcrumbItem[] = [
-      { caption: 'nav.explore', routerLink: ['/explore'] },
+      { caption: 'labels.areas', routerLink: ['/areas'] },
     ];
 
     const area = this.global.selectedArea();
-    const crag = this.global.crag();
+    const crag = this.global.selectedCrag();
 
-    // If area is loaded, use it. Otherwise, when we only have a crag,
-    // synthesize the area breadcrumb from the crag metadata so breadcrumbs
-    // are correct on direct navigation to a crag route.
     if (area) {
       items.push({
         caption: area.name,
         routerLink: ['/area', area.slug],
       });
-    } else if (crag) {
-      items.push({
-        caption: crag.areaName,
-        routerLink: ['/area', crag.areaSlug],
-      });
-    }
-
-    if (crag) {
-      items.push({
-        caption: crag.cragName,
-        routerLink: ['/crag', crag.cragSlug],
-      });
+      if (crag) {
+        items.push({
+          caption: crag.name,
+          routerLink: ['/area', area.slug, crag.slug],
+        });
+      }
     }
 
     return items.filter((i) => !!i.caption).slice(0, -1);
@@ -413,7 +404,7 @@ export class HeaderComponent implements OnDestroy {
       }
 
       if (isCrag && cragSlug) {
-        const href = `/crag/${cragSlug}`;
+        const href = areaSlug ? `/area/${areaSlug}/${cragSlug}` : `/explore`;
         const subtitleParts: string[] = [];
         if (areaName) subtitleParts.push(areaName);
         if (countryName) subtitleParts.push(countryName);

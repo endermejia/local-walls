@@ -137,7 +137,6 @@ export class TopoComponent {
       const cragSlug = this.cragSlug();
       const sectorSlug = this.sectorSlug();
       // Ensure crag info is available for breadcrumbs on sector routes
-      void this.global.loadCrag(countrySlug, cragSlug);
       this.global
         .loadCragSectors(countrySlug, cragSlug)
         .then(() =>

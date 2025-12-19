@@ -59,7 +59,10 @@ import { ClimbingRoute } from '../models';
           @if (r.cragName && r.cragSlug) {
             <div>
               <strong>{{ 'labels.crag' | translate }}:</strong>
-              <a class="tui-link" [routerLink]="['/crag', r.cragSlug]">
+              <a
+                class="tui-link"
+                [routerLink]="['/area', r.areaSlug ?? '', r.cragSlug]"
+              >
                 {{ r.cragName }}
               </a>
             </div>
@@ -186,7 +189,6 @@ export class RouteComponent {
       const cragSlug = this.cragSlug();
       const sectorSlug = this.sectorSlug();
       const zlaggableSlug = this.zlaggableSlug();
-      void this.global.loadCrag(countrySlug, cragSlug);
       this.global
         .loadCragSectors(countrySlug, cragSlug)
         .then(() =>

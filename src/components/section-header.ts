@@ -5,14 +5,14 @@ import {
   InputSignal,
   output,
 } from '@angular/core';
-import { TuiBadge, TuiSkeleton } from '@taiga-ui/kit';
+import { TuiSkeleton } from '@taiga-ui/kit';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiButton } from '@taiga-ui/core';
 
 @Component({
   selector: 'app-section-header',
   standalone: true,
-  imports: [TuiBadge, TranslatePipe, TuiSkeleton, TuiButton],
+  imports: [TranslatePipe, TuiSkeleton, TuiButton],
   template: `
     <header
       class="flex items-start justify-between gap-2"

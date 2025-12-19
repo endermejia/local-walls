@@ -7,40 +7,17 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { SupabaseService } from './supabase.service';
-import type { CragDetail, CragLikeToggleResult } from '../models';
+// getCragDetailBySlug eliminado; ya no se usa RPC get_crag_by_slug
+import { GlobalData } from './global-data';
 
 @Injectable({ providedIn: 'root' })
 export class CragsService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
+  private readonly global = inject(GlobalData);
 
   readonly loading = signal(false);
   readonly error: WritableSignal<string | null> = signal<string | null>(null);
-
-  /** Detail for a crag using Supabase RPC get_crag_by_slug. */
-  async getCragDetailBySlug(slug: string): Promise<CragDetail | null> {
-    if (!isPlatformBrowser(this.platformId)) return null;
-    await this.supabase.whenReady();
-    this.loading.set(true);
-    this.error.set(null);
-    try {
-      const { data, error } = await this.supabase.client.rpc(
-        'get_crag_by_slug' as unknown as never,
-        {
-          p_slug: slug,
-        } as unknown as never,
-      );
-      if (error) throw error;
-      return (data as CragDetail) ?? null;
-    } catch (e) {
-      const error = e as Error;
-      console.error('[CragsService] getCragDetailBySlug error', error);
-      this.error.set(error?.message ?? 'Unknown error');
-      return null;
-    } finally {
-      this.loading.set(false);
-    }
-  }
 
   /** Delete a crag by id. Returns true if deleted. */
   async delete(id: number): Promise<boolean> {
@@ -52,6 +29,11 @@ export class CragsService {
         .delete()
         .eq('id', id);
       if (error) throw error;
+      // Update global crag list
+      this.global.cragsListResource.update((value) => {
+        if (!value) return value;
+        return value.filter((item) => item.id !== id);
+      });
       return true;
     } catch (e) {
       console.error('[CragsService] delete error', e);
@@ -60,29 +42,36 @@ export class CragsService {
   }
 
   /** Toggle like for a crag using Supabase RPC toggle_crag_like */
-  async toggleCragLike(cragId: number): Promise<CragLikeToggleResult | null> {
+  async toggleCragLike(cragId: number): Promise<boolean | null> {
     if (!isPlatformBrowser(this.platformId)) return null;
     await this.supabase.whenReady();
     try {
-      if (
-        typeof cragId !== 'number' ||
-        !Number.isFinite(cragId) ||
-        cragId <= 0
-      ) {
+      if (!cragId) {
         throw new Error(
           `[CragsService] toggleCragLike invalid cragId: ${String(cragId)}`,
         );
       }
       const params = { p_crag_id: cragId } as const;
       const { data, error } = await this.supabase.client.rpc(
-        'toggle_crag_like' as unknown as never,
-        params as unknown as undefined,
+        'toggle_crag_like',
+        params,
       );
       if (error) throw error;
-      const result = (Array.isArray(data) ? data[0] : data) as
-        | CragLikeToggleResult
-        | undefined;
-      return result ?? null;
+      const liked = data;
+      // Update global crag list
+      this.global.cragsListResource.update((value) => {
+        if (!value) return value;
+        return value
+          .map((item) => (item.id === cragId ? { ...item, liked } : item))
+          .sort((a, b) => {
+            // First sort by liked status (liked items first)
+            if (a.liked && !b.liked) return -1;
+            if (!a.liked && b.liked) return 1;
+            // Then sort by name
+            return a.name.localeCompare(b.name);
+          });
+      });
+      return liked;
     } catch (e) {
       console.error('[CragsService] toggleCragLike error', e);
       throw e;

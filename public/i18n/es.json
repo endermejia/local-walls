@@ -21,7 +21,8 @@
     "back": "Volver",
     "close": "Cerrar",
     "cancel": "Cancelar",
-    "apply": "Aplicar"
+    "apply": "Aplicar",
+    "clear": "Limpiar"
   },
   "labels": {
     "actions": "Acciones",
@@ -136,12 +137,14 @@
     "selectedRange": "Rango seleccionado:",
     "types": {
       "sport": "Deportiva",
-      "boulder": "Boulder"
+      "boulder": "Boulder",
+      "multipitch": "Multipitch"
     },
     "shade": {
       "morning": "Sombra mañana",
       "afternoon": "Sombra tarde",
-      "allDay": "Sombra todo el día"
+      "allDay": "Sombra todo el día",
+      "noShade": "Sin sombra"
     }
   },
   "messages": {

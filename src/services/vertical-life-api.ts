@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ApiCore, HttpOptions } from './api-core';
 import {
-  ClimbingCrag,
-  ClimbingCragResponse,
   ClimbingRoute,
   ClimbingRouteResponse,
   ClimbingSector,
@@ -13,7 +11,6 @@ import {
   SearchApiResponse,
   AscentsPage,
   AscentsQuery,
-  ClimbingCragsPage,
   ClimbingRoutesPage,
 } from '../models';
 
@@ -76,32 +73,6 @@ export class VerticalLifeApi extends ApiCore {
     return items as readonly SearchApiItem[];
   }
 
-  // TODO: implement pageable list for climbing crags (on Area page)
-  // using @defer for lazy loading and infinite scroll
-  async getClimbingCragsPageable(
-    countrySlug: string,
-    areaSlug: string,
-    params?: {
-      pageIndex?: number;
-      sortField?: 'totalascents' | 'grade' | 'name';
-      order?: 'asc' | 'desc';
-      category?: number;
-    },
-  ): Promise<ClimbingCragsPage> {
-    const query = {
-      pageIndex: params?.pageIndex ?? 0,
-      sortField: params?.sortField ?? 'totalascents',
-      order: params?.order ?? 'desc',
-      category: params?.category ?? 69,
-      countrySlug,
-      areaSlug,
-    } as const;
-    return this.get<ClimbingCragsPage>(
-      '/api/unification/outdoor/v1/web/crags',
-      { query },
-    );
-  }
-
   async getClimbingCragRoutesPageable(
     countrySlug: string,
     cragSlug: string,
@@ -127,16 +98,6 @@ export class VerticalLifeApi extends ApiCore {
       `/api/unification/outdoor/v1/web/zlaggables/sportclimbing/${encodeURIComponent(countrySlug)}`,
       { query },
     );
-  }
-
-  async getClimbingCrag(
-    countrySlug: string,
-    cragSlug: string,
-  ): Promise<ClimbingCrag> {
-    const cragResponse = await this.get<ClimbingCragResponse>(
-      `/api/unification/outdoor/v1/web/crags/sportclimbing/${encodeURIComponent(countrySlug)}/${encodeURIComponent(cragSlug)}`,
-    );
-    return cragResponse.crag;
   }
 
   async getClimbingSectors(

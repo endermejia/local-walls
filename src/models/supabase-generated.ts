@@ -1628,6 +1628,7 @@ export type Database = {
         }[];
       };
       toggle_area_like: { Args: { p_area_id: number }; Returns: boolean };
+      toggle_crag_like: { Args: { p_crag_id: number }; Returns: boolean };
     };
     Enums: {
       app_role: 'admin' | 'equipper' | 'climber';

@@ -320,6 +320,15 @@ export class GlobalData {
   );
 
   // ---- Crags ----
+  // Selección de crag (por slug) dependiente del área seleccionada
+  selectedCragSlug: WritableSignal<string | null> = signal(null);
+  selectedCrag: Signal<CragListItem | null> = computed(() => {
+    const slug = this.selectedCragSlug();
+    if (!slug) return null;
+    const list = this.cragsList();
+    return list.find((c) => c.slug === slug) ?? null;
+  });
+
   crag: WritableSignal<ClimbingCrag | null> = signal(null);
   cragSectors: WritableSignal<ClimbingSector[]> = signal([]);
   sector: WritableSignal<ClimbingSector | null> = signal(null);
@@ -479,27 +488,6 @@ export class GlobalData {
     }
   }
 
-  async loadCrag(countrySlug: string, cragSlug: string): Promise<void> {
-    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
-      return;
-    try {
-      this.loading.set(true);
-      const resp = await this.verticalLifeApi.getClimbingCrag(
-        countrySlug,
-        cragSlug,
-      );
-      this.crag.set(resp);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      this.error.set(msg);
-      if (msg.includes('HTTP 404')) {
-        this.router.navigateByUrl('/page-not-found');
-      }
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
   async loadCragSectors(countrySlug: string, cragSlug: string): Promise<void> {
     if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
       return;
@@ -639,19 +627,17 @@ export class GlobalData {
     switch (page) {
       case 'explore': {
         this.selectedAreaSlug.set(null);
-        this.crag.set(null);
-        this.sector.set(null);
+        this.selectedCragSlug.set(null);
+
         this.topo.set(null);
         this.route.set(null);
-        this.cragSectors.set([]);
         this.routesPageable.set(null);
         this.ascentsPageable.set(null);
         this.selectedMapCragItem.set(null);
         break;
       }
       case 'area': {
-        this.crag.set(null);
-        this.sector.set(null);
+        this.selectedCragSlug.set(null);
         this.topo.set(null);
         this.route.set(null);
         this.cragSectors.set([]);

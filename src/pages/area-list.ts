@@ -7,7 +7,7 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
+import { AsyncPipe, LowerCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AreasService, GlobalData } from '../services';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -17,16 +17,27 @@ import {
   TuiTextfield,
   TuiTitle,
   TuiSurface,
+  TuiFallbackSrcPipe,
+  TuiIcon,
 } from '@taiga-ui/core';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslateService } from '@ngx-translate/core';
-import { FilterDialog, HomeFilterDialogComponent } from './filter-dialog';
-import { TuiAvatar } from '@taiga-ui/kit';
+import { FilterDialog, FilterDialogComponent } from './filter-dialog';
+import {
+  TuiAvatar,
+  TuiBadgedContentComponent,
+  TuiBadgeNotification,
+  TuiBadge,
+} from '@taiga-ui/kit';
 import { ChartRoutesByGradeComponent } from '../components';
 import { AreaFormComponent } from './area-form';
-import { ORDERED_GRADE_VALUES, normalizeRoutesByGrade } from '../models';
+import {
+  ORDERED_GRADE_VALUES,
+  normalizeRoutesByGrade,
+  ClimbingKinds,
+} from '../models';
 
 @Component({
   selector: 'app-area-list',
@@ -44,6 +55,8 @@ import { ORDERED_GRADE_VALUES, normalizeRoutesByGrade } from '../models';
     LowerCasePipe,
     ChartRoutesByGradeComponent,
     TuiAvatar,
+    TuiBadgeNotification,
+    TuiBadgedContentComponent,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -88,17 +101,21 @@ import { ORDERED_GRADE_VALUES, normalizeRoutesByGrade } from '../models';
             id="areas-search"
             [value]="query()"
             (input.zoneless)="onQuery($any($event.target).value)"
-          />
-        </tui-textfield>
-        <button
-          tuiButton
-          appearance="textfield"
-          size="l"
-          type="button"
-          iconStart="@tui.sliders-horizontal"
-          [attr.aria-label]="'labels.filters' | translate"
-          (click.zoneless)="openFilters()"
-        ></button>
+          /> </tui-textfield
+        ><tui-badged-content>
+          @if (hasActiveFilters()) {
+            <tui-badge-notification size="s" tuiSlot="top" />
+          }
+          <button
+            tuiButton
+            appearance="textfield"
+            size="l"
+            type="button"
+            iconStart="@tui.sliders-horizontal"
+            [attr.aria-label]="'labels.filters' | translate"
+            (click.zoneless)="openFilters()"
+          ></button>
+        </tui-badged-content>
       </div>
 
       <!-- Areas list -->
@@ -160,6 +177,20 @@ export class AreaListComponent {
     0,
     ORDERED_GRADE_VALUES.length - 1,
   ]);
+  readonly selectedCategories: WritableSignal<number[]> = signal([]);
+  readonly selectedShade: WritableSignal<
+    ('shade_morning' | 'shade_afternoon' | 'shade_all_day' | 'sun_all_day')[]
+  > = signal([]);
+
+  readonly hasActiveFilters = computed(() => {
+    const [lo, hi] = this.selectedGradeRange();
+    const gradeActive = !(lo === 0 && hi === ORDERED_GRADE_VALUES.length - 1);
+    return (
+      gradeActive ||
+      this.selectedCategories().length > 0 ||
+      this.selectedShade().length > 0
+    );
+  });
   readonly filtered = computed(() => {
     const q = this.query().trim().toLowerCase();
     const [minIdx, maxIdx] = this.selectedGradeRange();
@@ -179,7 +210,40 @@ export class AreaListComponent {
       // Allow all if no grades data
       return allowedLabels.length === ORDERED_GRADE_VALUES.length;
     };
-    return list.filter((a) => textMatches(a) && gradeMatches(a));
+    const categories = this.selectedCategories();
+    const shadeKeys = this.selectedShade();
+    const kindMatches = (a: (typeof list)[number]) => {
+      if (!categories.length) return true;
+      const idxToKind: Record<number, string> = {
+        0: ClimbingKinds.SPORT,
+        1: ClimbingKinds.BOULDER,
+        2: ClimbingKinds.MULTIPITCH,
+      };
+      const allowedKinds = categories.map((i) => idxToKind[i]).filter(Boolean);
+      return a.climbing_kind?.some((k) => allowedKinds.includes(k));
+    };
+    const shadeMatches = (a: (typeof list)[number]) => {
+      if (!shadeKeys.length) return true;
+      // Coincide si CUALQUIERA de los shades seleccionados se cumple en el área
+      return shadeKeys.some((key) => {
+        switch (key) {
+          case 'shade_morning':
+            return !!a.shade_morning;
+          case 'shade_afternoon':
+            return !!a.shade_afternoon;
+          case 'shade_all_day':
+            return !!a.shade_all_day;
+          case 'sun_all_day':
+            return !!a.sun_all_day;
+          default:
+            return true;
+        }
+      });
+    };
+    return list.filter(
+      (a) =>
+        textMatches(a) && gradeMatches(a) && kindMatches(a) && shadeMatches(a),
+    );
   });
 
   constructor() {
@@ -193,21 +257,19 @@ export class AreaListComponent {
 
   openFilters(): void {
     const data = {
-      categories: [],
+      categories: this.selectedCategories(),
       gradeRange: this.selectedGradeRange(),
-      showCategories: false,
-      showShade: false,
+      selectedShade: this.selectedShade(),
+      showCategories: true,
+      showShade: true,
       showGradeRange: true,
     } as FilterDialog;
     this.dialogs
-      .open<FilterDialog>(
-        new PolymorpheusComponent(HomeFilterDialogComponent),
-        {
-          label: this.translate.instant('labels.filters'),
-          size: 'm',
-          data,
-        },
-      )
+      .open<FilterDialog>(new PolymorpheusComponent(FilterDialogComponent), {
+        label: this.translate.instant('labels.filters'),
+        size: 'l',
+        data,
+      })
       .subscribe((result) => {
         if (!result) return;
         const [a, b] = result.gradeRange ?? [
@@ -222,6 +284,9 @@ export class AreaListComponent {
           number,
           number,
         ]);
+        // categorías y sombra/sol
+        this.selectedCategories.set(result.categories ?? []);
+        this.selectedShade.set(result.selectedShade ?? []);
       });
   }
 
