@@ -33,9 +33,7 @@ import { slugify } from '../utils';
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
       <tui-textfield class="block">
-        <label tuiLabel for="area-name">{{
-          'labels.displayName' | translate
-        }}</label>
+        <label tuiLabel for="area-name">{{ 'labels.name' | translate }}</label>
         <input
           tuiTextfield
           id="area-name"

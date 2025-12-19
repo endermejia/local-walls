@@ -204,6 +204,28 @@
         "invalidType": "Selecciona un archivo de imagen válido.",
         "tooLarge": "El archivo debe pesar menos de 5 MB."
       }
+    },
+    "name": {
+      "required": "El nombre es obligatorio.",
+      "length": "El nombre debe tener entre 3 y 50 caracteres."
+    },
+    "bio": {
+      "tooLong": "La biografía debe tener 500 caracteres o menos."
+    },
+    "city": {
+      "tooLong": "La ciudad debe tener 100 caracteres o menos."
+    },
+    "country": {
+      "invalid": "Selecciona un país válido de la lista."
+    },
+    "birthDate": {
+      "invalid": "Fecha de nacimiento inválida. Selecciona una fecha entre 01/01/1900 y hoy."
+    },
+    "startingYear": {
+      "invalid": "Año inválido. Selecciona un año entre 1900 y el año actual."
+    },
+    "size": {
+      "invalid": "La altura debe estar entre 0 y 300 cm."
     }
   }
 }

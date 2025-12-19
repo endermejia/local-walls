@@ -93,12 +93,13 @@ export class AreasService {
     try {
       const { data, error } = await this.supabase.client.rpc(
         'get_areas_list' as unknown as never,
-        {
-          _filter: filter || null,
-          _limit: limit,
-          _offset: offset,
-          // _user_id can be omitted to use auth context on RLS
-        } as unknown as never,
+        // TODO: body filter and pagination
+        // {
+        //   _filter: filter || null,
+        //   _limit: limit,
+        //   _offset: offset,
+        //   // _user_id can be omitted to use auth context on RLS
+        // } as unknown as never,
       );
       if (error) throw error;
       const items = (data as AreaListItem[] | null) ?? [];
@@ -121,11 +122,7 @@ export class AreasService {
     await this.supabase.whenReady();
     try {
       // Validate input to avoid sending RPC without parameters
-      if (
-        typeof areaId !== 'number' ||
-        !Number.isFinite(areaId) ||
-        areaId <= 0
-      ) {
+      if (!Number.isFinite(areaId) || areaId <= 0) {
         throw new Error(
           `[AreasService] toggleAreaLike invalid areaId: ${String(areaId)}`,
         );

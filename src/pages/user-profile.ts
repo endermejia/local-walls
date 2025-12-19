@@ -14,12 +14,10 @@ import { TUI_COUNTRIES, TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
 import { TuiButton, TuiFallbackSrcPipe } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TuiCountryIsoCode } from '@taiga-ui/i18n';
 import { SupabaseService } from '../services';
 import { UserProfileDto } from '../models';
-
-// Dialog content (editor)
 import { UserProfileConfigComponent } from './user-profile-config';
-import { TuiCountryIsoCode } from '@taiga-ui/i18n';
 
 @Component({
   selector: 'app-user-profile',
@@ -37,11 +35,12 @@ import { TuiCountryIsoCode } from '@taiga-ui/i18n';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="w-full max-w-3xl mx-auto p-4 grid gap-4">
+      @let loading = !profile();
       <div class="flex items-center gap-4">
         @let avatar = profileAvatarSrc();
         <tui-avatar
           [src]="avatar | tuiFallbackSrc: '@tui.user' | async"
-          [tuiSkeleton]="!avatar"
+          [tuiSkeleton]="loading"
           size="xxl"
         />
         <div class="grow">
@@ -49,7 +48,7 @@ import { TuiCountryIsoCode } from '@taiga-ui/i18n';
             @let name = profile()?.name;
             <div class="text-xl font-semibold">
               <span
-                [tuiSkeleton]="name ? false : 'name lastName secondLastName'"
+                [tuiSkeleton]="loading ? 'name lastName secondLastName' : false"
               >
                 {{ name }}
               </span>
@@ -73,7 +72,7 @@ import { TuiCountryIsoCode } from '@taiga-ui/i18n';
             @let city = profile()?.city;
             <span
               class="flex items-center gap-2"
-              [tuiSkeleton]="country ? false : 'country, city'"
+              [tuiSkeleton]="loading ? 'country, city' : false"
             >
               {{ (countriesNames$ | async)?.[country]
               }}{{ city ? ', ' + city : '' }}
@@ -99,9 +98,9 @@ import { TuiCountryIsoCode } from '@taiga-ui/i18n';
             @let bio = profile()?.bio;
             <span
               [tuiSkeleton]="
-                bio
-                  ? false
-                  : 'This text serves as the content behind the skeleton and adjusts the width.'
+                loading
+                  ? 'This text serves as the content behind the skeleton and adjusts the width.'
+                  : false
               "
             >
               {{ bio }}

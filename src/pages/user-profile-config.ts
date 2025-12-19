@@ -50,8 +50,11 @@ import {
   Themes,
   UserProfileDto,
 } from '../models';
-import { TuiDialogService } from '@taiga-ui/experimental';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import {
+  TuiDialogService,
+  type TuiDialogContext,
+} from '@taiga-ui/experimental';
+import { PolymorpheusComponent, injectContext } from '@taiga-ui/polymorpheus';
 import {
   AvatarCropperComponent,
   type AvatarCropperResult,
@@ -125,6 +128,9 @@ interface Country {
               tuiAutoFocus
               type="text"
               autocomplete="off"
+              required
+              minlength="3"
+              maxlength="50"
               [(ngModel)]="displayName"
               (blur)="saveName()"
               (keydown.enter)="saveName()"
@@ -140,6 +146,7 @@ interface Country {
             id="bioInput"
             tuiTextarea
             rows="4"
+            maxlength="500"
             [(ngModel)]="bio"
             (blur)="saveBio()"
           ></textarea>
@@ -178,9 +185,9 @@ interface Country {
                 alt="{{ idToName(item) }}"
                 width="20"
                 height="15"
-                style="margin-right: 8px; vertical-align: middle;"
+                [style.margin-right.px]="8"
+                [style.vertical-align]="'middle'"
               />
-              {{ item }} -
               {{ idToName(item) }}
             </ng-template>
           </tui-textfield>
@@ -196,6 +203,7 @@ interface Country {
               tuiTextfield
               type="text"
               autocomplete="off"
+              maxlength="100"
               [(ngModel)]="city"
               (ngModelChange)="saveCity()"
             />
@@ -213,6 +221,8 @@ interface Country {
             <input
               id="birthDateInput"
               tuiInputDate
+              [max]="today"
+              [min]="minBirthDate"
               [(ngModel)]="birthDate"
               (ngModelChange)="saveBirthDate()"
             />
@@ -228,6 +238,8 @@ interface Country {
             <input
               id="startingClimbingYearInput"
               tuiInputYear
+              [min]="minYear"
+              [max]="currentYear"
               [(ngModel)]="startingClimbingYear"
               (ngModelChange)="saveStartingClimbingYear()"
             />
@@ -355,13 +367,21 @@ interface Country {
   `,
 })
 export class UserProfileConfigComponent {
+  protected readonly global = inject(GlobalData);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly userProfilesService = inject(UserProfilesService);
   private readonly toast = inject(TuiToastService);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
-  protected readonly global = inject(GlobalData);
+  private readonly dialogContext: TuiDialogContext<unknown, unknown> | null =
+    (() => {
+      try {
+        return injectContext<TuiDialogContext<unknown, unknown>>();
+      } catch {
+        return null;
+      }
+    })();
 
   protected readonly profile = computed(() => this.global.userProfile());
   protected avatarHovered = signal(false);
@@ -374,7 +394,7 @@ export class UserProfileConfigComponent {
     return '@tui.user';
   });
 
-  // Campos editables
+  // Editable fields
   displayName = '';
   bio = '';
   language: Language = Languages.ES;
@@ -385,8 +405,13 @@ export class UserProfileConfigComponent {
   startingClimbingYear: number | null = null;
   size: number | null = null;
   sex: Sex | null = null;
-  // Private profile
   isPrivate = false;
+
+  // Validation helpers and bounds
+  readonly today: TuiDay = TuiDay.currentLocal();
+  readonly minBirthDate: TuiDay = new TuiDay(1900, 0, 1);
+  readonly currentYear: number = new Date().getFullYear();
+  readonly minYear: number = 1900;
 
   // Theme switcher
   readonly Themes = Themes;
@@ -494,6 +519,14 @@ export class UserProfileConfigComponent {
     if (!trimmed) {
       const current = this.profile();
       this.displayName = current?.name ?? '';
+      this.showToast('profile.name.required', { data: '@tui.circle-alert' });
+      return;
+    }
+    if (trimmed.length < 3 || trimmed.length > 50) {
+      // Restore previous valid value for UX consistency
+      const current = this.profile();
+      this.displayName = current?.name ?? '';
+      this.showToast('profile.name.length', { data: '@tui.circle-alert' });
       return;
     }
     if (trimmed === (this.profile()?.name ?? '')) {
@@ -505,6 +538,12 @@ export class UserProfileConfigComponent {
   async saveBio(): Promise<void> {
     const trimmed = (this.bio ?? '').trim();
     const current = this.profile();
+
+    if (trimmed.length > 500) {
+      this.bio = current?.bio ?? '';
+      this.showToast('profile.bio.tooLong', { data: '@tui.circle-alert' });
+      return;
+    }
 
     if (trimmed === (current?.bio ?? '')) {
       this.bio = current?.bio ?? '';
@@ -532,6 +571,13 @@ export class UserProfileConfigComponent {
 
   async saveCountry(): Promise<void> {
     const current = this.profile();
+    // Ensure selected country is valid or null
+    const validIds = new Set(this.countryIds());
+    if (this.country && !validIds.has(this.country)) {
+      this.country = current?.country ?? null;
+      this.showToast('profile.country.invalid', { data: '@tui.circle-alert' });
+      return;
+    }
     if (this.country === (current?.country ?? null)) {
       return;
     }
@@ -540,6 +586,11 @@ export class UserProfileConfigComponent {
 
   async saveCity(): Promise<void> {
     const current = this.profile();
+    if (this.city && this.city.length > 100) {
+      this.city = current?.city ?? null;
+      this.showToast('profile.city.tooLong', { data: '@tui.circle-alert' });
+      return;
+    }
     if (this.city === (current?.city ?? null)) {
       return;
     }
@@ -554,6 +605,25 @@ export class UserProfileConfigComponent {
     const newDate = this.birthDate
       ? `${this.birthDate.year}-${String(this.birthDate.month + 1).padStart(2, '0')}-${String(this.birthDate.day).padStart(2, '0')}`
       : null;
+    if (this.birthDate) {
+      // Reject future dates or dates before minBirthDate
+      if (
+        this.birthDate.dayBefore(this.minBirthDate) ||
+        this.today.dayBefore(this.birthDate)
+      ) {
+        this.birthDate = current?.birth_date
+          ? new TuiDay(
+              new Date(current.birth_date).getFullYear(),
+              new Date(current.birth_date).getMonth(),
+              new Date(current.birth_date).getDate(),
+            )
+          : null;
+        this.showToast('profile.birthDate.invalid', {
+          data: '@tui.circle-alert',
+        });
+        return;
+      }
+    }
     if (newDate === currentDate) {
       return;
     }
@@ -563,6 +633,15 @@ export class UserProfileConfigComponent {
   async saveStartingClimbingYear(): Promise<void> {
     const current = this.profile();
     const newYear = this.startingClimbingYear ?? null;
+    if (newYear !== null) {
+      if (newYear < this.minYear || newYear > this.currentYear) {
+        this.startingClimbingYear = current?.starting_climbing_year ?? null;
+        this.showToast('profile.startingYear.invalid', {
+          data: '@tui.circle-alert',
+        });
+        return;
+      }
+    }
     if (newYear === (current?.starting_climbing_year ?? null)) {
       return;
     }
@@ -571,6 +650,13 @@ export class UserProfileConfigComponent {
 
   async saveSize(): Promise<void> {
     const current = this.profile();
+    if (this.size !== null) {
+      if (this.size < 0 || this.size > 300) {
+        this.size = current?.size ?? null;
+        this.showToast('profile.size.invalid', { data: '@tui.circle-alert' });
+        return;
+      }
+    }
     if (this.size === (current?.size ?? null)) {
       return;
     }
@@ -665,12 +751,15 @@ export class UserProfileConfigComponent {
 
     if (!result.success) {
       console.error('Error saving profile:', result.error);
-      this.showToast('profile.saveError', {});
+      this.showToast('Error: ' + result.error, {
+        data: '@tui.circle-x',
+      });
     }
   }
 
   async logout(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     await this.supabase.logout();
+    this.dialogContext?.$implicit.complete();
   }
 }

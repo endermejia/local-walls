@@ -7,10 +7,10 @@ export interface AreaListItem {
   id: number;
   name: string;
   slug: string;
-  liked: boolean;
-  crags_count: number;
-  grades: AmountByEveryGrade;
-  climbing_kind: ClimbingKind;
+  liked: boolean; // si el usuario le ha dado like a esta area (tabla area_likes)
+  crags_count: number; // numero de crags que hay en esta area (tabla crags)
+  grades: AmountByEveryGrade; // suma de routes por grado que hay dentro de los crags de cada area (tabla routes)
+  climbing_kind: ClimbingKind[]; // los distintos climbing_kind que hay en las rutas de los crags de esta area (tabla routes)
 }
 
 // Supabase RPC toggle_area_like response

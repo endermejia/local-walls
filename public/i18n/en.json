@@ -204,6 +204,28 @@
         "invalidType": "Please select a valid image file.",
         "tooLarge": "The file must be smaller than 5 MB."
       }
+    },
+    "name": {
+      "required": "Name is required.",
+      "length": "Name must be between 3 and 50 characters."
+    },
+    "bio": {
+      "tooLong": "Biography must be 500 characters or fewer."
+    },
+    "city": {
+      "tooLong": "City must be 100 characters or fewer."
+    },
+    "country": {
+      "invalid": "Please select a valid country from the list."
+    },
+    "birthDate": {
+      "invalid": "Invalid birth date. Please select a date between 01/01/1900 and today."
+    },
+    "startingYear": {
+      "invalid": "Invalid year. Please select a year between 1900 and the current year."
+    },
+    "size": {
+      "invalid": "Height must be between 0 and 300 cm."
     }
   }
 }

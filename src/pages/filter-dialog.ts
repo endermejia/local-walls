@@ -40,18 +40,14 @@ export interface FilterDialog {
     TranslatePipe,
   ],
   template: `
-    <form tuiForm>
+    <form tuiForm [formGroup]="form">
       <section>
-        <div [formGroup]="form">
-          <tui-filter formControlName="filters" size="l" [items]="items()" />
-        </div>
+        <tui-filter formControlName="filters" size="l" [items]="items()" />
       </section>
 
       <!-- Nueva sección de filtro (sin funcionalidad por ahora): Sombra -->
       <section class="tui-space_top-3">
-        <div [formGroup]="form">
-          <tui-filter formControlName="shade" size="l" [items]="shadeItems()" />
-        </div>
+        <tui-filter formControlName="shade" size="l" [items]="shadeItems()" />
       </section>
 
       <section>
@@ -67,9 +63,7 @@ export interface FilterDialog {
           [step]="1"
           [segments]="segments"
           [keySteps]="keySteps"
-          [ngModel]="gradeRange()"
-          (ngModelChange)="onRangeChange($event)"
-          name="gradeRange"
+          formControlName="gradeRange"
         />
         <div class="flex gap-2 justify-between">
           @for (label of tickLabels; track label; let i = $index) {
@@ -134,13 +128,17 @@ export class HomeFilterDialogComponent {
   protected readonly form = new FormGroup({
     filters: new FormControl<string[]>([]),
     shade: new FormControl<string[]>([]),
+    gradeRange: new FormControl<[number, number]>([
+      0 as number,
+      0 as number,
+    ] as [number, number]),
   });
 
   // Bounds for indices
   protected readonly minIndex = 0;
   protected readonly maxIndex = ORDERED_GRADE_VALUES.length - 1;
 
-  // Grades range state as signal, based on ORDERED_GRADE_VALUES indices
+  // Grades range state as signal (mirror of form control)
   protected readonly gradeRange: WritableSignal<[number, number]> = signal([
     this.minIndex,
     this.maxIndex,
@@ -183,9 +181,9 @@ export class HomeFilterDialogComponent {
               : [],
       });
       if (Array.isArray(d.gradeRange)) {
-        this.gradeRange.set(
-          this.sanitizeRange(d.gradeRange as [number, number]),
-        );
+        const sanitized = this.sanitizeRange(d.gradeRange as [number, number]);
+        this.form.patchValue({ gradeRange: sanitized });
+        this.gradeRange.set(sanitized);
       }
     }
 
@@ -217,6 +215,28 @@ export class HomeFilterDialogComponent {
       // Avoid feedback loop
       shadeCtrl.patchValue(next, { emitEvent: false });
     });
+
+    // Initialize and sync gradeRange signal with form control
+    const grCtrl = this.form.get('gradeRange') as FormControl<
+      [number, number] | null
+    >;
+    // Set default if empty
+    const initial = grCtrl.value ?? [this.minIndex, this.maxIndex];
+    const sanitizedInitial = this.sanitizeRange(initial as [number, number]);
+    if (
+      !grCtrl.value ||
+      grCtrl.value[0] !== sanitizedInitial[0] ||
+      grCtrl.value[1] !== sanitizedInitial[1]
+    ) {
+      grCtrl.setValue(sanitizedInitial, { emitEvent: false });
+    }
+    this.gradeRange.set(sanitizedInitial);
+    grCtrl.valueChanges.subscribe((val) => {
+      const arr: [number, number] = Array.isArray(val)
+        ? (val as [number, number])
+        : ([this.minIndex, this.maxIndex] as [number, number]);
+      this.gradeRange.set(this.sanitizeRange(arr));
+    });
   }
 
   private clamp(v: number): number {
@@ -229,17 +249,20 @@ export class HomeFilterDialogComponent {
     return [Math.min(lo, hi), Math.max(lo, hi)];
   }
 
-  protected onRangeChange(val: [number, number]): void {
-    this.gradeRange.set(this.sanitizeRange(val));
-  }
-
   protected onTickClick(targetIdx: number): void {
-    const [lo, hi] = this.gradeRange();
+    const grCtrl = this.form.get('gradeRange') as FormControl<
+      [number, number] | null
+    >;
+    const current = (grCtrl.value ?? [this.minIndex, this.maxIndex]) as [
+      number,
+      number,
+    ];
+    const [lo, hi] = current;
     const t = this.clamp(targetIdx);
     // Move the nearest thumb to the clicked tick
     const moveMin = Math.abs(t - lo) <= Math.abs(t - hi);
     const next: [number, number] = moveMin ? [t, hi] : [lo, t];
-    this.gradeRange.set(this.sanitizeRange(next));
+    grCtrl.setValue(this.sanitizeRange(next));
   }
 
   protected readonly selectedMinLabel: Signal<string> = computed(() => {
@@ -261,7 +284,12 @@ export class HomeFilterDialogComponent {
 
     const payload: FilterDialog = {
       categories: categories.length ? categories : [],
-      gradeRange: this.sanitizeRange(this.gradeRange()),
+      gradeRange: this.sanitizeRange(
+        (this.form.value.gradeRange as [number, number]) ?? [
+          this.minIndex,
+          this.maxIndex,
+        ],
+      ),
     };
     this.context.completeWith(payload);
   }

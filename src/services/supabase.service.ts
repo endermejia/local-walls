@@ -68,7 +68,12 @@ export class SupabaseService {
           response.error,
         );
       }
-      return response.data ?? null;
+      // Si no existe perfil de usuario, cerramos sesión
+      if (!response.data) {
+        await this.logout();
+        return null;
+      }
+      return response.data;
     },
   });
   readonly userProfile = computed(() => this.userProfileResource.value());
