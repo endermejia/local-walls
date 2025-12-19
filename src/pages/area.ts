@@ -11,12 +11,7 @@ import { PLATFORM_ID } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiCardLarge } from '@taiga-ui/layout';
 import { TuiSurface, TuiLoader, TuiTitle, TuiButton } from '@taiga-ui/core';
-import {
-  TuiAvatar,
-  TuiBadge,
-  TUI_CONFIRM,
-  type TuiConfirmData,
-} from '@taiga-ui/kit';
+import { TuiAvatar, TUI_CONFIRM, type TuiConfirmData } from '@taiga-ui/kit';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { Router, RouterLink } from '@angular/router';
@@ -37,7 +32,6 @@ import { AreaFormComponent } from './area-form';
     TuiSurface,
     TuiLoader,
     SectionHeaderComponent,
-    TuiBadge,
     ChartRoutesByGradeComponent,
     TuiHeader,
     LowerCasePipe,
@@ -59,24 +53,28 @@ import { AreaFormComponent } from './area-form';
             (toggleLike)="onToggleLike()"
           />
           @if (global.isAdmin()) {
-            <tui-badge
-              class="cursor-pointer"
+            <button
+              size="s"
               appearance="neutral"
               iconStart="@tui.square-pen"
-              size="xl"
+              tuiIconButton
+              type="button"
+              class="!rounded-full"
               (click.zoneless)="openEditArea()"
-              [attr.aria-label]="'common.edit' | translate"
-              [attr.title]="'common.edit' | translate"
-            />
-            <tui-badge
-              class="cursor-pointer"
+            >
+              {{ 'common.edit' | translate }}
+            </button>
+            <button
+              size="s"
               appearance="negative"
               iconStart="@tui.trash"
-              size="xl"
+              tuiIconButton
+              type="button"
+              class="!rounded-full"
               (click.zoneless)="deleteArea()"
-              [attr.aria-label]="'common.delete' | translate"
-              [attr.title]="'common.delete' | translate"
-            />
+            >
+              {{ 'common.delete' | translate }}
+            </button>
           }
         </div>
 
@@ -110,7 +108,7 @@ import { AreaFormComponent } from './area-form';
               size="m"
               type="button"
               class="my-4"
-              (click.zoneless)="openCreateCrag()"
+              (click)="openCreateCrag()"
             >
               {{ 'crags.new' | translate }}
             </button>
@@ -134,7 +132,7 @@ import { AreaFormComponent } from './area-form';
                     {{ 'labels.topos' | translate | lowercase }}
                   </div>
                   <app-chart-routes-by-grade
-                    (click.zoneless)="$event.stopPropagation()"
+                    (click)="$event.stopPropagation()"
                     [grades]="crag.grades"
                   />
                 </section>

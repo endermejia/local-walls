@@ -12,12 +12,7 @@ import { isPlatformBrowser, Location, LowerCasePipe } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import {
-  TuiAvatar,
-  TuiBadge,
-  TUI_CONFIRM,
-  type TuiConfirmData,
-} from '@taiga-ui/kit';
+import { TuiAvatar, TUI_CONFIRM, type TuiConfirmData } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import {
   TuiLoader,
@@ -48,7 +43,6 @@ import { mapLocationUrl } from '../utils';
     TuiSurface,
     TuiTitle,
     TuiButton,
-    TuiBadge,
     FormsModule,
     TuiNotification,
     TuiAvatar,
@@ -66,24 +60,28 @@ import { mapLocationUrl } from '../utils';
             (toggleLike)="onToggleLike()"
           />
           @if (global.isAdmin()) {
-            <tui-badge
-              class="cursor-pointer"
+            <button
+              size="s"
               appearance="neutral"
               iconStart="@tui.square-pen"
-              size="xl"
+              tuiIconButton
+              type="button"
+              class="!rounded-full"
               (click.zoneless)="openEditCrag()"
-              [attr.aria-label]="'common.edit' | translate"
-              [attr.title]="'common.edit' | translate"
-            />
-            <tui-badge
-              class="cursor-pointer"
+            >
+              {{ 'common.edit' | translate }}
+            </button>
+            <button
+              size="s"
               appearance="negative"
               iconStart="@tui.trash"
-              size="xl"
+              tuiIconButton
+              type="button"
+              class="!rounded-full"
               (click.zoneless)="deleteCrag()"
-              [attr.aria-label]="'common.delete' | translate"
-              [attr.title]="'common.delete' | translate"
-            />
+            >
+              {{ 'common.delete' | translate }}
+            </button>
           }
         </div>
 

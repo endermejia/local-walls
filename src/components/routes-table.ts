@@ -25,6 +25,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { GlobalData } from '../services';
 import type { ClimbingRoute } from '../models';
 import { FormsModule } from '@angular/forms';
+import { TuiButton } from '@taiga-ui/core';
 
 export type RoutesTableKey = 'grade' | 'route' | 'rating' | 'ascents';
 
@@ -49,6 +50,7 @@ export interface RoutesTableRow {
     TuiCell,
     TuiLet,
     FormsModule,
+    TuiButton,
   ],
   template: `
     <div class="overflow-auto" #scroller>
@@ -129,16 +131,25 @@ export interface RoutesTableRow {
                     }
                     @case ('actions') {
                       <div tuiCell size="m" class="flex items-center gap-2">
-                        <tui-badge
-                          appearance="neutral"
+                        @let liked = false;
+                        <button
+                          size="s"
+                          [appearance]="liked ? 'accent' : 'neutral'"
                           iconStart="@tui.heart"
-                          size="xl"
+                          tuiIconButton
+                          type="button"
+                          class="!rounded-full"
                           (click.zoneless)="
                             global.toggleLikeRoute(item._ref.zlaggableId)
                           "
-                          [attr.aria-label]="'actions.favorite.add' | translate"
-                          [attr.title]="'actions.favorite.add' | translate"
-                        />
+                        >
+                          {{
+                            (liked
+                              ? 'actions.favorite.remove'
+                              : 'actions.favorite.add'
+                            ) | translate
+                          }}
+                        </button>
                       </div>
                     }
                   }
