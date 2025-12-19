@@ -491,7 +491,7 @@ export class ExploreComponent {
     this.dialogs
       .open<FilterDialog>(new PolymorpheusComponent(FilterDialogComponent), {
         label: this.translate.instant('labels.filters'),
-        size: 'm',
+        size: 'l',
         data,
       })
       .subscribe((result) => {

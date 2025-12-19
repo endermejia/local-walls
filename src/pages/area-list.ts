@@ -294,7 +294,7 @@ export class AreaListComponent {
     this.dialogs
       .open<boolean>(new PolymorpheusComponent(AreaFormComponent), {
         label: this.translate.instant('areas.newTitle'),
-        size: 'm',
+        size: 'l',
       })
       .subscribe();
   }

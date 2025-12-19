@@ -2,6 +2,7 @@ export * from './area';
 export * from './area-form';
 export * from './area-list';
 export * from './crag';
+export * from './crag-form';
 export * from './explore';
 export * from './login';
 export * from './page-not-found';

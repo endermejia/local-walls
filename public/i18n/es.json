@@ -79,7 +79,11 @@
     "userInfo": "Información",
     "userName": "Nombre completo",
     "year": "Año",
-    "years": "Años"
+    "years": "Años",
+    "description_es": "Descripción en español",
+    "description_en": "Descripción en ingés",
+    "warning_es": "Avisos en español",
+    "warning_en": "Avisos en ingés"
   },
   "auth": {
     "login": "Iniciar sesión",

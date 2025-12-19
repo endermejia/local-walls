@@ -22,6 +22,7 @@ import {
   SectionHeaderComponent,
 } from '../components';
 import { AreaFormComponent } from './area-form';
+import { CragFormComponent } from './crag-form';
 
 @Component({
   selector: 'app-area',
@@ -220,7 +221,7 @@ export class AreaComponent {
     this.dialogs
       .open<string | null>(new PolymorpheusComponent(AreaFormComponent), {
         label: this.translate.instant('areas.editTitle'),
-        size: 'm',
+        size: 'l',
         data: { areaData: { id: area.id, name: area.name, slug: area.slug } },
       })
       .subscribe({
@@ -240,7 +241,13 @@ export class AreaComponent {
   openCreateCrag(): void {
     const current = this.global.selectedArea();
     if (!current) return;
-    // TODO: crag-form component
+    this.dialogs
+      .open<boolean>(new PolymorpheusComponent(CragFormComponent), {
+        label: this.translate.instant('crags.newTitle'),
+        size: 'l',
+        data: { areaId: current.id },
+      })
+      .subscribe();
   }
 
   goBack(): void {

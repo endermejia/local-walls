@@ -9,6 +9,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { SupabaseService } from './supabase.service';
 // getCragDetailBySlug eliminado; ya no se usa RPC get_crag_by_slug
 import { GlobalData } from './global-data';
+import type { CragDto, CragInsertDto, CragUpdateDto } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class CragsService {
@@ -18,6 +19,46 @@ export class CragsService {
 
   readonly loading = signal(false);
   readonly error: WritableSignal<string | null> = signal<string | null>(null);
+
+  async create(
+    payload: Omit<CragInsertDto, 'created_at' | 'id'>,
+  ): Promise<CragDto | null> {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    await this.supabase.whenReady();
+    const { data, error } = await this.supabase.client
+      .from('crags')
+      .insert(payload)
+      .select('*')
+      .single();
+    if (error) {
+      console.error('[CragsService] create error', error);
+      throw error;
+    }
+    // Tras crear, recarga lista de crags del área seleccionada
+    this.global.cragsListResource.reload();
+    return data as CragDto;
+  }
+
+  async update(
+    id: number,
+    payload: Omit<CragUpdateDto, 'id' | 'created_at'>,
+  ): Promise<CragDto | null> {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    await this.supabase.whenReady();
+    const { data, error } = await this.supabase.client
+      .from('crags')
+      .update(payload)
+      .eq('id', id)
+      .select('*')
+      .single();
+    if (error) {
+      console.error('[CragsService] update error', error);
+      throw error;
+    }
+    // Recarga lista de crags del área seleccionada
+    this.global.cragsListResource.reload();
+    return data as CragDto;
+  }
 
   /** Delete a crag by id. Returns true if deleted. */
   async delete(id: number): Promise<boolean> {

@@ -3,6 +3,13 @@ import { AmountByEveryGrade } from './grade.model';
 import type { Database } from './supabase-generated';
 import { Parking } from './parking.model';
 import { TopoListItem } from './topo.model';
+import {
+  EquipperDto,
+  RouteDto,
+  TableInsert,
+  TableRow,
+  TableUpdate,
+} from './supabase-interfaces';
 
 export interface ClimbingCrag {
   unifiedId?: number;
@@ -30,7 +37,7 @@ export type CragListItem = Omit<
   grades: AmountByEveryGrade;
 };
 
-export interface CragDetail {
+export interface CragDetail_DEPRECATED {
   id: number;
   name: string;
   slug: string;
@@ -49,12 +56,55 @@ export interface CragDetail {
   topos: TopoListItem[];
 }
 
+export interface AdditionalCragData {
+  description_es?: string;
+  description_en?: string;
+  warning_es?: string;
+  warning_en?: string;
+  latitude: number;
+  longitude: number;
+}
+
+export type CragDetail = CragListItem &
+  AdditionalCragData & {
+    parkings: Parking[]; // get_parkings_list_by_crag_slug
+    topos: TopoListItem[]; // get_topos_list_by_crag_slug
+    routes: RouteDto;
+  };
+
+// Para la futura llamada get_routes_list_by_crag_slug
+export interface RouteListItem {
+  climbing_kind: Database['public']['Enums']['climbing_kind'];
+  grade: number;
+  height: number | null;
+  id: number;
+  name: string;
+  slug: string;
+  liked: boolean; // incluir function toggleRouteLike
+  project: boolean; // incluir function toggleProjectRoute
+  equippers: EquipperDto[];
+}
+
 // TODO: obtener topos y parkings
 // parkings: Parking[];
 // topos: TopoListItem[];
 
-// Supabase RPC toggle_crag_like response
-export interface CragLikeToggleResult {
-  action: string; // 'inserted' | 'deleted'
-  total_likes: number;
-}
+// Crags
+export type CragDto = TableRow<'crags'>;
+export type CragInsertDto = TableInsert<'crags'>;
+export type CragUpdateDto = TableUpdate<'crags'>;
+
+// Crag Likes
+export type CragLikeDto = TableRow<'crag_likes'>;
+export type CragLikeInsertDto = TableInsert<'crag_likes'>;
+export type CragLikeUpdateDto = TableUpdate<'crag_likes'>;
+
+// Crag Parkings
+export type CragParkingDto = TableRow<'crag_parkings'>;
+export type CragParkingInsertDto = TableInsert<'crag_parkings'>;
+export type CragParkingUpdateDto = TableUpdate<'crag_parkings'>;
+
+// Crag Equippers
+export type CragEquipperDto = TableRow<'crag_equippers'>;
+export type CragEquipperInsertDto = TableInsert<'crag_equippers'>;
+export type CragEquipperUpdateDto = TableUpdate<'crag_equippers'>;

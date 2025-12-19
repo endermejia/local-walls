@@ -28,12 +28,14 @@ import {
 } from '../components';
 import { CragsService, GlobalData } from '../services';
 import type {
-  CragDetail,
+  CragDetail_DEPRECATED,
   TopoListItem,
   ClimbingCrag,
   CragListItem,
 } from '../models';
 import { mapLocationUrl } from '../utils';
+import { CragFormComponent } from './crag-form';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 @Component({
   selector: 'app-crag',
@@ -298,7 +300,7 @@ export class CragComponent {
   areaSlug: InputSignal<string> = input.required<string>();
   cragSlug: InputSignal<string> = input.required<string>();
   readonly loading = this.crags.loading;
-  cragDetail = signal<CragDetail | null>(null);
+  cragDetail = signal<CragDetail_DEPRECATED | null>(null);
 
   constructor() {
     // Sincroniza área/crag seleccionados en el estado global desde la ruta
@@ -354,7 +356,7 @@ export class CragComponent {
     void this.router.navigateByUrl('/explore');
   }
 
-  private mapListItemToDetail(item: CragListItem): CragDetail {
+  private mapListItemToDetail(item: CragListItem): CragDetail_DEPRECATED {
     return {
       id: item.id,
       name: item.name,
@@ -373,7 +375,7 @@ export class CragComponent {
       // approach: (item as any).approach ?? 0,
       // parkings: (item as any).parkings ?? [],
       // topos: (item as any).topos ?? [],
-    } as CragDetail;
+    } as CragDetail_DEPRECATED;
   }
 
   onToggleLike(): void {
@@ -427,7 +429,33 @@ export class CragComponent {
   openEditCrag(): void {
     const c = this.cragDetail();
     if (!c) return;
-    // TODO: open crag-form component when available
+    this.dialogs
+      .open<string | null>(new PolymorpheusComponent(CragFormComponent), {
+        label: this.translate.instant('crags.editTitle'),
+        size: 'l',
+        data: {
+          cragData: {
+            id: c.id,
+            area_id: (this.global.selectedArea() as any)?.id,
+            name: c.name,
+            slug: c.slug,
+          },
+        },
+      })
+      .subscribe({
+        next: async (result) => {
+          if (typeof result === 'string' && result.length) {
+            if (isPlatformBrowser(this.platformId)) {
+              if (result !== c.slug) {
+                await this.router.navigateByUrl(
+                  `/area/${this.areaSlug()}/${result}`,
+                );
+                return;
+              }
+            }
+          }
+        },
+      });
   }
 
   openCreateTopo(): void {

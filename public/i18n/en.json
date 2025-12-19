@@ -79,7 +79,11 @@
     "userInfo": "User info",
     "userName": "Username",
     "year": "Year",
-    "years": "Years"
+    "years": "Years",
+    "description_es": "Spanish description",
+    "description_en": "English description",
+    "warning_es": "Spanish warnings",
+    "warning_en": "English warnings"
   },
   "auth": {
     "login": "Sign in",
