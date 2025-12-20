@@ -12,8 +12,10 @@ import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
 import { TranslatePipe } from '@ngx-translate/core';
+import { LocationPickerComponent } from '../components';
+import { TuiDialogService } from '@taiga-ui/core';
+import { PolymorpheusComponent, injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { injectContext } from '@taiga-ui/polymorpheus';
 import { CragsService } from '../services';
 import { slugify } from '../utils';
 import { TuiInputNumber } from '@taiga-ui/kit';
@@ -61,6 +63,20 @@ type MinimalCrag = {
           <tui-error [error]="'errors.required' | translate" />
         }
       </tui-textfield>
+
+      <div class="flex items-center gap-4">
+        <h3 class="font-bold text-lg">{{ 'labels.location' | translate }}</h3>
+        <button
+          tuiButton
+          appearance="secondary-grayscale"
+          size="s"
+          type="button"
+          iconStart="@tui.map-pin"
+          (click.zoneless)="pickLocation()"
+        >
+          {{ 'actions.pickOnMap' | translate }}
+        </button>
+      </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <tui-textfield [tuiTextfieldCleaner]="false">
@@ -115,7 +131,7 @@ type MinimalCrag = {
           type="button"
           (click.zoneless)="goBack()"
         >
-          {{ 'common.cancel' | translate }}
+          {{ 'actions.cancel' | translate }}
         </button>
         <button
           [disabled]="name.invalid || (!name.dirty && !isEdit())"
@@ -123,7 +139,7 @@ type MinimalCrag = {
           appearance="primary"
           type="submit"
         >
-          {{ (isEdit() ? 'common.save' : 'common.create') | translate }}
+          {{ (isEdit() ? 'actions.save' : 'actions.create') | translate }}
         </button>
       </div>
     </form>
@@ -134,6 +150,7 @@ type MinimalCrag = {
 export class CragFormComponent {
   private readonly crags = inject(CragsService);
   private readonly location = inject(Location);
+  private readonly dialogs = inject(TuiDialogService);
   private readonly _dialogCtx: TuiDialogContext<
     string | boolean | null,
     { areaId?: number; cragData?: MinimalCrag }
@@ -249,6 +266,28 @@ export class CragFormComponent {
     } else {
       this.location.back();
     }
+  }
+
+  pickLocation(): void {
+    this.dialogs
+      .open<{ lat: number; lng: number } | null>(
+        new PolymorpheusComponent(LocationPickerComponent),
+        {
+          size: 'page',
+          data: {
+            lat: this.latitude.value,
+            lng: this.longitude.value,
+          },
+        },
+      )
+      .subscribe((result) => {
+        if (result) {
+          this.latitude.setValue(result.lat);
+          this.longitude.setValue(result.lng);
+          this.latitude.markAsDirty();
+          this.longitude.markAsDirty();
+        }
+      });
   }
 }
 

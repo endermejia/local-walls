@@ -1189,7 +1189,7 @@ export type Database = {
           date: string | null;
           endurance: boolean | null;
           first_ascent: boolean | null;
-          grade: string | null;
+          grade: number | null;
           hard: boolean | null;
           high_first_bolt: boolean | null;
           id: number;
@@ -1229,7 +1229,7 @@ export type Database = {
           date?: string | null;
           endurance?: boolean | null;
           first_ascent?: boolean | null;
-          grade?: string | null;
+          grade?: number | null;
           hard?: boolean | null;
           high_first_bolt?: boolean | null;
           id?: number;
@@ -1269,7 +1269,7 @@ export type Database = {
           date?: string | null;
           endurance?: boolean | null;
           first_ascent?: boolean | null;
-          grade?: string | null;
+          grade?: number | null;
           hard?: boolean | null;
           high_first_bolt?: boolean | null;
           id?: number;

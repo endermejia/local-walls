@@ -2,32 +2,42 @@
   "Menu": "Menu",
   "navigation": "Navigation",
   "actions": {
+    "apply": "Apply",
+    "back": "Back",
+    "cancel": "Cancel",
+    "clear": "Clear",
+    "close": "Close",
+    "create": "Create",
+    "delete": "Delete",
+    "edit": "Edit",
+    "exitFullscreen": "Exit fullscreen",
     "favorite": {
-      "add": "Mark as favorite",
-      "remove": "Remove favorite"
+      "add": "Add to favorites",
+      "remove": "Remove from favorites"
     },
-    "loadMore": "Load more",
     "fit": {
       "cover": "Fit to height",
       "contain": "Fit to width"
     },
-    "openMap": "Open location in Google Maps",
-    "viewOnMap": "View on map",
+    "fullscreen": "Fullscreen",
+    "loadMore": "Load more",
+    "loading": "Loading...",
     "openGoogleMaps": "Open Google Maps",
+    "openMap": "Open location in Google Maps",
+    "pickOnMap": "Pick on map",
+    "register": "Register",
+    "save": "Save",
+    "select": "Select",
     "share": "Share",
     "signIn": "Sign in",
     "signUp": "Sign up",
-    "register": "Register",
-    "back": "Back",
-    "close": "Close",
-    "cancel": "Cancel",
-    "apply": "Apply",
-    "clear": "Clear"
+    "viewOnMap": "View on map"
   },
   "labels": {
     "actions": "Actions",
     "age": "Age",
     "anonymous": "Anonymous",
+    "appName": "Roca nostra",
     "approach": "Approach",
     "area": "Area",
     "areas": "Areas",
@@ -41,7 +51,10 @@
     "country": "Country",
     "crag": "Crag",
     "crags": "Crags",
+    "darkMode": "Dark mode",
     "date": "Date",
+    "description_en": "English description",
+    "description_es": "Spanish description",
     "email": "Email",
     "filters": "Filters",
     "followers": "Followers",
@@ -52,7 +65,9 @@
     "latestAscents": "Latest ascents",
     "list": "List",
     "lng": "Lng",
+    "location": "Location",
     "map": "Map",
+    "menu": "Menu",
     "myLocation": "My location",
     "name": "Name",
     "newPassword": "New password",
@@ -61,29 +76,27 @@
     "parkings": "Parkings",
     "password": "Password",
     "preferences": "Preferences",
+    "privateProfile": "Private profile",
     "rating": "Rating",
     "role": "Role",
     "route": "Route",
     "routes": "Routes",
+    "search": "Search",
     "sector": "Sector",
     "sectors": "Sectors",
     "sex": "Sex",
     "size": "Height",
     "startingClimbingYear": "Climbing since",
-    "darkMode": "Dark mode",
-    "privateProfile": "Private profile",
     "topo": "Topo",
     "topos": "Topos",
     "type": "Type",
     "user": "User",
-    "userInfo": "User info",
-    "userName": "Username",
-    "year": "Year",
-    "years": "Years",
-    "description_es": "Spanish description",
-    "description_en": "English description",
+    "userInfo": "Information",
+    "userName": "Full name",
+    "warning_en": "English warnings",
     "warning_es": "Spanish warnings",
-    "warning_en": "English warnings"
+    "year": "Year",
+    "years": "Years"
   },
   "auth": {
     "login": "Sign in",
@@ -91,34 +104,18 @@
     "verifyEmail": "Please verify your email to complete sign in.",
     "registrationError": "Registration error",
     "registrationSuccess": "Registration successful. Check your email to confirm your account.",
-    "forgotPassword": "Forgot password?",
+    "forgotPassword": "Forgot your password?",
     "noAccount": "Don't have an account yet?",
     "or": "or",
-    "resetEmailSent": "We've sent you an email to reset your password.",
+    "resetEmailSent": "We have sent you an email to reset your password.",
     "provideEmail": "Enter your email to continue.",
     "enterValidEmail": "Enter a valid email address.",
     "setNewPassword": "Set new password",
     "passwordUpdated": "Your password has been updated.",
-    "passwordMinLength": "Password must be at least {{min}} characters long.",
+    "passwordMinLength": "Password must be at least {{min}} characters.",
     "register": "Register",
     "alreadyAccount": "Already have an account?",
-    "inRecoveryInfo": "You are changing your password. Enter and confirm the new password."
-  },
-  "units": {
-    "min": "min"
-  },
-  "common": {
-    "loading": "Loading...",
-    "menu": "Menu",
-    "search": "Search",
-    "appName": "Roca nostra",
-    "fullscreen": "Fullscreen",
-    "exitFullscreen": "Exit fullscreen",
-    "create": "Create",
-    "save": "Save",
-    "cancel": "Cancel",
-    "edit": "Edit",
-    "delete": "Delete"
+    "inRecoveryInfo": "You are changing your password. Enter and confirm your new password."
   },
   "errors": {
     "invalidCredentials": "Invalid credentials",
@@ -207,9 +204,9 @@
     "avatar": {
       "upload": {
         "success": "Avatar updated successfully.",
-        "error": "Could not upload the avatar.",
+        "error": "Failed to upload avatar.",
         "invalidType": "Please select a valid image file.",
-        "tooLarge": "The file must be smaller than 5 MB."
+        "tooLarge": "File must be less than 5 MB."
       }
     },
     "name": {
@@ -217,10 +214,10 @@
       "length": "Name must be between 3 and 50 characters."
     },
     "bio": {
-      "tooLong": "Biography must be 500 characters or fewer."
+      "tooLong": "Bio must be 500 characters or less."
     },
     "city": {
-      "tooLong": "City must be 100 characters or fewer."
+      "tooLong": "City must be 100 characters or less."
     },
     "country": {
       "invalid": "Please select a valid country from the list."
@@ -229,7 +226,7 @@
       "invalid": "Invalid birth date. Please select a date between 01/01/1900 and today."
     },
     "startingYear": {
-      "invalid": "Invalid year. Please select a year between 1900 and the current year."
+      "invalid": "Invalid year. Please select a year between 1900 and current year."
     },
     "size": {
       "invalid": "Height must be between 0 and 300 cm."

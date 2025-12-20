@@ -63,7 +63,7 @@ import { CragFormComponent } from './crag-form';
               class="!rounded-full"
               (click.zoneless)="openEditArea()"
             >
-              {{ 'common.edit' | translate }}
+              {{ 'actions.edit' | translate }}
             </button>
             <button
               size="s"
@@ -74,7 +74,7 @@ import { CragFormComponent } from './crag-form';
               class="!rounded-full"
               (click.zoneless)="deleteArea()"
             >
-              {{ 'common.delete' | translate }}
+              {{ 'actions.delete' | translate }}
             </button>
           }
         </div>
@@ -190,8 +190,8 @@ export class AreaComponent {
 
         const data: TuiConfirmData = {
           content: message,
-          yes: this.translate.instant('common.delete'),
-          no: this.translate.instant('common.cancel'),
+          yes: this.translate.instant('actions.delete'),
+          no: this.translate.instant('actions.cancel'),
           appearance: 'accent',
         };
 

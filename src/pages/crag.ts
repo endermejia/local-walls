@@ -76,7 +76,7 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
               class="!rounded-full"
               (click.zoneless)="openEditCrag()"
             >
-              {{ 'common.edit' | translate }}
+              {{ 'actions.edit' | translate }}
             </button>
             <button
               size="s"
@@ -87,7 +87,7 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
               class="!rounded-full"
               (click.zoneless)="deleteCrag()"
             >
-              {{ 'common.delete' | translate }}
+              {{ 'actions.delete' | translate }}
             </button>
           }
         </div>
@@ -400,8 +400,8 @@ export class CragComponent {
         const message = t['crags.deleteConfirm'];
         const data: TuiConfirmData = {
           content: message,
-          yes: this.translate.instant('common.delete'),
-          no: this.translate.instant('common.cancel'),
+          yes: this.translate.instant('actions.delete'),
+          no: this.translate.instant('actions.cancel'),
           appearance: 'accent',
         };
         this.dialogs

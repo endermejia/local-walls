@@ -60,6 +60,7 @@ import { TranslatePipe } from '@ngx-translate/core';
   host: {
     class: 'flex grow min-h-0 w-full',
   },
+  providers: [MapBuilder],
 })
 export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
@@ -76,18 +77,24 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     input<MapCragItem | null>(null);
   public selectedMapCragItemChange: OutputEmitterRef<MapCragItem | null> =
     output<MapCragItem | null>();
+
+  public selection: InputSignal<{ lat: number; lng: number } | null> = input<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+
   public options: InputSignal<MapOptions> = input<MapOptions>({
     center: [38.7, -0.7],
     zoom: 10,
     maxZoom: 18,
     minZoom: 6,
   });
-  public mapClick = output<void>();
+  public mapClick = output<{ lat: number; lng: number }>();
   public interactionStart = output<void>();
 
   private readonly callbacks: MapBuilderCallbacks = {
     onSelectedCragChange: (crag) => this.selectedMapCragItemChange.emit(crag),
-    onMapClick: () => this.mapClick.emit(),
+    onMapClick: (lat, lng) => this.mapClick.emit({ lat, lng }),
     onInteractionStart: () => this.interactionStart.emit(),
     onViewportChange: (v: Partial<MapBounds>) => {
       if (!this.isBrowser()) return;
@@ -114,6 +121,13 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
           this.callbacks,
           this.initialCragsData(),
         );
+      }
+    });
+
+    effect(() => {
+      const selection = this.selection();
+      if (this.mapInitialized() && selection) {
+        this.mapBuilder.setSelectionMarker(selection.lat, selection.lng);
       }
     });
   }

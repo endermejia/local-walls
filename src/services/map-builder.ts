@@ -20,7 +20,7 @@ import {
 
 export interface MapBuilderCallbacks {
   onSelectedCragChange: (mapCragItem: MapCragItem | null) => void;
-  onMapClick: () => void;
+  onMapClick: (lat: number, lng: number) => void;
   onInteractionStart: () => void;
   onViewportChange: (v: MapBounds) => void;
 }
@@ -104,23 +104,49 @@ export class MapBuilder {
 
     // Restore the last saved viewport (bounds and zoom) if available
     let savedViewport = this.global.mapBounds();
-    if (savedViewport) {
-      const bounds = new L.LatLngBounds([
-        [savedViewport.south_west_latitude, savedViewport.south_west_longitude],
-        [savedViewport.north_east_latitude, savedViewport.north_east_longitude],
-      ]);
-      this.map.fitBounds(bounds);
-      const minZ = options.minZoom ?? 6;
-      const maxZ = options.maxZoom ?? 18;
-      const targetZ = Math.max(minZ, Math.min(maxZ, savedViewport.zoom));
-      this.map.setZoom(targetZ);
+    if (savedViewport && !this.areBoundsValid(savedViewport)) {
+      savedViewport = null as any;
+    }
+
+    if (savedViewport && this.areBoundsValid(savedViewport)) {
+      try {
+        const bounds = new L.LatLngBounds([
+          [
+            savedViewport.south_west_latitude,
+            savedViewport.south_west_longitude,
+          ],
+          [
+            savedViewport.north_east_latitude,
+            savedViewport.north_east_longitude,
+          ],
+        ]);
+        this.map.fitBounds(bounds);
+        const minZ = options.minZoom ?? 6;
+        const maxZ = options.maxZoom ?? 18;
+        const targetZ = Math.max(minZ, Math.min(maxZ, savedViewport.zoom));
+        this.map.setZoom(targetZ);
+      } catch (e) {
+        console.warn('Failed to fit bounds from saved viewport', e);
+      }
     } else {
       // Fallback: read directly from LocalStorage if GlobalData not hydrated yet
       const raw = this.localStorage.getItem('map_bounds_v1');
       if (raw) {
-        const parsed = JSON.parse(raw) as MapBounds;
-        savedViewport = parsed;
-        this.global.mapBounds.set(parsed);
+        try {
+          const parsed = JSON.parse(raw) as MapBounds;
+          if (this.areBoundsValid(parsed)) {
+            savedViewport = parsed;
+            this.global.mapBounds.set(parsed);
+            const bounds = new L.LatLngBounds([
+              [parsed.south_west_latitude, parsed.south_west_longitude],
+              [parsed.north_east_latitude, parsed.north_east_longitude],
+            ]);
+            this.map.fitBounds(bounds);
+            this.map.setZoom(parsed.zoom);
+          }
+        } catch {
+          // ignore
+        }
       }
     }
 
@@ -170,9 +196,10 @@ export class MapBuilder {
       });
     }
 
-    this.map.on('click', () => {
+    this.map.on('click', (e: LeafletEvent) => {
+      const latlng = e.latlng;
       cb.onSelectedCragChange(null);
-      cb.onMapClick();
+      if (latlng) cb.onMapClick(latlng.lat, latlng.lng);
     });
 
     const collapseOnInteraction = () => cb.onInteractionStart();
@@ -779,7 +806,44 @@ export class MapBuilder {
       zIndexOffset: 1000,
     }).addTo(this.map);
 
-    const nextZoom = Math.max(5, this.map.getZoom());
+    const nextZoom = Math.max(12, this.map.getZoom());
     this.map.setView(latLng, nextZoom, { animate: true });
+  }
+
+  private selectionMarker: Marker | null = null;
+  public setSelectionMarker(lat: number, lng: number): void {
+    if (!this.map || !this.L) return;
+    const L = this.L;
+
+    if (this.selectionMarker) {
+      this.map.removeLayer(this.selectionMarker);
+    }
+
+    const icon = new L.DivIcon({
+      html: `
+        <div class="relative -translate-x-1/2 -translate-y-full">
+           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="var(--tui-text-primary)" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+             <circle cx="12" cy="10" r="3" fill="var(--tui-background-base)"></circle>
+           </svg>
+        </div>`,
+      className: 'pointer-events-none display-contents',
+      iconSize: [0, 0],
+      iconAnchor: [0, 0],
+    });
+
+    this.selectionMarker = new L.Marker([lat, lng], {
+      icon,
+      zIndexOffset: 2000,
+    }).addTo(this.map);
+  }
+
+  private areBoundsValid(bounds: MapBounds): boolean {
+    return (
+      Number.isFinite(bounds.south_west_latitude) &&
+      Number.isFinite(bounds.south_west_longitude) &&
+      Number.isFinite(bounds.north_east_latitude) &&
+      Number.isFinite(bounds.north_east_longitude)
+    );
   }
 }

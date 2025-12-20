@@ -58,7 +58,7 @@ import { SupabaseService } from '../services';
               } @else {
                 {{ 'auth.setNewPassword' | translate }}
               }
-              <span tuiSubtitle>{{ 'common.appName' | translate }}</span>
+              <span tuiSubtitle>{{ 'actions.appName' | translate }}</span>
             </h2>
           </header>
 

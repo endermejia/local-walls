@@ -76,7 +76,7 @@ export interface AvatarCropperResult {
           {{ 'actions.cancel' | translate }}
         </button>
         <button tuiButton appearance="primary" size="m" (click)="confirm()">
-          {{ 'common.save' | translate }}
+          {{ 'actions.save' | translate }}
         </button>
       </div>
     </div>

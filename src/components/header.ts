@@ -86,7 +86,7 @@ interface BreadcrumbItem {
     >
       <div class="flex items-center gap-2 overflow-hidden" ngSkipHydration>
         <button
-          [title]="'common.menu' | translate"
+          [title]="'actions.menu' | translate"
           tuiIconButton
           tuiNavigationDrawer
           type="button"
@@ -197,11 +197,11 @@ interface BreadcrumbItem {
             tuiIconButton
             type="button"
             [iconStart]="'@tui.search'"
-            [title]="'common.search' | translate"
+            [title]="'actions.search' | translate"
             (click.zoneless)="input.open()"
             ngSkipHydration
           >
-            {{ 'common.search' | translate }}
+            {{ 'actions.search' | translate }}
           </button>
           <button
             tuiIconButton
@@ -210,12 +210,14 @@ interface BreadcrumbItem {
             (click.zoneless)="toggleFullscreen()"
             [iconStart]="isFullscreen() ? '@tui.shrink' : '@tui.expand'"
             [title]="
-              (isFullscreen() ? 'common.exitFullscreen' : 'common.fullscreen')
+              (isFullscreen() ? 'actions.exitFullscreen' : 'actions.fullscreen')
                 | translate
             "
             ngSkipHydration
           >
-            {{ isFullscreen() ? 'common.exitFullscreen' : 'common.fullscreen' }}
+            {{
+              isFullscreen() ? 'actions.exitFullscreen' : 'actions.fullscreen'
+            }}
           </button>
         </div>
 

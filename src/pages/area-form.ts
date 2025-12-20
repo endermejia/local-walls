@@ -54,7 +54,7 @@ import { slugify } from '../utils';
           type="button"
           (click.zoneless)="goBack()"
         >
-          {{ 'common.cancel' | translate }}
+          {{ 'actions.cancel' | translate }}
         </button>
         <button
           [disabled]="name.invalid || !name.dirty"
@@ -62,7 +62,7 @@ import { slugify } from '../utils';
           appearance="primary"
           type="submit"
         >
-          {{ (isEdit() ? 'common.save' : 'common.create') | translate }}
+          {{ (isEdit() ? 'actions.save' : 'actions.create') | translate }}
         </button>
       </div>
     </form>

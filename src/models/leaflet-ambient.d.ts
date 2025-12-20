@@ -18,6 +18,7 @@ declare module 'leaflet' {
   }
   export interface LeafletEvent {
     originalEvent?: Event;
+    latlng?: LatLng;
   }
 
   export interface Layer {
