@@ -204,6 +204,7 @@ export class UserProfileComponent {
     this.dialogs
       .open(new PolymorpheusComponent(UserProfileConfigComponent), {
         appearance: 'fullscreen',
+        closable: false,
       })
       .subscribe();
   }

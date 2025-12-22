@@ -101,6 +101,26 @@ interface Country {
       class="w-full max-w-5xl mx-auto p-4 grid grid-cols-1 gap-4"
       xmlns="http://www.w3.org/1999/html"
     >
+      <!-- Sticky Header -->
+      <div
+        class="sticky top-0 z-10 flex items-center gap-4 bg-white dark:bg-[#333] p-2 -mx-2 mb-4"
+      >
+        <button
+          size="s"
+          appearance="neutral"
+          iconStart="@tui.chevron-left"
+          tuiIconButton
+          type="button"
+          class="!rounded-full"
+          (click)="close()"
+        >
+          {{ 'actions.back' | translate }}
+        </button>
+        <h2 class="text-xl font-bold m-0">
+          {{ 'profile.title' | translate }}
+        </h2>
+      </div>
+
       <!-- Avatar y Nombre -->
       <div class="flex flex-col md:flex-row items-center gap-4">
         <div class="relative inline-block">
@@ -761,6 +781,10 @@ export class UserProfileConfigComponent {
   async logout(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     await this.supabase.logout();
+    this.close();
+  }
+
+  close(): void {
     this.dialogContext?.$implicit.complete();
   }
 }
