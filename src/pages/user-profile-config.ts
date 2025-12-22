@@ -125,7 +125,6 @@ interface Country {
             <input
               id="nameInput"
               tuiTextfield
-              tuiAutoFocus
               type="text"
               autocomplete="off"
               required
@@ -205,7 +204,8 @@ interface Country {
               autocomplete="off"
               maxlength="100"
               [(ngModel)]="city"
-              (ngModelChange)="saveCity()"
+              (blur)="saveCity()"
+              (keydown.enter)="saveCity()"
             />
           </tui-textfield>
         </div>
@@ -261,7 +261,8 @@ interface Country {
               [min]="0"
               [max]="300"
               [(ngModel)]="size"
-              (ngModelChange)="saveSize()"
+              (blur)="saveSize()"
+              (keydown.enter)="saveSize()"
             />
             <span class="tui-textfield__suffix">cm</span>
           </tui-textfield>

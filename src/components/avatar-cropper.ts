@@ -35,14 +35,14 @@ export interface AvatarCropperResult {
     <div class="w-full max-w-full grid gap-4">
       <div
         class="relative mx-auto"
-        [style.width.px]="canvasSize"
-        [style.height.px]="canvasSize"
+        [style.width.px]="canvasSize()"
+        [style.height.px]="canvasSize()"
       >
         <canvas
           #canvas
           class="rounded-lg shadow border border-black/5 bg-black/5 touch-none select-none"
-          [attr.width]="canvasSize"
-          [attr.height]="canvasSize"
+          [attr.width]="canvasSize()"
+          [attr.height]="canvasSize()"
           (pointerdown.zoneless)="onPointerDown($event)"
           (pointermove.zoneless)="onPointerMove($event)"
           (pointerup.zoneless)="onPointerUp()"
@@ -81,6 +81,9 @@ export interface AvatarCropperResult {
       </div>
     </div>
   `,
+  host: {
+    class: 'h-full content-center',
+  },
 })
 export class AvatarCropperComponent {
   private readonly platformId = inject(PLATFORM_ID);
@@ -108,7 +111,7 @@ export class AvatarCropperComponent {
   // Canvas ref obtained via querySelector at first render
   private _canvas: HTMLCanvasElement | null = null;
   private _ctx: CanvasRenderingContext2D | null = null;
-  readonly canvasSize = 320; // visible square viewport
+  readonly canvasSize = signal(320); // visible square viewport
 
   // Image and transform state
   readonly image = signal<HTMLImageElement | null>(null);
@@ -124,6 +127,13 @@ export class AvatarCropperComponent {
     effect(() => {
       // Guard SSR
       if (!isPlatformBrowser(this.platformId)) return;
+
+      // Calculate responsive size
+      const padding = 32;
+      const maxSize = 600;
+      const size = Math.min(window.innerWidth - padding, maxSize);
+      this.canvasSize.set(Math.floor(size));
+
       // lazy init canvas
       queueMicrotask(() => this.initCanvasAndImage());
     });
@@ -150,14 +160,19 @@ export class AvatarCropperComponent {
       img.src = url;
     });
     this.image.set(img);
+    const size = this.canvasSize();
+    // Ensure canvas backing store matches the logical size immediately
+    this._canvas.width = size;
+    this._canvas.height = size;
+
     // Compute initial scale to cover square
-    const scaleX = this.canvasSize / img.width;
-    const scaleY = this.canvasSize / img.height;
+    const scaleX = size / img.width;
+    const scaleY = size / img.height;
     const initialScale = Math.max(scaleX, scaleY);
     this.zoom.set(initialScale);
     // Center
-    this.offsetX = (this.canvasSize - img.width * initialScale) / 2;
-    this.offsetY = (this.canvasSize - img.height * initialScale) / 2;
+    this.offsetX = (size - img.width * initialScale) / 2;
+    this.offsetY = (size - img.height * initialScale) / 2;
     await this.redraw();
     // Release blob url when tab closes later; keep for now while editing
   }
@@ -171,8 +186,8 @@ export class AvatarCropperComponent {
     const prev = this.zoom();
     if (Math.abs(prev - clamped) < 1e-6) return;
     // Zoom around center of viewport
-    const cx = this.canvasSize / 2;
-    const cy = this.canvasSize / 2;
+    const cx = this.canvasSize() / 2;
+    const cy = this.canvasSize() / 2;
     const sx = (cx - this.offsetX) / prev;
     const sy = (cy - this.offsetY) / prev;
     this.offsetX = cx - sx * clamped;
@@ -193,7 +208,10 @@ export class AvatarCropperComponent {
   readonly minZoom = computed(() => {
     const img = this.image();
     if (!img) return 1;
-    return Math.max(this.canvasSize / img.width, this.canvasSize / img.height);
+    return Math.max(
+      this.canvasSize() / img.width,
+      this.canvasSize() / img.height,
+    );
   });
 
   onSliderInput(event: Event) {
@@ -234,9 +252,9 @@ export class AvatarCropperComponent {
     const w = img.width * z;
     const h = img.height * z;
     // Ensure the image fully covers the square
-    const minX = Math.min(0, this.canvasSize - w);
+    const minX = Math.min(0, this.canvasSize() - w);
     this.offsetX = Math.min(Math.max(this.offsetX, minX), 0);
-    const minY = Math.min(0, this.canvasSize - h);
+    const minY = Math.min(0, this.canvasSize() - h);
     this.offsetY = Math.min(Math.max(this.offsetY, minY), 0);
   }
 
