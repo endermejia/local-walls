@@ -31,7 +31,7 @@ import {
   TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
-import { TuiLet, tuiDefaultSort } from '@taiga-ui/cdk';
+import { tuiDefaultSort } from '@taiga-ui/cdk';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GlobalData, RoutesService } from '../services';
 import { handleErrorToast } from '../utils';
@@ -74,7 +74,6 @@ export interface RoutesTableRow {
     FormsModule,
     TuiButton,
     TuiHint,
-    TuiLet,
     TuiTableSortPipe,
   ],
   template: `
@@ -97,11 +96,8 @@ export interface RoutesTableRow {
             }
           </tr>
         </thead>
-        <tbody
-          *tuiLet="tableData() | tuiTableSort as sortedData"
-          tuiTbody
-          [data]="sortedData"
-        >
+        @let sortedData = tableData() | tuiTableSort;
+        <tbody tuiTbody [data]="sortedData">
           @for (item of sortedData; track item.key) {
             <tr tuiTr>
               @for (col of columns; track col) {

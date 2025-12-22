@@ -8,7 +8,13 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { WaIntersectionObserver } from '@ng-web-apis/intersection-observer';
-import { TuiTable } from '@taiga-ui/addon-table';
+import {
+  TuiTable,
+  TuiSortDirection,
+  TuiTableSortPipe,
+} from '@taiga-ui/addon-table';
+import type { TuiComparator } from '@taiga-ui/addon-table/types';
+import { tuiDefaultSort } from '@taiga-ui/cdk';
 import { TuiScrollbar, TuiTextfield } from '@taiga-ui/core';
 import {
   TuiAvatar,
@@ -40,6 +46,7 @@ interface UserWithRole {
     TuiSelect,
     TuiSkeleton,
     TuiTable,
+    TuiTableSortPipe,
     TuiTextfield,
     TranslatePipe,
     WaIntersectionObserver,
@@ -67,8 +74,8 @@ interface UserWithRole {
           tuiTable
           class="table"
           [columns]="columns"
-          [(direction)]="direction"
-          [(tuiSortBy)]="sorter"
+          [direction]="direction()"
+          [sorter]="sorter()"
         >
           <thead tuiThead>
             <tr tuiThGroup>
@@ -93,7 +100,8 @@ interface UserWithRole {
             </tr>
           </thead>
 
-          <tbody tuiTbody [data]="sortedUsers()">
+          @let sortedUsersList = users() | tuiTableSort;
+          <tbody tuiTbody [data]="sortedUsersList">
             @if (loading()) {
               @for (item of skeletons; track $index) {
                 <tr tuiTr>
@@ -112,8 +120,7 @@ interface UserWithRole {
                 </tr>
               }
             } @else {
-              @let usersList = sortedUsers();
-              @for (user of usersList; track user.id) {
+              @for (user of sortedUsersList; track user.id) {
                 <tr tuiTr [class.is-current]="user.id === currentUserId()">
                   <td *tuiCell="'user'" tuiTd class="user-cell">
                     <div class="flex items-center gap-3">
@@ -231,26 +238,16 @@ export class UsersListAdminComponent {
   protected readonly users: WritableSignal<UserWithRole[]> = signal([]);
 
   protected readonly skeletons = Array(25).fill(0);
-  protected readonly sorter: WritableSignal<'user' | 'role' | null> =
-    signal(null);
-  protected readonly direction: WritableSignal<-1 | 1> = signal(1);
+  protected readonly direction = signal(TuiSortDirection.Asc);
+  protected readonly sorter = signal<TuiComparator<UserWithRole>>((a, b) =>
+    tuiDefaultSort(a.name || '', b.name || ''),
+  );
 
-  protected readonly userSorter = (a: UserWithRole, b: UserWithRole): number =>
-    (a.name || '').localeCompare(b.name || '');
+  protected userSorter: TuiComparator<UserWithRole> = (a, b) =>
+    tuiDefaultSort(a.name || '', b.name || '');
 
-  protected readonly roleSorter = (a: UserWithRole, b: UserWithRole): number =>
-    (a.role || '').localeCompare(b.role || '');
-
-  protected readonly sortedUsers = computed(() => {
-    const list = [...this.users()];
-    const sortBy = this.sorter();
-    const dir = this.direction();
-
-    if (!sortBy) return list;
-
-    const sorterFn = sortBy === 'user' ? this.userSorter : this.roleSorter;
-    return list.sort((a, b) => dir * sorterFn(a, b));
-  });
+  protected roleSorter: TuiComparator<UserWithRole> = (a, b) =>
+    tuiDefaultSort(a.role || '', b.role || '');
 
   constructor() {
     this.loadUsers();
