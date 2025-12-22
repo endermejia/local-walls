@@ -38,7 +38,7 @@ import {
   TuiBadgedContentComponent,
   TuiBadge,
 } from '@taiga-ui/kit';
-import { TuiAutoFocus, TuiStringMatcher, TuiDay } from '@taiga-ui/cdk';
+import { TuiStringMatcher, TuiDay } from '@taiga-ui/cdk';
 import { map } from 'rxjs';
 import { GlobalData, SupabaseService, UserProfilesService } from '../services';
 import {
@@ -76,7 +76,6 @@ interface Country {
     TuiChevron,
     TuiSelect,
     TuiTextfield,
-    TuiAutoFocus,
     TuiDataListWrapper,
     TuiTextarea,
     TuiComboBox,

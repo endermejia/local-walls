@@ -1,6 +1,7 @@
 {
   "Menu": "Menú",
   "navigation": "Navegación",
+  "config": "Configuración",
   "actions": {
     "apply": "Aplicar",
     "back": "Volver",
@@ -95,6 +96,7 @@
     "userName": "Nombre completo",
     "warning_en": "Avisos en ingés",
     "warning_es": "Avisos en español",
+    "you": "tú",
     "year": "Año",
     "years": "Años"
   },
@@ -120,7 +122,11 @@
   "errors": {
     "invalidCredentials": "Credenciales inválidas",
     "unexpected": "Error inesperado",
-    "required": "Campo obligatorio"
+    "required": "Campo obligatorio",
+    "database": {
+      "foreign_key_violation": "No se puede eliminar porque todavía hay elementos relacionados.",
+      "unique_violation": "Este elemento ya existe."
+    }
   },
   "nav": {
     "home": "Inicio",
@@ -187,6 +193,11 @@
     "deleteTitle": "Eliminar vía",
     "deleteConfirm": "¿Seguro que quieres eliminar la vía \"{{name}}\"? Esta acción no se puede deshacer."
   },
+  "admin": {
+    "users": {
+      "title": "Gestión de usuarios"
+    }
+  },
   "options": {
     "language": {
       "es": "Español",
@@ -196,6 +207,11 @@
       "male": "Masculino",
       "female": "Femenino",
       "other": "Otro"
+    },
+    "roles": {
+      "admin": "Administrador",
+      "equipper": "Equipador",
+      "climber": "Escalador"
     }
   },
   "profile": {

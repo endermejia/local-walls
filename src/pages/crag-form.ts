@@ -11,13 +11,14 @@ import {
 import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocationPickerComponent } from '../components';
 import { TuiDialogService } from '@taiga-ui/core';
+import { TuiToastService } from '@taiga-ui/kit';
 import { PolymorpheusComponent, injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { CragsService } from '../services';
-import { slugify } from '../utils';
+import { slugify, handleErrorToast } from '../utils';
 import { TuiInputNumber } from '@taiga-ui/kit';
 
 type MinimalCrag = {
@@ -151,6 +152,8 @@ export class CragFormComponent {
   private readonly crags = inject(CragsService);
   private readonly location = inject(Location);
   private readonly dialogs = inject(TuiDialogService);
+  private readonly toast = inject(TuiToastService);
+  private readonly translate = inject(TranslateService);
   private readonly _dialogCtx: TuiDialogContext<
     string | boolean | null,
     { areaId?: number; cragData?: MinimalCrag }
@@ -255,8 +258,9 @@ export class CragFormComponent {
       } else {
         this.goBack();
       }
-    } catch {
-      /* empty */
+    } catch (error: any) {
+      console.error('[CragFormComponent] Error submitting crag:', error);
+      handleErrorToast(error, this.toast, this.translate);
     }
   }
 

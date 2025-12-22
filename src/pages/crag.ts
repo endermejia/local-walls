@@ -29,6 +29,7 @@ import {
   SectionHeaderComponent,
 } from '../components';
 import { CragsService, GlobalData } from '../services';
+import { TuiToastService } from '@taiga-ui/kit';
 import {
   ORDERED_GRADE_VALUES,
   type CragDetail,
@@ -39,6 +40,7 @@ import {
 import { mapLocationUrl } from '../utils';
 import { CragFormComponent } from './crag-form';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { handleErrorToast } from '../utils';
 
 @Component({
   selector: 'app-crag',
@@ -302,6 +304,7 @@ export class CragComponent {
 
   private readonly location = inject(Location);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly toast = inject(TuiToastService);
   private readonly translate = inject(TranslateService);
   private readonly crags = inject(CragsService);
   private readonly dialogs = inject(TuiDialogService);
@@ -399,8 +402,9 @@ export class CragComponent {
                 if (ok) {
                   await this.router.navigateByUrl(`/area/${c.area_slug}`);
                 }
-              } catch {
-                /* empty */
+              } catch (error: any) {
+                console.error('[CragComponent] Error deleting crag:', error);
+                handleErrorToast(error, this.toast, this.translate);
               }
             },
           });

@@ -12,11 +12,12 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
 import { AreasService } from '../services';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TuiToastService } from '@taiga-ui/kit';
 import { Location } from '@angular/common';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { slugify } from '../utils';
+import { slugify, handleErrorToast } from '../utils';
 
 @Component({
   selector: 'app-area-form',
@@ -73,6 +74,8 @@ import { slugify } from '../utils';
 export class AreaFormComponent {
   private readonly areas = inject(AreasService);
   private readonly location = inject(Location);
+  private readonly toast = inject(TuiToastService);
+  private readonly translate = inject(TranslateService);
   private readonly _dialogCtx: TuiDialogContext<
     string | boolean | null,
     { areaData?: { id: number; name: string; slug: string } }
@@ -146,8 +149,9 @@ export class AreaFormComponent {
       } else {
         this.goBack();
       }
-    } catch {
-      /* empty */
+    } catch (error: any) {
+      console.error('[AreaFormComponent] Error submitting area:', error);
+      handleErrorToast(error, this.toast, this.translate);
     }
   }
 

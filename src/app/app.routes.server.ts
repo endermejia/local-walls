@@ -60,6 +60,10 @@ export const serverRoutes: ServerRoute[] = [
     },
   },
   {
+    path: 'admin/users',
+    renderMode: RenderMode.Server,
+  },
+  {
     path: 'route/:countrySlug/:cragSlug/sector/:sectorSlug/:zlaggableSlug',
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,

@@ -110,23 +110,23 @@ export class GlobalData {
     const isAdmin = this.isAdmin();
     const isEquipper = this.isEquipper();
 
-    const admin = [];
+    const config = [];
     if (isEquipper) {
-      admin.push({
+      config.push({
         name: 'nav.my-crags',
         icon: '@tui.list',
         fn: () => this.router.navigateByUrl('/my-crags'),
       });
     }
     if (isAdmin) {
-      admin.push({
+      config.push({
         name: 'nav.admin-users',
         icon: '@tui.users',
-        fn: () => this.router.navigateByUrl('/admin-users'),
+        fn: () => this.router.navigateByUrl('/admin/users'),
       });
     }
     if (isAdmin || isEquipper) {
-      admin.push({
+      config.push({
         name: 'nav.admin-equippers',
         icon: '@tui.hammer',
         fn: () => this.router.navigateByUrl('/admin-equippers'),
@@ -151,7 +151,7 @@ export class GlobalData {
           fn: () => this.router.navigateByUrl('/areas'),
         },
       ],
-      admin,
+      config,
     } satisfies OptionsData;
   });
 

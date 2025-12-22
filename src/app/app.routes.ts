@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { authGuard } from '../services';
+import { adminGuard, authGuard } from '../services';
 
 export const routes: Routes = [
   {
@@ -46,7 +46,15 @@ export const routes: Routes = [
     canMatch: [authGuard],
     loadComponent: () => import('../pages/topo').then((m) => m.TopoComponent),
   },
-  // Admin-only area management
+  // Admin-only routes
+  {
+    path: 'admin/users',
+    canMatch: [adminGuard],
+    loadComponent: () =>
+      import('../pages/users-list-admin').then(
+        (m) => m.UsersListAdminComponent,
+      ),
+  },
   {
     path: 'route/:countrySlug/:cragSlug/sector/:sectorSlug/:zlaggableSlug',
     canMatch: [authGuard],

@@ -86,7 +86,7 @@ interface BreadcrumbItem {
     >
       <div class="flex items-center gap-2 overflow-hidden" ngSkipHydration>
         <button
-          [title]="'actions.menu' | translate"
+          [title]="'labels.menu' | translate"
           tuiIconButton
           tuiNavigationDrawer
           type="button"

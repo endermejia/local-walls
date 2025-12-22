@@ -1,6 +1,7 @@
 {
   "Menu": "Menu",
   "navigation": "Navigation",
+  "config": "Configuration",
   "actions": {
     "apply": "Apply",
     "back": "Back",
@@ -95,6 +96,7 @@
     "userName": "Full name",
     "warning_en": "English warnings",
     "warning_es": "Spanish warnings",
+    "you": "you",
     "year": "Year",
     "years": "Years"
   },
@@ -120,7 +122,11 @@
   "errors": {
     "invalidCredentials": "Invalid credentials",
     "unexpected": "Unexpected error",
-    "required": "Required field"
+    "required": "Required field",
+    "database": {
+      "foreign_key_violation": "Cannot be deleted because it still has related items.",
+      "unique_violation": "This item already exists."
+    }
   },
   "nav": {
     "home": "Home",
@@ -187,6 +193,11 @@
     "deleteTitle": "Delete route",
     "deleteConfirm": "Are you sure you want to delete route \"{{name}}\"? This action cannot be undone."
   },
+  "admin": {
+    "users": {
+      "title": "Users Management"
+    }
+  },
   "options": {
     "language": {
       "es": "Spanish",
@@ -196,6 +207,11 @@
       "male": "Male",
       "female": "Female",
       "other": "Other"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "equipper": "Equipper",
+      "climber": "Climber"
     }
   },
   "profile": {

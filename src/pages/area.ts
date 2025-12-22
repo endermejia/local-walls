@@ -21,8 +21,10 @@ import {
   ChartRoutesByGradeComponent,
   SectionHeaderComponent,
 } from '../components';
+import { TuiToastService } from '@taiga-ui/kit';
 import { AreaFormComponent } from './area-form';
 import { CragFormComponent } from './crag-form';
+import { handleErrorToast } from '../utils';
 
 @Component({
   selector: 'app-area',
@@ -159,6 +161,7 @@ export class AreaComponent {
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
+  private readonly toast = inject(TuiToastService);
 
   areaSlug: InputSignal<string> = input.required<string>();
 
@@ -207,8 +210,9 @@ export class AreaComponent {
               try {
                 await this.areas.delete(area.id);
                 await this.router.navigateByUrl('/areas');
-              } catch {
-                /* empty */
+              } catch (error: any) {
+                console.error('[AreaComponent] Error deleting area:', error);
+                handleErrorToast(error, this.toast, this.translate);
               }
             },
           });
