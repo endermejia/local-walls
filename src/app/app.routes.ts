@@ -56,7 +56,7 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'route/:countrySlug/:cragSlug/sector/:sectorSlug/:zlaggableSlug',
+    path: 'area/:areaSlug/:cragSlug/:routeSlug',
     canMatch: [authGuard],
     loadComponent: () => import('../pages/route').then((m) => m.RouteComponent),
   },

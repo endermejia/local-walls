@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  EventEmitter,
   InputSignal,
   OnDestroy,
   OutputEmitterRef,
@@ -42,21 +43,33 @@ import {
   VERTICAL_LIFE_TO_LABEL,
   VERTICAL_LIFE_GRADES,
   RouteWithExtras,
+  colorForGrade,
+  GradeLabel,
+  RouteAscentDto,
 } from '../models';
 import { FormsModule } from '@angular/forms';
-import { TuiButton, TuiHint } from '@taiga-ui/core';
+import { TuiButton, TuiHint, TuiIcon } from '@taiga-ui/core';
 
-export type RoutesTableKey = 'grade' | 'route' | 'rating' | 'ascents';
+export type RoutesTableKey =
+  | 'grade'
+  | 'route'
+  | 'rating'
+  | 'ascents'
+  | 'height';
 export type RouteItem = RouteWithExtras;
 
 export interface RoutesTableRow {
   key: string;
   grade: string;
   route: string;
+  height: number | null;
   rating: number;
   ascents: number;
   liked: boolean;
   project: boolean;
+  climbed: boolean;
+  color: string;
+  link: string[];
   _ref: RouteItem;
 }
 
@@ -74,6 +87,7 @@ export interface RoutesTableRow {
     TuiButton,
     TuiHint,
     TuiTableSortPipe,
+    TuiIcon,
   ],
   template: `
     <div class="overflow-auto" #scroller>
@@ -89,7 +103,7 @@ export interface RoutesTableRow {
             @for (col of columns; track col) {
               <th *tuiHead="col" tuiTh [sorter]="getSorter(col)">
                 <div>
-                  {{ 'labels.' + col | translate }}
+                  {{ col === 'actions' ? '' : ('labels.' + col | translate) }}
                 </div>
               </th>
             }
@@ -107,7 +121,8 @@ export interface RoutesTableRow {
                         <tui-avatar
                           tuiThumbnail
                           size="l"
-                          class="self-center font-semibold select-none"
+                          class="self-center font-semibold select-none !text-white"
+                          [style.background]="item.color"
                           [attr.aria-label]="'labels.grade' | translate"
                         >
                           {{ item.grade }}
@@ -116,12 +131,14 @@ export interface RoutesTableRow {
                     }
                     @case ('route') {
                       <div tuiCell size="m">
-                        <a
-                          [routerLink]="getRouteLink(item._ref)"
-                          class="tui-link"
-                        >
+                        <a [routerLink]="item.link" class="tui-link">
                           {{ item.route || ('labels.route' | translate) }}
                         </a>
+                      </div>
+                    }
+                    @case ('height') {
+                      <div tuiCell size="m">
+                        {{ item.height ? item.height + 'm' : '-' }}
                       </div>
                     }
                     @case ('rating') {
@@ -140,7 +157,7 @@ export interface RoutesTableRow {
                       </div>
                     }
                     @case ('actions') {
-                      <div tuiCell size="m" class="flex items-center gap-2">
+                      <div tuiCell size="m">
                         <button
                           size="s"
                           [appearance]="item.liked ? 'accent' : 'neutral'"
@@ -164,30 +181,71 @@ export interface RoutesTableRow {
                           }}
                         </button>
 
-                        <button
-                          size="s"
-                          [appearance]="item.project ? 'primary' : 'neutral'"
-                          iconStart="@tui.bookmark"
-                          tuiIconButton
-                          type="button"
-                          class="!rounded-full"
-                          [tuiHint]="
-                            (item.project
-                              ? 'actions.project.remove'
-                              : 'actions.project.add'
-                            ) | translate
-                          "
-                          (click.zoneless)="onToggleProject(item)"
-                        >
-                          {{
-                            (item.project
-                              ? 'actions.project.remove'
-                              : 'actions.project.add'
-                            ) | translate
-                          }}
-                        </button>
+                        @if (!item.climbed) {
+                          <button
+                            size="s"
+                            appearance="neutral"
+                            iconStart="@tui.circle-plus"
+                            tuiIconButton
+                            type="button"
+                            class="!rounded-full"
+                            [tuiHint]="'ascent.new' | translate"
+                            (click.zoneless)="onLogAscent(item._ref)"
+                          >
+                            {{ 'ascent.new' | translate }}
+                          </button>
+                        } @else if (item._ref.own_ascent) {
+                          <button
+                            size="s"
+                            [appearance]="
+                              ascentInfo()[
+                                item._ref.own_ascent.type || 'default'
+                              ].appearance
+                            "
+                            tuiIconButton
+                            type="button"
+                            class="!rounded-full"
+                            [tuiHint]="'ascent.edit' | translate"
+                            (click.zoneless)="
+                              onEditAscent(item._ref.own_ascent)
+                            "
+                          >
+                            <tui-icon
+                              [icon]="
+                                ascentInfo()[
+                                  item._ref.own_ascent.type || 'default'
+                                ].icon
+                              "
+                            />
+                          </button>
+                        }
 
-                        @if (global.isAdmin()) {
+                        @if (!item.climbed) {
+                          <button
+                            size="s"
+                            [appearance]="item.project ? 'primary' : 'neutral'"
+                            iconStart="@tui.bookmark"
+                            tuiIconButton
+                            type="button"
+                            class="!rounded-full"
+                            [tuiHint]="
+                              (item.project
+                                ? 'actions.project.remove'
+                                : 'actions.project.add'
+                              ) | translate
+                            "
+                            (click.zoneless)="onToggleProject(item)"
+                          >
+                            {{
+                              (item.project
+                                ? 'actions.project.remove'
+                                : 'actions.project.add'
+                              ) | translate
+                            }}
+                          </button>
+                        }
+
+                        @if (global.isAdmin() && showAdminActions()) {
                           <button
                             size="s"
                             appearance="neutral"
@@ -243,9 +301,14 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
   );
   loading: InputSignal<boolean> = input(false);
   hasNext: InputSignal<boolean> = input(false);
+  showAdminActions: InputSignal<boolean> = input(true);
 
   // Output to request more items when reaching the end
   loadMore: OutputEmitterRef<void> = output<void>();
+  toggleLike: OutputEmitterRef<RouteItem> = output<RouteItem>();
+  toggleProject: OutputEmitterRef<RouteItem> = output<RouteItem>();
+  logAscent: OutputEmitterRef<RouteItem> = output<RouteItem>();
+  editAscent: OutputEmitterRef<RouteAscentDto> = output<RouteAscentDto>();
 
   @ViewChild('sentinel', { read: ElementRef })
   private sentinelRef?: ElementRef<HTMLElement>;
@@ -257,6 +320,7 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
   protected readonly columns: string[] = [
     'grade',
     'route',
+    'height',
     'rating',
     'ascents',
     'actions',
@@ -268,8 +332,8 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
       const grade =
         VERTICAL_LIFE_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES] ?? '?';
 
-      const rating = 0; // rating will be implemented later in supabase
-      const ascents = 0; // ascents will be implemented later in supabase
+      const rating = r.rating || 0;
+      const ascents = r.ascent_count || 0;
 
       const liked = !!r.liked;
       const project = !!r.project;
@@ -280,10 +344,22 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
         key,
         grade,
         route: r.name,
+        height: r.height || null,
         rating,
         ascents,
         liked,
         project,
+        climbed: r.climbed ?? false,
+        link: [
+          '/area',
+          r.area_slug || (r as any).crag?.area?.slug || 'unknown',
+          r.crag_slug || (r as any).crag?.slug || 'unknown',
+          r.slug,
+        ],
+        color:
+          grade !== '?'
+            ? colorForGrade(grade as GradeLabel)
+            : 'var(--tui-text-primary)',
         _ref: r,
       };
     }),
@@ -293,22 +369,13 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
     return this.sorters['ascents'];
   }
 
-  protected getRouteLink(item: RouteItem): (string | undefined)[] {
-    const crag = this.global.cragDetailResource.value();
-    const areaSlug = crag?.area_slug ?? 'unknown';
-    const cragSlug = crag?.slug ?? 'unknown';
-
-    // The current route expects countrySlug and sectorSlug which we don't have easily.
-    // We'll use areaSlug as countrySlug placeholder for now to match the existing route pattern.
-    return ['/route', areaSlug, cragSlug, 'sector', 'all', item.slug];
-  }
-
   protected readonly sorters: Record<
     RoutesTableKey,
     TuiComparator<RoutesTableRow>
   > = {
     grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
     route: (a, b) => tuiDefaultSort(a.route, b.route),
+    height: (a, b) => tuiDefaultSort(a.height, b.height),
     rating: (a, b) => tuiDefaultSort(a.rating, b.rating),
     ascents: (a, b) => tuiDefaultSort(a.ascents, b.ascents),
   };
@@ -320,11 +387,42 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
 
   protected onToggleLike(item: RoutesTableRow): void {
     void this.routesService.toggleRouteLike(item._ref.id);
+    this.toggleLike.emit(item._ref);
   }
 
   protected onToggleProject(item: RoutesTableRow): void {
     void this.routesService.toggleRouteProject(item._ref.id);
+    this.toggleProject.emit(item._ref);
   }
+
+  protected onLogAscent(item: RouteItem): void {
+    this.logAscent.emit(item);
+  }
+
+  protected onEditAscent(ascent: RouteAscentDto): void {
+    this.editAscent.emit(ascent);
+  }
+
+  protected readonly ascentInfo = computed<
+    Record<string, { icon: string; appearance: string }>
+  >(() => ({
+    os: {
+      icon: '@tui.eye',
+      appearance: 'success',
+    },
+    f: {
+      icon: '@tui.zap',
+      appearance: 'warning',
+    },
+    rp: {
+      icon: '@tui.circle',
+      appearance: 'negative',
+    },
+    default: {
+      icon: '@tui.circle',
+      appearance: 'neutral',
+    },
+  }));
 
   protected deleteRoute(route: RouteItem): void {
     if (!isPlatformBrowser(this.platformId)) return;

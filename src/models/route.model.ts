@@ -1,9 +1,17 @@
 import { PageableResponse } from './pagination.model';
-import { RouteDto } from './supabase-interfaces';
+import { RouteAscentDto, RouteDto } from './supabase-interfaces';
 
 export interface RouteWithExtras extends RouteDto {
   liked: boolean;
   project: boolean;
+  crag_slug?: string;
+  crag_name?: string;
+  area_slug?: string;
+  area_name?: string;
+  rating?: number;
+  ascent_count?: number;
+  climbed?: boolean;
+  own_ascent?: RouteAscentDto;
 }
 
 export type RoutesPage = PageableResponse<RouteWithExtras>;

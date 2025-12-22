@@ -64,7 +64,7 @@ type MinimalRoute = {
         <input tuiTextfield id="name" [formControl]="name" autocomplete="off" />
       </tui-textfield>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <tui-textfield
           tuiChevron
           [tuiTextfieldCleaner]="false"
@@ -94,12 +94,13 @@ type MinimalRoute = {
             [items]="kindOptions"
           />
         </tui-textfield>
-      </div>
 
-      <tui-textfield [tuiTextfieldCleaner]="false">
-        <label tuiLabel for="height">{{ 'routes.height' | translate }}</label>
-        <input tuiInputNumber id="height" [formControl]="height" />
-      </tui-textfield>
+        <tui-textfield [tuiTextfieldCleaner]="false">
+          <label tuiLabel for="height">{{ 'routes.height' | translate }}</label>
+          <input tuiInputNumber id="height" [formControl]="height" />
+          <span class="tui-textfield__suffix">m</span>
+        </tui-textfield>
+      </div>
 
       <div class="flex gap-2 justify-end">
         <button

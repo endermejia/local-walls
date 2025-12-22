@@ -1,0 +1,733 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  InputSignal,
+  Signal,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import {
+  ReactiveFormsModule,
+  FormControl,
+  Validators,
+  FormGroup,
+} from '@angular/forms';
+import {
+  TuiButton,
+  TuiTextfield,
+  TuiIcon,
+  tuiDateFormatProvider,
+  TuiDialogService,
+  TuiDataList,
+  TuiHint,
+  TuiLabel,
+} from '@taiga-ui/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import {
+  TuiRating,
+  TuiDataListWrapper,
+  TuiToastService,
+  TuiInputDate,
+  TuiInputNumber,
+  TuiTabs,
+  TuiCheckbox,
+  TUI_CONFIRM,
+  type TuiConfirmData,
+  TuiSelect,
+  TuiChevron,
+  TuiTextarea,
+  TuiChip,
+} from '@taiga-ui/kit';
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { type TuiDialogContext } from '@taiga-ui/experimental';
+import { TuiDay } from '@taiga-ui/cdk';
+import { firstValueFrom } from 'rxjs';
+import {
+  AscentsService,
+  SupabaseService,
+  GlobalData,
+  RoutesService,
+} from '../services';
+import {
+  AscentType,
+  AscentTypes,
+  RouteAscentDto,
+  RouteAscentInsertDto,
+  VERTICAL_LIFE_GRADES,
+  VERTICAL_LIFE_TO_LABEL,
+} from '../models';
+import { handleErrorToast } from '../utils';
+
+@Component({
+  selector: 'app-ascent-form',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    TranslatePipe,
+    TuiButton,
+    TuiTextfield,
+    TuiIcon,
+    TuiDataList,
+    TuiRating,
+    TuiDataListWrapper,
+    TuiInputDate,
+    TuiInputNumber,
+    TuiTabs,
+    TuiCheckbox,
+    TuiSelect,
+    TuiChevron,
+    TuiHint,
+    TuiLabel,
+    TuiTextarea,
+    TuiChip,
+  ],
+  providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
+  template: `
+    <form
+      [formGroup]="form"
+      class="flex flex-col gap-6"
+      (submit.zoneless)="onSubmit($event)"
+    >
+      <!-- WHEN DID YOU CLIMB IT? -->
+      <section class="grid gap-3">
+        <label class="text-sm font-semibold opacity-70 px-1">{{
+          'ascent.when' | translate
+        }}</label>
+        <tui-textfield [tuiTextfieldCleaner]="false">
+          <input tuiInputDate [max]="today" formControlName="date" />
+          <tui-calendar *tuiTextfieldDropdown />
+        </tui-textfield>
+        <div class="flex gap-2">
+          <button
+            tuiButton
+            appearance="secondary"
+            size="s"
+            type="button"
+            (click)="quickDate('yesterday')"
+          >
+            {{ 'ascent.yesterday' | translate }}
+          </button>
+          <button
+            tuiButton
+            appearance="secondary"
+            size="s"
+            type="button"
+            (click)="quickDate('lastSaturday')"
+          >
+            {{ 'ascent.lastSaturday' | translate }}
+          </button>
+          <button
+            tuiButton
+            appearance="secondary"
+            size="s"
+            type="button"
+            (click)="quickDate('lastSunday')"
+          >
+            {{ 'ascent.lastSunday' | translate }}
+          </button>
+        </div>
+      </section>
+
+      <!-- HOW DID YOU CLIMB IT? -->
+      <section class="grid gap-4">
+        <label class="text-sm font-semibold opacity-70 px-1">{{
+          'ascent.how' | translate
+        }}</label>
+        <div class="flex flex-wrap gap-4 items-center justify-around">
+          @for (opt of typeOptions; track opt.id) {
+            <div
+              class="flex flex-col items-center gap-2 cursor-pointer"
+              (click)="form.get('type')?.setValue(opt.id)"
+            >
+              <button
+                tuiIconButton
+                type="button"
+                shape="circle"
+                size="l"
+                class="transition-transform active:scale-95"
+                [appearance]="
+                  form.get('type')?.value === opt.id
+                    ? opt.appearance
+                    : 'neutral'
+                "
+              >
+                <tui-icon [icon]="opt.icon" />
+              </button>
+              <span class="text-xs font-medium">{{
+                opt.translate | translate
+              }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="flex items-center gap-6 mt-2">
+          <div class="flex flex-col gap-1">
+            <tui-textfield [tuiTextfieldCleaner]="false" size="m" class="w-32">
+              <input
+                tuiInputNumber
+                [min]="form.get('type')?.value === 'rp' ? 2 : 1"
+                formControlName="attempts"
+              />
+              <span class="tui-textfield__suffix">{{
+                'ascent.tries' | translate
+              }}</span>
+            </tui-textfield>
+          </div>
+        </div>
+      </section>
+
+      <!-- SHARE YOUR THOUGHTS -->
+      <section class="grid gap-3">
+        <tui-textfield [tuiTextfieldCleaner]="false">
+          <label tuiLabel for="ascentComment">{{
+            'ascent.thoughts' | translate
+          }}</label>
+          <textarea
+            id="ascentComment"
+            tuiTextarea
+            formControlName="comment"
+            [placeholder]="'ascent.thoughtsPlaceholder' | translate"
+            [placeholder]="'ascent.thoughtsPlaceholder' | translate"
+            rows="5"
+          ></textarea>
+        </tui-textfield>
+        <label class="flex items-center gap-2 cursor-pointer self-start">
+          <input
+            tuiCheckbox
+            type="checkbox"
+            formControlName="private_comment"
+          />
+          <span class="text-sm">{{ 'ascent.private' | translate }}</span>
+        </label>
+      </section>
+
+      <!-- DID YOU LIKE IT? -->
+      <section class="grid gap-3">
+        <label class="text-sm font-semibold opacity-70 px-1">{{
+          'ascent.didYouLikeIt' | translate
+        }}</label>
+        <div class="flex items-center gap-4">
+          <tui-rating [max]="5" formControlName="rate" class="text-primary" />
+          <button
+            tuiIconButton
+            type="button"
+            [appearance]="
+              form.get('recommended')?.value ? 'primary' : 'secondary'
+            "
+            size="m"
+            (click)="toggleBool('recommended')"
+            [tuiHint]="'ascent.recommend' | translate"
+          >
+            <tui-icon
+              [icon]="
+                form.get('recommended')?.value
+                  ? '@tui.thumbs-up'
+                  : '@tui.thumbs-up'
+              "
+            />
+          </button>
+        </div>
+      </section>
+
+      <!-- GRADE SELECTOR -->
+      <section class="grid gap-3">
+        <label class="text-sm font-semibold opacity-70 px-1">{{
+          'ascent.howWouldYouGrade' | translate
+        }}</label>
+        <div class="flex items-center gap-2">
+          <button
+            tuiButton
+            type="button"
+            size="m"
+            [appearance]="form.get('soft')?.value ? 'primary' : 'neutral'"
+            (click)="toggleBool('soft')"
+            class="!rounded-xl shrink-0"
+          >
+            {{ 'ascent.soft' | translate }}
+          </button>
+
+          <tui-textfield
+            tuiChevron
+            [tuiTextfieldCleaner]="false"
+            [stringify]="gradeStringify"
+            tuiTextfieldSize="m"
+            class="grow"
+          >
+            <label tuiLabel for="ascentGrade">{{
+              'labels.grade' | translate
+            }}</label>
+            <input tuiSelect id="ascentGrade" formControlName="grade" />
+            <tui-data-list-wrapper
+              *tuiTextfieldDropdown
+              new
+              [items]="gradeOptions"
+            ></tui-data-list-wrapper>
+          </tui-textfield>
+
+          <button
+            tuiButton
+            type="button"
+            size="m"
+            [appearance]="form.get('hard')?.value ? 'primary' : 'neutral'"
+            (click)="toggleBool('hard')"
+            class="!rounded-xl shrink-0"
+          >
+            {{ 'ascent.hard' | translate }}
+          </button>
+        </div>
+      </section>
+
+      @if (showMore()) {
+        <section
+          class="grid gap-6 p-4 bg-black/5 dark:bg-white/5 rounded-xl border border-dashed border-black/10 dark:border-white/10"
+        >
+          <h3 class="text-sm font-bold opacity-50 uppercase tracking-wider">
+            {{ 'ascent.moreInfo' | translate }}
+          </h3>
+
+          <!-- TYPE OF CLIMBING -->
+          <div class="grid gap-3">
+            <label class="text-xs font-bold opacity-60 uppercase">{{
+              'ascent.typeOfClimbing' | translate
+            }}</label>
+            <div class="flex flex-wrap gap-2">
+              @for (key of climbingTypes; track key) {
+                <tui-chip
+                  size="s"
+                  [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
+                  (click)="toggleBool(key)"
+                >
+                  {{ 'ascent.climbing.' + key | translate }}
+                </tui-chip>
+              }
+            </div>
+          </div>
+
+          <!-- STEEPNESS -->
+          <div class="grid gap-3">
+            <label class="text-xs font-bold opacity-60 uppercase">{{
+              'ascent.steepness.title' | translate
+            }}</label>
+            <div class="flex flex-wrap gap-2">
+              @for (key of steepnessTypes; track key) {
+                <tui-chip
+                  size="s"
+                  [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
+                  (click)="toggleBool(key)"
+                >
+                  {{ 'ascent.steepness.' + key | translate }}
+                </tui-chip>
+              }
+            </div>
+          </div>
+
+          <!-- SAFETY -->
+          <div class="grid gap-3">
+            <label class="text-xs font-bold opacity-60 uppercase">{{
+              'ascent.safety.title' | translate
+            }}</label>
+            <div class="flex flex-wrap gap-2">
+              @for (key of safetyIssues; track key) {
+                <tui-chip
+                  size="s"
+                  [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
+                  (click)="toggleBool(key)"
+                >
+                  {{ 'ascent.safety.' + key | translate }}
+                </tui-chip>
+              }
+            </div>
+          </div>
+
+          <!-- OTHER -->
+          <div class="grid gap-3">
+            <label class="text-xs font-bold opacity-60 uppercase">{{
+              'ascent.other.title' | translate
+            }}</label>
+            <div class="flex flex-wrap gap-2">
+              @for (key of otherInfo; track key) {
+                <tui-chip
+                  size="s"
+                  [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
+                  (click)="toggleBool(key)"
+                >
+                  {{ 'ascent.other.' + key | translate }}
+                </tui-chip>
+              }
+            </div>
+          </div>
+        </section>
+      } @else {
+        <button
+          tuiButton
+          appearance="flat"
+          size="s"
+          type="button"
+          (click)="showMore.set(true)"
+        >
+          {{ 'labels.userInfo' | translate }} +
+        </button>
+      }
+
+      <!-- FOOTER ACTIONS -->
+      <div
+        class="flex gap-2 justify-end flex-wrap sticky bottom-0 bg-white dark:bg-[#222] py-4 border-t border-black/5 dark:border-white/5"
+      >
+        @if (isEdit()) {
+          <button
+            tuiButton
+            appearance="negative"
+            type="button"
+            (click.zoneless)="onDelete()"
+          >
+            {{ 'actions.delete' | translate }}
+          </button>
+        }
+        <div class="grow"></div>
+        <button
+          tuiButton
+          appearance="secondary"
+          type="button"
+          (click.zoneless)="cancel()"
+        >
+          {{ 'actions.cancel' | translate }}
+        </button>
+        <button
+          [disabled]="form.invalid"
+          tuiButton
+          appearance="primary"
+          type="submit"
+        >
+          {{ (isEdit() ? 'actions.save' : 'actions.create') | translate }}
+        </button>
+      </div>
+    </form>
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export default class AscentFormComponent {
+  private readonly ascents = inject(AscentsService);
+  private readonly supabase = inject(SupabaseService);
+  private readonly routesService = inject(RoutesService);
+  private readonly toast = inject(TuiToastService);
+  private readonly translate = inject(TranslateService);
+  private readonly dialogs = inject(TuiDialogService);
+  protected readonly global = inject(GlobalData);
+
+  private readonly _dialogCtx: TuiDialogContext<
+    boolean,
+    { routeId?: number; ascentData?: RouteAscentDto; grade?: number }
+  > | null = (() => {
+    try {
+      return injectContext<
+        TuiDialogContext<
+          boolean,
+          { routeId?: number; ascentData?: RouteAscentDto; grade?: number }
+        >
+      >();
+    } catch {
+      return null;
+    }
+  })();
+
+  routeId: InputSignal<number | undefined> = input<number | undefined>(
+    undefined,
+  );
+  ascentData: InputSignal<RouteAscentDto | undefined> = input<
+    RouteAscentDto | undefined
+  >(undefined);
+
+  private readonly dialogRouteId = this._dialogCtx?.data?.routeId;
+  private readonly dialogAscentData = this._dialogCtx?.data?.ascentData;
+  private readonly dialogGrade = this._dialogCtx?.data?.grade;
+
+  private readonly effectiveRouteId = computed(
+    () => this.dialogRouteId ?? this.routeId(),
+  );
+  private readonly effectiveAscentData = computed(
+    () => this.dialogAscentData ?? this.ascentData(),
+  );
+
+  readonly isEdit = computed(() => !!this.effectiveAscentData());
+  readonly showMore = signal(false);
+
+  readonly today = TuiDay.currentLocal();
+
+  readonly form = new FormGroup({
+    type: new FormControl<string>(AscentTypes.RP, {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    rate: new FormControl<number>(0, { nonNullable: true }),
+    comment: new FormControl<string>(''),
+    date: new FormControl<TuiDay>(TuiDay.currentLocal(), { nonNullable: true }),
+    attempts: new FormControl<number | null>(null),
+    private_comment: new FormControl<boolean>(false, { nonNullable: true }),
+    recommended: new FormControl<boolean>(false, { nonNullable: true }),
+    soft: new FormControl<boolean>(false, { nonNullable: true }),
+    hard: new FormControl<boolean>(false, { nonNullable: true }),
+    grade: new FormControl<number | null>(null),
+    // Technical details
+    cruxy: new FormControl<boolean>(false, { nonNullable: true }),
+    athletic: new FormControl<boolean>(false, { nonNullable: true }),
+    sloper: new FormControl<boolean>(false, { nonNullable: true }),
+    endurance: new FormControl<boolean>(false, { nonNullable: true }),
+    technical: new FormControl<boolean>(false, { nonNullable: true }),
+    crimpy: new FormControl<boolean>(false, { nonNullable: true }),
+    // Steepness
+    slab: new FormControl<boolean>(false, { nonNullable: true }),
+    vertical: new FormControl<boolean>(false, { nonNullable: true }),
+    overhang: new FormControl<boolean>(false, { nonNullable: true }),
+    roof: new FormControl<boolean>(false, { nonNullable: true }),
+    // Safety
+    bad_anchor: new FormControl<boolean>(false, { nonNullable: true }),
+    bad_bolts: new FormControl<boolean>(false, { nonNullable: true }),
+    high_first_bolt: new FormControl<boolean>(false, { nonNullable: true }),
+    lose_rock: new FormControl<boolean>(false, { nonNullable: true }),
+    bad_clipping_position: new FormControl<boolean>(false, {
+      nonNullable: true,
+    }),
+    // Other
+    chipped: new FormControl<boolean>(false, { nonNullable: true }),
+    with_kneepad: new FormControl<boolean>(false, { nonNullable: true }),
+    no_score: new FormControl<boolean>(false, { nonNullable: true }),
+    first_ascent: new FormControl<boolean>(false, { nonNullable: true }),
+    traditional: new FormControl<boolean>(false, { nonNullable: true }),
+  });
+
+  protected readonly typeOptions = [
+    {
+      id: AscentTypes.OS,
+      translate: 'ascentTypes.os',
+      icon: '@tui.eye',
+      appearance: 'success',
+    },
+    {
+      id: AscentTypes.F,
+      translate: 'ascentTypes.f',
+      icon: '@tui.zap',
+      appearance: 'warning',
+    },
+    {
+      id: AscentTypes.RP,
+      translate: 'ascentTypes.rp',
+      icon: '@tui.circle',
+      appearance: 'negative',
+    },
+  ];
+
+  protected readonly climbingTypes = [
+    'cruxy',
+    'athletic',
+    'sloper',
+    'endurance',
+    'technical',
+    'crimpy',
+  ];
+  protected readonly steepnessTypes = ['slab', 'vertical', 'overhang', 'roof'];
+  protected readonly safetyIssues = [
+    'bad_anchor',
+    'bad_bolts',
+    'high_first_bolt',
+    'lose_rock',
+    'bad_clipping_position',
+  ];
+  protected readonly otherInfo = [
+    'chipped',
+    'with_kneepad',
+    'no_score',
+    'first_ascent',
+    'traditional',
+  ];
+
+  protected readonly gradeOptions: readonly number[] = Object.keys(
+    VERTICAL_LIFE_TO_LABEL,
+  ).map(Number);
+  protected readonly gradeStringify = (grade: number): string =>
+    VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || '';
+
+  constructor() {
+    effect(() => {
+      const data = this.effectiveAscentData();
+      if (!data) return;
+      this.populateForm(data);
+    });
+
+    // Handle tries auto-disable for OS/Flash
+    this.form.get('type')?.valueChanges.subscribe((type) => {
+      this.updateTriesState(type);
+    });
+
+    // Initial state
+    this.updateTriesState(this.form.get('type')?.value);
+
+    // Default grade if provided and not editing
+    if (!this.effectiveAscentData() && this.dialogGrade !== undefined) {
+      this.form.patchValue({ grade: this.dialogGrade });
+    }
+  }
+
+  private updateTriesState(type: string | null | undefined): void {
+    const attemptsCtrl = this.form.get('attempts');
+    if (!attemptsCtrl) return;
+
+    if (type === AscentTypes.OS || type === AscentTypes.F) {
+      attemptsCtrl.setValue(1, { emitEvent: false });
+      attemptsCtrl.disable({ emitEvent: false });
+    } else if (type === AscentTypes.RP) {
+      if (attemptsCtrl.value === 1) {
+        attemptsCtrl.setValue(null, { emitEvent: false });
+      }
+      attemptsCtrl.enable({ emitEvent: false });
+    } else {
+      attemptsCtrl.enable({ emitEvent: false });
+    }
+  }
+
+  private populateForm(data: RouteAscentDto): void {
+    this.form.patchValue({
+      type: data.type ?? AscentTypes.RP,
+      rate: data.rate ?? 0,
+      comment: data.comment ?? '',
+      attempts: data.attempts ?? null,
+      private_comment: !!data.private_comment,
+      recommended: !!data.recommended,
+      soft: !!data.soft,
+      hard: !!data.hard,
+      cruxy: !!data.cruxy,
+      athletic: !!data.athletic,
+      sloper: !!data.sloper,
+      endurance: !!data.endurance,
+      technical: !!data.technical,
+      crimpy: !!data.crimpy,
+      slab: !!data.slab,
+      vertical: !!data.vertical,
+      overhang: !!data.overhang,
+      roof: !!data.roof,
+      bad_anchor: !!data.bad_anchor,
+      bad_bolts: !!data.bad_bolts,
+      high_first_bolt: !!data.high_first_bolt,
+      lose_rock: !!data.lose_rock,
+      bad_clipping_position: !!data.bad_clipping_position,
+      chipped: !!data.chipped,
+      with_kneepad: !!data.with_kneepad,
+      no_score: !!data.no_score,
+      first_ascent: !!data.first_ascent,
+      traditional: !!data.traditional,
+      grade: data.grade ?? null,
+    });
+    if (data.date) {
+      const d = new Date(data.date);
+      this.form.patchValue({
+        date: new TuiDay(d.getFullYear(), d.getMonth(), d.getDate()),
+      });
+    }
+  }
+
+  protected toggleBool(key: string): void {
+    const ctrl = this.form.get(key);
+    if (!ctrl) return;
+    const newVal = !ctrl.value;
+    ctrl.setValue(newVal);
+
+    // If setting soft to true, set hard to false
+    if (key === 'soft' && newVal) {
+      this.form.get('hard')?.setValue(false);
+    }
+    // If setting hard to true, set soft to false
+    if (key === 'hard' && newVal) {
+      this.form.get('soft')?.setValue(false);
+    }
+  }
+
+  protected quickDate(mode: 'yesterday' | 'lastSaturday' | 'lastSunday'): void {
+    const d = new Date();
+    if (mode === 'yesterday') {
+      d.setDate(d.getDate() - 1);
+    } else if (mode === 'lastSaturday') {
+      const day = d.getDay();
+      const diff = day === 6 ? 0 : (day + 1) % 7;
+      d.setDate(d.getDate() - diff);
+    } else if (mode === 'lastSunday') {
+      const day = d.getDay();
+      const diff = day;
+      d.setDate(d.getDate() - diff);
+    }
+    this.form.patchValue({
+      date: new TuiDay(d.getFullYear(), d.getMonth(), d.getDate()),
+    });
+  }
+
+  async onSubmit(event: Event): Promise<void> {
+    event.preventDefault();
+    if (this.form.invalid) return;
+
+    const route_id = this.effectiveRouteId();
+    const ascentData = this.effectiveAscentData();
+    const user_id = this.supabase.authUser()?.id;
+    if (!user_id && !ascentData) return;
+
+    const values = this.form.getRawValue() as any;
+    const payload: Omit<RouteAscentInsertDto, 'user_id' | 'route_id'> = {
+      ...values,
+      date: `${values.date.year}-${String(values.date.month + 1).padStart(2, '0')}-${String(values.date.day).padStart(2, '0')}`,
+      type: values.type as AscentType,
+      rate: values.rate === 0 ? null : values.rate,
+    };
+
+    try {
+      if (ascentData) {
+        await this.ascents.update(ascentData.id, payload);
+      } else if (route_id && user_id) {
+        await this.ascents.create({
+          ...payload,
+          route_id,
+          user_id,
+        } as RouteAscentInsertDto);
+        await this.routesService.removeRouteProject(route_id);
+      }
+      this._dialogCtx?.completeWith(true);
+    } catch (error: any) {
+      handleErrorToast(error, this.toast, this.translate);
+    }
+  }
+
+  async onDelete(): Promise<void> {
+    const data = this.effectiveAscentData();
+    if (!data) return;
+
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('actions.delete'),
+        size: 'm',
+        data: {
+          content: this.translate.instant('routes.deleteConfirm', {
+            name: `${this.translate.instant(
+              'ascentTypes.' + data.type,
+            )} (${data.date})`,
+          }),
+          yes: this.translate.instant('actions.delete'),
+          no: this.translate.instant('actions.cancel'),
+        } as TuiConfirmData,
+      }),
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await this.ascents.delete(data.id);
+      this._dialogCtx?.completeWith(true);
+    } catch (error: any) {
+      handleErrorToast(error, this.toast, this.translate);
+    }
+  }
+
+  cancel(): void {
+    this._dialogCtx?.$implicit.complete();
+  }
+}

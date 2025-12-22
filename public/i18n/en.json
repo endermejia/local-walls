@@ -84,6 +84,7 @@
     "password": "Password",
     "preferences": "Preferences",
     "privateProfile": "Private profile",
+    "projects": "Projects",
     "rating": "Rating",
     "role": "Role",
     "route": "Route",
@@ -97,6 +98,7 @@
     "topo": "Topo",
     "topos": "Topos",
     "type": "Type",
+    "comment": "Comment",
     "user": "User",
     "userInfo": "Information",
     "userName": "Full name",
@@ -200,7 +202,7 @@
     "deleteTitle": "Delete route",
     "deleteConfirm": "Are you sure you want to delete route \"{{name}}\"? This action cannot be undone.",
     "name": "Route name",
-    "height": "Height (meters)"
+    "height": "Height"
   },
   "admin": {
     "users": {
@@ -255,6 +257,65 @@
     },
     "size": {
       "invalid": "Height must be between 0 and 300 cm."
+    }
+  },
+  "ascentTypes": {
+    "os": "Onsight",
+    "f": "Flash",
+    "rp": "Rotpunkt"
+  },
+  "ascent": {
+    "edit": "Edit ascent",
+    "new": "Sent!",
+    "when": "When did you climb it?",
+    "yesterday": "Yesterday",
+    "lastSaturday": "Last Saturday",
+    "lastSunday": "Last Sunday",
+    "how": "How did you climb it?",
+    "tries": "tries",
+    "secondGo": "2nd Go",
+    "repeat": "Repeat",
+    "thoughts": "Share your thoughts",
+    "thoughtsPlaceholder": "Beta, personal memories, anything goes...",
+    "private": "Private comment",
+    "didYouLikeIt": "Did you like it?",
+    "recommend": "Recommend",
+    "howWouldYouGrade": "How would you grade it?",
+    "soft": "Soft",
+    "normal": "Normal",
+    "hard": "Hard",
+    "moreInfo": "Share more info about this route",
+    "typeOfClimbing": "Type of climbing",
+    "climbing": {
+      "cruxy": "Cruxy",
+      "athletic": "Athletic",
+      "sloper": "Sloper",
+      "endurance": "Endurance",
+      "technical": "Technical",
+      "crimpy": "Crimpy"
+    },
+    "steepness": {
+      "title": "Steepness",
+      "slab": "Slab",
+      "vertical": "Vertical",
+      "overhang": "Overhang",
+      "roof": "Roof"
+    },
+    "safety": {
+      "title": "Safety issues",
+      "bad_anchor": "Bad anchor",
+      "bad_bolts": "Bad bolts",
+      "high_first_bolt": "High first bolt",
+      "lose_rock": "Loose rock",
+      "bad_clipping_position": "Bad clipping position"
+    },
+    "other": {
+      "title": "Other info",
+      "chipped": "Chipped",
+      "with_kneepad": "With kneepad",
+      "no_score": "No score",
+      "first_ascent": "First ascent",
+      "traditional": "Traditional"
     }
   },
   "climbingKinds": {

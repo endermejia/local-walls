@@ -11,3 +11,4 @@ export * from './supabase.service';
 export * from './user-profiles.service';
 export * from './vertical-life-api';
 export * from './routes.service';
+export * from './ascents.service';

@@ -25,6 +25,8 @@ import {
   CragDto,
   Parking,
   RouteDto,
+  RouteWithExtras,
+  RouteAscentWithExtras,
   TopoListItem,
   IconName,
   Language,
@@ -347,11 +349,13 @@ export class GlobalData {
       if (!isPlatformBrowser(this.platformId)) return null;
       try {
         await this.supabase.whenReady();
-        const { data, error } = await this.supabase.client
+        const userId = this.supabase.authUser()?.id;
+        let query = this.supabase.client
           .from('crags')
           .select(
             `
             *,
+            liked:crag_likes(id),
             area: areas ( name, slug ),
             crag_parkings (
               parking: parkings (*)
@@ -359,8 +363,13 @@ export class GlobalData {
             topos (*)
           `,
           )
-          .eq('slug', slug)
-          .single();
+          .eq('slug', slug);
+
+        if (userId) {
+          query = query.eq('liked.user_id', userId);
+        }
+
+        const { data, error } = await query.single();
 
         if (error) {
           console.error('[GlobalData] cragDetailResource error', error);
@@ -372,6 +381,7 @@ export class GlobalData {
           area: { name: string; slug: string } | null;
           crag_parkings: { parking: Parking }[] | null;
           topos: TopoListItem[] | null;
+          liked: { id: number }[];
         };
         const rawData = data as unknown as CragWithJoins;
 
@@ -408,7 +418,7 @@ export class GlobalData {
           area_name: rawData.area?.name ?? '',
           area_slug: rawData.area?.slug ?? '',
           grades: {}, // Will be computed in the component from routes
-          liked: false, // Default
+          liked: (rawData.liked?.length ?? 0) > 0,
           parkings,
           topos,
 
@@ -430,22 +440,44 @@ export class GlobalData {
   });
 
   readonly cragRoutesResource = resource({
-    params: () => this.cragDetailResource.value()?.id,
-    loader: async ({ params: cragId }): Promise<RouteDto[]> => {
+    params: () => {
+      const crag = this.cragDetailResource.value();
+      return {
+        cragId: crag?.id,
+        cragSlug: crag?.slug,
+        areaSlug: crag?.area_slug,
+      };
+    },
+    loader: async ({
+      params: { cragId, cragSlug, areaSlug },
+    }): Promise<RouteWithExtras[]> => {
       if (!cragId) return [];
       if (!isPlatformBrowser(this.platformId)) return [];
       try {
         await this.supabase.whenReady();
-        const { data, error } = await this.supabase.client
+        const userId = this.supabase.authUser()?.id;
+        let query = this.supabase.client
           .from('routes')
           .select(
             `
             *,
             liked:route_likes(id),
-            project:route_projects(id)
+            project:route_projects(id),
+            ascents:route_ascents(rate),
+            own_ascent:route_ascents(*),
+            crag:crags(
+              slug,
+              area:areas(slug)
+            )
           `,
           )
           .eq('crag_id', cragId);
+
+        if (userId) {
+          query = query.eq('own_ascent.user_id', userId);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
           console.error('[GlobalData] cragRoutesResource error', error);
@@ -453,14 +485,169 @@ export class GlobalData {
         }
 
         return (
-          (data as any[]).map((r) => ({
-            ...r,
-            liked: (r.liked?.length ?? 0) > 0,
-            project: (r.project?.length ?? 0) > 0,
-          })) ?? []
+          (data as any[]).map((r) =>
+            (() => {
+              const rates =
+                (r.ascents as any[])
+                  ?.map((a) => a.rate)
+                  .filter((rate) => rate != null) ?? [];
+              const rating =
+                rates.length > 0
+                  ? rates.reduce((a, b) => a + b, 0) / rates.length
+                  : 0;
+
+              return {
+                ...r,
+                liked: (r.liked?.length ?? 0) > 0,
+                project: (r.project?.length ?? 0) > 0,
+                crag_slug: r.crag?.slug,
+                area_slug: r.crag?.area?.slug,
+                rating,
+                ascent_count: r.ascents?.length ?? 0,
+                climbed: (r.own_ascent?.length ?? 0) > 0,
+                own_ascent: r.own_ascent?.[0],
+              } as RouteWithExtras;
+            })(),
+          ) ?? []
         );
       } catch (e) {
         console.error('[GlobalData] cragRoutesResource exception', e);
+        return [];
+      }
+    },
+  });
+  readonly cragRoutes: Signal<RouteWithExtras[]> = computed(
+    () => this.cragRoutesResource.value() ?? [],
+  );
+
+  // ---- Route Detail ----
+  selectedRouteSlug: WritableSignal<string | null> = signal(null);
+  readonly routeDetailResource = resource({
+    params: () => ({
+      cragId: this.cragDetailResource.value()?.id,
+      routeSlug: this.selectedRouteSlug(),
+    }),
+    loader: async ({
+      params: { cragId, routeSlug },
+    }): Promise<RouteWithExtras | null> => {
+      if (!cragId || !routeSlug) return null;
+      if (!isPlatformBrowser(this.platformId)) return null;
+      try {
+        await this.supabase.whenReady();
+        const userId = this.supabase.authUser()?.id;
+        let query = this.supabase.client
+          .from('routes')
+          .select(
+            `
+            *,
+            liked:route_likes(id),
+            project:route_projects(id),
+            crag:crags(
+              name,
+              slug,
+              area:areas(name, slug)
+            ),
+            ascents:route_ascents(rate),
+            own_ascent:route_ascents(*)
+          `,
+          )
+          .eq('crag_id', cragId)
+          .eq('slug', routeSlug);
+
+        if (userId) {
+          query = query.eq('own_ascent.user_id', userId);
+        }
+
+        const { data, error } = await query.single();
+
+        if (error) {
+          console.error('[GlobalData] routeDetailResource error', error);
+          return null;
+        }
+
+        const r = data as any;
+        const rates =
+          (r.ascents as any[])
+            ?.map((a) => a.rate)
+            .filter((rate) => rate != null) ?? [];
+        const rating =
+          rates.length > 0
+            ? rates.reduce((a, b) => a + b, 0) / rates.length
+            : 0;
+
+        return {
+          ...r,
+          liked: (r.liked?.length ?? 0) > 0,
+          project: (r.project?.length ?? 0) > 0,
+          crag_name: r.crag?.name,
+          crag_slug: r.crag?.slug,
+          area_name: r.crag?.area?.name,
+          area_slug: r.crag?.area?.slug,
+          rating,
+          ascent_count: r.ascents?.length ?? 0,
+          climbed: (r.own_ascent?.length ?? 0) > 0,
+          own_ascent: r.own_ascent?.[0],
+        } as RouteWithExtras;
+      } catch (e) {
+        console.error('[GlobalData] routeDetailResource exception', e);
+        return null;
+      }
+    },
+  });
+
+  readonly routeAscentsResource = resource({
+    params: () => this.routeDetailResource.value()?.id,
+    loader: async ({ params: routeId }): Promise<RouteAscentWithExtras[]> => {
+      if (!routeId) return [];
+      if (!isPlatformBrowser(this.platformId)) return [];
+      try {
+        await this.supabase.whenReady();
+        // 1. Fetch ascents for the route
+        const { data: ascents, error: ascentsError } =
+          await this.supabase.client
+            .from('route_ascents')
+            .select('*')
+            .eq('route_id', routeId)
+            .order('date', { ascending: false });
+
+        if (ascentsError) {
+          console.error(
+            '[GlobalData] routeAscentsResource error',
+            ascentsError,
+          );
+          return [];
+        }
+
+        if (!ascents || ascents.length === 0) return [];
+
+        // 2. Fetch unique user profiles for these ascents
+        const userIds = [...new Set(ascents.map((a) => a.user_id))];
+        const { data: profiles, error: profilesError } =
+          await this.supabase.client
+            .from('user_profiles')
+            .select('*')
+            .in('id', userIds);
+
+        if (profilesError) {
+          console.error(
+            '[GlobalData] routeAscentsResource profiles error',
+            profilesError,
+          );
+          // Return ascents without user info if profiles fail
+          return ascents as any[];
+        }
+
+        // 3. Map profiles back to ascents
+        const profileMap = new Map(profiles?.map((p) => [p.id, p]));
+        return ascents.map(
+          (a) =>
+            ({
+              ...a,
+              user: profileMap.get(a.user_id),
+            }) as any as RouteAscentWithExtras,
+        );
+      } catch (e) {
+        console.error('[GlobalData] routeAscentsResource exception', e);
         return [];
       }
     },
@@ -679,17 +866,22 @@ export class GlobalData {
   ): void {
     switch (page) {
       case 'explore': {
-        this.selectedAreaSlug.set(null);
         this.selectedCragSlug.set(null);
+        this.selectedRouteSlug.set(null);
 
         this.selectedMapCragItem.set(null);
         break;
       }
       case 'area': {
         this.selectedCragSlug.set(null);
+        this.selectedRouteSlug.set(null);
         break;
       }
       case 'crag': {
+        this.selectedRouteSlug.set(null);
+        break;
+      }
+      case 'route': {
         break;
       }
     }

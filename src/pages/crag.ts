@@ -34,13 +34,16 @@ import { TuiToastService } from '@taiga-ui/kit';
 import {
   ORDERED_GRADE_VALUES,
   type CragDetail,
+  RouteWithExtras,
   type TopoListItem,
   AmountByEveryGrade,
   VERTICAL_LIFE_GRADES,
+  RouteAscentDto,
 } from '../models';
 import { mapLocationUrl } from '../utils';
 import { CragFormComponent } from './crag-form';
 import { RouteFormComponent } from './route-form';
+import AscentFormComponent from './ascent-form';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { handleErrorToast } from '../utils';
 
@@ -313,7 +316,11 @@ import { handleErrorToast } from '../utils';
             </button>
           }
         </div>
-        <app-routes-table [data]="global.cragRoutesResource.value() ?? []" />
+        <app-routes-table
+          [data]="global.cragRoutesResource.value() ?? []"
+          (logAscent)="onLogAscent($event)"
+          (editAscent)="onEditAscent($event)"
+        />
       } @else {
         <div class="flex items-center justify-center w-full min-h-[50vh]">
           <tui-loader size="xxl" />
@@ -512,5 +519,25 @@ export class CragComponent {
       return this.translate.instant('filters.shade.morning');
     }
     return this.translate.instant('filters.shade.afternoon');
+  }
+
+  protected onLogAscent(route: RouteWithExtras): void {
+    this.dialogs
+      .open(new PolymorpheusComponent(AscentFormComponent), {
+        label: this.translate.instant('ascent.new'),
+        data: { routeId: route.id, grade: route.grade },
+        size: 'm',
+      })
+      .subscribe();
+  }
+
+  onEditAscent(ascent: RouteAscentDto): void {
+    this.dialogs
+      .open(new PolymorpheusComponent(AscentFormComponent), {
+        label: this.translate.instant('ascent.edit'),
+        data: { routeId: ascent.route_id, ascentData: ascent },
+        size: 'm',
+      })
+      .subscribe();
   }
 }

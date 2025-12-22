@@ -24,8 +24,9 @@ export class RoutesService {
       console.error('[RoutesService] create error', error);
       throw error;
     }
-    // Refresh routes list for the current crag
+    // Refresh routes list for the current crag and current route
     this.global.cragRoutesResource.reload();
+    this.global.routeDetailResource.reload();
     return data as RouteDto;
   }
 
@@ -46,6 +47,7 @@ export class RoutesService {
       throw error;
     }
     this.global.cragRoutesResource.reload();
+    this.global.routeDetailResource.reload();
     return data as RouteDto;
   }
 
@@ -61,6 +63,7 @@ export class RoutesService {
       throw error;
     }
     this.global.cragRoutesResource.reload();
+    this.global.routeDetailResource.reload();
     return true;
   }
 
@@ -76,10 +79,31 @@ export class RoutesService {
       );
       if (error) throw error;
       this.global.cragRoutesResource.reload();
+      this.global.routeDetailResource.reload();
       return data as boolean;
     } catch (e) {
       console.error('[RoutesService] toggleRouteLike error', e);
       throw e;
+    }
+  }
+
+  async removeRouteProject(routeId: number): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    await this.supabase.whenReady();
+    try {
+      const { error } = await this.supabase.client
+        .from('route_projects')
+        .delete()
+        .match({
+          user_id: this.supabase.authUserId(),
+          route_id: routeId,
+        });
+
+      if (error) throw error;
+      this.global.cragRoutesResource.reload();
+      this.global.routeDetailResource.reload();
+    } catch (e) {
+      console.error('[RoutesService] removeRouteProject error', e);
     }
   }
 
@@ -95,6 +119,7 @@ export class RoutesService {
       );
       if (error) throw error;
       this.global.cragRoutesResource.reload();
+      this.global.routeDetailResource.reload();
       return data as boolean;
     } catch (e) {
       console.error('[RoutesService] toggleRouteProject error', e);

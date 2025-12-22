@@ -99,7 +99,7 @@ export class CragsService {
         params,
       );
       if (error) throw error;
-      const liked = data;
+      const liked = data as boolean;
       // Update global crag list
       this.global.cragsListResource.update((value) => {
         if (!value) return value;
@@ -113,6 +113,15 @@ export class CragsService {
             return a.name.localeCompare(b.name);
           });
       });
+
+      // Update crag detail if it matches
+      this.global.cragDetailResource.update((curr) => {
+        if (curr?.id === cragId) {
+          return { ...curr, liked };
+        }
+        return curr;
+      });
+
       return liked;
     } catch (e) {
       console.error('[CragsService] toggleCragLike error', e);

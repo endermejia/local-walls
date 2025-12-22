@@ -8,6 +8,7 @@ export * from './options-item.model';
 export * from './pagination.model';
 export * from './parking.model';
 export * from './route.model';
+export * from './route-ascent.model';
 export * from './search-api.model';
 export * from './search-item.model';
 export * from './sector.model';

@@ -52,7 +52,7 @@ interface UserWithRole {
     WaIntersectionObserver,
   ],
   template: `
-    <section class="w-full max-w-6xl mx-auto p-4">
+    <section class="w-full max-w-5xl mx-auto p-4">
       <header class="mb-4 flex items-center justify-between gap-2">
         <h1 class="text-2xl font-bold flex items-center gap-2">
           <tui-avatar

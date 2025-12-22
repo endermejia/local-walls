@@ -268,6 +268,7 @@ export class HeaderComponent implements OnDestroy {
 
     const area = this.global.selectedArea();
     const crag = this.global.selectedCrag();
+    const route = this.global.routeDetailResource.value();
 
     if (area) {
       items.push({
@@ -279,6 +280,12 @@ export class HeaderComponent implements OnDestroy {
           caption: crag.name,
           routerLink: ['/area', area.slug, crag.slug],
         });
+        if (route) {
+          items.push({
+            caption: route.name,
+            routerLink: ['/area', area.slug, crag.slug, route.slug],
+          });
+        }
       }
     }
 
@@ -392,8 +399,8 @@ export class HeaderComponent implements OnDestroy {
           !!areaName);
       const isCrag = !isArea && (type === 1 || !!cragSlug);
 
-      if (isRoute && countrySlug && cragSlug && sectorSlug && zlaggableSlug) {
-        const href = `/route/${countrySlug}/${cragSlug}/sector/${sectorSlug}/${zlaggableSlug}`;
+      if (isRoute && cragSlug && areaSlug && zlaggableSlug) {
+        const href = `/area/${areaSlug}/${cragSlug}/${zlaggableSlug}`;
         const subtitleParts: string[] = [];
         if (cragName) subtitleParts.push(cragName);
         if (areaName) subtitleParts.push(areaName);

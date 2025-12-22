@@ -84,6 +84,7 @@
     "password": "Contraseña",
     "preferences": "Preferencias",
     "privateProfile": "Perfil privado",
+    "projects": "Proyectos",
     "rating": "Valoración",
     "role": "Rol",
     "route": "Vía",
@@ -97,6 +98,7 @@
     "topo": "Croquis",
     "topos": "Croquis",
     "type": "Tipo",
+    "comment": "Comentario",
     "user": "Usuario",
     "userInfo": "Información",
     "userName": "Nombre completo",
@@ -200,7 +202,7 @@
     "deleteTitle": "Eliminar vía",
     "deleteConfirm": "¿Seguro que quieres eliminar la vía \"{{name}}\"? Esta acción no se puede deshacer.",
     "name": "Nombre de la vía",
-    "height": "Altura (metros)"
+    "height": "Altura"
   },
   "admin": {
     "users": {
@@ -255,6 +257,65 @@
     },
     "size": {
       "invalid": "La altura debe estar entre 0 y 300 cm."
+    }
+  },
+  "ascentTypes": {
+    "os": "A vista",
+    "f": "Flash",
+    "rp": "Rotpunkt"
+  },
+  "ascent": {
+    "edit": "Editar ascensión",
+    "new": "Encadenada!",
+    "when": "¿Cuándo escalaste?",
+    "yesterday": "Ayer",
+    "lastSaturday": "Sábado pasado",
+    "lastSunday": "Domingo pasado",
+    "how": "¿Cómo escalaste?",
+    "tries": "intentos",
+    "secondGo": "Al 2º pegue",
+    "repeat": "Repetición",
+    "thoughts": "Comparte tus pensamientos",
+    "thoughtsPlaceholder": "Beta, recuerdos personales, lo que sea...",
+    "private": "Comentario privado",
+    "didYouLikeIt": "¿Te gustó?",
+    "recommend": "Recomendar",
+    "howWouldYouGrade": "¿Cómo graduarías la vía?",
+    "soft": "Suave",
+    "normal": "Normal",
+    "hard": "Dura",
+    "moreInfo": "Comparte más info sobre esta vía",
+    "typeOfClimbing": "Tipo de escalada",
+    "climbing": {
+      "cruxy": "Cruxy",
+      "athletic": "Atlética",
+      "sloper": "Sloper",
+      "endurance": "Contu",
+      "technical": "Técnica",
+      "crimpy": "Regletera"
+    },
+    "steepness": {
+      "title": "Inclinación",
+      "slab": "Placa",
+      "vertical": "Vertical",
+      "overhang": "Desplome",
+      "roof": "Techo"
+    },
+    "safety": {
+      "title": "Problemas de seguridad",
+      "bad_anchor": "Reu mala",
+      "bad_bolts": "Chapas malas",
+      "high_first_bolt": "1ª chapa alta",
+      "lose_rock": "Piedra suelta",
+      "bad_clipping_position": "Chapaje malo"
+    },
+    "other": {
+      "title": "Otra info",
+      "chipped": "Picada",
+      "with_kneepad": "Con rodillera",
+      "no_score": "No puntúa",
+      "first_ascent": "Primera ascensión",
+      "traditional": "Clásica"
     }
   },
   "climbingKinds": {

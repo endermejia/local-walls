@@ -64,19 +64,12 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Server,
   },
   {
-    path: 'route/:countrySlug/:cragSlug/sector/:sectorSlug/:zlaggableSlug',
+    path: 'area/:areaSlug/:cragSlug/:routeSlug',
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,
     async getPrerenderParams() {
-      const global = inject(GlobalData);
-      const route = global.route();
-      return route
-        ? [
-            {
-              zlaggableSlug: `${route.zlaggableSlug}`,
-            },
-          ]
-        : [];
+      // Dynamic routes for single climbings are handled by SSR for now
+      return [];
     },
   },
   {
