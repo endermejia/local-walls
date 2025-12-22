@@ -28,7 +28,6 @@ import type { ClimbingRoute } from '../models';
     TuiBottomSheet,
     TuiButton,
     TuiLoader,
-    RoutesTableComponent,
   ],
   template: `
     <div class="h-full w-full">
@@ -90,7 +89,7 @@ import type { ClimbingRoute } from '../models';
           aria-label="Routes"
         >
           <section class="w-full max-w-5xl mx-auto sm:p-4 overflow-auto">
-            <app-routes-table [data]="routes()" [direction]="direction()" />
+            <!-- Table removed as requested -->
           </section>
         </tui-bottom-sheet>
       } @else {

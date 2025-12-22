@@ -173,14 +173,9 @@ export class AreaListComponent {
   readonly areas = computed(() => this.global.areaList());
 
   readonly query: WritableSignal<string> = signal('');
-  readonly selectedGradeRange: WritableSignal<[number, number]> = signal([
-    0,
-    ORDERED_GRADE_VALUES.length - 1,
-  ]);
-  readonly selectedCategories: WritableSignal<number[]> = signal([]);
-  readonly selectedShade: WritableSignal<
-    ('shade_morning' | 'shade_afternoon' | 'shade_all_day' | 'sun_all_day')[]
-  > = signal([]);
+  readonly selectedGradeRange = this.global.areaListGradeRange;
+  readonly selectedCategories = this.global.areaListCategories;
+  readonly selectedShade = this.global.areaListShade;
 
   readonly hasActiveFilters = computed(() => {
     const [lo, hi] = this.selectedGradeRange();

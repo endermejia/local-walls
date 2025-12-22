@@ -22,10 +22,16 @@ import {
   CragListItem,
   AscentsPage,
   ClimbingCrag,
+  AmountByEveryGrade,
   ClimbingRoute,
   ClimbingRoutesPage,
   ClimbingSector,
   ClimbingTopo,
+  CragDetail,
+  CragDto,
+  Parking,
+  RouteDto,
+  TopoListItem,
   IconName,
   Language,
   Languages,
@@ -37,6 +43,7 @@ import {
   OptionsData,
   Theme,
   Themes,
+  ORDERED_GRADE_VALUES,
 } from '../models';
 import { slugify } from '../utils';
 
@@ -252,6 +259,16 @@ export class GlobalData {
   });
   selectedMapCragItem: WritableSignal<MapCragItem | null> = signal(null);
 
+  // ---- Area List Filters (Persisted) ----
+  areaListGradeRange: WritableSignal<[number, number]> = signal([
+    0,
+    ORDERED_GRADE_VALUES.length - 1,
+  ]);
+  areaListCategories: WritableSignal<number[]> = signal([]);
+  areaListShade: WritableSignal<
+    ('shade_morning' | 'shade_afternoon' | 'shade_all_day' | 'sun_all_day')[]
+  > = signal([]);
+
   // ---- Areas ----
   selectedAreaSlug: WritableSignal<string | null> = signal(null);
   selectedArea: Signal<AreaListItem | null> = computed(() => {
@@ -327,6 +344,119 @@ export class GlobalData {
     if (!slug) return null;
     const list = this.cragsList();
     return list.find((c) => c.slug === slug) ?? null;
+  });
+
+  readonly cragDetailResource = resource({
+    params: () => this.selectedCragSlug(),
+    loader: async ({ params: slug }): Promise<CragDetail | null> => {
+      if (!slug) return null;
+      if (!isPlatformBrowser(this.platformId)) return null;
+      try {
+        await this.supabase.whenReady();
+        const { data, error } = await this.supabase.client
+          .from('crags')
+          .select(
+            `
+            *,
+            area: areas ( name, slug ),
+            crag_parkings (
+              parking: parkings (*)
+            ),
+            topos (*)
+          `,
+          )
+          .eq('slug', slug)
+          .single();
+
+        if (error) {
+          console.error('[GlobalData] cragDetailResource error', error);
+          return null;
+        }
+
+        // Type the raw response structure from Supabase join query
+        type CragWithJoins = CragDto & {
+          area: { name: string; slug: string } | null;
+          crag_parkings: { parking: Parking }[] | null;
+          topos: TopoListItem[] | null;
+        };
+        const rawData = data as unknown as CragWithJoins;
+
+        // Transform nested parkings
+        const parkings =
+          rawData.crag_parkings?.map((cp) => cp.parking).filter(Boolean) ?? [];
+
+        const topos = rawData.topos ?? [];
+        const topos_count = topos.length;
+        const shade_morning = topos.some((t) => t.shade_morning);
+        const shade_afternoon = topos.some((t) => t.shade_afternoon);
+        const shade_all_day = topos.some(
+          (t) => t.shade_morning && t.shade_afternoon,
+        );
+        const sun_all_day = topos.some(
+          (t) => !t.shade_morning && !t.shade_afternoon,
+        );
+
+        const detailedCrag: CragDetail = {
+          // Fields from CragDto (table)
+          id: rawData.id,
+          name: rawData.name,
+          slug: rawData.slug,
+          area_id: rawData.area_id, // Not in CragListItem but in CragDto
+          description_en: rawData.description_en ?? undefined,
+          description_es: rawData.description_es ?? undefined,
+          warning_en: rawData.warning_en ?? undefined,
+          warning_es: rawData.warning_es ?? undefined,
+          latitude: rawData.latitude ?? 0,
+          longitude: rawData.longitude ?? 0,
+          approach: rawData.approach ?? undefined,
+
+          // Enriched fields
+          area_name: rawData.area?.name ?? '',
+          area_slug: rawData.area?.slug ?? '',
+          grades: {}, // Will be computed in the component from routes
+          liked: false, // Default
+          parkings,
+          topos,
+
+          // Missing CragListItem fields
+          climbing_kind: [], // Cannot compute without routes here
+          topos_count,
+          shade_morning,
+          shade_afternoon,
+          shade_all_day,
+          sun_all_day,
+        };
+
+        return detailedCrag;
+      } catch (e) {
+        console.error('[GlobalData] cragDetailResource exception', e);
+        return null;
+      }
+    },
+  });
+
+  readonly cragRoutesResource = resource({
+    params: () => this.cragDetailResource.value()?.id,
+    loader: async ({ params: cragId }): Promise<RouteDto[]> => {
+      if (!cragId) return [];
+      if (!isPlatformBrowser(this.platformId)) return [];
+      try {
+        await this.supabase.whenReady();
+        const { data, error } = await this.supabase.client
+          .from('routes')
+          .select('*')
+          .eq('crag_id', cragId);
+
+        if (error) {
+          console.error('[GlobalData] cragRoutesResource error', error);
+          return [];
+        }
+        return (data as RouteDto[]) ?? [];
+      } catch (e) {
+        console.error('[GlobalData] cragRoutesResource exception', e);
+        return [];
+      }
+    },
   });
 
   crag: WritableSignal<ClimbingCrag | null> = signal(null);

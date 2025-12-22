@@ -6,6 +6,7 @@ import {
   effect,
   InputSignal,
   signal,
+  computed,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { isPlatformBrowser, Location, LowerCasePipe } from '@angular/common';
@@ -24,14 +25,16 @@ import { TuiSurface } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   ChartRoutesByGradeComponent,
+  RoutesTableComponent,
   SectionHeaderComponent,
 } from '../components';
 import { CragsService, GlobalData } from '../services';
-import type {
-  CragDetail_DEPRECATED,
-  TopoListItem,
-  ClimbingCrag,
-  CragListItem,
+import {
+  ORDERED_GRADE_VALUES,
+  type CragDetail,
+  type TopoListItem,
+  AmountByEveryGrade,
+  VERTICAL_LIFE_GRADES,
 } from '../models';
 import { mapLocationUrl } from '../utils';
 import { CragFormComponent } from './crag-form';
@@ -42,6 +45,7 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
   standalone: true,
   imports: [
     ChartRoutesByGradeComponent,
+    RoutesTableComponent,
     SectionHeaderComponent,
     TranslatePipe,
     TuiCardLarge,
@@ -276,6 +280,12 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
             }
           </div>
         </div>
+        <div class="mt-8">
+          <h2 class="text-2xl font-semibold mb-4">
+            {{ 'labels.routes' | translate }}
+          </h2>
+          <app-routes-table [data]="global.cragRoutesResource.value() ?? []" />
+        </div>
       } @else {
         <div class="flex items-center justify-center w-full min-h-[50vh]">
           <tui-loader size="xxl" />
@@ -300,7 +310,26 @@ export class CragComponent {
   areaSlug: InputSignal<string> = input.required<string>();
   cragSlug: InputSignal<string> = input.required<string>();
   readonly loading = this.crags.loading;
-  cragDetail = signal<CragDetail_DEPRECATED | null>(null);
+  protected readonly cragDetail = computed<CragDetail | null>(() => {
+    const c = this.global.cragDetailResource.value();
+    if (!c) return null;
+
+    // Compute grades from routes
+    const routes = this.global.cragRoutesResource.value() ?? [];
+    const gradesVal: AmountByEveryGrade = {};
+    for (const r of routes) {
+      if (typeof r.grade === 'number' && r.grade >= 0) {
+        const g = r.grade as unknown as VERTICAL_LIFE_GRADES; // Cast number to enum
+        gradesVal[g] = (gradesVal[g] ?? 0) + 1;
+      }
+    }
+
+    // Return CragDetail
+    return {
+      ...c,
+      grades: gradesVal,
+    };
+  });
 
   constructor() {
     // Sincroniza área/crag seleccionados en el estado global desde la ruta
@@ -309,34 +338,6 @@ export class CragComponent {
       const cSlug = this.cragSlug();
       this.global.selectedAreaSlug.set(aSlug);
       this.global.selectedCragSlug.set(cSlug);
-    });
-
-    // Mapea el crag seleccionado (lista por área) a un detalle mínimo
-    effect(() => {
-      const item = this.global.selectedCrag();
-      if (!item) {
-        this.cragDetail.set(null);
-        this.global.crag.set(null);
-        return;
-      }
-      const detail = this.mapListItemToDetail(item);
-      this.cragDetail.set(detail);
-      // Actualiza breadcrumb/source global
-      const mapped: ClimbingCrag = {
-        cragSlug: detail.slug,
-        cragName: detail.name,
-        areaSlug: detail.area_slug,
-        areaName: detail.area_name,
-        liked: detail.liked,
-        location: {
-          latitude: detail.latitude,
-          longitude: detail.longitude,
-        },
-        // Valores no disponibles en la lista
-        countrySlug: '',
-        countryName: '',
-      } as ClimbingCrag;
-      this.global.crag.set(mapped);
     });
   }
 
@@ -356,36 +357,16 @@ export class CragComponent {
     void this.router.navigateByUrl('/explore');
   }
 
-  private mapListItemToDetail(item: CragListItem): CragDetail_DEPRECATED {
-    return {
-      id: item.id,
-      name: item.name,
-      slug: item.slug,
-      // area_name: item.area_name,
-      // area_slug: item.area_slug,
-      // description_es: item.description_es ?? '',
-      // description_en: item.description_en ?? '',
-      // warning_es: item.warning_es ?? '',
-      // warning_en: item.warning_en ?? '',
-      liked: item.liked,
-      grades: item.grades,
-
-      // latitude: (item as any).latitude ?? 0,
-      // longitude: (item as any).longitude ?? 0,
-      // approach: (item as any).approach ?? 0,
-      // parkings: (item as any).parkings ?? [],
-      // topos: (item as any).topos ?? [],
-    } as CragDetail_DEPRECATED;
-  }
-
   onToggleLike(): void {
     if (!isPlatformBrowser(this.platformId)) return;
     const c = this.cragDetail();
     if (!c) return;
-    this.cragDetail.set({ ...c, liked: !c.liked });
-    this.crags
-      .toggleCragLike(c.id)
-      .catch(() => this.cragDetail.set({ ...c, liked: c.liked }));
+    // Optimistic update not possible easily with computed resource without invalidation
+    // We just call the API
+    this.crags.toggleCragLike(c.id).then(() => {
+      // Option: reload resource
+      // this.global.cragDetailResource.reload();
+    });
   }
 
   deleteCrag(): void {

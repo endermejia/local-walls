@@ -37,24 +37,7 @@ export type CragListItem = Omit<
   grades: AmountByEveryGrade;
 };
 
-export interface CragDetail_DEPRECATED {
-  id: number;
-  name: string;
-  slug: string;
-  area_name: string;
-  area_slug: string;
-  description_es?: string;
-  description_en?: string;
-  warning_es?: string;
-  warning_en?: string;
-  liked: boolean;
-  grades: AmountByEveryGrade;
-  latitude: number;
-  longitude: number;
-  approach: number;
-  parkings: Parking[];
-  topos: TopoListItem[];
-}
+// export interface CragDetail_DEPRECATED { ... } // Removed
 
 export interface AdditionalCragData {
   description_es?: string;
@@ -63,13 +46,17 @@ export interface AdditionalCragData {
   warning_en?: string;
   latitude: number;
   longitude: number;
+  approach?: number;
+  area_id?: number;
 }
 
 export type CragDetail = CragListItem &
   AdditionalCragData & {
-    parkings: Parking[]; // get_parkings_list_by_crag_slug
-    topos: TopoListItem[]; // get_topos_list_by_crag_slug
-    routes: RouteDto;
+    area_name: string;
+    area_slug: string;
+    parkings: Parking[];
+    topos: TopoListItem[];
+    // routes are fetched separately via cragRoutesResource
   };
 
 // Para la futura llamada get_routes_list_by_crag_slug

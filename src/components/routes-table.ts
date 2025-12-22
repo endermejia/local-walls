@@ -18,23 +18,35 @@ import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TuiAvatar, TuiRating } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
-import { TuiTable, TuiSortDirection } from '@taiga-ui/addon-table';
+import {
+  TuiTable,
+  TuiSortDirection,
+  TuiTableSortPipe,
+} from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
-import { tuiDefaultSort } from '@taiga-ui/cdk';
+import { TuiLet, tuiDefaultSort } from '@taiga-ui/cdk';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GlobalData } from '../services';
-import type { ClimbingRoute } from '../models';
+import {
+  ClimbingRoute,
+  ORDERED_GRADE_VALUES,
+  VERTICAL_LIFE_TO_LABEL,
+  VERTICAL_LIFE_GRADES,
+  RouteDto,
+} from '../models';
 import { FormsModule } from '@angular/forms';
 import { TuiButton } from '@taiga-ui/core';
 
 export type RoutesTableKey = 'grade' | 'route' | 'rating' | 'ascents';
+export type RouteItem = ClimbingRoute | RouteDto;
 
 export interface RoutesTableRow {
+  key: string;
   grade: string;
   route: string;
   rating: number;
   ascents: number;
-  _ref: ClimbingRoute;
+  _ref: RouteItem;
 }
 
 @Component({
@@ -49,6 +61,8 @@ export interface RoutesTableRow {
     TuiCell,
     FormsModule,
     TuiButton,
+    TuiLet,
+    TuiTableSortPipe,
   ],
   template: `
     <div class="overflow-auto" #scroller>
@@ -75,7 +89,7 @@ export interface RoutesTableRow {
           tuiTbody
           [data]="sortedData"
         >
-          @for (item of sortedData; track item._ref.zlaggableId) {
+          @for (item of sortedData; track item.key) {
             <tr tuiTr>
               @for (col of columns; track col) {
                 <td *tuiCell="col" tuiTd>
@@ -88,27 +102,17 @@ export interface RoutesTableRow {
                           class="self-center font-semibold select-none"
                           [attr.aria-label]="'labels.grade' | translate"
                         >
-                          {{ item._ref.difficulty || '—' }}
+                          {{ item.grade }}
                         </tui-avatar>
                       </div>
                     }
                     @case ('route') {
                       <div tuiCell size="m">
                         <a
-                          [routerLink]="[
-                            '/route',
-                            item._ref.countrySlug,
-                            item._ref.cragSlug,
-                            'sector',
-                            item._ref.sectorSlug,
-                            item._ref.zlaggableSlug,
-                          ]"
+                          [routerLink]="getRouteLink(item._ref)"
                           class="tui-link"
                         >
-                          {{
-                            item._ref.zlaggableName ||
-                              ('labels.route' | translate)
-                          }}
+                          {{ item.route || ('labels.route' | translate) }}
                         </a>
                       </div>
                     }
@@ -124,7 +128,7 @@ export interface RoutesTableRow {
                     }
                     @case ('ascents') {
                       <div tuiCell size="m">
-                        <span>{{ item._ref.totalAscents ?? 0 }}</span>
+                        <span>{{ item.ascents }}</span>
                       </div>
                     }
                     @case ('actions') {
@@ -138,7 +142,8 @@ export interface RoutesTableRow {
                           type="button"
                           class="!rounded-full"
                           (click.zoneless)="
-                            global.toggleLikeRoute(item._ref.zlaggableId)
+                            'zlaggableId' in item._ref &&
+                              global.toggleLikeRoute(item._ref.zlaggableId)
                           "
                         >
                           {{
@@ -168,7 +173,7 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
   protected readonly global = inject(GlobalData);
 
   // Inputs
-  data: InputSignal<ClimbingRoute[]> = input.required<ClimbingRoute[]>();
+  data: InputSignal<RouteItem[]> = input.required<RouteItem[]>();
   direction: InputSignal<TuiSortDirection> = input<TuiSortDirection>(
     TuiSortDirection.Desc,
   );
@@ -194,14 +199,61 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
   ];
 
   protected readonly tableData: Signal<RoutesTableRow[]> = computed(() =>
-    this.data().map((r) => ({
-      grade: r.difficulty || '',
-      route: r.zlaggableName || '',
-      rating: r.averageRating ?? 0,
-      ascents: r.totalAscents ?? 0,
-      _ref: r,
-    })),
+    this.data().map((r: RouteItem) => {
+      // Handle ClimbingRoute (VerticalLife) vs RouteDto (Supabase)
+      let grade = '';
+      if ('difficulty' in r) {
+        grade = r.difficulty || '';
+      } else if ('grade' in r) {
+        // Map numeric grade from Supabase using label mapping
+        grade = VERTICAL_LIFE_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES] ?? '?';
+      }
+
+      let name = '';
+      if ('zlaggableName' in r) {
+        name = r.zlaggableName;
+      } else if ('name' in r) {
+        name = r.name;
+      }
+
+      const rating = 'averageRating' in r ? (r.averageRating ?? 0) : 0;
+      const ascents = 'totalAscents' in r ? (r.totalAscents ?? 0) : 0;
+
+      let key = '';
+      if ('zlaggableId' in r) {
+        key = r.zlaggableId.toString();
+      } else {
+        key = r.id.toString();
+      }
+      if (!key) key = Math.random().toString();
+
+      return {
+        key,
+        grade,
+        route: name,
+        rating,
+        ascents,
+        _ref: r,
+      };
+    }),
   );
+
+  protected get tableSorter(): TuiComparator<RoutesTableRow> {
+    return this.sorters['ascents'];
+  }
+
+  protected getRouteLink(item: RouteItem): (string | undefined)[] {
+    const countrySlug =
+      'countrySlug' in item
+        ? item.countrySlug
+        : this.global.crag()?.countrySlug;
+    const cragSlug =
+      'cragSlug' in item ? item.cragSlug : this.global.crag()?.cragSlug;
+    const sectorSlug = 'sectorSlug' in item ? item.sectorSlug : 'unknown';
+    const routeSlug = 'zlaggableSlug' in item ? item.zlaggableSlug : item.slug;
+
+    return ['/route', countrySlug, cragSlug, 'sector', sectorSlug, routeSlug];
+  }
 
   protected readonly sorters: Record<
     RoutesTableKey,
@@ -216,10 +268,6 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
   protected getSorter(col: string): TuiComparator<RoutesTableRow> | null {
     if (col === 'actions') return null;
     return this.sorters[col as RoutesTableKey] ?? null;
-  }
-
-  protected get tableSorter(): TuiComparator<RoutesTableRow> {
-    return this.sorters['ascents'];
   }
 
   ngAfterViewInit(): void {
