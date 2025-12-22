@@ -68,6 +68,38 @@ interface UserWithRole {
         </h1>
       </header>
 
+      <div class="mb-6 flex flex-col md:flex-row gap-4">
+        <tui-textfield class="grow" [tuiTextfieldCleaner]="true">
+          <label tuiLabel>{{ 'labels.search' | translate }}</label>
+          <input
+            tuiTextfield
+            type="text"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            [placeholder]="'labels.user' | translate"
+          />
+        </tui-textfield>
+
+        <tui-textfield
+          tuiChevron
+          class="min-w-[200px]"
+          [tuiTextfieldCleaner]="false"
+          [stringify]="stringifyRoleFilter"
+        >
+          <label tuiLabel>{{ 'labels.role' | translate }}</label>
+          <input
+            tuiSelect
+            [ngModel]="roleFilter()"
+            (ngModelChange)="roleFilter.set($event)"
+          />
+          <tui-data-list-wrapper
+            *tuiTextfieldDropdown
+            new
+            [items]="roleFilterOptions"
+          />
+        </tui-textfield>
+      </div>
+
       <tui-scrollbar waIntersectionRoot class="scrollbar" [hidden]="true">
         <table
           size="l"
@@ -100,7 +132,7 @@ interface UserWithRole {
             </tr>
           </thead>
 
-          @let sortedUsersList = users() | tuiTableSort;
+          @let sortedUsersList = filteredUsers() | tuiTableSort;
           <tbody tuiTbody [data]="sortedUsersList">
             @if (loading()) {
               @for (item of skeletons; track $index) {
@@ -229,6 +261,31 @@ export class UsersListAdminComponent {
       const tr = this.translate.instant(key);
       return tr && tr !== key ? tr : x;
     };
+  });
+
+  protected readonly stringifyRoleFilter = (x: unknown): string => {
+    if (x === 'ALL') return this.translate.instant('labels.all');
+    return this.stringifyRole()(x);
+  };
+
+  protected readonly searchQuery = signal('');
+  protected readonly roleFilter = signal<AppRole | 'ALL'>('ALL');
+  protected readonly roleFilterOptions = ['ALL', ...this.roleOptions];
+
+  protected readonly filteredUsers = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    const role = this.roleFilter();
+    let list = this.users();
+
+    if (query) {
+      list = list.filter((u) => (u.name || '').toLowerCase().includes(query));
+    }
+
+    if (role !== 'ALL') {
+      list = list.filter((u) => u.role === role);
+    }
+
+    return list;
   });
 
   protected readonly currentUserId = computed(
