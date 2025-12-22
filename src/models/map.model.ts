@@ -61,6 +61,7 @@ export interface MapOptions {
   minZoom?: number;
   clusteringEnabled?: boolean;
   clusterRadius?: number;
+  ignoreSavedViewport?: boolean;
 }
 
 export interface MapAreaDataFeature {

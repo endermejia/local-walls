@@ -3,11 +3,13 @@ import {
   Component,
   inject,
   signal,
+  computed,
 } from '@angular/core';
 import { TuiButton, TuiDialogContext } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { MapComponent } from './map';
 import { TranslatePipe } from '@ngx-translate/core';
+import { type MapOptions } from '../models';
 
 @Component({
   selector: 'app-location-picker',
@@ -18,6 +20,7 @@ import { TranslatePipe } from '@ngx-translate/core';
       <app-map
         class="grow w-full h-full"
         [selection]="selection()"
+        [options]="mapOptions()"
         (mapClick)="onMapClick($event)"
       />
 
@@ -69,10 +72,26 @@ export class LocationPickerComponent {
     >();
 
   protected readonly selection = signal<{ lat: number; lng: number } | null>(
-    this.context.data?.lat && this.context.data?.lng
+    this.context.data?.lat != null && this.context.data?.lng != null
       ? { lat: this.context.data.lat, lng: this.context.data.lng }
       : null,
   );
+
+  protected readonly mapOptions = computed<MapOptions>(() => {
+    const data = this.context.data;
+    if (data?.lat != null && data?.lng != null) {
+      return {
+        center: [data.lat, data.lng],
+        zoom: 16,
+        ignoreSavedViewport: true,
+      };
+    }
+    return {
+      center: [38.5, -0.6],
+      zoom: 10,
+      ignoreSavedViewport: true,
+    };
+  });
 
   protected onMapClick(coords: { lat: number; lng: number }): void {
     this.selection.set(coords);

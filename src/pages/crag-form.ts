@@ -82,11 +82,24 @@ type MinimalCrag = {
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <tui-textfield [tuiTextfieldCleaner]="false">
           <label tuiLabel for="lat">{{ 'labels.lat' | translate }}</label>
-          <input tuiInputNumber id="lat" [formControl]="latitude" />
+          <input
+            tuiInputNumber
+            id="lat"
+            [formControl]="latitude"
+            [min]="-90"
+            [max]="90"
+            (paste)="onPasteLocation($event)"
+          />
         </tui-textfield>
         <tui-textfield [tuiTextfieldCleaner]="false">
           <label tuiLabel for="lng">{{ 'labels.lng' | translate }}</label>
-          <input tuiInputNumber id="lng" [formControl]="longitude" />
+          <input
+            tuiInputNumber
+            id="lng"
+            [min]="-180"
+            [max]="180"
+            [formControl]="longitude"
+          />
         </tui-textfield>
         <tui-textfield [tuiTextfieldCleaner]="false">
           <label tuiLabel for="approach">{{
@@ -193,8 +206,14 @@ export class CragFormComponent {
     nonNullable: true,
     validators: [Validators.required],
   });
-  latitude = new FormControl<number | null>(null);
-  longitude = new FormControl<number | null>(null);
+  latitude = new FormControl<number | null>(null, [
+    Validators.min(-90),
+    Validators.max(90),
+  ]);
+  longitude = new FormControl<number | null>(null, [
+    Validators.min(-180),
+    Validators.max(180),
+  ]);
   approach = new FormControl<number | null>(null);
   description_es = new FormControl<string | null>(null);
   description_en = new FormControl<string | null>(null);
@@ -292,6 +311,27 @@ export class CragFormComponent {
           this.longitude.markAsDirty();
         }
       });
+  }
+
+  onPasteLocation(event: ClipboardEvent): void {
+    const text = event.clipboardData?.getData('text');
+    if (!text) return;
+
+    // Regex to find two numbers separated by comma and/or space
+    const match = text.match(/(-?\d+\.?\d*)\s*[\s,]\s*(-?\d+\.?\d*)/);
+
+    if (match) {
+      const lat = parseFloat(match[1]);
+      const lng = parseFloat(match[2]);
+
+      if (!isNaN(lat) && !isNaN(lng)) {
+        event.preventDefault();
+        this.latitude.setValue(lat);
+        this.longitude.setValue(lng);
+        this.latitude.markAsDirty();
+        this.longitude.markAsDirty();
+      }
+    }
   }
 }
 

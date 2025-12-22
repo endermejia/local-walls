@@ -103,49 +103,53 @@ export class MapBuilder {
     this.mapCragItems = mapCragItem;
 
     // Restore the last saved viewport (bounds and zoom) if available
-    let savedViewport = this.global.mapBounds();
+    let savedViewport = options.ignoreSavedViewport
+      ? null
+      : this.global.mapBounds();
     if (savedViewport && !this.areBoundsValid(savedViewport)) {
       savedViewport = null as any;
     }
 
-    if (savedViewport && this.areBoundsValid(savedViewport)) {
-      try {
-        const bounds = new L.LatLngBounds([
-          [
-            savedViewport.south_west_latitude,
-            savedViewport.south_west_longitude,
-          ],
-          [
-            savedViewport.north_east_latitude,
-            savedViewport.north_east_longitude,
-          ],
-        ]);
-        this.map.fitBounds(bounds);
-        const minZ = options.minZoom ?? 6;
-        const maxZ = options.maxZoom ?? 18;
-        const targetZ = Math.max(minZ, Math.min(maxZ, savedViewport.zoom));
-        this.map.setZoom(targetZ);
-      } catch (e) {
-        console.warn('Failed to fit bounds from saved viewport', e);
-      }
-    } else {
-      // Fallback: read directly from LocalStorage if GlobalData not hydrated yet
-      const raw = this.localStorage.getItem('map_bounds_v1');
-      if (raw) {
+    if (!options.ignoreSavedViewport) {
+      if (savedViewport && this.areBoundsValid(savedViewport)) {
         try {
-          const parsed = JSON.parse(raw) as MapBounds;
-          if (this.areBoundsValid(parsed)) {
-            savedViewport = parsed;
-            this.global.mapBounds.set(parsed);
-            const bounds = new L.LatLngBounds([
-              [parsed.south_west_latitude, parsed.south_west_longitude],
-              [parsed.north_east_latitude, parsed.north_east_longitude],
-            ]);
-            this.map.fitBounds(bounds);
-            this.map.setZoom(parsed.zoom);
+          const bounds = new L.LatLngBounds([
+            [
+              savedViewport.south_west_latitude,
+              savedViewport.south_west_longitude,
+            ],
+            [
+              savedViewport.north_east_latitude,
+              savedViewport.north_east_longitude,
+            ],
+          ]);
+          this.map.fitBounds(bounds);
+          const minZ = options.minZoom ?? 6;
+          const maxZ = options.maxZoom ?? 18;
+          const targetZ = Math.max(minZ, Math.min(maxZ, savedViewport.zoom));
+          this.map.setZoom(targetZ);
+        } catch (e) {
+          console.warn('Failed to fit bounds from saved viewport', e);
+        }
+      } else {
+        // Fallback: read directly from LocalStorage if GlobalData not hydrated yet
+        const raw = this.localStorage.getItem('map_bounds_v1');
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw) as MapBounds;
+            if (this.areBoundsValid(parsed)) {
+              savedViewport = parsed;
+              this.global.mapBounds.set(parsed);
+              const bounds = new L.LatLngBounds([
+                [parsed.south_west_latitude, parsed.south_west_longitude],
+                [parsed.north_east_latitude, parsed.north_east_longitude],
+              ]);
+              this.map.fitBounds(bounds);
+              this.map.setZoom(parsed.zoom);
+            }
+          } catch {
+            // ignore
           }
-        } catch {
-          // ignore
         }
       }
     }
@@ -185,7 +189,12 @@ export class MapBuilder {
       // ignore and fallback below
     }
 
-    if (!savedViewport && mapCragItem && mapCragItem.length) {
+    if (
+      !options.ignoreSavedViewport &&
+      !savedViewport &&
+      mapCragItem &&
+      mapCragItem.length
+    ) {
       const latLngs: [number, number][] = mapCragItem.map(
         (mapItem: MapCragItem) => [mapItem.latitude, mapItem.longitude],
       );
