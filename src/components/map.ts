@@ -25,13 +25,13 @@ import type {
 import { MapBuilder } from '../services/map-builder';
 import type { MapBuilderCallbacks } from '../services/map-builder';
 import { GlobalData } from '../services';
-import { TuiButton } from '@taiga-ui/core';
+import { TuiButton, TuiHint } from '@taiga-ui/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [TuiButton, TranslatePipe],
+  imports: [TuiButton, TuiHint, TranslatePipe],
   template: `
     <div class="relative w-full h-full">
       <div
@@ -49,7 +49,7 @@ import { TranslatePipe } from '@ngx-translate/core';
           class="pointer-events-auto"
           (click.zoneless)="onLocateClick()"
           [iconStart]="'@tui.locate'"
-          [attr.aria-label]="'labels.myLocation' | translate"
+          [tuiHint]="'labels.myLocation' | translate"
         >
           {{ 'labels.myLocation' | translate }}
         </button>

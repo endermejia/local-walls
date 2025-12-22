@@ -19,6 +19,7 @@ import {
   TuiLoader,
   TuiTitle,
   TuiButton,
+  TuiHint,
   TuiNotification,
 } from '@taiga-ui/core';
 import { TuiSurface } from '@taiga-ui/core';
@@ -57,6 +58,7 @@ import { handleErrorToast } from '../utils';
     TuiSurface,
     TuiTitle,
     TuiButton,
+    TuiHint,
     FormsModule,
     TuiNotification,
     TuiAvatar,
@@ -81,6 +83,7 @@ import { handleErrorToast } from '../utils';
               tuiIconButton
               type="button"
               class="!rounded-full"
+              [tuiHint]="'actions.edit' | translate"
               (click.zoneless)="openEditCrag()"
             >
               {{ 'actions.edit' | translate }}
@@ -92,6 +95,7 @@ import { handleErrorToast } from '../utils';
               tuiIconButton
               type="button"
               class="!rounded-full"
+              [tuiHint]="'actions.delete' | translate"
               (click.zoneless)="deleteCrag()"
             >
               {{ 'actions.delete' | translate }}

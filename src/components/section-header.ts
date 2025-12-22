@@ -7,12 +7,12 @@ import {
 } from '@angular/core';
 import { TuiSkeleton } from '@taiga-ui/kit';
 import { TranslatePipe } from '@ngx-translate/core';
-import { TuiButton } from '@taiga-ui/core';
+import { TuiButton, TuiHint } from '@taiga-ui/core';
 
 @Component({
   selector: 'app-section-header',
   standalone: true,
-  imports: [TranslatePipe, TuiSkeleton, TuiButton],
+  imports: [TranslatePipe, TuiSkeleton, TuiButton, TuiHint],
   template: `
     <header
       class="flex items-start justify-between gap-2"
@@ -26,6 +26,7 @@ import { TuiButton } from '@taiga-ui/core';
           tuiIconButton
           type="button"
           class="!rounded-full"
+          [tuiHint]="'actions.back' | translate"
           (click.zoneless)="back.emit()"
         >
           {{ 'actions.back' | translate }}
@@ -39,6 +40,10 @@ import { TuiButton } from '@taiga-ui/core';
         tuiIconButton
         type="button"
         class="!rounded-full"
+        [tuiHint]="
+          (liked() ? 'actions.favorite.remove' : 'actions.favorite.add')
+            | translate
+        "
         (click.zoneless)="toggleLike.emit()"
       >
         {{

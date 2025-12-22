@@ -10,7 +10,13 @@ import { isPlatformBrowser, Location, LowerCasePipe } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiCardLarge } from '@taiga-ui/layout';
-import { TuiSurface, TuiLoader, TuiTitle, TuiButton } from '@taiga-ui/core';
+import {
+  TuiSurface,
+  TuiLoader,
+  TuiTitle,
+  TuiButton,
+  TuiHint,
+} from '@taiga-ui/core';
 import { TuiAvatar, TUI_CONFIRM, type TuiConfirmData } from '@taiga-ui/kit';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -41,6 +47,7 @@ import { handleErrorToast } from '../utils';
     TuiTitle,
     RouterLink,
     TuiButton,
+    TuiHint,
     TuiAvatar,
   ],
   template: `
@@ -63,6 +70,7 @@ import { handleErrorToast } from '../utils';
               tuiIconButton
               type="button"
               class="!rounded-full"
+              [tuiHint]="'actions.edit' | translate"
               (click.zoneless)="openEditArea()"
             >
               {{ 'actions.edit' | translate }}
@@ -74,6 +82,7 @@ import { handleErrorToast } from '../utils';
               tuiIconButton
               type="button"
               class="!rounded-full"
+              [tuiHint]="'actions.delete' | translate"
               (click.zoneless)="deleteArea()"
             >
               {{ 'actions.delete' | translate }}

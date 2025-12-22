@@ -45,7 +45,7 @@ import {
   RouteDto,
 } from '../models';
 import { FormsModule } from '@angular/forms';
-import { TuiButton } from '@taiga-ui/core';
+import { TuiButton, TuiHint } from '@taiga-ui/core';
 
 export type RoutesTableKey = 'grade' | 'route' | 'rating' | 'ascents';
 export type RouteItem = ClimbingRoute | RouteDto;
@@ -73,6 +73,7 @@ export interface RoutesTableRow {
     TuiCell,
     FormsModule,
     TuiButton,
+    TuiHint,
     TuiLet,
     TuiTableSortPipe,
   ],
@@ -152,6 +153,12 @@ export interface RoutesTableRow {
                           tuiIconButton
                           type="button"
                           class="!rounded-full"
+                          [tuiHint]="
+                            (item.liked
+                              ? 'actions.favorite.remove'
+                              : 'actions.favorite.add'
+                            ) | translate
+                          "
                           (click.zoneless)="onToggleLike(item)"
                         >
                           {{
@@ -169,6 +176,12 @@ export interface RoutesTableRow {
                           tuiIconButton
                           type="button"
                           class="!rounded-full"
+                          [tuiHint]="
+                            (item.project
+                              ? 'actions.project.remove'
+                              : 'actions.project.add'
+                            ) | translate
+                          "
                           (click.zoneless)="onToggleProject(item)"
                         >
                           {{
@@ -187,6 +200,7 @@ export interface RoutesTableRow {
                             tuiIconButton
                             type="button"
                             class="!rounded-full"
+                            [tuiHint]="'actions.edit' | translate"
                             (click.zoneless)="openEditRoute(item._ref)"
                           >
                             {{ 'actions.edit' | translate }}
@@ -198,6 +212,7 @@ export interface RoutesTableRow {
                             tuiIconButton
                             type="button"
                             class="!rounded-full"
+                            [tuiHint]="'actions.delete' | translate"
                             (click.zoneless)="deleteRoute(item._ref)"
                           >
                             {{ 'actions.delete' | translate }}

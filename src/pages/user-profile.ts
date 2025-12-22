@@ -11,7 +11,7 @@ import {
 import { AsyncPipe, isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TUI_COUNTRIES, TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
-import { TuiButton, TuiFallbackSrcPipe } from '@taiga-ui/core';
+import { TuiButton, TuiFallbackSrcPipe, TuiHint } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
@@ -27,6 +27,7 @@ import { UserProfileConfigComponent } from './user-profile-config';
     TuiAvatar,
     TuiFallbackSrcPipe,
     TuiButton,
+    TuiHint,
     TuiFallbackSrcPipe,
     AsyncPipe,
     TuiSkeleton,
@@ -60,6 +61,7 @@ import { UserProfileConfigComponent } from './user-profile-config';
                 tuiIconButton
                 type="button"
                 appearance="action-grayscale"
+                [tuiHint]="'actions.edit' | translate"
                 (click)="openEditDialog()"
               >
                 {{ 'actions.edit' | translate }}

@@ -15,6 +15,7 @@ import {
   TuiButton,
   TuiDataListComponent,
   TuiFallbackSrcPipe,
+  TuiHint,
   TuiLink,
   TuiOptGroup,
   TuiTextfield,
@@ -74,6 +75,7 @@ interface BreadcrumbItem {
     TuiTitle,
     TuiBreadcrumbs,
     TuiLink,
+    TuiHint,
     TranslatePipe,
     TuiFallbackSrcPipe,
     TuiSkeleton,
@@ -86,7 +88,7 @@ interface BreadcrumbItem {
     >
       <div class="flex items-center gap-2 overflow-hidden" ngSkipHydration>
         <button
-          [title]="'labels.menu' | translate"
+          [tuiHint]="'labels.menu' | translate"
           tuiIconButton
           tuiNavigationDrawer
           type="button"
@@ -197,7 +199,7 @@ interface BreadcrumbItem {
             tuiIconButton
             type="button"
             [iconStart]="'@tui.search'"
-            [title]="'actions.search' | translate"
+            [tuiHint]="'actions.search' | translate"
             (click.zoneless)="input.open()"
             ngSkipHydration
           >
@@ -209,7 +211,7 @@ interface BreadcrumbItem {
             size="s"
             (click.zoneless)="toggleFullscreen()"
             [iconStart]="isFullscreen() ? '@tui.shrink' : '@tui.expand'"
-            [title]="
+            [tuiHint]="
               (isFullscreen() ? 'actions.exitFullscreen' : 'actions.fullscreen')
                 | translate
             "

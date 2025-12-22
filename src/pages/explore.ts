@@ -20,6 +20,7 @@ import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import {
   TuiButton,
+  TuiHint,
   TuiLink,
   TuiLoader,
   TuiSurface,
@@ -51,6 +52,7 @@ import { remToPx } from '../utils';
     TuiSurface,
     TuiBottomSheet,
     TuiButton,
+    TuiHint,
     LowerCasePipe,
     TuiLink,
     MapComponent,
@@ -65,14 +67,14 @@ import { remToPx } from '../utils';
           tuiIconButton
           size="s"
           appearance="primary-grayscale"
-          (click.zoneless)="setBottomSheet('toggle')"
           [iconStart]="bottomSheetExpanded ? '@tui.map' : '@tui.list'"
           class="pointer-events-auto"
-          [attr.aria-label]="
+          [tuiHint]="
             bottomSheetExpanded
               ? ('labels.map' | translate)
               : ('labels.list' | translate)
           "
+          (click.zoneless)="setBottomSheet('toggle')"
         >
           {{ 'explore.toggleView' | translate }}
         </button>
@@ -82,10 +84,10 @@ import { remToPx } from '../utils';
           tuiIconButton
           size="s"
           appearance="primary-grayscale"
-          (click.zoneless)="openFilters()"
           iconStart="@tui.sliders-horizontal"
           class="pointer-events-auto"
-          [attr.aria-label]="'labels.filters' | translate"
+          [tuiHint]="'labels.filters' | translate"
+          (click.zoneless)="openFilters()"
         >
           {{ 'labels.filters' | translate }}
         </button>

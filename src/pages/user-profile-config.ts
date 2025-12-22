@@ -16,6 +16,7 @@ import {
   tuiDateFormatProvider,
   TuiFallbackSrcPipe,
   TuiFlagPipe,
+  TuiHint,
   TuiIcon,
   TuiTextfield,
 } from '@taiga-ui/core';
@@ -71,6 +72,7 @@ interface Country {
   imports: [
     TranslatePipe,
     TuiButton,
+    TuiHint,
     FormsModule,
     ReactiveFormsModule,
     TuiChevron,
@@ -111,6 +113,7 @@ interface Country {
           tuiIconButton
           type="button"
           class="!rounded-full"
+          [tuiHint]="'actions.back' | translate"
           (click)="close()"
         >
           {{ 'actions.back' | translate }}

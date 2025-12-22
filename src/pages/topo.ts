@@ -13,7 +13,7 @@ import {
 import { Location } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
-import { TuiButton, TuiLoader } from '@taiga-ui/core';
+import { TuiButton, TuiHint, TuiLoader } from '@taiga-ui/core';
 import { TuiSortDirection } from '@taiga-ui/addon-table';
 import { RoutesTableComponent, SectionHeaderComponent } from '../components';
 import { GlobalData } from '../services';
@@ -27,6 +27,7 @@ import type { ClimbingRoute } from '../models';
     SectionHeaderComponent,
     TuiBottomSheet,
     TuiButton,
+    TuiHint,
     TuiLoader,
   ],
   template: `
@@ -49,25 +50,19 @@ import type { ClimbingRoute } from '../models';
                 tuiIconButton
                 size="s"
                 appearance="primary-grayscale"
-                (click.zoneless)="toggleImageFit()"
+                class="pointer-events-auto"
                 [iconStart]="
                   imgFit === 'cover'
                     ? '@tui.unfold-horizontal'
                     : '@tui.unfold-vertical'
                 "
-                class="pointer-events-auto"
-                [attr.aria-label]="
+                [tuiHint]="
                   (imgFit === 'cover'
                     ? 'actions.fit.contain'
                     : 'actions.fit.cover'
                   ) | translate
                 "
-                [attr.title]="
-                  (imgFit === 'cover'
-                    ? 'actions.fit.contain'
-                    : 'actions.fit.cover'
-                  ) | translate
-                "
+                (click.zoneless)="toggleImageFit()"
               >
                 Toggle image fit
               </button>
