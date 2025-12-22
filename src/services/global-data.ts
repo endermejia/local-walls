@@ -444,14 +444,27 @@ export class GlobalData {
         await this.supabase.whenReady();
         const { data, error } = await this.supabase.client
           .from('routes')
-          .select('*')
+          .select(
+            `
+            *,
+            liked:route_likes(id),
+            project:route_projects(id)
+          `,
+          )
           .eq('crag_id', cragId);
 
         if (error) {
           console.error('[GlobalData] cragRoutesResource error', error);
           return [];
         }
-        return (data as RouteDto[]) ?? [];
+
+        return (
+          (data as any[]).map((r) => ({
+            ...r,
+            liked: (r.liked?.length ?? 0) > 0,
+            project: (r.project?.length ?? 0) > 0,
+          })) ?? []
+        );
       } catch (e) {
         console.error('[GlobalData] cragRoutesResource exception', e);
         return [];

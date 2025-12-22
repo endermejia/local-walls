@@ -55,8 +55,9 @@ export class CragsService {
       console.error('[CragsService] update error', error);
       throw error;
     }
-    // Recarga lista de crags del área seleccionada
+    // Recarga lista de crags del área seleccionada y el detalle del crag actual
     this.global.cragsListResource.reload();
+    this.global.cragDetailResource.reload();
     return data as CragDto;
   }
 

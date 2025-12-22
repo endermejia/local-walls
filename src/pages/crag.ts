@@ -39,6 +39,7 @@ import {
 } from '../models';
 import { mapLocationUrl } from '../utils';
 import { CragFormComponent } from './crag-form';
+import { RouteFormComponent } from './route-form';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { handleErrorToast } from '../utils';
 
@@ -250,44 +251,65 @@ import { handleErrorToast } from '../utils';
               </button>
             }
           </div>
-          <div class="grid gap-3">
+          <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
             @for (t of c.topos; track t.id) {
-              <div tuiCardLarge [tuiSurface]="'neutral'">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
-                  <div class="md:col-span-2 flex gap-3">
+              <div tuiCardLarge [tuiSurface]="'outline'" class="cursor-pointer">
+                <div class="flex flex-col min-w-0 grow">
+                  <header tuiHeader>
+                    <h2 tuiTitle>{{ t.name }}</h2>
+                  </header>
+                  <section class="flex gap-3 mt-2">
                     @if (t.photo) {
                       <img
                         [src]="t.photo"
                         alt="topo"
-                        class="w-40 h-28 object-cover rounded"
+                        class="w-24 h-24 object-cover rounded shadow-sm"
                         loading="lazy"
                         decoding="async"
                       />
                     }
-                    <div class="flex-1">
-                      <h3 class="text-lg font-semibold mb-1">{{ t.name }}</h3>
-                      <div class="text-sm opacity-80">
+                    <div class="flex flex-col flex-1 min-w-0">
+                      <div class="text-sm opacity-80 mb-2">
                         {{ shadeText(t) }}
                         @if (t.shade_change_hour) {
                           · {{ t.shade_change_hour }}
                         }
                       </div>
+                      <div class="mt-auto flex justify-end">
+                        <app-chart-routes-by-grade [grades]="t.grades" />
+                      </div>
                     </div>
-                  </div>
-                  <div class="md:col-span-1 flex justify-end">
-                    <app-chart-routes-by-grade [grades]="t.grades" />
-                  </div>
+                  </section>
                 </div>
               </div>
             }
           </div>
         </div>
-        <div class="mt-8">
-          <h2 class="text-2xl font-semibold mb-4">
-            {{ 'labels.routes' | translate }}
+        <div class="flex items-center justify-between gap-2 my-4">
+          <h2 class="text-2xl font-semibold m-2">
+            <tui-avatar
+              tuiThumbnail
+              size="l"
+              src="@tui.chart-no-axes-column"
+              class="self-center"
+              [attr.aria-label]="'labels.routes' | translate"
+            />
+            {{ routesCount() }}
+            {{ 'labels.routes' | translate | lowercase }}
           </h2>
-          <app-routes-table [data]="global.cragRoutesResource.value() ?? []" />
+          @if (global.isAdmin()) {
+            <button
+              tuiButton
+              appearance="textfield"
+              size="m"
+              type="button"
+              (click)="openCreateRoute()"
+            >
+              {{ 'routes.new' | translate }}
+            </button>
+          }
         </div>
+        <app-routes-table [data]="global.cragRoutesResource.value() ?? []" />
       } @else {
         <div class="flex items-center justify-center w-full min-h-[50vh]">
           <tui-loader size="xxl" />
@@ -334,6 +356,10 @@ export class CragComponent {
     };
   });
 
+  protected readonly routesCount = computed(
+    () => (this.global.cragRoutesResource.value() ?? []).length,
+  );
+
   constructor() {
     // Sincroniza área/crag seleccionados en el estado global desde la ruta
     effect(() => {
@@ -342,6 +368,18 @@ export class CragComponent {
       this.global.selectedAreaSlug.set(aSlug);
       this.global.selectedCragSlug.set(cSlug);
     });
+  }
+
+  openCreateRoute(): void {
+    const c = this.cragDetail();
+    if (!c) return;
+    this.dialogs
+      .open<boolean>(new PolymorpheusComponent(RouteFormComponent), {
+        label: this.translate.instant('routes.newTitle'),
+        size: 'l',
+        data: { cragId: c.id },
+      })
+      .subscribe();
   }
 
   goBack(): void {
@@ -421,9 +459,16 @@ export class CragComponent {
         data: {
           cragData: {
             id: c.id,
-            area_id: (this.global.selectedArea() as any)?.id,
+            area_id: c.area_id,
             name: c.name,
             slug: c.slug,
+            latitude: c.latitude,
+            longitude: c.longitude,
+            approach: c.approach,
+            description_es: c.description_es,
+            description_en: c.description_en,
+            warning_es: c.warning_es,
+            warning_en: c.warning_en,
           },
         },
       })

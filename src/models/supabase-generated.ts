@@ -1627,8 +1627,11 @@ export type Database = {
           topos_count: number;
         }[];
       };
+      is_user_admin: { Args: { p_uid: string }; Returns: boolean };
       toggle_area_like: { Args: { p_area_id: number }; Returns: boolean };
       toggle_crag_like: { Args: { p_crag_id: number }; Returns: boolean };
+      toggle_route_like: { Args: { p_route_id: number }; Returns: boolean };
+      toggle_route_project: { Args: { p_route_id: number }; Returns: boolean };
     };
     Enums: {
       app_role: 'admin' | 'equipper' | 'climber';

@@ -16,6 +16,10 @@
       "add": "Marcar como favorito",
       "remove": "Quitar favorito"
     },
+    "project": {
+      "add": "Marcar como proyecto",
+      "remove": "Quitar proyecto"
+    },
     "fit": {
       "cover": "Ajustar al alto",
       "contain": "Ajustar al ancho"
@@ -48,6 +52,7 @@
     "boulders": "Bloques",
     "capacity": "Capacidad",
     "city": "Ciudad",
+    "climbing_kind": "Tipo de escalada",
     "confirmPassword": "Confirmar contraseña",
     "country": "País",
     "crag": "Sector",
@@ -188,10 +193,13 @@
   },
   "routes": {
     "new": "Nueva vía",
+    "edit": "Editar vía",
     "newTitle": "Crear nueva vía",
     "editTitle": "Editar vía",
     "deleteTitle": "Eliminar vía",
-    "deleteConfirm": "¿Seguro que quieres eliminar la vía \"{{name}}\"? Esta acción no se puede deshacer."
+    "deleteConfirm": "¿Seguro que quieres eliminar la vía \"{{name}}\"? Esta acción no se puede deshacer.",
+    "name": "Nombre de la vía",
+    "height": "Altura (metros)"
   },
   "admin": {
     "users": {
@@ -247,5 +255,12 @@
     "size": {
       "invalid": "La altura debe estar entre 0 y 300 cm."
     }
+  },
+  "climbingKinds": {
+    "sport": "Deportiva",
+    "boulder": "Boulder",
+    "mixed": "Mixta",
+    "multipitch": "Varios largos",
+    "trad": "Clásica"
   }
 }

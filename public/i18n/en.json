@@ -16,6 +16,10 @@
       "add": "Add to favorites",
       "remove": "Remove from favorites"
     },
+    "project": {
+      "add": "Mark as project",
+      "remove": "Remove from projects"
+    },
     "fit": {
       "cover": "Fit to height",
       "contain": "Fit to width"
@@ -48,6 +52,7 @@
     "boulders": "Boulders",
     "capacity": "Capacity",
     "city": "City",
+    "climbing_kind": "Climbing kind",
     "confirmPassword": "Confirm password",
     "country": "Country",
     "crag": "Crag",
@@ -188,10 +193,13 @@
   },
   "routes": {
     "new": "New route",
+    "edit": "Edit route",
     "newTitle": "Create new route",
     "editTitle": "Edit route",
     "deleteTitle": "Delete route",
-    "deleteConfirm": "Are you sure you want to delete route \"{{name}}\"? This action cannot be undone."
+    "deleteConfirm": "Are you sure you want to delete route \"{{name}}\"? This action cannot be undone.",
+    "name": "Route name",
+    "height": "Height (meters)"
   },
   "admin": {
     "users": {
@@ -247,5 +255,12 @@
     "size": {
       "invalid": "Height must be between 0 and 300 cm."
     }
+  },
+  "climbingKinds": {
+    "sport": "Sport",
+    "boulder": "Boulder",
+    "mixed": "Mixed",
+    "multipitch": "Multipitch",
+    "trad": "Trad"
   }
 }

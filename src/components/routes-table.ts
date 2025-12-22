@@ -16,8 +16,15 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { TuiAvatar, TuiRating } from '@taiga-ui/kit';
+import {
+  TuiAvatar,
+  TuiRating,
+  TUI_CONFIRM,
+  type TuiConfirmData,
+  TuiToastService,
+} from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
+import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TuiTable,
   TuiSortDirection,
@@ -25,8 +32,11 @@ import {
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { TuiLet, tuiDefaultSort } from '@taiga-ui/cdk';
-import { TranslatePipe } from '@ngx-translate/core';
-import { GlobalData } from '../services';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { GlobalData, RoutesService } from '../services';
+import { handleErrorToast } from '../utils';
+import { RouteFormComponent } from '../pages/route-form';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
   ClimbingRoute,
   ORDERED_GRADE_VALUES,
@@ -46,6 +56,8 @@ export interface RoutesTableRow {
   route: string;
   rating: number;
   ascents: number;
+  liked: boolean;
+  project: boolean;
   _ref: RouteItem;
 }
 
@@ -133,26 +145,64 @@ export interface RoutesTableRow {
                     }
                     @case ('actions') {
                       <div tuiCell size="m" class="flex items-center gap-2">
-                        @let liked = false;
                         <button
                           size="s"
-                          [appearance]="liked ? 'accent' : 'neutral'"
+                          [appearance]="item.liked ? 'accent' : 'neutral'"
                           iconStart="@tui.heart"
                           tuiIconButton
                           type="button"
                           class="!rounded-full"
-                          (click.zoneless)="
-                            'zlaggableId' in item._ref &&
-                              global.toggleLikeRoute(item._ref.zlaggableId)
-                          "
+                          (click.zoneless)="onToggleLike(item)"
                         >
                           {{
-                            (liked
+                            (item.liked
                               ? 'actions.favorite.remove'
                               : 'actions.favorite.add'
                             ) | translate
                           }}
                         </button>
+
+                        <button
+                          size="s"
+                          [appearance]="item.project ? 'primary' : 'neutral'"
+                          iconStart="@tui.bookmark"
+                          tuiIconButton
+                          type="button"
+                          class="!rounded-full"
+                          (click.zoneless)="onToggleProject(item)"
+                        >
+                          {{
+                            (item.project
+                              ? 'actions.project.remove'
+                              : 'actions.project.add'
+                            ) | translate
+                          }}
+                        </button>
+
+                        @if (global.isAdmin() && 'id' in item._ref) {
+                          <button
+                            size="s"
+                            appearance="neutral"
+                            iconStart="@tui.square-pen"
+                            tuiIconButton
+                            type="button"
+                            class="!rounded-full"
+                            (click.zoneless)="openEditRoute(item._ref)"
+                          >
+                            {{ 'actions.edit' | translate }}
+                          </button>
+                          <button
+                            size="s"
+                            appearance="negative"
+                            iconStart="@tui.trash"
+                            tuiIconButton
+                            type="button"
+                            class="!rounded-full"
+                            (click.zoneless)="deleteRoute(item._ref)"
+                          >
+                            {{ 'actions.delete' | translate }}
+                          </button>
+                        }
                       </div>
                     }
                   }
@@ -171,6 +221,10 @@ export interface RoutesTableRow {
 export class RoutesTableComponent implements AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
+  private readonly routesService = inject(RoutesService);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
+  private readonly toast = inject(TuiToastService);
 
   // Inputs
   data: InputSignal<RouteItem[]> = input.required<RouteItem[]>();
@@ -219,6 +273,9 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
       const rating = 'averageRating' in r ? (r.averageRating ?? 0) : 0;
       const ascents = 'totalAscents' in r ? (r.totalAscents ?? 0) : 0;
 
+      const liked = 'liked' in r ? !!r.liked : false;
+      const project = 'project' in r ? !!r.project : false;
+
       let key = '';
       if ('zlaggableId' in r) {
         key = r.zlaggableId.toString();
@@ -233,6 +290,8 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
         route: name,
         rating,
         ascents,
+        liked,
+        project,
         _ref: r,
       };
     }),
@@ -268,6 +327,69 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
   protected getSorter(col: string): TuiComparator<RoutesTableRow> | null {
     if (col === 'actions') return null;
     return this.sorters[col as RoutesTableKey] ?? null;
+  }
+
+  protected onToggleLike(item: RoutesTableRow): void {
+    if ('id' in item._ref) {
+      void this.routesService.toggleRouteLike(item._ref.id);
+    } else if ('zlaggableId' in item._ref) {
+      void this.global.toggleLikeRoute(item._ref.zlaggableId);
+    }
+  }
+
+  protected onToggleProject(item: RoutesTableRow): void {
+    if ('id' in item._ref) {
+      void this.routesService.toggleRouteProject(item._ref.id);
+    } else {
+      // Vertical Life project toggle (if available) - typically not exposed as simple RPC
+      console.warn('Project toggle not implemented for Vertical Life routes');
+    }
+  }
+
+  protected deleteRoute(route: RouteItem): void {
+    if (!('id' in route)) return;
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    this.dialogs
+      .open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('routes.deleteTitle'),
+        size: 's',
+        data: {
+          content: this.translate.instant('routes.deleteConfirm', {
+            name: 'name' in route ? route.name : '',
+          }),
+          yes: this.translate.instant('actions.delete'),
+          no: this.translate.instant('actions.cancel'),
+        } as TuiConfirmData,
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
+        this.routesService
+          .delete(route.id)
+          .catch((err) => handleErrorToast(err, this.toast, this.translate));
+      });
+  }
+
+  protected openEditRoute(route: RouteItem): void {
+    if (!('id' in route)) return;
+    this.dialogs
+      .open<boolean>(new PolymorpheusComponent(RouteFormComponent), {
+        label: this.translate.instant('routes.editTitle'),
+        size: 'l',
+        data: {
+          cragId: route.crag_id,
+          routeData: {
+            id: route.id,
+            crag_id: route.crag_id,
+            name: route.name,
+            slug: route.slug,
+            grade: route.grade,
+            climbing_kind: route.climbing_kind,
+            height: route.height,
+          },
+        },
+      })
+      .subscribe();
   }
 
   ngAfterViewInit(): void {

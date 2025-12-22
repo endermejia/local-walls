@@ -14,12 +14,11 @@ import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocationPickerComponent } from '../components';
 import { TuiDialogService } from '@taiga-ui/core';
-import { TuiToastService } from '@taiga-ui/kit';
-import { PolymorpheusComponent, injectContext } from '@taiga-ui/polymorpheus';
+import { TuiInputNumber, TuiTextarea, TuiToastService } from '@taiga-ui/kit';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
+import { PolymorpheusComponent, injectContext } from '@taiga-ui/polymorpheus';
 import { CragsService } from '../services';
 import { slugify, handleErrorToast } from '../utils';
-import { TuiInputNumber } from '@taiga-ui/kit';
 
 type MinimalCrag = {
   id: number;
@@ -47,6 +46,7 @@ type MinimalCrag = {
     TuiTextfield,
     TranslatePipe,
     TuiInputNumber,
+    TuiTextarea,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
@@ -114,28 +114,48 @@ type MinimalCrag = {
         <label tuiLabel for="desc-es">{{
           'labels.description_es' | translate
         }}</label>
-        <input tuiTextfield id="desc-es" [formControl]="description_es" />
+        <textarea
+          tuiTextarea
+          id="desc-es"
+          [formControl]="description_es"
+          rows="3"
+        ></textarea>
       </tui-textfield>
 
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="desc-en">{{
           'labels.description_en' | translate
         }}</label>
-        <input tuiTextfield id="desc-en" [formControl]="description_en" />
+        <textarea
+          tuiTextarea
+          id="desc-en"
+          [formControl]="description_en"
+          rows="3"
+        ></textarea>
       </tui-textfield>
 
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="warn-es">{{
           'labels.warning_es' | translate
         }}</label>
-        <input tuiTextfield id="warn-es" [formControl]="warning_es" />
+        <textarea
+          tuiTextarea
+          id="warn-es"
+          [formControl]="warning_es"
+          rows="3"
+        ></textarea>
       </tui-textfield>
 
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="warn-en">{{
           'labels.warning_en' | translate
         }}</label>
-        <input tuiTextfield id="warn-en" [formControl]="warning_en" />
+        <textarea
+          tuiTextarea
+          id="warn-en"
+          [formControl]="warning_en"
+          rows="3"
+        ></textarea>
       </tui-textfield>
 
       <div class="flex gap-2 justify-end">
