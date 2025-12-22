@@ -20,13 +20,7 @@ import {
   AppRoles,
   AreaListItem,
   CragListItem,
-  AscentsPage,
-  ClimbingCrag,
   AmountByEveryGrade,
-  ClimbingRoute,
-  ClimbingRoutesPage,
-  ClimbingSector,
-  ClimbingTopo,
   CragDetail,
   CragDto,
   Parking,
@@ -472,14 +466,6 @@ export class GlobalData {
     },
   });
 
-  crag: WritableSignal<ClimbingCrag | null> = signal(null);
-  cragSectors: WritableSignal<ClimbingSector[]> = signal([]);
-  sector: WritableSignal<ClimbingSector | null> = signal(null);
-  route: WritableSignal<ClimbingRoute | null> = signal(null);
-  routesPageable: WritableSignal<ClimbingRoutesPage | null> = signal(null);
-  ascentsPageable: WritableSignal<AscentsPage | null> = signal(null);
-  topo: WritableSignal<ClimbingTopo | null> = signal(null);
-
   // Cache for local areas loaded from public/map/map_areas.json
   private _localAreasCache: MapAreaItem[] | null = null;
 
@@ -631,84 +617,8 @@ export class GlobalData {
     }
   }
 
-  async loadCragSectors(countrySlug: string, cragSlug: string): Promise<void> {
-    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
-      return;
-    try {
-      this.loading.set(true);
-      const sectors = await this.verticalLifeApi.getClimbingSectors(
-        countrySlug,
-        cragSlug,
-      );
-      this.cragSectors.set(sectors);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      this.error.set(msg);
-      if (msg.includes('HTTP 404')) {
-        this.router.navigateByUrl('/page-not-found');
-      }
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  async loadCragRoutes(
-    countrySlug: string,
-    cragSlug: string,
-    sectorSlug?: string,
-  ): Promise<void> {
-    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
-      return;
-    try {
-      this.loading.set(true);
-      const res = await this.verticalLifeApi.getClimbingCragRoutesPageable(
-        countrySlug,
-        cragSlug,
-        { pageIndex: 0, sortField: 'totalascents', order: 'desc', sectorSlug },
-      );
-      this.routesPageable.set(res);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      this.error.set(msg);
-      if (msg.includes('HTTP 404')) {
-        this.router.navigateByUrl('/page-not-found');
-      }
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  async loadRoute(
-    countrySlug: string,
-    cragSlug: string,
-    sectorSlug: string,
-    zlaggableSlug: string,
-  ): Promise<void> {
-    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
-      return;
-    try {
-      this.loading.set(true);
-      const resp = await this.verticalLifeApi.getClimbingRoute(
-        countrySlug,
-        cragSlug,
-        sectorSlug,
-        zlaggableSlug,
-      );
-      this.route.set(resp);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      this.error.set(msg);
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
   toggleLikeCrag(id: string): void {
     console.log('toggleLikeCrag', id);
-  }
-
-  toggleLikeRoute(id: number): void {
-    console.log('toggleLikeRoute', id);
   }
 
   // ---- Error state for interceptor ----
@@ -772,30 +682,14 @@ export class GlobalData {
         this.selectedAreaSlug.set(null);
         this.selectedCragSlug.set(null);
 
-        this.topo.set(null);
-        this.route.set(null);
-        this.routesPageable.set(null);
-        this.ascentsPageable.set(null);
         this.selectedMapCragItem.set(null);
         break;
       }
       case 'area': {
         this.selectedCragSlug.set(null);
-        this.topo.set(null);
-        this.route.set(null);
-        this.cragSectors.set([]);
-        this.routesPageable.set(null);
-        this.ascentsPageable.set(null);
         break;
       }
       case 'crag': {
-        this.sector.set(null);
-        this.route.set(null);
-        this.ascentsPageable.set(null);
-        break;
-      }
-      case 'sector': {
-        this.topo.set(null);
         break;
       }
     }

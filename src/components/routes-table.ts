@@ -38,17 +38,16 @@ import { handleErrorToast } from '../utils';
 import { RouteFormComponent } from '../pages/route-form';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
-  ClimbingRoute,
   ORDERED_GRADE_VALUES,
   VERTICAL_LIFE_TO_LABEL,
   VERTICAL_LIFE_GRADES,
-  RouteDto,
+  RouteWithExtras,
 } from '../models';
 import { FormsModule } from '@angular/forms';
 import { TuiButton, TuiHint } from '@taiga-ui/core';
 
 export type RoutesTableKey = 'grade' | 'route' | 'rating' | 'ascents';
-export type RouteItem = ClimbingRoute | RouteDto;
+export type RouteItem = RouteWithExtras;
 
 export interface RoutesTableRow {
   key: string;
@@ -188,7 +187,7 @@ export interface RoutesTableRow {
                           }}
                         </button>
 
-                        @if (global.isAdmin() && 'id' in item._ref) {
+                        @if (global.isAdmin()) {
                           <button
                             size="s"
                             appearance="neutral"
@@ -265,40 +264,22 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
 
   protected readonly tableData: Signal<RoutesTableRow[]> = computed(() =>
     this.data().map((r: RouteItem) => {
-      // Handle ClimbingRoute (VerticalLife) vs RouteDto (Supabase)
-      let grade = '';
-      if ('difficulty' in r) {
-        grade = r.difficulty || '';
-      } else if ('grade' in r) {
-        // Map numeric grade from Supabase using label mapping
-        grade = VERTICAL_LIFE_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES] ?? '?';
-      }
+      // Map numeric grade from Supabase using label mapping
+      const grade =
+        VERTICAL_LIFE_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES] ?? '?';
 
-      let name = '';
-      if ('zlaggableName' in r) {
-        name = r.zlaggableName;
-      } else if ('name' in r) {
-        name = r.name;
-      }
+      const rating = 0; // rating will be implemented later in supabase
+      const ascents = 0; // ascents will be implemented later in supabase
 
-      const rating = 'averageRating' in r ? (r.averageRating ?? 0) : 0;
-      const ascents = 'totalAscents' in r ? (r.totalAscents ?? 0) : 0;
+      const liked = !!r.liked;
+      const project = !!r.project;
 
-      const liked = 'liked' in r ? !!r.liked : false;
-      const project = 'project' in r ? !!r.project : false;
-
-      let key = '';
-      if ('zlaggableId' in r) {
-        key = r.zlaggableId.toString();
-      } else {
-        key = r.id.toString();
-      }
-      if (!key) key = Math.random().toString();
+      const key = r.id.toString();
 
       return {
         key,
         grade,
-        route: name,
+        route: r.name,
         rating,
         ascents,
         liked,
@@ -313,16 +294,13 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
   }
 
   protected getRouteLink(item: RouteItem): (string | undefined)[] {
-    const countrySlug =
-      'countrySlug' in item
-        ? item.countrySlug
-        : this.global.crag()?.countrySlug;
-    const cragSlug =
-      'cragSlug' in item ? item.cragSlug : this.global.crag()?.cragSlug;
-    const sectorSlug = 'sectorSlug' in item ? item.sectorSlug : 'unknown';
-    const routeSlug = 'zlaggableSlug' in item ? item.zlaggableSlug : item.slug;
+    const crag = this.global.cragDetailResource.value();
+    const areaSlug = crag?.area_slug ?? 'unknown';
+    const cragSlug = crag?.slug ?? 'unknown';
 
-    return ['/route', countrySlug, cragSlug, 'sector', sectorSlug, routeSlug];
+    // The current route expects countrySlug and sectorSlug which we don't have easily.
+    // We'll use areaSlug as countrySlug placeholder for now to match the existing route pattern.
+    return ['/route', areaSlug, cragSlug, 'sector', 'all', item.slug];
   }
 
   protected readonly sorters: Record<
@@ -341,24 +319,14 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
   }
 
   protected onToggleLike(item: RoutesTableRow): void {
-    if ('id' in item._ref) {
-      void this.routesService.toggleRouteLike(item._ref.id);
-    } else if ('zlaggableId' in item._ref) {
-      void this.global.toggleLikeRoute(item._ref.zlaggableId);
-    }
+    void this.routesService.toggleRouteLike(item._ref.id);
   }
 
   protected onToggleProject(item: RoutesTableRow): void {
-    if ('id' in item._ref) {
-      void this.routesService.toggleRouteProject(item._ref.id);
-    } else {
-      // Vertical Life project toggle (if available) - typically not exposed as simple RPC
-      console.warn('Project toggle not implemented for Vertical Life routes');
-    }
+    void this.routesService.toggleRouteProject(item._ref.id);
   }
 
   protected deleteRoute(route: RouteItem): void {
-    if (!('id' in route)) return;
     if (!isPlatformBrowser(this.platformId)) return;
 
     this.dialogs
@@ -367,7 +335,7 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
         size: 's',
         data: {
           content: this.translate.instant('routes.deleteConfirm', {
-            name: 'name' in route ? route.name : '',
+            name: route.name,
           }),
           yes: this.translate.instant('actions.delete'),
           no: this.translate.instant('actions.cancel'),
@@ -382,7 +350,6 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
   }
 
   protected openEditRoute(route: RouteItem): void {
-    if (!('id' in route)) return;
     this.dialogs
       .open<boolean>(new PolymorpheusComponent(RouteFormComponent), {
         label: this.translate.instant('routes.editTitle'),
