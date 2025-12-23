@@ -33,12 +33,14 @@ import {
   debounceTime,
   distinctUntilChanged,
   filter,
+  from,
   map,
   startWith,
   switchMap,
 } from 'rxjs';
-import { GlobalData } from '../services';
-import { OptionsItem, SearchData } from '../models';
+import { GlobalData, SupabaseService } from '../services';
+import { OptionsItem, SearchData, SearchItem } from '../models';
+import { TranslateService } from '@ngx-translate/core';
 
 type RouterCommand = readonly (string | number)[] | string;
 
@@ -171,7 +173,7 @@ interface BreadcrumbItem {
                 <ng-template let-item>
                   <a tuiCell [href]="item.href" ngSkipHydration>
                     <tui-avatar
-                      [src]="item.icon || '@tui.file'"
+                      [src]="item.icon | tuiFallbackSrc: '@tui.file' | async"
                       ngSkipHydration
                     />
                     <span tuiTitle ngSkipHydration>
@@ -240,6 +242,8 @@ interface BreadcrumbItem {
 })
 export class HeaderComponent implements OnDestroy {
   protected global = inject(GlobalData);
+  private readonly supabase = inject(SupabaseService);
+  private readonly translate = inject(TranslateService);
 
   private readonly platformId: object = inject(PLATFORM_ID);
   private readonly isBrowser =
@@ -296,7 +300,106 @@ export class HeaderComponent implements OnDestroy {
     filter((v) => v.length >= 2),
     debounceTime(300),
     distinctUntilChanged(),
-    switchMap(() => Promise.resolve({} as SearchData)),
+    switchMap((query) =>
+      from(
+        (async (): Promise<SearchData> => {
+          await this.supabase.whenReady();
+          const q = `%${query}%`;
+
+          const [
+            { data: areas },
+            { data: crags },
+            { data: routes },
+            { data: users },
+          ] = await Promise.all([
+            this.supabase.client
+              .from('areas')
+              .select('id, name, slug')
+              .ilike('name', q)
+              .limit(5),
+            this.supabase.client
+              .from('crags')
+              .select('id, name, slug, area:areas(name, slug)')
+              .ilike('name', q)
+              .limit(5),
+            this.supabase.client
+              .from('routes')
+              .select(
+                'id, name, slug, sector:sectors(name, slug, crag:crags(name, slug, area:areas(name, slug)))',
+              )
+              .ilike('name', q)
+              .limit(5),
+            this.supabase.client
+              .from('user_profiles')
+              .select('id, name, avatar')
+              .ilike('name', q)
+              .limit(5),
+          ]);
+
+          const results: SearchData = {};
+
+          if (areas?.length) {
+            results[this.translate.instant('labels.areas')] = areas.map(
+              (a) =>
+                ({
+                  title: a.name,
+                  href: `/area/${a.slug}`,
+                  icon: '@tui.map-pin',
+                }) as SearchItem,
+            );
+          }
+
+          if (crags?.length) {
+            results[this.translate.instant('labels.crags')] = crags.map((c) => {
+              const area = c.area as unknown as { name: string; slug: string };
+              return {
+                title: c.name,
+                subtitle: area?.name,
+                href: `/area/${area?.slug}/${c.slug}`,
+                icon: '@tui.mountain',
+              } as SearchItem;
+            });
+          }
+
+          if (routes?.length) {
+            results[this.translate.instant('labels.routes')] = routes.map(
+              (r) => {
+                const sector = r.sector as unknown as {
+                  name: string;
+                  slug: string;
+                  crag: {
+                    name: string;
+                    slug: string;
+                    area: { name: string; slug: string };
+                  };
+                };
+                const crag = sector?.crag;
+                const area = crag?.area;
+                return {
+                  title: r.name,
+                  subtitle: `${area?.name || ''} > ${crag?.name || ''}`,
+                  href: `/area/${area?.slug}/${crag?.slug}/${r.slug}`,
+                  icon: '@tui.route',
+                } as SearchItem;
+              },
+            );
+          }
+
+          if (users?.length) {
+            results[this.translate.instant('labels.users')] = users.map(
+              (u) =>
+                ({
+                  title: u.name,
+                  href: `/user/${u.id}`,
+                  icon: this.supabase.buildAvatarUrl(u.avatar) || u.name[0],
+                }) as SearchItem,
+            );
+          }
+
+          return results;
+        })(),
+      ),
+    ),
     startWith(null),
   );
 
