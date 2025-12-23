@@ -226,7 +226,10 @@ export interface AscentsTableRow {
                             ascentInfo()[item.type || 'default'].background
                           "
                           [tuiHint]="
-                            'ascentTypes.' + (item.type || 'rp') | translate
+                            global.isMobile()
+                              ? null
+                              : ('ascentTypes.' + (item.type || 'rp')
+                                | translate)
                           "
                         >
                           <tui-icon

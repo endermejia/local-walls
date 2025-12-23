@@ -111,7 +111,7 @@ interface Country {
           tuiIconButton
           type="button"
           class="!rounded-full"
-          [tuiHint]="'actions.back' | translate"
+          [tuiHint]="global.isMobile() ? null : ('actions.back' | translate)"
           (click)="close()"
         >
           {{ 'actions.back' | translate }}

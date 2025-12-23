@@ -84,7 +84,9 @@ import { handleErrorToast } from '../utils';
               tuiIconButton
               type="button"
               class="!rounded-full"
-              [tuiHint]="'actions.edit' | translate"
+              [tuiHint]="
+                global.isMobile() ? null : ('actions.edit' | translate)
+              "
               (click.zoneless)="openEditCrag()"
             >
               {{ 'actions.edit' | translate }}
@@ -96,7 +98,9 @@ import { handleErrorToast } from '../utils';
               tuiIconButton
               type="button"
               class="!rounded-full"
-              [tuiHint]="'actions.delete' | translate"
+              [tuiHint]="
+                global.isMobile() ? null : ('actions.delete' | translate)
+              "
               (click.zoneless)="deleteCrag()"
             >
               {{ 'actions.delete' | translate }}

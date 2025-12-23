@@ -70,9 +70,11 @@ import { remToPx } from '../utils';
           [iconStart]="bottomSheetExpanded ? '@tui.map' : '@tui.list'"
           class="pointer-events-auto"
           [tuiHint]="
-            bottomSheetExpanded
-              ? ('labels.map' | translate)
-              : ('labels.list' | translate)
+            global.isMobile()
+              ? null
+              : bottomSheetExpanded
+                ? ('labels.map' | translate)
+                : ('labels.list' | translate)
           "
           (click.zoneless)="setBottomSheet('toggle')"
         >
@@ -86,7 +88,7 @@ import { remToPx } from '../utils';
           appearance="primary-grayscale"
           iconStart="@tui.sliders-horizontal"
           class="pointer-events-auto"
-          [tuiHint]="'labels.filters' | translate"
+          [tuiHint]="global.isMobile() ? null : ('labels.filters' | translate)"
           (click.zoneless)="openFilters()"
         >
           {{ 'labels.filters' | translate }}

@@ -45,8 +45,12 @@ import { GlobalData } from '../services';
                 : '@tui.unfold-vertical'
             "
             [tuiHint]="
-              (imgFit === 'cover' ? 'actions.fit.contain' : 'actions.fit.cover')
-                | translate
+              global.isMobile()
+                ? null
+                : ((imgFit === 'cover'
+                    ? 'actions.fit.contain'
+                    : 'actions.fit.cover'
+                  ) | translate)
             "
             (click.zoneless)="toggleImageFit()"
           >

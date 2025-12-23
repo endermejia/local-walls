@@ -7,12 +7,15 @@ import {
   signal,
   WritableSignal,
   resource,
+  PLATFORM_ID,
 } from '@angular/core';
-import { PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
+import { TuiBreakpointService } from '@taiga-ui/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import { LocalStorage } from './local-storage';
 import { SupabaseService } from './supabase.service';
 import { VerticalLifeApi } from './vertical-life-api';
@@ -54,6 +57,12 @@ export class GlobalData {
   private verticalLifeApi = inject(VerticalLifeApi);
   private platformId = inject(PLATFORM_ID);
   private supabase = inject(SupabaseService);
+  private breakpointService = inject(TuiBreakpointService);
+
+  readonly isMobile = toSignal(
+    this.breakpointService.pipe(map((b) => b === 'mobile')),
+    { initialValue: false },
+  );
 
   // ---- Map cache (keeps already downloaded items) ----
   private readonly mapCache = new Map<number, MapItem>();

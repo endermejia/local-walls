@@ -49,7 +49,9 @@ import { TranslatePipe } from '@ngx-translate/core';
           class="pointer-events-auto"
           (click.zoneless)="onLocateClick()"
           [iconStart]="'@tui.locate'"
-          [tuiHint]="'labels.myLocation' | translate"
+          [tuiHint]="
+            global.isMobile() ? null : ('labels.myLocation' | translate)
+          "
         >
           {{ 'labels.myLocation' | translate }}
         </button>
@@ -65,7 +67,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly mapBuilder = inject(MapBuilder);
-  private readonly global = inject(GlobalData);
+  protected readonly global = inject(GlobalData);
 
   private readonly mapInitialized = signal(false);
   private initialCragsData = signal<MapCragsData | null>(null);

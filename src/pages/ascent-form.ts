@@ -250,7 +250,9 @@ import { handleErrorToast } from '../utils';
               "
               size="m"
               (click)="toggleBool('recommended')"
-              [tuiHint]="'ascent.recommend' | translate"
+              [tuiHint]="
+                global.isMobile() ? null : ('ascent.recommend' | translate)
+              "
             >
               <tui-icon
                 [icon]="

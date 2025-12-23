@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  inject,
   input,
   InputSignal,
   output,
@@ -8,6 +9,7 @@ import {
 import { TuiSkeleton } from '@taiga-ui/kit';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiButton, TuiHint } from '@taiga-ui/core';
+import { GlobalData } from '../services';
 
 @Component({
   selector: 'app-section-header',
@@ -26,7 +28,7 @@ import { TuiButton, TuiHint } from '@taiga-ui/core';
           tuiIconButton
           type="button"
           class="!rounded-full"
-          [tuiHint]="'actions.back' | translate"
+          [tuiHint]="global.isMobile() ? null : ('actions.back' | translate)"
           (click.zoneless)="back.emit()"
         >
           {{ 'actions.back' | translate }}
@@ -41,8 +43,10 @@ import { TuiButton, TuiHint } from '@taiga-ui/core';
         type="button"
         class="!rounded-full"
         [tuiHint]="
-          (liked() ? 'actions.favorite.remove' : 'actions.favorite.add')
-            | translate
+          global.isMobile()
+            ? null
+            : ((liked() ? 'actions.favorite.remove' : 'actions.favorite.add')
+              | translate)
         "
         (click.zoneless)="toggleLike.emit()"
       >
@@ -56,6 +60,7 @@ import { TuiButton, TuiHint } from '@taiga-ui/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SectionHeaderComponent {
+  protected readonly global = inject(GlobalData);
   title = input.required<string>();
   liked = input(false);
   tuiSkeleton: InputSignal<boolean> = input(false);

@@ -201,7 +201,11 @@ export interface RoutesTableRow {
                             tuiIconButton
                             type="button"
                             class="!rounded-full"
-                            [tuiHint]="'ascent.new' | translate"
+                            [tuiHint]="
+                              global.isMobile()
+                                ? null
+                                : ('ascent.new' | translate)
+                            "
                             (click.zoneless)="onLogAscent(item._ref)"
                           >
                             {{ 'ascent.new' | translate }}
@@ -213,7 +217,11 @@ export interface RoutesTableRow {
                               ascentInfo()[ascentToEdit?.type || 'default']
                                 .background
                             "
-                            [tuiHint]="'ascent.edit' | translate"
+                            [tuiHint]="
+                              global.isMobile()
+                                ? null
+                                : ('ascent.edit' | translate)
+                            "
                             (click.zoneless)="onEditAscent(ascentToEdit)"
                           >
                             <tui-icon
@@ -234,10 +242,12 @@ export interface RoutesTableRow {
                             type="button"
                             class="!rounded-full"
                             [tuiHint]="
-                              (item.project
-                                ? 'actions.project.remove'
-                                : 'actions.project.add'
-                              ) | translate
+                              global.isMobile()
+                                ? null
+                                : ((item.project
+                                    ? 'actions.project.remove'
+                                    : 'actions.project.add'
+                                  ) | translate)
                             "
                             (click.zoneless)="onToggleProject(item)"
                           >
@@ -260,7 +270,11 @@ export interface RoutesTableRow {
                           tuiIconButton
                           type="button"
                           class="!rounded-full"
-                          [tuiHint]="'actions.edit' | translate"
+                          [tuiHint]="
+                            global.isMobile()
+                              ? null
+                              : ('actions.edit' | translate)
+                          "
                           (click.zoneless)="openEditRoute(item._ref)"
                         >
                           {{ 'actions.edit' | translate }}
@@ -272,7 +286,11 @@ export interface RoutesTableRow {
                           tuiIconButton
                           type="button"
                           class="!rounded-full"
-                          [tuiHint]="'actions.delete' | translate"
+                          [tuiHint]="
+                            global.isMobile()
+                              ? null
+                              : ('actions.delete' | translate)
+                          "
                           (click.zoneless)="deleteRoute(item._ref)"
                         >
                           {{ 'actions.delete' | translate }}

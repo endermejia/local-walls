@@ -102,7 +102,9 @@ interface AscentResponse extends RouteAscentDto {
                 tuiIconButton
                 type="button"
                 appearance="action-grayscale"
-                [tuiHint]="'actions.edit' | translate"
+                [tuiHint]="
+                  global.isMobile() ? null : ('actions.edit' | translate)
+                "
                 (click)="openEditDialog()"
               >
                 {{ 'actions.edit' | translate }}
@@ -189,7 +191,7 @@ interface AscentResponse extends RouteAscentDto {
 export class UserProfileComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
-  private readonly global = inject(GlobalData);
+  protected readonly global = inject(GlobalData);
   private readonly dialogs = inject(TuiDialogService);
   protected readonly countriesNames$ = inject(TUI_COUNTRIES);
   private readonly translate = inject(TranslateService);
