@@ -34,6 +34,7 @@ import { GlobalData } from '../services';
           {{ 'actions.back' | translate }}
         </button>
         <h1 class="text-2xl font-bold">{{ title() }}</h1>
+        <ng-content />
       </div>
       <button
         size="s"

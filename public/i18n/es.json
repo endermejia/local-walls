@@ -16,6 +16,7 @@
       "add": "Marcar como favorito",
       "remove": "Quitar favorito"
     },
+    "new": "Nuevo",
     "project": {
       "add": "Proyecto",
       "remove": "Proyecto"
@@ -60,6 +61,7 @@
     "crags": "Sectores",
     "darkMode": "Modo oscuro",
     "date": "Fecha",
+    "description": "Descripción",
     "description_en": "Descripción en ingés",
     "description_es": "Descripción en español",
     "email": "Correo electrónico",
@@ -159,8 +161,9 @@
     "shade": {
       "morning": "Sombra mañana",
       "afternoon": "Sombra tarde",
-      "allDay": "Sombra todo el día",
-      "noShade": "Sin sombra"
+      "allDay": "Sombra siempre",
+      "noShade": "Sol siempre",
+      "changeAt": "cambia a las"
     }
   },
   "messages": {
@@ -202,7 +205,10 @@
     "name": "Nombre del croquis",
     "photoUrl": "URL de la foto",
     "shadeChangeHour": "Hora de cambio de sombra",
-    "manageRoutes": "Gestionar vías asociadas"
+    "manageRoutes": "Gestionar vías asociadas",
+    "editRouteTitle": "Editar número de vía",
+    "removeRouteTitle": "Eliminar vía del croquis",
+    "removeRouteConfirm": "¿Seguro que quieres eliminar la vía \"{{name}}\" de este croquis? La vía no se borrará del sistema, solo se desvinculará de este croquis."
   },
   "routes": {
     "new": "Nueva vía",
@@ -217,6 +223,11 @@
   "admin": {
     "users": {
       "title": "Gestión de usuarios"
+    },
+    "equippers": {
+      "title": "Gestión de equipadores",
+      "deleteTitle": "Eliminar equipador",
+      "deleteConfirm": "¿Seguro que quieres eliminar al equipador \"{{name}}\"? Esta acción no se puede deshacer."
     }
   },
   "options": {
@@ -291,9 +302,9 @@
     "didYouLikeIt": "¿Te gustó?",
     "recommend": "Recomendada",
     "howWouldYouGrade": "¿Cómo graduarías la vía?",
-    "soft": "Suave",
+    "soft": "Fácil",
     "normal": "Normal",
-    "hard": "Dura",
+    "hard": "Difícil",
     "moreInfo": "Comparte más info sobre esta vía",
     "typeOfClimbing": "Tipo de escalada",
     "climbing": {

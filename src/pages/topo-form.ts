@@ -16,7 +16,13 @@ import {
   FormControl,
   Validators,
 } from '@angular/forms';
-import { TuiButton, TuiLabel, TuiTextfield, TuiTitle } from '@taiga-ui/core';
+import {
+  TuiButton,
+  TuiIcon,
+  TuiLabel,
+  TuiTextfield,
+  TuiTitle,
+} from '@taiga-ui/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiTime } from '@taiga-ui/cdk';
 import {
@@ -26,10 +32,11 @@ import {
   tuiInputTimeOptionsProvider,
   TuiDataListWrapper,
   TuiFilterByInputPipe,
-  TuiHideSelectedPipe,
   TuiInputChip,
+  TuiMultiSelect,
+  TuiChevron,
 } from '@taiga-ui/kit';
-import { TuiDataList, TuiSelectLike } from '@taiga-ui/core';
+import { TuiSelectLike } from '@taiga-ui/core';
 import { TuiCell } from '@taiga-ui/layout';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
@@ -41,6 +48,8 @@ import {
   VERTICAL_LIFE_TO_LABEL,
   TopoDto,
   RouteDto,
+  TopoDetail,
+  TopoRouteWithRoute,
 } from '../models';
 import { startWith } from 'rxjs';
 
@@ -52,20 +61,21 @@ import { startWith } from 'rxjs';
     FormsModule,
     ReactiveFormsModule,
     TuiButton,
+    TuiChevron,
     TuiLabel,
     TuiTextfield,
     TranslatePipe,
     TuiCheckbox,
     TuiInputTime,
-    TuiDataList,
     TuiDataListWrapper,
     TuiFilterByInputPipe,
-    TuiHideSelectedPipe,
     TuiInputChip,
+    TuiMultiSelect,
     TuiSelectLike,
     TuiCell,
     AvatarGradeComponent,
     TuiTitle,
+    TuiIcon,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
@@ -85,9 +95,10 @@ import { startWith } from 'rxjs';
       </tui-textfield>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label class="flex items-center gap-2 cursor-pointer">
             <input tuiCheckbox type="checkbox" [formControl]="shade_morning" />
+            <tui-icon icon="@tui.sunset" />
             {{ 'filters.shade.morning' | translate }}
           </label>
 
@@ -97,6 +108,7 @@ import { startWith } from 'rxjs';
               type="checkbox"
               [formControl]="shade_afternoon"
             />
+            <tui-icon icon="@tui.sunrise" />
             {{ 'filters.shade.afternoon' | translate }}
           </label>
         </div>
@@ -119,6 +131,7 @@ import { startWith } from 'rxjs';
         </h3>
         <tui-textfield
           multi
+          tuiChevron
           [stringify]="stringifyRoute"
           [tuiTextfieldCleaner]="true"
         >
@@ -132,10 +145,12 @@ import { startWith } from 'rxjs';
             [formControl]="selectedRoutes"
             [placeholder]="'actions.select' | translate"
           />
+          <tui-input-chip *tuiItem />
           <tui-data-list-wrapper
             *tuiTextfieldDropdown
             new
-            [items]="availableRoutes() | tuiHideSelected | tuiFilterByInput"
+            tuiMultiSelectGroup
+            [items]="availableRoutes() | tuiFilterByInput"
             [itemContent]="routeItem"
           />
           <ng-template #routeItem let-item>
@@ -193,13 +208,13 @@ export class TopoFormComponent {
 
   private readonly _dialogCtx: TuiDialogContext<
     string | boolean | null,
-    { cragId?: number; topoData?: TopoDto; initialRouteIds?: number[] }
+    { cragId?: number; topoData?: TopoDetail; initialRouteIds?: number[] }
   > | null = (() => {
     try {
       return injectContext<
         TuiDialogContext<
           string | boolean | null,
-          { cragId?: number; topoData?: TopoDto; initialRouteIds?: number[] }
+          { cragId?: number; topoData?: TopoDetail; initialRouteIds?: number[] }
         >
       >();
     } catch {
@@ -210,7 +225,7 @@ export class TopoFormComponent {
   cragId: InputSignal<number | undefined> = input<number | undefined>(
     undefined,
   );
-  topoData: InputSignal<TopoDto | undefined> = input<TopoDto | undefined>(
+  topoData: InputSignal<TopoDetail | undefined> = input<TopoDetail | undefined>(
     undefined,
   );
 
@@ -222,7 +237,7 @@ export class TopoFormComponent {
   private readonly effectiveCragId: Signal<number | undefined> = computed(
     () => this.dialogCragId ?? this.cragId(),
   );
-  private readonly effectiveTopoData: Signal<TopoDto | undefined> = computed(
+  private readonly effectiveTopoData: Signal<TopoDetail | undefined> = computed(
     () => this.dialogTopoData ?? this.topoData(),
   );
 
@@ -347,13 +362,22 @@ export class TopoFormComponent {
             await this.topos.removeRoute(topo.id, id);
           }
         }
-        let number = 0; // Simple number for now
+
+        const existingRoutes = this.effectiveTopoData()?.topo_routes || [];
+        const maxNumber =
+          existingRoutes.length > 0
+            ? Math.max(
+                ...existingRoutes.map((tr: TopoRouteWithRoute) => tr.number),
+              )
+            : -1;
+        let nextNumber = maxNumber + 1;
+
         for (const id of selectedIds) {
           if (!initial.has(id)) {
             await this.topos.addRoute({
               topo_id: topo.id,
               route_id: id,
-              number: number++,
+              number: nextNumber++,
             });
           }
         }

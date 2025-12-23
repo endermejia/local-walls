@@ -17,6 +17,8 @@ import {
   TuiTextfield,
   TuiTitle,
   TuiSurface,
+  TuiIcon,
+  TuiHint,
 } from '@taiga-ui/core';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { TuiDialogService } from '@taiga-ui/experimental';
@@ -54,6 +56,8 @@ import {
     TuiAvatar,
     TuiBadgeNotification,
     TuiBadgedContentComponent,
+    TuiIcon,
+    TuiHint,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -111,6 +115,9 @@ import {
             type="button"
             iconStart="@tui.sliders-horizontal"
             [attr.aria-label]="'labels.filters' | translate"
+            [tuiHint]="
+              global.isMobile() ? null : ('labels.filters' | translate)
+            "
             (click.zoneless)="openFilters()"
           ></button>
         </tui-badged-content>
@@ -147,7 +154,12 @@ import {
               </div>
             </div>
           } @empty {
-            <div class="opacity-70">{{ 'areas.empty' | translate }}</div>
+            <div
+              class="flex flex-col items-center justify-center gap-2 opacity-50 col-span-full py-10"
+            >
+              <tui-icon icon="@tui.package-open" class="text-4xl" />
+              <p>{{ 'labels.empty' | translate }}</p>
+            </div>
           }
         </div>
       } @else {

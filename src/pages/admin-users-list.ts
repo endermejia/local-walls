@@ -1,11 +1,13 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  PLATFORM_ID,
   computed,
   inject,
   signal,
   WritableSignal,
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WaIntersectionObserver } from '@ng-web-apis/intersection-observer';
 import {
@@ -15,7 +17,7 @@ import {
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
-import { TuiScrollbar, TuiTextfield } from '@taiga-ui/core';
+import { TuiIcon, TuiScrollbar, TuiTextfield } from '@taiga-ui/core';
 import {
   TuiAvatar,
   TuiChevron,
@@ -50,6 +52,7 @@ interface UserWithRole {
     TuiTextfield,
     TranslatePipe,
     WaIntersectionObserver,
+    TuiIcon,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -198,6 +201,17 @@ interface UserWithRole {
                     </tui-textfield>
                   </td>
                 </tr>
+              } @empty {
+                <tr tuiTr>
+                  <td [attr.colspan]="columns.length" tuiTd class="!py-10">
+                    <div
+                      class="flex flex-col items-center justify-center gap-2 opacity-50"
+                    >
+                      <tui-icon icon="@tui.package-open" class="text-4xl" />
+                      <p>{{ 'labels.empty' | translate }}</p>
+                    </div>
+                  </td>
+                </tr>
               }
             }
           </tbody>
@@ -244,7 +258,8 @@ interface UserWithRole {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'overflow-auto' },
 })
-export class UsersListAdminComponent {
+export class AdminUsersListComponent {
+  private readonly platformId = inject(PLATFORM_ID);
   protected readonly supabase = inject(SupabaseService);
   protected readonly global = inject(GlobalData);
   private readonly translate = inject(TranslateService);
@@ -312,7 +327,9 @@ export class UsersListAdminComponent {
     tuiDefaultSort(a.role || '', b.role || '');
 
   constructor() {
-    void this.loadUsers();
+    if (isPlatformBrowser(this.platformId)) {
+      void this.loadUsers();
+    }
 
     this.global.resetDataByPage('home');
   }
@@ -320,6 +337,7 @@ export class UsersListAdminComponent {
   private async loadUsers(): Promise<void> {
     try {
       this.loading.set(true);
+      await this.supabase.whenReady();
 
       // Fetch user profiles and roles with a join
       const { data: profiles, error: profilesError } =
@@ -404,4 +422,4 @@ export class UsersListAdminComponent {
   }
 }
 
-export default UsersListAdminComponent;
+export default AdminUsersListComponent;

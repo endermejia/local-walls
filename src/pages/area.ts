@@ -16,6 +16,7 @@ import {
   TuiTitle,
   TuiButton,
   TuiHint,
+  TuiIcon,
 } from '@taiga-ui/core';
 import { TuiAvatar, TUI_CONFIRM, type TuiConfirmData } from '@taiga-ui/kit';
 import { TuiDialogService } from '@taiga-ui/experimental';
@@ -49,6 +50,7 @@ import { handleErrorToast } from '../utils';
     TuiButton,
     TuiHint,
     TuiAvatar,
+    TuiIcon,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -153,6 +155,13 @@ import { handleErrorToast } from '../utils';
                   />
                 </section>
               </div>
+            </div>
+          } @empty {
+            <div
+              class="flex flex-col items-center justify-center gap-2 opacity-50 col-span-full py-10"
+            >
+              <tui-icon icon="@tui.package-open" class="text-4xl" />
+              <p>{{ 'labels.empty' | translate }}</p>
             </div>
           }
         </div>

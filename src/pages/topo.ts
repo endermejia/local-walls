@@ -11,17 +11,46 @@ import {
   InputSignal,
   PLATFORM_ID,
 } from '@angular/core';
-import { Location } from '@angular/common';
-import { Router } from '@angular/router';
+import { isPlatformBrowser, Location } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { TuiButton, TuiHint, TuiLoader, TuiLink } from '@taiga-ui/core';
-import { TuiTable } from '@taiga-ui/addon-table';
+import {
+  TuiButton,
+  TuiHint,
+  TuiLoader,
+  TuiLink,
+  TuiIcon,
+} from '@taiga-ui/core';
+import {
+  TuiTable,
+  TuiSortDirection,
+  TuiTableSortPipe,
+} from '@taiga-ui/addon-table';
+import type { TuiComparator } from '@taiga-ui/addon-table/types';
+import { tuiDefaultSort } from '@taiga-ui/cdk';
 import { TuiDialogService } from '@taiga-ui/experimental';
+import {
+  TuiToastService,
+  TUI_CONFIRM,
+  type TuiConfirmData,
+} from '@taiga-ui/kit';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { AvatarGradeComponent, SectionHeaderComponent } from '../components';
-import { GlobalData } from '../services';
-import { TopoDetail } from '../models';
+import { GlobalData, ToposService } from '../services';
+import { TopoDetail, TopoRouteWithRoute } from '../models';
 import TopoFormComponent from './topo-form';
+import TopoRouteFormComponent from './topo-route-form';
+import { handleErrorToast } from '../utils';
+
+export interface TopoRouteRow {
+  index: number;
+  name: string;
+  grade: number;
+  height: number | null;
+  slug: string;
+  link: string[];
+  _ref: TopoRouteWithRoute;
+}
 
 @Component({
   selector: 'app-topo',
@@ -35,10 +64,13 @@ import TopoFormComponent from './topo-form';
     TuiLoader,
     TuiLink,
     AvatarGradeComponent,
+    TuiTableSortPipe,
+    RouterLink,
+    TuiIcon,
   ],
   template: `
     <div class="h-full w-full">
-      <section class="w-full h-full max-w-5xl mx-auto p-4">
+      <section class="flex flex-col w-full h-full max-w-5xl mx-auto p-4">
         @if (topo(); as t) {
           <div class="flex gap-2">
             <app-section-header
@@ -47,18 +79,50 @@ import TopoFormComponent from './topo-form';
               [liked]="false"
               (back)="goBack()"
               (toggleLike)="onToggleLike()"
-            />
+            >
+              @if (shadeInfo(); as info) {
+                @let changeAt = 'filters.shade.changeAt' | translate;
+                @let hint =
+                  (info.label | translate) +
+                  (topo()?.shade_change_hour
+                    ? ' · ' + changeAt + ' ' + topo()?.shade_change_hour
+                    : '');
+                <tui-icon
+                  [icon]="info.icon"
+                  class="text-2xl opacity-70"
+                  [tuiHint]="hint"
+                />
+              }
+            </app-section-header>
             @if (global.isAdmin()) {
-              <button
-                tuiIconButton
-                size="s"
-                appearance="primary"
-                iconStart="@tui.square-pen"
-                class="pointer-events-auto"
-                (click.zoneless)="openEditTopo(t)"
-              >
-                {{ 'actions.edit' | translate }}
-              </button>
+              <div class="flex gap-1">
+                <button
+                  tuiIconButton
+                  size="s"
+                  appearance="neutral"
+                  iconStart="@tui.square-pen"
+                  class="pointer-events-auto !rounded-full"
+                  (click.zoneless)="openEditTopo(t)"
+                  [tuiHint]="
+                    global.isMobile() ? null : ('actions.edit' | translate)
+                  "
+                >
+                  {{ 'actions.edit' | translate }}
+                </button>
+                <button
+                  tuiIconButton
+                  size="s"
+                  appearance="negative"
+                  iconStart="@tui.trash"
+                  class="pointer-events-auto !rounded-full"
+                  (click.zoneless)="deleteTopo(t)"
+                  [tuiHint]="
+                    global.isMobile() ? null : ('actions.delete' | translate)
+                  "
+                >
+                  {{ 'actions.delete' | translate }}
+                </button>
+              </div>
             }
             <!-- Toggle image fit button -->
             @let imgFit = imageFit();
@@ -66,7 +130,7 @@ import TopoFormComponent from './topo-form';
               tuiIconButton
               size="s"
               appearance="primary-grayscale"
-              class="pointer-events-auto"
+              class="pointer-events-auto !rounded-full"
               [iconStart]="
                 imgFit === 'cover'
                   ? '@tui.unfold-horizontal'
@@ -97,42 +161,126 @@ import TopoFormComponent from './topo-form';
             />
           </div>
 
-          <div class="mt-6">
-            <h2 class="text-2xl font-semibold mb-4">
-              {{ 'labels.routes' | translate }}
-            </h2>
-            <table tuiTable class="w-full" [columns]="columns">
+          <div class="mt-6 overflow-auto">
+            <table
+              tuiTable
+              class="w-full"
+              [columns]="columns"
+              [direction]="direction()"
+              [sorter]="tableSorter"
+            >
               <thead>
                 <tr tuiThGroup>
-                  <th tuiTh [sorter]="null">#</th>
-                  <th tuiTh [sorter]="null">{{ 'routes.name' | translate }}</th>
-                  <th tuiTh [sorter]="null">
-                    {{ 'labels.grade' | translate }}
-                  </th>
-                  <th tuiTh [sorter]="null">
-                    {{ 'routes.height' | translate }}
-                  </th>
+                  @for (col of columns; track col) {
+                    <th
+                      *tuiHead="col"
+                      tuiTh
+                      [sorter]="getSorter(col)"
+                      [class.text-center]="col !== 'name'"
+                      [class.!w-12]="col === 'index'"
+                      [class.!w-20]="col === 'grade'"
+                      [class.!w-24]="col === 'height' || col === 'actions'"
+                    >
+                      @switch (col) {
+                        @case ('index') {
+                          #
+                        }
+                        @case ('name') {
+                          {{ 'routes.name' | translate }}
+                        }
+                        @case ('grade') {
+                          {{ 'labels.grade' | translate }}
+                        }
+                        @case ('height') {
+                          {{ 'routes.height' | translate }}
+                        }
+                      }
+                    </th>
+                  }
                 </tr>
               </thead>
-              <tbody tuiTbody [data]="t.topo_routes">
-                @for (tr of t.topo_routes; track tr.route_id) {
+              @let sortedData = tableData() | tuiTableSort;
+              <tbody tuiTbody [data]="sortedData">
+                @for (item of sortedData; track item._ref.route_id) {
                   <tr tuiTr>
-                    <td tuiTd>{{ tr.number + 1 }}</td>
-                    <td tuiTd>
-                      <button
-                        tuiLink
-                        type="button"
-                        class="text-left"
-                        (click)="goToRoute(tr.route.slug)"
+                    @for (col of columns; track col) {
+                      <td
+                        *tuiCell="col"
+                        tuiTd
+                        [class.text-center]="col !== 'name'"
                       >
-                        {{ tr.route.name }}
-                      </button>
-                    </td>
-                    <td tuiTd>
-                      <app-avatar-grade [grade]="tr.route.grade" size="s" />
-                    </td>
-                    <td tuiTd>
-                      {{ tr.route.height ? tr.route.height + 'm' : '-' }}
+                        @switch (col) {
+                          @case ('index') {
+                            {{ item.index + 1 }}
+                          }
+                          @case ('name') {
+                            <a
+                              tuiLink
+                              [routerLink]="item.link"
+                              class="text-left"
+                            >
+                              {{ item.name }}
+                            </a>
+                          }
+                          @case ('grade') {
+                            <div class="flex justify-center">
+                              <app-avatar-grade [grade]="item.grade" size="s" />
+                            </div>
+                          }
+                          @case ('height') {
+                            {{ item.height ? item.height + 'm' : '-' }}
+                          }
+                          @case ('actions') {
+                            @if (global.isAdmin()) {
+                              <div class="flex gap-1 justify-center">
+                                <button
+                                  tuiIconButton
+                                  size="s"
+                                  appearance="neutral"
+                                  iconStart="@tui.square-pen"
+                                  class="!rounded-full"
+                                  [tuiHint]="
+                                    global.isMobile()
+                                      ? null
+                                      : ('actions.edit' | translate)
+                                  "
+                                  (click.zoneless)="
+                                    openEditTopoRoute(item._ref)
+                                  "
+                                >
+                                  {{ 'actions.edit' | translate }}
+                                </button>
+                                <button
+                                  tuiIconButton
+                                  size="s"
+                                  appearance="negative"
+                                  iconStart="@tui.trash"
+                                  class="!rounded-full"
+                                  [tuiHint]="
+                                    global.isMobile()
+                                      ? null
+                                      : ('actions.delete' | translate)
+                                  "
+                                  (click.zoneless)="deleteTopoRoute(item._ref)"
+                                >
+                                  {{ 'actions.delete' | translate }}
+                                </button>
+                              </div>
+                            }
+                          }
+                        }
+                      </td>
+                    }
+                  </tr>
+                } @empty {
+                  <tr tuiTr>
+                    <td [attr.colspan]="columns.length" tuiTd class="!py-10">
+                      <div
+                        class="flex flex-col items-center justify-center gap-2 opacity-50"
+                      >
+                        <tui-icon icon="@tui.package-open" class="text-4xl" />
+                        <p>{{ 'labels.empty' | translate }}</p>
+                      </div>
                     </td>
                   </tr>
                 }
@@ -148,7 +296,9 @@ import TopoFormComponent from './topo-form';
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow h-full sm:p-4' },
+  host: {
+    class: 'flex grow h-full overflow-hidden',
+  },
 })
 export class TopoComponent {
   protected readonly imageFit: WritableSignal<'cover' | 'contain'> =
@@ -159,11 +309,13 @@ export class TopoComponent {
     );
 
   protected readonly global = inject(GlobalData);
+  private readonly topos = inject(ToposService);
   private readonly location = inject(Location);
   private readonly router = inject(Router);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly toast = inject(TuiToastService);
 
   // Route params
   countrySlug: InputSignal<string> = input.required();
@@ -173,7 +325,54 @@ export class TopoComponent {
   sectorSlug: InputSignal<string | undefined> = input();
 
   protected readonly topo = this.global.topoDetailResource.value;
-  protected readonly columns = ['index', 'name', 'grade', 'height'];
+
+  protected readonly shadeInfo = computed(() => {
+    const t = this.topo();
+    if (!t) return null;
+
+    if (t.shade_morning && t.shade_afternoon) {
+      return { icon: '@tui.eclipse', label: 'filters.shade.allDay' };
+    }
+    if (t.shade_morning) {
+      return { icon: '@tui.sunset', label: 'filters.shade.morning' };
+    }
+    if (t.shade_afternoon) {
+      return { icon: '@tui.sunrise', label: 'filters.shade.afternoon' };
+    }
+    return { icon: '@tui.sun', label: 'filters.shade.noShade' };
+  });
+
+  protected readonly columns = ['index', 'grade', 'name', 'height', 'actions'];
+  protected readonly direction = signal<TuiSortDirection>(TuiSortDirection.Asc);
+
+  protected readonly tableData: Signal<TopoRouteRow[]> = computed(() => {
+    const topo = this.topo();
+    if (!topo) return [];
+    return topo.topo_routes.map((tr) => ({
+      index: tr.number,
+      name: tr.route.name,
+      grade: tr.route.grade,
+      height: tr.route.height || null,
+      slug: tr.route.slug,
+      link: ['/area', this.areaSlug(), this.cragSlug(), tr.route.slug],
+      _ref: tr,
+    }));
+  });
+
+  protected readonly sorters: Record<string, TuiComparator<TopoRouteRow>> = {
+    index: (a, b) => tuiDefaultSort(a.index, b.index),
+    name: (a, b) => tuiDefaultSort(a.name, b.name),
+    grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
+    height: (a, b) => tuiDefaultSort(a.height ?? 0, b.height ?? 0),
+  };
+
+  protected get tableSorter(): TuiComparator<TopoRouteRow> {
+    return this.sorters['index'];
+  }
+
+  protected getSorter(col: string): TuiComparator<TopoRouteRow> | null {
+    return this.sorters[col] ?? null;
+  }
 
   constructor() {
     effect(() => {
@@ -201,16 +400,6 @@ export class TopoComponent {
     this.imageFit.update((v) => (v === 'cover' ? 'contain' : 'cover'));
   }
 
-  goToRoute(routeSlug: string): void {
-    void this.router.navigate([
-      '/area',
-      this.areaSlug(),
-      this.cragSlug(),
-      'route',
-      routeSlug,
-    ]);
-  }
-
   openEditTopo(topo: TopoDetail): void {
     const initialRouteIds = topo.topo_routes.map((tr) => tr.route_id);
     this.dialogs
@@ -223,5 +412,70 @@ export class TopoComponent {
         },
       })
       .subscribe();
+  }
+
+  openEditTopoRoute(topoRoute: TopoRouteWithRoute): void {
+    this.dialogs
+      .open<boolean>(new PolymorpheusComponent(TopoRouteFormComponent), {
+        label: this.translate.instant('topos.editRouteTitle'),
+        size: 's',
+        data: {
+          topoRouteData: topoRoute,
+        },
+      })
+      .subscribe((reloaded) => {
+        if (reloaded) {
+          // The service already calls reload on topoDetailResource
+        }
+      });
+  }
+
+  deleteTopo(topo: TopoDetail): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    this.dialogs
+      .open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('topos.deleteTitle'),
+        size: 's',
+        data: {
+          content: this.translate.instant('topos.deleteConfirm', {
+            name: topo.name,
+          }),
+          yes: this.translate.instant('actions.delete'),
+          no: this.translate.instant('actions.cancel'),
+        } as TuiConfirmData,
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
+        this.topos
+          .delete(topo.id)
+          .then(() => {
+            this.router.navigate(['/area', this.areaSlug(), this.cragSlug()]);
+          })
+          .catch((err) => handleErrorToast(err, this.toast, this.translate));
+      });
+  }
+
+  deleteTopoRoute(topoRoute: TopoRouteWithRoute): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    this.dialogs
+      .open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('topos.removeRouteTitle'),
+        size: 's',
+        data: {
+          content: this.translate.instant('topos.removeRouteConfirm', {
+            name: topoRoute.route.name,
+          }),
+          yes: this.translate.instant('actions.delete'),
+          no: this.translate.instant('actions.cancel'),
+        } as TuiConfirmData,
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
+        this.topos
+          .removeRoute(topoRoute.topo_id, topoRoute.route_id)
+          .catch((err) => handleErrorToast(err, this.toast, this.translate));
+      });
   }
 }

@@ -117,7 +117,7 @@ export class GlobalData {
       config.push({
         name: 'nav.admin-equippers',
         icon: '@tui.hammer',
-        fn: () => this.router.navigateByUrl('/admin-equippers'),
+        fn: () => this.router.navigateByUrl('/admin/equippers'),
       });
     }
     return {

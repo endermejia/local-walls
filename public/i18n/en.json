@@ -16,6 +16,7 @@
       "add": "Add to favorites",
       "remove": "Remove from favorites"
     },
+    "new": "New",
     "project": {
       "add": "Mark as project",
       "remove": "Remove from projects"
@@ -60,6 +61,7 @@
     "crags": "Crags",
     "darkMode": "Dark mode",
     "date": "Date",
+    "description": "Description",
     "description_en": "English description",
     "description_es": "Spanish description",
     "email": "Email",
@@ -160,7 +162,8 @@
       "morning": "Morning shade",
       "afternoon": "Afternoon shade",
       "allDay": "All day shade",
-      "noShade": "No shade"
+      "noShade": "All day sun",
+      "changeAt": "change at"
     }
   },
   "messages": {
@@ -202,7 +205,10 @@
     "name": "Topo name",
     "photoUrl": "Photo URL",
     "shadeChangeHour": "Shade change hour",
-    "manageRoutes": "Manage linked routes"
+    "manageRoutes": "Manage linked routes",
+    "editRouteTitle": "Edit route number",
+    "removeRouteTitle": "Remove route from topo",
+    "removeRouteConfirm": "Are you sure you want to remove the route \"{{name}}\" from this topo? The route will not be deleted from the system, only unlinked from this topo."
   },
   "routes": {
     "new": "New route",
@@ -217,6 +223,11 @@
   "admin": {
     "users": {
       "title": "Users Management"
+    },
+    "equippers": {
+      "title": "Equippers management",
+      "deleteTitle": "Delete equipper",
+      "deleteConfirm": "Are you sure you want to delete equipper \"{{name}}\"? This action cannot be undone."
     }
   },
   "options": {

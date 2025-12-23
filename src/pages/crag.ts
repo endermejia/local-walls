@@ -20,6 +20,7 @@ import {
   TuiButton,
   TuiHint,
   TuiNotification,
+  TuiIcon,
 } from '@taiga-ui/core';
 import { TuiSurface } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
@@ -65,6 +66,7 @@ import { handleErrorToast } from '../utils';
     TuiNotification,
     TuiAvatar,
     LowerCasePipe,
+    TuiIcon,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -168,7 +170,7 @@ import { handleErrorToast } from '../utils';
             </h2>
             <div class="grid gap-2">
               @for (p of c.parkings; track p.id) {
-                <div tuiCardLarge [tuiSurface]="'neutral'">
+                <div tuiCardLarge [tuiSurface]="'outline'">
                   <div class="flex flex-col gap-2">
                     <header tuiHeader>
                       <h3 tuiTitle class="truncate">{{ p.name }}</h3>
@@ -273,32 +275,48 @@ import { handleErrorToast } from '../utils';
                   <header tuiHeader>
                     <h2 tuiTitle>{{ t.name }}</h2>
                   </header>
-                  <section class="flex gap-3 mt-2">
-                    @if (t.photo) {
+                  <section class="flex flex-col gap-2">
+                    @if (t.photo; as photo) {
                       <img
-                        [src]="t.photo"
+                        [src]="photo"
                         alt="topo"
-                        class="w-24 h-24 object-cover rounded shadow-sm"
+                        class="w-full h-48 object-cover rounded shadow-sm"
                         loading="lazy"
                         decoding="async"
                       />
                     }
-                    <div class="flex flex-col flex-1 min-w-0">
-                      <div class="text-sm opacity-80 mb-2">
-                        {{ t.shade_text }}
-                        @if (t.shade_change_hour) {
-                          · {{ t.shade_change_hour }}
-                        }
+                    <div
+                      class="flex items-center justify-between gap-2 mt-auto"
+                    >
+                      <div class="flex items-center justify-between gap-2">
+                        @let shade = getShadeInfo(t);
+                        <tui-icon
+                          [icon]="shade.icon"
+                          class="opacity-70 text-xl"
+                        />
+                        <span class="text-sm opacity-80">
+                          {{ shade.label | translate }}
+                          @if (t.shade_change_hour) {
+                            · {{ 'filters.shade.changeAt' | translate }}
+                            {{ t.shade_change_hour }}
+                          }
+                        </span>
                       </div>
-                      <div class="mt-auto flex justify-end">
-                        <app-chart-routes-by-grade [grades]="t.grades" />
-                      </div>
+                      <app-chart-routes-by-grade
+                        [grades]="t.grades"
+                        (click)="$event.stopPropagation()"
+                      />
                     </div>
                   </section>
                 </div>
               </div>
             } @empty {
-              <div class="opacity-70">{{ 'labels.empty' | translate }}</div>
+              <div
+                class="flex flex-col items-center justify-center gap-2 opacity-50 col-span-full py-10"
+              >
+                <tui-icon icon="@tui.package-open" class="text-4xl" />
+                <p>{{ 'labels.empty' | translate }}</p>
+              </div>
             }
           </div>
         </div>
@@ -307,7 +325,7 @@ import { handleErrorToast } from '../utils';
             <tui-avatar
               tuiThumbnail
               size="l"
-              src="@tui.chart-no-axes-column"
+              src="@tui.route"
               class="self-center"
               [attr.aria-label]="'labels.routes' | translate"
             />
@@ -384,10 +402,7 @@ export class CragComponent {
   protected readonly topos = computed(() => {
     const c = this.cragDetail();
     if (!c) return [];
-    return c.topos.map((t) => ({
-      ...t,
-      shade_text: this.getShadeText(t),
-    }));
+    return c.topos;
   });
 
   protected goToTopo(id: number): void {
@@ -398,21 +413,6 @@ export class CragComponent {
       'topo',
       id,
     ]);
-  }
-
-  private getShadeText(t: TopoListItem): string {
-    const morning = t.shade_morning;
-    const afternoon = t.shade_afternoon;
-    if (morning && afternoon) {
-      return this.translate.instant('filters.shade.allDay');
-    }
-    if (!morning && !afternoon) {
-      return this.translate.instant('filters.shade.noShade');
-    }
-    if (morning && !afternoon) {
-      return this.translate.instant('filters.shade.morning');
-    }
-    return this.translate.instant('filters.shade.afternoon');
   }
 
   constructor() {
@@ -575,5 +575,18 @@ export class CragComponent {
         size: 'm',
       })
       .subscribe();
+  }
+
+  protected getShadeInfo(t: TopoListItem) {
+    if (t.shade_morning && t.shade_afternoon) {
+      return { icon: '@tui.eclipse', label: 'filters.shade.allDay' };
+    }
+    if (t.shade_morning) {
+      return { icon: '@tui.sunset', label: 'filters.shade.morning' };
+    }
+    if (t.shade_afternoon) {
+      return { icon: '@tui.sunrise', label: 'filters.shade.afternoon' };
+    }
+    return { icon: '@tui.sun', label: 'filters.shade.noShade' };
   }
 }

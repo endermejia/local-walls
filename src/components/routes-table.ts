@@ -136,7 +136,10 @@ export interface RoutesTableRow {
                             '@tui.mountain'
                           "
                           [tuiHint]="
-                            'filters.types.' + item.climbing_kind | translate
+                            global.isMobile()
+                              ? null
+                              : ('filters.types.' + item.climbing_kind
+                                | translate)
                           "
                         />
                       </div>
@@ -311,9 +314,14 @@ export interface RoutesTableRow {
               }
             </tr>
           } @empty {
-            <tr>
-              <td [attr.colspan]="columns().length" class="text-center p-8">
-                <div class="opacity-70">{{ 'labels.empty' | translate }}</div>
+            <tr tuiTr>
+              <td [attr.colspan]="columns().length" tuiTd class="!py-10">
+                <div
+                  class="flex flex-col items-center justify-center gap-2 opacity-50"
+                >
+                  <tui-icon icon="@tui.package-open" class="text-4xl" />
+                  <p>{{ 'labels.empty' | translate }}</p>
+                </div>
               </td>
             </tr>
           }

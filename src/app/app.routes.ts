@@ -46,8 +46,16 @@ export const routes: Routes = [
     path: 'admin/users',
     canMatch: [adminGuard],
     loadComponent: () =>
-      import('../pages/users-list-admin').then(
-        (m) => m.UsersListAdminComponent,
+      import('../pages/admin-users-list').then(
+        (m) => m.AdminUsersListComponent,
+      ),
+  },
+  {
+    path: 'admin/equippers',
+    canMatch: [adminGuard],
+    loadComponent: () =>
+      import('../pages/admin-equippers-list').then(
+        (m) => m.AdminEquippersListComponent,
       ),
   },
   {

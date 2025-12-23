@@ -171,7 +171,7 @@ interface BreadcrumbItem {
                   ngSkipHydration
                 />
                 <ng-template let-item>
-                  <a tuiCell [href]="item.href" ngSkipHydration>
+                  <a tuiCell [routerLink]="item.href" ngSkipHydration>
                     <tui-avatar
                       [src]="item.icon | tuiFallbackSrc: '@tui.file' | async"
                       ngSkipHydration
@@ -397,7 +397,7 @@ export class HeaderComponent implements OnDestroy {
               (u) =>
                 ({
                   title: u.name,
-                  href: `/user/${u.id}`,
+                  href: `/profile/${u.id}`,
                   icon: this.supabase.buildAvatarUrl(u.avatar) || u.name[0],
                 }) as SearchItem,
             );
