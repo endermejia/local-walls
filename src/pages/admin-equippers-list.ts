@@ -277,7 +277,7 @@ export class AdminEquippersListComponent {
     try {
       const { data, error } = await this.supabase.client
         .from('equippers')
-        .insert({ name: 'New Equipper' })
+        .insert({ name: '' })
         .select()
         .single();
 

@@ -7,9 +7,12 @@ import {
   effect,
   inject,
   input,
+  resource,
+  PLATFORM_ID,
 } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule, Location, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
+import { TuiIdentityMatcher } from '@taiga-ui/cdk';
 import { TuiButton, TuiLabel, TuiTextfield } from '@taiga-ui/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
@@ -18,17 +21,23 @@ import {
   TuiSelect,
   TuiDataListWrapper,
   TuiToastService,
+  TuiFilterByInputPipe,
+  TuiInputChip,
+  TuiHideSelectedPipe,
 } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { RoutesService } from '../services';
-import { slugify, handleErrorToast } from '../utils';
+import { TuiDataList, TuiSelectLike } from '@taiga-ui/core';
+import { RoutesService, SupabaseService } from '../services';
 import {
   ClimbingKinds,
   ClimbingKind,
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
+  EquipperDto,
+  RouteDto,
 } from '../models';
+import { slugify, handleErrorToast } from '../utils';
 
 interface MinimalRoute {
   id: number;
@@ -54,12 +63,48 @@ interface MinimalRoute {
     TuiSelect,
     TuiDataListWrapper,
     TuiChevron,
+    TuiInputChip,
+    TuiFilterByInputPipe,
+    TuiDataList,
+    TuiSelectLike,
+    TuiHideSelectedPipe,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="name">{{ 'routes.name' | translate }}</label>
         <input tuiTextfield id="name" [formControl]="name" autocomplete="off" />
+      </tui-textfield>
+
+      <tui-textfield
+        multi
+        tuiChevron
+        [tuiTextfieldCleaner]="true"
+        [stringify]="equipperStringify"
+        [identityMatcher]="equipperIdentityMatcher"
+      >
+        <label tuiLabel for="equippers">
+          {{ 'labels.equippers' | translate }}
+        </label>
+        <input
+          tuiInputChip
+          id="equippers"
+          [formControl]="equippers"
+          [placeholder]="'actions.select' | translate"
+        />
+        <tui-input-chip *tuiItem />
+        <tui-data-list *tuiTextfieldDropdown>
+          @for (
+            item of allEquippers.value() || []
+              | tuiHideSelected
+              | tuiFilterByInput;
+            track item.name
+          ) {
+            <button tuiOption new [value]="item">
+              {{ item.name }}
+            </button>
+          }
+        </tui-data-list>
       </tui-textfield>
 
       <tui-textfield
@@ -178,10 +223,13 @@ interface MinimalRoute {
   host: { class: 'overflow-auto' },
 })
 export class RouteFormComponent {
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly routes = inject(RoutesService);
+  private readonly supabase = inject(SupabaseService);
   private readonly location = inject(Location);
   private readonly toast = inject(TuiToastService);
   private readonly translate = inject(TranslateService);
+
   private readonly _dialogCtx: TuiDialogContext<
     string | boolean | null,
     { cragId?: number; routeData?: MinimalRoute }
@@ -231,6 +279,9 @@ export class RouteFormComponent {
     validators: [Validators.required],
   });
   height = new FormControl<number | null>(25);
+  equippers = new FormControl<readonly (EquipperDto | string)[]>([], {
+    nonNullable: true,
+  });
 
   private editingId: number | null = null;
 
@@ -244,6 +295,30 @@ export class RouteFormComponent {
     Object.values(ClimbingKinds);
   protected readonly kindStringify = (kind: ClimbingKind): string =>
     this.translate.instant(`climbingKinds.${kind}`);
+
+  protected readonly equipperStringify = (
+    item: EquipperDto | string,
+  ): string => (typeof item === 'string' ? item : item.name);
+
+  protected readonly equipperIdentityMatcher: TuiIdentityMatcher<
+    EquipperDto | string
+  > = (a, b) => {
+    if (a === b) return true;
+    if (typeof a === 'string' || typeof b === 'string') return a === b;
+    return a.id === b.id;
+  };
+
+  protected readonly allEquippers = resource({
+    loader: async () => {
+      await this.supabase.whenReady();
+      if (!isPlatformBrowser(this.platformId)) return [];
+      const { data } = await this.supabase.client
+        .from('equippers')
+        .select('*')
+        .order('name');
+      return (data as EquipperDto[]) || [];
+    },
+  });
 
   protected changeHeight(delta: number): void {
     const current = this.height.value ?? 0;
@@ -265,7 +340,7 @@ export class RouteFormComponent {
   }
 
   constructor() {
-    effect(() => {
+    effect(async () => {
       const data = this.effectiveRouteData();
       if (!data) return;
       this.editingId = data.id;
@@ -273,6 +348,10 @@ export class RouteFormComponent {
       this.grade.setValue(data.grade);
       this.climbing_kind.setValue(data.climbing_kind);
       this.height.setValue(data.height ?? null);
+
+      // Load equippers
+      const equippers = await this.routes.getRouteEquippers(data.id);
+      this.equippers.setValue(equippers);
     });
   }
 
@@ -288,21 +367,20 @@ export class RouteFormComponent {
     const grade = this.grade.value;
     const climbing_kind = this.climbing_kind.value;
     const height = this.height.value;
+    const equippers = this.equippers.value;
 
     try {
+      let result: RouteDto | null = null;
       if (this.isEdit() && this.editingId) {
-        const result = await this.routes.update(this.editingId, {
+        result = await this.routes.update(this.editingId, {
           name,
           slug,
           grade,
           climbing_kind,
           height,
         });
-        if (this._dialogCtx) {
-          this._dialogCtx.completeWith(result?.slug || true);
-        }
       } else if (crag_id) {
-        const result = await this.routes.create({
+        result = await this.routes.create({
           crag_id,
           name,
           slug,
@@ -310,8 +388,12 @@ export class RouteFormComponent {
           climbing_kind,
           height,
         });
+      }
+
+      if (result) {
+        await this.routes.setRouteEquippers(result.id, equippers);
         if (this._dialogCtx) {
-          this._dialogCtx.completeWith(result?.slug || true);
+          this._dialogCtx.completeWith(result.slug || true);
         }
       }
     } catch (e) {

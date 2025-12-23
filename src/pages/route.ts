@@ -7,6 +7,7 @@ import {
   effect,
   InputSignal,
   PLATFORM_ID,
+  resource,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { isPlatformBrowser, Location, DecimalPipe } from '@angular/common';
@@ -100,7 +101,7 @@ import { handleErrorToast } from '../utils';
         </div>
 
         <!-- Chart and Stats Grid -->
-        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Chart and Actions -->
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
@@ -161,66 +162,88 @@ import { handleErrorToast } from '../utils';
           </div>
 
           <!-- Stats -->
-          <div class="flex flex-col md:flex-row justify-around gap-6">
-            @if (r.height; as height) {
+          <div class="flex flex-col gap-6">
+            <div class="flex flex-wrap justify-around gap-6">
+              @if (r.height; as height) {
+                <div class="flex flex-col items-center">
+                  <span
+                    class="text-xs uppercase opacity-60 font-semibold tracking-wider mb-2"
+                  >
+                    {{ 'labels.height' | translate }}
+                  </span>
+                  <div class="flex items-center gap-2">
+                    <tui-avatar
+                      size="s"
+                      appearance="secondary"
+                      [src]="'@tui.arrow-up-right'"
+                    />
+                    <span class="text-xl font-semibold"
+                      >{{ height || '--' }}m</span
+                    >
+                  </div>
+                </div>
+              }
+
               <div class="flex flex-col items-center">
                 <span
                   class="text-xs uppercase opacity-60 font-semibold tracking-wider mb-2"
                 >
-                  {{ 'labels.height' | translate }}
+                  {{ 'labels.climbing_kind' | translate }}
                 </span>
                 <div class="flex items-center gap-2">
                   <tui-avatar
                     size="s"
                     appearance="secondary"
-                    [src]="'@tui.arrow-up-right'"
+                    [src]="climbingIcons()[r.climbing_kind] || '@tui.mountain'"
                   />
-                  <span class="text-xl font-semibold"
-                    >{{ height || '--' }}m</span
-                  >
+                  <span class="text-xl font-semibold">{{
+                    'climbingKinds.' + r.climbing_kind | translate
+                  }}</span>
+                </div>
+              </div>
+
+              <div class="flex flex-col items-center">
+                <span
+                  class="text-xs uppercase opacity-60 font-semibold tracking-wider mb-2"
+                >
+                  {{ 'labels.rating' | translate }}
+                </span>
+                <div class="flex items-center gap-2">
+                  <tui-rating
+                    [max]="5"
+                    [ngModel]="r.rating || 0"
+                    [readOnly]="true"
+                    class="!text-yellow-400"
+                    [style.font-size.rem]="0.6"
+                  />
+                  @if (r.rating; as rating) {
+                    <span class="text-xl font-semibold">
+                      {{ rating | number: '1.1-1' }}
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            @if (equippers().length > 0) {
+              <div class="flex flex-col items-center">
+                <span
+                  class="text-xs uppercase opacity-60 font-semibold tracking-wider mb-1"
+                >
+                  {{ 'labels.equippers' | translate }}
+                </span>
+                <div class="flex items-center gap-2">
+                  <tui-avatar
+                    size="s"
+                    appearance="secondary"
+                    src="@tui.hammer"
+                  />
+                  <span class="text-sm opacity-80 text-center">{{
+                    equippersNames()
+                  }}</span>
                 </div>
               </div>
             }
-
-            <div class="flex flex-col items-center">
-              <span
-                class="text-xs uppercase opacity-60 font-semibold tracking-wider mb-2"
-              >
-                {{ 'labels.climbing_kind' | translate }}
-              </span>
-              <div class="flex items-center gap-2">
-                <tui-avatar
-                  size="s"
-                  appearance="secondary"
-                  [src]="climbingIcons()[r.climbing_kind] || '@tui.mountain'"
-                />
-                <span class="text-xl font-semibold">{{
-                  'climbingKinds.' + r.climbing_kind | translate
-                }}</span>
-              </div>
-            </div>
-
-            <div class="flex flex-col items-center">
-              <span
-                class="text-xs uppercase opacity-60 font-semibold tracking-wider mb-2"
-              >
-                {{ 'labels.rating' | translate }}
-              </span>
-              <div class="flex items-center gap-2">
-                <tui-rating
-                  [max]="5"
-                  [ngModel]="r.rating || 0"
-                  [readOnly]="true"
-                  class="!text-yellow-400"
-                  [style.font-size.rem]="0.6"
-                />
-                @if (r.rating; as rating) {
-                  <span class="text-xl font-semibold">
-                    {{ rating | number: '1.1-1' }}
-                  </span>
-                }
-              </div>
-            </div>
           </div>
         </div>
 
@@ -265,8 +288,26 @@ export class RouteComponent {
     this.global.routeDetailResource.value(),
   );
 
+  protected readonly equippersResource = resource({
+    params: () => this.route()?.id,
+    loader: async ({ params: id }) => {
+      if (!id) return [];
+      return this.routesService.getRouteEquippers(id);
+    },
+  });
+
+  protected readonly equippers = computed(
+    () => this.equippersResource.value() ?? [],
+  );
+
   protected readonly ascents = computed(
     () => this.global.routeAscentsResource.value() ?? [],
+  );
+
+  protected readonly equippersNames = computed(() =>
+    this.equippers()
+      .map((e) => e.name)
+      .join(', '),
   );
 
   constructor() {
@@ -376,7 +417,11 @@ export class RouteComponent {
           },
         },
       })
-      .subscribe();
+      .subscribe((result) => {
+        if (result) {
+          this.equippersResource.reload();
+        }
+      });
   }
 
   deleteRoute(): void {
