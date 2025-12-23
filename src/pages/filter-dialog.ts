@@ -24,14 +24,14 @@ import { ORDERED_GRADE_VALUES } from '../models';
 export interface FilterDialog {
   categories: number[]; // 0=Sport, 1=Boulder, 2=Multipitch
   gradeRange: [number, number]; // indices into ORDERED_GRADE_VALUES
-  // Filtros de sombra/sol (multi-selección); si está vacío/no definido, no filtra
+  // Shade/sun filters (multi-selection); if empty/undefined, it doesn't filter
   selectedShade?: (
     | 'shade_morning'
     | 'shade_afternoon'
     | 'shade_all_day'
     | 'sun_all_day'
   )[];
-  // Flags opcionales para controlar visibilidad desde el caller
+  // Optional flags to control visibility from the caller
   showCategories?: boolean;
   showShade?: boolean;
   showGradeRange?: boolean;
@@ -129,7 +129,7 @@ export class FilterDialogComponent {
     ];
   });
 
-  // Items for shade filter (no-op for now) as signal
+  // Items for shade filter (no-op for now) as a signal
   readonly shadeItems: Signal<string[]> = computed(() => {
     this._i18nTick();
     return [

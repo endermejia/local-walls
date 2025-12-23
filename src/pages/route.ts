@@ -126,9 +126,10 @@ import { handleErrorToast } from '../utils';
               } @else if (r.own_ascent) {
                 <button
                   tuiButton
-                  [appearance]="
-                    ascentInfo()[r.own_ascent.type || 'default'].appearance
+                  [style.background]="
+                    ascentInfo()[r.own_ascent.type || 'default'].background
                   "
+                  class="!text-white"
                   size="m"
                   (click)="onEditAscent(r.own_ascent)"
                 >
@@ -159,23 +160,25 @@ import { handleErrorToast } from '../utils';
 
           <!-- Stats -->
           <div class="flex flex-col md:flex-row justify-around gap-6">
-            <div class="flex flex-col items-center">
-              <span
-                class="text-xs uppercase opacity-60 font-semibold tracking-wider mb-2"
-              >
-                {{ 'labels.height' | translate }}
-              </span>
-              <div class="flex items-center gap-2">
-                <tui-avatar
-                  size="s"
-                  appearance="secondary"
-                  [src]="'@tui.arrow-up-right'"
-                />
-                <span class="text-xl font-semibold"
-                  >{{ r.height || '--' }}m</span
+            @if (r.height; as height) {
+              <div class="flex flex-col items-center">
+                <span
+                  class="text-xs uppercase opacity-60 font-semibold tracking-wider mb-2"
                 >
+                  {{ 'labels.height' | translate }}
+                </span>
+                <div class="flex items-center gap-2">
+                  <tui-avatar
+                    size="s"
+                    appearance="secondary"
+                    [src]="'@tui.arrow-up-right'"
+                  />
+                  <span class="text-xl font-semibold"
+                    >{{ height || '--' }}m</span
+                  >
+                </div>
               </div>
-            </div>
+            }
 
             <div class="flex flex-col items-center">
               <span
@@ -209,13 +212,11 @@ import { handleErrorToast } from '../utils';
                   class="!text-yellow-400"
                   [style.font-size.rem]="0.6"
                 />
-                <span class="text-xl font-semibold">
-                  {{
-                    r.rating
-                      ? (r.rating | number: '1.1-1')
-                      : ('labels.noRatingsYet' | translate)
-                  }}
-                </span>
+                @if (r.rating; as rating) {
+                  <span class="text-xl font-semibold">
+                    {{ rating | number: '1.1-1' }}
+                  </span>
+                }
               </div>
             </div>
           </div>
@@ -339,23 +340,27 @@ export class RouteComponent {
   }
 
   protected readonly ascentInfo = computed<
-    Record<string, { icon: string; appearance: string }>
+    Record<string, { icon: string; appearance: string; background: string }>
   >(() => ({
     os: {
       icon: '@tui.eye',
       appearance: 'success',
+      background: 'var(--tui-status-success)',
     },
     f: {
       icon: '@tui.zap',
       appearance: 'warning',
+      background: 'var(--tui-status-warning)',
     },
     rp: {
       icon: '@tui.circle',
       appearance: 'negative',
+      background: 'var(--tui-status-negative)',
     },
     default: {
       icon: '@tui.circle',
       appearance: 'neutral',
+      background: 'var(--tui-neutral-fill)',
     },
   }));
 

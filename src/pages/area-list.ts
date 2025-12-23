@@ -217,7 +217,7 @@ export class AreaListComponent {
     };
     const shadeMatches = (a: (typeof list)[number]) => {
       if (!shadeKeys.length) return true;
-      // Coincide si CUALQUIERA de los shades seleccionados se cumple en el área
+      // Matches if ANY of the selected shades is present in the area
       return shadeKeys.some((key) => {
         switch (key) {
           case 'shade_morning':
@@ -240,8 +240,8 @@ export class AreaListComponent {
   });
 
   constructor() {
-    // Carga inicial: ya no forzamos llamada manual; el resource `areaListResource`
-    // de Supabase se encarga de cargar automáticamente al ser observado.
+    // Initial load: we no longer force manual call; the `areaListResource`
+    // from Supabase handles automatic loading when observed.
   }
 
   onQuery(v: string) {
@@ -277,7 +277,7 @@ export class AreaListComponent {
           number,
           number,
         ]);
-        // categorías y sombra/sol
+        // Categories and shade/sun
         this.selectedCategories.set(result.categories ?? []);
         this.selectedShade.set(result.selectedShade ?? []);
       });

@@ -37,7 +37,7 @@ import { SupabaseService } from '../services';
     NgOptimizedImage,
   ],
   template: `
-    <div class="relative h-full flex justify-center items-center bg-gray-50">
+    <div class="relative h-full flex justify-center items-center">
       <div class="relative z-10 w-full md:w-3/5 flex justify-center p-6">
         <form
           tuiAppearance="floating"
@@ -343,7 +343,7 @@ export class LoginComponent {
   );
 
   constructor() {
-    // Asegurar que, al entrar desde el enlace de recuperación, el token se intercambie y haya sesión activa
+    // Ensure that when entering from a recovery link, the token is exchanged and there is an active session
     if (isPlatformBrowser(this.platformId) && typeof window !== 'undefined') {
       afterNextRender(() => {
         if (this.isRecovery()) {
@@ -423,7 +423,7 @@ export class LoginComponent {
       }
       // In most projects, signup requires email confirmation
       this.error.set('auth.registrationSuccess');
-      // Volvemos a la vista de login
+      // Switch back to login view
       this.isRegister.set(false);
     } catch {
       this.error.set('errors.unexpected');
@@ -444,9 +444,9 @@ export class LoginComponent {
       await this.supabase.whenReady();
       let redirectTo: string | undefined = undefined;
       if (isPlatformBrowser(this.platformId) && typeof window !== 'undefined') {
-        // Importante: redirigimos al login con flag de recuperación para evitar caer en '/explore'
-        // por el redirect de la raíz tanto en SSR como en el router del cliente.
-        // Supabase añadirá su hash con tokens y 'type=recovery', que este componente detecta.
+        // Important: we redirect to login with recovery flag to avoid falling into '/explore'
+        // by the root redirect in both SSR and client router.
+        // Supabase will add its hash with tokens and 'type=recovery', which this component detects.
         redirectTo = `${window.location.origin}/login?type=recovery`;
       }
       const { error } = await this.supabase.resetPassword(email, redirectTo);

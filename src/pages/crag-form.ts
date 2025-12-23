@@ -203,7 +203,7 @@ export class CragFormComponent {
     }
   })();
 
-  // Inputs alternativos para uso embebido o en rutas (edición/creación)
+  // Alternative inputs for embedded or route use (edit/create)
   areaId: InputSignal<number | undefined> = input<number | undefined>(
     undefined,
   );
@@ -244,7 +244,7 @@ export class CragFormComponent {
   private editingAreaId: number | null = null;
 
   constructor() {
-    // Prefill en edición
+    // Prefill in edit mode
     effect(() => {
       const data = this.effectiveCragData();
       if (!data) return;
@@ -289,7 +289,7 @@ export class CragFormComponent {
       } else {
         const area_id =
           this.effectiveAreaId() ?? this.editingAreaId ?? undefined;
-        if (!area_id) return; // área requerida para crear
+        if (!area_id) return; // area required to create
         await this.crags.create({ area_id, ...base });
       }
       if (this._dialogCtx) {

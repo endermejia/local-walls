@@ -52,7 +52,7 @@ export interface MapBounds {
 }
 
 /**
- * Opciones de configuración del mapa
+ * Map configuration options
  */
 export interface MapOptions {
   center?: [number, number];
@@ -64,68 +64,36 @@ export interface MapOptions {
   ignoreSavedViewport?: boolean;
 }
 
-export interface MapAreaDataFeature {
-  type: 'Feature';
-  id?: string | number;
-  bbox?: [number, number, number, number];
-  properties: {
-    id?: number;
-    name?: string;
-    slug?: string;
-    country_name?: string;
-    country_slug?: string;
-    area_type?: number | string;
-    [key: string]: unknown;
-  };
-  geometry: {
-    type: 'Polygon' | 'MultiPolygon';
-    // Polygon: number[ring][vertex][lng/lat]
-    // MultiPolygon: number[poly][ring][vertex][lng/lat]
-    coordinates: number[][][] | number[][][][];
-  };
-}
-
 /**
- * GeoJSON de áreas del mapa (FeatureCollection con polígonos)
- * Basado en public/map/map_areas.json
- */
-export interface MapAreasData {
-  type: 'FeatureCollection';
-  name?: string;
-  bbox?: [number, number, number, number];
-  features: MapAreaDataFeature[];
-}
-
-/**
- * GeoJSON de items del mapa (FeatureCollection con puntos)
- * Basado en public/map/map_crags.json
+ * Map items GeoJSON (FeatureCollection with points)
+ * Based on public/map/map_crags.json
  */
 export interface MapCragDataFeature {
   type: 'Feature';
   id?: string | number;
   bbox?: [number, number, number, number];
   properties: {
-    // Comunes
+    // Common
     item_id?: number; // reference id for GeoJSON
-    id?: number; // zone id o area id
+    id?: number; // zone id or area id
     name?: string;
     slug?: string;
     country_name?: string;
     country_slug?: string;
-    // Para crags
+    // For crags
     area_name?: string;
     area_slug?: string;
-    category?: number; // tipo/categoría de crag
+    category?: number; // crag type/category
     avg_rating?: number;
     grades?: AmountByEveryGrade | Record<string, unknown>;
     season?: VERTICAL_LIFE_SEASON[] | number[];
     total_ascendables?: number;
     total_ascents?: number;
     liked?: boolean;
-    // Para áreas
+    // For areas
     area_type?: number | string;
     b_box?: [[number, number], [number, number]];
-    // Genérico
+    // Generic
     [key: string]: unknown;
   };
   geometry: {
@@ -140,39 +108,4 @@ export interface MapCragsData {
   name?: string;
   bbox?: [number, number, number, number];
   features: MapCragDataFeature[];
-}
-
-/**
- * GeoJSON de polígonos del mapa (FeatureCollection con polígonos)
- * Basado en public/map/map_polygons.json
- */
-export interface MapPolygonDataFeature {
-  type: 'Feature';
-  id?: string | number;
-  bbox?: [number, number, number, number];
-  properties: {
-    id?: number;
-    name?: string;
-    slug?: string;
-    // referencia al crag/área
-    area_name?: string;
-    area_slug?: string;
-    country_name?: string;
-    country_slug?: string;
-    category?: number;
-    area_type?: number | string;
-    liked?: boolean;
-    [key: string]: unknown;
-  };
-  geometry: {
-    type: 'Polygon' | 'MultiPolygon';
-    coordinates: number[][][] | number[][][][]; // ver comentario en MapAreaDataFeature
-  };
-}
-
-export interface MapPolygonsData {
-  type: 'FeatureCollection';
-  name?: string;
-  bbox?: [number, number, number, number];
-  features: MapPolygonDataFeature[];
 }

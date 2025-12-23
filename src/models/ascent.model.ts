@@ -1,5 +1,3 @@
-import type { PageableResponse } from './pagination.model';
-
 export interface AscentListItem {
   ascentId: number;
   platform: 'eight_a' | string;
@@ -61,8 +59,6 @@ export interface AscentsQuery {
   grade?: string;
   searchQuery?: string;
 }
-
-export type AscentsPage = PageableResponse<AscentListItem>;
 
 // Response shape for user ascents endpoint (different from pageable items)
 export interface UserAscentsResponse {

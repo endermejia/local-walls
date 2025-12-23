@@ -12,15 +12,14 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { TuiRingChart } from '@taiga-ui/addon-charts';
 import { TuiSkeleton } from '@taiga-ui/kit';
 import {
-  ORDERED_GRADE_VALUES,
   GradeLabel,
   VERTICAL_LIFE_TO_LABEL,
   VERTICAL_LIFE_GRADES,
   RoutesByGrade,
-  bandForGradeLabel,
   RouteAscentWithExtras,
 } from '../models';
 import { LowerCasePipe } from '@angular/common';
+import { computeGradeChartData } from '../utils';
 
 @Component({
   selector: 'app-chart-ascents-by-grade',
@@ -43,23 +42,24 @@ import { LowerCasePipe } from '@angular/common';
     `,
   ],
   template: `
+    @let c = chart();
     <tui-ring-chart
       [tuiSkeleton]="tuiSkeleton()"
-      [value]="values()"
+      [value]="c.values"
       [activeItemIndex]="activeItemIndex()"
       (activeItemIndexChange)="activeItemIndex.set($event)"
     >
-      @if (hasActive()) {
+      @if (c.hasActive) {
         <span>
-          {{ activeBandTotal() }}
+          {{ c.activeBandTotal }}
           {{ 'labels.ascents' | translate | lowercase }}
         </span>
-        <div [innerHtml]="breakdownText()"></div>
+        <div [innerHtml]="c.breakdownText"></div>
       } @else {
         <span class="text-xl font-semibold">
           {{ gradeLabel() }}
         </span>
-        @if (gradeRange(); as gradeRange) {
+        @if (c.gradeRange; as gradeRange) {
           <div class="text-sm">{{ gradeRange }}</div>
         }
       }
@@ -73,9 +73,7 @@ export class ChartAscentsByGradeComponent {
   tuiSkeleton: InputSignal<boolean> = input(false);
   activeItemIndex: WritableSignal<number> = signal<number>(Number.NaN);
 
-  private readonly allGrades = ORDERED_GRADE_VALUES;
-
-  // Compute counts directly from ascents list
+  // Compute counts directly from the ascents list
   private readonly normalizedCounts: Signal<RoutesByGrade> = computed(() => {
     const counts: RoutesByGrade = {};
     for (const ascent of this.ascents()) {
@@ -88,83 +86,7 @@ export class ChartAscentsByGradeComponent {
     return counts;
   });
 
-  readonly values: Signal<readonly number[]> = computed(() => {
-    const counts = this.normalizedCounts();
-    const bands = [0, 0, 0, 0, 0];
-    for (const g of this.allGrades) {
-      const v = counts[g] ?? 0;
-      if (!v) continue;
-      const b = bandForGradeLabel(g);
-      bands[b] += v;
-    }
-    return bands as readonly number[];
-  });
-
-  readonly total: Signal<number> = computed(() =>
-    this.values().reduce((a, b) => a + b, 0),
+  protected readonly chart = computed(() =>
+    computeGradeChartData(this.normalizedCounts(), this.activeItemIndex()),
   );
-  readonly hasActive: Signal<boolean> = computed(() =>
-    Number.isFinite(this.activeItemIndex()),
-  );
-
-  readonly activeBandTotal: Signal<number> = computed(() => {
-    const idx = this.activeItemIndex();
-    if (!Number.isFinite(idx)) return this.total();
-    const vals = this.values();
-    const i = idx as number;
-    return (vals[i] ?? 0) as number;
-  });
-
-  private gradesForBand(band: 0 | 1 | 2 | 3 | 4): readonly GradeLabel[] {
-    return this.allGrades.filter(
-      (g) => bandForGradeLabel(g) === band,
-    ) as readonly GradeLabel[];
-  }
-
-  readonly breakdown = computed(() => {
-    const idx = this.activeItemIndex();
-    if (!Number.isFinite(idx))
-      return [] as { grade: GradeLabel; count: number }[];
-    const counts = this.normalizedCounts();
-    const grades = this.gradesForBand(idx as 0 | 1 | 2 | 3 | 4);
-    const items: { grade: GradeLabel; count: number }[] = [];
-    for (const g of grades) {
-      const c = counts[g] ?? 0;
-      if (c > 0) items.push({ grade: g, count: c });
-    }
-    return items;
-  });
-
-  readonly gradeRange: Signal<string> = computed(() => {
-    const counts = this.normalizedCounts();
-    const present = this.allGrades.filter((g) => (counts[g] ?? 0) > 0);
-    if (present.length === 0) return '';
-    const first = present[0];
-    const last = present[present.length - 1];
-    return first === last ? `${first}` : `${first} – ${last}`;
-  });
-
-  readonly breakdownText = computed(() => {
-    const idx = this.activeItemIndex();
-    if (!Number.isFinite(idx)) return '';
-
-    if (this.activeBandTotal() < 500) {
-      const items = this.breakdown();
-      if (items.length === 0) return '';
-      return items
-        .map(
-          (it) =>
-            `<span class="whitespace-nowrap">${it.grade}:</> <b>${it.count}</b></span>`,
-        )
-        .join(' | ');
-    }
-
-    const counts = this.normalizedCounts();
-    const grades = this.gradesForBand(idx as 0 | 1 | 2 | 3 | 4);
-    const present = grades.filter((g) => (counts[g] ?? 0) > 0);
-    if (present.length === 0) return '';
-    const first = present[0];
-    const last = present[present.length - 1];
-    return first === last ? `${first}` : `${first} – ${last}`;
-  });
 }

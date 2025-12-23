@@ -163,7 +163,12 @@
     }
   },
   "messages": {
-    "copied": "Link copied!"
+    "copied": "Link copied!",
+    "offline": "You are offline. Some features may not be available."
+  },
+  "seo": {
+    "title": "Roca nostra 🤫",
+    "description": "Climbing topos app made by local equippers. Find and share climbing areas, sectors and routes near you."
   },
   "notFound": {
     "title": "Not found",

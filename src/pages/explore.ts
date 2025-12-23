@@ -110,7 +110,7 @@ import { remToPx } from '../utils';
     }
 
     @if (global.selectedMapCragItem(); as c) {
-      <!-- Sección de información del crag seleccionado con el mismo ancho que el bottom-sheet -->
+      <!-- Selected crag information section with the same width as the bottom-sheet -->
       <div
         class="absolute w-full max-w-[40rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0"
       >

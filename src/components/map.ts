@@ -134,7 +134,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.isBrowser()) {
-      this.loadGeoJsonData();
+      void this.loadGeoJsonData();
     }
   }
 

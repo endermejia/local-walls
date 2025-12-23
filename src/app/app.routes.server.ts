@@ -44,7 +44,7 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,
     async getPrerenderParams() {
-      // Sin prerender estático por defecto; delegamos a SSR
+      // No static prerender by default; we delegate to SSR
       return [];
     },
   },
@@ -66,7 +66,7 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,
     async getPrerenderParams() {
-      // Dynamic routes for single climbings are handled by SSR for now
+      // SSR handles dynamic routes for single climbings for now
       return [];
     },
   },

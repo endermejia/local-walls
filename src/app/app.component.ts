@@ -2,6 +2,7 @@ import { TuiRoot } from '@taiga-ui/core';
 import { Component, inject, computed } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { HeaderComponent } from '../components';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GlobalData, OfflineService } from '../services';
 import { Meta, Title } from '@angular/platform-browser';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -9,14 +10,14 @@ import { map, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TuiRoot, HeaderComponent],
+  imports: [RouterOutlet, TuiRoot, HeaderComponent, TranslatePipe],
   template: `
     <tui-root class="overflow-hidden" [attr.tuiTheme]="global.selectedTheme()">
       <div class="h-[100dvh] flex flex-col">
         <!-- Offline banner -->
         @if (!offline.isOnline()) {
           <div class="bg-amber-500 text-black text-sm px-3 py-2 text-center">
-            Estás sin conexión. Algunas funciones pueden no estar disponibles.
+            {{ 'messages.offline' | translate }}
           </div>
         }
         @if (showHeader()) {
@@ -33,8 +34,9 @@ export class AppComponent {
   private router = inject(Router);
   private title = inject(Title);
   private meta = inject(Meta);
+  private translate = inject(TranslateService);
 
-  // Señal derivada de la URL actual para decidir si mostrar el header
+  // Signal derived from the current URL to decide whether to show the header
   protected currentUrl = toSignal(
     this.router.events.pipe(
       startWith(null),
@@ -48,9 +50,18 @@ export class AppComponent {
 
   constructor() {
     // SEO: Set title and meta tags (SSR-safe)
-    const appTitle = 'Roca nostra 🤫';
-    const description =
-      'App de croquis de escalada hechos por equipadores locales. Encuentra y comparte zonas de escalada, sectores y vías cerca de ti.';
+    this.translate.onLangChange.pipe(startWith(null)).subscribe(() => {
+      this.updateSeoTags();
+    });
+    // Also try to update when the default lang is loaded or translation changes
+    this.translate.onDefaultLangChange.subscribe(() => this.updateSeoTags());
+  }
+
+  private updateSeoTags() {
+    const appTitle = this.translate.instant('seo.title');
+    const description = this.translate.instant('seo.description');
+
+    if (appTitle === 'seo.title' || !appTitle) return;
 
     this.title.setTitle(appTitle);
 

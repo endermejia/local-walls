@@ -257,7 +257,7 @@ import { handleErrorToast } from '../utils';
             }
           </div>
           <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
-            @for (t of c.topos; track t.id) {
+            @for (t of topos(); track t.id) {
               <div tuiCardLarge [tuiSurface]="'outline'" class="cursor-pointer">
                 <div class="flex flex-col min-w-0 grow">
                   <header tuiHeader>
@@ -275,7 +275,7 @@ import { handleErrorToast } from '../utils';
                     }
                     <div class="flex flex-col flex-1 min-w-0">
                       <div class="text-sm opacity-80 mb-2">
-                        {{ shadeText(t) }}
+                        {{ t.shade_text }}
                         @if (t.shade_change_hour) {
                           · {{ t.shade_change_hour }}
                         }
@@ -369,8 +369,32 @@ export class CragComponent {
     () => (this.global.cragRoutesResource.value() ?? []).length,
   );
 
+  protected readonly topos = computed(() => {
+    const c = this.cragDetail();
+    if (!c) return [];
+    return c.topos.map((t) => ({
+      ...t,
+      shade_text: this.getShadeText(t),
+    }));
+  });
+
+  private getShadeText(t: TopoListItem): string {
+    const morning = t.shade_morning;
+    const afternoon = t.shade_afternoon;
+    if (morning && afternoon) {
+      return this.translate.instant('filters.shade.allDay');
+    }
+    if (!morning && !afternoon) {
+      return this.translate.instant('filters.shade.noShade');
+    }
+    if (morning && !afternoon) {
+      return this.translate.instant('filters.shade.morning');
+    }
+    return this.translate.instant('filters.shade.afternoon');
+  }
+
   constructor() {
-    // Sincroniza área/crag seleccionados en el estado global desde la ruta
+    // Synchronize selected area/crag in global state from route
     effect(() => {
       const aSlug = this.areaSlug();
       const cSlug = this.cragSlug();
@@ -503,22 +527,6 @@ export class CragComponent {
     const c = this.cragDetail();
     if (!c) return;
     // TODO: navigate to/create topo form for this crag
-  }
-
-  protected shadeText(t: TopoListItem): string {
-    const lang = this.global.selectedLanguage();
-    const morning = t.shade_morning;
-    const afternoon = t.shade_afternoon;
-    if (morning && afternoon) {
-      return this.translate.instant('filters.shade.allDay');
-    }
-    if (!morning && !afternoon) {
-      return lang === 'es' ? 'Sol todo el día' : 'Sun all day';
-    }
-    if (morning && !afternoon) {
-      return this.translate.instant('filters.shade.morning');
-    }
-    return this.translate.instant('filters.shade.afternoon');
   }
 
   protected onLogAscent(route: RouteWithExtras): void {

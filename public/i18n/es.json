@@ -163,7 +163,12 @@
     }
   },
   "messages": {
-    "copied": "Enlace copiado!"
+    "copied": "Enlace copiado!",
+    "offline": "Estás sin conexión. Algunas funciones pueden no estar disponibles."
+  },
+  "seo": {
+    "title": "Roca nostra 🤫",
+    "description": "App de croquis de escalada hechos por equipadores locales. Encuentra y comparte zonas de escalada, sectores y vías cerca de ti."
   },
   "notFound": {
     "title": "No encontrado",
@@ -279,7 +284,7 @@
     "thoughtsPlaceholder": "Beta, recuerdos personales, lo que sea...",
     "private": "Comentario privado",
     "didYouLikeIt": "¿Te gustó?",
-    "recommend": "Recomendar",
+    "recommend": "Recomendada",
     "howWouldYouGrade": "¿Cómo graduarías la vía?",
     "soft": "Suave",
     "normal": "Normal",
@@ -289,7 +294,7 @@
     "climbing": {
       "cruxy": "Cruxy",
       "athletic": "Atlética",
-      "sloper": "Sloper",
+      "sloper": "Romos",
       "endurance": "Contu",
       "technical": "Técnica",
       "crimpy": "Regletera"

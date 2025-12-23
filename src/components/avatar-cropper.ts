@@ -40,7 +40,7 @@ export interface AvatarCropperResult {
       >
         <canvas
           #canvas
-          class="rounded-lg shadow border border-black/5 bg-black/5 touch-none select-none"
+          class="rounded-lg shadow border border-black/5 touch-none select-none"
           [attr.width]="canvasSize()"
           [attr.height]="canvasSize()"
           (pointerdown.zoneless)="onPointerDown($event)"
@@ -161,7 +161,7 @@ export class AvatarCropperComponent {
     });
     this.image.set(img);
     const size = this.canvasSize();
-    // Ensure canvas backing store matches the logical size immediately
+    // Ensure the canvas backing store matches the logical size immediately
     this._canvas.width = size;
     this._canvas.height = size;
 
@@ -174,7 +174,7 @@ export class AvatarCropperComponent {
     this.offsetX = (size - img.width * initialScale) / 2;
     this.offsetY = (size - img.height * initialScale) / 2;
     await this.redraw();
-    // Release blob url when tab closes later; keep for now while editing
+    // Release blob url when the tab closes later; keep for now while editing
   }
 
   setZoom(v: number) {
@@ -185,7 +185,7 @@ export class AvatarCropperComponent {
     const clamped = Math.max(this.minZoom(), Math.min(this.maxZoom, v));
     const prev = this.zoom();
     if (Math.abs(prev - clamped) < 1e-6) return;
-    // Zoom around center of viewport
+    // Zoom around a center of viewport
     const cx = this.canvasSize() / 2;
     const cy = this.canvasSize() / 2;
     const sx = (cx - this.offsetX) / prev;

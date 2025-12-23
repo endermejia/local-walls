@@ -103,9 +103,7 @@ interface Country {
       xmlns="http://www.w3.org/1999/html"
     >
       <!-- Sticky Header -->
-      <div
-        class="sticky top-0 z-10 flex items-center gap-4 bg-white dark:bg-[#333] p-2 -mx-2 mb-4"
-      >
+      <div class="sticky top-0 z-10 flex items-center gap-4 p-2 -mx-2 mb-4">
         <button
           size="s"
           appearance="neutral"

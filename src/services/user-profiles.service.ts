@@ -9,7 +9,7 @@ export class UserProfilesService {
   private supabase = inject(SupabaseService);
 
   /**
-   * Obtiene un perfil de usuario por su nombre (displayName field)
+   * Get user profile by name (displayName field)
    */
   async getUserProfileByName(name: string): Promise<UserProfileDto | null> {
     try {
@@ -32,7 +32,7 @@ export class UserProfilesService {
   }
 
   /**
-   * Actualiza el perfil del usuario autenticado
+   * Update the authenticated user profile
    */
   async updateUserProfile(
     updates: Partial<UserProfileDto>,
@@ -40,7 +40,7 @@ export class UserProfilesService {
     try {
       const userId = this.supabase.authUserId();
       if (!userId) {
-        return { success: false, error: 'Usuario no autenticado' };
+        return { success: false, error: 'User not authenticated' };
       }
 
       const { error } = await this.supabase.client
@@ -56,7 +56,7 @@ export class UserProfilesService {
         return { success: false, error: error.message };
       }
 
-      // Forzar recarga del perfil en el servicio de Supabase
+      // Force profile reload in Supabase service
       this.supabase.userProfileResource.reload();
 
       return { success: true };
@@ -64,7 +64,7 @@ export class UserProfilesService {
       console.error('[UserProfileService] Exception updating profile:', e);
       return {
         success: false,
-        error: e instanceof Error ? e.message : 'Error desconocido',
+        error: e instanceof Error ? e.message : 'Unknown error',
       };
     }
   }

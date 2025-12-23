@@ -89,296 +89,346 @@ import { handleErrorToast } from '../utils';
   template: `
     <form
       [formGroup]="form"
-      class="flex flex-col gap-6"
+      class="flex flex-col h-full"
       (submit.zoneless)="onSubmit($event)"
     >
-      <!-- WHEN DID YOU CLIMB IT? -->
-      <section class="grid gap-3">
-        <span class="text-sm font-semibold opacity-70 px-1">{{
-          'ascent.when' | translate
-        }}</span>
-        <tui-textfield [tuiTextfieldCleaner]="false">
-          <input tuiInputDate [max]="today" formControlName="date" />
-          <tui-calendar *tuiTextfieldDropdown />
-        </tui-textfield>
-        <div class="flex gap-2">
-          <button
-            tuiButton
-            appearance="secondary"
-            size="s"
-            type="button"
-            (click)="quickDate('yesterday')"
-          >
-            {{ 'ascent.yesterday' | translate }}
-          </button>
-          <button
-            tuiButton
-            appearance="secondary"
-            size="s"
-            type="button"
-            (click)="quickDate('lastSaturday')"
-          >
-            {{ 'ascent.lastSaturday' | translate }}
-          </button>
-          <button
-            tuiButton
-            appearance="secondary"
-            size="s"
-            type="button"
-            (click)="quickDate('lastSunday')"
-          >
-            {{ 'ascent.lastSunday' | translate }}
-          </button>
-        </div>
-      </section>
-
-      <!-- HOW DID YOU CLIMB IT? -->
-      <section class="grid gap-4">
-        <span class="text-sm font-semibold opacity-70 px-1">{{
-          'ascent.how' | translate
-        }}</span>
-        <div class="flex flex-wrap gap-4 items-center justify-around">
-          @for (opt of typeOptions; track opt.id) {
-            <div class="flex flex-col items-center gap-2">
-              <button
-                tuiIconButton
-                type="button"
-                shape="circle"
-                size="l"
-                class="transition-transform active:scale-95"
-                [appearance]="
-                  form.get('type')?.value === opt.id
-                    ? opt.appearance
-                    : 'neutral'
-                "
-                (click)="form.get('type')?.setValue(opt.id)"
-              >
-                <tui-icon [icon]="opt.icon" />
-              </button>
-              <button
-                type="button"
-                class="text-xs font-medium appearance-none bg-transparent border-none p-0 cursor-pointer"
-                (click)="form.get('type')?.setValue(opt.id)"
-              >
-                {{ opt.translate | translate }}
-              </button>
-            </div>
-          }
-        </div>
-
-        <div class="flex items-center gap-6 mt-2">
-          <div class="flex flex-col gap-1">
-            <tui-textfield [tuiTextfieldCleaner]="false" size="m" class="w-32">
-              <input
-                tuiInputNumber
-                [min]="form.get('type')?.value === 'rp' ? 2 : 1"
-                formControlName="attempts"
-              />
-              <span class="tui-textfield__suffix">{{
-                'ascent.tries' | translate
-              }}</span>
-            </tui-textfield>
-          </div>
-        </div>
-      </section>
-
-      <!-- SHARE YOUR THOUGHTS -->
-      <section class="grid gap-3">
-        <tui-textfield [tuiTextfieldCleaner]="false">
-          <label tuiLabel for="ascentComment">{{
-            'ascent.thoughts' | translate
-          }}</label>
-          <textarea
-            id="ascentComment"
-            tuiTextarea
-            formControlName="comment"
-            [placeholder]="'ascent.thoughtsPlaceholder' | translate"
-            [placeholder]="'ascent.thoughtsPlaceholder' | translate"
-            rows="5"
-          ></textarea>
-        </tui-textfield>
-        <label class="flex items-center gap-2 cursor-pointer self-start">
-          <input
-            tuiCheckbox
-            type="checkbox"
-            formControlName="private_comment"
-          />
-          <span class="text-sm">{{ 'ascent.private' | translate }}</span>
-        </label>
-      </section>
-
-      <!-- DID YOU LIKE IT? -->
-      <section class="grid gap-3">
-        <span class="text-sm font-semibold opacity-70 px-1">{{
-          'ascent.didYouLikeIt' | translate
-        }}</span>
-        <div class="flex items-center gap-4">
-          <tui-rating [max]="5" formControlName="rate" class="text-primary" />
-          <button
-            tuiIconButton
-            type="button"
-            [appearance]="
-              form.get('recommended')?.value ? 'primary' : 'secondary'
-            "
-            size="m"
-            (click)="toggleBool('recommended')"
-            [tuiHint]="'ascent.recommend' | translate"
-          >
-            <tui-icon
-              [icon]="
-                form.get('recommended')?.value
-                  ? '@tui.thumbs-up'
-                  : '@tui.thumbs-up'
-              "
-            />
-          </button>
-        </div>
-      </section>
-
-      <!-- GRADE SELECTOR -->
-      <section class="grid gap-3">
-        <span class="text-sm font-semibold opacity-70 px-1">{{
-          'ascent.howWouldYouGrade' | translate
-        }}</span>
-        <div class="flex items-center gap-2">
-          <button
-            tuiButton
-            type="button"
-            size="m"
-            [appearance]="form.get('soft')?.value ? 'primary' : 'neutral'"
-            (click)="toggleBool('soft')"
-            class="!rounded-xl shrink-0"
-          >
-            {{ 'ascent.soft' | translate }}
-          </button>
-
-          <tui-textfield
-            tuiChevron
-            [tuiTextfieldCleaner]="false"
-            [stringify]="gradeStringify"
-            tuiTextfieldSize="m"
-            class="grow"
-          >
-            <label tuiLabel for="ascentGrade">{{
-              'labels.grade' | translate
-            }}</label>
-            <input tuiSelect id="ascentGrade" formControlName="grade" />
-            <tui-data-list-wrapper
-              *tuiTextfieldDropdown
-              new
-              [items]="gradeOptions"
-            ></tui-data-list-wrapper>
+      <div class="flex-1 overflow-y-auto p-1 flex flex-col gap-6">
+        <!-- WHEN DID YOU CLIMB IT? -->
+        <section class="grid gap-3">
+          <span class="text-sm font-semibold opacity-70 px-1">{{
+            'ascent.when' | translate
+          }}</span>
+          <tui-textfield [tuiTextfieldCleaner]="false">
+            <input tuiInputDate [max]="today" formControlName="date" />
+            <tui-calendar *tuiTextfieldDropdown />
           </tui-textfield>
-
-          <button
-            tuiButton
-            type="button"
-            size="m"
-            [appearance]="form.get('hard')?.value ? 'primary' : 'neutral'"
-            (click)="toggleBool('hard')"
-            class="!rounded-xl shrink-0"
-          >
-            {{ 'ascent.hard' | translate }}
-          </button>
-        </div>
-      </section>
-
-      @if (showMore()) {
-        <section
-          class="grid gap-6 p-4 bg-black/5 dark:bg-white/5 rounded-xl border border-dashed border-black/10 dark:border-white/10"
-        >
-          <h3 class="text-sm font-bold opacity-50 uppercase tracking-wider">
-            {{ 'ascent.moreInfo' | translate }}
-          </h3>
-
-          <!-- TYPE OF CLIMBING -->
-          <div class="grid gap-3">
-            <span class="text-xs font-bold opacity-60 uppercase">{{
-              'ascent.typeOfClimbing' | translate
-            }}</span>
-            <div class="flex flex-wrap gap-2">
-              @for (key of climbingTypes; track key) {
-                <tui-chip
-                  size="s"
-                  [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
-                  (click)="toggleBool(key)"
-                >
-                  {{ 'ascent.climbing.' + key | translate }}
-                </tui-chip>
-              }
-            </div>
-          </div>
-
-          <!-- STEEPNESS -->
-          <div class="grid gap-3">
-            <span class="text-xs font-bold opacity-60 uppercase">{{
-              'ascent.steepness.title' | translate
-            }}</span>
-            <div class="flex flex-wrap gap-2">
-              @for (key of steepnessTypes; track key) {
-                <tui-chip
-                  size="s"
-                  [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
-                  (click)="toggleBool(key)"
-                >
-                  {{ 'ascent.steepness.' + key | translate }}
-                </tui-chip>
-              }
-            </div>
-          </div>
-
-          <!-- SAFETY -->
-          <div class="grid gap-3">
-            <span class="text-xs font-bold opacity-60 uppercase">{{
-              'ascent.safety.title' | translate
-            }}</span>
-            <div class="flex flex-wrap gap-2">
-              @for (key of safetyIssues; track key) {
-                <tui-chip
-                  size="s"
-                  [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
-                  (click)="toggleBool(key)"
-                >
-                  {{ 'ascent.safety.' + key | translate }}
-                </tui-chip>
-              }
-            </div>
-          </div>
-
-          <!-- OTHER -->
-          <div class="grid gap-3">
-            <span class="text-xs font-bold opacity-60 uppercase">{{
-              'ascent.other.title' | translate
-            }}</span>
-            <div class="flex flex-wrap gap-2">
-              @for (key of otherInfo; track key) {
-                <tui-chip
-                  size="s"
-                  [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
-                  (click)="toggleBool(key)"
-                >
-                  {{ 'ascent.other.' + key | translate }}
-                </tui-chip>
-              }
-            </div>
+          <div class="flex gap-2">
+            <button
+              tuiButton
+              appearance="secondary"
+              size="s"
+              type="button"
+              (click)="quickDate('yesterday')"
+            >
+              {{ 'ascent.yesterday' | translate }}
+            </button>
+            <button
+              tuiButton
+              appearance="secondary"
+              size="s"
+              type="button"
+              (click)="quickDate('lastSaturday')"
+            >
+              {{ 'ascent.lastSaturday' | translate }}
+            </button>
+            <button
+              tuiButton
+              appearance="secondary"
+              size="s"
+              type="button"
+              (click)="quickDate('lastSunday')"
+            >
+              {{ 'ascent.lastSunday' | translate }}
+            </button>
           </div>
         </section>
-      } @else {
-        <button
-          tuiButton
-          appearance="flat"
-          size="s"
-          type="button"
-          (click)="showMore.set(true)"
-        >
-          {{ 'labels.userInfo' | translate }} +
-        </button>
-      }
+
+        <!-- HOW DID YOU CLIMB IT? -->
+        <section class="grid gap-4">
+          <span class="text-sm font-semibold opacity-70 px-1">{{
+            'ascent.how' | translate
+          }}</span>
+          <div class="flex flex-wrap gap-4 items-center justify-around">
+            @for (opt of typeOptions; track opt.id) {
+              <div class="flex flex-col items-center gap-2">
+                <button
+                  tuiIconButton
+                  type="button"
+                  shape="circle"
+                  size="l"
+                  class="transition-transform active:scale-95"
+                  [appearance]="
+                    form.get('type')?.value === opt.id
+                      ? opt.appearance
+                      : 'neutral'
+                  "
+                  (click)="form.get('type')?.setValue(opt.id)"
+                >
+                  <tui-icon [icon]="opt.icon" />
+                </button>
+                <button
+                  type="button"
+                  class="text-xs font-medium appearance-none bg-transparent border-none p-0 cursor-pointer"
+                  (click)="form.get('type')?.setValue(opt.id)"
+                >
+                  {{ opt.translate | translate }}
+                </button>
+              </div>
+            }
+          </div>
+
+          <div class="flex items-center gap-2 mt-2">
+            <button
+              tuiIconButton
+              type="button"
+              size="m"
+              appearance="secondary"
+              iconStart="@tui.minus"
+              class="!rounded-full"
+              [disabled]="form.get('attempts')?.disabled"
+              (click)="changeAttempts(-1)"
+            >
+              -
+            </button>
+            <div class="flex flex-col gap-1">
+              <tui-textfield
+                [tuiTextfieldCleaner]="false"
+                size="m"
+                class="w-32"
+              >
+                <input
+                  tuiInputNumber
+                  [min]="form.get('type')?.value === 'rp' ? 2 : 1"
+                  formControlName="attempts"
+                />
+                <span class="tui-textfield__suffix">{{
+                  'ascent.tries' | translate
+                }}</span>
+              </tui-textfield>
+            </div>
+            <button
+              tuiIconButton
+              type="button"
+              size="m"
+              appearance="secondary"
+              iconStart="@tui.plus"
+              class="!rounded-full"
+              [disabled]="form.get('attempts')?.disabled"
+              (click)="changeAttempts(1)"
+            >
+              +
+            </button>
+          </div>
+        </section>
+
+        <!-- SHARE YOUR THOUGHTS -->
+        <section class="grid gap-3">
+          <tui-textfield [tuiTextfieldCleaner]="false">
+            <label tuiLabel for="ascentComment">{{
+              'ascent.thoughts' | translate
+            }}</label>
+            <textarea
+              id="ascentComment"
+              tuiTextarea
+              formControlName="comment"
+              [placeholder]="'ascent.thoughtsPlaceholder' | translate"
+              rows="5"
+            ></textarea>
+          </tui-textfield>
+          <label class="flex items-center gap-2 cursor-pointer self-start">
+            <input
+              tuiCheckbox
+              type="checkbox"
+              formControlName="private_comment"
+            />
+            <span class="text-sm">{{ 'ascent.private' | translate }}</span>
+          </label>
+        </section>
+
+        <!-- DID YOU LIKE IT? -->
+        <section class="grid gap-3">
+          <span class="text-sm font-semibold opacity-70 px-1">{{
+            'ascent.didYouLikeIt' | translate
+          }}</span>
+          <div class="flex items-center gap-4">
+            <tui-rating [max]="5" formControlName="rate" class="text-primary" />
+            <button
+              tuiIconButton
+              type="button"
+              [appearance]="
+                form.get('recommended')?.value ? 'primary' : 'secondary'
+              "
+              size="m"
+              (click)="toggleBool('recommended')"
+              [tuiHint]="'ascent.recommend' | translate"
+            >
+              <tui-icon
+                [icon]="
+                  form.get('recommended')?.value
+                    ? '@tui.thumbs-up'
+                    : '@tui.thumbs-up'
+                "
+              />
+            </button>
+          </div>
+        </section>
+
+        <!-- GRADE SELECTOR -->
+        <section class="grid gap-3">
+          <span class="text-sm font-semibold opacity-70 px-1">{{
+            'ascent.howWouldYouGrade' | translate
+          }}</span>
+          <div class="flex items-center gap-2">
+            <button
+              tuiButton
+              type="button"
+              size="m"
+              [appearance]="form.get('soft')?.value ? 'primary' : 'neutral'"
+              (click)="toggleBool('soft')"
+              class="!rounded-xl shrink-0"
+            >
+              {{ 'ascent.soft' | translate }}
+            </button>
+
+            <button
+              tuiIconButton
+              type="button"
+              size="m"
+              appearance="secondary"
+              iconStart="@tui.minus"
+              class="!rounded-full shrink-0"
+              (click)="changeGrade(-1)"
+            >
+              -
+            </button>
+
+            <tui-textfield
+              tuiChevron
+              [tuiTextfieldCleaner]="false"
+              [stringify]="gradeStringify"
+              tuiTextfieldSize="m"
+              class="grow"
+            >
+              <label tuiLabel for="ascentGrade">{{
+                'labels.grade' | translate
+              }}</label>
+              <input tuiSelect id="ascentGrade" formControlName="grade" />
+              <tui-data-list-wrapper
+                *tuiTextfieldDropdown
+                [items]="gradeOptions"
+              ></tui-data-list-wrapper>
+            </tui-textfield>
+
+            <button
+              tuiIconButton
+              type="button"
+              size="m"
+              appearance="secondary"
+              iconStart="@tui.plus"
+              class="!rounded-full shrink-0"
+              (click)="changeGrade(1)"
+            >
+              +
+            </button>
+
+            <button
+              tuiButton
+              type="button"
+              size="m"
+              [appearance]="form.get('hard')?.value ? 'primary' : 'neutral'"
+              (click)="toggleBool('hard')"
+              class="!rounded-xl shrink-0"
+            >
+              {{ 'ascent.hard' | translate }}
+            </button>
+          </div>
+        </section>
+
+        @if (showMore()) {
+          <section
+            class="grid gap-6 p-4 rounded-xl border border-dashed border-black/10"
+          >
+            <h3 class="text-sm font-bold opacity-50 uppercase tracking-wider">
+              {{ 'ascent.moreInfo' | translate }}
+            </h3>
+
+            <!-- TYPE OF CLIMBING -->
+            <div class="grid gap-3">
+              <span class="text-xs font-bold opacity-60 uppercase">{{
+                'ascent.typeOfClimbing' | translate
+              }}</span>
+              <div class="flex flex-wrap gap-2">
+                @for (key of climbingTypes; track key) {
+                  <tui-chip
+                    size="s"
+                    [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
+                    (click)="toggleBool(key)"
+                  >
+                    {{ 'ascent.climbing.' + key | translate }}
+                  </tui-chip>
+                }
+              </div>
+            </div>
+
+            <!-- STEEPNESS -->
+            <div class="grid gap-3">
+              <span class="text-xs font-bold opacity-60 uppercase">{{
+                'ascent.steepness.title' | translate
+              }}</span>
+              <div class="flex flex-wrap gap-2">
+                @for (key of steepnessTypes; track key) {
+                  <tui-chip
+                    size="s"
+                    [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
+                    (click)="toggleBool(key)"
+                  >
+                    {{ 'ascent.steepness.' + key | translate }}
+                  </tui-chip>
+                }
+              </div>
+            </div>
+
+            <!-- SAFETY -->
+            <div class="grid gap-3">
+              <span class="text-xs font-bold opacity-60 uppercase">{{
+                'ascent.safety.title' | translate
+              }}</span>
+              <div class="flex flex-wrap gap-2">
+                @for (key of safetyIssues; track key) {
+                  <tui-chip
+                    size="s"
+                    [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
+                    (click)="toggleBool(key)"
+                  >
+                    {{ 'ascent.safety.' + key | translate }}
+                  </tui-chip>
+                }
+              </div>
+            </div>
+
+            <!-- OTHER -->
+            <div class="grid gap-3">
+              <span class="text-xs font-bold opacity-60 uppercase">{{
+                'ascent.other.title' | translate
+              }}</span>
+              <div class="flex flex-wrap gap-2">
+                @for (key of otherInfo; track key) {
+                  <tui-chip
+                    size="s"
+                    [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
+                    (click)="toggleBool(key)"
+                  >
+                    {{ 'ascent.other.' + key | translate }}
+                  </tui-chip>
+                }
+              </div>
+            </div>
+          </section>
+        } @else {
+          <button
+            tuiButton
+            appearance="flat"
+            size="s"
+            type="button"
+            (click)="showMore.set(true)"
+          >
+            {{ 'labels.userInfo' | translate }} +
+          </button>
+        }
+      </div>
 
       <!-- FOOTER ACTIONS -->
-      <div
-        class="flex gap-2 justify-end flex-wrap sticky bottom-0 bg-white dark:bg-[#222] py-4 border-t border-black/5 dark:border-white/5"
-      >
+      <div class="flex gap-2 justify-end flex-wrap pt-4">
         @if (isEdit()) {
           <button
             tuiButton
@@ -546,11 +596,43 @@ export default class AscentFormComponent {
     'traditional',
   ];
 
-  protected readonly gradeOptions: readonly number[] = Object.keys(
-    VERTICAL_LIFE_TO_LABEL,
-  ).map(Number);
+  protected readonly gradeItems = Object.entries(VERTICAL_LIFE_TO_LABEL)
+    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .map(([k, v]) => ({ id: Number(k), label: v }));
+
   protected readonly gradeStringify = (grade: number): string =>
     VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || '';
+
+  protected changeAttempts(delta: number): void {
+    const ctrl = this.form.get('attempts');
+    if (!ctrl || ctrl.disabled) return;
+    const current = ctrl.value ?? 0;
+    const min = this.form.get('type')?.value === 'rp' ? 2 : 1;
+    const next = Math.max(min, current + delta);
+    ctrl.setValue(next);
+  }
+
+  protected changeGrade(delta: number): void {
+    const ctrl = this.form.get('grade');
+    if (!ctrl) return;
+    const current = ctrl.value;
+    if (current === null) {
+      if (this.gradeItems.length > 0) {
+        ctrl.setValue(this.gradeItems[0].id);
+      }
+      return;
+    }
+
+    const currentIndex = this.gradeItems.findIndex((i) => i.id === current);
+    if (currentIndex === -1) return;
+
+    const nextIndex = currentIndex + delta;
+    if (nextIndex >= 0 && nextIndex < this.gradeItems.length) {
+      ctrl.setValue(this.gradeItems[nextIndex].id);
+    }
+  }
+
+  protected readonly gradeOptions = this.gradeItems.map((i) => i.id);
 
   constructor() {
     effect(() => {
@@ -670,8 +752,10 @@ export default class AscentFormComponent {
 
     const route_id = this.effectiveRouteId();
     const ascentData = this.effectiveAscentData();
-    const user_id = this.supabase.authUser()?.id;
-    if (!user_id && !ascentData) return;
+    const user_id = ascentData
+      ? ascentData.user_id
+      : this.supabase.authUser()?.id;
+    if (!user_id) return;
 
     const values = this.form.getRawValue();
     const payload: Omit<RouteAscentInsertDto, 'user_id' | 'route_id'> = {

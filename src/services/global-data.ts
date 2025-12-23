@@ -99,6 +99,7 @@ export class GlobalData {
   );
   iconSrc: Signal<(name: IconName) => string> = computed(() => {
     const theme = this.selectedTheme();
+    // Return the icon URL based on the theme
     return (name: IconName) => `/image/${name}-${theme}.svg`;
   });
 
@@ -157,6 +158,13 @@ export class GlobalData {
     'Wild Side',
     'Aixortà',
     'Rincón Bello',
+    'Chulilla',
+    'Oliana',
+    'Rodellar',
+    'Siurana',
+    'Margalef',
+    'Kalymnos',
+    'Fontainebleau',
   ]);
 
   // ---- Auth (roles) ----
@@ -273,8 +281,8 @@ export class GlobalData {
     return slug ? this.areaList().find((a) => a.slug === slug) || null : null;
   });
   /**
-   * Lista de áreas (RPC get_areas_list)
-   * SSR-safe: en servidor devuelve [] y no accede a APIs del navegador.
+   * List of areas (RPC get_areas_list)
+   * SSR-safe: on server returns [] and does not access browser APIs.
    */
   readonly areaListResource = resource({
     loader: async () => {
@@ -302,8 +310,8 @@ export class GlobalData {
 
   // ---- Crags list by selected area ----
   /**
-   * Lista de sectores/crags para el área seleccionada usando RPC get_crags_list_by_area_slug.
-   * SSR-safe: en servidor devuelve [].
+   * List of sectors/crags for the selected area using RPC get_crags_list_by_area_slug.
+   * SSR-safe: on server returns [].
    */
   readonly cragsListResource = resource({
     params: () => this.selectedAreaSlug(),
@@ -333,8 +341,9 @@ export class GlobalData {
     () => this.cragsListResource.value() ?? [],
   );
 
-  // ---- Crags ----
-  // Selección de crag (por slug) dependiente del área seleccionada
+  /**
+   * Selection of crag (by slug) dependent on the selected area.
+   */
   selectedCragSlug: WritableSignal<string | null> = signal(null);
   selectedCrag: Signal<CragListItem | null> = computed(() => {
     const slug = this.selectedCragSlug();

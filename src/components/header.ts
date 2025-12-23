@@ -453,10 +453,10 @@ export class HeaderComponent implements OnDestroy {
     };
     if (!document.fullscreenElement) {
       if (docEl.requestFullscreen) {
-        docEl.requestFullscreen();
+        void docEl.requestFullscreen();
       }
     } else if (document.exitFullscreen) {
-      document.exitFullscreen();
+      void document.exitFullscreen();
     }
   }
 

@@ -1,33 +1,8 @@
-import { Coordinates } from './coordinates.model';
 import { AmountByEveryGrade } from './grade.model';
 import type { Database } from './supabase-generated';
 import { Parking } from './parking.model';
 import { TopoListItem } from './topo.model';
-import {
-  EquipperDto,
-  TableInsert,
-  TableRow,
-  TableUpdate,
-} from './supabase-interfaces';
-
-export interface ClimbingCrag {
-  unifiedId?: number;
-  cragSlug: string;
-  vlLocationId?: number | null;
-  cragName: string;
-  totalZlaggables?: number;
-  areaSlug: string;
-  areaName: string;
-  countrySlug: string;
-  countryName: string;
-  category?: number;
-  totalAscents?: number;
-  averageRating?: number;
-  location: Coordinates | null;
-  description?: string | null;
-  totalSectors?: number;
-  liked: boolean;
-}
+import { TableInsert, TableRow, TableUpdate } from './supabase-interfaces';
 
 export type CragListItem = Omit<
   Database['public']['Functions']['get_crags_list_by_area_slug']['Returns'][number],
@@ -55,25 +30,7 @@ export type CragDetail = CragListItem &
     area_slug: string;
     parkings: Parking[];
     topos: TopoListItem[];
-    // routes are fetched separately via cragRoutesResource
   };
-
-// Para la futura llamada get_routes_list_by_crag_slug
-export interface RouteListItem {
-  climbing_kind: Database['public']['Enums']['climbing_kind'];
-  grade: number;
-  height: number | null;
-  id: number;
-  name: string;
-  slug: string;
-  liked: boolean; // incluir function toggleRouteLike
-  project: boolean; // incluir function toggleProjectRoute
-  equippers: EquipperDto[];
-}
-
-// TODO: obtener topos y parkings
-// parkings: Parking[];
-// topos: TopoListItem[];
 
 // Crags
 export type CragDto = TableRow<'crags'>;

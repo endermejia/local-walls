@@ -15,10 +15,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { TuiAvatar, TuiRating, TuiChip } from '@taiga-ui/kit';
 import { TuiTable, TuiTableSortPipe } from '@taiga-ui/addon-table';
 import { TuiCell } from '@taiga-ui/layout';
-import { TUI_CONFIRM, type TuiConfirmData } from '@taiga-ui/kit';
-import { firstValueFrom } from 'rxjs';
 import {
-  TuiButton,
   TuiIcon,
   TuiHint,
   TuiFallbackSrcPipe,
@@ -28,9 +25,8 @@ import {
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslateService } from '@ngx-translate/core';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
-import AscentFormComponent from '../pages/ascent-form';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
-
+import { SupabaseService, GlobalData } from '../services';
 import {
   RouteAscentWithExtras,
   VERTICAL_LIFE_TO_LABEL,
@@ -38,7 +34,7 @@ import {
   colorForGrade,
   GradeLabel,
 } from '../models';
-import { SupabaseService, GlobalData, AscentsService } from '../services';
+import AscentFormComponent from '../pages/ascent-form';
 
 export interface AscentsTableRow {
   key: string;
@@ -61,6 +57,8 @@ export interface AscentsTableRow {
   details: string[];
   editDisabled: boolean;
   avatarSrc: string;
+  canEdit: boolean;
+  liked: boolean;
   _ref: RouteAscentWithExtras;
 }
 
@@ -81,7 +79,6 @@ export interface AscentsTableRow {
     TuiTableSortPipe,
     TuiFallbackSrcPipe,
     AsyncPipe,
-    TuiButton,
     TuiIcon,
     TuiLink,
   ],
@@ -109,7 +106,11 @@ export interface AscentsTableRow {
         @let sortedData = tableData() | tuiTableSort;
         <tbody tuiTbody [data]="sortedData">
           @for (item of sortedData; track item.key) {
-            <tr tuiTr>
+            <tr
+              tuiTr
+              [class.cursor-pointer]="item.canEdit"
+              (click.zoneless)="item.canEdit && onEdit(item)"
+            >
               @for (col of columns(); track col) {
                 <td *tuiCell="col" tuiTd>
                   @switch (col) {
@@ -124,6 +125,7 @@ export interface AscentsTableRow {
                         <a
                           [routerLink]="['/profile', item.user_id]"
                           class="tui-link"
+                          (click)="$event.stopPropagation()"
                         >
                           {{ item.user_name }}
                         </a>
@@ -141,13 +143,21 @@ export interface AscentsTableRow {
                               item.route_slug,
                             ]"
                             class="font-medium align-self-start whitespace-nowrap"
+                            [style.color]="
+                              item.liked ? 'var(--tui-status-negative)' : ''
+                            "
+                            (click)="$event.stopPropagation()"
                           >
                             {{ item.route_name }}
                           </a>
                           <div
                             class="text-xs opacity-70 flex gap-1 items-center whitespace-nowrap"
                           >
-                            <a tuiLink [routerLink]="['/area', item.area_slug]">
+                            <a
+                              tuiLink
+                              [routerLink]="['/area', item.area_slug]"
+                              (click)="$event.stopPropagation()"
+                            >
                               {{ item.area_name }}
                             </a>
                             <span>/</span>
@@ -158,6 +168,7 @@ export interface AscentsTableRow {
                                 item.area_slug,
                                 item.crag_slug,
                               ]"
+                              (click)="$event.stopPropagation()"
                             >
                               {{ item.crag_name }}
                             </a>
@@ -168,7 +179,7 @@ export interface AscentsTableRow {
                     @case ('grade') {
                       <div tuiCell size="m">
                         <tui-avatar
-                          size="s"
+                          size="m"
                           class="font-semibold select-none !text-white"
                           [style.background]="item.grade_color"
                         >
@@ -193,7 +204,7 @@ export interface AscentsTableRow {
                     }
                     @case ('comment') {
                       <div tuiCell size="m" class="text-sm italic opacity-80">
-                        @if (item.showComment) {
+                        @if (item.showComment || item.canEdit) {
                           {{ item.comment }}
                         }
                       </div>
@@ -209,27 +220,19 @@ export interface AscentsTableRow {
                     }
                     @case ('type') {
                       <div tuiCell size="m">
-                        <button
-                          size="s"
-                          [appearance]="
-                            ascentInfo()[item.type || 'default'].appearance
+                        <tui-avatar
+                          class="!text-white"
+                          [style.background]="
+                            ascentInfo()[item.type || 'default'].background
                           "
-                          tuiIconButton
-                          type="button"
-                          class="!rounded-full"
                           [tuiHint]="
-                            (item.editDisabled
-                              ? 'ascentTypes.' + (item.type || 'rp')
-                              : 'ascent.edit'
-                            ) | translate
+                            'ascentTypes.' + (item.type || 'rp') | translate
                           "
-                          (click.zoneless)="onEdit(item)"
-                          [disabled]="item.editDisabled"
                         >
                           <tui-icon
                             [icon]="ascentInfo()[item.type || 'default'].icon"
                           />
-                        </button>
+                        </tui-avatar>
                       </div>
                     }
                   }
@@ -246,7 +249,6 @@ export interface AscentsTableRow {
 export class AscentsTableComponent {
   private readonly supabase = inject(SupabaseService);
   protected readonly global = inject(GlobalData);
-  private readonly ascentsService = inject(AscentsService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
 
@@ -272,12 +274,36 @@ export class AscentsTableComponent {
       const details: string[] = [];
       if (a.soft) details.push('ascent.soft');
       if (a.hard) details.push('ascent.hard');
-      if (a.first_ascent) details.push('ascent.firstAscent');
-      if (a.traditional) details.push('ascent.traditional');
-      if (a.no_score) details.push('ascent.noScore');
-      if (a.chipped) details.push('ascent.chipped');
+      if (a.first_ascent) details.push('ascent.other.first_ascent');
+      if (a.traditional) details.push('ascent.other.traditional');
+      if (a.no_score) details.push('ascent.other.no_score');
+      if (a.chipped) details.push('ascent.other.chipped');
       if (a.recommended) details.push('ascent.recommend');
-      // Add more if needed based on models props: cruxy, athletic, etc? User said "soft, hard, etc."
+
+      // Climbing
+      if (a.cruxy) details.push('ascent.climbing.cruxy');
+      if (a.athletic) details.push('ascent.climbing.athletic');
+      if (a.sloper) details.push('ascent.climbing.sloper');
+      if (a.endurance) details.push('ascent.climbing.endurance');
+      if (a.technical) details.push('ascent.climbing.technical');
+      if (a.crimpy) details.push('ascent.climbing.crimpy');
+
+      // Steepness
+      if (a.slab) details.push('ascent.steepness.slab');
+      if (a.vertical) details.push('ascent.steepness.vertical');
+      if (a.overhang) details.push('ascent.steepness.overhang');
+      if (a.roof) details.push('ascent.steepness.roof');
+
+      // Safety
+      if (a.bad_anchor) details.push('ascent.safety.bad_anchor');
+      if (a.bad_bolts) details.push('ascent.safety.bad_bolts');
+      if (a.high_first_bolt) details.push('ascent.safety.high_first_bolt');
+      if (a.lose_rock) details.push('ascent.safety.lose_rock');
+      if (a.bad_clipping_position)
+        details.push('ascent.safety.bad_clipping_position');
+
+      // Other
+      if (a.with_kneepad) details.push('ascent.other.with_kneepad');
 
       return {
         key: a.id.toString(),
@@ -303,6 +329,8 @@ export class AscentsTableComponent {
         details,
         editDisabled:
           a.user_id !== this.supabase.authUser()?.id && !this.global.isAdmin(),
+        canEdit: a.user_id === this.supabase.authUser()?.id,
+        liked: a.route?.liked ?? false,
         avatarSrc: this.supabase.buildAvatarUrl(a.user?.avatar ?? null),
         _ref: a,
       };
@@ -310,23 +338,27 @@ export class AscentsTableComponent {
   });
 
   protected readonly ascentInfo = computed<
-    Record<string, { icon: string; appearance: string }>
+    Record<string, { icon: string; appearance: string; background: string }>
   >(() => ({
     os: {
       icon: '@tui.eye',
       appearance: 'success',
+      background: 'var(--tui-status-success)',
     },
     f: {
       icon: '@tui.zap',
       appearance: 'warning',
+      background: 'var(--tui-status-warning)',
     },
     rp: {
       icon: '@tui.circle',
       appearance: 'negative',
+      background: 'var(--tui-status-negative)',
     },
     default: {
       icon: '@tui.circle',
       appearance: 'neutral',
+      background: 'var(--tui-neutral-fill)',
     },
   }));
 
@@ -358,31 +390,5 @@ export class AscentsTableComponent {
           this.updated.emit();
         }
       });
-  }
-
-  protected async onDelete(item: AscentsTableRow): Promise<void> {
-    const confirmed = await firstValueFrom(
-      this.dialogs.open<boolean>(TUI_CONFIRM, {
-        label: this.translate.instant('actions.delete'),
-        size: 'm',
-        data: {
-          content: this.translate.instant('routes.deleteConfirm', {
-            name: `${item.route_name} (${item.date})`,
-          }),
-          yes: this.translate.instant('actions.delete'),
-          no: this.translate.instant('actions.cancel'),
-        } as TuiConfirmData,
-      }),
-    );
-
-    if (!confirmed) return;
-
-    try {
-      const id = Number(item.key);
-      await this.ascentsService.delete(id);
-      this.deleted.emit(id);
-    } catch (e) {
-      console.error('Error deleting ascent', e);
-    }
   }
 }

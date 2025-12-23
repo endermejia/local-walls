@@ -1,4 +1,3 @@
-import { PageableResponse } from './pagination.model';
 import { RouteAscentDto, RouteDto } from './supabase-interfaces';
 
 export interface RouteWithExtras extends RouteDto {
@@ -13,5 +12,3 @@ export interface RouteWithExtras extends RouteDto {
   climbed?: boolean;
   own_ascent?: RouteAscentDto;
 }
-
-export type RoutesPage = PageableResponse<RouteWithExtras>;

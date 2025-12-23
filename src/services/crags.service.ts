@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { SupabaseService } from './supabase.service';
-// getCragDetailBySlug eliminado; ya no se usa RPC get_crag_by_slug
+// getCragDetailBySlug removed; RPC get_crag_by_slug is no longer used
 import { GlobalData } from './global-data';
 import type { CragDto, CragInsertDto, CragUpdateDto } from '../models';
 
@@ -34,7 +34,7 @@ export class CragsService {
       console.error('[CragsService] create error', error);
       throw error;
     }
-    // Tras crear, recarga lista de crags del área seleccionada
+    // After creating, reload the crags list for the selected area
     this.global.cragsListResource.reload();
     return data as CragDto;
   }
@@ -55,7 +55,7 @@ export class CragsService {
       console.error('[CragsService] update error', error);
       throw error;
     }
-    // Recarga lista de crags del área seleccionada y el detalle del crag actual
+    // Reload the crags list for the selected area and the current crag detail
     this.global.cragsListResource.reload();
     this.global.cragDetailResource.reload();
     return data as CragDto;

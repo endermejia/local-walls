@@ -57,7 +57,7 @@ export class MapBuilder {
   private markers: Marker[] = [];
   private userMarker: Marker | null = null;
   private clusteringEnabled = true;
-  private clusterRadius = 50; // Radio para agrupar marcadores en píxeles
+  private clusterRadius = 50; // Marker grouping radius in pixels
   // Control whether cluster markers should animate on next rebuild
   private animateClustersOnNextBuild = true;
 
@@ -665,7 +665,7 @@ export class MapBuilder {
         html: this.cragLabelHtml(
           mapCragItem.name,
           selectedMapCragItem?.id === mapCragItem.id,
-          !!mapCragItem.liked, // Usar el liked del item directamente
+          !!mapCragItem.liked, // Use item's liked status directly
           'api',
         ),
         className: 'pointer-events-none',
@@ -704,8 +704,7 @@ export class MapBuilder {
         backgroundColorClass = 'lw-marker--accent';
         break;
     }
-
-    // El resto del código se mantiene igual
+    // The rest of the code remains the same
     const scale = isSelected ? 1.1 : isFavorite ? 1.2 : 1;
 
     return `<div

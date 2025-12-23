@@ -88,7 +88,7 @@ interface AscentResponse extends RouteAscentDto {
         <div class="grow">
           <div class="flex flex-row items-center justify-between">
             @let name = profile()?.name;
-            <div class="text-xl font-semibold">
+            <div class="text-xl font-semibold break-all">
               <span
                 [tuiSkeleton]="loading ? 'name lastName secondLastName' : false"
               >
@@ -199,7 +199,7 @@ export class UserProfileComponent {
 
   constructor() {
     effect(() => {
-      // Reset breadcrumbs when navigating to profile page
+      // Reset breadcrumbs when navigating to the profile page
       this.id(); // Track the id signal
       this.global.resetDataByPage('user');
     });
@@ -211,7 +211,7 @@ export class UserProfileComponent {
     loader: async ({ params: paramId }) => {
       if (!paramId || !isPlatformBrowser(this.platformId)) return null;
 
-      // If param is the same as current user id, we use own profile (computed below)
+      // If param is the same as the current user id, we use our own profile (computed below)
       const currentId = this.supabase.authUserId();
       if (currentId && paramId === currentId) return null;
 
@@ -411,7 +411,7 @@ export class UserProfileComponent {
   }
 
   onToggleProject(route: RouteItem): void {
-    // If it's own profile and we are toggling off project, remove from list
+    // If its own profile, and we are toggling off a project, remove from a list
     if (this.isOwnProfile()) {
       this.projectsResource.update((current) =>
         (current ?? []).filter((item) => item.id !== route.id),
