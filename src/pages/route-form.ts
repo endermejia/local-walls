@@ -62,6 +62,22 @@ interface MinimalRoute {
         <input tuiTextfield id="name" [formControl]="name" autocomplete="off" />
       </tui-textfield>
 
+      <tui-textfield
+        tuiChevron
+        [tuiTextfieldCleaner]="false"
+        [stringify]="kindStringify"
+      >
+        <label tuiLabel for="kind">
+          {{ 'labels.climbing_kind' | translate }}
+        </label>
+        <input tuiSelect id="kind" [formControl]="climbing_kind" />
+        <tui-data-list-wrapper
+          *tuiTextfieldDropdown
+          new
+          [items]="kindOptions"
+        />
+      </tui-textfield>
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="flex items-center gap-2">
           <button
@@ -101,22 +117,6 @@ interface MinimalRoute {
             +
           </button>
         </div>
-
-        <tui-textfield
-          tuiChevron
-          [tuiTextfieldCleaner]="false"
-          [stringify]="kindStringify"
-        >
-          <label tuiLabel for="kind">
-            {{ 'labels.climbing_kind' | translate }}
-          </label>
-          <input tuiSelect id="kind" [formControl]="climbing_kind" />
-          <tui-data-list-wrapper
-            *tuiTextfieldDropdown
-            new
-            [items]="kindOptions"
-          />
-        </tui-textfield>
 
         <div class="flex items-center gap-2">
           <button

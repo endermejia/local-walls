@@ -197,7 +197,11 @@
     "newTitle": "Create new topo",
     "editTitle": "Edit topo",
     "deleteTitle": "Delete topo",
-    "deleteConfirm": "Are you sure you want to delete topo \"{{name}}\"? This action cannot be undone."
+    "deleteConfirm": "Are you sure you want to delete the topo \"{{name}}\"? This action cannot be undone.",
+    "name": "Topo name",
+    "photoUrl": "Photo URL",
+    "shadeChangeHour": "Shade change hour",
+    "manageRoutes": "Manage linked routes"
   },
   "routes": {
     "new": "New route",

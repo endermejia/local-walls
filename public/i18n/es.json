@@ -197,7 +197,11 @@
     "newTitle": "Crear nuevo croquis",
     "editTitle": "Editar croquis",
     "deleteTitle": "Eliminar croquis",
-    "deleteConfirm": "¿Seguro que quieres eliminar el croquis \"{{name}}\"? Esta acción no se puede deshacer."
+    "deleteConfirm": "¿Seguro que quieres eliminar el croquis \"{{name}}\"? Esta acción no se puede deshacer.",
+    "name": "Nombre del croquis",
+    "photoUrl": "URL de la foto",
+    "shadeChangeHour": "Hora de cambio de sombra",
+    "manageRoutes": "Gestionar vías asociadas"
   },
   "routes": {
     "new": "Nueva vía",

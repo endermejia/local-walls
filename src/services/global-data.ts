@@ -3,11 +3,11 @@ import {
   effect,
   inject,
   Injectable,
+  PLATFORM_ID,
+  resource,
   Signal,
   signal,
   WritableSignal,
-  resource,
-  PLATFORM_ID,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
@@ -19,16 +19,12 @@ import { map } from 'rxjs';
 import { LocalStorage } from './local-storage';
 import { SupabaseService } from './supabase.service';
 import {
+  AmountByEveryGrade,
   AppRoles,
   AreaListItem,
-  CragListItem,
   CragDetail,
   CragDto,
-  Parking,
-  RouteWithExtras,
-  RouteAscentWithExtras,
-  TopoListItem,
-  TopoDto,
+  CragListItem,
   IconName,
   Language,
   Languages,
@@ -38,10 +34,15 @@ import {
   MapItem,
   MapResponse,
   OptionsData,
+  ORDERED_GRADE_VALUES,
+  Parking,
+  RouteAscentWithExtras,
+  RouteWithExtras,
   Theme,
   Themes,
-  ORDERED_GRADE_VALUES,
-  AmountByEveryGrade,
+  TopoDetail,
+  TopoDto,
+  TopoListItem,
   VERTICAL_LIFE_GRADES,
 } from '../models';
 
@@ -332,14 +333,13 @@ export class GlobalData {
   readonly areasMapResource = resource({
     params: () => {
       const crags = this.mapResource.value()?.items || [];
-      const areaSlugs = [
+      return [
         ...new Set(
           crags
             .map((c) => (c as MapCragItem).area_slug)
             .filter((slug): slug is string => !!slug),
         ),
       ];
-      return areaSlugs;
     },
     loader: async ({ params: slugs }) => {
       if (!slugs.length || !isPlatformBrowser(this.platformId)) return [];
@@ -493,6 +493,43 @@ export class GlobalData {
     if (!slug) return null;
     const list = this.cragsList();
     return list.find((c) => c.slug === slug) ?? null;
+  });
+
+  selectedTopoId: WritableSignal<string | null> = signal(null);
+
+  readonly topoDetailResource = resource({
+    params: () => this.selectedTopoId(),
+    loader: async ({ params: id }): Promise<TopoDetail | null> => {
+      if (!id) return null;
+      if (!isPlatformBrowser(this.platformId)) return null;
+      try {
+        await this.supabase.whenReady();
+        const { data, error } = await this.supabase.client
+          .from('topos')
+          .select(
+            `
+            *,
+            topo_routes (
+              *,
+              route: routes (*)
+            )
+          `,
+          )
+          .eq('id', Number(id))
+          .order('number', { referencedTable: 'topo_routes', ascending: true })
+          .single();
+
+        if (error) {
+          console.error('[GlobalData] topoDetailResource error', error);
+          return null;
+        }
+
+        return data as TopoDetail;
+      } catch (e) {
+        console.error('[GlobalData] topoDetailResource error', e);
+        return null;
+      }
+    },
   });
 
   readonly cragDetailResource = resource({
@@ -917,6 +954,7 @@ export class GlobalData {
       }
       case 'topo': {
         this.selectedRouteSlug.set(null);
+        this.selectedTopoId.set(null);
         break;
       }
       case 'route': {

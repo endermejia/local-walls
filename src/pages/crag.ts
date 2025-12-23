@@ -41,6 +41,7 @@ import {
 import { mapLocationUrl } from '../utils';
 import { CragFormComponent } from './crag-form';
 import { RouteFormComponent } from './route-form';
+import TopoFormComponent from './topo-form';
 import AscentFormComponent from './ascent-form';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { handleErrorToast } from '../utils';
@@ -262,7 +263,12 @@ import { handleErrorToast } from '../utils';
           </div>
           <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
             @for (t of topos(); track t.id) {
-              <div tuiCardLarge [tuiSurface]="'outline'" class="cursor-pointer">
+              <div
+                tuiCardLarge
+                [tuiSurface]="'outline'"
+                class="cursor-pointer"
+                (click.zoneless)="goToTopo(t.id)"
+              >
                 <div class="flex flex-col min-w-0 grow">
                   <header tuiHeader>
                     <h2 tuiTitle>{{ t.name }}</h2>
@@ -381,6 +387,16 @@ export class CragComponent {
       shade_text: this.getShadeText(t),
     }));
   });
+
+  protected goToTopo(id: number): void {
+    void this.router.navigate([
+      '/area',
+      this.areaSlug(),
+      this.cragSlug(),
+      'topo',
+      id,
+    ]);
+  }
 
   private getShadeText(t: TopoListItem): string {
     const morning = t.shade_morning;
@@ -530,7 +546,13 @@ export class CragComponent {
   openCreateTopo(): void {
     const c = this.cragDetail();
     if (!c) return;
-    // TODO: navigate to/create topo form for this crag
+    this.dialogs
+      .open<string | null>(new PolymorpheusComponent(TopoFormComponent), {
+        label: this.translate.instant('topos.newTitle'),
+        size: 'l',
+        data: { cragId: c.id },
+      })
+      .subscribe();
   }
 
   protected onLogAscent(route: RouteWithExtras): void {
