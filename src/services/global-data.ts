@@ -856,11 +856,13 @@ export class GlobalData {
 
         // 3. Map profiles back to ascents
         const profileMap = new Map(profiles?.map((p) => [p.id, p]));
+        const currentRoute = this.routeDetailResource.value();
         return ascents.map(
           (a) =>
             ({
               ...a,
               user: profileMap.get(a.user_id),
+              route: currentRoute ?? undefined,
             }) as RouteAscentWithExtras,
         );
       } catch (e) {
@@ -950,14 +952,15 @@ export class GlobalData {
       }
       case 'crag': {
         this.selectedRouteSlug.set(null);
+        this.selectedTopoId.set(null);
         break;
       }
       case 'topo': {
         this.selectedRouteSlug.set(null);
-        this.selectedTopoId.set(null);
         break;
       }
       case 'route': {
+        this.selectedTopoId.set(null);
         break;
       }
     }

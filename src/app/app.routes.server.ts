@@ -49,11 +49,10 @@ export const serverRoutes: ServerRoute[] = [
     },
   },
   {
-    path: 'sector/:countrySlug/:cragSlug/:sectorSlug',
+    path: 'area/:areaSlug/:cragSlug/topo/:id',
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,
     async getPrerenderParams() {
-      // No static params; prerender will be empty and fallback to Server
       return [];
     },
   },

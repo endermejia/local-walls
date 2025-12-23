@@ -18,13 +18,9 @@ import { TuiButton, TuiHint, TuiLoader, TuiLink } from '@taiga-ui/core';
 import { TuiTable } from '@taiga-ui/addon-table';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { SectionHeaderComponent } from '../components';
+import { AvatarGradeComponent, SectionHeaderComponent } from '../components';
 import { GlobalData } from '../services';
-import {
-  VERTICAL_LIFE_TO_LABEL,
-  VERTICAL_LIFE_GRADES,
-  TopoDetail,
-} from '../models';
+import { TopoDetail } from '../models';
 import TopoFormComponent from './topo-form';
 
 @Component({
@@ -38,6 +34,7 @@ import TopoFormComponent from './topo-form';
     TuiTable,
     TuiLoader,
     TuiLink,
+    AvatarGradeComponent,
   ],
   template: `
     <div class="h-full w-full">
@@ -131,7 +128,9 @@ import TopoFormComponent from './topo-form';
                         {{ tr.route.name }}
                       </button>
                     </td>
-                    <td tuiTd>{{ gradeStringify(tr.route.grade) }}</td>
+                    <td tuiTd>
+                      <app-avatar-grade [grade]="tr.route.grade" size="s" />
+                    </td>
                     <td tuiTd>
                       {{ tr.route.height ? tr.route.height + 'm' : '-' }}
                     </td>
@@ -179,17 +178,15 @@ export class TopoComponent {
   constructor() {
     effect(() => {
       this.global.resetDataByPage('topo');
+      const aSlug = this.areaSlug();
+      const cSlug = this.cragSlug();
       const topoId = this.id();
+      this.global.selectedAreaSlug.set(aSlug);
+      this.global.selectedCragSlug.set(cSlug);
       if (topoId) {
         this.global.selectedTopoId.set(topoId);
       }
     });
-  }
-
-  gradeStringify(grade: number): string {
-    return (
-      VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || grade.toString()
-    );
   }
 
   onToggleLike(): void {

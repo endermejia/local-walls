@@ -17,8 +17,8 @@
       "remove": "Quitar favorito"
     },
     "project": {
-      "add": "Marcar como proyecto",
-      "remove": "Quitar proyecto"
+      "add": "Proyecto",
+      "remove": "Proyecto"
     },
     "fit": {
       "cover": "Ajustar al alto",
@@ -106,7 +106,8 @@
     "warning_es": "Avisos en español",
     "you": "tú",
     "year": "Año",
-    "years": "Años"
+    "years": "Años",
+    "empty": "No hay datos para mostrar"
   },
   "auth": {
     "login": "Iniciar sesión",

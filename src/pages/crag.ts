@@ -297,6 +297,8 @@ import { handleErrorToast } from '../utils';
                   </section>
                 </div>
               </div>
+            } @empty {
+              <div class="opacity-70">{{ 'labels.empty' | translate }}</div>
             }
           </div>
         </div>

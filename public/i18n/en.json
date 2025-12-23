@@ -106,7 +106,8 @@
     "warning_es": "Spanish warnings",
     "you": "you",
     "year": "Year",
-    "years": "Years"
+    "years": "Years",
+    "empty": "No data to show"
   },
   "auth": {
     "login": "Sign in",

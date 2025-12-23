@@ -28,12 +28,11 @@ import { TranslateService } from '@ngx-translate/core';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { SupabaseService, GlobalData } from '../services';
+import { AvatarGradeComponent } from './avatar-grade';
 import {
   RouteAscentWithExtras,
   VERTICAL_LIFE_TO_LABEL,
   VERTICAL_LIFE_GRADES,
-  colorForGrade,
-  GradeLabel,
 } from '../models';
 import AscentFormComponent from '../pages/ascent-form';
 
@@ -49,7 +48,6 @@ export interface AscentsTableRow {
   area_name: string;
   crag_name: string;
   grade: string;
-  grade_color: string;
   date: string;
   rating: number;
   type: string;
@@ -83,6 +81,7 @@ export interface AscentsTableRow {
     TuiIcon,
     TuiLink,
     TuiAppearance,
+    AvatarGradeComponent,
   ],
   template: `
     <div class="overflow-auto">
@@ -192,13 +191,12 @@ export interface AscentsTableRow {
                     }
                     @case ('grade') {
                       <div tuiCell size="m">
-                        <tui-avatar
+                        <app-avatar-grade
+                          [grade]="
+                            item._ref.grade ?? item._ref.route?.grade ?? 0
+                          "
                           size="m"
-                          class="font-semibold select-none !text-white"
-                          [style.background]="item.grade_color"
-                        >
-                          {{ item.grade }}
-                        </tui-avatar>
+                        />
                       </div>
                     }
                     @case ('date') {
@@ -255,6 +253,12 @@ export interface AscentsTableRow {
                   }
                 </td>
               }
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="columns().length" class="text-center p-8">
+                <div class="opacity-70">{{ 'labels.empty' | translate }}</div>
+              </td>
             </tr>
           }
         </tbody>
@@ -334,10 +338,6 @@ export class AscentsTableComponent {
         area_slug: a.route?.area_slug ?? '',
         crag_slug: a.route?.crag_slug ?? '',
         grade: g,
-        grade_color:
-          g !== '?'
-            ? colorForGrade(g as GradeLabel)
-            : 'var(--tui-text-primary)',
         date: a.date ?? a.created_at ?? '',
         rating: a.rate ?? 0,
         type: a.type ?? '',

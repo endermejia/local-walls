@@ -33,12 +33,11 @@ import { GlobalData, RoutesService } from '../services';
 import { handleErrorToast } from '../utils';
 import { RouteFormComponent } from '../pages/route-form';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { AvatarGradeComponent } from './avatar-grade';
 import {
   VERTICAL_LIFE_TO_LABEL,
   VERTICAL_LIFE_GRADES,
   RouteWithExtras,
-  colorForGrade,
-  GradeLabel,
   RouteAscentDto,
   ClimbingKinds,
 } from '../models';
@@ -65,7 +64,6 @@ export interface RoutesTableRow {
   liked: boolean;
   project: boolean;
   climbed: boolean;
-  color: string;
   link: string[];
   area_name?: string;
   crag_name?: string;
@@ -90,6 +88,7 @@ export interface RoutesTableRow {
     TuiTableSortPipe,
     TuiIcon,
     TuiLink,
+    AvatarGradeComponent,
   ],
   template: `
     <div class="overflow-auto">
@@ -124,15 +123,7 @@ export interface RoutesTableRow {
                   @switch (col) {
                     @case ('grade') {
                       <div tuiCell size="m">
-                        <tui-avatar
-                          tuiThumbnail
-                          size="l"
-                          class="self-center font-semibold select-none !text-white"
-                          [style.background]="item.color"
-                          [attr.aria-label]="'labels.grade' | translate"
-                        >
-                          {{ item.grade }}
-                        </tui-avatar>
+                        <app-avatar-grade [grade]="item._ref.grade" size="m" />
                       </div>
                     }
                     @case ('climbing_kind') {
@@ -319,6 +310,12 @@ export interface RoutesTableRow {
                 </td>
               }
             </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="columns().length" class="text-center p-8">
+                <div class="opacity-70">{{ 'labels.empty' | translate }}</div>
+              </td>
+            </tr>
           }
         </tbody>
       </table>
@@ -392,10 +389,6 @@ export class RoutesTableComponent {
           r.crag_slug || 'unknown',
           r.slug,
         ],
-        color:
-          grade !== '?'
-            ? colorForGrade(grade as GradeLabel)
-            : 'var(--tui-text-primary)',
         _ref: r,
       };
     }),

@@ -25,7 +25,7 @@ import { type MapOptions } from '../models';
 
       <!-- Overlay Controls -->
       <div
-        class="absolute p-4 bottom-0 left-0 right-0 z-[1000] flex justify-center gap-4 pointer-events-none"
+        class="absolute p-4 bg-white bottom-0 left-0 right-0 z-[1000] flex justify-center gap-4 pointer-events-none"
       >
         <button
           tuiButton

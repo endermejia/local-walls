@@ -16,7 +16,7 @@ import {
   FormControl,
   Validators,
 } from '@angular/forms';
-import { TuiButton, TuiLabel, TuiTextfield } from '@taiga-ui/core';
+import { TuiButton, TuiLabel, TuiTextfield, TuiTitle } from '@taiga-ui/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiTime } from '@taiga-ui/cdk';
 import {
@@ -24,15 +24,23 @@ import {
   TuiToastService,
   TuiInputTime,
   tuiInputTimeOptionsProvider,
+  TuiDataListWrapper,
+  TuiFilterByInputPipe,
+  TuiHideSelectedPipe,
+  TuiInputChip,
 } from '@taiga-ui/kit';
+import { TuiDataList, TuiSelectLike } from '@taiga-ui/core';
+import { TuiCell } from '@taiga-ui/layout';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { ToposService, GlobalData } from '../services';
 import { slugify, handleErrorToast } from '../utils';
+import { AvatarGradeComponent } from '../components';
 import {
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
   TopoDto,
+  RouteDto,
 } from '../models';
 import { startWith } from 'rxjs';
 
@@ -49,6 +57,15 @@ import { startWith } from 'rxjs';
     TranslatePipe,
     TuiCheckbox,
     TuiInputTime,
+    TuiDataList,
+    TuiDataListWrapper,
+    TuiFilterByInputPipe,
+    TuiHideSelectedPipe,
+    TuiInputChip,
+    TuiSelectLike,
+    TuiCell,
+    AvatarGradeComponent,
+    TuiTitle,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
@@ -100,21 +117,36 @@ import { startWith } from 'rxjs';
         <h3 class="text-lg font-semibold mb-2">
           {{ 'topos.manageRoutes' | translate }}
         </h3>
-        <div class="max-h-60 overflow-y-auto border rounded p-2">
-          @for (route of availableRoutes(); track route.id) {
-            <label
-              class="flex items-center gap-2 p-1 hover:bg-black/5 cursor-pointer"
-            >
-              <input
-                tuiCheckbox
-                type="checkbox"
-                [checked]="isRouteSelected(route.id)"
-                (change)="toggleRoute(route.id)"
-              />
-              <span>{{ route.name }} ({{ gradeStringify(route.grade) }})</span>
-            </label>
-          }
-        </div>
+        <tui-textfield
+          multi
+          [stringify]="stringifyRoute"
+          [tuiTextfieldCleaner]="true"
+        >
+          <label tuiLabel for="routes-select">{{
+            'labels.routes' | translate
+          }}</label>
+          <input
+            tuiInputChip
+            tuiSelectLike
+            id="routes-select"
+            [formControl]="selectedRoutes"
+            [placeholder]="'actions.select' | translate"
+          />
+          <tui-data-list-wrapper
+            *tuiTextfieldDropdown
+            new
+            [items]="availableRoutes() | tuiHideSelected | tuiFilterByInput"
+            [itemContent]="routeItem"
+          />
+          <ng-template #routeItem let-item>
+            <div tuiCell size="s">
+              <app-avatar-grade [grade]="item.grade" size="s" />
+              <div tuiTitle>
+                {{ item.name }}
+              </div>
+            </div>
+          </ng-template>
+        </tui-textfield>
       </div>
 
       <div class="flex gap-2 justify-end mt-4">
@@ -204,6 +236,9 @@ export class TopoFormComponent {
   shade_morning = new FormControl<boolean>(false, { nonNullable: true });
   shade_afternoon = new FormControl<boolean>(false, { nonNullable: true });
   shade_change_hour = new FormControl<string | null>(null);
+  selectedRoutes = new FormControl<readonly RouteDto[]>([], {
+    nonNullable: true,
+  });
 
   private readonly shadeMorningSignal = toSignal(
     this.shade_morning.valueChanges.pipe(startWith(this.shade_morning.value)),
@@ -222,11 +257,12 @@ export class TopoFormComponent {
     return morning !== afternoon;
   });
 
-  selectedRouteIds = new Set<number>();
-
   protected readonly availableRoutes = computed(
     () => this.global.cragRoutesResource.value() ?? [],
   );
+
+  protected readonly stringifyRoute = (route: RouteDto): string =>
+    `${route.name} (${this.gradeStringify(route.grade)})`;
 
   protected gradeStringify(grade: number): string {
     return (
@@ -239,8 +275,14 @@ export class TopoFormComponent {
   constructor() {
     effect(() => {
       const data = this.effectiveTopoData();
+      const available = this.availableRoutes();
       if (!data) {
-        this.initialRouteIds.forEach((id) => this.selectedRouteIds.add(id));
+        if (available.length && this.initialRouteIds.length) {
+          const selected = available.filter((r) =>
+            this.initialRouteIds.includes(r.id),
+          );
+          this.selectedRoutes.setValue(selected);
+        }
         return;
       }
       this.name.setValue(data.name);
@@ -248,10 +290,15 @@ export class TopoFormComponent {
       this.shade_morning.setValue(data.shade_morning);
       this.shade_afternoon.setValue(data.shade_afternoon);
       this.shade_change_hour.setValue(data.shade_change_hour);
-      this.initialRouteIds.forEach((id) => this.selectedRouteIds.add(id));
+      if (available.length && this.initialRouteIds.length) {
+        const selected = available.filter((r) =>
+          this.initialRouteIds.includes(r.id),
+        );
+        this.selectedRoutes.setValue(selected);
+      }
     });
 
-    // Reset shade_change_hour if both are the same, and enable/disable
+    // Reset shade_change_hour if both are the same and enable/disable
     effect(() => {
       const show = this.showShadeChangeHour();
       if (!show) {
@@ -264,18 +311,6 @@ export class TopoFormComponent {
       }
       this.shade_change_hour.updateValueAndValidity();
     });
-  }
-
-  isRouteSelected(id: number): boolean {
-    return this.selectedRouteIds.has(id);
-  }
-
-  toggleRoute(id: number): void {
-    if (this.selectedRouteIds.has(id)) {
-      this.selectedRouteIds.delete(id);
-    } else {
-      this.selectedRouteIds.add(id);
-    }
   }
 
   async onSubmit(event: Event): Promise<void> {
@@ -304,22 +339,16 @@ export class TopoFormComponent {
       }
 
       if (topo) {
-        // Sync routes
-        // This is simplified. Ideally we'd compare with initialRouteIds and add/remove only changes.
-        // For simplicity in this first version, we'll assume we might need a more complex sync.
-        // But for now, let's just handle it.
-        // In a real scenario, we might want a 'topo_routes' bulk update or similar.
-
-        // Remove routes not in selectedRouteIds
         const initial = new Set(this.initialRouteIds);
+        const selectedIds = new Set(this.selectedRoutes.value.map((r) => r.id));
+
         for (const id of initial) {
-          if (!this.selectedRouteIds.has(id)) {
+          if (!selectedIds.has(id)) {
             await this.topos.removeRoute(topo.id, id);
           }
         }
-        // Add routes in selectedRouteIds not in initial
         let number = 0; // Simple number for now
-        for (const id of this.selectedRouteIds) {
+        for (const id of selectedIds) {
           if (!initial.has(id)) {
             await this.topos.addRoute({
               topo_id: topo.id,

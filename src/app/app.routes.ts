@@ -41,11 +41,6 @@ export const routes: Routes = [
     loadComponent: () =>
       import('../pages/user-profile').then((m) => m.UserProfileComponent),
   },
-  {
-    path: 'sector/:countrySlug/:cragSlug/:sectorSlug',
-    canMatch: [authGuard],
-    loadComponent: () => import('../pages/topo').then((m) => m.TopoComponent),
-  },
   // Admin-only routes
   {
     path: 'admin/users',
@@ -54,6 +49,11 @@ export const routes: Routes = [
       import('../pages/users-list-admin').then(
         (m) => m.UsersListAdminComponent,
       ),
+  },
+  {
+    path: 'area/:areaSlug/:cragSlug/topo/:id',
+    canMatch: [authGuard],
+    loadComponent: () => import('../pages/topo').then((m) => m.TopoComponent),
   },
   {
     path: 'area/:areaSlug/:cragSlug/:routeSlug',

@@ -271,6 +271,7 @@ export class HeaderComponent implements OnDestroy {
 
     const area = this.global.selectedArea();
     const crag = this.global.selectedCrag();
+    const topo = this.global.topoDetailResource.value();
     const route = this.global.routeDetailResource.value();
 
     if (area) {
@@ -283,6 +284,12 @@ export class HeaderComponent implements OnDestroy {
           caption: crag.name,
           routerLink: ['/area', area.slug, crag.slug],
         });
+        if (topo) {
+          items.push({
+            caption: topo.name,
+            routerLink: ['/area', area.slug, crag.slug, 'topo', topo.id],
+          });
+        }
         if (route) {
           items.push({
             caption: route.name,

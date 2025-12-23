@@ -31,12 +31,10 @@ import { GlobalData, RoutesService } from '../services';
 import {
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
-  colorForGrade,
-  GradeLabel,
   ClimbingKinds,
   RouteAscentWithExtras,
 } from '../models';
-import { RouteFormComponent } from '../pages/route-form';
+import { RouteFormComponent } from './route-form';
 import AscentFormComponent from '../pages/ascent-form';
 import { handleErrorToast } from '../utils';
 
@@ -293,13 +291,6 @@ export class RouteComponent {
     return grade !== undefined
       ? (VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] ?? '?')
       : '?';
-  });
-
-  readonly gradeColor = computed(() => {
-    const label = this.gradeLabel();
-    return label !== '?'
-      ? colorForGrade(label as GradeLabel)
-      : 'var(--tui-text-primary)';
   });
 
   readonly climbingIcons = computed(() => ({
