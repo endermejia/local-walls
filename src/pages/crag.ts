@@ -29,7 +29,7 @@ import {
   RoutesTableComponent,
   SectionHeaderComponent,
 } from '../components';
-import { CragsService, GlobalData } from '../services';
+import { CragsService, GlobalData, ParkingsService } from '../services';
 import { TuiToastService } from '@taiga-ui/kit';
 import {
   type CragDetail,
@@ -38,10 +38,13 @@ import {
   AmountByEveryGrade,
   VERTICAL_LIFE_GRADES,
   RouteAscentDto,
+  ParkingDto,
 } from '../models';
 import { mapLocationUrl } from '../utils';
 import { CragFormComponent } from './crag-form';
 import { RouteFormComponent } from './route-form';
+import ParkingFormComponent from './parking-form';
+import LinkParkingFormComponent from './link-parking-form';
 import TopoFormComponent from './topo-form';
 import AscentFormComponent from './ascent-form';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -163,17 +166,70 @@ import { handleErrorToast } from '../utils';
           <app-chart-routes-by-grade class="self-end" [grades]="c.grades" />
         </div>
 
-        @if (c.parkings.length) {
+        @if (c.parkings.length || global.isAdmin()) {
           <div class="mt-6 grid gap-3">
-            <h2 class="text-2xl font-semibold">
-              {{ 'labels.parkings' | translate }}
-            </h2>
+            <div class="flex items-center justify-between gap-2">
+              <h2 class="text-2xl font-semibold">
+                {{ 'labels.parkings' | translate }}
+              </h2>
+              @if (global.isAdmin()) {
+                <div class="flex gap-2">
+                  <button
+                    tuiButton
+                    appearance="textfield"
+                    size="m"
+                    type="button"
+                    (click.zoneless)="openLinkParking()"
+                    [iconStart]="'@tui.link'"
+                  >
+                    {{ 'actions.link' | translate }}
+                  </button>
+                  <button
+                    tuiButton
+                    appearance="textfield"
+                    size="m"
+                    type="button"
+                    (click.zoneless)="openCreateParking()"
+                    [iconStart]="'@tui.plus'"
+                  >
+                    {{ 'actions.new' | translate }}
+                  </button>
+                </div>
+              }
+            </div>
             <div class="grid gap-2">
               @for (p of c.parkings; track p.id) {
                 <div tuiCardLarge [tuiSurface]="'outline'">
                   <div class="flex flex-col gap-2">
-                    <header tuiHeader>
+                    <header tuiHeader class="flex justify-between items-center">
                       <h3 tuiTitle class="truncate">{{ p.name }}</h3>
+                      @if (global.isAdmin()) {
+                        <div class="flex gap-1">
+                          <button
+                            size="s"
+                            appearance="neutral"
+                            iconStart="@tui.square-pen"
+                            tuiIconButton
+                            type="button"
+                            class="!rounded-full"
+                            (click.zoneless)="openEditParking(p)"
+                          >
+                            {{ 'actions.edit' | translate }}
+                          </button>
+                          <button
+                            size="s"
+                            appearance="negative"
+                            iconStart="@tui.unlink"
+                            tuiIconButton
+                            type="button"
+                            class="!rounded-full"
+                            [tuiHint]="'actions.unlink' | translate"
+                            (click.zoneless)="removeParking(p)"
+                          >
+                            {{ 'actions.unlink' | translate }}
+                          </button>
+                        </div>
+                      }
                     </header>
                     <section
                       class="text-sm opacity-80 grid grid-cols-1 sm:grid-cols-3 gap-2"
@@ -368,6 +424,7 @@ export class CragComponent {
   private readonly toast = inject(TuiToastService);
   private readonly translate = inject(TranslateService);
   private readonly crags = inject(CragsService);
+  private readonly parkings = inject(ParkingsService);
   private readonly dialogs = inject(TuiDialogService);
   protected readonly mapLocationUrl = mapLocationUrl;
 
@@ -436,6 +493,79 @@ export class CragComponent {
         data: { cragId: c.id },
       })
       .subscribe();
+  }
+
+  openCreateParking(): void {
+    const c = this.cragDetail();
+    if (!c) return;
+    this.dialogs
+      .open<boolean>(new PolymorpheusComponent(ParkingFormComponent), {
+        label: this.translate.instant('actions.new'),
+        size: 'l',
+        data: { cragId: c.id },
+      })
+      .subscribe((result) => {
+        if (result) {
+          this.global.cragDetailResource.reload();
+        }
+      });
+  }
+
+  openLinkParking(): void {
+    const c = this.cragDetail();
+    if (!c) return;
+    const existingParkingIds = c.parkings.map((p) => p.id);
+    this.dialogs
+      .open<boolean>(new PolymorpheusComponent(LinkParkingFormComponent), {
+        label: this.translate.instant('actions.link'),
+        size: 'm',
+        data: { cragId: c.id, existingParkingIds },
+      })
+      .subscribe((result) => {
+        if (result) {
+          this.global.cragDetailResource.reload();
+        }
+      });
+  }
+
+  openEditParking(parking: ParkingDto): void {
+    this.dialogs
+      .open<boolean>(new PolymorpheusComponent(ParkingFormComponent), {
+        label: this.translate.instant('actions.edit'),
+        size: 'l',
+        data: { parkingData: parking },
+      })
+      .subscribe((result) => {
+        if (result) {
+          this.global.cragDetailResource.reload();
+        }
+      });
+  }
+
+  removeParking(parking: ParkingDto): void {
+    const c = this.cragDetail();
+    if (!c || !isPlatformBrowser(this.platformId)) return;
+
+    this.dialogs
+      .open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('admin.parkings.unlinkTitle'),
+        size: 's',
+        data: {
+          content: this.translate.instant('admin.parkings.unlinkConfirm', {
+            name: parking.name,
+          }),
+          yes: this.translate.instant('actions.unlink'),
+          no: this.translate.instant('actions.cancel'),
+          appearance: 'accent',
+        } as TuiConfirmData,
+      })
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.parkings
+            .removeParkingFromCrag(c.id, parking.id)
+            .catch((err) => handleErrorToast(err, this.toast, this.translate));
+        }
+      });
   }
 
   goBack(): void {

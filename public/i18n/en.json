@@ -26,6 +26,8 @@
       "contain": "Fit to width"
     },
     "fullscreen": "Fullscreen",
+    "link": "Link",
+    "unlink": "Unlink",
     "loadMore": "Load more",
     "loading": "Loading...",
     "openGoogleMaps": "Open Google Maps",
@@ -148,7 +150,8 @@
     "areas": "Areas",
     "my-crags": "My crags",
     "admin-users": "Users",
-    "admin-equippers": "Equippers"
+    "admin-equippers": "Equippers",
+    "admin-parkings": "Parkings"
   },
   "explore": {
     "toggleView": "Toggle view"
@@ -230,6 +233,12 @@
       "title": "Equippers management",
       "deleteTitle": "Delete equipper",
       "deleteConfirm": "Are you sure you want to delete equipper \"{{name}}\"? This action cannot be undone."
+    },
+    "parkings": {
+      "deleteTitle": "Delete parking",
+      "deleteConfirm": "Are you sure you want to delete parking \"{{name}}\"? This action cannot be undone.",
+      "unlinkTitle": "Unlink parking",
+      "unlinkConfirm": "Are you sure you want to unlink parking \"{{name}}\" from this crag?"
     }
   },
   "options": {

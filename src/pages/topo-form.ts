@@ -24,7 +24,7 @@ import {
   TuiTitle,
 } from '@taiga-ui/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { TuiTime } from '@taiga-ui/cdk';
+import { TuiIdentityMatcher, TuiTime } from '@taiga-ui/cdk';
 import {
   TuiCheckbox,
   TuiToastService,
@@ -35,6 +35,7 @@ import {
   TuiInputChip,
   TuiMultiSelect,
   TuiChevron,
+  TuiHideSelectedPipe,
 } from '@taiga-ui/kit';
 import { TuiSelectLike } from '@taiga-ui/core';
 import { TuiCell } from '@taiga-ui/layout';
@@ -76,6 +77,7 @@ import { startWith } from 'rxjs';
     AvatarGradeComponent,
     TuiTitle,
     TuiIcon,
+    TuiHideSelectedPipe,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
@@ -133,6 +135,7 @@ import { startWith } from 'rxjs';
           multi
           tuiChevron
           [stringify]="stringifyRoute"
+          [identityMatcher]="routeIdentityMatcher"
           [tuiTextfieldCleaner]="true"
         >
           <label tuiLabel for="routes-select">{{
@@ -150,7 +153,7 @@ import { startWith } from 'rxjs';
             *tuiTextfieldDropdown
             new
             tuiMultiSelectGroup
-            [items]="availableRoutes() | tuiFilterByInput"
+            [items]="availableRoutes() | tuiHideSelected | tuiFilterByInput"
             [itemContent]="routeItem"
           />
           <ng-template #routeItem let-item>
@@ -278,6 +281,11 @@ export class TopoFormComponent {
 
   protected readonly stringifyRoute = (route: RouteDto): string =>
     `${route.name} (${this.gradeStringify(route.grade)})`;
+
+  protected readonly routeIdentityMatcher: TuiIdentityMatcher<RouteDto> = (
+    a,
+    b,
+  ) => a.id === b.id;
 
   protected gradeStringify(grade: number): string {
     return (

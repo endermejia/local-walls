@@ -59,6 +59,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'admin/parkings',
+    canMatch: [adminGuard],
+    loadComponent: () =>
+      import('../pages/admin-parkings-list').then(
+        (m) => m.AdminParkingsListComponent,
+      ),
+  },
+  {
     path: 'area/:areaSlug/:cragSlug/topo/:id',
     canMatch: [authGuard],
     loadComponent: () => import('../pages/topo').then((m) => m.TopoComponent),

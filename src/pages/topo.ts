@@ -254,16 +254,16 @@ export interface TopoRouteRow {
                                   tuiIconButton
                                   size="s"
                                   appearance="negative"
-                                  iconStart="@tui.trash"
+                                  iconStart="@tui.unlink"
                                   class="!rounded-full"
                                   [tuiHint]="
                                     global.isMobile()
                                       ? null
-                                      : ('actions.delete' | translate)
+                                      : ('actions.unlink' | translate)
                                   "
                                   (click.zoneless)="deleteTopoRoute(item._ref)"
                                 >
-                                  {{ 'actions.delete' | translate }}
+                                  {{ 'actions.unlink' | translate }}
                                 </button>
                               </div>
                             }

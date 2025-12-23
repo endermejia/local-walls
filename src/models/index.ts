@@ -5,7 +5,6 @@ export * from './grade.model';
 export * from './icon-name.model';
 export * from './map.model';
 export * from './options-item.model';
-export * from './parking.model';
 export * from './route-ascent.model';
 export * from './route.model';
 export * from './search-api.model';

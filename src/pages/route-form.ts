@@ -27,7 +27,7 @@ import {
 } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { TuiDataList, TuiSelectLike } from '@taiga-ui/core';
+import { TuiDataList } from '@taiga-ui/core';
 import { RoutesService, SupabaseService } from '../services';
 import {
   ClimbingKinds,
@@ -66,7 +66,6 @@ interface MinimalRoute {
     TuiInputChip,
     TuiFilterByInputPipe,
     TuiDataList,
-    TuiSelectLike,
     TuiHideSelectedPipe,
   ],
   template: `

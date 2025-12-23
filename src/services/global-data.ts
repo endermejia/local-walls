@@ -35,7 +35,7 @@ import {
   MapResponse,
   OptionsData,
   ORDERED_GRADE_VALUES,
-  Parking,
+  ParkingDto,
   RouteAscentWithExtras,
   RouteWithExtras,
   Theme,
@@ -111,6 +111,11 @@ export class GlobalData {
         name: 'nav.admin-users',
         icon: '@tui.users',
         fn: () => this.router.navigateByUrl('/admin/users'),
+      });
+      config.push({
+        name: 'nav.admin-parkings',
+        icon: '@tui.map-pin',
+        fn: () => this.router.navigateByUrl('/admin/parkings'),
       });
     }
     if (isAdmin || isEquipper) {
@@ -576,7 +581,7 @@ export class GlobalData {
         // Type the raw response structure from Supabase join query
         type CragWithJoins = CragDto & {
           area: { name: string; slug: string } | null;
-          crag_parkings: { parking: Parking }[] | null;
+          crag_parkings: { parking: ParkingDto }[] | null;
           topos:
             | (TopoDto & {
                 topo_routes: { route: { grade: number } | null }[];

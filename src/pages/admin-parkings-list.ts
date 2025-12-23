@@ -1,0 +1,352 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  PLATFORM_ID,
+  computed,
+  inject,
+  signal,
+  WritableSignal,
+} from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import {
+  TuiTable,
+  TuiSortDirection,
+  TuiTableSortPipe,
+} from '@taiga-ui/addon-table';
+import type { TuiComparator } from '@taiga-ui/addon-table/types';
+import { tuiDefaultSort } from '@taiga-ui/cdk';
+import {
+  TuiButton,
+  TuiHint,
+  TuiIcon,
+  TuiScrollbar,
+  TuiTextfield,
+} from '@taiga-ui/core';
+import {
+  TuiAvatar,
+  TuiSkeleton,
+  TuiToastService,
+  TUI_CONFIRM,
+  type TuiConfirmData,
+} from '@taiga-ui/kit';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { GlobalData, ParkingsService } from '../services';
+import { ParkingDto } from '../models';
+import { handleErrorToast } from '../utils';
+import ParkingFormComponent from './parking-form';
+
+@Component({
+  selector: 'app-admin-parkings-list',
+  standalone: true,
+  imports: [
+    FormsModule,
+    TuiAvatar,
+    TuiScrollbar,
+    TuiSkeleton,
+    TuiTable,
+    TuiTableSortPipe,
+    TuiTextfield,
+    TranslatePipe,
+    TuiButton,
+    TuiHint,
+    TuiIcon,
+  ],
+  template: `
+    <section class="w-full max-w-5xl mx-auto p-4">
+      <header class="mb-4 flex items-center justify-between gap-2">
+        <h1 class="text-2xl font-bold flex items-center gap-2">
+          <tui-avatar
+            tuiThumbnail
+            size="l"
+            src="@tui.map-pin"
+            class="self-center"
+            [attr.aria-label]="'labels.parkings' | translate"
+          />
+          {{ 'labels.parkings' | translate }}
+          ({{ parkings().length }})
+        </h1>
+
+        <button
+          tuiButton
+          size="m"
+          appearance="textfield"
+          iconStart="@tui.plus"
+          (click.zoneless)="addNewParking()"
+        >
+          {{ 'actions.new' | translate }}
+        </button>
+      </header>
+
+      <div class="mb-6">
+        <tui-textfield class="grow" [tuiTextfieldCleaner]="true">
+          <label tuiLabel for="parking-search">{{
+            'labels.search' | translate
+          }}</label>
+          <input
+            id="parking-search"
+            tuiTextfield
+            type="text"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            [placeholder]="'labels.name' | translate"
+          />
+        </tui-textfield>
+      </div>
+
+      <tui-scrollbar class="scrollbar">
+        <table
+          size="l"
+          tuiTable
+          class="table"
+          [columns]="columns"
+          [direction]="direction()"
+          [sorter]="sorter()"
+          (sortChange)="
+            direction.set($event.sortDirection);
+            sorter.set($event.sortComparator || defaultSorter)
+          "
+        >
+          <thead tuiThead>
+            <tr tuiThGroup>
+              <th *tuiHead="'name'" tuiTh [sorter]="nameSorter">
+                {{ 'labels.name' | translate }}
+              </th>
+              <th *tuiHead="'lat'" tuiTh [sorter]="latSorter">
+                {{ 'labels.lat' | translate }}
+              </th>
+              <th *tuiHead="'lng'" tuiTh [sorter]="lngSorter">
+                {{ 'labels.lng' | translate }}
+              </th>
+              <th *tuiHead="'size'" tuiTh [sorter]="sizeSorter">
+                {{ 'labels.capacity' | translate }}
+              </th>
+              <th *tuiHead="'actions'" tuiTh [sorter]="null"></th>
+            </tr>
+          </thead>
+
+          @let list = filteredParkings() | tuiTableSort;
+          <tbody tuiTbody [data]="list">
+            @if (loading()) {
+              @for (_item of skeletons; track $index) {
+                <tr tuiTr>
+                  @for (col of columns; track col) {
+                    <td *tuiCell="col" tuiTd>
+                      <div [tuiSkeleton]="true" class="w-full h-10"></div>
+                    </td>
+                  }
+                </tr>
+              }
+            } @else {
+              @for (item of list; track item.id) {
+                <tr tuiTr>
+                  <td *tuiCell="'name'" tuiTd>
+                    {{ item.name }}
+                  </td>
+                  <td *tuiCell="'lat'" tuiTd>
+                    {{ item.latitude }}
+                  </td>
+                  <td *tuiCell="'lng'" tuiTd>
+                    {{ item.longitude }}
+                  </td>
+                  <td *tuiCell="'size'" tuiTd>
+                    {{ item.size }}
+                  </td>
+                  <td *tuiCell="'actions'" tuiTd>
+                    <div class="flex gap-1">
+                      <button
+                        tuiIconButton
+                        size="s"
+                        appearance="neutral"
+                        iconStart="@tui.square-pen"
+                        class="!rounded-full"
+                        [tuiHint]="
+                          global.isMobile()
+                            ? null
+                            : ('actions.edit' | translate)
+                        "
+                        (click.zoneless)="editParking(item)"
+                      >
+                        {{ 'actions.edit' | translate }}
+                      </button>
+                      <button
+                        tuiIconButton
+                        size="s"
+                        appearance="negative"
+                        iconStart="@tui.trash"
+                        class="!rounded-full"
+                        [tuiHint]="
+                          global.isMobile()
+                            ? null
+                            : ('actions.delete' | translate)
+                        "
+                        (click.zoneless)="deleteParking(item)"
+                      >
+                        {{ 'actions.delete' | translate }}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr tuiTr>
+                  <td [attr.colspan]="columns.length" tuiTd class="!py-10">
+                    <div
+                      class="flex flex-col items-center justify-center gap-2 opacity-50"
+                    >
+                      <tui-icon icon="@tui.package-open" class="text-4xl" />
+                      <p>{{ 'labels.empty' | translate }}</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </tui-scrollbar>
+    </section>
+  `,
+  styles: [
+    `
+      .scrollbar {
+        max-height: calc(100vh - 250px);
+      }
+      .table {
+        width: 100%;
+      }
+    `,
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'overflow-auto' },
+})
+export class AdminParkingsListComponent {
+  private readonly platformId = inject(PLATFORM_ID);
+  protected readonly global = inject(GlobalData);
+  private readonly translate = inject(TranslateService);
+  private readonly toast = inject(TuiToastService);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly parkingsService = inject(ParkingsService);
+
+  protected readonly columns = [
+    'name',
+    'lat',
+    'lng',
+    'size',
+    'actions',
+  ] as const;
+
+  protected readonly loading = signal(true);
+  protected readonly parkings: WritableSignal<ParkingDto[]> = signal([]);
+  protected readonly searchQuery = signal('');
+  protected readonly skeletons = Array(10).fill(0);
+  protected readonly defaultSorter: TuiComparator<ParkingDto> = () => 0;
+
+  protected readonly direction = signal<TuiSortDirection>(TuiSortDirection.Asc);
+  protected readonly sorter = signal<TuiComparator<ParkingDto>>(
+    this.defaultSorter,
+  );
+
+  protected readonly nameSorter: TuiComparator<ParkingDto> = (a, b) =>
+    tuiDefaultSort(a.name, b.name);
+  protected readonly latSorter: TuiComparator<ParkingDto> = (a, b) =>
+    tuiDefaultSort(a.latitude, b.latitude);
+  protected readonly lngSorter: TuiComparator<ParkingDto> = (a, b) =>
+    tuiDefaultSort(a.longitude, b.longitude);
+  protected readonly sizeSorter: TuiComparator<ParkingDto> = (a, b) =>
+    tuiDefaultSort(a.size, b.size);
+
+  protected readonly filteredParkings = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    if (!query) return this.parkings();
+    return this.parkings().filter((p) => p.name.toLowerCase().includes(query));
+  });
+
+  constructor() {
+    if (isPlatformBrowser(this.platformId)) {
+      void this.loadParkings();
+    }
+    this.global.resetDataByPage('home');
+  }
+
+  private async loadParkings(): Promise<void> {
+    try {
+      this.loading.set(true);
+      const data = await this.parkingsService.getAll();
+      this.parkings.set(data || []);
+    } catch (e) {
+      console.error('[AdminParkingsList] Error loading parkings:', e);
+      handleErrorToast(e as Error, this.toast, this.translate);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  protected addNewParking(): void {
+    this.dialogs
+      .open<ParkingDto | null>(
+        new PolymorpheusComponent(ParkingFormComponent),
+        {
+          label: this.translate.instant('actions.new'),
+          size: 'l',
+        },
+      )
+      .subscribe((result) => {
+        if (result) {
+          this.parkings.update((list) => [...list, result]);
+        }
+      });
+  }
+
+  protected editParking(parking: ParkingDto): void {
+    this.dialogs
+      .open<ParkingDto | null>(
+        new PolymorpheusComponent(ParkingFormComponent),
+        {
+          label: this.translate.instant('actions.edit'),
+          size: 'l',
+          data: { parkingData: parking },
+        },
+      )
+      .subscribe((result) => {
+        if (result) {
+          this.parkings.update((list) =>
+            list.map((p) => (p.id === result.id ? result : p)),
+          );
+        }
+      });
+  }
+
+  protected deleteParking(parking: ParkingDto): void {
+    this.dialogs
+      .open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('admin.parkings.deleteTitle'),
+        size: 's',
+        data: {
+          content: this.translate.instant('admin.parkings.deleteConfirm', {
+            name: parking.name,
+          }),
+          yes: this.translate.instant('actions.delete'),
+          no: this.translate.instant('actions.cancel'),
+          appearance: 'negative',
+        } as TuiConfirmData,
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
+        this.performDelete(parking.id);
+      });
+  }
+
+  private async performDelete(id: number): Promise<void> {
+    try {
+      const ok = await this.parkingsService.delete(id);
+      if (ok) {
+        this.parkings.update((list) => list.filter((p) => p.id !== id));
+      }
+    } catch (e) {
+      handleErrorToast(e as Error, this.toast, this.translate);
+    }
+  }
+}
+
+export default AdminParkingsListComponent;

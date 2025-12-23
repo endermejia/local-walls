@@ -65,6 +65,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Server,
   },
   {
+    path: 'admin/parkings',
+    renderMode: RenderMode.Server,
+  },
+  {
     path: 'area/:areaSlug/:cragSlug/:routeSlug',
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.Server,

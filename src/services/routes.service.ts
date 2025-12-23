@@ -25,7 +25,7 @@ export class RoutesService {
       console.error('[RoutesService] getRouteEquippers error', error);
       return [];
     }
-    return (data || []).map((d: any) => d.equipper as EquipperDto);
+    return (data || []).map((d) => d.equipper as EquipperDto);
   }
 
   async setRouteEquippers(

@@ -12,3 +12,4 @@ export * from './user-profiles.service';
 export * from './routes.service';
 export * from './ascents.service';
 export * from './topos.service';
+export * from './parkings.service';

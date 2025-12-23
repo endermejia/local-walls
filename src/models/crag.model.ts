@@ -1,6 +1,6 @@
 import { AmountByEveryGrade } from './grade.model';
 import type { Database } from './supabase-generated';
-import { Parking } from './parking.model';
+import { ParkingDto } from './supabase-interfaces';
 import { TopoListItem } from './topo.model';
 import { TableInsert, TableRow, TableUpdate } from './supabase-interfaces';
 
@@ -28,7 +28,7 @@ export type CragDetail = CragListItem &
   AdditionalCragData & {
     area_name: string;
     area_slug: string;
-    parkings: Parking[];
+    parkings: ParkingDto[];
     topos: TopoListItem[];
   };
 
