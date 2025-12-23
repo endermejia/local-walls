@@ -28,6 +28,10 @@ export interface MapCragItem {
   routes_count?: number; // routes
   ascents_count?: number; // ascents
   liked?: boolean;
+  shade_morning?: boolean;
+  shade_afternoon?: boolean;
+  shade_all_day?: boolean;
+  sun_all_day?: boolean;
 }
 
 export type MapItem = MapCragItem | MapAreaItem;

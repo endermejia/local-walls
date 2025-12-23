@@ -366,7 +366,7 @@ export class ExploreComponent {
       for (const lab of labels) {
         const idx = ORDERED_GRADE_VALUES.indexOf(lab as GradeLabel);
         if (idx === -1) continue;
-        const count = (byLabel as any)[lab] as number | undefined;
+        const count = byLabel[lab as GradeLabel];
         if (!count) continue;
         if (idx < minIdx) minIdx = idx;
         if (idx > maxIdx) maxIdx = idx;
@@ -376,7 +376,7 @@ export class ExploreComponent {
       return maxIdx >= selMin && minIdx <= selMax;
     };
 
-    const matchesShade = (c: any): boolean => {
+    const matchesShade = (c: MapCragItem): boolean => {
       if (!shade.length) return true;
       if (
         c.shade_morning === undefined &&

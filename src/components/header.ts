@@ -38,13 +38,7 @@ import {
   switchMap,
 } from 'rxjs';
 import { GlobalData } from '../services';
-import {
-  OptionsItem,
-  SearchData,
-  SearchApiItem,
-  MapAreaItem,
-  MapCragItem,
-} from '../models';
+import { OptionsItem, SearchData } from '../models';
 
 type RouterCommand = readonly (string | number)[] | string;
 
@@ -302,7 +296,7 @@ export class HeaderComponent implements OnDestroy {
     filter((v) => v.length >= 2),
     debounceTime(300),
     distinctUntilChanged(),
-    switchMap((_query: string) => Promise.resolve({} as SearchData)),
+    switchMap(() => Promise.resolve({} as SearchData)),
     startWith(null),
   );
 

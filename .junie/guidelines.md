@@ -261,7 +261,7 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
   if (isPlatformBrowser(inject(PLATFORM_ID)) && typeof window !== "undefined") {
     const L = (await import("leaflet")).default; // default export de Leaflet 2
     const map = new L.Map(el, { center: [39.5, -0.5], zoom: 7 });
-    new (L as any).TileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+    new L.TileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
   }
   ```
 
@@ -279,9 +279,9 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
   ```ts
   // extracto de MapBuilder del repo
   const [{ default: L }] = await Promise.all([import("leaflet")]);
-  const map = new (L as any).Map(el, { center: [39.5, -0.5], zoom: 7 });
-  new (L as any).TileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-  const bounds = new (L as any).LatLngBounds([
+  const map = new L.Map(el, { center: [39.5, -0.5], zoom: 7 });
+  new L.TileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+  const bounds = new L.LatLngBounds([
     [lat1, lng1],
     [lat2, lng2],
   ]);
