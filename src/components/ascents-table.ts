@@ -23,6 +23,7 @@ import {
   TuiHint,
   TuiFallbackSrcPipe,
   TuiDialogService,
+  TuiLink,
 } from '@taiga-ui/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslateService } from '@ngx-translate/core';
@@ -82,6 +83,7 @@ export interface AscentsTableRow {
     AsyncPipe,
     TuiButton,
     TuiIcon,
+    TuiLink,
   ],
   template: `
     <div class="overflow-auto">
@@ -131,33 +133,31 @@ export interface AscentsTableRow {
                       <div tuiCell size="m">
                         <div class="flex flex-col">
                           <a
+                            tuiLink
                             [routerLink]="[
                               '/area',
                               item.area_slug,
                               item.crag_slug,
                               item.route_slug,
                             ]"
-                            class="tui-link font-medium align-self-start"
+                            class="font-medium align-self-start whitespace-nowrap"
                           >
                             {{ item.route_name }}
                           </a>
                           <div
-                            class="text-xs opacity-70 flex gap-1 items-center"
+                            class="text-xs opacity-70 flex gap-1 items-center whitespace-nowrap"
                           >
-                            <a
-                              [routerLink]="['/area', item.area_slug]"
-                              class="tui-link hover:underline "
-                            >
+                            <a tuiLink [routerLink]="['/area', item.area_slug]">
                               {{ item.area_name }}
                             </a>
                             <span>/</span>
                             <a
+                              tuiLink
                               [routerLink]="[
                                 '/area',
                                 item.area_slug,
                                 item.crag_slug,
                               ]"
-                              class="tui-link hover:underline"
                             >
                               {{ item.crag_name }}
                             </a>

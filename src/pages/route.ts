@@ -9,12 +9,7 @@ import {
   PLATFORM_ID,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  isPlatformBrowser,
-  Location,
-  LowerCasePipe,
-  DecimalPipe,
-} from '@angular/common';
+import { isPlatformBrowser, Location, DecimalPipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiLoader, TuiButton, TuiHint, TuiIcon } from '@taiga-ui/core';
 import {
@@ -24,10 +19,14 @@ import {
   type TuiConfirmData,
   TuiToastService,
 } from '@taiga-ui/kit';
-import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
+
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { SectionHeaderComponent, AscentsTableComponent } from '../components';
+import {
+  SectionHeaderComponent,
+  AscentsTableComponent,
+  ChartAscentsByGradeComponent,
+} from '../components';
 import { GlobalData, RoutesService } from '../services';
 import {
   VERTICAL_LIFE_GRADES,
@@ -35,6 +34,7 @@ import {
   colorForGrade,
   GradeLabel,
   ClimbingKinds,
+  RouteAscentWithExtras,
 } from '../models';
 import { RouteFormComponent } from '../pages/route-form';
 import AscentFormComponent from '../pages/ascent-form';
@@ -48,8 +48,7 @@ import { handleErrorToast } from '../utils';
     TranslatePipe,
     TuiLoader,
     TuiAvatar,
-    TuiCardLarge,
-    TuiHeader,
+
     TuiButton,
     TuiHint,
     TuiRating,
@@ -57,6 +56,7 @@ import { handleErrorToast } from '../utils';
     FormsModule,
     AscentsTableComponent,
     TuiIcon,
+    ChartAscentsByGradeComponent,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -97,142 +97,142 @@ import { handleErrorToast } from '../utils';
           }
         </div>
 
-        <div class="mt-6 grid grid-cols-1 gap-6">
-          <!-- Left Column: Details -->
-          <div class="flex flex-col gap-4">
-            <div tuiCardLarge class="!bg-opacity-50 backdrop-blur-md">
-              <div
-                class="grid grid-cols-2 md:grid-cols-3 justify-items-center gap-4 mt-4"
-              >
-                <div class="flex flex-col items-start justify-center">
-                  <tui-avatar
-                    size="l"
-                    class="!text-white font-bold"
-                    [style.background]="gradeColor()"
-                    [src]="null"
-                  >
-                    {{ gradeLabel() }}
-                  </tui-avatar>
-                </div>
+        <!-- Chart and Stats Grid -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Chart and Actions -->
 
-                <div class="flex flex-col">
-                  <span
-                    class="text-xs uppercase opacity-60 font-semibold tracking-wider"
-                  >
-                    {{ 'labels.height' | translate }}
-                  </span>
-                  <div class="flex items-center gap-2 mt-1">
-                    <tui-avatar
-                      size="s"
-                      appearance="secondary"
-                      [src]="'@tui.arrow-up-right'"
-                    />
-                    <span class="text-lg font-medium"
-                      >{{ r.height || '--' }}m</span
-                    >
-                  </div>
-                </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+            <!-- Chart -->
+            <div class="flex items-center justify-center">
+              <app-chart-ascents-by-grade
+                [ascents]="ascents()"
+                [gradeLabel]="gradeLabel()"
+                class="w-40 h-40"
+              />
+            </div>
 
-                <div class="flex flex-col">
-                  <span
-                    class="text-xs uppercase opacity-60 font-semibold tracking-wider"
-                  >
-                    {{ 'labels.climbing_kind' | translate }}
-                  </span>
-                  <div class="flex items-center gap-2 mt-1">
-                    <tui-avatar
-                      size="s"
-                      appearance="secondary"
-                      [src]="
-                        climbingIcons()[r.climbing_kind] || '@tui.mountain'
-                      "
-                    />
-                    <span class="text-lg font-medium">{{
-                      'climbingKinds.' + r.climbing_kind | translate
-                    }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="mt-8 flex flex-wrap gap-3">
-                @if (!r.climbed) {
-                  <button
-                    tuiButton
-                    appearance="primary"
-                    size="m"
-                    iconStart="@tui.circle-plus"
-                    (click)="onLogAscent()"
-                  >
-                    {{ 'ascent.new' | translate }}
-                  </button>
-                } @else if (r.own_ascent) {
-                  <button
-                    tuiButton
-                    [appearance]="
-                      ascentInfo()[r.own_ascent.type || 'default'].appearance
-                    "
-                    size="m"
-                    (click)="onEditAscent(r.own_ascent)"
-                  >
-                    <tui-icon
-                      [icon]="ascentInfo()[r.own_ascent.type || 'default'].icon"
-                    />
-                    {{ 'ascentTypes.' + r.own_ascent.type | translate }}
-                  </button>
-                }
-                @if (!r.climbed) {
-                  <button
-                    tuiButton
-                    [appearance]="r.project ? 'primary' : 'secondary'"
-                    size="m"
-                    iconStart="@tui.bookmark"
-                    (click)="onToggleProject()"
-                  >
-                    {{
-                      (r.project
-                        ? 'actions.project.remove'
-                        : 'actions.project.add'
-                      ) | translate
-                    }}
-                  </button>
-                }
-              </div>
+            <!-- Action Buttons -->
+            <div class="flex flex-col gap-3 justify-center">
+              @if (!r.climbed) {
+                <button
+                  tuiButton
+                  appearance="primary"
+                  size="m"
+                  iconStart="@tui.circle-plus"
+                  (click)="onLogAscent()"
+                >
+                  {{ 'ascent.new' | translate }}
+                </button>
+              } @else if (r.own_ascent) {
+                <button
+                  tuiButton
+                  [appearance]="
+                    ascentInfo()[r.own_ascent.type || 'default'].appearance
+                  "
+                  size="m"
+                  (click)="onEditAscent(r.own_ascent)"
+                >
+                  <tui-icon
+                    [icon]="ascentInfo()[r.own_ascent.type || 'default'].icon"
+                  />
+                  {{ 'ascentTypes.' + r.own_ascent.type | translate }}
+                </button>
+              }
+              @if (!r.climbed) {
+                <button
+                  tuiButton
+                  [appearance]="r.project ? 'primary' : 'secondary'"
+                  size="m"
+                  iconStart="@tui.bookmark"
+                  (click)="onToggleProject()"
+                >
+                  {{
+                    (r.project
+                      ? 'actions.project.remove'
+                      : 'actions.project.add'
+                    ) | translate
+                  }}
+                </button>
+              }
             </div>
           </div>
 
-          <!-- Right Column: Sidebar / Stats (Placeholder for future ratings/ascents) -->
-          <div class="flex flex-col gap-4">
-            <div tuiCardLarge class="!bg-opacity-50 backdrop-blur-md">
-              <div class="flex flex-col items-center justify-center p-6 gap-2">
+          <!-- Stats -->
+          <div class="flex flex-col md:flex-row justify-around gap-6">
+            <div class="flex flex-col items-center">
+              <span
+                class="text-xs uppercase opacity-60 font-semibold tracking-wider mb-2"
+              >
+                {{ 'labels.height' | translate }}
+              </span>
+              <div class="flex items-center gap-2">
+                <tui-avatar
+                  size="s"
+                  appearance="secondary"
+                  [src]="'@tui.arrow-up-right'"
+                />
+                <span class="text-xl font-semibold"
+                  >{{ r.height || '--' }}m</span
+                >
+              </div>
+            </div>
+
+            <div class="flex flex-col items-center">
+              <span
+                class="text-xs uppercase opacity-60 font-semibold tracking-wider mb-2"
+              >
+                {{ 'labels.climbing_kind' | translate }}
+              </span>
+              <div class="flex items-center gap-2">
+                <tui-avatar
+                  size="s"
+                  appearance="secondary"
+                  [src]="climbingIcons()[r.climbing_kind] || '@tui.mountain'"
+                />
+                <span class="text-xl font-semibold">{{
+                  'climbingKinds.' + r.climbing_kind | translate
+                }}</span>
+              </div>
+            </div>
+
+            <div class="flex flex-col items-center">
+              <span
+                class="text-xs uppercase opacity-60 font-semibold tracking-wider mb-2"
+              >
+                {{ 'labels.rating' | translate }}
+              </span>
+              <div class="flex items-center gap-2">
                 <tui-rating
                   [max]="5"
                   [ngModel]="r.rating || 0"
                   [readOnly]="true"
-                  class="!text-3xl"
+                  class="!text-yellow-400"
+                  [style.font-size.rem]="0.6"
                 />
-                <span class="text-sm opacity-60">
+                <span class="text-xl font-semibold">
                   {{
                     r.rating
-                      ? (r.rating | number: '1.1-1') + ' / 5'
+                      ? (r.rating | number: '1.1-1')
                       : ('labels.noRatingsYet' | translate)
                   }}
                 </span>
               </div>
             </div>
+          </div>
+        </div>
 
-            <div tuiCardLarge class="!bg-opacity-50 backdrop-blur-md">
-              <header tuiHeader>
-                <h2 tuiTitle>{{ 'labels.ascents' | translate }}</h2>
-              </header>
-              <div class="mt-4">
-                <app-ascents-table
-                  [data]="ascents()"
-                  [showRoute]="false"
-                  (updated)="global.routeAscentsResource.reload()"
-                  (deleted)="onAscentDeleted($event)"
-                />
-              </div>
-            </div>
+        <!-- Ascents Table Section -->
+        <div class="mt-6">
+          <h2 class="text-2xl font-bold mb-4">
+            {{ 'labels.ascents' | translate }}
+          </h2>
+          <div>
+            <app-ascents-table
+              [data]="ascents()"
+              [showRoute]="false"
+              (updated)="global.routeAscentsResource.reload()"
+              (deleted)="onAscentDeleted($event)"
+            />
           </div>
         </div>
       } @else {
@@ -328,7 +328,7 @@ export class RouteComponent {
       .subscribe();
   }
 
-  onEditAscent(ascent: any): void {
+  onEditAscent(ascent: RouteAscentWithExtras): void {
     this.dialogs
       .open(new PolymorpheusComponent(AscentFormComponent), {
         label: this.translate.instant('ascent.edit'),

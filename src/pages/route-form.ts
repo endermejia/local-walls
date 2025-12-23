@@ -19,19 +19,18 @@ import {
   TuiDataListWrapper,
   TuiToastService,
 } from '@taiga-ui/kit';
-import { PolymorpheusComponent, injectContext } from '@taiga-ui/polymorpheus';
+import { injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { RoutesService } from '../services';
 import { slugify, handleErrorToast } from '../utils';
 import {
   ClimbingKinds,
   ClimbingKind,
-  RouteDto,
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
 
-type MinimalRoute = {
+interface MinimalRoute {
   id: number;
   crag_id: number;
   name: string;
@@ -39,7 +38,7 @@ type MinimalRoute = {
   grade: number;
   climbing_kind: ClimbingKind;
   height?: number | null;
-};
+}
 
 @Component({
   selector: 'app-route-form',
@@ -243,7 +242,8 @@ export class RouteFormComponent {
           this._dialogCtx.completeWith(result?.slug || true);
         }
       }
-    } catch (error: any) {
+    } catch (e) {
+      const error = e as Error;
       console.error('[RouteFormComponent] Error submitting route:', error);
       handleErrorToast(error, this.toast, this.translate);
     }

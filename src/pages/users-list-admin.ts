@@ -70,8 +70,11 @@ interface UserWithRole {
 
       <div class="mb-6 flex flex-col md:flex-row gap-4">
         <tui-textfield class="grow" [tuiTextfieldCleaner]="true">
-          <label tuiLabel>{{ 'labels.search' | translate }}</label>
+          <label tuiLabel for="user-search">{{
+            'labels.search' | translate
+          }}</label>
           <input
+            id="user-search"
             tuiTextfield
             type="text"
             [ngModel]="searchQuery()"
@@ -86,8 +89,11 @@ interface UserWithRole {
           [tuiTextfieldCleaner]="false"
           [stringify]="stringifyRoleFilter"
         >
-          <label tuiLabel>{{ 'labels.role' | translate }}</label>
+          <label tuiLabel for="role-filter">{{
+            'labels.role' | translate
+          }}</label>
           <input
+            id="role-filter"
             tuiSelect
             [ngModel]="roleFilter()"
             (ngModelChange)="roleFilter.set($event)"
@@ -360,8 +366,8 @@ export class UsersListAdminComponent {
       }));
 
       this.users.set(usersWithRoles);
-    } catch (error) {
-      console.error('[UsersListAdmin] Exception loading users:', error);
+    } catch (e) {
+      console.error('[UsersListAdmin] Exception loading users:', e);
     } finally {
       this.loading.set(false);
     }
@@ -393,8 +399,8 @@ export class UsersListAdminComponent {
       console.log(
         `[UsersListAdmin] Role updated for user ${user.name}: ${newRole}`,
       );
-    } catch (error) {
-      console.error('[UsersListAdmin] Exception updating role:', error);
+    } catch (e) {
+      console.error('[UsersListAdmin] Exception updating role:', e);
       // Revert the change in the UI
       await this.loadUsers();
     }

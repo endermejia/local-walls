@@ -3,6 +3,7 @@ import {
   Component,
   PLATFORM_ID,
   computed,
+  effect,
   inject,
   input,
   resource,
@@ -14,7 +15,7 @@ import { TuiButton, TuiFallbackSrcPipe, TuiHint } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
-import { SupabaseService } from '../services';
+import { SupabaseService, GlobalData } from '../services';
 import {
   RoutesTableComponent,
   RouteItem,
@@ -129,6 +130,7 @@ import { UserProfileConfigComponent } from './user-profile-config';
           <app-routes-table
             [data]="projects()"
             [showAdminActions]="false"
+            [showLocation]="true"
             (toggleLike)="onToggleLike($event)"
             (toggleProject)="onToggleProject($event)"
             (logAscent)="onLogAscent($event)"
@@ -157,12 +159,21 @@ import { UserProfileConfigComponent } from './user-profile-config';
 export class UserProfileComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
+  private readonly global = inject(GlobalData);
   private readonly dialogs = inject(TuiDialogService);
   protected readonly countriesNames$ = inject(TUI_COUNTRIES);
   private readonly translate = inject(TranslateService);
 
   // Route param (optional)
   id = input<string | undefined>();
+
+  constructor() {
+    effect(() => {
+      // Reset breadcrumbs when navigating to profile page
+      this.id(); // Track the id signal
+      this.global.resetDataByPage('user');
+    });
+  }
 
   // Currently viewed profile (if by id)
   private readonly externalProfileResource = resource({
@@ -250,7 +261,8 @@ export class UserProfileComponent {
               project:route_projects(id),
               crag:crags(
                 slug,
-                area:areas(slug)
+                name,
+                area:areas(slug, name)
               ),
               ascents:route_ascents(rate)
             )
@@ -263,12 +275,12 @@ export class UserProfileComponent {
           return [];
         }
 
-        return (data as any[])
+        return (data as unknown as any[])
           .map((item) => {
             const r = item.route;
             if (!r) return null;
             const rates =
-              (r.ascents as any[])
+              (r.ascents as unknown as any[])
                 ?.map((a) => a.rate)
                 .filter((rate) => rate != null) ?? [];
             const rating =
@@ -281,7 +293,9 @@ export class UserProfileComponent {
               liked: (r.liked?.length ?? 0) > 0,
               project: (r.project?.length ?? 0) > 0,
               crag_slug: r.crag?.slug,
+              crag_name: r.crag?.name,
               area_slug: r.crag?.area?.slug,
+              area_name: r.crag?.area?.name,
               rating,
               ascent_count: r.ascents?.length ?? 0,
             };
@@ -323,7 +337,7 @@ export class UserProfileComponent {
           return [];
         }
 
-        return (data as any[]).map((a) => ({
+        return (data as unknown as any[]).map((a) => ({
           ...a,
           route: {
             ...a.route,
@@ -373,8 +387,6 @@ export class UserProfileComponent {
       (curr ?? []).filter((a) => a.id !== id),
     );
   }
-
-  constructor() {}
 
   onLogAscent(route: RouteWithExtras): void {
     this.dialogs

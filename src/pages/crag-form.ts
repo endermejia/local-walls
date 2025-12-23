@@ -20,7 +20,7 @@ import { PolymorpheusComponent, injectContext } from '@taiga-ui/polymorpheus';
 import { CragsService } from '../services';
 import { slugify, handleErrorToast } from '../utils';
 
-type MinimalCrag = {
+interface MinimalCrag {
   id: number;
   area_id: number;
   name: string;
@@ -32,7 +32,7 @@ type MinimalCrag = {
   description_en?: string | null;
   warning_es?: string | null;
   warning_en?: string | null;
-};
+}
 
 @Component({
   selector: 'app-crag-form',
@@ -285,19 +285,20 @@ export class CragFormComponent {
     try {
       if (this.isEdit()) {
         if (this.editingId == null) return;
-        await this.crags.update(this.editingId, base as any);
+        await this.crags.update(this.editingId, base);
       } else {
         const area_id =
           this.effectiveAreaId() ?? this.editingAreaId ?? undefined;
         if (!area_id) return; // área requerida para crear
-        await this.crags.create({ area_id, ...base } as any);
+        await this.crags.create({ area_id, ...base });
       }
       if (this._dialogCtx) {
         this._dialogCtx.completeWith(this.isEdit() ? slug : true);
       } else {
         this.goBack();
       }
-    } catch (error: any) {
+    } catch (e) {
+      const error = e as Error;
       console.error('[CragFormComponent] Error submitting crag:', error);
       handleErrorToast(error, this.toast, this.translate);
     }

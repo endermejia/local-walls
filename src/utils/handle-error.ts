@@ -8,7 +8,7 @@ import { TranslateService } from '@ngx-translate/core';
  * @param translate The TranslateService instance
  */
 export function handleErrorToast(
-  error: any,
+  error: { code?: string; message?: string },
   toast: TuiToastService,
   translate: TranslateService,
 ): void {

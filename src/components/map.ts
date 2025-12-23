@@ -148,7 +148,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         ...cragsJson,
         features: Array.isArray(cragsJson.features)
           ? cragsJson.features.filter((f) => {
-              const cat = (f as any)?.properties?.category;
+              const cat = f?.properties?.category;
               return cat === 1 || cat === 2;
             })
           : [],

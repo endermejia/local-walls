@@ -5,7 +5,6 @@ import { Parking } from './parking.model';
 import { TopoListItem } from './topo.model';
 import {
   EquipperDto,
-  RouteDto,
   TableInsert,
   TableRow,
   TableUpdate,

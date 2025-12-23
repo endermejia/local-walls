@@ -149,8 +149,9 @@ export class AreaFormComponent {
       } else {
         this.goBack();
       }
-    } catch (error: any) {
-      console.error('[AreaFormComponent] Error submitting area:', error);
+    } catch (e) {
+      const error = e as Error;
+      console.error('[AreaFormComponent] Error submitting area:', e);
       handleErrorToast(error, this.toast, this.translate);
     }
   }

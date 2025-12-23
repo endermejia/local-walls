@@ -5,7 +5,6 @@ import {
   input,
   effect,
   InputSignal,
-  signal,
   computed,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -32,7 +31,6 @@ import {
 import { CragsService, GlobalData } from '../services';
 import { TuiToastService } from '@taiga-ui/kit';
 import {
-  ORDERED_GRADE_VALUES,
   type CragDetail,
   RouteWithExtras,
   type TopoListItem,
@@ -376,6 +374,7 @@ export class CragComponent {
     effect(() => {
       const aSlug = this.areaSlug();
       const cSlug = this.cragSlug();
+      this.global.resetDataByPage('crag');
       this.global.selectedAreaSlug.set(aSlug);
       this.global.selectedCragSlug.set(cSlug);
     });
@@ -451,7 +450,8 @@ export class CragComponent {
                 if (ok) {
                   await this.router.navigateByUrl(`/area/${c.area_slug}`);
                 }
-              } catch (error: any) {
+              } catch (e) {
+                const error = e as Error;
                 console.error('[CragComponent] Error deleting crag:', error);
                 handleErrorToast(error, this.toast, this.translate);
               }

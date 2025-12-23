@@ -7,7 +7,7 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { AsyncPipe, LowerCasePipe } from '@angular/common';
+import { LowerCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AreasService, GlobalData } from '../services';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -17,8 +17,6 @@ import {
   TuiTextfield,
   TuiTitle,
   TuiSurface,
-  TuiFallbackSrcPipe,
-  TuiIcon,
 } from '@taiga-ui/core';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { TuiDialogService } from '@taiga-ui/experimental';
@@ -29,7 +27,6 @@ import {
   TuiAvatar,
   TuiBadgedContentComponent,
   TuiBadgeNotification,
-  TuiBadge,
 } from '@taiga-ui/kit';
 import { ChartRoutesByGradeComponent } from '../components';
 import { AreaFormComponent } from './area-form';

@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   InputSignal,
-  Signal,
   computed,
   effect,
   inject,
@@ -95,9 +94,9 @@ import { handleErrorToast } from '../utils';
     >
       <!-- WHEN DID YOU CLIMB IT? -->
       <section class="grid gap-3">
-        <label class="text-sm font-semibold opacity-70 px-1">{{
+        <span class="text-sm font-semibold opacity-70 px-1">{{
           'ascent.when' | translate
-        }}</label>
+        }}</span>
         <tui-textfield [tuiTextfieldCleaner]="false">
           <input tuiInputDate [max]="today" formControlName="date" />
           <tui-calendar *tuiTextfieldDropdown />
@@ -135,15 +134,12 @@ import { handleErrorToast } from '../utils';
 
       <!-- HOW DID YOU CLIMB IT? -->
       <section class="grid gap-4">
-        <label class="text-sm font-semibold opacity-70 px-1">{{
+        <span class="text-sm font-semibold opacity-70 px-1">{{
           'ascent.how' | translate
-        }}</label>
+        }}</span>
         <div class="flex flex-wrap gap-4 items-center justify-around">
           @for (opt of typeOptions; track opt.id) {
-            <div
-              class="flex flex-col items-center gap-2 cursor-pointer"
-              (click)="form.get('type')?.setValue(opt.id)"
-            >
+            <div class="flex flex-col items-center gap-2">
               <button
                 tuiIconButton
                 type="button"
@@ -155,12 +151,17 @@ import { handleErrorToast } from '../utils';
                     ? opt.appearance
                     : 'neutral'
                 "
+                (click)="form.get('type')?.setValue(opt.id)"
               >
                 <tui-icon [icon]="opt.icon" />
               </button>
-              <span class="text-xs font-medium">{{
-                opt.translate | translate
-              }}</span>
+              <button
+                type="button"
+                class="text-xs font-medium appearance-none bg-transparent border-none p-0 cursor-pointer"
+                (click)="form.get('type')?.setValue(opt.id)"
+              >
+                {{ opt.translate | translate }}
+              </button>
             </div>
           }
         </div>
@@ -208,9 +209,9 @@ import { handleErrorToast } from '../utils';
 
       <!-- DID YOU LIKE IT? -->
       <section class="grid gap-3">
-        <label class="text-sm font-semibold opacity-70 px-1">{{
+        <span class="text-sm font-semibold opacity-70 px-1">{{
           'ascent.didYouLikeIt' | translate
-        }}</label>
+        }}</span>
         <div class="flex items-center gap-4">
           <tui-rating [max]="5" formControlName="rate" class="text-primary" />
           <button
@@ -236,9 +237,9 @@ import { handleErrorToast } from '../utils';
 
       <!-- GRADE SELECTOR -->
       <section class="grid gap-3">
-        <label class="text-sm font-semibold opacity-70 px-1">{{
+        <span class="text-sm font-semibold opacity-70 px-1">{{
           'ascent.howWouldYouGrade' | translate
-        }}</label>
+        }}</span>
         <div class="flex items-center gap-2">
           <button
             tuiButton
@@ -292,9 +293,9 @@ import { handleErrorToast } from '../utils';
 
           <!-- TYPE OF CLIMBING -->
           <div class="grid gap-3">
-            <label class="text-xs font-bold opacity-60 uppercase">{{
+            <span class="text-xs font-bold opacity-60 uppercase">{{
               'ascent.typeOfClimbing' | translate
-            }}</label>
+            }}</span>
             <div class="flex flex-wrap gap-2">
               @for (key of climbingTypes; track key) {
                 <tui-chip
@@ -310,9 +311,9 @@ import { handleErrorToast } from '../utils';
 
           <!-- STEEPNESS -->
           <div class="grid gap-3">
-            <label class="text-xs font-bold opacity-60 uppercase">{{
+            <span class="text-xs font-bold opacity-60 uppercase">{{
               'ascent.steepness.title' | translate
-            }}</label>
+            }}</span>
             <div class="flex flex-wrap gap-2">
               @for (key of steepnessTypes; track key) {
                 <tui-chip
@@ -328,9 +329,9 @@ import { handleErrorToast } from '../utils';
 
           <!-- SAFETY -->
           <div class="grid gap-3">
-            <label class="text-xs font-bold opacity-60 uppercase">{{
+            <span class="text-xs font-bold opacity-60 uppercase">{{
               'ascent.safety.title' | translate
-            }}</label>
+            }}</span>
             <div class="flex flex-wrap gap-2">
               @for (key of safetyIssues; track key) {
                 <tui-chip
@@ -346,9 +347,9 @@ import { handleErrorToast } from '../utils';
 
           <!-- OTHER -->
           <div class="grid gap-3">
-            <label class="text-xs font-bold opacity-60 uppercase">{{
+            <span class="text-xs font-bold opacity-60 uppercase">{{
               'ascent.other.title' | translate
-            }}</label>
+            }}</span>
             <div class="flex flex-wrap gap-2">
               @for (key of otherInfo; track key) {
                 <tui-chip
@@ -672,7 +673,7 @@ export default class AscentFormComponent {
     const user_id = this.supabase.authUser()?.id;
     if (!user_id && !ascentData) return;
 
-    const values = this.form.getRawValue() as any;
+    const values = this.form.getRawValue();
     const payload: Omit<RouteAscentInsertDto, 'user_id' | 'route_id'> = {
       ...values,
       date: `${values.date.year}-${String(values.date.month + 1).padStart(2, '0')}-${String(values.date.day).padStart(2, '0')}`,
@@ -692,7 +693,8 @@ export default class AscentFormComponent {
         await this.routesService.removeRouteProject(route_id);
       }
       this._dialogCtx?.completeWith(true);
-    } catch (error: any) {
+    } catch (e) {
+      const error = e as Error;
       handleErrorToast(error, this.toast, this.translate);
     }
   }
@@ -722,7 +724,8 @@ export default class AscentFormComponent {
     try {
       await this.ascents.delete(data.id);
       this._dialogCtx?.completeWith(true);
-    } catch (error: any) {
+    } catch (e) {
+      const error = e as Error;
       handleErrorToast(error, this.toast, this.translate);
     }
   }

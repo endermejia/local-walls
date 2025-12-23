@@ -3,7 +3,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   InputSignal,
   OnDestroy,
   OutputEmitterRef,
@@ -39,7 +38,6 @@ import { handleErrorToast } from '../utils';
 import { RouteFormComponent } from '../pages/route-form';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
-  ORDERED_GRADE_VALUES,
   VERTICAL_LIFE_TO_LABEL,
   VERTICAL_LIFE_GRADES,
   RouteWithExtras,
@@ -48,7 +46,7 @@ import {
   RouteAscentDto,
 } from '../models';
 import { FormsModule } from '@angular/forms';
-import { TuiButton, TuiHint, TuiIcon } from '@taiga-ui/core';
+import { TuiButton, TuiHint, TuiIcon, TuiLink } from '@taiga-ui/core';
 
 export type RoutesTableKey =
   | 'grade'
@@ -70,6 +68,10 @@ export interface RoutesTableRow {
   climbed: boolean;
   color: string;
   link: string[];
+  area_name?: string;
+  crag_name?: string;
+  area_slug?: string;
+  crag_slug?: string;
   _ref: RouteItem;
 }
 
@@ -88,6 +90,7 @@ export interface RoutesTableRow {
     TuiHint,
     TuiTableSortPipe,
     TuiIcon,
+    TuiLink,
   ],
   template: `
     <div class="overflow-auto" #scroller>
@@ -131,9 +134,38 @@ export interface RoutesTableRow {
                     }
                     @case ('route') {
                       <div tuiCell size="m">
-                        <a [routerLink]="item.link" class="tui-link">
-                          {{ item.route || ('labels.route' | translate) }}
-                        </a>
+                        <div class="flex flex-col">
+                          <a
+                            tuiLink
+                            [routerLink]="item.link"
+                            class="font-medium align-self-start whitespace-nowrap"
+                          >
+                            {{ item.route || ('labels.route' | translate) }}
+                          </a>
+                          @if (showLocation()) {
+                            <div
+                              class="text-xs opacity-70 flex gap-1 items-center whitespace-nowrap"
+                            >
+                              <a
+                                tuiLink
+                                [routerLink]="['/area', item.area_slug]"
+                              >
+                                {{ item.area_name }}
+                              </a>
+                              <span>/</span>
+                              <a
+                                tuiLink
+                                [routerLink]="[
+                                  '/area',
+                                  item.area_slug,
+                                  item.crag_slug,
+                                ]"
+                              >
+                                {{ item.crag_name }}
+                              </a>
+                            </div>
+                          }
+                        </div>
                       </div>
                     }
                     @case ('height') {
@@ -303,6 +335,8 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
   hasNext: InputSignal<boolean> = input(false);
   showAdminActions: InputSignal<boolean> = input(true);
 
+  showLocation: InputSignal<boolean> = input(false);
+
   // Output to request more items when reaching the end
   loadMore: OutputEmitterRef<void> = output<void>();
   toggleLike: OutputEmitterRef<RouteItem> = output<RouteItem>();
@@ -344,6 +378,10 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
         key,
         grade,
         route: r.name,
+        area_name: r.area_name,
+        crag_name: r.crag_name,
+        area_slug: r.area_slug,
+        crag_slug: r.crag_slug,
         height: r.height || null,
         rating,
         ascents,
@@ -352,8 +390,8 @@ export class RoutesTableComponent implements AfterViewInit, OnDestroy {
         climbed: r.climbed ?? false,
         link: [
           '/area',
-          r.area_slug || (r as any).crag?.area?.slug || 'unknown',
-          r.crag_slug || (r as any).crag?.slug || 'unknown',
+          r.area_slug || 'unknown',
+          r.crag_slug || 'unknown',
           r.slug,
         ],
         color:

@@ -107,7 +107,7 @@ export class MapBuilder {
       ? null
       : this.global.mapBounds();
     if (savedViewport && !this.areBoundsValid(savedViewport)) {
-      savedViewport = null as any;
+      savedViewport = null;
     }
 
     if (!options.ignoreSavedViewport) {

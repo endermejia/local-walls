@@ -1,6 +1,4 @@
 import { PrerenderFallback, RenderMode, ServerRoute } from '@angular/ssr';
-import { inject } from '@angular/core';
-import { GlobalData } from '../services';
 
 // Define server routes with prerendering for parameterized paths and
 // proper SSR redirects/HTTP statuses for Netlify Edge SSR.

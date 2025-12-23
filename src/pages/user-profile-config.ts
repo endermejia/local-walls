@@ -40,8 +40,17 @@ import {
   TuiBadge,
 } from '@taiga-ui/kit';
 import { TuiStringMatcher, TuiDay } from '@taiga-ui/cdk';
+import { PolymorpheusComponent, injectContext } from '@taiga-ui/polymorpheus';
+import {
+  TuiDialogService,
+  type TuiDialogContext,
+} from '@taiga-ui/experimental';
 import { map } from 'rxjs';
 import { GlobalData, SupabaseService, UserProfilesService } from '../services';
+import {
+  AvatarCropperComponent,
+  type AvatarCropperResult,
+} from '../components';
 import {
   Language,
   Languages,
@@ -51,15 +60,6 @@ import {
   Themes,
   UserProfileDto,
 } from '../models';
-import {
-  TuiDialogService,
-  type TuiDialogContext,
-} from '@taiga-ui/experimental';
-import { PolymorpheusComponent, injectContext } from '@taiga-ui/polymorpheus';
-import {
-  AvatarCropperComponent,
-  type AvatarCropperResult,
-} from '../components/avatar-cropper';
 
 interface Country {
   id: string;

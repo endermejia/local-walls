@@ -20,11 +20,9 @@ import {
   AppRoles,
   AreaListItem,
   CragListItem,
-  AmountByEveryGrade,
   CragDetail,
   CragDto,
   Parking,
-  RouteDto,
   RouteWithExtras,
   RouteAscentWithExtras,
   TopoListItem,
@@ -448,9 +446,7 @@ export class GlobalData {
         areaSlug: crag?.area_slug,
       };
     },
-    loader: async ({
-      params: { cragId, cragSlug, areaSlug },
-    }): Promise<RouteWithExtras[]> => {
+    loader: async ({ params: { cragId } }): Promise<RouteWithExtras[]> => {
       if (!cragId) return [];
       if (!isPlatformBrowser(this.platformId)) return [];
       try {
@@ -485,12 +481,11 @@ export class GlobalData {
         }
 
         return (
-          (data as any[]).map((r) =>
+          data.map((r) =>
             (() => {
               const rates =
-                (r.ascents as any[])
-                  ?.map((a) => a.rate)
-                  .filter((rate) => rate != null) ?? [];
+                r.ascents?.map((a) => a.rate).filter((rate) => rate != null) ??
+                [];
               const rating =
                 rates.length > 0
                   ? rates.reduce((a, b) => a + b, 0) / rates.length
@@ -565,11 +560,9 @@ export class GlobalData {
           return null;
         }
 
-        const r = data as any;
+        const r = data;
         const rates =
-          (r.ascents as any[])
-            ?.map((a) => a.rate)
-            .filter((rate) => rate != null) ?? [];
+          r.ascents?.map((a) => a.rate).filter((rate) => rate != null) ?? [];
         const rating =
           rates.length > 0
             ? rates.reduce((a, b) => a + b, 0) / rates.length
@@ -634,7 +627,7 @@ export class GlobalData {
             profilesError,
           );
           // Return ascents without user info if profiles fail
-          return ascents as any[];
+          return ascents;
         }
 
         // 3. Map profiles back to ascents
@@ -644,7 +637,7 @@ export class GlobalData {
             ({
               ...a,
               user: profileMap.get(a.user_id),
-            }) as any as RouteAscentWithExtras,
+            }) as RouteAscentWithExtras,
         );
       } catch (e) {
         console.error('[GlobalData] routeAscentsResource exception', e);
@@ -862,13 +855,13 @@ export class GlobalData {
   }
 
   resetDataByPage(
-    page: 'explore' | 'area' | 'crag' | 'sector' | 'route',
+    page: 'explore' | 'area' | 'crag' | 'sector' | 'route' | 'user',
   ): void {
     switch (page) {
       case 'explore': {
+        this.selectedAreaSlug.set(null);
         this.selectedCragSlug.set(null);
         this.selectedRouteSlug.set(null);
-
         this.selectedMapCragItem.set(null);
         break;
       }
