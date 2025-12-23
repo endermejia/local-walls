@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
-import { TuiButton, TuiLabel, TuiTextfield, TuiDataList } from '@taiga-ui/core';
+import { TuiButton, TuiLabel, TuiTextfield } from '@taiga-ui/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   TuiChevron,
@@ -53,7 +53,6 @@ interface MinimalRoute {
     TuiInputNumber,
     TuiSelect,
     TuiDataListWrapper,
-    TuiDataList,
     TuiChevron,
   ],
   template: `
@@ -64,19 +63,44 @@ interface MinimalRoute {
       </tui-textfield>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <tui-textfield
-          tuiChevron
-          [tuiTextfieldCleaner]="false"
-          [stringify]="gradeStringify"
-        >
-          <label tuiLabel for="grade">{{ 'labels.grade' | translate }}</label>
-          <input tuiSelect id="grade" [formControl]="grade" />
-          <tui-data-list-wrapper
-            *tuiTextfieldDropdown
-            new
-            [items]="gradeOptions"
-          />
-        </tui-textfield>
+        <div class="flex items-center gap-2">
+          <button
+            tuiIconButton
+            type="button"
+            size="m"
+            appearance="secondary"
+            iconStart="@tui.minus"
+            class="!rounded-full shrink-0"
+            (click)="changeGrade(-1)"
+          >
+            -
+          </button>
+          <tui-textfield
+            tuiChevron
+            [tuiTextfieldCleaner]="false"
+            [stringify]="gradeStringify"
+            class="grow"
+          >
+            <label tuiLabel for="grade">{{ 'labels.grade' | translate }}</label>
+            <input tuiSelect id="grade" [formControl]="grade" />
+            <tui-data-list-wrapper
+              *tuiTextfieldDropdown
+              new
+              [items]="gradeOptions"
+            />
+          </tui-textfield>
+          <button
+            tuiIconButton
+            type="button"
+            size="m"
+            appearance="secondary"
+            iconStart="@tui.plus"
+            class="!rounded-full shrink-0"
+            (click)="changeGrade(1)"
+          >
+            +
+          </button>
+        </div>
 
         <tui-textfield
           tuiChevron
@@ -94,11 +118,37 @@ interface MinimalRoute {
           />
         </tui-textfield>
 
-        <tui-textfield [tuiTextfieldCleaner]="false">
-          <label tuiLabel for="height">{{ 'routes.height' | translate }}</label>
-          <input tuiInputNumber id="height" [formControl]="height" />
-          <span class="tui-textfield__suffix">m</span>
-        </tui-textfield>
+        <div class="flex items-center gap-2">
+          <button
+            tuiIconButton
+            type="button"
+            size="m"
+            appearance="secondary"
+            iconStart="@tui.minus"
+            class="!rounded-full shrink-0"
+            (click)="changeHeight(-1)"
+          >
+            -
+          </button>
+          <tui-textfield [tuiTextfieldCleaner]="false" class="grow">
+            <label tuiLabel for="height">
+              {{ 'routes.height' | translate }}
+            </label>
+            <input tuiInputNumber id="height" [formControl]="height" />
+            <span class="tui-textfield__suffix">m</span>
+          </tui-textfield>
+          <button
+            tuiIconButton
+            type="button"
+            size="m"
+            appearance="secondary"
+            iconStart="@tui.plus"
+            class="!rounded-full shrink-0"
+            (click)="changeHeight(1)"
+          >
+            +
+          </button>
+        </div>
       </div>
 
       <div class="flex gap-2 justify-end">
@@ -111,7 +161,10 @@ interface MinimalRoute {
           {{ 'actions.cancel' | translate }}
         </button>
         <button
-          [disabled]="name.invalid || (!name.dirty && !isEdit())"
+          [disabled]="
+            name.invalid ||
+            (!name.dirty && !height.dirty && !grade.dirty && !isEdit())
+          "
           tuiButton
           appearance="primary"
           type="submit"
@@ -169,7 +222,7 @@ export class RouteFormComponent {
     nonNullable: true,
     validators: [Validators.required],
   });
-  grade = new FormControl<number>(16, {
+  grade = new FormControl<number>(23, {
     nonNullable: true,
     validators: [Validators.required],
   });
@@ -177,7 +230,7 @@ export class RouteFormComponent {
     nonNullable: true,
     validators: [Validators.required],
   });
-  height = new FormControl<number | null>(null);
+  height = new FormControl<number | null>(25);
 
   private editingId: number | null = null;
 
@@ -191,6 +244,25 @@ export class RouteFormComponent {
     Object.values(ClimbingKinds);
   protected readonly kindStringify = (kind: ClimbingKind): string =>
     this.translate.instant(`climbingKinds.${kind}`);
+
+  protected changeHeight(delta: number): void {
+    const current = this.height.value ?? 0;
+    const next = Math.max(0, current + delta);
+    this.height.setValue(next);
+    this.height.markAsDirty();
+  }
+
+  protected changeGrade(delta: number): void {
+    const current = this.grade.value;
+    const currentIndex = this.gradeOptions.indexOf(current);
+    if (currentIndex === -1) return;
+
+    const nextIndex = currentIndex + delta;
+    if (nextIndex >= 0 && nextIndex < this.gradeOptions.length) {
+      this.grade.setValue(this.gradeOptions[nextIndex]);
+      this.grade.markAsDirty();
+    }
+  }
 
   constructor() {
     effect(() => {
