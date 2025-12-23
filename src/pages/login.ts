@@ -78,10 +78,11 @@ import { SupabaseService } from '../services';
               }}</label>
               <input
                 id="emailInput"
+                #emailInput
                 tuiTextfield
                 type="email"
                 [value]="email()"
-                (input.zoneless)="onInputEmail($any($event.target).value)"
+                (input.zoneless)="onInputEmail(emailInput.value)"
                 [attr.aria-invalid]="
                   validate() && !emailValid() ? 'true' : null
                 "
@@ -101,10 +102,11 @@ import { SupabaseService } from '../services';
               }}</label>
               <input
                 id="passwordInput"
+                #passwordInput
                 tuiTextfield
                 type="password"
                 [value]="password()"
-                (input.zoneless)="onInputPassword($any($event.target).value)"
+                (input.zoneless)="onInputPassword(passwordInput.value)"
                 [attr.aria-invalid]="
                   validate() && !passwordValid() ? 'true' : null
                 "
@@ -127,11 +129,12 @@ import { SupabaseService } from '../services';
                 }}</label>
                 <input
                   id="confirmRegPasswordInput"
+                  #confirmRegPasswordInput
                   tuiTextfield
                   type="password"
                   [value]="confirmPassword()"
                   (input.zoneless)="
-                    confirmPassword.set($any($event.target).value)
+                    confirmPassword.set(confirmRegPasswordInput.value)
                   "
                   [attr.aria-invalid]="
                     validate() && confirmPassword() !== password()
@@ -217,10 +220,11 @@ import { SupabaseService } from '../services';
               }}</label>
               <input
                 id="newPasswordInput"
+                #newPasswordInput
                 tuiTextfield
                 type="password"
                 [value]="newPassword()"
-                (input.zoneless)="newPassword.set($any($event.target).value)"
+                (input.zoneless)="newPassword.set(newPasswordInput.value)"
                 [attr.aria-invalid]="
                   validate() && !newPasswordValid() ? 'true' : null
                 "
@@ -242,11 +246,12 @@ import { SupabaseService } from '../services';
               }}</label>
               <input
                 id="confirmPasswordInput"
+                #confirmPasswordInput
                 tuiTextfield
                 type="password"
                 [value]="confirmPassword()"
                 (input.zoneless)="
-                  confirmPassword.set($any($event.target).value)
+                  confirmPassword.set(confirmPasswordInput.value)
                 "
                 [attr.aria-invalid]="
                   validate() && confirmPassword() !== newPassword()

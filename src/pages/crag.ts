@@ -353,7 +353,7 @@ export class CragComponent {
     const gradesVal: AmountByEveryGrade = {};
     for (const r of routes) {
       if (typeof r.grade === 'number' && r.grade >= 0) {
-        const g = r.grade as unknown as VERTICAL_LIFE_GRADES; // Cast number to enum
+        const g = r.grade as VERTICAL_LIFE_GRADES; // Cast number to enum
         gradesVal[g] = (gradesVal[g] ?? 0) + 1;
       }
     }

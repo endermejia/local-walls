@@ -95,9 +95,10 @@ import {
           }}</label>
           <input
             tuiTextfield
+            #areasSearch
             id="areas-search"
             [value]="query()"
-            (input.zoneless)="onQuery($any($event.target).value)"
+            (input.zoneless)="onQuery(areasSearch.value)"
           /> </tui-textfield
         ><tui-badged-content>
           @if (hasActiveFilters()) {

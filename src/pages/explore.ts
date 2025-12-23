@@ -158,7 +158,7 @@ import { remToPx } from '../utils';
           class="z-50"
           role="dialog"
           aria-labelledby="areas-title crags-title"
-          (scroll.zoneless)="onSheetScroll($any($event))"
+          (scroll.zoneless)="onSheetScroll($event)"
         >
           @if (areas.length) {
             <h3 tuiHeader id="areas-title" class="justify-center">
@@ -412,26 +412,19 @@ export class ExploreComponent {
 
     const el = this.sheetRef?.nativeElement;
     if (!el) {
-      const raf = (
-        window as unknown as {
-          requestAnimationFrame?: (cb: FrameRequestCallback) => number;
-        }
-      ).requestAnimationFrame;
-      if (typeof raf === 'function') {
-        raf(() => {
-          const node = this.sheetRef?.nativeElement;
-          if (!node) return;
-          raf(() => {
-            const target =
-              mode === 'close' ? 0 : this.computeBottomSheetTargetTop(node);
-            this.scrollBottomSheetTo(node, mode === 'open' ? target : target);
-            if (mode === 'close') {
-              this._sheetClientHeight.set(0);
-              this._sheetScrollTop.set(0);
-            }
-          });
+      window.requestAnimationFrame(() => {
+        const node = this.sheetRef?.nativeElement;
+        if (!node) return;
+        window.requestAnimationFrame(() => {
+          const target =
+            mode === 'close' ? 0 : this.computeBottomSheetTargetTop(node);
+          this.scrollBottomSheetTo(node, mode === 'open' ? target : target);
+          if (mode === 'close') {
+            this._sheetClientHeight.set(0);
+            this._sheetScrollTop.set(0);
+          }
         });
-      }
+      });
       return;
     }
 
@@ -459,19 +452,10 @@ export class ExploreComponent {
       }
     };
 
-    const raf = (
-      window as unknown as {
-        requestAnimationFrame?: (cb: FrameRequestCallback) => number;
-      }
-    ).requestAnimationFrame;
-    if (typeof raf === 'function') {
-      raf(() => {
-        const nodeA = this.sheetRef?.nativeElement || el;
-        raf(() => doScroll(nodeA));
-      });
-    } else {
-      doScroll(el);
-    }
+    window.requestAnimationFrame(() => {
+      const nodeA = this.sheetRef?.nativeElement || el;
+      window.requestAnimationFrame(() => doScroll(nodeA));
+    });
   }
 
   protected selectMapCragItem(mapCragItem: MapCragItem | null): void {

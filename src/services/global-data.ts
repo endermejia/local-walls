@@ -26,6 +26,7 @@ import {
   RouteWithExtras,
   RouteAscentWithExtras,
   TopoListItem,
+  TopoDto,
   IconName,
   Language,
   Languages,
@@ -38,6 +39,8 @@ import {
   Theme,
   Themes,
   ORDERED_GRADE_VALUES,
+  AmountByEveryGrade,
+  VERTICAL_LIFE_GRADES,
 } from '../models';
 import { slugify } from '../utils';
 
@@ -358,7 +361,14 @@ export class GlobalData {
             crag_parkings (
               parking: parkings (*)
             ),
-            topos (*)
+            topos (
+              *,
+              topo_routes (
+                route: routes (
+                  grade
+                )
+              )
+            )
           `,
           )
           .eq('slug', slug);
@@ -378,16 +388,41 @@ export class GlobalData {
         type CragWithJoins = CragDto & {
           area: { name: string; slug: string } | null;
           crag_parkings: { parking: Parking }[] | null;
-          topos: TopoListItem[] | null;
+          topos:
+            | (TopoDto & {
+                topo_routes: { route: { grade: number } | null }[];
+              })[]
+            | null;
           liked: { id: number }[];
         };
-        const rawData = data as unknown as CragWithJoins;
+        const rawData = data as CragWithJoins;
 
         // Transform nested parkings
         const parkings =
           rawData.crag_parkings?.map((cp) => cp.parking).filter(Boolean) ?? [];
 
-        const topos = rawData.topos ?? [];
+        const topos: TopoListItem[] =
+          rawData.topos?.map((t) => {
+            const grades: AmountByEveryGrade = {};
+            t.topo_routes.forEach((tr) => {
+              const g = tr.route?.grade;
+              if (g !== undefined && g !== null) {
+                grades[g as VERTICAL_LIFE_GRADES] =
+                  (grades[g as VERTICAL_LIFE_GRADES] ?? 0) + 1;
+              }
+            });
+
+            return {
+              id: t.id,
+              name: t.name,
+              slug: t.slug,
+              photo: t.photo,
+              grades,
+              shade_afternoon: t.shade_afternoon,
+              shade_change_hour: t.shade_change_hour,
+              shade_morning: t.shade_morning,
+            };
+          }) ?? [];
         const topos_count = topos.length;
         const shade_morning = topos.some((t) => t.shade_morning);
         const shade_afternoon = topos.some((t) => t.shade_afternoon);

@@ -252,23 +252,13 @@ export class MapBuilder {
     this.initialized = true;
 
     if (typeof window !== 'undefined') {
-      const raf = (
-        window as unknown as {
-          requestAnimationFrame?: (cb: FrameRequestCallback) => number;
-        }
-      ).requestAnimationFrame;
-      if (typeof raf === 'function') {
-        raf(() => {
-          this.map?.invalidateSize?.();
-          raf(() => {
-            this.map?.invalidateSize?.();
-            emitViewport();
-          });
-        });
-      } else {
+      window.requestAnimationFrame(() => {
         this.map?.invalidateSize?.();
-        emitViewport();
-      }
+        window.requestAnimationFrame(() => {
+          this.map?.invalidateSize?.();
+          emitViewport();
+        });
+      });
     }
   }
 

@@ -18,10 +18,10 @@ export const errorInterceptor: HttpInterceptorFn = (
   const injector = inject(Injector);
   const platformId = inject(PLATFORM_ID);
   const router = isPlatformBrowser(platformId)
-    ? injector.get(Router, null as unknown as Router)
+    ? injector.get(Router, null, { optional: true })
     : null;
   const supabase = isPlatformBrowser(platformId)
-    ? injector.get(SupabaseService, null as unknown as SupabaseService)
+    ? injector.get(SupabaseService, null, { optional: true })
     : null;
 
   return next(req).pipe(

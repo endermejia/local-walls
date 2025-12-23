@@ -25,9 +25,39 @@ import {
   RouteWithExtras,
   RouteAscentDto,
   RouteAscentWithExtras,
+  RouteDto,
 } from '../models';
 import AscentFormComponent from './ascent-form';
 import { UserProfileConfigComponent } from './user-profile-config';
+
+interface ProjectResponse {
+  route:
+    | (RouteDto & {
+        liked: { id: number }[];
+        project: { id: number }[];
+        crag: {
+          slug: string;
+          name: string;
+          area: { slug: string; name: string } | null;
+        } | null;
+        ascents: { rate: number }[];
+      })
+    | null;
+}
+
+interface AscentResponse extends RouteAscentDto {
+  route:
+    | (RouteDto & {
+        liked: { id: number }[];
+        project: { id: number }[];
+        crag: {
+          slug: string;
+          name: string;
+          area: { slug: string; name: string } | null;
+        } | null;
+      })
+    | null;
+}
 
 @Component({
   selector: 'app-user-profile',
@@ -275,30 +305,30 @@ export class UserProfileComponent {
           return [];
         }
 
-        return (data as unknown as any[])
+        return (data as ProjectResponse[])
           .map((item) => {
             const r = item.route;
             if (!r) return null;
             const rates =
-              (r.ascents as unknown as any[])
-                ?.map((a) => a.rate)
-                .filter((rate) => rate != null) ?? [];
+              r.ascents?.map((a) => a.rate).filter((rate) => rate != null) ??
+              [];
             const rating =
               rates.length > 0
                 ? rates.reduce((a, b) => a + b, 0) / rates.length
                 : 0;
 
+            const { crag, ascents, liked, project, ...rest } = r;
             return {
-              ...r,
-              liked: (r.liked?.length ?? 0) > 0,
-              project: (r.project?.length ?? 0) > 0,
-              crag_slug: r.crag?.slug,
-              crag_name: r.crag?.name,
-              area_slug: r.crag?.area?.slug,
-              area_name: r.crag?.area?.name,
+              ...rest,
+              liked: (liked?.length ?? 0) > 0,
+              project: (project?.length ?? 0) > 0,
+              crag_slug: crag?.slug,
+              crag_name: crag?.name,
+              area_slug: crag?.area?.slug,
+              area_name: crag?.area?.name,
               rating,
-              ascent_count: r.ascents?.length ?? 0,
-            };
+              ascent_count: ascents?.length ?? 0,
+            } as RouteItem;
           })
           .filter((r): r is RouteItem => !!r);
       } catch (e) {
@@ -321,6 +351,8 @@ export class UserProfileComponent {
             *,
             route:routes (
               *,
+              liked:route_likes(id),
+              project:route_projects(id),
               crag:crags(
                 slug,
                 name,
@@ -337,16 +369,28 @@ export class UserProfileComponent {
           return [];
         }
 
-        return (data as unknown as any[]).map((a) => ({
-          ...a,
-          route: {
-            ...a.route,
-            crag_slug: a.route?.crag?.slug,
-            crag_name: a.route?.crag?.name,
-            area_slug: a.route?.crag?.area?.slug,
-            area_name: a.route?.crag?.area?.name,
-          },
-        })) as RouteAscentWithExtras[];
+        return (data as AscentResponse[]).map((a) => {
+          const { route, ...ascentRest } = a;
+          let mappedRoute: RouteWithExtras | undefined = undefined;
+
+          if (route) {
+            const { crag, liked, project, ...routeRest } = route;
+            mappedRoute = {
+              ...routeRest,
+              liked: (liked?.length ?? 0) > 0,
+              project: (project?.length ?? 0) > 0,
+              crag_slug: crag?.slug,
+              crag_name: crag?.name,
+              area_slug: crag?.area?.slug,
+              area_name: crag?.area?.name,
+            } as RouteWithExtras;
+          }
+
+          return {
+            ...ascentRest,
+            route: mappedRoute,
+          } as RouteAscentWithExtras;
+        });
       } catch (e) {
         console.error('[UserProfile] ascentsResource exception', e);
         return [];

@@ -184,16 +184,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   private tryInit(): void {
     const el = this.containerRef?.nativeElement;
     if (!el || this.mapInitialized() || !this.isBrowser()) return;
-    const raf = (
-      window as unknown as {
-        requestAnimationFrame?: (cb: FrameRequestCallback) => number;
-      }
-    ).requestAnimationFrame;
-    if (typeof raf === 'function') {
-      raf(() => void this.initMap());
-    } else {
-      void this.initMap();
-    }
+    window.requestAnimationFrame(() => void this.initMap());
   }
 
   private async initMap(): Promise<void> {
