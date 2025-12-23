@@ -240,8 +240,7 @@ export class AreaListComponent {
   });
 
   constructor() {
-    // Initial load: we no longer force manual call; the `areaListResource`
-    // from Supabase handles automatic loading when observed.
+    this.global.resetDataByPage('home');
   }
 
   onQuery(v: string) {

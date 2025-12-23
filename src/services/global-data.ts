@@ -908,7 +908,7 @@ export class GlobalData {
   }
 
   resetDataByPage(
-    page: 'explore' | 'area' | 'crag' | 'sector' | 'route' | 'user',
+    page: 'explore' | 'area-list' | 'area' | 'crag' | 'topo' | 'route' | 'home',
   ): void {
     switch (page) {
       case 'explore': {
@@ -916,6 +916,12 @@ export class GlobalData {
         this.selectedCragSlug.set(null);
         this.selectedRouteSlug.set(null);
         this.selectedMapCragItem.set(null);
+        break;
+      }
+      case 'home': {
+        this.selectedAreaSlug.set(null);
+        this.selectedCragSlug.set(null);
+        this.selectedRouteSlug.set(null);
         break;
       }
       case 'area': {
@@ -927,17 +933,11 @@ export class GlobalData {
         this.selectedRouteSlug.set(null);
         break;
       }
-      case 'sector': {
+      case 'topo': {
         this.selectedRouteSlug.set(null);
         break;
       }
       case 'route': {
-        break;
-      }
-      case 'user': {
-        this.selectedAreaSlug.set(null);
-        this.selectedCragSlug.set(null);
-        this.selectedRouteSlug.set(null);
         break;
       }
     }

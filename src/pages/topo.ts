@@ -92,7 +92,7 @@ export class TopoComponent {
 
   constructor() {
     effect(() => {
-      this.global.resetDataByPage('sector');
+      this.global.resetDataByPage('topo');
     });
   }
 

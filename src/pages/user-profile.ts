@@ -203,7 +203,7 @@ export class UserProfileComponent {
     effect(() => {
       // Reset breadcrumbs when navigating to the profile page
       this.id(); // Track the id signal
-      this.global.resetDataByPage('user');
+      this.global.resetDataByPage('home');
     });
   }
 

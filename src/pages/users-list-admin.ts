@@ -106,7 +106,7 @@ interface UserWithRole {
         </tui-textfield>
       </div>
 
-      <tui-scrollbar waIntersectionRoot class="scrollbar" [hidden]="true">
+      <tui-scrollbar waIntersectionRoot class="scrollbar">
         <table
           size="l"
           tuiTable
@@ -249,7 +249,6 @@ export class UsersListAdminComponent {
   protected readonly global = inject(GlobalData);
   private readonly translate = inject(TranslateService);
 
-  protected readonly AppRoles = AppRoles;
   protected readonly options = { updateOn: 'blur' } as const;
   protected readonly columns = ['user', 'role'] as const;
 
@@ -313,11 +312,9 @@ export class UsersListAdminComponent {
     tuiDefaultSort(a.role || '', b.role || '');
 
   constructor() {
-    this.loadUsers();
-  }
+    void this.loadUsers();
 
-  protected trackById(index: number, user: UserWithRole): string {
-    return user.id;
+    this.global.resetDataByPage('home');
   }
 
   private async loadUsers(): Promise<void> {
