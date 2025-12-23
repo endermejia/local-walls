@@ -277,6 +277,7 @@ export class RouteComponent {
       const cSlug = this.cragSlug();
       const rSlug = this.routeSlug();
 
+      this.global.resetDataByPage('route');
       this.global.selectedAreaSlug.set(aSlug);
       this.global.selectedCragSlug.set(cSlug);
       this.global.selectedRouteSlug.set(rSlug);
@@ -344,26 +345,22 @@ export class RouteComponent {
   }
 
   protected readonly ascentInfo = computed<
-    Record<string, { icon: string; appearance: string; background: string }>
+    Record<string, { icon: string; background: string }>
   >(() => ({
     os: {
       icon: '@tui.eye',
-      appearance: 'success',
-      background: 'var(--tui-status-success)',
+      background: 'var(--tui-status-positive)',
     },
     f: {
       icon: '@tui.zap',
-      appearance: 'warning',
       background: 'var(--tui-status-warning)',
     },
     rp: {
       icon: '@tui.circle',
-      appearance: 'negative',
       background: 'var(--tui-status-negative)',
     },
     default: {
       icon: '@tui.circle',
-      appearance: 'neutral',
       background: 'var(--tui-neutral-fill)',
     },
   }));

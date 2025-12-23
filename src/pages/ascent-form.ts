@@ -1,45 +1,43 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  InputSignal,
   computed,
   effect,
   inject,
   input,
+  InputSignal,
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-  ReactiveFormsModule,
   FormControl,
-  Validators,
   FormGroup,
+  ReactiveFormsModule,
+  Validators,
 } from '@angular/forms';
 import {
+  TuiAppearance,
   TuiButton,
-  TuiTextfield,
-  TuiIcon,
   tuiDateFormatProvider,
   TuiDialogService,
-  TuiDataList,
   TuiHint,
+  TuiIcon,
   TuiLabel,
+  TuiTextfield,
 } from '@taiga-ui/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
-  TuiRating,
+  TUI_CONFIRM,
+  TuiCheckbox,
+  TuiChevron,
+  type TuiConfirmData,
   TuiDataListWrapper,
-  TuiToastService,
   TuiInputDate,
   TuiInputNumber,
-  TuiTabs,
-  TuiCheckbox,
-  TUI_CONFIRM,
-  type TuiConfirmData,
+  TuiRating,
   TuiSelect,
-  TuiChevron,
   TuiTextarea,
-  TuiChip,
+  TuiToastService,
 } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
@@ -47,9 +45,9 @@ import { TuiDay } from '@taiga-ui/cdk';
 import { firstValueFrom } from 'rxjs';
 import {
   AscentsService,
-  SupabaseService,
   GlobalData,
   RoutesService,
+  SupabaseService,
 } from '../services';
 import {
   AscentType,
@@ -71,19 +69,17 @@ import { handleErrorToast } from '../utils';
     TuiButton,
     TuiTextfield,
     TuiIcon,
-    TuiDataList,
     TuiRating,
     TuiDataListWrapper,
     TuiInputDate,
     TuiInputNumber,
-    TuiTabs,
     TuiCheckbox,
     TuiSelect,
     TuiChevron,
     TuiHint,
     TuiLabel,
     TuiTextarea,
-    TuiChip,
+    TuiAppearance,
   ],
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
   template: `
@@ -144,13 +140,14 @@ import { handleErrorToast } from '../utils';
                 <button
                   tuiIconButton
                   type="button"
-                  shape="circle"
                   size="l"
-                  class="transition-transform active:scale-95"
+                  class="transition-transform active:scale-95 !rounded-full"
+                  [style.background]="
+                    form.get('type')?.value === opt.id ? opt.background : ''
+                  "
+                  [class.!text-white]="form.get('type')?.value === opt.id"
                   [appearance]="
-                    form.get('type')?.value === opt.id
-                      ? opt.appearance
-                      : 'neutral'
+                    form.get('type')?.value === opt.id ? 'none' : 'neutral'
                   "
                   (click)="form.get('type')?.setValue(opt.id)"
                 >
@@ -337,9 +334,7 @@ import { handleErrorToast } from '../utils';
         </section>
 
         @if (showMore()) {
-          <section
-            class="grid gap-6 p-4 rounded-xl border border-dashed border-black/10"
-          >
+          <section tuiAppearance="neutral" class="grid gap-6 p-4 rounded-xl">
             <h3 class="text-sm font-bold opacity-50 uppercase tracking-wider">
               {{ 'ascent.moreInfo' | translate }}
             </h3>
@@ -351,13 +346,15 @@ import { handleErrorToast } from '../utils';
               }}</span>
               <div class="flex flex-wrap gap-2">
                 @for (key of climbingTypes; track key) {
-                  <tui-chip
+                  <button
+                    tuiButton
+                    type="button"
                     size="s"
                     [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
                     (click)="toggleBool(key)"
                   >
                     {{ 'ascent.climbing.' + key | translate }}
-                  </tui-chip>
+                  </button>
                 }
               </div>
             </div>
@@ -369,13 +366,15 @@ import { handleErrorToast } from '../utils';
               }}</span>
               <div class="flex flex-wrap gap-2">
                 @for (key of steepnessTypes; track key) {
-                  <tui-chip
+                  <button
+                    tuiButton
+                    type="button"
                     size="s"
                     [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
                     (click)="toggleBool(key)"
                   >
                     {{ 'ascent.steepness.' + key | translate }}
-                  </tui-chip>
+                  </button>
                 }
               </div>
             </div>
@@ -387,13 +386,15 @@ import { handleErrorToast } from '../utils';
               }}</span>
               <div class="flex flex-wrap gap-2">
                 @for (key of safetyIssues; track key) {
-                  <tui-chip
+                  <button
+                    tuiButton
+                    type="button"
                     size="s"
                     [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
                     (click)="toggleBool(key)"
                   >
                     {{ 'ascent.safety.' + key | translate }}
-                  </tui-chip>
+                  </button>
                 }
               </div>
             </div>
@@ -405,13 +406,15 @@ import { handleErrorToast } from '../utils';
               }}</span>
               <div class="flex flex-wrap gap-2">
                 @for (key of otherInfo; track key) {
-                  <tui-chip
+                  <button
+                    tuiButton
+                    type="button"
                     size="s"
                     [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
                     (click)="toggleBool(key)"
                   >
                     {{ 'ascent.other.' + key | translate }}
-                  </tui-chip>
+                  </button>
                 }
               </div>
             </div>
@@ -558,19 +561,19 @@ export default class AscentFormComponent {
       id: AscentTypes.OS,
       translate: 'ascentTypes.os',
       icon: '@tui.eye',
-      appearance: 'success',
+      background: 'var(--tui-status-positive)',
     },
     {
       id: AscentTypes.F,
       translate: 'ascentTypes.f',
       icon: '@tui.zap',
-      appearance: 'warning',
+      background: 'var(--tui-status-warning)',
     },
     {
       id: AscentTypes.RP,
       translate: 'ascentTypes.rp',
       icon: '@tui.circle',
-      appearance: 'negative',
+      background: 'var(--tui-status-negative)',
     },
   ];
 
@@ -740,8 +743,7 @@ export default class AscentFormComponent {
       d.setDate(d.getDate() - diff);
     } else if (mode === 'lastSunday') {
       const day = d.getDay();
-      const diff = day;
-      d.setDate(d.getDate() - diff);
+      d.setDate(d.getDate() - day);
     }
     this.form.patchValue({
       date: new TuiDay(d.getFullYear(), d.getMonth(), d.getDate()),

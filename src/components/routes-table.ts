@@ -416,26 +416,22 @@ export class RoutesTableComponent {
   }
 
   protected readonly ascentInfo = computed<
-    Record<string, { icon: string; appearance: string; background: string }>
+    Record<string, { icon: string; background: string }>
   >(() => ({
     os: {
       icon: '@tui.eye',
-      appearance: 'success',
-      background: 'var(--tui-status-success)',
+      background: 'var(--tui-status-positive)',
     },
     f: {
       icon: '@tui.zap',
-      appearance: 'warning',
       background: 'var(--tui-status-warning)',
     },
     rp: {
       icon: '@tui.circle',
-      appearance: 'negative',
       background: 'var(--tui-status-negative)',
     },
     default: {
       icon: '@tui.circle',
-      appearance: 'neutral',
       background: 'var(--tui-neutral-fill)',
     },
   }));

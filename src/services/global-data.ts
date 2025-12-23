@@ -927,7 +927,17 @@ export class GlobalData {
         this.selectedRouteSlug.set(null);
         break;
       }
+      case 'sector': {
+        this.selectedRouteSlug.set(null);
+        break;
+      }
       case 'route': {
+        break;
+      }
+      case 'user': {
+        this.selectedAreaSlug.set(null);
+        this.selectedCragSlug.set(null);
+        this.selectedRouteSlug.set(null);
         break;
       }
     }

@@ -21,6 +21,7 @@ import {
   TuiFallbackSrcPipe,
   TuiDialogService,
   TuiLink,
+  TuiAppearance,
 } from '@taiga-ui/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslateService } from '@ngx-translate/core';
@@ -81,6 +82,7 @@ export interface AscentsTableRow {
     AsyncPipe,
     TuiIcon,
     TuiLink,
+    TuiAppearance,
   ],
   template: `
     <div class="overflow-auto">
@@ -112,19 +114,31 @@ export interface AscentsTableRow {
               (click.zoneless)="item.canEdit && onEdit(item)"
             >
               @for (col of columns(); track col) {
-                <td *tuiCell="col" tuiTd>
+                <td
+                  *tuiCell="col"
+                  tuiTd
+                  [tuiAppearance]="item.canEdit ? 'neutral' : ''"
+                >
                   @switch (col) {
                     @case ('user') {
-                      <div tuiCell size="m" class="flex items-center gap-2">
-                        <tui-avatar
-                          size="s"
-                          [src]="
-                            item.avatarSrc | tuiFallbackSrc: '@tui.user' | async
-                          "
-                        />
+                      <div tuiCell size="m" class="flex items-center">
                         <a
                           [routerLink]="['/profile', item.user_id]"
-                          class="tui-link"
+                          (click)="$event.stopPropagation()"
+                        >
+                          <tui-avatar
+                            size="m"
+                            [src]="
+                              item.avatarSrc
+                                | tuiFallbackSrc: '@tui.user'
+                                | async
+                            "
+                            class="cursor-pointer"
+                          />
+                        </a>
+                        <a
+                          [routerLink]="['/profile', item.user_id]"
+                          tuiLink
                           (click)="$event.stopPropagation()"
                         >
                           {{ item.user_name }}
@@ -341,26 +355,22 @@ export class AscentsTableComponent {
   });
 
   protected readonly ascentInfo = computed<
-    Record<string, { icon: string; appearance: string; background: string }>
+    Record<string, { icon: string; background: string }>
   >(() => ({
     os: {
       icon: '@tui.eye',
-      appearance: 'success',
-      background: 'var(--tui-status-success)',
+      background: 'var(--tui-status-positive)',
     },
     f: {
       icon: '@tui.zap',
-      appearance: 'warning',
       background: 'var(--tui-status-warning)',
     },
     rp: {
       icon: '@tui.circle',
-      appearance: 'negative',
       background: 'var(--tui-status-negative)',
     },
     default: {
       icon: '@tui.circle',
-      appearance: 'neutral',
       background: 'var(--tui-neutral-fill)',
     },
   }));
