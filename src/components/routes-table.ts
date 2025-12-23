@@ -40,12 +40,14 @@ import {
   colorForGrade,
   GradeLabel,
   RouteAscentDto,
+  ClimbingKinds,
 } from '../models';
 import { FormsModule } from '@angular/forms';
 import { TuiButton, TuiHint, TuiIcon, TuiLink } from '@taiga-ui/core';
 
 export type RoutesTableKey =
   | 'grade'
+  | 'climbing_kind'
   | 'route'
   | 'rating'
   | 'ascents'
@@ -55,6 +57,7 @@ export type RouteItem = RouteWithExtras;
 export interface RoutesTableRow {
   key: string;
   grade: string;
+  climbing_kind: string;
   route: string;
   height: number | null;
   rating: number;
@@ -130,6 +133,21 @@ export interface RoutesTableRow {
                         >
                           {{ item.grade }}
                         </tui-avatar>
+                      </div>
+                    }
+                    @case ('climbing_kind') {
+                      <div tuiCell size="m">
+                        <tui-avatar
+                          size="s"
+                          appearance="primary-grayscale"
+                          [src]="
+                            climbingIcons()[item.climbing_kind] ||
+                            '@tui.mountain'
+                          "
+                          [tuiHint]="
+                            'filters.types.' + item.climbing_kind | translate
+                          "
+                        />
                       </div>
                     }
                     @case ('route') {
@@ -356,6 +374,7 @@ export class RoutesTableComponent {
       return {
         key,
         grade,
+        climbing_kind: r.climbing_kind,
         route: r.name,
         area_name: r.area_name,
         crag_name: r.crag_name,
@@ -382,6 +401,14 @@ export class RoutesTableComponent {
     }),
   );
 
+  protected readonly climbingIcons = computed(() => ({
+    [ClimbingKinds.SPORT]: '@tui.line-squiggle',
+    [ClimbingKinds.BOULDER]: '@tui.biceps-flexed',
+    [ClimbingKinds.MIXED]: '@tui.mountain',
+    [ClimbingKinds.MULTIPITCH]: '@tui.mountain',
+    [ClimbingKinds.TRAD]: '@tui.mountain',
+  }));
+
   protected get tableSorter(): TuiComparator<RoutesTableRow> {
     return this.sorters['ascents'];
   }
@@ -391,6 +418,7 @@ export class RoutesTableComponent {
     TuiComparator<RoutesTableRow>
   > = {
     grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
+    climbing_kind: (a, b) => tuiDefaultSort(a.climbing_kind, b.climbing_kind),
     route: (a, b) => tuiDefaultSort(a.route, b.route),
     height: (a, b) => tuiDefaultSort(a.height ?? 0, b.height),
     rating: (a, b) => tuiDefaultSort(a.rating, b.rating),

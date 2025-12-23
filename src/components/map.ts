@@ -13,15 +13,9 @@ import {
   InputSignal,
   OutputEmitterRef,
   signal,
-  OnInit,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import type {
-  MapCragItem,
-  MapOptions,
-  MapCragsData,
-  MapBounds,
-} from '../models';
+import type { MapCragItem, MapOptions, MapBounds } from '../models';
 import { MapBuilder } from '../services/map-builder';
 import type { MapBuilderCallbacks } from '../services/map-builder';
 import { GlobalData } from '../services';
@@ -64,13 +58,12 @@ import { TranslatePipe } from '@ngx-translate/core';
   },
   providers: [MapBuilder],
 })
-export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
+export class MapComponent implements AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly mapBuilder = inject(MapBuilder);
   protected readonly global = inject(GlobalData);
 
   private readonly mapInitialized = signal(false);
-  private initialCragsData = signal<MapCragsData | null>(null);
   public mapCragItems: InputSignal<readonly MapCragItem[]> = input<
     readonly MapCragItem[]
   >([]);
@@ -117,12 +110,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       const crags = this.mapCragItems();
       const selected = this.selectedMapCragItem();
       if (this.mapInitialized()) {
-        void this.mapBuilder.updateData(
-          crags,
-          selected,
-          this.callbacks,
-          this.initialCragsData(),
-        );
+        void this.mapBuilder.updateData(crags, selected, this.callbacks);
       }
     });
 
@@ -132,33 +120,6 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.mapBuilder.setSelectionMarker(selection.lat, selection.lng);
       }
     });
-  }
-
-  ngOnInit(): void {
-    if (this.isBrowser()) {
-      void this.loadGeoJsonData();
-    }
-  }
-
-  async loadGeoJsonData(): Promise<void> {
-    if (!this.isBrowser()) return;
-    try {
-      const cragsJson = (await fetch('/map/map_crags.json').then((res) =>
-        res.json(),
-      )) as MapCragsData;
-      const filtered: MapCragsData = {
-        ...cragsJson,
-        features: Array.isArray(cragsJson.features)
-          ? cragsJson.features.filter((f) => {
-              const cat = f?.properties?.category;
-              return cat === 1 || cat === 2;
-            })
-          : [],
-      };
-      this.initialCragsData.set(filtered);
-    } catch (e) {
-      console.error('Error loading GeoJSON data:', e);
-    }
   }
 
   ngAfterViewInit(): void {
@@ -199,7 +160,6 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       this.mapCragItems(),
       this.selectedMapCragItem(),
       this.callbacks,
-      this.initialCragsData(),
     );
     this.mapInitialized.set(true);
   }

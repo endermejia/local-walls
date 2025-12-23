@@ -5,18 +5,10 @@ import { LocalStorage } from './local-storage';
 import {
   MapCragItem,
   MapOptions,
-  MapCragsData,
   MapCragDataFeature,
   MapBounds,
 } from '../models';
-import {
-  Map,
-  Marker,
-  Layer,
-  LeafletNamespace,
-  LatLng,
-  LeafletEvent,
-} from 'leaflet';
+import { Map, Marker, LeafletNamespace, LeafletEvent } from 'leaflet';
 
 export interface MapBuilderCallbacks {
   onSelectedCragChange: (mapCragItem: MapCragItem | null) => void;
@@ -45,8 +37,6 @@ interface ClusterGroup {
 
 @Injectable({ providedIn: 'root' })
 export class MapBuilder {
-  private geoJsonLayers: Layer[] = [];
-  private cragsGeoJsonLayer: Layer | null = null;
   private readonly platformId = inject(PLATFORM_ID);
   private readonly global = inject(GlobalData);
   private readonly localStorage = inject(LocalStorage);
@@ -61,9 +51,6 @@ export class MapBuilder {
   // Control whether cluster markers should animate on next rebuild
   private animateClustersOnNextBuild = true;
 
-  // Store initial datasets to be able to re-filter them on viewport changes
-  private initialCragsData: MapCragsData | null = null;
-
   private isBrowser(): boolean {
     return isPlatformBrowser(this.platformId) && typeof window !== 'undefined';
   }
@@ -75,7 +62,6 @@ export class MapBuilder {
    * @param mapCragItem - Array of crag items to display on the map
    * @param selectedMapCragItem - Currently selected crag item, if any
    * @param cb - Callback functions for map interactions
-   * @param initialCragsData - Initial GeoJSON crag data to load
    */
   async init(
     el: HTMLElement,
@@ -83,7 +69,6 @@ export class MapBuilder {
     mapCragItem: readonly MapCragItem[],
     selectedMapCragItem: MapCragItem | null,
     cb: MapBuilderCallbacks,
-    initialCragsData: MapCragsData | null = null,
   ): Promise<void> {
     if (this.initialized || !this.isBrowser()) return;
     const [{ default: L }] = await Promise.all([import('leaflet')]);
@@ -152,12 +137,6 @@ export class MapBuilder {
           }
         }
       }
-    }
-
-    // Load initial GeoJSON datasets if provided
-    this.initialCragsData = initialCragsData;
-    if (initialCragsData) {
-      await this.loadGeoJsonCrags(initialCragsData);
     }
 
     await this.rebuildMarkers(mapCragItem, selectedMapCragItem, cb);
@@ -234,18 +213,12 @@ export class MapBuilder {
       // Do not animate clusters on regular pan updates to prevent flicker
       this.animateClustersOnNextBuild = false;
       await this.rebuildMarkers(this.mapCragItems, selectedMapCragItem, cb);
-      if (this.initialCragsData) {
-        await this.loadGeoJsonCrags(this.initialCragsData);
-      }
       emitViewport();
     });
     this.map.on('zoomend', async () => {
       // Also suppress spawn animation on zoom updates (can be adjusted if desired)
       this.animateClustersOnNextBuild = false;
       await this.rebuildMarkers(this.mapCragItems, selectedMapCragItem, cb);
-      if (this.initialCragsData) {
-        await this.loadGeoJsonCrags(this.initialCragsData);
-      }
       emitViewport();
     });
 
@@ -263,25 +236,15 @@ export class MapBuilder {
   }
 
   /**
-   * Updates the map with new data while preserving the current view state.
-   * @param mapCragItem - New array of crag items to display
-   * @param selectedMapCragItem - Currently selected crag item, if any
-   * @param cb - Callback functions for map interactions
-   * @param initialCragsData - New GeoJSON crag data to load
+   * Updates map data (crag items and selection) and triggers a marker rebuild.
    */
   async updateData(
     mapCragItem: readonly MapCragItem[],
     selectedMapCragItem: MapCragItem | null,
     cb: MapBuilderCallbacks,
-    initialCragsData: MapCragsData | null = null,
   ): Promise<void> {
     if (!this.map) return;
     this.mapCragItems = mapCragItem;
-    if (initialCragsData) this.initialCragsData = initialCragsData;
-
-    if (initialCragsData) {
-      await this.loadGeoJsonCrags(initialCragsData);
-    }
 
     await this.rebuildMarkers(mapCragItem, selectedMapCragItem, cb);
   }
@@ -292,26 +255,12 @@ export class MapBuilder {
   destroy(): void {
     try {
       this.cleanMarkers();
-      this.cleanGeoJsonLayers();
       this.map?.remove?.();
     } catch {
       // ignore
     }
     this.initialized = false;
     this.L = null;
-  }
-
-  private cleanGeoJsonLayers(): void {
-    if (!this.map || !this.L) return;
-    // Remove generic geojson layers list
-    this.geoJsonLayers.forEach((layer) => {
-      this.map.removeLayer(layer);
-    });
-    this.geoJsonLayers = [];
-    if (this.cragsGeoJsonLayer) {
-      this.map.removeLayer(this.cragsGeoJsonLayer);
-      this.cragsGeoJsonLayer = null;
-    }
   }
 
   private cleanMarkers(): void {
@@ -323,85 +272,13 @@ export class MapBuilder {
     this.markers = [];
   }
 
-  private async loadGeoJsonCrags(cragsData: MapCragsData): Promise<void> {
-    if (!this.map || !this.L) return;
-    const L = this.L;
-
-    // When clustering is active, skip rendering individual GeoJSON crag markers
-    if (this.shouldCluster()) {
-      if (this.cragsGeoJsonLayer) {
-        this.map.removeLayer(this.cragsGeoJsonLayer);
-        this.cragsGeoJsonLayer = null;
-      }
-      return;
-    }
-
-    // Remove previous crag geojson layer
-    if (this.cragsGeoJsonLayer) {
-      this.map.removeLayer(this.cragsGeoJsonLayer);
-      this.cragsGeoJsonLayer = null;
-    }
-
-    const viewBounds = this.map.getBounds().pad(0.1);
-    const normalize = (s: string) => (s ?? '').trim().toLowerCase();
-    const apiNameSet = new Set(
-      this.mapCragItems
-        .filter((c) =>
-          viewBounds.contains(new L.LatLng(c.latitude, c.longitude)),
-        )
-        .map((c) => normalize(c.name)),
-    );
-    const cragsLayer = new L.GeoJSON(cragsData, {
-      className: 'geojson-crag',
-      filter: (feature: MapCragDataFeature) => {
-        try {
-          const coords = feature?.geometry?.coordinates;
-          if (!coords || coords.length < 2) return false;
-          const lat = coords[1] as number;
-          const lng = coords[0] as number;
-          const inBounds = viewBounds.contains(new L.LatLng(lat, lng));
-          if (!inBounds) return false;
-          const name = (feature?.properties?.name as string | undefined) ?? '';
-          if (apiNameSet.has(normalize(name))) return false; // suppress duplicates by label, prefer API
-          return true;
-        } catch {
-          return false;
-        }
-      },
-      pointToLayer: (feature: MapCragDataFeature, latlng: LatLng) => {
-        // Render GeoJSON crag points with the same DivIcon label style used elsewhere
-        const name = (feature?.properties?.name as string | undefined) ?? '';
-        const liked = !!feature?.properties?.liked;
-        const icon = new L.DivIcon({
-          html: this.cragLabelHtml(name, false, liked, 'crag'),
-          className: 'pointer-events-none',
-          iconSize: [0, 0],
-          iconAnchor: [0, 0],
-        });
-        const marker = new L.Marker(latlng, { icon });
-        marker.on('click', (e: LeafletEvent) => {
-          e.originalEvent?.preventDefault?.();
-          (e.originalEvent as Event | undefined)?.stopPropagation?.();
-          this.centerOn(latlng.lat, latlng.lng, 10);
-        });
-        this.attachMarkerKeyboardSelection(marker, () =>
-          this.centerOn(latlng.lat, latlng.lng, 10),
-        );
-        return marker;
-      },
-    }).addTo(this.map);
-
-    this.geoJsonLayers.push(cragsLayer);
-    this.cragsGeoJsonLayer = cragsLayer;
-  }
-
   private shouldCluster(): boolean {
     if (!this.map) return true;
     const zoom = this.map.getZoom();
     return this.clusteringEnabled && zoom < 12;
   }
 
-  // Build a unified list of clusterable items across API crags, GeoJSON crags and area labels
+  // Build a unified list of clusterable items across API crags and area labels
   private buildVisibleClusterItems(
     apiItems: readonly MapCragItem[],
   ): ClusterItem[] {
@@ -409,7 +286,6 @@ export class MapBuilder {
     const L = this.L!;
     const bounds = this.map.getBounds().pad(0.1);
     const items: ClusterItem[] = [];
-    const normalize = (s: string) => (s ?? '').trim().toLowerCase();
 
     // API items
     for (const c of apiItems) {
@@ -426,39 +302,6 @@ export class MapBuilder {
       });
     }
 
-    // Build a set of API names to suppress duplicates from other sources
-    const apiNameSet = new Set(
-      items.filter((i) => i.markerType === 'api').map((i) => normalize(i.name)),
-    );
-
-    // GeoJSON crags (points only)
-    const cragsData = this.initialCragsData;
-    if (cragsData?.features?.length) {
-      for (const feature of cragsData.features as MapCragDataFeature[]) {
-        try {
-          const coords = feature?.geometry?.coordinates as number[] | undefined;
-          if (!coords || coords.length < 2) continue;
-          const lat = coords[1] as number;
-          const lng = coords[0] as number;
-          const latlng = new L.LatLng(lat, lng);
-          if (!bounds.contains(latlng)) continue;
-          const name = feature?.properties?.name ?? '';
-          if (apiNameSet.has(normalize(name))) continue; // suppress duplicates by label, prefer API
-          const id = feature?.properties?.id ?? '';
-          items.push({
-            latitude: lat,
-            longitude: lng,
-            name,
-            key: `crag:${id || name}:${lat.toFixed(5)},${lng.toFixed(5)}`,
-            markerType: 'crag',
-            liked: !!feature?.properties?.liked,
-            cragFeature: feature,
-          });
-        } catch {
-          // ignore invalid features
-        }
-      }
-    }
     return items;
   }
 
@@ -542,23 +385,14 @@ export class MapBuilder {
         if (group.count === 1) {
           const it = group.markers[0];
           const latLng: [number, number] = [it.latitude, it.longitude];
-          const isSelected = (() => {
-            if (!selectedMapCragItem) return false;
-            if (it.markerType === 'api')
-              return it.apiItem?.id === selectedMapCragItem.id;
-            if (it.markerType === 'crag')
-              return (
-                (it.cragFeature?.properties?.id ?? null) ===
-                selectedMapCragItem.id
-              );
-            return false;
-          })();
+          const isSelected =
+            selectedMapCragItem && it.apiItem?.id === selectedMapCragItem.id;
           const isFavorite = !!it.liked;
 
           const icon = new L.DivIcon({
             html: this.cragLabelHtml(
               it.name,
-              isSelected,
+              isSelected as boolean,
               isFavorite,
               it.markerType,
             ),
@@ -573,31 +407,8 @@ export class MapBuilder {
           const onSelect = async () => {
             // Center the map on the clicked item
             this.centerOn(it.latitude, it.longitude, 10);
-            switch (it.markerType) {
-              case 'api':
-                if (it.apiItem) {
-                  cb.onSelectedCragChange(it.apiItem);
-                  // If the API item lacks details, fetch and refresh it
-                  if (
-                    it.apiItem.total_ascendables == null &&
-                    it.apiItem.total_ascents == null
-                  ) {
-                    void this.global.refreshMapItemById(it.apiItem.id);
-                  }
-                }
-                break;
-              case 'crag': {
-                if (it.cragFeature?.properties?.item_id) {
-                  const item: void | MapCragItem =
-                    await this.global.refreshMapItemById(
-                      Number(it.cragFeature.properties.item_id),
-                    );
-                  if (item) {
-                    cb.onSelectedCragChange(item);
-                  }
-                }
-                break;
-              }
+            if (it.apiItem) {
+              cb.onSelectedCragChange(it.apiItem);
             }
           };
 
@@ -683,9 +494,10 @@ export class MapBuilder {
         cb.onSelectedCragChange(mapCragItem);
       });
 
-      this.attachMarkerKeyboardSelection(marker, () =>
-        cb.onSelectedCragChange(mapCragItem),
-      );
+      this.attachMarkerKeyboardSelection(marker, () => {
+        this.centerOn(latitude, longitude, 10);
+        cb.onSelectedCragChange(mapCragItem);
+      });
     }
   }
 

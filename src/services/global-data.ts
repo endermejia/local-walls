@@ -18,7 +18,6 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { LocalStorage } from './local-storage';
 import { SupabaseService } from './supabase.service';
-import { VerticalLifeApi } from './vertical-life-api';
 import {
   AppRoles,
   AreaListItem,
@@ -45,7 +44,6 @@ import {
   AmountByEveryGrade,
   VERTICAL_LIFE_GRADES,
 } from '../models';
-import { slugify } from '../utils';
 
 @Injectable({
   providedIn: 'root',
@@ -54,7 +52,6 @@ export class GlobalData {
   private translate = inject(TranslateService);
   private localStorage = inject(LocalStorage);
   private router = inject(Router);
-  private verticalLifeApi = inject(VerticalLifeApi);
   private platformId = inject(PLATFORM_ID);
   private supabase = inject(SupabaseService);
   private breakpointService = inject(TuiBreakpointService);
@@ -69,24 +66,7 @@ export class GlobalData {
   private readonly maxCacheItems = 1000;
   private readonly cachedMapItems: WritableSignal<MapItem[]> = signal([]);
 
-  /**
-   * Refresh a single map item by id by calling 8a.nu item endpoint.
-   * Merges it into a cache and updates the selected item if it matches.
-   * SSR-safe: no-op on server.
-   */
-  async refreshMapItemById(id: number): Promise<MapCragItem | void> {
-    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
-      return;
-    const item = await this.verticalLifeApi.getMapItemById(id);
-    if (!item || !item.id) return;
-    this.mapCache.set(item.id, item);
-    const arr = Array.from(this.mapCache.values());
-    this.cachedMapItems.set(arr);
-    return item;
-  }
-
   // Loading/Status state
-  readonly loading = signal(false);
   readonly error: WritableSignal<string | null> = signal(null);
 
   // ---- Language ----
@@ -188,7 +168,117 @@ export class GlobalData {
   // ---- Map ----
   mapBounds: WritableSignal<MapBounds | null> = signal(null);
   private readonly mapBoundsStorageKey = 'map_bounds_v1';
-  mapResponse: WritableSignal<MapResponse | null> = signal(null);
+
+  /**
+   * Resource for fetching map items based on bounds.
+   */
+  readonly mapResource = resource({
+    params: () => this.mapBounds(),
+    loader: async ({ params: bounds }) => {
+      if (
+        !isPlatformBrowser(this.platformId) ||
+        typeof window === 'undefined' ||
+        !bounds
+      ) {
+        return {
+          items: [],
+          counts: { locations: 0, map_collections: 0 },
+        } as MapResponse;
+      }
+
+      await this.supabase.whenReady();
+      const { data: sbCrags, error: sbError } = await this.supabase.client
+        .from('crags')
+        .select(
+          `
+          id, name, slug, latitude, longitude,
+          area:areas (name, slug),
+          routes (grade, climbing_kind),
+          topos (shade_morning, shade_afternoon)
+        `,
+        )
+        .gte('latitude', bounds.south_west_latitude)
+        .lte('latitude', bounds.north_east_latitude)
+        .gte('longitude', bounds.south_west_longitude)
+        .lte('longitude', bounds.north_east_longitude);
+
+      if (sbError) {
+        console.error('[GlobalData] mapResource error', sbError);
+        throw sbError;
+      }
+
+      const supabaseCragItems: MapCragItem[] = (sbCrags || []).map((c) => {
+        const grades: Record<number, number> = {};
+        let totalRoutes = 0;
+        const climbingKinds = new Set<string>();
+
+        (c.routes || []).forEach((r) => {
+          totalRoutes++;
+          if (typeof r.grade === 'number') {
+            grades[r.grade] = (grades[r.grade] || 0) + 1;
+          }
+          if (r.climbing_kind) climbingKinds.add(r.climbing_kind);
+        });
+
+        let category = 0;
+        if (climbingKinds.has('boulder')) category = 1;
+        else if (climbingKinds.has('multipitch')) category = 2;
+
+        const shadeMorning = (c.topos || []).some((t) => t.shade_morning);
+        const shadeAfternoon = (c.topos || []).some((t) => t.shade_afternoon);
+
+        return {
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          latitude: c.latitude || 0,
+          longitude: c.longitude || 0,
+          area_name: c.area?.name || '',
+          area_slug: c.area?.slug || '',
+          grades,
+          category,
+          routes_count: totalRoutes,
+          shade_morning: shadeMorning,
+          shade_afternoon: shadeAfternoon,
+          shade_all_day: shadeMorning && shadeAfternoon,
+          sun_all_day: !shadeMorning && !shadeAfternoon,
+          avg_rating: 0,
+        } as MapCragItem;
+      });
+
+      const mergedResponse: MapResponse = {
+        items: supabaseCragItems,
+        counts: {
+          locations: supabaseCragItems.length,
+          map_collections: 0,
+        },
+      };
+
+      // Merge into cache
+      for (const it of supabaseCragItems) {
+        if (it.id) {
+          this.mapCache.set(it.id, it);
+        }
+      }
+
+      // Enforce cache limit
+      let arr = Array.from(this.mapCache.values());
+      if (arr.length > this.maxCacheItems) {
+        arr = arr.slice(arr.length - this.maxCacheItems);
+        this.mapCache.clear();
+        for (const it of arr) {
+          this.mapCache.set(it.id, it);
+        }
+      }
+      this.cachedMapItems.set(arr);
+
+      return mergedResponse;
+    },
+  });
+
+  mapResponse: Signal<MapResponse | null> = computed(
+    () => this.mapResource.value() ?? null,
+  );
   mapItems: Signal<MapItem[]> = computed(() => this.cachedMapItems());
   /**
    * Items currently visible in the viewport defined by mapBounds.
@@ -215,38 +305,11 @@ export class GlobalData {
       return inLat && inLng;
     };
 
-    const rectIntersect = (rect: {
-      south: number;
-      west: number;
-      north: number;
-      east: number;
-    }): boolean => {
-      const eastWrap = east < west; // viewport crosses anti-meridian
-      if (!eastWrap) {
-        // Standard AABB overlap on lon/lat
-        return !(
-          rect.west > east ||
-          rect.east < west ||
-          rect.south > north ||
-          rect.north < south
-        );
-      }
-      // When viewport wraps, we split it into two: [west, 180] and [-180, east]
-      const left = { south, west, north, east: 180 };
-      const right = { south, west: -180, north, east };
-      const overlap = (a: typeof left, b: typeof rect) =>
-        !(
-          b.west > a.east ||
-          b.east < a.west ||
-          b.south > a.north ||
-          b.north < a.south
-        );
-      return overlap(left, rect) || overlap(right, rect);
-    };
+    return [
+      ...items.filter((it) => {
+        const area = (it as MapAreaItem).area_type === 0;
+        if (area) return false;
 
-    return items.filter((it) => {
-      const area = (it as MapAreaItem).area_type === 0;
-      if (!area) {
         const lat = (it as MapCragItem).latitude as number | undefined;
         const lng = (it as MapCragItem).longitude as number | undefined;
         return (
@@ -254,24 +317,95 @@ export class GlobalData {
           typeof lng === 'number' &&
           pointIn(lat, lng)
         );
-      }
-      const box = (it as MapAreaItem).b_box as
-        | [[number, number], [number, number]]
-        | undefined;
-      if (!box || !Array.isArray(box) || box.length !== 2) return false;
-      // Vertical-Life API b_box order is [[westLng, southLat], [eastLng, northLat]]
-      const [w, s] = box[0] ?? [];
-      const [e, n] = box[1] ?? [];
-      if ([w, s, e, n].some((v) => typeof v !== 'number')) return false;
-      return rectIntersect({
-        south: s as number,
-        west: w as number,
-        north: n as number,
-        east: e as number,
-      });
-    });
+      }),
+      ...(this.areasMapResource.value() || []),
+    ];
   });
   selectedMapCragItem: WritableSignal<MapCragItem | null> = signal(null);
+
+  /**
+   * Resource for fetching areas in the map based on bounds.
+   * Since areas don't have direct coordinates in the database,
+   * we derive them from the crags found in the current viewport
+   * and fetch their detailed info.
+   */
+  readonly areasMapResource = resource({
+    params: () => {
+      const crags = this.mapResource.value()?.items || [];
+      const areaSlugs = [
+        ...new Set(
+          crags
+            .map((c) => (c as MapCragItem).area_slug)
+            .filter((slug): slug is string => !!slug),
+        ),
+      ];
+      return areaSlugs;
+    },
+    loader: async ({ params: slugs }) => {
+      if (!slugs.length || !isPlatformBrowser(this.platformId)) return [];
+
+      try {
+        await this.supabase.whenReady();
+        const userId = this.supabase.authUser()?.id;
+        let query = this.supabase.client
+          .from('areas')
+          .select(
+            `
+            id, name, slug,
+            liked:area_likes(id),
+            crags (
+              routes (grade)
+            )
+          `,
+          )
+          .in('slug', slugs);
+
+        if (userId) {
+          query = query.eq('liked.user_id', userId);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+          console.error('[GlobalData] areasMapResource error', error);
+          return [];
+        }
+
+        return (data || []).map((a) => {
+          const grades: AmountByEveryGrade = {};
+          let cragsCount = 0;
+
+          (a.crags || []).forEach((c) => {
+            cragsCount++;
+            (c.routes || []).forEach((r) => {
+              if (typeof r.grade === 'number') {
+                const g = r.grade as VERTICAL_LIFE_GRADES;
+                grades[g] = (grades[g] || 0) + 1;
+              }
+            });
+          });
+
+          const isLiked = (a.liked || []).length > 0;
+
+          return {
+            id: a.id,
+            name: a.name,
+            slug: a.slug,
+            liked: isLiked,
+            grades,
+            crags_count: cragsCount,
+            area_type: 0,
+          } as MapAreaItem & {
+            grades: AmountByEveryGrade;
+            crags_count: number;
+          };
+        });
+      } catch (e) {
+        console.error('[GlobalData] areasMapResource exception', e);
+        return [];
+      }
+    },
+  });
 
   // ---- Area List Filters (Persisted) ----
   areaListGradeRange: WritableSignal<[number, number]> = signal([
@@ -699,157 +833,6 @@ export class GlobalData {
     },
   });
 
-  // Cache for local areas loaded from public/map/map_areas.json
-  private _localAreasCache: MapAreaItem[] | null = null;
-
-  // slugify moved to shared utils (see src/utils/slugify.ts)
-
-  // Load local areas from static JSON (browser-only). The JSON contains points with
-  // properties: { area_name, bounding_box }. We adapt them to MapAreaItem.
-  private async loadLocalAreasFromJson(): Promise<MapAreaItem[]> {
-    if (this._localAreasCache) return this._localAreasCache;
-    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined') {
-      return [];
-    }
-    try {
-      const res = await fetch('/map/map_areas.json', { cache: 'force-cache' });
-      if (!res.ok)
-        throw new Error(`Failed to load map_areas.json: HTTP ${res.status}`);
-      const data = (await res.json()) as {
-        type: string;
-        features: {
-          id?: number | string;
-          properties?: {
-            area_name?: string;
-            bounding_box?: [[number, number], [number, number]];
-          };
-        }[];
-      };
-      const list: MapAreaItem[] = (data?.features ?? [])
-        .map((f) => {
-          const idRaw = f?.id as number | string | undefined;
-          const id = typeof idRaw === 'number' ? idRaw : Number(idRaw);
-          const name = f?.properties?.area_name ?? '';
-          const bbox = f?.properties?.bounding_box as
-            | [[number, number], [number, number]]
-            | undefined;
-          if (!id || !name || !bbox) return null;
-          return {
-            id,
-            name,
-            slug: slugify(name),
-            country_name: '',
-            country_slug: '',
-            area_type: 0,
-            b_box: bbox,
-          } as MapAreaItem;
-        })
-        .filter((x): x is MapAreaItem => !!x);
-      this._localAreasCache = list;
-      return list;
-    } catch (e) {
-      console.error(e);
-      return [];
-    }
-  }
-
-  async loadMapItems(bounds: MapBounds): Promise<void> {
-    if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined')
-      return;
-    try {
-      this.loading.set(true);
-      // 1) Load API response (we will use only crags from it)
-      const apiResponse: MapResponse =
-        await this.verticalLifeApi.getMapResponse(bounds);
-      const apiItems = Array.isArray(apiResponse?.items)
-        ? apiResponse.items
-        : [];
-      const cragItems = apiItems.filter(
-        (it) => (it as MapAreaItem).area_type !== 0,
-      ) as MapCragItem[];
-
-      // 2) Load local areas from static JSON and filter by current viewport bounds
-      const localAreasAll = await this.loadLocalAreasFromJson();
-      const south = bounds.south_west_latitude;
-      const west = bounds.south_west_longitude;
-      const north = bounds.north_east_latitude;
-      const east = bounds.north_east_longitude;
-      const eastWrap = east < west; // viewport crosses anti-meridian
-      const intersects = (
-        box: [[number, number], [number, number]],
-      ): boolean => {
-        const [w, s] = box[0] ?? [];
-        const [e, n] = box[1] ?? [];
-        if ([w, s, e, n].some((v) => typeof v !== 'number')) return false;
-        if (!eastWrap) {
-          return !(w > east || e < west || s > north || n < south);
-        }
-        // split viewport into two when wrapped
-        const left = { south, west, north, east: 180 };
-        const right = { south, west: -180, north, east };
-        const overlap = (a: typeof left) =>
-          !(w > a.east || e < a.west || s > a.north || n < a.south);
-        return overlap(left) || overlap(right);
-      };
-      const localAreas = localAreasAll.filter(
-        (a) => a.b_box && intersects(a.b_box),
-      );
-
-      // 2b) Enrich local areas with country fields from API areas (by id), but keep local bounding_box
-      const apiAreasById = new Map<number, MapAreaItem>(
-        apiItems
-          .filter((it) => (it as MapAreaItem).area_type === 0)
-          .map((it) => [it.id as number, it as MapAreaItem]),
-      );
-      const localAreasEnriched = localAreas.map((a) => {
-        const apiA = apiAreasById.get(a.id);
-        if (!apiA) return a;
-        return {
-          ...a,
-          country_name: apiA.country_name ?? a.country_name,
-          country_slug: apiA.country_slug ?? a.country_slug,
-          // keep a.b_box from local JSON on purpose
-        } as MapAreaItem;
-      });
-
-      // 3) Build merged response with crags from API and areas ONLY from local JSON (enriched with country fields)
-      const mergedItems: MapItem[] = [...cragItems, ...localAreasEnriched];
-      const mergedCounts = {
-        locations: apiResponse?.counts?.locations ?? cragItems.length,
-        map_collections: localAreasEnriched.length,
-      };
-      const mergedResponse: MapResponse = {
-        items: mergedItems,
-        counts: mergedCounts,
-      };
-      this.mapResponse.set(mergedResponse);
-
-      // 4) Merge into cache (dedupe by id)
-      for (const it of mergedItems) {
-        const id = it?.id;
-        if (id) {
-          this.mapCache.set(id, it);
-        }
-      }
-      // Enforce cache size limit and update signal
-      let arr = Array.from(this.mapCache.values());
-      if (arr.length > this.maxCacheItems) {
-        arr = arr.slice(arr.length - this.maxCacheItems);
-        // Rebuild map to keep only the last N (approximate LRU by recency of merge)
-        this.mapCache.clear();
-        for (const it of arr) {
-          this.mapCache.set(it.id, it);
-        }
-      }
-      this.cachedMapItems.set(arr);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      this.error.set(msg);
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
   toggleLikeCrag(id: string): void {
     console.log('toggleLikeCrag', id);
   }
@@ -895,7 +878,6 @@ export class GlobalData {
         } catch {
           // ignore corrupted viewport state
         }
-        void this.loadMapItems(mapBounds);
       }
     });
 

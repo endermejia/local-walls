@@ -122,34 +122,47 @@ import { remToPx } from '../utils';
           class="relative pointer-events-auto cursor-pointer m-4"
           [routerLink]="['/area', c.area_slug, c.slug]"
         >
-          <div class="flex items-center gap-3">
-            <div class="flex flex-col min-w-0 grow">
-              <header tuiHeader>
-                <h2 tuiTitle>{{ c.name }}</h2>
-              </header>
-              <section>
+          <div class="flex flex-col min-w-0 grow">
+            <header tuiHeader>
+              <h2 tuiTitle>{{ c.name }}</h2>
+            </header>
+            <section class="grid grid-cols-[1fr_auto] gap-2 items-stretch">
+              <div class="flex flex-col justify-between">
                 <a
+                  tuiSubtitle
                   tuiLink
                   appearance="action-grayscale"
+                  class="!text-xl"
                   [routerLink]="['/area', c.area_slug]"
                   (click.zoneless)="$event.stopPropagation()"
                   >{{ c.area_name }}</a
                 >
-              </section>
-            </div>
-            @if (global.selectedMapCragItem()?.grades; as grades) {
-              <div (click.zoneless)="$event.stopPropagation()">
-                <app-chart-routes-by-grade [grades]="grades" />
+                <div class="text-xl h-full mb-7 content-center">
+                  {{ c.routes_count }}
+                  {{
+                    'labels.' + (c.routes_count === 1 ? 'route' : 'routes')
+                      | translate
+                      | lowercase
+                  }}
+                </div>
               </div>
-            }
+              <div class="flex items-center">
+                <app-chart-routes-by-grade
+                  (click.zoneless)="$event.stopPropagation()"
+                  [grades]="c.grades"
+                />
+              </div>
+            </section>
           </div>
         </div>
       </div>
     } @else {
       <!-- BottomSheet -->
-      @let areas = mapAreaItems();
       @let crags = mapCragItems();
-      @if (global.loading()) {
+      @let areas = mapAreaItems();
+      @let loading =
+        global.mapResource.isLoading() || global.areasMapResource.isLoading();
+      @if (loading) {
         <div class="absolute w-full h-full top-0">
           <tui-loader size="xxl" class="absolute w-full h-full z-50" />
         </div>
@@ -187,24 +200,35 @@ import { remToPx } from '../utils';
               class="w-full max-w-5xl mx-auto sm:px-4 py-4 overflow-auto"
             >
               <div class="grid gap-2">
-                @for (a of areas; track a.id) {
+                @for (a of areas; track a.slug) {
                   <div
                     tuiCardLarge
-                    [tuiSurface]="a.liked ? 'accent' : 'neutral'"
+                    [tuiSurface]="a.liked ? 'outline-destructive' : 'outline'"
                     class="cursor-pointer"
                     [routerLink]="['/area', a.slug]"
                   >
-                    <div class="flex items-center gap-3">
-                      <div class="flex flex-col min-w-0 grow">
-                        <header tuiHeader>
-                          <h2 tuiTitle>{{ a.name }}</h2>
-                        </header>
-                        <section>
-                          <div class="opacity-80">
-                            {{ a.country_name }}
+                    <div class="flex flex-col min-w-0 grow">
+                      <header tuiHeader>
+                        <h2 tuiTitle>{{ a.name }}</h2>
+                      </header>
+                      <section class="flex items-center justify-between gap-2">
+                        @if (a.crags_count; as count) {
+                          <div class="text-xl">
+                            {{ count }}
+                            {{
+                              'labels.' + (count === 1 ? 'crag' : 'crags')
+                                | translate
+                                | lowercase
+                            }}
                           </div>
-                        </section>
-                      </div>
+                        }
+                        @if (a.grades; as grades) {
+                          <app-chart-routes-by-grade
+                            (click.zoneless)="$event.stopPropagation()"
+                            [grades]="grades"
+                          />
+                        }
+                      </section>
                     </div>
                   </div>
                 }
@@ -240,31 +264,44 @@ import { remToPx } from '../utils';
                 @for (c of crags; track c.id) {
                   <div
                     tuiCardLarge
-                    [tuiSurface]="c.liked ? 'accent' : 'neutral'"
+                    [tuiSurface]="c.liked ? 'outline-destructive' : 'outline'"
                     class="cursor-pointer"
                     [routerLink]="['/area', c.area_slug, c.slug]"
                   >
-                    <div class="flex items-center gap-3">
-                      <div class="flex flex-col min-w-0 grow">
-                        <header tuiHeader>
-                          <h2 tuiTitle>{{ c.name }}</h2>
-                        </header>
-                        <section>
+                    <div class="flex flex-col min-w-0 grow">
+                      <header tuiHeader>
+                        <h2 tuiTitle>{{ c.name }}</h2>
+                      </header>
+                      <section
+                        class="grid grid-cols-[1fr_auto] gap-2 items-stretch"
+                      >
+                        <div class="flex flex-col justify-between">
                           <a
+                            tuiSubtitle
                             tuiLink
                             appearance="action-grayscale"
                             [routerLink]="['/area', c.area_slug]"
+                            class="!text-xl"
                             (click.zoneless)="$event.stopPropagation()"
                             >{{ c.area_name }}</a
                           >
-                        </section>
-                      </div>
-                      <div (click.zoneless)="$event.stopPropagation()">
-                        <app-chart-routes-by-grade
-                          class="mt-2"
-                          [grades]="c.grades"
-                        />
-                      </div>
+                          <div class="text-xl h-full mb-7 content-center">
+                            {{ c.routes_count }}
+                            {{
+                              'labels.' +
+                                (c.routes_count === 1 ? 'route' : 'routes')
+                                | translate
+                                | lowercase
+                            }}
+                          </div>
+                        </div>
+                        <div class="flex items-center">
+                          <app-chart-routes-by-grade
+                            (click.zoneless)="$event.stopPropagation()"
+                            [grades]="c.grades"
+                          />
+                        </div>
+                      </section>
                     </div>
                   </div>
                 }
@@ -291,6 +328,9 @@ export class ExploreComponent {
   // Grade range in indices over ORDERED_GRADE_VALUES
   protected readonly selectedGradeRange: WritableSignal<[number, number]> =
     signal([0, ORDERED_GRADE_VALUES.length - 1]);
+  protected readonly selectedShade: WritableSignal<
+    FilterDialog['selectedShade']
+  > = signal([]);
   private readonly _platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
 
@@ -309,6 +349,7 @@ export class ExploreComponent {
     const items = this.global.mapItemsOnViewport();
     const categories = this.selectedCategories();
     const [selMin, selMax] = this.selectedGradeRange();
+    const shade = this.selectedShade() || [];
 
     const withinSelectedCategories = (c: MapCragItem): boolean => {
       // empty => all
@@ -325,7 +366,7 @@ export class ExploreComponent {
       for (const lab of labels) {
         const idx = ORDERED_GRADE_VALUES.indexOf(lab as GradeLabel);
         if (idx === -1) continue;
-        const count = (byLabel as never)[lab] as number | undefined;
+        const count = (byLabel as any)[lab] as number | undefined;
         if (!count) continue;
         if (idx < minIdx) minIdx = idx;
         if (idx > maxIdx) maxIdx = idx;
@@ -335,22 +376,46 @@ export class ExploreComponent {
       return maxIdx >= selMin && minIdx <= selMax;
     };
 
+    const matchesShade = (c: any): boolean => {
+      if (!shade.length) return true;
+      if (
+        c.shade_morning === undefined &&
+        c.shade_afternoon === undefined &&
+        c.shade_all_day === undefined &&
+        c.sun_all_day === undefined
+      ) {
+        return true;
+      }
+
+      return shade.some((s) => {
+        if (s === 'shade_morning') return c.shade_morning;
+        if (s === 'shade_afternoon') return c.shade_afternoon;
+        if (s === 'shade_all_day') return c.shade_all_day;
+        if (s === 'sun_all_day') return c.sun_all_day;
+        return false;
+      });
+    };
+
     return items.filter((item): item is MapCragItem => {
       const isCrag = (item as MapAreaItem).area_type !== 0;
       if (!isCrag) return false;
       const c = item as MapCragItem;
-      if (!c.total_ascendables) return false;
-      return withinSelectedCategories(c) && overlapsSelectedGrades(c);
+      return (
+        withinSelectedCategories(c) &&
+        overlapsSelectedGrades(c) &&
+        matchesShade(c)
+      );
     });
   });
 
   protected mapAreaItems: Signal<MapAreaItem[]> = computed(() => {
     const items = this.global.mapItemsOnViewport();
-
-    return items.filter(
-      (item): item is MapAreaItem => (item as MapAreaItem).area_type === 0,
-    );
+    return items.filter((item): item is MapAreaItem => {
+      const isArea = (item as MapAreaItem).area_type === 0;
+      return isArea;
+    });
   });
+
   protected mapCounts: Signal<MapCounts | null> = computed(
     () => this.global.mapResponse()?.counts ?? null,
   );
@@ -475,6 +540,7 @@ export class ExploreComponent {
     const data: FilterDialog = {
       categories: this.selectedCategories(),
       gradeRange: this.selectedGradeRange(),
+      selectedShade: this.selectedShade(),
     };
     this.dialogs
       .open<FilterDialog>(new PolymorpheusComponent(FilterDialogComponent), {
@@ -484,8 +550,8 @@ export class ExploreComponent {
       })
       .subscribe((result) => {
         if (!result) return;
-        this.global.loading.set(true);
         this.selectedCategories.set(result.categories ?? []);
+        this.selectedShade.set(result.selectedShade ?? []);
         const [a, b] = result.gradeRange ?? [
           0,
           ORDERED_GRADE_VALUES.length - 1,
@@ -497,7 +563,6 @@ export class ExploreComponent {
           number,
         ]);
         this.closeAll();
-        this.global.loading.set(false);
       });
   }
 }

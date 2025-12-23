@@ -117,7 +117,7 @@ export interface AscentsTableRow {
                 <td
                   *tuiCell="col"
                   tuiTd
-                  [tuiAppearance]="item.canEdit ? 'neutral' : ''"
+                  [tuiAppearance]="item.canEdit && showUser() ? 'neutral' : ''"
                 >
                   @switch (col) {
                     @case ('user') {

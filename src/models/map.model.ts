@@ -5,11 +5,13 @@ export interface MapAreaItem {
   id: number;
   name: string;
   slug: string;
-  country_name: string;
-  country_slug: string;
+  country_name?: string;
+  country_slug?: string;
   area_type?: 0;
-  b_box: [[number, number], [number, number]];
-  liked?: boolean; // TODO: pending
+  b_box?: [[number, number], [number, number]];
+  liked?: boolean;
+  grades?: AmountByEveryGrade;
+  crags_count?: number;
 }
 
 export interface MapCragItem {
@@ -23,12 +25,9 @@ export interface MapCragItem {
   latitude: number;
   longitude: number;
   grades: AmountByEveryGrade;
-  season: VERTICAL_LIFE_SEASON[];
-  country_slug: string;
-  country_name: string;
-  total_ascendables?: number; // routes
-  total_ascents?: number; // ascents
-  liked?: boolean; // TODO: pending
+  routes_count?: number; // routes
+  ascents_count?: number; // ascents
+  liked?: boolean;
 }
 
 export type MapItem = MapCragItem | MapAreaItem;
