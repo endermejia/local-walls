@@ -9,13 +9,19 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { TuiIdentityMatcher } from '@taiga-ui/cdk';
-import { TuiButton, TuiDataList, TuiLabel, TuiTextfield } from '@taiga-ui/core';
+import {
+  TuiButton,
+  TuiLabel,
+  TuiTextfield,
+  TuiSelectLike,
+} from '@taiga-ui/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
   TuiChevron,
   TuiFilterByInputPipe,
   TuiHideSelectedPipe,
   TuiInputChip,
+  TuiDataListWrapper,
 } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
@@ -36,7 +42,8 @@ import { ParkingDto } from '../models';
     TuiInputChip,
     TuiFilterByInputPipe,
     TuiHideSelectedPipe,
-    TuiDataList,
+    TuiDataListWrapper,
+    TuiSelectLike,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
@@ -52,21 +59,20 @@ import { ParkingDto } from '../models';
         </label>
         <input
           tuiInputChip
+          tuiSelectLike
           id="parkings"
           [formControl]="selectedParkings"
           [placeholder]="'actions.select' | translate"
         />
         <tui-input-chip *tuiItem />
-        <tui-data-list *tuiTextfieldDropdown>
-          @for (
-            item of availableParkings() | tuiHideSelected | tuiFilterByInput;
-            track item.id
-          ) {
-            <button tuiOption new [value]="item">
-              {{ item.name }}
-            </button>
-          }
-        </tui-data-list>
+        <tui-data-list-wrapper
+          *tuiTextfieldDropdown
+          [items]="availableParkings() | tuiHideSelected | tuiFilterByInput"
+          [itemContent]="parkingItem"
+        />
+        <ng-template #parkingItem let-item>
+          {{ item.name }}
+        </ng-template>
       </tui-textfield>
 
       <div class="flex gap-2 justify-end mt-4">

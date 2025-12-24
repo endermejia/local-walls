@@ -328,6 +328,41 @@ export class GlobalData {
     ];
   });
   selectedMapCragItem: WritableSignal<MapCragItem | null> = signal(null);
+  selectedMapParkingItem: WritableSignal<ParkingDto | null> = signal(null);
+
+  /**
+   * Resource for fetching parkings in the map based on bounds.
+   */
+  readonly parkingsMapResource = resource({
+    params: () => this.mapBounds(),
+    loader: async ({ params: bounds }) => {
+      if (
+        !bounds ||
+        typeof bounds.south_west_latitude !== 'number' ||
+        typeof bounds.north_east_latitude !== 'number' ||
+        typeof bounds.south_west_longitude !== 'number' ||
+        typeof bounds.north_east_longitude !== 'number'
+      ) {
+        return [];
+      }
+
+      await this.supabase.whenReady();
+      const { data, error } = await this.supabase.client
+        .from('parkings')
+        .select('*')
+        .gte('latitude', bounds.south_west_latitude)
+        .lte('latitude', bounds.north_east_latitude)
+        .gte('longitude', bounds.south_west_longitude)
+        .lte('longitude', bounds.north_east_longitude);
+
+      if (error) {
+        console.error('[GlobalData] parkingsMapResource error', error);
+        return [];
+      }
+
+      return data as ParkingDto[];
+    },
+  });
 
   /**
    * Resource for fetching areas in the map based on bounds.

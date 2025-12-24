@@ -15,7 +15,7 @@ import {
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import type { MapCragItem, MapOptions, MapBounds } from '../models';
+import type { MapCragItem, MapOptions, MapBounds, ParkingDto } from '../models';
 import { MapBuilder } from '../services/map-builder';
 import type { MapBuilderCallbacks } from '../services/map-builder';
 import { GlobalData } from '../services';
@@ -73,6 +73,14 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   public selectedMapCragItemChange: OutputEmitterRef<MapCragItem | null> =
     output<MapCragItem | null>();
 
+  public mapParkingItems: InputSignal<readonly ParkingDto[]> = input<
+    readonly ParkingDto[]
+  >([]);
+  public selectedMapParkingItem: InputSignal<ParkingDto | null> =
+    input<ParkingDto | null>(null);
+  public selectedMapParkingItemChange: OutputEmitterRef<ParkingDto | null> =
+    output<ParkingDto | null>();
+
   public selection: InputSignal<{ lat: number; lng: number } | null> = input<{
     lat: number;
     lng: number;
@@ -89,6 +97,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   private readonly callbacks: MapBuilderCallbacks = {
     onSelectedCragChange: (crag) => this.selectedMapCragItemChange.emit(crag),
+    onSelectedParkingChange: (parking) =>
+      this.selectedMapParkingItemChange.emit(parking),
     onMapClick: (lat, lng) => this.mapClick.emit({ lat, lng }),
     onInteractionStart: () => this.interactionStart.emit(),
     onViewportChange: (v: Partial<MapBounds>) => {
@@ -108,9 +118,18 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   constructor() {
     effect(() => {
       const crags = this.mapCragItems();
-      const selected = this.selectedMapCragItem();
+      const selectedCrag = this.selectedMapCragItem();
+      const parkings = this.mapParkingItems();
+      const selectedParking = this.selectedMapParkingItem();
+
       if (this.mapInitialized()) {
-        void this.mapBuilder.updateData(crags, selected, this.callbacks);
+        void this.mapBuilder.updateData(
+          crags,
+          selectedCrag,
+          parkings,
+          selectedParking,
+          this.callbacks,
+        );
       }
     });
 
@@ -159,6 +178,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.options(),
       this.mapCragItems(),
       this.selectedMapCragItem(),
+      this.mapParkingItems(),
+      this.selectedMapParkingItem(),
       this.callbacks,
     );
     this.mapInitialized.set(true);

@@ -7,11 +7,13 @@ import {
   MapOptions,
   MapCragDataFeature,
   MapBounds,
+  ParkingDto,
 } from '../models';
 import { Map, Marker, LeafletNamespace, LeafletEvent } from 'leaflet';
 
 export interface MapBuilderCallbacks {
   onSelectedCragChange: (mapCragItem: MapCragItem | null) => void;
+  onSelectedParkingChange: (parking: ParkingDto | null) => void;
   onMapClick: (lat: number, lng: number) => void;
   onInteractionStart: () => void;
   onViewportChange: (v: MapBounds) => void;
@@ -45,6 +47,7 @@ export class MapBuilder {
   private L: LeafletNamespace | null = null;
   private mapCragItems: readonly MapCragItem[] = [];
   private markers: Marker[] = [];
+  private parkingMarkers: Marker[] = [];
   private userMarker: Marker | null = null;
   private clusteringEnabled = true;
   private clusterRadius = 50; // Marker grouping radius in pixels
@@ -68,6 +71,8 @@ export class MapBuilder {
     options: MapOptions,
     mapCragItem: readonly MapCragItem[],
     selectedMapCragItem: MapCragItem | null,
+    mapParkingItems: readonly ParkingDto[],
+    selectedMapParkingItem: ParkingDto | null,
     cb: MapBuilderCallbacks,
   ): Promise<void> {
     if (this.initialized || !this.isBrowser()) return;
@@ -139,7 +144,13 @@ export class MapBuilder {
       }
     }
 
-    await this.rebuildMarkers(mapCragItem, selectedMapCragItem, cb);
+    await this.rebuildMarkers(
+      mapCragItem,
+      selectedMapCragItem,
+      mapParkingItems,
+      selectedMapParkingItem,
+      cb,
+    );
     // Disable cluster spawn animation after the first render to avoid flicker on pans
     this.animateClustersOnNextBuild = false;
 
@@ -212,13 +223,25 @@ export class MapBuilder {
     this.map.on('moveend', async () => {
       // Do not animate clusters on regular pan updates to prevent flicker
       this.animateClustersOnNextBuild = false;
-      await this.rebuildMarkers(this.mapCragItems, selectedMapCragItem, cb);
+      await this.rebuildMarkers(
+        this.mapCragItems,
+        selectedMapCragItem,
+        mapParkingItems,
+        selectedMapParkingItem,
+        cb,
+      );
       emitViewport();
     });
     this.map.on('zoomend', async () => {
       // Also suppress spawn animation on zoom updates (can be adjusted if desired)
       this.animateClustersOnNextBuild = false;
-      await this.rebuildMarkers(this.mapCragItems, selectedMapCragItem, cb);
+      await this.rebuildMarkers(
+        this.mapCragItems,
+        selectedMapCragItem,
+        mapParkingItems,
+        selectedMapParkingItem,
+        cb,
+      );
       emitViewport();
     });
 
@@ -241,12 +264,20 @@ export class MapBuilder {
   async updateData(
     mapCragItem: readonly MapCragItem[],
     selectedMapCragItem: MapCragItem | null,
+    mapParkingItems: readonly ParkingDto[],
+    selectedMapParkingItem: ParkingDto | null,
     cb: MapBuilderCallbacks,
   ): Promise<void> {
     if (!this.map) return;
     this.mapCragItems = mapCragItem;
 
-    await this.rebuildMarkers(mapCragItem, selectedMapCragItem, cb);
+    await this.rebuildMarkers(
+      mapCragItem,
+      selectedMapCragItem,
+      mapParkingItems,
+      selectedMapParkingItem,
+      cb,
+    );
   }
 
   /**
@@ -270,6 +301,11 @@ export class MapBuilder {
       this.map.removeLayer(marker);
     });
     this.markers = [];
+
+    this.parkingMarkers.forEach((marker) => {
+      this.map.removeLayer(marker);
+    });
+    this.parkingMarkers = [];
   }
 
   private shouldCluster(): boolean {
@@ -367,6 +403,8 @@ export class MapBuilder {
   private async rebuildMarkers(
     mapCragItems: readonly MapCragItem[],
     selectedMapCragItem: MapCragItem | null,
+    mapParkingItems: readonly ParkingDto[],
+    selectedMapParkingItem: ParkingDto | null,
     cb: MapBuilderCallbacks,
   ): Promise<void> {
     if (!this.map || !this.L) return;
@@ -375,6 +413,59 @@ export class MapBuilder {
     this.cleanMarkers();
 
     const clustering = this.shouldCluster();
+
+    // Render Parkings (Always non-clustered for now)
+    const viewportBounds = this.map.getBounds().pad(0.1);
+    const visibleParkings = mapParkingItems.filter((p) =>
+      viewportBounds.contains(new L.LatLng(p.latitude, p.longitude)),
+    );
+
+    for (const parking of visibleParkings) {
+      const latLng: [number, number] = [parking.latitude, parking.longitude];
+      const isSelected =
+        selectedMapParkingItem && parking.id === selectedMapParkingItem.id;
+
+      const scale = isSelected ? 1.1 : 1;
+      const name = parking.name;
+
+      const icon = new L.DivIcon({
+        html: `
+          <div class="flex flex-col items-center -translate-y-full">
+            <div
+              class="lw-marker lw-marker--glass flex items-center gap-1 px-2 py-1 rounded-xl text-xs leading-tight whitespace-nowrap shadow-md transition-all focus:outline-none"
+              style="transform: scale(${scale});"
+              role="button"
+              tabindex="0"
+              aria-label="${name}"
+              aria-pressed="${isSelected}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-90">
+                <rect width="18" height="18" x="3" y="3" rx="2" />
+                <path d="M9 17V7h4a3 3 0 0 1 0 6H9" />
+              </svg>
+              <span>${name}</span>
+            </div>
+          </div>
+        `,
+        className: 'parking-marker',
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+      });
+
+      const marker = new L.Marker(latLng, { icon }).addTo(this.map);
+      this.parkingMarkers.push(marker);
+
+      const onSelect = () => {
+        this.centerOn(parking.latitude, parking.longitude, 12);
+        cb.onSelectedParkingChange(parking);
+      };
+
+      marker.on('click', (e: LeafletEvent) => {
+        e.originalEvent?.preventDefault?.();
+        (e.originalEvent as Event | undefined)?.stopPropagation?.();
+        onSelect();
+      });
+      this.attachMarkerKeyboardSelection(marker, onSelect);
+    }
 
     if (clustering) {
       const items = this.buildVisibleClusterItems(mapCragItems);
@@ -507,13 +598,12 @@ export class MapBuilder {
     isFavorite: boolean,
     markerType: 'api' | 'area' | 'crag' = 'api',
   ): string {
-    let backgroundColorClass = 'lw-marker--primary';
+    let backgroundColorClass = isFavorite
+      ? 'lw-marker--accent'
+      : 'lw-marker--primary';
     switch (markerType) {
       case 'area':
         backgroundColorClass = 'lw-marker--secondary';
-        break;
-      case 'crag':
-        backgroundColorClass = 'lw-marker--accent';
         break;
     }
     // The rest of the code remains the same

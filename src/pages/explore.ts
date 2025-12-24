@@ -21,6 +21,7 @@ import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import {
   TuiButton,
   TuiHint,
+  TuiIcon,
   TuiLink,
   TuiLoader,
   TuiSurface,
@@ -37,8 +38,9 @@ import {
   MapCragItem,
   normalizeRoutesByGrade,
   ORDERED_GRADE_VALUES,
+  ParkingDto,
 } from '../models';
-import { remToPx } from '../utils';
+import { remToPx, mapLocationUrl } from '../utils';
 
 @Component({
   selector: 'app-home',
@@ -58,6 +60,7 @@ import { remToPx } from '../utils';
     MapComponent,
     ChartRoutesByGradeComponent,
     TuiAvatar,
+    TuiIcon,
   ],
   template: ` <div class="h-full w-full">
     <div class="absolute right-4 top-16 flex flex-col gap-2">
@@ -103,6 +106,9 @@ import { remToPx } from '../utils';
         [mapCragItems]="mapCragItems()"
         [selectedMapCragItem]="global.selectedMapCragItem()"
         (selectedMapCragItemChange)="selectMapCragItem($event)"
+        [mapParkingItems]="global.parkingsMapResource.value() || []"
+        [selectedMapParkingItem]="global.selectedMapParkingItem()"
+        (selectedMapParkingItemChange)="selectMapParkingItem($event)"
         (mapClick)="closeAll()"
         (interactionStart)="setBottomSheet('close')"
       />
@@ -152,6 +158,60 @@ import { remToPx } from '../utils';
                   [grades]="c.grades"
                 />
               </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    } @else if (global.selectedMapParkingItem(); as p) {
+      <!-- Selected parking information section -->
+      <div
+        class="absolute w-full max-w-[40rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0"
+      >
+        <div
+          tuiCardLarge
+          tuiSurface="floating"
+          class="relative pointer-events-auto m-4"
+        >
+          <div class="flex flex-col min-w-0 grow">
+            <header tuiHeader>
+              <h2 tuiTitle>{{ p.name }}</h2>
+              @if (p.latitude && p.longitude) {
+                <div class="flex gap-2">
+                  <a
+                    appearance="flat"
+                    size="s"
+                    [href]="
+                      mapLocationUrl({
+                        latitude: p.latitude,
+                        longitude: p.longitude,
+                      })
+                    "
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    [attr.aria-label]="'actions.openGoogleMaps' | translate"
+                    [tuiHint]="'actions.openGoogleMaps' | translate"
+                  >
+                    <img
+                      src="/image/google-maps.svg"
+                      class="h-[1.5em] w-[1.5em]"
+                      alt=""
+                    />
+                  </a>
+                </div>
+              }
+            </header>
+            <section
+              class="text-sm opacity-80 grid grid-cols-1 sm:grid-cols-2 gap-2"
+            >
+              @if (p.size) {
+                <div class="flex items-center gap-1">
+                  <tui-icon icon="@tui.parking-square" />
+                  <span class="text-lg">
+                    x
+                    {{ p.size }}
+                  </span>
+                </div>
+              }
             </section>
           </div>
         </div>
@@ -318,6 +378,7 @@ import { remToPx } from '../utils';
   },
 })
 export class ExploreComponent {
+  protected readonly mapLocationUrl = mapLocationUrl;
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
 
@@ -471,10 +532,13 @@ export class ExploreComponent {
       return;
     }
 
-    const hadSelectedMapItem = !!this.global.selectedMapCragItem();
+    const hadSelectedMapItem =
+      !!this.global.selectedMapCragItem() ||
+      !!this.global.selectedMapParkingItem();
 
     if (hadSelectedMapItem && mode !== 'open') {
       this.global.selectedMapCragItem.set(null);
+      this.global.selectedMapParkingItem.set(null);
     }
 
     const el = this.sheetRef?.nativeElement;
@@ -527,12 +591,21 @@ export class ExploreComponent {
 
   protected selectMapCragItem(mapCragItem: MapCragItem | null): void {
     if (!mapCragItem) return;
+    this.global.selectedMapParkingItem.set(null);
     this.global.selectedMapCragItem.set(mapCragItem);
+    this.setBottomSheet('open');
+  }
+
+  protected selectMapParkingItem(parkingItem: ParkingDto | null): void {
+    if (!parkingItem) return;
+    this.global.selectedMapCragItem.set(null);
+    this.global.selectedMapParkingItem.set(parkingItem);
     this.setBottomSheet('open');
   }
 
   protected closeAll(): void {
     this.global.selectedMapCragItem.set(null);
+    this.global.selectedMapParkingItem.set(null);
     this.setBottomSheet('close');
   }
 

@@ -8,7 +8,12 @@ import {
   computed,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { isPlatformBrowser, Location, LowerCasePipe } from '@angular/common';
+import {
+  isPlatformBrowser,
+  Location,
+  LowerCasePipe,
+  NgOptimizedImage,
+} from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -70,6 +75,7 @@ import { handleErrorToast } from '../utils';
     TuiAvatar,
     LowerCasePipe,
     TuiIcon,
+    NgOptimizedImage,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -143,9 +149,6 @@ import { handleErrorToast } from '../utils';
                   {{ 'actions.viewOnMap' | translate }}
                 </button>
                 <a
-                  tuiButton
-                  appearance="flat"
-                  size="s"
                   [href]="
                     mapLocationUrl({
                       latitude: c.latitude,
@@ -154,11 +157,16 @@ import { handleErrorToast } from '../utils';
                   "
                   target="_blank"
                   rel="noopener noreferrer"
-                  [iconStart]="'@tui.map-pin'"
                   [attr.aria-label]="'actions.openGoogleMaps' | translate"
-                  [attr.title]="'actions.openGoogleMaps' | translate"
+                  [tuiHint]="'actions.openGoogleMaps' | translate"
                 >
-                  {{ 'actions.openGoogleMaps' | translate }}
+                  <img
+                    ngSrc="/image/google-maps.svg"
+                    class="h-[1.5em] w-[1.5em]"
+                    [alt]="'actions.openGoogleMaps' | translate"
+                    height="48"
+                    width="48"
+                  />
                 </a>
               </div>
             }
@@ -234,17 +242,12 @@ import { handleErrorToast } from '../utils';
                     <section
                       class="text-sm opacity-80 grid grid-cols-1 sm:grid-cols-3 gap-2"
                     >
-                      <div>
-                        <strong>{{ 'labels.capacity' | translate }}:</strong>
-                        {{ p.size }}
-                      </div>
-                      <div>
-                        <strong>{{ 'labels.lat' | translate }}:</strong>
-                        {{ p.latitude }}
-                      </div>
-                      <div>
-                        <strong>{{ 'labels.lng' | translate }}:</strong>
-                        {{ p.longitude }}
+                      <div class="flex items-center gap-1">
+                        <tui-icon icon="@tui.parking-square" />
+                        <span class="text-lg">
+                          x
+                          {{ p.size }}
+                        </span>
                       </div>
                     </section>
                     @if (p.latitude && p.longitude) {
@@ -260,9 +263,6 @@ import { handleErrorToast } from '../utils';
                           {{ 'actions.viewOnMap' | translate }}
                         </button>
                         <a
-                          tuiButton
-                          appearance="flat"
-                          size="s"
                           [href]="
                             mapLocationUrl({
                               latitude: p.latitude,
@@ -271,13 +271,19 @@ import { handleErrorToast } from '../utils';
                           "
                           target="_blank"
                           rel="noopener noreferrer"
-                          [iconStart]="'@tui.map-pin'"
+                          class="content-center"
                           [attr.aria-label]="
                             'actions.openGoogleMaps' | translate
                           "
-                          [attr.title]="'actions.openGoogleMaps' | translate"
+                          [tuiHint]="'actions.openGoogleMaps' | translate"
                         >
-                          {{ 'actions.openGoogleMaps' | translate }}
+                          <img
+                            ngSrc="/image/google-maps.svg"
+                            class="h-[1.5em] w-[1.5em]"
+                            [alt]="'actions.openGoogleMaps' | translate"
+                            height="48"
+                            width="48"
+                          />
                         </a>
                       </div>
                     }
