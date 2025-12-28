@@ -71,5 +71,6 @@ export class AscentsService {
     this.global.routeDetailResource.reload();
     this.global.routeAscentsResource.reload();
     this.global.cragRoutesResource.reload();
+    this.global.topoDetailResource.reload();
   }
 }

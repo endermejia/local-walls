@@ -61,7 +61,7 @@ interface MinimalParking {
         }
       </tui-textfield>
 
-      <div class="flex items-center gap-4">
+      <div class="flex flex-wrap items-center gap-4">
         <h3 class="font-bold text-lg">{{ 'labels.location' | translate }}</h3>
         <button
           tuiButton
@@ -130,7 +130,7 @@ interface MinimalParking {
         </div>
       </div>
 
-      <div class="flex gap-2 justify-end">
+      <div class="flex flex-wrap gap-2 justify-end">
         <button
           tuiButton
           appearance="secondary"

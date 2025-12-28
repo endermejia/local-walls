@@ -193,16 +193,22 @@ export class GlobalData {
       }
 
       await this.supabase.whenReady();
-      const { data: sbCrags, error: sbError } = await this.supabase.client
-        .from('crags')
-        .select(
-          `
+      const userId = this.supabase.authUser()?.id;
+      let query = this.supabase.client.from('crags').select(
+        `
           id, name, slug, latitude, longitude,
           area:areas (name, slug),
           routes (grade, climbing_kind),
-          topos (shade_morning, shade_afternoon)
+          topos (shade_morning, shade_afternoon),
+          liked:crag_likes(id)
         `,
-        )
+      );
+
+      if (userId) {
+        query = query.eq('liked.user_id', userId);
+      }
+
+      const { data: sbCrags, error: sbError } = await query
         .gte('latitude', bounds.south_west_latitude)
         .lte('latitude', bounds.north_east_latitude)
         .gte('longitude', bounds.south_west_longitude)
@@ -233,6 +239,8 @@ export class GlobalData {
         const shadeMorning = (c.topos || []).some((t) => t.shade_morning);
         const shadeAfternoon = (c.topos || []).some((t) => t.shade_afternoon);
 
+        const isLiked = (c.liked || []).length > 0;
+
         return {
           id: c.id,
           name: c.name,
@@ -249,6 +257,7 @@ export class GlobalData {
           shade_all_day: shadeMorning && shadeAfternoon,
           sun_all_day: !shadeMorning && !shadeAfternoon,
           avg_rating: 0,
+          liked: isLiked,
         } as MapCragItem;
       });
 
@@ -544,6 +553,7 @@ export class GlobalData {
       if (!isPlatformBrowser(this.platformId)) return null;
       try {
         await this.supabase.whenReady();
+        const userId = this.supabase.authUser()?.id;
         const { data, error } = await this.supabase.client
           .from('topos')
           .select(
@@ -551,11 +561,17 @@ export class GlobalData {
             *,
             topo_routes (
               *,
-              route: routes (*)
+              route: routes (
+                *,
+                own_ascent: route_ascents!left (*),
+                project: route_projects!left (id)
+              )
             )
           `,
           )
           .eq('id', Number(id))
+          .eq('topo_routes.route.own_ascent.user_id', userId)
+          .eq('topo_routes.route.project.user_id', userId)
           .order('number', { referencedTable: 'topo_routes', ascending: true })
           .single();
 

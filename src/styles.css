@@ -179,3 +179,7 @@ th[tuiTh] {
   height: 32px !important;
   line-height: 32px !important;
 }
+
+.lw-icon-50 {
+  --tui-icon-size: 50px;
+}

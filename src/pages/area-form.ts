@@ -48,7 +48,7 @@ import { slugify, handleErrorToast } from '../utils';
         }
       </tui-textfield>
 
-      <div class="flex gap-2 justify-end">
+      <div class="flex flex-wrap gap-2 justify-end">
         <button
           tuiButton
           appearance="secondary"

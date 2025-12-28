@@ -71,7 +71,7 @@ export interface AvatarCropperResult {
 
       <br />
 
-      <div class="flex gap-2 justify-end">
+      <div class="flex flex-wrap gap-2 justify-end">
         <button tuiButton appearance="secondary" size="m" (click)="cancel()">
           {{ 'actions.cancel' | translate }}
         </button>

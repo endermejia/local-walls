@@ -104,20 +104,22 @@ interface Country {
     >
       <!-- Sticky Header -->
       <div
-        class="sticky top-0 z-10 bg-white flex items-center gap-4 p-2 -mx-2 mb-4"
+        class="sticky top-0 z-10 flex items-center gap-4 p-2 -mx-2 mb-4 bg-[var(--tui-background-base)]"
       >
-        <button
-          size="s"
-          appearance="neutral"
-          iconStart="@tui.chevron-left"
-          tuiIconButton
-          type="button"
-          class="!rounded-full"
-          [tuiHint]="global.isMobile() ? null : ('actions.back' | translate)"
-          (click)="close()"
-        >
-          {{ 'actions.back' | translate }}
-        </button>
+        <div class="hidden md:block">
+          <button
+            size="s"
+            appearance="neutral"
+            iconStart="@tui.chevron-left"
+            tuiIconButton
+            type="button"
+            class="!rounded-full"
+            [tuiHint]="global.isMobile() ? null : ('actions.back' | translate)"
+            (click)="close()"
+          >
+            {{ 'actions.back' | translate }}
+          </button>
+        </div>
         <h2 class="text-xl font-bold m-0">
           {{ 'profile.title' | translate }}
         </h2>

@@ -6,7 +6,7 @@ import {
   InputSignal,
   effect,
 } from '@angular/core';
-import { isPlatformBrowser, Location, LowerCasePipe } from '@angular/common';
+import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiCardLarge } from '@taiga-ui/layout';
@@ -61,7 +61,6 @@ import { handleErrorToast } from '../utils';
             class="w-full"
             [title]="area.name"
             [liked]="area.liked"
-            (back)="goBack()"
             (toggleLike)="onToggleLike()"
           />
           @if (global.isAdmin()) {
@@ -182,7 +181,6 @@ export class AreaComponent {
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
-  private readonly location = inject(Location);
   private readonly toast = inject(TuiToastService);
 
   areaSlug: InputSignal<string> = input.required<string>();
@@ -275,9 +273,5 @@ export class AreaComponent {
         data: { areaId: current.id },
       })
       .subscribe();
-  }
-
-  goBack(): void {
-    this.location.back();
   }
 }

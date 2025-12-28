@@ -8,12 +8,7 @@ import {
   computed,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  isPlatformBrowser,
-  Location,
-  LowerCasePipe,
-  NgOptimizedImage,
-} from '@angular/common';
+import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -75,7 +70,6 @@ import { handleErrorToast } from '../utils';
     TuiAvatar,
     LowerCasePipe,
     TuiIcon,
-    NgOptimizedImage,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -85,7 +79,6 @@ import { handleErrorToast } from '../utils';
             class="w-full"
             [title]="c.name"
             [liked]="c.liked"
-            (back)="goBack()"
             (toggleLike)="onToggleLike()"
           />
           @if (global.isAdmin()) {
@@ -120,8 +113,8 @@ import { handleErrorToast } from '../utils';
           }
         </div>
 
-        <div class="flex flex-col md:flex-row md:justify-between gap-2">
-          <div class="flex flex-col gap-3">
+        <div class="flex flex-col md:flex-row md:justify-between gap-4">
+          <div class="flex flex-col gap-3 grow">
             @let lang = global.selectedLanguage();
             @let desc = lang === 'es' ? c.description_es : c.description_en;
             @let warn = lang === 'es' ? c.warning_es : c.warning_en;
@@ -130,58 +123,87 @@ import { handleErrorToast } from '../utils';
               <p class="text-lg">{{ desc }}</p>
             }
 
+            @if (c.approach) {
+              <div
+                class="flex w-fit items-center gap-1 opacity-70"
+                [tuiHint]="
+                  global.isMobile() ? null : ('labels.approach' | translate)
+                "
+              >
+                <tui-icon icon="@tui.footprints" />
+                <span class="text-lg font-medium whitespace-nowrap">
+                  {{ c.approach }}
+                  min.
+                </span>
+              </div>
+            }
+
             @if (warn) {
               <tui-notification appearance="warning">
                 {{ warn }}
               </tui-notification>
             }
 
-            @if (c.latitude && c.longitude) {
-              <div class="flex gap-2 items-center">
-                <button
-                  tuiButton
-                  appearance="secondary"
-                  size="s"
-                  type="button"
-                  (click.zoneless)="viewOnMap(c.latitude, c.longitude)"
-                  [iconStart]="'@tui.map'"
-                >
-                  {{ 'actions.viewOnMap' | translate }}
-                </button>
-                <a
-                  [href]="
-                    mapLocationUrl({
-                      latitude: c.latitude,
-                      longitude: c.longitude,
-                    })
-                  "
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  [attr.aria-label]="'actions.openGoogleMaps' | translate"
-                  [tuiHint]="'actions.openGoogleMaps' | translate"
-                >
-                  <img
-                    ngSrc="/image/google-maps.svg"
-                    class="h-[1.5em] w-[1.5em]"
-                    [alt]="'actions.openGoogleMaps' | translate"
-                    height="48"
-                    width="48"
-                  />
-                </a>
+            <div
+              class="flex flex-row justify-between items-start gap-2 mt-auto"
+            >
+              <div
+                class="flex flex-wrap md:flex-nowrap gap-2 md:gap-4 items-center"
+              >
+                @if (c.latitude && c.longitude) {
+                  <div class="flex flex-wrap gap-2 items-center">
+                    <button
+                      tuiButton
+                      appearance="flat"
+                      size="m"
+                      type="button"
+                      (click.zoneless)="viewOnMap(c.latitude, c.longitude)"
+                      [iconStart]="'@tui.map'"
+                    >
+                      {{ 'actions.viewOnMap' | translate }}
+                    </button>
+                    <button
+                      appearance="flat"
+                      size="m"
+                      tuiButton
+                      type="button"
+                      class="lw-icon-50"
+                      [iconStart]="'/image/google-maps.svg'"
+                      (click.zoneless)="
+                        openExternal(
+                          mapLocationUrl({
+                            latitude: c.latitude,
+                            longitude: c.longitude,
+                          })
+                        )
+                      "
+                      [attr.aria-label]="'actions.openGoogleMaps' | translate"
+                    >
+                      {{ 'actions.openGoogleMaps' | translate }}
+                    </button>
+                  </div>
+                }
               </div>
-            }
+              <app-chart-routes-by-grade
+                class="md:hidden self-end"
+                [grades]="c.grades"
+              />
+            </div>
           </div>
-          <app-chart-routes-by-grade class="self-end" [grades]="c.grades" />
+          <app-chart-routes-by-grade
+            class="hidden md:block self-end"
+            [grades]="c.grades"
+          />
         </div>
 
         @if (c.parkings.length || global.isAdmin()) {
-          <div class="mt-6 grid gap-3">
-            <div class="flex items-center justify-between gap-2">
+          <div class="mt-6">
+            <div class="flex items-center justify-between gap-2 mb-3">
               <h2 class="text-2xl font-semibold">
                 {{ 'labels.parkings' | translate }}
               </h2>
               @if (global.isAdmin()) {
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2">
                   <button
                     tuiButton
                     appearance="textfield"
@@ -212,7 +234,7 @@ import { handleErrorToast } from '../utils';
                     <header tuiHeader class="flex justify-between items-center">
                       <h3 tuiTitle class="truncate">{{ p.name }}</h3>
                       @if (global.isAdmin()) {
-                        <div class="flex gap-1">
+                        <div class="flex flex-wrap gap-1">
                           <button
                             size="s"
                             appearance="neutral"
@@ -239,10 +261,15 @@ import { handleErrorToast } from '../utils';
                         </div>
                       }
                     </header>
-                    <section
-                      class="text-sm opacity-80 grid grid-cols-1 sm:grid-cols-3 gap-2"
-                    >
-                      <div class="flex items-center gap-1">
+                    <section class="text-sm opacity-80">
+                      <div
+                        class="flex w-fit items-center gap-1"
+                        [tuiHint]="
+                          global.isMobile()
+                            ? null
+                            : ('labels.capacity' | translate)
+                        "
+                      >
                         <tui-icon icon="@tui.parking-square" />
                         <span class="text-lg">
                           x
@@ -251,40 +278,38 @@ import { handleErrorToast } from '../utils';
                       </div>
                     </section>
                     @if (p.latitude && p.longitude) {
-                      <div class="flex gap-2">
+                      <div class="flex flex-wrap gap-2">
                         <button
                           tuiButton
-                          appearance="secondary"
-                          size="s"
+                          appearance="flat"
+                          size="m"
                           type="button"
                           (click.zoneless)="viewOnMap(p.latitude, p.longitude)"
                           [iconStart]="'@tui.map'"
                         >
                           {{ 'actions.viewOnMap' | translate }}
                         </button>
-                        <a
-                          [href]="
-                            mapLocationUrl({
-                              latitude: p.latitude,
-                              longitude: p.longitude,
-                            })
+                        <button
+                          appearance="flat"
+                          size="m"
+                          tuiButton
+                          type="button"
+                          class="content-center lw-icon-50"
+                          [iconStart]="'/image/google-maps.svg'"
+                          (click.zoneless)="
+                            openExternal(
+                              mapLocationUrl({
+                                latitude: p.latitude,
+                                longitude: p.longitude,
+                              })
+                            )
                           "
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="content-center"
                           [attr.aria-label]="
                             'actions.openGoogleMaps' | translate
                           "
-                          [tuiHint]="'actions.openGoogleMaps' | translate"
                         >
-                          <img
-                            ngSrc="/image/google-maps.svg"
-                            class="h-[1.5em] w-[1.5em]"
-                            [alt]="'actions.openGoogleMaps' | translate"
-                            height="48"
-                            width="48"
-                          />
-                        </a>
+                          {{ 'actions.openGoogleMaps' | translate }}
+                        </button>
                       </div>
                     }
                   </div>
@@ -425,7 +450,6 @@ export class CragComponent {
   protected readonly global = inject(GlobalData);
   private readonly router = inject(Router);
 
-  private readonly location = inject(Location);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly toast = inject(TuiToastService);
   private readonly translate = inject(TranslateService);
@@ -574,10 +598,6 @@ export class CragComponent {
       });
   }
 
-  goBack(): void {
-    this.location.back();
-  }
-
   viewOnMap(lat: number, lng: number): void {
     const zoom = 13;
     this.global.mapBounds.set({
@@ -691,6 +711,12 @@ export class CragComponent {
         data: { cragId: c.id },
       })
       .subscribe();
+  }
+
+  protected openExternal(url: string): void {
+    if (isPlatformBrowser(this.platformId)) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
   }
 
   protected onLogAscent(route: RouteWithExtras): void {

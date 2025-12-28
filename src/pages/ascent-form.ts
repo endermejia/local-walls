@@ -98,7 +98,7 @@ import { handleErrorToast } from '../utils';
             <input tuiInputDate [max]="today" formControlName="date" />
             <tui-calendar *tuiTextfieldDropdown />
           </tui-textfield>
-          <div class="flex gap-2">
+          <div class="flex flex-wrap gap-2">
             <button
               tuiButton
               appearance="secondary"
@@ -237,7 +237,7 @@ import { handleErrorToast } from '../utils';
           <span class="text-sm font-semibold opacity-70 px-1">{{
             'ascent.didYouLikeIt' | translate
           }}</span>
-          <div class="flex items-center gap-4">
+          <div class="flex flex-wrap items-center gap-4">
             <tui-rating [max]="5" formControlName="rate" class="text-primary" />
             <button
               tuiIconButton
@@ -267,58 +267,62 @@ import { handleErrorToast } from '../utils';
           <span class="text-sm font-semibold opacity-70 px-1">{{
             'ascent.howWouldYouGrade' | translate
           }}</span>
-          <div class="flex items-center gap-2">
+          <div
+            class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
+          >
             <button
               tuiButton
               type="button"
               size="m"
               [appearance]="form.get('soft')?.value ? 'primary' : 'neutral'"
               (click)="toggleBool('soft')"
-              class="!rounded-xl shrink-0"
+              class="!rounded-xl grow sm:grow-0"
             >
               {{ 'ascent.soft' | translate }}
             </button>
 
-            <button
-              tuiIconButton
-              type="button"
-              size="m"
-              appearance="secondary"
-              iconStart="@tui.minus"
-              class="!rounded-full shrink-0"
-              (click)="changeGrade(-1)"
-            >
-              -
-            </button>
+            <div class="flex items-center gap-2 grow">
+              <button
+                tuiIconButton
+                type="button"
+                size="m"
+                appearance="secondary"
+                iconStart="@tui.minus"
+                class="!rounded-full shrink-0"
+                (click)="changeGrade(-1)"
+              >
+                -
+              </button>
 
-            <tui-textfield
-              tuiChevron
-              [tuiTextfieldCleaner]="false"
-              [stringify]="gradeStringify"
-              tuiTextfieldSize="m"
-              class="grow"
-            >
-              <label tuiLabel for="ascentGrade">{{
-                'labels.grade' | translate
-              }}</label>
-              <input tuiSelect id="ascentGrade" formControlName="grade" />
-              <tui-data-list-wrapper
-                *tuiTextfieldDropdown
-                [items]="gradeOptions"
-              ></tui-data-list-wrapper>
-            </tui-textfield>
+              <tui-textfield
+                tuiChevron
+                [tuiTextfieldCleaner]="false"
+                [stringify]="gradeStringify"
+                tuiTextfieldSize="m"
+                class="grow"
+              >
+                <label tuiLabel for="ascentGrade">{{
+                  'labels.grade' | translate
+                }}</label>
+                <input tuiSelect id="ascentGrade" formControlName="grade" />
+                <tui-data-list-wrapper
+                  *tuiTextfieldDropdown
+                  [items]="gradeOptions"
+                ></tui-data-list-wrapper>
+              </tui-textfield>
 
-            <button
-              tuiIconButton
-              type="button"
-              size="m"
-              appearance="secondary"
-              iconStart="@tui.plus"
-              class="!rounded-full shrink-0"
-              (click)="changeGrade(1)"
-            >
-              +
-            </button>
+              <button
+                tuiIconButton
+                type="button"
+                size="m"
+                appearance="secondary"
+                iconStart="@tui.plus"
+                class="!rounded-full shrink-0"
+                (click)="changeGrade(1)"
+              >
+                +
+              </button>
+            </div>
 
             <button
               tuiButton
@@ -326,7 +330,7 @@ import { handleErrorToast } from '../utils';
               size="m"
               [appearance]="form.get('hard')?.value ? 'primary' : 'neutral'"
               (click)="toggleBool('hard')"
-              class="!rounded-xl shrink-0"
+              class="!rounded-xl grow sm:grow-0"
             >
               {{ 'ascent.hard' | translate }}
             </button>

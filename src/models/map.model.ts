@@ -28,6 +28,7 @@ export interface MapCragItem {
   routes_count?: number; // routes
   ascents_count?: number; // ascents
   liked?: boolean;
+  approach?: number;
   shade_morning?: boolean;
   shade_afternoon?: boolean;
   shade_all_day?: boolean;

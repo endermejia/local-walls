@@ -167,7 +167,7 @@ import { startWith } from 'rxjs';
         </tui-textfield>
       </div>
 
-      <div class="flex gap-2 justify-end mt-4">
+      <div class="flex flex-wrap gap-2 justify-end mt-4">
         <button
           tuiButton
           appearance="secondary"

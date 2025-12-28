@@ -75,7 +75,7 @@ import { ParkingDto } from '../models';
         </ng-template>
       </tui-textfield>
 
-      <div class="flex gap-2 justify-end mt-4">
+      <div class="flex flex-wrap gap-2 justify-end mt-4">
         <button
           tuiButton
           appearance="secondary"

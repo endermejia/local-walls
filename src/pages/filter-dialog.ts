@@ -65,7 +65,7 @@ export interface FilterDialog {
       </section>
 
       <section>
-        <div class="flex gap-2 justify-between">
+        <div class="flex flex-wrap gap-2 justify-between">
           <span class="font-medium">{{ selectedMinLabel() }}</span>
           <span class="font-medium">{{ selectedMaxLabel() }}</span>
         </div>
@@ -79,7 +79,7 @@ export interface FilterDialog {
           [keySteps]="keySteps"
           formControlName="gradeRange"
         />
-        <div class="hidden sm:flex gap-2 justify-between">
+        <div class="hidden sm:flex flex-wrap gap-2 justify-between">
           @for (label of tickLabels; track label; let i = $index) {
             <a
               tuiLink
@@ -92,7 +92,7 @@ export interface FilterDialog {
         </div>
       </section>
 
-      <footer class="flex gap-2 justify-end items-center">
+      <footer class="flex flex-wrap gap-2 justify-end items-center">
         <button
           appearance="secondary"
           tuiButton

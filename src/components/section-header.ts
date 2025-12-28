@@ -10,6 +10,7 @@ import { TuiSkeleton } from '@taiga-ui/kit';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiButton, TuiHint } from '@taiga-ui/core';
 import { GlobalData } from '../services';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-section-header',
@@ -21,18 +22,20 @@ import { GlobalData } from '../services';
       [tuiSkeleton]="tuiSkeleton()"
     >
       <div class="flex items-center gap-2">
-        <button
-          size="s"
-          appearance="neutral"
-          iconStart="@tui.chevron-left"
-          tuiIconButton
-          type="button"
-          class="!rounded-full"
-          [tuiHint]="global.isMobile() ? null : ('actions.back' | translate)"
-          (click.zoneless)="back.emit()"
-        >
-          {{ 'actions.back' | translate }}
-        </button>
+        <div class="hidden md:block">
+          <button
+            size="s"
+            appearance="neutral"
+            iconStart="@tui.chevron-left"
+            tuiIconButton
+            type="button"
+            class="!rounded-full"
+            [tuiHint]="global.isMobile() ? null : ('actions.back' | translate)"
+            (click.zoneless)="onBack()"
+          >
+            {{ 'actions.back' | translate }}
+          </button>
+        </div>
         <h1 class="text-2xl font-bold">{{ title() }}</h1>
         <ng-content />
       </div>
@@ -62,10 +65,14 @@ import { GlobalData } from '../services';
 })
 export class SectionHeaderComponent {
   protected readonly global = inject(GlobalData);
+  private readonly location = inject(Location);
   title = input.required<string>();
   liked = input(false);
   tuiSkeleton: InputSignal<boolean> = input(false);
 
-  back = output<void>();
   toggleLike = output<void>();
+
+  onBack(): void {
+    this.location.back();
+  }
 }

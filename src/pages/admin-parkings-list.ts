@@ -155,7 +155,7 @@ import ParkingFormComponent from './parking-form';
                     {{ item.size }}
                   </td>
                   <td *tuiCell="'actions'" tuiTd>
-                    <div class="flex gap-1">
+                    <div class="flex flex-wrap gap-1">
                       <button
                         tuiIconButton
                         size="s"

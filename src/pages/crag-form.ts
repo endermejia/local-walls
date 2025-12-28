@@ -65,7 +65,7 @@ interface MinimalCrag {
         }
       </tui-textfield>
 
-      <div class="flex items-center gap-4">
+      <div class="flex flex-wrap items-center gap-4">
         <h3 class="font-bold text-lg">{{ 'labels.location' | translate }}</h3>
         <button
           tuiButton
@@ -101,13 +101,37 @@ interface MinimalCrag {
             [formControl]="longitude"
           />
         </tui-textfield>
-        <tui-textfield [tuiTextfieldCleaner]="false">
-          <label tuiLabel for="approach">{{
-            'labels.approach' | translate
-          }}</label>
-          <input tuiInputNumber id="approach" [formControl]="approach" />
-          <span class="tui-textfield__suffix">min.</span>
-        </tui-textfield>
+        <div class="flex items-center gap-2">
+          <button
+            tuiIconButton
+            type="button"
+            size="m"
+            appearance="secondary"
+            iconStart="@tui.minus"
+            class="!rounded-full shrink-0"
+            (click)="changeApproach(-1)"
+          >
+            -
+          </button>
+          <tui-textfield [tuiTextfieldCleaner]="false" class="grow">
+            <label tuiLabel for="approach">{{
+              'labels.approach' | translate
+            }}</label>
+            <input tuiInputNumber id="approach" [formControl]="approach" />
+            <span class="tui-textfield__suffix">min.</span>
+          </tui-textfield>
+          <button
+            tuiIconButton
+            type="button"
+            size="m"
+            appearance="secondary"
+            iconStart="@tui.plus"
+            class="!rounded-full shrink-0"
+            (click)="changeApproach(1)"
+          >
+            +
+          </button>
+        </div>
       </div>
 
       <tui-textfield [tuiTextfieldCleaner]="false">
@@ -158,7 +182,7 @@ interface MinimalCrag {
         ></textarea>
       </tui-textfield>
 
-      <div class="flex gap-2 justify-end">
+      <div class="flex flex-wrap gap-2 justify-end">
         <button
           tuiButton
           appearance="secondary"
@@ -332,6 +356,12 @@ export class CragFormComponent {
           this.longitude.markAsDirty();
         }
       });
+  }
+
+  changeApproach(delta: number): void {
+    const current = this.approach.value ?? 0;
+    this.approach.setValue(Math.max(0, current + delta));
+    this.approach.markAsDirty();
   }
 
   onPasteLocation(event: ClipboardEvent): void {

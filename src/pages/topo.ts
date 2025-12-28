@@ -11,7 +11,7 @@ import {
   InputSignal,
   PLATFORM_ID,
 } from '@angular/core';
-import { isPlatformBrowser, Location } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
@@ -20,6 +20,7 @@ import {
   TuiLoader,
   TuiLink,
   TuiIcon,
+  TuiLabel,
 } from '@taiga-ui/core';
 import {
   TuiTable,
@@ -33,13 +34,20 @@ import {
   TuiToastService,
   TUI_CONFIRM,
   type TuiConfirmData,
+  TuiAvatar,
 } from '@taiga-ui/kit';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { AvatarGradeComponent, SectionHeaderComponent } from '../components';
-import { GlobalData, ToposService } from '../services';
-import { TopoDetail, TopoRouteWithRoute } from '../models';
+import { GlobalData, RoutesService, ToposService } from '../services';
+import {
+  RouteAscentDto,
+  RouteWithExtras,
+  TopoDetail,
+  TopoRouteWithRoute,
+} from '../models';
 import TopoFormComponent from './topo-form';
 import TopoRouteFormComponent from './topo-route-form';
+import AscentFormComponent from './ascent-form';
 import { handleErrorToast } from '../utils';
 
 export interface TopoRouteRow {
@@ -49,6 +57,8 @@ export interface TopoRouteRow {
   height: number | null;
   slug: string;
   link: string[];
+  climbed: boolean;
+  project: boolean;
   _ref: TopoRouteWithRoute;
 }
 
@@ -67,17 +77,18 @@ export interface TopoRouteRow {
     TuiTableSortPipe,
     RouterLink,
     TuiIcon,
+    TuiAvatar,
+    TuiLabel,
   ],
   template: `
     <div class="h-full w-full">
       <section class="flex flex-col w-full h-full max-w-5xl mx-auto p-4">
         @if (topo(); as t) {
-          <div class="flex gap-2">
+          <div class="flex flex-wrap items-center justify-between gap-2">
             <app-section-header
-              class="w-full"
+              class="grow"
               [title]="t.name"
               [liked]="false"
-              (back)="goBack()"
               (toggleLike)="onToggleLike()"
             >
               @if (shadeInfo(); as info) {
@@ -94,60 +105,63 @@ export interface TopoRouteRow {
                 />
               }
             </app-section-header>
-            @if (global.isAdmin()) {
-              <div class="flex gap-1">
-                <button
-                  tuiIconButton
-                  size="s"
-                  appearance="neutral"
-                  iconStart="@tui.square-pen"
-                  class="pointer-events-auto !rounded-full"
-                  (click.zoneless)="openEditTopo(t)"
-                  [tuiHint]="
-                    global.isMobile() ? null : ('actions.edit' | translate)
-                  "
-                >
-                  {{ 'actions.edit' | translate }}
-                </button>
-                <button
-                  tuiIconButton
-                  size="s"
-                  appearance="negative"
-                  iconStart="@tui.trash"
-                  class="pointer-events-auto !rounded-full"
-                  (click.zoneless)="deleteTopo(t)"
-                  [tuiHint]="
-                    global.isMobile() ? null : ('actions.delete' | translate)
-                  "
-                >
-                  {{ 'actions.delete' | translate }}
-                </button>
-              </div>
-            }
-            <!-- Toggle image fit button -->
-            @let imgFit = imageFit();
-            <button
-              tuiIconButton
-              size="s"
-              appearance="primary-grayscale"
-              class="pointer-events-auto !rounded-full"
-              [iconStart]="
-                imgFit === 'cover'
-                  ? '@tui.unfold-horizontal'
-                  : '@tui.unfold-vertical'
-              "
-              [tuiHint]="
-                global.isMobile()
-                  ? null
-                  : ((imgFit === 'cover'
-                      ? 'actions.fit.contain'
-                      : 'actions.fit.cover'
-                    ) | translate)
-              "
-              (click.zoneless)="toggleImageFit()"
-            >
-              Toggle image fit
-            </button>
+
+            <div class="flex flex-wrap gap-2 items-center">
+              @if (global.isAdmin()) {
+                <div class="flex gap-1">
+                  <button
+                    tuiIconButton
+                    size="s"
+                    appearance="neutral"
+                    iconStart="@tui.square-pen"
+                    class="pointer-events-auto !rounded-full"
+                    (click.zoneless)="openEditTopo(t)"
+                    [tuiHint]="
+                      global.isMobile() ? null : ('actions.edit' | translate)
+                    "
+                  >
+                    {{ 'actions.edit' | translate }}
+                  </button>
+                  <button
+                    tuiIconButton
+                    size="s"
+                    appearance="negative"
+                    iconStart="@tui.trash"
+                    class="pointer-events-auto !rounded-full"
+                    (click.zoneless)="deleteTopo(t)"
+                    [tuiHint]="
+                      global.isMobile() ? null : ('actions.delete' | translate)
+                    "
+                  >
+                    {{ 'actions.delete' | translate }}
+                  </button>
+                </div>
+              }
+              <!-- Toggle image fit button -->
+              @let imgFit = imageFit();
+              <button
+                tuiIconButton
+                size="s"
+                appearance="primary-grayscale"
+                class="pointer-events-auto !rounded-full"
+                [iconStart]="
+                  imgFit === 'cover'
+                    ? '@tui.unfold-horizontal'
+                    : '@tui.unfold-vertical'
+                "
+                [tuiHint]="
+                  global.isMobile()
+                    ? null
+                    : ((imgFit === 'cover'
+                        ? 'actions.fit.contain'
+                        : 'actions.fit.cover'
+                      ) | translate)
+                "
+                (click.zoneless)="toggleImageFit()"
+              >
+                Toggle image fit
+              </button>
+            </div>
           </div>
 
           <div
@@ -194,6 +208,11 @@ export interface TopoRouteRow {
                         @case ('height') {
                           {{ 'routes.height' | translate }}
                         }
+                        @case ('actions') {
+                          @if (!global.isAdmin()) {
+                            {{ 'labels.actions' | translate }}
+                          }
+                        }
                       }
                     </th>
                   }
@@ -231,42 +250,122 @@ export interface TopoRouteRow {
                             {{ item.height ? item.height + 'm' : '-' }}
                           }
                           @case ('actions') {
-                            @if (global.isAdmin()) {
-                              <div class="flex gap-1 justify-center">
+                            <div class="flex gap-1 justify-center">
+                              @if (!item.climbed) {
                                 <button
                                   tuiIconButton
                                   size="s"
                                   appearance="neutral"
-                                  iconStart="@tui.square-pen"
+                                  iconStart="@tui.circle-plus"
                                   class="!rounded-full"
                                   [tuiHint]="
                                     global.isMobile()
                                       ? null
-                                      : ('actions.edit' | translate)
+                                      : ('ascent.new' | translate)
                                   "
-                                  (click.zoneless)="
-                                    openEditTopoRoute(item._ref)
-                                  "
+                                  (click.zoneless)="onLogAscent(item._ref)"
                                 >
-                                  {{ 'actions.edit' | translate }}
+                                  {{ 'ascent.new' | translate }}
                                 </button>
+                              } @else if (
+                                item._ref.route.own_ascent;
+                                as ascentToEdit
+                              ) {
+                                <tui-avatar
+                                  class="cursor-pointer !text-white"
+                                  [style.background]="
+                                    ascentInfo()[
+                                      ascentToEdit?.type || 'default'
+                                    ].background
+                                  "
+                                  [src]="
+                                    ascentInfo()[
+                                      ascentToEdit?.type || 'default'
+                                    ].icon
+                                  "
+                                  [tuiHint]="
+                                    global.isMobile()
+                                      ? null
+                                      : ('ascent.edit' | translate)
+                                  "
+                                  (click.zoneless)="onEditAscent(ascentToEdit)"
+                                >
+                                  <tui-icon
+                                    [icon]="
+                                      ascentInfo()[
+                                        ascentToEdit?.type || 'default'
+                                      ].icon
+                                    "
+                                  />
+                                </tui-avatar>
+                              }
+                              @if (!item.climbed) {
                                 <button
                                   tuiIconButton
                                   size="s"
-                                  appearance="negative"
-                                  iconStart="@tui.unlink"
+                                  [appearance]="
+                                    item.project ? 'primary' : 'neutral'
+                                  "
+                                  iconStart="@tui.bookmark"
                                   class="!rounded-full"
                                   [tuiHint]="
                                     global.isMobile()
                                       ? null
-                                      : ('actions.unlink' | translate)
+                                      : ((item.project
+                                          ? 'actions.project.remove'
+                                          : 'actions.project.add'
+                                        ) | translate)
                                   "
-                                  (click.zoneless)="deleteTopoRoute(item._ref)"
+                                  (click.zoneless)="onToggleProject(item)"
                                 >
-                                  {{ 'actions.unlink' | translate }}
+                                  {{
+                                    (item.project
+                                      ? 'actions.project.remove'
+                                      : 'actions.project.add'
+                                    ) | translate
+                                  }}
                                 </button>
-                              </div>
-                            }
+                              }
+
+                              @if (global.isAdmin()) {
+                                <div class="flex gap-1">
+                                  <button
+                                    tuiIconButton
+                                    size="s"
+                                    appearance="neutral"
+                                    iconStart="@tui.square-pen"
+                                    class="!rounded-full"
+                                    [tuiHint]="
+                                      global.isMobile()
+                                        ? null
+                                        : ('actions.edit' | translate)
+                                    "
+                                    (click.zoneless)="
+                                      openEditTopoRoute(item._ref)
+                                    "
+                                  >
+                                    {{ 'actions.edit' | translate }}
+                                  </button>
+                                  <button
+                                    tuiIconButton
+                                    size="s"
+                                    appearance="negative"
+                                    iconStart="@tui.unlink"
+                                    class="!rounded-full"
+                                    [tuiHint]="
+                                      global.isMobile()
+                                        ? null
+                                        : ('actions.unlink' | translate)
+                                    "
+                                    (click.zoneless)="
+                                      deleteTopoRoute(item._ref)
+                                    "
+                                  >
+                                    {{ 'actions.unlink' | translate }}
+                                  </button>
+                                </div>
+                              }
+                            </div>
                           }
                         }
                       </td>
@@ -310,7 +409,7 @@ export class TopoComponent {
 
   protected readonly global = inject(GlobalData);
   private readonly topos = inject(ToposService);
-  private readonly location = inject(Location);
+  private readonly routesService = inject(RoutesService);
   private readonly router = inject(Router);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
@@ -348,15 +447,23 @@ export class TopoComponent {
   protected readonly tableData: Signal<TopoRouteRow[]> = computed(() => {
     const topo = this.topo();
     if (!topo) return [];
-    return topo.topo_routes.map((tr) => ({
-      index: tr.number,
-      name: tr.route.name,
-      grade: tr.route.grade,
-      height: tr.route.height || null,
-      slug: tr.route.slug,
-      link: ['/area', this.areaSlug(), this.cragSlug(), tr.route.slug],
-      _ref: tr,
-    }));
+    return topo.topo_routes.map((tr) => {
+      const r = tr.route as unknown as RouteWithExtras;
+      const climbed = !!r.own_ascent;
+      const project = !!r.project;
+
+      return {
+        index: tr.number,
+        name: tr.route.name,
+        grade: tr.route.grade,
+        height: tr.route.height || null,
+        slug: tr.route.slug,
+        link: ['/area', this.areaSlug(), this.cragSlug(), tr.route.slug],
+        climbed,
+        project,
+        _ref: tr,
+      };
+    });
   });
 
   protected readonly sorters: Record<string, TuiComparator<TopoRouteRow>> = {
@@ -392,8 +499,57 @@ export class TopoComponent {
     this.global.toggleLikeCrag(this.cragSlug());
   }
 
-  goBack(): void {
-    this.location.back();
+  protected readonly ascentInfo = computed<
+    Record<string, { icon: string; background: string }>
+  >(() => ({
+    os: {
+      icon: '@tui.eye',
+      background: 'var(--tui-status-positive)',
+    },
+    f: {
+      icon: '@tui.zap',
+      background: 'var(--tui-status-warning)',
+    },
+    rp: {
+      icon: '@tui.circle',
+      background: 'var(--tui-status-negative)',
+    },
+    default: {
+      icon: '@tui.circle',
+      background: 'var(--tui-neutral-fill)',
+    },
+  }));
+
+  protected onLogAscent(tr: TopoRouteWithRoute): void {
+    const route = tr.route as unknown as RouteWithExtras;
+    this.dialogs
+      .open<RouteAscentDto>(new PolymorpheusComponent(AscentFormComponent), {
+        label: this.translate.instant('ascent.new'),
+        size: 's',
+        data: {
+          routeId: route.id,
+          routeName: route.name,
+          routeGrade: route.grade,
+        },
+      })
+      .subscribe();
+  }
+
+  protected onEditAscent(ascent: RouteAscentDto): void {
+    this.dialogs
+      .open<RouteAscentDto>(new PolymorpheusComponent(AscentFormComponent), {
+        label: this.translate.instant('ascent.edit'),
+        size: 's',
+        data: {
+          ascent,
+        },
+      })
+      .subscribe();
+  }
+
+  protected onToggleProject(item: TopoRouteRow): void {
+    void this.routesService.toggleRouteProject(item._ref.route_id);
+    item.project = !item.project;
   }
 
   protected toggleImageFit(): void {

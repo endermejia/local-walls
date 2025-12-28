@@ -138,18 +138,38 @@ import { remToPx, mapLocationUrl } from '../utils';
                   tuiSubtitle
                   tuiLink
                   appearance="action-grayscale"
-                  class="!text-xl"
+                  class="!text-xl w-fit"
                   [routerLink]="['/area', c.area_slug]"
                   (click.zoneless)="$event.stopPropagation()"
                   >{{ c.area_name }}</a
                 >
-                <div class="text-xl h-full mb-7 content-center">
-                  {{ c.routes_count }}
-                  {{
-                    'labels.' + (c.routes_count === 1 ? 'route' : 'routes')
-                      | translate
-                      | lowercase
-                  }}
+                <div
+                  class="text-xl h-full mb-7 content-center flex items-center gap-4"
+                >
+                  <div>
+                    {{ c.routes_count }}
+                    {{
+                      'labels.' + (c.routes_count === 1 ? 'route' : 'routes')
+                        | translate
+                        | lowercase
+                    }}
+                  </div>
+                  @if (c.approach) {
+                    <div
+                      class="flex w-fit items-center gap-1 opacity-70"
+                      [tuiHint]="
+                        global.isMobile()
+                          ? null
+                          : ('labels.approach' | translate)
+                      "
+                    >
+                      <tui-icon icon="@tui.footprints" />
+                      <span class="whitespace-nowrap">
+                        {{ c.approach }}
+                        min.
+                      </span>
+                    </div>
+                  }
                 </div>
               </div>
               <div class="flex items-center">
@@ -176,27 +196,26 @@ import { remToPx, mapLocationUrl } from '../utils';
             <header tuiHeader>
               <h2 tuiTitle>{{ p.name }}</h2>
               @if (p.latitude && p.longitude) {
-                <div class="flex gap-2">
-                  <a
+                <div class="flex flex-wrap gap-2">
+                  <button
                     appearance="flat"
-                    size="s"
-                    [href]="
-                      mapLocationUrl({
-                        latitude: p.latitude,
-                        longitude: p.longitude,
-                      })
+                    size="m"
+                    tuiButton
+                    type="button"
+                    class="lw-icon-50"
+                    [iconStart]="'/image/google-maps.svg'"
+                    (click.zoneless)="
+                      openExternal(
+                        mapLocationUrl({
+                          latitude: p.latitude,
+                          longitude: p.longitude,
+                        })
+                      )
                     "
-                    target="_blank"
-                    rel="noopener noreferrer"
                     [attr.aria-label]="'actions.openGoogleMaps' | translate"
-                    [tuiHint]="'actions.openGoogleMaps' | translate"
                   >
-                    <img
-                      src="/image/google-maps.svg"
-                      class="h-[1.5em] w-[1.5em]"
-                      alt=""
-                    />
-                  </a>
+                    {{ 'actions.openGoogleMaps' | translate }}
+                  </button>
                 </div>
               }
             </header>
@@ -204,7 +223,12 @@ import { remToPx, mapLocationUrl } from '../utils';
               class="text-sm opacity-80 grid grid-cols-1 sm:grid-cols-2 gap-2"
             >
               @if (p.size) {
-                <div class="flex items-center gap-1">
+                <div
+                  class="flex w-fit items-center gap-1"
+                  [tuiHint]="
+                    global.isMobile() ? null : ('labels.capacity' | translate)
+                  "
+                >
                   <tui-icon icon="@tui.parking-square" />
                   <span class="text-lg">
                     x
@@ -341,7 +365,7 @@ import { remToPx, mapLocationUrl } from '../utils';
                             tuiLink
                             appearance="action-grayscale"
                             [routerLink]="['/area', c.area_slug]"
-                            class="!text-xl"
+                            class="!text-xl w-fit"
                             (click.zoneless)="$event.stopPropagation()"
                             >{{ c.area_name }}</a
                           >
@@ -607,6 +631,12 @@ export class ExploreComponent {
     this.global.selectedMapCragItem.set(null);
     this.global.selectedMapParkingItem.set(null);
     this.setBottomSheet('close');
+  }
+
+  protected openExternal(url: string): void {
+    if (isPlatformBrowser(this._platformId)) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
   }
 
   protected openFilters(): void {

@@ -10,7 +10,7 @@ import {
   resource,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { isPlatformBrowser, Location, DecimalPipe } from '@angular/common';
+import { isPlatformBrowser, DecimalPipe, Location } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiLoader, TuiButton, TuiHint, TuiIcon } from '@taiga-ui/core';
 import {
@@ -65,7 +65,6 @@ import { handleErrorToast } from '../utils';
             class="w-full"
             [title]="r.name"
             [liked]="r.liked"
-            (back)="goBack()"
             (toggleLike)="onToggleLike()"
           />
           @if (global.isAdmin()) {
@@ -323,10 +322,6 @@ export class RouteComponent {
     });
   }
 
-  goBack(): void {
-    this.location.back();
-  }
-
   readonly gradeLabel = computed(() => {
     const grade = this.route()?.grade;
     return grade !== undefined
@@ -444,7 +439,7 @@ export class RouteComponent {
         if (!confirmed) return;
         this.routesService
           .delete(r.id)
-          .then(() => this.goBack())
+          .then(() => this.location.back())
           .catch((err) => handleErrorToast(err, this.toast, this.translate));
       });
   }

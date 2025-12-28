@@ -160,6 +160,7 @@ export class RoutesService {
       if (error) throw error;
       this.global.cragRoutesResource.reload();
       this.global.routeDetailResource.reload();
+      this.global.topoDetailResource.reload();
       return data as boolean;
     } catch (e) {
       console.error('[RoutesService] toggleRouteLike error', e);
@@ -182,6 +183,7 @@ export class RoutesService {
       if (error) throw error;
       this.global.cragRoutesResource.reload();
       this.global.routeDetailResource.reload();
+      this.global.topoDetailResource.reload();
     } catch (e) {
       console.error('[RoutesService] removeRouteProject error', e);
     }
@@ -200,6 +202,7 @@ export class RoutesService {
       if (error) throw error;
       this.global.cragRoutesResource.reload();
       this.global.routeDetailResource.reload();
+      this.global.topoDetailResource.reload();
       return data as boolean;
     } catch (e) {
       console.error('[RoutesService] toggleRouteProject error', e);
