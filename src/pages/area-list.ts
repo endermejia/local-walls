@@ -3,13 +3,12 @@ import {
   Component,
   computed,
   inject,
-  PLATFORM_ID,
   signal,
   WritableSignal,
 } from '@angular/core';
 import { LowerCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { AreasService, GlobalData } from '../services';
+import { AreasService, GlobalData, FiltersService } from '../services';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
   TuiButton,
@@ -17,20 +16,19 @@ import {
   TuiTextfield,
   TuiTitle,
   TuiSurface,
-  TuiIcon,
   TuiHint,
 } from '@taiga-ui/core';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslateService } from '@ngx-translate/core';
-import { FilterDialog, FilterDialogComponent } from './filter-dialog';
 import {
   TuiAvatar,
   TuiBadgedContentComponent,
   TuiBadgeNotification,
 } from '@taiga-ui/kit';
 import { ChartRoutesByGradeComponent } from '../components';
+import { EmptyStateComponent } from '../components';
 import { AreaFormComponent } from './area-form';
 import {
   ORDERED_GRADE_VALUES,
@@ -53,10 +51,10 @@ import {
     TuiHeader,
     LowerCasePipe,
     ChartRoutesByGradeComponent,
+    EmptyStateComponent,
     TuiAvatar,
     TuiBadgeNotification,
     TuiBadgedContentComponent,
-    TuiIcon,
     TuiHint,
   ],
   template: `
@@ -95,7 +93,7 @@ import {
       <div class="mb-4 flex items-end gap-2">
         <tui-textfield class="grow block" tuiTextfieldSize="l">
           <label tuiLabel for="areas-search">{{
-            'areas.searchPlaceholder' | translate
+            'labels.searchPlaceholder' | translate
           }}</label>
           <input
             tuiTextfield
@@ -154,11 +152,8 @@ import {
               </div>
             </div>
           } @empty {
-            <div
-              class="flex flex-col items-center justify-center gap-2 opacity-50 col-span-full py-10"
-            >
-              <tui-icon icon="@tui.package-open" class="text-4xl" />
-              <p>{{ 'labels.empty' | translate }}</p>
+            <div class="col-span-full">
+              <app-empty-state />
             </div>
           }
         </div>
@@ -173,11 +168,11 @@ import {
   host: { class: 'overflow-auto' },
 })
 export class AreaListComponent {
-  private readonly platformId = inject(PLATFORM_ID);
   private readonly areasService = inject(AreasService);
   protected readonly global = inject(GlobalData);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
+  private readonly filtersService = inject(FiltersService);
 
   readonly loading = computed(() => this.areasService.loading());
   readonly areas = computed(() => this.global.areaList());
@@ -260,38 +255,7 @@ export class AreaListComponent {
   }
 
   openFilters(): void {
-    const data = {
-      categories: this.selectedCategories(),
-      gradeRange: this.selectedGradeRange(),
-      selectedShade: this.selectedShade(),
-      showCategories: true,
-      showShade: true,
-      showGradeRange: true,
-    } as FilterDialog;
-    this.dialogs
-      .open<FilterDialog>(new PolymorpheusComponent(FilterDialogComponent), {
-        label: this.translate.instant('labels.filters'),
-        size: 'l',
-        data,
-      })
-      .subscribe((result) => {
-        if (!result) return;
-        const [a, b] = result.gradeRange ?? [
-          0,
-          ORDERED_GRADE_VALUES.length - 1,
-        ];
-        const clamp = (v: number) =>
-          Math.max(0, Math.min(ORDERED_GRADE_VALUES.length - 1, Math.round(v)));
-        const lo = clamp(a);
-        const hi = clamp(b);
-        this.selectedGradeRange.set([Math.min(lo, hi), Math.max(lo, hi)] as [
-          number,
-          number,
-        ]);
-        // Categories and shade/sun
-        this.selectedCategories.set(result.categories ?? []);
-        this.selectedShade.set(result.selectedShade ?? []);
-      });
+    this.filtersService.openFilters();
   }
 
   openCreateArea(): void {

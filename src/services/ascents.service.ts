@@ -1,4 +1,4 @@
-import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { computed, inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { SupabaseService } from './supabase.service';
 import { GlobalData } from './global-data';
@@ -6,13 +6,60 @@ import type {
   RouteAscentDto,
   RouteAscentInsertDto,
   RouteAscentUpdateDto,
+  AscentDialogData,
 } from '../models';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { TranslateService } from '@ngx-translate/core';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import AscentFormComponent from '../pages/ascent-form';
+import { Observable, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AscentsService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly global = inject(GlobalData);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
+
+  readonly ascentInfo = computed<
+    Record<string, { icon: string; background: string }>
+  >(() => ({
+    os: {
+      icon: '@tui.eye',
+      background: 'var(--tui-status-positive)',
+    },
+    f: {
+      icon: '@tui.zap',
+      background: 'var(--tui-status-warning)',
+    },
+    rp: {
+      icon: '@tui.circle',
+      background: 'var(--tui-status-negative)',
+    },
+    default: {
+      icon: '@tui.circle',
+      background: 'var(--tui-neutral-fill)',
+    },
+  }));
+
+  openAscentForm(data: AscentDialogData): Observable<boolean> {
+    return this.dialogs
+      .open<boolean>(new PolymorpheusComponent(AscentFormComponent), {
+        label: this.translate.instant(
+          data.ascentData ? 'ascent.edit' : 'ascent.new',
+        ),
+        size: 'm',
+        data,
+      })
+      .pipe(
+        tap((res) => {
+          if (res === null || res) {
+            void this.refreshResources();
+          }
+        }),
+      );
+  }
 
   async create(
     payload: Omit<RouteAscentInsertDto, 'created_at' | 'id'>,

@@ -5,6 +5,9 @@ import {
   input,
   InputSignal,
   effect,
+  signal,
+  computed,
+  WritableSignal,
 } from '@angular/core';
 import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
@@ -16,27 +19,41 @@ import {
   TuiTitle,
   TuiButton,
   TuiHint,
-  TuiIcon,
+  TuiTextfield,
+  TuiLabel,
 } from '@taiga-ui/core';
-import { TuiAvatar, TUI_CONFIRM, type TuiConfirmData } from '@taiga-ui/kit';
+import {
+  TuiAvatar,
+  TUI_CONFIRM,
+  type TuiConfirmData,
+  TuiBadgedContent,
+  TuiBadgeNotification,
+} from '@taiga-ui/kit';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { Router, RouterLink } from '@angular/router';
 import { TuiHeader } from '@taiga-ui/layout';
-import { AreasService, GlobalData } from '../services';
+import { AreasService, GlobalData, FiltersService } from '../services';
 import {
   ChartRoutesByGradeComponent,
+  EmptyStateComponent,
   SectionHeaderComponent,
 } from '../components';
 import { TuiToastService } from '@taiga-ui/kit';
 import { AreaFormComponent } from './area-form';
 import { CragFormComponent } from './crag-form';
 import { handleErrorToast } from '../utils';
+import {
+  ORDERED_GRADE_VALUES,
+  normalizeRoutesByGrade,
+  ClimbingKinds,
+} from '../models';
 
 @Component({
   selector: 'app-area',
   standalone: true,
   imports: [
+    EmptyStateComponent,
     TuiCardLarge,
     TranslatePipe,
     TuiSurface,
@@ -50,7 +67,10 @@ import { handleErrorToast } from '../utils';
     TuiButton,
     TuiHint,
     TuiAvatar,
-    TuiIcon,
+    TuiTextfield,
+    TuiLabel,
+    TuiBadgedContent,
+    TuiBadgeNotification,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -95,12 +115,12 @@ import { handleErrorToast } from '../utils';
           }
         </div>
 
-        <div class="mb-2 flex justify-end">
+        <div class="mb-4 flex justify-end">
           <app-chart-routes-by-grade [grades]="area.grades" />
         </div>
 
         <!-- Crags list -->
-        @let crags = global.cragsList();
+        @let crags = filteredCrags();
         @let cragsCount = crags.length;
         <div class="flex items-center justify-between gap-2">
           <h2 class="text-2xl font-semibold mb-2">
@@ -125,12 +145,45 @@ import { handleErrorToast } from '../utils';
               size="m"
               type="button"
               class="my-4"
-              (click)="openCreateCrag()"
+              (click.zoneless)="openCreateCrag()"
             >
               {{ 'crags.new' | translate }}
             </button>
           }
         </div>
+
+        <div class="mb-4 flex items-end gap-2">
+          <tui-textfield class="grow block" tuiTextfieldSize="l">
+            <label tuiLabel for="crags-search">{{
+              'labels.searchPlaceholder' | translate
+            }}</label>
+            <input
+              tuiTextfield
+              #cragsSearch
+              id="crags-search"
+              [value]="query()"
+              (input.zoneless)="onQuery(cragsSearch.value)"
+            />
+          </tui-textfield>
+          <tui-badged-content>
+            @if (hasActiveFilters()) {
+              <tui-badge-notification size="s" tuiSlot="top" />
+            }
+            <button
+              tuiButton
+              appearance="textfield"
+              size="l"
+              type="button"
+              iconStart="@tui.sliders-horizontal"
+              [attr.aria-label]="'labels.filters' | translate"
+              [tuiHint]="
+                global.isMobile() ? null : ('labels.filters' | translate)
+              "
+              (click.zoneless)="openFilters()"
+            ></button>
+          </tui-badged-content>
+        </div>
+
         <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
           @for (crag of crags; track crag.slug) {
             <div
@@ -156,12 +209,7 @@ import { handleErrorToast } from '../utils';
               </div>
             </div>
           } @empty {
-            <div
-              class="flex flex-col items-center justify-center gap-2 opacity-50 col-span-full py-10"
-            >
-              <tui-icon icon="@tui.package-open" class="text-4xl" />
-              <p>{{ 'labels.empty' | translate }}</p>
-            </div>
+            <app-empty-state class="col-span-full" />
           }
         </div>
       } @else {
@@ -180,10 +228,83 @@ export class AreaComponent {
   protected readonly global = inject(GlobalData);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
+  private readonly filtersService = inject(FiltersService);
   private readonly router = inject(Router);
   private readonly toast = inject(TuiToastService);
 
   areaSlug: InputSignal<string> = input.required<string>();
+  readonly query: WritableSignal<string> = signal('');
+  readonly selectedGradeRange = this.global.areaListGradeRange;
+  readonly selectedCategories = this.global.areaListCategories;
+  readonly selectedShade = this.global.areaListShade;
+
+  readonly hasActiveFilters = computed(() => {
+    const [lo, hi] = this.selectedGradeRange();
+    const gradeActive = !(lo === 0 && hi === ORDERED_GRADE_VALUES.length - 1);
+    return (
+      gradeActive ||
+      this.selectedCategories().length > 0 ||
+      this.selectedShade().length > 0
+    );
+  });
+
+  readonly filteredCrags = computed(() => {
+    const q = this.query().trim().toLowerCase();
+    const [minIdx, maxIdx] = this.selectedGradeRange();
+    const allowedLabels = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1);
+    const list = this.global.cragsList();
+
+    const textMatches = (c: (typeof list)[number]) =>
+      !q ||
+      c.name.toLowerCase().includes(q) ||
+      c.slug.toLowerCase().includes(q);
+
+    const gradeMatches = (c: (typeof list)[number]) => {
+      const grades = normalizeRoutesByGrade(c.grades);
+      for (const label of allowedLabels) {
+        if (grades[label] && Number(grades[label]) > 0) {
+          return true;
+        }
+      }
+      return allowedLabels.length === ORDERED_GRADE_VALUES.length;
+    };
+
+    const categories = this.selectedCategories();
+    const kindMatches = (c: (typeof list)[number]) => {
+      if (!categories.length) return true;
+      const idxToKind: Record<number, string> = {
+        0: ClimbingKinds.SPORT,
+        1: ClimbingKinds.BOULDER,
+        2: ClimbingKinds.MULTIPITCH,
+      };
+      const allowedKinds = categories.map((i) => idxToKind[i]).filter(Boolean);
+      return c.climbing_kind?.some((k) => allowedKinds.includes(k));
+    };
+
+    const shadeKeys = this.selectedShade();
+    const shadeMatches = (c: (typeof list)[number]) => {
+      if (!shadeKeys.length) return true;
+      return shadeKeys.some((key) => {
+        switch (key) {
+          case 'shade_morning':
+            return c.shade_morning;
+          case 'shade_afternoon':
+            return c.shade_afternoon;
+          case 'shade_all_day':
+            return c.shade_all_day;
+          case 'sun_all_day':
+            return c.sun_all_day;
+          default:
+            return true;
+        }
+      });
+    };
+
+    return list.filter(
+      (c) =>
+        textMatches(c) && gradeMatches(c) && kindMatches(c) && shadeMatches(c),
+    );
+  });
 
   constructor() {
     effect(() => {
@@ -191,6 +312,14 @@ export class AreaComponent {
       this.global.resetDataByPage('area');
       this.global.selectedAreaSlug.set(slug);
     });
+  }
+
+  onQuery(v: string) {
+    this.query.set(v);
+  }
+
+  openFilters(): void {
+    this.filtersService.openFilters();
   }
 
   onToggleLike(): void {

@@ -16,13 +16,7 @@ import {
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
-import {
-  TuiButton,
-  TuiHint,
-  TuiIcon,
-  TuiScrollbar,
-  TuiTextfield,
-} from '@taiga-ui/core';
+import { TuiButton, TuiHint, TuiScrollbar, TuiTextfield } from '@taiga-ui/core';
 import {
   TuiAvatar,
   TuiSkeleton,
@@ -34,6 +28,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { GlobalData, ParkingsService } from '../services';
+import { EmptyStateComponent } from '../components';
 import { ParkingDto } from '../models';
 import { handleErrorToast } from '../utils';
 import ParkingFormComponent from './parking-form';
@@ -42,6 +37,7 @@ import ParkingFormComponent from './parking-form';
   selector: 'app-admin-parkings-list',
   standalone: true,
   imports: [
+    EmptyStateComponent,
     FormsModule,
     TuiAvatar,
     TuiScrollbar,
@@ -52,7 +48,6 @@ import ParkingFormComponent from './parking-form';
     TranslatePipe,
     TuiButton,
     TuiHint,
-    TuiIcon,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -191,13 +186,8 @@ import ParkingFormComponent from './parking-form';
                 </tr>
               } @empty {
                 <tr tuiTr>
-                  <td [attr.colspan]="columns.length" tuiTd class="!py-10">
-                    <div
-                      class="flex flex-col items-center justify-center gap-2 opacity-50"
-                    >
-                      <tui-icon icon="@tui.package-open" class="text-4xl" />
-                      <p>{{ 'labels.empty' | translate }}</p>
-                    </div>
+                  <td [attr.colspan]="columns.length" tuiTd>
+                    <app-empty-state />
                   </td>
                 </tr>
               }

@@ -13,3 +13,4 @@ export * from './routes.service';
 export * from './ascents.service';
 export * from './topos.service';
 export * from './parkings.service';
+export * from './filters.service';

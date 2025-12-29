@@ -15,7 +15,7 @@ import { TuiButton, TuiFallbackSrcPipe, TuiHint } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
-import { SupabaseService, GlobalData } from '../services';
+import { SupabaseService, GlobalData, AscentsService } from '../services';
 import {
   RoutesTableComponent,
   RouteItem,
@@ -27,7 +27,6 @@ import {
   RouteAscentWithExtras,
   RouteDto,
 } from '../models';
-import AscentFormComponent from './ascent-form';
 import { UserProfileConfigComponent } from './user-profile-config';
 
 interface ProjectResponse {
@@ -191,6 +190,7 @@ interface AscentResponse extends RouteAscentDto {
 export class UserProfileComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
+  private readonly ascentsService = inject(AscentsService);
   protected readonly global = inject(GlobalData);
   private readonly dialogs = inject(TuiDialogService);
   protected readonly countriesNames$ = inject(TUI_COUNTRIES);
@@ -435,21 +435,20 @@ export class UserProfileComponent {
   }
 
   onLogAscent(route: RouteWithExtras): void {
-    this.dialogs
-      .open(new PolymorpheusComponent(AscentFormComponent), {
-        label: this.translate.instant('ascent.new'),
-        data: { routeId: route.id, grade: route.grade },
-        size: 'm',
+    this.ascentsService
+      .openAscentForm({
+        routeId: route.id,
+        routeName: route.name,
+        grade: route.grade,
       })
       .subscribe();
   }
 
-  onEditAscent(ascent: RouteAscentDto): void {
-    this.dialogs
-      .open(new PolymorpheusComponent(AscentFormComponent), {
-        label: this.translate.instant('ascent.edit'),
-        data: { routeId: ascent.route_id, ascentData: ascent },
-        size: 'm',
+  onEditAscent(ascent: RouteAscentWithExtras): void {
+    this.ascentsService
+      .openAscentForm({
+        routeId: ascent.route_id,
+        ascentData: ascent,
       })
       .subscribe();
   }

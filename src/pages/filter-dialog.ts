@@ -144,10 +144,9 @@ export class FilterDialogComponent {
   protected readonly form = new FormGroup({
     filters: new FormControl<string[]>([]),
     shade: new FormControl<string[]>([]),
-    gradeRange: new FormControl<[number, number]>([
-      0 as number,
-      0 as number,
-    ] as [number, number]),
+    gradeRange: new FormControl<[number, number]>([0, 0], {
+      nonNullable: true,
+    }),
   });
 
   // Bounds for indices
@@ -169,7 +168,7 @@ export class FilterDialogComponent {
       const idx = Math.round(
         (ORDERED_GRADE_VALUES.length - 1) * (percent / 100),
       );
-      return [percent, idx] as [number, number];
+      return [percent, idx] satisfies [number, number];
     }),
     [100, ORDERED_GRADE_VALUES.length - 1],
   ];
@@ -202,7 +201,7 @@ export class FilterDialogComponent {
           .filter(Boolean);
         this.form.patchValue({ shade: selectedLabels });
       }
-      if (Array.isArray(d.gradeRange)) {
+      if (Array.isArray(d.gradeRange) && d.gradeRange.length === 2) {
         const sanitized = this.sanitizeRange(d.gradeRange as [number, number]);
         this.form.patchValue({ gradeRange: sanitized });
         this.gradeRange.set(sanitized);
@@ -219,13 +218,10 @@ export class FilterDialogComponent {
       this._i18nTick.update((v) => v + 1),
     );
 
-    const grCtrl = this.form.get('gradeRange') as FormControl<
-      [number, number] | null
-    >;
-    const initial = grCtrl.value ?? [this.minIndex, this.maxIndex];
-    const sanitizedInitial = this.sanitizeRange(initial as [number, number]);
+    const grCtrl = this.form.controls.gradeRange;
+    const initial = grCtrl.value;
+    const sanitizedInitial = this.sanitizeRange(initial);
     if (
-      !grCtrl.value ||
       grCtrl.value[0] !== sanitizedInitial[0] ||
       grCtrl.value[1] !== sanitizedInitial[1]
     ) {
@@ -233,10 +229,9 @@ export class FilterDialogComponent {
     }
     this.gradeRange.set(sanitizedInitial);
     grCtrl.valueChanges.subscribe((val) => {
-      const arr: [number, number] = Array.isArray(val)
-        ? (val as [number, number])
-        : ([this.minIndex, this.maxIndex] as [number, number]);
-      this.gradeRange.set(this.sanitizeRange(arr));
+      if (val) {
+        this.gradeRange.set(this.sanitizeRange(val));
+      }
     });
   }
 

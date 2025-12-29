@@ -23,18 +23,17 @@ import {
   TuiLink,
   TuiAppearance,
 } from '@taiga-ui/core';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslateService } from '@ngx-translate/core';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
-import { SupabaseService, GlobalData } from '../services';
+import { SupabaseService, GlobalData, AscentsService } from '../services';
 import { AvatarGradeComponent } from './avatar-grade';
+import { EmptyStateComponent } from './empty-state';
 import {
   RouteAscentWithExtras,
   VERTICAL_LIFE_TO_LABEL,
   VERTICAL_LIFE_GRADES,
 } from '../models';
-import AscentFormComponent from '../pages/ascent-form';
 
 export interface AscentsTableRow {
   key: string;
@@ -82,6 +81,7 @@ export interface AscentsTableRow {
     TuiLink,
     TuiAppearance,
     AvatarGradeComponent,
+    EmptyStateComponent,
   ],
   template: `
     <div class="overflow-auto">
@@ -235,7 +235,8 @@ export interface AscentsTableRow {
                         <tui-avatar
                           class="!text-white"
                           [style.background]="
-                            ascentInfo()[item.type || 'default'].background
+                            ascentsService.ascentInfo()[item.type || 'default']
+                              .background
                           "
                           [tuiHint]="
                             global.isMobile()
@@ -245,7 +246,11 @@ export interface AscentsTableRow {
                           "
                         >
                           <tui-icon
-                            [icon]="ascentInfo()[item.type || 'default'].icon"
+                            [icon]="
+                              ascentsService.ascentInfo()[
+                                item.type || 'default'
+                              ].icon
+                            "
                           />
                         </tui-avatar>
                       </div>
@@ -256,13 +261,8 @@ export interface AscentsTableRow {
             </tr>
           } @empty {
             <tr tuiTr>
-              <td [attr.colspan]="columns().length" tuiTd class="!py-10">
-                <div
-                  class="flex flex-col items-center justify-center gap-2 opacity-50"
-                >
-                  <tui-icon icon="@tui.package-open" class="text-4xl" />
-                  <p>{{ 'labels.empty' | translate }}</p>
-                </div>
+              <td [attr.colspan]="columns().length" tuiTd>
+                <app-empty-state />
               </td>
             </tr>
           }
@@ -275,6 +275,7 @@ export interface AscentsTableRow {
 export class AscentsTableComponent {
   private readonly supabase = inject(SupabaseService);
   protected readonly global = inject(GlobalData);
+  protected readonly ascentsService = inject(AscentsService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
 
@@ -359,27 +360,6 @@ export class AscentsTableComponent {
     });
   });
 
-  protected readonly ascentInfo = computed<
-    Record<string, { icon: string; background: string }>
-  >(() => ({
-    os: {
-      icon: '@tui.eye',
-      background: 'var(--tui-status-positive)',
-    },
-    f: {
-      icon: '@tui.zap',
-      background: 'var(--tui-status-warning)',
-    },
-    rp: {
-      icon: '@tui.circle',
-      background: 'var(--tui-status-negative)',
-    },
-    default: {
-      icon: '@tui.circle',
-      background: 'var(--tui-neutral-fill)',
-    },
-  }));
-
   protected readonly sorters: Record<string, TuiComparator<AscentsTableRow>> = {
     user: (a, b) => tuiDefaultSort(a.user_name, b.user_name),
     route: (a, b) => tuiDefaultSort(a.route_name, b.route_name),
@@ -397,11 +377,11 @@ export class AscentsTableComponent {
   }
 
   protected onEdit(item: AscentsTableRow): void {
-    this.dialogs
-      .open<boolean>(new PolymorpheusComponent(AscentFormComponent), {
-        label: this.translate.instant('actions.edit'),
-        data: { ascentData: item._ref },
-        size: 'm',
+    this.ascentsService
+      .openAscentForm({
+        routeId: item._ref.route_id,
+        routeName: item.route_name,
+        ascentData: item._ref,
       })
       .subscribe((success) => {
         if (success) {

@@ -28,7 +28,7 @@ import {
   AscentsTableComponent,
   ChartAscentsByGradeComponent,
 } from '../components';
-import { GlobalData, RoutesService } from '../services';
+import { GlobalData, RoutesService, AscentsService } from '../services';
 import {
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
@@ -36,7 +36,6 @@ import {
   RouteAscentWithExtras,
 } from '../models';
 import { RouteFormComponent } from './route-form';
-import AscentFormComponent from '../pages/ascent-form';
 import { handleErrorToast } from '../utils';
 
 @Component({
@@ -129,14 +128,19 @@ import { handleErrorToast } from '../utils';
                 <button
                   tuiButton
                   [style.background]="
-                    ascentInfo()[r.own_ascent.type || 'default'].background
+                    ascentsService.ascentInfo()[r.own_ascent.type || 'default']
+                      .background
                   "
                   class="!text-white"
                   size="m"
-                  (click)="onEditAscent(r.own_ascent)"
+                  (click)="onEditAscent(r.own_ascent, r.name)"
                 >
                   <tui-icon
-                    [icon]="ascentInfo()[r.own_ascent.type || 'default'].icon"
+                    [icon]="
+                      ascentsService.ascentInfo()[
+                        r.own_ascent.type || 'default'
+                      ].icon
+                    "
                   />
                   {{ 'ascentTypes.' + r.own_ascent.type | translate }}
                 </button>
@@ -274,6 +278,7 @@ export class RouteComponent {
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
   private readonly routesService = inject(RoutesService);
+  protected readonly ascentsService = inject(AscentsService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
@@ -352,45 +357,24 @@ export class RouteComponent {
   onLogAscent(): void {
     const r = this.route();
     if (!r) return;
-    this.dialogs
-      .open(new PolymorpheusComponent(AscentFormComponent), {
-        label: this.translate.instant('ascent.new'),
-        data: { routeId: r.id, grade: r.grade },
-        size: 'm',
+    this.ascentsService
+      .openAscentForm({
+        routeId: r.id,
+        routeName: r.name,
+        grade: r.grade,
       })
       .subscribe();
   }
 
-  onEditAscent(ascent: RouteAscentWithExtras): void {
-    this.dialogs
-      .open(new PolymorpheusComponent(AscentFormComponent), {
-        label: this.translate.instant('ascent.edit'),
-        data: { routeId: ascent.route_id, ascentData: ascent },
-        size: 'm',
+  onEditAscent(ascent: RouteAscentWithExtras, routeName?: string): void {
+    this.ascentsService
+      .openAscentForm({
+        routeId: ascent.route_id,
+        routeName,
+        ascentData: ascent,
       })
       .subscribe();
   }
-
-  protected readonly ascentInfo = computed<
-    Record<string, { icon: string; background: string }>
-  >(() => ({
-    os: {
-      icon: '@tui.eye',
-      background: 'var(--tui-status-positive)',
-    },
-    f: {
-      icon: '@tui.zap',
-      background: 'var(--tui-status-warning)',
-    },
-    rp: {
-      icon: '@tui.circle',
-      background: 'var(--tui-status-negative)',
-    },
-    default: {
-      icon: '@tui.circle',
-      background: 'var(--tui-neutral-fill)',
-    },
-  }));
 
   openEditRoute(): void {
     const r = this.route();

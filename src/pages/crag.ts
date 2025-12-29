@@ -24,12 +24,19 @@ import {
 } from '@taiga-ui/core';
 import { TuiSurface } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
   ChartRoutesByGradeComponent,
+  EmptyStateComponent,
   RoutesTableComponent,
   SectionHeaderComponent,
 } from '../components';
-import { CragsService, GlobalData, ParkingsService } from '../services';
+import {
+  CragsService,
+  GlobalData,
+  ParkingsService,
+  AscentsService,
+} from '../services';
 import { TuiToastService } from '@taiga-ui/kit';
 import {
   type CragDetail,
@@ -37,7 +44,6 @@ import {
   type TopoListItem,
   AmountByEveryGrade,
   VERTICAL_LIFE_GRADES,
-  RouteAscentDto,
   ParkingDto,
 } from '../models';
 import { mapLocationUrl } from '../utils';
@@ -46,14 +52,13 @@ import { RouteFormComponent } from './route-form';
 import ParkingFormComponent from './parking-form';
 import LinkParkingFormComponent from './link-parking-form';
 import TopoFormComponent from './topo-form';
-import AscentFormComponent from './ascent-form';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { handleErrorToast } from '../utils';
 
 @Component({
   selector: 'app-crag',
   standalone: true,
   imports: [
+    EmptyStateComponent,
     ChartRoutesByGradeComponent,
     RoutesTableComponent,
     SectionHeaderComponent,
@@ -398,11 +403,8 @@ import { handleErrorToast } from '../utils';
                 </div>
               </div>
             } @empty {
-              <div
-                class="flex flex-col items-center justify-center gap-2 opacity-50 col-span-full py-10"
-              >
-                <tui-icon icon="@tui.package-open" class="text-4xl" />
-                <p>{{ 'labels.empty' | translate }}</p>
+              <div class="col-span-full">
+                <app-empty-state />
               </div>
             }
           </div>
@@ -434,7 +436,6 @@ import { handleErrorToast } from '../utils';
         <app-routes-table
           [data]="global.cragRoutesResource.value() ?? []"
           (logAscent)="onLogAscent($event)"
-          (editAscent)="onEditAscent($event)"
         />
       } @else {
         <div class="flex items-center justify-center w-full min-h-[50vh]">
@@ -454,6 +455,7 @@ export class CragComponent {
   private readonly toast = inject(TuiToastService);
   private readonly translate = inject(TranslateService);
   private readonly crags = inject(CragsService);
+  protected readonly ascentsService = inject(AscentsService);
   private readonly parkings = inject(ParkingsService);
   private readonly dialogs = inject(TuiDialogService);
   protected readonly mapLocationUrl = mapLocationUrl;
@@ -720,21 +722,11 @@ export class CragComponent {
   }
 
   protected onLogAscent(route: RouteWithExtras): void {
-    this.dialogs
-      .open(new PolymorpheusComponent(AscentFormComponent), {
-        label: this.translate.instant('ascent.new'),
-        data: { routeId: route.id, grade: route.grade },
-        size: 'm',
-      })
-      .subscribe();
-  }
-
-  onEditAscent(ascent: RouteAscentDto): void {
-    this.dialogs
-      .open(new PolymorpheusComponent(AscentFormComponent), {
-        label: this.translate.instant('ascent.edit'),
-        data: { routeId: ascent.route_id, ascentData: ascent },
-        size: 'm',
+    this.ascentsService
+      .openAscentForm({
+        routeId: route.id,
+        routeName: route.name,
+        grade: route.grade,
       })
       .subscribe();
   }

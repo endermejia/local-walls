@@ -16,13 +16,7 @@ import {
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
-import {
-  TuiButton,
-  TuiHint,
-  TuiIcon,
-  TuiScrollbar,
-  TuiTextfield,
-} from '@taiga-ui/core';
+import { TuiButton, TuiHint, TuiScrollbar, TuiTextfield } from '@taiga-ui/core';
 import {
   TuiAvatar,
   TuiSkeleton,
@@ -33,6 +27,7 @@ import {
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { GlobalData, SupabaseService } from '../services';
+import { EmptyStateComponent } from '../components';
 import { EquipperDto } from '../models';
 import { handleErrorToast } from '../utils';
 
@@ -40,6 +35,7 @@ import { handleErrorToast } from '../utils';
   selector: 'app-admin-equippers-list',
   standalone: true,
   imports: [
+    EmptyStateComponent,
     FormsModule,
     TuiAvatar,
     TuiScrollbar,
@@ -50,7 +46,6 @@ import { handleErrorToast } from '../utils';
     TranslatePipe,
     TuiButton,
     TuiHint,
-    TuiIcon,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -182,13 +177,8 @@ import { handleErrorToast } from '../utils';
                 </tr>
               } @empty {
                 <tr tuiTr>
-                  <td [attr.colspan]="columns.length" tuiTd class="!py-10">
-                    <div
-                      class="flex flex-col items-center justify-center gap-2 opacity-50"
-                    >
-                      <tui-icon icon="@tui.package-open" class="text-4xl" />
-                      <p>{{ 'labels.empty' | translate }}</p>
-                    </div>
+                  <td [attr.colspan]="columns.length" tuiTd>
+                    <app-empty-state />
                   </td>
                 </tr>
               }

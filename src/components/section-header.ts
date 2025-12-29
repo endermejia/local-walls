@@ -39,26 +39,28 @@ import { Location } from '@angular/common';
         <h1 class="text-2xl font-bold">{{ title() }}</h1>
         <ng-content />
       </div>
-      <button
-        size="s"
-        [appearance]="liked() ? 'accent' : 'neutral'"
-        iconStart="@tui.heart"
-        tuiIconButton
-        type="button"
-        class="!rounded-full"
-        [tuiHint]="
-          global.isMobile()
-            ? null
-            : ((liked() ? 'actions.favorite.remove' : 'actions.favorite.add')
-              | translate)
-        "
-        (click.zoneless)="toggleLike.emit()"
-      >
-        {{
-          (liked() ? 'actions.favorite.remove' : 'actions.favorite.add')
-            | translate
-        }}
-      </button>
+      @if (showLike()) {
+        <button
+          size="s"
+          [appearance]="liked() ? 'accent' : 'neutral'"
+          iconStart="@tui.heart"
+          tuiIconButton
+          type="button"
+          class="!rounded-full"
+          [tuiHint]="
+            global.isMobile()
+              ? null
+              : ((liked() ? 'actions.favorite.remove' : 'actions.favorite.add')
+                | translate)
+          "
+          (click.zoneless)="toggleLike.emit()"
+        >
+          {{
+            (liked() ? 'actions.favorite.remove' : 'actions.favorite.add')
+              | translate
+          }}
+        </button>
+      }
     </header>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -68,6 +70,7 @@ export class SectionHeaderComponent {
   private readonly location = inject(Location);
   title = input.required<string>();
   liked = input(false);
+  showLike = input(true);
   tuiSkeleton: InputSignal<boolean> = input(false);
 
   toggleLike = output<void>();

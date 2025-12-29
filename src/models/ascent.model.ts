@@ -80,3 +80,10 @@ export interface UserAscentsQuery {
   showRepeats?: boolean;
   showDuplicates?: boolean;
 }
+
+export interface AscentDialogData {
+  routeId?: number;
+  routeName?: string;
+  ascentData?: import('./route-ascent.model').RouteAscentWithExtras;
+  grade?: number;
+}

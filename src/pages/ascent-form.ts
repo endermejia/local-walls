@@ -30,7 +30,6 @@ import {
   TUI_CONFIRM,
   TuiCheckbox,
   TuiChevron,
-  type TuiConfirmData,
   TuiDataListWrapper,
   TuiInputDate,
   TuiInputNumber,
@@ -50,10 +49,12 @@ import {
   SupabaseService,
 } from '../services';
 import {
+  AscentDialogData,
   AscentType,
   AscentTypes,
   RouteAscentDto,
   RouteAscentInsertDto,
+  RouteAscentWithExtras,
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
@@ -481,15 +482,10 @@ export default class AscentFormComponent {
 
   private readonly _dialogCtx: TuiDialogContext<
     boolean,
-    { routeId?: number; ascentData?: RouteAscentDto; grade?: number }
+    AscentDialogData
   > | null = (() => {
     try {
-      return injectContext<
-        TuiDialogContext<
-          boolean,
-          { routeId?: number; ascentData?: RouteAscentDto; grade?: number }
-        >
-      >();
+      return injectContext<TuiDialogContext<boolean, AscentDialogData>>();
     } catch {
       return null;
     }
@@ -498,13 +494,19 @@ export default class AscentFormComponent {
   routeId: InputSignal<number | undefined> = input<number | undefined>(
     undefined,
   );
-  ascentData: InputSignal<RouteAscentDto | undefined> = input<
-    RouteAscentDto | undefined
+  ascentData: InputSignal<RouteAscentWithExtras | undefined> = input<
+    RouteAscentWithExtras | undefined
   >(undefined);
 
   private readonly dialogRouteId = this._dialogCtx?.data?.routeId;
+  private readonly dialogRouteName = this._dialogCtx?.data?.routeName;
   private readonly dialogAscentData = this._dialogCtx?.data?.ascentData;
   private readonly dialogGrade = this._dialogCtx?.data?.grade;
+
+  private readonly routeName = computed(() => {
+    const data = this.effectiveAscentData();
+    return this.dialogRouteName || data?.route?.name || '?';
+  });
 
   private readonly effectiveRouteId = computed(
     () => this.dialogRouteId ?? this.routeId(),
@@ -781,7 +783,7 @@ export default class AscentFormComponent {
           ...payload,
           route_id,
           user_id,
-        } as RouteAscentInsertDto);
+        });
         await this.routesService.removeRouteProject(route_id);
       }
       this._dialogCtx?.completeWith(true);
@@ -797,17 +799,16 @@ export default class AscentFormComponent {
 
     const confirmed = await firstValueFrom(
       this.dialogs.open<boolean>(TUI_CONFIRM, {
-        label: this.translate.instant('actions.delete'),
+        label: this.translate.instant('ascent.deleteTitle'),
         size: 'm',
         data: {
-          content: this.translate.instant('routes.deleteConfirm', {
-            name: `${this.translate.instant(
-              'ascentTypes.' + data.type,
-            )} (${data.date})`,
+          content: this.translate.instant('ascent.deleteConfirm', {
+            routeName: this.routeName(),
+            date: data.date,
           }),
           yes: this.translate.instant('actions.delete'),
           no: this.translate.instant('actions.cancel'),
-        } as TuiConfirmData,
+        },
       }),
     );
 

@@ -33,7 +33,7 @@ export class AreasService {
       console.error('[AreasService] create error', error);
       throw error;
     }
-    this.global.areaListResource.reload();
+    this.global.areasListResource.reload();
     return data as AreaDto;
   }
 
@@ -53,7 +53,7 @@ export class AreasService {
       console.error('[AreasService] update error', error);
       throw error;
     }
-    this.global.areaListResource.reload();
+    this.global.areasListResource.reload();
     return data as AreaDto;
   }
 
@@ -70,7 +70,7 @@ export class AreasService {
       throw error;
     }
     // Update global area list
-    this.global.areaListResource.update((value) => {
+    this.global.areasListResource.update((value) => {
       if (!value) return value;
       return value.filter((item) => item.id !== id);
     });
@@ -95,7 +95,7 @@ export class AreasService {
       if (error) throw error;
       const liked = data;
       // Update global area list
-      this.global.areaListResource.update((value) => {
+      this.global.areasListResource.update((value) => {
         if (!value) return value;
         return value
           .map((item) => (item.id === areaId ? { ...item, liked } : item))

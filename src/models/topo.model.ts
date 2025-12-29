@@ -1,5 +1,10 @@
 import { AmountByEveryGrade } from './grade.model';
-import { TopoDto, RouteDto } from './supabase-interfaces';
+import {
+  TopoDto,
+  RouteDto,
+  RouteAscentDto,
+  RouteProjectDto,
+} from './supabase-interfaces';
 
 export interface TopoListItem {
   id: number;
@@ -12,11 +17,16 @@ export interface TopoListItem {
   shade_morning: boolean;
 }
 
+export interface RouteWithOwnData extends RouteDto {
+  own_ascent?: RouteAscentDto | null;
+  project?: Pick<RouteProjectDto, 'id'> | null;
+}
+
 export interface TopoRouteWithRoute {
   topo_id: number;
   route_id: number;
   number: number;
-  route: RouteDto;
+  route: RouteWithOwnData;
 }
 
 export interface TopoDetail extends TopoDto {

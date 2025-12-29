@@ -96,6 +96,7 @@
     "route": "Vía",
     "routes": "Vías",
     "search": "Buscar",
+    "searchPlaceholder": "Buscar...",
     "sector": "Sector",
     "sectors": "Sectores",
     "sex": "Género",
@@ -191,8 +192,7 @@
     "editTitle": "Editar área",
     "deleteTitle": "Eliminar área",
     "deleteConfirm": "¿Seguro que quieres eliminar el área \"{{name}}\"? Esta acción no se puede deshacer.",
-    "empty": "No hay áreas todavía",
-    "searchPlaceholder": "Buscar áreas por nombre o slug…"
+    "empty": "No hay áreas todavía"
   },
   "crags": {
     "new": "Nuevo sector",
@@ -298,6 +298,8 @@
   },
   "ascent": {
     "edit": "Editar ascensión",
+    "deleteTitle": "Eliminar encadene",
+    "deleteConfirm": "¿Seguro que quieres eliminar el encadene de la vía \"{{routeName}}\" del {{date}}?",
     "new": "Encadenada!",
     "when": "¿Cuándo escalaste?",
     "yesterday": "Ayer",

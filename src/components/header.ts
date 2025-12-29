@@ -332,7 +332,7 @@ export class HeaderComponent implements OnDestroy {
             this.supabase.client
               .from('routes')
               .select(
-                'id, name, slug, sector:sectors(name, slug, crag:crags(name, slug, area:areas(name, slug)))',
+                'id, name, slug, crag:crags!routes_crag_id_fkey(name, slug, area:areas!crags_area_id_fkey(name, slug))',
               )
               .ilike('name', q)
               .limit(5),
@@ -358,7 +358,7 @@ export class HeaderComponent implements OnDestroy {
 
           if (crags?.length) {
             results[this.translate.instant('labels.crags')] = crags.map((c) => {
-              const area = c.area as unknown as { name: string; slug: string };
+              const area = c.area;
               return {
                 title: c.name,
                 subtitle: area?.name,
@@ -371,16 +371,7 @@ export class HeaderComponent implements OnDestroy {
           if (routes?.length) {
             results[this.translate.instant('labels.routes')] = routes.map(
               (r) => {
-                const sector = r.sector as unknown as {
-                  name: string;
-                  slug: string;
-                  crag: {
-                    name: string;
-                    slug: string;
-                    area: { name: string; slug: string };
-                  };
-                };
-                const crag = sector?.crag;
+                const crag = r.crag;
                 const area = crag?.area;
                 return {
                   title: r.name,

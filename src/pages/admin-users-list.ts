@@ -17,7 +17,7 @@ import {
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
-import { TuiIcon, TuiScrollbar, TuiTextfield } from '@taiga-ui/core';
+import { TuiScrollbar, TuiTextfield } from '@taiga-ui/core';
 import {
   TuiAvatar,
   TuiChevron,
@@ -27,6 +27,7 @@ import {
 } from '@taiga-ui/kit';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GlobalData, SupabaseService } from '../services';
+import { EmptyStateComponent } from '../components';
 import { AppRole, AppRoles } from '../models';
 
 interface UserWithRole {
@@ -40,6 +41,7 @@ interface UserWithRole {
   selector: 'app-users-list-admin',
   standalone: true,
   imports: [
+    EmptyStateComponent,
     FormsModule,
     TuiAvatar,
     TuiChevron,
@@ -52,7 +54,6 @@ interface UserWithRole {
     TuiTextfield,
     TranslatePipe,
     WaIntersectionObserver,
-    TuiIcon,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -203,13 +204,8 @@ interface UserWithRole {
                 </tr>
               } @empty {
                 <tr tuiTr>
-                  <td [attr.colspan]="columns.length" tuiTd class="!py-10">
-                    <div
-                      class="flex flex-col items-center justify-center gap-2 opacity-50"
-                    >
-                      <tui-icon icon="@tui.package-open" class="text-4xl" />
-                      <p>{{ 'labels.empty' | translate }}</p>
-                    </div>
+                  <td [attr.colspan]="columns.length" tuiTd>
+                    <app-empty-state />
                   </td>
                 </tr>
               }

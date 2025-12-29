@@ -43,6 +43,7 @@ import {
   TopoDetail,
   TopoDto,
   TopoListItem,
+  TopoRouteWithRoute,
   VERTICAL_LIFE_GRADES,
 } from '../models';
 
@@ -476,7 +477,7 @@ export class GlobalData {
    * List of areas (RPC get_areas_list)
    * SSR-safe: on server returns [] and does not access browser APIs.
    */
-  readonly areaListResource = resource({
+  readonly areasListResource = resource({
     loader: async () => {
       if (!isPlatformBrowser(this.platformId)) {
         return [] as AreaListItem[];
@@ -497,7 +498,7 @@ export class GlobalData {
     },
   });
   areaList: Signal<AreaListItem[]> = computed(
-    () => this.areaListResource.value() ?? [],
+    () => this.areasListResource.value() ?? [],
   );
 
   // ---- Crags list by selected area ----
@@ -570,8 +571,8 @@ export class GlobalData {
           `,
           )
           .eq('id', Number(id))
-          .eq('topo_routes.route.own_ascent.user_id', userId)
-          .eq('topo_routes.route.project.user_id', userId)
+          .eq('topo_routes.route.own_ascent.user_id', userId ?? '')
+          .eq('topo_routes.route.project.user_id', userId ?? '')
           .order('number', { referencedTable: 'topo_routes', ascending: true })
           .single();
 
@@ -580,7 +581,20 @@ export class GlobalData {
           return null;
         }
 
-        return data as TopoDetail;
+        const topo_routes: TopoRouteWithRoute[] =
+          data.topo_routes?.map((tr) => ({
+            ...tr,
+            route: {
+              ...tr.route,
+              own_ascent: tr.route.own_ascent?.[0] || null,
+              project: tr.route.project?.[0] || null,
+            },
+          })) || [];
+
+        return {
+          ...data,
+          topo_routes,
+        };
       } catch (e) {
         console.error('[GlobalData] topoDetailResource error', e);
         return null;
@@ -678,7 +692,7 @@ export class GlobalData {
           (t) => !t.shade_morning && !t.shade_afternoon,
         );
 
-        const detailedCrag: CragDetail = {
+        return {
           // Fields from CragDto (table)
           id: rawData.id,
           name: rawData.name,
@@ -708,8 +722,6 @@ export class GlobalData {
           shade_all_day,
           sun_all_day,
         };
-
-        return detailedCrag;
       } catch (e) {
         console.error('[GlobalData] cragDetailResource exception', e);
         return null;
@@ -791,9 +803,6 @@ export class GlobalData {
       }
     },
   });
-  readonly cragRoutes: Signal<RouteWithExtras[]> = computed(
-    () => this.cragRoutesResource.value() ?? [],
-  );
 
   // ---- Route Detail ----
   selectedRouteSlug: WritableSignal<string | null> = signal(null);
@@ -927,10 +936,6 @@ export class GlobalData {
       }
     },
   });
-
-  toggleLikeCrag(id: string): void {
-    console.log('toggleLikeCrag', id);
-  }
 
   // ---- Error state for interceptor ----
   errorMessage: WritableSignal<string | null> = signal(null);

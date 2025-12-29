@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import {
   TuiAvatar,
   TuiRating,
@@ -28,21 +29,21 @@ import {
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
+import { TuiButton, TuiHint, TuiIcon, TuiLink } from '@taiga-ui/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { GlobalData, RoutesService } from '../services';
+import { GlobalData, RoutesService, AscentsService } from '../services';
 import { handleErrorToast } from '../utils';
-import { RouteFormComponent } from '../pages/route-form';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { AvatarGradeComponent } from './avatar-grade';
 import {
   VERTICAL_LIFE_TO_LABEL,
   VERTICAL_LIFE_GRADES,
   RouteWithExtras,
-  RouteAscentDto,
   ClimbingKinds,
+  RouteAscentWithExtras,
 } from '../models';
-import { FormsModule } from '@angular/forms';
-import { TuiButton, TuiHint, TuiIcon, TuiLink } from '@taiga-ui/core';
+import { RouteFormComponent } from '../pages/route-form';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { AvatarGradeComponent } from './avatar-grade';
+import { EmptyStateComponent } from './empty-state';
 
 export type RoutesTableKey =
   | 'grade'
@@ -89,6 +90,7 @@ export interface RoutesTableRow {
     TuiIcon,
     TuiLink,
     AvatarGradeComponent,
+    EmptyStateComponent,
   ],
   template: `
     <div class="overflow-auto">
@@ -226,20 +228,24 @@ export interface RoutesTableRow {
                           <tui-avatar
                             class="cursor-pointer !text-white"
                             [style.background]="
-                              ascentInfo()[ascentToEdit?.type || 'default']
-                                .background
+                              ascentsService.ascentInfo()[
+                                ascentToEdit?.type || 'default'
+                              ].background
                             "
                             [tuiHint]="
                               global.isMobile()
                                 ? null
                                 : ('ascent.edit' | translate)
                             "
-                            (click.zoneless)="onEditAscent(ascentToEdit)"
+                            (click.zoneless)="
+                              onEditAscent(ascentToEdit, item.route)
+                            "
                           >
                             <tui-icon
                               [icon]="
-                                ascentInfo()[ascentToEdit?.type || 'default']
-                                  .icon
+                                ascentsService.ascentInfo()[
+                                  ascentToEdit?.type || 'default'
+                                ].icon
                               "
                             />
                           </tui-avatar>
@@ -315,13 +321,8 @@ export interface RoutesTableRow {
             </tr>
           } @empty {
             <tr tuiTr>
-              <td [attr.colspan]="columns().length" tuiTd class="!py-10">
-                <div
-                  class="flex flex-col items-center justify-center gap-2 opacity-50"
-                >
-                  <tui-icon icon="@tui.package-open" class="text-4xl" />
-                  <p>{{ 'labels.empty' | translate }}</p>
-                </div>
+              <td [attr.colspan]="columns().length" tuiTd>
+                <app-empty-state />
               </td>
             </tr>
           }
@@ -335,6 +336,7 @@ export class RoutesTableComponent {
   private readonly platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
   private readonly routesService = inject(RoutesService);
+  protected readonly ascentsService = inject(AscentsService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(TuiToastService);
@@ -352,7 +354,8 @@ export class RoutesTableComponent {
   toggleLike: OutputEmitterRef<RouteItem> = output<RouteItem>();
   toggleProject: OutputEmitterRef<RouteItem> = output<RouteItem>();
   logAscent: OutputEmitterRef<RouteItem> = output<RouteItem>();
-  editAscent: OutputEmitterRef<RouteAscentDto> = output<RouteAscentDto>();
+  editAscent: OutputEmitterRef<RouteAscentWithExtras> =
+    output<RouteAscentWithExtras>();
 
   protected readonly columns = computed(() => {
     const cols = ['grade', 'route', 'height', 'rating', 'ascents', 'actions'];
@@ -437,33 +440,29 @@ export class RoutesTableComponent {
   }
 
   protected onLogAscent(item: RouteItem): void {
+    this.ascentsService
+      .openAscentForm({
+        routeId: item.id,
+        routeName: item.name,
+        grade: item.grade,
+      })
+      .subscribe();
     this.logAscent.emit(item);
   }
 
-  protected onEditAscent(ascent: RouteAscentDto): void {
+  protected onEditAscent(
+    ascent: RouteAscentWithExtras,
+    routeName?: string,
+  ): void {
+    this.ascentsService
+      .openAscentForm({
+        routeId: ascent.route_id,
+        routeName,
+        ascentData: ascent,
+      })
+      .subscribe();
     this.editAscent.emit(ascent);
   }
-
-  protected readonly ascentInfo = computed<
-    Record<string, { icon: string; background: string }>
-  >(() => ({
-    os: {
-      icon: '@tui.eye',
-      background: 'var(--tui-status-positive)',
-    },
-    f: {
-      icon: '@tui.zap',
-      background: 'var(--tui-status-warning)',
-    },
-    rp: {
-      icon: '@tui.circle',
-      background: 'var(--tui-status-negative)',
-    },
-    default: {
-      icon: '@tui.circle',
-      background: 'var(--tui-neutral-fill)',
-    },
-  }));
 
   protected deleteRoute(route: RouteItem): void {
     if (!isPlatformBrowser(this.platformId)) return;

@@ -14,8 +14,7 @@ import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { TranslateService } from '@ngx-translate/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import {
@@ -29,18 +28,17 @@ import {
 } from '@taiga-ui/core';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { ChartRoutesByGradeComponent, MapComponent } from '../components';
-import { FilterDialogComponent, FilterDialog } from './filter-dialog';
+import { FilterDialog, FilterDialogComponent } from './filter-dialog';
 import { GlobalData } from '../services';
 import {
   GradeLabel,
   MapAreaItem,
-  MapCounts,
   MapCragItem,
   normalizeRoutesByGrade,
   ORDERED_GRADE_VALUES,
   ParkingDto,
 } from '../models';
-import { remToPx, mapLocationUrl } from '../utils';
+import { mapLocationUrl, remToPx } from '../utils';
 
 @Component({
   selector: 'app-home',
@@ -496,14 +494,9 @@ export class ExploreComponent {
   protected mapAreaItems: Signal<MapAreaItem[]> = computed(() => {
     const items = this.global.mapItemsOnViewport();
     return items.filter((item): item is MapAreaItem => {
-      const isArea = (item as MapAreaItem).area_type === 0;
-      return isArea;
+      return (item as MapAreaItem).area_type === 0;
     });
   });
-
-  protected mapCounts: Signal<MapCounts | null> = computed(
-    () => this.global.mapResponse()?.counts ?? null,
-  );
 
   protected readonly isBottomSheetExpanded: Signal<boolean> = computed(() => {
     const clientHeight = this._sheetClientHeight();

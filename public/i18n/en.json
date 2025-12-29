@@ -96,6 +96,7 @@
     "route": "Route",
     "routes": "Routes",
     "search": "Search",
+    "searchPlaceholder": "Search...",
     "sector": "Sector",
     "sectors": "Sectors",
     "sex": "Gender",
@@ -191,8 +192,7 @@
     "editTitle": "Edit area",
     "deleteTitle": "Delete area",
     "deleteConfirm": "Are you sure you want to delete area \"{{name}}\"? This action cannot be undone.",
-    "empty": "No areas yet",
-    "searchPlaceholder": "Search areas by name or slug..."
+    "empty": "No areas yet"
   },
   "crags": {
     "new": "New crag",
@@ -298,6 +298,8 @@
   },
   "ascent": {
     "edit": "Edit ascent",
+    "deleteTitle": "Delete ascent",
+    "deleteConfirm": "Are you sure you want to delete the ascent of route \"{{routeName}}\" on {{date}}?",
     "new": "Sent!",
     "when": "When did you climb it?",
     "yesterday": "Yesterday",
