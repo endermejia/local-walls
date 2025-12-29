@@ -18,7 +18,6 @@ import {
   TuiRating,
   TUI_CONFIRM,
   type TuiConfirmData,
-  TuiToastService,
 } from '@taiga-ui/kit';
 
 import { TuiDialogService } from '@taiga-ui/experimental';
@@ -28,7 +27,12 @@ import {
   AscentsTableComponent,
   ChartAscentsByGradeComponent,
 } from '../components';
-import { GlobalData, RoutesService, AscentsService } from '../services';
+import {
+  GlobalData,
+  RoutesService,
+  AscentsService,
+  ToastService,
+} from '../services';
 import {
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
@@ -282,7 +286,7 @@ export class RouteComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
-  private readonly toast = inject(TuiToastService);
+  private readonly toast = inject(ToastService);
 
   areaSlug: InputSignal<string> = input.required<string>();
   cragSlug: InputSignal<string> = input.required<string>();
@@ -363,7 +367,12 @@ export class RouteComponent {
         routeName: r.name,
         grade: r.grade,
       })
-      .subscribe();
+      .subscribe((success) => {
+        if (success) {
+          this.global.routeDetailResource.reload();
+          this.global.routeAscentsResource.reload();
+        }
+      });
   }
 
   onEditAscent(ascent: RouteAscentWithExtras, routeName?: string): void {
@@ -373,7 +382,12 @@ export class RouteComponent {
         routeName,
         ascentData: ascent,
       })
-      .subscribe();
+      .subscribe((success) => {
+        if (success) {
+          this.global.routeDetailResource.reload();
+          this.global.routeAscentsResource.reload();
+        }
+      });
   }
 
   openEditRoute(): void {
@@ -424,7 +438,7 @@ export class RouteComponent {
         this.routesService
           .delete(r.id)
           .then(() => this.location.back())
-          .catch((err) => handleErrorToast(err, this.toast, this.translate));
+          .catch((err) => handleErrorToast(err, this.toast));
       });
   }
 
@@ -432,5 +446,6 @@ export class RouteComponent {
     this.global.routeAscentsResource.update((curr) =>
       (curr ?? []).filter((a) => a.id !== id),
     );
+    this.global.routeDetailResource.reload();
   }
 }

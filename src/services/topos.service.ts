@@ -8,12 +8,14 @@ import type {
   TopoUpdateDto,
   TopoRouteInsertDto,
 } from '../models';
+import { ToastService } from './toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class ToposService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly global = inject(GlobalData);
+  private readonly toast = inject(ToastService);
 
   async create(
     payload: Omit<TopoInsertDto, 'created_at' | 'id'>,
@@ -30,6 +32,7 @@ export class ToposService {
       throw error;
     }
     this.global.cragDetailResource.reload();
+    this.toast.success('messages.toasts.topoCreated');
     return data as TopoDto;
   }
 
@@ -51,6 +54,7 @@ export class ToposService {
     }
     this.global.cragDetailResource.reload();
     this.global.topoDetailResource.reload();
+    this.toast.success('messages.toasts.topoUpdated');
     return data as TopoDto;
   }
 
@@ -66,6 +70,7 @@ export class ToposService {
       throw error;
     }
     this.global.cragDetailResource.reload();
+    this.toast.success('messages.toasts.topoDeleted');
     return true;
   }
 
@@ -80,6 +85,7 @@ export class ToposService {
       throw error;
     }
     this.global.topoDetailResource.reload();
+    this.toast.success('messages.toasts.routeUpdated');
   }
 
   async removeRoute(topoId: number, routeId: number): Promise<void> {
@@ -94,6 +100,7 @@ export class ToposService {
       throw error;
     }
     this.global.topoDetailResource.reload();
+    this.toast.success('messages.toasts.routeUpdated');
   }
 
   async updateRouteOrder(
@@ -112,5 +119,6 @@ export class ToposService {
       throw error;
     }
     this.global.topoDetailResource.reload();
+    this.toast.success('messages.toasts.routeUpdated');
   }
 }

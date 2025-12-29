@@ -29,12 +29,7 @@ import {
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
 import { TuiDialogService } from '@taiga-ui/experimental';
-import {
-  TuiToastService,
-  TUI_CONFIRM,
-  type TuiConfirmData,
-  TuiAvatar,
-} from '@taiga-ui/kit';
+import { TUI_CONFIRM, type TuiConfirmData, TuiAvatar } from '@taiga-ui/kit';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
   AvatarGradeComponent,
@@ -46,6 +41,7 @@ import {
   RoutesService,
   ToposService,
   AscentsService,
+  ToastService,
 } from '../services';
 import {
   TopoDetail,
@@ -414,7 +410,7 @@ export class TopoComponent {
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly toast = inject(TuiToastService);
+  private readonly toast = inject(ToastService);
 
   // Route params
   countrySlug: InputSignal<string> = input.required();
@@ -589,7 +585,7 @@ export class TopoComponent {
           .then(() => {
             this.router.navigate(['/area', this.areaSlug(), this.cragSlug()]);
           })
-          .catch((err) => handleErrorToast(err, this.toast, this.translate));
+          .catch((err) => handleErrorToast(err, this.toast));
       });
   }
 
@@ -615,7 +611,7 @@ export class TopoComponent {
           .then(() => {
             void this.global.topoDetailResource.reload();
           })
-          .catch((err) => handleErrorToast(err, this.toast, this.translate));
+          .catch((err) => handleErrorToast(err, this.toast));
       });
   }
 }

@@ -23,11 +23,10 @@ import {
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { TuiIdentityMatcher, TuiTime } from '@taiga-ui/cdk';
 import {
   TuiCheckbox,
-  TuiToastService,
   TuiInputTime,
   tuiInputTimeOptionsProvider,
   TuiDataListWrapper,
@@ -41,7 +40,7 @@ import { TuiSelectLike } from '@taiga-ui/core';
 import { TuiCell } from '@taiga-ui/layout';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { ToposService, GlobalData } from '../services';
+import { ToposService, GlobalData, ToastService } from '../services';
 import { slugify, handleErrorToast } from '../utils';
 import { AvatarGradeComponent } from '../components';
 import {
@@ -206,8 +205,7 @@ export class TopoFormComponent {
   private readonly topos = inject(ToposService);
   private readonly global = inject(GlobalData);
   private readonly location = inject(Location);
-  private readonly toast = inject(TuiToastService);
-  private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
 
   private readonly _dialogCtx: TuiDialogContext<
     string | boolean | null,
@@ -397,7 +395,7 @@ export class TopoFormComponent {
     } catch (e) {
       const error = e as Error;
       console.error('[TopoFormComponent] Error submitting topo:', error);
-      handleErrorToast(error, this.toast, this.translate);
+      handleErrorToast(error, this.toast);
     }
   }
 

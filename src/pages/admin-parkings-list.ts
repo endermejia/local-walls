@@ -20,14 +20,13 @@ import { TuiButton, TuiHint, TuiScrollbar, TuiTextfield } from '@taiga-ui/core';
 import {
   TuiAvatar,
   TuiSkeleton,
-  TuiToastService,
   TUI_CONFIRM,
   type TuiConfirmData,
 } from '@taiga-ui/kit';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { GlobalData, ParkingsService } from '../services';
+import { GlobalData, ParkingsService, ToastService } from '../services';
 import { EmptyStateComponent } from '../components';
 import { ParkingDto } from '../models';
 import { handleErrorToast } from '../utils';
@@ -214,7 +213,7 @@ export class AdminParkingsListComponent {
   private readonly platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
   private readonly translate = inject(TranslateService);
-  private readonly toast = inject(TuiToastService);
+  private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly parkingsService = inject(ParkingsService);
 
@@ -266,7 +265,7 @@ export class AdminParkingsListComponent {
       this.parkings.set(data || []);
     } catch (e) {
       console.error('[AdminParkingsList] Error loading parkings:', e);
-      handleErrorToast(e as Error, this.toast, this.translate);
+      handleErrorToast(e as Error, this.toast);
     } finally {
       this.loading.set(false);
     }
@@ -334,7 +333,7 @@ export class AdminParkingsListComponent {
         this.parkings.update((list) => list.filter((p) => p.id !== id));
       }
     } catch (e) {
-      handleErrorToast(e as Error, this.toast, this.translate);
+      handleErrorToast(e as Error, this.toast);
     }
   }
 }

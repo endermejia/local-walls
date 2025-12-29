@@ -11,13 +11,13 @@ import {
 import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { LocationPickerComponent } from '../components';
-import { TuiDialogService } from '@taiga-ui/core';
-import { TuiInputNumber, TuiToastService } from '@taiga-ui/kit';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiInputNumber } from '@taiga-ui/kit';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { PolymorpheusComponent, injectContext } from '@taiga-ui/polymorpheus';
-import { ParkingsService } from '../services';
+import { ParkingsService, ToastService } from '../services';
 import { handleErrorToast } from '../utils';
 import { ParkingDto } from '../models';
 
@@ -165,9 +165,8 @@ interface MinimalParking {
 export class ParkingFormComponent {
   private readonly parkings = inject(ParkingsService);
   private readonly location = inject(Location);
+  private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
-  private readonly toast = inject(TuiToastService);
-  private readonly translate = inject(TranslateService);
   private readonly _dialogCtx: TuiDialogContext<
     ParkingDto | boolean | null,
     { cragId?: number; parkingData?: MinimalParking }
@@ -279,7 +278,7 @@ export class ParkingFormComponent {
     } catch (e) {
       const error = e as Error;
       console.error('[ParkingFormComponent] Error submitting parking:', error);
-      handleErrorToast(error, this.toast, this.translate);
+      handleErrorToast(error, this.toast);
     }
   }
 
@@ -296,14 +295,14 @@ export class ParkingFormComponent {
       .open<{ lat: number; lng: number } | null>(
         new PolymorpheusComponent(LocationPickerComponent),
         {
-          size: 'page',
+          size: 'l',
           data: {
             lat: this.latitude.value,
             lng: this.longitude.value,
           },
         },
       )
-      .subscribe((result) => {
+      .subscribe((result: { lat: number; lng: number } | null) => {
         if (result) {
           this.latitude.setValue(result.lat);
           this.longitude.setValue(result.lng);

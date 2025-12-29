@@ -36,7 +36,6 @@ import {
   TuiRating,
   TuiSelect,
   TuiTextarea,
-  TuiToastService,
 } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
@@ -47,6 +46,7 @@ import {
   GlobalData,
   RoutesService,
   SupabaseService,
+  ToastService,
 } from '../services';
 import {
   AscentDialogData,
@@ -475,7 +475,7 @@ export default class AscentFormComponent {
   private readonly ascents = inject(AscentsService);
   private readonly supabase = inject(SupabaseService);
   private readonly routesService = inject(RoutesService);
-  private readonly toast = inject(TuiToastService);
+  private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
   protected readonly global = inject(GlobalData);
@@ -786,10 +786,11 @@ export default class AscentFormComponent {
         });
         await this.routesService.removeRouteProject(route_id);
       }
-      this._dialogCtx?.completeWith(true);
     } catch (e) {
       const error = e as Error;
-      handleErrorToast(error, this.toast, this.translate);
+      handleErrorToast(error, this.toast);
+    } finally {
+      this._dialogCtx?.completeWith(true);
     }
   }
 
@@ -816,14 +817,15 @@ export default class AscentFormComponent {
 
     try {
       await this.ascents.delete(data.id);
-      this._dialogCtx?.completeWith(true);
     } catch (e) {
       const error = e as Error;
-      handleErrorToast(error, this.toast, this.translate);
+      handleErrorToast(error, this.toast);
+    } finally {
+      this._dialogCtx?.completeWith(true);
     }
   }
 
   cancel(): void {
-    this._dialogCtx?.$implicit.complete();
+    this._dialogCtx?.completeWith(false);
   }
 }

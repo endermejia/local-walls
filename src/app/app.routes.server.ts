@@ -8,10 +8,11 @@ export const serverRoutes: ServerRoute[] = [
   {
     path: '',
     renderMode: RenderMode.Server,
-    headers: { Location: '/explore' },
+    headers: { Location: '/home' },
     status: 302,
   },
 
+  { path: 'home', renderMode: RenderMode.Server },
   { path: 'login', renderMode: RenderMode.Server },
 
   // Home can be prerendered safely

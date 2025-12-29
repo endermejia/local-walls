@@ -33,15 +33,19 @@ import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { Router, RouterLink } from '@angular/router';
 import { TuiHeader } from '@taiga-ui/layout';
-import { AreasService, GlobalData, FiltersService } from '../services';
+import { AreaFormComponent } from './area-form';
+import { CragFormComponent } from './crag-form';
 import {
   ChartRoutesByGradeComponent,
   EmptyStateComponent,
   SectionHeaderComponent,
 } from '../components';
-import { TuiToastService } from '@taiga-ui/kit';
-import { AreaFormComponent } from './area-form';
-import { CragFormComponent } from './crag-form';
+import {
+  ToastService,
+  AreasService,
+  GlobalData,
+  FiltersService,
+} from '../services';
 import { handleErrorToast } from '../utils';
 import {
   ORDERED_GRADE_VALUES,
@@ -230,7 +234,7 @@ export class AreaComponent {
   private readonly translate = inject(TranslateService);
   private readonly filtersService = inject(FiltersService);
   private readonly router = inject(Router);
-  private readonly toast = inject(TuiToastService);
+  private readonly toast = inject(ToastService);
 
   areaSlug: InputSignal<string> = input.required<string>();
   readonly query: WritableSignal<string> = signal('');
@@ -362,7 +366,7 @@ export class AreaComponent {
               } catch (e) {
                 const error = e as Error;
                 console.error('[AreaComponent] Error deleting area:', error);
-                handleErrorToast(error, this.toast, this.translate);
+                handleErrorToast(error, this.toast);
               }
             },
           });

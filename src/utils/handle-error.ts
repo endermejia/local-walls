@@ -1,16 +1,13 @@
-import { TuiToastService } from '@taiga-ui/kit';
-import { TranslateService } from '@ngx-translate/core';
+import { ToastService } from '../services/toast.service';
 
 /**
  * Handles error mapping and shows a toast notification.
  * @param error The error object (usually from Supabase)
- * @param toast The TuiToastService instance
- * @param translate The TranslateService instance
+ * @param toast The ToastService instance
  */
 export function handleErrorToast(
   error: { code?: string; message?: string },
-  toast: TuiToastService,
-  translate: TranslateService,
+  toast: ToastService,
 ): void {
   let messageKey = 'errors.unexpected';
 
@@ -21,10 +18,5 @@ export function handleErrorToast(
     messageKey = 'errors.database.unique_violation';
   }
 
-  toast
-    .open(translate.instant(messageKey), {
-      appearance: 'negative',
-      data: '@tui.circle-x',
-    })
-    .subscribe();
+  toast.error(messageKey);
 }

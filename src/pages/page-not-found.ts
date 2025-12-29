@@ -26,7 +26,7 @@ import { GlobalData } from '../services';
           tuiButton
           type="button"
           appearance="primary"
-          [routerLink]="['/explore']"
+          [routerLink]="['/home']"
           (click.zoneless)="$event.stopPropagation()"
         >
           {{ 'notFound.goHome' | translate }}

@@ -9,12 +9,14 @@ import { isPlatformBrowser } from '@angular/common';
 import { SupabaseService } from './supabase.service';
 import { GlobalData } from './global-data';
 import type { AreaDto, AreaInsertDto, AreaUpdateDto } from '../models';
+import { ToastService } from './toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class AreasService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly global = inject(GlobalData);
+  private readonly toast = inject(ToastService);
 
   readonly loading = signal(false);
   readonly error: WritableSignal<string | null> = signal<string | null>(null);
@@ -34,6 +36,7 @@ export class AreasService {
       throw error;
     }
     this.global.areasListResource.reload();
+    this.toast.success('messages.toasts.areaCreated');
     return data as AreaDto;
   }
 
@@ -54,6 +57,7 @@ export class AreasService {
       throw error;
     }
     this.global.areasListResource.reload();
+    this.toast.success('messages.toasts.areaUpdated');
     return data as AreaDto;
   }
 
@@ -74,6 +78,7 @@ export class AreasService {
       if (!value) return value;
       return value.filter((item) => item.id !== id);
     });
+    this.toast.success('messages.toasts.areaDeleted');
     return true;
   }
 
@@ -107,6 +112,11 @@ export class AreasService {
             return a.name.localeCompare(b.name);
           });
       });
+      this.toast.success(
+        liked
+          ? 'messages.toasts.favoriteAdded'
+          : 'messages.toasts.favoriteRemoved',
+      );
       return liked;
     } catch (e) {
       console.error('[AreasService] toggleAreaLike error', e);

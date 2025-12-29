@@ -1517,6 +1517,27 @@ export interface Database {
           },
         ];
       };
+      user_follows: {
+        Row: {
+          created_at: string;
+          followed_user_id: string;
+          id: number;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          followed_user_id: string;
+          id?: number;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          followed_user_id?: string;
+          id?: number;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       user_profiles: {
         Row: {
           avatar: string | null;

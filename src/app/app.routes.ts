@@ -4,6 +4,11 @@ import { adminGuard, authGuard } from '../services';
 
 export const routes: Routes = [
   {
+    path: 'home',
+    canMatch: [authGuard],
+    loadComponent: () => import('../pages/home').then((m) => m.HomeComponent),
+  },
+  {
     path: 'login',
     loadComponent: () => import('../pages/login').then((m) => m.LoginComponent),
   },
@@ -41,6 +46,16 @@ export const routes: Routes = [
     loadComponent: () =>
       import('../pages/user-profile').then((m) => m.UserProfileComponent),
   },
+  {
+    path: 'area/:areaSlug/:cragSlug/topo/:id',
+    canMatch: [authGuard],
+    loadComponent: () => import('../pages/topo').then((m) => m.TopoComponent),
+  },
+  {
+    path: 'area/:areaSlug/:cragSlug/:routeSlug',
+    canMatch: [authGuard],
+    loadComponent: () => import('../pages/route').then((m) => m.RouteComponent),
+  },
   // Admin-only routes
   {
     path: 'admin/users',
@@ -66,19 +81,10 @@ export const routes: Routes = [
         (m) => m.AdminParkingsListComponent,
       ),
   },
-  {
-    path: 'area/:areaSlug/:cragSlug/topo/:id',
-    canMatch: [authGuard],
-    loadComponent: () => import('../pages/topo').then((m) => m.TopoComponent),
-  },
-  {
-    path: 'area/:areaSlug/:cragSlug/:routeSlug',
-    canMatch: [authGuard],
-    loadComponent: () => import('../pages/route').then((m) => m.RouteComponent),
-  },
+  // SSR fallback routes
   {
     path: '',
-    redirectTo: 'explore',
+    redirectTo: 'home',
     pathMatch: 'full',
   },
   {

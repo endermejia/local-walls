@@ -8,12 +8,14 @@ import type {
   RouteInsertDto,
   RouteUpdateDto,
 } from '../models';
+import { ToastService } from './toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class RoutesService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly global = inject(GlobalData);
+  private readonly toast = inject(ToastService);
 
   async getRouteEquippers(routeId: number): Promise<EquipperDto[]> {
     await this.supabase.whenReady();
@@ -107,6 +109,7 @@ export class RoutesService {
     // Refresh routes list for the current crag and current route
     this.global.cragRoutesResource.reload();
     this.global.routeDetailResource.reload();
+    this.toast.success('messages.toasts.routeCreated');
     return data as RouteDto;
   }
 
@@ -128,6 +131,7 @@ export class RoutesService {
     }
     this.global.cragRoutesResource.reload();
     this.global.routeDetailResource.reload();
+    this.toast.success('messages.toasts.routeUpdated');
     return data as RouteDto;
   }
 
@@ -144,6 +148,7 @@ export class RoutesService {
     }
     this.global.cragRoutesResource.reload();
     this.global.routeDetailResource.reload();
+    this.toast.success('messages.toasts.routeDeleted');
     return true;
   }
 
@@ -161,7 +166,15 @@ export class RoutesService {
       this.global.cragRoutesResource.reload();
       this.global.routeDetailResource.reload();
       this.global.topoDetailResource.reload();
-      return data as boolean;
+
+      const isLiked = data as boolean;
+      this.toast.success(
+        isLiked
+          ? 'messages.toasts.favoriteAdded'
+          : 'messages.toasts.favoriteRemoved',
+      );
+
+      return isLiked;
     } catch (e) {
       console.error('[RoutesService] toggleRouteLike error', e);
       throw e;
@@ -184,6 +197,7 @@ export class RoutesService {
       this.global.cragRoutesResource.reload();
       this.global.routeDetailResource.reload();
       this.global.topoDetailResource.reload();
+      this.toast.success('messages.toasts.projectRemoved');
     } catch (e) {
       console.error('[RoutesService] removeRouteProject error', e);
     }
@@ -203,7 +217,15 @@ export class RoutesService {
       this.global.cragRoutesResource.reload();
       this.global.routeDetailResource.reload();
       this.global.topoDetailResource.reload();
-      return data as boolean;
+
+      const isProject = data as boolean;
+      this.toast.success(
+        isProject
+          ? 'messages.toasts.projectAdded'
+          : 'messages.toasts.projectRemoved',
+      );
+
+      return isProject;
     } catch (e) {
       console.error('[RoutesService] toggleRouteProject error', e);
       throw e;

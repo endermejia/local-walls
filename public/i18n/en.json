@@ -11,6 +11,8 @@
     "create": "Create",
     "delete": "Delete",
     "edit": "Edit",
+    "follow": "Follow",
+    "unfollow": "Unfollow",
     "exitFullscreen": "Exit fullscreen",
     "favorite": {
       "add": "Add to favorites",
@@ -152,7 +154,8 @@
     "my-crags": "My crags",
     "admin-users": "Users",
     "admin-equippers": "Equippers",
-    "admin-parkings": "Parkings"
+    "admin-parkings": "Parkings",
+    "home": "Home"
   },
   "explore": {
     "toggleView": "Toggle view"
@@ -174,7 +177,37 @@
   },
   "messages": {
     "copied": "Link copied!",
-    "offline": "You are offline. Some features may not be available."
+    "offline": "You are offline. Some features may not be available.",
+    "errorFollow": "An error occurred while following the user",
+    "errorUnfollow": "An error occurred while unfollowing the user",
+    "toasts": {
+      "userFollowed": "You are now following this user",
+      "userUnfollowed": "You have unfollowed this user",
+      "projectAdded": "Marked as project",
+      "projectRemoved": "Project removed",
+      "ascentCreated": "Ascent logged",
+      "ascentUpdated": "Ascent updated",
+      "ascentDeleted": "Ascent deleted",
+      "favoriteAdded": "Added to favorites",
+      "favoriteRemoved": "Removed from favorites",
+      "areaCreated": "Area created",
+      "areaUpdated": "Area updated",
+      "areaDeleted": "Area deleted",
+      "cragCreated": "Crag created",
+      "cragUpdated": "Crag updated",
+      "cragDeleted": "Crag deleted",
+      "routeCreated": "Route created",
+      "routeUpdated": "Route updated",
+      "routeDeleted": "Route deleted",
+      "topoCreated": "Topo created",
+      "topoUpdated": "Topo updated",
+      "topoDeleted": "Topo deleted",
+      "parkingCreated": "Parking created",
+      "parkingUpdated": "Parking updated",
+      "parkingDeleted": "Parking deleted",
+      "parkingLinked": "Parking linked",
+      "parkingUnlinked": "Parking unlinked"
+    }
   },
   "seo": {
     "title": "Roca nostra 🤫",

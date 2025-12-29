@@ -20,7 +20,6 @@ import {
   TuiInputNumber,
   TuiSelect,
   TuiDataListWrapper,
-  TuiToastService,
   TuiFilterByInputPipe,
   TuiInputChip,
   TuiHideSelectedPipe,
@@ -28,7 +27,7 @@ import {
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { TuiDataList } from '@taiga-ui/core';
-import { RoutesService, SupabaseService } from '../services';
+import { RoutesService, SupabaseService, ToastService } from '../services';
 import {
   ClimbingKinds,
   ClimbingKind,
@@ -225,9 +224,9 @@ export class RouteFormComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly routes = inject(RoutesService);
   private readonly supabase = inject(SupabaseService);
-  private readonly location = inject(Location);
-  private readonly toast = inject(TuiToastService);
+  private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
+  private readonly location = inject(Location);
 
   private readonly _dialogCtx: TuiDialogContext<
     string | boolean | null,
@@ -398,7 +397,7 @@ export class RouteFormComponent {
     } catch (e) {
       const error = e as Error;
       console.error('[RouteFormComponent] Error submitting route:', error);
-      handleErrorToast(error, this.toast, this.translate);
+      handleErrorToast(error, this.toast);
     }
   }
 
@@ -410,5 +409,3 @@ export class RouteFormComponent {
     }
   }
 }
-
-export default RouteFormComponent;

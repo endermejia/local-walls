@@ -11,13 +11,13 @@ import {
 import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { LocationPickerComponent } from '../components';
-import { TuiDialogService } from '@taiga-ui/core';
-import { TuiInputNumber, TuiTextarea, TuiToastService } from '@taiga-ui/kit';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiInputNumber, TuiTextarea } from '@taiga-ui/kit';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { PolymorpheusComponent, injectContext } from '@taiga-ui/polymorpheus';
-import { CragsService } from '../services';
+import { CragsService, ToastService } from '../services';
 import { slugify, handleErrorToast } from '../utils';
 
 interface MinimalCrag {
@@ -208,9 +208,8 @@ interface MinimalCrag {
 export class CragFormComponent {
   private readonly crags = inject(CragsService);
   private readonly location = inject(Location);
+  private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
-  private readonly toast = inject(TuiToastService);
-  private readonly translate = inject(TranslateService);
   private readonly _dialogCtx: TuiDialogContext<
     string | boolean | null,
     { areaId?: number; cragData?: MinimalCrag }
@@ -324,7 +323,7 @@ export class CragFormComponent {
     } catch (e) {
       const error = e as Error;
       console.error('[CragFormComponent] Error submitting crag:', error);
-      handleErrorToast(error, this.toast, this.translate);
+      handleErrorToast(error, this.toast);
     }
   }
 
@@ -341,14 +340,14 @@ export class CragFormComponent {
       .open<{ lat: number; lng: number } | null>(
         new PolymorpheusComponent(LocationPickerComponent),
         {
-          size: 'page',
+          size: 'l',
           data: {
             lat: this.latitude.value,
             lng: this.longitude.value,
           },
         },
       )
-      .subscribe((result) => {
+      .subscribe((result: { lat: number; lng: number } | null) => {
         if (result) {
           this.latitude.setValue(result.lat);
           this.longitude.setValue(result.lng);

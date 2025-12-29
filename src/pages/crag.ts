@@ -6,13 +6,21 @@ import {
   effect,
   InputSignal,
   computed,
+  signal,
+  WritableSignal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { TuiAvatar, TUI_CONFIRM, type TuiConfirmData } from '@taiga-ui/kit';
+import {
+  TuiAvatar,
+  TUI_CONFIRM,
+  type TuiConfirmData,
+  TuiBadgedContent,
+  TuiBadgeNotification,
+} from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import {
   TuiLoader,
@@ -21,6 +29,8 @@ import {
   TuiHint,
   TuiNotification,
   TuiIcon,
+  TuiTextfield,
+  TuiLabel,
 } from '@taiga-ui/core';
 import { TuiSurface } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
@@ -36,14 +46,17 @@ import {
   GlobalData,
   ParkingsService,
   AscentsService,
+  FiltersService,
+  ToastService,
 } from '../services';
-import { TuiToastService } from '@taiga-ui/kit';
 import {
   type CragDetail,
   RouteWithExtras,
   type TopoListItem,
   AmountByEveryGrade,
   VERTICAL_LIFE_GRADES,
+  VERTICAL_LIFE_TO_LABEL,
+  ORDERED_GRADE_VALUES,
   ParkingDto,
 } from '../models';
 import { mapLocationUrl } from '../utils';
@@ -75,6 +88,10 @@ import { handleErrorToast } from '../utils';
     TuiAvatar,
     LowerCasePipe,
     TuiIcon,
+    TuiTextfield,
+    TuiLabel,
+    TuiBadgedContent,
+    TuiBadgeNotification,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -433,10 +450,40 @@ import { handleErrorToast } from '../utils';
             </button>
           }
         </div>
-        <app-routes-table
-          [data]="global.cragRoutesResource.value() ?? []"
-          (logAscent)="onLogAscent($event)"
-        />
+
+        <div class="mb-4 flex items-end gap-2">
+          <tui-textfield class="grow block" tuiTextfieldSize="l">
+            <label tuiLabel for="routes-search">{{
+              'labels.searchPlaceholder' | translate
+            }}</label>
+            <input
+              tuiTextfield
+              #routesSearch
+              id="routes-search"
+              [value]="query()"
+              (input.zoneless)="onQuery(routesSearch.value)"
+            />
+          </tui-textfield>
+          <tui-badged-content>
+            @if (hasActiveFilters()) {
+              <tui-badge-notification size="s" tuiSlot="top" />
+            }
+            <button
+              tuiButton
+              appearance="textfield"
+              size="l"
+              type="button"
+              iconStart="@tui.sliders-horizontal"
+              [attr.aria-label]="'labels.filters' | translate"
+              [tuiHint]="
+                global.isMobile() ? null : ('labels.filters' | translate)
+              "
+              (click.zoneless)="openFilters()"
+            ></button>
+          </tui-badged-content>
+        </div>
+
+        <app-routes-table [data]="filteredRoutes()" />
       } @else {
         <div class="flex items-center justify-center w-full min-h-[50vh]">
           <tui-loader size="xxl" />
@@ -452,16 +499,54 @@ export class CragComponent {
   private readonly router = inject(Router);
 
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly toast = inject(TuiToastService);
+  private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
   private readonly crags = inject(CragsService);
   protected readonly ascentsService = inject(AscentsService);
+  private readonly filtersService = inject(FiltersService);
   private readonly parkings = inject(ParkingsService);
   private readonly dialogs = inject(TuiDialogService);
   protected readonly mapLocationUrl = mapLocationUrl;
 
   areaSlug: InputSignal<string> = input.required<string>();
   cragSlug: InputSignal<string> = input.required<string>();
+  readonly query: WritableSignal<string> = signal('');
+  readonly selectedGradeRange = this.global.areaListGradeRange;
+  readonly selectedCategories = this.global.areaListCategories;
+
+  readonly hasActiveFilters = computed(() => {
+    const [lo, hi] = this.selectedGradeRange();
+    const gradeActive = !(lo === 0 && hi === ORDERED_GRADE_VALUES.length - 1);
+    return gradeActive || this.selectedCategories().length > 0;
+  });
+
+  readonly filteredRoutes = computed(() => {
+    const q = this.query().trim().toLowerCase();
+    const [minIdx, maxIdx] = this.selectedGradeRange();
+    const allowedLabels = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1);
+    const list = this.global.cragRoutesResource.value() ?? [];
+
+    const textMatches = (r: RouteWithExtras) => {
+      if (!q) return true;
+      const nameMatch = r.name.toLowerCase().includes(q);
+      const gradeLabel =
+        typeof r.grade === 'number'
+          ? VERTICAL_LIFE_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES]
+          : null;
+      const gradeMatch = gradeLabel?.toLowerCase().includes(q);
+      return nameMatch || gradeMatch;
+    };
+
+    const gradeMatches = (r: RouteWithExtras) => {
+      if (typeof r.grade !== 'number') return true;
+      const label = VERTICAL_LIFE_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES];
+      if (!label) return true;
+      return (allowedLabels as readonly string[]).includes(label);
+    };
+
+    return list.filter((r) => textMatches(r) && gradeMatches(r));
+  });
+
   readonly loading = this.crags.loading;
   protected readonly cragDetail = computed<CragDetail | null>(() => {
     const c = this.global.cragDetailResource.value();
@@ -484,9 +569,7 @@ export class CragComponent {
     };
   });
 
-  protected readonly routesCount = computed(
-    () => (this.global.cragRoutesResource.value() ?? []).length,
-  );
+  protected readonly routesCount = computed(() => this.filteredRoutes().length);
 
   protected readonly topos = computed(() => {
     const c = this.cragDetail();
@@ -513,6 +596,14 @@ export class CragComponent {
       this.global.selectedAreaSlug.set(aSlug);
       this.global.selectedCragSlug.set(cSlug);
     });
+  }
+
+  onQuery(v: string) {
+    this.query.set(v);
+  }
+
+  openFilters(): void {
+    this.filtersService.openFilters();
   }
 
   openCreateRoute(): void {
@@ -595,7 +686,7 @@ export class CragComponent {
         if (confirmed) {
           this.parkings
             .removeParkingFromCrag(c.id, parking.id)
-            .catch((err) => handleErrorToast(err, this.toast, this.translate));
+            .catch((err) => handleErrorToast(err, this.toast));
         }
       });
   }
@@ -657,7 +748,7 @@ export class CragComponent {
               } catch (e) {
                 const error = e as Error;
                 console.error('[CragComponent] Error deleting crag:', error);
-                handleErrorToast(error, this.toast, this.translate);
+                handleErrorToast(error, this.toast);
               }
             },
           });
@@ -719,16 +810,6 @@ export class CragComponent {
     if (isPlatformBrowser(this.platformId)) {
       window.open(url, '_blank', 'noopener,noreferrer');
     }
-  }
-
-  protected onLogAscent(route: RouteWithExtras): void {
-    this.ascentsService
-      .openAscentForm({
-        routeId: route.id,
-        routeName: route.name,
-        grade: route.grade,
-      })
-      .subscribe();
   }
 
   protected getShadeInfo(t: TopoListItem) {

@@ -20,13 +20,12 @@ import { TuiButton, TuiHint, TuiScrollbar, TuiTextfield } from '@taiga-ui/core';
 import {
   TuiAvatar,
   TuiSkeleton,
-  TuiToastService,
   TUI_CONFIRM,
   type TuiConfirmData,
 } from '@taiga-ui/kit';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { GlobalData, SupabaseService } from '../services';
+import { GlobalData, SupabaseService, ToastService } from '../services';
 import { EmptyStateComponent } from '../components';
 import { EquipperDto } from '../models';
 import { handleErrorToast } from '../utils';
@@ -206,7 +205,7 @@ export class AdminEquippersListComponent {
   protected readonly supabase = inject(SupabaseService);
   protected readonly global = inject(GlobalData);
   private readonly translate = inject(TranslateService);
-  private readonly toast = inject(TuiToastService);
+  private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
 
   protected readonly options = { updateOn: 'blur' } as const;
@@ -257,7 +256,7 @@ export class AdminEquippersListComponent {
       this.equippers.set(data || []);
     } catch (e) {
       console.error('[AdminEquippersList] Error loading equippers:', e);
-      handleErrorToast(e as Error, this.toast, this.translate);
+      handleErrorToast(e as Error, this.toast);
     } finally {
       this.loading.set(false);
     }
@@ -276,7 +275,7 @@ export class AdminEquippersListComponent {
         this.equippers.update((list) => [...list, data as EquipperDto]);
       }
     } catch (e) {
-      handleErrorToast(e as Error, this.toast, this.translate);
+      handleErrorToast(e as Error, this.toast);
     }
   }
 
@@ -298,7 +297,7 @@ export class AdminEquippersListComponent {
 
       if (error) throw error;
     } catch (e) {
-      handleErrorToast(e as Error, this.toast, this.translate);
+      handleErrorToast(e as Error, this.toast);
       // Revert to previous state
       this.equippers.set(previousList);
       // Force a second update with a new reference to ensure Angular detects the change
@@ -340,7 +339,7 @@ export class AdminEquippersListComponent {
       if (error) throw error;
       this.equippers.update((list) => list.filter((e) => e.id !== id));
     } catch (e) {
-      handleErrorToast(e as Error, this.toast, this.translate);
+      handleErrorToast(e as Error, this.toast);
     }
   }
 }

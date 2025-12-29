@@ -3,12 +3,14 @@ import { isPlatformBrowser } from '@angular/common';
 import { SupabaseService } from './supabase.service';
 import { GlobalData } from './global-data';
 import type { ParkingDto, ParkingInsertDto, ParkingUpdateDto } from '../models';
+import { ToastService } from './toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class ParkingsService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly global = inject(GlobalData);
+  private readonly toast = inject(ToastService);
 
   async getAll(): Promise<ParkingDto[]> {
     await this.supabase.whenReady();
@@ -37,6 +39,7 @@ export class ParkingsService {
       console.error('[ParkingsService] create error', error);
       throw error;
     }
+    this.toast.success('messages.toasts.parkingCreated');
     return data;
   }
 
@@ -56,6 +59,7 @@ export class ParkingsService {
       console.error('[ParkingsService] update error', error);
       throw error;
     }
+    this.toast.success('messages.toasts.parkingUpdated');
     return data;
   }
 
@@ -70,6 +74,7 @@ export class ParkingsService {
       console.error('[ParkingsService] delete error', error);
       throw error;
     }
+    this.toast.success('messages.toasts.parkingDeleted');
     return true;
   }
 
@@ -97,6 +102,7 @@ export class ParkingsService {
       throw error;
     }
     this.global.cragDetailResource.reload();
+    this.toast.success('messages.toasts.parkingLinked');
   }
 
   async removeParkingFromCrag(
@@ -114,5 +120,6 @@ export class ParkingsService {
       throw error;
     }
     this.global.cragDetailResource.reload();
+    this.toast.success('messages.toasts.parkingUnlinked');
   }
 }

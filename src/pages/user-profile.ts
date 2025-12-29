@@ -9,54 +9,19 @@ import {
   resource,
 } from '@angular/core';
 import { AsyncPipe, isPlatformBrowser, LowerCasePipe } from '@angular/common';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { TUI_COUNTRIES, TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
 import { TuiButton, TuiFallbackSrcPipe, TuiHint } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
-import { SupabaseService, GlobalData, AscentsService } from '../services';
+import { SupabaseService, GlobalData, FollowsService } from '../services';
 import {
   RoutesTableComponent,
   RouteItem,
   AscentsTableComponent,
 } from '../components';
-import {
-  RouteWithExtras,
-  RouteAscentDto,
-  RouteAscentWithExtras,
-  RouteDto,
-} from '../models';
 import { UserProfileConfigComponent } from './user-profile-config';
-
-interface ProjectResponse {
-  route:
-    | (RouteDto & {
-        liked: { id: number }[];
-        project: { id: number }[];
-        crag: {
-          slug: string;
-          name: string;
-          area: { slug: string; name: string } | null;
-        } | null;
-        ascents: { rate: number }[];
-      })
-    | null;
-}
-
-interface AscentResponse extends RouteAscentDto {
-  route:
-    | (RouteDto & {
-        liked: { id: number }[];
-        project: { id: number }[];
-        crag: {
-          slug: string;
-          name: string;
-          area: { slug: string; name: string } | null;
-        } | null;
-      })
-    | null;
-}
 
 @Component({
   selector: 'app-user-profile',
@@ -85,7 +50,7 @@ interface AscentResponse extends RouteAscentDto {
           size="xxl"
         />
         <div class="grow">
-          <div class="flex flex-row items-center justify-between">
+          <div class="flex flex-row gap-2 items-center justify-between">
             @let name = profile()?.name;
             <div class="text-xl font-semibold break-all">
               <span
@@ -107,6 +72,27 @@ interface AscentResponse extends RouteAscentDto {
                 (click)="openEditDialog()"
               >
                 {{ 'actions.edit' | translate }}
+              </button>
+            } @else if (supabase.authUserId()) {
+              @let following = isFollowing();
+              <button
+                [iconStart]="following ? '@tui.user-minus' : '@tui.user-plus'"
+                size="m"
+                tuiIconButton
+                type="button"
+                [appearance]="following ? 'secondary' : 'primary'"
+                [tuiHint]="
+                  global.isMobile()
+                    ? null
+                    : ((following ? 'actions.unfollow' : 'actions.follow')
+                      | translate)
+                "
+                (click)="toggleFollow()"
+              >
+                {{
+                  (following ? 'actions.unfollow' : 'actions.follow')
+                    | translate
+                }}
               </button>
             }
           </div>
@@ -164,8 +150,6 @@ interface AscentResponse extends RouteAscentDto {
             [showLocation]="true"
             (toggleLike)="onToggleLike($event)"
             (toggleProject)="onToggleProject($event)"
-            (logAscent)="onLogAscent($event)"
-            (editAscent)="onEditAscent($event)"
           />
         </div>
       }
@@ -189,12 +173,11 @@ interface AscentResponse extends RouteAscentDto {
 })
 export class UserProfileComponent {
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly supabase = inject(SupabaseService);
-  private readonly ascentsService = inject(AscentsService);
+  protected readonly supabase = inject(SupabaseService);
+  private readonly followsService = inject(FollowsService);
   protected readonly global = inject(GlobalData);
   private readonly dialogs = inject(TuiDialogService);
   protected readonly countriesNames$ = inject(TUI_COUNTRIES);
-  private readonly translate = inject(TranslateService);
 
   // Route param (optional)
   id = input<string | undefined>();
@@ -202,8 +185,10 @@ export class UserProfileComponent {
   constructor() {
     effect(() => {
       // Reset breadcrumbs when navigating to the profile page
+      const profileId = this.profile()?.id;
       this.id(); // Track the id signal
       this.global.resetDataByPage('home');
+      this.global.profileUserId.set(profileId ?? null);
     });
   }
 
@@ -258,6 +243,26 @@ export class UserProfileComponent {
     const viewedId = this.profile()?.id ?? null;
     return !!currentId && !!viewedId && currentId === viewedId;
   });
+
+  readonly isFollowingResource = resource({
+    params: () => ({
+      userId: this.supabase.authUserId(),
+      followedUserId: this.profile()?.id,
+    }),
+    loader: async ({ params }) => {
+      if (
+        !params.userId ||
+        !params.followedUserId ||
+        params.userId === params.followedUserId ||
+        !isPlatformBrowser(this.platformId)
+      ) {
+        return false;
+      }
+      return this.followsService.isFollowing(params.followedUserId);
+    },
+  });
+
+  readonly isFollowing = computed(() => !!this.isFollowingResource.value());
   readonly canEdit = computed(() => this.isOwnProfile());
 
   readonly profileAvatarSrc = computed(() =>
@@ -276,129 +281,9 @@ export class UserProfileComponent {
     return years;
   });
 
-  readonly projectsResource = resource({
-    params: () => this.profile()?.id,
-    loader: async ({ params: userId }) => {
-      if (!userId || !isPlatformBrowser(this.platformId)) return [];
-      try {
-        await this.supabase.whenReady();
-        // Fetch routes that are projects for this specific user
-        const { data, error } = await this.supabase.client
-          .from('route_projects')
-          .select(
-            `
-            route:routes (
-              *,
-              liked:route_likes(id),
-              project:route_projects(id),
-              crag:crags(
-                slug,
-                name,
-                area:areas(slug, name)
-              ),
-              ascents:route_ascents(rate)
-            )
-          `,
-          )
-          .eq('user_id', userId);
+  readonly projectsResource = this.global.userProjectsResource;
 
-        if (error) {
-          console.error('[UserProfile] projectsResource error', error);
-          return [];
-        }
-
-        return (data as ProjectResponse[])
-          .map((item) => {
-            const r = item.route;
-            if (!r) return null;
-            const rates =
-              r.ascents?.map((a) => a.rate).filter((rate) => rate != null) ??
-              [];
-            const rating =
-              rates.length > 0
-                ? rates.reduce((a, b) => a + b, 0) / rates.length
-                : 0;
-
-            const { crag, ascents, liked, project, ...rest } = r;
-            return {
-              ...rest,
-              liked: (liked?.length ?? 0) > 0,
-              project: (project?.length ?? 0) > 0,
-              crag_slug: crag?.slug,
-              crag_name: crag?.name,
-              area_slug: crag?.area?.slug,
-              area_name: crag?.area?.name,
-              rating,
-              ascent_count: ascents?.length ?? 0,
-            } as RouteItem;
-          })
-          .filter((r): r is RouteItem => !!r);
-      } catch (e) {
-        console.error('[UserProfile] projectsResource exception', e);
-        return [];
-      }
-    },
-  });
-
-  readonly ascentsResource = resource({
-    params: () => this.profile()?.id,
-    loader: async ({ params: userId }): Promise<RouteAscentWithExtras[]> => {
-      if (!userId || !isPlatformBrowser(this.platformId)) return [];
-      try {
-        await this.supabase.whenReady();
-        const { data, error } = await this.supabase.client
-          .from('route_ascents')
-          .select(
-            `
-            *,
-            route:routes (
-              *,
-              liked:route_likes(id),
-              project:route_projects(id),
-              crag:crags(
-                slug,
-                name,
-                area:areas(slug, name)
-              )
-            )
-          `,
-          )
-          .eq('user_id', userId)
-          .order('date', { ascending: false });
-
-        if (error) {
-          console.error('[UserProfile] ascentsResource error', error);
-          return [];
-        }
-
-        return (data as AscentResponse[]).map((a) => {
-          const { route, ...ascentRest } = a;
-          let mappedRoute: RouteWithExtras | undefined = undefined;
-
-          if (route) {
-            const { crag, liked, project, ...routeRest } = route;
-            mappedRoute = {
-              ...routeRest,
-              liked: (liked?.length ?? 0) > 0,
-              project: (project?.length ?? 0) > 0,
-              crag_slug: crag?.slug,
-              crag_name: crag?.name,
-              area_slug: crag?.area?.slug,
-              area_name: crag?.area?.name,
-            } as RouteWithExtras;
-          }
-
-          return {
-            ...ascentRest,
-            route: mappedRoute,
-          } as RouteAscentWithExtras;
-        });
-      } catch (e) {
-        console.error('[UserProfile] ascentsResource exception', e);
-        return [];
-      }
-    },
-  });
+  readonly ascentsResource = this.global.userAscentsResource;
 
   readonly ascents = computed(() => this.ascentsResource.value() ?? []);
 
@@ -432,25 +317,7 @@ export class UserProfileComponent {
     this.ascentsResource.update((curr) =>
       (curr ?? []).filter((a) => a.id !== id),
     );
-  }
-
-  onLogAscent(route: RouteWithExtras): void {
-    this.ascentsService
-      .openAscentForm({
-        routeId: route.id,
-        routeName: route.name,
-        grade: route.grade,
-      })
-      .subscribe();
-  }
-
-  onEditAscent(ascent: RouteAscentWithExtras): void {
-    this.ascentsService
-      .openAscentForm({
-        routeId: ascent.route_id,
-        ascentData: ascent,
-      })
-      .subscribe();
+    this.projectsResource.reload();
   }
 
   openEditDialog(): void {
@@ -461,6 +328,23 @@ export class UserProfileComponent {
         closable: false,
       })
       .subscribe();
+  }
+
+  async toggleFollow(): Promise<void> {
+    const followedUserId = this.profile()?.id;
+    if (!followedUserId || this.isOwnProfile()) return;
+
+    if (this.isFollowing()) {
+      const success = await this.followsService.unfollow(followedUserId);
+      if (success) {
+        this.isFollowingResource.update(() => false);
+      }
+    } else {
+      const success = await this.followsService.follow(followedUserId);
+      if (success) {
+        this.isFollowingResource.update(() => true);
+      }
+    }
   }
 }
 

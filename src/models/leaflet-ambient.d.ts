@@ -54,11 +54,13 @@ declare module 'leaflet' {
       },
     ): this;
     getZoom(): number;
-    setZoom(z: number): this;
+    setZoom(z: number, options?: { animate?: boolean }): this;
+    zoomIn(options?: { animate?: boolean }): this;
+    zoomOut(options?: { animate?: boolean }): this;
     on(event: string, handler: (e: LeafletEvent) => void): this;
     panTo(latlng: LatLng): this;
     setView(
-      center: [number, number],
+      center: [number, number] | LatLng,
       zoom: number,
       options?: { animate?: boolean },
     ): this;

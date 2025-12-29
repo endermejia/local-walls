@@ -11,11 +11,11 @@ import {
 import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { TuiButton, TuiLabel, TuiTextfield } from '@taiga-ui/core';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { TuiInputNumber, TuiToastService } from '@taiga-ui/kit';
+import { TranslatePipe } from '@ngx-translate/core';
+import { TuiInputNumber } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { ToposService } from '../services';
+import { ToposService, ToastService } from '../services';
 import { handleErrorToast } from '../utils';
 import { TopoRouteWithRoute } from '../models';
 
@@ -93,8 +93,7 @@ import { TopoRouteWithRoute } from '../models';
 export class TopoRouteFormComponent {
   private readonly topos = inject(ToposService);
   private readonly location = inject(Location);
-  private readonly toast = inject(TuiToastService);
-  private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
 
   private readonly _dialogCtx: TuiDialogContext<
     boolean | null,
@@ -158,7 +157,7 @@ export class TopoRouteFormComponent {
     } catch (e) {
       const error = e as Error;
       console.error('[TopoRouteFormComponent] Error submitting:', error);
-      handleErrorToast(error, this.toast, this.translate);
+      handleErrorToast(error, this.toast);
     }
   }
 

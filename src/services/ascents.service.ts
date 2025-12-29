@@ -12,7 +12,8 @@ import { TuiDialogService } from '@taiga-ui/experimental';
 import { TranslateService } from '@ngx-translate/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import AscentFormComponent from '../pages/ascent-form';
-import { Observable, tap } from 'rxjs';
+import { Observable, Subject, tap } from 'rxjs';
+import { ToastService } from './toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class AscentsService {
@@ -21,6 +22,10 @@ export class AscentsService {
   private readonly global = inject(GlobalData);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
+
+  private readonly ascentUpdated$ = new Subject<void>();
+  readonly updated$ = this.ascentUpdated$.asObservable();
 
   readonly ascentInfo = computed<
     Record<string, { icon: string; background: string }>
@@ -76,6 +81,7 @@ export class AscentsService {
       throw error;
     }
     this.refreshResources();
+    this.toast.success('messages.toasts.ascentCreated');
     return data as RouteAscentDto;
   }
 
@@ -96,6 +102,7 @@ export class AscentsService {
       throw error;
     }
     this.refreshResources();
+    this.toast.success('messages.toasts.ascentUpdated');
     return data as RouteAscentDto;
   }
 
@@ -111,6 +118,7 @@ export class AscentsService {
       throw error;
     }
     this.refreshResources();
+    this.toast.success('messages.toasts.ascentDeleted');
     return true;
   }
 
@@ -119,5 +127,8 @@ export class AscentsService {
     this.global.routeAscentsResource.reload();
     this.global.cragRoutesResource.reload();
     this.global.topoDetailResource.reload();
+    this.global.userProjectsResource.reload();
+    this.global.userAscentsResource.reload();
+    this.ascentUpdated$.next();
   }
 }

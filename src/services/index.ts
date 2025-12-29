@@ -14,3 +14,5 @@ export * from './ascents.service';
 export * from './topos.service';
 export * from './parkings.service';
 export * from './filters.service';
+export * from './follows.service';
+export * from './toast.service';

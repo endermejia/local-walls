@@ -12,10 +12,12 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { TuiDialogService } from '@taiga-ui/experimental';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { TuiAvatar } from '@taiga-ui/kit';
+import { TranslatePipe } from '@ngx-translate/core';
+import {
+  TuiAvatar,
+  TuiBadgedContent,
+  TuiBadgeNotification,
+} from '@taiga-ui/kit';
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import {
   TuiButton,
@@ -28,8 +30,7 @@ import {
 } from '@taiga-ui/core';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { ChartRoutesByGradeComponent, MapComponent } from '../components';
-import { FilterDialog, FilterDialogComponent } from './filter-dialog';
-import { GlobalData } from '../services';
+import { GlobalData, FiltersService } from '../services';
 import {
   GradeLabel,
   MapAreaItem,
@@ -58,6 +59,8 @@ import { mapLocationUrl, remToPx } from '../utils';
     MapComponent,
     ChartRoutesByGradeComponent,
     TuiAvatar,
+    TuiBadgedContent,
+    TuiBadgeNotification,
     TuiIcon,
   ],
   template: ` <div class="h-full w-full">
@@ -83,17 +86,24 @@ import { mapLocationUrl, remToPx } from '../utils';
         </button>
       </div>
       <div class="z-10">
-        <button
-          tuiIconButton
-          size="s"
-          appearance="primary-grayscale"
-          iconStart="@tui.sliders-horizontal"
-          class="pointer-events-auto"
-          [tuiHint]="global.isMobile() ? null : ('labels.filters' | translate)"
-          (click.zoneless)="openFilters()"
-        >
-          {{ 'labels.filters' | translate }}
-        </button>
+        <tui-badged-content>
+          @if (hasActiveFilters()) {
+            <tui-badge-notification size="s" tuiSlot="top" />
+          }
+          <button
+            tuiIconButton
+            size="s"
+            appearance="primary-grayscale"
+            iconStart="@tui.sliders-horizontal"
+            class="pointer-events-auto"
+            [tuiHint]="
+              global.isMobile() ? null : ('labels.filters' | translate)
+            "
+            (click.zoneless)="openFilters()"
+          >
+            {{ 'labels.filters' | translate }}
+          </button>
+        </tui-badged-content>
       </div>
     </div>
 
@@ -401,19 +411,8 @@ import { mapLocationUrl, remToPx } from '../utils';
 })
 export class ExploreComponent {
   protected readonly mapLocationUrl = mapLocationUrl;
-  private readonly dialogs = inject(TuiDialogService);
-  private readonly translate = inject(TranslateService);
+  private readonly filtersService = inject(FiltersService);
 
-  // Filter state: categories (0=Sport, 1=Boulder); empty => all
-  protected readonly selectedCategories: WritableSignal<number[]> = signal([
-    0, 1,
-  ]);
-  // Grade range in indices over ORDERED_GRADE_VALUES
-  protected readonly selectedGradeRange: WritableSignal<[number, number]> =
-    signal([0, ORDERED_GRADE_VALUES.length - 1]);
-  protected readonly selectedShade: WritableSignal<
-    FilterDialog['selectedShade']
-  > = signal([]);
   private readonly _platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
 
@@ -430,9 +429,9 @@ export class ExploreComponent {
 
   protected mapCragItems: Signal<MapCragItem[]> = computed(() => {
     const items = this.global.mapItemsOnViewport();
-    const categories = this.selectedCategories();
-    const [selMin, selMax] = this.selectedGradeRange();
-    const shade = this.selectedShade() || [];
+    const categories = this.global.areaListCategories();
+    const [selMin, selMax] = this.global.areaListGradeRange();
+    const shade = this.global.areaListShade() || [];
 
     const withinSelectedCategories = (c: MapCragItem): boolean => {
       // empty => all
@@ -505,6 +504,16 @@ export class ExploreComponent {
     const offset = remToPx(this.stops[0] as string) || 0;
     const maxTop = Math.max(0, clientHeight - offset);
     return scrollTop >= maxTop * 0.5;
+  });
+
+  protected readonly hasActiveFilters = computed(() => {
+    const [lo, hi] = this.global.areaListGradeRange();
+    const gradeActive = !(lo === 0 && hi === ORDERED_GRADE_VALUES.length - 1);
+    return (
+      gradeActive ||
+      this.global.areaListCategories().length > 0 ||
+      this.global.areaListShade().length > 0
+    );
   });
 
   private isBrowser(): boolean {
@@ -633,32 +642,7 @@ export class ExploreComponent {
   }
 
   protected openFilters(): void {
-    const data: FilterDialog = {
-      categories: this.selectedCategories(),
-      gradeRange: this.selectedGradeRange(),
-      selectedShade: this.selectedShade(),
-    };
-    this.dialogs
-      .open<FilterDialog>(new PolymorpheusComponent(FilterDialogComponent), {
-        label: this.translate.instant('labels.filters'),
-        size: 'l',
-        data,
-      })
-      .subscribe((result) => {
-        if (!result) return;
-        this.selectedCategories.set(result.categories ?? []);
-        this.selectedShade.set(result.selectedShade ?? []);
-        const [a, b] = result.gradeRange ?? [
-          0,
-          ORDERED_GRADE_VALUES.length - 1,
-        ];
-        const lo = Math.max(0, Math.min(a, ORDERED_GRADE_VALUES.length - 1));
-        const hi = Math.max(0, Math.min(b, ORDERED_GRADE_VALUES.length - 1));
-        this.selectedGradeRange.set([Math.min(lo, hi), Math.max(lo, hi)] as [
-          number,
-          number,
-        ]);
-        this.closeAll();
-      });
+    this.filtersService.openFilters();
+    this.closeAll();
   }
 }

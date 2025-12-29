@@ -18,7 +18,6 @@ import {
   TuiRating,
   TUI_CONFIRM,
   type TuiConfirmData,
-  TuiToastService,
 } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
 import { TuiDialogService } from '@taiga-ui/experimental';
@@ -31,7 +30,12 @@ import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
 import { TuiButton, TuiHint, TuiIcon, TuiLink } from '@taiga-ui/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { GlobalData, RoutesService, AscentsService } from '../services';
+import {
+  GlobalData,
+  RoutesService,
+  AscentsService,
+  ToastService,
+} from '../services';
 import { handleErrorToast } from '../utils';
 import {
   VERTICAL_LIFE_TO_LABEL,
@@ -237,9 +241,7 @@ export interface RoutesTableRow {
                                 ? null
                                 : ('ascent.edit' | translate)
                             "
-                            (click.zoneless)="
-                              onEditAscent(ascentToEdit, item.route)
-                            "
+                            (click.zoneless)="onEditAscent(ascentToEdit)"
                           >
                             <tui-icon
                               [icon]="
@@ -339,7 +341,7 @@ export class RoutesTableComponent {
   protected readonly ascentsService = inject(AscentsService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
-  private readonly toast = inject(TuiToastService);
+  private readonly toast = inject(ToastService);
 
   // Inputs
   data: InputSignal<RouteItem[]> = input.required<RouteItem[]>();
@@ -353,9 +355,6 @@ export class RoutesTableComponent {
   // Output to request more items when reaching the end
   toggleLike: OutputEmitterRef<RouteItem> = output<RouteItem>();
   toggleProject: OutputEmitterRef<RouteItem> = output<RouteItem>();
-  logAscent: OutputEmitterRef<RouteItem> = output<RouteItem>();
-  editAscent: OutputEmitterRef<RouteAscentWithExtras> =
-    output<RouteAscentWithExtras>();
 
   protected readonly columns = computed(() => {
     const cols = ['grade', 'route', 'height', 'rating', 'ascents', 'actions'];
@@ -447,21 +446,15 @@ export class RoutesTableComponent {
         grade: item.grade,
       })
       .subscribe();
-    this.logAscent.emit(item);
   }
 
-  protected onEditAscent(
-    ascent: RouteAscentWithExtras,
-    routeName?: string,
-  ): void {
+  protected onEditAscent(ascent: RouteAscentWithExtras): void {
     this.ascentsService
       .openAscentForm({
         routeId: ascent.route_id,
-        routeName,
         ascentData: ascent,
       })
       .subscribe();
-    this.editAscent.emit(ascent);
   }
 
   protected deleteRoute(route: RouteItem): void {
@@ -483,7 +476,7 @@ export class RoutesTableComponent {
         if (!confirmed) return;
         this.routesService
           .delete(route.id)
-          .catch((err) => handleErrorToast(err, this.toast, this.translate));
+          .catch((err) => handleErrorToast(err, this.toast));
       });
   }
 

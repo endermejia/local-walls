@@ -33,8 +33,6 @@ import {
   TuiInputYear,
   TuiSwitch,
   TuiAvatar,
-  TuiToastService,
-  TuiToastOptions,
   TuiShimmer,
   TuiBadgedContentComponent,
   TuiBadge,
@@ -46,7 +44,12 @@ import {
   type TuiDialogContext,
 } from '@taiga-ui/experimental';
 import { map } from 'rxjs';
-import { GlobalData, SupabaseService, UserProfilesService } from '../services';
+import {
+  GlobalData,
+  SupabaseService,
+  UserProfilesService,
+  ToastService,
+} from '../services';
 import {
   AvatarCropperComponent,
   type AvatarCropperResult,
@@ -396,7 +399,7 @@ export class UserProfileConfigComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly userProfilesService = inject(UserProfilesService);
-  private readonly toast = inject(TuiToastService);
+  private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly dialogContext: TuiDialogContext<unknown, unknown> | null =
@@ -495,15 +498,6 @@ export class UserProfileConfigComponent {
     });
   }
 
-  private showToast(
-    messageKey: string,
-    options: Partial<TuiToastOptions<string>>,
-  ): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-    const message = this.translate.instant(messageKey);
-    this.toast.open(message, options).subscribe();
-  }
-
   async loadProfile(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
 
@@ -544,14 +538,14 @@ export class UserProfileConfigComponent {
     if (!trimmed) {
       const current = this.profile();
       this.displayName = current?.name ?? '';
-      this.showToast('profile.name.required', { data: '@tui.circle-alert' });
+      this.toast.info('profile.name.required');
       return;
     }
     if (trimmed.length < 3 || trimmed.length > 50) {
       // Restore previous valid value for UX consistency
       const current = this.profile();
       this.displayName = current?.name ?? '';
-      this.showToast('profile.name.length', { data: '@tui.circle-alert' });
+      this.toast.info('profile.name.length');
       return;
     }
     if (trimmed === (this.profile()?.name ?? '')) {
@@ -566,7 +560,7 @@ export class UserProfileConfigComponent {
 
     if (trimmed.length > 500) {
       this.bio = current?.bio ?? '';
-      this.showToast('profile.bio.tooLong', { data: '@tui.circle-alert' });
+      this.toast.info('profile.bio.tooLong');
       return;
     }
 
@@ -600,7 +594,7 @@ export class UserProfileConfigComponent {
     const validIds = new Set(this.countryIds());
     if (this.country && !validIds.has(this.country)) {
       this.country = current?.country ?? null;
-      this.showToast('profile.country.invalid', { data: '@tui.circle-alert' });
+      this.toast.error('profile.country.invalid');
       return;
     }
     if (this.country === (current?.country ?? null)) {
@@ -613,7 +607,7 @@ export class UserProfileConfigComponent {
     const current = this.profile();
     if (this.city && this.city.length > 100) {
       this.city = current?.city ?? null;
-      this.showToast('profile.city.tooLong', { data: '@tui.circle-alert' });
+      this.toast.info('profile.city.tooLong');
       return;
     }
     if (this.city === (current?.city ?? null)) {
@@ -643,9 +637,7 @@ export class UserProfileConfigComponent {
               new Date(current.birth_date).getDate(),
             )
           : null;
-        this.showToast('profile.birthDate.invalid', {
-          data: '@tui.circle-alert',
-        });
+        this.toast.error('profile.birthDate.invalid');
         return;
       }
     }
@@ -661,9 +653,7 @@ export class UserProfileConfigComponent {
     if (newYear !== null) {
       if (newYear < this.minYear || newYear > this.currentYear) {
         this.startingClimbingYear = current?.starting_climbing_year ?? null;
-        this.showToast('profile.startingYear.invalid', {
-          data: '@tui.circle-alert',
-        });
+        this.toast.error('profile.startingYear.invalid');
         return;
       }
     }
@@ -678,7 +668,7 @@ export class UserProfileConfigComponent {
     if (this.size !== null) {
       if (this.size < 0 || this.size > 300) {
         this.size = current?.size ?? null;
-        this.showToast('profile.size.invalid', { data: '@tui.circle-alert' });
+        this.toast.error('profile.size.invalid');
         return;
       }
     }
@@ -713,9 +703,7 @@ export class UserProfileConfigComponent {
       // Validate file type
       if (!file.type.startsWith('image/')) {
         console.error('Please select an image file');
-        this.showToast('profile.avatar.upload.invalidType', {
-          data: 'tui.circle-alert',
-        });
+        this.toast.error('profile.avatar.upload.invalidType');
         return;
       }
 
@@ -723,9 +711,7 @@ export class UserProfileConfigComponent {
       const maxSize = 5 * 1024 * 1024; // 5MB
       if (file.size > maxSize) {
         console.error('File size must be less than 5MB');
-        this.showToast('profile.avatar.upload.tooLarge', {
-          data: '@tui.circle-alert',
-        });
+        this.toast.error('profile.avatar.upload.tooLarge');
         return;
       }
 
@@ -751,15 +737,11 @@ export class UserProfileConfigComponent {
             try {
               const upload = await this.supabase.uploadAvatar(croppedFile);
               if (!upload) return;
-              this.showToast('profile.avatar.upload.success', {
-                data: '@tui.circle-check',
-              });
+              this.toast.success('profile.avatar.upload.success');
               this.supabase.userProfileResource.reload();
             } catch (e) {
               console.error('Error uploading avatar:', e);
-              this.showToast('profile.avatar.upload.error', {
-                data: '@tui.circle-x',
-              });
+              this.toast.error('profile.avatar.upload.error');
             } finally {
               this.isUploadingAvatar.set(false);
             }
@@ -776,9 +758,7 @@ export class UserProfileConfigComponent {
 
     if (!result.success) {
       console.error('Error saving profile:', result.error);
-      this.showToast('Error: ' + result.error, {
-        data: '@tui.circle-x',
-      });
+      this.toast.error('Error: ' + result.error);
     }
   }
 

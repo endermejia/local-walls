@@ -43,27 +43,29 @@ import { computeGradeChartData } from '../utils';
   ],
   template: `
     @let c = chart();
-    <tui-ring-chart
-      [tuiSkeleton]="tuiSkeleton()"
-      [value]="c.values"
-      [activeItemIndex]="activeItemIndex()"
-      (activeItemIndexChange)="activeItemIndex.set($event)"
-    >
-      @if (c.hasActive) {
-        <span>
-          {{ c.activeBandTotal }}
-          {{ 'labels.ascents' | translate | lowercase }}
-        </span>
-        <div [innerHtml]="c.breakdownText"></div>
-      } @else {
-        <span class="text-xl font-semibold">
-          {{ gradeLabel() }}
-        </span>
-        @if (c.gradeRange; as gradeRange) {
-          <div class="text-sm">{{ gradeRange }}</div>
+    @if (c.total > 0) {
+      <tui-ring-chart
+        [tuiSkeleton]="tuiSkeleton()"
+        [value]="c.values"
+        [activeItemIndex]="activeItemIndex()"
+        (activeItemIndexChange)="activeItemIndex.set($event)"
+      >
+        @if (c.hasActive) {
+          <span>
+            {{ c.activeBandTotal }}
+            {{ 'labels.ascents' | translate | lowercase }}
+          </span>
+          <div [innerHtml]="c.breakdownText"></div>
+        } @else {
+          <span class="text-xl font-semibold">
+            {{ gradeLabel() }}
+          </span>
+          @if (c.gradeRange; as gradeRange) {
+            <div class="text-sm">{{ gradeRange }}</div>
+          }
         }
-      }
-    </tui-ring-chart>
+      </tui-ring-chart>
+    }
   `,
 })
 export class ChartAscentsByGradeComponent {
@@ -71,7 +73,7 @@ export class ChartAscentsByGradeComponent {
     input.required<RouteAscentWithExtras[]>();
   gradeLabel: InputSignal<string> = input.required<string>();
   tuiSkeleton: InputSignal<boolean> = input(false);
-  activeItemIndex: WritableSignal<number> = signal<number>(Number.NaN);
+  activeItemIndex: WritableSignal<number> = signal<number>(-1);
 
   // Compute counts directly from the ascents list
   private readonly normalizedCounts: Signal<RoutesByGrade> = computed(() => {

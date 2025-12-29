@@ -11,6 +11,8 @@
     "create": "Crear",
     "delete": "Eliminar",
     "edit": "Editar",
+    "follow": "Seguir",
+    "unfollow": "Dejar de seguir",
     "exitFullscreen": "Salir de pantalla completa",
     "favorite": {
       "add": "Marcar como favorito",
@@ -50,7 +52,7 @@
     "approach": "Aproximación",
     "area": "Área",
     "areas": "Áreas",
-    "ascents": "Ascensiones",
+    "ascents": "Encadenes",
     "bio": "Biografía",
     "birthDate": "Fecha de nacimiento",
     "boulders": "Bloques",
@@ -152,7 +154,8 @@
     "my-crags": "Mis sectores",
     "admin-users": "Usuarios",
     "admin-equippers": "Equipadores",
-    "admin-parkings": "Parkings"
+    "admin-parkings": "Parkings",
+    "home": "Inicio"
   },
   "explore": {
     "toggleView": "Cambiar vista"
@@ -174,7 +177,37 @@
   },
   "messages": {
     "copied": "Enlace copiado!",
-    "offline": "Estás sin conexión. Algunas funciones pueden no estar disponibles."
+    "offline": "Estás sin conexión. Algunas funciones pueden no estar disponibles.",
+    "errorFollow": "Ha ocurrido un error al seguir al usuario",
+    "errorUnfollow": "Ha ocurrido un error al dejar de seguir al usuario",
+    "toasts": {
+      "userFollowed": "Ahora sigues a este usuario",
+      "userUnfollowed": "Has dejado de seguir a este usuario",
+      "projectAdded": "Marcada como proyecto",
+      "projectRemoved": "Proyecto eliminado",
+      "ascentCreated": "Encadene registrado",
+      "ascentUpdated": "Encadene actualizado",
+      "ascentDeleted": "Encadene eliminado",
+      "favoriteAdded": "Añadida a favoritos",
+      "favoriteRemoved": "Quitada de favoritos",
+      "areaCreated": "Área creada",
+      "areaUpdated": "Área actualizada",
+      "areaDeleted": "Área eliminada",
+      "cragCreated": "Sector creado",
+      "cragUpdated": "Sector actualizado",
+      "cragDeleted": "Sector eliminado",
+      "routeCreated": "Vía creada",
+      "routeUpdated": "Vía actualizada",
+      "routeDeleted": "Vía eliminada",
+      "topoCreated": "Croquis creado",
+      "topoUpdated": "Croquis actualizado",
+      "topoDeleted": "Croquis eliminado",
+      "parkingCreated": "Parking creado",
+      "parkingUpdated": "Parking actualizado",
+      "parkingDeleted": "Parking eliminado",
+      "parkingLinked": "Parking vinculado",
+      "parkingUnlinked": "Parking desvinculado"
+    }
   },
   "seo": {
     "title": "Roca nostra 🤫",
@@ -297,7 +330,7 @@
     "rp": "Rotpunkt"
   },
   "ascent": {
-    "edit": "Editar ascensión",
+    "edit": "Editar encadene",
     "deleteTitle": "Eliminar encadene",
     "deleteConfirm": "¿Seguro que quieres eliminar el encadene de la vía \"{{routeName}}\" del {{date}}?",
     "new": "Encadenada!",

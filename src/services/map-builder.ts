@@ -64,6 +64,8 @@ export class MapBuilder {
    * @param options - Map configuration options
    * @param mapCragItem - Array of crag items to display on the map
    * @param selectedMapCragItem - Currently selected crag item, if any
+   * @param mapParkingItems
+   * @param selectedMapParkingItem
    * @param cb - Callback functions for map interactions
    */
   async init(

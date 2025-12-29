@@ -186,10 +186,11 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
   - No hay errores de acceso a `window/document` en servidor.
   - Las vistas hidratan sin errores en cliente.
 
-## 11) Estilo y lint
+## 11) Estilo y tipado
 
 - Sigue Angular Style Guide (nombres en PascalCase para componentes, sufijos adecuados, coherencia en señales/propiedades).
 - Usa ESLint del proyecto (`npm run lint` y `npm run lint:fix`).
+- **Tipado estricto**: Evita el uso de `as any` o `as unknown`. Todo el código debe estar correctamente tipado. Si una librería externa carece de tipos o son incorrectos, prefiere extender las definiciones de tipos (ambient types) antes que usar casts inseguros.
 
 ## 12) Netlify SSR y Redirects (Angular Router)
 

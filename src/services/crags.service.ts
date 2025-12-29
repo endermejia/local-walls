@@ -10,12 +10,14 @@ import { SupabaseService } from './supabase.service';
 // getCragDetailBySlug removed; RPC get_crag_by_slug is no longer used
 import { GlobalData } from './global-data';
 import type { CragDto, CragInsertDto, CragUpdateDto } from '../models';
+import { ToastService } from './toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class CragsService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly global = inject(GlobalData);
+  private readonly toast = inject(ToastService);
 
   readonly loading = signal(false);
   readonly error: WritableSignal<string | null> = signal<string | null>(null);
@@ -36,6 +38,7 @@ export class CragsService {
     }
     // After creating, reload the crags list for the selected area
     this.global.cragsListResource.reload();
+    this.toast.success('messages.toasts.cragCreated');
     return data as CragDto;
   }
 
@@ -58,6 +61,7 @@ export class CragsService {
     // Reload the crags list for the selected area and the current crag detail
     this.global.cragsListResource.reload();
     this.global.cragDetailResource.reload();
+    this.toast.success('messages.toasts.cragUpdated');
     return data as CragDto;
   }
 
@@ -76,6 +80,7 @@ export class CragsService {
         if (!value) return value;
         return value.filter((item) => item.id !== id);
       });
+      this.toast.success('messages.toasts.cragDeleted');
       return true;
     } catch (e) {
       console.error('[CragsService] delete error', e);
@@ -121,6 +126,12 @@ export class CragsService {
         }
         return curr;
       });
+
+      this.toast.success(
+        liked
+          ? 'messages.toasts.favoriteAdded'
+          : 'messages.toasts.favoriteRemoved',
+      );
 
       return liked;
     } catch (e) {
