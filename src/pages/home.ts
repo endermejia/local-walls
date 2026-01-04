@@ -23,7 +23,7 @@ import {
   TuiBadgeNotification,
   TuiAvatar,
 } from '@taiga-ui/kit';
-import { AscentsTableComponent, EmptyStateComponent } from '../components';
+import { AscentsTableComponent } from '../components';
 import { GlobalData, SupabaseService, FiltersService } from '../services';
 import {
   RouteAscentWithExtras,
@@ -47,7 +47,6 @@ import {
     TuiBadgeNotification,
     TuiAvatar,
     AscentsTableComponent,
-    EmptyStateComponent,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -155,7 +154,6 @@ export class HomeComponent {
         .select(
           `
           *,
-          user:user_profiles (*),
           route:routes (
             *,
             crag:crags (
@@ -175,7 +173,28 @@ export class HomeComponent {
         return [];
       }
 
-      return (ascents as any[]).map((a) => {
+      if (!ascents || ascents.length === 0) return [];
+
+      // 3. Fetch user profiles for these ascents
+      const userIds = [...new Set(ascents.map((a) => a.user_id))];
+      const { data: profiles, error: profilesError } =
+        await this.supabase.client
+          .from('user_profiles')
+          .select('*')
+          .in('id', userIds);
+
+      if (profilesError) {
+        console.error(
+          '[HomeComponent] Error fetching user profiles:',
+          profilesError,
+        );
+        // Continue without user info if profiles fail
+      }
+
+      // 4. Map profiles to ascents
+      const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
+
+      return ascents.map((a) => {
         const { route, ...ascentRest } = a;
         let mappedRoute = null;
         if (route) {
@@ -190,9 +209,10 @@ export class HomeComponent {
         }
         return {
           ...ascentRest,
+          user: profileMap.get(a.user_id),
           route: mappedRoute,
-        };
-      }) as RouteAscentWithExtras[];
+        } as RouteAscentWithExtras;
+      });
     },
   });
 
