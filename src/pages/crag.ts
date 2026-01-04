@@ -45,7 +45,6 @@ import {
   CragsService,
   GlobalData,
   ParkingsService,
-  AscentsService,
   FiltersService,
   ToastService,
 } from '../services';
@@ -502,7 +501,6 @@ export class CragComponent {
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
   private readonly crags = inject(CragsService);
-  protected readonly ascentsService = inject(AscentsService);
   private readonly filtersService = inject(FiltersService);
   private readonly parkings = inject(ParkingsService);
   private readonly dialogs = inject(TuiDialogService);
@@ -530,15 +528,12 @@ export class CragComponent {
       if (!q) return true;
       const nameMatch = r.name.toLowerCase().includes(q);
       const gradeLabel =
-        typeof r.grade === 'number'
-          ? VERTICAL_LIFE_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES]
-          : null;
+        VERTICAL_LIFE_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES];
       const gradeMatch = gradeLabel?.toLowerCase().includes(q);
       return nameMatch || gradeMatch;
     };
 
     const gradeMatches = (r: RouteWithExtras) => {
-      if (typeof r.grade !== 'number') return true;
       const label = VERTICAL_LIFE_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES];
       if (!label) return true;
       return (allowedLabels as readonly string[]).includes(label);

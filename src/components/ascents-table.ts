@@ -19,11 +19,9 @@ import {
   TuiIcon,
   TuiHint,
   TuiFallbackSrcPipe,
-  TuiDialogService,
   TuiLink,
   TuiAppearance,
 } from '@taiga-ui/core';
-import { TranslateService } from '@ngx-translate/core';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { SupabaseService, GlobalData, AscentsService } from '../services';
@@ -276,8 +274,6 @@ export class AscentsTableComponent {
   private readonly supabase = inject(SupabaseService);
   protected readonly global = inject(GlobalData);
   protected readonly ascentsService = inject(AscentsService);
-  private readonly dialogs = inject(TuiDialogService);
-  private readonly translate = inject(TranslateService);
 
   data: InputSignal<RouteAscentWithExtras[]> =
     input.required<RouteAscentWithExtras[]>();

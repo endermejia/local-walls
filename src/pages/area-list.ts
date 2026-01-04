@@ -228,13 +228,13 @@ export class AreaListComponent {
       return shadeKeys.some((key) => {
         switch (key) {
           case 'shade_morning':
-            return !!a.shade_morning;
+            return a.shade_morning;
           case 'shade_afternoon':
-            return !!a.shade_afternoon;
+            return a.shade_afternoon;
           case 'shade_all_day':
-            return !!a.shade_all_day;
+            return a.shade_all_day;
           case 'sun_all_day':
-            return !!a.sun_all_day;
+            return a.sun_all_day;
           default:
             return true;
         }

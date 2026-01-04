@@ -8,6 +8,7 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { WaIntersectionObserver } from '@ng-web-apis/intersection-observer';
 import {
@@ -17,7 +18,7 @@ import {
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
-import { TuiScrollbar, TuiTextfield } from '@taiga-ui/core';
+import { TuiLink, TuiScrollbar, TuiTextfield } from '@taiga-ui/core';
 import {
   TuiAvatar,
   TuiChevron,
@@ -54,6 +55,8 @@ interface UserWithRole {
     TuiTextfield,
     TranslatePipe,
     WaIntersectionObserver,
+    RouterLink,
+    TuiLink,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -166,18 +169,27 @@ interface UserWithRole {
                 <tr tuiTr [class.is-current]="user.id === currentUserId()">
                   <td *tuiCell="'user'" tuiTd class="user-cell">
                     <div class="flex items-center gap-3">
-                      <tui-avatar
-                        size="m"
-                        [src]="supabase.buildAvatarUrl(user.avatar)"
-                      />
-                      <span class="font-medium">
-                        {{ user.name || ('labels.anonymous' | translate) }}
+                      <a [routerLink]="['/profile', user.id]">
+                        <tui-avatar
+                          size="m"
+                          [src]="supabase.buildAvatarUrl(user.avatar)"
+                          class="cursor-pointer"
+                        />
+                      </a>
+                      <div class="flex flex-col">
+                        <a
+                          tuiLink
+                          [routerLink]="['/profile', user.id]"
+                          class="font-medium"
+                        >
+                          {{ user.name || ('labels.anonymous' | translate) }}
+                        </a>
                         @if (user.id === currentUserId()) {
-                          <span class="text-xs opacity-60 ml-1">
+                          <span class="text-xs opacity-60">
                             ({{ 'labels.you' | translate }})
                           </span>
                         }
-                      </span>
+                      </div>
                     </div>
                   </td>
                   <td *tuiCell="'role'" tuiTd class="role-cell">

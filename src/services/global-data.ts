@@ -155,13 +155,6 @@ export class GlobalData {
     'Wild Side',
     'Aixortà',
     'Rincón Bello',
-    'Chulilla',
-    'Oliana',
-    'Rodellar',
-    'Siurana',
-    'Margalef',
-    'Kalymnos',
-    'Fontainebleau',
   ]);
 
   // ---- Auth (roles) ----
@@ -293,9 +286,6 @@ export class GlobalData {
     },
   });
 
-  mapResponse: Signal<MapResponse | null> = computed(
-    () => this.mapResource.value() ?? null,
-  );
   mapItems: Signal<MapItem[]> = computed(() => this.cachedMapItems());
   /**
    * Items currently visible in the viewport defined by mapBounds.
@@ -840,17 +830,16 @@ export class GlobalData {
           return [];
         }
 
-        return (data as any[])
+        return data
           .map((item) => {
             const r = item.route;
             if (!r) return null;
             const rates =
-              r.ascents
-                ?.map((a: any) => a.rate)
-                .filter((rate: any) => rate != null) ?? [];
+              r.ascents?.map((a) => a.rate).filter((rate) => rate != null) ??
+              [];
             const rating =
               rates.length > 0
-                ? rates.reduce((a: any, b: any) => a + b, 0) / rates.length
+                ? rates.reduce((a, b) => a + b, 0) / rates.length
                 : 0;
 
             const { crag, ascents, liked, project, ...rest } = r;
@@ -864,7 +853,7 @@ export class GlobalData {
               area_name: crag?.area?.name,
               rating,
               ascent_count: ascents?.length ?? 0,
-            } as any;
+            };
           })
           .filter((r) => !!r);
       } catch (e) {
@@ -905,7 +894,7 @@ export class GlobalData {
           return [];
         }
 
-        return (data as any[]).map((a) => {
+        return data.map((a) => {
           const { route, ...ascentRest } = a;
           let mappedRoute: RouteWithExtras | undefined = undefined;
 

@@ -241,7 +241,9 @@ export interface RoutesTableRow {
                                 ? null
                                 : ('ascent.edit' | translate)
                             "
-                            (click.zoneless)="onEditAscent(ascentToEdit)"
+                            (click.zoneless)="
+                              onEditAscent(ascentToEdit, item._ref.name)
+                            "
                           >
                             <tui-icon
                               [icon]="
@@ -448,10 +450,14 @@ export class RoutesTableComponent {
       .subscribe();
   }
 
-  protected onEditAscent(ascent: RouteAscentWithExtras): void {
+  protected onEditAscent(
+    ascent: RouteAscentWithExtras,
+    routeName: string,
+  ): void {
     this.ascentsService
       .openAscentForm({
         routeId: ascent.route_id,
+        routeName: routeName,
         ascentData: ascent,
       })
       .subscribe();
