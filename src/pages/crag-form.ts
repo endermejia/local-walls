@@ -12,12 +12,12 @@ import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { LocationPickerComponent } from '../components';
+
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { TuiInputNumber, TuiTextarea } from '@taiga-ui/kit';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { PolymorpheusComponent, injectContext } from '@taiga-ui/polymorpheus';
-import { CragsService, ToastService } from '../services';
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { CragsService, ToastService, MapService } from '../services';
 import { slugify, handleErrorToast } from '../utils';
 
 interface MinimalCrag {
@@ -210,6 +210,7 @@ export class CragFormComponent {
   private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
+  private readonly mapService = inject(MapService);
   private readonly _dialogCtx: TuiDialogContext<
     string | boolean | null,
     { areaId?: number; cragData?: MinimalCrag }
@@ -336,18 +337,9 @@ export class CragFormComponent {
   }
 
   pickLocation(): void {
-    this.dialogs
-      .open<{ lat: number; lng: number } | null>(
-        new PolymorpheusComponent(LocationPickerComponent),
-        {
-          size: 'l',
-          data: {
-            lat: this.latitude.value,
-            lng: this.longitude.value,
-          },
-        },
-      )
-      .subscribe((result: { lat: number; lng: number } | null) => {
+    this.mapService
+      .pickLocation(this.latitude.value, this.longitude.value)
+      .subscribe((result) => {
         if (result) {
           this.latitude.setValue(result.lat);
           this.longitude.setValue(result.lng);
@@ -367,20 +359,13 @@ export class CragFormComponent {
     const text = event.clipboardData?.getData('text');
     if (!text) return;
 
-    // Regex to find two numbers separated by comma and/or space
-    const match = text.match(/(-?\d+\.?\d*)\s*[\s,]\s*(-?\d+\.?\d*)/);
-
-    if (match) {
-      const lat = parseFloat(match[1]);
-      const lng = parseFloat(match[2]);
-
-      if (!isNaN(lat) && !isNaN(lng)) {
-        event.preventDefault();
-        this.latitude.setValue(lat);
-        this.longitude.setValue(lng);
-        this.latitude.markAsDirty();
-        this.longitude.markAsDirty();
-      }
+    const coords = this.mapService.parseCoordinates(text);
+    if (coords) {
+      event.preventDefault();
+      this.latitude.setValue(coords.lat);
+      this.longitude.setValue(coords.lng);
+      this.latitude.markAsDirty();
+      this.longitude.markAsDirty();
     }
   }
 }

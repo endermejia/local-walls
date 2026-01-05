@@ -20,7 +20,6 @@ import {
 } from '@taiga-ui/core';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslateService } from '@ngx-translate/core';
 import {
   TuiAvatar,
@@ -29,7 +28,7 @@ import {
 } from '@taiga-ui/kit';
 import { ChartRoutesByGradeComponent } from '../components';
 import { EmptyStateComponent } from '../components';
-import { AreaFormComponent } from './area-form';
+
 import {
   ORDERED_GRADE_VALUES,
   normalizeRoutesByGrade,
@@ -259,12 +258,7 @@ export class AreaListComponent {
   }
 
   openCreateArea(): void {
-    this.dialogs
-      .open<boolean>(new PolymorpheusComponent(AreaFormComponent), {
-        label: this.translate.instant('areas.newTitle'),
-        size: 'l',
-      })
-      .subscribe();
+    this.areasService.openAreaForm();
   }
 }
 

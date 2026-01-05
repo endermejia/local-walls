@@ -12,7 +12,7 @@ import {
 import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { TuiCardLarge } from '@taiga-ui/layout';
+import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import {
   TuiSurface,
   TuiLoader,
@@ -30,11 +30,7 @@ import {
   TuiBadgeNotification,
 } from '@taiga-ui/kit';
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { Router, RouterLink } from '@angular/router';
-import { TuiHeader } from '@taiga-ui/layout';
-import { AreaFormComponent } from './area-form';
-import { CragFormComponent } from './crag-form';
 import {
   ChartRoutesByGradeComponent,
   EmptyStateComponent,
@@ -43,6 +39,7 @@ import {
 import {
   ToastService,
   AreasService,
+  CragsService,
   GlobalData,
   FiltersService,
 } from '../services';
@@ -229,6 +226,7 @@ import {
 export class AreaComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly areas = inject(AreasService);
+  private readonly cragsService = inject(CragsService);
   protected readonly global = inject(GlobalData);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
@@ -376,35 +374,14 @@ export class AreaComponent {
   openEditArea(): void {
     const area = this.global.selectedArea();
     if (!area) return;
-    this.dialogs
-      .open<string | null>(new PolymorpheusComponent(AreaFormComponent), {
-        label: this.translate.instant('areas.editTitle'),
-        size: 'l',
-        data: { areaData: { id: area.id, name: area.name, slug: area.slug } },
-      })
-      .subscribe({
-        next: async (result) => {
-          if (typeof result === 'string' && result.length) {
-            if (isPlatformBrowser(this.platformId)) {
-              if (result !== area.slug) {
-                await this.router.navigateByUrl(`/area/${result}`);
-                return;
-              }
-            }
-          }
-        },
-      });
+    this.areas.openAreaForm({
+      areaData: { id: area.id, name: area.name, slug: area.slug },
+    });
   }
 
   openCreateCrag(): void {
     const current = this.global.selectedArea();
     if (!current) return;
-    this.dialogs
-      .open<boolean>(new PolymorpheusComponent(CragFormComponent), {
-        label: this.translate.instant('crags.newTitle'),
-        size: 'l',
-        data: { areaId: current.id },
-      })
-      .subscribe();
+    this.cragsService.openCragForm({ areaId: current.id });
   }
 }

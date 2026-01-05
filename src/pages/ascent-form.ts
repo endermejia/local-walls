@@ -135,7 +135,7 @@ import { handleErrorToast } from '../utils';
           <span class="text-sm font-semibold opacity-70 px-1">{{
             'ascent.how' | translate
           }}</span>
-          <div class="flex flex-wrap gap-4 items-center justify-around">
+          <div class="flex flex-wrap gap-2 items-center justify-around">
             @for (opt of typeOptions; track opt.id) {
               <div class="flex flex-col items-center gap-2">
                 <button

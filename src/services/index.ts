@@ -16,3 +16,4 @@ export * from './parkings.service';
 export * from './filters.service';
 export * from './follows.service';
 export * from './toast.service';
+export * from './map.service';

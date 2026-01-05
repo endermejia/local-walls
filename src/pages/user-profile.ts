@@ -13,15 +13,19 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { TUI_COUNTRIES, TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
 import { TuiButton, TuiFallbackSrcPipe, TuiHint } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
-import { SupabaseService, GlobalData, FollowsService } from '../services';
+import {
+  SupabaseService,
+  GlobalData,
+  FollowsService,
+  UserProfilesService,
+} from '../services';
 import {
   RoutesTableComponent,
   RouteItem,
   AscentsTableComponent,
 } from '../components';
-import { UserProfileConfigComponent } from './user-profile-config';
 
 @Component({
   selector: 'app-user-profile',
@@ -175,6 +179,7 @@ export class UserProfileComponent {
   private readonly platformId = inject(PLATFORM_ID);
   protected readonly supabase = inject(SupabaseService);
   private readonly followsService = inject(FollowsService);
+  private readonly userProfilesService = inject(UserProfilesService);
   protected readonly global = inject(GlobalData);
   private readonly dialogs = inject(TuiDialogService);
   protected readonly countriesNames$ = inject(TUI_COUNTRIES);
@@ -322,12 +327,7 @@ export class UserProfileComponent {
 
   openEditDialog(): void {
     if (!this.isOwnProfile()) return;
-    this.dialogs
-      .open(new PolymorpheusComponent(UserProfileConfigComponent), {
-        appearance: 'fullscreen',
-        closable: false,
-      })
-      .subscribe();
+    this.userProfilesService.openUserProfileConfigForm();
   }
 
   async toggleFollow(): Promise<void> {

@@ -30,7 +30,7 @@ import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { TUI_CONFIRM, type TuiConfirmData, TuiAvatar } from '@taiga-ui/kit';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+
 import {
   AvatarGradeComponent,
   EmptyStateComponent,
@@ -48,8 +48,7 @@ import {
   TopoRouteWithRoute,
   RouteAscentWithExtras,
 } from '../models';
-import TopoFormComponent from './topo-form';
-import TopoRouteFormComponent from './topo-route-form';
+
 import { handleErrorToast } from '../utils';
 import { TuiCell } from '@taiga-ui/layout';
 
@@ -403,7 +402,7 @@ export class TopoComponent {
     );
 
   protected readonly global = inject(GlobalData);
-  private readonly topos = inject(ToposService);
+  private readonly toposService = inject(ToposService);
   protected readonly ascentsService = inject(AscentsService);
   private readonly routesService = inject(RoutesService);
   private readonly router = inject(Router);
@@ -534,33 +533,20 @@ export class TopoComponent {
   }
 
   openEditTopo(topo: TopoDetail): void {
+    if (!isPlatformBrowser(this.platformId)) return;
     const initialRouteIds = topo.topo_routes.map((tr) => tr.route_id);
-    this.dialogs
-      .open<string | null>(new PolymorpheusComponent(TopoFormComponent), {
-        label: this.translate.instant('topos.editTitle'),
-        size: 'l',
-        data: {
-          topoData: topo,
-          initialRouteIds,
-        },
-      })
-      .subscribe();
+    this.toposService.openTopoForm({
+      cragId: topo.crag_id,
+      topoData: topo,
+      initialRouteIds,
+    });
   }
 
   openEditTopoRoute(topoRoute: TopoRouteWithRoute): void {
-    this.dialogs
-      .open<boolean>(new PolymorpheusComponent(TopoRouteFormComponent), {
-        label: this.translate.instant('topos.editRouteTitle'),
-        size: 's',
-        data: {
-          topoRouteData: topoRoute,
-        },
-      })
-      .subscribe((reloaded) => {
-        if (reloaded) {
-          // The service already calls reload on topoDetailResource
-        }
-      });
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.toposService.openTopoRouteForm({
+      topoRouteData: topoRoute,
+    });
   }
 
   deleteTopo(topo: TopoDetail): void {
@@ -580,7 +566,7 @@ export class TopoComponent {
       })
       .subscribe((confirmed) => {
         if (!confirmed) return;
-        this.topos
+        this.toposService
           .delete(topo.id)
           .then(() => {
             this.router.navigate(['/area', this.areaSlug(), this.cragSlug()]);
@@ -606,7 +592,7 @@ export class TopoComponent {
       })
       .subscribe((confirmed) => {
         if (!confirmed) return;
-        this.topos
+        this.toposService
           .removeRoute(topoRoute.topo_id, topoRoute.route_id)
           .then(() => {
             void this.global.topoDetailResource.reload();

@@ -44,8 +44,7 @@ import {
   ClimbingKinds,
   RouteAscentWithExtras,
 } from '../models';
-import { RouteFormComponent } from '../pages/route-form';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+
 import { AvatarGradeComponent } from './avatar-grade';
 import { EmptyStateComponent } from './empty-state';
 
@@ -487,23 +486,17 @@ export class RoutesTableComponent {
   }
 
   protected openEditRoute(route: RouteItem): void {
-    this.dialogs
-      .open<boolean>(new PolymorpheusComponent(RouteFormComponent), {
-        label: this.translate.instant('routes.editTitle'),
-        size: 'l',
-        data: {
-          cragId: route.crag_id,
-          routeData: {
-            id: route.id,
-            crag_id: route.crag_id,
-            name: route.name,
-            slug: route.slug,
-            grade: route.grade,
-            climbing_kind: route.climbing_kind,
-            height: route.height,
-          },
-        },
-      })
-      .subscribe();
+    this.routesService.openRouteForm({
+      cragId: route.crag_id,
+      routeData: {
+        id: route.id,
+        crag_id: route.crag_id,
+        name: route.name,
+        slug: route.slug,
+        grade: Number(route.grade),
+        climbing_kind: route.climbing_kind,
+        height: route.height || null,
+      },
+    });
   }
 }

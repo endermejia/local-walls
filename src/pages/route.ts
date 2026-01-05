@@ -21,7 +21,7 @@ import {
 } from '@taiga-ui/kit';
 
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+
 import {
   SectionHeaderComponent,
   AscentsTableComponent,
@@ -39,7 +39,7 @@ import {
   ClimbingKinds,
   RouteAscentWithExtras,
 } from '../models';
-import { RouteFormComponent } from './route-form';
+
 import { handleErrorToast } from '../utils';
 
 @Component({
@@ -297,10 +297,13 @@ export class RouteComponent {
   );
 
   protected readonly equippersResource = resource({
-    params: () => this.route()?.id,
-    loader: async ({ params: id }) => {
-      if (!id) return [];
-      return this.routesService.getRouteEquippers(id);
+    params: () => {
+      const r = this.route();
+      return r ? { id: r.id, _v: r } : undefined;
+    },
+    loader: async ({ params }) => {
+      if (!params) return [];
+      return this.routesService.getRouteEquippers(params.id);
     },
   });
 
@@ -393,28 +396,18 @@ export class RouteComponent {
   openEditRoute(): void {
     const r = this.route();
     if (!r) return;
-    this.dialogs
-      .open<boolean>(new PolymorpheusComponent(RouteFormComponent), {
-        label: this.translate.instant('routes.editTitle'),
-        size: 'l',
-        data: {
-          cragId: r.crag_id,
-          routeData: {
-            id: r.id,
-            crag_id: r.crag_id,
-            name: r.name,
-            slug: r.slug,
-            grade: r.grade,
-            climbing_kind: r.climbing_kind,
-            height: r.height,
-          },
-        },
-      })
-      .subscribe((result) => {
-        if (result) {
-          this.equippersResource.reload();
-        }
-      });
+    this.routesService.openRouteForm({
+      cragId: r.crag_id,
+      routeData: {
+        id: r.id,
+        crag_id: r.crag_id,
+        name: r.name,
+        slug: r.slug,
+        grade: r.grade,
+        climbing_kind: r.climbing_kind,
+        height: r.height,
+      },
+    });
   }
 
   deleteRoute(): void {

@@ -1,12 +1,43 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { UserProfileDto } from '../models';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { UserProfileConfigComponent } from '../pages/user-profile-config';
+import { AvatarCropperComponent, AvatarCropperResult } from '../components';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserProfilesService {
   private supabase = inject(SupabaseService);
+  private dialogs = inject(TuiDialogService);
+
+  openUserProfileConfigForm(): void {
+    this.dialogs
+      .open(new PolymorpheusComponent(UserProfileConfigComponent), {
+        appearance: 'fullscreen',
+        closable: false,
+        dismissible: false,
+      })
+      .subscribe();
+  }
+
+  openAvatarCropper(
+    file: File,
+    size: number = 512,
+  ): Observable<AvatarCropperResult | null> {
+    return this.dialogs.open<AvatarCropperResult | null>(
+      new PolymorpheusComponent(AvatarCropperComponent),
+      {
+        size: 'm',
+        data: { file, size },
+        appearance: 'fullscreen',
+        closable: false,
+      },
+    );
+  }
 
   /**
    * Get user profile by name (displayName field)

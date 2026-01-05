@@ -9,6 +9,10 @@ import type {
   RouteUpdateDto,
 } from '../models';
 import { ToastService } from './toast.service';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { TranslateService } from '@ngx-translate/core';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { RouteFormComponent } from '../pages/route-form';
 
 @Injectable({ providedIn: 'root' })
 export class RoutesService {
@@ -16,6 +20,37 @@ export class RoutesService {
   private readonly supabase = inject(SupabaseService);
   private readonly global = inject(GlobalData);
   private readonly toast = inject(ToastService);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
+
+  openRouteForm(data: {
+    cragId?: number;
+    routeData?: {
+      id: number;
+      crag_id: number;
+      name: string;
+      slug: string;
+      grade: number;
+      climbing_kind: string;
+      height?: number | null;
+    };
+  }): void {
+    const isEdit = !!data.routeData;
+    this.dialogs
+      .open<boolean>(new PolymorpheusComponent(RouteFormComponent), {
+        label: this.translate.instant(
+          isEdit ? 'routes.editTitle' : 'routes.newTitle',
+        ),
+        size: 'l',
+        data,
+      })
+      .subscribe((result) => {
+        if (result) {
+          this.global.cragRoutesResource.reload();
+          this.global.routeDetailResource.reload();
+        }
+      });
+  }
 
   async getRouteEquippers(routeId: number): Promise<EquipperDto[]> {
     await this.supabase.whenReady();
@@ -197,6 +232,7 @@ export class RoutesService {
       this.global.cragRoutesResource.reload();
       this.global.routeDetailResource.reload();
       this.global.topoDetailResource.reload();
+      this.global.userProjectsResource.reload();
       this.toast.success('messages.toasts.projectRemoved');
     } catch (e) {
       console.error('[RoutesService] removeRouteProject error', e);
@@ -217,6 +253,7 @@ export class RoutesService {
       this.global.cragRoutesResource.reload();
       this.global.routeDetailResource.reload();
       this.global.topoDetailResource.reload();
+      this.global.userProjectsResource.reload();
 
       const isProject = data as boolean;
       this.toast.success(

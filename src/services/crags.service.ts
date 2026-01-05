@@ -1,3 +1,4 @@
+import { Router } from '@angular/router';
 import {
   inject,
   Injectable,
@@ -11,6 +12,10 @@ import { SupabaseService } from './supabase.service';
 import { GlobalData } from './global-data';
 import type { CragDto, CragInsertDto, CragUpdateDto } from '../models';
 import { ToastService } from './toast.service';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { TranslateService } from '@ngx-translate/core';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { CragFormComponent } from '../pages/crag-form';
 
 @Injectable({ providedIn: 'root' })
 export class CragsService {
@@ -18,9 +23,53 @@ export class CragsService {
   private readonly supabase = inject(SupabaseService);
   private readonly global = inject(GlobalData);
   private readonly toast = inject(ToastService);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
+  private readonly router = inject(Router);
 
   readonly loading = signal(false);
   readonly error: WritableSignal<string | null> = signal<string | null>(null);
+
+  openCragForm(data?: {
+    areaId?: number;
+    cragData?: {
+      id: number;
+      area_id: number;
+      name: string;
+      slug: string;
+      latitude?: number | null;
+      longitude?: number | null;
+      approach?: number | null;
+      description_es?: string | null;
+      description_en?: string | null;
+      warning_es?: string | null;
+      warning_en?: string | null;
+    };
+  }): void {
+    const isEdit = !!data?.cragData;
+    const oldSlug = data?.cragData?.slug;
+    this.dialogs
+      .open<string | null>(new PolymorpheusComponent(CragFormComponent), {
+        label: this.translate.instant(
+          isEdit ? 'crags.editTitle' : 'crags.newTitle',
+        ),
+        size: 'l',
+        data,
+      })
+      .subscribe((result) => {
+        if (result) {
+          this.global.cragsListResource.reload();
+          this.global.cragDetailResource.reload();
+
+          if (isEdit && oldSlug && result !== oldSlug) {
+            const areaSlug = this.global.selectedAreaSlug();
+            if (areaSlug && this.global.selectedCragSlug() === oldSlug) {
+              this.router.navigate(['/area', areaSlug, result]);
+            }
+          }
+        }
+      });
+  }
 
   async create(
     payload: Omit<CragInsertDto, 'created_at' | 'id'>,

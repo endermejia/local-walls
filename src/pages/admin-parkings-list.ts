@@ -25,12 +25,11 @@ import {
 } from '@taiga-ui/kit';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+
 import { GlobalData, ParkingsService, ToastService } from '../services';
 import { EmptyStateComponent } from '../components';
 import { ParkingDto } from '../models';
 import { handleErrorToast } from '../utils';
-import ParkingFormComponent from './parking-form';
 
 @Component({
   selector: 'app-admin-parkings-list',
@@ -225,8 +224,10 @@ export class AdminParkingsListComponent {
     'actions',
   ] as const;
 
-  protected readonly loading = signal(true);
-  protected readonly parkings: WritableSignal<ParkingDto[]> = signal([]);
+  protected readonly loading = this.global.adminParkingsResource.isLoading;
+  protected readonly parkings = computed(
+    () => this.global.adminParkingsResource.value() ?? [],
+  );
   protected readonly searchQuery = signal('');
   protected readonly skeletons = Array(10).fill(0);
   protected readonly defaultSorter: TuiComparator<ParkingDto> = () => 0;
@@ -252,58 +253,18 @@ export class AdminParkingsListComponent {
   });
 
   constructor() {
-    if (isPlatformBrowser(this.platformId)) {
-      void this.loadParkings();
-    }
     this.global.resetDataByPage('home');
-  }
-
-  private async loadParkings(): Promise<void> {
-    try {
-      this.loading.set(true);
-      const data = await this.parkingsService.getAll();
-      this.parkings.set(data || []);
-    } catch (e) {
-      console.error('[AdminParkingsList] Error loading parkings:', e);
-      handleErrorToast(e as Error, this.toast);
-    } finally {
-      this.loading.set(false);
+    if (isPlatformBrowser(this.platformId)) {
+      this.global.adminParkingsResource.reload();
     }
   }
 
   protected addNewParking(): void {
-    this.dialogs
-      .open<ParkingDto | null>(
-        new PolymorpheusComponent(ParkingFormComponent),
-        {
-          label: this.translate.instant('actions.new'),
-          size: 'l',
-        },
-      )
-      .subscribe((result) => {
-        if (result) {
-          this.parkings.update((list) => [...list, result]);
-        }
-      });
+    this.parkingsService.openParkingForm();
   }
 
   protected editParking(parking: ParkingDto): void {
-    this.dialogs
-      .open<ParkingDto | null>(
-        new PolymorpheusComponent(ParkingFormComponent),
-        {
-          label: this.translate.instant('actions.edit'),
-          size: 'l',
-          data: { parkingData: parking },
-        },
-      )
-      .subscribe((result) => {
-        if (result) {
-          this.parkings.update((list) =>
-            list.map((p) => (p.id === result.id ? result : p)),
-          );
-        }
-      });
+    this.parkingsService.openParkingForm({ parkingData: parking });
   }
 
   protected deleteParking(parking: ParkingDto): void {
@@ -328,10 +289,7 @@ export class AdminParkingsListComponent {
 
   private async performDelete(id: number): Promise<void> {
     try {
-      const ok = await this.parkingsService.delete(id);
-      if (ok) {
-        this.parkings.update((list) => list.filter((p) => p.id !== id));
-      }
+      await this.parkingsService.delete(id);
     } catch (e) {
       handleErrorToast(e as Error, this.toast);
     }

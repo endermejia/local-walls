@@ -7,8 +7,15 @@ import type {
   TopoInsertDto,
   TopoUpdateDto,
   TopoRouteInsertDto,
+  TopoDetail,
+  TopoRouteWithRoute,
 } from '../models';
 import { ToastService } from './toast.service';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { TranslateService } from '@ngx-translate/core';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import TopoFormComponent from '../pages/topo-form';
+import TopoRouteFormComponent from '../pages/topo-route-form';
 
 @Injectable({ providedIn: 'root' })
 export class ToposService {
@@ -16,6 +23,46 @@ export class ToposService {
   private readonly supabase = inject(SupabaseService);
   private readonly global = inject(GlobalData);
   private readonly toast = inject(ToastService);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
+
+  openTopoForm(data: {
+    cragId?: number;
+    topoData?: TopoDetail;
+    initialRouteIds?: number[];
+  }): void {
+    const isEdit = !!data.topoData;
+    this.dialogs
+      .open<string | null>(new PolymorpheusComponent(TopoFormComponent), {
+        label: this.translate.instant(
+          isEdit ? 'topos.editTitle' : 'topos.newTitle',
+        ),
+        size: 'l',
+        data,
+      })
+      .subscribe((result) => {
+        if (result) {
+          this.global.cragDetailResource.reload();
+          if (this.global.selectedTopoId()) {
+            this.global.topoDetailResource.reload();
+          }
+        }
+      });
+  }
+
+  openTopoRouteForm(data: { topoRouteData: TopoRouteWithRoute }): void {
+    this.dialogs
+      .open<boolean>(new PolymorpheusComponent(TopoRouteFormComponent), {
+        label: this.translate.instant('topos.editRouteTitle'),
+        size: 's',
+        data,
+      })
+      .subscribe((result) => {
+        if (result) {
+          this.global.topoDetailResource.reload();
+        }
+      });
+  }
 
   async create(
     payload: Omit<TopoInsertDto, 'created_at' | 'id'>,

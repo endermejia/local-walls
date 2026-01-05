@@ -4,6 +4,11 @@ import { SupabaseService } from './supabase.service';
 import { GlobalData } from './global-data';
 import type { ParkingDto, ParkingInsertDto, ParkingUpdateDto } from '../models';
 import { ToastService } from './toast.service';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { TranslateService } from '@ngx-translate/core';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import ParkingFormComponent from '../pages/parking-form';
+import LinkParkingFormComponent from '../pages/link-parking-form';
 
 @Injectable({ providedIn: 'root' })
 export class ParkingsService {
@@ -11,6 +16,45 @@ export class ParkingsService {
   private readonly supabase = inject(SupabaseService);
   private readonly global = inject(GlobalData);
   private readonly toast = inject(ToastService);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
+
+  openParkingForm(
+    data: { cragId?: number; parkingData?: ParkingDto } = {},
+  ): void {
+    const isEdit = !!data.parkingData;
+    this.dialogs
+      .open<boolean>(new PolymorpheusComponent(ParkingFormComponent), {
+        label: this.translate.instant(isEdit ? 'actions.edit' : 'actions.new'),
+        size: 'l',
+        data,
+      })
+      .subscribe((result) => {
+        if (result) {
+          if (data.cragId) {
+            this.global.cragDetailResource.reload();
+          }
+          this.global.adminParkingsResource.reload();
+        }
+      });
+  }
+
+  openLinkParkingForm(data: {
+    cragId: number;
+    existingParkingIds: number[];
+  }): void {
+    this.dialogs
+      .open<boolean>(new PolymorpheusComponent(LinkParkingFormComponent), {
+        label: this.translate.instant('actions.link'),
+        size: 'm',
+        data,
+      })
+      .subscribe((result) => {
+        if (result) {
+          this.global.cragDetailResource.reload();
+        }
+      });
+  }
 
   async getAll(): Promise<ParkingDto[]> {
     await this.supabase.whenReady();
@@ -75,6 +119,8 @@ export class ParkingsService {
       throw error;
     }
     this.toast.success('messages.toasts.parkingDeleted');
+    this.global.adminParkingsResource.reload();
+    this.global.cragDetailResource.reload();
     return true;
   }
 

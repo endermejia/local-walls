@@ -286,7 +286,6 @@ export class GlobalData {
     },
   });
 
-  mapItems: Signal<MapItem[]> = computed(() => this.cachedMapItems());
   /**
    * Items currently visible in the viewport defined by mapBounds.
    * - Crags: included when their [lat,lng] is inside bounds.
@@ -295,7 +294,7 @@ export class GlobalData {
    */
   mapItemsOnViewport: Signal<MapItem[]> = computed(() => {
     const bounds = this.mapBounds();
-    const items = this.mapItems();
+    const items = this.cachedMapItems();
     if (!bounds) return items;
 
     const south = bounds.south_west_latitude;
@@ -1049,6 +1048,27 @@ export class GlobalData {
         );
       } catch (e) {
         console.error('[GlobalData] routeAscentsResource exception', e);
+        return [];
+      }
+    },
+  });
+
+  readonly adminParkingsResource = resource({
+    loader: async () => {
+      if (!isPlatformBrowser(this.platformId)) return [];
+      try {
+        await this.supabase.whenReady();
+        const { data, error } = await this.supabase.client
+          .from('parkings')
+          .select('*')
+          .order('name');
+        if (error) {
+          console.error('[GlobalData] adminParkingsResource error', error);
+          return [];
+        }
+        return (data as ParkingDto[]) ?? [];
+      } catch (e) {
+        console.error('[GlobalData] adminParkingsResource exception', e);
         return [];
       }
     },

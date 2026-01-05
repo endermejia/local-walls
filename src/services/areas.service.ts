@@ -1,3 +1,4 @@
+import { Router } from '@angular/router';
 import {
   inject,
   Injectable,
@@ -10,6 +11,10 @@ import { SupabaseService } from './supabase.service';
 import { GlobalData } from './global-data';
 import type { AreaDto, AreaInsertDto, AreaUpdateDto } from '../models';
 import { ToastService } from './toast.service';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { TranslateService } from '@ngx-translate/core';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { AreaFormComponent } from '../pages/area-form';
 
 @Injectable({ providedIn: 'root' })
 export class AreasService {
@@ -17,9 +22,49 @@ export class AreasService {
   private readonly supabase = inject(SupabaseService);
   private readonly global = inject(GlobalData);
   private readonly toast = inject(ToastService);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
+  private readonly router = inject(Router);
 
   readonly loading = signal(false);
   readonly error: WritableSignal<string | null> = signal<string | null>(null);
+
+  openAreaForm(data?: {
+    areaData?: { id: number; name: string; slug: string };
+  }): void {
+    const isEdit = !!data?.areaData;
+    const oldSlug = data?.areaData?.slug;
+    this.dialogs
+      .open<string | boolean | null>(
+        new PolymorpheusComponent(AreaFormComponent),
+        {
+          label: this.translate.instant(
+            isEdit ? 'areas.editTitle' : 'areas.newTitle',
+          ),
+          size: 'l',
+          data,
+        },
+      )
+      .subscribe((result) => {
+        if (result) {
+          this.global.areasListResource.reload();
+          // Also reload global area detail if we are on that page?
+          // Since we might navigate, we rely on router/resource reload.
+          // But if we are on area list, reloads list.
+
+          if (
+            isEdit &&
+            oldSlug &&
+            typeof result === 'string' &&
+            result !== oldSlug
+          ) {
+            if (this.global.selectedAreaSlug() === oldSlug) {
+              this.router.navigate(['/area', result]);
+            }
+          }
+        }
+      });
+  }
 
   async create(
     payload: Omit<AreaInsertDto, 'created_at' | 'id'>,

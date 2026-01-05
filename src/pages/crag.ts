@@ -47,6 +47,8 @@ import {
   ParkingsService,
   FiltersService,
   ToastService,
+  RoutesService,
+  ToposService,
 } from '../services';
 import {
   type CragDetail,
@@ -496,13 +498,15 @@ import { handleErrorToast } from '../utils';
 export class CragComponent {
   protected readonly global = inject(GlobalData);
   private readonly router = inject(Router);
+  private readonly routesService = inject(RoutesService);
+  private readonly parkingsService = inject(ParkingsService);
+  private readonly cragsService = inject(CragsService);
+  private readonly toposService = inject(ToposService);
+  private readonly filtersService = inject(FiltersService);
 
   private readonly platformId = inject(PLATFORM_ID);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
-  private readonly crags = inject(CragsService);
-  private readonly filtersService = inject(FiltersService);
-  private readonly parkings = inject(ParkingsService);
   private readonly dialogs = inject(TuiDialogService);
   protected readonly mapLocationUrl = mapLocationUrl;
 
@@ -542,7 +546,7 @@ export class CragComponent {
     return list.filter((r) => textMatches(r) && gradeMatches(r));
   });
 
-  readonly loading = this.crags.loading;
+  readonly loading = this.cragsService.loading;
   protected readonly cragDetail = computed<CragDetail | null>(() => {
     const c = this.global.cragDetailResource.value();
     if (!c) return null;
@@ -604,60 +608,30 @@ export class CragComponent {
   openCreateRoute(): void {
     const c = this.cragDetail();
     if (!c) return;
-    this.dialogs
-      .open<boolean>(new PolymorpheusComponent(RouteFormComponent), {
-        label: this.translate.instant('routes.newTitle'),
-        size: 'l',
-        data: { cragId: c.id },
-      })
-      .subscribe();
+    this.routesService.openRouteForm({ cragId: c.id });
   }
 
   openCreateParking(): void {
     const c = this.cragDetail();
     if (!c) return;
-    this.dialogs
-      .open<boolean>(new PolymorpheusComponent(ParkingFormComponent), {
-        label: this.translate.instant('actions.new'),
-        size: 'l',
-        data: { cragId: c.id },
-      })
-      .subscribe((result) => {
-        if (result) {
-          this.global.cragDetailResource.reload();
-        }
-      });
+    this.parkingsService.openParkingForm({ cragId: c.id });
   }
 
   openLinkParking(): void {
     const c = this.cragDetail();
     if (!c) return;
     const existingParkingIds = c.parkings.map((p) => p.id);
-    this.dialogs
-      .open<boolean>(new PolymorpheusComponent(LinkParkingFormComponent), {
-        label: this.translate.instant('actions.link'),
-        size: 'm',
-        data: { cragId: c.id, existingParkingIds },
-      })
-      .subscribe((result) => {
-        if (result) {
-          this.global.cragDetailResource.reload();
-        }
-      });
+    this.parkingsService.openLinkParkingForm({
+      cragId: c.id,
+      existingParkingIds,
+    });
   }
 
   openEditParking(parking: ParkingDto): void {
-    this.dialogs
-      .open<boolean>(new PolymorpheusComponent(ParkingFormComponent), {
-        label: this.translate.instant('actions.edit'),
-        size: 'l',
-        data: { parkingData: parking },
-      })
-      .subscribe((result) => {
-        if (result) {
-          this.global.cragDetailResource.reload();
-        }
-      });
+    this.parkingsService.openParkingForm({
+      parkingData: parking,
+      cragId: this.cragDetail()?.id,
+    });
   }
 
   removeParking(parking: ParkingDto): void {
@@ -679,7 +653,7 @@ export class CragComponent {
       })
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.parkings
+          this.parkingsService
             .removeParkingFromCrag(c.id, parking.id)
             .catch((err) => handleErrorToast(err, this.toast));
         }
@@ -704,7 +678,7 @@ export class CragComponent {
     if (!c) return;
     // Optimistic update not possible easily with computed resource without invalidation
     // We just call the API
-    this.crags.toggleCragLike(c.id).then(() => {
+    this.cragsService.toggleCragLike(c.id).then(() => {
       // Option: reload resource
       // this.global.cragDetailResource.reload();
     });
@@ -736,7 +710,7 @@ export class CragComponent {
             next: async (confirmed) => {
               if (!confirmed) return;
               try {
-                const ok = await this.crags.delete(c.id);
+                const ok = await this.cragsService.delete(c.id);
                 if (ok) {
                   await this.router.navigateByUrl(`/area/${c.area_slug}`);
                 }
@@ -753,52 +727,27 @@ export class CragComponent {
   openEditCrag(): void {
     const c = this.cragDetail();
     if (!c) return;
-    this.dialogs
-      .open<string | null>(new PolymorpheusComponent(CragFormComponent), {
-        label: this.translate.instant('crags.editTitle'),
-        size: 'l',
-        data: {
-          cragData: {
-            id: c.id,
-            area_id: c.area_id,
-            name: c.name,
-            slug: c.slug,
-            latitude: c.latitude,
-            longitude: c.longitude,
-            approach: c.approach,
-            description_es: c.description_es,
-            description_en: c.description_en,
-            warning_es: c.warning_es,
-            warning_en: c.warning_en,
-          },
-        },
-      })
-      .subscribe({
-        next: async (result) => {
-          if (typeof result === 'string' && result.length) {
-            if (isPlatformBrowser(this.platformId)) {
-              if (result !== c.slug) {
-                await this.router.navigateByUrl(
-                  `/area/${this.areaSlug()}/${result}`,
-                );
-                return;
-              }
-            }
-          }
-        },
-      });
+    this.cragsService.openCragForm({
+      cragData: {
+        id: c.id,
+        area_id: c.area_id!,
+        name: c.name,
+        slug: c.slug,
+        latitude: c.latitude,
+        longitude: c.longitude,
+        approach: c.approach,
+        description_es: c.description_es,
+        description_en: c.description_en,
+        warning_es: c.warning_es,
+        warning_en: c.warning_en,
+      },
+    });
   }
 
   openCreateTopo(): void {
     const c = this.cragDetail();
     if (!c) return;
-    this.dialogs
-      .open<string | null>(new PolymorpheusComponent(TopoFormComponent), {
-        label: this.translate.instant('topos.newTitle'),
-        size: 'l',
-        data: { cragId: c.id },
-      })
-      .subscribe();
+    this.toposService.openTopoForm({ cragId: c.id });
   }
 
   protected openExternal(url: string): void {
