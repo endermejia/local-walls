@@ -1,8 +1,9 @@
 import { inject, Injectable } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { LocationPickerComponent } from '../components/location-picker';
 import { Observable } from 'rxjs';
+import { LocationPickerComponent } from '../components';
 
 @Injectable({ providedIn: 'root' })
 export class MapService {
@@ -15,13 +16,28 @@ export class MapService {
     return this.dialogs.open<{ lat: number; lng: number } | null>(
       new PolymorpheusComponent(LocationPickerComponent),
       {
-        size: 'l',
+        closable: false,
         data: {
           lat: lat ?? undefined,
           lng: lng ?? undefined,
         },
+        appearance: 'fullscreen',
       },
     );
+  }
+
+  pickLocationAndUpdate(
+    latCtrl: FormControl<number | null>,
+    lngCtrl: FormControl<number | null>,
+  ): void {
+    this.pickLocation(latCtrl.value, lngCtrl.value).subscribe((result) => {
+      if (result) {
+        latCtrl.setValue(result.lat);
+        lngCtrl.setValue(result.lng);
+        latCtrl.markAsDirty();
+        lngCtrl.markAsDirty();
+      }
+    });
   }
 
   parseCoordinates(text: string): { lat: number; lng: number } | null {
@@ -37,5 +53,23 @@ export class MapService {
       }
     }
     return null;
+  }
+
+  handlePasteLocation(
+    event: ClipboardEvent,
+    latCtrl: FormControl<number | null>,
+    lngCtrl: FormControl<number | null>,
+  ): void {
+    const text = event.clipboardData?.getData('text');
+    if (!text) return;
+
+    const coords = this.parseCoordinates(text);
+    if (coords) {
+      event.preventDefault();
+      latCtrl.setValue(coords.lat);
+      lngCtrl.setValue(coords.lng);
+      latCtrl.markAsDirty();
+      lngCtrl.markAsDirty();
+    }
   }
 }

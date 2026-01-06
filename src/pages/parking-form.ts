@@ -11,12 +11,10 @@ import {
 import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
-import { TranslatePipe } from '@ngx-translate/core';
-
-import { TuiDialogService } from '@taiga-ui/experimental';
 import { TuiInputNumber } from '@taiga-ui/kit';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { injectContext } from '@taiga-ui/polymorpheus';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ParkingsService, ToastService, MapService } from '../services';
 import { handleErrorToast } from '../utils';
 import { ParkingDto } from '../models';
@@ -166,7 +164,6 @@ export class ParkingFormComponent {
   private readonly parkings = inject(ParkingsService);
   private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
-  private readonly dialogs = inject(TuiDialogService);
   private readonly mapService = inject(MapService);
   private readonly _dialogCtx: TuiDialogContext<
     ParkingDto | boolean | null,
@@ -260,7 +257,7 @@ export class ParkingFormComponent {
     };
 
     try {
-      let result: ParkingDto | null = null;
+      let result: ParkingDto | null;
       if (this.isEdit() && this.editingId != null) {
         result = await this.parkings.update(this.editingId, payload);
       } else {
@@ -292,30 +289,11 @@ export class ParkingFormComponent {
   }
 
   pickLocation(): void {
-    this.mapService
-      .pickLocation(this.latitude.value, this.longitude.value)
-      .subscribe((result) => {
-        if (result) {
-          this.latitude.setValue(result.lat);
-          this.longitude.setValue(result.lng);
-          this.latitude.markAsDirty();
-          this.longitude.markAsDirty();
-        }
-      });
+    this.mapService.pickLocationAndUpdate(this.latitude, this.longitude);
   }
 
   onPasteLocation(event: ClipboardEvent): void {
-    const text = event.clipboardData?.getData('text');
-    if (!text) return;
-
-    const coords = this.mapService.parseCoordinates(text);
-    if (coords) {
-      event.preventDefault();
-      this.latitude.setValue(coords.lat);
-      this.longitude.setValue(coords.lng);
-      this.latitude.markAsDirty();
-      this.longitude.markAsDirty();
-    }
+    this.mapService.handlePasteLocation(event, this.latitude, this.longitude);
   }
 }
 

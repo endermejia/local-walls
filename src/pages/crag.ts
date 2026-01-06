@@ -34,7 +34,6 @@ import {
 } from '@taiga-ui/core';
 import { TuiSurface } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
   ChartRoutesByGradeComponent,
   EmptyStateComponent,
@@ -61,11 +60,6 @@ import {
   ParkingDto,
 } from '../models';
 import { mapLocationUrl } from '../utils';
-import { CragFormComponent } from './crag-form';
-import { RouteFormComponent } from './route-form';
-import ParkingFormComponent from './parking-form';
-import LinkParkingFormComponent from './link-parking-form';
-import TopoFormComponent from './topo-form';
 import { handleErrorToast } from '../utils';
 
 @Component({
@@ -587,7 +581,7 @@ export class CragComponent {
   }
 
   constructor() {
-    // Synchronize selected area/crag in global state from route
+    // Synchronize the selected area /crag in global state from route
     effect(() => {
       const aSlug = this.areaSlug();
       const cSlug = this.cragSlug();

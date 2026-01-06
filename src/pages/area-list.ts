@@ -19,8 +19,6 @@ import {
   TuiHint,
 } from '@taiga-ui/core';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
-import { TuiDialogService } from '@taiga-ui/experimental';
-import { TranslateService } from '@ngx-translate/core';
 import {
   TuiAvatar,
   TuiBadgedContentComponent,
@@ -169,8 +167,6 @@ import {
 export class AreaListComponent {
   private readonly areasService = inject(AreasService);
   protected readonly global = inject(GlobalData);
-  private readonly dialogs = inject(TuiDialogService);
-  private readonly translate = inject(TranslateService);
   private readonly filtersService = inject(FiltersService);
 
   readonly loading = computed(() => this.areasService.loading());

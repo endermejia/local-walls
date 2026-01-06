@@ -8,7 +8,11 @@ import {
   signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { AsyncPipe, isPlatformBrowser } from '@angular/common';
+import {
+  AsyncPipe,
+  isPlatformBrowser,
+  NgOptimizedImage,
+} from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
@@ -38,11 +42,8 @@ import {
   TuiBadge,
 } from '@taiga-ui/kit';
 import { TuiStringMatcher, TuiDay } from '@taiga-ui/cdk';
-import { PolymorpheusComponent, injectContext } from '@taiga-ui/polymorpheus';
-import {
-  TuiDialogService,
-  type TuiDialogContext,
-} from '@taiga-ui/experimental';
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { map } from 'rxjs';
 import {
   GlobalData,
@@ -50,10 +51,6 @@ import {
   UserProfilesService,
   ToastService,
 } from '../services';
-import {
-  AvatarCropperComponent,
-  type AvatarCropperResult,
-} from '../components';
 import {
   Language,
   Languages,
@@ -97,6 +94,7 @@ interface Country {
     TuiBadgedContentComponent,
     TuiBadge,
     TuiIcon,
+    NgOptimizedImage,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
@@ -207,7 +205,7 @@ interface Country {
             />
             <ng-template #countryItem let-item>
               <img
-                [src]="item | tuiFlag"
+                [ngSrc]="item | tuiFlag"
                 alt="{{ idToName(item) }}"
                 width="20"
                 height="15"
@@ -401,7 +399,6 @@ export class UserProfileConfigComponent {
   private readonly userProfilesService = inject(UserProfilesService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
-  private readonly dialogs = inject(TuiDialogService);
   private readonly dialogContext: TuiDialogContext<unknown, unknown> | null =
     (() => {
       try {

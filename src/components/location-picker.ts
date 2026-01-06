@@ -52,10 +52,11 @@ import { type MapOptions } from '../models';
   styles: [
     `
       :host {
-        display: flex;
-        flex-direction: column;
         height: 100dvh;
         width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
       }
     `,
   ],

@@ -11,12 +11,10 @@ import {
 import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
-import { TranslatePipe } from '@ngx-translate/core';
-
-import { TuiDialogService } from '@taiga-ui/experimental';
 import { TuiInputNumber, TuiTextarea } from '@taiga-ui/kit';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { injectContext } from '@taiga-ui/polymorpheus';
+import { TranslatePipe } from '@ngx-translate/core';
 import { CragsService, ToastService, MapService } from '../services';
 import { slugify, handleErrorToast } from '../utils';
 
@@ -209,7 +207,6 @@ export class CragFormComponent {
   private readonly crags = inject(CragsService);
   private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
-  private readonly dialogs = inject(TuiDialogService);
   private readonly mapService = inject(MapService);
   private readonly _dialogCtx: TuiDialogContext<
     string | boolean | null,
@@ -337,16 +334,7 @@ export class CragFormComponent {
   }
 
   pickLocation(): void {
-    this.mapService
-      .pickLocation(this.latitude.value, this.longitude.value)
-      .subscribe((result) => {
-        if (result) {
-          this.latitude.setValue(result.lat);
-          this.longitude.setValue(result.lng);
-          this.latitude.markAsDirty();
-          this.longitude.markAsDirty();
-        }
-      });
+    this.mapService.pickLocationAndUpdate(this.latitude, this.longitude);
   }
 
   changeApproach(delta: number): void {
@@ -356,18 +344,6 @@ export class CragFormComponent {
   }
 
   onPasteLocation(event: ClipboardEvent): void {
-    const text = event.clipboardData?.getData('text');
-    if (!text) return;
-
-    const coords = this.mapService.parseCoordinates(text);
-    if (coords) {
-      event.preventDefault();
-      this.latitude.setValue(coords.lat);
-      this.longitude.setValue(coords.lng);
-      this.latitude.markAsDirty();
-      this.longitude.markAsDirty();
-    }
+    this.mapService.handlePasteLocation(event, this.latitude, this.longitude);
   }
 }
-
-export default CragFormComponent;

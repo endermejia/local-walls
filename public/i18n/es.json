@@ -260,10 +260,10 @@
   },
   "admin": {
     "users": {
-      "title": "Gestión de usuarios"
+      "title": "Usuarios"
     },
     "equippers": {
-      "title": "Gestión de equipadores",
+      "title": "Equipadores",
       "deleteTitle": "Eliminar equipador",
       "deleteConfirm": "¿Seguro que quieres eliminar al equipador \"{{name}}\"? Esta acción no se puede deshacer."
     },

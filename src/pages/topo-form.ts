@@ -352,7 +352,7 @@ export class TopoFormComponent {
     };
 
     try {
-      let topo: TopoDto | null = null;
+      let topo: TopoDto | null;
       if (this.isEdit() && this.effectiveTopoData()) {
         topo = await this.topos.update(this.effectiveTopoData()!.id, payload);
       } else {

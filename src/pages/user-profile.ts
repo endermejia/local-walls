@@ -12,7 +12,6 @@ import { AsyncPipe, isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TUI_COUNTRIES, TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
 import { TuiButton, TuiFallbackSrcPipe, TuiHint } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/experimental';
 
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
 import {
@@ -181,7 +180,6 @@ export class UserProfileComponent {
   private readonly followsService = inject(FollowsService);
   private readonly userProfilesService = inject(UserProfilesService);
   protected readonly global = inject(GlobalData);
-  private readonly dialogs = inject(TuiDialogService);
   protected readonly countriesNames$ = inject(TUI_COUNTRIES);
 
   // Route param (optional)
