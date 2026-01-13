@@ -388,7 +388,7 @@ import { handleErrorToast } from '../utils';
                 class="cursor-pointer"
                 (click.zoneless)="goToTopo(t.id)"
               >
-                <div class="flex flex-col min-w-0 grow">
+                <div class="flex flex-col min-w-0 grow gap-2">
                   <header tuiHeader>
                     <h2 tuiTitle>{{ t.name }}</h2>
                   </header>

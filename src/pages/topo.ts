@@ -32,29 +32,26 @@ import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort, TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { TUI_CONFIRM, type TuiConfirmData, TuiAvatar } from '@taiga-ui/kit';
-
+import { TuiCell } from '@taiga-ui/layout';
 import {
   AvatarGradeComponent,
   EmptyStateComponent,
   SectionHeaderComponent,
 } from '../components';
 import {
+  AscentsService,
   GlobalData,
   RoutesService,
-  ToposService,
-  AscentsService,
   ToastService,
-  SupabaseService,
+  ToposService,
 } from '../services';
 import {
-  TopoDetail,
-  TopoRouteWithRoute,
   RouteAscentWithExtras,
+  TopoDetail,
   TopoListItem,
+  TopoRouteWithRoute,
 } from '../models';
-
 import { handleErrorToast } from '../utils';
-import { TuiCell } from '@taiga-ui/layout';
 
 export interface TopoRouteRow {
   index: number;
@@ -464,12 +461,8 @@ export class TopoComponent {
     );
 
   protected readonly global = inject(GlobalData);
-  private readonly toposService = inject(ToposService);
-  private readonly supabase = inject(SupabaseService);
   protected readonly ascentsService = inject(AscentsService);
-
-  // ... (existing code)
-
+  private readonly toposService = inject(ToposService);
   private readonly routesService = inject(RoutesService);
   private readonly router = inject(Router);
   private readonly dialogs = inject(TuiDialogService);
