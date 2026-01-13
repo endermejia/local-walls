@@ -28,23 +28,30 @@ export class AscentsService {
   readonly updated$ = this.ascentUpdated$.asObservable();
 
   readonly ascentInfo = computed<
-    Record<string, { icon: string; background: string }>
+    Record<
+      string,
+      { icon: string; background: string; backgroundSubtle: string }
+    >
   >(() => ({
     os: {
       icon: '@tui.eye',
       background: 'var(--tui-status-positive)',
+      backgroundSubtle: 'var(--tui-status-positive-pale)',
     },
     f: {
       icon: '@tui.zap',
       background: 'var(--tui-status-warning)',
+      backgroundSubtle: 'var(--tui-status-warning-pale)',
     },
     rp: {
       icon: '@tui.circle',
       background: 'var(--tui-status-negative)',
+      backgroundSubtle: 'var(--tui-status-negative-pale)',
     },
     default: {
       icon: '@tui.circle',
       background: 'var(--tui-neutral-fill)',
+      backgroundSubtle: 'transparent',
     },
   }));
 

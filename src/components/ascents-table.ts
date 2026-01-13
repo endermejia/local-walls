@@ -108,14 +108,14 @@ export interface AscentsTableRow {
             <tr
               tuiTr
               [class.cursor-pointer]="item.canEdit"
+              [style.background]="
+                ascentsService.ascentInfo()[item.type || 'default']
+                  .backgroundSubtle
+              "
               (click.zoneless)="item.canEdit && onEdit(item)"
             >
               @for (col of columns(); track col) {
-                <td
-                  *tuiCell="col"
-                  tuiTd
-                  [tuiAppearance]="item.canEdit && showUser() ? 'neutral' : ''"
-                >
+                <td *tuiCell="col" tuiTd>
                   @switch (col) {
                     @case ('user') {
                       <div tuiCell size="m" class="flex items-center">
@@ -153,7 +153,7 @@ export interface AscentsTableRow {
                               item.crag_slug,
                               item.route_slug,
                             ]"
-                            class="font-medium align-self-start whitespace-nowrap"
+                            class="align-self-start whitespace-nowrap"
                             [style.color]="
                               item.liked ? 'var(--tui-status-negative)' : ''
                             "

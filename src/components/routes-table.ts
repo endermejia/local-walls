@@ -11,7 +11,7 @@ import {
   output,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
   TuiAvatar,
@@ -122,7 +122,20 @@ export interface RoutesTableRow {
         @let sortedData = tableData() | tuiTableSort;
         <tbody tuiTbody [data]="sortedData">
           @for (item of sortedData; track item.key) {
-            <tr tuiTr>
+            <tr
+              tuiTr
+              class="cursor-pointer"
+              [style.background]="
+                item.climbed
+                  ? ascentsService.ascentInfo()[
+                      item._ref.own_ascent?.type || 'default'
+                    ].backgroundSubtle
+                  : item.project
+                    ? 'var(--tui-status-info-pale)'
+                    : ''
+              "
+              (click.zoneless)="router.navigate(item.link)"
+            >
               @for (col of columns(); track col) {
                 <td *tuiCell="col" tuiTd>
                   @switch (col) {
@@ -158,7 +171,8 @@ export interface RoutesTableRow {
                             [style.color]="
                               item.liked ? 'var(--tui-status-negative)' : ''
                             "
-                            class="font-medium align-self-start whitespace-nowrap"
+                            class="align-self-start whitespace-nowrap"
+                            (click)="$event.stopPropagation()"
                           >
                             {{ item.route || ('labels.route' | translate) }}
                           </a>
@@ -169,6 +183,7 @@ export interface RoutesTableRow {
                               <a
                                 tuiLink
                                 [routerLink]="['/area', item.area_slug]"
+                                (click)="$event.stopPropagation()"
                               >
                                 {{ item.area_name }}
                               </a>
@@ -180,6 +195,7 @@ export interface RoutesTableRow {
                                   item.area_slug,
                                   item.crag_slug,
                                 ]"
+                                (click)="$event.stopPropagation()"
                               >
                                 {{ item.crag_name }}
                               </a>
@@ -223,7 +239,9 @@ export interface RoutesTableRow {
                                 ? null
                                 : ('ascent.new' | translate)
                             "
-                            (click.zoneless)="onLogAscent(item._ref)"
+                            (click.zoneless)="
+                              onLogAscent(item._ref); $event.stopPropagation()
+                            "
                           >
                             {{ 'ascent.new' | translate }}
                           </button>
@@ -241,7 +259,8 @@ export interface RoutesTableRow {
                                 : ('ascent.edit' | translate)
                             "
                             (click.zoneless)="
-                              onEditAscent(ascentToEdit, item._ref.name)
+                              onEditAscent(ascentToEdit, item._ref.name);
+                              $event.stopPropagation()
                             "
                           >
                             <tui-icon
@@ -270,7 +289,9 @@ export interface RoutesTableRow {
                                     : 'actions.project.add'
                                   ) | translate)
                             "
-                            (click.zoneless)="onToggleProject(item)"
+                            (click.zoneless)="
+                              onToggleProject(item); $event.stopPropagation()
+                            "
                           >
                             {{
                               (item.project
@@ -296,7 +317,9 @@ export interface RoutesTableRow {
                               ? null
                               : ('actions.edit' | translate)
                           "
-                          (click.zoneless)="openEditRoute(item._ref)"
+                          (click.zoneless)="
+                            openEditRoute(item._ref); $event.stopPropagation()
+                          "
                         >
                           {{ 'actions.edit' | translate }}
                         </button>
@@ -312,7 +335,9 @@ export interface RoutesTableRow {
                               ? null
                               : ('actions.delete' | translate)
                           "
-                          (click.zoneless)="deleteRoute(item._ref)"
+                          (click.zoneless)="
+                            deleteRoute(item._ref); $event.stopPropagation()
+                          "
                         >
                           {{ 'actions.delete' | translate }}
                         </button>
@@ -336,10 +361,11 @@ export interface RoutesTableRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RoutesTableComponent {
+  protected readonly router = inject(Router);
+  protected readonly ascentsService = inject(AscentsService);
   private readonly platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
   private readonly routesService = inject(RoutesService);
-  protected readonly ascentsService = inject(AscentsService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
