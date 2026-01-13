@@ -285,7 +285,7 @@ export class HomeComponent {
   }
 
   openFilters(): void {
-    this.filtersService.openFilters();
+    this.filtersService.openFilters({ showShade: false });
   }
 }
 

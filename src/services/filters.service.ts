@@ -12,14 +12,20 @@ export class FiltersService {
   private readonly translate = inject(TranslateService);
   private readonly global = inject(GlobalData);
 
-  openFilters(): void {
+  openFilters(
+    options: {
+      showShade?: boolean;
+      showCategories?: boolean;
+      showGradeRange?: boolean;
+    } = {},
+  ): void {
     const data: FilterDialog = {
       categories: this.global.areaListCategories(),
       gradeRange: this.global.areaListGradeRange(),
       selectedShade: this.global.areaListShade(),
-      showCategories: true,
-      showShade: true,
-      showGradeRange: true,
+      showCategories: options.showCategories ?? true,
+      showShade: options.showShade ?? true,
+      showGradeRange: options.showGradeRange ?? true,
     };
 
     this.dialogs

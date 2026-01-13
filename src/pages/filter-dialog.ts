@@ -52,45 +52,51 @@ export interface FilterDialog {
   ],
   template: `
     <form tuiForm [formGroup]="form">
-      <section>
-        <tui-filter
-          formControlName="filters"
-          size="l"
-          [items]="climbingKindItems()"
-        />
-      </section>
+      @if (showCategories) {
+        <section>
+          <tui-filter
+            formControlName="filters"
+            size="l"
+            [items]="climbingKindItems()"
+          />
+        </section>
+      }
 
-      <section class="tui-space_top-3">
-        <tui-filter formControlName="shade" size="l" [items]="shadeItems()" />
-      </section>
+      @if (showShade) {
+        <section class="tui-space_top-3">
+          <tui-filter formControlName="shade" size="l" [items]="shadeItems()" />
+        </section>
+      }
 
-      <section>
-        <div class="flex flex-wrap gap-2 justify-between">
-          <span class="font-medium">{{ selectedMinLabel() }}</span>
-          <span class="font-medium">{{ selectedMaxLabel() }}</span>
-        </div>
-        <tui-range
-          id="grade-range"
-          size="m"
-          [min]="minIndex"
-          [max]="maxIndex"
-          [step]="1"
-          [segments]="segments"
-          [keySteps]="keySteps"
-          formControlName="gradeRange"
-        />
-        <div class="hidden sm:flex flex-wrap gap-2 justify-between">
-          @for (label of tickLabels; track label; let i = $index) {
-            <a
-              tuiLink
-              appearance="action-grayscale"
-              role="button"
-              (click.zoneless)="onTickClick(keySteps[i][1])"
-              >{{ label }}</a
-            >
-          }
-        </div>
-      </section>
+      @if (showGradeRange) {
+        <section>
+          <div class="flex flex-wrap gap-2 justify-between">
+            <span class="font-medium">{{ selectedMinLabel() }}</span>
+            <span class="font-medium">{{ selectedMaxLabel() }}</span>
+          </div>
+          <tui-range
+            id="grade-range"
+            size="m"
+            [min]="minIndex"
+            [max]="maxIndex"
+            [step]="1"
+            [segments]="segments"
+            [keySteps]="keySteps"
+            formControlName="gradeRange"
+          />
+          <div class="hidden sm:flex flex-wrap gap-2 justify-between">
+            @for (label of tickLabels; track label; let i = $index) {
+              <a
+                tuiLink
+                appearance="action-grayscale"
+                role="button"
+                (click.zoneless)="onTickClick(keySteps[i][1])"
+                >{{ label }}</a
+              >
+            }
+          </div>
+        </section>
+      }
 
       <footer class="flex flex-wrap gap-2 justify-end items-center">
         <button
@@ -117,6 +123,18 @@ export class FilterDialogComponent {
 
   // i18n tick to recompute signals when language/translation changes
   private readonly _i18nTick: WritableSignal<number> = signal(0);
+
+  protected get showCategories(): boolean {
+    return this.context.data?.showCategories ?? true;
+  }
+
+  protected get showShade(): boolean {
+    return this.context.data?.showShade ?? true;
+  }
+
+  protected get showGradeRange(): boolean {
+    return this.context.data?.showGradeRange ?? true;
+  }
 
   // Items for TuiFilter (types) as signals
   readonly climbingKindItems: Signal<string[]> = computed(() => {
