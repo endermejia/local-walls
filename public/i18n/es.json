@@ -154,8 +154,7 @@
     "my-crags": "Mis sectores",
     "admin-users": "Usuarios",
     "admin-equippers": "Equipadores",
-    "admin-parkings": "Parkings",
-    "home": "Inicio"
+    "admin-parkings": "Parkings"
   },
   "explore": {
     "toggleView": "Cambiar vista"
@@ -220,7 +219,6 @@
     "imageAlt": "no encontrado"
   },
   "areas": {
-    "new": "Nueva área",
     "newTitle": "Crear nueva área",
     "editTitle": "Editar área",
     "deleteTitle": "Eliminar área",
@@ -228,14 +226,12 @@
     "empty": "No hay áreas todavía"
   },
   "crags": {
-    "new": "Nuevo sector",
     "newTitle": "Crear nuevo sector",
     "editTitle": "Editar sector",
     "deleteTitle": "Eliminar sector",
     "deleteConfirm": "¿Seguro que quieres eliminar el sector \"{{name}}\"? Esta acción no se puede deshacer."
   },
   "topos": {
-    "new": "Nuevo croquis",
     "newTitle": "Crear nuevo croquis",
     "editTitle": "Editar croquis",
     "deleteTitle": "Eliminar croquis",
@@ -249,7 +245,6 @@
     "removeRouteConfirm": "¿Seguro que quieres eliminar la vía \"{{name}}\" de este croquis? La vía no se borrará del sistema, solo se desvinculará de este croquis."
   },
   "routes": {
-    "new": "Nueva vía",
     "edit": "Editar vía",
     "newTitle": "Crear nueva vía",
     "editTitle": "Editar vía",

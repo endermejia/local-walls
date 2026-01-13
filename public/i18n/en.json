@@ -154,8 +154,7 @@
     "my-crags": "My crags",
     "admin-users": "Users",
     "admin-equippers": "Equippers",
-    "admin-parkings": "Parkings",
-    "home": "Home"
+    "admin-parkings": "Parkings"
   },
   "explore": {
     "toggleView": "Toggle view"
@@ -220,7 +219,6 @@
     "imageAlt": "not found"
   },
   "areas": {
-    "new": "New area",
     "newTitle": "Create new area",
     "editTitle": "Edit area",
     "deleteTitle": "Delete area",
@@ -228,14 +226,12 @@
     "empty": "No areas yet"
   },
   "crags": {
-    "new": "New crag",
     "newTitle": "Create new crag",
     "editTitle": "Edit crag",
     "deleteTitle": "Delete crag",
     "deleteConfirm": "Are you sure you want to delete crag \"{{name}}\"? This action cannot be undone."
   },
   "topos": {
-    "new": "New topo",
     "newTitle": "Create new topo",
     "editTitle": "Edit topo",
     "deleteTitle": "Delete topo",
@@ -249,7 +245,6 @@
     "removeRouteConfirm": "Are you sure you want to remove the route \"{{name}}\" from this topo? The route will not be deleted from the system, only unlinked from this topo."
   },
   "routes": {
-    "new": "New route",
     "edit": "Edit route",
     "newTitle": "Create new route",
     "editTitle": "Edit route",

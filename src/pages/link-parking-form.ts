@@ -8,21 +8,24 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
-import { TuiIdentityMatcher } from '@taiga-ui/cdk';
+import { TuiIdentityMatcher, tuiIsString } from '@taiga-ui/cdk';
 import {
   TuiButton,
+  TuiDataList,
+  TuiIcon,
   TuiLabel,
+  TuiOptGroup,
   TuiTextfield,
-  TuiSelectLike,
+  TuiTitle,
 } from '@taiga-ui/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
   TuiChevron,
   TuiFilterByInputPipe,
-  TuiHideSelectedPipe,
   TuiInputChip,
-  TuiDataListWrapper,
+  TuiMultiSelect,
 } from '@taiga-ui/kit';
+import { TuiCell } from '@taiga-ui/layout';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { ParkingsService, SupabaseService } from '../services';
@@ -41,9 +44,12 @@ import { ParkingDto } from '../models';
     TuiChevron,
     TuiInputChip,
     TuiFilterByInputPipe,
-    TuiHideSelectedPipe,
-    TuiDataListWrapper,
-    TuiSelectLike,
+    TuiDataList,
+    TuiOptGroup,
+    TuiMultiSelect,
+    TuiCell,
+    TuiIcon,
+    TuiTitle,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
@@ -52,6 +58,7 @@ import { ParkingDto } from '../models';
         tuiChevron
         [tuiTextfieldCleaner]="true"
         [stringify]="parkingStringify"
+        [disabledItemHandler]="strings"
         [identityMatcher]="parkingIdentityMatcher"
       >
         <label tuiLabel for="parkings">
@@ -59,20 +66,28 @@ import { ParkingDto } from '../models';
         </label>
         <input
           tuiInputChip
-          tuiSelectLike
           id="parkings"
           [formControl]="selectedParkings"
           [placeholder]="'actions.select' | translate"
         />
         <tui-input-chip *tuiItem />
-        <tui-data-list-wrapper
-          *tuiTextfieldDropdown
-          [items]="availableParkings() | tuiHideSelected | tuiFilterByInput"
-          [itemContent]="parkingItem"
-        />
-        <ng-template #parkingItem let-item>
-          {{ item.name }}
-        </ng-template>
+        <tui-data-list *tuiTextfieldDropdown>
+          <tui-opt-group label="Parkings" tuiMultiSelectGroup>
+            @for (
+              parking of availableParkings() | tuiFilterByInput;
+              track parking.id
+            ) {
+              <button type="button" new tuiOption [value]="parking">
+                <div tuiCell size="s">
+                  <tui-icon icon="@tui.parking-square" />
+                  <div tuiTitle>
+                    {{ parking.name }}
+                  </div>
+                </div>
+              </button>
+            }
+          </tui-opt-group>
+        </tui-data-list>
       </tui-textfield>
 
       <div class="flex flex-wrap gap-2 justify-end mt-4">
@@ -138,6 +153,8 @@ export class LinkParkingFormComponent {
     a,
     b,
   ) => a.id === b.id;
+
+  protected readonly strings = tuiIsString;
 
   async onSubmit(event: Event): Promise<void> {
     event.preventDefault();

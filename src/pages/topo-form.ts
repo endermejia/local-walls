@@ -18,25 +18,26 @@ import {
 } from '@angular/forms';
 import {
   TuiButton,
+  TuiDataList,
   TuiIcon,
   TuiLabel,
+  TuiOptGroup,
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
+
 import { TranslatePipe } from '@ngx-translate/core';
-import { TuiIdentityMatcher, TuiTime } from '@taiga-ui/cdk';
+import { TuiIdentityMatcher, TuiTime, tuiIsString } from '@taiga-ui/cdk';
 import {
   TuiCheckbox,
   TuiInputTime,
   tuiInputTimeOptionsProvider,
-  TuiDataListWrapper,
   TuiFilterByInputPipe,
   TuiInputChip,
   TuiMultiSelect,
   TuiChevron,
-  TuiHideSelectedPipe,
 } from '@taiga-ui/kit';
-import { TuiSelectLike } from '@taiga-ui/core';
+
 import { TuiCell } from '@taiga-ui/layout';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
@@ -57,26 +58,25 @@ import { startWith } from 'rxjs';
   selector: 'app-topo-form',
   standalone: true,
   imports: [
+    AvatarGradeComponent,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    TuiButton,
-    TuiChevron,
-    TuiLabel,
-    TuiTextfield,
     TranslatePipe,
-    TuiCheckbox,
-    TuiInputTime,
-    TuiDataListWrapper,
-    TuiFilterByInputPipe,
-    TuiInputChip,
-    TuiMultiSelect,
-    TuiSelectLike,
+    TuiButton,
     TuiCell,
-    AvatarGradeComponent,
-    TuiTitle,
+    TuiCheckbox,
+    TuiChevron,
+    TuiDataList,
+    TuiFilterByInputPipe,
     TuiIcon,
-    TuiHideSelectedPipe,
+    TuiInputChip,
+    TuiInputTime,
+    TuiLabel,
+    TuiMultiSelect,
+    TuiOptGroup,
+    TuiTextfield,
+    TuiTitle,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
@@ -134,6 +134,7 @@ import { startWith } from 'rxjs';
           multi
           tuiChevron
           [stringify]="stringifyRoute"
+          [disabledItemHandler]="strings"
           [identityMatcher]="routeIdentityMatcher"
           [tuiTextfieldCleaner]="true"
         >
@@ -142,27 +143,28 @@ import { startWith } from 'rxjs';
           }}</label>
           <input
             tuiInputChip
-            tuiSelectLike
             id="routes-select"
             [formControl]="selectedRoutes"
             [placeholder]="'actions.select' | translate"
           />
           <tui-input-chip *tuiItem />
-          <tui-data-list-wrapper
-            *tuiTextfieldDropdown
-            new
-            tuiMultiSelectGroup
-            [items]="availableRoutes() | tuiHideSelected | tuiFilterByInput"
-            [itemContent]="routeItem"
-          />
-          <ng-template #routeItem let-item>
-            <div tuiCell size="s">
-              <app-avatar-grade [grade]="item.grade" size="s" />
-              <div tuiTitle>
-                {{ item.name }}
-              </div>
-            </div>
-          </ng-template>
+          <tui-data-list *tuiTextfieldDropdown>
+            <tui-opt-group label="Vias" tuiMultiSelectGroup>
+              @for (
+                route of availableRoutes() | tuiFilterByInput;
+                track route.id
+              ) {
+                <button type="button" new tuiOption [value]="route">
+                  <div tuiCell size="s">
+                    <app-avatar-grade [grade]="route.grade" size="s" />
+                    <div tuiTitle>
+                      {{ route.name }}
+                    </div>
+                  </div>
+                </button>
+              }
+            </tui-opt-group>
+          </tui-data-list>
         </tui-textfield>
       </div>
 
@@ -292,6 +294,8 @@ export class TopoFormComponent {
       ''
     );
   }
+
+  protected readonly strings = tuiIsString;
 
   constructor() {
     effect(() => {

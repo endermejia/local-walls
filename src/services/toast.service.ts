@@ -16,6 +16,7 @@ export class ToastService {
     const translatedMessage = this.translate.instant(message);
     this.toast
       .open(translatedMessage, {
+        autoClose: 1900,
         ...options,
       })
       .subscribe();

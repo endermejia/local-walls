@@ -78,11 +78,12 @@ import {
           <button
             tuiButton
             appearance="textfield"
-            size="m"
+            size="s"
             type="button"
             (click.zoneless)="openCreateArea()"
+            [iconStart]="'@tui.plus'"
           >
-            {{ 'areas.new' | translate }}
+            {{ 'actions.new' | translate }}
           </button>
         }
       </header>

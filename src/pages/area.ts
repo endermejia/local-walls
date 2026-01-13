@@ -143,12 +143,13 @@ import {
             <button
               tuiButton
               appearance="textfield"
-              size="m"
+              size="s"
               type="button"
               class="my-4"
               (click.zoneless)="openCreateCrag()"
+              [iconStart]="'@tui.plus'"
             >
-              {{ 'crags.new' | translate }}
+              {{ 'actions.new' | translate }}
             </button>
           }
         </div>
