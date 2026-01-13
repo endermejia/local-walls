@@ -30,7 +30,7 @@ import {
 } from '@taiga-ui/core';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { ChartRoutesByGradeComponent, MapComponent } from '../components';
-import { GlobalData, FiltersService } from '../services';
+import { GlobalData, FiltersService, ParkingsService } from '../services';
 import {
   GradeLabel,
   MapAreaItem,
@@ -201,7 +201,7 @@ import { mapLocationUrl, remToPx } from '../utils';
           class="relative pointer-events-auto m-4"
         >
           <div class="flex flex-col grow gap-2">
-            <header tuiHeader class="flex wrap">
+            <header tuiHeader class="flex wrap gap-2">
               <h2 tuiTitle>{{ p.name }}</h2>
               <section class="text-sm opacity-80">
                 @if (p.size) {
@@ -211,7 +211,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                       global.isMobile() ? null : ('labels.capacity' | translate)
                     "
                   >
-                    <tui-icon icon="@tui.parking-square" />
+                    <tui-icon icon="@tui.car" />
                     <span class="text-lg">
                       x
                       {{ p.size }}
@@ -219,6 +219,20 @@ import { mapLocationUrl, remToPx } from '../utils';
                   </div>
                 }
               </section>
+              @if (global.isAdmin()) {
+                <button
+                  size="s"
+                  appearance="neutral"
+                  iconStart="@tui.square-pen"
+                  tuiIconButton
+                  type="button"
+                  class="!rounded-full"
+                  (click.zoneless)="openEditParking(p)"
+                  [tuiHint]="'actions.edit' | translate"
+                >
+                  {{ 'actions.edit' | translate }}
+                </button>
+              }
             </header>
             @if (p.latitude && p.longitude) {
               <button
@@ -408,6 +422,7 @@ import { mapLocationUrl, remToPx } from '../utils';
 export class ExploreComponent {
   protected readonly mapLocationUrl = mapLocationUrl;
   private readonly filtersService = inject(FiltersService);
+  private readonly parkingsService = inject(ParkingsService);
 
   private readonly _platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
@@ -623,6 +638,12 @@ export class ExploreComponent {
     this.global.selectedMapCragItem.set(null);
     this.global.selectedMapParkingItem.set(parkingItem);
     this.setBottomSheet('open');
+  }
+
+  protected openEditParking(parking: ParkingDto): void {
+    this.parkingsService.openParkingForm({
+      parkingData: parking,
+    });
   }
 
   protected closeAll(): void {

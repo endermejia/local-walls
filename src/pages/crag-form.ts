@@ -10,7 +10,13 @@ import {
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
-import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
+import {
+  TuiButton,
+  TuiError,
+  TuiLabel,
+  TuiNumberFormat,
+  TuiTextfield,
+} from '@taiga-ui/core';
 import { TuiInputNumber, TuiTextarea } from '@taiga-ui/kit';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { injectContext } from '@taiga-ui/polymorpheus';
@@ -45,6 +51,7 @@ interface MinimalCrag {
     TranslatePipe,
     TuiInputNumber,
     TuiTextarea,
+    TuiNumberFormat,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
@@ -86,7 +93,11 @@ interface MinimalCrag {
             [formControl]="latitude"
             [min]="-90"
             [max]="90"
+            [tuiNumberFormat]="{ precision: 6 }"
             (paste)="onPasteLocation($event)"
+            (change.zoneless)="
+              mapService.sanitizeCoordinates(latitude, longitude)
+            "
           />
         </tui-textfield>
         <tui-textfield [tuiTextfieldCleaner]="false">
@@ -96,7 +107,11 @@ interface MinimalCrag {
             id="lng"
             [min]="-180"
             [max]="180"
+            [tuiNumberFormat]="{ precision: 6 }"
             [formControl]="longitude"
+            (change.zoneless)="
+              mapService.sanitizeCoordinates(latitude, longitude)
+            "
           />
         </tui-textfield>
         <div class="flex items-center gap-2">
@@ -204,10 +219,10 @@ interface MinimalCrag {
   host: { class: 'overflow-auto' },
 })
 export class CragFormComponent {
+  protected readonly mapService = inject(MapService);
   private readonly crags = inject(CragsService);
   private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
-  private readonly mapService = inject(MapService);
   private readonly _dialogCtx: TuiDialogContext<
     string | boolean | null,
     { areaId?: number; cragData?: MinimalCrag }

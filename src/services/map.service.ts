@@ -49,7 +49,10 @@ export class MapService {
       const lng = parseFloat(match[2]);
 
       if (!isNaN(lat) && !isNaN(lng)) {
-        return { lat, lng };
+        return {
+          lat: parseFloat(lat.toFixed(6)),
+          lng: parseFloat(lng.toFixed(6)),
+        };
       }
     }
     return null;
@@ -70,6 +73,22 @@ export class MapService {
       lngCtrl.setValue(coords.lng);
       latCtrl.markAsDirty();
       lngCtrl.markAsDirty();
+    }
+  }
+
+  sanitizeCoordinates(
+    latCtrl: FormControl<number | null>,
+    lngCtrl: FormControl<number | null>,
+  ): void {
+    if (latCtrl.value != null) {
+      latCtrl.setValue(parseFloat(latCtrl.value.toFixed(6)), {
+        emitEvent: false,
+      });
+    }
+    if (lngCtrl.value != null) {
+      lngCtrl.setValue(parseFloat(lngCtrl.value.toFixed(6)), {
+        emitEvent: false,
+      });
     }
   }
 }

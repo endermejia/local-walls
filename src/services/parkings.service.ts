@@ -20,7 +20,11 @@ export class ParkingsService {
   private readonly translate = inject(TranslateService);
 
   openParkingForm(
-    data: { cragId?: number; parkingData?: ParkingDto } = {},
+    data: {
+      cragId?: number;
+      parkingData?: ParkingDto;
+      defaultLocation?: { lat: number; lng: number };
+    } = {},
   ): void {
     const isEdit = !!data.parkingData;
     this.dialogs

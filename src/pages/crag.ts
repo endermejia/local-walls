@@ -90,6 +90,8 @@ import { handleErrorToast } from '../utils';
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
+      @let isMobile = global.isMobile();
+      @let isAdmin = global.isAdmin();
       @if (cragDetail(); as c) {
         <div class="mb-4 flex items-center justify-between gap-2">
           <app-section-header
@@ -98,7 +100,7 @@ import { handleErrorToast } from '../utils';
             [liked]="c.liked"
             (toggleLike)="onToggleLike()"
           />
-          @if (global.isAdmin()) {
+          @if (isAdmin) {
             <button
               size="s"
               appearance="neutral"
@@ -106,9 +108,7 @@ import { handleErrorToast } from '../utils';
               tuiIconButton
               type="button"
               class="!rounded-full"
-              [tuiHint]="
-                global.isMobile() ? null : ('actions.edit' | translate)
-              "
+              [tuiHint]="isMobile ? null : ('actions.edit' | translate)"
               (click.zoneless)="openEditCrag()"
             >
               {{ 'actions.edit' | translate }}
@@ -120,9 +120,7 @@ import { handleErrorToast } from '../utils';
               tuiIconButton
               type="button"
               class="!rounded-full"
-              [tuiHint]="
-                global.isMobile() ? null : ('actions.delete' | translate)
-              "
+              [tuiHint]="isMobile ? null : ('actions.delete' | translate)"
               (click.zoneless)="deleteCrag()"
             >
               {{ 'actions.delete' | translate }}
@@ -143,9 +141,7 @@ import { handleErrorToast } from '../utils';
             @if (c.approach) {
               <div
                 class="flex w-fit items-center gap-1 opacity-70"
-                [tuiHint]="
-                  global.isMobile() ? null : ('labels.approach' | translate)
-                "
+                [tuiHint]="isMobile ? null : ('labels.approach' | translate)"
               >
                 <tui-icon icon="@tui.footprints" />
                 <span class="text-lg font-medium whitespace-nowrap">
@@ -172,7 +168,7 @@ import { handleErrorToast } from '../utils';
                     size="m"
                     type="button"
                     (click.zoneless)="viewOnMap(c.latitude, c.longitude)"
-                    [iconStart]="'@tui.map'"
+                    [iconStart]="'@tui.map-pin'"
                   >
                     {{ 'actions.viewOnMap' | translate }}
                   </button>
@@ -209,18 +205,27 @@ import { handleErrorToast } from '../utils';
           />
         </div>
 
-        @if (c.parkings.length || global.isAdmin()) {
+        @if (c.parkings.length || isAdmin) {
           <div class="mt-6">
-            <div class="flex items-center justify-between gap-2 mb-3">
-              <h2 class="text-2xl font-semibold">
-                {{ 'labels.parkings' | translate }}
-              </h2>
-              @if (global.isAdmin()) {
+            <div class="flex items-center justify-between gap-2 mb-4">
+              <div class="flex items-center gap-2">
+                <tui-avatar
+                  tuiThumbnail
+                  size="l"
+                  src="@tui.parking-square"
+                  class="self-center"
+                  [attr.aria-label]="'labels.parkings' | translate"
+                />
+                <h2 class="text-2xl font-semibold">
+                  {{ 'labels.parkings' | translate }}
+                </h2>
+              </div>
+              @if (isAdmin) {
                 <div class="flex flex-wrap gap-2">
                   <button
                     tuiButton
                     appearance="textfield"
-                    size="m"
+                    size="s"
                     type="button"
                     (click.zoneless)="openLinkParking()"
                     [iconStart]="'@tui.link'"
@@ -230,7 +235,7 @@ import { handleErrorToast } from '../utils';
                   <button
                     tuiButton
                     appearance="textfield"
-                    size="m"
+                    size="s"
                     type="button"
                     (click.zoneless)="openCreateParking()"
                     [iconStart]="'@tui.plus'"
@@ -240,14 +245,33 @@ import { handleErrorToast } from '../utils';
                 </div>
               }
             </div>
-            <div class="grid gap-2">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               @for (p of c.parkings; track p.id) {
-                <div tuiCardLarge [tuiSurface]="'outline'">
-                  <div class="flex flex-col gap-2">
-                    <header tuiHeader class="flex justify-between items-center">
-                      <h3 tuiTitle class="truncate">{{ p.name }}</h3>
-                      @if (global.isAdmin()) {
-                        <div class="flex flex-wrap gap-1">
+                <div
+                  tuiCardLarge
+                  tuiSurface="flat"
+                  class="!p-4 flex flex-col justify-between"
+                >
+                  <div class="flex flex-col gap-3">
+                    <div class="flex items-start justify-between gap-2 ">
+                      <div class="flex flex-wrap gap-2">
+                        <span tuiTitle class="!text-lg">{{ p.name }}</span>
+                      </div>
+
+                      @if (p.size) {
+                        <div
+                          class="flex flex-nowrap items-center gap-1 opacity-80 whitespace-nowrap"
+                          [tuiHint]="
+                            isMobile ? null : ('labels.capacity' | translate)
+                          "
+                        >
+                          <tui-icon icon="@tui.car" />
+                          <span class="text-lg"> x {{ p.size }} </span>
+                        </div>
+                      }
+
+                      @if (isAdmin) {
+                        <div class="flex gap-1">
                           <button
                             size="s"
                             appearance="neutral"
@@ -256,6 +280,7 @@ import { handleErrorToast } from '../utils';
                             type="button"
                             class="!rounded-full"
                             (click.zoneless)="openEditParking(p)"
+                            [tuiHint]="'actions.edit' | translate"
                           >
                             {{ 'actions.edit' | translate }}
                           </button>
@@ -273,41 +298,27 @@ import { handleErrorToast } from '../utils';
                           </button>
                         </div>
                       }
-                    </header>
-                    <section class="text-sm opacity-80">
-                      <div
-                        class="flex w-fit items-center gap-1"
-                        [tuiHint]="
-                          global.isMobile()
-                            ? null
-                            : ('labels.capacity' | translate)
-                        "
-                      >
-                        <tui-icon icon="@tui.parking-square" />
-                        <span class="text-lg">
-                          x
-                          {{ p.size }}
-                        </span>
-                      </div>
-                    </section>
+                    </div>
+
                     @if (p.latitude && p.longitude) {
-                      <div class="flex flex-wrap gap-2">
+                      <div class="flex flex-wrap gap-2 mt-2">
                         <button
                           tuiButton
-                          appearance="flat"
-                          size="m"
+                          appearance="secondary"
+                          size="s"
                           type="button"
+                          class="!rounded-full"
                           (click.zoneless)="viewOnMap(p.latitude, p.longitude)"
-                          [iconStart]="'@tui.map'"
+                          [iconStart]="'@tui.map-pin'"
                         >
                           {{ 'actions.viewOnMap' | translate }}
                         </button>
                         <button
-                          appearance="flat"
-                          size="m"
+                          appearance="secondary"
+                          size="s"
                           tuiButton
                           type="button"
-                          class="content-center lw-icon-50"
+                          class="!rounded-full lw-icon-50"
                           [iconStart]="'/image/google-maps.svg'"
                           (click.zoneless)="
                             openExternal(
@@ -333,9 +344,9 @@ import { handleErrorToast } from '../utils';
         }
 
         @let toposCount = c.topos.length;
-        <div class="mt-6 grid gap-3">
-          <div class="flex items-center justify-between gap-2">
-            <h2 class="text-2xl font-semibold m-2">
+        <div class="mt-6">
+          <div class="flex items-center justify-between gap-2 mb-4">
+            <div class="flex items-center gap-2">
               <tui-avatar
                 tuiThumbnail
                 size="l"
@@ -343,23 +354,25 @@ import { handleErrorToast } from '../utils';
                 class="self-center"
                 [attr.aria-label]="'labels.topo' | translate"
               />
-              {{ toposCount }}
-              {{
-                'labels.' + (toposCount === 1 ? 'topo' : 'topos')
-                  | translate
-                  | lowercase
-              }}
-            </h2>
-            @if (global.isAdmin()) {
+              <h2 class="text-2xl font-semibold">
+                {{ toposCount }}
+                {{
+                  'labels.' + (toposCount === 1 ? 'topo' : 'topos')
+                    | translate
+                    | lowercase
+                }}
+              </h2>
+            </div>
+            @if (isAdmin) {
               <button
                 tuiButton
                 appearance="textfield"
-                size="m"
+                size="s"
                 type="button"
-                class="my-4"
                 (click.zoneless)="openCreateTopo()"
+                [iconStart]="'@tui.plus'"
               >
-                {{ 'topos.new' | translate }}
+                {{ 'actions.new' | translate }}
               </button>
             }
           </div>
@@ -417,8 +430,8 @@ import { handleErrorToast } from '../utils';
             }
           </div>
         </div>
-        <div class="flex items-center justify-between gap-2 my-4">
-          <h2 class="text-2xl font-semibold m-2">
+        <div class="flex items-center justify-between gap-2 mb-4 mt-6">
+          <div class="flex items-center gap-2">
             <tui-avatar
               tuiThumbnail
               size="l"
@@ -426,18 +439,21 @@ import { handleErrorToast } from '../utils';
               class="self-center"
               [attr.aria-label]="'labels.routes' | translate"
             />
-            {{ routesCount() }}
-            {{ 'labels.routes' | translate | lowercase }}
-          </h2>
-          @if (global.isAdmin()) {
+            <h2 class="text-2xl font-semibold">
+              {{ routesCount() }}
+              {{ 'labels.routes' | translate | lowercase }}
+            </h2>
+          </div>
+          @if (isAdmin) {
             <button
               tuiButton
               appearance="textfield"
-              size="m"
+              size="s"
               type="button"
-              (click)="openCreateRoute()"
+              (click.zoneless)="openCreateRoute()"
+              [iconStart]="'@tui.plus'"
             >
-              {{ 'routes.new' | translate }}
+              {{ 'actions.new' | translate }}
             </button>
           }
         </div>
@@ -466,9 +482,7 @@ import { handleErrorToast } from '../utils';
               type="button"
               iconStart="@tui.sliders-horizontal"
               [attr.aria-label]="'labels.filters' | translate"
-              [tuiHint]="
-                global.isMobile() ? null : ('labels.filters' | translate)
-              "
+              [tuiHint]="isMobile ? null : ('labels.filters' | translate)"
               (click.zoneless)="openFilters()"
             ></button>
           </tui-badged-content>
@@ -604,7 +618,13 @@ export class CragComponent {
   openCreateParking(): void {
     const c = this.cragDetail();
     if (!c) return;
-    this.parkingsService.openParkingForm({ cragId: c.id });
+    this.parkingsService.openParkingForm({
+      cragId: c.id,
+      defaultLocation:
+        c.latitude && c.longitude
+          ? { lat: c.latitude, lng: c.longitude }
+          : undefined,
+    });
   }
 
   openLinkParking(): void {

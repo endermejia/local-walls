@@ -10,7 +10,13 @@ import {
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
-import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
+import {
+  TuiButton,
+  TuiError,
+  TuiLabel,
+  TuiNumberFormat,
+  TuiTextfield,
+} from '@taiga-ui/core';
 import { TuiInputNumber } from '@taiga-ui/kit';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { injectContext } from '@taiga-ui/polymorpheus';
@@ -39,6 +45,7 @@ interface MinimalParking {
     TuiTextfield,
     TranslatePipe,
     TuiInputNumber,
+    TuiNumberFormat,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
@@ -82,7 +89,11 @@ interface MinimalParking {
             [formControl]="latitude"
             [min]="-90"
             [max]="90"
+            [tuiNumberFormat]="{ precision: 6 }"
             (paste)="onPasteLocation($event)"
+            (change.zoneless)="
+              mapService.sanitizeCoordinates(latitude, longitude)
+            "
           />
         </tui-textfield>
         <tui-textfield [tuiTextfieldCleaner]="false">
@@ -92,7 +103,11 @@ interface MinimalParking {
             id="lng"
             [min]="-180"
             [max]="180"
+            [tuiNumberFormat]="{ precision: 6 }"
             [formControl]="longitude"
+            (change.zoneless)="
+              mapService.sanitizeCoordinates(latitude, longitude)
+            "
           />
         </tui-textfield>
 
@@ -161,19 +176,27 @@ interface MinimalParking {
   host: { class: 'overflow-auto' },
 })
 export class ParkingFormComponent {
+  protected readonly mapService = inject(MapService);
   private readonly parkings = inject(ParkingsService);
   private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
-  private readonly mapService = inject(MapService);
   private readonly _dialogCtx: TuiDialogContext<
     ParkingDto | boolean | null,
-    { cragId?: number; parkingData?: MinimalParking }
+    {
+      cragId?: number;
+      parkingData?: MinimalParking;
+      defaultLocation?: { lat: number; lng: number };
+    }
   > | null = (() => {
     try {
       return injectContext<
         TuiDialogContext<
           ParkingDto | boolean | null,
-          { cragId?: number; parkingData?: MinimalParking }
+          {
+            cragId?: number;
+            parkingData?: MinimalParking;
+            defaultLocation?: { lat: number; lng: number };
+          }
         >
       >();
     } catch {
@@ -188,15 +211,22 @@ export class ParkingFormComponent {
   parkingData: InputSignal<MinimalParking | undefined> = input<
     MinimalParking | undefined
   >(undefined);
+  defaultLocation: InputSignal<{ lat: number; lng: number } | undefined> =
+    input<{ lat: number; lng: number } | undefined>(undefined);
 
   private readonly dialogCragId = this._dialogCtx?.data?.cragId;
   private readonly dialogParkingData = this._dialogCtx?.data?.parkingData;
+  private readonly dialogDefaultLocation =
+    this._dialogCtx?.data?.defaultLocation;
 
   private readonly effectiveCragId: Signal<number | undefined> = computed(
     () => this.dialogCragId ?? this.cragId(),
   );
   private readonly effectiveParkingData: Signal<MinimalParking | undefined> =
     computed(() => this.dialogParkingData ?? this.parkingData());
+  private readonly effectiveDefaultLocation: Signal<
+    { lat: number; lng: number } | undefined
+  > = computed(() => this.dialogDefaultLocation ?? this.defaultLocation());
 
   readonly isEdit: Signal<boolean> = computed(
     () => !!this.effectiveParkingData(),
@@ -230,12 +260,19 @@ export class ParkingFormComponent {
   constructor() {
     effect(() => {
       const data = this.effectiveParkingData();
-      if (!data) return;
-      this.editingId = data.id;
-      this.name.setValue(data.name ?? '');
-      this.latitude.setValue(data.latitude ?? null);
-      this.longitude.setValue(data.longitude ?? null);
-      this.size.setValue(data.size ?? 0);
+      if (data) {
+        this.editingId = data.id;
+        this.name.setValue(data.name ?? '');
+        this.latitude.setValue(data.latitude ?? null);
+        this.longitude.setValue(data.longitude ?? null);
+        this.size.setValue(data.size ?? 0);
+      } else {
+        const def = this.effectiveDefaultLocation();
+        if (def) {
+          this.latitude.setValue(def.lat);
+          this.longitude.setValue(def.lng);
+        }
+      }
     });
   }
 

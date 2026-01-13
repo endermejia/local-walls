@@ -171,7 +171,7 @@ export interface RoutesTableRow {
                             [style.color]="
                               item.liked ? 'var(--tui-status-negative)' : ''
                             "
-                            class="align-self-start whitespace-nowrap"
+                            class="align-self-start whitespace-nowrap font-bold text-base"
                             (click)="$event.stopPropagation()"
                           >
                             {{ item.route || ('labels.route' | translate) }}

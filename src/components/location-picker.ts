@@ -98,7 +98,15 @@ export class LocationPickerComponent {
   }
 
   protected confirm(): void {
-    this.context.completeWith(this.selection());
+    const s = this.selection();
+    if (s) {
+      this.context.completeWith({
+        lat: parseFloat(s.lat.toFixed(6)),
+        lng: parseFloat(s.lng.toFixed(6)),
+      });
+    } else {
+      this.context.completeWith(null);
+    }
   }
 
   protected cancel(): void {

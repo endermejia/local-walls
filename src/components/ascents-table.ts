@@ -146,7 +146,7 @@ export interface AscentsTableRow {
                               item.crag_slug,
                               item.route_slug,
                             ]"
-                            class="align-self-start whitespace-nowrap"
+                            class="align-self-start whitespace-nowrap font-bold text-base"
                             [style.color]="
                               item.liked ? 'var(--tui-status-negative)' : ''
                             "
