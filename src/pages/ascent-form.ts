@@ -89,7 +89,7 @@ import { handleErrorToast } from '../utils';
       class="flex flex-col h-full"
       (submit.zoneless)="onSubmit($event)"
     >
-      <div class="flex-1 overflow-y-auto p-1 flex flex-col gap-6">
+      <div class="flex-1 overflow-y-auto flex flex-col gap-6">
         <!-- WHEN DID YOU CLIMB IT? -->
         <section class="grid gap-3">
           <span class="text-sm font-semibold opacity-70 px-1">{{

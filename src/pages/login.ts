@@ -13,10 +13,12 @@ import { isPlatformBrowser, NgOptimizedImage } from '@angular/common';
 import {
   TuiAppearance,
   TuiButton,
+  TuiIcon,
   TuiNotification,
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
+import { TuiPassword } from '@taiga-ui/kit';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiHeader, TuiCardLarge, TuiForm } from '@taiga-ui/layout';
 import { SupabaseService } from '../services';
@@ -28,6 +30,7 @@ import { SupabaseService } from '../services';
     TranslatePipe,
     TuiAppearance,
     TuiButton,
+    TuiIcon,
     TuiNotification,
     TuiTextfield,
     TuiTitle,
@@ -35,6 +38,7 @@ import { SupabaseService } from '../services';
     TuiCardLarge,
     TuiForm,
     NgOptimizedImage,
+    TuiPassword,
   ],
   template: `
     <div class="relative h-full flex justify-center items-center">
@@ -112,6 +116,7 @@ import { SupabaseService } from '../services';
                 "
                 autocomplete="current-password"
               />
+              <tui-icon tuiPassword />
             </tui-textfield>
 
             @if (validate() && !passwordValid()) {
@@ -143,6 +148,7 @@ import { SupabaseService } from '../services';
                   "
                   autocomplete="new-password"
                 />
+                <tui-icon tuiPassword />
               </tui-textfield>
 
               @if (validate() && confirmPassword() !== password()) {
@@ -230,6 +236,7 @@ import { SupabaseService } from '../services';
                 "
                 autocomplete="new-password"
               />
+              <tui-icon tuiPassword />
             </tui-textfield>
 
             @if (validate() && !newPasswordValid()) {
@@ -260,6 +267,7 @@ import { SupabaseService } from '../services';
                 "
                 autocomplete="new-password"
               />
+              <tui-icon tuiPassword />
             </tui-textfield>
 
             @if (validate() && confirmPassword() !== newPassword()) {

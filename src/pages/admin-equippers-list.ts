@@ -22,6 +22,9 @@ import {
   TuiSkeleton,
   TUI_CONFIRM,
   type TuiConfirmData,
+  TuiBadgedContentComponent,
+  TuiBadgeNotification,
+  TuiBadgedContentDirective,
 } from '@taiga-ui/kit';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
@@ -36,29 +39,39 @@ import { handleErrorToast } from '../utils';
   imports: [
     EmptyStateComponent,
     FormsModule,
+    TranslatePipe,
     TuiAvatar,
+    TuiBadgeNotification,
+    TuiBadgedContentComponent,
+    TuiBadgedContentDirective,
+    TuiButton,
+    TuiHint,
     TuiScrollbar,
     TuiSkeleton,
     TuiTable,
     TuiTableSortPipe,
     TuiTextfield,
-    TranslatePipe,
-    TuiButton,
-    TuiHint,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
       <header class="mb-4 flex items-center justify-between gap-2">
         <h1 class="text-2xl font-bold flex items-center gap-2">
-          <tui-avatar
-            tuiThumbnail
-            size="l"
-            src="@tui.hammer"
-            class="self-center"
-            [attr.aria-label]="'admin.equippers.title' | translate"
-          />
+          <tui-badged-content [style.--tui-radius.%]="50">
+            @if (equippers().length; as equippersCount) {
+              <tui-badge-notification size="s" tuiSlot="top">
+                {{ equippersCount }}
+              </tui-badge-notification>
+            }
+            <tui-avatar
+              tuiThumbnail
+              size="l"
+              src="@tui.hammer"
+              class="self-center"
+              [attr.aria-label]="'admin.equippers.title' | translate"
+            />
+          </tui-badged-content>
+
           {{ 'admin.equippers.title' | translate }}
-          ({{ equippers().length }})
         </h1>
 
         <button

@@ -568,9 +568,9 @@ export class TopoComponent {
         if (!confirmed) return;
         this.toposService
           .delete(topo.id)
-          .then(() => {
-            this.router.navigate(['/area', this.areaSlug(), this.cragSlug()]);
-          })
+          .then(() =>
+            this.router.navigate(['/area', this.areaSlug(), this.cragSlug()]),
+          )
           .catch((err) => handleErrorToast(err, this.toast));
       });
   }
@@ -594,9 +594,7 @@ export class TopoComponent {
         if (!confirmed) return;
         this.toposService
           .removeRoute(topoRoute.topo_id, topoRoute.route_id)
-          .then(() => {
-            void this.global.topoDetailResource.reload();
-          })
+          .then(() => this.global.topoDetailResource.reload())
           .catch((err) => handleErrorToast(err, this.toast));
       });
   }

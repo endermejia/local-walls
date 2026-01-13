@@ -21,6 +21,9 @@ import {
   TuiSkeleton,
   TUI_CONFIRM,
   type TuiConfirmData,
+  TuiBadgedContentComponent,
+  TuiBadgeNotification,
+  TuiBadgedContentDirective,
 } from '@taiga-ui/kit';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
@@ -36,29 +39,38 @@ import { handleErrorToast } from '../utils';
   imports: [
     EmptyStateComponent,
     FormsModule,
+    TranslatePipe,
     TuiAvatar,
+    TuiButton,
+    TuiHint,
     TuiScrollbar,
     TuiSkeleton,
     TuiTable,
     TuiTableSortPipe,
     TuiTextfield,
-    TranslatePipe,
-    TuiButton,
-    TuiHint,
+    TuiBadgedContentComponent,
+    TuiBadgeNotification,
+    TuiBadgedContentDirective,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
       <header class="mb-4 flex items-center justify-between gap-2">
         <h1 class="text-2xl font-bold flex items-center gap-2">
-          <tui-avatar
-            tuiThumbnail
-            size="l"
-            src="@tui.map-pin"
-            class="self-center"
-            [attr.aria-label]="'labels.parkings' | translate"
-          />
+          <tui-badged-content [style.--tui-radius.%]="50">
+            @if (parkings().length; as parkingsCount) {
+              <tui-badge-notification size="s" tuiSlot="top">
+                {{ parkingsCount }}
+              </tui-badge-notification>
+            }
+            <tui-avatar
+              tuiThumbnail
+              size="l"
+              src="@tui.map-pin"
+              class="self-center"
+              [attr.aria-label]="'labels.parkings' | translate"
+            />
+          </tui-badged-content>
           {{ 'labels.parkings' | translate }}
-          ({{ parkings().length }})
         </h1>
 
         <button
@@ -282,7 +294,7 @@ export class AdminParkingsListComponent {
       })
       .subscribe((confirmed) => {
         if (!confirmed) return;
-        this.performDelete(parking.id);
+        void this.performDelete(parking.id);
       });
   }
 

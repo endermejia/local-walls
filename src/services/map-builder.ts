@@ -51,7 +51,7 @@ export class MapBuilder {
   private userMarker: Marker | null = null;
   private clusteringEnabled = true;
   private clusterRadius = 50; // Marker grouping radius in pixels
-  // Control whether cluster markers should animate on next rebuild
+  // Control whether cluster markers should animate on the next rebuild
   private animateClustersOnNextBuild = true;
 
   private isBrowser(): boolean {
@@ -415,23 +415,26 @@ export class MapBuilder {
     this.cleanMarkers();
 
     const clustering = this.shouldCluster();
+    const currentZoom = this.map.getZoom();
+    const minZoomForParkings = 12; // Minimum zoom level to show parking markers
 
-    // Render Parkings (Always non-clustered for now)
-    const viewportBounds = this.map.getBounds().pad(0.1);
-    const visibleParkings = mapParkingItems.filter((p) =>
-      viewportBounds.contains(new L.LatLng(p.latitude, p.longitude)),
-    );
+    // Render Parkings only if Zoom is enough
+    if (currentZoom >= minZoomForParkings) {
+      const viewportBounds = this.map.getBounds().pad(0.1);
+      const visibleParkings = mapParkingItems.filter((p) =>
+        viewportBounds.contains(new L.LatLng(p.latitude, p.longitude)),
+      );
 
-    for (const parking of visibleParkings) {
-      const latLng: [number, number] = [parking.latitude, parking.longitude];
-      const isSelected =
-        selectedMapParkingItem && parking.id === selectedMapParkingItem.id;
+      for (const parking of visibleParkings) {
+        const latLng: [number, number] = [parking.latitude, parking.longitude];
+        const isSelected =
+          selectedMapParkingItem && parking.id === selectedMapParkingItem.id;
 
-      const scale = isSelected ? 1.1 : 1;
-      const name = parking.name;
+        const scale = isSelected ? 1.1 : 1;
+        const name = parking.name;
 
-      const icon = new L.DivIcon({
-        html: `
+        const icon = new L.DivIcon({
+          html: `
           <div class="flex flex-col items-center -translate-y-full">
             <div
               class="lw-marker lw-marker--glass flex items-center gap-1 px-2 py-1 rounded-xl text-xs leading-tight whitespace-nowrap shadow-md transition-all focus:outline-none"
@@ -448,25 +451,30 @@ export class MapBuilder {
             </div>
           </div>
         `,
-        className: 'parking-marker',
-        iconSize: [0, 0],
-        iconAnchor: [0, 0],
-      });
+          className: 'parking-marker',
+          iconSize: [0, 0],
+          iconAnchor: [0, 0],
+        });
 
-      const marker = new L.Marker(latLng, { icon }).addTo(this.map);
-      this.parkingMarkers.push(marker);
+        const marker = new L.Marker(latLng, { icon }).addTo(this.map);
+        this.parkingMarkers.push(marker);
 
-      const onSelect = () => {
-        this.centerOn(parking.latitude, parking.longitude, 12);
-        cb.onSelectedParkingChange(parking);
-      };
+        const onSelect = () => {
+          this.centerOn(
+            parking.latitude,
+            parking.longitude,
+            minZoomForParkings,
+          );
+          cb.onSelectedParkingChange(parking);
+        };
 
-      marker.on('click', (e: LeafletEvent) => {
-        e.originalEvent?.preventDefault?.();
-        (e.originalEvent as Event | undefined)?.stopPropagation?.();
-        onSelect();
-      });
-      this.attachMarkerKeyboardSelection(marker, onSelect);
+        marker.on('click', (e: LeafletEvent) => {
+          e.originalEvent?.preventDefault?.();
+          (e.originalEvent as Event | undefined)?.stopPropagation?.();
+          onSelect();
+        });
+        this.attachMarkerKeyboardSelection(marker, onSelect);
+      }
     }
 
     if (clustering) {
@@ -499,7 +507,7 @@ export class MapBuilder {
 
           const onSelect = async () => {
             // Center the map on the clicked item
-            this.centerOn(it.latitude, it.longitude, 10);
+            this.centerOn(it.latitude, it.longitude, minZoomForParkings);
             if (it.apiItem) {
               cb.onSelectedCragChange(it.apiItem);
             }
@@ -569,7 +577,7 @@ export class MapBuilder {
         html: this.cragLabelHtml(
           mapCragItem.name,
           selectedMapCragItem?.id === mapCragItem.id,
-          !!mapCragItem.liked, // Use item's liked status directly
+          !!mapCragItem.liked,
           'api',
         ),
         className: 'pointer-events-none',
@@ -583,12 +591,12 @@ export class MapBuilder {
       marker.on('click', (e: LeafletEvent) => {
         e.originalEvent?.preventDefault?.();
         (e.originalEvent as Event | undefined)?.stopPropagation?.();
-        this.centerOn(latitude, longitude, 10);
+        this.centerOn(latitude, longitude, minZoomForParkings);
         cb.onSelectedCragChange(mapCragItem);
       });
 
       this.attachMarkerKeyboardSelection(marker, () => {
-        this.centerOn(latitude, longitude, 10);
+        this.centerOn(latitude, longitude, minZoomForParkings);
         cb.onSelectedCragChange(mapCragItem);
       });
     }

@@ -200,51 +200,47 @@ import { mapLocationUrl, remToPx } from '../utils';
           tuiSurface="floating"
           class="relative pointer-events-auto m-4"
         >
-          <div class="flex flex-col min-w-0 grow">
-            <header tuiHeader>
+          <div class="flex flex-col grow gap-2">
+            <header tuiHeader class="flex wrap">
               <h2 tuiTitle>{{ p.name }}</h2>
-              @if (p.latitude && p.longitude) {
-                <div class="flex flex-wrap gap-2">
-                  <button
-                    appearance="flat"
-                    size="m"
-                    tuiButton
-                    type="button"
-                    class="lw-icon-50"
-                    [iconStart]="'/image/google-maps.svg'"
-                    (click.zoneless)="
-                      openExternal(
-                        mapLocationUrl({
-                          latitude: p.latitude,
-                          longitude: p.longitude,
-                        })
-                      )
+              <section class="text-sm opacity-80">
+                @if (p.size) {
+                  <div
+                    class="flex w-fit items-center gap-1"
+                    [tuiHint]="
+                      global.isMobile() ? null : ('labels.capacity' | translate)
                     "
-                    [attr.aria-label]="'actions.openGoogleMaps' | translate"
                   >
-                    {{ 'actions.openGoogleMaps' | translate }}
-                  </button>
-                </div>
-              }
+                    <tui-icon icon="@tui.parking-square" />
+                    <span class="text-lg">
+                      x
+                      {{ p.size }}
+                    </span>
+                  </div>
+                }
+              </section>
             </header>
-            <section
-              class="text-sm opacity-80 grid grid-cols-1 sm:grid-cols-2 gap-2"
-            >
-              @if (p.size) {
-                <div
-                  class="flex w-fit items-center gap-1"
-                  [tuiHint]="
-                    global.isMobile() ? null : ('labels.capacity' | translate)
-                  "
-                >
-                  <tui-icon icon="@tui.parking-square" />
-                  <span class="text-lg">
-                    x
-                    {{ p.size }}
-                  </span>
-                </div>
-              }
-            </section>
+            @if (p.latitude && p.longitude) {
+              <button
+                appearance="flat"
+                size="m"
+                tuiButton
+                type="button"
+                class="lw-icon-50"
+                [iconStart]="'/image/google-maps.svg'"
+                (click.zoneless)="
+                  openExternal(
+                    mapLocationUrl({
+                      latitude: p.latitude,
+                      longitude: p.longitude,
+                    })
+                  )
+                "
+                [attr.aria-label]="'actions.openGoogleMaps' | translate"
+              >
+                {{ 'actions.openGoogleMaps' | translate }}
+              </button>
+            }
           </div>
         </div>
       </div>

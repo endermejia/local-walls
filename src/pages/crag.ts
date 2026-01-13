@@ -162,45 +162,41 @@ import { handleErrorToast } from '../utils';
             }
 
             <div
-              class="flex flex-row justify-between items-start gap-2 mt-auto"
+              class="flex flex-row flex-wrap justify-between items-start gap-2"
             >
-              <div
-                class="flex flex-wrap md:flex-nowrap gap-2 md:gap-4 items-center"
-              >
-                @if (c.latitude && c.longitude) {
-                  <div class="flex flex-wrap gap-2 items-center">
-                    <button
-                      tuiButton
-                      appearance="flat"
-                      size="m"
-                      type="button"
-                      (click.zoneless)="viewOnMap(c.latitude, c.longitude)"
-                      [iconStart]="'@tui.map'"
-                    >
-                      {{ 'actions.viewOnMap' | translate }}
-                    </button>
-                    <button
-                      appearance="flat"
-                      size="m"
-                      tuiButton
-                      type="button"
-                      class="lw-icon-50"
-                      [iconStart]="'/image/google-maps.svg'"
-                      (click.zoneless)="
-                        openExternal(
-                          mapLocationUrl({
-                            latitude: c.latitude,
-                            longitude: c.longitude,
-                          })
-                        )
-                      "
-                      [attr.aria-label]="'actions.openGoogleMaps' | translate"
-                    >
-                      {{ 'actions.openGoogleMaps' | translate }}
-                    </button>
-                  </div>
-                }
-              </div>
+              @if (c.latitude && c.longitude) {
+                <div class="flex flex-col md:flex-row gap-2 items-start">
+                  <button
+                    tuiButton
+                    appearance="flat"
+                    size="m"
+                    type="button"
+                    (click.zoneless)="viewOnMap(c.latitude, c.longitude)"
+                    [iconStart]="'@tui.map'"
+                  >
+                    {{ 'actions.viewOnMap' | translate }}
+                  </button>
+                  <button
+                    appearance="flat"
+                    size="m"
+                    tuiButton
+                    type="button"
+                    class="lw-icon-50"
+                    [iconStart]="'/image/google-maps.svg'"
+                    (click.zoneless)="
+                      openExternal(
+                        mapLocationUrl({
+                          latitude: c.latitude,
+                          longitude: c.longitude,
+                        })
+                      )
+                    "
+                    [attr.aria-label]="'actions.openGoogleMaps' | translate"
+                  >
+                    {{ 'actions.openGoogleMaps' | translate }}
+                  </button>
+                </div>
+              }
               <app-chart-routes-by-grade
                 class="md:hidden self-end"
                 [grades]="c.grades"

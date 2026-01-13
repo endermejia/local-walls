@@ -21,6 +21,9 @@ import { tuiDefaultSort } from '@taiga-ui/cdk';
 import { TuiLink, TuiScrollbar, TuiTextfield } from '@taiga-ui/core';
 import {
   TuiAvatar,
+  TuiBadgedContentComponent,
+  TuiBadgedContentDirective,
+  TuiBadgeNotification,
   TuiChevron,
   TuiDataListWrapper,
   TuiSelect,
@@ -44,34 +47,42 @@ interface UserWithRole {
   imports: [
     EmptyStateComponent,
     FormsModule,
+    RouterLink,
+    TranslatePipe,
     TuiAvatar,
+    TuiBadgeNotification,
+    TuiBadgedContentComponent,
+    TuiBadgedContentDirective,
     TuiChevron,
     TuiDataListWrapper,
+    TuiLink,
     TuiScrollbar,
     TuiSelect,
     TuiSkeleton,
     TuiTable,
     TuiTableSortPipe,
     TuiTextfield,
-    TranslatePipe,
     WaIntersectionObserver,
-    RouterLink,
-    TuiLink,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
       <header class="mb-4 flex items-center justify-between gap-2">
         <h1 class="text-2xl font-bold flex items-center gap-2">
-          <tui-avatar
-            tuiThumbnail
-            size="l"
-            src="@tui.users"
-            class="self-center"
-            [attr.aria-label]="'admin.users.title' | translate"
-          />
-          @let usersCount = users().length;
+          <tui-badged-content [style.--tui-radius.%]="50">
+            @if (users().length; as usersCount) {
+              <tui-badge-notification size="s" tuiSlot="top">
+                {{ usersCount }}
+              </tui-badge-notification>
+            }
+            <tui-avatar
+              tuiThumbnail
+              size="l"
+              src="@tui.users"
+              class="self-center"
+              [attr.aria-label]="'admin.users.title' | translate"
+            />
+          </tui-badged-content>
           {{ 'admin.users.title' | translate }}
-          ({{ usersCount }})
         </h1>
       </header>
 
@@ -148,7 +159,7 @@ interface UserWithRole {
           @let sortedUsersList = filteredUsers() | tuiTableSort;
           <tbody tuiTbody [data]="sortedUsersList">
             @if (loading()) {
-              @for (item of skeletons; track $index) {
+              @for (_item of skeletons; track $index) {
                 <tr tuiTr>
                   <td *tuiCell="'user'" tuiTd class="user-cell">
                     <div class="flex items-center gap-3">

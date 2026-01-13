@@ -201,6 +201,8 @@ export class RoutesService {
       this.global.cragRoutesResource.reload();
       this.global.routeDetailResource.reload();
       this.global.topoDetailResource.reload();
+      this.global.userAscentsResource.reload();
+      this.global.userProjectsResource.reload();
 
       const isLiked = data as boolean;
       this.toast.success(
