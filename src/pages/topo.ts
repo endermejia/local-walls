@@ -27,7 +27,7 @@ import {
   TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
-import { tuiDefaultSort } from '@taiga-ui/cdk';
+import { tuiDefaultSort, TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { TUI_CONFIRM, type TuiConfirmData, TuiAvatar } from '@taiga-ui/kit';
 
@@ -47,6 +47,7 @@ import {
   TopoDetail,
   TopoRouteWithRoute,
   RouteAscentWithExtras,
+  TopoListItem,
 } from '../models';
 
 import { handleErrorToast } from '../utils';
@@ -82,9 +83,10 @@ export interface TopoRouteRow {
     TuiIcon,
     TuiAvatar,
     TuiCell,
+    TuiSwipe,
   ],
   template: `
-    <div class="h-full w-full">
+    <div class="h-full w-full" (tuiSwipe)="onSwipe($event)">
       <section class="flex flex-col w-full h-full max-w-5xl mx-auto p-4">
         @if (topo(); as t) {
           <div class="flex flex-wrap items-center justify-between gap-2">
@@ -166,8 +168,37 @@ export interface TopoRouteRow {
             </div>
           </div>
 
+          @if (allTopos().length > 1) {
+            <div class="flex items-center justify-between w-full my-2 gap-4">
+              @if (prevTopo(); as prev) {
+                <button
+                  tuiButton
+                  size="s"
+                  appearance="flat"
+                  iconStart="@tui.chevron-left"
+                  class="max-w-[45%] truncate"
+                  (click.zoneless)="navigateToTopo(prev)"
+                >
+                  <span class="truncate">{{ prev.name }}</span>
+                </button>
+              }
+              @if (nextTopo(); as next) {
+                <button
+                  tuiButton
+                  size="s"
+                  appearance="flat"
+                  iconEnd="@tui.chevron-right"
+                  class="max-w-[45%] truncate"
+                  (click.zoneless)="navigateToTopo(next)"
+                >
+                  <span class="truncate">{{ next.name }}</span>
+                </button>
+              }
+            </div>
+          }
+
           <div
-            class="relative w-full aspect-video mt-4 overflow-hidden rounded shadow-lg bg-black/10"
+            class="relative w-full aspect-video overflow-hidden rounded shadow-lg bg-black/10"
           >
             <img
               [src]="t.photo || global.iconSrc()('topo')"
@@ -419,6 +450,29 @@ export class TopoComponent {
   sectorSlug: InputSignal<string | undefined> = input();
 
   protected readonly topo = this.global.topoDetailResource.value;
+  protected readonly crag = this.global.cragDetailResource.value;
+
+  protected readonly allTopos = computed(() => this.crag()?.topos || []);
+  protected readonly currentTopoIndex = computed(() => {
+    const topo = this.topo();
+    const topos = this.allTopos();
+    if (!topo || !topos.length) return -1;
+    return topos.findIndex((t) => t.id === topo.id);
+  });
+
+  protected readonly prevTopo = computed(() => {
+    const i = this.currentTopoIndex();
+    const topos = this.allTopos();
+    if (!topos.length) return null;
+    return topos[(i - 1 + topos.length) % topos.length];
+  });
+
+  protected readonly nextTopo = computed(() => {
+    const i = this.currentTopoIndex();
+    const topos = this.allTopos();
+    if (!topos.length) return null;
+    return topos[(i + 1) % topos.length];
+  });
 
   protected readonly shadeInfo = computed(() => {
     const t = this.topo();
@@ -597,5 +651,25 @@ export class TopoComponent {
           .then(() => this.global.topoDetailResource.reload())
           .catch((err) => handleErrorToast(err, this.toast));
       });
+  }
+
+  protected navigateToTopo(topo: TopoListItem): void {
+    void this.router.navigate([
+      '/area',
+      this.areaSlug(),
+      this.cragSlug(),
+      'topo',
+      topo.id,
+    ]);
+  }
+
+  protected onSwipe(event: TuiSwipeEvent): void {
+    if (event.direction === 'left') {
+      const next = this.nextTopo();
+      if (next) this.navigateToTopo(next);
+    } else if (event.direction === 'right') {
+      const prev = this.prevTopo();
+      if (prev) this.navigateToTopo(prev);
+    }
   }
 }

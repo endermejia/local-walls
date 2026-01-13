@@ -41,7 +41,9 @@
     "share": "Compartir",
     "signIn": "Iniciar sesión",
     "signUp": "Crear cuenta",
-    "viewOnMap": "Ver en el mapa"
+    "viewOnMap": "Ver en el mapa",
+    "previous": "Anterior",
+    "next": "Siguiente"
   },
   "labels": {
     "actions": "Acciones",

@@ -41,7 +41,9 @@
     "share": "Share",
     "signIn": "Sign in",
     "signUp": "Sign up",
-    "viewOnMap": "View on map"
+    "viewOnMap": "View on map",
+    "previous": "Previous",
+    "next": "Next"
   },
   "labels": {
     "actions": "Actions",
