@@ -43,7 +43,8 @@
     "signUp": "Sign up",
     "viewOnMap": "View on map",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "uploadPhoto": "Upload photo"
   },
   "labels": {
     "actions": "Actions",

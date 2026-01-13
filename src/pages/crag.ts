@@ -10,10 +10,11 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
+import { isPlatformBrowser, LowerCasePipe, AsyncPipe } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TopoImagePipe } from '../pipes/topo-image.pipe';
 import {
   TuiAvatar,
   TUI_CONFIRM,
@@ -23,14 +24,14 @@ import {
 } from '@taiga-ui/kit';
 import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
 import {
-  TuiLoader,
-  TuiTitle,
   TuiButton,
   TuiHint,
-  TuiNotification,
   TuiIcon,
-  TuiTextfield,
   TuiLabel,
+  TuiLoader,
+  TuiNotification,
+  TuiTextfield,
+  TuiTitle,
 } from '@taiga-ui/core';
 import { TuiSurface } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
@@ -42,22 +43,23 @@ import {
 } from '../components';
 import {
   CragsService,
+  FiltersService,
   GlobalData,
   ParkingsService,
-  FiltersService,
-  ToastService,
   RoutesService,
+  SupabaseService,
+  ToastService,
   ToposService,
 } from '../services';
 import {
-  type CragDetail,
-  RouteWithExtras,
-  type TopoListItem,
   AmountByEveryGrade,
-  VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
   ORDERED_GRADE_VALUES,
   ParkingDto,
+  RouteWithExtras,
+  VERTICAL_LIFE_GRADES,
+  VERTICAL_LIFE_TO_LABEL,
+  type CragDetail,
+  type TopoListItem,
 } from '../models';
 import { mapLocationUrl } from '../utils';
 import { handleErrorToast } from '../utils';
@@ -66,27 +68,29 @@ import { handleErrorToast } from '../utils';
   selector: 'app-crag',
   standalone: true,
   imports: [
-    EmptyStateComponent,
     ChartRoutesByGradeComponent,
+    EmptyStateComponent,
+    FormsModule,
+    LowerCasePipe,
     RoutesTableComponent,
     SectionHeaderComponent,
     TranslatePipe,
+    TuiAvatar,
+    TuiBadgeNotification,
+    TuiBadgedContent,
+    TuiButton,
     TuiCardLarge,
     TuiHeader,
-    TuiLoader,
-    TuiSurface,
-    TuiTitle,
-    TuiButton,
     TuiHint,
-    FormsModule,
-    TuiNotification,
-    TuiAvatar,
-    LowerCasePipe,
     TuiIcon,
-    TuiTextfield,
     TuiLabel,
-    TuiBadgedContent,
-    TuiBadgeNotification,
+    TuiLoader,
+    TuiNotification,
+    TuiSurface,
+    TuiTextfield,
+    TuiTitle,
+    AsyncPipe,
+    TopoImagePipe,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -391,7 +395,10 @@ import { handleErrorToast } from '../utils';
                   <section class="flex flex-col gap-2">
                     @if (t.photo; as photo) {
                       <img
-                        [src]="photo"
+                        [src]="
+                          (photo | topoImage | async) ||
+                          global.iconSrc()('topo')
+                        "
                         alt="topo"
                         class="w-full h-48 object-cover rounded shadow-sm"
                         loading="lazy"
@@ -501,17 +508,18 @@ import { handleErrorToast } from '../utils';
 })
 export class CragComponent {
   protected readonly global = inject(GlobalData);
+  protected readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
   private readonly routesService = inject(RoutesService);
   private readonly parkingsService = inject(ParkingsService);
   private readonly cragsService = inject(CragsService);
   private readonly toposService = inject(ToposService);
   private readonly filtersService = inject(FiltersService);
-
   private readonly platformId = inject(PLATFORM_ID);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
+
   protected readonly mapLocationUrl = mapLocationUrl;
 
   areaSlug: InputSignal<string> = input.required<string>();

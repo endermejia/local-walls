@@ -43,7 +43,8 @@
     "signUp": "Crear cuenta",
     "viewOnMap": "Ver en el mapa",
     "previous": "Anterior",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "uploadPhoto": "Subir foto"
   },
   "labels": {
     "actions": "Acciones",

@@ -21,6 +21,8 @@ import {
   TuiLink,
   TuiIcon,
 } from '@taiga-ui/core';
+import { AsyncPipe } from '@angular/common';
+import { TopoImagePipe } from '../pipes/topo-image.pipe';
 import {
   TuiTable,
   TuiSortDirection,
@@ -42,6 +44,7 @@ import {
   ToposService,
   AscentsService,
   ToastService,
+  SupabaseService,
 } from '../services';
 import {
   TopoDetail,
@@ -84,6 +87,8 @@ export interface TopoRouteRow {
     TuiAvatar,
     TuiCell,
     TuiSwipe,
+    AsyncPipe,
+    TopoImagePipe,
   ],
   template: `
     <div class="h-full w-full" (tuiSwipe)="onSwipe($event)">
@@ -126,6 +131,28 @@ export interface TopoRouteRow {
                   >
                     {{ 'actions.edit' | translate }}
                   </button>
+                  <button
+                    tuiIconButton
+                    size="s"
+                    appearance="neutral"
+                    iconStart="@tui.upload"
+                    class="pointer-events-auto !rounded-full"
+                    (click.zoneless)="fileInput.click()"
+                    [tuiHint]="
+                      global.isMobile()
+                        ? null
+                        : ('actions.uploadPhoto' | translate)
+                    "
+                  >
+                    {{ 'actions.uploadPhoto' | translate }}
+                  </button>
+                  <input
+                    #fileInput
+                    type="file"
+                    class="hidden"
+                    accept="image/*"
+                    (change)="onFileSelected($event)"
+                  />
                   <button
                     tuiIconButton
                     size="s"
@@ -201,7 +228,11 @@ export interface TopoRouteRow {
             class="relative w-full aspect-video overflow-hidden rounded shadow-lg bg-black/10"
           >
             <img
-              [src]="t.photo || global.iconSrc()('topo')"
+              [src]="
+                ({ path: t.photo, version: global.topoPhotoVersion() }
+                  | topoImage
+                  | async) || global.iconSrc()('topo')
+              "
               [alt]="t.name"
               [class]="'w-full h-full ' + topoPhotoClass()"
               decoding="async"
@@ -434,7 +465,11 @@ export class TopoComponent {
 
   protected readonly global = inject(GlobalData);
   private readonly toposService = inject(ToposService);
+  private readonly supabase = inject(SupabaseService);
   protected readonly ascentsService = inject(AscentsService);
+
+  // ... (existing code)
+
   private readonly routesService = inject(RoutesService);
   private readonly router = inject(Router);
   private readonly dialogs = inject(TuiDialogService);
@@ -601,6 +636,19 @@ export class TopoComponent {
     this.toposService.openTopoRouteForm({
       topoRouteData: topoRoute,
     });
+  }
+
+  protected onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const topo = this.topo();
+    if (!topo) return;
+
+    this.toposService
+      .uploadPhoto(topo.id, file)
+      .catch((e) => handleErrorToast(e, this.toast));
   }
 
   deleteTopo(topo: TopoDetail): void {

@@ -168,4 +168,45 @@ export class ToposService {
     this.global.topoDetailResource.reload();
     this.toast.success('messages.toasts.routeUpdated');
   }
+
+  async uploadPhoto(topoId: number, file: File): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const toBase64 = (f: File) =>
+      new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(f);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (error) => reject(error);
+      });
+
+    try {
+      const base64 = await toBase64(file);
+      await this.supabase.whenReady();
+      const { error } = await this.supabase.client.functions.invoke(
+        'upload-topo-photo',
+        {
+          body: {
+            file_name: file.name,
+            content_type: file.type,
+            base64,
+          },
+          headers: {
+            'Topo-Id': topoId.toString(),
+          },
+        },
+      );
+
+      if (error) throw error;
+
+      this.toast.success('messages.toasts.topoUpdated');
+      this.global.topoPhotoVersion.update((v) => v + 1);
+      this.global.topoDetailResource.reload();
+      this.global.cragDetailResource.reload();
+    } catch (e) {
+      console.error('[ToposService] uploadPhoto error', e);
+      this.toast.error('messages.toasts.error');
+      throw e;
+    }
+  }
 }

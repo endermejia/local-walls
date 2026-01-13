@@ -71,6 +71,9 @@ export class GlobalData {
   // Loading/Status state
   readonly error: WritableSignal<string | null> = signal(null);
 
+  // ---- Topo photo version for cache busting ----
+  readonly topoPhotoVersion: WritableSignal<number> = signal(0);
+
   // ---- Language ----
   readonly i18nTick: WritableSignal<number> = signal(0);
   selectedLanguage: Signal<Language> = computed(

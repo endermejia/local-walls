@@ -26,7 +26,7 @@ export class UserProfilesService {
 
   openAvatarCropper(
     file: File,
-    size: number = 512,
+    size = 512,
   ): Observable<AvatarCropperResult | null> {
     return this.dialogs.open<AvatarCropperResult | null>(
       new PolymorpheusComponent(AvatarCropperComponent),
