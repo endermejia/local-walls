@@ -15,13 +15,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { TuiAvatar, TuiRating, TuiChip } from '@taiga-ui/kit';
 import { TuiTable, TuiTableSortPipe } from '@taiga-ui/addon-table';
 import { TuiCell } from '@taiga-ui/layout';
-import {
-  TuiIcon,
-  TuiHint,
-  TuiFallbackSrcPipe,
-  TuiLink,
-  TuiAppearance,
-} from '@taiga-ui/core';
+import { TuiIcon, TuiHint, TuiFallbackSrcPipe, TuiLink } from '@taiga-ui/core';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { SupabaseService, GlobalData, AscentsService } from '../services';
@@ -77,7 +71,6 @@ export interface AscentsTableRow {
     AsyncPipe,
     TuiIcon,
     TuiLink,
-    TuiAppearance,
     AvatarGradeComponent,
     EmptyStateComponent,
   ],
@@ -284,8 +277,9 @@ export class AscentsTableComponent {
   updated = output<void>();
 
   readonly columns = computed(() => {
-    const cols = ['grade'];
+    const cols = [];
     if (this.showUser()) cols.push('user');
+    cols.push('grade');
     if (this.showRoute()) cols.push('route');
     cols.push('date', 'rating', 'comment', 'details', 'type');
     return cols;

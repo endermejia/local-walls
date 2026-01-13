@@ -27,8 +27,11 @@ import { AscentsTableComponent } from '../components';
 import { GlobalData, SupabaseService, FiltersService } from '../services';
 import {
   RouteAscentWithExtras,
+  RouteAscentDto,
+  RouteDto,
   ClimbingKinds,
   ORDERED_GRADE_VALUES,
+  VERTICAL_LIFE_TO_LABEL,
 } from '../models';
 
 @Component({
@@ -149,24 +152,37 @@ export class HomeComponent {
       if (followedIds.length === 0) return [];
 
       // 2. Get ascents from those users
+      type AscentQueryResponse = RouteAscentDto & {
+        route:
+          | (RouteDto & {
+              crag: {
+                slug: string;
+                name: string;
+                area: { slug: string; name: string } | null;
+              } | null;
+            })
+          | null;
+      };
+
       const { data: ascents, error: ascentsError } = await this.supabase.client
         .from('route_ascents')
         .select(
           `
           *,
-          route:routes (
+          route:routes(
             *,
-            crag:crags (
+            crag:crags(
               slug,
               name,
-              area:areas (slug, name)
+              area:areas(slug,name)
             )
           )
         `,
         )
         .in('user_id', followedIds)
         .order('date', { ascending: false })
-        .limit(50);
+        .limit(50)
+        .returns<AscentQueryResponse[]>();
 
       if (ascentsError) {
         console.error('[HomeComponent] Error fetching ascents:', ascentsError);
@@ -196,7 +212,7 @@ export class HomeComponent {
 
       return ascents.map((a) => {
         const { route, ...ascentRest } = a;
-        let mappedRoute = null;
+        let mappedRoute: RouteAscentWithExtras['route'] = undefined;
         if (route) {
           const { crag, ...routeRest } = route;
           mappedRoute = {
@@ -205,13 +221,15 @@ export class HomeComponent {
             crag_name: crag?.name,
             area_slug: crag?.area?.slug,
             area_name: crag?.area?.name,
+            liked: false,
+            project: false,
           };
         }
         return {
           ...ascentRest,
           user: profileMap.get(a.user_id),
           route: mappedRoute,
-        } as RouteAscentWithExtras;
+        };
       });
     },
   });
@@ -220,9 +238,15 @@ export class HomeComponent {
     const list = this.ascentsResource.value() || [];
     const q = this.query().toLowerCase().trim();
     const [minIdx, maxIdx] = this.selectedGradeRange();
-    const allowedGrades = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1).map(
-      (g) => Number(g),
-    );
+
+    // Convert indices to actual Grade IDs (numbers) because route.grade is a number
+    // ORDERED_GRADE_VALUES contains labels, but we need the keys (IDs).
+    // The keys are numerical IDs sorted ascending.
+    const allGradeIds = Object.keys(VERTICAL_LIFE_TO_LABEL)
+      .map(Number)
+      .sort((a, b) => a - b);
+
+    const allowedGrades = allGradeIds.slice(minIdx, maxIdx + 1);
     const categories = this.selectedCategories();
 
     return list.filter((a) => {
@@ -233,7 +257,8 @@ export class HomeComponent {
 
       // Grade filter
       const grade = a.route?.grade;
-      const gradeMatch = grade === undefined || allowedGrades.includes(grade);
+      const gradeMatch =
+        grade === undefined || grade === null || allowedGrades.includes(grade);
 
       // Category filter
       let kindMatch = true;

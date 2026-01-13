@@ -12,7 +12,11 @@
 [tuiTd] {
   border-inline-start: none !important;
   border-inline-end: none !important;
-  background: inherit !important;
+  background: color-mix(
+    in oklab,
+    var(--tui-background-base) 35%,
+    transparent
+  ) !important;
 }
 
 /* Ensure table header text is visible */
