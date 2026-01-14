@@ -1,9 +1,11 @@
-import { CanMatchFn, Router, UrlTree } from '@angular/router';
+import { CanMatchFn, Route, Router, UrlTree } from '@angular/router';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { SupabaseService } from './supabase.service';
 
-export const authGuard: CanMatchFn = async (): Promise<boolean | UrlTree> => {
+export const authGuard: CanMatchFn = async (
+  route: Route,
+): Promise<boolean | UrlTree> => {
   const router = inject(Router);
   const supabase = inject(SupabaseService);
   const platformId = inject(PLATFORM_ID);
@@ -16,8 +18,29 @@ export const authGuard: CanMatchFn = async (): Promise<boolean | UrlTree> => {
   // Ensure the client is initialized and try to get the session
   await supabase.whenReady();
   const session = await supabase.getSession();
-  if (session) {
-    return true;
+  if (!session) {
+    return router.createUrlTree(['/login']);
   }
-  return router.createUrlTree(['/login']);
+
+  // If the user name is equal to their email, they need to complete their profile setup.
+  // We redirect them to /profile unless they are already going there.
+  if (route.path !== 'profile') {
+    // We try to get the profile from the resource, or fetch it if not available yet.
+    let profileName = supabase.userProfile()?.name;
+
+    if (!profileName) {
+      const { data } = await supabase.client
+        .from('user_profiles')
+        .select('name')
+        .eq('id', session.user.id)
+        .maybeSingle();
+      profileName = data?.name;
+    }
+
+    if (profileName && profileName === session.user.email) {
+      return router.createUrlTree(['/profile']);
+    }
+  }
+
+  return true;
 };

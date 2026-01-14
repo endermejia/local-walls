@@ -40,29 +40,6 @@ export class UserProfilesService {
   }
 
   /**
-   * Get user profile by name (displayName field)
-   */
-  async getUserProfileByName(name: string): Promise<UserProfileDto | null> {
-    try {
-      const { data, error } = await this.supabase.client
-        .from('user_profiles')
-        .select('*')
-        .eq('name', name)
-        .maybeSingle();
-
-      if (error) {
-        console.error('[UserProfileService] Error fetching profile:', error);
-        return null;
-      }
-
-      return data;
-    } catch (e) {
-      console.error('[UserProfileService] Exception fetching profile:', e);
-      return null;
-    }
-  }
-
-  /**
    * Update the authenticated user profile
    */
   async updateUserProfile(

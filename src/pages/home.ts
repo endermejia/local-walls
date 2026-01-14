@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   inject,
   resource,
   signal,
@@ -11,7 +10,6 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
   TuiLoader,
@@ -122,22 +120,6 @@ export class HomeComponent {
   protected readonly global = inject(GlobalData);
   private readonly supabase = inject(SupabaseService);
   private readonly filtersService = inject(FiltersService);
-  private readonly router = inject(Router);
-
-  constructor() {
-    // Check if user profile needs setup (name equals email)
-    effect(() => {
-      const profile = this.supabase.userProfile();
-      const authUser = this.supabase.authUser();
-
-      if (profile && authUser?.email) {
-        // If name equals email, user hasn't completed profile setup
-        if (profile.name === authUser.email) {
-          void this.router.navigateByUrl('/profile');
-        }
-      }
-    });
-  }
 
   readonly query: WritableSignal<string> = signal('');
   readonly selectedGradeRange = this.global.areaListGradeRange;
@@ -156,7 +138,7 @@ export class HomeComponent {
       const userId = this.supabase.authUserId();
       if (!userId) return [];
 
-      // 1. Get followed user IDs
+      // 1. Get the following user IDs
       const { data: follows, error: followsError } = await this.supabase.client
         .from('user_follows')
         .select('followed_user_id')
@@ -170,7 +152,7 @@ export class HomeComponent {
       const followedIds = follows.map((f) => f.followed_user_id);
       if (followedIds.length === 0) return [];
 
-      // 2. Get ascents from those users
+      // 2. Get ascent from those users
       type AscentQueryResponse = RouteAscentDto & {
         route:
           | (RouteDto & {
@@ -201,7 +183,7 @@ export class HomeComponent {
         .in('user_id', followedIds)
         .order('date', { ascending: false })
         .limit(50)
-        .returns<AscentQueryResponse[]>();
+        .overrideTypes<AscentQueryResponse[]>();
 
       if (ascentsError) {
         console.error('[HomeComponent] Error fetching ascents:', ascentsError);

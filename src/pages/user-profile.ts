@@ -198,6 +198,8 @@ export class UserProfileComponent {
 
     // Auto-open profile config modal if user hasn't completed setup
     effect(() => {
+      if (!isPlatformBrowser(this.platformId)) return;
+
       const profile = this.profile();
       const authUser = this.supabase.authUser();
 

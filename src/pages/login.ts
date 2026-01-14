@@ -497,7 +497,7 @@ export class LoginComponent {
       this.error.set('auth.passwordUpdated');
       this.newPassword.set('');
       this.confirmPassword.set('');
-      void this.router.navigateByUrl('/explore');
+      void this.router.navigateByUrl('/home');
     } catch {
       this.error.set('errors.unexpected');
     } finally {
