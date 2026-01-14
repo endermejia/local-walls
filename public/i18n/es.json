@@ -300,7 +300,8 @@
     },
     "name": {
       "required": "El nombre es obligatorio.",
-      "length": "El nombre debe tener entre 3 y 50 caracteres."
+      "length": "El nombre debe tener entre 3 y 50 caracteres.",
+      "equalsEmail": "Por favor, cambia tu nombre. No puede ser igual a tu correo electrónico."
     },
     "bio": {
       "tooLong": "La biografía debe tener 500 caracteres o menos."

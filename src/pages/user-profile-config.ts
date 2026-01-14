@@ -22,7 +22,9 @@ import {
   TuiFlagPipe,
   TuiHint,
   TuiIcon,
+  TuiNotification,
   TuiTextfield,
+  TuiTitle,
 } from '@taiga-ui/core';
 import {
   TuiChevron,
@@ -95,6 +97,8 @@ interface Country {
     TuiBadge,
     TuiIcon,
     NgOptimizedImage,
+    TuiNotification,
+    TuiTitle,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
@@ -158,6 +162,13 @@ interface Country {
               (keydown.enter)="saveName()"
             />
           </tui-textfield>
+          @if (nameEqualsEmail()) {
+            <tui-notification appearance="warning" class="mt-2">
+              <h3 tuiTitle>
+                {{ 'profile.name.equalsEmail' | translate }}
+              </h3>
+            </tui-notification>
+          }
         </div>
       </div>
       <!-- Email (readonly) -->
@@ -427,6 +438,11 @@ export class UserProfileConfigComponent {
   protected readonly userEmail = computed(
     () => this.supabase.authUser()?.email ?? '',
   );
+  protected readonly nameEqualsEmail = computed(() => {
+    const profile = this.profile();
+    const email = this.userEmail();
+    return profile?.name === email && email !== '';
+  });
   protected avatarHovered = signal(false);
   protected isUploadingAvatar = signal(false);
   protected avatarSrc = computed<string>(() => {

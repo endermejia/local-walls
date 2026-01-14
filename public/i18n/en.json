@@ -300,7 +300,8 @@
     },
     "name": {
       "required": "Name is required.",
-      "length": "Name must be between 3 and 50 characters."
+      "length": "Name must be between 3 and 50 characters.",
+      "equalsEmail": "Please change your name. It cannot be the same as your email."
     },
     "bio": {
       "tooLong": "Bio must be 500 characters or less."
