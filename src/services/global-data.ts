@@ -15,7 +15,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
 import { TuiBreakpointService } from '@taiga-ui/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { map, merge, startWith } from 'rxjs';
 import { LocalStorage } from './local-storage';
 import { SupabaseService } from './supabase.service';
 import {
@@ -1083,16 +1083,23 @@ export class GlobalData {
     this.errorMessage.set(message);
   }
 
+  private readonly langUpdateTrigger = toSignal(
+    merge(
+      this.translate.onLangChange,
+      this.translate.onTranslationChange,
+      this.translate.onDefaultLangChange,
+    ).pipe(
+      map(() => true),
+      startWith(false),
+    ),
+  );
+
   constructor() {
-    this.translate.onLangChange.subscribe(() =>
-      this.i18nTick.update((v) => v + 1),
-    );
-    this.translate.onTranslationChange.subscribe(() =>
-      this.i18nTick.update((v) => v + 1),
-    );
-    this.translate.onDefaultLangChange.subscribe(() =>
-      this.i18nTick.update((v) => v + 1),
-    );
+    effect(() => {
+      if (this.langUpdateTrigger()) {
+        this.i18nTick.update((v) => v + 1);
+      }
+    });
 
     // Hydrate last map bounds from storage on a browser
     try {

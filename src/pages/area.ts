@@ -1,3 +1,4 @@
+import { firstValueFrom } from 'rxjs';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -332,44 +333,42 @@ export class AreaComponent {
     void this.areas.toggleAreaLike(area.id);
   }
 
-  deleteArea(): void {
+  async deleteArea(): Promise<void> {
     const area = this.global.selectedArea();
     if (!area) return;
     if (!isPlatformBrowser(this.platformId)) return;
 
-    this.translate
-      .get(['areas.deleteTitle', 'areas.deleteConfirm'], { name: area.name })
-      .subscribe((t) => {
-        const title = t['areas.deleteTitle'];
-        const message = t['areas.deleteConfirm'];
+    const t = await firstValueFrom(
+      this.translate.get(['areas.deleteTitle', 'areas.deleteConfirm'], {
+        name: area.name,
+      }),
+    );
+    const title = t['areas.deleteTitle'];
+    const message = t['areas.deleteConfirm'];
 
-        const data: TuiConfirmData = {
-          content: message,
-          yes: this.translate.instant('actions.delete'),
-          no: this.translate.instant('actions.cancel'),
-          appearance: 'accent',
-        };
+    const data: TuiConfirmData = {
+      content: message,
+      yes: this.translate.instant('actions.delete'),
+      no: this.translate.instant('actions.cancel'),
+      appearance: 'accent',
+    };
 
-        this.dialogs
-          .open<boolean>(TUI_CONFIRM, {
-            label: title,
-            size: 's',
-            data,
-          })
-          .subscribe({
-            next: async (confirmed) => {
-              if (!confirmed) return;
-              try {
-                await this.areas.delete(area.id);
-                await this.router.navigateByUrl('/areas');
-              } catch (e) {
-                const error = e as Error;
-                console.error('[AreaComponent] Error deleting area:', error);
-                handleErrorToast(error, this.toast);
-              }
-            },
-          });
-      });
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: title,
+        size: 's',
+        data,
+      }),
+    );
+    if (!confirmed) return;
+    try {
+      await this.areas.delete(area.id);
+      await this.router.navigateByUrl('/areas');
+    } catch (e) {
+      const error = e as Error;
+      console.error('[AreaComponent] Error deleting area:', error);
+      handleErrorToast(error, this.toast);
+    }
   }
 
   openEditArea(): void {

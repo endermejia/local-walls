@@ -1,3 +1,4 @@
+import { firstValueFrom } from 'rxjs';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -676,8 +677,8 @@ export class CragComponent {
     const c = this.cragDetail();
     if (!c || !isPlatformBrowser(this.platformId)) return;
 
-    this.dialogs
-      .open<boolean>(TUI_CONFIRM, {
+    void firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
         label: this.translate.instant('admin.parkings.unlinkTitle'),
         size: 's',
         data: {
@@ -688,14 +689,14 @@ export class CragComponent {
           no: this.translate.instant('actions.cancel'),
           appearance: 'accent',
         } as TuiConfirmData,
-      })
-      .subscribe((confirmed) => {
-        if (confirmed) {
-          this.parkingsService
-            .removeParkingFromCrag(c.id, parking.id)
-            .catch((err) => handleErrorToast(err, this.toast));
-        }
-      });
+      }),
+    ).then((confirmed) => {
+      if (confirmed) {
+        this.parkingsService
+          .removeParkingFromCrag(c.id, parking.id)
+          .catch((err) => handleErrorToast(err, this.toast));
+      }
+    });
   }
 
   viewOnMap(lat: number, lng: number): void {
@@ -722,44 +723,42 @@ export class CragComponent {
     });
   }
 
-  deleteCrag(): void {
+  async deleteCrag(): Promise<void> {
     const c = this.cragDetail();
     if (!c) return;
     if (!isPlatformBrowser(this.platformId)) return;
 
-    this.translate
-      .get(['crags.deleteTitle', 'crags.deleteConfirm'], { name: c.name })
-      .subscribe((t) => {
-        const title = t['crags.deleteTitle'];
-        const message = t['crags.deleteConfirm'];
-        const data: TuiConfirmData = {
-          content: message,
-          yes: this.translate.instant('actions.delete'),
-          no: this.translate.instant('actions.cancel'),
-          appearance: 'accent',
-        };
-        this.dialogs
-          .open<boolean>(TUI_CONFIRM, {
-            label: title,
-            size: 's',
-            data,
-          })
-          .subscribe({
-            next: async (confirmed) => {
-              if (!confirmed) return;
-              try {
-                const ok = await this.cragsService.delete(c.id);
-                if (ok) {
-                  await this.router.navigateByUrl(`/area/${c.area_slug}`);
-                }
-              } catch (e) {
-                const error = e as Error;
-                console.error('[CragComponent] Error deleting crag:', error);
-                handleErrorToast(error, this.toast);
-              }
-            },
-          });
-      });
+    const t = await firstValueFrom(
+      this.translate.get(['crags.deleteTitle', 'crags.deleteConfirm'], {
+        name: c.name,
+      }),
+    );
+    const title = t['crags.deleteTitle'];
+    const message = t['crags.deleteConfirm'];
+    const data: TuiConfirmData = {
+      content: message,
+      yes: this.translate.instant('actions.delete'),
+      no: this.translate.instant('actions.cancel'),
+      appearance: 'accent',
+    };
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: title,
+        size: 's',
+        data,
+      }),
+    );
+    if (!confirmed) return;
+    try {
+      const ok = await this.cragsService.delete(c.id);
+      if (ok) {
+        await this.router.navigateByUrl(`/area/${c.area_slug}`);
+      }
+    } catch (e) {
+      const error = e as Error;
+      console.error('[CragComponent] Error deleting crag:', error);
+      handleErrorToast(error, this.toast);
+    }
   }
 
   openEditCrag(): void {

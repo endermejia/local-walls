@@ -1,3 +1,4 @@
+import { firstValueFrom } from 'rxjs';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { SupabaseService } from './supabase.service';
@@ -32,36 +33,42 @@ export class ToposService {
     initialRouteIds?: number[];
   }): void {
     const isEdit = !!data.topoData;
-    this.dialogs
-      .open<string | null>(new PolymorpheusComponent(TopoFormComponent), {
-        label: this.translate.instant(
-          isEdit ? 'topos.editTitle' : 'topos.newTitle',
-        ),
-        size: 'l',
-        data,
-      })
-      .subscribe((result) => {
-        if (result) {
-          this.global.cragDetailResource.reload();
-          if (this.global.selectedTopoId()) {
-            this.global.topoDetailResource.reload();
-          }
+    void firstValueFrom(
+      this.dialogs.open<string | null>(
+        new PolymorpheusComponent(TopoFormComponent),
+        {
+          label: this.translate.instant(
+            isEdit ? 'topos.editTitle' : 'topos.newTitle',
+          ),
+          size: 'l',
+          data,
+        },
+      ),
+    ).then((result) => {
+      if (result) {
+        this.global.cragDetailResource.reload();
+        if (this.global.selectedTopoId()) {
+          this.global.topoDetailResource.reload();
         }
-      });
+      }
+    });
   }
 
   openTopoRouteForm(data: { topoRouteData: TopoRouteWithRoute }): void {
-    this.dialogs
-      .open<boolean>(new PolymorpheusComponent(TopoRouteFormComponent), {
-        label: this.translate.instant('topos.editRouteTitle'),
-        size: 's',
-        data,
-      })
-      .subscribe((result) => {
-        if (result) {
-          this.global.topoDetailResource.reload();
-        }
-      });
+    void firstValueFrom(
+      this.dialogs.open<boolean>(
+        new PolymorpheusComponent(TopoRouteFormComponent),
+        {
+          label: this.translate.instant('topos.editRouteTitle'),
+          size: 's',
+          data,
+        },
+      ),
+    ).then((result) => {
+      if (result) {
+        this.global.topoDetailResource.reload();
+      }
+    });
   }
 
   async create(
@@ -205,7 +212,6 @@ export class ToposService {
       this.global.cragDetailResource.reload();
     } catch (e) {
       console.error('[ToposService] uploadPhoto error', e);
-      this.toast.error('messages.toasts.error');
       throw e;
     }
   }

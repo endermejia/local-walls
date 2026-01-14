@@ -1,3 +1,4 @@
+import { firstValueFrom } from 'rxjs';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -364,33 +365,33 @@ export class RouteComponent {
   onLogAscent(): void {
     const r = this.route();
     if (!r) return;
-    this.ascentsService
-      .openAscentForm({
+    void firstValueFrom(
+      this.ascentsService.openAscentForm({
         routeId: r.id,
         routeName: r.name,
         grade: r.grade,
-      })
-      .subscribe((success) => {
-        if (success) {
-          this.global.routeDetailResource.reload();
-          this.global.routeAscentsResource.reload();
-        }
-      });
+      }),
+    ).then((success) => {
+      if (success) {
+        this.global.routeDetailResource.reload();
+        this.global.routeAscentsResource.reload();
+      }
+    });
   }
 
   onEditAscent(ascent: RouteAscentWithExtras, routeName?: string): void {
-    this.ascentsService
-      .openAscentForm({
+    void firstValueFrom(
+      this.ascentsService.openAscentForm({
         routeId: ascent.route_id,
         routeName,
         ascentData: ascent,
-      })
-      .subscribe((success) => {
-        if (success) {
-          this.global.routeDetailResource.reload();
-          this.global.routeAscentsResource.reload();
-        }
-      });
+      }),
+    ).then((success) => {
+      if (success) {
+        this.global.routeDetailResource.reload();
+        this.global.routeAscentsResource.reload();
+      }
+    });
   }
 
   openEditRoute(): void {
@@ -414,8 +415,8 @@ export class RouteComponent {
     const r = this.route();
     if (!r || !isPlatformBrowser(this.platformId)) return;
 
-    this.dialogs
-      .open<boolean>(TUI_CONFIRM, {
+    void firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
         label: this.translate.instant('routes.deleteTitle'),
         size: 's',
         data: {
@@ -425,14 +426,14 @@ export class RouteComponent {
           yes: this.translate.instant('actions.delete'),
           no: this.translate.instant('actions.cancel'),
         } as TuiConfirmData,
-      })
-      .subscribe((confirmed) => {
-        if (!confirmed) return;
-        this.routesService
-          .delete(r.id)
-          .then(() => this.location.back())
-          .catch((err) => handleErrorToast(err, this.toast));
-      });
+      }),
+    ).then((confirmed) => {
+      if (!confirmed) return;
+      this.routesService
+        .delete(r.id)
+        .then(() => this.location.back())
+        .catch((err) => handleErrorToast(err, this.toast));
+    });
   }
 
   onAscentDeleted(id: number): void {

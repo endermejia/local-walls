@@ -1,3 +1,4 @@
+import { firstValueFrom } from 'rxjs';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -45,7 +46,6 @@ export interface AscentsTableRow {
   comment: string;
   showComment: boolean;
   details: string[];
-  editDisabled: boolean;
   avatarSrc: string;
   canEdit: boolean;
   liked: boolean;
@@ -102,7 +102,7 @@ export interface AscentsTableRow {
               tuiTr
               [class.cursor-pointer]="item.canEdit"
               [style.background]="
-                showRowColors()
+                showRowColors() && item.canEdit
                   ? ascentsService.ascentInfo()[item.type || 'default']
                       .backgroundSubtle
                   : ''
@@ -343,8 +343,6 @@ export class AscentsTableComponent {
         comment: a.comment ?? '',
         showComment: !a.private_comment,
         details,
-        editDisabled:
-          a.user_id !== this.supabase.authUser()?.id && !this.global.isAdmin(),
         canEdit: a.user_id === this.supabase.authUser()?.id,
         liked: a.route?.liked ?? false,
         avatarSrc: this.supabase.buildAvatarUrl(a.user?.avatar ?? null),
@@ -370,16 +368,16 @@ export class AscentsTableComponent {
   }
 
   protected onEdit(item: AscentsTableRow): void {
-    this.ascentsService
-      .openAscentForm({
+    void firstValueFrom(
+      this.ascentsService.openAscentForm({
         routeId: item._ref.route_id,
         routeName: item.route_name,
         ascentData: item._ref,
-      })
-      .subscribe((success) => {
-        if (success) {
-          this.updated.emit();
-        }
-      });
+      }),
+    ).then((success) => {
+      if (success) {
+        this.updated.emit();
+      }
+    });
   }
 }

@@ -1,3 +1,4 @@
+import { firstValueFrom } from 'rxjs';
 import { inject, Injectable } from '@angular/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { TranslateService } from '@ngx-translate/core';
@@ -28,33 +29,30 @@ export class FiltersService {
       showGradeRange: options.showGradeRange ?? true,
     };
 
-    this.dialogs
-      .open<FilterDialog>(new PolymorpheusComponent(FilterDialogComponent), {
-        label: this.translate.instant('labels.filters'),
-        size: 'l',
-        data,
-      })
-      .subscribe((result) => {
-        if (!result) return;
+    void firstValueFrom(
+      this.dialogs.open<FilterDialog>(
+        new PolymorpheusComponent(FilterDialogComponent),
+        {
+          label: this.translate.instant('labels.filters'),
+          size: 'l',
+          data,
+        },
+      ),
+    ).then((result) => {
+      if (!result) return;
 
-        const [a, b] = result.gradeRange ?? [
-          0,
-          ORDERED_GRADE_VALUES.length - 1,
-        ];
+      const [a, b] = result.gradeRange ?? [0, ORDERED_GRADE_VALUES.length - 1];
 
-        const clamp = (v: number) =>
-          Math.max(0, Math.min(ORDERED_GRADE_VALUES.length - 1, Math.round(v)));
+      const clamp = (v: number) =>
+        Math.max(0, Math.min(ORDERED_GRADE_VALUES.length - 1, Math.round(v)));
 
-        const lo = clamp(a);
-        const hi = clamp(b);
+      const lo = clamp(a);
+      const hi = clamp(b);
 
-        this.global.areaListGradeRange.set([
-          Math.min(lo, hi),
-          Math.max(lo, hi),
-        ]);
+      this.global.areaListGradeRange.set([Math.min(lo, hi), Math.max(lo, hi)]);
 
-        this.global.areaListCategories.set(result.categories ?? []);
-        this.global.areaListShade.set(result.selectedShade ?? []);
-      });
+      this.global.areaListCategories.set(result.categories ?? []);
+      this.global.areaListShade.set(result.selectedShade ?? []);
+    });
   }
 }

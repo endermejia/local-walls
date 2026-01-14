@@ -1,11 +1,11 @@
 import { Injectable, inject } from '@angular/core';
+import { firstValueFrom, Observable } from 'rxjs';
 import { SupabaseService } from './supabase.service';
 import { UserProfileDto } from '../models';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { UserProfileConfigComponent } from '../pages/user-profile-config';
 import { AvatarCropperComponent, AvatarCropperResult } from '../components';
-import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -15,13 +15,13 @@ export class UserProfilesService {
   private dialogs = inject(TuiDialogService);
 
   openUserProfileConfigForm(): void {
-    this.dialogs
-      .open(new PolymorpheusComponent(UserProfileConfigComponent), {
+    void firstValueFrom(
+      this.dialogs.open(new PolymorpheusComponent(UserProfileConfigComponent), {
         appearance: 'fullscreen',
         closable: false,
         dismissible: false,
-      })
-      .subscribe();
+      }),
+    );
   }
 
   openAvatarCropper(

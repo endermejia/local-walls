@@ -1,3 +1,4 @@
+import { firstValueFrom } from 'rxjs';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { SupabaseService } from './supabase.service';
@@ -36,20 +37,23 @@ export class RoutesService {
     };
   }): void {
     const isEdit = !!data.routeData;
-    this.dialogs
-      .open<boolean>(new PolymorpheusComponent(RouteFormComponent), {
-        label: this.translate.instant(
-          isEdit ? 'routes.editTitle' : 'routes.newTitle',
-        ),
-        size: 'l',
-        data,
-      })
-      .subscribe((result) => {
-        if (result) {
-          this.global.cragRoutesResource.reload();
-          this.global.routeDetailResource.reload();
-        }
-      });
+    void firstValueFrom(
+      this.dialogs.open<boolean>(
+        new PolymorpheusComponent(RouteFormComponent),
+        {
+          label: this.translate.instant(
+            isEdit ? 'routes.editTitle' : 'routes.newTitle',
+          ),
+          size: 'l',
+          data,
+        },
+      ),
+    ).then((result) => {
+      if (result) {
+        this.global.cragRoutesResource.reload();
+        this.global.routeDetailResource.reload();
+      }
+    });
   }
 
   async getRouteEquippers(routeId: number): Promise<EquipperDto[]> {

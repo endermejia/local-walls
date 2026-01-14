@@ -7,7 +7,9 @@ import {
   input,
   InputSignal,
   signal,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import {
   FormControl,
@@ -658,6 +660,8 @@ export default class AscentFormComponent {
 
   protected readonly gradeOptions = this.gradeItems.map((i) => i.id);
 
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor() {
     effect(() => {
       const data = this.effectiveAscentData();
@@ -666,9 +670,22 @@ export default class AscentFormComponent {
     });
 
     // Handle tries auto-disable for OS/Flash
-    this.form.get('type')?.valueChanges.subscribe((type) => {
-      this.updateTriesState(type);
-    });
+    this.form
+      .get('type')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((type) => {
+        this.updateTriesState(type);
+      });
+
+    // Handle recommended -> rating
+    this.form
+      .get('recommended')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((recommended) => {
+        if (recommended) {
+          this.form.get('rate')?.setValue(5);
+        }
+      });
 
     // Initial state
     this.updateTriesState(this.form.get('type')?.value);

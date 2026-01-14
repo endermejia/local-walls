@@ -44,7 +44,7 @@ import {
 import { TuiStringMatcher, TuiDay } from '@taiga-ui/cdk';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { map } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import {
   GlobalData,
   SupabaseService,
@@ -731,27 +731,27 @@ export class UserProfileConfigComponent {
       }
 
       // Open the cropper dialog and wait for confirmation
-      this.userProfilesService.openAvatarCropper(file, 512).subscribe({
-        next: async (result) => {
-          if (!result) return; // canceled
-          const croppedFile = new File([result.blob], result.fileName, {
-            type: result.mimeType,
-            lastModified: Date.now(),
-          });
-          this.isUploadingAvatar.set(true);
-          try {
-            const upload = await this.supabase.uploadAvatar(croppedFile);
-            if (!upload) return;
-            this.toast.success('profile.avatar.upload.success');
-            this.supabase.userProfileResource.reload();
-          } catch (e) {
-            console.error('Error uploading avatar:', e);
-            this.toast.error('profile.avatar.upload.error');
-          } finally {
-            this.isUploadingAvatar.set(false);
-          }
-        },
+      const result = await firstValueFrom(
+        this.userProfilesService.openAvatarCropper(file, 512),
+      );
+
+      if (!result) return; // canceled
+      const croppedFile = new File([result.blob], result.fileName, {
+        type: result.mimeType,
+        lastModified: Date.now(),
       });
+      this.isUploadingAvatar.set(true);
+      try {
+        const upload = await this.supabase.uploadAvatar(croppedFile);
+        if (!upload) return;
+        this.toast.success('profile.avatar.upload.success');
+        this.supabase.userProfileResource.reload();
+      } catch (e) {
+        console.error('Error uploading avatar:', e);
+        this.toast.error('profile.avatar.upload.error');
+      } finally {
+        this.isUploadingAvatar.set(false);
+      }
     };
 
     // Trigger file selection

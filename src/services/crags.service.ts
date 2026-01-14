@@ -1,3 +1,4 @@
+import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
 import {
   inject,
@@ -48,27 +49,30 @@ export class CragsService {
   }): void {
     const isEdit = !!data?.cragData;
     const oldSlug = data?.cragData?.slug;
-    this.dialogs
-      .open<string | null>(new PolymorpheusComponent(CragFormComponent), {
-        label: this.translate.instant(
-          isEdit ? 'crags.editTitle' : 'crags.newTitle',
-        ),
-        size: 'l',
-        data,
-      })
-      .subscribe((result) => {
-        if (result) {
-          this.global.cragsListResource.reload();
-          this.global.cragDetailResource.reload();
+    void firstValueFrom(
+      this.dialogs.open<string | null>(
+        new PolymorpheusComponent(CragFormComponent),
+        {
+          label: this.translate.instant(
+            isEdit ? 'crags.editTitle' : 'crags.newTitle',
+          ),
+          size: 'l',
+          data,
+        },
+      ),
+    ).then((result) => {
+      if (result) {
+        this.global.cragsListResource.reload();
+        this.global.cragDetailResource.reload();
 
-          if (isEdit && oldSlug && result !== oldSlug) {
-            const areaSlug = this.global.selectedAreaSlug();
-            if (areaSlug && this.global.selectedCragSlug() === oldSlug) {
-              this.router.navigate(['/area', areaSlug, result]);
-            }
+        if (isEdit && oldSlug && result !== oldSlug) {
+          const areaSlug = this.global.selectedAreaSlug();
+          if (areaSlug && this.global.selectedCragSlug() === oldSlug) {
+            void this.router.navigate(['/area', areaSlug, result]);
           }
         }
-      });
+      }
+    });
   }
 
   async create(

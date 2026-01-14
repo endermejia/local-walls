@@ -6,7 +6,9 @@ import {
   computed,
   inject,
   signal,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormsModule,
   ReactiveFormsModule,
@@ -194,6 +196,8 @@ export class FilterDialogComponent {
     ([, idx]) => ORDERED_GRADE_VALUES[idx] ?? '',
   );
 
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor() {
     const d = this.context.data;
     if (d) {
@@ -226,15 +230,15 @@ export class FilterDialogComponent {
       }
     }
 
-    this.translate.onLangChange.subscribe(() =>
-      this._i18nTick.update((v) => v + 1),
-    );
-    this.translate.onDefaultLangChange.subscribe(() =>
-      this._i18nTick.update((v) => v + 1),
-    );
-    this.translate.onTranslationChange.subscribe(() =>
-      this._i18nTick.update((v) => v + 1),
-    );
+    this.translate.onLangChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this._i18nTick.update((v) => v + 1));
+    this.translate.onDefaultLangChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this._i18nTick.update((v) => v + 1));
+    this.translate.onTranslationChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this._i18nTick.update((v) => v + 1));
 
     const grCtrl = this.form.controls.gradeRange;
     const initial = grCtrl.value;
@@ -246,11 +250,13 @@ export class FilterDialogComponent {
       grCtrl.setValue(sanitizedInitial, { emitEvent: false });
     }
     this.gradeRange.set(sanitizedInitial);
-    grCtrl.valueChanges.subscribe((val) => {
-      if (val) {
-        this.gradeRange.set(this.sanitizeRange(val));
-      }
-    });
+    grCtrl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((val) => {
+        if (val) {
+          this.gradeRange.set(this.sanitizeRange(val));
+        }
+      });
   }
 
   private clamp(v: number): number {

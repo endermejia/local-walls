@@ -1,3 +1,4 @@
+import { firstValueFrom } from 'rxjs';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -279,8 +280,8 @@ export class AdminParkingsListComponent {
   }
 
   protected deleteParking(parking: ParkingDto): void {
-    this.dialogs
-      .open<boolean>(TUI_CONFIRM, {
+    void firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
         label: this.translate.instant('admin.parkings.deleteTitle'),
         size: 's',
         data: {
@@ -291,11 +292,11 @@ export class AdminParkingsListComponent {
           no: this.translate.instant('actions.cancel'),
           appearance: 'negative',
         } as TuiConfirmData,
-      })
-      .subscribe((confirmed) => {
-        if (!confirmed) return;
-        void this.performDelete(parking.id);
-      });
+      }),
+    ).then((confirmed) => {
+      if (!confirmed) return;
+      void this.performDelete(parking.id);
+    });
   }
 
   private async performDelete(id: number): Promise<void> {

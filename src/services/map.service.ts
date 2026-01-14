@@ -1,8 +1,8 @@
+import { firstValueFrom, Observable } from 'rxjs';
 import { inject, Injectable } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { Observable } from 'rxjs';
 import { LocationPickerComponent } from '../components';
 
 @Injectable({ providedIn: 'root' })
@@ -30,14 +30,16 @@ export class MapService {
     latCtrl: FormControl<number | null>,
     lngCtrl: FormControl<number | null>,
   ): void {
-    this.pickLocation(latCtrl.value, lngCtrl.value).subscribe((result) => {
-      if (result) {
-        latCtrl.setValue(result.lat);
-        lngCtrl.setValue(result.lng);
-        latCtrl.markAsDirty();
-        lngCtrl.markAsDirty();
-      }
-    });
+    void firstValueFrom(this.pickLocation(latCtrl.value, lngCtrl.value)).then(
+      (result) => {
+        if (result) {
+          latCtrl.setValue(result.lat);
+          lngCtrl.setValue(result.lng);
+          latCtrl.markAsDirty();
+          lngCtrl.markAsDirty();
+        }
+      },
+    );
   }
 
   parseCoordinates(text: string): { lat: number; lng: number } | null {

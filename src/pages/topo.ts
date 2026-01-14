@@ -1,3 +1,4 @@
+import { firstValueFrom } from 'rxjs';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -576,26 +577,26 @@ export class TopoComponent {
 
   protected onLogAscent(tr: TopoRouteWithRoute): void {
     const route = tr.route;
-    this.ascentsService
-      .openAscentForm({
+    void firstValueFrom(
+      this.ascentsService.openAscentForm({
         routeId: route.id,
         routeName: route.name,
         grade: route.grade,
-      })
-      .subscribe();
+      }),
+    );
   }
 
   protected onEditAscent(
     ascent: RouteAscentWithExtras,
     routeName?: string,
   ): void {
-    this.ascentsService
-      .openAscentForm({
+    void firstValueFrom(
+      this.ascentsService.openAscentForm({
         routeId: ascent.route_id,
         routeName,
         ascentData: ascent,
-      })
-      .subscribe();
+      }),
+    );
   }
 
   protected onToggleProject(item: TopoRouteRow): void {
@@ -642,8 +643,8 @@ export class TopoComponent {
   deleteTopo(topo: TopoDetail): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    this.dialogs
-      .open<boolean>(TUI_CONFIRM, {
+    void firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
         label: this.translate.instant('topos.deleteTitle'),
         size: 's',
         data: {
@@ -653,23 +654,23 @@ export class TopoComponent {
           yes: this.translate.instant('actions.delete'),
           no: this.translate.instant('actions.cancel'),
         } as TuiConfirmData,
-      })
-      .subscribe((confirmed) => {
-        if (!confirmed) return;
-        this.toposService
-          .delete(topo.id)
-          .then(() =>
-            this.router.navigate(['/area', this.areaSlug(), this.cragSlug()]),
-          )
-          .catch((err) => handleErrorToast(err, this.toast));
-      });
+      }),
+    ).then((confirmed) => {
+      if (!confirmed) return;
+      this.toposService
+        .delete(topo.id)
+        .then(() =>
+          this.router.navigate(['/area', this.areaSlug(), this.cragSlug()]),
+        )
+        .catch((err) => handleErrorToast(err, this.toast));
+    });
   }
 
   deleteTopoRoute(topoRoute: TopoRouteWithRoute): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    this.dialogs
-      .open<boolean>(TUI_CONFIRM, {
+    void firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
         label: this.translate.instant('topos.removeRouteTitle'),
         size: 's',
         data: {
@@ -679,14 +680,14 @@ export class TopoComponent {
           yes: this.translate.instant('actions.delete'),
           no: this.translate.instant('actions.cancel'),
         } as TuiConfirmData,
-      })
-      .subscribe((confirmed) => {
-        if (!confirmed) return;
-        this.toposService
-          .removeRoute(topoRoute.topo_id, topoRoute.route_id)
-          .then(() => this.global.topoDetailResource.reload())
-          .catch((err) => handleErrorToast(err, this.toast));
-      });
+      }),
+    ).then((confirmed) => {
+      if (!confirmed) return;
+      this.toposService
+        .removeRoute(topoRoute.topo_id, topoRoute.route_id)
+        .then(() => this.global.topoDetailResource.reload())
+        .catch((err) => handleErrorToast(err, this.toast));
+    });
   }
 
   protected navigateToTopo(topo: TopoListItem): void {

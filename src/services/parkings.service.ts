@@ -1,3 +1,4 @@
+import { firstValueFrom } from 'rxjs';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { SupabaseService } from './supabase.service';
@@ -27,37 +28,45 @@ export class ParkingsService {
     } = {},
   ): void {
     const isEdit = !!data.parkingData;
-    this.dialogs
-      .open<boolean>(new PolymorpheusComponent(ParkingFormComponent), {
-        label: this.translate.instant(isEdit ? 'actions.edit' : 'actions.new'),
-        size: 'l',
-        data,
-      })
-      .subscribe((result) => {
-        if (result) {
-          if (data.cragId) {
-            this.global.cragDetailResource.reload();
-          }
-          this.global.adminParkingsResource.reload();
+    void firstValueFrom(
+      this.dialogs.open<boolean>(
+        new PolymorpheusComponent(ParkingFormComponent),
+        {
+          label: this.translate.instant(
+            isEdit ? 'actions.edit' : 'actions.new',
+          ),
+          size: 'l',
+          data,
+        },
+      ),
+    ).then((result) => {
+      if (result) {
+        if (data.cragId) {
+          this.global.cragDetailResource.reload();
         }
-      });
+        this.global.adminParkingsResource.reload();
+      }
+    });
   }
 
   openLinkParkingForm(data: {
     cragId: number;
     existingParkingIds: number[];
   }): void {
-    this.dialogs
-      .open<boolean>(new PolymorpheusComponent(LinkParkingFormComponent), {
-        label: this.translate.instant('actions.link'),
-        size: 'm',
-        data,
-      })
-      .subscribe((result) => {
-        if (result) {
-          this.global.cragDetailResource.reload();
-        }
-      });
+    void firstValueFrom(
+      this.dialogs.open<boolean>(
+        new PolymorpheusComponent(LinkParkingFormComponent),
+        {
+          label: this.translate.instant('actions.link'),
+          size: 'm',
+          data,
+        },
+      ),
+    ).then((result) => {
+      if (result) {
+        this.global.cragDetailResource.reload();
+      }
+    });
   }
 
   async getAll(): Promise<ParkingDto[]> {

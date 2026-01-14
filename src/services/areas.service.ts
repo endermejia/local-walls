@@ -1,3 +1,4 @@
+import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
 import {
   inject,
@@ -34,8 +35,8 @@ export class AreasService {
   }): void {
     const isEdit = !!data?.areaData;
     const oldSlug = data?.areaData?.slug;
-    this.dialogs
-      .open<string | boolean | null>(
+    void firstValueFrom(
+      this.dialogs.open<string | boolean | null>(
         new PolymorpheusComponent(AreaFormComponent),
         {
           label: this.translate.instant(
@@ -44,26 +45,26 @@ export class AreasService {
           size: 'l',
           data,
         },
-      )
-      .subscribe((result) => {
-        if (result) {
-          this.global.areasListResource.reload();
-          // Also reload global area detail if we are on that page?
-          // Since we might navigate, we rely on router/resource reload.
-          // But if we are on area list, reloads list.
+      ),
+    ).then((result) => {
+      if (result) {
+        this.global.areasListResource.reload();
+        // Also reload global area detail if we are on that page?
+        // Since we might navigate, we rely on router/resource reload.
+        // But if we are on area list, reloads list.
 
-          if (
-            isEdit &&
-            oldSlug &&
-            typeof result === 'string' &&
-            result !== oldSlug
-          ) {
-            if (this.global.selectedAreaSlug() === oldSlug) {
-              this.router.navigate(['/area', result]);
-            }
+        if (
+          isEdit &&
+          oldSlug &&
+          typeof result === 'string' &&
+          result !== oldSlug
+        ) {
+          if (this.global.selectedAreaSlug() === oldSlug) {
+            void this.router.navigate(['/area', result]);
           }
         }
-      });
+      }
+    });
   }
 
   async create(

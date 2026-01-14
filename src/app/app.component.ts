@@ -1,12 +1,12 @@
 import { TuiRoot } from '@taiga-ui/core';
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, effect } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { HeaderComponent } from '../components';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GlobalData, OfflineService } from '../services';
 import { Meta, Title } from '@angular/platform-browser';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map, startWith } from 'rxjs';
+import { map, merge, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -48,13 +48,20 @@ export class AppComponent {
     () => !this.currentUrl().startsWith('/login'),
   );
 
+  private readonly langChange = toSignal(
+    merge(
+      this.translate.onLangChange.pipe(map(() => true)),
+      this.translate.onDefaultLangChange.pipe(map(() => true)),
+    ).pipe(startWith(true)),
+  );
+
   constructor() {
     // SEO: Set title and meta tags (SSR-safe)
-    this.translate.onLangChange.pipe(startWith(null)).subscribe(() => {
-      this.updateSeoTags();
+    effect(() => {
+      if (this.langChange()) {
+        this.updateSeoTags();
+      }
     });
-    // Also try to update when the default lang is loaded or translation changes
-    this.translate.onDefaultLangChange.subscribe(() => this.updateSeoTags());
   }
 
   private updateSeoTags() {

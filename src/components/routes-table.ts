@@ -1,3 +1,4 @@
+import { firstValueFrom } from 'rxjs';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -472,33 +473,33 @@ export class RoutesTableComponent {
   }
 
   protected onLogAscent(item: RouteItem): void {
-    this.ascentsService
-      .openAscentForm({
+    void firstValueFrom(
+      this.ascentsService.openAscentForm({
         routeId: item.id,
         routeName: item.name,
         grade: item.grade,
-      })
-      .subscribe();
+      }),
+    );
   }
 
   protected onEditAscent(
     ascent: RouteAscentWithExtras,
     routeName: string,
   ): void {
-    this.ascentsService
-      .openAscentForm({
+    void firstValueFrom(
+      this.ascentsService.openAscentForm({
         routeId: ascent.route_id,
         routeName: routeName,
         ascentData: ascent,
-      })
-      .subscribe();
+      }),
+    );
   }
 
   protected deleteRoute(route: RouteItem): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    this.dialogs
-      .open<boolean>(TUI_CONFIRM, {
+    void firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
         label: this.translate.instant('routes.deleteTitle'),
         size: 's',
         data: {
@@ -508,13 +509,13 @@ export class RoutesTableComponent {
           yes: this.translate.instant('actions.delete'),
           no: this.translate.instant('actions.cancel'),
         } as TuiConfirmData,
-      })
-      .subscribe((confirmed) => {
-        if (!confirmed) return;
-        this.routesService
-          .delete(route.id)
-          .catch((err) => handleErrorToast(err, this.toast));
-      });
+      }),
+    ).then((confirmed) => {
+      if (!confirmed) return;
+      this.routesService
+        .delete(route.id)
+        .catch((err) => handleErrorToast(err, this.toast));
+    });
   }
 
   protected openEditRoute(route: RouteItem): void {

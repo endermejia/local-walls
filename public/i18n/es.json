@@ -24,8 +24,8 @@
       "remove": "Proyecto"
     },
     "fit": {
-      "cover": "Ajustar al alto",
-      "contain": "Ajustar al ancho"
+      "cover": "Ajustar al ancho",
+      "contain": "Ajustar al alto"
     },
     "fullscreen": "Pantalla completa",
     "link": "Vincular",
@@ -178,7 +178,6 @@
     }
   },
   "messages": {
-    "copied": "Enlace copiado!",
     "offline": "Estás sin conexión. Algunas funciones pueden no estar disponibles.",
     "errorFollow": "Ha ocurrido un error al seguir al usuario",
     "errorUnfollow": "Ha ocurrido un error al dejar de seguir al usuario",

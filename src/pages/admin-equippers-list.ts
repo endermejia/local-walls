@@ -1,3 +1,4 @@
+import { firstValueFrom } from 'rxjs';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -324,8 +325,8 @@ export class AdminEquippersListComponent {
   }
 
   protected deleteEquipper(equipper: EquipperDto): void {
-    this.dialogs
-      .open<boolean>(TUI_CONFIRM, {
+    void firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
         label: this.translate.instant('admin.equippers.deleteTitle'),
         size: 's',
         data: {
@@ -335,11 +336,11 @@ export class AdminEquippersListComponent {
           yes: this.translate.instant('actions.delete'),
           no: this.translate.instant('actions.cancel'),
         } as TuiConfirmData,
-      })
-      .subscribe((confirmed) => {
-        if (!confirmed) return;
-        this.performDelete(equipper.id);
-      });
+      }),
+    ).then((confirmed) => {
+      if (!confirmed) return;
+      this.performDelete(equipper.id);
+    });
   }
 
   private async performDelete(id: number): Promise<void> {

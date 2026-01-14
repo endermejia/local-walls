@@ -1,3 +1,4 @@
+import { firstValueFrom } from 'rxjs';
 import { inject, Injectable } from '@angular/core';
 import { TuiToastOptions, TuiToastService } from '@taiga-ui/kit';
 import { TranslateService } from '@ngx-translate/core';
@@ -14,12 +15,12 @@ export class ToastService {
     options?: Partial<TuiToastOptions<unknown>> | undefined,
   ): void {
     const translatedMessage = this.translate.instant(message);
-    this.toast
-      .open(translatedMessage, {
+    void firstValueFrom(
+      this.toast.open(translatedMessage, {
         autoClose: 1900,
         ...options,
-      })
-      .subscribe();
+      }),
+    );
   }
 
   success(message: string): void {
