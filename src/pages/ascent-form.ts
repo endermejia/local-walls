@@ -165,6 +165,7 @@ import { handleErrorToast } from '../utils';
             }
           </div>
 
+          @let isMobile = global.isMobile();
           <div class="flex items-center gap-2 mt-2">
             <button
               tuiIconButton
@@ -182,16 +183,25 @@ import { handleErrorToast } from '../utils';
               <tui-textfield
                 [tuiTextfieldCleaner]="false"
                 size="m"
-                class="w-32"
+                [class.w-32]="!isMobile"
+                [class.w-full]="isMobile"
               >
+                @if (isMobile) {
+                  <label tuiLabel for="ascentAttempts">{{
+                    'ascent.tries' | translate
+                  }}</label>
+                }
                 <input
+                  id="ascentAttempts"
                   tuiInputNumber
                   [min]="form.get('type')?.value === 'rp' ? 2 : 1"
                   formControlName="attempts"
                 />
-                <span class="tui-textfield__suffix">{{
-                  'ascent.tries' | translate
-                }}</span>
+                @if (!isMobile) {
+                  <span class="tui-textfield__suffix">{{
+                    'ascent.tries' | translate | lowercase
+                  }}</span>
+                }
               </tui-textfield>
             </div>
             <button
@@ -211,7 +221,10 @@ import { handleErrorToast } from '../utils';
 
         <!-- SHARE YOUR THOUGHTS -->
         <section class="grid gap-3">
-          <tui-textfield [tuiTextfieldCleaner]="false">
+          <tui-textfield
+            [tuiTextfieldCleaner]="false"
+            class="max-w-full overflow-hidden"
+          >
             <label tuiLabel for="ascentComment">{{
               'ascent.thoughts' | translate
             }}</label>

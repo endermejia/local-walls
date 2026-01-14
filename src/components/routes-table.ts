@@ -126,13 +126,15 @@ export interface RoutesTableRow {
               tuiTr
               class="cursor-pointer"
               [style.background]="
-                item.climbed
-                  ? ascentsService.ascentInfo()[
-                      item._ref.own_ascent?.type || 'default'
-                    ].backgroundSubtle
-                  : item.project
-                    ? 'var(--tui-status-info-pale)'
-                    : ''
+                showRowColors()
+                  ? item.climbed
+                    ? ascentsService.ascentInfo()[
+                        item._ref.own_ascent?.type || 'default'
+                      ].backgroundSubtle
+                    : item.project
+                      ? 'var(--tui-status-info-pale)'
+                      : ''
+                  : ''
               "
               (click.zoneless)="router.navigate(item.link)"
             >
@@ -376,6 +378,7 @@ export class RoutesTableComponent {
     TuiSortDirection.Desc,
   );
   showAdminActions: InputSignal<boolean> = input(true);
+  showRowColors: InputSignal<boolean> = input(true);
 
   showLocation: InputSignal<boolean> = input(false);
 
@@ -384,7 +387,10 @@ export class RoutesTableComponent {
   toggleProject: OutputEmitterRef<RouteItem> = output<RouteItem>();
 
   protected readonly columns = computed(() => {
-    const cols = ['grade', 'route', 'height', 'rating', 'ascents', 'actions'];
+    let cols = ['grade', 'route', 'height', 'rating', 'ascents', 'actions'];
+    if (this.global.isMobile()) {
+      cols = cols.filter((col) => col !== 'height' && col !== 'rating');
+    }
     if (this.global.isAdmin() && this.showAdminActions()) {
       cols.push('admin_actions');
     }

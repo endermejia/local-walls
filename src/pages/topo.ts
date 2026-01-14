@@ -21,6 +21,7 @@ import {
   TuiLink,
   TuiIcon,
 } from '@taiga-ui/core';
+import { TuiTabs } from '@taiga-ui/kit';
 import { AsyncPipe } from '@angular/common';
 import { TopoImagePipe } from '../pipes/topo-image.pipe';
 import {
@@ -86,9 +87,10 @@ export interface TopoRouteRow {
     TuiSwipe,
     AsyncPipe,
     TopoImagePipe,
+    TuiTabs,
   ],
   template: `
-    <div class="h-full w-full" (tuiSwipe)="onSwipe($event)">
+    <div class="h-full w-full">
       <section class="flex flex-col w-full h-full max-w-5xl mx-auto p-4">
         @if (topo(); as t) {
           <div class="flex flex-wrap items-center justify-between gap-2">
@@ -193,36 +195,18 @@ export interface TopoRouteRow {
           </div>
 
           @if (allTopos().length > 1) {
-            <div class="flex items-center justify-between w-full my-2 gap-4">
-              @if (prevTopo(); as prev) {
-                <button
-                  tuiButton
-                  size="s"
-                  appearance="flat"
-                  iconStart="@tui.chevron-left"
-                  class="max-w-[45%] truncate"
-                  (click.zoneless)="navigateToTopo(prev)"
-                >
-                  <span class="truncate">{{ prev.name }}</span>
+            <tui-tabs [activeItemIndex]="currentTopoIndex()">
+              @for (topoItem of allTopos(); track topoItem.id) {
+                <button tuiTab (click.zoneless)="navigateToTopo(topoItem)">
+                  {{ topoItem.name }}
                 </button>
               }
-              @if (nextTopo(); as next) {
-                <button
-                  tuiButton
-                  size="s"
-                  appearance="flat"
-                  iconEnd="@tui.chevron-right"
-                  class="max-w-[45%] truncate"
-                  (click.zoneless)="navigateToTopo(next)"
-                >
-                  <span class="truncate">{{ next.name }}</span>
-                </button>
-              }
-            </div>
+            </tui-tabs>
           }
 
           <div
-            class="relative w-full aspect-video overflow-hidden rounded shadow-lg bg-black/10"
+            (tuiSwipe)="onSwipe($event)"
+            class="relative w-full aspect-video overflow-hidden"
           >
             <img
               [src]="
@@ -236,7 +220,7 @@ export interface TopoRouteRow {
             />
           </div>
 
-          <div class="mt-6 overflow-auto">
+          <div class="overflow-auto">
             <table
               tuiTable
               class="w-full"
@@ -281,7 +265,18 @@ export interface TopoRouteRow {
               @let sortedData = tableData() | tuiTableSort;
               <tbody tuiTbody [data]="sortedData">
                 @for (item of sortedData; track item._ref.route_id) {
-                  <tr tuiTr>
+                  <tr
+                    tuiTr
+                    [style.background]="
+                      item.climbed
+                        ? ascentsService.ascentInfo()[
+                            item._ref.route.own_ascent?.type || 'default'
+                          ].backgroundSubtle
+                        : item.project
+                          ? 'var(--tui-status-info-pale)'
+                          : ''
+                    "
+                  >
                     @for (col of columns(); track col) {
                       <td
                         *tuiCell="col"

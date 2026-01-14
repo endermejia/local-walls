@@ -102,8 +102,10 @@ export interface AscentsTableRow {
               tuiTr
               [class.cursor-pointer]="item.canEdit"
               [style.background]="
-                ascentsService.ascentInfo()[item.type || 'default']
-                  .backgroundSubtle
+                showRowColors()
+                  ? ascentsService.ascentInfo()[item.type || 'default']
+                      .backgroundSubtle
+                  : ''
               "
               (click.zoneless)="item.canEdit && onEdit(item)"
             >
@@ -272,6 +274,7 @@ export class AscentsTableComponent {
     input.required<RouteAscentWithExtras[]>();
   showUser: InputSignal<boolean> = input(true);
   showRoute: InputSignal<boolean> = input(true);
+  showRowColors: InputSignal<boolean> = input(true);
 
   deleted = output<number>();
   updated = output<void>();

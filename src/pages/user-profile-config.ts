@@ -160,6 +160,23 @@ interface Country {
           </tui-textfield>
         </div>
       </div>
+      <!-- Email (readonly) -->
+      <div>
+        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <label tuiLabel for="emailInput">{{
+            'labels.email' | translate
+          }}</label>
+          <input
+            id="emailInput"
+            tuiTextfield
+            type="email"
+            autocomplete="off"
+            [value]="userEmail()"
+            readonly
+            disabled
+          />
+        </tui-textfield>
+      </div>
       <!-- Bio -->
       <div>
         <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
@@ -168,7 +185,7 @@ interface Country {
             id="bioInput"
             tuiTextarea
             rows="4"
-            maxlength="500"
+            maxlength="150"
             [(ngModel)]="bio"
             (blur)="saveBio()"
           ></textarea>
@@ -407,6 +424,9 @@ export class UserProfileConfigComponent {
     })();
 
   protected readonly profile = computed(() => this.global.userProfile());
+  protected readonly userEmail = computed(
+    () => this.supabase.authUser()?.email ?? '',
+  );
   protected avatarHovered = signal(false);
   protected isUploadingAvatar = signal(false);
   protected avatarSrc = computed<string>(() => {

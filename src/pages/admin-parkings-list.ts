@@ -75,7 +75,7 @@ import { handleErrorToast } from '../utils';
 
         <button
           tuiButton
-          size="m"
+          size="s"
           appearance="textfield"
           iconStart="@tui.plus"
           (click.zoneless)="addNewParking()"

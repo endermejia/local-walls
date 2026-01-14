@@ -151,6 +151,7 @@ import {
             [data]="projects()"
             [showAdminActions]="false"
             [showLocation]="true"
+            [showRowColors]="false"
             (toggleLike)="onToggleLike($event)"
             (toggleProject)="onToggleProject($event)"
           />
@@ -165,6 +166,7 @@ import {
           <app-ascents-table
             [data]="ascents()"
             [showUser]="false"
+            [showRowColors]="false"
             (updated)="ascentsResource.reload()"
             (deleted)="onAscentDeleted($event)"
           />

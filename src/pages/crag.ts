@@ -531,13 +531,18 @@ export class CragComponent {
   readonly hasActiveFilters = computed(() => {
     const [lo, hi] = this.selectedGradeRange();
     const gradeActive = !(lo === 0 && hi === ORDERED_GRADE_VALUES.length - 1);
-    return gradeActive || this.selectedCategories().length > 0;
+    return (
+      gradeActive ||
+      this.selectedCategories().length > 0 ||
+      this.query().trim().length > 0
+    );
   });
 
   readonly filteredRoutes = computed(() => {
     const q = this.query().trim().toLowerCase();
     const [minIdx, maxIdx] = this.selectedGradeRange();
     const allowedLabels = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1);
+    const categories = this.selectedCategories();
     const list = this.global.cragRoutesResource.value() ?? [];
 
     const textMatches = (r: RouteWithExtras) => {
@@ -555,7 +560,20 @@ export class CragComponent {
       return (allowedLabels as readonly string[]).includes(label);
     };
 
-    return list.filter((r) => textMatches(r) && gradeMatches(r));
+    const categoryMatches = (r: RouteWithExtras) => {
+      if (categories.length === 0) return true;
+      const kind = r.climbing_kind;
+      if (!kind) return true;
+      // 0=Sport, 1=Boulder, 2=Multipitch (from FilterDialog)
+      if (categories.includes(0) && kind === 'sport') return true;
+      if (categories.includes(1) && kind === 'boulder') return true;
+      if (categories.includes(2) && kind === 'multipitch') return true;
+      return false;
+    };
+
+    return list.filter(
+      (r) => textMatches(r) && gradeMatches(r) && categoryMatches(r),
+    );
   });
 
   readonly loading = this.cragsService.loading;
@@ -614,7 +632,9 @@ export class CragComponent {
   }
 
   openFilters(): void {
-    this.filtersService.openFilters();
+    this.filtersService.openFilters({
+      showShade: false,
+    });
   }
 
   openCreateRoute(): void {

@@ -253,7 +253,7 @@
     "editTitle": "Editar vía",
     "deleteTitle": "Eliminar vía",
     "deleteConfirm": "¿Seguro que quieres eliminar la vía \"{{name}}\"? Esta acción no se puede deshacer.",
-    "name": "Nombre de la vía",
+    "name": "Nombre",
     "height": "Altura"
   },
   "admin": {
@@ -337,7 +337,7 @@
     "lastSaturday": "Sábado pasado",
     "lastSunday": "Domingo pasado",
     "how": "¿Cómo escalaste?",
-    "tries": "intentos",
+    "tries": "Intentos",
     "secondGo": "Al 2º pegue",
     "repeat": "Repetición",
     "thoughts": "Comparte tus pensamientos",

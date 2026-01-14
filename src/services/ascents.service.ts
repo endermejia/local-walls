@@ -41,12 +41,12 @@ export class AscentsService {
     f: {
       icon: '@tui.zap',
       background: 'var(--tui-status-warning)',
-      backgroundSubtle: 'var(--tui-status-warning-pale)',
+      backgroundSubtle: 'var(--tui-status-positive-pale)',
     },
     rp: {
       icon: '@tui.circle',
       background: 'var(--tui-status-negative)',
-      backgroundSubtle: 'var(--tui-status-negative-pale)',
+      backgroundSubtle: 'var(--tui-status-positive-pale)',
     },
     default: {
       icon: '@tui.circle',

@@ -106,6 +106,7 @@ import {
         <app-ascents-table
           [data]="filteredAscents()"
           [showUser]="true"
+          [showRowColors]="false"
           (updated)="ascentsResource.reload()"
         />
       }
