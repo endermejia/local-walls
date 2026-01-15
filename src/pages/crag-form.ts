@@ -305,10 +305,8 @@ export class CragFormComponent {
       return;
     }
     const name = this.name.value;
-    const slug = slugify(name);
     const base = {
       name,
-      slug,
       latitude: this.latitude.value,
       longitude: this.longitude.value,
       approach: this.approach.value,
@@ -316,7 +314,7 @@ export class CragFormComponent {
       description_en: this.description_en.value,
       warning_es: this.warning_es.value,
       warning_en: this.warning_en.value,
-    } as const;
+    };
 
     try {
       if (this.isEdit()) {
@@ -326,10 +324,16 @@ export class CragFormComponent {
         const area_id =
           this.effectiveAreaId() ?? this.editingAreaId ?? undefined;
         if (!area_id) return; // area required to create
-        await this.crags.create({ area_id, ...base });
+        await this.crags.create({
+          area_id,
+          slug: slugify(name),
+          ...base,
+        });
       }
       if (this._dialogCtx) {
-        this._dialogCtx.completeWith(this.isEdit() ? slug : true);
+        this._dialogCtx.completeWith(
+          this.isEdit() ? (this.effectiveCragData()?.slug ?? true) : true,
+        );
       } else {
         this.goBack();
       }

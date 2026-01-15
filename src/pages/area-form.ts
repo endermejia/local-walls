@@ -133,17 +133,18 @@ export class AreaFormComponent {
       return;
     }
     const name = this.name.value;
-    const slug = slugify(name);
-    const payload = { name, slug } as const;
+    const payload = this.isEdit() ? { name } : { name, slug: slugify(name) };
     try {
       if (this.isEdit()) {
         if (this.editingId == null) return;
         await this.areas.update(this.editingId, payload);
       } else {
-        await this.areas.create(payload);
+        await this.areas.create(payload as { name: string; slug: string });
       }
       if (this._dialogCtx) {
-        this._dialogCtx.completeWith(this.isEdit() ? slug : true);
+        this._dialogCtx.completeWith(
+          this.isEdit() ? (this.effectiveAreaData()?.slug ?? true) : true,
+        );
       } else {
         this.goBack();
       }

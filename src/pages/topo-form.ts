@@ -345,15 +345,18 @@ export class TopoFormComponent {
     const crag_id = this.effectiveCragId();
     if (!crag_id && !this.isEdit()) return;
 
-    const payload = {
+    const payload: any = {
       name: this.name.value,
-      slug: slugify(this.name.value),
       photo: this.photo.value,
       shade_morning: this.shade_morning.value,
       shade_afternoon: this.shade_afternoon.value,
       shade_change_hour: this.shade_change_hour.value,
       crag_id: crag_id!,
     };
+
+    if (!this.isEdit()) {
+      payload.slug = slugify(this.name.value);
+    }
 
     try {
       let topo: TopoDto | null;

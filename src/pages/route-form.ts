@@ -361,7 +361,6 @@ export class RouteFormComponent {
     if (!crag_id && !this.isEdit()) return;
 
     const name = this.name.value;
-    const slug = slugify(name);
     const grade = this.grade.value;
     const climbing_kind = this.climbing_kind.value;
     const height = this.height.value;
@@ -372,7 +371,6 @@ export class RouteFormComponent {
       if (this.isEdit() && this.editingId) {
         result = await this.routes.update(this.editingId, {
           name,
-          slug,
           grade,
           climbing_kind,
           height,
@@ -381,7 +379,7 @@ export class RouteFormComponent {
         result = await this.routes.create({
           crag_id,
           name,
-          slug,
+          slug: slugify(name),
           grade,
           climbing_kind,
           height,

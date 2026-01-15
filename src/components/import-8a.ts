@@ -323,6 +323,7 @@ export class Import8aComponent {
         if (cleanValues.length < headers.length) return null;
 
         const getVal = (name: string) => cleanValues[headers.indexOf(name)];
+        const ratingValue = parseInt(getVal('rating'), 10) || 0;
 
         return {
           name: getVal('name'),
@@ -330,7 +331,7 @@ export class Import8aComponent {
           sector_name: getVal('sector_name'),
           date: getVal('date'),
           type: this.mapType(getVal('type')),
-          rating: parseInt(getVal('rating'), 10) || 0,
+          rating: Math.max(0, Math.min(5, ratingValue)),
           tries: parseInt(getVal('tries'), 10) || 1,
           difficulty: getVal('difficulty') as GradeLabel,
           comment: getVal('comment'),
@@ -394,7 +395,7 @@ export class Import8aComponent {
             comment: a.comment,
             date: a.date.split('T')[0],
             type: a.type,
-            rate: a.rating,
+            rate: a.rating === 0 ? null : a.rating,
             attempts: a.tries,
             recommended: a.recommended,
           });
@@ -425,15 +426,18 @@ export class Import8aComponent {
         );
 
         if (areasToCreate.length > 0) {
+          const areaUpsertData = Array.from(
+            new Map(
+              areasToCreate.map((name) => {
+                const slug = slugify(name);
+                return [slug, { name, slug }];
+              }),
+            ).values(),
+          );
+
           const { data: newAreas } = await this.supabase.client
             .from('areas')
-            .upsert(
-              areasToCreate.map((name) => ({
-                name,
-                slug: slugify(name),
-              })),
-              { onConflict: 'slug' },
-            )
+            .upsert(areaUpsertData, { onConflict: 'slug' })
             .select('id, name');
 
           if (newAreas) {
@@ -472,32 +476,20 @@ export class Import8aComponent {
           }
         }
 
-        // Eliminar duplicados
-        const uniqueCrags = Array.from(
+        // Eliminar duplicados por slug para evitar "ON CONFLICT DO UPDATE command cannot affect row a second time"
+        const cragsUpsertData = Array.from(
           new Map(
-            cragsToCreate.map((c) => [`${c.name}|${c.area_id}`, c]),
+            cragsToCreate.map((c) => {
+              const slug = slugify(c.name);
+              return [slug, { name: c.name, slug, area_id: c.area_id }];
+            }),
           ).values(),
-        ).filter(
-          (c, index, self) =>
-            index ===
-            self.findIndex(
-              (t) =>
-                t.name.toLowerCase() === c.name.toLowerCase() &&
-                t.area_id === c.area_id,
-            ),
         );
 
-        if (uniqueCrags.length > 0) {
+        if (cragsUpsertData.length > 0) {
           const { data: newCrags } = await this.supabase.client
             .from('crags')
-            .upsert(
-              uniqueCrags.map((c) => ({
-                name: c.name,
-                slug: slugify(c.name),
-                area_id: c.area_id,
-              })),
-              { onConflict: 'slug' },
-            )
+            .upsert(cragsUpsertData, { onConflict: 'slug' })
             .select('id, name, area_id');
 
           if (newCrags) {
@@ -533,30 +525,29 @@ export class Import8aComponent {
           }
         }
 
-        // Eliminar duplicados de routesToCreate por name y crag_id
-        const uniqueRoutesToCreate = routesToCreate.filter(
-          (r, index, self) =>
-            index ===
-            self.findIndex(
-              (t) =>
-                t.name.toLowerCase() === r.name.toLowerCase() &&
-                t.crag_id === r.crag_id,
-            ),
+        // Eliminar duplicados por slug para evitar "ON CONFLICT DO UPDATE command cannot affect row a second time"
+        const routesUpsertData = Array.from(
+          new Map(
+            routesToCreate.map((r) => {
+              const slug = slugify(r.name);
+              return [
+                slug,
+                {
+                  name: r.name,
+                  slug,
+                  crag_id: r.crag_id,
+                  climbing_kind: 'sport' as const,
+                  grade: r.grade,
+                },
+              ];
+            }),
+          ).values(),
         );
 
-        if (uniqueRoutesToCreate.length > 0) {
+        if (routesUpsertData.length > 0) {
           const { data: newRoutes } = await this.supabase.client
             .from('routes')
-            .upsert(
-              uniqueRoutesToCreate.map((r) => ({
-                name: r.name,
-                slug: slugify(r.name),
-                crag_id: r.crag_id,
-                climbing_kind: 'sport' as const,
-                grade: r.grade,
-              })),
-              { onConflict: 'slug' },
-            )
+            .upsert(routesUpsertData, { onConflict: 'slug' })
             .select('id, name, crag_id');
 
           // Actualizar routeMap con las nuevas routes
@@ -594,7 +585,7 @@ export class Import8aComponent {
                 comment: a.comment,
                 date: a.date.split('T')[0],
                 type: a.type,
-                rate: a.rating,
+                rate: a.rating === 0 ? null : a.rating,
                 attempts: a.tries,
                 recommended: a.recommended,
               });
