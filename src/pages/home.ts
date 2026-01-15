@@ -105,8 +105,11 @@ import {
       } @else {
         <app-ascents-table
           [data]="filteredAscents()"
+          [total]="filteredAscents().length"
+          [size]="50"
           [showUser]="true"
           [showRowColors]="false"
+          (paginationChange)="global.onAscentsPagination($event)"
           (updated)="ascentsResource.reload()"
         />
       }
@@ -124,6 +127,10 @@ export class HomeComponent {
   readonly query: WritableSignal<string> = signal('');
   readonly selectedGradeRange = this.global.areaListGradeRange;
   readonly selectedCategories = this.global.areaListCategories;
+
+  constructor() {
+    this.global.resetDataByPage('home');
+  }
 
   readonly hasActiveFilters = computed(() => {
     const [lo, hi] = this.selectedGradeRange();

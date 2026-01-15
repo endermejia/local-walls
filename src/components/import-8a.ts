@@ -81,15 +81,6 @@ import { slugify } from '../utils';
           @if (index === 0) {
             <div class="grid gap-4">
               <div tuiCardLarge tuiAppearance="floating">
-                <header tuiHeader>
-                  <h2 tuiTitle>
-                    {{ 'import8a.searchTitle' | translate }}
-                    <span tuiSubtitle>{{
-                      'import8a.searchSubtitle' | translate
-                    }}</span>
-                  </h2>
-                </header>
-
                 <tui-notification appearance="info" class="mt-4">
                   <div
                     [innerHTML]="'import8a.csvInstructions' | translate"
@@ -325,10 +316,18 @@ export class Import8aComponent {
         const getVal = (name: string) => cleanValues[headers.indexOf(name)];
         const ratingValue = parseInt(getVal('rating'), 10) || 0;
 
+        const locationName = getVal('location_name');
+        let sectorName = getVal('sector_name');
+
+        // Si sector_name es 'Unknown Sector', concatenar con location_name
+        if (sectorName === 'Unknown Sector') {
+          sectorName = `Unknown Sector ${locationName}`;
+        }
+
         return {
           name: getVal('name'),
-          location_name: getVal('location_name'),
-          sector_name: getVal('sector_name'),
+          location_name: locationName,
+          sector_name: sectorName,
           date: getVal('date'),
           type: this.mapType(getVal('type')),
           rating: Math.max(0, Math.min(5, ratingValue)),

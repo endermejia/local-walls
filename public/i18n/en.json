@@ -398,7 +398,6 @@
       "confirmAscents": "Confirm ascents"
     },
     "searchTitle": "Import from CSV",
-    "searchSubtitle": "Upload the CSV file exported from 8a.nu",
     "csvInstructions": "Go to your profile at <a href=\"https://www.8a.nu\" target=\"_blank\">8a.nu</a>, click on <strong>Edit profile</strong> and download the <strong>CSV</strong> file with your ascents.",
     "dropCSV": "Drop the CSV file here or click to select it",
     "minChars": "Enter at least 2 characters",

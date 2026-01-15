@@ -20,6 +20,9 @@ import {
   TuiTableSortPipe,
   TuiSortDirection,
   TuiTableSortChange,
+  TuiTablePagination,
+  tuiTablePaginationOptionsProvider,
+  type TuiTablePaginationEvent,
 } from '@taiga-ui/addon-table';
 import { TuiCell } from '@taiga-ui/layout';
 import { TuiIcon, TuiHint, TuiFallbackSrcPipe, TuiLink } from '@taiga-ui/core';
@@ -73,6 +76,7 @@ export interface AscentsTableRow {
     FormsModule,
     TuiHint,
     TuiTableSortPipe,
+    TuiTablePagination,
     TuiFallbackSrcPipe,
     AsyncPipe,
     TuiIcon,
@@ -270,8 +274,28 @@ export interface AscentsTableRow {
         </tbody>
       </table>
     </div>
+    @if (total() > 0) {
+      <tui-table-pagination
+        [total]="total()"
+        [page]="page()"
+        [size]="size()"
+        (paginationChange)="paginationChange.emit($event)"
+      />
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    tuiTablePaginationOptionsProvider({
+      sizeOptionContent: ({ $implicit, total }) => {
+        switch ($implicit) {
+          case total:
+            return 'Show all rows';
+          default:
+            return $implicit;
+        }
+      },
+    }),
+  ],
 })
 export class AscentsTableComponent {
   private readonly supabase = inject(SupabaseService);
@@ -280,6 +304,12 @@ export class AscentsTableComponent {
 
   data: InputSignal<RouteAscentWithExtras[]> =
     input.required<RouteAscentWithExtras[]>();
+
+  total: InputSignal<number> = input<number>(0);
+  page: InputSignal<number> = input<number>(0);
+  size: InputSignal<number> = input<number>(10);
+
+  paginationChange = output<TuiTablePaginationEvent>();
   direction: TuiSortDirection = TuiSortDirection.Desc;
   @Input() set initialDirection(v: TuiSortDirection) {
     this.direction = v;

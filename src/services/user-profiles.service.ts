@@ -30,7 +30,7 @@ export class UserProfilesService {
   openImport8aDialog(): void {
     void firstValueFrom(
       this.dialogs.open(new PolymorpheusComponent(Import8aComponent), {
-        label: this.translate.instant('import8a.button'),
+        label: this.translate.instant('import8a.searchTitle'),
         size: 'l',
         dismissible: true,
         closable: true,

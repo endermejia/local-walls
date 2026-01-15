@@ -35,6 +35,7 @@ import {
   MapResponse,
   OptionsData,
   ORDERED_GRADE_VALUES,
+  PaginatedAscents,
   ParkingDto,
   RouteAscentWithExtras,
   RouteWithExtras,
@@ -46,6 +47,7 @@ import {
   TopoRouteWithRoute,
   VERTICAL_LIFE_GRADES,
 } from '../models';
+import { TuiTablePaginationEvent } from '@taiga-ui/addon-table';
 
 @Injectable({
   providedIn: 'root',
@@ -865,13 +867,31 @@ export class GlobalData {
     },
   });
 
+  // ---- Pagination for Ascents Table ----
+  readonly ascentsPage = signal(0);
+  readonly ascentsSize = signal(10);
+
+  onAscentsPagination({ page, size }: TuiTablePaginationEvent): void {
+    this.ascentsPage.set(page);
+    this.ascentsSize.set(size);
+  }
+
   readonly userAscentsResource = resource({
-    params: () => this.profileUserId(),
-    loader: async ({ params: userId }): Promise<RouteAscentWithExtras[]> => {
-      if (!userId || !isPlatformBrowser(this.platformId)) return [];
+    params: () => ({
+      userId: this.profileUserId(),
+      page: this.ascentsPage(),
+      size: this.ascentsSize(),
+    }),
+    loader: async ({ params }): Promise<PaginatedAscents> => {
+      const { userId, page, size } = params;
+      if (!userId || !isPlatformBrowser(this.platformId))
+        return { items: [], total: 0 };
       try {
         await this.supabase.whenReady();
-        const { data, error } = await this.supabase.client
+        const from = page * size;
+        const to = from + size - 1;
+
+        const { data, error, count } = await this.supabase.client
           .from('route_ascents')
           .select(
             `
@@ -887,16 +907,18 @@ export class GlobalData {
               )
             )
           `,
+            { count: 'exact' },
           )
           .eq('user_id', userId)
-          .order('date', { ascending: false });
+          .order('date', { ascending: false })
+          .range(from, to);
 
         if (error) {
           console.error('[GlobalData] userAscentsResource error', error);
-          return [];
+          return { items: [], total: 0 };
         }
 
-        return data.map((a) => {
+        const items = data.map((a) => {
           const { route, ...ascentRest } = a;
           let mappedRoute: RouteWithExtras | undefined = undefined;
 
@@ -918,9 +940,11 @@ export class GlobalData {
             route: mappedRoute,
           } as RouteAscentWithExtras;
         });
+
+        return { items, total: count ?? 0 };
       } catch (e) {
         console.error('[GlobalData] userAscentsResource exception', e);
-        return [];
+        return { items: [], total: 0 };
       }
     },
   });
@@ -997,29 +1021,41 @@ export class GlobalData {
   });
 
   readonly routeAscentsResource = resource({
-    params: () => this.routeDetailResource.value()?.id,
-    loader: async ({ params: routeId }): Promise<RouteAscentWithExtras[]> => {
-      if (!routeId) return [];
-      if (!isPlatformBrowser(this.platformId)) return [];
+    params: () => ({
+      routeId: this.routeDetailResource.value()?.id,
+      page: this.ascentsPage(),
+      size: this.ascentsSize(),
+    }),
+    loader: async ({ params }): Promise<PaginatedAscents> => {
+      const { routeId, page, size } = params;
+      if (!routeId) return { items: [], total: 0 };
+      if (!isPlatformBrowser(this.platformId)) return { items: [], total: 0 };
       try {
         await this.supabase.whenReady();
-        // 1. Fetch ascents for the route
-        const { data: ascents, error: ascentsError } =
-          await this.supabase.client
-            .from('route_ascents')
-            .select('*')
-            .eq('route_id', routeId)
-            .order('date', { ascending: false });
+        const from = page * size;
+        const to = from + size - 1;
+
+        // 1. Fetch ascents for the route with count
+        const {
+          data: ascents,
+          error: ascentsError,
+          count,
+        } = await this.supabase.client
+          .from('route_ascents')
+          .select('*', { count: 'exact' })
+          .eq('route_id', routeId)
+          .order('date', { ascending: false })
+          .range(from, to);
 
         if (ascentsError) {
           console.error(
             '[GlobalData] routeAscentsResource error',
             ascentsError,
           );
-          return [];
+          return { items: [], total: 0 };
         }
 
-        if (!ascents || ascents.length === 0) return [];
+        if (!ascents || ascents.length === 0) return { items: [], total: 0 };
 
         // 2. Fetch unique user profiles for these ascents
         const userIds = [...new Set(ascents.map((a) => a.user_id))];
@@ -1035,13 +1071,16 @@ export class GlobalData {
             profilesError,
           );
           // Return ascents without user info if profiles fail
-          return ascents;
+          return {
+            items: ascents as RouteAscentWithExtras[],
+            total: count ?? 0,
+          };
         }
 
         // 3. Map profiles back to ascents
         const profileMap = new Map(profiles?.map((p) => [p.id, p]));
         const currentRoute = this.routeDetailResource.value();
-        return ascents.map(
+        const items = ascents.map(
           (a) =>
             ({
               ...a,
@@ -1049,9 +1088,11 @@ export class GlobalData {
               route: currentRoute ?? undefined,
             }) as RouteAscentWithExtras,
         );
+
+        return { items, total: count ?? 0 };
       } catch (e) {
         console.error('[GlobalData] routeAscentsResource exception', e);
-        return [];
+        return { items: [], total: 0 };
       }
     },
   });
@@ -1139,6 +1180,8 @@ export class GlobalData {
   resetDataByPage(
     page: 'explore' | 'area-list' | 'area' | 'crag' | 'topo' | 'route' | 'home',
   ): void {
+    this.ascentsPage.set(0);
+    this.ascentsSize.set(10);
     switch (page) {
       case 'explore': {
         this.selectedAreaSlug.set(null);

@@ -62,7 +62,7 @@ import {
                 {{ name }}
               </span>
             </div>
-            @if (canEdit()) {
+            @if (isOwnProfile()) {
               <button
                 iconStart="@tui.bolt"
                 size="m"
@@ -76,7 +76,7 @@ import {
               >
                 {{ 'actions.edit' | translate }}
               </button>
-            } @else if (supabase.authUserId()) {
+            } @else if (profile()) {
               @let following = isFollowing();
               <button
                 [iconStart]="following ? '@tui.user-minus' : '@tui.user-plus'"
@@ -165,6 +165,10 @@ import {
           </h3>
           <app-ascents-table
             [data]="ascents()"
+            [total]="totalAscents()"
+            [page]="global.ascentsPage()"
+            [size]="global.ascentsSize()"
+            (paginationChange)="global.onAscentsPagination($event)"
             [showUser]="false"
             [showRowColors]="false"
             (updated)="ascentsResource.reload()"
@@ -283,9 +287,7 @@ export class UserProfileComponent {
       return this.followsService.isFollowing(params.followedUserId);
     },
   });
-
   readonly isFollowing = computed(() => !!this.isFollowingResource.value());
-  readonly canEdit = computed(() => this.isOwnProfile());
 
   readonly profileAvatarSrc = computed(() =>
     this.supabase.buildAvatarUrl(this.profile()?.avatar),
@@ -307,7 +309,11 @@ export class UserProfileComponent {
 
   readonly ascentsResource = this.global.userAscentsResource;
 
-  readonly ascents = computed(() => this.ascentsResource.value() ?? []);
+  readonly ascents = computed(() => this.ascentsResource.value()?.items ?? []);
+
+  readonly totalAscents = computed(
+    () => this.ascentsResource.value()?.total ?? 0,
+  );
 
   readonly projects = computed(() => this.projectsResource.value() ?? []);
 
@@ -336,9 +342,15 @@ export class UserProfileComponent {
   }
 
   onAscentDeleted(id: number): void {
-    this.ascentsResource.update((curr) =>
-      (curr ?? []).filter((a) => a.id !== id),
-    );
+    this.ascentsResource.update((curr) => {
+      if (!curr) return { items: [], total: 0 };
+      const newItems = curr.items.filter((a) => a.id !== id);
+      const deletedCount = curr.items.length - newItems.length;
+      return {
+        items: newItems,
+        total: Math.max(0, curr.total - deletedCount),
+      };
+    });
     this.projectsResource.reload();
   }
 

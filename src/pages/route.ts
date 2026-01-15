@@ -263,6 +263,10 @@ import { handleErrorToast } from '../utils';
           <div>
             <app-ascents-table
               [data]="ascents()"
+              [total]="totalAscents()"
+              [page]="global.ascentsPage()"
+              [size]="global.ascentsSize()"
+              (paginationChange)="global.onAscentsPagination($event)"
               [showRoute]="false"
               (updated)="global.routeAscentsResource.reload()"
               (deleted)="onAscentDeleted($event)"
@@ -313,7 +317,11 @@ export class RouteComponent {
   );
 
   protected readonly ascents = computed(
-    () => this.global.routeAscentsResource.value() ?? [],
+    () => this.global.routeAscentsResource.value()?.items ?? [],
+  );
+
+  protected readonly totalAscents = computed(
+    () => this.global.routeAscentsResource.value()?.total ?? 0,
   );
 
   protected readonly equippersNames = computed(() =>
@@ -437,9 +445,14 @@ export class RouteComponent {
   }
 
   onAscentDeleted(id: number): void {
-    this.global.routeAscentsResource.update((curr) =>
-      (curr ?? []).filter((a) => a.id !== id),
-    );
-    this.global.routeDetailResource.reload();
+    this.global.routeAscentsResource.update((curr) => {
+      if (!curr) return { items: [], total: 0 };
+      const newItems = curr.items.filter((a) => a.id !== id);
+      const deletedCount = curr.items.length - newItems.length;
+      return {
+        items: newItems,
+        total: Math.max(0, curr.total - deletedCount),
+      };
+    });
   }
 }
