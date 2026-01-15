@@ -397,7 +397,7 @@ export class LoginComponent {
         return;
       }
       this.error.set(null);
-      void this.router.navigateByUrl('/explore');
+      void this.router.navigateByUrl('/home');
     } catch {
       this.error.set('errors.unexpected');
     } finally {
@@ -452,7 +452,7 @@ export class LoginComponent {
       await this.supabase.whenReady();
       let redirectTo: string | undefined = undefined;
       if (isPlatformBrowser(this.platformId) && typeof window !== 'undefined') {
-        // Important: we redirect to login with recovery flag to avoid falling into '/explore'
+        // Important: we redirect to /login with recovery_flag to avoid falling into '/home'
         // by the root redirect in both SSR and client router.
         // Supabase will add its hash with tokens and 'type=recovery', which this component detects.
         redirectTo = `${window.location.origin}/login?type=recovery`;

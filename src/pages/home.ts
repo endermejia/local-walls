@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   resource,
   signal,
@@ -105,11 +106,12 @@ import {
       } @else {
         <app-ascents-table
           [data]="filteredAscents()"
-          [total]="filteredAscents().length"
-          [size]="50"
+          [total]="ascentsResource.value()?.total ?? 0"
+          [page]="page()"
+          [size]="size()"
           [showUser]="true"
           [showRowColors]="false"
-          (paginationChange)="global.onAscentsPagination($event)"
+          (paginationChange)="onPagination($event)"
           (updated)="ascentsResource.reload()"
         />
       }
@@ -128,8 +130,16 @@ export class HomeComponent {
   readonly selectedGradeRange = this.global.areaListGradeRange;
   readonly selectedCategories = this.global.areaListCategories;
 
+  readonly page = signal(0);
+  readonly size = signal(50);
+
   constructor() {
     this.global.resetDataByPage('home');
+    effect(() => {
+      this.selectedGradeRange();
+      this.selectedCategories();
+      this.page.set(0);
+    });
   }
 
   readonly hasActiveFilters = computed(() => {
@@ -139,11 +149,19 @@ export class HomeComponent {
   });
 
   readonly ascentsResource = resource({
-    loader: async () => {
-      if (!isPlatformBrowser(this.platformId)) return [];
+    params: () => ({
+      page: this.page(),
+      size: this.size(),
+      query: this.query(),
+      grades: this.selectedGradeRange(),
+      categories: this.selectedCategories(),
+    }),
+    loader: async ({ params }) => {
+      const { page, size, query, grades, categories } = params;
+      if (!isPlatformBrowser(this.platformId)) return { items: [], total: 0 };
       await this.supabase.whenReady();
       const userId = this.supabase.authUserId();
-      if (!userId) return [];
+      if (!userId) return { items: [], total: 0 };
 
       // 1. Get the following user IDs
       const { data: follows, error: followsError } = await this.supabase.client
@@ -153,31 +171,22 @@ export class HomeComponent {
 
       if (followsError) {
         console.error('[HomeComponent] Error fetching follows:', followsError);
-        return [];
+        return { items: [], total: 0 };
       }
 
       const followedIds = follows.map((f) => f.followed_user_id);
-      if (followedIds.length === 0) return [];
+      if (followedIds.length === 0) return { items: [], total: 0 };
 
-      // 2. Get ascent from those users
-      type AscentQueryResponse = RouteAscentDto & {
-        route:
-          | (RouteDto & {
-              crag: {
-                slug: string;
-                name: string;
-                area: { slug: string; name: string } | null;
-              } | null;
-            })
-          | null;
-      };
+      // 2. Prepare filters for the query
+      const from = page * size;
+      const to = from + size - 1;
 
-      const { data: ascents, error: ascentsError } = await this.supabase.client
+      let dbQuery = this.supabase.client
         .from('route_ascents')
         .select(
           `
           *,
-          route:routes(
+          route:routes!inner(
             *,
             crag:crags(
               slug,
@@ -186,18 +195,53 @@ export class HomeComponent {
             )
           )
         `,
+          { count: 'exact' },
         )
-        .in('user_id', followedIds)
+        .in('user_id', followedIds);
+
+      // Text search (very basic, better than nothing)
+      if (query) {
+        // We use or with ILIKE on route name or user name (if we had user name here)
+        // Since we don't have user name in route_ascents, we filter by route name
+        dbQuery = dbQuery.ilike('route.name', `%${query}%`);
+      }
+
+      // Grade range
+      const [minIdx, maxIdx] = grades;
+      const allGradeIds = Object.keys(VERTICAL_LIFE_TO_LABEL)
+        .map(Number)
+        .sort((a, b) => a - b);
+      const allowedGrades = allGradeIds.slice(minIdx, maxIdx + 1);
+      dbQuery = dbQuery.in('route.grade', allowedGrades);
+
+      // Categories
+      if (categories.length > 0) {
+        const idxToKind: Record<number, string> = {
+          0: ClimbingKinds.SPORT,
+          1: ClimbingKinds.BOULDER,
+          2: ClimbingKinds.MULTIPITCH,
+        };
+        const allowedKinds = categories
+          .map((i) => idxToKind[i])
+          .filter(Boolean);
+        dbQuery = dbQuery.in('route.climbing_kind', allowedKinds);
+      }
+
+      const {
+        data: ascents,
+        error: ascentsError,
+        count,
+      } = await dbQuery
         .order('date', { ascending: false })
-        .limit(50)
-        .overrideTypes<AscentQueryResponse[]>();
+        .range(from, to)
+        .overrideTypes<any[]>();
 
       if (ascentsError) {
         console.error('[HomeComponent] Error fetching ascents:', ascentsError);
-        return [];
+        return { items: [], total: 0 };
       }
 
-      if (!ascents || ascents.length === 0) return [];
+      if (!ascents || ascents.length === 0) return { items: [], total: 0 };
 
       // 3. Fetch user profiles for these ascents
       const userIds = [...new Set(ascents.map((a) => a.user_id))];
@@ -212,13 +256,12 @@ export class HomeComponent {
           '[HomeComponent] Error fetching user profiles:',
           profilesError,
         );
-        // Continue without user info if profiles fail
       }
 
       // 4. Map profiles to ascents
       const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
 
-      return ascents.map((a) => {
+      const items = ascents.map((a) => {
         const { route, ...ascentRest } = a;
         let mappedRoute: RouteAscentWithExtras['route'] = undefined;
         if (route) {
@@ -239,57 +282,23 @@ export class HomeComponent {
           route: mappedRoute,
         };
       });
+
+      return { items, total: count ?? 0 };
     },
   });
 
   readonly filteredAscents = computed(() => {
-    const list = this.ascentsResource.value() || [];
-    const q = this.query().toLowerCase().trim();
-    const [minIdx, maxIdx] = this.selectedGradeRange();
-
-    // Convert indices to actual Grade IDs (numbers) because route.grade is a number
-    // ORDERED_GRADE_VALUES contains labels, but we need the keys (IDs).
-    // The keys are numerical IDs sorted ascending.
-    const allGradeIds = Object.keys(VERTICAL_LIFE_TO_LABEL)
-      .map(Number)
-      .sort((a, b) => a - b);
-
-    const allowedGrades = allGradeIds.slice(minIdx, maxIdx + 1);
-    const categories = this.selectedCategories();
-
-    return list.filter((a) => {
-      // Search by user name or route name
-      const userMatch = !q || a.user?.name?.toLowerCase().includes(q);
-      const routeMatch = !q || a.route?.name?.toLowerCase().includes(q);
-      const textMatch = userMatch || routeMatch;
-
-      // Grade filter
-      const grade = a.route?.grade;
-      const gradeMatch =
-        grade === undefined || grade === null || allowedGrades.includes(grade);
-
-      // Category filter
-      let kindMatch = true;
-      if (categories.length > 0) {
-        const idxToKind: Record<number, string> = {
-          0: ClimbingKinds.SPORT,
-          1: ClimbingKinds.BOULDER,
-          2: ClimbingKinds.MULTIPITCH,
-        };
-        const allowedKinds = categories
-          .map((i) => idxToKind[i])
-          .filter(Boolean);
-        kindMatch =
-          !!a.route?.climbing_kind &&
-          allowedKinds.includes(a.route.climbing_kind);
-      }
-
-      return textMatch && gradeMatch && kindMatch;
-    });
+    return this.ascentsResource.value()?.items || [];
   });
 
   onQuery(v: string) {
     this.query.set(v);
+    this.page.set(0);
+  }
+
+  onPagination({ page, size }: any) {
+    this.page.set(page);
+    this.size.set(size);
   }
 
   openFilters(): void {
