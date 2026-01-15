@@ -29,6 +29,7 @@ import {
   TuiTable,
   TuiSortDirection,
   TuiTableSortPipe,
+  TuiTableSortChange,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort, TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
@@ -227,7 +228,8 @@ export interface TopoRouteRow {
               class="w-full"
               [columns]="columns()"
               [direction]="direction()"
-              [sorter]="tableSorter"
+              [sorter]="sorter()"
+              (sortChange)="onSortChange($event)"
             >
               <thead>
                 <tr tuiThGroup>
@@ -521,7 +523,6 @@ export class TopoComponent {
     }
     return base;
   });
-  protected readonly direction = signal<TuiSortDirection>(TuiSortDirection.Asc);
 
   protected readonly tableData: Signal<TopoRouteRow[]> = computed(() => {
     const topo = this.topo();
@@ -552,13 +553,19 @@ export class TopoComponent {
     height: (a, b) => tuiDefaultSort(a.height ?? 0, b.height ?? 0),
   };
 
-  protected get tableSorter(): TuiComparator<TopoRouteRow> {
-    return this.sorters['index'];
-  }
+  protected readonly direction = signal<TuiSortDirection>(TuiSortDirection.Asc);
+  protected readonly sorter = signal<TuiComparator<TopoRouteRow>>(
+    this.sorters['index'],
+  );
 
   protected getSorter(col: string): TuiComparator<TopoRouteRow> | null {
     if (col === 'actions' || col === 'admin_actions') return null;
     return this.sorters[col] ?? null;
+  }
+
+  protected onSortChange(sort: TuiTableSortChange<TopoRouteRow>): void {
+    this.direction.set(sort.sortDirection);
+    this.sorter.set(sort.sortComparator || this.sorters['index']);
   }
 
   constructor() {

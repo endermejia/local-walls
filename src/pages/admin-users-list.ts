@@ -15,6 +15,7 @@ import {
   TuiTable,
   TuiSortDirection,
   TuiTableSortPipe,
+  TuiTableSortChange,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
@@ -132,6 +133,7 @@ interface UserWithRole {
           [columns]="columns"
           [direction]="direction()"
           [sorter]="sorter()"
+          (sortChange)="onSortChange($event)"
         >
           <thead tuiThead>
             <tr tuiThGroup>
@@ -334,7 +336,7 @@ export class AdminUsersListComponent {
   protected readonly users: WritableSignal<UserWithRole[]> = signal([]);
 
   protected readonly skeletons = Array(25).fill(0);
-  protected readonly direction = signal(TuiSortDirection.Asc);
+  protected readonly direction = signal<TuiSortDirection>(TuiSortDirection.Asc);
   protected readonly sorter = signal<TuiComparator<UserWithRole>>((a, b) =>
     tuiDefaultSort(a.name || '', b.name || ''),
   );
@@ -344,6 +346,11 @@ export class AdminUsersListComponent {
 
   protected roleSorter: TuiComparator<UserWithRole> = (a, b) =>
     tuiDefaultSort(a.role || '', b.role || '');
+
+  protected onSortChange(sort: TuiTableSortChange<UserWithRole>): void {
+    this.direction.set(sort.sortDirection);
+    this.sorter.set(sort.sortComparator || this.userSorter);
+  }
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {

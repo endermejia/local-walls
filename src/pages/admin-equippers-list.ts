@@ -14,6 +14,7 @@ import {
   TuiTable,
   TuiSortDirection,
   TuiTableSortPipe,
+  TuiTableSortChange,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
@@ -110,10 +111,7 @@ import { handleErrorToast } from '../utils';
           [columns]="columns"
           [direction]="direction()"
           [sorter]="sorter()"
-          (sortChange)="
-            direction.set($event.sortDirection);
-            sorter.set($event.sortComparator || defaultSorter)
-          "
+          (sortChange)="onSortChange($event)"
         >
           <thead tuiThead>
             <tr tuiThGroup>
@@ -250,6 +248,11 @@ export class AdminEquippersListComponent {
         (e.description || '').toLowerCase().includes(query),
     );
   });
+
+  protected onSortChange(sort: TuiTableSortChange<EquipperDto>): void {
+    this.direction.set(sort.sortDirection);
+    this.sorter.set(sort.sortComparator || this.defaultSorter);
+  }
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {

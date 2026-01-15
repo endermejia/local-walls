@@ -2,6 +2,7 @@ import { firstValueFrom } from 'rxjs';
 import {
   ChangeDetectionStrategy,
   Component,
+  Input,
   InputSignal,
   Signal,
   computed,
@@ -14,7 +15,12 @@ import { FormsModule } from '@angular/forms';
 import { output } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiAvatar, TuiRating, TuiChip } from '@taiga-ui/kit';
-import { TuiTable, TuiTableSortPipe } from '@taiga-ui/addon-table';
+import {
+  TuiTable,
+  TuiTableSortPipe,
+  TuiSortDirection,
+  TuiTableSortChange,
+} from '@taiga-ui/addon-table';
 import { TuiCell } from '@taiga-ui/layout';
 import { TuiIcon, TuiHint, TuiFallbackSrcPipe, TuiLink } from '@taiga-ui/core';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
@@ -80,7 +86,9 @@ export interface AscentsTableRow {
         tuiTable
         class="w-full"
         [columns]="columns()"
+        [direction]="direction"
         [sorter]="tableSorter"
+        (sortChange)="onSortChange($event)"
       >
         <thead tuiThead>
           <tr tuiThGroup>
@@ -272,6 +280,10 @@ export class AscentsTableComponent {
 
   data: InputSignal<RouteAscentWithExtras[]> =
     input.required<RouteAscentWithExtras[]>();
+  direction: TuiSortDirection = TuiSortDirection.Desc;
+  @Input() set initialDirection(v: TuiSortDirection) {
+    this.direction = v;
+  }
   showUser: InputSignal<boolean> = input(true);
   showRoute: InputSignal<boolean> = input(true);
   showRowColors: InputSignal<boolean> = input(true);
@@ -354,17 +366,26 @@ export class AscentsTableComponent {
   protected readonly sorters: Record<string, TuiComparator<AscentsTableRow>> = {
     user: (a, b) => tuiDefaultSort(a.user_name, b.user_name),
     route: (a, b) => tuiDefaultSort(a.route_name, b.route_name),
-    grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
+    grade: (a, b) =>
+      tuiDefaultSort(
+        a._ref.grade ?? a._ref.route?.grade ?? 0,
+        b._ref.grade ?? b._ref.route?.grade ?? 0,
+      ),
     date: (a, b) => tuiDefaultSort(a.date, b.date),
     rating: (a, b) => tuiDefaultSort(a.rating, b.rating),
     type: (a, b) => tuiDefaultSort(a.type, b.type),
+    comment: (a, b) => tuiDefaultSort(a.comment, b.comment),
   };
 
-  protected readonly tableSorter: TuiComparator<AscentsTableRow> =
-    this.sorters['date'];
+  protected tableSorter: TuiComparator<AscentsTableRow> = this.sorters['date'];
 
   protected getSorter(col: string): TuiComparator<AscentsTableRow> | null {
     return this.sorters[col] ?? null;
+  }
+
+  protected onSortChange(sort: TuiTableSortChange<AscentsTableRow>): void {
+    this.tableSorter = sort.sortComparator || this.sorters['date'];
+    this.direction = sort.sortDirection;
   }
 
   protected onEdit(item: AscentsTableRow): void {

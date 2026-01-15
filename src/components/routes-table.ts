@@ -7,6 +7,7 @@ import {
   PLATFORM_ID,
   Signal,
   computed,
+  effect,
   inject,
   input,
   output,
@@ -26,6 +27,7 @@ import {
   TuiTable,
   TuiSortDirection,
   TuiTableSortPipe,
+  TuiTableSortChange,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
@@ -102,8 +104,9 @@ export interface RoutesTableRow {
         tuiTable
         class="w-full"
         [columns]="columns()"
-        [direction]="direction()"
-        [sorter]="tableSorter"
+        [direction]="currentDirection"
+        [sorter]="currentSorter"
+        (sortChange)="onSortChange($event)"
       >
         <thead tuiThead>
           <tr tuiThGroup>
@@ -387,6 +390,37 @@ export class RoutesTableComponent {
   toggleLike: OutputEmitterRef<RouteItem> = output<RouteItem>();
   toggleProject: OutputEmitterRef<RouteItem> = output<RouteItem>();
 
+  protected readonly climbingIcons = computed(() => ({
+    [ClimbingKinds.SPORT]: '@tui.line-squiggle',
+    [ClimbingKinds.BOULDER]: '@tui.biceps-flexed',
+    [ClimbingKinds.MIXED]: '@tui.mountain',
+    [ClimbingKinds.MULTIPITCH]: '@tui.mountain',
+    [ClimbingKinds.TRAD]: '@tui.mountain',
+  }));
+
+  protected readonly sorters: Record<
+    RoutesTableKey,
+    TuiComparator<RoutesTableRow>
+  > = {
+    grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
+    climbing_kind: (a, b) => tuiDefaultSort(a.climbing_kind, b.climbing_kind),
+    route: (a, b) => tuiDefaultSort(a.route, b.route),
+    height: (a, b) => tuiDefaultSort(a.height ?? 0, b.height),
+    rating: (a, b) => tuiDefaultSort(a.rating, b.rating),
+    ascents: (a, b) => tuiDefaultSort(a.ascents, b.ascents),
+  };
+
+  // Internal state for sorting
+  protected currentSorter: TuiComparator<RoutesTableRow> =
+    this.sorters['ascents'];
+  protected currentDirection: TuiSortDirection = TuiSortDirection.Desc;
+
+  constructor() {
+    effect(() => {
+      this.currentDirection = this.direction();
+    });
+  }
+
   protected readonly columns = computed(() => {
     let cols = ['grade', 'route', 'height', 'rating', 'ascents', 'actions'];
     if (this.global.isMobile()) {
@@ -438,33 +472,14 @@ export class RoutesTableComponent {
     }),
   );
 
-  protected readonly climbingIcons = computed(() => ({
-    [ClimbingKinds.SPORT]: '@tui.line-squiggle',
-    [ClimbingKinds.BOULDER]: '@tui.biceps-flexed',
-    [ClimbingKinds.MIXED]: '@tui.mountain',
-    [ClimbingKinds.MULTIPITCH]: '@tui.mountain',
-    [ClimbingKinds.TRAD]: '@tui.mountain',
-  }));
-
-  protected get tableSorter(): TuiComparator<RoutesTableRow> {
-    return this.sorters['ascents'];
-  }
-
-  protected readonly sorters: Record<
-    RoutesTableKey,
-    TuiComparator<RoutesTableRow>
-  > = {
-    grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
-    climbing_kind: (a, b) => tuiDefaultSort(a.climbing_kind, b.climbing_kind),
-    route: (a, b) => tuiDefaultSort(a.route, b.route),
-    height: (a, b) => tuiDefaultSort(a.height ?? 0, b.height),
-    rating: (a, b) => tuiDefaultSort(a.rating, b.rating),
-    ascents: (a, b) => tuiDefaultSort(a.ascents, b.ascents),
-  };
-
   protected getSorter(col: string): TuiComparator<RoutesTableRow> | null {
     if (col === 'actions' || col === 'admin_actions') return null;
     return this.sorters[col as RoutesTableKey] ?? null;
+  }
+
+  protected onSortChange(sort: TuiTableSortChange<RoutesTableRow>): void {
+    this.currentSorter = sort.sortComparator || this.sorters['ascents'];
+    this.currentDirection = sort.sortDirection;
   }
 
   protected onToggleProject(item: RoutesTableRow): void {

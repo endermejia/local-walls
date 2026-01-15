@@ -13,6 +13,7 @@ import {
   TuiTable,
   TuiSortDirection,
   TuiTableSortPipe,
+  TuiTableSortChange,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
@@ -109,10 +110,7 @@ import { handleErrorToast } from '../utils';
           [columns]="columns"
           [direction]="direction()"
           [sorter]="sorter()"
-          (sortChange)="
-            direction.set($event.sortDirection);
-            sorter.set($event.sortComparator || defaultSorter)
-          "
+          (sortChange)="onSortChange($event)"
         >
           <thead tuiThead>
             <tr tuiThGroup>
@@ -263,6 +261,11 @@ export class AdminParkingsListComponent {
     if (!query) return this.parkings();
     return this.parkings().filter((p) => p.name.toLowerCase().includes(query));
   });
+
+  protected onSortChange(sort: TuiTableSortChange<ParkingDto>): void {
+    this.direction.set(sort.sortDirection);
+    this.sorter.set(sort.sortComparator || this.defaultSorter);
+  }
 
   constructor() {
     this.global.resetDataByPage('home');
