@@ -76,19 +76,6 @@ import {
               >
                 {{ 'actions.edit' | translate }}
               </button>
-              <button
-                iconStart="@tui.download"
-                size="m"
-                tuiIconButton
-                type="button"
-                appearance="action-grayscale"
-                [tuiHint]="
-                  global.isMobile() ? null : ('import8a.button' | translate)
-                "
-                (click)="openImport8aDialog()"
-              >
-                {{ 'import8a.button' | translate }}
-              </button>
             } @else if (supabase.authUserId()) {
               @let following = isFollowing();
               <button
@@ -358,11 +345,6 @@ export class UserProfileComponent {
   openEditDialog(): void {
     if (!this.isOwnProfile()) return;
     this.userProfilesService.openUserProfileConfigForm();
-  }
-
-  openImport8aDialog(): void {
-    if (!this.isOwnProfile()) return;
-    this.userProfilesService.openImport8aDialog();
   }
 
   async toggleFollow(): Promise<void> {

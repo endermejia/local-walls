@@ -594,22 +594,41 @@ export class Import8aComponent {
         }
       }
 
-      // 5. Insertar todos los ascents de una vez
-      if (toInsert.length > 0) {
+      // 5. Evitar duplicados: obtener ascents existentes del usuario para estas rutas
+      const routeIds = [...new Set(toInsert.map((i) => i.route_id))];
+      const { data: existingUserAscents } = await this.supabase.client
+        .from('route_ascents')
+        .select('route_id, date')
+        .eq('user_id', this.supabase.authUserId()!)
+        .in('route_id', routeIds);
+
+      const existingAscentKeys = new Set(
+        existingUserAscents?.map((a) => `${a.route_id}|${a.date}`),
+      );
+
+      const finalToInsert = toInsert.filter(
+        (i) => !existingAscentKeys.has(`${i.route_id}|${i.date}`),
+      );
+
+      // 6. Insertar todos los ascents de una vez
+      if (finalToInsert.length > 0) {
         const { error } = await this.supabase.client
           .from('route_ascents')
-          .insert(toInsert);
+          .insert(finalToInsert);
 
         if (error) throw error;
 
         this.ascentsService.refreshResources();
       }
 
+      const skippedCount = toInsert.length - finalToInsert.length;
+
       this.toast.success(
         this.translate.instant('import8a.success', {
-          importedCount: toInsert.length,
+          importedCount: finalToInsert.length,
           matchedCount: toInsert.length,
           totalCount: ascents.length,
+          skippedCount, // Asegurarse de que el i18n lo soporte o simplemente se ignore
         }),
       );
       this.context.completeWith(true);

@@ -410,6 +410,6 @@
       "import": "Error al importar los encadenes",
       "parseCSV": "Error al leer el archivo CSV"
     },
-    "success": "Se han importado {{importedCount}} de {{matchedCount}} vías encontradas de un total de {{totalCount}} encadenes"
+    "success": "Se han importado {{importedCount}} encadenes. (Se omitieron {{skippedCount}} duplicados de {{matchedCount}} vías emparejadas de {{totalCount}} totales)"
   }
 }

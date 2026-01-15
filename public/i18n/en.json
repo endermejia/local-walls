@@ -410,6 +410,6 @@
       "import": "Error importing ascents",
       "parseCSV": "Error parsing CSV file"
     },
-    "success": "Imported {{importedCount}} of {{matchedCount}} matched routes out of {{totalCount}} ascents"
+    "success": "Imported {{importedCount}} ascents. ({{skippedCount}} duplicates skipped out of {{matchedCount}} matched routes from {{totalCount}} total)"
   }
 }

@@ -343,9 +343,21 @@ interface Country {
       <br />
 
       <!-- PREFERENCES -->
-      <h2 class="text-lg font-bold">
-        {{ 'labels.preferences' | translate }}
-      </h2>
+      <div class="flex items-center justify-between gap-4">
+        <h2 class="text-lg font-bold m-0">
+          {{ 'labels.preferences' | translate }}
+        </h2>
+        <button
+          iconStart="@tui.download"
+          size="s"
+          tuiButton
+          type="button"
+          appearance="action-grayscale"
+          (click)="openImport8aDialog()"
+        >
+          {{ 'import8a.button' | translate }}
+        </button>
+      </div>
       <!-- Language & Theme -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Language -->
@@ -774,6 +786,10 @@ export class UserProfileConfigComponent {
     input.click();
   }
 
+  openImport8aDialog(): void {
+    this.userProfilesService.openImport8aDialog();
+  }
+
   private async updateProfile(updates: Partial<UserProfileDto>): Promise<void> {
     const result = await this.userProfilesService.updateUserProfile(updates);
 
@@ -785,8 +801,8 @@ export class UserProfileConfigComponent {
 
   async logout(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
-    await this.supabase.logout();
     this.close();
+    await this.supabase.logout();
   }
 
   close(): void {
