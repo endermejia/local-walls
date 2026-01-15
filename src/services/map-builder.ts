@@ -29,6 +29,7 @@ interface ClusterItem {
   apiItem?: MapCragItem;
   cragFeature?: MapCragDataFeature;
   areaKeys?: string[];
+  areaName?: string;
 }
 
 interface ClusterGroup {
@@ -95,53 +96,54 @@ export class MapBuilder {
     this.mapCragItems = mapCragItem;
 
     // Restore the last saved viewport (bounds and zoom) if available
-    let savedViewport = options.ignoreSavedViewport
-      ? null
-      : this.global.mapBounds();
-    if (savedViewport && !this.areBoundsValid(savedViewport)) {
-      savedViewport = null;
-    }
+    let savedViewport: MapBounds | null = null;
+    let viewportRestored = false;
 
+    // Try to restore saved viewport
     if (!options.ignoreSavedViewport) {
-      if (savedViewport && this.areBoundsValid(savedViewport)) {
-        try {
-          const bounds = new L.LatLngBounds([
-            [
-              savedViewport.south_west_latitude,
-              savedViewport.south_west_longitude,
-            ],
-            [
-              savedViewport.north_east_latitude,
-              savedViewport.north_east_longitude,
-            ],
-          ]);
-          this.map.fitBounds(bounds);
-          const minZ = options.minZoom ?? 6;
-          const maxZ = options.maxZoom ?? 18;
-          const targetZ = Math.max(minZ, Math.min(maxZ, savedViewport.zoom));
-          this.map.setZoom(targetZ);
-        } catch (e) {
-          console.warn('Failed to fit bounds from saved viewport', e);
-        }
-      } else {
-        // Fallback: read directly from LocalStorage if GlobalData not hydrated yet
+      // First, try to get from GlobalData
+      savedViewport = this.global.mapBounds();
+
+      // If not in GlobalData, try LocalStorage
+      if (!savedViewport || !this.areBoundsValid(savedViewport)) {
         const raw = this.localStorage.getItem('map_bounds_v1');
         if (raw) {
           try {
             const parsed = JSON.parse(raw) as MapBounds;
             if (this.areBoundsValid(parsed)) {
               savedViewport = parsed;
+              // Sync to GlobalData
               this.global.mapBounds.set(parsed);
-              const bounds = new L.LatLngBounds([
-                [parsed.south_west_latitude, parsed.south_west_longitude],
-                [parsed.north_east_latitude, parsed.north_east_longitude],
-              ]);
-              this.map.fitBounds(bounds);
-              this.map.setZoom(parsed.zoom);
             }
           } catch {
-            // ignore
+            savedViewport = null;
           }
+        }
+      }
+
+      // Apply saved viewport if valid
+      if (savedViewport && this.areBoundsValid(savedViewport)) {
+        try {
+          // Calculate the center from the bounds
+          const centerLat =
+            (savedViewport.south_west_latitude +
+              savedViewport.north_east_latitude) /
+            2;
+          const centerLng =
+            (savedViewport.south_west_longitude +
+              savedViewport.north_east_longitude) /
+            2;
+
+          const minZ = options.minZoom ?? 6;
+          const maxZ = options.maxZoom ?? 18;
+          const targetZ = Math.max(minZ, Math.min(maxZ, savedViewport.zoom));
+
+          // Use setView instead of fitBounds for exact restoration
+          this.map.setView([centerLat, centerLng], targetZ, { animate: false });
+          viewportRestored = true;
+        } catch (e) {
+          console.warn('Failed to restore saved viewport', e);
+          viewportRestored = false;
         }
       }
     }
@@ -160,41 +162,43 @@ export class MapBuilder {
     const isMobileClient = (() => {
       if (!this.isBrowser() || typeof navigator === 'undefined') return false;
       const ua = (navigator.userAgent || '').toLowerCase();
-      // Simple mobile heuristic; avoids desktops where geolocation UX is worse
       return /iphone|ipad|ipod|android|mobile/.test(ua);
     })();
 
-    try {
-      // Only attempt geolocation when no saved viewport is present.
-      if (!savedViewport) {
-        // If we already have a cached user location, use it on any device.
+    // Only attempt geolocation when no viewport was restored
+    if (!viewportRestored) {
+      try {
         const hasCachedUserLocation =
           !!this.localStorage.getItem('lw_user_location');
+
         if (hasCachedUserLocation) {
           await this.goToCurrentLocation();
         } else if (isMobileClient) {
-          // Otherwise, only attempt geolocation automatically on mobile clients
           await this.goToCurrentLocation();
+        } else if (mapCragItem && mapCragItem.length) {
+          // Fallback: fit bounds to show all crags
+          const latLngs: [number, number][] = mapCragItem.map(
+            (mapItem: MapCragItem) => [mapItem.latitude, mapItem.longitude],
+          );
+          const bounds = new L.LatLngBounds(latLngs);
+          this.map.fitBounds(bounds, {
+            padding: [24, 24],
+            maxZoom: Math.min(9, options.maxZoom ?? 18),
+          });
+        }
+      } catch {
+        // Fallback to showing all crags if geolocation fails
+        if (mapCragItem && mapCragItem.length) {
+          const latLngs: [number, number][] = mapCragItem.map(
+            (mapItem: MapCragItem) => [mapItem.latitude, mapItem.longitude],
+          );
+          const bounds = new L.LatLngBounds(latLngs);
+          this.map.fitBounds(bounds, {
+            padding: [24, 24],
+            maxZoom: Math.min(9, options.maxZoom ?? 18),
+          });
         }
       }
-    } catch {
-      // ignore and fallback below
-    }
-
-    if (
-      !options.ignoreSavedViewport &&
-      !savedViewport &&
-      mapCragItem &&
-      mapCragItem.length
-    ) {
-      const latLngs: [number, number][] = mapCragItem.map(
-        (mapItem: MapCragItem) => [mapItem.latitude, mapItem.longitude],
-      );
-      const bounds = new L.LatLngBounds(latLngs);
-      this.map.fitBounds(bounds, {
-        padding: [24, 24],
-        maxZoom: Math.min(9, options.maxZoom ?? 18),
-      });
     }
 
     this.map.on('click', (e: LeafletEvent) => {
@@ -223,7 +227,6 @@ export class MapBuilder {
     };
 
     this.map.on('moveend', async () => {
-      // Do not animate clusters on regular pan updates to prevent flicker
       this.animateClustersOnNextBuild = false;
       await this.rebuildMarkers(
         this.mapCragItems,
@@ -235,7 +238,6 @@ export class MapBuilder {
       emitViewport();
     });
     this.map.on('zoomend', async () => {
-      // Also suppress spawn animation on zoom updates (can be adjusted if desired)
       this.animateClustersOnNextBuild = false;
       await this.rebuildMarkers(
         this.mapCragItems,
@@ -337,6 +339,7 @@ export class MapBuilder {
         markerType: 'api',
         liked: c.liked,
         apiItem: c,
+        areaName: c.area_name,
       });
     }
 
@@ -416,7 +419,7 @@ export class MapBuilder {
 
     const clustering = this.shouldCluster();
     const currentZoom = this.map.getZoom();
-    const minZoomForParkings = 12; // Minimum zoom level to show parking markers
+    const minZoomForParkings = 16; // Minimum zoom level to show parking markers
 
     // Render Parkings only if Zoom is enough
     if (currentZoom >= minZoomForParkings) {
@@ -532,8 +535,15 @@ export class MapBuilder {
                   : group.count >= 10
                     ? 36
                     : 28;
+
+          const commonAreaName =
+            group.markers.length > 0 &&
+            group.markers.every((m) => m.areaName === group.markers[0].areaName)
+              ? group.markers[0].areaName
+              : undefined;
+
           const icon = new L.DivIcon({
-            html: this.clusterLabelHtml(group.count),
+            html: this.clusterLabelHtml(group.count, commonAreaName),
             className: 'marker-cluster',
             iconSize: new L.Point(size, size),
             iconAnchor: [size / 2, size / 2],
@@ -630,7 +640,7 @@ export class MapBuilder {
         </div>`;
   }
 
-  private clusterLabelHtml(count: number): string {
+  private clusterLabelHtml(count: number, areaName?: string): string {
     const sizeClass =
       count >= 200
         ? 'xl'
@@ -644,7 +654,15 @@ export class MapBuilder {
     const spawnClass = this.animateClustersOnNextBuild
       ? ' lw-cluster--spawn'
       : '';
-    return `<div class="lw-cluster lw-cluster--${sizeClass}${spawnClass}" data-count="${count}">${count}</div>`;
+
+    const areaHtml = areaName
+      ? `<div class="lw-cluster-area absolute top-full left-1/2 -translate-x-1/2 mt-1 px-1.5 py-0.5 lw-marker--glass rounded-lg text-[10px] leading-tight whitespace-nowrap shadow-sm pointer-events-none">${areaName}</div>`
+      : '';
+
+    return `<div class="lw-cluster lw-cluster--${sizeClass}${spawnClass} relative" data-count="${count}">
+              ${count}
+              ${areaHtml}
+            </div>`;
   }
 
   private attachMarkerKeyboardSelection(
@@ -698,6 +716,9 @@ export class MapBuilder {
     if (!position) return;
     const { latitude, longitude } = position.coords;
     const latLng: [number, number] = [latitude, longitude];
+
+    // Save user location to localStorage for future sessions
+    this.localStorage.setItem('lw_user_location', JSON.stringify(latLng));
 
     const icon = new L.DivIcon({
       html: '<div class="lw-user-marker" aria-hidden="true"></div>',
