@@ -153,7 +153,10 @@ import { slugify } from '../utils';
 
                 <div class="max-h-[35dvh] overflow-auto border rounded p-2">
                   <tui-data-list>
-                    @for (ascent of ascents(); track ascent.name) {
+                    @for (
+                      ascent of ascents();
+                      track ascent.name + ascent.sector_name + ascent.date
+                    ) {
                       <div
                         class="p-2 border-b flex justify-between items-center"
                       >
@@ -354,27 +357,51 @@ export class Import8aComponent {
       const uniqueRouteNames = [...new Set(ascents.map((a) => a.name))];
       const uniqueAreaNames = [...new Set(ascents.map((a) => a.location_name))];
 
-      // 2. Buscar todas las routes existentes en UNA SOLA llamada
-      const { data: existingRoutes } = await this.supabase.client
-        .from('routes')
-        .select(
-          'id, name, crag_id, crags!inner(id, name, area_id, areas!inner(id, name))',
-        )
-        .in('name', uniqueRouteNames);
+      // 2. Buscar todas las routes existentes en toda la DB.
+      // Buscamos tanto el slug base como el slug "unificado" (con el sector) para evitar colisiones.
+      const baseSlugs = [...new Set(ascents.map((a) => slugify(a.name)))];
+      const uniqueifiedSlugs = [
+        ...new Set(
+          ascents.map((a) => `${slugify(a.name)}-${slugify(a.sector_name)}`),
+        ),
+      ];
+      const allPossibleSlugs = [
+        ...new Set([...baseSlugs, ...uniqueifiedSlugs]),
+      ];
 
-      // Crear un mapa para búsqueda rápida: key = "routeName|cragName|areaName"
+      const existingRoutes: any[] = [];
+      const CHUNK_SIZE = 50;
+
+      for (let i = 0; i < allPossibleSlugs.length; i += CHUNK_SIZE) {
+        const chunk = allPossibleSlugs.slice(i, i + CHUNK_SIZE);
+        const { data, error } = await this.supabase.client
+          .from('routes')
+          .select(
+            'id, name, slug, crag_id, crags(id, name, slug, area_id, areas(id, name, slug))',
+          )
+          .in('slug', chunk);
+
+        if (error) throw error;
+        if (data) existingRoutes.push(...data);
+      }
+
+      // Crear un mapa para búsqueda rápida basado en SLUGS para máxima robustez
+      // key = "areaSlug|cragSlug|routeSlug"
+      const getAscentKey = (
+        routeName: string,
+        cragName: string,
+        areaName: string,
+      ) => `${slugify(areaName)}|${slugify(cragName)}|${slugify(routeName)}`;
+
       const routeMap = new Map<string, number>();
       if (existingRoutes) {
-        for (const route of existingRoutes) {
-          const crag = route.crags as unknown as {
-            id: number;
-            name: string;
-            area_id: number;
-            areas: { id: number; name: string };
-          };
+        for (const r of existingRoutes) {
+          const crag = r.crags as any;
           const area = crag?.areas;
-          const key = `${route.name.toLowerCase()}|${crag?.name?.toLowerCase()}|${area?.name?.toLowerCase()}`;
-          routeMap.set(key, route.id);
+          if (crag && area) {
+            const key = getAscentKey(r.name, crag.name, area.name);
+            routeMap.set(key, r.id);
+          }
         }
       }
 
@@ -383,7 +410,7 @@ export class Import8aComponent {
 
       // 3. Clasificar ascents: los que ya tienen route vs los que necesitan crearla
       for (const a of ascents) {
-        const key = `${a.name.toLowerCase()}|${a.sector_name.toLowerCase()}|${a.location_name.toLowerCase()}`;
+        const key = getAscentKey(a.name, a.sector_name, a.location_name);
         const routeId = routeMap.get(key);
 
         if (routeId) {
@@ -397,6 +424,7 @@ export class Import8aComponent {
             rate: a.rating === 0 ? null : a.rating,
             attempts: a.tries,
             recommended: a.recommended,
+            grade: LABEL_TO_VERTICAL_LIFE[a.difficulty] ?? null,
           });
         } else if (isAdmin) {
           // Route no existe y es admin -> necesita crear route
@@ -406,22 +434,30 @@ export class Import8aComponent {
 
       // 4. Si es admin, crear areas, crags y routes faltantes
       if (isAdmin && ascentsToCreateRoutes.length > 0) {
-        // Obtener areas existentes
-        const { data: existingAreas } = await this.supabase.client
-          .from('areas')
-          .select('id, name')
-          .in('name', uniqueAreaNames);
+        // Obtener areas existentes por slug
+        const uniqueAreaSlugs = uniqueAreaNames.map((n) => slugify(n));
+        const existingAreas: any[] = [];
+        for (let i = 0; i < uniqueAreaSlugs.length; i += CHUNK_SIZE) {
+          const chunk = uniqueAreaSlugs.slice(i, i + CHUNK_SIZE);
+          const { data, error } = await this.supabase.client
+            .from('areas')
+            .select('id, name, slug')
+            .in('slug', chunk);
+
+          if (error) throw error;
+          if (data) existingAreas.push(...data);
+        }
 
         const areaMap = new Map<string, number>();
         if (existingAreas) {
           for (const area of existingAreas) {
-            areaMap.set(area.name.toLowerCase(), area.id);
+            areaMap.set(slugify(area.name), area.id);
           }
         }
 
         // Crear areas faltantes
         const areasToCreate = uniqueAreaNames.filter(
-          (name) => !areaMap.has(name.toLowerCase()),
+          (name) => !areaMap.has(slugify(name)),
         );
 
         if (areasToCreate.length > 0) {
@@ -436,67 +472,105 @@ export class Import8aComponent {
 
           const { data: newAreas } = await this.supabase.client
             .from('areas')
-            .upsert(areaUpsertData, { onConflict: 'slug' })
-            .select('id, name');
+            .insert(areaUpsertData)
+            .select('id, name, slug');
 
           if (newAreas) {
             for (const area of newAreas) {
-              areaMap.set(area.name.toLowerCase(), area.id);
+              areaMap.set(slugify(area.name), area.id);
             }
           }
         }
 
-        // Obtener crags existentes de las areas relevantes
-        const relevantAreaIds = Array.from(areaMap.values());
-        const { data: existingCrags } = await this.supabase.client
-          .from('crags')
-          .select('id, name, area_id')
-          .in('area_id', relevantAreaIds);
+        // Obtener crags existentes por slug (base y unificado con area)
+        const baseCragSlugs = [
+          ...new Set(ascentsToCreateRoutes.map((a) => slugify(a.sector_name))),
+        ];
+        const uniqueifiedCragSlugs = [
+          ...new Set(
+            ascentsToCreateRoutes.map(
+              (a) => `${slugify(a.sector_name)}-${slugify(a.location_name)}`,
+            ),
+          ),
+        ];
+        const allPossibleCragSlugs = [
+          ...new Set([...baseCragSlugs, ...uniqueifiedCragSlugs]),
+        ];
 
-        const cragMap = new Map<string, number>(); // key = "cragName|areaId"
+        const existingCrags: any[] = [];
+        for (let i = 0; i < allPossibleCragSlugs.length; i += CHUNK_SIZE) {
+          const chunk = allPossibleCragSlugs.slice(i, i + CHUNK_SIZE);
+          const { data, error } = await this.supabase.client
+            .from('crags')
+            .select('id, name, slug, area_id')
+            .in('slug', chunk);
+
+          if (error) throw error;
+          if (data) existingCrags.push(...data);
+        }
+
+        const cragMap = new Map<string, number>(); // key = "areaId|cragSlug"
         if (existingCrags) {
           for (const crag of existingCrags) {
-            cragMap.set(`${crag.name.toLowerCase()}|${crag.area_id}`, crag.id);
+            cragMap.set(`${crag.area_id}|${slugify(crag.name)}`, crag.id);
           }
         }
 
         // Crear crags faltantes
-        const cragsToCreate: { name: string; area_id: number }[] = [];
+        const cragsToCreate: {
+          name: string;
+          area_id: number;
+          area_name: string;
+        }[] = [];
         for (const a of ascentsToCreateRoutes) {
-          const areaId = areaMap.get(a.location_name.toLowerCase());
+          const areaId = areaMap.get(slugify(a.location_name));
           if (areaId) {
-            const cragKey = `${a.sector_name.toLowerCase()}|${areaId}`;
+            const cragKey = `${areaId}|${slugify(a.sector_name)}`;
             if (!cragMap.has(cragKey)) {
               cragsToCreate.push({
                 name: a.sector_name,
                 area_id: areaId,
+                area_name: a.location_name,
               });
+              cragMap.set(cragKey, -1); // Evitar duplicar en esta tanda
             }
           }
         }
 
-        // Eliminar duplicados por slug para evitar "ON CONFLICT DO UPDATE command cannot affect row a second time"
-        const cragsUpsertData = Array.from(
-          new Map(
-            cragsToCreate.map((c) => {
-              const slug = slugify(c.name);
-              return [slug, { name: c.name, slug, area_id: c.area_id }];
-            }),
-          ).values(),
-        );
+        // Usar Map para deduplicar crags a crear en esta tanda
+        const usedCragSlugs = new Set(existingCrags.map((ec) => ec.slug));
+        const cragsUpsertData = cragsToCreate.map((c) => {
+          let slug = slugify(c.name);
+          // Si el slug ya existe en DB o en este lote, lo hacemos único con el área
+          if (usedCragSlugs.has(slug)) {
+            slug = `${slug}-${slugify(c.area_name)}`;
+          }
+          // Salvaguarda final para evitar el error de restricción UNIQUE de la DB
+          if (usedCragSlugs.has(slug)) {
+            slug = `${slug}-${c.area_id}`;
+          }
+          usedCragSlugs.add(slug);
+          return { name: c.name, slug, area_id: c.area_id };
+        });
 
         if (cragsUpsertData.length > 0) {
+          // Se usa insert simple porque ya hemos filtrado lo existente.
+          // Si el slug ya existe, fallará, lo cual es correcto.
           const { data: newCrags } = await this.supabase.client
             .from('crags')
-            .upsert(cragsUpsertData, { onConflict: 'slug' })
+            .insert(cragsUpsertData)
             .select('id, name, area_id');
 
           if (newCrags) {
-            for (const crag of newCrags) {
-              cragMap.set(
-                `${crag.name.toLowerCase()}|${crag.area_id}`,
-                crag.id,
+            for (const a of ascentsToCreateRoutes) {
+              const areaId = areaMap.get(slugify(a.location_name));
+              const key = `${areaId}|${slugify(a.sector_name)}`;
+              const created = newCrags.find(
+                (nc) =>
+                  nc.area_id === areaId &&
+                  slugify(nc.name) === slugify(a.sector_name),
               );
+              if (created) cragMap.set(key, created.id);
             }
           }
         }
@@ -506,78 +580,85 @@ export class Import8aComponent {
           name: string;
           crag_id: number;
           grade: number;
+          crag_name: string;
         }[] = [];
 
         for (const a of ascentsToCreateRoutes) {
-          const areaId = areaMap.get(a.location_name.toLowerCase());
+          const areaId = areaMap.get(slugify(a.location_name));
           if (areaId) {
-            const cragId = cragMap.get(
-              `${a.sector_name.toLowerCase()}|${areaId}`,
-            );
-            if (cragId) {
-              routesToCreate.push({
-                name: a.name,
-                crag_id: cragId,
-                grade: LABEL_TO_VERTICAL_LIFE[a.difficulty] ?? 0,
-              });
+            const cragId = cragMap.get(`${areaId}|${slugify(a.sector_name)}`);
+            if (cragId && cragId !== -1) {
+              const key = getAscentKey(a.name, a.sector_name, a.location_name);
+              if (!routeMap.has(key)) {
+                routesToCreate.push({
+                  name: a.name,
+                  crag_id: cragId,
+                  grade: LABEL_TO_VERTICAL_LIFE[a.difficulty] ?? 0,
+                  crag_name: a.sector_name,
+                });
+                routeMap.set(key, -1); // Evitar duplicar en esta tanda
+              }
             }
           }
         }
 
-        // Eliminar duplicados por slug para evitar "ON CONFLICT DO UPDATE command cannot affect row a second time"
-        const routesUpsertData = Array.from(
-          new Map(
-            routesToCreate.map((r) => {
-              const slug = slugify(r.name);
-              return [
-                slug,
-                {
-                  name: r.name,
-                  slug,
-                  crag_id: r.crag_id,
-                  climbing_kind: 'sport' as const,
-                  grade: r.grade,
-                },
-              ];
-            }),
-          ).values(),
-        );
+        // Usar Map para deduplicar routes a crear en esta tanda
+        const usedRouteSlugs = new Set(existingRoutes.map((er) => er.slug));
+        const routesUpsertData = routesToCreate.map((r) => {
+          let slug = slugify(r.name);
+          // Si el slug existe en DB o lote, lo hacemos único con el sector
+          if (usedRouteSlugs.has(slug)) {
+            slug = `${slug}-${slugify(r.crag_name)}`;
+          }
+          // Salvaguarda final
+          if (usedRouteSlugs.has(slug)) {
+            slug = `${slug}-${r.crag_id}`;
+          }
+          usedRouteSlugs.add(slug);
+
+          return {
+            name: r.name,
+            slug,
+            crag_id: r.crag_id,
+            climbing_kind: 'sport' as const,
+            grade: r.grade,
+          };
+        });
 
         if (routesUpsertData.length > 0) {
           const { data: newRoutes } = await this.supabase.client
             .from('routes')
-            .upsert(routesUpsertData, { onConflict: 'slug' })
+            .insert(routesUpsertData)
             .select('id, name, crag_id');
 
-          // Actualizar routeMap con las nuevas routes
+          // Actualizar routeMap con las nuevas routes de forma segura
           if (newRoutes) {
-            for (const route of newRoutes) {
-              const cragId = route.crag_id;
-              // Encontrar area_id del crag
-              const cragEntry = Array.from(cragMap.entries()).find(
-                ([, id]) => id === cragId,
+            for (const a of ascentsToCreateRoutes) {
+              const areaId = areaMap.get(slugify(a.location_name));
+              const cragId = cragMap.get(`${areaId}|${slugify(a.sector_name)}`);
+
+              const createdRoute = newRoutes.find(
+                (nr) =>
+                  nr.crag_id === cragId && slugify(nr.name) === slugify(a.name),
               );
-              if (cragEntry) {
-                const [cragKey] = cragEntry;
-                const [cragName, areaId] = cragKey.split('|');
-                const areaEntry = Array.from(areaMap.entries()).find(
-                  ([, id]) => id === parseInt(areaId, 10),
+
+              if (createdRoute) {
+                const key = getAscentKey(
+                  a.name,
+                  a.sector_name,
+                  a.location_name,
                 );
-                if (areaEntry) {
-                  const [areaName] = areaEntry;
-                  const key = `${route.name.toLowerCase()}|${cragName}|${areaName}`;
-                  routeMap.set(key, route.id);
-                }
+                routeMap.set(key, createdRoute.id);
               }
             }
           }
 
-          // Registrar los ascents de las routes recién creadas
+          // Registrar los ascents de las routes recién creadas (SOLO si el ID es válido)
           for (const a of ascentsToCreateRoutes) {
-            const key = `${a.name.toLowerCase()}|${a.sector_name.toLowerCase()}|${a.location_name.toLowerCase()}`;
+            const key = getAscentKey(a.name, a.sector_name, a.location_name);
             const routeId = routeMap.get(key);
 
-            if (routeId) {
+            if (routeId && routeId > 0) {
               toInsert.push({
                 route_id: routeId,
                 user_id: this.supabase.authUserId()!,
@@ -587,6 +668,7 @@ export class Import8aComponent {
                 rate: a.rating === 0 ? null : a.rating,
                 attempts: a.tries,
                 recommended: a.recommended,
+                grade: LABEL_TO_VERTICAL_LIFE[a.difficulty] ?? null,
               });
             }
           }
@@ -595,11 +677,18 @@ export class Import8aComponent {
 
       // 5. Evitar duplicados: obtener ascents existentes del usuario para estas rutas
       const routeIds = [...new Set(toInsert.map((i) => i.route_id))];
-      const { data: existingUserAscents } = await this.supabase.client
-        .from('route_ascents')
-        .select('route_id, date')
-        .eq('user_id', this.supabase.authUserId()!)
-        .in('route_id', routeIds);
+      const existingUserAscents: any[] = [];
+      for (let i = 0; i < routeIds.length; i += CHUNK_SIZE) {
+        const chunk = routeIds.slice(i, i + CHUNK_SIZE);
+        const { data, error } = await this.supabase.client
+          .from('route_ascents')
+          .select('route_id, date')
+          .eq('user_id', this.supabase.authUserId()!)
+          .in('route_id', chunk);
+
+        if (error) throw error;
+        if (data) existingUserAscents.push(...data);
+      }
 
       const existingAscentKeys = new Set(
         existingUserAscents?.map((a) => `${a.route_id}|${a.date}`),
