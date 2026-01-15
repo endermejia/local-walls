@@ -51,7 +51,7 @@ export class MapBuilder {
   private parkingMarkers: Marker[] = [];
   private userMarker: Marker | null = null;
   private clusteringEnabled = true;
-  private clusterRadius = 50; // Marker grouping radius in pixels
+  private clusterRadius = 70; // Marker grouping radius in pixels
   // Control whether cluster markers should animate on the next rebuild
   private animateClustersOnNextBuild = true;
 
@@ -315,7 +315,7 @@ export class MapBuilder {
   private shouldCluster(): boolean {
     if (!this.map) return true;
     const zoom = this.map.getZoom();
-    return this.clusteringEnabled && zoom < 12;
+    return this.clusteringEnabled && zoom <= 16;
   }
 
   // Build a unified list of clusterable items across API crags and area labels

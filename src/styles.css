@@ -2,6 +2,11 @@
 
 .leaflet-container {
   z-index: 1;
+  /* Prevent text selection during map interactions */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 ._loading {
@@ -39,7 +44,14 @@ th[tuiTh] {
   font-weight: 600;
   line-height: 1;
   will-change: transform, opacity;
+  /* Prevent text selection on clusters */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  cursor: pointer;
 }
+
 /* Size modifiers */
 .lw-cluster--xs {
   width: 28px;
@@ -111,13 +123,28 @@ th[tuiTh] {
   pointer-events: none;
 }
 
+/* Cluster area label */
+.lw-cluster-area {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
 .lw-marker {
   /* Base styles shared by both variants */
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
   transition:
     filter 150ms ease-in-out,
     opacity 150ms ease-in-out;
+  /* Prevent text selection on markers */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  cursor: pointer;
 }
+
 .lw-marker--accent {
   /* Accent (favorites) */
   background: var(--tui-background-accent-2);
@@ -170,6 +197,11 @@ th[tuiTh] {
   border-radius: 0.5rem !important;
   background-color: var(--tui-background-accent-opposite) !important;
   color: var(--tui-background-base) !important;
+  /* Prevent text selection on zoom controls */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .leaflet-control-zoom-in:hover,
@@ -184,6 +216,24 @@ th[tuiTh] {
   width: 32px !important;
   height: 32px !important;
   line-height: 32px !important;
+}
+
+/* Prevent text selection on marker and cluster containers */
+.marker-cluster,
+.parking-marker {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Prevent text selection during dragging */
+.leaflet-dragging,
+.leaflet-dragging * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
 }
 
 .lw-icon-50 {
