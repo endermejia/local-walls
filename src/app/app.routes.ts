@@ -19,6 +19,18 @@ export const routes: Routes = [
       import('../pages/explore').then((m) => m.ExploreComponent),
   },
   {
+    path: 'profile',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/user-profile').then((m) => m.UserProfileComponent),
+  },
+  {
+    path: 'profile/:id',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/user-profile').then((m) => m.UserProfileComponent),
+  },
+  {
     path: 'areas',
     canMatch: [authGuard],
     loadComponent: () =>
@@ -33,18 +45,6 @@ export const routes: Routes = [
     path: 'area/:areaSlug/:cragSlug',
     canMatch: [authGuard],
     loadComponent: () => import('../pages/crag').then((m) => m.CragComponent),
-  },
-  {
-    path: 'profile',
-    canMatch: [authGuard],
-    loadComponent: () =>
-      import('../pages/user-profile').then((m) => m.UserProfileComponent),
-  },
-  {
-    path: 'profile/:id',
-    canMatch: [authGuard],
-    loadComponent: () =>
-      import('../pages/user-profile').then((m) => m.UserProfileComponent),
   },
   {
     path: 'area/:areaSlug/:cragSlug/topo/:id',
