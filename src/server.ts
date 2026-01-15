@@ -38,10 +38,9 @@ export async function netlifyAppEngineHandler(
       const resp = await fetch(proxyUrl.toString(), {
         method: request.method,
         headers: {
-          // forward minimal headers
           accept: 'application/json',
+          'User-Agent': request.headers.get('User-Agent') || 'Mozilla/5.0',
         },
-        // Do not forward credentials/cookies
       });
       const body = await resp.arrayBuffer();
       // Mirror status and pass-through JSON content-type when available

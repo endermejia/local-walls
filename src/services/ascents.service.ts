@@ -129,7 +129,7 @@ export class AscentsService {
     return true;
   }
 
-  private refreshResources(): void {
+  refreshResources(): void {
     this.global.routeDetailResource.reload();
     this.global.routeAscentsResource.reload();
     this.global.cragRoutesResource.reload();

@@ -30,7 +30,7 @@ export class ApiCore {
 
     if (query) {
       for (const [k, v] of Object.entries(query)) {
-        if (v === undefined || v === null || v === '') continue;
+        if (v === undefined || v === null) continue;
         url.searchParams.set(k, String(v));
       }
     }

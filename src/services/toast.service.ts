@@ -1,4 +1,4 @@
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subject } from 'rxjs';
 import { inject, Injectable } from '@angular/core';
 import { TuiToastOptions, TuiToastService } from '@taiga-ui/kit';
 import { TranslateService } from '@ngx-translate/core';
@@ -17,7 +17,7 @@ export class ToastService {
     const translatedMessage = this.translate.instant(message);
     void firstValueFrom(
       this.toast.open(translatedMessage, {
-        autoClose: 1900,
+        autoClose: 2000,
         ...options,
       }),
     );
@@ -37,5 +37,20 @@ export class ToastService {
 
   warning(message: string): void {
     this.show(message, { appearance: 'warning', data: '@tui.circle-alert' });
+  }
+
+  showLoader(message: string): Subject<void> {
+    const close$ = new Subject<void>();
+    const translatedMessage = this.translate.instant(message);
+
+    void firstValueFrom(
+      this.toast.open(translatedMessage, {
+        data: 'tuiIconLoader',
+      }),
+    ).then(() => {
+      close$.complete();
+    });
+
+    return close$;
   }
 }

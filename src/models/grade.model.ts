@@ -104,6 +104,12 @@ export const VERTICAL_LIFE_TO_LABEL: Partial<
   [VERTICAL_LIFE_GRADES.G9c]: '9c',
 };
 
+export const LABEL_TO_VERTICAL_LIFE: Partial<
+  Record<GradeLabel, VERTICAL_LIFE_GRADES>
+> = Object.fromEntries(
+  Object.entries(VERTICAL_LIFE_TO_LABEL).map(([k, v]) => [v, Number(k)]),
+);
+
 // Ordered grade values derived strictly from the enum mapping above
 export const ORDERED_GRADE_VALUES: readonly GradeLabel[] = Object.entries(
   VERTICAL_LIFE_TO_LABEL,

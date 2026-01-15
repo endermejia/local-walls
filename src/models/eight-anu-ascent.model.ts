@@ -1,0 +1,15 @@
+import { GradeLabel } from './grade.model';
+import { AscentType } from './supabase-interfaces';
+
+export interface EightAnuAscent {
+  name: string; // route name
+  location_name: string; // area name
+  sector_name: string; // crag name
+  date: string;
+  type: AscentType;
+  rating: number;
+  tries: number;
+  difficulty: GradeLabel;
+  comment: string;
+  recommended: boolean;
+}

@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, Observable } from 'rxjs';
 import { SupabaseService } from './supabase.service';
 import { UserProfileDto } from '../models';
@@ -6,6 +7,7 @@ import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { UserProfileConfigComponent } from '../pages/user-profile-config';
 import { AvatarCropperComponent, AvatarCropperResult } from '../components';
+import { Import8aComponent } from '../components/import-8a';
 
 @Injectable({
   providedIn: 'root',
@@ -13,6 +15,7 @@ import { AvatarCropperComponent, AvatarCropperResult } from '../components';
 export class UserProfilesService {
   private supabase = inject(SupabaseService);
   private dialogs = inject(TuiDialogService);
+  private translate = inject(TranslateService);
 
   openUserProfileConfigForm(): void {
     void firstValueFrom(
@@ -20,6 +23,17 @@ export class UserProfilesService {
         appearance: 'fullscreen',
         closable: false,
         dismissible: false,
+      }),
+    );
+  }
+
+  openImport8aDialog(): void {
+    void firstValueFrom(
+      this.dialogs.open(new PolymorpheusComponent(Import8aComponent), {
+        label: this.translate.instant('import8a.button'),
+        size: 'l',
+        dismissible: true,
+        closable: true,
       }),
     );
   }
