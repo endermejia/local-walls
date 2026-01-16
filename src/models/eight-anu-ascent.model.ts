@@ -5,6 +5,7 @@ export interface EightAnuAscent {
   name: string; // route name
   location_name: string; // area name
   sector_name: string; // crag name
+  country_code: string;
   date: string;
   type: AscentType;
   rating: number;

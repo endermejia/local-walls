@@ -234,6 +234,21 @@ export class Import8aComponent {
     POLYMORPHEUS_CONTEXT,
   ) as TuiDialogContext<boolean>;
 
+  private readonly COUNTRY_CODE_TO_SLUG: Record<string, string> = {
+    ES: 'spain',
+    FR: 'france',
+    IT: 'italy',
+    DE: 'germany',
+    US: 'united-states',
+    GB: 'united-kingdom',
+    AD: 'andorra',
+    BE: 'belgium',
+    CH: 'switzerland',
+    AT: 'austria',
+    GR: 'greece',
+    PT: 'portugal',
+  };
+
   protected index = 0;
   protected direction = 0;
 
@@ -340,6 +355,7 @@ export class Import8aComponent {
           name: getVal('name'),
           location_name: locationName,
           sector_name: sectorName,
+          country_code: getVal('country_code'),
           date: getVal('date'),
           type: this.mapType(getVal('type')),
           rating: Math.max(0, Math.min(5, ratingValue)),
@@ -350,6 +366,32 @@ export class Import8aComponent {
         } as EightAnuAscent;
       })
       .filter((a): a is EightAnuAscent => !!a && !!a.name);
+  }
+
+  private async fetch8aCoordinates(
+    countryCode: string,
+    areaName: string,
+  ): Promise<{ latitude: number; longitude: number } | null> {
+    const countrySlug =
+      this.COUNTRY_CODE_TO_SLUG[countryCode.toUpperCase()] ||
+      countryCode.toLowerCase();
+    const areaSlug = slugify(areaName);
+    const url = `https://www.8a.nu/api/unification/outdoor/v1/web/crags/sportclimbing/${countrySlug}/${areaSlug}`;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) return null;
+      const data = await response.json();
+      if (data?.crag?.location?.latitude && data?.crag?.location?.longitude) {
+        return {
+          latitude: data.crag.location.latitude,
+          longitude: data.crag.location.longitude,
+        };
+      }
+    } catch (e) {
+      console.error('Error fetching 8a coordinates:', e);
+    }
+    return null;
   }
 
   async onImport(): Promise<void> {
@@ -364,6 +406,24 @@ export class Import8aComponent {
     try {
       // 1. Obtener todos los nombres únicos de routes, areas y crags
       const uniqueAreaNames = [...new Set(ascents.map((a) => a.location_name))];
+
+      // 1.1 Obtener coordenadas de 8a.nu para las áreas
+      const areaToCoords = new Map<
+        string,
+        { latitude: number; longitude: number }
+      >();
+      const uniqueAreas = [
+        ...new Map(
+          ascents.map((a) => [a.location_name, a.country_code]),
+        ).entries(),
+      ];
+
+      for (const [areaName, countryCode] of uniqueAreas) {
+        const coords = await this.fetch8aCoordinates(countryCode, areaName);
+        if (coords) {
+          areaToCoords.set(areaName, coords);
+        }
+      }
 
       // 2. Buscar todas las routes existentes en toda la DB.
       // Buscamos tanto el slug base como el slug "unificado" (con el sector) para evitar colisiones.
@@ -579,7 +639,16 @@ export class Import8aComponent {
             slug = `${slug}-${c.area_id}`;
           }
           usedCragSlugs.add(slug);
-          return { name: c.name, slug, area_id: c.area_id };
+
+          const coords = areaToCoords.get(c.area_name);
+
+          return {
+            name: c.name,
+            slug,
+            area_id: c.area_id,
+            latitude: coords?.latitude ?? null,
+            longitude: coords?.longitude ?? null,
+          };
         });
 
         if (cragsUpsertData.length > 0) {

@@ -35,6 +35,7 @@ import {
   RouteAscentWithExtras,
   VERTICAL_LIFE_TO_LABEL,
   VERTICAL_LIFE_GRADES,
+  AscentType,
 } from '../models';
 
 export interface AscentsTableRow {
@@ -51,7 +52,7 @@ export interface AscentsTableRow {
   grade: string;
   date: string;
   rating: number;
-  type: string;
+  type: AscentType | '';
   comment: string;
   showComment: boolean;
   details: string[];
