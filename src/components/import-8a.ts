@@ -33,6 +33,7 @@ import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 import { finalize, type Observable, of, Subject, switchMap, tap } from 'rxjs';
 import {
   RouteAscentInsertDto,
+  RouteAscentDto,
   EightAnuAscent,
   GradeLabel,
   LABEL_TO_VERTICAL_LIFE,
@@ -74,7 +75,7 @@ import { slugify } from '../utils';
       <div class="w-full max-w-2xl">
         <tui-stepper
           [activeItemIndex]="index"
-          (activeItemIndexChange)="onStep($any($event))"
+          (activeItemIndexChange)="onStep($event)"
           class="mb-6"
         >
           <button tuiStep>{{ 'import8a.steps.uploadCSV' | translate }}</button>
@@ -362,7 +363,6 @@ export class Import8aComponent {
 
     try {
       // 1. Obtener todos los nombres únicos de routes, areas y crags
-      const uniqueRouteNames = [...new Set(ascents.map((a) => a.name))];
       const uniqueAreaNames = [...new Set(ascents.map((a) => a.location_name))];
 
       // 2. Buscar todas las routes existentes en toda la DB.
@@ -377,7 +377,23 @@ export class Import8aComponent {
         ...new Set([...baseSlugs, ...uniqueifiedSlugs]),
       ];
 
-      const existingRoutes: any[] = [];
+      const existingRoutes: {
+        id: number;
+        name: string;
+        slug: string;
+        crag_id: number;
+        crags: {
+          id: number;
+          name: string;
+          slug: string;
+          area_id: number;
+          areas: {
+            id: number;
+            name: string;
+            slug: string;
+          } | null;
+        } | null;
+      }[] = [];
       const CHUNK_SIZE = 50;
 
       for (let i = 0; i < allPossibleSlugs.length; i += CHUNK_SIZE) {
@@ -404,7 +420,7 @@ export class Import8aComponent {
       const routeMap = new Map<string, number>();
       if (existingRoutes) {
         for (const r of existingRoutes) {
-          const crag = r.crags as any;
+          const crag = r.crags;
           const area = crag?.areas;
           if (crag && area) {
             const key = getAscentKey(r.name, crag.name, area.name);
@@ -444,7 +460,7 @@ export class Import8aComponent {
       if (isAdmin && ascentsToCreateRoutes.length > 0) {
         // Obtener areas existentes por slug
         const uniqueAreaSlugs = uniqueAreaNames.map((n) => slugify(n));
-        const existingAreas: any[] = [];
+        const existingAreas: { id: number; name: string; slug: string }[] = [];
         for (let i = 0; i < uniqueAreaSlugs.length; i += CHUNK_SIZE) {
           const chunk = uniqueAreaSlugs.slice(i, i + CHUNK_SIZE);
           const { data, error } = await this.supabase.client
@@ -505,7 +521,12 @@ export class Import8aComponent {
           ...new Set([...baseCragSlugs, ...uniqueifiedCragSlugs]),
         ];
 
-        const existingCrags: any[] = [];
+        const existingCrags: {
+          id: number;
+          name: string;
+          slug: string;
+          area_id: number;
+        }[] = [];
         for (let i = 0; i < allPossibleCragSlugs.length; i += CHUNK_SIZE) {
           const chunk = allPossibleCragSlugs.slice(i, i + CHUNK_SIZE);
           const { data, error } = await this.supabase.client
@@ -685,7 +706,8 @@ export class Import8aComponent {
 
       // 5. Evitar duplicados: obtener ascents existentes del usuario para estas rutas
       const routeIds = [...new Set(toInsert.map((i) => i.route_id))];
-      const existingUserAscents: any[] = [];
+      const existingUserAscents: Pick<RouteAscentDto, 'route_id' | 'date'>[] =
+        [];
       for (let i = 0; i < routeIds.length; i += CHUNK_SIZE) {
         const chunk = routeIds.slice(i, i + CHUNK_SIZE);
         const { data, error } = await this.supabase.client
