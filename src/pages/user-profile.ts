@@ -1,29 +1,32 @@
+import { AsyncPipe, isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  PLATFORM_ID,
   computed,
   effect,
   inject,
   input,
+  PLATFORM_ID,
   resource,
 } from '@angular/core';
-import { AsyncPipe, isPlatformBrowser, LowerCasePipe } from '@angular/common';
-import { TranslatePipe } from '@ngx-translate/core';
-import { TUI_COUNTRIES, TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
-import { TuiButton, TuiFallbackSrcPipe, TuiHint } from '@taiga-ui/core';
 
+import { TuiButton, TuiFallbackSrcPipe, TuiHint } from '@taiga-ui/core';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
+import { TUI_COUNTRIES, TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
+
+import { TranslatePipe } from '@ngx-translate/core';
+
 import {
-  SupabaseService,
-  GlobalData,
   FollowsService,
+  GlobalData,
+  SupabaseService,
   UserProfilesService,
 } from '../services';
+
 import {
-  RoutesTableComponent,
-  RouteItem,
   AscentsTableComponent,
+  RouteItem,
+  RoutesTableComponent,
 } from '../components';
 
 @Component({

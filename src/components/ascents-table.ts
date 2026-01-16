@@ -1,42 +1,47 @@
-import { firstValueFrom } from 'rxjs';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  Input,
-  InputSignal,
-  Signal,
   computed,
   inject,
   input,
+  Input,
+  InputSignal,
+  output,
+  Signal,
 } from '@angular/core';
-import { CommonModule, AsyncPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { output } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
-import { TuiAvatar, TuiRating, TuiChip } from '@taiga-ui/kit';
+import { RouterLink } from '@angular/router';
+
 import {
-  TuiTable,
-  TuiTableSortPipe,
   TuiSortDirection,
-  TuiTableSortChange,
+  TuiTable,
   TuiTablePagination,
-  tuiTablePaginationOptionsProvider,
   type TuiTablePaginationEvent,
+  tuiTablePaginationOptionsProvider,
+  TuiTableSortChange,
+  TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
-import { TuiCell } from '@taiga-ui/layout';
-import { TuiIcon, TuiHint, TuiFallbackSrcPipe, TuiLink } from '@taiga-ui/core';
-import { tuiDefaultSort } from '@taiga-ui/cdk';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
-import { SupabaseService, GlobalData, AscentsService } from '../services';
+import { tuiDefaultSort } from '@taiga-ui/cdk';
+import { TuiFallbackSrcPipe, TuiHint, TuiIcon, TuiLink } from '@taiga-ui/core';
+import { TuiAvatar, TuiChip, TuiRating } from '@taiga-ui/kit';
+import { TuiCell } from '@taiga-ui/layout';
+
+import { TranslatePipe } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
+
+import {
+  AscentType,
+  RouteAscentWithExtras,
+  VERTICAL_LIFE_GRADES,
+  VERTICAL_LIFE_TO_LABEL,
+} from '../models';
+
+import { AscentsService, GlobalData, SupabaseService } from '../services';
+
 import { AvatarGradeComponent } from './avatar-grade';
 import { EmptyStateComponent } from './empty-state';
-import {
-  RouteAscentWithExtras,
-  VERTICAL_LIFE_TO_LABEL,
-  VERTICAL_LIFE_GRADES,
-  AscentType,
-} from '../models';
 
 export interface AscentsTableRow {
   key: string;

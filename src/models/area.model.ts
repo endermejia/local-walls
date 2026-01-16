@@ -1,6 +1,6 @@
+import { AmountByEveryGrade } from './grade.model';
 import type { Database } from './supabase-generated';
 import { TableInsert, TableRow, TableUpdate } from './supabase-interfaces';
-import { AmountByEveryGrade } from './grade.model';
 
 // Areas
 export type AreaDto = TableRow<'areas'>;

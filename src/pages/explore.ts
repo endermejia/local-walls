@@ -1,3 +1,4 @@
+import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -5,19 +6,13 @@ import {
   ElementRef,
   inject,
   PLATFORM_ID,
-  Signal,
   signal,
+  Signal,
   ViewChild,
   WritableSignal,
 } from '@angular/core';
-import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
-import {
-  TuiAvatar,
-  TuiBadgedContent,
-  TuiBadgeNotification,
-} from '@taiga-ui/kit';
+
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import {
   TuiButton,
@@ -28,9 +23,15 @@ import {
   TuiSurface,
   TuiTitle,
 } from '@taiga-ui/core';
+import {
+  TuiAvatar,
+  TuiBadgedContent,
+  TuiBadgeNotification,
+} from '@taiga-ui/kit';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
-import { ChartRoutesByGradeComponent, MapComponent } from '../components';
-import { GlobalData, FiltersService, ParkingsService } from '../services';
+
+import { TranslatePipe } from '@ngx-translate/core';
+
 import {
   GradeLabel,
   MapAreaItem,
@@ -39,6 +40,11 @@ import {
   ORDERED_GRADE_VALUES,
   ParkingDto,
 } from '../models';
+
+import { FiltersService, GlobalData, ParkingsService } from '../services';
+
+import { ChartRoutesByGradeComponent, MapComponent } from '../components';
+
 import { mapLocationUrl, remToPx } from '../utils';
 
 @Component({

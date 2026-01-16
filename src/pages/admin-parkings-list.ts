@@ -1,38 +1,43 @@
-import { firstValueFrom } from 'rxjs';
+import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  PLATFORM_ID,
   computed,
   inject,
+  PLATFORM_ID,
   signal,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import {
-  TuiTable,
   TuiSortDirection,
-  TuiTableSortPipe,
+  TuiTable,
   TuiTableSortChange,
+  TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
 import { TuiButton, TuiHint, TuiScrollbar, TuiTextfield } from '@taiga-ui/core';
-import {
-  TuiAvatar,
-  TuiSkeleton,
-  TUI_CONFIRM,
-  type TuiConfirmData,
-  TuiBadgedContentComponent,
-  TuiBadgeNotification,
-  TuiBadgedContentDirective,
-} from '@taiga-ui/kit';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
+import {
+  TUI_CONFIRM,
+  TuiAvatar,
+  TuiBadgedContentComponent,
+  TuiBadgedContentDirective,
+  TuiBadgeNotification,
+  type TuiConfirmData,
+  TuiSkeleton,
+} from '@taiga-ui/kit';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
+
+import { ParkingDto } from '../models';
 
 import { GlobalData, ParkingsService, ToastService } from '../services';
+
 import { EmptyStateComponent } from '../components';
-import { ParkingDto } from '../models';
+
 import { handleErrorToast } from '../utils';
 
 @Component({

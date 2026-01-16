@@ -1,28 +1,19 @@
-import { firstValueFrom } from 'rxjs';
+import { AsyncPipe, isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
+  effect,
   inject,
   input,
-  effect,
   InputSignal,
-  computed,
+  PLATFORM_ID,
   signal,
   WritableSignal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { isPlatformBrowser, LowerCasePipe, AsyncPipe } from '@angular/common';
-import { PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import {
-  TuiAvatar,
-  TUI_CONFIRM,
-  type TuiConfirmData,
-  TuiBadgedContent,
-  TuiBadgeNotification,
-} from '@taiga-ui/kit';
-import { TuiHeader, TuiCardLarge } from '@taiga-ui/layout';
+
 import {
   TuiButton,
   TuiHint,
@@ -30,18 +21,34 @@ import {
   TuiLabel,
   TuiLoader,
   TuiNotification,
+  TuiSurface,
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
-import { TuiSurface } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
-  ChartRoutesByGradeComponent,
-  EmptyStateComponent,
-  RoutesTableComponent,
-  SectionHeaderComponent,
-} from '../components';
-import { TopoImagePipe } from '../pipes';
+  TUI_CONFIRM,
+  TuiAvatar,
+  TuiBadgedContent,
+  TuiBadgeNotification,
+  type TuiConfirmData,
+} from '@taiga-ui/kit';
+import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
+
+import {
+  AmountByEveryGrade,
+  type CragDetail,
+  ORDERED_GRADE_VALUES,
+  ParkingDto,
+  RouteWithExtras,
+  type TopoListItem,
+  VERTICAL_LIFE_GRADES,
+  VERTICAL_LIFE_TO_LABEL,
+} from '../models';
+
 import {
   CragsService,
   FiltersService,
@@ -52,16 +59,16 @@ import {
   ToastService,
   ToposService,
 } from '../services';
+
+import { TopoImagePipe } from '../pipes';
+
 import {
-  AmountByEveryGrade,
-  ORDERED_GRADE_VALUES,
-  ParkingDto,
-  RouteWithExtras,
-  VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
-  type CragDetail,
-  type TopoListItem,
-} from '../models';
+  ChartRoutesByGradeComponent,
+  EmptyStateComponent,
+  RoutesTableComponent,
+  SectionHeaderComponent,
+} from '../components';
+
 import { handleErrorToast, mapLocationUrl } from '../utils';
 
 @Component({

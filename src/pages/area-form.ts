@@ -1,22 +1,25 @@
+import { CommonModule, Location } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
+  effect,
   inject,
   input,
   InputSignal,
   Signal,
-  computed,
-  effect,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+
 import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
-import { AreasService, ToastService } from '../services';
-import { TranslatePipe } from '@ngx-translate/core';
-import { Location } from '@angular/common';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { slugify, handleErrorToast } from '../utils';
+
+import { TranslatePipe } from '@ngx-translate/core';
+
+import { AreasService, ToastService } from '../services';
+
+import { handleErrorToast, slugify } from '../utils';
 
 @Component({
   selector: 'app-area-form',

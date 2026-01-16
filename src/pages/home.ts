@@ -1,39 +1,42 @@
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
   effect,
   inject,
+  PLATFORM_ID,
   resource,
   signal,
   WritableSignal,
 } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+
 import {
-  TuiLoader,
   TuiButton,
   TuiHint,
-  TuiTextfield,
   TuiLabel,
+  TuiLoader,
+  TuiTextfield,
 } from '@taiga-ui/core';
 import {
+  TuiAvatar,
   TuiBadgedContent,
   TuiBadgeNotification,
-  TuiAvatar,
 } from '@taiga-ui/kit';
-import { AscentsTableComponent } from '../components';
-import { GlobalData, SupabaseService, FiltersService } from '../services';
+
+import { TranslatePipe } from '@ngx-translate/core';
+
 import {
-  RouteAscentWithExtras,
-  RouteAscentDto,
-  RouteDto,
   ClimbingKinds,
   ORDERED_GRADE_VALUES,
+  RouteAscentWithExtras,
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
+
+import { FiltersService, GlobalData, SupabaseService } from '../services';
+
+import { AscentsTableComponent } from '../components';
 
 @Component({
   selector: 'app-home',
@@ -234,7 +237,7 @@ export class HomeComponent {
       } = await dbQuery
         .order('date', { ascending: false })
         .range(from, to)
-        .overrideTypes<any[]>();
+        .overrideTypes<RouteAscentWithExtras[]>();
 
       if (ascentsError) {
         console.error('[HomeComponent] Error fetching ascents:', ascentsError);
@@ -296,7 +299,7 @@ export class HomeComponent {
     this.page.set(0);
   }
 
-  onPagination({ page, size }: any) {
+  onPagination({ page, size }: { page: number; size: number }) {
     this.page.set(page);
     this.size.set(size);
   }

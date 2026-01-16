@@ -1,12 +1,16 @@
-import { TuiRoot } from '@taiga-ui/core';
-import { Component, inject, computed, effect } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
-import { HeaderComponent } from '../components';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { GlobalData, OfflineService } from '../services';
-import { Meta, Title } from '@angular/platform-browser';
+import { Component, computed, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Meta, Title } from '@angular/platform-browser';
+import { Router, RouterOutlet } from '@angular/router';
+
+import { TuiRoot } from '@taiga-ui/core';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { map, merge, startWith } from 'rxjs';
+
+import { GlobalData, OfflineService } from '../services';
+
+import { HeaderComponent } from '../components';
 
 @Component({
   selector: 'app-root',

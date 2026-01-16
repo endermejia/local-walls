@@ -1,16 +1,18 @@
-import { AsyncPipe, KeyValuePipe, isPlatformBrowser } from '@angular/common';
-import { PLATFORM_ID, Signal, WritableSignal } from '@angular/core';
+import { AsyncPipe, isPlatformBrowser, KeyValuePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
   inject,
   OnDestroy,
+  PLATFORM_ID,
   signal,
+  Signal,
+  WritableSignal,
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
 import { RouterLink } from '@angular/router';
+
 import {
   TuiButton,
   TuiDataListComponent,
@@ -29,6 +31,8 @@ import {
 } from '@taiga-ui/experimental';
 import { TuiAvatar, TuiBreadcrumbs, TuiSkeleton } from '@taiga-ui/kit';
 import { TuiCell, TuiInputSearch, TuiNavigation } from '@taiga-ui/layout';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   debounceTime,
   distinctUntilChanged,
@@ -38,9 +42,10 @@ import {
   startWith,
   switchMap,
 } from 'rxjs';
-import { GlobalData, SupabaseService } from '../services';
+
 import { OptionsItem, SearchData, SearchItem } from '../models';
-import { TranslateService } from '@ngx-translate/core';
+
+import { GlobalData, SupabaseService } from '../services';
 
 type RouterCommand = readonly (string | number)[] | string;
 

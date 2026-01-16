@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,11 +7,13 @@ import {
   InputSignal,
   output,
 } from '@angular/core';
-import { TuiSkeleton } from '@taiga-ui/kit';
-import { TranslatePipe } from '@ngx-translate/core';
+
 import { TuiButton, TuiHint } from '@taiga-ui/core';
+import { TuiSkeleton } from '@taiga-ui/kit';
+
+import { TranslatePipe } from '@ngx-translate/core';
+
 import { GlobalData } from '../services';
-import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-section-header',

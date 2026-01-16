@@ -1,18 +1,20 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  PLATFORM_ID,
+  computed,
   effect,
   inject,
   input,
-  computed,
+  PLATFORM_ID,
   signal,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+
 import { TuiButton, TuiTextfieldComponent } from '@taiga-ui/core';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiSliderComponent } from '@taiga-ui/kit';
+import { injectContext } from '@taiga-ui/polymorpheus';
+
 import { TranslatePipe } from '@ngx-translate/core';
 
 export interface AvatarCropperResult {
