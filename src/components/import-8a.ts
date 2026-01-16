@@ -37,6 +37,8 @@ import { finalize, type Observable, of, Subject, switchMap, tap } from 'rxjs';
 import {
   AscentType,
   AscentTypes,
+  ClimbingKind,
+  ClimbingKinds,
   EightAnuAscent,
   GradeLabel,
   LABEL_TO_VERTICAL_LIFE,
@@ -49,6 +51,7 @@ import {
   NotificationService,
   SupabaseService,
   ToastService,
+  GlobalData,
 } from '../services';
 
 import { slugify } from '../utils';
@@ -231,6 +234,7 @@ import { slugify } from '../utils';
 })
 export class Import8aComponent {
   private readonly supabase = inject(SupabaseService);
+  private readonly global = inject(GlobalData);
   private readonly ascentsService = inject(AscentsService);
   private readonly toast = inject(ToastService);
   private readonly notification = inject(NotificationService);
@@ -365,7 +369,7 @@ export class Import8aComponent {
           type: this.mapType(getVal('type')),
           rating: Math.max(0, Math.min(5, ratingValue)),
           tries: parseInt(getVal('tries'), 10) || 1,
-          difficulty: getVal('difficulty') as GradeLabel,
+          difficulty: getVal('difficulty').toLowerCase() as GradeLabel,
           comment: getVal('comment'),
           recommended: getVal('recommended') === '1',
         } as EightAnuAscent;
@@ -738,6 +742,7 @@ export class Import8aComponent {
           crag_id: number;
           grade: number;
           crag_name: string;
+          climbing_kind: ClimbingKind;
         }[] = [];
 
         for (const a of ascentsToCreateRoutes) {
@@ -753,14 +758,20 @@ export class Import8aComponent {
                 const rawGrade = LABEL_TO_VERTICAL_LIFE[a.difficulty] ?? 3;
                 const grade = rawGrade < 3 ? 3 : rawGrade;
 
+                const climbing_kind =
+                  a.route_boulder === 'BOULDER'
+                    ? ClimbingKinds.BOULDER
+                    : ClimbingKinds.SPORT;
+
                 console.log(
-                  `[8a Import] Route to create: ${a.name} in crag ID ${cragId} with grade ${grade} (original: ${a.difficulty}, raw: ${rawGrade})`,
+                  `[8a Import] Route to create: ${a.name} (${climbing_kind}) in crag ID ${cragId} with grade ${grade} (original: ${a.difficulty}, raw: ${rawGrade})`,
                 );
                 routesToCreate.push({
                   name: a.name,
                   crag_id: cragId,
                   grade,
                   crag_name: a.sector_name,
+                  climbing_kind,
                 });
                 routeMap.set(key, -1); // Mark as "to be created"
               }
@@ -791,7 +802,7 @@ export class Import8aComponent {
               name: r.name,
               slug,
               crag_id: r.crag_id,
-              climbing_kind: 'sport' as const,
+              climbing_kind: r.climbing_kind,
               grade: r.grade,
             };
           });
@@ -913,6 +924,9 @@ export class Import8aComponent {
         if (error) throw error;
 
         this.ascentsService.refreshResources();
+        this.global.areasListResource.reload();
+        this.global.areasMapResource.reload();
+        this.global.mapResource.reload();
       }
 
       const skippedCount = toInsert.length - finalToInsert.length;

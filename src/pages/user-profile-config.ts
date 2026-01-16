@@ -10,6 +10,7 @@ import {
   effect,
   inject,
   PLATFORM_ID,
+  resource,
   signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -23,6 +24,7 @@ import {
   TuiFlagPipe,
   TuiHint,
   TuiIcon,
+  TuiLoader,
   TuiNotification,
   TuiTextfield,
   TuiTitle,
@@ -48,9 +50,19 @@ import {
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { firstValueFrom, map } from 'rxjs';
+import {
+  debounceTime,
+  filter,
+  firstValueFrom,
+  map,
+  of,
+  Subject,
+  switchMap,
+  tap,
+} from 'rxjs';
 
 import {
+  EightAnuUser,
   Language,
   Languages,
   Sex,
@@ -65,6 +77,7 @@ import {
   SupabaseService,
   ToastService,
   UserProfilesService,
+  EightAnuService,
 } from '../services';
 
 interface Country {
@@ -103,6 +116,7 @@ interface Country {
     NgOptimizedImage,
     TuiNotification,
     TuiTitle,
+    TuiLoader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
@@ -155,6 +169,7 @@ interface Country {
             }}</label>
             <input
               id="nameInput"
+              name="nameInput"
               tuiTextfield
               type="text"
               autocomplete="off"
@@ -198,12 +213,60 @@ interface Country {
           <label tuiLabel for="bioInput">{{ 'labels.bio' | translate }}</label>
           <textarea
             id="bioInput"
+            name="bioInput"
             tuiTextarea
             rows="4"
             maxlength="150"
             [(ngModel)]="bio"
             (blur)="saveBio()"
           ></textarea>
+        </tui-textfield>
+      </div>
+      <!-- 8a.nu User -->
+      <div class="flex items-center gap-4">
+        @if (selectedEightAnuUser.value(); as user) {
+          <tui-avatar size="l" [src]="user.avatar" />
+        }
+
+        @let items = eightAnuResults$ | async;
+        <tui-textfield
+          class="w-full"
+          [tuiTextfieldCleaner]="true"
+          [stringify]="stringifyEightAnuUser"
+        >
+          <label tuiLabel for="eightAnuSearch">{{
+            'labels.eightAnuUser' | translate
+          }}</label>
+          <input
+            #eightAnuInput
+            id="eightAnuSearch"
+            name="eightAnuSearch"
+            tuiComboBox
+            autocomplete="off"
+            [ngModel]="selectedEightAnuUser.value()"
+            (ngModelChange)="saveEightAnuUser($event)"
+            (input)="eightAnuSearch$.next($any($event.target).value)"
+          />
+          <tui-data-list-wrapper
+            *tuiTextfieldDropdown
+            new
+            [emptyContent]="
+              eightAnuInput.value.length < 3
+                ? ('import8a.minChars' | translate)
+                : ('labels.noResults' | translate)
+            "
+            [itemContent]="eightAnuItem"
+            [items]="eightAnuInput.value.length < 3 ? [] : items || []"
+          />
+          <ng-template #eightAnuItem let-item>
+            <div class="flex items-center gap-2">
+              <tui-avatar size="s" [src]="item.avatar" />
+              <span>{{ item.userName }}</span>
+            </div>
+          </ng-template>
+          @if (items && eightAnuShowLoader()) {
+            <tui-loader />
+          }
         </tui-textfield>
       </div>
       <!-- Country & City -->
@@ -220,6 +283,7 @@ interface Country {
             }}</label>
             <input
               id="countrySelect"
+              name="countrySelect"
               tuiComboBox
               autocomplete="off"
               [(ngModel)]="country"
@@ -254,6 +318,7 @@ interface Country {
             }}</label>
             <input
               id="cityInput"
+              name="cityInput"
               tuiTextfield
               type="text"
               autocomplete="off"
@@ -275,6 +340,7 @@ interface Country {
             }}</label>
             <input
               id="birthDateInput"
+              name="birthDateInput"
               tuiInputDate
               [max]="today"
               [min]="minBirthDate"
@@ -292,6 +358,7 @@ interface Country {
             }}</label>
             <input
               id="startingClimbingYearInput"
+              name="startingClimbingYearInput"
               tuiInputYear
               [min]="minYear"
               [max]="currentYear"
@@ -312,6 +379,7 @@ interface Country {
             }}</label>
             <input
               id="sizeInput"
+              name="sizeInput"
               tuiInputNumber
               [min]="0"
               [max]="300"
@@ -335,6 +403,7 @@ interface Country {
             }}</label>
             <input
               id="sexSelect"
+              name="sexSelect"
               tuiSelect
               [(ngModel)]="sex"
               (ngModelChange)="saveSex()"
@@ -376,6 +445,7 @@ interface Country {
             }}</label>
             <input
               id="languageSelect"
+              name="languageSelect"
               tuiSelect
               [(ngModel)]="language"
               (ngModelChange)="saveLanguage()"
@@ -395,6 +465,7 @@ interface Country {
             }}</label>
             <input
               id="themeSwitch"
+              name="themeSwitch"
               tuiSwitch
               type="checkbox"
               [ngModel]="theme === Themes.DARK"
@@ -408,6 +479,7 @@ interface Country {
             }}</label>
             <input
               id="privateSwitch"
+              name="privateSwitch"
               tuiSwitch
               type="checkbox"
               [ngModel]="isPrivate"
@@ -451,6 +523,33 @@ export class UserProfileConfigComponent {
     })();
 
   protected readonly profile = computed(() => this.global.userProfile());
+  protected readonly eightAnuService = inject(EightAnuService);
+
+  protected readonly eightAnuShowLoader = signal(false);
+  protected readonly eightAnuSearch$ = new Subject<string>();
+  protected readonly eightAnuResults$ = this.eightAnuSearch$.pipe(
+    debounceTime(0),
+    filter(() => !this.selectedEightAnuUser.value()),
+    tap(() => this.eightAnuShowLoader.set(true)),
+    debounceTime(300),
+    switchMap((query) =>
+      query.length >= 3
+        ? this.eightAnuService.searchUsers(query).pipe(map((res) => res.items))
+        : of([]),
+    ),
+    tap(() => this.eightAnuShowLoader.set(false)),
+  );
+
+  readonly selectedEightAnuUser = resource<EightAnuUser | null, string | null>({
+    params: () => this.profile()?.['8anu_user_slug'] || null,
+    loader: async ({ params: slug }) => {
+      if (!slug) return null;
+      const res = await firstValueFrom(
+        this.eightAnuService.getUserBySlug(slug),
+      );
+      return res.items.find((u) => u.userSlug === slug) || null;
+    },
+  });
   protected readonly userEmail = computed(
     () => this.supabase.authUser()?.email ?? '',
   );
@@ -537,6 +636,9 @@ export class UserProfileConfigComponent {
     id ? this.idToName(id) : '';
   readonly matcher: TuiStringMatcher<string> = (id, search) =>
     this.idToName(id)?.toLowerCase() === search.toLowerCase();
+
+  stringifyEightAnuUser = (user: EightAnuUser | null): string =>
+    user?.userName || '';
 
   constructor() {
     effect(() => {
@@ -731,6 +833,14 @@ export class UserProfileConfigComponent {
       return;
     }
     await this.updateProfile({ sex: this.sex });
+  }
+
+  async saveEightAnuUser(user: unknown): Promise<void> {
+    const eightAnuUser = user as EightAnuUser | null;
+    await this.updateProfile({
+      '8anu_user_slug': eightAnuUser?.userSlug || null,
+    });
+    void this.selectedEightAnuUser.reload();
   }
 
   async uploadAvatar(): Promise<void> {

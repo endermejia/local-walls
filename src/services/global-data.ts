@@ -24,6 +24,7 @@ import {
   AmountByEveryGrade,
   AppRoles,
   AreaListItem,
+  ClimbingKinds,
   CragDetail,
   CragDto,
   CragListItem,
@@ -237,8 +238,8 @@ export class GlobalData {
         });
 
         let category = 0;
-        if (climbingKinds.has('boulder')) category = 1;
-        else if (climbingKinds.has('multipitch')) category = 2;
+        if (climbingKinds.has(ClimbingKinds.BOULDER)) category = 1;
+        else if (climbingKinds.has(ClimbingKinds.MULTIPITCH)) category = 2;
 
         const shadeMorning = (c.topos || []).some((t) => t.shade_morning);
         const shadeAfternoon = (c.topos || []).some((t) => t.shade_afternoon);

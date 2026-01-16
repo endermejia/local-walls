@@ -1540,6 +1540,7 @@ export interface Database {
       };
       user_profiles: {
         Row: {
+          '8anu_user_slug': string | null;
           avatar: string | null;
           bio: string | null;
           birth_date: string | null;
@@ -1557,6 +1558,7 @@ export interface Database {
           updated_at: string | null;
         };
         Insert: {
+          '8anu_user_slug'?: string | null;
           avatar?: string | null;
           bio?: string | null;
           birth_date?: string | null;
@@ -1574,6 +1576,7 @@ export interface Database {
           updated_at?: string | null;
         };
         Update: {
+          '8anu_user_slug'?: string | null;
           avatar?: string | null;
           bio?: string | null;
           birth_date?: string | null;

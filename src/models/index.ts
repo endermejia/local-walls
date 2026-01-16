@@ -2,6 +2,7 @@ export * from './area.model';
 export * from './ascent.model';
 export * from './crag.model';
 export * from './eight-anu-ascent.model';
+export * from './eight-anu-user.model';
 export * from './grade.model';
 export * from './icon-name.model';
 export * from './map.model';

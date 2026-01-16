@@ -4,6 +4,7 @@ export * from './areas.service';
 export * from './ascents.service';
 export * from './auth.guard';
 export * from './crags.service';
+export * from './eight-anu.service';
 export * from './error.interceptor';
 export * from './filters.service';
 export * from './follows.service';

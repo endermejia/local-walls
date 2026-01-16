@@ -40,6 +40,7 @@ import { firstValueFrom } from 'rxjs';
 
 import {
   AmountByEveryGrade,
+  ClimbingKinds,
   type CragDetail,
   ORDERED_GRADE_VALUES,
   ParkingDto,
@@ -572,9 +573,10 @@ export class CragComponent {
       const kind = r.climbing_kind;
       if (!kind) return true;
       // 0=Sport, 1=Boulder, 2=Multipitch (from FilterDialog)
-      if (categories.includes(0) && kind === 'sport') return true;
-      if (categories.includes(1) && kind === 'boulder') return true;
-      if (categories.includes(2) && kind === 'multipitch') return true;
+      if (categories.includes(0) && kind === ClimbingKinds.SPORT) return true;
+      if (categories.includes(1) && kind === ClimbingKinds.BOULDER) return true;
+      if (categories.includes(2) && kind === ClimbingKinds.MULTIPITCH)
+        return true;
       return false;
     };
 
