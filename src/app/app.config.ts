@@ -25,9 +25,11 @@ import { TUI_LANGUAGE } from '@taiga-ui/i18n';
 import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
-import { GlobalData } from '../services';
-import { errorInterceptor } from '../services';
-import { provideSupabaseConfig } from '../services';
+import {
+  errorInterceptor,
+  GlobalData,
+  provideSupabaseConfig,
+} from '../services';
 
 import {
   ENV_SUPABASE_ANON_KEY,

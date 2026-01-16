@@ -7,10 +7,10 @@ import {
   inject,
   input,
   InputSignal,
+  PLATFORM_ID,
   signal,
   WritableSignal,
 } from '@angular/core';
-import { PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -21,10 +21,10 @@ import {
   TuiLabel,
   TuiLoader,
   TuiNotification,
+  TuiSurface,
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
-import { TuiSurface } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
@@ -40,11 +40,11 @@ import { firstValueFrom } from 'rxjs';
 
 import {
   AmountByEveryGrade,
-  type CragDetail,
+  CragDetail,
   ORDERED_GRADE_VALUES,
   ParkingDto,
   RouteWithExtras,
-  type TopoListItem,
+  TopoListItem,
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
@@ -69,8 +69,7 @@ import {
   SectionHeaderComponent,
 } from '../components';
 
-import { mapLocationUrl } from '../utils';
-import { handleErrorToast } from '../utils';
+import { handleErrorToast, mapLocationUrl } from '../utils';
 
 @Component({
   selector: 'app-crag',

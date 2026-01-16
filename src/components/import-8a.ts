@@ -35,13 +35,21 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { finalize, type Observable, of, Subject, switchMap, tap } from 'rxjs';
 
 import {
+  AscentType,
+  AscentTypes,
   EightAnuAscent,
   GradeLabel,
   LABEL_TO_VERTICAL_LIFE,
+  RouteAscentDto,
   RouteAscentInsertDto,
 } from '../models';
 
-import { AscentsService, SupabaseService, ToastService } from '../services';
+import {
+  AscentsService,
+  NotificationService,
+  SupabaseService,
+  ToastService,
+} from '../services';
 
 import { slugify } from '../utils';
 
@@ -72,7 +80,7 @@ import { slugify } from '../utils';
       <div class="w-full max-w-2xl">
         <tui-stepper
           [activeItemIndex]="index"
-          (activeItemIndexChange)="onStep($any($event))"
+          (activeItemIndexChange)="onStep($event)"
           class="mb-6"
         >
           <button tuiStep>{{ 'import8a.steps.uploadCSV' | translate }}</button>
@@ -225,6 +233,7 @@ export class Import8aComponent {
   private readonly supabase = inject(SupabaseService);
   private readonly ascentsService = inject(AscentsService);
   private readonly toast = inject(ToastService);
+  private readonly notification = inject(NotificationService);
   private readonly translate = inject(TranslateService);
   private readonly context = inject(
     POLYMORPHEUS_CONTEXT,
@@ -373,7 +382,23 @@ export class Import8aComponent {
         ...new Set([...baseSlugs, ...uniqueifiedSlugs]),
       ];
 
-      const existingRoutes: any[] = [];
+      const existingRoutes: {
+        id: number;
+        name: string;
+        slug: string;
+        crag_id: number;
+        crags: {
+          id: number;
+          name: string;
+          slug: string;
+          area_id: number;
+          areas: {
+            id: number;
+            name: string;
+            slug: string;
+          } | null;
+        } | null;
+      }[] = [];
       const CHUNK_SIZE = 50;
 
       for (let i = 0; i < allPossibleSlugs.length; i += CHUNK_SIZE) {
@@ -400,7 +425,7 @@ export class Import8aComponent {
       const routeMap = new Map<string, number>();
       if (existingRoutes) {
         for (const r of existingRoutes) {
-          const crag = r.crags as any;
+          const crag = r.crags;
           const area = crag?.areas;
           if (crag && area) {
             const key = getAscentKey(r.name, crag.name, area.name);
@@ -440,7 +465,7 @@ export class Import8aComponent {
       if (isAdmin && ascentsToCreateRoutes.length > 0) {
         // Get existing areas by slug
         const uniqueAreaSlugs = uniqueAreaNames.map((n) => slugify(n));
-        const existingAreas: any[] = [];
+        const existingAreas: { id: number; name: string; slug: string }[] = [];
         for (let i = 0; i < uniqueAreaSlugs.length; i += CHUNK_SIZE) {
           const chunk = uniqueAreaSlugs.slice(i, i + CHUNK_SIZE);
           const { data, error } = await this.supabase.client
@@ -501,7 +526,12 @@ export class Import8aComponent {
           ...new Set([...baseCragSlugs, ...uniqueifiedCragSlugs]),
         ];
 
-        const existingCrags: any[] = [];
+        const existingCrags: {
+          id: number;
+          name: string;
+          slug: string;
+          area_id: number;
+        }[] = [];
         for (let i = 0; i < allPossibleCragSlugs.length; i += CHUNK_SIZE) {
           const chunk = allPossibleCragSlugs.slice(i, i + CHUNK_SIZE);
           const { data, error } = await this.supabase.client
@@ -681,7 +711,8 @@ export class Import8aComponent {
 
       // 5. Avoid duplicates: get existing user ascents for these routes
       const routeIds = [...new Set(toInsert.map((i) => i.route_id))];
-      const existingUserAscents: any[] = [];
+      const existingUserAscents: Pick<RouteAscentDto, 'route_id' | 'date'>[] =
+        [];
       for (let i = 0; i < routeIds.length; i += CHUNK_SIZE) {
         const chunk = routeIds.slice(i, i + CHUNK_SIZE);
         const { data, error } = await this.supabase.client
@@ -715,13 +746,15 @@ export class Import8aComponent {
 
       const skippedCount = toInsert.length - finalToInsert.length;
 
-      this.toast.success(
+      this.notification.success(
         this.translate.instant('import8a.success', {
           importedCount: finalToInsert.length,
           matchedCount: toInsert.length,
           totalCount: ascents.length,
-          skippedCount, // Make sure i18n supports it or it is simply ignored
+          skippedCount,
         }),
+        'import8a.successTitle',
+        false,
       );
       this.context.completeWith(true);
     } catch (e) {
@@ -736,10 +769,10 @@ export class Import8aComponent {
     }
   }
 
-  private mapType(type: string): 'rp' | 'os' | 'f' {
+  private mapType(type: string): AscentType {
     const t = type.toLowerCase();
-    if (t.includes('os') || t.includes('onsight')) return 'os';
-    if (t.includes('flash')) return 'f';
-    return 'rp';
+    if (t.includes('os') || t.includes('onsight')) return AscentTypes.OS;
+    if (t.includes('flash')) return AscentTypes.F;
+    return AscentTypes.RP;
   }
 }

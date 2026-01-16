@@ -10,6 +10,7 @@ export * from './follows.service';
 export * from './global-data';
 export * from './local-storage';
 export * from './map.service';
+export * from './notification.service';
 export * from './offline.service';
 export * from './parkings.service';
 export * from './routes.service';

@@ -5,11 +5,11 @@ import {
   computed,
   effect,
   inject,
+  PLATFORM_ID,
   resource,
   signal,
   WritableSignal,
 } from '@angular/core';
-import { PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import {
@@ -30,9 +30,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import {
   ClimbingKinds,
   ORDERED_GRADE_VALUES,
-  RouteAscentDto,
   RouteAscentWithExtras,
-  RouteDto,
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
 

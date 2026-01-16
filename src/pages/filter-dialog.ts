@@ -2,28 +2,26 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  DestroyRef,
+  effect,
   inject,
   Signal,
   signal,
   WritableSignal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-
 import { TuiButton, TuiLink } from '@taiga-ui/core';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { TuiFilter, type TuiKeySteps, TuiRange } from '@taiga-ui/kit';
 import { TuiForm } from '@taiga-ui/layout';
 import { injectContext } from '@taiga-ui/polymorpheus';
-
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-
+import { merge, startWith } from 'rxjs';
 import { ORDERED_GRADE_VALUES } from '../models';
 
 export interface FilterDialog {
@@ -199,8 +197,6 @@ export class FilterDialogComponent {
     ([, idx]) => ORDERED_GRADE_VALUES[idx] ?? '',
   );
 
-  private readonly destroyRef = inject(DestroyRef);
-
   constructor() {
     const d = this.context.data;
     if (d) {
@@ -233,15 +229,17 @@ export class FilterDialogComponent {
       }
     }
 
-    this.translate.onLangChange
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this._i18nTick.update((v) => v + 1));
-    this.translate.onDefaultLangChange
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this._i18nTick.update((v) => v + 1));
-    this.translate.onTranslationChange
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this._i18nTick.update((v) => v + 1));
+    // React to i18n changes
+    effect(() => {
+      toSignal(
+        merge(
+          this.translate.onLangChange,
+          this.translate.onDefaultLangChange,
+          this.translate.onTranslationChange,
+        ),
+      )();
+      this._i18nTick.update((v) => v + 1);
+    });
 
     const grCtrl = this.form.controls.gradeRange;
     const initial = grCtrl.value;
@@ -253,13 +251,14 @@ export class FilterDialogComponent {
       grCtrl.setValue(sanitizedInitial, { emitEvent: false });
     }
     this.gradeRange.set(sanitizedInitial);
-    grCtrl.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => {
-        if (val) {
-          this.gradeRange.set(this.sanitizeRange(val));
-        }
-      });
+
+    // React to grade range changes
+    effect(() => {
+      const val = toSignal(grCtrl.valueChanges.pipe(startWith(grCtrl.value)))();
+      if (val) {
+        this.gradeRange.set(this.sanitizeRange(val));
+      }
+    });
   }
 
   private clamp(v: number): number {

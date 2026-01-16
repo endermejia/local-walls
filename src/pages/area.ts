@@ -7,10 +7,10 @@ import {
   inject,
   input,
   InputSignal,
+  PLATFORM_ID,
   signal,
   WritableSignal,
 } from '@angular/core';
-import { PLATFORM_ID } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
 import {

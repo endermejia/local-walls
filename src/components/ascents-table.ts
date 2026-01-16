@@ -7,9 +7,9 @@ import {
   Input,
   input,
   InputSignal,
+  output,
   Signal,
 } from '@angular/core';
-import { output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -32,6 +32,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 import {
+  AscentType,
   RouteAscentWithExtras,
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
@@ -56,7 +57,7 @@ export interface AscentsTableRow {
   grade: string;
   date: string;
   rating: number;
-  type: string;
+  type: AscentType | 'default';
   comment: string;
   showComment: boolean;
   details: string[];
@@ -120,8 +121,7 @@ export interface AscentsTableRow {
               [class.cursor-pointer]="item.canEdit"
               [style.background]="
                 showRowColors() && item.canEdit
-                  ? ascentsService.ascentInfo()[item.type || 'default']
-                      .backgroundSubtle
+                  ? ascentsService.ascentInfo()[item.type].backgroundSubtle
                   : ''
               "
               (click.zoneless)="item.canEdit && onEdit(item)"
@@ -245,22 +245,17 @@ export interface AscentsTableRow {
                         <tui-avatar
                           class="!text-white"
                           [style.background]="
-                            ascentsService.ascentInfo()[item.type || 'default']
-                              .background
+                            ascentsService.ascentInfo()[item.type].background
                           "
                           [tuiHint]="
                             global.isMobile()
                               ? null
-                              : ('ascentTypes.' + (item.type || 'rp')
+                              : ('ascentTypes.' + (item.type === 'default' ? 'rp' : item.type)
                                 | translate)
                           "
                         >
                           <tui-icon
-                            [icon]="
-                              ascentsService.ascentInfo()[
-                                item.type || 'default'
-                              ].icon
-                            "
+                            [icon]="ascentsService.ascentInfo()[item.type].icon"
                           />
                         </tui-avatar>
                       </div>
@@ -386,7 +381,7 @@ export class AscentsTableComponent {
         grade: g,
         date: a.date ?? a.created_at ?? '',
         rating: a.rate ?? 0,
-        type: a.type ?? '',
+        type: (a.type as AscentType) ?? 'default',
         comment: a.comment ?? '',
         showComment: !a.private_comment,
         details,

@@ -1,12 +1,14 @@
 import { AsyncPipe, isPlatformBrowser, KeyValuePipe } from '@angular/common';
-import { PLATFORM_ID, Signal, WritableSignal } from '@angular/core';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
   inject,
   OnDestroy,
+  PLATFORM_ID,
+  Signal,
   signal,
+  WritableSignal,
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -30,8 +32,7 @@ import {
 import { TuiAvatar, TuiBreadcrumbs, TuiSkeleton } from '@taiga-ui/kit';
 import { TuiCell, TuiInputSearch, TuiNavigation } from '@taiga-ui/layout';
 
-import { TranslatePipe } from '@ngx-translate/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   debounceTime,
   distinctUntilChanged,

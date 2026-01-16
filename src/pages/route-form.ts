@@ -14,8 +14,7 @@ import {
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { TuiIdentityMatcher } from '@taiga-ui/cdk';
-import { TuiButton, TuiLabel, TuiTextfield } from '@taiga-ui/core';
-import { TuiDataList } from '@taiga-ui/core';
+import { TuiButton, TuiDataList, TuiLabel, TuiTextfield } from '@taiga-ui/core';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import {
   TuiChevron,

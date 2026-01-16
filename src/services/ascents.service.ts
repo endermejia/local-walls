@@ -7,8 +7,9 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable, Subject, tap } from 'rxjs';
 
-import type {
+import {
   AscentDialogData,
+  AscentType,
   RouteAscentDto,
   RouteAscentInsertDto,
   RouteAscentUpdateDto,
@@ -33,31 +34,37 @@ export class AscentsService {
 
   readonly ascentInfo = computed<
     Record<
-      string,
+      AscentType | 'default',
       { icon: string; background: string; backgroundSubtle: string }
     >
-  >(() => ({
-    os: {
-      icon: '@tui.eye',
-      background: 'var(--tui-status-positive)',
-      backgroundSubtle: 'var(--tui-status-positive-pale)',
-    },
-    f: {
-      icon: '@tui.zap',
-      background: 'var(--tui-status-warning)',
-      backgroundSubtle: 'var(--tui-status-positive-pale)',
-    },
-    rp: {
-      icon: '@tui.circle',
-      background: 'var(--tui-status-negative)',
-      backgroundSubtle: 'var(--tui-status-positive-pale)',
-    },
-    default: {
-      icon: '@tui.circle',
-      background: 'var(--tui-neutral-fill)',
-      backgroundSubtle: 'transparent',
-    },
-  }));
+  >(() => {
+    const info: Record<
+      AscentType | 'default',
+      { icon: string; background: string; backgroundSubtle: string }
+    > = {
+      os: {
+        icon: '@tui.eye',
+        background: 'var(--tui-status-positive)',
+        backgroundSubtle: 'var(--tui-status-positive-pale)',
+      },
+      f: {
+        icon: '@tui.zap',
+        background: 'var(--tui-status-warning)',
+        backgroundSubtle: 'var(--tui-status-positive-pale)',
+      },
+      rp: {
+        icon: '@tui.circle',
+        background: 'var(--tui-status-negative)',
+        backgroundSubtle: 'var(--tui-status-positive-pale)',
+      },
+      default: {
+        icon: '@tui.circle',
+        background: 'var(--tui-neutral-fill)',
+        backgroundSubtle: 'transparent',
+      },
+    };
+    return info;
+  });
 
   openAscentForm(data: AscentDialogData): Observable<boolean> {
     return this.dialogs

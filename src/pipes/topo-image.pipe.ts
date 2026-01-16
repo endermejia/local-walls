@@ -1,6 +1,5 @@
 import { inject, Pipe, PipeTransform } from '@angular/core';
-
-import { SupabaseService } from '../services/supabase.service';
+import { SupabaseService } from '../services';
 
 @Pipe({
   name: 'topoImage',

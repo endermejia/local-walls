@@ -1,5 +1,4 @@
-import { isPlatformBrowser } from '@angular/common';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -31,8 +30,12 @@ import {
   TuiLoader,
 } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { TuiTabs } from '@taiga-ui/kit';
-import { TUI_CONFIRM, TuiAvatar, type TuiConfirmData } from '@taiga-ui/kit';
+import {
+  TUI_CONFIRM,
+  TuiAvatar,
+  type TuiConfirmData,
+  TuiTabs,
+} from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -417,7 +420,7 @@ export interface TopoRouteRow {
                                 tuiIconButton
                                 size="s"
                                 appearance="negative"
-                                iconStart="@tui.unlink"
+                                iconStart="@tui.trash"
                                 class="!rounded-full"
                                 [tuiHint]="
                                   global.isMobile()

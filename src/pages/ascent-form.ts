@@ -3,21 +3,19 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  DestroyRef,
   effect,
   inject,
   input,
   InputSignal,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-
 import { TuiDay } from '@taiga-ui/cdk';
 import {
   TuiAppearance,
@@ -42,10 +40,8 @@ import {
   TuiTextarea,
 } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
-
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { firstValueFrom } from 'rxjs';
-
+import { firstValueFrom, startWith } from 'rxjs';
 import {
   AscentDialogData,
   AscentType,
@@ -56,7 +52,6 @@ import {
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
-
 import {
   AscentsService,
   GlobalData,
@@ -64,7 +59,6 @@ import {
   SupabaseService,
   ToastService,
 } from '../services';
-
 import { handleErrorToast } from '../utils';
 
 @Component({
@@ -665,8 +659,6 @@ export default class AscentFormComponent {
 
   protected readonly gradeOptions = this.gradeItems.map((i) => i.id);
 
-  private readonly destroyRef = inject(DestroyRef);
-
   constructor() {
     effect(() => {
       const data = this.effectiveAscentData();
@@ -675,25 +667,26 @@ export default class AscentFormComponent {
     });
 
     // Handle tries auto-disable for OS/Flash
-    this.form
-      .get('type')
-      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((type) => {
-        this.updateTriesState(type);
-      });
+    effect(() => {
+      const type = toSignal(
+        this.form
+          .get('type')!
+          .valueChanges.pipe(startWith(this.form.get('type')!.value)),
+      )();
+      this.updateTriesState(type);
+    });
 
     // Handle recommended -> rating
-    this.form
-      .get('recommended')
-      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((recommended) => {
-        if (recommended) {
-          this.form.get('rate')?.setValue(5);
-        }
-      });
-
-    // Initial state
-    this.updateTriesState(this.form.get('type')?.value);
+    effect(() => {
+      const recommended = toSignal(
+        this.form
+          .get('recommended')!
+          .valueChanges.pipe(startWith(this.form.get('recommended')!.value)),
+      )();
+      if (recommended) {
+        this.form.get('rate')?.setValue(5);
+      }
+    });
 
     // Default grade if provided and not editing
     if (!this.effectiveAscentData() && this.dialogGrade !== undefined) {
