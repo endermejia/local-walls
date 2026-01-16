@@ -1,11 +1,15 @@
-import { firstValueFrom } from 'rxjs';
 import { inject, Injectable } from '@angular/core';
+
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { TranslateService } from '@ngx-translate/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+
+import { TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
+
+import { ORDERED_GRADE_VALUES } from '../models';
+
 import { FilterDialog, FilterDialogComponent } from '../pages/filter-dialog';
 import { GlobalData } from './global-data';
-import { ORDERED_GRADE_VALUES } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class FiltersService {

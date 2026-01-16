@@ -1,14 +1,18 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  signal,
   computed,
+  signal,
 } from '@angular/core';
+
 import { TuiButton, TuiDialogContext } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { MapComponent } from './map';
+
 import { TranslatePipe } from '@ngx-translate/core';
+
 import { type MapOptions } from '../models';
+
+import { MapComponent } from './map';
 
 @Component({
   selector: 'app-location-picker',

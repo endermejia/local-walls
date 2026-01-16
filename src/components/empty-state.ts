@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+
 import { TuiIcon } from '@taiga-ui/core';
+
 import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({

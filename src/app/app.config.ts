@@ -1,36 +1,40 @@
 import {
-  ApplicationConfig,
-  isDevMode,
-  provideBrowserGlobalErrorListeners,
-  provideZonelessChangeDetection,
-} from '@angular/core';
-import {
   HttpClient,
   provideHttpClient,
   withFetch,
   withInterceptors,
 } from '@angular/common/http';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import {
+  ApplicationConfig,
+  isDevMode,
+  provideBrowserGlobalErrorListeners,
+  provideZonelessChangeDetection,
+} from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import {
   provideClientHydration,
   withEventReplay,
   withIncrementalHydration,
 } from '@angular/platform-browser';
-import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+
 import { provideEventPlugins } from '@taiga-ui/event-plugins';
 import { TUI_LANGUAGE } from '@taiga-ui/i18n';
-import { toObservable } from '@angular/core/rxjs-interop';
+
+import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+
 import { GlobalData } from '../services';
-import {
-  ENV_SUPABASE_URL,
-  ENV_SUPABASE_ANON_KEY,
-} from '../environments/environment';
 import { errorInterceptor } from '../services';
+import { provideSupabaseConfig } from '../services';
+
+import {
+  ENV_SUPABASE_ANON_KEY,
+  ENV_SUPABASE_URL,
+} from '../environments/environment';
 
 import { routes } from './app.routes';
-import { provideSupabaseConfig } from '../services';
 
 const httpLoaderFactory: (http: HttpClient) => TranslateHttpLoader = (
   http: HttpClient,

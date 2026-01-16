@@ -1,21 +1,23 @@
+import { CommonModule, Location } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  InputSignal,
-  Signal,
   computed,
   effect,
   inject,
   input,
+  InputSignal,
+  Signal,
 } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
+  FormControl,
   FormsModule,
   ReactiveFormsModule,
-  FormControl,
   Validators,
 } from '@angular/forms';
+
+import { TuiIdentityMatcher, tuiIsString, TuiTime } from '@taiga-ui/cdk';
 import {
   TuiButton,
   TuiDataList,
@@ -25,34 +27,36 @@ import {
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
-
-import { TranslatePipe } from '@ngx-translate/core';
-import { TuiIdentityMatcher, TuiTime, tuiIsString } from '@taiga-ui/cdk';
+import { type TuiDialogContext } from '@taiga-ui/experimental';
 import {
   TuiCheckbox,
-  TuiInputTime,
-  tuiInputTimeOptionsProvider,
+  TuiChevron,
   TuiFilterByInputPipe,
   TuiInputChip,
+  TuiInputTime,
+  tuiInputTimeOptionsProvider,
   TuiMultiSelect,
-  TuiChevron,
 } from '@taiga-ui/kit';
-
 import { TuiCell } from '@taiga-ui/layout';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { ToposService, GlobalData, ToastService } from '../services';
-import { slugify, handleErrorToast } from '../utils';
-import { AvatarGradeComponent } from '../components';
+
+import { TranslatePipe } from '@ngx-translate/core';
+import { startWith } from 'rxjs';
+
 import {
-  VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
-  TopoDto,
   RouteDto,
   TopoDetail,
+  TopoDto,
   TopoRouteWithRoute,
+  VERTICAL_LIFE_GRADES,
+  VERTICAL_LIFE_TO_LABEL,
 } from '../models';
-import { startWith } from 'rxjs';
+
+import { GlobalData, ToastService, ToposService } from '../services';
+
+import { AvatarGradeComponent } from '../components';
+
+import { handleErrorToast, slugify } from '../utils';
 
 @Component({
   selector: 'app-topo-form',

@@ -1,15 +1,16 @@
+import { CommonModule, Location } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  InputSignal,
-  Signal,
   computed,
   effect,
   inject,
   input,
+  InputSignal,
+  Signal,
 } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
-import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+
 import {
   TuiButton,
   TuiError,
@@ -17,13 +18,17 @@ import {
   TuiNumberFormat,
   TuiTextfield,
 } from '@taiga-ui/core';
-import { TuiInputNumber } from '@taiga-ui/kit';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
+import { TuiInputNumber } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
+
 import { TranslatePipe } from '@ngx-translate/core';
-import { ParkingsService, ToastService, MapService } from '../services';
-import { handleErrorToast } from '../utils';
+
 import { ParkingDto } from '../models';
+
+import { MapService, ParkingsService, ToastService } from '../services';
+
+import { handleErrorToast } from '../utils';
 
 interface MinimalParking {
   id: number;

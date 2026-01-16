@@ -1,52 +1,57 @@
-import { firstValueFrom } from 'rxjs';
+import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  InputSignal,
-  OutputEmitterRef,
-  PLATFORM_ID,
-  Signal,
   computed,
   effect,
   inject,
   input,
+  InputSignal,
   output,
+  OutputEmitterRef,
+  PLATFORM_ID,
+  Signal,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+
 import {
-  TuiAvatar,
-  TuiRating,
-  TUI_CONFIRM,
-  type TuiConfirmData,
-} from '@taiga-ui/kit';
-import { TuiCell } from '@taiga-ui/layout';
-import { TuiDialogService } from '@taiga-ui/experimental';
-import {
-  TuiTable,
   TuiSortDirection,
-  TuiTableSortPipe,
+  TuiTable,
   TuiTableSortChange,
+  TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
 import { TuiButton, TuiHint, TuiIcon, TuiLink } from '@taiga-ui/core';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import {
+  TUI_CONFIRM,
+  TuiAvatar,
+  type TuiConfirmData,
+  TuiRating,
+} from '@taiga-ui/kit';
+import { TuiCell } from '@taiga-ui/layout';
+
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
+
 import {
-  GlobalData,
-  RoutesService,
-  AscentsService,
-  ToastService,
-} from '../services';
-import { handleErrorToast } from '../utils';
-import {
-  VERTICAL_LIFE_TO_LABEL,
-  VERTICAL_LIFE_GRADES,
-  RouteWithExtras,
   ClimbingKinds,
   RouteAscentWithExtras,
+  RouteWithExtras,
+  VERTICAL_LIFE_GRADES,
+  VERTICAL_LIFE_TO_LABEL,
 } from '../models';
+
+import {
+  AscentsService,
+  GlobalData,
+  RoutesService,
+  ToastService,
+} from '../services';
+
+import { handleErrorToast } from '../utils';
 
 import { AvatarGradeComponent } from './avatar-grade';
 import { EmptyStateComponent } from './empty-state';

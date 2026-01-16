@@ -1,26 +1,29 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  Signal,
-  WritableSignal,
   computed,
-  inject,
-  signal,
   DestroyRef,
+  inject,
+  Signal,
+  signal,
+  WritableSignal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
-  FormsModule,
-  ReactiveFormsModule,
   FormControl,
   FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
 } from '@angular/forms';
+
 import { TuiButton, TuiLink } from '@taiga-ui/core';
-import { TuiForm } from '@taiga-ui/layout';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
+import { TuiFilter, type TuiKeySteps, TuiRange } from '@taiga-ui/kit';
+import { TuiForm } from '@taiga-ui/layout';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiRange, TuiFilter, type TuiKeySteps } from '@taiga-ui/kit';
+
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { ORDERED_GRADE_VALUES } from '../models';
 
 export interface FilterDialog {

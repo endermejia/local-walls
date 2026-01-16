@@ -1,46 +1,50 @@
-import { firstValueFrom } from 'rxjs';
+import { isPlatformBrowser } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
+  input,
+  InputSignal,
+  PLATFORM_ID,
   Signal,
   signal,
   WritableSignal,
-  input,
-  effect,
-  InputSignal,
-  PLATFORM_ID,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import {
-  TuiButton,
-  TuiHint,
-  TuiLoader,
-  TuiLink,
-  TuiIcon,
-} from '@taiga-ui/core';
-import { TuiTabs } from '@taiga-ui/kit';
-import { AsyncPipe } from '@angular/common';
-import { TopoImagePipe } from '../pipes/topo-image.pipe';
-import {
-  TuiTable,
   TuiSortDirection,
-  TuiTableSortPipe,
+  TuiTable,
   TuiTableSortChange,
+  TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort, TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
-import { TuiDialogService } from '@taiga-ui/experimental';
-import { TUI_CONFIRM, type TuiConfirmData, TuiAvatar } from '@taiga-ui/kit';
-import { TuiCell } from '@taiga-ui/layout';
 import {
-  AvatarGradeComponent,
-  EmptyStateComponent,
-  SectionHeaderComponent,
-} from '../components';
+  TuiButton,
+  TuiHint,
+  TuiIcon,
+  TuiLink,
+  TuiLoader,
+} from '@taiga-ui/core';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiTabs } from '@taiga-ui/kit';
+import { TUI_CONFIRM, TuiAvatar, type TuiConfirmData } from '@taiga-ui/kit';
+import { TuiCell } from '@taiga-ui/layout';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
+
+import {
+  RouteAscentWithExtras,
+  TopoDetail,
+  TopoListItem,
+  TopoRouteWithRoute,
+} from '../models';
+
 import {
   AscentsService,
   GlobalData,
@@ -48,12 +52,15 @@ import {
   ToastService,
   ToposService,
 } from '../services';
+
+import { TopoImagePipe } from '../pipes/topo-image.pipe';
+
 import {
-  RouteAscentWithExtras,
-  TopoDetail,
-  TopoListItem,
-  TopoRouteWithRoute,
-} from '../models';
+  AvatarGradeComponent,
+  EmptyStateComponent,
+  SectionHeaderComponent,
+} from '../components';
+
 import { handleErrorToast } from '../utils';
 
 export interface TopoRouteRow {

@@ -1,9 +1,9 @@
 import { AmountByEveryGrade } from './grade.model';
 import {
-  TopoDto,
-  RouteDto,
   RouteAscentDto,
+  RouteDto,
   RouteProjectDto,
+  TopoDto,
 } from './supabase-interfaces';
 
 export interface TopoListItem {

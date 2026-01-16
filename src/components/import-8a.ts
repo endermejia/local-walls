@@ -1,3 +1,4 @@
+import { AsyncPipe, DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,34 +11,38 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+
 import {
   TuiAppearance,
   TuiButton,
-  TuiTitle,
   TuiDataListComponent,
-  TuiNotification,
   TuiDialogContext,
+  TuiNotification,
+  TuiTitle,
 } from '@taiga-ui/core';
 import {
-  TuiStepper,
-  TuiSlides,
-  TuiFiles,
   type TuiFileLike,
   TuiFileRejectedPipe,
+  TuiFiles,
   TuiInputFiles,
+  TuiSlides,
+  TuiStepper,
 } from '@taiga-ui/kit';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
-import { AsyncPipe, DatePipe } from '@angular/common';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { finalize, type Observable, of, Subject, switchMap, tap } from 'rxjs';
+
 import {
-  RouteAscentInsertDto,
   EightAnuAscent,
   GradeLabel,
   LABEL_TO_VERTICAL_LIFE,
+  RouteAscentInsertDto,
 } from '../models';
+
 import { AscentsService, SupabaseService, ToastService } from '../services';
+
 import { slugify } from '../utils';
 
 @Component({
@@ -322,7 +327,7 @@ export class Import8aComponent {
         const locationName = getVal('location_name');
         let sectorName = getVal('sector_name');
 
-        // Si sector_name es 'Unknown Sector', concatenar con location_name
+        // If sector_name is 'Unknown Sector', concatenate with location_name
         if (sectorName === 'Unknown Sector') {
           sectorName = `Unknown Sector ${locationName}`;
         }
@@ -353,12 +358,11 @@ export class Import8aComponent {
     this.loaderClose$ = this.toast.showLoader('import8a.importing');
 
     try {
-      // 1. Obtener todos los nombres únicos de routes, areas y crags
-      const uniqueRouteNames = [...new Set(ascents.map((a) => a.name))];
+      // 1. Get all unique names of areas and crags
       const uniqueAreaNames = [...new Set(ascents.map((a) => a.location_name))];
 
-      // 2. Buscar todas las routes existentes en toda la DB.
-      // Buscamos tanto el slug base como el slug "unificado" (con el sector) para evitar colisiones.
+      // 2. Find all existing routes in the entire DB.
+      // We look for both the base slug and the "unified" slug (with the sector) to avoid collisions.
       const baseSlugs = [...new Set(ascents.map((a) => slugify(a.name)))];
       const uniqueifiedSlugs = [
         ...new Set(
@@ -385,7 +389,7 @@ export class Import8aComponent {
         if (data) existingRoutes.push(...data);
       }
 
-      // Crear un mapa para búsqueda rápida basado en SLUGS para máxima robustez
+      // Create a map for fast lookup based on SLUGS for maximum robustness
       // key = "areaSlug|cragSlug|routeSlug"
       const getAscentKey = (
         routeName: string,
@@ -408,13 +412,13 @@ export class Import8aComponent {
       const toInsert: RouteAscentInsertDto[] = [];
       const ascentsToCreateRoutes: EightAnuAscent[] = [];
 
-      // 3. Clasificar ascents: los que ya tienen route vs los que necesitan crearla
+      // 3. Classify ascents: those that already have a route vs those that need to create it
       for (const a of ascents) {
         const key = getAscentKey(a.name, a.sector_name, a.location_name);
         const routeId = routeMap.get(key);
 
         if (routeId) {
-          // Route existente -> registrar directamente
+          // Existing route -> register directly
           toInsert.push({
             route_id: routeId,
             user_id: this.supabase.authUserId()!,
@@ -427,14 +431,14 @@ export class Import8aComponent {
             grade: LABEL_TO_VERTICAL_LIFE[a.difficulty] ?? null,
           });
         } else if (isAdmin) {
-          // Route no existe y es admin -> necesita crear route
+          // Route does not exist and is admin -> needs to create route
           ascentsToCreateRoutes.push(a);
         }
       }
 
-      // 4. Si es admin, crear areas, crags y routes faltantes
+      // 4. If admin, create missing areas, crags and routes
       if (isAdmin && ascentsToCreateRoutes.length > 0) {
-        // Obtener areas existentes por slug
+        // Get existing areas by slug
         const uniqueAreaSlugs = uniqueAreaNames.map((n) => slugify(n));
         const existingAreas: any[] = [];
         for (let i = 0; i < uniqueAreaSlugs.length; i += CHUNK_SIZE) {
@@ -455,7 +459,7 @@ export class Import8aComponent {
           }
         }
 
-        // Crear areas faltantes
+        // Create missing areas
         const areasToCreate = uniqueAreaNames.filter(
           (name) => !areaMap.has(slugify(name)),
         );
@@ -482,7 +486,7 @@ export class Import8aComponent {
           }
         }
 
-        // Obtener crags existentes por slug (base y unificado con area)
+        // Get existing crags by slug (base and unified with area)
         const baseCragSlugs = [
           ...new Set(ascentsToCreateRoutes.map((a) => slugify(a.sector_name))),
         ];
@@ -516,7 +520,7 @@ export class Import8aComponent {
           }
         }
 
-        // Crear crags faltantes
+        // Create missing crags
         const cragsToCreate: {
           name: string;
           area_id: number;
@@ -532,20 +536,20 @@ export class Import8aComponent {
                 area_id: areaId,
                 area_name: a.location_name,
               });
-              cragMap.set(cragKey, -1); // Evitar duplicar en esta tanda
+              cragMap.set(cragKey, -1); // Avoid duplicating in this batch
             }
           }
         }
 
-        // Usar Map para deduplicar crags a crear en esta tanda
+        // Use Map to deduplicate crags to be created in this batch
         const usedCragSlugs = new Set(existingCrags.map((ec) => ec.slug));
         const cragsUpsertData = cragsToCreate.map((c) => {
           let slug = slugify(c.name);
-          // Si el slug ya existe en DB o en este lote, lo hacemos único con el área
+          // If the slug already exists in DB or in this batch, we make it unique with the area
           if (usedCragSlugs.has(slug)) {
             slug = `${slug}-${slugify(c.area_name)}`;
           }
-          // Salvaguarda final para evitar el error de restricción UNIQUE de la DB
+          // Final safeguard to avoid the DB UNIQUE constraint error
           if (usedCragSlugs.has(slug)) {
             slug = `${slug}-${c.area_id}`;
           }
@@ -554,8 +558,8 @@ export class Import8aComponent {
         });
 
         if (cragsUpsertData.length > 0) {
-          // Se usa insert simple porque ya hemos filtrado lo existente.
-          // Si el slug ya existe, fallará, lo cual es correcto.
+          // Simple insert is used because we have already filtered the existing ones.
+          // If the slug already exists, it will fail, which is correct.
           const { data: newCrags } = await this.supabase.client
             .from('crags')
             .insert(cragsUpsertData)
@@ -575,7 +579,7 @@ export class Import8aComponent {
           }
         }
 
-        // Crear routes faltantes
+        // Create missing routes
         const routesToCreate: {
           name: string;
           crag_id: number;
@@ -596,21 +600,21 @@ export class Import8aComponent {
                   grade: LABEL_TO_VERTICAL_LIFE[a.difficulty] ?? 0,
                   crag_name: a.sector_name,
                 });
-                routeMap.set(key, -1); // Evitar duplicar en esta tanda
+                routeMap.set(key, -1); // Avoid duplicating in this batch
               }
             }
           }
         }
 
-        // Usar Map para deduplicar routes a crear en esta tanda
+        // Use Map to deduplicate routes to be created in this batch
         const usedRouteSlugs = new Set(existingRoutes.map((er) => er.slug));
         const routesUpsertData = routesToCreate.map((r) => {
           let slug = slugify(r.name);
-          // Si el slug existe en DB o lote, lo hacemos único con el sector
+          // If the slug exists in DB or batch, we make it unique with the sector
           if (usedRouteSlugs.has(slug)) {
             slug = `${slug}-${slugify(r.crag_name)}`;
           }
-          // Salvaguarda final
+          // Final safeguard
           if (usedRouteSlugs.has(slug)) {
             slug = `${slug}-${r.crag_id}`;
           }
@@ -631,7 +635,7 @@ export class Import8aComponent {
             .insert(routesUpsertData)
             .select('id, name, crag_id');
 
-          // Actualizar routeMap con las nuevas routes de forma segura
+          // Safely update routeMap with the new routes
           if (newRoutes) {
             for (const a of ascentsToCreateRoutes) {
               const areaId = areaMap.get(slugify(a.location_name));
@@ -653,7 +657,7 @@ export class Import8aComponent {
             }
           }
 
-          // Registrar los ascents de las routes recién creadas (SOLO si el ID es válido)
+          // Register the ascents of the newly created routes (ONLY if the ID is valid)
           for (const a of ascentsToCreateRoutes) {
             const key = getAscentKey(a.name, a.sector_name, a.location_name);
             const routeId = routeMap.get(key);
@@ -675,7 +679,7 @@ export class Import8aComponent {
         }
       }
 
-      // 5. Evitar duplicados: obtener ascents existentes del usuario para estas rutas
+      // 5. Avoid duplicates: get existing user ascents for these routes
       const routeIds = [...new Set(toInsert.map((i) => i.route_id))];
       const existingUserAscents: any[] = [];
       for (let i = 0; i < routeIds.length; i += CHUNK_SIZE) {
@@ -698,7 +702,7 @@ export class Import8aComponent {
         (i) => !existingAscentKeys.has(`${i.route_id}|${i.date}`),
       );
 
-      // 6. Insertar todos los ascents de una vez
+      // 6. Insert all ascents at once
       if (finalToInsert.length > 0) {
         const { error } = await this.supabase.client
           .from('route_ascents')
@@ -716,7 +720,7 @@ export class Import8aComponent {
           importedCount: finalToInsert.length,
           matchedCount: toInsert.length,
           totalCount: ascents.length,
-          skippedCount, // Asegurarse de que el i18n lo soporte o simplemente se ignore
+          skippedCount, // Make sure i18n supports it or it is simply ignored
         }),
       );
       this.context.completeWith(true);

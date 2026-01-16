@@ -1,45 +1,48 @@
-import { firstValueFrom } from 'rxjs';
+import { DecimalPipe, isPlatformBrowser, Location } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   input,
-  effect,
   InputSignal,
   PLATFORM_ID,
   resource,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { isPlatformBrowser, DecimalPipe, Location } from '@angular/common';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { TuiLoader, TuiButton, TuiHint, TuiIcon } from '@taiga-ui/core';
+
+import { TuiButton, TuiHint, TuiIcon, TuiLoader } from '@taiga-ui/core';
+import { TuiDialogService } from '@taiga-ui/experimental';
 import {
-  TuiAvatar,
-  TuiRating,
   TUI_CONFIRM,
+  TuiAvatar,
   type TuiConfirmData,
+  TuiRating,
 } from '@taiga-ui/kit';
 
-import { TuiDialogService } from '@taiga-ui/experimental';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 
 import {
-  SectionHeaderComponent,
-  AscentsTableComponent,
-  ChartAscentsByGradeComponent,
-} from '../components';
-import {
-  GlobalData,
-  RoutesService,
-  AscentsService,
-  ToastService,
-} from '../services';
-import {
-  VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
   ClimbingKinds,
   RouteAscentWithExtras,
+  VERTICAL_LIFE_GRADES,
+  VERTICAL_LIFE_TO_LABEL,
 } from '../models';
+
+import {
+  AscentsService,
+  GlobalData,
+  RoutesService,
+  ToastService,
+} from '../services';
+
+import {
+  AscentsTableComponent,
+  ChartAscentsByGradeComponent,
+  SectionHeaderComponent,
+} from '../components';
 
 import { handleErrorToast } from '../utils';
 

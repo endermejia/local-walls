@@ -1,3 +1,4 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
   computed,
   inject,
@@ -10,12 +11,14 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
+
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '../models/supabase-generated';
-import { ENV_SUPABASE_URL } from '../environments/environment';
+
 import { AppRole } from '../models';
+import { Database } from '../models/supabase-generated';
+
+import { ENV_SUPABASE_URL } from '../environments/environment';
 
 export interface SupabaseConfig {
   url: string;

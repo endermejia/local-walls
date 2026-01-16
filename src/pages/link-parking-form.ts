@@ -1,13 +1,14 @@
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  inject,
-  resource,
   computed,
+  inject,
   PLATFORM_ID,
+  resource,
 } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+
 import { TuiIdentityMatcher, tuiIsString } from '@taiga-ui/cdk';
 import {
   TuiButton,
@@ -18,7 +19,7 @@ import {
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { type TuiDialogContext } from '@taiga-ui/experimental';
 import {
   TuiChevron,
   TuiFilterByInputPipe,
@@ -27,9 +28,12 @@ import {
 } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { ParkingsService, SupabaseService } from '../services';
+
+import { TranslatePipe } from '@ngx-translate/core';
+
 import { ParkingDto } from '../models';
+
+import { ParkingsService, SupabaseService } from '../services';
 
 @Component({
   selector: 'app-link-parking-form',

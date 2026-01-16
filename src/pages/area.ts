@@ -1,55 +1,61 @@
-import { firstValueFrom } from 'rxjs';
+import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
+  effect,
   inject,
   input,
   InputSignal,
-  effect,
   signal,
-  computed,
   WritableSignal,
 } from '@angular/core';
-import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
+import { Router, RouterLink } from '@angular/router';
+
 import {
-  TuiSurface,
-  TuiLoader,
-  TuiTitle,
   TuiButton,
   TuiHint,
-  TuiTextfield,
   TuiLabel,
+  TuiLoader,
+  TuiSurface,
+  TuiTextfield,
+  TuiTitle,
 } from '@taiga-ui/core';
+import { TuiDialogService } from '@taiga-ui/experimental';
 import {
-  TuiAvatar,
   TUI_CONFIRM,
-  type TuiConfirmData,
+  TuiAvatar,
   TuiBadgedContent,
   TuiBadgeNotification,
+  type TuiConfirmData,
 } from '@taiga-ui/kit';
-import { TuiDialogService } from '@taiga-ui/experimental';
-import { Router, RouterLink } from '@angular/router';
+import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
+
+import {
+  ClimbingKinds,
+  normalizeRoutesByGrade,
+  ORDERED_GRADE_VALUES,
+} from '../models';
+
+import {
+  AreasService,
+  CragsService,
+  FiltersService,
+  GlobalData,
+  ToastService,
+} from '../services';
+
 import {
   ChartRoutesByGradeComponent,
   EmptyStateComponent,
   SectionHeaderComponent,
 } from '../components';
-import {
-  ToastService,
-  AreasService,
-  CragsService,
-  GlobalData,
-  FiltersService,
-} from '../services';
+
 import { handleErrorToast } from '../utils';
-import {
-  ORDERED_GRADE_VALUES,
-  normalizeRoutesByGrade,
-  ClimbingKinds,
-} from '../models';
 
 @Component({
   selector: 'app-area',

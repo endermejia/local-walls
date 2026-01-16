@@ -1,13 +1,18 @@
-import { Injectable, inject } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { firstValueFrom, Observable } from 'rxjs';
-import { SupabaseService } from './supabase.service';
-import { UserProfileDto } from '../models';
+import { inject, Injectable } from '@angular/core';
+
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { UserProfileConfigComponent } from '../pages/user-profile-config';
+
+import { TranslateService } from '@ngx-translate/core';
+import { firstValueFrom, Observable } from 'rxjs';
+
+import { UserProfileDto } from '../models';
+
 import { AvatarCropperComponent, AvatarCropperResult } from '../components';
 import { Import8aComponent } from '../components/import-8a';
+
+import { UserProfileConfigComponent } from '../pages/user-profile-config';
+import { SupabaseService } from './supabase.service';
 
 @Injectable({
   providedIn: 'root',

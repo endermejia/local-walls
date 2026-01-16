@@ -1,14 +1,16 @@
-import { GlobalData } from './global-data';
+import { isPlatformBrowser } from '@angular/common';
 import {
   HttpErrorResponse,
   HttpEvent,
   HttpInterceptorFn,
 } from '@angular/common/http';
+import { inject, Injector, PLATFORM_ID } from '@angular/core';
+import { Router } from '@angular/router';
+
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { inject, Injector, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { Router } from '@angular/router';
+
+import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 
 export const errorInterceptor: HttpInterceptorFn = (

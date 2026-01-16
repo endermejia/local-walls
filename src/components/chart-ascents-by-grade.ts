@@ -1,3 +1,4 @@
+import { LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -8,17 +9,20 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+
 import { TuiRingChart } from '@taiga-ui/addon-charts';
 import { TuiSkeleton } from '@taiga-ui/kit';
+
+import { TranslatePipe } from '@ngx-translate/core';
+
 import {
   GradeLabel,
-  VERTICAL_LIFE_TO_LABEL,
-  VERTICAL_LIFE_GRADES,
-  RoutesByGrade,
   RouteAscentWithExtras,
+  RoutesByGrade,
+  VERTICAL_LIFE_GRADES,
+  VERTICAL_LIFE_TO_LABEL,
 } from '../models';
-import { LowerCasePipe } from '@angular/common';
+
 import { computeGradeChartData } from '../utils';
 
 @Component({

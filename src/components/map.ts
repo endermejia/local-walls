@@ -1,26 +1,30 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  effect,
   ElementRef,
   inject,
   input,
+  InputSignal,
   OnDestroy,
   output,
-  PLATFORM_ID,
-  ViewChild,
-  effect,
-  InputSignal,
   OutputEmitterRef,
+  PLATFORM_ID,
   signal,
+  ViewChild,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import type { MapCragItem, MapOptions, MapBounds, ParkingDto } from '../models';
+
+import { TuiButton, TuiHint } from '@taiga-ui/core';
+
+import { TranslatePipe } from '@ngx-translate/core';
+
+import type { MapBounds, MapCragItem, MapOptions, ParkingDto } from '../models';
+
+import { GlobalData } from '../services';
 import { MapBuilder } from '../services/map-builder';
 import type { MapBuilderCallbacks } from '../services/map-builder';
-import { GlobalData } from '../services';
-import { TuiButton, TuiHint } from '@taiga-ui/core';
-import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-map',

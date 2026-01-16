@@ -1,3 +1,4 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
   computed,
   effect,
@@ -9,15 +10,16 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
-import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
-import { TuiBreakpointService } from '@taiga-ui/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
+
+import { TuiTablePaginationEvent } from '@taiga-ui/addon-table';
+import { TuiBreakpointService } from '@taiga-ui/core';
+import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
+
+import { TranslateService } from '@ngx-translate/core';
 import { map, merge, startWith } from 'rxjs';
-import { LocalStorage } from './local-storage';
-import { SupabaseService } from './supabase.service';
+
 import {
   AmountByEveryGrade,
   AppRoles,
@@ -47,7 +49,9 @@ import {
   TopoRouteWithRoute,
   VERTICAL_LIFE_GRADES,
 } from '../models';
-import { TuiTablePaginationEvent } from '@taiga-ui/addon-table';
+
+import { LocalStorage } from './local-storage';
+import { SupabaseService } from './supabase.service';
 
 @Injectable({
   providedIn: 'root',

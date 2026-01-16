@@ -1,21 +1,21 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  PLATFORM_ID,
   computed,
   inject,
+  PLATFORM_ID,
   signal,
   WritableSignal,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { WaIntersectionObserver } from '@ng-web-apis/intersection-observer';
+import { RouterLink } from '@angular/router';
+
 import {
-  TuiTable,
   TuiSortDirection,
-  TuiTableSortPipe,
+  TuiTable,
   TuiTableSortChange,
+  TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
@@ -30,10 +30,15 @@ import {
   TuiSelect,
   TuiSkeleton,
 } from '@taiga-ui/kit';
+
+import { WaIntersectionObserver } from '@ng-web-apis/intersection-observer';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { GlobalData, SupabaseService } from '../services';
-import { EmptyStateComponent } from '../components';
+
 import { AppRole, AppRoles } from '../models';
+
+import { GlobalData, SupabaseService } from '../services';
+
+import { EmptyStateComponent } from '../components';
 
 interface UserWithRole {
   id: string;

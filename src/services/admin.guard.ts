@@ -1,6 +1,7 @@
-import { CanMatchFn, Router, UrlTree } from '@angular/router';
-import { inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { inject, PLATFORM_ID } from '@angular/core';
+import { CanMatchFn, Router, UrlTree } from '@angular/router';
+
 import { SupabaseService } from './supabase.service';
 
 /** Allows route matching only for admin users. On server, always allow. */

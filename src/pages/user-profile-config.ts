@@ -1,20 +1,21 @@
 import {
-  ChangeDetectionStrategy,
-  Component,
-  PLATFORM_ID,
-  inject,
-  computed,
-  effect,
-  signal,
-} from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import {
   AsyncPipe,
   isPlatformBrowser,
   NgOptimizedImage,
 } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
+import { TuiDay, TuiStringMatcher } from '@taiga-ui/cdk';
 import {
   TuiButton,
   tuiDateFormatProvider,
@@ -26,33 +27,29 @@ import {
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
-import {
-  TuiChevron,
-  TuiSelect,
-  TuiDataListWrapper,
-  TuiTextarea,
-  TUI_COUNTRIES,
-  TuiComboBox,
-  TuiFilterByInputPipe,
-  TuiInputNumber,
-  TuiInputDate,
-  TuiInputYear,
-  TuiSwitch,
-  TuiAvatar,
-  TuiShimmer,
-  TuiBadgedContentComponent,
-  TuiBadge,
-} from '@taiga-ui/kit';
-import { TuiStringMatcher, TuiDay } from '@taiga-ui/cdk';
-import { injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { firstValueFrom, map } from 'rxjs';
 import {
-  GlobalData,
-  SupabaseService,
-  UserProfilesService,
-  ToastService,
-} from '../services';
+  TUI_COUNTRIES,
+  TuiAvatar,
+  TuiBadge,
+  TuiBadgedContentComponent,
+  TuiChevron,
+  TuiComboBox,
+  TuiDataListWrapper,
+  TuiFilterByInputPipe,
+  TuiInputDate,
+  TuiInputNumber,
+  TuiInputYear,
+  TuiSelect,
+  TuiShimmer,
+  TuiSwitch,
+  TuiTextarea,
+} from '@taiga-ui/kit';
+import { injectContext } from '@taiga-ui/polymorpheus';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom, map } from 'rxjs';
+
 import {
   Language,
   Languages,
@@ -62,6 +59,13 @@ import {
   Themes,
   UserProfileDto,
 } from '../models';
+
+import {
+  GlobalData,
+  SupabaseService,
+  ToastService,
+  UserProfilesService,
+} from '../services';
 
 interface Country {
   id: string;

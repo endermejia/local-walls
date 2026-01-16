@@ -1,3 +1,4 @@
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -8,32 +9,36 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+
 import {
-  TuiLoader,
   TuiButton,
   TuiHint,
-  TuiTextfield,
   TuiLabel,
+  TuiLoader,
+  TuiTextfield,
 } from '@taiga-ui/core';
 import {
+  TuiAvatar,
   TuiBadgedContent,
   TuiBadgeNotification,
-  TuiAvatar,
 } from '@taiga-ui/kit';
-import { AscentsTableComponent } from '../components';
-import { GlobalData, SupabaseService, FiltersService } from '../services';
+
+import { TranslatePipe } from '@ngx-translate/core';
+
 import {
-  RouteAscentWithExtras,
-  RouteAscentDto,
-  RouteDto,
   ClimbingKinds,
   ORDERED_GRADE_VALUES,
+  RouteAscentDto,
+  RouteAscentWithExtras,
+  RouteDto,
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
+
+import { FiltersService, GlobalData, SupabaseService } from '../services';
+
+import { AscentsTableComponent } from '../components';
 
 @Component({
   selector: 'app-home',

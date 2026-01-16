@@ -1,8 +1,8 @@
 import {
-  ORDERED_GRADE_VALUES,
-  GradeLabel,
-  RoutesByGrade,
   bandForGradeLabel,
+  GradeLabel,
+  ORDERED_GRADE_VALUES,
+  RoutesByGrade,
 } from '../models';
 
 export interface GradeChartData {

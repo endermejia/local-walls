@@ -1,15 +1,16 @@
+import { CommonModule, Location } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  InputSignal,
-  Signal,
   computed,
   effect,
   inject,
   input,
+  InputSignal,
+  Signal,
 } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
-import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+
 import {
   TuiButton,
   TuiError,
@@ -17,12 +18,15 @@ import {
   TuiNumberFormat,
   TuiTextfield,
 } from '@taiga-ui/core';
-import { TuiInputNumber, TuiTextarea } from '@taiga-ui/kit';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
+import { TuiInputNumber, TuiTextarea } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
+
 import { TranslatePipe } from '@ngx-translate/core';
-import { CragsService, ToastService, MapService } from '../services';
-import { slugify, handleErrorToast } from '../utils';
+
+import { CragsService, MapService, ToastService } from '../services';
+
+import { handleErrorToast, slugify } from '../utils';
 
 interface MinimalCrag {
   id: number;
