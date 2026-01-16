@@ -36,8 +36,15 @@ import {
   EightAnuAscent,
   GradeLabel,
   LABEL_TO_VERTICAL_LIFE,
+  AscentType,
+  AscentTypes,
 } from '../models';
-import { AscentsService, SupabaseService, ToastService } from '../services';
+import {
+  AscentsService,
+  NotificationService,
+  SupabaseService,
+  ToastService,
+} from '../services';
 import { slugify } from '../utils';
 
 @Component({
@@ -220,6 +227,7 @@ export class Import8aComponent {
   private readonly supabase = inject(SupabaseService);
   private readonly ascentsService = inject(AscentsService);
   private readonly toast = inject(ToastService);
+  private readonly notification = inject(NotificationService);
   private readonly translate = inject(TranslateService);
   private readonly context = inject(
     POLYMORPHEUS_CONTEXT,
@@ -711,13 +719,15 @@ export class Import8aComponent {
 
       const skippedCount = toInsert.length - finalToInsert.length;
 
-      this.toast.success(
+      this.notification.success(
         this.translate.instant('import8a.success', {
           importedCount: finalToInsert.length,
           matchedCount: toInsert.length,
           totalCount: ascents.length,
-          skippedCount, // Asegurarse de que el i18n lo soporte o simplemente se ignore
+          skippedCount,
         }),
+        'import8a.successTitle',
+        false,
       );
       this.context.completeWith(true);
     } catch (e) {
@@ -732,10 +742,10 @@ export class Import8aComponent {
     }
   }
 
-  private mapType(type: string): 'rp' | 'os' | 'f' {
+  private mapType(type: string): AscentType {
     const t = type.toLowerCase();
-    if (t.includes('os') || t.includes('onsight')) return 'os';
-    if (t.includes('flash')) return 'f';
-    return 'rp';
+    if (t.includes('os') || t.includes('onsight')) return AscentTypes.OS;
+    if (t.includes('flash')) return AscentTypes.F;
+    return AscentTypes.RP;
   }
 }

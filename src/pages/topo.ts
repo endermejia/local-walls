@@ -24,7 +24,6 @@ import {
 } from '@taiga-ui/core';
 import { TuiTabs } from '@taiga-ui/kit';
 import { AsyncPipe } from '@angular/common';
-import { TopoImagePipe } from '../pipes/topo-image.pipe';
 import {
   TuiTable,
   TuiSortDirection,
@@ -41,6 +40,7 @@ import {
   EmptyStateComponent,
   SectionHeaderComponent,
 } from '../components';
+import { TopoImagePipe } from '../pipes';
 import {
   AscentsService,
   GlobalData,

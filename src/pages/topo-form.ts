@@ -51,6 +51,8 @@ import {
   RouteDto,
   TopoDetail,
   TopoRouteWithRoute,
+  TopoInsertDto,
+  TopoUpdateDto,
 } from '../models';
 import { startWith } from 'rxjs';
 
@@ -345,65 +347,85 @@ export class TopoFormComponent {
     const crag_id = this.effectiveCragId();
     if (!crag_id && !this.isEdit()) return;
 
-    const payload: any = {
-      name: this.name.value,
-      photo: this.photo.value,
-      shade_morning: this.shade_morning.value,
-      shade_afternoon: this.shade_afternoon.value,
-      shade_change_hour: this.shade_change_hour.value,
-      crag_id: crag_id!,
-    };
+    if (this.isEdit()) {
+      const payload: TopoUpdateDto = {
+        name: this.name.value,
+        photo: this.photo.value,
+        shade_morning: this.shade_morning.value,
+        shade_afternoon: this.shade_afternoon.value,
+        shade_change_hour: this.shade_change_hour.value,
+        crag_id: crag_id!,
+      };
 
-    if (!this.isEdit()) {
-      payload.slug = slugify(this.name.value);
+      try {
+        const topo = await this.topos.update(
+          this.effectiveTopoData()!.id,
+          payload,
+        );
+        await this.handleTopoRoutes(topo);
+        if (this._dialogCtx) {
+          this._dialogCtx.completeWith(topo?.slug || true);
+        }
+      } catch (e) {
+        this.handleSubmitError(e);
+      }
+    } else {
+      const payload: TopoInsertDto = {
+        name: this.name.value,
+        photo: this.photo.value,
+        shade_morning: this.shade_morning.value,
+        shade_afternoon: this.shade_afternoon.value,
+        shade_change_hour: this.shade_change_hour.value,
+        crag_id: crag_id!,
+        slug: slugify(this.name.value),
+      };
+
+      try {
+        const topo = await this.topos.create(payload);
+        await this.handleTopoRoutes(topo);
+        if (this._dialogCtx) {
+          this._dialogCtx.completeWith(topo?.slug || true);
+        }
+      } catch (e) {
+        this.handleSubmitError(e);
+      }
+    }
+  }
+
+  private async handleTopoRoutes(topo: TopoDto | null): Promise<void> {
+    if (!topo) return;
+
+    const initial = new Set(this.initialRouteIds);
+    const selectedIds = new Set(this.selectedRoutes.value.map((r) => r.id));
+
+    for (const id of initial) {
+      if (!selectedIds.has(id)) {
+        await this.topos.removeRoute(topo.id, id);
+      }
     }
 
-    try {
-      let topo: TopoDto | null;
-      if (this.isEdit() && this.effectiveTopoData()) {
-        topo = await this.topos.update(this.effectiveTopoData()!.id, payload);
-      } else {
-        topo = await this.topos.create(payload);
+    const existingRoutes = this.effectiveTopoData()?.topo_routes || [];
+    const maxNumber =
+      existingRoutes.length > 0
+        ? Math.max(...existingRoutes.map((tr: TopoRouteWithRoute) => tr.number))
+        : -1;
+    let nextNumber = maxNumber + 1;
+
+    for (const id of selectedIds) {
+      if (!initial.has(id)) {
+        await this.topos.addRoute({
+          topo_id: topo.id,
+          route_id: id,
+          number: nextNumber++,
+        });
       }
-
-      if (topo) {
-        const initial = new Set(this.initialRouteIds);
-        const selectedIds = new Set(this.selectedRoutes.value.map((r) => r.id));
-
-        for (const id of initial) {
-          if (!selectedIds.has(id)) {
-            await this.topos.removeRoute(topo.id, id);
-          }
-        }
-
-        const existingRoutes = this.effectiveTopoData()?.topo_routes || [];
-        const maxNumber =
-          existingRoutes.length > 0
-            ? Math.max(
-                ...existingRoutes.map((tr: TopoRouteWithRoute) => tr.number),
-              )
-            : -1;
-        let nextNumber = maxNumber + 1;
-
-        for (const id of selectedIds) {
-          if (!initial.has(id)) {
-            await this.topos.addRoute({
-              topo_id: topo.id,
-              route_id: id,
-              number: nextNumber++,
-            });
-          }
-        }
-      }
-
-      if (this._dialogCtx) {
-        this._dialogCtx.completeWith(topo?.slug || true);
-      }
-    } catch (e) {
-      const error = e as Error;
-      console.error('[TopoFormComponent] Error submitting topo:', error);
-      handleErrorToast(error, this.toast);
     }
+  }
+
+  private handleSubmitError(e: unknown): void {
+    const error = e as Error;
+    console.error('[TopoFormComponent] Error submitting topo:', error);
+    handleErrorToast(error, this.toast);
   }
 
   goBack(): void {

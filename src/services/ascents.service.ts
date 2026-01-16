@@ -2,11 +2,13 @@ import { computed, inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { SupabaseService } from './supabase.service';
 import { GlobalData } from './global-data';
-import type {
+import {
   RouteAscentDto,
   RouteAscentInsertDto,
   RouteAscentUpdateDto,
   AscentDialogData,
+  AscentType,
+  AscentTypes,
 } from '../models';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { TranslateService } from '@ngx-translate/core';
@@ -29,31 +31,37 @@ export class AscentsService {
 
   readonly ascentInfo = computed<
     Record<
-      string,
+      AscentType | 'default',
       { icon: string; background: string; backgroundSubtle: string }
     >
-  >(() => ({
-    os: {
-      icon: '@tui.eye',
-      background: 'var(--tui-status-positive)',
-      backgroundSubtle: 'var(--tui-status-positive-pale)',
-    },
-    f: {
-      icon: '@tui.zap',
-      background: 'var(--tui-status-warning)',
-      backgroundSubtle: 'var(--tui-status-positive-pale)',
-    },
-    rp: {
-      icon: '@tui.circle',
-      background: 'var(--tui-status-negative)',
-      backgroundSubtle: 'var(--tui-status-positive-pale)',
-    },
-    default: {
-      icon: '@tui.circle',
-      background: 'var(--tui-neutral-fill)',
-      backgroundSubtle: 'transparent',
-    },
-  }));
+  >(() => {
+    const info: Record<
+      AscentType | 'default',
+      { icon: string; background: string; backgroundSubtle: string }
+    > = {
+      os: {
+        icon: '@tui.eye',
+        background: 'var(--tui-status-positive)',
+        backgroundSubtle: 'var(--tui-status-positive-pale)',
+      },
+      f: {
+        icon: '@tui.zap',
+        background: 'var(--tui-status-warning)',
+        backgroundSubtle: 'var(--tui-status-positive-pale)',
+      },
+      rp: {
+        icon: '@tui.circle',
+        background: 'var(--tui-status-negative)',
+        backgroundSubtle: 'var(--tui-status-positive-pale)',
+      },
+      default: {
+        icon: '@tui.circle',
+        background: 'var(--tui-neutral-fill)',
+        backgroundSubtle: 'transparent',
+      },
+    };
+    return info;
+  });
 
   openAscentForm(data: AscentDialogData): Observable<boolean> {
     return this.dialogs

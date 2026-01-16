@@ -15,7 +15,6 @@ import { isPlatformBrowser, LowerCasePipe, AsyncPipe } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { TopoImagePipe } from '../pipes/topo-image.pipe';
 import {
   TuiAvatar,
   TUI_CONFIRM,
@@ -42,6 +41,7 @@ import {
   RoutesTableComponent,
   SectionHeaderComponent,
 } from '../components';
+import { TopoImagePipe } from '../pipes';
 import {
   CragsService,
   FiltersService,
@@ -62,8 +62,7 @@ import {
   type CragDetail,
   type TopoListItem,
 } from '../models';
-import { mapLocationUrl } from '../utils';
-import { handleErrorToast } from '../utils';
+import { handleErrorToast, mapLocationUrl } from '../utils';
 
 @Component({
   selector: 'app-crag',

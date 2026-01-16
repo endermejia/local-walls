@@ -1,3 +1,5 @@
+import { AscentType } from './supabase-interfaces';
+
 export interface AscentListItem {
   ascentId: number;
   platform: 'eight_a' | string;
@@ -36,7 +38,7 @@ export interface AscentListItem {
   isCruxy: boolean;
   isSloper: boolean;
   isTechnical: boolean;
-  type: 'os' | 'rp' | 'f' | string; // onsight, redpoint, flash, etc.
+  type: AscentType | string; // onsight, redpoint, flash, etc.
   repeat: boolean;
   project: boolean;
   rating: number;
