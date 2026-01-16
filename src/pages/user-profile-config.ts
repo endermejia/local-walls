@@ -253,7 +253,7 @@ interface Country {
             [emptyContent]="
               eightAnuInput.value.length < 3
                 ? ('import8a.minChars' | translate)
-                : ('labels.noResults' | translate)
+                : ('notFound.title' | translate)
             "
             [itemContent]="eightAnuItem"
             [items]="eightAnuInput.value.length < 3 ? [] : items || []"
