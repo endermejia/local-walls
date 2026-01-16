@@ -1,6 +1,7 @@
 export * from './area.model';
 export * from './ascent.model';
 export * from './crag.model';
+export * from './eight-anu-ascent-api.model';
 export * from './eight-anu-ascent.model';
 export * from './eight-anu-user.model';
 export * from './grade.model';

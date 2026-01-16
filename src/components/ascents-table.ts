@@ -64,6 +64,7 @@ export interface AscentsTableRow {
   avatarSrc: string;
   canEdit: boolean;
   liked: boolean;
+  platform: 'supabase' | 'eight_a';
   _ref: RouteAscentWithExtras;
 }
 
@@ -131,28 +132,65 @@ export interface AscentsTableRow {
                 <td *tuiCell="col" tuiTd>
                   @switch (col) {
                     @case ('user') {
-                      <div tuiCell size="m" class="flex items-center">
-                        <a
-                          [routerLink]="['/profile', item.user_id]"
-                          (click)="$event.stopPropagation()"
-                        >
-                          <tui-avatar
-                            size="m"
-                            [src]="
-                              item.avatarSrc
-                                | tuiFallbackSrc: '@tui.user'
-                                | async
-                            "
-                            class="cursor-pointer"
-                          />
-                        </a>
-                        <a
-                          [routerLink]="['/profile', item.user_id]"
-                          tuiLink
-                          (click)="$event.stopPropagation()"
-                        >
-                          {{ item.user_name }}
-                        </a>
+                      <div tuiCell size="m" class="flex items-center gap-2">
+                        @if (item.platform === 'supabase') {
+                          <a
+                            [routerLink]="['/profile', item.user_id]"
+                            (click)="$event.stopPropagation()"
+                          >
+                            <tui-avatar
+                              size="m"
+                              [src]="
+                                item.avatarSrc
+                                  | tuiFallbackSrc: '@tui.user'
+                                  | async
+                              "
+                              class="cursor-pointer"
+                            />
+                          </a>
+                          <a
+                            [routerLink]="['/profile', item.user_id]"
+                            tuiLink
+                            (click)="$event.stopPropagation()"
+                          >
+                            {{ item.user_name }}
+                          </a>
+                        } @else {
+                          <a
+                            [href]="'https://www.8a.nu/user/' + item.user_id"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            (click)="$event.stopPropagation()"
+                          >
+                            <tui-avatar
+                              size="m"
+                              [src]="
+                                item.avatarSrc
+                                  | tuiFallbackSrc: '@tui.user'
+                                  | async
+                              "
+                              class="cursor-pointer"
+                            />
+                          </a>
+                          <div class="flex flex-col">
+                            <a
+                              [href]="'https://www.8a.nu/user/' + item.user_id"
+                              tuiLink
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              (click)="$event.stopPropagation()"
+                            >
+                              {{ item.user_name }}
+                            </a>
+                            <tui-chip
+                              size="xxs"
+                              appearance="secondary"
+                              class="!py-0 !h-4 !text-[10px]"
+                            >
+                              8a.nu
+                            </tui-chip>
+                          </div>
+                        }
                       </div>
                     }
                     @case ('route') {
@@ -393,7 +431,11 @@ export class AscentsTableComponent {
         details,
         canEdit: a.user_id === this.supabase.authUser()?.id,
         liked: a.route?.liked ?? false,
-        avatarSrc: this.supabase.buildAvatarUrl(a.user?.avatar ?? null),
+        platform: a.platform ?? 'supabase',
+        avatarSrc:
+          a.platform === 'eight_a'
+            ? a.user?.avatar ?? ''
+            : this.supabase.buildAvatarUrl(a.user?.avatar ?? null),
         _ref: a,
       };
     });

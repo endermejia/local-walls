@@ -3,15 +3,41 @@ import { inject, Injectable } from '@angular/core';
 
 import { Observable } from 'rxjs';
 
-import { EightAnuSearchResponse, EightAnuUser } from '../models';
+import { EightAnuAscentsResponse, EightAnuSearchResponse } from '../models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class EightAnuService {
   private http = inject(HttpClient);
-  private readonly searchUrl =
-    '/api/8anu/api/unification/collection/v1/web/search';
+  private readonly baseUrl = '/api/8anu/api/unification';
+  private readonly searchUrl = `${this.baseUrl}/collection/v1/web/search`;
+
+  getAscents(
+    category: string,
+    country: string,
+    cragSlug: string,
+    sectorSlug?: string,
+    pageIndex = 0,
+    pageSize = 10,
+    searchQuery = '',
+  ): Observable<EightAnuAscentsResponse> {
+    const url = `${this.baseUrl}/ascent/v1/web/crags/${category}/${country}/${cragSlug}/ascents`;
+    const params: Record<string, string> = {
+      pageIndex: pageIndex.toString(),
+      pageSize: pageSize.toString(),
+    };
+
+    if (sectorSlug) {
+      params['sectorSlug'] = sectorSlug;
+    }
+
+    if (searchQuery) {
+      params['searchQuery'] = searchQuery;
+    }
+
+    return this.http.get<EightAnuAscentsResponse>(url, { params });
+  }
 
   searchUsers(
     query: string,

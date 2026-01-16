@@ -18,7 +18,7 @@ import { TuiBreakpointService } from '@taiga-ui/core';
 import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
 
 import { TranslateService } from '@ngx-translate/core';
-import { map, merge, startWith } from 'rxjs';
+import { firstValueFrom, map, merge, startWith } from 'rxjs';
 
 import {
   AmountByEveryGrade,
@@ -29,6 +29,7 @@ import {
   CragDto,
   CragListItem,
   IconName,
+  LABEL_TO_VERTICAL_LIFE,
   Language,
   Languages,
   MapAreaItem,
@@ -51,6 +52,7 @@ import {
   VERTICAL_LIFE_GRADES,
 } from '../models';
 
+import { EightAnuService } from './eight-anu.service';
 import { LocalStorage } from './local-storage';
 import { SupabaseService } from './supabase.service';
 
@@ -63,6 +65,7 @@ export class GlobalData {
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private supabase = inject(SupabaseService);
+  private eightAnu = inject(EightAnuService);
   private breakpointService = inject(TuiBreakpointService);
 
   readonly isMobile = toSignal(
@@ -1027,74 +1030,154 @@ export class GlobalData {
 
   readonly routeAscentsResource = resource({
     params: () => ({
-      routeId: this.routeDetailResource.value()?.id,
+      route: this.routeDetailResource.value(),
       page: this.ascentsPage(),
       size: this.ascentsSize(),
     }),
     loader: async ({ params }): Promise<PaginatedAscents> => {
-      const { routeId, page, size } = params;
-      if (!routeId) return { items: [], total: 0 };
+      const { route, page, size } = params;
+      if (!route) return { items: [], total: 0 };
       if (!isPlatformBrowser(this.platformId)) return { items: [], total: 0 };
       try {
         await this.supabase.whenReady();
         const from = page * size;
         const to = from + size - 1;
 
-        // 1. Fetch ascents for the route with count
+        // 1. Fetch ascents for the route with count from Supabase
         const {
-          data: ascents,
-          error: ascentsError,
-          count,
+          data: sbAscents,
+          error: sbError,
+          count: sbCount,
         } = await this.supabase.client
           .from('route_ascents')
           .select('*', { count: 'exact' })
-          .eq('route_id', routeId)
+          .eq('route_id', route.id)
           .order('date', { ascending: false })
           .range(from, to);
 
-        if (ascentsError) {
-          console.error(
-            '[GlobalData] routeAscentsResource error',
-            ascentsError,
-          );
+        if (sbError) {
+          console.error('[GlobalData] routeAscentsResource error', sbError);
           return { items: [], total: 0 };
         }
 
-        if (!ascents || ascents.length === 0) return { items: [], total: 0 };
+        // 2. Fetch unique user profiles for these Supabase ascents
+        const userIds = [...new Set((sbAscents || []).map((a) => a.user_id))];
+        const { data: profiles } = await this.supabase.client
+          .from('user_profiles')
+          .select('*')
+          .in('id', userIds);
 
-        // 2. Fetch unique user profiles for these ascents
-        const userIds = [...new Set(ascents.map((a) => a.user_id))];
-        const { data: profiles, error: profilesError } =
-          await this.supabase.client
-            .from('user_profiles')
-            .select('*')
-            .in('id', userIds);
-
-        if (profilesError) {
-          console.error(
-            '[GlobalData] routeAscentsResource profiles error',
-            profilesError,
-          );
-          // Return ascents without user info if profiles fail
-          return {
-            items: ascents as RouteAscentWithExtras[],
-            total: count ?? 0,
-          };
-        }
-
-        // 3. Map profiles back to ascents
         const profileMap = new Map(profiles?.map((p) => [p.id, p]));
-        const currentRoute = this.routeDetailResource.value();
-        const items = ascents.map(
+        const supabaseItems: RouteAscentWithExtras[] = (sbAscents || []).map(
           (a) =>
             ({
               ...a,
               user: profileMap.get(a.user_id),
-              route: currentRoute ?? undefined,
+              route: route,
+              platform: 'supabase',
             }) as RouteAscentWithExtras,
         );
 
-        return { items, total: count ?? 0 };
+        // 3. Fetch from 8a.nu
+        let eightAnuItems: RouteAscentWithExtras[] = [];
+        let eightAnuTotal = 0;
+
+        if (route.area_slug && route.crag_slug) {
+          try {
+            const category =
+              route.climbing_kind === ClimbingKinds.BOULDER
+                ? 'bouldering'
+                : 'sportclimbing';
+            // Defaulting to spain as most of the app's crags are there
+            const country = 'spain';
+            const response = await firstValueFrom(
+              this.eightAnu.getAscents(
+                category,
+                country,
+                route.area_slug,
+                route.crag_slug,
+                page,
+                size,
+                route.name,
+              ),
+            );
+
+            eightAnuTotal = response.pagination.totalItems;
+            eightAnuItems = response.items
+              // Filter by zlaggableSlug or zlaggableName to ensure it's the right route
+              .filter(
+                (item) =>
+                  item.zlaggableSlug === route.slug ||
+                  item.zlaggableName.toLowerCase() === route.name.toLowerCase(),
+              )
+              .map(
+                (item) =>
+                  ({
+                    id: item.ascentId,
+                    user_id: item.userSlug,
+                    route_id: route.id,
+                    date: item.date,
+                    comment: item.comment,
+                    type: item.type,
+                    grade: LABEL_TO_VERTICAL_LIFE[item.difficulty] ?? 0,
+                    rate: item.rating,
+                    recommended: item.recommended,
+                    soft: item.isSoft,
+                    hard: item.isHard,
+                    athletic: item.isAthletic,
+                    bad_anchor: item.badAnchor,
+                    bad_bolts: item.badBolts,
+                    bad_clipping_position: item.badClippingPosition,
+                    chipped: item.chipped,
+                    crimpy: item.isCrimpy,
+                    cruxy: item.isCruxy,
+                    endurance: item.isEndurance,
+                    first_ascent: item.firstAscent,
+                    high_first_bolt: item.highFirstBolt,
+                    lose_rock: item.looseRock,
+                    overhang: item.isOverhang,
+                    roof: item.isRoof,
+                    slab: item.isSlab,
+                    sloper: item.isSloper,
+                    technical: item.isTechnical,
+                    vertical: item.isVertical,
+                    with_kneepad: item.withKneepad,
+                    user: {
+                      name: item.userName,
+                      avatar: item.userAvatar,
+                      '8anu_user_slug': item.userSlug,
+                    },
+                    route: route,
+                    platform: 'eight_a',
+                  }) as unknown as RouteAscentWithExtras,
+              );
+          } catch (e) {
+            console.error('[GlobalData] 8a.nu ascents error', e);
+          }
+        }
+
+        // 4. Merge and deduplicate
+        // Deduplication: if a Supabase ascent exists for a user with the same 8a.nu slug on the same date, skip the 8a.nu one.
+        const mergedItems = [...supabaseItems];
+        for (const item of eightAnuItems) {
+          const isDuplicate = supabaseItems.some(
+            (sb) =>
+              sb.user?.['8anu_user_slug'] === item.user?.['8anu_user_slug'] &&
+              sb.date?.split('T')[0] === item.date?.split('T')[0],
+          );
+          if (!isDuplicate) {
+            mergedItems.push(item);
+          }
+        }
+
+        // Sort by date descending
+        mergedItems.sort((a, b) => {
+          const dateA = new Date(a.date || 0).getTime();
+          const dateB = new Date(b.date || 0).getTime();
+          return dateB - dateA;
+        });
+
+        return { items: mergedItems, total: (sbCount ?? 0) + eightAnuTotal };
       } catch (e) {
         console.error('[GlobalData] routeAscentsResource exception', e);
         return { items: [], total: 0 };
