@@ -1,15 +1,19 @@
-import { firstValueFrom } from 'rxjs';
-import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { SupabaseService } from './supabase.service';
-import { GlobalData } from './global-data';
-import type { ParkingDto, ParkingInsertDto, ParkingUpdateDto } from '../models';
-import { ToastService } from './toast.service';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { TranslateService } from '@ngx-translate/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import ParkingFormComponent from '../pages/parking-form';
+
+import { TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
+
+import type { ParkingDto, ParkingInsertDto, ParkingUpdateDto } from '../models';
+
 import LinkParkingFormComponent from '../pages/link-parking-form';
+import ParkingFormComponent from '../pages/parking-form';
+import { GlobalData } from './global-data';
+import { SupabaseService } from './supabase.service';
+import { ToastService } from './toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class ParkingsService {

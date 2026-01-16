@@ -1,15 +1,18 @@
-import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { GlobalData } from './global-data';
-import { LocalStorage } from './local-storage';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+
+import { LeafletEvent, LeafletNamespace, Map, Marker } from 'leaflet';
+
 import {
+  MapBounds,
+  MapCragDataFeature,
   MapCragItem,
   MapOptions,
-  MapCragDataFeature,
-  MapBounds,
   ParkingDto,
 } from '../models';
-import { Map, Marker, LeafletNamespace, LeafletEvent } from 'leaflet';
+
+import { GlobalData } from './global-data';
+import { LocalStorage } from './local-storage';
 
 export interface MapBuilderCallbacks {
   onSelectedCragChange: (mapCragItem: MapCragItem | null) => void;

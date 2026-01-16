@@ -1,42 +1,46 @@
+import { CommonModule, isPlatformBrowser, Location } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  InputSignal,
-  Signal,
   computed,
   effect,
   inject,
   input,
-  resource,
+  InputSignal,
   PLATFORM_ID,
+  resource,
+  Signal,
 } from '@angular/core';
-import { CommonModule, Location, isPlatformBrowser } from '@angular/common';
-import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+
 import { TuiIdentityMatcher } from '@taiga-ui/cdk';
-import { TuiButton, TuiLabel, TuiTextfield } from '@taiga-ui/core';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TuiButton, TuiDataList, TuiLabel, TuiTextfield } from '@taiga-ui/core';
+import { type TuiDialogContext } from '@taiga-ui/experimental';
 import {
   TuiChevron,
-  TuiInputNumber,
-  TuiSelect,
   TuiDataListWrapper,
   TuiFilterByInputPipe,
-  TuiInputChip,
   TuiHideSelectedPipe,
+  TuiInputChip,
+  TuiInputNumber,
+  TuiSelect,
 } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { TuiDataList } from '@taiga-ui/core';
-import { RoutesService, SupabaseService, ToastService } from '../services';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import {
-  ClimbingKinds,
   ClimbingKind,
-  VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
+  ClimbingKinds,
   EquipperDto,
   RouteDto,
+  VERTICAL_LIFE_GRADES,
+  VERTICAL_LIFE_TO_LABEL,
 } from '../models';
-import { slugify, handleErrorToast } from '../utils';
+
+import { RoutesService, SupabaseService, ToastService } from '../services';
+
+import { handleErrorToast, slugify } from '../utils';
 
 interface MinimalRoute {
   id: number;

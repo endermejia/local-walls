@@ -1,5 +1,6 @@
-import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
 

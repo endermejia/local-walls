@@ -1,19 +1,23 @@
-import { firstValueFrom } from 'rxjs';
-import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { SupabaseService } from './supabase.service';
-import { GlobalData } from './global-data';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+
+import { TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
+
 import type {
   EquipperDto,
   RouteDto,
   RouteInsertDto,
   RouteUpdateDto,
 } from '../models';
-import { ToastService } from './toast.service';
-import { TuiDialogService } from '@taiga-ui/experimental';
-import { TranslateService } from '@ngx-translate/core';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+
 import { RouteFormComponent } from '../pages/route-form';
+import { GlobalData } from './global-data';
+import { SupabaseService } from './supabase.service';
+import { ToastService } from './toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class RoutesService {

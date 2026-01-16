@@ -1,12 +1,12 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
+  inject,
   Injectable,
+  PLATFORM_ID,
+  signal,
   Signal,
   WritableSignal,
-  inject,
-  signal,
 } from '@angular/core';
-import { PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
 
 /**
  * OfflineService: SSR-safe online/offline status as a Signal.

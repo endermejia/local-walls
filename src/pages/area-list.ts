@@ -1,3 +1,4 @@
+import { LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,32 +7,37 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { LowerCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { AreasService, GlobalData, FiltersService } from '../services';
-import { TranslatePipe } from '@ngx-translate/core';
+
 import {
   TuiButton,
+  TuiHint,
   TuiLoader,
+  TuiSurface,
   TuiTextfield,
   TuiTitle,
-  TuiSurface,
-  TuiHint,
 } from '@taiga-ui/core';
-import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import {
   TuiAvatar,
   TuiBadgedContentComponent,
   TuiBadgeNotification,
 } from '@taiga-ui/kit';
-import { ChartRoutesByGradeComponent } from '../components';
-import { EmptyStateComponent } from '../components';
+import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
+
+import { TranslatePipe } from '@ngx-translate/core';
 
 import {
-  ORDERED_GRADE_VALUES,
-  normalizeRoutesByGrade,
   ClimbingKinds,
+  normalizeRoutesByGrade,
+  ORDERED_GRADE_VALUES,
 } from '../models';
+
+import { AreasService, FiltersService, GlobalData } from '../services';
+
+import {
+  ChartRoutesByGradeComponent,
+  EmptyStateComponent,
+} from '../components';
 
 @Component({
   selector: 'app-area-list',

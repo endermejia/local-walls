@@ -4,14 +4,17 @@ import {
   computed,
   input,
 } from '@angular/core';
+
 import { TuiSizeL, TuiSizeS } from '@taiga-ui/core';
 import { TuiAvatar } from '@taiga-ui/kit';
+
 import { TranslatePipe } from '@ngx-translate/core';
+
 import {
+  colorForGrade,
   GradeLabel,
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
-  colorForGrade,
 } from '../models';
 
 @Component({

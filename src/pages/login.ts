@@ -1,15 +1,16 @@
+import { isPlatformBrowser, NgOptimizedImage } from '@angular/common';
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
+  PLATFORM_ID,
   signal,
   WritableSignal,
-  computed,
-  PLATFORM_ID,
-  afterNextRender,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { isPlatformBrowser, NgOptimizedImage } from '@angular/common';
+
 import {
   TuiAppearance,
   TuiButton,
@@ -19,8 +20,10 @@ import {
   TuiTitle,
 } from '@taiga-ui/core';
 import { TuiPassword } from '@taiga-ui/kit';
+import { TuiCardLarge, TuiForm, TuiHeader } from '@taiga-ui/layout';
+
 import { TranslatePipe } from '@ngx-translate/core';
-import { TuiHeader, TuiCardLarge, TuiForm } from '@taiga-ui/layout';
+
 import { SupabaseService } from '../services';
 
 @Component({

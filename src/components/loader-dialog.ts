@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { TuiLoader } from '@taiga-ui/core';
+
+import { TuiDialogContext, TuiLoader } from '@taiga-ui/core';
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext } from '@taiga-ui/core';
 
 @Component({
   standalone: true,

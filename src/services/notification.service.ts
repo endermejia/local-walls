@@ -1,7 +1,9 @@
-import { firstValueFrom } from 'rxjs';
 import { inject, Injectable } from '@angular/core';
-import { TuiAlertService, TuiAlertOptions } from '@taiga-ui/core';
+
+import { TuiAlertOptions, TuiAlertService } from '@taiga-ui/core';
+
 import { TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',

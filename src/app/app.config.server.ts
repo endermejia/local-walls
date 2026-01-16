@@ -1,12 +1,14 @@
+import { ApplicationConfig, mergeApplicationConfig } from '@angular/core';
 import { provideServerRendering, withRoutes } from '@angular/ssr';
-import { mergeApplicationConfig, ApplicationConfig } from '@angular/core';
-import { appConfig } from './app.config';
-import { serverRoutes } from './app.routes.server';
+
 import { UNIVERSAL_PROVIDERS } from '@ng-web-apis/universal';
 import { TranslateLoader } from '@ngx-translate/core';
-import { Observable, of } from 'rxjs';
-import { join } from 'path';
 import { readFileSync } from 'fs';
+import { join } from 'path';
+import { Observable, of } from 'rxjs';
+
+import { appConfig } from './app.config';
+import { serverRoutes } from './app.routes.server';
 
 // Define interface for translation data
 interface TranslationData {

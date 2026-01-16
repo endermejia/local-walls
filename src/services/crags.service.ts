@@ -1,5 +1,4 @@
-import { firstValueFrom } from 'rxjs';
-import { Router } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
 import {
   inject,
   Injectable,
@@ -7,16 +6,20 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { SupabaseService } from './supabase.service';
-// getCragDetailBySlug removed; RPC get_crag_by_slug is no longer used
-import { GlobalData } from './global-data';
-import type { CragDto, CragInsertDto, CragUpdateDto } from '../models';
-import { ToastService } from './toast.service';
+import { Router } from '@angular/router';
+
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { TranslateService } from '@ngx-translate/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+
+import { TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
+
+import type { CragDto, CragInsertDto, CragUpdateDto } from '../models';
+
 import { CragFormComponent } from '../pages/crag-form';
+import { GlobalData } from './global-data';
+import { SupabaseService } from './supabase.service';
+import { ToastService } from './toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class CragsService {

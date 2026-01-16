@@ -1,9 +1,12 @@
-import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { inject, Injectable } from '@angular/core';
-import { TuiToastOptions, TuiToastService } from '@taiga-ui/kit';
-import { TranslateService } from '@ngx-translate/core';
+
 import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiToastOptions, TuiToastService } from '@taiga-ui/kit';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+
+import { TranslateService } from '@ngx-translate/core';
+import { firstValueFrom, Subject, takeUntil } from 'rxjs';
+
 import { LoaderDialogComponent } from '../components/loader-dialog';
 
 @Injectable({

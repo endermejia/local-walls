@@ -1,4 +1,4 @@
-import { toSignal } from '@angular/core/rxjs-interop';
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,13 +9,15 @@ import {
   InputSignal,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+
+import { TuiDay } from '@taiga-ui/cdk';
 import {
   TuiAppearance,
   TuiButton,
@@ -26,7 +28,7 @@ import {
   TuiLabel,
   TuiTextfield,
 } from '@taiga-ui/core';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { type TuiDialogContext } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
   TuiCheckbox,
@@ -39,16 +41,10 @@ import {
   TuiTextarea,
 } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { TuiDay } from '@taiga-ui/cdk';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, startWith } from 'rxjs';
-import {
-  AscentsService,
-  GlobalData,
-  RoutesService,
-  SupabaseService,
-  ToastService,
-} from '../services';
+
 import {
   AscentDialogData,
   AscentType,
@@ -59,6 +55,15 @@ import {
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
+
+import {
+  AscentsService,
+  GlobalData,
+  RoutesService,
+  SupabaseService,
+  ToastService,
+} from '../services';
+
 import { handleErrorToast } from '../utils';
 
 @Component({
