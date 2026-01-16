@@ -410,6 +410,7 @@
       "parseCSV": "Error parsing CSV file"
     },
     "successTitle": "Import completed",
-    "success": "Imported {{importedCount}} ascents. ({{skippedCount}} duplicates skipped out of {{matchedCount}} matched routes from {{totalCount}} total)"
+    "success": "Imported {{importedCount}} ascents{{skippedInfo}}{{createdInfo}}",
+    "skipped": "{{count}} skipped as duplicates"
   }
 }

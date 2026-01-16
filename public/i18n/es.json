@@ -410,6 +410,7 @@
       "parseCSV": "Error al leer el archivo CSV"
     },
     "successTitle": "Importación completada",
-    "success": "Se han importado {{importedCount}} encadenes. (Se omitieron {{skippedCount}} duplicados de {{matchedCount}} vías emparejadas de {{totalCount}} totales)"
+    "success": "Se han importado {{importedCount}} encadenes{{skippedInfo}}{{createdInfo}}",
+    "skipped": "{{count}} omitidos por duplicidad"
   }
 }

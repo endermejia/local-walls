@@ -376,7 +376,7 @@ export class Import8aComponent {
       this.COUNTRY_CODE_TO_SLUG[countryCode.toUpperCase()] ||
       countryCode.toLowerCase();
     const areaSlug = slugify(areaName);
-    const url = `https://www.8a.nu/api/unification/outdoor/v1/web/crags/sportclimbing/${countrySlug}/${areaSlug}`;
+    const url = `/api/8anu/api/unification/outdoor/v1/web/crags/sportclimbing/${countrySlug}/${areaSlug}`;
 
     try {
       const response = await fetch(url);
@@ -517,6 +517,10 @@ export class Import8aComponent {
       }
 
       // 4. Si es admin, crear areas, crags y routes faltantes
+      let createdAreasCount = 0;
+      let createdCragsCount = 0;
+      let createdRoutesCount = 0;
+
       if (isAdmin && ascentsToCreateRoutes.length > 0) {
         // Obtener areas existentes por slug
         const uniqueAreaSlugs = uniqueAreaNames.map((n) => slugify(n));
@@ -560,6 +564,7 @@ export class Import8aComponent {
             .select('id, name, slug');
 
           if (newAreas) {
+            createdAreasCount = newAreas.length;
             for (const area of newAreas) {
               areaMap.set(slugify(area.name), area.id);
             }
@@ -660,6 +665,7 @@ export class Import8aComponent {
             .select('id, name, area_id');
 
           if (newCrags) {
+            createdCragsCount = newCrags.length;
             for (const a of ascentsToCreateRoutes) {
               const areaId = areaMap.get(slugify(a.location_name));
               const key = `${areaId}|${slugify(a.sector_name)}`;
@@ -731,6 +737,7 @@ export class Import8aComponent {
 
           // Actualizar routeMap con las nuevas routes de forma segura
           if (newRoutes) {
+            createdRoutesCount = newRoutes.length;
             for (const a of ascentsToCreateRoutes) {
               const areaId = areaMap.get(slugify(a.location_name));
               const cragId = cragMap.get(`${areaId}|${slugify(a.sector_name)}`);
@@ -810,13 +817,38 @@ export class Import8aComponent {
 
       const skippedCount = toInsert.length - finalToInsert.length;
 
+      let skippedInfo = '';
+      if (skippedCount > 0) {
+        skippedInfo = ` (${this.translate.instant('import8a.skipped', {
+          count: `<strong>${skippedCount}</strong>`,
+        })})`;
+      }
+
+      let createdInfo = '';
+      if (
+        isAdmin &&
+        (createdAreasCount > 0 ||
+          createdCragsCount > 0 ||
+          createdRoutesCount > 0)
+      ) {
+        createdInfo = '<br>';
+        if (createdAreasCount > 0) {
+          createdInfo += ` <strong>+${createdAreasCount}</strong> ${this.translate.instant(createdAreasCount === 1 ? 'labels.area' : 'labels.areas').toLowerCase()}`;
+        }
+        if (createdCragsCount > 0) {
+          createdInfo += ` <strong>+${createdCragsCount}</strong> ${this.translate.instant(createdCragsCount === 1 ? 'labels.crag' : 'labels.crags').toLowerCase()}`;
+        }
+        if (createdRoutesCount > 0) {
+          createdInfo += ` <strong>+${createdRoutesCount}</strong> ${this.translate.instant(createdRoutesCount === 1 ? 'labels.route' : 'labels.routes').toLowerCase()}`;
+        }
+      }
+
       this.notification.success(
         this.translate.instant('import8a.success', {
-          importedCount: finalToInsert.length,
-          matchedCount: toInsert.length,
-          totalCount: ascents.length,
-          skippedCount,
-        }),
+          importedCount: `<strong>${finalToInsert.length}</strong>`,
+          skippedInfo,
+          createdInfo,
+        }) + '.',
         'import8a.successTitle',
         false,
       );
