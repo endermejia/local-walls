@@ -1,3 +1,4 @@
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -7,9 +8,7 @@ import {
   input,
   InputSignal,
   signal,
-  DestroyRef,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import {
   FormControl,
@@ -42,7 +41,7 @@ import {
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { TuiDay } from '@taiga-ui/cdk';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, startWith } from 'rxjs';
 import {
   AscentsService,
   GlobalData,
@@ -660,8 +659,6 @@ export default class AscentFormComponent {
 
   protected readonly gradeOptions = this.gradeItems.map((i) => i.id);
 
-  private readonly destroyRef = inject(DestroyRef);
-
   constructor() {
     effect(() => {
       const data = this.effectiveAscentData();
@@ -670,25 +667,26 @@ export default class AscentFormComponent {
     });
 
     // Handle tries auto-disable for OS/Flash
-    this.form
-      .get('type')
-      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((type) => {
-        this.updateTriesState(type);
-      });
+    effect(() => {
+      const type = toSignal(
+        this.form
+          .get('type')!
+          .valueChanges.pipe(startWith(this.form.get('type')!.value)),
+      )();
+      this.updateTriesState(type);
+    });
 
     // Handle recommended -> rating
-    this.form
-      .get('recommended')
-      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((recommended) => {
-        if (recommended) {
-          this.form.get('rate')?.setValue(5);
-        }
-      });
-
-    // Initial state
-    this.updateTriesState(this.form.get('type')?.value);
+    effect(() => {
+      const recommended = toSignal(
+        this.form
+          .get('recommended')!
+          .valueChanges.pipe(startWith(this.form.get('recommended')!.value)),
+      )();
+      if (recommended) {
+        this.form.get('rate')?.setValue(5);
+      }
+    });
 
     // Default grade if provided and not editing
     if (!this.effectiveAscentData() && this.dialogGrade !== undefined) {

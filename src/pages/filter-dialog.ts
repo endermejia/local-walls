@@ -1,3 +1,4 @@
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -7,6 +8,7 @@ import {
   inject,
   signal,
   DestroyRef,
+  effect,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -22,6 +24,7 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiRange, TuiFilter, type TuiKeySteps } from '@taiga-ui/kit';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ORDERED_GRADE_VALUES } from '../models';
+import { merge, startWith } from 'rxjs';
 
 export interface FilterDialog {
   categories: number[]; // 0=Sport, 1=Boulder, 2=Multipitch
@@ -230,15 +233,17 @@ export class FilterDialogComponent {
       }
     }
 
-    this.translate.onLangChange
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this._i18nTick.update((v) => v + 1));
-    this.translate.onDefaultLangChange
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this._i18nTick.update((v) => v + 1));
-    this.translate.onTranslationChange
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this._i18nTick.update((v) => v + 1));
+    // React to i18n changes
+    effect(() => {
+      toSignal(
+        merge(
+          this.translate.onLangChange,
+          this.translate.onDefaultLangChange,
+          this.translate.onTranslationChange,
+        ),
+      )();
+      this._i18nTick.update((v) => v + 1);
+    });
 
     const grCtrl = this.form.controls.gradeRange;
     const initial = grCtrl.value;
@@ -250,13 +255,14 @@ export class FilterDialogComponent {
       grCtrl.setValue(sanitizedInitial, { emitEvent: false });
     }
     this.gradeRange.set(sanitizedInitial);
-    grCtrl.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => {
-        if (val) {
-          this.gradeRange.set(this.sanitizeRange(val));
-        }
-      });
+
+    // React to grade range changes
+    effect(() => {
+      const val = toSignal(grCtrl.valueChanges.pipe(startWith(grCtrl.value)))();
+      if (val) {
+        this.gradeRange.set(this.sanitizeRange(val));
+      }
+    });
   }
 
   private clamp(v: number): number {
