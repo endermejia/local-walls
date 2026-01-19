@@ -27,12 +27,20 @@ export const ClimbingKinds: Record<Uppercase<ClimbingKind>, ClimbingKind> = {
   MIXED: 'mixed',
   MULTIPITCH: 'multipitch',
   TRAD: 'trad',
+} as const;
+
+export const CLIMBING_ICONS: Record<ClimbingKind, string> = {
+  sport: '@tui.line-squiggle',
+  boulder: '@tui.box',
+  mixed: '@tui.mountain',
+  multipitch: '@tui.mountain',
+  trad: '@tui.mountain',
 };
 export type Language = Database['public']['Enums']['language'];
 export const Languages: Record<Uppercase<Language>, Language> = {
   ES: 'es',
   EN: 'en',
-};
+} as const;
 export type Sex = Database['public']['Enums']['sex'];
 export const Sexes: Record<Uppercase<Sex>, Sex> = {
   MALE: 'male',
@@ -43,7 +51,7 @@ export type Theme = Database['public']['Enums']['theme'];
 export const Themes: Record<Uppercase<Theme>, Theme> = {
   LIGHT: 'light',
   DARK: 'dark',
-};
+} as const;
 
 // Generic utilities (optional) for use elsewhere
 export type TableRow<TTable extends keyof Tables> = Tables[TTable]['Row'];

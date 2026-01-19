@@ -171,10 +171,6 @@ interface BreadcrumbItem {
             />
             <ng-template #search>
               <tui-search-results [results]="results$ | async" ngSkipHydration>
-                <tui-search-history
-                  [popular]="global.searchPopular()"
-                  ngSkipHydration
-                />
                 <ng-template let-item>
                   <a tuiCell [routerLink]="item.href" ngSkipHydration>
                     <tui-avatar

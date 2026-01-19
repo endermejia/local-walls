@@ -25,7 +25,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 import {
-  ClimbingKinds,
+  CLIMBING_ICONS,
   RouteAscentWithExtras,
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
@@ -205,7 +205,7 @@ import { handleErrorToast } from '../utils';
                   <tui-avatar
                     size="s"
                     appearance="secondary"
-                    [src]="climbingIcons()[r.climbing_kind] || '@tui.mountain'"
+                    [src]="climbingIcons[r.climbing_kind] || '@tui.mountain'"
                   />
                   <span class="text-xl font-semibold">{{
                     'climbingKinds.' + r.climbing_kind | translate
@@ -353,13 +353,7 @@ export class RouteComponent {
       : '?';
   });
 
-  readonly climbingIcons = computed(() => ({
-    [ClimbingKinds.SPORT]: '@tui.line-squiggle',
-    [ClimbingKinds.BOULDER]: '@tui.biceps-flexed',
-    [ClimbingKinds.MIXED]: '@tui.mountain',
-    [ClimbingKinds.MULTIPITCH]: '@tui.mountain',
-    [ClimbingKinds.TRAD]: '@tui.mountain',
-  }));
+  readonly climbingIcons = CLIMBING_ICONS;
 
   onToggleLike(): void {
     const r = this.route();

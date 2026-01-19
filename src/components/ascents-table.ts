@@ -328,11 +328,11 @@ export class AscentsTableComponent {
   updated = output<void>();
 
   readonly columns = computed(() => {
-    const cols = [];
+    const cols: string[] = [];
     if (this.showUser()) cols.push('user');
     cols.push('grade');
     if (this.showRoute()) cols.push('route');
-    cols.push('date', 'rating', 'comment', 'details', 'type');
+    cols.push('date', 'type', 'comment', 'details', 'rating');
     return cols;
   });
 

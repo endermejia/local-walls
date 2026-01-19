@@ -37,7 +37,8 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 import {
-  ClimbingKinds,
+  CLIMBING_ICONS,
+  ClimbingKind,
   RouteAscentWithExtras,
   RouteWithExtras,
   VERTICAL_LIFE_GRADES,
@@ -68,7 +69,7 @@ export type RouteItem = RouteWithExtras;
 export interface RoutesTableRow {
   key: string;
   grade: string;
-  climbing_kind: string;
+  climbing_kind: ClimbingKind;
   route: string;
   height: number | null;
   rating: number;
@@ -161,8 +162,7 @@ export interface RoutesTableRow {
                           size="s"
                           appearance="primary-grayscale"
                           [src]="
-                            climbingIcons()[item.climbing_kind] ||
-                            '@tui.mountain'
+                            climbingIcons[item.climbing_kind] || '@tui.mountain'
                           "
                           [tuiHint]="
                             global.isMobile()
@@ -395,13 +395,7 @@ export class RoutesTableComponent {
   toggleLike: OutputEmitterRef<RouteItem> = output<RouteItem>();
   toggleProject: OutputEmitterRef<RouteItem> = output<RouteItem>();
 
-  protected readonly climbingIcons = computed(() => ({
-    [ClimbingKinds.SPORT]: '@tui.line-squiggle',
-    [ClimbingKinds.BOULDER]: '@tui.biceps-flexed',
-    [ClimbingKinds.MIXED]: '@tui.mountain',
-    [ClimbingKinds.MULTIPITCH]: '@tui.mountain',
-    [ClimbingKinds.TRAD]: '@tui.mountain',
-  }));
+  readonly climbingIcons = CLIMBING_ICONS;
 
   protected readonly sorters: Record<
     RoutesTableKey,
