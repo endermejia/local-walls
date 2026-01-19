@@ -561,7 +561,10 @@ export class Import8aComponent {
       }
 
       // 1.2 Fetch all routes for each unique sector mentioned in the import to get correct slugs
-      const sectorTo8aRoutes = new Map<string, EightAnuRoute[]>();
+      const sectorTo8aRoutes = new Map<
+        string,
+        { routes: EightAnuRoute[]; climbingKind: ClimbingKind }
+      >();
       const uniqueSectorsToFetch = [
         ...new Map(
           ascents.map((a) => [
@@ -597,7 +600,10 @@ export class Import8aComponent {
             ),
           );
           if (response?.items) {
-            sectorTo8aRoutes.set(`${areaSlug}|${sectorSlug}`, response.items);
+            sectorTo8aRoutes.set(`${areaSlug}|${sectorSlug}`, {
+              routes: response.items,
+              climbingKind: s.climbingKind,
+            });
           }
         } catch (e) {
           console.error(
@@ -834,7 +840,7 @@ export class Import8aComponent {
       let createdRoutesCount = 0;
 
       // First, add all routes from 8a.nu for newly created crags
-      for (const [areaAndSector, r8aRoutes] of sectorTo8aRoutes.entries()) {
+      for (const [areaAndSector, data] of sectorTo8aRoutes.entries()) {
         const [areaSlug, sectorSlug] = areaAndSector.split('|');
         // Find areaId
         const areaId = areaMap.get(areaSlug);
@@ -842,8 +848,8 @@ export class Import8aComponent {
         const cragId = cragMap.get(`${areaId}|${sectorSlug}`);
         if (!cragId || cragId === -1) continue;
 
-        for (const r8a of r8aRoutes) {
-          const climbingKind = ClimbingKinds.SPORT; // Default to sport for zlaggables search
+        for (const r8a of data.routes) {
+          const climbingKind = data.climbingKind;
           const rKey = getRouteKey(cragId, r8a.zlaggableSlug, climbingKind);
           const rKeyName = getRouteKey(
             cragId,
@@ -877,8 +883,8 @@ export class Import8aComponent {
 
         const areaSlug = slugify(a.location_name);
         const sectorSlug = slugify(a.sector_name);
-        const r8aRoutes = sectorTo8aRoutes.get(`${areaSlug}|${sectorSlug}`);
-        const match = r8aRoutes?.find(
+        const sectorData = sectorTo8aRoutes.get(`${areaSlug}|${sectorSlug}`);
+        const match = sectorData?.routes.find(
           (r) => slugify(r.zlaggableName) === slugify(a.name),
         );
 
@@ -920,20 +926,10 @@ export class Import8aComponent {
       }
 
       if (routesToCreate.length > 0) {
-        const usedRouteSlugs = new Set(existingRoutes.map((er) => er.slug));
         const routesUpsertData = routesToCreate.map((r) => {
-          let slug = r.slug;
-          if (usedRouteSlugs.has(slug)) {
-            slug = `${slug}-${slugify(r.crag_name)}`;
-          }
-          if (usedRouteSlugs.has(slug)) {
-            slug = `${slug}-${r.crag_id}`;
-          }
-          usedRouteSlugs.add(slug);
-
           return {
             name: r.name,
-            slug,
+            slug: r.slug,
             crag_id: r.crag_id,
             climbing_kind: r.climbing_kind,
             grade: r.grade,
@@ -962,8 +958,10 @@ export class Import8aComponent {
             const cragId = cragMap.get(`${areaId}|${slugify(a.sector_name)}`);
             const areaSlug = slugify(a.location_name);
             const sectorSlug = slugify(a.sector_name);
-            const r8aRoutes = sectorTo8aRoutes.get(`${areaSlug}|${sectorSlug}`);
-            const match = r8aRoutes?.find(
+            const sectorData = sectorTo8aRoutes.get(
+              `${areaSlug}|${sectorSlug}`,
+            );
+            const match = sectorData?.routes.find(
               (r) => slugify(r.zlaggableName) === slugify(a.name),
             );
             const routeSlug = match ? match.zlaggableSlug : slugify(a.name);
