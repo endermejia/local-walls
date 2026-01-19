@@ -16,3 +16,24 @@ export interface EightAnuAscent {
   recommended: boolean;
   climbing_kind?: ClimbingKind;
 }
+
+export interface EightAnuRoute {
+  zlaggableName: string;
+  difficulty: string;
+  gradeIndex: number;
+  zlaggableSlug: string;
+  sectorSlug: string;
+  cragSlug: string;
+}
+
+export interface EightAnuRoutesResponse {
+  items: EightAnuRoute[];
+  pagination: {
+    pageSize: number;
+    totalItems: number;
+    itemsOnPage: number;
+    pageCount: number;
+    hasNext: boolean;
+    pageIndex: number;
+  };
+}

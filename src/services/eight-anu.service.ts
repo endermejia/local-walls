@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 
 import { Observable } from 'rxjs';
 
-import { EightAnuSearchResponse, EightAnuUser } from '../models';
+import { EightAnuRoutesResponse, EightAnuSearchResponse } from '../models';
 
 @Injectable({
   providedIn: 'root',
@@ -34,5 +34,27 @@ export class EightAnuService {
     // but we can search for the slug or the username.
     // In this case, we search for the slug to find the user.
     return this.searchUsers(slug, 0, 1);
+  }
+
+  getRoutes(
+    category: 'sportclimbing' | 'bouldering',
+    countrySlug: string,
+    cragSlug: string,
+    sectorSlug: string,
+    pageIndex = 0,
+    pageSize = 1000,
+  ): Observable<EightAnuRoutesResponse> {
+    const url = `/api/8anu/api/unification/outdoor/v1/web/zlaggables/${category}/${countrySlug}`;
+
+    return this.http.get<EightAnuRoutesResponse>(url, {
+      params: {
+        sectorSlug,
+        cragSlug,
+        pageIndex: pageIndex.toString(),
+        pageSize: pageSize.toString(),
+        sortField: 'totalascents',
+        order: 'desc',
+      },
+    });
   }
 }
