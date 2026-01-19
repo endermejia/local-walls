@@ -8,15 +8,35 @@ import {
   input,
   PLATFORM_ID,
   resource,
+  signal,
 } from '@angular/core';
-
-import { TuiButton, TuiFallbackSrcPipe, TuiHint } from '@taiga-ui/core';
-import { TuiCountryIsoCode } from '@taiga-ui/i18n';
-import { TUI_COUNTRIES, TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
-
-import { TranslatePipe } from '@ngx-translate/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import {
+  TuiButton,
+  TuiDataList,
+  TuiFallbackSrcPipe,
+  TuiHint,
+  TuiLabel,
+  TuiTextfield,
+} from '@taiga-ui/core';
+import { TuiCountryIsoCode } from '@taiga-ui/i18n';
+import {
+  TUI_COUNTRIES,
+  TuiAvatar,
+  TuiBadgedContent,
+  TuiBadgeNotification,
+  TuiDataListWrapper,
+  TuiSelect,
+  TuiSkeleton,
+} from '@taiga-ui/kit';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { startWith } from 'rxjs';
+
+import {
+  FiltersService,
   FollowsService,
   GlobalData,
   SupabaseService,
@@ -28,6 +48,8 @@ import {
   RouteItem,
   RoutesTableComponent,
 } from '../components';
+
+import { ORDERED_GRADE_VALUES } from '../models';
 
 @Component({
   selector: 'app-user-profile',
@@ -43,6 +65,14 @@ import {
     LowerCasePipe,
     RoutesTableComponent,
     AscentsTableComponent,
+    ReactiveFormsModule,
+    TuiSelect,
+    TuiDataList,
+    TuiDataListWrapper,
+    TuiTextfield,
+    TuiLabel,
+    TuiBadgedContent,
+    TuiBadgeNotification,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -161,11 +191,73 @@ import {
         </div>
       }
 
-      @if (ascents().length > 0) {
+      @if (
+        ascents().length > 0 ||
+        global.ascentsDateFilter() ||
+        query() ||
+        hasActiveFilters()
+      ) {
         <div class="mt-8 min-w-0">
-          <h3 class="text-xl font-semibold mb-4 capitalize">
+          <h3 class="text-xl font-semibold capitalize mb-4">
             {{ 'labels.ascents' | translate }}
           </h3>
+
+          <div class="flex flex-wrap items-center gap-2 mb-4">
+            <tui-textfield
+              class="grow min-w-48"
+              [tuiTextfieldCleaner]="true"
+              tuiTextfieldSize="l"
+            >
+              <label tuiLabel for="route-search">{{
+                'labels.searchPlaceholder' | translate
+              }}</label>
+              <input
+                tuiTextfield
+                #routeSearch
+                id="route-search"
+                [value]="query()"
+                (input.zoneless)="onQuery(routeSearch.value)"
+              />
+            </tui-textfield>
+
+            <tui-badged-content>
+              @if (hasActiveFilters()) {
+                <tui-badge-notification size="s" tuiSlot="top" />
+              }
+              <button
+                tuiButton
+                appearance="textfield"
+                size="l"
+                type="button"
+                iconStart="@tui.sliders-horizontal"
+                [attr.aria-label]="'labels.filters' | translate"
+                [tuiHint]="
+                  global.isMobile() ? null : ('labels.filters' | translate)
+                "
+                (click.zoneless)="openFilters()"
+              ></button>
+            </tui-badged-content>
+
+            <tui-textfield
+              class="w-full sm:w-48"
+              [tuiTextfieldCleaner]="false"
+              [stringify]="dateValueContent"
+              tuiTextfieldSize="l"
+            >
+              <label tuiLabel for="date-filter">
+                {{ 'labels.filterByDate' | translate }}
+              </label>
+              <input
+                tuiSelect
+                id="date-filter"
+                [formControl]="dateFilterControl"
+              />
+              <tui-data-list *tuiTextfieldDropdown>
+                <tui-data-list-wrapper new [items]="dateFilterOptions()" />
+              </tui-data-list>
+            </tui-textfield>
+          </div>
+
           <app-ascents-table
             [data]="ascents()"
             [total]="totalAscents()"
@@ -178,6 +270,18 @@ import {
             (deleted)="onAscentDeleted($event)"
           />
         </div>
+      } @else if (global.isAdmin()) {
+        <div class="mt-8 flex justify-center">
+          <button
+            tuiButton
+            type="button"
+            appearance="secondary"
+            iconStart="@tui.download"
+            (click.zoneless)="openImport8aDialog()"
+          >
+            {{ 'actions.import' | translate }} 8a.nu
+          </button>
+        </div>
       }
     </section>
   `,
@@ -186,13 +290,56 @@ import {
 export class UserProfileComponent {
   private readonly platformId = inject(PLATFORM_ID);
   protected readonly supabase = inject(SupabaseService);
+  private readonly translate = inject(TranslateService);
   private readonly followsService = inject(FollowsService);
   private readonly userProfilesService = inject(UserProfilesService);
   protected readonly global = inject(GlobalData);
+  private readonly filtersService = inject(FiltersService);
   protected readonly countriesNames$ = inject(TUI_COUNTRIES);
 
   // Route param (optional)
   id = input<string | undefined>();
+
+  protected readonly query = signal('');
+  protected readonly dateFilterControl = new FormControl<string>('last12', {
+    nonNullable: true,
+  });
+  private readonly dateFilter = toSignal(
+    this.dateFilterControl.valueChanges.pipe(
+      startWith(this.dateFilterControl.value),
+    ),
+    { initialValue: this.dateFilterControl.value },
+  );
+
+  protected readonly selectedGradeRange = this.global.areaListGradeRange;
+  protected readonly selectedCategories = this.global.areaListCategories;
+
+  protected readonly hasActiveFilters = computed(() => {
+    const [lo, hi] = this.selectedGradeRange();
+    const gradeActive = !(lo === 0 && hi === ORDERED_GRADE_VALUES.length - 1);
+    return gradeActive || this.selectedCategories().length > 0;
+  });
+
+  protected readonly dateFilterOptions = computed(() => {
+    const years: string[] = [];
+    const currentYear = new Date().getFullYear();
+    const startingYear = this.profile()?.starting_climbing_year || 2020;
+    const startYear = Math.min(2020, startingYear);
+    for (let y = currentYear; y >= startYear; y--) {
+      years.push(y.toString());
+    }
+    return ['last12', 'all', ...years];
+  });
+
+  protected readonly dateValueContent = (option: string): string => {
+    if (option === 'last12') {
+      return this.translate.instant('labels.last12Months');
+    }
+    if (option === 'all') {
+      return this.translate.instant('labels.allTime');
+    }
+    return option;
+  };
 
   constructor() {
     effect(() => {
@@ -219,6 +366,29 @@ export class UserProfileComponent {
         }
       }
     });
+
+    // Sync initial global filters to local controls/signals if needed
+    // However, global filters are typically reset to defaults on page entry.
+    // The effect below ensures that when local state changes, global state is updated and page is reset.
+    effect(() => {
+      const dateFilter = this.dateFilter();
+      const query = this.query();
+
+      // Read global filters to re-run effect when they change (e.g. from filter dialog)
+      this.selectedGradeRange();
+      this.selectedCategories();
+
+      // Reset pagination when any filter changes
+      this.global.ascentsPage.set(0);
+
+      // Sync local filters with global signals
+      this.global.ascentsDateFilter.set(dateFilter);
+      this.global.ascentsQuery.set(query || null);
+    });
+  }
+
+  onQuery(v: string) {
+    this.query.set(v);
   }
 
   // Currently viewed profile (if by id)
@@ -360,6 +530,14 @@ export class UserProfileComponent {
   openEditDialog(): void {
     if (!this.isOwnProfile()) return;
     this.userProfilesService.openUserProfileConfigForm();
+  }
+
+  protected openImport8aDialog(): void {
+    this.userProfilesService.openImport8aDialog();
+  }
+
+  protected openFilters(): void {
+    this.filtersService.openFilters({ showShade: false });
   }
 
   async toggleFollow(): Promise<void> {

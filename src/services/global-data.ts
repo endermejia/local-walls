@@ -49,6 +49,7 @@ import {
   TopoListItem,
   TopoRouteWithRoute,
   VERTICAL_LIFE_GRADES,
+  VERTICAL_LIFE_TO_LABEL,
 } from '../models';
 
 import { LocalStorage } from './local-storage';
@@ -875,6 +876,8 @@ export class GlobalData {
   // ---- Pagination for Ascents Table ----
   readonly ascentsPage = signal(0);
   readonly ascentsSize = signal(10);
+  readonly ascentsDateFilter = signal<string | null>(null);
+  readonly ascentsQuery = signal<string | null>(null);
 
   onAscentsPagination({ page, size }: TuiTablePaginationEvent): void {
     this.ascentsPage.set(page);
@@ -886,9 +889,21 @@ export class GlobalData {
       userId: this.profileUserId(),
       page: this.ascentsPage(),
       size: this.ascentsSize(),
+      dateFilter: this.ascentsDateFilter(),
+      query: this.ascentsQuery(),
+      grades: this.areaListGradeRange(),
+      categories: this.areaListCategories(),
     }),
     loader: async ({ params }): Promise<PaginatedAscents> => {
-      const { userId, page, size } = params;
+      const {
+        userId,
+        page,
+        size,
+        dateFilter,
+        query: queryText,
+        grades,
+        categories,
+      } = params;
       if (!userId || !isPlatformBrowser(this.platformId))
         return { items: [], total: 0 };
       try {
@@ -896,12 +911,12 @@ export class GlobalData {
         const from = page * size;
         const to = from + size - 1;
 
-        const { data, error, count } = await this.supabase.client
+        let query = this.supabase.client
           .from('route_ascents')
           .select(
             `
             *,
-            route:routes (
+            route:routes!inner (
               *,
               liked:route_likes(id),
               project:route_projects(id),
@@ -914,7 +929,49 @@ export class GlobalData {
           `,
             { count: 'exact' },
           )
-          .eq('user_id', userId)
+          .eq('user_id', userId);
+
+        if (queryText) {
+          query = query.ilike('route.name', `%${queryText}%`);
+        }
+
+        if (dateFilter) {
+          if (dateFilter === 'last12') {
+            const twelveMonthsAgo = new Date();
+            twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+            query = query.gte('date', twelveMonthsAgo.toISOString());
+          } else if (dateFilter !== 'all') {
+            // dateFilter is a year string
+            query = query
+              .gte('date', `${dateFilter}-01-01`)
+              .lte('date', `${dateFilter}-12-31`);
+          }
+        }
+
+        // Grade range filter
+        const [minIdx, maxIdx] = grades;
+        if (minIdx > 0 || maxIdx < ORDERED_GRADE_VALUES.length - 1) {
+          const allGradeIds = Object.keys(VERTICAL_LIFE_TO_LABEL)
+            .map(Number)
+            .sort((a, b) => a - b);
+          const allowedGrades = allGradeIds.slice(minIdx, maxIdx + 1);
+          query = query.in('route.grade', allowedGrades);
+        }
+
+        // Categories filter
+        if (categories.length > 0) {
+          const idxToKind: Record<number, string> = {
+            0: ClimbingKinds.SPORT,
+            1: ClimbingKinds.BOULDER,
+            2: ClimbingKinds.MULTIPITCH,
+          };
+          const allowedKinds = categories
+            .map((i) => idxToKind[i])
+            .filter(Boolean);
+          query = query.in('route.climbing_kind', allowedKinds);
+        }
+
+        const { data, error, count } = await query
           .order('date', { ascending: false })
           .range(from, to);
 
@@ -1187,6 +1244,8 @@ export class GlobalData {
   ): void {
     this.ascentsPage.set(0);
     this.ascentsSize.set(10);
+    this.ascentsDateFilter.set(null);
+    this.ascentsQuery.set(null);
     switch (page) {
       case 'explore': {
         this.selectedAreaSlug.set(null);
@@ -1199,6 +1258,9 @@ export class GlobalData {
         this.selectedAreaSlug.set(null);
         this.selectedCragSlug.set(null);
         this.selectedRouteSlug.set(null);
+        this.areaListGradeRange.set([0, ORDERED_GRADE_VALUES.length - 1]);
+        this.areaListCategories.set([]);
+        this.areaListShade.set([]);
         break;
       }
       case 'area': {

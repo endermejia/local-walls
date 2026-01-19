@@ -24,7 +24,7 @@ import { TuiForm } from '@taiga-ui/layout';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { merge, startWith } from 'rxjs';
+import { map, merge, startWith } from 'rxjs';
 
 import { ORDERED_GRADE_VALUES } from '../models';
 
@@ -179,10 +179,7 @@ export class FilterDialogComponent {
   protected readonly maxIndex = ORDERED_GRADE_VALUES.length - 1;
 
   // Grades range state as signal (mirror of form control)
-  protected readonly gradeRange: WritableSignal<[number, number]> = signal([
-    this.minIndex,
-    this.maxIndex,
-  ]);
+  protected readonly gradeRange: Signal<[number, number]>;
 
   // Key steps and tick labels for the range (more segments)
   protected readonly segments = 8; // increase visual segments for finer guidance
@@ -202,6 +199,15 @@ export class FilterDialogComponent {
   );
 
   private readonly destroyRef = inject(DestroyRef);
+
+  // React to i18n changes
+  private readonly langUpdateTrigger = toSignal(
+    merge(
+      this.translate.onLangChange,
+      this.translate.onDefaultLangChange,
+      this.translate.onTranslationChange,
+    ),
+  );
 
   constructor() {
     const d = this.context.data;
@@ -231,19 +237,12 @@ export class FilterDialogComponent {
       if (Array.isArray(d.gradeRange) && d.gradeRange.length === 2) {
         const sanitized = this.sanitizeRange(d.gradeRange as [number, number]);
         this.form.patchValue({ gradeRange: sanitized });
-        this.gradeRange.set(sanitized);
       }
     }
 
     // React to i18n changes
     effect(() => {
-      toSignal(
-        merge(
-          this.translate.onLangChange,
-          this.translate.onDefaultLangChange,
-          this.translate.onTranslationChange,
-        ),
-      )();
+      this.langUpdateTrigger();
       this._i18nTick.update((v) => v + 1);
     });
 
@@ -256,15 +255,15 @@ export class FilterDialogComponent {
     ) {
       grCtrl.setValue(sanitizedInitial, { emitEvent: false });
     }
-    this.gradeRange.set(sanitizedInitial);
 
     // React to grade range changes
-    effect(() => {
-      const val = toSignal(grCtrl.valueChanges.pipe(startWith(grCtrl.value)))();
-      if (val) {
-        this.gradeRange.set(this.sanitizeRange(val));
-      }
-    });
+    this.gradeRange = toSignal(
+      grCtrl.valueChanges.pipe(
+        startWith(grCtrl.value),
+        map((v) => this.sanitizeRange(v ?? [this.minIndex, this.maxIndex])),
+      ),
+      { initialValue: sanitizedInitial },
+    );
   }
 
   private clamp(v: number): number {
