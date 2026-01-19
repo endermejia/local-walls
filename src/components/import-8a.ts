@@ -254,21 +254,6 @@ export class Import8aComponent {
     POLYMORPHEUS_CONTEXT,
   ) as TuiDialogContext<boolean>;
 
-  private readonly COUNTRY_CODE_TO_SLUG: Record<string, string> = {
-    ES: 'spain',
-    FR: 'france',
-    IT: 'italy',
-    DE: 'germany',
-    US: 'united-states',
-    GB: 'united-kingdom',
-    AD: 'andorra',
-    BE: 'belgium',
-    CH: 'switzerland',
-    AT: 'austria',
-    GR: 'greece',
-    PT: 'portugal',
-  };
-
   protected index = 0;
   protected direction = 0;
 
@@ -501,32 +486,6 @@ export class Import8aComponent {
       .filter((a): a is EightAnuAscent => !!a && !!a.name);
   }
 
-  private async fetch8aCoordinates(
-    countryCode: string,
-    areaName: string,
-  ): Promise<{ latitude: number; longitude: number } | null> {
-    const countrySlug =
-      this.COUNTRY_CODE_TO_SLUG[countryCode.toUpperCase()] ||
-      countryCode.toLowerCase();
-    const areaSlug = slugify(areaName);
-    const url = `/api/8anu/api/unification/outdoor/v1/web/crags/sportclimbing/${countrySlug}/${areaSlug}`;
-
-    try {
-      const response = await fetch(url);
-      if (!response.ok) return null;
-      const data = await response.json();
-      if (data?.crag?.location?.latitude && data?.crag?.location?.longitude) {
-        return {
-          latitude: data.crag.location.latitude,
-          longitude: data.crag.location.longitude,
-        };
-      }
-    } catch (e) {
-      console.error('Error fetching 8a coordinates:', e);
-    }
-    return null;
-  }
-
   async onImport(): Promise<void> {
     const ascents = this.ascents();
     if (ascents.length === 0) return;
@@ -554,7 +513,10 @@ export class Import8aComponent {
       ];
 
       for (const [areaName, countryCode] of uniqueAreas) {
-        const coords = await this.fetch8aCoordinates(countryCode, areaName);
+        const coords = await this.eightAnuService.getCoordinates(
+          countryCode,
+          areaName,
+        );
         if (coords) {
           areaToCoords.set(areaName, coords);
         }
@@ -565,6 +527,8 @@ export class Import8aComponent {
         string,
         { routes: EightAnuRoute[]; climbingKind: ClimbingKind }
       >();
+      const sectorToCragSlug = new Map<string, string>();
+
       const uniqueSectorsToFetch = [
         ...new Map(
           ascents.map((a) => [
@@ -581,29 +545,41 @@ export class Import8aComponent {
 
       for (const s of uniqueSectorsToFetch) {
         try {
-          const countrySlug =
-            this.COUNTRY_CODE_TO_SLUG[s.countryCode.toUpperCase()] ||
-            s.countryCode.toLowerCase();
+          const countrySlug = this.eightAnuService.getCountrySlug(
+            s.countryCode,
+          );
           const areaSlug = slugify(s.locationName);
           const sectorSlug = slugify(s.sectorName);
-          const category =
-            s.climbingKind === ClimbingKinds.BOULDER
-              ? 'bouldering'
-              : 'sportclimbing';
 
-          const response = await firstValueFrom(
-            this.eightAnuService.getRoutes(
-              category,
-              countrySlug,
-              areaSlug,
-              sectorSlug,
-            ),
+          // Get the real cragSlug from 8a.nu (which is actually the sector in their terminology)
+          const realCragSlug = await this.eightAnuService.searchCrag(
+            s.countryCode,
+            s.locationName,
+            s.sectorName,
           );
-          if (response?.items) {
-            sectorTo8aRoutes.set(`${areaSlug}|${sectorSlug}`, {
-              routes: response.items,
-              climbingKind: s.climbingKind,
-            });
+
+          if (realCragSlug) {
+            sectorToCragSlug.set(`${areaSlug}|${sectorSlug}`, realCragSlug);
+
+            const category =
+              s.climbingKind === ClimbingKinds.BOULDER
+                ? 'bouldering'
+                : 'sportclimbing';
+
+            const response = await firstValueFrom(
+              this.eightAnuService.getRoutes(
+                category,
+                countrySlug,
+                realCragSlug, // Use the real cragSlug obtained from search
+                sectorSlug, // This is usually the crag name in 8a.nu
+              ),
+            );
+            if (response?.items) {
+              sectorTo8aRoutes.set(`${areaSlug}|${sectorSlug}`, {
+                routes: response.items,
+                climbingKind: s.climbingKind,
+              });
+            }
           }
         } catch (e) {
           console.error(
@@ -684,8 +660,14 @@ export class Import8aComponent {
           ),
         ),
       ];
+      const eightAnuCragSlugs = [...new Set(sectorToCragSlug.values())];
+
       const allPossibleCragSlugs = [
-        ...new Set([...uniqueCragSlugs, ...uniqueifiedCragSlugs]),
+        ...new Set([
+          ...uniqueCragSlugs,
+          ...uniqueifiedCragSlugs,
+          ...eightAnuCragSlugs,
+        ]),
       ];
 
       const existingCrags: {
@@ -744,7 +726,14 @@ export class Import8aComponent {
         const cragsUpsertData = cragsToCreate
           .filter((c) => c.area_id !== -1)
           .map((c) => {
-            let slug = slugify(c.name);
+            const areaSlug = slugify(c.area_name);
+            const sectorSlug = slugify(c.name);
+            const eightAnuSlug = sectorToCragSlug.get(
+              `${areaSlug}|${sectorSlug}`,
+            );
+
+            let slug = eightAnuSlug || slugify(c.name);
+
             if (usedCragSlugs.has(slug)) {
               slug = `${slug}-${slugify(c.area_name)}`;
             }
