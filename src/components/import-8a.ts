@@ -32,7 +32,15 @@ import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { finalize, type Observable, of, Subject, switchMap, tap } from 'rxjs';
+import {
+  finalize,
+  firstValueFrom,
+  type Observable,
+  of,
+  Subject,
+  switchMap,
+  tap,
+} from 'rxjs';
 
 import {
   AscentType,
@@ -48,6 +56,7 @@ import {
 
 import {
   AscentsService,
+  EightAnuService,
   NotificationService,
   SupabaseService,
   ToastService,
@@ -234,6 +243,7 @@ import { slugify } from '../utils';
 })
 export class Import8aComponent {
   private readonly supabase = inject(SupabaseService);
+  private readonly eightAnuService = inject(EightAnuService);
   private readonly global = inject(GlobalData);
   private readonly ascentsService = inject(AscentsService);
   private readonly toast = inject(ToastService);
@@ -775,11 +785,22 @@ export class Import8aComponent {
           }
         }
 
+        // Create missing routes (Anyone can create a route if the crag exists)
+        const routesToCreate: {
+          name: string;
+          crag_id: number;
+          grade: number;
+          crag_name: string;
+          climbing_kind: ClimbingKind;
+        }[] = [];
+
         // Create missing crags (ONLY if admin)
         const cragsToCreate: {
           name: string;
           area_id: number;
           area_name: string;
+          country_code: string;
+          climbing_kind: ClimbingKind;
         }[] = [];
         for (const a of ascentsToCreateRoutes) {
           const areaId = areaMap.get(slugify(a.location_name));
@@ -794,6 +815,8 @@ export class Import8aComponent {
                 name: a.sector_name,
                 area_id: areaId,
                 area_name: a.location_name,
+                country_code: a.country_code,
+                climbing_kind: a.climbing_kind!,
               });
               cragMap.set(cragKey, -1); // Avoid duplicating in this batch
             }
@@ -859,6 +882,77 @@ export class Import8aComponent {
                 );
                 if (created) cragMap.set(key, created.id);
               }
+
+              // Fetch all routes from 8a.nu for the newly created crags
+              for (const nc of newCrags) {
+                const original = cragsToCreate.find(
+                  (c) =>
+                    c.area_id === nc.area_id &&
+                    slugify(c.name) === slugify(nc.name),
+                );
+
+                if (original) {
+                  try {
+                    const countrySlug =
+                      this.COUNTRY_CODE_TO_SLUG[
+                        original.country_code.toUpperCase()
+                      ] || original.country_code.toLowerCase();
+                    const areaSlug = slugify(original.area_name);
+                    const sectorSlug = slugify(nc.name);
+                    const category =
+                      original.climbing_kind === ClimbingKinds.BOULDER
+                        ? 'bouldering'
+                        : 'sportclimbing';
+
+                    console.log(
+                      `[8a Import] Fetching all routes for new crag: ${nc.name} (${category})`,
+                    );
+
+                    const response = await firstValueFrom(
+                      this.eightAnuService.getRoutes(
+                        category,
+                        countrySlug,
+                        areaSlug,
+                        sectorSlug,
+                      ),
+                    );
+
+                    if (response?.items) {
+                      console.log(
+                        `[8a Import] Found ${response.items.length} routes in 8a.nu for ${nc.name}`,
+                      );
+                      for (const r8a of response.items) {
+                        const rKey = getAscentKey(
+                          r8a.zlaggableName,
+                          nc.name,
+                          original.area_name,
+                          original.climbing_kind,
+                        );
+
+                        if (!routeMap.has(rKey)) {
+                          const difficulty =
+                            r8a.difficulty.toLowerCase() as GradeLabel;
+                          const grade = LABEL_TO_VERTICAL_LIFE[difficulty] ?? 3;
+
+                          routesToCreate.push({
+                            name: r8a.zlaggableName,
+                            crag_id: nc.id,
+                            grade,
+                            crag_name: nc.name,
+                            climbing_kind: original.climbing_kind,
+                          });
+                          routeMap.set(rKey, -1);
+                        }
+                      }
+                    }
+                  } catch (e) {
+                    console.error(
+                      `[8a Import] Error fetching routes for crag ${nc.name}:`,
+                      e,
+                    );
+                  }
+                }
+              }
             } else {
               console.warn(
                 '[8a Import] No new crags were returned after insert',
@@ -866,15 +960,6 @@ export class Import8aComponent {
             }
           }
         }
-
-        // Create missing routes (Anyone can create a route if the crag exists)
-        const routesToCreate: {
-          name: string;
-          crag_id: number;
-          grade: number;
-          crag_name: string;
-          climbing_kind: ClimbingKind;
-        }[] = [];
 
         for (const a of ascentsToCreateRoutes) {
           const areaId = areaMap.get(slugify(a.location_name));
