@@ -147,6 +147,7 @@ export class AscentsService {
     this.global.topoDetailResource.reload();
     this.global.userProjectsResource.reload();
     this.global.userAscentsResource.reload();
+    this.global.userTotalAscentsCountResource.reload();
     this.ascentUpdated$.next();
   }
 }

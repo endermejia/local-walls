@@ -1011,6 +1011,35 @@ export class GlobalData {
     },
   });
 
+  readonly userTotalAscentsCountResource = resource({
+    params: () => this.profileUserId(),
+    loader: async ({ params: userId }): Promise<number> => {
+      if (!userId || !isPlatformBrowser(this.platformId)) return 0;
+      try {
+        await this.supabase.whenReady();
+        const { count, error } = await this.supabase.client
+          .from('route_ascents')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId);
+
+        if (error) {
+          console.error(
+            '[GlobalData] userTotalAscentsCountResource error',
+            error,
+          );
+          return 0;
+        }
+        return count ?? 0;
+      } catch (e) {
+        console.error(
+          '[GlobalData] userTotalAscentsCountResource exception',
+          e,
+        );
+        return 0;
+      }
+    },
+  });
+
   readonly routeDetailResource = resource({
     params: () => ({
       cragId: this.cragDetailResource.value()?.id,

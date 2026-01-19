@@ -310,7 +310,6 @@ export class Import8aComponent {
             if (ascents.length === 0) {
               throw new Error('Empty CSV');
             }
-
             this.ascents.set(ascents);
             return f;
           }
@@ -330,27 +329,132 @@ export class Import8aComponent {
   }
 
   private parseCSV(text: string): EightAnuAscent[] {
-    const lines = text.split('\n');
-    if (lines.length < 2) return [];
+    // Split lines respecting quoted fields that may contain newlines
+    const lines: string[] = [];
+    let currentLine = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const nextChar = text[i + 1];
+
+      if (char === '"') {
+        if (inQuotes && nextChar === '"') {
+          // Escaped quote
+          currentLine += '""';
+          i++;
+        } else {
+          // Toggle quote state
+          inQuotes = !inQuotes;
+          currentLine += char;
+        }
+      } else if (char === '\n' && !inQuotes) {
+        // Line break outside quotes = new line
+        if (currentLine.trim().length > 0) {
+          lines.push(currentLine);
+        }
+        currentLine = '';
+      } else if (char === '\r') {
+        // Skip carriage returns
+        continue;
+      } else {
+        currentLine += char;
+      }
+    }
+
+    // Push the last line if not empty
+    if (currentLine.trim().length > 0) {
+      lines.push(currentLine);
+    }
+
+    if (lines.length < 2) {
+      console.warn('[8a Import] CSV has less than 2 lines');
+      return [];
+    }
 
     // Header looks like: "route_boulder","name","location_name","sector_name","area_name","country_code","date","type","sub_type","rating","project","tries","repeats","difficulty","perceived_hardness","comment","height","recommended","sits"
     const headerLine = lines[0].replace(/"/g, '').trim();
     const headers = headerLine.split(',');
 
+    console.log('[8a Import] CSV Headers:', headers);
+    console.log('[8a Import] Total lines to process:', lines.length - 1);
+
     return lines
       .slice(1)
       .filter((line) => line.trim().length > 0)
-      .map((line) => {
-        // Simple regex to split by comma but ignore commas inside quotes
-        const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-        const cleanValues = values.map((v) =>
-          v.replace(/^"|"$/g, '').replace(/""/g, '"').trim(),
-        );
+      .map((line, lineIndex) => {
+        // Improved CSV parsing that handles empty fields and quoted values
+        const values: string[] = [];
+        let current = '';
+        let inQuotes = false;
 
-        if (cleanValues.length < headers.length) return null;
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          const nextChar = line[i + 1];
 
-        const getVal = (name: string) => cleanValues[headers.indexOf(name)];
+          if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+              // Escaped quote inside quoted field
+              current += '"';
+              i++; // Skip next quote
+            } else {
+              // Toggle quote state
+              inQuotes = !inQuotes;
+            }
+          } else if (char === ',' && !inQuotes) {
+            // Field separator found outside quotes
+            values.push(current);
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        // Push the last field
+        values.push(current);
+
+        const cleanValues = values.map((v) => v.trim());
+
+        if (cleanValues.length < headers.length) {
+          console.warn(
+            `[8a Import] Line ${lineIndex + 2} has ${cleanValues.length} fields but expected ${headers.length}. Skipping.`,
+            line.substring(0, 100),
+          );
+          return null;
+        }
+
+        const getVal = (name: string) => {
+          const idx = headers.indexOf(name);
+          if (idx === -1) {
+            console.warn(`[8a Import] Header "${name}" not found in CSV`);
+            return '';
+          }
+          const value = cleanValues[idx];
+          return value === 'null' || value === '' ? '' : value;
+        };
+
         const ratingValue = parseInt(getVal('rating'), 10) || 0;
+        const routeBoulder = getVal('route_boulder');
+        const name = getVal('name');
+        const difficultyRaw = getVal('difficulty');
+        const difficulty = difficultyRaw.toLowerCase() as GradeLabel;
+
+        // Skip if essential fields are missing
+        if (!routeBoulder || !name || !difficulty) {
+          console.warn(
+            `[8a Import] Line ${lineIndex + 2} missing essential fields:`,
+            { routeBoulder, name, difficulty },
+          );
+          return null;
+        }
+
+        // Validate that difficulty exists in our grade mapping
+        const gradeValue = LABEL_TO_VERTICAL_LIFE[difficulty];
+        if (gradeValue === undefined) {
+          console.warn(
+            `[8a Import] Line ${lineIndex + 2}: Unknown difficulty grade "${difficulty}" (original: "${difficultyRaw}") for route "${name}". Skipping.`,
+          );
+          return null;
+        }
 
         const locationName = getVal('location_name');
         let sectorName = getVal('sector_name');
@@ -360,8 +464,13 @@ export class Import8aComponent {
           sectorName = `Unknown Sector ${locationName}`;
         }
 
+        console.log(
+          `[8a Import] Line ${lineIndex + 2}: Parsed "${name}" (${difficulty}/${gradeValue}) in ${sectorName}, ${locationName}`,
+        );
+
         return {
-          name: getVal('name'),
+          route_boulder: routeBoulder as 'ROUTE' | 'BOULDER',
+          name: name,
           location_name: locationName,
           sector_name: sectorName,
           country_code: getVal('country_code'),
@@ -369,9 +478,13 @@ export class Import8aComponent {
           type: this.mapType(getVal('type')),
           rating: Math.max(0, Math.min(5, ratingValue)),
           tries: parseInt(getVal('tries'), 10) || 1,
-          difficulty: getVal('difficulty').toLowerCase() as GradeLabel,
+          difficulty: difficulty,
           comment: getVal('comment'),
           recommended: getVal('recommended') === '1',
+          climbing_kind:
+            routeBoulder === 'BOULDER'
+              ? ClimbingKinds.BOULDER
+              : ClimbingKinds.SPORT,
         } as EightAnuAscent;
       })
       .filter((a): a is EightAnuAscent => !!a && !!a.name);
@@ -454,6 +567,7 @@ export class Import8aComponent {
         name: string;
         slug: string;
         crag_id: number;
+        climbing_kind: ClimbingKind;
         crags: {
           id: number;
           name: string;
@@ -473,7 +587,7 @@ export class Import8aComponent {
         const { data, error } = await this.supabase.client
           .from('routes')
           .select(
-            'id, name, slug, crag_id, crags(id, name, slug, area_id, areas(id, name, slug))',
+            'id, name, slug, crag_id, climbing_kind, crags(id, name, slug, area_id, areas(id, name, slug))',
           )
           .in('slug', chunk);
 
@@ -487,12 +601,14 @@ export class Import8aComponent {
       }
 
       // Create a map for fast lookup based on SLUGS for maximum robustness
-      // key = "areaSlug|cragSlug|routeSlug"
+      // key = "areaSlug|cragSlug|routeSlug|climbingKind"
       const getAscentKey = (
         routeName: string,
         cragName: string,
         areaName: string,
-      ) => `${slugify(areaName)}|${slugify(cragName)}|${slugify(routeName)}`;
+        climbingKind: ClimbingKind,
+      ) =>
+        `${slugify(areaName)}|${slugify(cragName)}|${slugify(routeName)}|${climbingKind}`;
 
       const routeMap = new Map<string, number>();
       if (existingRoutes) {
@@ -500,7 +616,12 @@ export class Import8aComponent {
           const crag = r.crags;
           const area = crag?.areas;
           if (crag && area) {
-            const key = getAscentKey(r.name, crag.name, area.name);
+            const key = getAscentKey(
+              r.name,
+              crag.name,
+              area.name,
+              r.climbing_kind,
+            );
             routeMap.set(key, r.id);
           }
         }
@@ -513,7 +634,12 @@ export class Import8aComponent {
 
       // 3. Classify ascents: those that already have a route vs those that need to create one
       for (const a of ascents) {
-        const key = getAscentKey(a.name, a.sector_name, a.location_name);
+        const key = getAscentKey(
+          a.name,
+          a.sector_name,
+          a.location_name,
+          a.climbing_kind!,
+        );
         const routeId = routeMap.get(key);
 
         if (routeId) {
@@ -592,10 +718,15 @@ export class Import8aComponent {
             ).values(),
           );
 
-          const { data: newAreas } = await this.supabase.client
-            .from('areas')
-            .insert(areaUpsertData)
-            .select('id, name, slug');
+          const { data: newAreas, error: areaError } =
+            await this.supabase.client
+              .from('areas')
+              .insert(areaUpsertData)
+              .select('id, name, slug');
+
+          if (areaError) {
+            console.error('[8a Import] Error creating areas:', areaError);
+          }
 
           if (newAreas) {
             createdAreasCount = newAreas.length;
@@ -750,28 +881,32 @@ export class Import8aComponent {
           if (areaId) {
             const cragId = cragMap.get(`${areaId}|${slugify(a.sector_name)}`);
             if (cragId && cragId !== -1) {
-              const key = getAscentKey(a.name, a.sector_name, a.location_name);
+              const key = getAscentKey(
+                a.name,
+                a.sector_name,
+                a.location_name,
+                a.climbing_kind!,
+              );
               const existingRouteId = routeMap.get(key);
               if (!existingRouteId || existingRouteId === -1) {
-                // Ensure grade is within valid range for routes table (>= 3)
-                // If the difficulty is not mapped or is < 3, we default to 3 (3a) for new routes
-                const rawGrade = LABEL_TO_VERTICAL_LIFE[a.difficulty] ?? 3;
-                const grade = rawGrade < 3 ? 3 : rawGrade;
+                // Ensure grade is within valid range for routes table (>= 0)
+                // We use the rawGrade from our mapping, allowing lower grades for boulders/easy routes
+                const grade = LABEL_TO_VERTICAL_LIFE[a.difficulty] ?? 3;
 
-                const climbing_kind =
+                const climbing_kind_to_create =
                   a.route_boulder === 'BOULDER'
                     ? ClimbingKinds.BOULDER
                     : ClimbingKinds.SPORT;
 
                 console.log(
-                  `[8a Import] Route to create: ${a.name} (${climbing_kind}) in crag ID ${cragId} with grade ${grade} (original: ${a.difficulty}, raw: ${rawGrade})`,
+                  `[8a Import] Route to create: ${a.name} (${climbing_kind_to_create}) in crag ID ${cragId} with grade ${grade} (original: ${a.difficulty})`,
                 );
                 routesToCreate.push({
                   name: a.name,
                   crag_id: cragId,
                   grade,
                   crag_name: a.sector_name,
-                  climbing_kind,
+                  climbing_kind: climbing_kind_to_create,
                 });
                 routeMap.set(key, -1); // Mark as "to be created"
               }
@@ -815,7 +950,7 @@ export class Import8aComponent {
               await this.supabase.client
                 .from('routes')
                 .insert(routesUpsertData)
-                .select('id, name, crag_id');
+                .select('id, name, crag_id, climbing_kind');
 
             if (insertError) {
               console.error('[8a Import] Error inserting routes:', insertError);
@@ -830,7 +965,7 @@ export class Import8aComponent {
               createdRoutesCount = newRoutes.length;
               for (const nr of newRoutes) {
                 console.log(
-                  `[8a Import] Assigning ID ${nr.id} to created route: ${nr.name} in crag ID ${nr.crag_id}`,
+                  `[8a Import] Assigning ID ${nr.id} to created route: ${nr.name} (${nr.climbing_kind}) in crag ID ${nr.crag_id}`,
                 );
                 // Find all matching ascents to assign the new ID
                 ascentsToCreateRoutes.forEach((a) => {
@@ -839,14 +974,21 @@ export class Import8aComponent {
                     `${areaId}|${slugify(a.sector_name)}`,
                   );
 
+                  const aClimbingKind =
+                    a.route_boulder === 'BOULDER'
+                      ? ClimbingKinds.BOULDER
+                      : ClimbingKinds.SPORT;
+
                   if (
                     nr.crag_id === cragId &&
-                    slugify(nr.name) === slugify(a.name)
+                    slugify(nr.name) === slugify(a.name) &&
+                    nr.climbing_kind === aClimbingKind
                   ) {
                     const key = getAscentKey(
                       a.name,
                       a.sector_name,
                       a.location_name,
+                      aClimbingKind,
                     );
                     routeMap.set(key, nr.id);
                   }
@@ -861,7 +1003,16 @@ export class Import8aComponent {
             // Register the ascents of the newly created routes (ONLY if the ID is valid)
             let newlyCreatedAscentsCount = 0;
             for (const a of ascentsToCreateRoutes) {
-              const key = getAscentKey(a.name, a.sector_name, a.location_name);
+              const aClimbingKind =
+                a.route_boulder === 'BOULDER'
+                  ? ClimbingKinds.BOULDER
+                  : ClimbingKinds.SPORT;
+              const key = getAscentKey(
+                a.name,
+                a.sector_name,
+                a.location_name,
+                aClimbingKind,
+              );
               const routeId = routeMap.get(key);
 
               if (routeId && routeId > 0) {
@@ -927,6 +1078,9 @@ export class Import8aComponent {
         this.global.areasListResource.reload();
         this.global.areasMapResource.reload();
         this.global.mapResource.reload();
+        this.global.cragsListResource.reload();
+        this.global.cragDetailResource.reload();
+        this.global.cragRoutesResource.reload();
       }
 
       const skippedCount = toInsert.length - finalToInsert.length;

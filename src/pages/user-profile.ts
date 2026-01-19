@@ -191,12 +191,7 @@ import { ORDERED_GRADE_VALUES } from '../models';
         </div>
       }
 
-      @if (
-        ascents().length > 0 ||
-        global.ascentsDateFilter() ||
-        query() ||
-        hasActiveFilters()
-      ) {
+      @if (absoluteTotalAscents() > 0 || query() || hasActiveFilters()) {
         <div class="mt-8 min-w-0">
           <h3 class="text-xl font-semibold capitalize mb-4">
             {{ 'labels.ascents' | translate }}
@@ -304,7 +299,7 @@ export class UserProfileComponent {
   protected readonly dateFilterControl = new FormControl<string>('last12', {
     nonNullable: true,
   });
-  private readonly dateFilter = toSignal(
+  protected readonly dateFilter = toSignal(
     this.dateFilterControl.valueChanges.pipe(
       startWith(this.dateFilterControl.value),
     ),
@@ -487,6 +482,9 @@ export class UserProfileComponent {
   readonly totalAscents = computed(
     () => this.ascentsResource.value()?.total ?? 0,
   );
+  readonly absoluteTotalAscents = computed(
+    () => this.global.userTotalAscentsCountResource.value() ?? 0,
+  );
 
   readonly projects = computed(() => this.projectsResource.value() ?? []);
 
@@ -524,6 +522,7 @@ export class UserProfileComponent {
         total: Math.max(0, curr.total - deletedCount),
       };
     });
+    this.global.userTotalAscentsCountResource.reload();
     this.projectsResource.reload();
   }
 
