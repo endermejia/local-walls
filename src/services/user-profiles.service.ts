@@ -8,8 +8,11 @@ import { firstValueFrom, Observable } from 'rxjs';
 
 import { UserProfileDto } from '../models';
 
-import { AvatarCropperComponent, AvatarCropperResult } from '../components';
-import { Import8aComponent } from '../components/import-8a';
+import {
+  AvatarCropperComponent,
+  AvatarCropperResult,
+  Import8aComponent,
+} from '../components';
 
 import { UserProfileConfigComponent } from '../pages/user-profile-config';
 import { SupabaseService } from './supabase.service';
@@ -29,6 +32,7 @@ export class UserProfilesService {
         closable: false,
         dismissible: false,
       }),
+      { defaultValue: undefined },
     );
   }
 
@@ -40,6 +44,7 @@ export class UserProfilesService {
         dismissible: true,
         closable: true,
       }),
+      { defaultValue: undefined },
     );
   }
 

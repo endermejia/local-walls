@@ -1,10 +1,12 @@
-import { LowerCasePipe } from '@angular/common';
+import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
   InputSignal,
+  PLATFORM_ID,
   signal,
   Signal,
   WritableSignal,
@@ -49,7 +51,7 @@ import { computeGradeChartData } from '../utils';
   ],
   template: `
     @let c = chart();
-    @if (c.total > 0) {
+    @if (isBrowser && c.total > 0) {
       <tui-ring-chart
         [tuiSkeleton]="tuiSkeleton()"
         [value]="c.values"
@@ -76,6 +78,9 @@ import { computeGradeChartData } from '../utils';
   `,
 })
 export class ChartRoutesByGradeComponent {
+  private readonly platformId = inject(PLATFORM_ID);
+  protected readonly isBrowser = isPlatformBrowser(this.platformId);
+
   grades: InputSignal<AmountByEveryGrade> =
     input.required<AmountByEveryGrade>();
   tuiSkeleton: InputSignal<boolean> = input(false);

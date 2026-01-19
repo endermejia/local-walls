@@ -28,7 +28,9 @@ export function computeGradeChartData(
     const b = bandForGradeLabel(g);
     bands[b] += v;
   }
-  const values = bands as readonly number[];
+  const values = bands.map((v) =>
+    Number.isFinite(v) ? v : 0,
+  ) as readonly number[];
 
   const total = values.reduce((a, b) => a + b, 0);
 

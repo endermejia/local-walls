@@ -5,6 +5,7 @@ export * from './chart-ascents-by-grade';
 export * from './chart-routes-by-grade';
 export * from './empty-state';
 export * from './header';
+export * from './import-8a';
 export * from './location-picker';
 export * from './map';
 export * from './routes-table';
