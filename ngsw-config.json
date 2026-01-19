@@ -35,6 +35,28 @@
   ],
   "dataGroups": [
     {
+      "name": "supabase-rest",
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 200,
+        "maxAge": "7d",
+        "timeout": "10s"
+      },
+      "urls": ["https://eswbehepsagigvlytfxv.supabase.co/rest/v1/**"]
+    },
+    {
+      "name": "supabase-storage",
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 100,
+        "maxAge": "30d",
+        "timeout": "10s"
+      },
+      "urls": [
+        "https://eswbehepsagigvlytfxv.supabase.co/storage/v1/object/public/**"
+      ]
+    },
+    {
       "name": "api-data",
       "cacheConfig": {
         "strategy": "freshness",

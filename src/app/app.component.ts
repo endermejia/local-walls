@@ -3,7 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Meta, Title } from '@angular/platform-browser';
 import { Router, RouterOutlet } from '@angular/router';
 
-import { TuiRoot } from '@taiga-ui/core';
+import { TuiButton, TuiRoot } from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { map, merge, startWith } from 'rxjs';
@@ -14,7 +14,7 @@ import { HeaderComponent } from '../components';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TuiRoot, HeaderComponent, TranslatePipe],
+  imports: [RouterOutlet, TuiRoot, HeaderComponent, TranslatePipe, TuiButton],
   template: `
     <tui-root class="overflow-hidden" [attr.tuiTheme]="global.selectedTheme()">
       <div class="h-[100dvh] flex flex-col">
@@ -22,6 +22,23 @@ import { HeaderComponent } from '../components';
         @if (!offline.isOnline()) {
           <div class="bg-amber-500 text-black text-sm px-3 py-2 text-center">
             {{ 'messages.offline' | translate }}
+          </div>
+        }
+        <!-- Update banner -->
+        @if (offline.isUpdateAvailable()) {
+          <div
+            class="bg-blue-600 text-white text-sm px-3 py-2 text-center flex items-center justify-center gap-4"
+          >
+            <span>{{ 'messages.updateAvailable' | translate }}</span>
+            <button
+              tuiButton
+              type="button"
+              size="s"
+              appearance="secondary-accent"
+              (click.zoneless)="offline.applyUpdate()"
+            >
+              {{ 'actions.update' | translate }}
+            </button>
           </div>
         }
         @if (showHeader()) {

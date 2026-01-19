@@ -45,7 +45,8 @@
     "viewOnMap": "View on map",
     "previous": "Previous",
     "next": "Next",
-    "uploadPhoto": "Upload photo"
+    "uploadPhoto": "Upload photo",
+    "update": "Update"
   },
   "labels": {
     "actions": "Actions",
@@ -184,6 +185,7 @@
   },
   "messages": {
     "offline": "You are offline. Some features may not be available.",
+    "updateAvailable": "A new version is available.",
     "errorFollow": "An error occurred while following the user",
     "errorUnfollow": "An error occurred while unfollowing the user",
     "toasts": {

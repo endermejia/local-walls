@@ -45,7 +45,8 @@
     "viewOnMap": "Ver en el mapa",
     "previous": "Anterior",
     "next": "Siguiente",
-    "uploadPhoto": "Subir foto"
+    "uploadPhoto": "Subir foto",
+    "update": "Actualizar"
   },
   "labels": {
     "actions": "Acciones",
@@ -184,6 +185,7 @@
   },
   "messages": {
     "offline": "Estás sin conexión. Algunas funciones pueden no estar disponibles.",
+    "updateAvailable": "Hay una nueva versión disponible.",
     "errorFollow": "Ha ocurrido un error al seguir al usuario",
     "errorUnfollow": "Ha ocurrido un error al dejar de seguir al usuario",
     "toasts": {
