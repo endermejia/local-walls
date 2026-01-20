@@ -29,8 +29,8 @@ export class OfflineService {
     typeof window !== 'undefined' &&
     typeof navigator !== 'undefined';
 
-  private readonly isOnline: WritableSignal<boolean> = signal(true);
-  private readonly updateAvailable = signal(false);
+  readonly isOnline: WritableSignal<boolean> = signal(true);
+  readonly updateAvailable = signal(false);
 
   constructor() {
     if (this.isBrowser) {
