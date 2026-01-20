@@ -358,6 +358,12 @@ export class RouteComponent {
   onToggleLike(): void {
     const r = this.route();
     if (!r || !isPlatformBrowser(this.platformId)) return;
+
+    this.global.routeDetailResource.update((current) => {
+      if (!current) return current;
+      return { ...current, liked: !current.liked };
+    });
+
     void this.routesService.toggleRouteLike(r.id);
   }
 
