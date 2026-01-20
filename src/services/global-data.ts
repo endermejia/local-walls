@@ -1033,8 +1033,8 @@ export class GlobalData {
 
   readonly userTotalAscentsCountResource = resource({
     params: () => this.profileUserId(),
-    loader: async ({ params: userId }): Promise<number> => {
-      if (!userId || !isPlatformBrowser(this.platformId)) return 0;
+    loader: async ({ params: userId }): Promise<number | undefined> => {
+      if (!userId || !isPlatformBrowser(this.platformId)) return undefined;
       try {
         await this.supabase.whenReady();
         const { count, error } = await this.supabase.client
@@ -1047,15 +1047,15 @@ export class GlobalData {
             '[GlobalData] userTotalAscentsCountResource error',
             error,
           );
-          return 0;
+          return undefined;
         }
-        return count ?? 0;
+        return count ?? undefined;
       } catch (e) {
         console.error(
           '[GlobalData] userTotalAscentsCountResource exception',
           e,
         );
-        return 0;
+        return undefined;
       }
     },
   });

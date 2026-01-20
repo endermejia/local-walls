@@ -4,15 +4,15 @@ import {
   Injectable,
   PLATFORM_ID,
   signal,
-  Signal,
   WritableSignal,
 } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
 
 import { TuiAlertService } from '@taiga-ui/core';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { filter, map } from 'rxjs';
+
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 /**
  * OfflineService: SSR-safe online/offline status as a Signal.
@@ -29,24 +29,21 @@ export class OfflineService {
     typeof window !== 'undefined' &&
     typeof navigator !== 'undefined';
 
-  private readonly onlineSig: WritableSignal<boolean> = signal(true);
-  private readonly updateAvailableSig = signal(false);
-
-  readonly isOnline: Signal<boolean> = this.onlineSig.asReadonly();
-  readonly isUpdateAvailable = this.updateAvailableSig.asReadonly();
+  private readonly isOnline: WritableSignal<boolean> = signal(true);
+  private readonly updateAvailable = signal(false);
 
   constructor() {
     if (this.isBrowser) {
       // Initial value from navigator
       try {
-        this.onlineSig.set(navigator.onLine);
+        this.isOnline.set(navigator.onLine);
       } catch {
         // fallback to true
-        this.onlineSig.set(true);
+        this.isOnline.set(true);
       }
       // Listen to online/offline events
-      window.addEventListener('online', () => this.onlineSig.set(true));
-      window.addEventListener('offline', () => this.onlineSig.set(false));
+      window.addEventListener('online', () => this.isOnline.set(true));
+      window.addEventListener('offline', () => this.isOnline.set(false));
 
       // Service Worker updates
       if (this.swUpdate.isEnabled) {
@@ -56,7 +53,7 @@ export class OfflineService {
             map(() => true),
           )
           .subscribe(() => {
-            this.updateAvailableSig.set(true);
+            this.updateAvailable.set(true);
             this.showUpdateNotification();
           });
       }
@@ -77,7 +74,7 @@ export class OfflineService {
   }
 
   async applyUpdate() {
-    if (this.updateAvailableSig()) {
+    if (this.updateAvailable()) {
       await this.swUpdate.activateUpdate();
       if (this.isBrowser) {
         window.location.reload();

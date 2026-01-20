@@ -191,7 +191,7 @@ import { ORDERED_GRADE_VALUES } from '../models';
         </div>
       }
 
-      @if (absoluteTotalAscents() > 0 || query() || hasActiveFilters()) {
+      @if (hasAscents() || query() || hasActiveFilters()) {
         <div class="mt-8 min-w-0">
           <h3 class="text-xl font-semibold capitalize mb-4">
             {{ 'labels.ascents' | translate }}
@@ -482,8 +482,8 @@ export class UserProfileComponent {
   readonly totalAscents = computed(
     () => this.ascentsResource.value()?.total ?? 0,
   );
-  readonly absoluteTotalAscents = computed(
-    () => this.global.userTotalAscentsCountResource.value() ?? 0,
+  readonly hasAscents = computed(
+    () => this.global.userTotalAscentsCountResource.value() !== 0,
   );
 
   readonly projects = computed(() => this.projectsResource.value() ?? []);
