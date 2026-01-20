@@ -10,6 +10,7 @@
         "files": [
           "/favicon.ico",
           "/index.html",
+          "/offline.html",
           "/manifest.webmanifest",
           "/**/*.css",
           "/**/*.js"
@@ -39,7 +40,7 @@
         "strategy": "performance",
         "maxSize": 200,
         "maxAge": "7d",
-        "timeout": "10s"
+        "timeout": "2s"
       },
       "urls": ["https://eswbehepsagigvlytfxv.supabase.co/rest/v1/**"]
     },
@@ -49,7 +50,7 @@
         "strategy": "performance",
         "maxSize": 100,
         "maxAge": "30d",
-        "timeout": "10s"
+        "timeout": "2s"
       },
       "urls": [
         "https://eswbehepsagigvlytfxv.supabase.co/storage/v1/object/public/**"
@@ -61,7 +62,7 @@
         "strategy": "freshness",
         "maxSize": 100,
         "maxAge": "1d",
-        "timeout": "5s"
+        "timeout": "2s"
       },
       "urls": [
         "/api/**",
@@ -70,5 +71,6 @@
       ]
     }
   ],
-  "navigationUrls": ["/**", "!/**/*.*", "!/**/*__*", "!/api/**"]
+  "navigationUrls": ["/**", "!/**/*.*", "!/**/*__*", "!/api/**"],
+  "navigationRequestStrategy": "freshness"
 }

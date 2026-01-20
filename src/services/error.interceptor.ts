@@ -8,7 +8,7 @@ import { inject, Injector, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, timeout } from 'rxjs/operators';
 
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
@@ -26,16 +26,32 @@ export const errorInterceptor: HttpInterceptorFn = (
     ? injector.get(SupabaseService, null, { optional: true })
     : null;
 
-  return next(req).pipe(
+  // Apply timeout only for external API calls (not static assets)
+  const url = req.url || '';
+  const isExternalApi =
+    url.includes('supabase.co') ||
+    url.includes('8a.nu') ||
+    url.includes('vertical-life.info');
+
+  const request$ = isExternalApi
+    ? next(req).pipe(timeout({ each: 5000 })) // 5 second timeout for API calls
+    : next(req);
+
+  return request$.pipe(
     catchError((err: unknown) => {
       const httpErr = err as HttpErrorResponse | null;
       const status = httpErr?.status ?? 0;
 
       // Derive a message for global error state
-      const msg =
+      let msg =
         (httpErr?.error as { message?: string } | undefined)?.message ||
         httpErr?.message ||
         'errors.unexpected';
+
+      // Handle network errors (0 status = no connection)
+      if (status === 0 || err?.constructor?.name === 'TimeoutError') {
+        msg = 'errors.network';
+      }
 
       // Update global error state (best-effort)
       try {
@@ -50,7 +66,6 @@ export const errorInterceptor: HttpInterceptorFn = (
 
       // Skip redirect logic on the server and for static/i18n assets
       const isBrowser = isPlatformBrowser(platformId);
-      const url = req.url || '';
       const isStatic =
         url.startsWith('/i18n/') ||
         url.startsWith('/assets/') ||

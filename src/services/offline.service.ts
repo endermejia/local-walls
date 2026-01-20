@@ -41,9 +41,17 @@ export class OfflineService {
         // fallback to true
         this.isOnline.set(true);
       }
+
       // Listen to online/offline events
-      window.addEventListener('online', () => this.isOnline.set(true));
-      window.addEventListener('offline', () => this.isOnline.set(false));
+      window.addEventListener('online', () => {
+        this.isOnline.set(true);
+        this.showOnlineNotification();
+      });
+
+      window.addEventListener('offline', () => {
+        this.isOnline.set(false);
+        this.showOfflineNotification();
+      });
 
       // Service Worker updates
       if (this.swUpdate.isEnabled) {
@@ -57,7 +65,30 @@ export class OfflineService {
             this.showUpdateNotification();
           });
       }
+
+      // Monitor Service Worker state
+      this.monitorServiceWorkerState();
     }
+  }
+
+  private showOfflineNotification() {
+    this.alerts
+      .open('Estás sin conexión. Usa el contenido en caché.', {
+        label: 'Sin conexión',
+        appearance: 'warning',
+        autoClose: 5000,
+      })
+      .subscribe();
+  }
+
+  private showOnlineNotification() {
+    this.alerts
+      .open('Conexión restaurada', {
+        label: 'Conectado',
+        appearance: 'success',
+        autoClose: 3000,
+      })
+      .subscribe();
   }
 
   private async showUpdateNotification() {
@@ -80,5 +111,22 @@ export class OfflineService {
         window.location.reload();
       }
     }
+  }
+
+  private monitorServiceWorkerState() {
+    if (!this.isBrowser || !('serviceWorker' in navigator)) return;
+
+    navigator.serviceWorker.ready
+      .then((registration) => {
+        console.log('Service Worker ready:', registration);
+
+        // Listen for controlling SW changes
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          console.log('Service Worker controller changed');
+        });
+      })
+      .catch((err) => {
+        console.error('Service Worker registration failed:', err);
+      });
   }
 }
