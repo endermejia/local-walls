@@ -65,7 +65,7 @@ export const serverRoutes: ServerRoute[] = [
   // Fallback routes
   {
     path: '',
-    renderMode: RenderMode.Prerender,
+    renderMode: RenderMode.Server,
     headers: { Location: '/home' },
     status: 302,
   },
@@ -75,7 +75,7 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: '**',
-    renderMode: RenderMode.Prerender,
+    renderMode: RenderMode.Server,
     headers: { Location: '/page-not-found' },
     status: 302,
   },
