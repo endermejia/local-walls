@@ -25,6 +25,7 @@
       "resources": {
         "files": [
           "/i18n/**",
+          "/image/**",
           "/icons/**",
           "/logo/**",
           "/assets/**",
