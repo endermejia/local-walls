@@ -10,6 +10,7 @@ import { SwUpdate } from '@angular/service-worker';
 
 import { TuiAlertService } from '@taiga-ui/core';
 
+import { TranslateService } from '@ngx-translate/core';
 import { filter, map } from 'rxjs';
 
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -23,6 +24,7 @@ export class OfflineService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly swUpdate = inject(SwUpdate);
   private readonly alerts = inject(TuiAlertService);
+  private readonly translate = inject(TranslateService);
 
   private readonly isBrowser =
     isPlatformBrowser(this.platformId) &&
@@ -97,7 +99,7 @@ export class OfflineService {
     );
     this.alerts
       .open(new PolymorpheusComponent(UpdateNotificationComponent), {
-        label: 'messages.updateAvailable',
+        label: this.translate.instant('messages.updateAvailable'),
         autoClose: 0,
         appearance: 'warning',
       })
