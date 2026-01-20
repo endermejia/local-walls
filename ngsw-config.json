@@ -4,15 +4,13 @@
   "assetGroups": [
     {
       "name": "app",
-      "installMode": "lazy",
+      "installMode": "prefetch",
       "updateMode": "prefetch",
       "resources": {
         "files": [
           "/favicon.ico",
           "/index.html",
           "/manifest.webmanifest",
-          "/offline.html",
-          "/assets/**",
           "/**/*.css",
           "/**/*.js"
         ]
@@ -71,5 +69,6 @@
         "https://*.tile.openstreetmap.org/**"
       ]
     }
-  ]
+  ],
+  "navigationUrls": ["/**", "!/**/*.*", "!/**/*__*", "!/api/**"]
 }
