@@ -56,7 +56,7 @@ import { computeGradeChartData } from '../utils';
         [tuiSkeleton]="tuiSkeleton()"
         [value]="c.values"
         [activeItemIndex]="activeItemIndex()"
-        (activeItemIndexChange)="activeItemIndex.set($event)"
+        (activeItemIndexChange)="onActiveItemIndexChange($event)"
       >
         @if (c.hasActive) {
           <span>
@@ -94,4 +94,9 @@ export class ChartRoutesByGradeComponent {
   protected readonly chart = computed(() =>
     computeGradeChartData(this.normalizedCounts(), this.activeItemIndex()),
   );
+
+  protected onActiveItemIndexChange(index: number): void {
+    const value = this.chart().values[index] ?? 0;
+    this.activeItemIndex.set(value > 0 ? index : -1);
+  }
 }

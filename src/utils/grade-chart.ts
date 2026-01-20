@@ -34,7 +34,10 @@ export function computeGradeChartData(
 
   const total = values.reduce((a, b) => a + b, 0);
 
-  const hasActive = Number.isFinite(activeItemIndex) && activeItemIndex !== -1;
+  const hasActive =
+    Number.isFinite(activeItemIndex) &&
+    activeItemIndex !== -1 &&
+    values[activeItemIndex] > 0;
 
   const activeBandTotal = (() => {
     if (!hasActive) return total;
