@@ -105,6 +105,7 @@ import {
             tuiTextfield
             #areasSearch
             id="areas-search"
+            autocomplete="off"
             [value]="query()"
             (input.zoneless)="onQuery(areasSearch.value)"
           /> </tui-textfield

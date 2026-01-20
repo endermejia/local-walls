@@ -170,6 +170,7 @@ import { handleErrorToast } from '../utils';
               tuiTextfield
               #cragsSearch
               id="crags-search"
+              autocomplete="off"
               [value]="query()"
               (input.zoneless)="onQuery(cragsSearch.value)"
             />

@@ -210,6 +210,7 @@ import { ORDERED_GRADE_VALUES } from '../models';
                 tuiTextfield
                 #routeSearch
                 id="route-search"
+                autocomplete="off"
                 [value]="query()"
                 (input.zoneless)="onQuery(routeSearch.value)"
               />

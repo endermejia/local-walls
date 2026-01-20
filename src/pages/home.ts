@@ -79,6 +79,7 @@ import { AscentsTableComponent } from '../components';
             tuiTextfield
             #userSearch
             id="user-search"
+            autocomplete="off"
             [value]="query()"
             (input.zoneless)="onQuery(userSearch.value)"
           />

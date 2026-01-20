@@ -482,6 +482,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
               tuiTextfield
               #routesSearch
               id="routes-search"
+              autocomplete="off"
               [value]="query()"
               (input.zoneless)="onQuery(routesSearch.value)"
             />
