@@ -1,16 +1,20 @@
 import { PrerenderFallback, RenderMode, ServerRoute } from '@angular/ssr';
 
 export const serverRoutes: ServerRoute[] = [
-  { path: 'home', renderMode: RenderMode.Server },
-  { path: 'login', renderMode: RenderMode.Server },
+  { path: 'home', renderMode: RenderMode.Prerender },
+  { path: 'login', renderMode: RenderMode.Prerender },
   { path: 'explore', renderMode: RenderMode.Prerender },
   {
     path: 'profile',
-    renderMode: RenderMode.Server,
+    renderMode: RenderMode.Prerender,
   },
   {
     path: 'profile/:id',
-    renderMode: RenderMode.Server,
+    renderMode: RenderMode.Prerender,
+    fallback: PrerenderFallback.Server,
+    async getPrerenderParams() {
+      return [];
+    },
   },
   { path: 'areas', renderMode: RenderMode.Prerender },
   {
@@ -48,20 +52,20 @@ export const serverRoutes: ServerRoute[] = [
   // ADMIN
   {
     path: 'admin/users',
-    renderMode: RenderMode.Server,
+    renderMode: RenderMode.Prerender,
   },
   {
     path: 'admin/equippers',
-    renderMode: RenderMode.Server,
+    renderMode: RenderMode.Prerender,
   },
   {
     path: 'admin/parkings',
-    renderMode: RenderMode.Server,
+    renderMode: RenderMode.Prerender,
   },
   // Fallback routes
   {
     path: '',
-    renderMode: RenderMode.Server,
+    renderMode: RenderMode.Prerender,
     headers: { Location: '/home' },
     status: 302,
   },
@@ -71,7 +75,7 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: '**',
-    renderMode: RenderMode.Server,
+    renderMode: RenderMode.Prerender,
     headers: { Location: '/page-not-found' },
     status: 302,
   },
