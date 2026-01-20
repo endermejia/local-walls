@@ -5,25 +5,20 @@ import { Router, RouterOutlet } from '@angular/router';
 
 import { TuiRoot } from '@taiga-ui/core';
 
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import { map, merge, startWith } from 'rxjs';
 
-import { GlobalData, OfflineService } from '../services';
+import { GlobalData } from '../services';
 
 import { HeaderComponent } from '../components';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TuiRoot, HeaderComponent, TranslatePipe],
+  imports: [RouterOutlet, TuiRoot, HeaderComponent],
   template: `
     <tui-root class="overflow-hidden" [attr.tuiTheme]="global.selectedTheme()">
       <div class="h-[100dvh] flex flex-col">
         <!-- Offline banner -->
-        @if (!offline.isOnline()) {
-          <div class="bg-amber-500 text-black text-sm px-3 py-2 text-center">
-            {{ 'messages.offline' | translate }}
-          </div>
-        }
         @if (showHeader()) {
           <app-header />
         }
@@ -34,7 +29,6 @@ import { HeaderComponent } from '../components';
 })
 export class AppComponent {
   protected global = inject(GlobalData);
-  protected offline = inject(OfflineService);
   private router = inject(Router);
   private title = inject(Title);
   private meta = inject(Meta);
