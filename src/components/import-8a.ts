@@ -501,11 +501,12 @@ export class Import8aComponent {
       const uniqueAreaNames = [...new Set(ascents.map((a) => a.location_name))];
       console.log('[8a Import] Unique areas:', uniqueAreaNames);
 
-      // 1.1 Get coordinates from 8a.nu for the areas
+      // 1.1 Get coordinates from 8a.nu for the areas, and also collect cragSlugs (areas in our app)
       const areaToCoords = new Map<
         string,
         { latitude: number; longitude: number }
       >();
+      const areaToSlug = new Map<string, string>(); // areaName (CSV) -> 8anu.cragSlug
       const uniqueAreas = [
         ...new Map(
           ascents.map((a) => [a.location_name, a.country_code]),
@@ -513,12 +514,19 @@ export class Import8aComponent {
       ];
 
       for (const [areaName, countryCode] of uniqueAreas) {
-        const coords = await this.eightAnuService.getCoordinates(
+        const searchResult = await this.eightAnuService.searchCrag(
           countryCode,
           areaName,
+          undefined,
+          1,
         );
-        if (coords) {
-          areaToCoords.set(areaName, coords);
+        if (searchResult) {
+          if (searchResult.coordinates) {
+            areaToCoords.set(areaName, searchResult.coordinates);
+          }
+          if (searchResult.cragSlug) {
+            areaToSlug.set(areaName, searchResult.cragSlug);
+          }
         }
       }
 
@@ -527,7 +535,7 @@ export class Import8aComponent {
         string,
         { routes: EightAnuRoute[]; climbingKind: ClimbingKind }
       >();
-      const sectorToCragSlug = new Map<string, string>();
+      const sectorToCragSlug = new Map<string, string>(); // areaSlug|sectorSlug -> 8anu.sectorSlug
 
       const uniqueSectorsToFetch = [
         ...new Map(
@@ -548,18 +556,36 @@ export class Import8aComponent {
           const countrySlug = this.eightAnuService.getCountrySlug(
             s.countryCode,
           );
+          const area8aSlug =
+            areaToSlug.get(s.locationName) || slugify(s.locationName);
           const areaSlug = slugify(s.locationName);
           const sectorSlug = slugify(s.sectorName);
 
-          // Get the real cragSlug from 8a.nu (which is actually the sector in their terminology)
-          const realCragSlug = await this.eightAnuService.searchCrag(
+          // Get the real sectorSlug from 8a.nu (searching for routes in that sector)
+          // According to user:
+          // area.slug (our app) = 8anu.cragSlug
+          // crag.slug (our app) = 8anu.sectorSlug
+          const searchResult = await this.eightAnuService.searchRoute(
             s.countryCode,
             s.locationName,
             s.sectorName,
+            undefined,
+            1,
           );
 
-          if (realCragSlug) {
-            sectorToCragSlug.set(`${areaSlug}|${sectorSlug}`, realCragSlug);
+          if (searchResult) {
+            const realSectorSlug = searchResult.sectorSlug;
+            const realAreaSlug = searchResult.cragSlug || area8aSlug;
+
+            console.log(
+              `[8a Import] Found real slugs for ${s.sectorName}: sectorSlug=${realSectorSlug}, areaSlug=${realAreaSlug}`,
+            );
+
+            sectorToCragSlug.set(`${areaSlug}|${sectorSlug}`, realSectorSlug);
+
+            console.log(
+              `[8a Import] Stored sectorSlug for ${areaSlug}|${sectorSlug}: ${realSectorSlug}`,
+            );
 
             const category =
               s.climbingKind === ClimbingKinds.BOULDER
@@ -570,16 +596,27 @@ export class Import8aComponent {
               this.eightAnuService.getRoutes(
                 category,
                 countrySlug,
-                realCragSlug, // Use the real cragSlug obtained from search
-                sectorSlug, // This is usually the crag name in 8a.nu
+                realAreaSlug, // This is the 8anu cragSlug (our Area)
+                realSectorSlug, // This is the 8anu sectorSlug (our Crag)
               ),
             );
             if (response?.items) {
+              console.log(
+                `[8a Import] Fetched ${response.items.length} routes from 8a.nu for ${s.sectorName}`,
+              );
               sectorTo8aRoutes.set(`${areaSlug}|${sectorSlug}`, {
                 routes: response.items,
                 climbingKind: s.climbingKind,
               });
+            } else {
+              console.warn(
+                `[8a Import] No routes found in 8a.nu response for ${s.sectorName}`,
+              );
             }
+          } else {
+            console.warn(
+              `[8a Import] Search result not found for ${s.sectorName} in ${s.locationName}`,
+            );
           }
         } catch (e) {
           console.error(
@@ -596,7 +633,9 @@ export class Import8aComponent {
       // 2. Identify/Create Areas
       let createdAreasCount = 0;
       console.log('[8a Import] Identifying/Creating areas');
-      const uniqueAreaSlugs = uniqueAreaNames.map((n) => slugify(n));
+      const uniqueAreaSlugs = uniqueAreaNames.map(
+        (n) => areaToSlug.get(n) || slugify(n),
+      );
       const existingAreas: { id: number; name: string; slug: string }[] = [];
       for (let i = 0; i < uniqueAreaSlugs.length; i += CHUNK_SIZE) {
         const chunk = uniqueAreaSlugs.slice(i, i + CHUNK_SIZE);
@@ -625,7 +664,7 @@ export class Import8aComponent {
         const areaUpsertData = Array.from(
           new Map(
             areasToCreate.map((name) => {
-              const slug = slugify(name);
+              const slug = areaToSlug.get(name) || slugify(name);
               return [slug, { name, slug }];
             }),
           ).values(),
@@ -651,7 +690,16 @@ export class Import8aComponent {
       // 3. Identify/Create Crags
       console.log('[8a Import] Identifying/Creating crags');
       const uniqueCragSlugs = [
-        ...new Set(ascents.map((a) => slugify(a.sector_name))),
+        ...new Set(
+          ascents.map((a) => {
+            const areaSlug = slugify(a.location_name);
+            const sectorSlug = slugify(a.sector_name);
+            return (
+              sectorToCragSlug.get(`${areaSlug}|${sectorSlug}`) ||
+              slugify(a.sector_name)
+            );
+          }),
+        ),
       ];
       const uniqueifiedCragSlugs = [
         ...new Set(
@@ -660,14 +708,9 @@ export class Import8aComponent {
           ),
         ),
       ];
-      const eightAnuCragSlugs = [...new Set(sectorToCragSlug.values())];
 
       const allPossibleCragSlugs = [
-        ...new Set([
-          ...uniqueCragSlugs,
-          ...uniqueifiedCragSlugs,
-          ...eightAnuCragSlugs,
-        ]),
+        ...new Set([...uniqueCragSlugs, ...uniqueifiedCragSlugs]),
       ];
 
       const existingCrags: {
@@ -722,7 +765,22 @@ export class Import8aComponent {
       }
 
       if (isAdmin && cragsToCreate.filter((c) => c.area_id !== -1).length > 0) {
-        const usedCragSlugs = new Set(existingCrags.map((ec) => ec.slug));
+        // Fetch ALL existing crag slugs from the database to ensure uniqueness
+        const { data: allExistingCrags, error: fetchAllCragsError } =
+          await this.supabase.client.from('crags').select('slug');
+
+        if (fetchAllCragsError) {
+          console.error(
+            '[8a Import] Error fetching all crag slugs:',
+            fetchAllCragsError,
+          );
+          throw fetchAllCragsError;
+        }
+
+        const usedCragSlugs = new Set(
+          (allExistingCrags || []).map((ec) => ec.slug),
+        );
+
         const cragsUpsertData = cragsToCreate
           .filter((c) => c.area_id !== -1)
           .map((c) => {
@@ -734,12 +792,25 @@ export class Import8aComponent {
 
             let slug = eightAnuSlug || slugify(c.name);
 
+            console.log(
+              `[8a Import] Creating crag ${c.name} with slug candidate ${slug} (8aSlug: ${eightAnuSlug})`,
+            );
+
+            // Ensure the slug is unique by adding suffixes if needed
             if (usedCragSlugs.has(slug)) {
               slug = `${slug}-${slugify(c.area_name)}`;
             }
             if (usedCragSlugs.has(slug)) {
               slug = `${slug}-${c.area_id}`;
             }
+            // Add a counter-suffix if still duplicated
+            let counter = 1;
+            let finalSlug = slug;
+            while (usedCragSlugs.has(finalSlug)) {
+              finalSlug = `${slug}-${counter}`;
+              counter++;
+            }
+            slug = finalSlug;
             usedCragSlugs.add(slug);
 
             const coords = areaToCoords.get(c.area_name);
@@ -757,10 +828,19 @@ export class Import8aComponent {
           console.log(
             `[8a Import] Inserting ${cragsUpsertData.length} new crags`,
           );
-          const { data: newCrags } = await this.supabase.client
-            .from('crags')
-            .insert(cragsUpsertData)
-            .select('id, name, area_id');
+          const { data: newCrags, error: insertCragsError } =
+            await this.supabase.client
+              .from('crags')
+              .insert(cragsUpsertData)
+              .select('id, name, area_id');
+
+          if (insertCragsError) {
+            console.error(
+              '[8a Import] Error inserting crags:',
+              insertCragsError,
+            );
+            throw insertCragsError;
+          }
 
           if (newCrags) {
             console.log(
@@ -828,14 +908,14 @@ export class Import8aComponent {
 
       let createdRoutesCount = 0;
 
-      // First, add all routes from 8a.nu for newly created crags
+      // First, add all routes from 8a.nu for ALL crags (both existing and newly created)
       for (const [areaAndSector, data] of sectorTo8aRoutes.entries()) {
         const [areaSlug, sectorSlug] = areaAndSector.split('|');
         // Find areaId
         const areaId = areaMap.get(areaSlug);
         if (!areaId) continue;
         const cragId = cragMap.get(`${areaId}|${sectorSlug}`);
-        if (!cragId || cragId === -1) continue;
+        if (!cragId) continue;
 
         for (const r8a of data.routes) {
           const climbingKind = data.climbingKind;
@@ -850,6 +930,10 @@ export class Import8aComponent {
             const difficulty = r8a.difficulty.toLowerCase() as GradeLabel;
             const grade = LABEL_TO_VERTICAL_LIFE[difficulty] ?? 3;
 
+            console.log(
+              `[8a Import] Adding 8a route to creation list: ${r8a.zlaggableName} (slug: ${r8a.zlaggableSlug}, grade: ${difficulty}) for cragId ${cragId}`,
+            );
+
             routesToCreate.push({
               name: r8a.zlaggableName,
               crag_id: cragId,
@@ -859,6 +943,10 @@ export class Import8aComponent {
               slug: r8a.zlaggableSlug,
             });
             routeMap.set(rKey, -1);
+          } else {
+            console.log(
+              `[8a Import] 8a route already exists or is in list: ${r8a.zlaggableName} for cragId ${cragId}`,
+            );
           }
         }
       }
@@ -886,6 +974,9 @@ export class Import8aComponent {
 
         if (!routeId) {
           const grade = LABEL_TO_VERTICAL_LIFE[a.difficulty] ?? 3;
+          console.log(
+            `[8a Import] Adding CSV route to creation list (not found in 8a fetch): ${a.name} for cragId ${cragId}`,
+          );
           routesToCreate.push({
             name: a.name,
             crag_id: cragId,
@@ -941,6 +1032,9 @@ export class Import8aComponent {
 
         if (newRoutes) {
           createdRoutesCount = newRoutes.length;
+          console.log(
+            `[8a Import] Successfully created ${newRoutes.length} new routes`,
+          );
           // Map the newly created routes back to toInsert
           for (const a of ascents) {
             const areaId = areaMap.get(slugify(a.location_name));
@@ -979,6 +1073,50 @@ export class Import8aComponent {
                 grade: grade > 0 ? grade : null,
               });
             }
+          }
+        }
+      }
+
+      // 4.1 Re-map toInsert for routes that were already there
+      for (const a of ascents) {
+        // Skip if already matched in step 4 or if we already have it in toInsert
+        const areaId = areaMap.get(slugify(a.location_name));
+        if (!areaId) continue;
+        const cragId = cragMap.get(`${areaId}|${slugify(a.sector_name)}`);
+        if (!cragId || cragId === -1) continue;
+
+        const areaSlug = slugify(a.location_name);
+        const sectorSlug = slugify(a.sector_name);
+        const sectorData = sectorTo8aRoutes.get(`${areaSlug}|${sectorSlug}`);
+        const match = sectorData?.routes.find(
+          (r) => slugify(r.zlaggableName) === slugify(a.name),
+        );
+
+        const routeSlug = match ? match.zlaggableSlug : slugify(a.name);
+        const climbingKind = a.climbing_kind!;
+        const rKey = getRouteKey(cragId, routeSlug, climbingKind);
+        const rKeyName = getRouteKey(cragId, slugify(a.name), climbingKind);
+
+        const routeId = routeMap.get(rKey) || routeMap.get(rKeyName);
+
+        if (routeId && routeId !== -1) {
+          // Check if already in toInsert for this route and date
+          const alreadyIn = toInsert.find(
+            (i) => i.route_id === routeId && i.date === a.date.split('T')[0],
+          );
+          if (!alreadyIn) {
+            const grade = LABEL_TO_VERTICAL_LIFE[a.difficulty] ?? 0;
+            toInsert.push({
+              route_id: routeId,
+              user_id: this.supabase.authUserId()!,
+              comment: a.comment,
+              date: a.date.split('T')[0],
+              type: a.type,
+              rate: a.rating === 0 ? null : a.rating,
+              attempts: a.tries,
+              recommended: a.recommended,
+              grade: grade > 0 ? grade : null,
+            });
           }
         }
       }

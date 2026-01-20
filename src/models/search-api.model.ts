@@ -20,6 +20,7 @@ export interface SearchCragItem {
   areaSlug: string;
   countryName: string;
   countrySlug: string;
+  coordinates?: { latitude: number; longitude: number } | null;
 }
 
 export interface SearchRouteItem {

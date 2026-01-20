@@ -25,7 +25,6 @@ import {
 } from '@taiga-ui/core';
 import { TuiOptionNew } from '@taiga-ui/core/components/data-list';
 import {
-  TuiSearchHistory,
   TuiSearchHotkey,
   TuiSearchResultsComponent,
 } from '@taiga-ui/experimental';
@@ -69,7 +68,6 @@ interface BreadcrumbItem {
     TuiNavigation,
     TuiOptGroup,
     TuiOptionNew,
-    TuiSearchHistory,
     TuiSearchHotkey,
     TuiSearchResultsComponent,
     TuiTextfield,
