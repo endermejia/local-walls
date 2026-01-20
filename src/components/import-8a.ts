@@ -26,6 +26,7 @@ import {
   TuiFileRejectedPipe,
   TuiFiles,
   TuiInputFiles,
+  TuiSkeleton,
   TuiSlides,
   TuiStepper,
 } from '@taiga-ui/kit';
@@ -80,6 +81,7 @@ import { AvatarGradeComponent } from './avatar-grade';
     FormsModule,
     TuiAppearance,
     TuiButton,
+    TuiSkeleton,
     TuiHeader,
     TuiStepper,
     TuiTitle,
@@ -190,51 +192,62 @@ import { AvatarGradeComponent } from './avatar-grade';
                     ascent of ascents();
                     track ascent.name + ascent.sector_name + ascent.date
                   ) {
-                    <div
-                      class="p-2 border-b last:border-0 flex justify-between items-center gap-4"
-                    >
-                      <div class="flex items-center gap-3">
-                        <app-avatar-grade
-                          [grade]="
-                            LABEL_TO_VERTICAL_LIFE[ascent.difficulty] ?? 0
-                          "
-                          size="m"
-                        />
-                        <div>
-                          <div class="font-semibold">
-                            {{ ascent.name }}
-                          </div>
-                          <div class="text-xs opacity-70">
-                            {{ ascent.sector_name }} - {{ ascent.date | date }}
+                    @defer (on viewport) {
+                      <div
+                        class="p-2 border-b last:border-0 flex justify-between items-center gap-4"
+                      >
+                        <div class="flex items-center gap-3">
+                          <app-avatar-grade
+                            [grade]="
+                              LABEL_TO_VERTICAL_LIFE[ascent.difficulty] ?? 0
+                            "
+                            size="m"
+                          />
+                          <div>
+                            <div class="font-semibold">
+                              {{ ascent.name }}
+                            </div>
+                            <div class="text-xs opacity-70">
+                              {{ ascent.sector_name }} -
+                              {{ ascent.date | date }}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <tui-avatar
-                          size="s"
-                          class="!text-white"
-                          [style.background]="
-                            ascentsService.ascentInfo()[
-                              ascent.type || 'default'
-                            ].background
-                          "
-                          [tuiHint]="
-                            'ascentTypes.' + (ascent.type || 'rp') | translate
-                          "
-                        >
-                          <tui-icon
-                            [icon]="
+                        <div class="flex items-center gap-2">
+                          <tui-avatar
+                            size="s"
+                            class="!text-white"
+                            [style.background]="
                               ascentsService.ascentInfo()[
                                 ascent.type || 'default'
-                              ].icon
+                              ].background
                             "
-                          />
-                        </tui-avatar>
-                        <div class="text-xs italic opacity-70">
-                          {{ 'ascentTypes.' + ascent.type | translate }}
+                            [tuiHint]="
+                              'ascentTypes.' + (ascent.type || 'rp') | translate
+                            "
+                          >
+                            <tui-icon
+                              [icon]="
+                                ascentsService.ascentInfo()[
+                                  ascent.type || 'default'
+                                ].icon
+                              "
+                            />
+                          </tui-avatar>
                         </div>
                       </div>
-                    </div>
+                    } @placeholder {
+                      <div
+                        class="p-2 border-b last:border-0 flex justify-between items-center gap-4"
+                      >
+                        <div class="flex items-center gap-3">
+                          <tui-avatar size="m" tuiSkeleton />
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <tui-avatar size="s" tuiSkeleton />
+                        </div>
+                      </div>
+                    }
                   }
                 </div>
 
