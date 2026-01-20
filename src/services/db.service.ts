@@ -29,7 +29,7 @@ export class DbService {
     });
   }
 
-  async put(storeName: string, item: any): Promise<void> {
+  async put<T>(storeName: string, item: T): Promise<void> {
     const db = await this.openDb();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(storeName, 'readwrite');
@@ -40,7 +40,7 @@ export class DbService {
     });
   }
 
-  async putAll(storeName: string, items: any[]): Promise<void> {
+  async putAll<T>(storeName: string, items: T[]): Promise<void> {
     const db = await this.openDb();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(storeName, 'readwrite');

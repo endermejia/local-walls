@@ -18,7 +18,6 @@ import {
   TuiTitle,
 } from '@taiga-ui/core';
 import {
-  TuiInputFiles,
   TuiSkeleton,
   TuiAvatar,
   TuiBadgedContentComponent,
