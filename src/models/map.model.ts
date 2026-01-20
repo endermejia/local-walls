@@ -1,5 +1,4 @@
-import { AmountByEveryGrade } from './grade.model';
-import { VERTICAL_LIFE_SEASON } from './season.model';
+import { AmountByEveryGrade, VERTICAL_LIFE_SEASON } from '../models';
 
 export interface MapAreaItem {
   id: number;

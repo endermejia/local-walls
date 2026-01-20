@@ -7,6 +7,8 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
+import { RouteFormComponent } from '../pages/route-form';
+
 import type {
   EquipperDto,
   RouteDto,
@@ -14,10 +16,7 @@ import type {
   RouteUpdateDto,
 } from '../models';
 
-import { RouteFormComponent } from '../pages/route-form';
-import { GlobalData } from './global-data';
-import { SupabaseService } from './supabase.service';
-import { ToastService } from './toast.service';
+import { GlobalData, SupabaseService, ToastService } from '../services';
 
 @Injectable({ providedIn: 'root' })
 export class RoutesService {

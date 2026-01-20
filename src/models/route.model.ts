@@ -1,4 +1,4 @@
-import { RouteAscentDto, RouteDto } from './supabase-interfaces';
+import { RouteAscentDto, RouteDto } from '../models';
 
 export interface RouteWithExtras extends RouteDto {
   liked: boolean;

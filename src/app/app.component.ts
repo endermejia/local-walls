@@ -14,7 +14,7 @@ import { HeaderComponent } from '../components';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TuiRoot, HeaderComponent, TranslatePipe, TuiButton],
+  imports: [RouterOutlet, TuiRoot, HeaderComponent, TranslatePipe],
   template: `
     <tui-root class="overflow-hidden" [attr.tuiTheme]="global.selectedTheme()">
       <div class="h-[100dvh] flex flex-col">
@@ -22,23 +22,6 @@ import { HeaderComponent } from '../components';
         @if (!offline.isOnline()) {
           <div class="bg-amber-500 text-black text-sm px-3 py-2 text-center">
             {{ 'messages.offline' | translate }}
-          </div>
-        }
-        <!-- Update banner -->
-        @if (offline.isUpdateAvailable()) {
-          <div
-            class="bg-blue-600 text-white text-sm px-3 py-2 text-center flex items-center justify-center gap-4"
-          >
-            <span>{{ 'messages.updateAvailable' | translate }}</span>
-            <button
-              tuiButton
-              type="button"
-              size="s"
-              appearance="secondary-accent"
-              (click.zoneless)="offline.applyUpdate()"
-            >
-              {{ 'actions.update' | translate }}
-            </button>
           </div>
         }
         @if (showHeader()) {
@@ -83,6 +66,9 @@ export class AppComponent {
         this.updateSeoTags();
       }
     });
+
+    // Start offline sync in background
+    void this.global.syncOfflineContent();
   }
 
   private updateSeoTags() {

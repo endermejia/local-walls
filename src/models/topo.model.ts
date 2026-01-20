@@ -1,10 +1,10 @@
-import { AmountByEveryGrade } from './grade.model';
 import {
+  AmountByEveryGrade,
   RouteAscentDto,
   RouteDto,
   RouteProjectDto,
   TopoDto,
-} from './supabase-interfaces';
+} from '../models';
 
 export interface TopoListItem {
   id: number;

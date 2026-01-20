@@ -20,6 +20,8 @@ import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
 import { TranslateService } from '@ngx-translate/core';
 import { map, merge, startWith } from 'rxjs';
 
+import { DbService, LocalStorage, SupabaseService } from '../services';
+
 import {
   AmountByEveryGrade,
   AppRoles,
@@ -52,9 +54,6 @@ import {
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
 
-import { LocalStorage } from './local-storage';
-import { SupabaseService } from './supabase.service';
-
 @Injectable({
   providedIn: 'root',
 })
@@ -65,6 +64,7 @@ export class GlobalData {
   private platformId = inject(PLATFORM_ID);
   private supabase = inject(SupabaseService);
   private breakpointService = inject(TuiBreakpointService);
+  private db = inject(DbService);
 
   readonly isMobile = toSignal(
     this.breakpointService.pipe(map((b) => b === 'mobile')),
@@ -489,12 +489,20 @@ export class GlobalData {
           await this.supabase.client.rpc('get_areas_list');
         if (error) {
           console.error('[GlobalData] areaListResource error', error);
-          return [] as AreaListItem[];
+          throw error;
         }
-        return (data as AreaListItem[]) ?? [];
+        const list = (data as AreaListItem[]) ?? [];
+        // Save to DB for offline use
+        void this.db.putAll('areas', list);
+        return list;
       } catch (e) {
-        console.error('[GlobalData] areaListResource exception', e);
-        return [] as AreaListItem[];
+        // Warning: if we are offline, assume error and try DB
+        console.warn(
+          '[GlobalData] areaListResource failed, trying offline DB...',
+          e,
+        );
+        const fromDb = await this.db.getAll<AreaListItem>('areas');
+        return fromDb;
       }
     },
   });
@@ -641,7 +649,7 @@ export class GlobalData {
 
         if (error) {
           console.error('[GlobalData] cragDetailResource error', error);
-          return null;
+          throw error;
         }
 
         // Type the raw response structure from Supabase join query
@@ -724,8 +732,13 @@ export class GlobalData {
           sun_all_day,
         };
       } catch (e) {
-        console.error('[GlobalData] cragDetailResource exception', e);
-        return null;
+        console.warn(
+          '[GlobalData] cragDetailResource failed, trying offline DB...',
+          e,
+        );
+        // Fallback to DB
+        const fromDb = await this.db.get<CragDetail>('crag_details', slug);
+        return fromDb;
       }
     },
   });
@@ -770,7 +783,7 @@ export class GlobalData {
 
         if (error) {
           console.error('[GlobalData] cragRoutesResource error', error);
-          return [];
+          throw error;
         }
 
         return (
@@ -799,8 +812,15 @@ export class GlobalData {
           ) ?? []
         );
       } catch (e) {
-        console.error('[GlobalData] cragRoutesResource exception', e);
-        return [];
+        console.warn(
+          '[GlobalData] cragRoutesResource failed, trying offline DB...',
+          e,
+        );
+        const fromDb = await this.db.get<{
+          cragId: number;
+          routes: RouteWithExtras[];
+        }>('crag_routes', cragId);
+        return fromDb?.routes || [];
       }
     },
   });
@@ -1311,5 +1331,250 @@ export class GlobalData {
         break;
       }
     }
+  }
+  async syncOfflineContent() {
+    if (!isPlatformBrowser(this.platformId) || !navigator.onLine) {
+      return;
+    }
+
+    try {
+      await this.supabase.whenReady();
+      const userId = this.supabase.authUser()?.id;
+      if (!userId) return;
+
+      // 1. Fetch liked crags
+      const { data: likedCrags } = await this.supabase.client
+        .from('crag_likes')
+        .select('crag_id, crag:crags(slug)')
+        .eq('user_id', userId);
+
+      if (likedCrags) {
+        for (const like of likedCrags) {
+          const slug = like.crag?.slug;
+          if (slug) {
+            // Load detail
+            const detail = await this.fetchCragDetailForSync(slug, userId);
+            if (detail) {
+              await this.db.put('crag_details', detail);
+
+              // Load routes for this crag
+              const routes = await this.fetchCragRoutesForSync(
+                detail.id,
+                userId,
+              );
+              if (routes) {
+                // We store routes specific to a crag in 'crag_routes' store
+                await this.db.put('crag_routes', {
+                  cragId: detail.id,
+                  routes,
+                });
+              }
+            }
+          }
+        }
+      }
+
+      // 2. Fetch liked routes
+      const { data: likedRoutes } = await this.supabase.client
+        .from('route_likes')
+        .select('route_id, route:routes(crag_id)')
+        .eq('user_id', userId);
+
+      if (likedRoutes) {
+        const processedCragIds = new Set(
+          likedCrags?.map((c) => c.crag_id) || [],
+        );
+        for (const rLike of likedRoutes) {
+          const cragId = rLike.route?.crag_id;
+          if (cragId && !processedCragIds.has(cragId)) {
+            const { data: cragData } = await this.supabase.client
+              .from('crags')
+              .select('slug')
+              .eq('id', cragId)
+              .single();
+
+            if (cragData?.slug) {
+              const detail = await this.fetchCragDetailForSync(
+                cragData.slug,
+                userId,
+              );
+              if (detail) {
+                await this.db.put('crag_details', detail);
+                const routes = await this.fetchCragRoutesForSync(
+                  detail.id,
+                  userId,
+                );
+                await this.db.put('crag_routes', {
+                  cragId: detail.id,
+                  routes,
+                });
+                processedCragIds.add(cragId);
+              }
+            }
+          }
+        }
+      }
+      console.log('[GlobalData] syncOfflineContent complete');
+    } catch (e) {
+      console.error('[GlobalData] syncOfflineContent failed', e);
+    }
+  }
+
+  private async fetchCragDetailForSync(
+    slug: string,
+    userId: string,
+  ): Promise<CragDetail | null> {
+    let query = this.supabase.client
+      .from('crags')
+      .select(
+        `
+        *,
+        liked:crag_likes(id),
+        area: areas ( name, slug ),
+        crag_parkings (
+          parking: parkings (*)
+        ),
+        topos (
+          *,
+          topo_routes (
+            route: routes (
+              grade
+            )
+          )
+        )
+      `,
+      )
+      .eq('slug', slug);
+
+    if (userId) {
+      query = query.eq('liked.user_id', userId);
+    }
+
+    const { data, error } = await query.single();
+    if (error || !data) return null;
+
+    type CragWithJoins = CragDto & {
+      area: { name: string; slug: string } | null;
+      crag_parkings: { parking: ParkingDto }[] | null;
+      topos:
+        | (TopoDto & {
+            topo_routes: { route: { grade: number } | null }[];
+          })[]
+        | null;
+      liked: { id: number }[];
+    };
+    const rawData = data as CragWithJoins;
+
+    const parkings =
+      rawData.crag_parkings?.map((cp) => cp.parking).filter(Boolean) ?? [];
+
+    const topos: TopoListItem[] =
+      rawData.topos?.map((t) => {
+        const grades: AmountByEveryGrade = {};
+        t.topo_routes.forEach((tr) => {
+          const g = tr.route?.grade;
+          if (g !== undefined && g !== null) {
+            grades[g as VERTICAL_LIFE_GRADES] =
+              (grades[g as VERTICAL_LIFE_GRADES] ?? 0) + 1;
+          }
+        });
+
+        return {
+          id: t.id,
+          name: t.name,
+          slug: t.slug,
+          photo: t.photo,
+          grades,
+          shade_afternoon: t.shade_afternoon,
+          shade_change_hour: t.shade_change_hour,
+          shade_morning: t.shade_morning,
+        };
+      }) ?? [];
+
+    const topos_count = topos.length;
+    const shade_morning = topos.some((t) => t.shade_morning);
+    const shade_afternoon = topos.some((t) => t.shade_afternoon);
+    const shade_all_day = topos.some(
+      (t) => t.shade_morning && t.shade_afternoon,
+    );
+    const sun_all_day = topos.some(
+      (t) => !t.shade_morning && !t.shade_afternoon,
+    );
+
+    return {
+      id: rawData.id,
+      name: rawData.name,
+      slug: rawData.slug,
+      area_id: rawData.area_id,
+      description_en: rawData.description_en ?? undefined,
+      description_es: rawData.description_es ?? undefined,
+      warning_en: rawData.warning_en ?? undefined,
+      warning_es: rawData.warning_es ?? undefined,
+      latitude: rawData.latitude ?? 0,
+      longitude: rawData.longitude ?? 0,
+      approach: rawData.approach ?? undefined,
+
+      area_name: rawData.area?.name ?? '',
+      area_slug: rawData.area?.slug ?? '',
+      grades: {},
+      liked: (rawData.liked?.length ?? 0) > 0,
+      parkings,
+      topos,
+
+      climbing_kind: [],
+      topos_count,
+      shade_morning,
+      shade_afternoon,
+      shade_all_day,
+      sun_all_day,
+    };
+  }
+
+  private async fetchCragRoutesForSync(
+    cragId: number,
+    userId: string,
+  ): Promise<RouteWithExtras[]> {
+    let query = this.supabase.client
+      .from('routes')
+      .select(
+        `
+        *,
+        liked:route_likes(id),
+        project:route_projects(id),
+        ascents:route_ascents(rate),
+        own_ascent:route_ascents(*),
+        crag:crags(
+          slug,
+          area:areas(slug)
+        )
+      `,
+      )
+      .eq('crag_id', cragId);
+
+    if (userId) {
+      query = query.eq('own_ascent.user_id', userId);
+    }
+
+    const { data, error } = await query;
+    if (error || !data) return [];
+
+    return data.map((r) => {
+      const rates =
+        r.ascents?.map((a) => a.rate).filter((rate) => rate != null) ?? [];
+      const rating =
+        rates.length > 0 ? rates.reduce((a, b) => a + b, 0) / rates.length : 0;
+
+      return {
+        ...r,
+        liked: (r.liked?.length ?? 0) > 0,
+        project: (r.project?.length ?? 0) > 0,
+        crag_slug: r.crag?.slug,
+        area_slug: r.crag?.area?.slug,
+        rating,
+        ascent_count: r.ascents?.length ?? 0,
+        climbed: (r.own_ascent?.length ?? 0) > 0,
+        own_ascent: r.own_ascent?.[0],
+      } as RouteWithExtras;
+    });
   }
 }

@@ -8,6 +8,10 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
+
+import { TuiAlertService } from '@taiga-ui/core';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+
 import { filter, map } from 'rxjs';
 
 /**
@@ -18,6 +22,8 @@ import { filter, map } from 'rxjs';
 export class OfflineService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly swUpdate = inject(SwUpdate);
+  private readonly alerts = inject(TuiAlertService);
+
   private readonly isBrowser =
     isPlatformBrowser(this.platformId) &&
     typeof window !== 'undefined' &&
@@ -49,9 +55,25 @@ export class OfflineService {
             filter((evt) => evt.type === 'VERSION_READY'),
             map(() => true),
           )
-          .subscribe(() => this.updateAvailableSig.set(true));
+          .subscribe(() => {
+            this.updateAvailableSig.set(true);
+            this.showUpdateNotification();
+          });
       }
     }
+  }
+
+  private async showUpdateNotification() {
+    const { UpdateNotificationComponent } = await import(
+      '../components/update-notification'
+    );
+    this.alerts
+      .open(new PolymorpheusComponent(UpdateNotificationComponent), {
+        label: 'messages.updateAvailable',
+        autoClose: 0,
+        appearance: 'warning',
+      })
+      .subscribe();
   }
 
   async applyUpdate() {

@@ -1,5 +1,4 @@
-import { ClimbingKind, AscentType } from './supabase-interfaces';
-import { GradeLabel } from './grade.model';
+import { AscentType, ClimbingKind, GradeLabel } from '../models';
 
 export interface EightAnuAscent {
   route_boulder: 'ROUTE' | 'BOULDER';

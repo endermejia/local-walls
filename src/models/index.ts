@@ -11,5 +11,7 @@ export * from './route-ascent.model';
 export * from './route.model';
 export * from './search-api.model';
 export * from './search-item.model';
+export * from './season.model';
+export * from './supabase-generated';
 export * from './supabase-interfaces';
 export * from './topo.model';

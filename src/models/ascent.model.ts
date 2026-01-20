@@ -1,4 +1,4 @@
-import { AscentType } from './supabase-interfaces';
+import { AscentType, RouteAscentWithExtras } from '../models';
 
 export interface AscentListItem {
   ascentId: number;
@@ -86,6 +86,6 @@ export interface UserAscentsQuery {
 export interface AscentDialogData {
   routeId?: number;
   routeName?: string;
-  ascentData?: import('./route-ascent.model').RouteAscentWithExtras;
+  ascentData?: RouteAscentWithExtras;
   grade?: number;
 }
