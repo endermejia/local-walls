@@ -15,8 +15,9 @@ import {
 import {
   TuiAppearance,
   TuiButton,
-  TuiDataListComponent,
   TuiDialogContext,
+  TuiHint,
+  TuiIcon,
   TuiNotification,
   TuiTitle,
 } from '@taiga-ui/core';
@@ -28,6 +29,7 @@ import {
   TuiSlides,
   TuiStepper,
 } from '@taiga-ui/kit';
+import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 
@@ -37,6 +39,7 @@ import {
   firstValueFrom,
   type Observable,
   of,
+  startWith,
   Subject,
   switchMap,
   tap,
@@ -66,6 +69,8 @@ import {
 
 import { slugify } from '../utils';
 
+import { AvatarGradeComponent } from './avatar-grade';
+
 @Component({
   selector: 'app-import-8a',
   standalone: true,
@@ -79,7 +84,6 @@ import { slugify } from '../utils';
     TuiStepper,
     TuiTitle,
     TranslatePipe,
-    TuiDataListComponent,
     TuiNotification,
     TuiSlides,
     TuiFiles,
@@ -87,6 +91,10 @@ import { slugify } from '../utils';
     TuiCardLarge,
     TuiFileRejectedPipe,
     AsyncPipe,
+    TuiAvatar,
+    TuiIcon,
+    TuiHint,
+    AvatarGradeComponent,
   ],
   template: `
     <div class="flex justify-center">
@@ -138,7 +146,7 @@ import { slugify } from '../utils';
                       />
                     }
 
-                    @if (loadedFiles$ | async; as file) {
+                    @if (loadedFile(); as file) {
                       <tui-file [file]="file" (remove)="removeFile()" />
                     }
 
@@ -178,26 +186,56 @@ import { slugify } from '../utils';
                 </header>
 
                 <div class="max-h-[35dvh] overflow-auto border rounded p-2">
-                  <tui-data-list>
-                    @for (
-                      ascent of ascents();
-                      track ascent.name + ascent.sector_name + ascent.date
-                    ) {
-                      <div
-                        class="p-2 border-b flex justify-between items-center"
-                      >
+                  @for (
+                    ascent of ascents();
+                    track ascent.name + ascent.sector_name + ascent.date
+                  ) {
+                    <div
+                      class="p-2 border-b last:border-0 flex justify-between items-center gap-4"
+                    >
+                      <div class="flex items-center gap-3">
+                        <app-avatar-grade
+                          [grade]="
+                            LABEL_TO_VERTICAL_LIFE[ascent.difficulty] ?? 0
+                          "
+                          size="m"
+                        />
                         <div>
                           <div class="font-semibold">
-                            {{ ascent.name }} ({{ ascent.difficulty }})
+                            {{ ascent.name }}
                           </div>
                           <div class="text-xs opacity-70">
                             {{ ascent.sector_name }} - {{ ascent.date | date }}
                           </div>
                         </div>
-                        <div class="text-xs italic">{{ ascent.type }}</div>
                       </div>
-                    }
-                  </tui-data-list>
+                      <div class="flex items-center gap-2">
+                        <tui-avatar
+                          size="s"
+                          class="!text-white"
+                          [style.background]="
+                            ascentsService.ascentInfo()[
+                              ascent.type || 'default'
+                            ].background
+                          "
+                          [tuiHint]="
+                            'ascentTypes.' + (ascent.type || 'rp') | translate
+                          "
+                        >
+                          <tui-icon
+                            [icon]="
+                              ascentsService.ascentInfo()[
+                                ascent.type || 'default'
+                              ].icon
+                            "
+                          />
+                        </tui-avatar>
+                        <div class="text-xs italic opacity-70">
+                          {{ 'ascentTypes.' + ascent.type | translate }}
+                        </div>
+                      </div>
+                    </div>
+                  }
                 </div>
 
                 <div class="mt-4 flex gap-2">
@@ -246,7 +284,7 @@ export class Import8aComponent {
   private readonly supabase = inject(SupabaseService);
   private readonly eightAnuService = inject(EightAnuService);
   private readonly global = inject(GlobalData);
-  private readonly ascentsService = inject(AscentsService);
+  protected readonly ascentsService = inject(AscentsService);
   private readonly toast = inject(ToastService);
   private readonly notification = inject(NotificationService);
   private readonly translate = inject(TranslateService);
@@ -260,6 +298,7 @@ export class Import8aComponent {
   protected searching = signal(false);
   protected importing = signal(false);
   protected ascents = signal<EightAnuAscent[]>([]);
+  protected readonly LABEL_TO_VERTICAL_LIFE = LABEL_TO_VERTICAL_LIFE;
 
   private loaderClose$?: Subject<void>;
 
@@ -275,13 +314,31 @@ export class Import8aComponent {
 
   protected readonly failedFiles$ = new Subject<TuiFileLike | null>();
   protected readonly loadingFiles$ = new Subject<TuiFileLike | null>();
+  protected readonly loadedFile = signal<TuiFileLike | null>(null);
+
   protected readonly loadedFiles$ = this.control.valueChanges.pipe(
-    switchMap((file) => (file ? this.processFile(file) : of(null))),
+    startWith(this.control.value),
+    switchMap((file) => {
+      if (!file) {
+        this.loadedFile.set(null);
+        return of(null);
+      }
+      return this.processFile(file).pipe(
+        tap((processed) => {
+          this.loadedFile.set(processed);
+        }),
+      );
+    }),
   );
+
+  constructor() {
+    this.loadedFiles$.subscribe();
+  }
 
   protected removeFile(): void {
     this.control.setValue(null);
     this.ascents.set([]);
+    this.loadedFile.set(null);
   }
 
   protected processFile(
@@ -291,6 +348,12 @@ export class Import8aComponent {
 
     if (this.control.invalid || !file) {
       return of(null);
+    }
+
+    // If we already have ascents loaded and the file is the same name/size, skip processing
+    // This avoids reparsing when switching steps
+    if (this.ascents().length > 0) {
+      return of(file);
     }
 
     this.loadingFiles$.next(file);
