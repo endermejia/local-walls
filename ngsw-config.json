@@ -4,7 +4,7 @@
   "assetGroups": [
     {
       "name": "app",
-      "installMode": "lazy",
+      "installMode": "prefetch",
       "updateMode": "prefetch",
       "resources": {
         "files": [
@@ -20,14 +20,13 @@
     },
     {
       "name": "assets",
-      "installMode": "lazy",
+      "installMode": "prefetch",
       "updateMode": "prefetch",
       "resources": {
         "files": [
           "/i18n/**",
-          "/icons/**",
+          "/image/**",
           "/logo/**",
-          "/assets/**",
           "/*.(png|jpg|jpeg|svg|webp|gif)"
         ]
       }
