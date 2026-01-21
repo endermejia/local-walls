@@ -51,7 +51,6 @@ import { SupabaseService } from '../services';
           tuiCardLarge
           tuiForm="m"
           class="w-full max-w-sm mx-auto"
-          style="touch-action: pan-y"
           novalidate
           (submit.zoneless)="submit($event)"
         >

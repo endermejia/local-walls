@@ -137,7 +137,6 @@ import {
                 tuiCardLarge
                 [tuiSurface]="a.liked ? 'outline-destructive' : 'outline'"
                 class="cursor-pointer"
-                style="touch-action: pan-y"
                 [routerLink]="['/area', a.slug]"
               >
                 <div class="flex flex-col min-w-0 grow">
