@@ -37,9 +37,9 @@
     {
       "name": "supabase-rest",
       "cacheConfig": {
-        "strategy": "performance",
+        "strategy": "freshness",
         "maxSize": 200,
-        "maxAge": "7d",
+        "maxAge": "1h",
         "timeout": "5s"
       },
       "urls": ["https://eswbehepsagigvlytfxv.supabase.co/rest/v1/**"]
