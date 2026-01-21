@@ -116,7 +116,11 @@ import { AvatarGradeComponent } from './avatar-grade';
           <!-- Step 0: Upload CSV -->
           @if (index === 0) {
             <div class="grid gap-4">
-              <div tuiCardLarge tuiAppearance="floating">
+              <div
+                tuiCardLarge
+                tuiAppearance="floating"
+                style="touch-action: pan-y"
+              >
                 <tui-notification appearance="info" class="mt-4">
                   <div
                     [innerHTML]="'import8a.csvInstructions' | translate"
@@ -176,7 +180,11 @@ import { AvatarGradeComponent } from './avatar-grade';
           <!-- Step 1: Preview & Confirm -->
           @if (index === 1) {
             <div class="grid gap-4">
-              <div tuiCardLarge tuiAppearance="floating">
+              <div
+                tuiCardLarge
+                tuiAppearance="floating"
+                style="touch-action: pan-y"
+              >
                 <header tuiHeader>
                   <h2 tuiTitle>
                     {{ 'import8a.confirmTitle' | translate }}

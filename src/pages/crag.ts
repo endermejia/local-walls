@@ -262,6 +262,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                 <div
                   tuiCardLarge
                   tuiSurface="flat"
+                  style="touch-action: pan-y"
                   class="!p-4 flex flex-col justify-between"
                 >
                   <div class="flex flex-col gap-3">
@@ -394,6 +395,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                 tuiCardLarge
                 [tuiSurface]="'outline'"
                 class="cursor-pointer"
+                style="touch-action: pan-y"
                 (click.zoneless)="goToTopo(t.id)"
               >
                 <div class="flex flex-col min-w-0 grow gap-2">

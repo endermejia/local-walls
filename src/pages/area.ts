@@ -200,6 +200,7 @@ import { handleErrorToast } from '../utils';
               tuiCardLarge
               [tuiSurface]="crag.liked ? 'outline-destructive' : 'outline'"
               class="cursor-pointer"
+              style="touch-action: pan-y"
               [routerLink]="['/area', area.slug, crag.slug]"
             >
               <div class="flex flex-col min-w-0 grow">
