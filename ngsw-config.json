@@ -72,5 +72,5 @@
     }
   ],
   "navigationUrls": ["/**", "!/**/*.*", "!/**/*__*", "!/api/**"],
-  "navigationRequestStrategy": "freshness"
+  "navigationRequestStrategy": "performance"
 }
