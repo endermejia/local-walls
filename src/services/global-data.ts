@@ -28,8 +28,8 @@ import {
   AreaListItem,
   ClimbingKinds,
   CragDetail,
-  CragDto,
   CragListItem,
+  CragWithJoins,
   IconName,
   Language,
   Languages,
@@ -47,7 +47,6 @@ import {
   Theme,
   Themes,
   TopoDetail,
-  TopoDto,
   TopoListItem,
   TopoRouteWithRoute,
   VERTICAL_LIFE_GRADES,
@@ -160,13 +159,6 @@ export class GlobalData {
       config,
     } satisfies OptionsData;
   });
-
-  // ---- Search ----
-  searchPopular: WritableSignal<string[]> = signal([
-    'Wild Side',
-    'Aixortà',
-    'Rincón Bello',
-  ]);
 
   // ---- Auth (roles) ----
   readonly userProfile = computed(() => this.supabase.userProfile());
@@ -501,8 +493,8 @@ export class GlobalData {
           '[GlobalData] areaListResource failed, trying offline DB...',
           e,
         );
-        const fromDb = await this.db.getAll<AreaListItem>('areas');
-        return fromDb;
+
+        return await this.db.getAll<AreaListItem>('areas');
       }
     },
   });
@@ -658,85 +650,7 @@ export class GlobalData {
           throw error;
         }
 
-        // Type the raw response structure from Supabase join query
-        type CragWithJoins = CragDto & {
-          area: { name: string; slug: string } | null;
-          crag_parkings: { parking: ParkingDto }[] | null;
-          topos:
-            | (TopoDto & {
-                topo_routes: { route: { grade: number } | null }[];
-              })[]
-            | null;
-          liked: { id: number }[];
-        };
-        const rawData = data as CragWithJoins;
-
-        // Transform nested parkings
-        const parkings =
-          rawData.crag_parkings?.map((cp) => cp.parking).filter(Boolean) ?? [];
-
-        const topos: TopoListItem[] =
-          rawData.topos?.map((t) => {
-            const grades: AmountByEveryGrade = {};
-            t.topo_routes.forEach((tr) => {
-              const g = tr.route?.grade;
-              if (g !== undefined && g !== null) {
-                grades[g as VERTICAL_LIFE_GRADES] =
-                  (grades[g as VERTICAL_LIFE_GRADES] ?? 0) + 1;
-              }
-            });
-
-            return {
-              id: t.id,
-              name: t.name,
-              slug: t.slug,
-              photo: t.photo,
-              grades,
-              shade_afternoon: t.shade_afternoon,
-              shade_change_hour: t.shade_change_hour,
-              shade_morning: t.shade_morning,
-            };
-          }) ?? [];
-        const topos_count = topos.length;
-        const shade_morning = topos.some((t) => t.shade_morning);
-        const shade_afternoon = topos.some((t) => t.shade_afternoon);
-        const shade_all_day = topos.some(
-          (t) => t.shade_morning && t.shade_afternoon,
-        );
-        const sun_all_day = topos.some(
-          (t) => !t.shade_morning && !t.shade_afternoon,
-        );
-
-        return {
-          // Fields from CragDto (table)
-          id: rawData.id,
-          name: rawData.name,
-          slug: rawData.slug,
-          area_id: rawData.area_id, // Not in CragListItem but in CragDto
-          description_en: rawData.description_en ?? undefined,
-          description_es: rawData.description_es ?? undefined,
-          warning_en: rawData.warning_en ?? undefined,
-          warning_es: rawData.warning_es ?? undefined,
-          latitude: rawData.latitude ?? 0,
-          longitude: rawData.longitude ?? 0,
-          approach: rawData.approach ?? undefined,
-
-          // Enriched fields
-          area_name: rawData.area?.name ?? '',
-          area_slug: rawData.area?.slug ?? '',
-          grades: {}, // Will be computed in the component from routes
-          liked: (rawData.liked?.length ?? 0) > 0,
-          parkings,
-          topos,
-
-          // Missing CragListItem fields
-          climbing_kind: [], // Cannot compute without routes here
-          topos_count,
-          shade_morning,
-          shade_afternoon,
-          shade_all_day,
-          sun_all_day,
-        };
+        return this.mapCragToDetail(data as CragWithJoins);
       } catch (e) {
         console.warn(
           '[GlobalData] cragDetailResource failed, trying offline DB...',
@@ -1458,18 +1372,10 @@ export class GlobalData {
     const { data, error } = await query.single();
     if (error || !data) return null;
 
-    type CragWithJoins = CragDto & {
-      area: { name: string; slug: string } | null;
-      crag_parkings: { parking: ParkingDto }[] | null;
-      topos:
-        | (TopoDto & {
-            topo_routes: { route: { grade: number } | null }[];
-          })[]
-        | null;
-      liked: { id: number }[];
-    };
-    const rawData = data as CragWithJoins;
+    return this.mapCragToDetail(data as CragWithJoins);
+  }
 
+  private mapCragToDetail(rawData: CragWithJoins): CragDetail {
     const parkings =
       rawData.crag_parkings?.map((cp) => cp.parking).filter(Boolean) ?? [];
 

@@ -5,6 +5,7 @@ import {
   TableInsert,
   TableRow,
   TableUpdate,
+  TopoDto,
   TopoListItem,
 } from '../models';
 
@@ -55,3 +56,14 @@ export type CragParkingUpdateDto = TableUpdate<'crag_parkings'>;
 export type CragEquipperDto = TableRow<'crag_equippers'>;
 export type CragEquipperInsertDto = TableInsert<'crag_equippers'>;
 export type CragEquipperUpdateDto = TableUpdate<'crag_equippers'>;
+
+export type CragWithJoins = CragDto & {
+  area: { name: string; slug: string } | null;
+  crag_parkings: { parking: ParkingDto }[] | null;
+  topos:
+    | (TopoDto & {
+        topo_routes: { route: { grade: number } | null }[];
+      })[]
+    | null;
+  liked: { id: number }[];
+};
