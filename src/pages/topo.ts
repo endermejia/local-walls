@@ -458,6 +458,7 @@ export interface TopoRouteRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'flex grow h-full overflow-hidden',
+    style: 'touch-action: auto',
   },
 })
 export class TopoComponent {

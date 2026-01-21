@@ -51,7 +51,7 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withEventReplay(), withIncrementalHydration()),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
-      registrationStrategy: 'registerWhenStable',
+      registrationStrategy: 'registerImmediately',
     }),
     provideTranslateService({
       loader: {

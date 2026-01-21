@@ -263,6 +263,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                   tuiCardLarge
                   tuiSurface="flat"
                   class="!p-4 flex flex-col justify-between"
+                  style="touch-action: auto"
                 >
                   <div class="flex flex-col gap-3">
                     <div class="flex items-start justify-between gap-2 ">
@@ -394,6 +395,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                 tuiCardLarge
                 [tuiSurface]="'outline'"
                 class="cursor-pointer"
+                style="touch-action: auto"
                 (click.zoneless)="goToTopo(t.id)"
               >
                 <div class="flex flex-col min-w-0 grow gap-2">
@@ -513,7 +515,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'overflow-auto' },
+  host: { class: 'block h-full overflow-y-auto' },
 })
 export class CragComponent {
   protected readonly global = inject(GlobalData);

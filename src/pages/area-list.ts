@@ -137,6 +137,7 @@ import {
                 tuiCardLarge
                 [tuiSurface]="a.liked ? 'outline-destructive' : 'outline'"
                 class="cursor-pointer"
+                style="touch-action: auto"
                 [routerLink]="['/area', a.slug]"
               >
                 <div class="flex flex-col min-w-0 grow">
@@ -188,7 +189,7 @@ import {
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'overflow-auto' },
+  host: { class: 'block h-full overflow-y-auto' },
 })
 export class AreaListComponent {
   private readonly areasService = inject(AreasService);

@@ -313,6 +313,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                     tuiCardLarge
                     [tuiSurface]="a.liked ? 'outline-destructive' : 'outline'"
                     class="cursor-pointer"
+                    style="touch-action: auto"
                     [routerLink]="['/area', a.slug]"
                   >
                     <div class="flex flex-col min-w-0 grow">
@@ -374,6 +375,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                     tuiCardLarge
                     [tuiSurface]="c.liked ? 'outline-destructive' : 'outline'"
                     class="cursor-pointer"
+                    style="touch-action: auto"
                     [routerLink]="['/area', c.area_slug, c.slug]"
                   >
                     <div class="flex flex-col min-w-0 grow">
