@@ -6,17 +6,17 @@ import {
   PLATFORM_ID,
   signal,
 } from '@angular/core';
-import { SwUpdate } from '@angular/service-worker';
+import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 
 import { TuiAlertService } from '@taiga-ui/core';
 
 import { TranslateService } from '@ngx-translate/core';
-import { concat, filter, first, interval, map } from 'rxjs';
+import { filter, first } from 'rxjs';
 
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 /**
- * OfflineService: SSR-safe Service Worker updates management.
+ * OfflineService: Manages Service Worker updates and offline state.
  */
 @Injectable({ providedIn: 'root' })
 export class OfflineService {
@@ -26,50 +26,50 @@ export class OfflineService {
   private readonly alerts = inject(TuiAlertService);
   private readonly translate = inject(TranslateService);
 
-  private readonly isBrowser =
-    isPlatformBrowser(this.platformId) &&
-    typeof window !== 'undefined' &&
-    typeof navigator !== 'undefined';
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   readonly updateAvailable = signal(false);
+  readonly isOnline = signal(true);
 
   constructor() {
-    if (this.isBrowser) {
-      // Service Worker updates
-      if (this.swUpdate.isEnabled) {
-        this.swUpdate.versionUpdates
-          .pipe(
-            filter((evt) => evt.type === 'VERSION_READY'),
-            map(() => true),
-          )
-          .subscribe(() => {
-            this.updateAvailable.set(true);
-            this.showUpdateNotification();
-          });
+    if (!this.isBrowser) return;
 
-        // Periodically check for updates
-        const appIsStable$ = this.appRef.isStable.pipe(
-          first((isStable) => isStable === true),
-        );
-        const everySixHours$ = interval(6 * 60 * 60 * 1000);
-        const everySixHoursOnceAppIsStable$ = concat(
-          appIsStable$,
-          everySixHours$,
-        );
+    this.isOnline.set(navigator.onLine);
+    window.addEventListener('online', () => this.isOnline.set(true));
+    window.addEventListener('offline', () => this.isOnline.set(false));
 
-        everySixHoursOnceAppIsStable$.subscribe(async () => {
-          try {
-            await this.swUpdate.checkForUpdate();
-            console.log('Checked for updates...');
-          } catch (err) {
-            console.error('Failed to check for updates:', err);
-          }
-        });
-      }
+    if (!this.swUpdate.isEnabled) return;
 
-      // Monitor Service Worker state
-      this.monitorServiceWorkerState();
-    }
+    // 1. Listen for new versions
+    this.swUpdate.versionUpdates
+      .pipe(
+        filter(
+          (evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY',
+        ),
+      )
+      .subscribe(() => {
+        this.updateAvailable.set(true);
+        void this.showUpdateNotification();
+      });
+
+    // 2. Handle unrecoverable state
+    this.swUpdate.unrecoverable.subscribe((evt) => {
+      console.error('Unrecoverable version detected:', evt.reason);
+      window.location.reload();
+    });
+
+    // 3. Periodically check for updates (e.g., every hour)
+    this.appRef.isStable
+      .pipe(first((stable) => stable))
+      .subscribe(() => {
+        // Initial check
+        void this.swUpdate.checkForUpdate();
+
+        // Interval check (every hour)
+        setInterval(() => {
+          void this.swUpdate.checkForUpdate();
+        }, 60 * 60 * 1000);
+      });
   }
 
   private async showUpdateNotification() {
@@ -87,27 +87,10 @@ export class OfflineService {
 
   async applyUpdate() {
     if (this.updateAvailable()) {
-      await this.swUpdate.activateUpdate();
-      if (this.isBrowser) {
+      const activated = await this.swUpdate.activateUpdate();
+      if (activated) {
         window.location.reload();
       }
     }
-  }
-
-  private monitorServiceWorkerState() {
-    if (!this.isBrowser || !('serviceWorker' in navigator)) return;
-
-    navigator.serviceWorker.ready
-      .then((registration) => {
-        console.log('Service Worker ready:', registration);
-
-        // Listen for controlling SW changes
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          console.log('Service Worker controller changed');
-        });
-      })
-      .catch((err) => {
-        console.error('Service Worker registration failed:', err);
-      });
   }
 }

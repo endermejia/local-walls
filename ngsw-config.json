@@ -33,44 +33,6 @@
       }
     }
   ],
-  "dataGroups": [
-    {
-      "name": "supabase-rest",
-      "cacheConfig": {
-        "strategy": "freshness",
-        "maxSize": 200,
-        "maxAge": "1h",
-        "timeout": "5s"
-      },
-      "urls": ["https://eswbehepsagigvlytfxv.supabase.co/rest/v1/**"]
-    },
-    {
-      "name": "supabase-storage",
-      "cacheConfig": {
-        "strategy": "performance",
-        "maxSize": 100,
-        "maxAge": "30d",
-        "timeout": "5s"
-      },
-      "urls": [
-        "https://eswbehepsagigvlytfxv.supabase.co/storage/v1/object/public/**"
-      ]
-    },
-    {
-      "name": "api-data",
-      "cacheConfig": {
-        "strategy": "freshness",
-        "maxSize": 100,
-        "maxAge": "1d",
-        "timeout": "5s"
-      },
-      "urls": [
-        "/api/**",
-        "https://api.vertical-life.info/**",
-        "https://*.tile.openstreetmap.org/**"
-      ]
-    }
-  ],
   "navigationUrls": ["/**", "!/**/*.*", "!/**/*__*", "!/api/**"],
   "navigationRequestStrategy": "performance"
 }
