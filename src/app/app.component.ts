@@ -8,7 +8,7 @@ import { TuiRoot } from '@taiga-ui/core';
 import { TranslateService } from '@ngx-translate/core';
 import { map, merge, startWith } from 'rxjs';
 
-import { GlobalData } from '../services';
+import { GlobalData, OfflineService } from '../services';
 
 import { HeaderComponent } from '../components';
 
@@ -29,6 +29,7 @@ import { HeaderComponent } from '../components';
 })
 export class AppComponent {
   protected global = inject(GlobalData);
+  private offlineService = inject(OfflineService);
   private router = inject(Router);
   private title = inject(Title);
   private meta = inject(Meta);
