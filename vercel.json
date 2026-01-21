@@ -47,6 +47,7 @@
   ],
   "rewrites": [
     { "source": "/api/8anu/:path*", "destination": "https://www.8a.nu/:path*" },
+    { "source": "/image/(.*)", "destination": "/image/$1" },
     { "source": "/(.*)", "destination": "/" }
   ]
 }
