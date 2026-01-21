@@ -874,27 +874,12 @@ export class Import8aComponent {
               `${areaSlug}|${sectorSlug}`,
             );
 
-            let slug = eightAnuSlug || slugify(c.name);
+            const slug = eightAnuSlug || slugify(c.name);
 
             console.log(
               `[8a Import] Creating crag ${c.name} with slug candidate ${slug} (8aSlug: ${eightAnuSlug})`,
             );
 
-            // Ensure the slug is unique by adding suffixes if needed
-            if (usedCragSlugs.has(slug)) {
-              slug = `${slug}-${slugify(c.area_name)}`;
-            }
-            if (usedCragSlugs.has(slug)) {
-              slug = `${slug}-${c.area_id}`;
-            }
-            // Add a counter-suffix if still duplicated
-            let counter = 1;
-            let finalSlug = slug;
-            while (usedCragSlugs.has(finalSlug)) {
-              finalSlug = `${slug}-${counter}`;
-              counter++;
-            }
-            slug = finalSlug;
             usedCragSlugs.add(slug);
 
             const coords = areaToCoords.get(c.area_name);

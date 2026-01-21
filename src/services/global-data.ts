@@ -612,9 +612,14 @@ export class GlobalData {
   });
 
   readonly cragDetailResource = resource({
-    params: () => this.selectedCragSlug(),
-    loader: async ({ params: slug }): Promise<CragDetail | null> => {
-      if (!slug) return null;
+    params: () => ({
+      cragSlug: this.selectedCragSlug(),
+      areaSlug: this.selectedAreaSlug(),
+    }),
+    loader: async ({
+      params: { cragSlug, areaSlug },
+    }): Promise<CragDetail | null> => {
+      if (!cragSlug || !areaSlug) return null;
       if (!isPlatformBrowser(this.platformId)) return null;
       try {
         await this.supabase.whenReady();
@@ -625,7 +630,7 @@ export class GlobalData {
             `
             *,
             liked:crag_likes(id),
-            area: areas ( name, slug ),
+            area: areas!inner ( name, slug ),
             crag_parkings (
               parking: parkings (*)
             ),
@@ -639,7 +644,8 @@ export class GlobalData {
             )
           `,
           )
-          .eq('slug', slug);
+          .eq('slug', cragSlug)
+          .eq('area.slug', areaSlug);
 
         if (userId) {
           query = query.eq('liked.user_id', userId);
@@ -737,8 +743,7 @@ export class GlobalData {
           e,
         );
         // Fallback to DB
-        const fromDb = await this.db.get<CragDetail>('crag_details', slug);
-        return fromDb;
+        return await this.db.get<CragDetail>('crag_details', cragSlug);
       }
     },
   });
