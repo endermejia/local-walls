@@ -49,11 +49,12 @@ import { computeGradeChartData } from '../utils';
   ],
   template: `
     @let c = chart();
-    @if (isBrowser && c.total > 0) {
+    @if (isBrowser) {
       <tui-ring-chart
         [tuiSkeleton]="tuiSkeleton()"
-        [value]="c.values"
+        [value]="c.values.length && c.total > 0 ? c.values : [1]"
         [activeItemIndex]="activeItemIndex()"
+        [class.!opacity-20]="c.total === 0"
         (activeItemIndexChange)="onActiveItemIndexChange($event)"
       >
         @if (c.hasActive) {
