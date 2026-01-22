@@ -390,7 +390,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
           </div>
           <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
             @for (t of topos(); track t.id) {
-              <a
+              <button
                 tuiCardLarge
                 [tuiSurface]="'outline'"
                 (click.zoneless)="goToTopo(t.id)"
@@ -436,7 +436,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                     </div>
                   </section>
                 </div>
-              </a>
+              </button>
             } @empty {
               <div class="col-span-full">
                 <app-empty-state />

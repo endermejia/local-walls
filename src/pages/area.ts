@@ -196,7 +196,7 @@ import { handleErrorToast } from '../utils';
 
         <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
           @for (crag of crags; track crag.slug) {
-            <a
+            <button
               tuiCardLarge
               [tuiSurface]="crag.liked ? 'outline-destructive' : 'outline'"
               [routerLink]="['/area', area.slug, crag.slug]"
@@ -216,7 +216,7 @@ import { handleErrorToast } from '../utils';
                   />
                 </section>
               </div>
-            </a>
+            </button>
           } @empty {
             <app-empty-state class="col-span-full" />
           }
