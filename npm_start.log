@@ -1,0 +1,65 @@
+
+> local-walls@0.0.0 start
+> ng serve --hmr=false
+
+❯ Building...
+✔ Building...
+Browser bundles
+Initial chunk files  | Names                |  Raw size
+chunk-XXXSOL53.js    | -                    | 625.74 kB |
+styles.css           | styles               | 278.34 kB |
+chunk-5RX63WU6.js    | -                    |  12.53 kB |
+main.js              | main                 |  11.95 kB |
+
+                     | Initial total        | 928.55 kB
+
+Lazy chunk files     | Names                |  Raw size
+chunk-3OKZZ5ML.js    | crag                 |  63.05 kB |
+chunk-VZNEGTJX.js    | topo                 |  57.00 kB |
+chunk-4C3OQSCG.js    | explore              |  52.90 kB |
+chunk-KXRXRXVX.js    | login                |  40.81 kB |
+chunk-5DNZNHN5.js    | user-profile         |  36.62 kB |
+chunk-FD7ODRKW.js    | admin-users-list     |  32.54 kB |
+chunk-TYNHUDL5.js    | route                |  32.09 kB |
+chunk-XUBD7YT3.js    | admin-parkings-list  |  29.86 kB |
+chunk-3MUBMTSG.js    | admin-equippers-list |  29.44 kB |
+chunk-RWJNF46C.js    | area                 |  26.00 kB |
+chunk-7I663F4J.js    | area-list            |  21.20 kB |
+chunk-6G4NEIWN.js    | home                 |  15.54 kB |
+chunk-KQSXICOE.js    | page-not-found       |   4.84 kB |
+chunk-X4KG542E.js    | update-notification  |   3.75 kB |
+chunk-EAVUNPGG.js    | -                    |   1.37 kB |
+...and 1 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files  | Names                |  Raw size
+chunk-RJUJX2UE.mjs   | -                    | 625.77 kB |
+main.server.mjs      | main.server          |  16.15 kB |
+chunk-EN4ZKU6J.mjs   | -                    |  12.56 kB |
+server.mjs           | server               |   3.03 kB |
+polyfills.server.mjs | polyfills.server     | 243 bytes |
+
+Lazy chunk files     | Names                |  Raw size
+chunk-Y6CGFTBD.mjs   | crag                 |  63.09 kB |
+chunk-MY4O2G6C.mjs   | topo                 |  57.03 kB |
+chunk-YY465U44.mjs   | explore              |  52.94 kB |
+chunk-3ONELPDS.mjs   | login                |  40.85 kB |
+chunk-J2B2AMOO.mjs   | user-profile         |  36.65 kB |
+chunk-LLBW7EXF.mjs   | admin-users-list     |  32.58 kB |
+chunk-VLJZZSTK.mjs   | route                |  32.13 kB |
+chunk-NVJ262MF.mjs   | admin-parkings-list  |  29.90 kB |
+chunk-LELRXQEV.mjs   | admin-equippers-list |  29.48 kB |
+chunk-3PWAIW2J.mjs   | area                 |  26.03 kB |
+chunk-TV6VG4E5.mjs   | area-list            |  21.23 kB |
+chunk-ISENH3A5.mjs   | home                 |  15.58 kB |
+chunk-5ENP4YSG.mjs   | page-not-found       |   4.87 kB |
+chunk-SUQX6A3T.mjs   | update-notification  |   3.78 kB |
+chunk-CDVIZK2I.mjs   | -                    |   1.40 kB |
+...and 1 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [16.854 seconds] - 2026-01-21T22:38:53.064Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  ➜  Local:   http://localhost:4200/

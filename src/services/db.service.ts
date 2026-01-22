@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
 })
 export class DbService {
   private readonly dbName = 'local_walls_db';
-  private readonly dbVersion = 1;
+  private readonly dbVersion = 2;
 
   async get<T>(storeName: string, id: string | number): Promise<T | null> {
     const db = await this.openDb();
@@ -82,6 +82,24 @@ export class DbService {
         if (!db.objectStoreNames.contains('crag_routes')) {
           // Stores routes list for a specific crag
           db.createObjectStore('crag_routes', { keyPath: 'cragId' });
+        }
+        if (!db.objectStoreNames.contains('crags_by_area')) {
+          db.createObjectStore('crags_by_area', { keyPath: 'areaSlug' });
+        }
+        if (!db.objectStoreNames.contains('topo_details')) {
+          db.createObjectStore('topo_details', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('route_details')) {
+          db.createObjectStore('route_details', { keyPath: 'key' });
+        }
+        if (!db.objectStoreNames.contains('user_profiles')) {
+          db.createObjectStore('user_profiles', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('user_ascents')) {
+          db.createObjectStore('user_ascents', { keyPath: 'userId' });
+        }
+        if (!db.objectStoreNames.contains('user_projects')) {
+          db.createObjectStore('user_projects', { keyPath: 'userId' });
         }
       };
       request.onsuccess = () => resolve(request.result);

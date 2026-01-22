@@ -70,11 +70,6 @@ export class GlobalData {
     { initialValue: false },
   );
 
-  // ---- Map cache (keeps already downloaded items) ----
-  private readonly mapCache = new Map<number, MapItem>();
-  private readonly maxCacheItems = 1000;
-  private readonly cachedMapItems: WritableSignal<MapItem[]> = signal([]);
-
   // Loading/Status state
   readonly error: WritableSignal<string | null> = signal(null);
 
@@ -259,33 +254,13 @@ export class GlobalData {
         } as MapCragItem;
       });
 
-      const mergedResponse: MapResponse = {
+      return {
         items: supabaseCragItems,
         counts: {
           locations: supabaseCragItems.length,
           map_collections: 0,
         },
-      };
-
-      // Merge into cache
-      for (const it of supabaseCragItems) {
-        if (it.id) {
-          this.mapCache.set(it.id, it);
-        }
-      }
-
-      // Enforce cache limit
-      let arr = Array.from(this.mapCache.values());
-      if (arr.length > this.maxCacheItems) {
-        arr = arr.slice(arr.length - this.maxCacheItems);
-        this.mapCache.clear();
-        for (const it of arr) {
-          this.mapCache.set(it.id, it);
-        }
-      }
-      this.cachedMapItems.set(arr);
-
-      return mergedResponse;
+      } as MapResponse;
     },
   });
 
@@ -293,11 +268,10 @@ export class GlobalData {
    * Items currently visible in the viewport defined by mapBounds.
    * - Crags: included when their [lat,lng] is inside bounds.
    * - Areas: included when their bbox intersects bounds.
-   * If no bounds yet, returns all cached mapItems.
    */
   mapItemsOnViewport: Signal<MapItem[]> = computed(() => {
     const bounds = this.mapBounds();
-    const items = this.cachedMapItems();
+    const items = this.mapResource.value()?.items || [];
     if (!bounds) return items;
 
     const south = bounds.south_west_latitude;
@@ -307,7 +281,6 @@ export class GlobalData {
 
     const pointIn = (lat: number, lng: number): boolean => {
       if (Number.isNaN(lat) || Number.isNaN(lng)) return false;
-      // Handle normal case where east >= west; if anti-meridian crossed (east < west), allow wrap.
       const inLat = lat >= south && lat <= north;
       const inLng =
         east >= west ? lng >= west && lng <= east : lng >= west || lng <= east;
@@ -316,9 +289,6 @@ export class GlobalData {
 
     return [
       ...items.filter((it) => {
-        const area = (it as MapAreaItem).area_type === 0;
-        if (area) return false;
-
         const lat = (it as MapCragItem).latitude as number | undefined;
         const lng = (it as MapCragItem).longitude as number | undefined;
         return (
@@ -522,12 +492,21 @@ export class GlobalData {
         );
         if (error) {
           console.error('[GlobalData] cragsListResource error', error);
-          return [];
+          throw error;
         }
-        return (data as CragListItem[]) ?? [];
+        const list = (data as CragListItem[]) ?? [];
+        void this.db.put('crags_by_area', { areaSlug, items: list });
+        return list;
       } catch (e) {
-        console.error('[GlobalData] cragsListResource exception', e);
-        return [];
+        console.warn(
+          '[GlobalData] cragsListResource failed, trying offline DB...',
+          e,
+        );
+        const fromDb = await this.db.get<{
+          areaSlug: string;
+          items: CragListItem[];
+        }>('crags_by_area', areaSlug);
+        return fromDb?.items || [];
       }
     },
   });
@@ -579,7 +558,7 @@ export class GlobalData {
 
         if (error) {
           console.error('[GlobalData] topoDetailResource error', error);
-          return null;
+          throw error;
         }
 
         const topo_routes: TopoRouteWithRoute[] =
@@ -592,13 +571,18 @@ export class GlobalData {
             },
           })) || [];
 
-        return {
+        const detail = {
           ...data,
           topo_routes,
         };
+        void this.db.put('topo_details', detail);
+        return detail;
       } catch (e) {
-        console.error('[GlobalData] topoDetailResource error', e);
-        return null;
+        console.warn(
+          '[GlobalData] topoDetailResource failed, trying offline DB...',
+          e,
+        );
+        return await this.db.get<TopoDetail>('topo_details', Number(id));
       }
     },
   });
@@ -650,7 +634,9 @@ export class GlobalData {
           throw error;
         }
 
-        return this.mapCragToDetail(data as CragWithJoins);
+        const detail = this.mapCragToDetail(data as CragWithJoins);
+        void this.db.put('crag_details', detail);
+        return detail;
       } catch (e) {
         console.warn(
           '[GlobalData] cragDetailResource failed, trying offline DB...',
@@ -705,7 +691,7 @@ export class GlobalData {
           throw error;
         }
 
-        return (
+        const routes =
           data.map((r) =>
             (() => {
               const rates =
@@ -728,8 +714,9 @@ export class GlobalData {
                 own_ascent: r.own_ascent?.[0],
               } as RouteWithExtras;
             })(),
-          ) ?? []
-        );
+          ) ?? [];
+        void this.db.put('crag_routes', { cragId, routes });
+        return routes;
       } catch (e) {
         console.warn(
           '[GlobalData] cragRoutesResource failed, trying offline DB...',
@@ -750,7 +737,7 @@ export class GlobalData {
 
   readonly userProjectsResource = resource({
     params: () => this.profileUserId(),
-    loader: async ({ params: userId }) => {
+    loader: async ({ params: userId }): Promise<RouteWithExtras[]> => {
       if (!userId || !isPlatformBrowser(this.platformId)) return [];
       try {
         await this.supabase.whenReady();
@@ -776,10 +763,10 @@ export class GlobalData {
 
         if (error) {
           console.error('[GlobalData] userProjectsResource error', error);
-          return [];
+          throw error;
         }
 
-        return data
+        const items: RouteWithExtras[] = data
           .map((item) => {
             const r = item.route;
             if (!r) return null;
@@ -802,12 +789,22 @@ export class GlobalData {
               area_name: crag?.area?.name,
               rating,
               ascent_count: ascents?.length ?? 0,
-            };
+            } as RouteWithExtras;
           })
-          .filter((r) => !!r);
+          .filter((r): r is RouteWithExtras => !!r);
+
+        void this.db.put('user_projects', { userId, items });
+        return items;
       } catch (e) {
-        console.error('[GlobalData] userProjectsResource exception', e);
-        return [];
+        console.warn(
+          '[GlobalData] userProjectsResource failed, trying offline DB...',
+          e,
+        );
+        const fromDb = await this.db.get<{ items: RouteWithExtras[] }>(
+          'user_projects',
+          userId,
+        );
+        return fromDb?.items || [];
       }
     },
   });
@@ -916,7 +913,7 @@ export class GlobalData {
 
         if (error) {
           console.error('[GlobalData] userAscentsResource error', error);
-          return { items: [], total: 0 };
+          throw error;
         }
 
         const items = data.map((a) => {
@@ -942,10 +939,21 @@ export class GlobalData {
           } as RouteAscentWithExtras;
         });
 
-        return { items, total: count ?? 0 };
+        const result = { items, total: count ?? 0 };
+        // We only cache the first page or unfiltered results?
+        // Let's cache whatever the user sees, it will overwrite the previous userId entry.
+        void this.db.put('user_ascents', { userId, ...result });
+        return result;
       } catch (e) {
-        console.error('[GlobalData] userAscentsResource exception', e);
-        return { items: [], total: 0 };
+        console.warn(
+          '[GlobalData] userAscentsResource failed, trying offline DB...',
+          e,
+        );
+        const fromDb = await this.db.get<PaginatedAscents & { userId: string }>(
+          'user_ascents',
+          userId,
+        );
+        return fromDb ? { items: fromDb.items, total: fromDb.total } : { items: [], total: 0 };
       }
     },
   });
@@ -1019,7 +1027,7 @@ export class GlobalData {
 
         if (error) {
           console.error('[GlobalData] routeDetailResource error', error);
-          return null;
+          throw error;
         }
 
         const r = data;
@@ -1030,7 +1038,7 @@ export class GlobalData {
             ? rates.reduce((a, b) => a + b, 0) / rates.length
             : 0;
 
-        return {
+        const route = {
           ...r,
           liked: (r.liked?.length ?? 0) > 0,
           project: (r.project?.length ?? 0) > 0,
@@ -1042,10 +1050,20 @@ export class GlobalData {
           ascent_count: r.ascents?.length ?? 0,
           climbed: (r.own_ascent?.length ?? 0) > 0,
           own_ascent: r.own_ascent?.[0],
-        } as RouteWithExtras;
+          key: `${cragId}:${routeSlug}`,
+        } as RouteWithExtras & { key: string };
+
+        void this.db.put('route_details', route);
+        return route;
       } catch (e) {
-        console.error('[GlobalData] routeDetailResource exception', e);
-        return null;
+        console.warn(
+          '[GlobalData] routeDetailResource failed, trying offline DB...',
+          e,
+        );
+        return await this.db.get<RouteWithExtras>(
+          'route_details',
+          `${cragId}:${routeSlug}`,
+        );
       }
     },
   });
