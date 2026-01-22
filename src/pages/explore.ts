@@ -136,10 +136,10 @@ import { mapLocationUrl, remToPx } from '../utils';
       <div
         class="absolute w-full max-w-[40rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0"
       >
-        <div
+        <a
           tuiCardLarge
           tuiSurface="floating"
-          class="relative pointer-events-auto cursor-pointer m-4"
+          class="relative pointer-events-auto m-4"
           [routerLink]="['/area', c.area_slug, c.slug]"
         >
           <div class="flex flex-col min-w-0 grow">
@@ -194,7 +194,7 @@ import { mapLocationUrl, remToPx } from '../utils';
               </div>
             </section>
           </div>
-        </div>
+        </a>
       </div>
     } @else if (global.selectedMapParkingItem(); as p) {
       <!-- Selected parking information section -->
@@ -309,10 +309,9 @@ import { mapLocationUrl, remToPx } from '../utils';
             >
               <div class="grid gap-2">
                 @for (a of areas; track a.slug) {
-                  <div
+                  <a
                     tuiCardLarge
                     [tuiSurface]="a.liked ? 'outline-destructive' : 'outline'"
-                    class="cursor-pointer"
                     [routerLink]="['/area', a.slug]"
                   >
                     <div class="flex flex-col min-w-0 grow">
@@ -338,7 +337,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                         }
                       </section>
                     </div>
-                  </div>
+                  </a>
                 }
               </div>
             </section>

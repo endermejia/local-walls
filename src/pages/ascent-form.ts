@@ -162,7 +162,7 @@ import { handleErrorToast } from '../utils';
                 </button>
                 <button
                   type="button"
-                  class="text-xs font-medium appearance-none bg-transparent border-none p-0 cursor-pointer"
+                  class="text-xs font-medium appearance-none bg-transparent border-none p-0"
                   (click)="form.get('type')?.setValue(opt.id)"
                 >
                   {{ opt.translate | translate }}

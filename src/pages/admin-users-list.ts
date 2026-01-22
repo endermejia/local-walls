@@ -191,7 +191,6 @@ interface UserWithRole {
                         <tui-avatar
                           size="m"
                           [src]="supabase.buildAvatarUrl(user.avatar)"
-                          class="cursor-pointer"
                         />
                       </a>
                       <div class="flex flex-col">

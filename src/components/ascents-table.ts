@@ -143,7 +143,6 @@ export interface AscentsTableRow {
                                 | tuiFallbackSrc: '@tui.user'
                                 | async
                             "
-                            class="cursor-pointer"
                           />
                         </a>
                         <a

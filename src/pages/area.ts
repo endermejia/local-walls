@@ -196,10 +196,9 @@ import { handleErrorToast } from '../utils';
 
         <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
           @for (crag of crags; track crag.slug) {
-            <div
+            <a
               tuiCardLarge
               [tuiSurface]="crag.liked ? 'outline-destructive' : 'outline'"
-              class="cursor-pointer"
               [routerLink]="['/area', area.slug, crag.slug]"
             >
               <div class="flex flex-col min-w-0 grow">
@@ -217,7 +216,7 @@ import { handleErrorToast } from '../utils';
                   />
                 </section>
               </div>
-            </div>
+            </a>
           } @empty {
             <app-empty-state class="col-span-full" />
           }
