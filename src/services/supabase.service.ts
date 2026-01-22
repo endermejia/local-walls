@@ -18,8 +18,6 @@ import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { AppRole } from '../models';
 import { Database } from '../models/supabase-generated';
 
-import { DbService } from '../services/db.service';
-
 import { ENV_SUPABASE_URL } from '../environments/environment';
 
 export interface SupabaseConfig {
@@ -45,7 +43,6 @@ export class SupabaseService {
   private readonly url = inject(SUPABASE_URL, { optional: true });
   private readonly anonKey = inject(SUPABASE_ANON_KEY, { optional: true });
   private readonly router = inject(Router);
-  private readonly db = inject(DbService);
 
   private _client: SupabaseClient<Database> | null = null;
   private _readyResolve: (() => void) | null = null;
@@ -82,14 +79,10 @@ export class SupabaseService {
           return null;
         }
 
-        void this.db.put('user_profiles', data);
         return data;
       } catch (e) {
-        console.warn(
-          '[SupabaseService] userProfileResource failed, trying offline DB...',
-          e,
-        );
-        return await this.db.get<any>('user_profiles', userId);
+        console.error('[SupabaseService] userProfileResource error', e);
+        throw e;
       }
     },
   });

@@ -14,28 +14,6 @@
       ]
     },
     {
-      "source": "/ngsw-worker.js",
-      "headers": [
-        {
-          "key": "Service-Worker-Allowed",
-          "value": "/"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "no-cache"
-        }
-      ]
-    },
-    {
-      "source": "/ngsw.json",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache"
-        }
-      ]
-    },
-    {
       "source": "/index.html",
       "headers": [
         {
@@ -56,7 +34,7 @@
   ],
   "rewrites": [
     {
-      "source": "/(i18n|image|logo|assets|favicon.ico|manifest.webmanifest|ngsw.json|ngsw-worker.js|offline.html|.*\\.js|.*\\.css|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.svg|.*\\.webp|.*\\.gif|.*\\.woff2|.*\\.woff|.*\\.ttf)",
+      "source": "/(i18n|image|logo|assets|favicon.ico|manifest.webmanifest|.*\\.js|.*\\.css|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.svg|.*\\.webp|.*\\.gif|.*\\.woff2|.*\\.woff|.*\\.ttf)",
       "destination": "/$1"
     },
     {

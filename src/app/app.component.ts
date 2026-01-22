@@ -8,35 +8,20 @@ import { TuiRoot } from '@taiga-ui/core';
 import { TranslateService } from '@ngx-translate/core';
 import { map, merge, startWith } from 'rxjs';
 
-import { GlobalData, OfflineService } from '../services';
+import { GlobalData } from '../services';
 
 import { HeaderComponent } from '../components';
 
 import { TuiNavigation } from '@taiga-ui/layout';
-import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-root',
-  imports: [
-    RouterOutlet,
-    TuiRoot,
-    HeaderComponent,
-    TuiNavigation,
-    TranslatePipe,
-  ],
+  imports: [RouterOutlet, TuiRoot, HeaderComponent, TuiNavigation],
   template: `
     <tui-root class="overflow-hidden" [attr.tuiTheme]="global.selectedTheme()">
       <div class="h-[100dvh] flex flex-col">
         @if (showHeader()) {
           <app-header />
-        }
-        @if (!offlineService.isOnline()) {
-          <div
-            class="bg-amber-500 p-1 text-center text-[10px] font-bold uppercase tracking-widest text-white"
-            tuiNavigationSubheader
-          >
-            {{ 'messages.offline' | translate }}
-          </div>
         }
         <router-outlet />
       </div>
@@ -45,7 +30,6 @@ import { TranslatePipe } from '@ngx-translate/core';
 })
 export class AppComponent {
   protected global = inject(GlobalData);
-  protected offlineService = inject(OfflineService);
   private router = inject(Router);
   private title = inject(Title);
   private meta = inject(Meta);
@@ -78,8 +62,6 @@ export class AppComponent {
       }
     });
 
-    // Start offline sync in background
-    void this.global.syncOfflineContent();
   }
 
   private updateSeoTags() {
