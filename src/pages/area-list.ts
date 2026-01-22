@@ -132,48 +132,32 @@ import {
       @if (!loading()) {
         <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
           @for (a of filtered(); track a.id) {
-            @defer (on viewport) {
-              <div
-                tuiCardLarge
-                [tuiSurface]="a.liked ? 'outline-destructive' : 'outline'"
-                class="cursor-pointer"
-                [routerLink]="['/area', a.slug]"
-              >
-                <div class="flex flex-col min-w-0 grow">
-                  <header tuiHeader>
-                    <h2 tuiTitle>{{ a.name }}</h2>
-                  </header>
-                  <section class="flex items-center justify-between gap-2">
-                    <div class="text-xl">
-                      {{ a.crags_count }}
-                      {{
-                        'labels.' + (a.crags_count === 1 ? 'crag' : 'crags')
-                          | translate
-                          | lowercase
-                      }}
-                    </div>
-                    <app-chart-routes-by-grade
-                      (click.zoneless)="$event.stopPropagation()"
-                      [grades]="a.grades"
-                    />
-                  </section>
-                </div>
-              </div>
-            } @placeholder {
-              <div
-                tuiCardLarge
-                tuiSurface="outline"
-                class="flex flex-col min-w-0 grow"
-              >
+            <div
+              tuiCardLarge
+              [tuiSurface]="a.liked ? 'outline-destructive' : 'outline'"
+              class="cursor-pointer"
+              [routerLink]="['/area', a.slug]"
+            >
+              <div class="flex flex-col min-w-0 grow">
                 <header tuiHeader>
-                  <h2 tuiTitle tuiSkeleton class="w-1/2">Loading...</h2>
+                  <h2 tuiTitle>{{ a.name }}</h2>
                 </header>
                 <section class="flex items-center justify-between gap-2">
-                  <div tuiSkeleton class="text-xl w-24">0 crags</div>
-                  <div tuiSkeleton class="w-32 h-8">Chart</div>
+                  <div class="text-xl">
+                    {{ a.crags_count }}
+                    {{
+                      'labels.' + (a.crags_count === 1 ? 'crag' : 'crags')
+                        | translate
+                        | lowercase
+                    }}
+                  </div>
+                  <app-chart-routes-by-grade
+                    (click.zoneless)="$event.stopPropagation()"
+                    [grades]="a.grades"
+                  />
                 </section>
               </div>
-            }
+            </div>
           } @empty {
             <div class="col-span-full">
               <app-empty-state />
