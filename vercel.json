@@ -3,6 +3,24 @@
   "outputDirectory": "dist/local-walls/browser",
   "cleanUrls": true,
   "trailingSlash": false,
+  "functions": {
+    "server/index.mjs": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "routes": [
+    {
+      "src": "/(i18n|image|logo|assets|favicon.ico|manifest.webmanifest|.*\\.js|.*\\.css|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.svg|.*\\.webp|.*\\.gif|.*\\.woff2|.*\\.woff|.*\\.ttf)",
+      "dest": "/$1"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server/index.mjs"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -30,16 +48,6 @@
           "value": "public, max-age=0, must-revalidate"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/(i18n|image|logo|assets|favicon.ico|manifest.webmanifest|.*\\.js|.*\\.css|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.svg|.*\\.webp|.*\\.gif|.*\\.woff2|.*\\.woff|.*\\.ttf)",
-      "destination": "/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
     }
   ]
 }
