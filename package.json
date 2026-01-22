@@ -34,7 +34,6 @@
     "@angular/platform-browser-dynamic": "^20.3.0",
     "@angular/platform-server": "^20.3.0",
     "@angular/router": "^20.3.0",
-    "@angular/service-worker": "^20.3.0",
     "@angular/ssr": "^20.3.0",
     "@ng-web-apis/universal": "^4.11.1",
     "@ngx-translate/core": "^16.0.4",

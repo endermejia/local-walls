@@ -20,7 +20,7 @@ import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
 import { TranslateService } from '@ngx-translate/core';
 import { map, merge, startWith } from 'rxjs';
 
-import { DbService, LocalStorage, SupabaseService } from '../services';
+import { LocalStorage, SupabaseService } from '../services';
 
 import {
   AmountByEveryGrade,
@@ -63,7 +63,6 @@ export class GlobalData {
   private platformId = inject(PLATFORM_ID);
   private supabase = inject(SupabaseService);
   private breakpointService = inject(TuiBreakpointService);
-  private db = inject(DbService);
 
   readonly isMobile = toSignal(
     this.breakpointService.pipe(map((b) => b === 'mobile')),
@@ -453,18 +452,10 @@ export class GlobalData {
           console.error('[GlobalData] areaListResource error', error);
           throw error;
         }
-        const list = (data as AreaListItem[]) ?? [];
-        // Save to DB for offline use
-        void this.db.putAll('areas', list);
-        return list;
+        return (data as AreaListItem[]) ?? [];
       } catch (e) {
-        // Warning: if we are offline, assume error and try DB
-        console.warn(
-          '[GlobalData] areaListResource failed, trying offline DB...',
-          e,
-        );
-
-        return await this.db.getAll<AreaListItem>('areas');
+        console.error('[GlobalData] areaListResource exception', e);
+        return [];
       }
     },
   });
@@ -494,19 +485,10 @@ export class GlobalData {
           console.error('[GlobalData] cragsListResource error', error);
           throw error;
         }
-        const list = (data as CragListItem[]) ?? [];
-        void this.db.put('crags_by_area', { areaSlug, items: list });
-        return list;
+        return (data as CragListItem[]) ?? [];
       } catch (e) {
-        console.warn(
-          '[GlobalData] cragsListResource failed, trying offline DB...',
-          e,
-        );
-        const fromDb = await this.db.get<{
-          areaSlug: string;
-          items: CragListItem[];
-        }>('crags_by_area', areaSlug);
-        return fromDb?.items || [];
+        console.error('[GlobalData] cragsListResource exception', e);
+        return [];
       }
     },
   });
@@ -571,18 +553,13 @@ export class GlobalData {
             },
           })) || [];
 
-        const detail = {
+        return {
           ...data,
           topo_routes,
         };
-        void this.db.put('topo_details', detail);
-        return detail;
       } catch (e) {
-        console.warn(
-          '[GlobalData] topoDetailResource failed, trying offline DB...',
-          e,
-        );
-        return await this.db.get<TopoDetail>('topo_details', Number(id));
+        console.error('[GlobalData] topoDetailResource exception', e);
+        return null;
       }
     },
   });
@@ -634,16 +611,10 @@ export class GlobalData {
           throw error;
         }
 
-        const detail = this.mapCragToDetail(data as CragWithJoins);
-        void this.db.put('crag_details', detail);
-        return detail;
+        return this.mapCragToDetail(data as CragWithJoins);
       } catch (e) {
-        console.warn(
-          '[GlobalData] cragDetailResource failed, trying offline DB...',
-          e,
-        );
-        // Fallback to DB
-        return await this.db.get<CragDetail>('crag_details', cragSlug);
+        console.error('[GlobalData] cragDetailResource exception', e);
+        return null;
       }
     },
   });
@@ -691,7 +662,7 @@ export class GlobalData {
           throw error;
         }
 
-        const routes =
+        return (
           data.map((r) =>
             (() => {
               const rates =
@@ -714,19 +685,11 @@ export class GlobalData {
                 own_ascent: r.own_ascent?.[0],
               } as RouteWithExtras;
             })(),
-          ) ?? [];
-        void this.db.put('crag_routes', { cragId, routes });
-        return routes;
-      } catch (e) {
-        console.warn(
-          '[GlobalData] cragRoutesResource failed, trying offline DB...',
-          e,
+          ) ?? []
         );
-        const fromDb = await this.db.get<{
-          cragId: number;
-          routes: RouteWithExtras[];
-        }>('crag_routes', cragId);
-        return fromDb?.routes || [];
+      } catch (e) {
+        console.error('[GlobalData] cragRoutesResource exception', e);
+        return [];
       }
     },
   });
@@ -766,7 +729,7 @@ export class GlobalData {
           throw error;
         }
 
-        const items: RouteWithExtras[] = data
+        return data
           .map((item) => {
             const r = item.route;
             if (!r) return null;
@@ -792,19 +755,9 @@ export class GlobalData {
             } as RouteWithExtras;
           })
           .filter((r): r is RouteWithExtras => !!r);
-
-        void this.db.put('user_projects', { userId, items });
-        return items;
       } catch (e) {
-        console.warn(
-          '[GlobalData] userProjectsResource failed, trying offline DB...',
-          e,
-        );
-        const fromDb = await this.db.get<{ items: RouteWithExtras[] }>(
-          'user_projects',
-          userId,
-        );
-        return fromDb?.items || [];
+        console.error('[GlobalData] userProjectsResource exception', e);
+        return [];
       }
     },
   });
@@ -939,21 +892,10 @@ export class GlobalData {
           } as RouteAscentWithExtras;
         });
 
-        const result = { items, total: count ?? 0 };
-        // We only cache the first page or unfiltered results?
-        // Let's cache whatever the user sees, it will overwrite the previous userId entry.
-        void this.db.put('user_ascents', { userId, ...result });
-        return result;
+        return { items, total: count ?? 0 };
       } catch (e) {
-        console.warn(
-          '[GlobalData] userAscentsResource failed, trying offline DB...',
-          e,
-        );
-        const fromDb = await this.db.get<PaginatedAscents & { userId: string }>(
-          'user_ascents',
-          userId,
-        );
-        return fromDb ? { items: fromDb.items, total: fromDb.total } : { items: [], total: 0 };
+        console.error('[GlobalData] userAscentsResource exception', e);
+        return { items: [], total: 0 };
       }
     },
   });
@@ -1038,7 +980,7 @@ export class GlobalData {
             ? rates.reduce((a, b) => a + b, 0) / rates.length
             : 0;
 
-        const route = {
+        return {
           ...r,
           liked: (r.liked?.length ?? 0) > 0,
           project: (r.project?.length ?? 0) > 0,
@@ -1052,18 +994,9 @@ export class GlobalData {
           own_ascent: r.own_ascent?.[0],
           key: `${cragId}:${routeSlug}`,
         } as RouteWithExtras & { key: string };
-
-        void this.db.put('route_details', route);
-        return route;
       } catch (e) {
-        console.warn(
-          '[GlobalData] routeDetailResource failed, trying offline DB...',
-          e,
-        );
-        return await this.db.get<RouteWithExtras>(
-          'route_details',
-          `${cragId}:${routeSlug}`,
-        );
+        console.error('[GlobalData] routeDetailResource exception', e);
+        return null;
       }
     },
   });
@@ -1269,130 +1202,6 @@ export class GlobalData {
       }
     }
   }
-  async syncOfflineContent() {
-    if (!isPlatformBrowser(this.platformId) || !navigator.onLine) {
-      return;
-    }
-
-    try {
-      await this.supabase.whenReady();
-      const userId = this.supabase.authUser()?.id;
-      if (!userId) return;
-
-      // 1. Fetch liked crags
-      const { data: likedCrags } = await this.supabase.client
-        .from('crag_likes')
-        .select('crag_id, crag:crags(slug)')
-        .eq('user_id', userId);
-
-      if (likedCrags) {
-        for (const like of likedCrags) {
-          const slug = like.crag?.slug;
-          if (slug) {
-            // Load detail
-            const detail = await this.fetchCragDetailForSync(slug, userId);
-            if (detail) {
-              await this.db.put('crag_details', detail);
-
-              // Load routes for this crag
-              const routes = await this.fetchCragRoutesForSync(
-                detail.id,
-                userId,
-              );
-              if (routes) {
-                // We store routes specific to a crag in 'crag_routes' store
-                await this.db.put('crag_routes', {
-                  cragId: detail.id,
-                  routes,
-                });
-              }
-            }
-          }
-        }
-      }
-
-      // 2. Fetch liked routes
-      const { data: likedRoutes } = await this.supabase.client
-        .from('route_likes')
-        .select('route_id, route:routes(crag_id)')
-        .eq('user_id', userId);
-
-      if (likedRoutes) {
-        const processedCragIds = new Set(
-          likedCrags?.map((c) => c.crag_id) || [],
-        );
-        for (const rLike of likedRoutes) {
-          const cragId = rLike.route?.crag_id;
-          if (cragId && !processedCragIds.has(cragId)) {
-            const { data: cragData } = await this.supabase.client
-              .from('crags')
-              .select('slug')
-              .eq('id', cragId)
-              .single();
-
-            if (cragData?.slug) {
-              const detail = await this.fetchCragDetailForSync(
-                cragData.slug,
-                userId,
-              );
-              if (detail) {
-                await this.db.put('crag_details', detail);
-                const routes = await this.fetchCragRoutesForSync(
-                  detail.id,
-                  userId,
-                );
-                await this.db.put('crag_routes', {
-                  cragId: detail.id,
-                  routes,
-                });
-                processedCragIds.add(cragId);
-              }
-            }
-          }
-        }
-      }
-      console.log('[GlobalData] syncOfflineContent complete');
-    } catch (e) {
-      console.error('[GlobalData] syncOfflineContent failed', e);
-    }
-  }
-
-  private async fetchCragDetailForSync(
-    slug: string,
-    userId: string,
-  ): Promise<CragDetail | null> {
-    let query = this.supabase.client
-      .from('crags')
-      .select(
-        `
-        *,
-        liked:crag_likes(id),
-        area: areas ( name, slug ),
-        crag_parkings (
-          parking: parkings (*)
-        ),
-        topos (
-          *,
-          topo_routes (
-            route: routes (
-              grade
-            )
-          )
-        )
-      `,
-      )
-      .eq('slug', slug);
-
-    if (userId) {
-      query = query.eq('liked.user_id', userId);
-    }
-
-    const { data, error } = await query.single();
-    if (error || !data) return null;
-
-    return this.mapCragToDetail(data as CragWithJoins);
-  }
-
   private mapCragToDetail(rawData: CragWithJoins): CragDetail {
     const parkings =
       rawData.crag_parkings?.map((cp) => cp.parking).filter(Boolean) ?? [];
@@ -1459,51 +1268,4 @@ export class GlobalData {
     };
   }
 
-  private async fetchCragRoutesForSync(
-    cragId: number,
-    userId: string,
-  ): Promise<RouteWithExtras[]> {
-    let query = this.supabase.client
-      .from('routes')
-      .select(
-        `
-        *,
-        liked:route_likes(id),
-        project:route_projects(id),
-        ascents:route_ascents(rate),
-        own_ascent:route_ascents(*),
-        crag:crags(
-          slug,
-          area:areas(slug)
-        )
-      `,
-      )
-      .eq('crag_id', cragId);
-
-    if (userId) {
-      query = query.eq('own_ascent.user_id', userId);
-    }
-
-    const { data, error } = await query;
-    if (error || !data) return [];
-
-    return data.map((r) => {
-      const rates =
-        r.ascents?.map((a) => a.rate).filter((rate) => rate != null) ?? [];
-      const rating =
-        rates.length > 0 ? rates.reduce((a, b) => a + b, 0) / rates.length : 0;
-
-      return {
-        ...r,
-        liked: (r.liked?.length ?? 0) > 0,
-        project: (r.project?.length ?? 0) > 0,
-        crag_slug: r.crag?.slug,
-        area_slug: r.crag?.area?.slug,
-        rating,
-        ascent_count: r.ascents?.length ?? 0,
-        climbed: (r.own_ascent?.length ?? 0) > 0,
-        own_ascent: r.own_ascent?.[0],
-      } as RouteWithExtras;
-    });
-  }
 }
