@@ -130,10 +130,9 @@ import {
       @if (!loading()) {
         <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
           @for (a of filtered(); track a.id) {
-            <div
+            <a
               tuiCardLarge
               [tuiSurface]="a.liked ? 'outline-destructive' : 'outline'"
-              class="cursor-pointer"
               [routerLink]="['/area', a.slug]"
             >
               <div class="flex flex-col min-w-0 grow">
@@ -155,7 +154,7 @@ import {
                   />
                 </section>
               </div>
-            </div>
+            </a>
           } @empty {
             <div class="col-span-full">
               <app-empty-state />
