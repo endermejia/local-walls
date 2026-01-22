@@ -178,7 +178,7 @@ interface MinimalParking {
     </form>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'overflow-auto' },
+  host: { class: 'flex grow overflow-y-auto' },
 })
 export class ParkingFormComponent {
   protected readonly mapService = inject(MapService);

@@ -222,7 +222,7 @@ interface MinimalRoute {
     </form>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'overflow-auto' },
+  host: { class: 'flex grow overflow-y-auto' },
 })
 export class RouteFormComponent {
   private readonly platformId = inject(PLATFORM_ID);

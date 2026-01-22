@@ -18,7 +18,6 @@ import {
   TuiTitle,
 } from '@taiga-ui/core';
 import {
-  TuiSkeleton,
   TuiAvatar,
   TuiBadgedContentComponent,
   TuiBadgeNotification,
@@ -60,7 +59,6 @@ import {
     TuiBadgeNotification,
     TuiBadgedContentComponent,
     TuiHint,
-    TuiSkeleton,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">

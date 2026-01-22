@@ -221,7 +221,7 @@ import { handleErrorToast } from '../utils';
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'overflow-auto' },
+  host: { class: 'flex grow overflow-y-auto' },
 })
 export class AdminParkingsListComponent {
   private readonly platformId = inject(PLATFORM_ID);

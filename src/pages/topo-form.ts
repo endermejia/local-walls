@@ -195,7 +195,7 @@ import { handleErrorToast, slugify } from '../utils';
     </form>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'overflow-auto' },
+  host: { class: 'flex grow overflow-y-auto' },
   providers: [
     tuiInputTimeOptionsProvider({
       valueTransformer: {

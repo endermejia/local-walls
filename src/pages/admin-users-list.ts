@@ -282,7 +282,7 @@ interface UserWithRole {
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'overflow-auto' },
+  host: { class: 'flex grow overflow-y-auto' },
 })
 export class AdminUsersListComponent {
   private readonly platformId = inject(PLATFORM_ID);

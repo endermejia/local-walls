@@ -281,7 +281,7 @@ import { ORDERED_GRADE_VALUES } from '../models';
       }
     </section>
   `,
-  host: { class: 'overflow-auto' },
+  host: { class: 'flex grow overflow-y-auto' },
 })
 export class UserProfileComponent {
   private readonly platformId = inject(PLATFORM_ID);

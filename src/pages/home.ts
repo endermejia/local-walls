@@ -122,7 +122,7 @@ import { AscentsTableComponent } from '../components';
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'overflow-auto' },
+  host: { class: 'flex grow overflow-y-auto' },
 })
 export class HomeComponent {
   private readonly platformId = inject(PLATFORM_ID);
