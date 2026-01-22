@@ -1267,5 +1267,4 @@ export class GlobalData {
       sun_all_day,
     };
   }
-
 }

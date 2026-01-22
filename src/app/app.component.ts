@@ -61,7 +61,6 @@ export class AppComponent {
         this.updateSeoTags();
       }
     });
-
   }
 
   private updateSeoTags() {

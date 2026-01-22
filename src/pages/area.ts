@@ -200,7 +200,6 @@ import { handleErrorToast } from '../utils';
               tuiCardLarge
               [tuiSurface]="crag.liked ? 'outline-destructive' : 'outline'"
               class="cursor-pointer"
-              style="touch-action: auto"
               [routerLink]="['/area', area.slug, crag.slug]"
             >
               <div class="flex flex-col min-w-0 grow">
@@ -231,7 +230,7 @@ import { handleErrorToast } from '../utils';
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block h-full overflow-y-auto' },
+  host: { class: 'flex grow overflow-y-auto' },
 })
 export class AreaComponent {
   private readonly platformId = inject(PLATFORM_ID);
