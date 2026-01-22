@@ -17,20 +17,26 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TuiRoot, HeaderComponent, TuiNavigation, TranslatePipe],
+  imports: [
+    RouterOutlet,
+    TuiRoot,
+    HeaderComponent,
+    TuiNavigation,
+    TranslatePipe,
+  ],
   template: `
     <tui-root class="overflow-hidden" [attr.tuiTheme]="global.selectedTheme()">
       <div class="h-[100dvh] flex flex-col">
+        @if (showHeader()) {
+          <app-header />
+        }
         @if (!offlineService.isOnline()) {
           <div
             class="bg-amber-500 p-1 text-center text-[10px] font-bold uppercase tracking-widest text-white"
-            tuiNavigationHeader
+            tuiNavigationSubheader
           >
             {{ 'messages.offline' | translate }}
           </div>
-        }
-        @if (showHeader()) {
-          <app-header />
         }
         <router-outlet />
       </div>
