@@ -118,6 +118,7 @@
     "type": "Type",
     "comment": "Comment",
     "user": "User",
+    "users": "Users",
     "userInfo": "Information",
     "userName": "Full name",
     "warning_en": "English warnings",

@@ -98,194 +98,194 @@ export interface AscentsTableRow {
     EmptyStateComponent,
   ],
   template: `
-    <tui-scrollbar class="grow min-h-0">
-      <table
-        tuiTable
-        class="w-full"
-        [columns]="columns()"
-        [direction]="direction"
-        [sorter]="tableSorter"
-        (sortChange)="onSortChange($event)"
-      >
-        <thead tuiThead>
-          <tr tuiThGroup>
-            @for (col of columns(); track col) {
-              <th *tuiHead="col" tuiTh [sorter]="getSorter(col)">
-                {{
-                  col === 'actions' || col === 'details'
-                    ? ''
-                    : ('labels.' + col | translate)
-                }}
-              </th>
-            }
-          </tr>
-        </thead>
-        @let sortedData = tableData() | tuiTableSort;
-        <tbody tuiTbody [data]="sortedData">
-          @for (item of sortedData; track item.key) {
-            <tr
-              tuiTr
-              [class.cursor-pointer]="item.canEdit"
-              [style.background]="
-                showRowColors() && item.canEdit
-                  ? ascentsService.ascentInfo()[item.type || 'default']
-                      .backgroundSubtle
-                  : ''
-              "
-              (click.zoneless)="item.canEdit && onEdit(item)"
-            >
+    @let data = tableData();
+    @if (data.length > 0) {
+      <tui-scrollbar class="grow min-h-0">
+        <table
+          tuiTable
+          class="w-full"
+          [columns]="columns()"
+          [direction]="direction"
+          [sorter]="tableSorter"
+          (sortChange)="onSortChange($event)"
+        >
+          <thead tuiThead>
+            <tr tuiThGroup>
               @for (col of columns(); track col) {
-                <td *tuiCell="col" tuiTd>
-                  @switch (col) {
-                    @case ('user') {
-                      <div tuiCell size="m" class="flex items-center">
-                        <a
-                          [routerLink]="['/profile', item.user_id]"
-                          (click)="$event.stopPropagation()"
-                        >
-                          <tui-avatar
-                            size="m"
-                            [src]="
-                              item.avatarSrc
-                                | tuiFallbackSrc: '@tui.user'
-                                | async
-                            "
-                          />
-                        </a>
-                        <a
-                          [routerLink]="['/profile', item.user_id]"
-                          tuiLink
-                          (click)="$event.stopPropagation()"
-                        >
-                          {{ item.user_name }}
-                        </a>
-                      </div>
-                    }
-                    @case ('route') {
-                      <div tuiCell size="m">
-                        <div class="flex flex-col">
+                <th *tuiHead="col" tuiTh [sorter]="getSorter(col)">
+                  {{
+                    col === 'actions' || col === 'details'
+                      ? ''
+                      : ('labels.' + col | translate)
+                  }}
+                </th>
+              }
+            </tr>
+          </thead>
+          @let sortedData = data | tuiTableSort;
+          <tbody tuiTbody [data]="sortedData">
+            @for (item of sortedData; track item.key) {
+              <tr
+                tuiTr
+                [class.cursor-pointer]="item.canEdit"
+                [style.background]="
+                  showRowColors() && item.canEdit
+                    ? ascentsService.ascentInfo()[item.type || 'default']
+                        .backgroundSubtle
+                    : ''
+                "
+                (click.zoneless)="item.canEdit && onEdit(item)"
+              >
+                @for (col of columns(); track col) {
+                  <td *tuiCell="col" tuiTd>
+                    @switch (col) {
+                      @case ('user') {
+                        <div tuiCell size="m" class="flex items-center">
                           <a
-                            tuiLink
-                            [routerLink]="[
-                              '/area',
-                              item.area_slug,
-                              item.crag_slug,
-                              item.route_slug,
-                            ]"
-                            class="align-self-start whitespace-nowrap font-bold text-base"
-                            [style.color]="
-                              item.liked ? 'var(--tui-status-negative)' : ''
-                            "
+                            [routerLink]="['/profile', item.user_id]"
                             (click)="$event.stopPropagation()"
                           >
-                            {{ item.route_name }}
+                            <tui-avatar
+                              size="m"
+                              [src]="
+                                item.avatarSrc
+                                  | tuiFallbackSrc: '@tui.user'
+                                  | async
+                              "
+                            />
                           </a>
-                          <div
-                            class="text-xs opacity-70 flex gap-1 items-center whitespace-nowrap"
+                          <a
+                            [routerLink]="['/profile', item.user_id]"
+                            tuiLink
+                            (click)="$event.stopPropagation()"
                           >
-                            <a
-                              tuiLink
-                              [routerLink]="['/area', item.area_slug]"
-                              (click)="$event.stopPropagation()"
-                            >
-                              {{ item.area_name }}
-                            </a>
-                            <span>/</span>
+                            {{ item.user_name }}
+                          </a>
+                        </div>
+                      }
+                      @case ('route') {
+                        <div tuiCell size="m">
+                          <div class="flex flex-col">
                             <a
                               tuiLink
                               [routerLink]="[
                                 '/area',
                                 item.area_slug,
                                 item.crag_slug,
+                                item.route_slug,
                               ]"
+                              class="align-self-start whitespace-nowrap font-bold text-base"
+                              [style.color]="
+                                item.liked ? 'var(--tui-status-negative)' : ''
+                              "
                               (click)="$event.stopPropagation()"
                             >
-                              {{ item.crag_name }}
+                              {{ item.route_name }}
                             </a>
+                            <div
+                              class="text-xs opacity-70 flex gap-1 items-center whitespace-nowrap"
+                            >
+                              <a
+                                tuiLink
+                                [routerLink]="['/area', item.area_slug]"
+                                (click)="$event.stopPropagation()"
+                              >
+                                {{ item.area_name }}
+                              </a>
+                              <span>/</span>
+                              <a
+                                tuiLink
+                                [routerLink]="[
+                                  '/area',
+                                  item.area_slug,
+                                  item.crag_slug,
+                                ]"
+                                (click)="$event.stopPropagation()"
+                              >
+                                {{ item.crag_name }}
+                              </a>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    }
-                    @case ('grade') {
-                      <div tuiCell size="m">
-                        <app-avatar-grade
-                          [grade]="
-                            item._ref.grade ?? item._ref.route?.grade ?? 0
-                          "
-                          size="m"
-                        />
-                      </div>
-                    }
-                    @case ('date') {
-                      <div tuiCell size="m">
-                        {{ item.date | date: 'dd/MM/yyyy' }}
-                      </div>
-                    }
-                    @case ('rating') {
-                      <div tuiCell size="m">
-                        <tui-rating
-                          [max]="5"
-                          [ngModel]="item.rating"
-                          [readOnly]="true"
-                          [style.font-size.rem]="0.5"
-                        />
-                      </div>
-                    }
-                    @case ('comment') {
-                      <div tuiCell size="m" class="text-sm italic opacity-80">
-                        @if (item.showComment || item.canEdit) {
-                          {{ item.comment }}
-                        }
-                      </div>
-                    }
-                    @case ('details') {
-                      <div tuiCell size="m" class="flex flex-wrap gap-1">
-                        @for (tag of item.details; track tag) {
-                          <tui-chip size="xxs">
-                            {{ tag | translate }}
-                          </tui-chip>
-                        }
-                      </div>
-                    }
-                    @case ('type') {
-                      <div tuiCell size="m">
-                        <tui-avatar
-                          class="!text-white"
-                          [style.background]="
-                            ascentsService.ascentInfo()[item.type || 'default']
-                              .background
-                          "
-                          [tuiHint]="
-                            global.isMobile()
-                              ? null
-                              : ('ascentTypes.' + (item.type || 'rp')
-                                | translate)
-                          "
-                        >
-                          <tui-icon
-                            [icon]="
+                      }
+                      @case ('grade') {
+                        <div tuiCell size="m">
+                          <app-avatar-grade
+                            [grade]="
+                              item._ref.grade ?? item._ref.route?.grade ?? 0
+                            "
+                            size="m"
+                          />
+                        </div>
+                      }
+                      @case ('date') {
+                        <div tuiCell size="m">
+                          {{ item.date | date: 'dd/MM/yyyy' }}
+                        </div>
+                      }
+                      @case ('rating') {
+                        <div tuiCell size="m">
+                          <tui-rating
+                            [max]="5"
+                            [ngModel]="item.rating"
+                            [readOnly]="true"
+                            [style.font-size.rem]="0.5"
+                          />
+                        </div>
+                      }
+                      @case ('comment') {
+                        <div tuiCell size="m" class="text-sm italic opacity-80">
+                          @if (item.showComment || item.canEdit) {
+                            {{ item.comment }}
+                          }
+                        </div>
+                      }
+                      @case ('details') {
+                        <div tuiCell size="m" class="flex flex-wrap gap-1">
+                          @for (tag of item.details; track tag) {
+                            <tui-chip size="xxs">
+                              {{ tag | translate }}
+                            </tui-chip>
+                          }
+                        </div>
+                      }
+                      @case ('type') {
+                        <div tuiCell size="m">
+                          <tui-avatar
+                            class="!text-white"
+                            [style.background]="
                               ascentsService.ascentInfo()[
                                 item.type || 'default'
-                              ].icon
+                              ].background
                             "
-                          />
-                        </tui-avatar>
-                      </div>
+                            [tuiHint]="
+                              global.isMobile()
+                                ? null
+                                : ('ascentTypes.' + (item.type || 'rp')
+                                  | translate)
+                            "
+                          >
+                            <tui-icon
+                              [icon]="
+                                ascentsService.ascentInfo()[
+                                  item.type || 'default'
+                                ].icon
+                              "
+                            />
+                          </tui-avatar>
+                        </div>
+                      }
                     }
-                  }
-                </td>
-              }
-            </tr>
-          } @empty {
-            <tr tuiTr>
-              <td [attr.colspan]="columns().length" tuiTd>
-                <app-empty-state />
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </tui-scrollbar>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </tui-scrollbar>
+    } @else {
+      <app-empty-state />
+    }
     @if (total() > 0) {
       <tui-table-pagination
         [total]="total()"

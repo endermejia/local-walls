@@ -112,269 +112,274 @@ export interface RoutesTableRow {
     EmptyStateComponent,
   ],
   template: `
-    <tui-scrollbar class="grow min-h-0">
-      <table
-        tuiTable
-        class="w-full"
-        [columns]="columns()"
-        [direction]="currentDirection"
-        [sorter]="currentSorter"
-        (sortChange)="onSortChange($event)"
-      >
-        <thead tuiThead>
-          <tr tuiThGroup>
-            @for (col of columns(); track col) {
-              <th *tuiHead="col" tuiTh [sorter]="getSorter(col)">
-                <div>
-                  {{
-                    col === 'actions' || col === 'admin_actions'
-                      ? ''
-                      : ('labels.' + col | translate)
-                  }}
-                </div>
-              </th>
-            }
-          </tr>
-        </thead>
-        @let sortedData = tableData() | tuiTableSort;
-        <tbody tuiTbody [data]="sortedData">
-          @for (item of sortedData; track item.key) {
-            <tr
-              tuiTr
-              class="cursor-pointer"
-              [style.background]="
-                showRowColors()
-                  ? item.climbed
-                    ? ascentsService.ascentInfo()[
-                        item._ref.own_ascent?.type || 'default'
-                      ].backgroundSubtle
-                    : item.project
-                      ? 'var(--tui-status-info-pale)'
-                      : ''
-                  : ''
-              "
-              (click.zoneless)="router.navigate(item.link)"
-            >
+    @let data = tableData();
+    @if (data.length > 0) {
+      <tui-scrollbar class="grow min-h-0">
+        <table
+          tuiTable
+          class="w-full"
+          [columns]="columns()"
+          [direction]="currentDirection"
+          [sorter]="currentSorter"
+          (sortChange)="onSortChange($event)"
+        >
+          <thead tuiThead>
+            <tr tuiThGroup>
               @for (col of columns(); track col) {
-                <td *tuiCell="col" tuiTd>
-                  @switch (col) {
-                    @case ('grade') {
-                      <div tuiCell size="m">
-                        <app-avatar-grade [grade]="item._ref.grade" size="m" />
-                      </div>
-                    }
-                    @case ('climbing_kind') {
-                      <div tuiCell size="m">
-                        <tui-avatar
-                          size="s"
-                          appearance="primary-grayscale"
-                          [src]="
-                            climbingIcons[item.climbing_kind] || '@tui.mountain'
-                          "
-                          [tuiHint]="
-                            global.isMobile()
-                              ? null
-                              : ('filters.types.' + item.climbing_kind
-                                | translate)
-                          "
-                        />
-                      </div>
-                    }
-                    @case ('route') {
-                      <div tuiCell size="m">
-                        <div class="flex flex-col">
-                          <a
-                            tuiLink
-                            [routerLink]="item.link"
-                            [style.color]="
-                              item.liked ? 'var(--tui-status-negative)' : ''
-                            "
-                            class="align-self-start whitespace-nowrap font-bold text-base"
-                            (click)="$event.stopPropagation()"
-                          >
-                            {{ item.route || ('labels.route' | translate) }}
-                          </a>
-                          @if (showLocation()) {
-                            <div
-                              class="text-xs opacity-70 flex gap-1 items-center whitespace-nowrap"
-                            >
-                              <a
-                                tuiLink
-                                [routerLink]="['/area', item.area_slug]"
-                                (click)="$event.stopPropagation()"
-                              >
-                                {{ item.area_name }}
-                              </a>
-                              <span>/</span>
-                              <a
-                                tuiLink
-                                [routerLink]="[
-                                  '/area',
-                                  item.area_slug,
-                                  item.crag_slug,
-                                ]"
-                                (click)="$event.stopPropagation()"
-                              >
-                                {{ item.crag_name }}
-                              </a>
-                            </div>
-                          }
-                        </div>
-                      </div>
-                    }
-                    @case ('height') {
-                      <div tuiCell size="m">
-                        {{ item.height ? item.height + 'm' : '-' }}
-                      </div>
-                    }
-                    @case ('rating') {
-                      <div tuiCell size="m">
-                        <tui-rating
-                          [max]="5"
-                          [ngModel]="item.rating"
-                          [readOnly]="true"
-                          [style.font-size.rem]="0.5"
-                        />
-                      </div>
-                    }
-                    @case ('ascents') {
-                      <div tuiCell size="m">
-                        <span>{{ item.ascents }}</span>
-                      </div>
-                    }
-                    @case ('actions') {
-                      <div tuiCell size="m">
-                        @if (!item.climbed) {
-                          <button
-                            size="m"
-                            appearance="neutral"
-                            iconStart="@tui.circle-plus"
-                            tuiIconButton
-                            type="button"
-                            class="!rounded-full"
-                            [tuiHint]="
-                              global.isMobile()
-                                ? null
-                                : ('ascent.new' | translate)
-                            "
-                            (click.zoneless)="
-                              onLogAscent(item._ref); $event.stopPropagation()
-                            "
-                          >
-                            {{ 'ascent.new' | translate }}
-                          </button>
-                        } @else if (item._ref.own_ascent; as ascentToEdit) {
-                          <tui-avatar
-                            class="cursor-pointer !text-white"
-                            [style.background]="
-                              ascentsService.ascentInfo()[
-                                ascentToEdit?.type || 'default'
-                              ].background
-                            "
-                            [tuiHint]="
-                              global.isMobile()
-                                ? null
-                                : ('ascent.edit' | translate)
-                            "
-                            (click.zoneless)="
-                              onEditAscent(ascentToEdit, item._ref.name);
-                              $event.stopPropagation()
-                            "
-                          >
-                            <tui-icon
-                              [icon]="
-                                ascentsService.ascentInfo()[
-                                  ascentToEdit?.type || 'default'
-                                ].icon
-                              "
-                            />
-                          </tui-avatar>
-                        }
-
-                        @if (!item.climbed) {
-                          <button
-                            size="m"
-                            [appearance]="item.project ? 'primary' : 'neutral'"
-                            iconStart="@tui.bookmark"
-                            tuiIconButton
-                            type="button"
-                            class="!rounded-full"
-                            [tuiHint]="
-                              global.isMobile()
-                                ? null
-                                : ((item.project
-                                    ? 'actions.project.remove'
-                                    : 'actions.project.add'
-                                  ) | translate)
-                            "
-                            (click.zoneless)="
-                              onToggleProject(item); $event.stopPropagation()
-                            "
-                          >
-                            {{
-                              (item.project
-                                ? 'actions.project.remove'
-                                : 'actions.project.add'
-                              ) | translate
-                            }}
-                          </button>
-                        }
-                      </div>
-                    }
-                    @case ('admin_actions') {
-                      <div tuiCell size="m">
-                        <button
-                          size="s"
-                          appearance="neutral"
-                          iconStart="@tui.square-pen"
-                          tuiIconButton
-                          type="button"
-                          class="!rounded-full"
-                          [tuiHint]="
-                            global.isMobile()
-                              ? null
-                              : ('actions.edit' | translate)
-                          "
-                          (click.zoneless)="
-                            openEditRoute(item._ref); $event.stopPropagation()
-                          "
-                        >
-                          {{ 'actions.edit' | translate }}
-                        </button>
-                        <button
-                          size="s"
-                          appearance="negative"
-                          iconStart="@tui.trash"
-                          tuiIconButton
-                          type="button"
-                          class="!rounded-full"
-                          [tuiHint]="
-                            global.isMobile()
-                              ? null
-                              : ('actions.delete' | translate)
-                          "
-                          (click.zoneless)="
-                            deleteRoute(item._ref); $event.stopPropagation()
-                          "
-                        >
-                          {{ 'actions.delete' | translate }}
-                        </button>
-                      </div>
-                    }
-                  }
-                </td>
+                <th *tuiHead="col" tuiTh [sorter]="getSorter(col)">
+                  <div>
+                    {{
+                      col === 'actions' || col === 'admin_actions'
+                        ? ''
+                        : ('labels.' + col | translate)
+                    }}
+                  </div>
+                </th>
               }
             </tr>
-          } @empty {
-            <tr tuiTr>
-              <td [attr.colspan]="columns().length" tuiTd>
-                <app-empty-state />
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </tui-scrollbar>
+          </thead>
+          @let sortedData = data | tuiTableSort;
+          <tbody tuiTbody [data]="sortedData">
+            @for (item of sortedData; track item.key) {
+              <tr
+                tuiTr
+                class="cursor-pointer"
+                [style.background]="
+                  showRowColors()
+                    ? item.climbed
+                      ? ascentsService.ascentInfo()[
+                          item._ref.own_ascent?.type || 'default'
+                        ].backgroundSubtle
+                      : item.project
+                        ? 'var(--tui-status-info-pale)'
+                        : ''
+                    : ''
+                "
+                (click.zoneless)="router.navigate(item.link)"
+              >
+                @for (col of columns(); track col) {
+                  <td *tuiCell="col" tuiTd>
+                    @switch (col) {
+                      @case ('grade') {
+                        <div tuiCell size="m">
+                          <app-avatar-grade
+                            [grade]="item._ref.grade"
+                            size="m"
+                          />
+                        </div>
+                      }
+                      @case ('climbing_kind') {
+                        <div tuiCell size="m">
+                          <tui-avatar
+                            size="s"
+                            appearance="primary-grayscale"
+                            [src]="
+                              climbingIcons[item.climbing_kind] ||
+                              '@tui.mountain'
+                            "
+                            [tuiHint]="
+                              global.isMobile()
+                                ? null
+                                : ('filters.types.' + item.climbing_kind
+                                  | translate)
+                            "
+                          />
+                        </div>
+                      }
+                      @case ('route') {
+                        <div tuiCell size="m">
+                          <div class="flex flex-col">
+                            <a
+                              tuiLink
+                              [routerLink]="item.link"
+                              [style.color]="
+                                item.liked ? 'var(--tui-status-negative)' : ''
+                              "
+                              class="align-self-start whitespace-nowrap font-bold text-base"
+                              (click)="$event.stopPropagation()"
+                            >
+                              {{ item.route || ('labels.route' | translate) }}
+                            </a>
+                            @if (showLocation()) {
+                              <div
+                                class="text-xs opacity-70 flex gap-1 items-center whitespace-nowrap"
+                              >
+                                <a
+                                  tuiLink
+                                  [routerLink]="['/area', item.area_slug]"
+                                  (click)="$event.stopPropagation()"
+                                >
+                                  {{ item.area_name }}
+                                </a>
+                                <span>/</span>
+                                <a
+                                  tuiLink
+                                  [routerLink]="[
+                                    '/area',
+                                    item.area_slug,
+                                    item.crag_slug,
+                                  ]"
+                                  (click)="$event.stopPropagation()"
+                                >
+                                  {{ item.crag_name }}
+                                </a>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                      @case ('height') {
+                        <div tuiCell size="m">
+                          {{ item.height ? item.height + 'm' : '-' }}
+                        </div>
+                      }
+                      @case ('rating') {
+                        <div tuiCell size="m">
+                          <tui-rating
+                            [max]="5"
+                            [ngModel]="item.rating"
+                            [readOnly]="true"
+                            [style.font-size.rem]="0.5"
+                          />
+                        </div>
+                      }
+                      @case ('ascents') {
+                        <div tuiCell size="m">
+                          <span>{{ item.ascents }}</span>
+                        </div>
+                      }
+                      @case ('actions') {
+                        <div tuiCell size="m">
+                          @if (!item.climbed) {
+                            <button
+                              size="m"
+                              appearance="neutral"
+                              iconStart="@tui.circle-plus"
+                              tuiIconButton
+                              type="button"
+                              class="!rounded-full"
+                              [tuiHint]="
+                                global.isMobile()
+                                  ? null
+                                  : ('ascent.new' | translate)
+                              "
+                              (click.zoneless)="
+                                onLogAscent(item._ref); $event.stopPropagation()
+                              "
+                            >
+                              {{ 'ascent.new' | translate }}
+                            </button>
+                          } @else if (item._ref.own_ascent; as ascentToEdit) {
+                            <tui-avatar
+                              class="cursor-pointer !text-white"
+                              [style.background]="
+                                ascentsService.ascentInfo()[
+                                  ascentToEdit?.type || 'default'
+                                ].background
+                              "
+                              [tuiHint]="
+                                global.isMobile()
+                                  ? null
+                                  : ('ascent.edit' | translate)
+                              "
+                              (click.zoneless)="
+                                onEditAscent(ascentToEdit, item._ref.name);
+                                $event.stopPropagation()
+                              "
+                            >
+                              <tui-icon
+                                [icon]="
+                                  ascentsService.ascentInfo()[
+                                    ascentToEdit?.type || 'default'
+                                  ].icon
+                                "
+                              />
+                            </tui-avatar>
+                          }
+
+                          @if (!item.climbed) {
+                            <button
+                              size="m"
+                              [appearance]="
+                                item.project ? 'primary' : 'neutral'
+                              "
+                              iconStart="@tui.bookmark"
+                              tuiIconButton
+                              type="button"
+                              class="!rounded-full"
+                              [tuiHint]="
+                                global.isMobile()
+                                  ? null
+                                  : ((item.project
+                                      ? 'actions.project.remove'
+                                      : 'actions.project.add'
+                                    ) | translate)
+                              "
+                              (click.zoneless)="
+                                onToggleProject(item); $event.stopPropagation()
+                              "
+                            >
+                              {{
+                                (item.project
+                                  ? 'actions.project.remove'
+                                  : 'actions.project.add'
+                                ) | translate
+                              }}
+                            </button>
+                          }
+                        </div>
+                      }
+                      @case ('admin_actions') {
+                        <div tuiCell size="m">
+                          <button
+                            size="s"
+                            appearance="neutral"
+                            iconStart="@tui.square-pen"
+                            tuiIconButton
+                            type="button"
+                            class="!rounded-full"
+                            [tuiHint]="
+                              global.isMobile()
+                                ? null
+                                : ('actions.edit' | translate)
+                            "
+                            (click.zoneless)="
+                              openEditRoute(item._ref); $event.stopPropagation()
+                            "
+                          >
+                            {{ 'actions.edit' | translate }}
+                          </button>
+                          <button
+                            size="s"
+                            appearance="negative"
+                            iconStart="@tui.trash"
+                            tuiIconButton
+                            type="button"
+                            class="!rounded-full"
+                            [tuiHint]="
+                              global.isMobile()
+                                ? null
+                                : ('actions.delete' | translate)
+                            "
+                            (click.zoneless)="
+                              deleteRoute(item._ref); $event.stopPropagation()
+                            "
+                          >
+                            {{ 'actions.delete' | translate }}
+                          </button>
+                        </div>
+                      }
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </tui-scrollbar>
+    } @else {
+      <app-empty-state />
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-col min-h-0' },

@@ -10,11 +10,11 @@ import {
 import { RouterLink } from '@angular/router';
 
 import {
+  TuiAppearance,
   TuiButton,
   TuiHint,
   TuiLoader,
   TuiScrollbar,
-  TuiSurface,
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
@@ -44,23 +44,23 @@ import {
   selector: 'app-area-list',
   standalone: true,
   imports: [
-    RouterLink,
-    TranslatePipe,
-    TuiLoader,
-    TuiTextfield,
-    TuiButton,
-    TuiTitle,
-    TuiSurface,
-    TuiCardLarge,
-    TuiHeader,
-    LowerCasePipe,
     ChartRoutesByGradeComponent,
     EmptyStateComponent,
+    LowerCasePipe,
+    RouterLink,
+    TranslatePipe,
+    TuiAppearance,
     TuiAvatar,
     TuiBadgeNotification,
     TuiBadgedContentComponent,
+    TuiButton,
+    TuiCardLarge,
+    TuiHeader,
     TuiHint,
+    TuiLoader,
     TuiScrollbar,
+    TuiTextfield,
+    TuiTitle,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -135,7 +135,7 @@ import {
             @for (a of filtered(); track a.id) {
               <a
                 tuiCardLarge
-                [tuiSurface]="a.liked ? 'outline-destructive' : 'outline'"
+                [tuiAppearance]="a.liked ? 'outline-destructive' : 'outline'"
                 [routerLink]="['/area', a.slug]"
               >
                 <div class="flex flex-col min-w-0 grow">

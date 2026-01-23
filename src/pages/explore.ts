@@ -15,12 +15,12 @@ import { RouterLink } from '@angular/router';
 
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import {
+  TuiAppearance,
   TuiButton,
   TuiHint,
   TuiIcon,
   TuiLink,
   TuiLoader,
-  TuiSurface,
   TuiTitle,
 } from '@taiga-ui/core';
 import {
@@ -50,24 +50,24 @@ import { mapLocationUrl, remToPx } from '../utils';
 @Component({
   selector: 'app-home',
   imports: [
+    ChartRoutesByGradeComponent,
+    LowerCasePipe,
+    MapComponent,
     RouterLink,
-    TuiHeader,
-    TuiCardLarge,
-    TuiTitle,
     TranslatePipe,
-    TuiLoader,
-    TuiSurface,
+    TuiAppearance,
+    TuiAvatar,
+    TuiBadgeNotification,
+    TuiBadgedContent,
     TuiBottomSheet,
     TuiButton,
+    TuiCardLarge,
+    TuiHeader,
     TuiHint,
-    LowerCasePipe,
-    TuiLink,
-    MapComponent,
-    ChartRoutesByGradeComponent,
-    TuiAvatar,
-    TuiBadgedContent,
-    TuiBadgeNotification,
     TuiIcon,
+    TuiLink,
+    TuiLoader,
+    TuiTitle,
   ],
   template: ` <div class="h-full w-full">
     <div class="absolute right-4 top-16 flex flex-col gap-2">
@@ -138,7 +138,7 @@ import { mapLocationUrl, remToPx } from '../utils';
       >
         <a
           tuiCardLarge
-          tuiSurface="floating"
+          tuiAppearance="floating"
           class="relative pointer-events-auto m-4"
           [routerLink]="['/area', c.area_slug, c.slug]"
         >
@@ -203,7 +203,7 @@ import { mapLocationUrl, remToPx } from '../utils';
       >
         <div
           tuiCardLarge
-          tuiSurface="floating"
+          tuiAppearance="floating"
           class="relative pointer-events-auto m-4"
         >
           <div class="flex flex-col grow gap-2">
@@ -311,7 +311,9 @@ import { mapLocationUrl, remToPx } from '../utils';
                 @for (a of areas; track a.slug) {
                   <a
                     tuiCardLarge
-                    [tuiSurface]="a.liked ? 'outline-destructive' : 'outline'"
+                    [tuiAppearance]="
+                      a.liked ? 'outline-destructive' : 'outline'
+                    "
                     [routerLink]="['/area', a.slug]"
                   >
                     <div class="flex flex-col min-w-0 grow">
@@ -371,7 +373,9 @@ import { mapLocationUrl, remToPx } from '../utils';
                 @for (c of crags; track c.id) {
                   <a
                     tuiCardLarge
-                    [tuiSurface]="c.liked ? 'outline-destructive' : 'outline'"
+                    [tuiAppearance]="
+                      c.liked ? 'outline-destructive' : 'outline'
+                    "
                     [routerLink]="['/area', c.area_slug, c.slug]"
                   >
                     <div class="flex flex-col min-w-0 grow">

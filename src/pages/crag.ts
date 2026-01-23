@@ -12,9 +12,10 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import {
+  TuiAppearance,
   TuiButton,
   TuiHint,
   TuiIcon,
@@ -22,7 +23,6 @@ import {
   TuiLoader,
   TuiNotification,
   TuiScrollbar,
-  TuiSurface,
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
@@ -77,12 +77,15 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
   selector: 'app-crag',
   standalone: true,
   imports: [
+    AsyncPipe,
     ChartRoutesByGradeComponent,
     EmptyStateComponent,
     FormsModule,
     LowerCasePipe,
+    RouterLink,
     RoutesTableComponent,
     SectionHeaderComponent,
+    TopoImagePipe,
     TranslatePipe,
     TuiAvatar,
     TuiBadgeNotification,
@@ -95,12 +98,10 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     TuiLabel,
     TuiLoader,
     TuiNotification,
-    TuiSurface,
+    TuiScrollbar,
     TuiTextfield,
     TuiTitle,
-    AsyncPipe,
-    TopoImagePipe,
-    TuiScrollbar,
+    TuiAppearance,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -264,7 +265,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                 @for (p of c.parkings; track p.id) {
                   <div
                     tuiCardLarge
-                    tuiSurface="flat"
+                    tuiAppearance="flat"
                     class="!p-4 flex flex-col justify-between"
                   >
                     <div class="flex flex-col gap-3">
@@ -395,10 +396,10 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
             </div>
             <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
               @for (t of topos(); track t.id) {
-                <button
+                <a
                   tuiCardLarge
-                  [tuiSurface]="'outline'"
-                  (click.zoneless)="goToTopo(t.id)"
+                  tuiAppearance="outline"
+                  [routerLink]="['/area', areaSlug(), cragSlug(), 'topo', t.id]"
                 >
                   <div class="flex flex-col min-w-0 grow gap-2">
                     <header tuiHeader>
@@ -441,7 +442,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                       </div>
                     </section>
                   </div>
-                </button>
+                </a>
               } @empty {
                 <div class="col-span-full">
                   <app-empty-state />
@@ -620,16 +621,6 @@ export class CragComponent {
     if (!c) return [];
     return c.topos;
   });
-
-  protected goToTopo(id: number): void {
-    void this.router.navigate([
-      '/area',
-      this.areaSlug(),
-      this.cragSlug(),
-      'topo',
-      id,
-    ]);
-  }
 
   constructor() {
     // Synchronize the selected area /crag in global state from route

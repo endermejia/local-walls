@@ -12,11 +12,9 @@ import { GlobalData } from '../services';
 
 import { HeaderComponent } from '../components';
 
-import { TuiNavigation } from '@taiga-ui/layout';
-
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TuiRoot, HeaderComponent, TuiNavigation],
+  imports: [RouterOutlet, TuiRoot, HeaderComponent],
   template: `
     <tui-root class="overflow-hidden" [attr.tuiTheme]="global.selectedTheme()">
       <div class="h-[100dvh] flex flex-col">

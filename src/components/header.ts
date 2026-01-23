@@ -91,7 +91,7 @@ interface BreadcrumbItem {
           tuiIconButton
           tuiNavigationDrawer
           type="button"
-          [(open)]="open"
+          [(open)]="drawerOpen"
           ngSkipHydration
         >
           <tui-data-list ngSkipHydration>
@@ -102,7 +102,7 @@ interface BreadcrumbItem {
                     tuiOption
                     new
                     type="button"
-                    (click.zoneless)="onClick(item); open = false"
+                    (click.zoneless)="onClick(item); drawerOpen = false"
                     class="gap-2"
                     ngSkipHydration
                   >
@@ -163,14 +163,21 @@ interface BreadcrumbItem {
             <input
               #input
               tuiSearchHotkey
+              autocomplete="off"
               [formControl]="control"
+              [(tuiInputSearchOpen)]="searchOpen"
               [tuiInputSearch]="search"
               ngSkipHydration
             />
             <ng-template #search>
               <tui-search-results [results]="results$ | async" ngSkipHydration>
                 <ng-template let-item>
-                  <a tuiCell [routerLink]="item.href" ngSkipHydration>
+                  <a
+                    tuiCell
+                    [routerLink]="item.href"
+                    (click.zoneless)="searchOpen = false; control.setValue('')"
+                    ngSkipHydration
+                  >
                     <tui-avatar
                       [src]="item.icon | tuiFallbackSrc: '@tui.file' | async"
                       ngSkipHydration
@@ -197,7 +204,7 @@ interface BreadcrumbItem {
             [tuiHint]="
               global.isMobile() ? null : ('actions.search' | translate)
             "
-            (click.zoneless)="input.open()"
+            (click.zoneless)="searchOpen = true"
             ngSkipHydration
           >
             {{ 'actions.search' | translate }}
@@ -253,7 +260,8 @@ export class HeaderComponent implements OnDestroy {
 
   isFullscreen: WritableSignal<boolean> = signal(false);
 
-  open = false;
+  drawerOpen = false;
+  searchOpen = false;
   protected readonly control = new FormControl('');
 
   constructor() {

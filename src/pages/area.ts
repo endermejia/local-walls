@@ -14,12 +14,12 @@ import {
 import { Router, RouterLink } from '@angular/router';
 
 import {
+  TuiAppearance,
   TuiButton,
   TuiHint,
   TuiLabel,
   TuiLoader,
   TuiScrollbar,
-  TuiSurface,
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
@@ -62,25 +62,25 @@ import { handleErrorToast } from '../utils';
   selector: 'app-area',
   standalone: true,
   imports: [
-    EmptyStateComponent,
-    TuiCardLarge,
-    TranslatePipe,
-    TuiSurface,
-    TuiLoader,
-    SectionHeaderComponent,
     ChartRoutesByGradeComponent,
-    TuiHeader,
+    EmptyStateComponent,
     LowerCasePipe,
-    TuiTitle,
     RouterLink,
-    TuiButton,
-    TuiHint,
+    SectionHeaderComponent,
+    TranslatePipe,
     TuiAvatar,
-    TuiTextfield,
-    TuiLabel,
-    TuiBadgedContent,
     TuiBadgeNotification,
+    TuiBadgedContent,
+    TuiButton,
+    TuiCardLarge,
+    TuiHeader,
+    TuiHint,
+    TuiLabel,
+    TuiLoader,
     TuiScrollbar,
+    TuiTextfield,
+    TuiTitle,
+    TuiAppearance,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -199,7 +199,7 @@ import { handleErrorToast } from '../utils';
             @for (crag of crags; track crag.slug) {
               <a
                 tuiCardLarge
-                [tuiSurface]="crag.liked ? 'outline-destructive' : 'outline'"
+                [tuiAppearance]="crag.liked ? 'outline-destructive' : 'outline'"
                 [routerLink]="['/area', area.slug, crag.slug]"
               >
                 <div class="flex flex-col min-w-0 grow">
