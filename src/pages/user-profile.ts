@@ -19,6 +19,7 @@ import {
   TuiFallbackSrcPipe,
   TuiHint,
   TuiLabel,
+  TuiScrollbar,
   TuiTextfield,
 } from '@taiga-ui/core';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
@@ -73,213 +74,218 @@ import { ORDERED_GRADE_VALUES } from '../models';
     TuiLabel,
     TuiBadgedContent,
     TuiBadgeNotification,
+    TuiScrollbar,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="w-full max-w-5xl mx-auto p-4 grid gap-4">
-      @let loading = !profile();
-      <div class="flex items-center gap-4">
-        @let avatar = profileAvatarSrc();
-        <tui-avatar
-          [src]="avatar | tuiFallbackSrc: '@tui.user' | async"
-          [tuiSkeleton]="loading"
-          size="xxl"
-        />
-        <div class="grow">
-          <div class="flex flex-row gap-2 items-center justify-between">
-            @let name = profile()?.name;
-            <div class="text-xl font-semibold break-all">
+    <tui-scrollbar class="flex grow">
+      <section class="w-full max-w-5xl mx-auto p-4 grid gap-4">
+        @let loading = !profile();
+        <div class="flex items-center gap-4">
+          @let avatar = profileAvatarSrc();
+          <tui-avatar
+            [src]="avatar | tuiFallbackSrc: '@tui.user' | async"
+            [tuiSkeleton]="loading"
+            size="xxl"
+          />
+          <div class="grow">
+            <div class="flex flex-row gap-2 items-center justify-between">
+              @let name = profile()?.name;
+              <div class="text-xl font-semibold break-all">
+                <span
+                  [tuiSkeleton]="
+                    loading ? 'name lastName secondLastName' : false
+                  "
+                >
+                  {{ name }}
+                </span>
+              </div>
+              @if (isOwnProfile()) {
+                <button
+                  iconStart="@tui.bolt"
+                  size="m"
+                  tuiIconButton
+                  type="button"
+                  appearance="action-grayscale"
+                  [tuiHint]="
+                    global.isMobile() ? null : ('actions.edit' | translate)
+                  "
+                  (click)="openEditDialog()"
+                >
+                  {{ 'actions.edit' | translate }}
+                </button>
+              } @else if (profile()) {
+                @let following = isFollowing();
+                <button
+                  [iconStart]="following ? '@tui.user-minus' : '@tui.user-plus'"
+                  size="m"
+                  tuiIconButton
+                  type="button"
+                  [appearance]="following ? 'secondary' : 'primary'"
+                  [tuiHint]="
+                    global.isMobile()
+                      ? null
+                      : ((following ? 'actions.unfollow' : 'actions.follow')
+                        | translate)
+                  "
+                  (click)="toggleFollow()"
+                >
+                  {{
+                    (following ? 'actions.unfollow' : 'actions.follow')
+                      | translate
+                  }}
+                </button>
+              }
+            </div>
+
+            <div class="flex items-center gap-x-2 flex-wrap">
+              @let country = profileCountry();
+              @let city = profile()?.city;
               <span
-                [tuiSkeleton]="loading ? 'name lastName secondLastName' : false"
+                class="flex items-center gap-2"
+                [tuiSkeleton]="loading ? 'country, city' : false"
               >
-                {{ name }}
+                {{ (countriesNames$ | async)?.[country]
+                }}{{ city ? ', ' + city : '' }}
+              </span>
+              @if (profileAge(); as age) {
+                |
+                <span>
+                  {{ age }}
+                  {{ 'labels.years' | translate | lowercase }}
+                </span>
+              }
+
+              @if (profile()?.starting_climbing_year; as year) {
+                <span class="opacity-70">
+                  (
+                  {{ 'labels.startingClimbingYear' | translate | lowercase }}
+                  {{ year }}
+                  )
+                </span>
+              }
+            </div>
+            <div class="opacity-70">
+              @let bio = profile()?.bio;
+              <span
+                [tuiSkeleton]="
+                  loading
+                    ? 'This text serves as the content behind the skeleton and adjusts the width.'
+                    : false
+                "
+              >
+                {{ bio }}
               </span>
             </div>
-            @if (isOwnProfile()) {
-              <button
-                iconStart="@tui.bolt"
-                size="m"
-                tuiIconButton
-                type="button"
-                appearance="action-grayscale"
-                [tuiHint]="
-                  global.isMobile() ? null : ('actions.edit' | translate)
-                "
-                (click)="openEditDialog()"
+          </div>
+        </div>
+
+        @if (projects().length > 0) {
+          <div class="mt-8 min-w-0">
+            <h3 class="text-xl font-semibold mb-4 capitalize">
+              {{ 'labels.projects' | translate }}
+            </h3>
+            <app-routes-table
+              [data]="projects()"
+              [showAdminActions]="false"
+              [showLocation]="true"
+              [showRowColors]="false"
+              (toggleLike)="onToggleLike($event)"
+              (toggleProject)="onToggleProject($event)"
+            />
+          </div>
+        }
+
+        @if (hasAscents() || query() || hasActiveFilters()) {
+          <div class="mt-8 min-w-0">
+            <h3 class="text-xl font-semibold capitalize mb-4">
+              {{ 'labels.ascents' | translate }}
+            </h3>
+
+            <div class="flex flex-wrap items-center gap-2 mb-4">
+              <tui-textfield
+                class="grow min-w-48"
+                [tuiTextfieldCleaner]="true"
+                tuiTextfieldSize="l"
               >
-                {{ 'actions.edit' | translate }}
-              </button>
-            } @else if (profile()) {
-              @let following = isFollowing();
-              <button
-                [iconStart]="following ? '@tui.user-minus' : '@tui.user-plus'"
-                size="m"
-                tuiIconButton
-                type="button"
-                [appearance]="following ? 'secondary' : 'primary'"
-                [tuiHint]="
-                  global.isMobile()
-                    ? null
-                    : ((following ? 'actions.unfollow' : 'actions.follow')
-                      | translate)
-                "
-                (click)="toggleFollow()"
+                <label tuiLabel for="route-search">{{
+                  'labels.searchPlaceholder' | translate
+                }}</label>
+                <input
+                  tuiTextfield
+                  #routeSearch
+                  id="route-search"
+                  autocomplete="off"
+                  [value]="query()"
+                  (input.zoneless)="onQuery(routeSearch.value)"
+                />
+              </tui-textfield>
+
+              <tui-badged-content>
+                @if (hasActiveFilters()) {
+                  <tui-badge-notification size="s" tuiSlot="top" />
+                }
+                <button
+                  tuiButton
+                  appearance="textfield"
+                  size="l"
+                  type="button"
+                  iconStart="@tui.sliders-horizontal"
+                  [attr.aria-label]="'labels.filters' | translate"
+                  [tuiHint]="
+                    global.isMobile() ? null : ('labels.filters' | translate)
+                  "
+                  (click.zoneless)="openFilters()"
+                ></button>
+              </tui-badged-content>
+
+              <tui-textfield
+                class="w-full sm:w-48"
+                [tuiTextfieldCleaner]="false"
+                [stringify]="dateValueContent"
+                tuiTextfieldSize="l"
               >
-                {{
-                  (following ? 'actions.unfollow' : 'actions.follow')
-                    | translate
-                }}
-              </button>
-            }
+                <label tuiLabel for="date-filter">
+                  {{ 'labels.filterByDate' | translate }}
+                </label>
+                <input
+                  tuiSelect
+                  id="date-filter"
+                  [formControl]="dateFilterControl"
+                />
+                <tui-data-list *tuiTextfieldDropdown>
+                  <tui-data-list-wrapper new [items]="dateFilterOptions()" />
+                </tui-data-list>
+              </tui-textfield>
+            </div>
+
+            <app-ascents-table
+              [data]="ascents()"
+              [total]="totalAscents()"
+              [page]="global.ascentsPage()"
+              [size]="global.ascentsSize()"
+              (paginationChange)="global.onAscentsPagination($event)"
+              [showUser]="false"
+              [showRowColors]="false"
+              (updated)="ascentsResource.reload()"
+              (deleted)="onAscentDeleted($event)"
+            />
           </div>
-
-          <div class="flex items-center gap-x-2 flex-wrap">
-            @let country = profileCountry();
-            @let city = profile()?.city;
-            <span
-              class="flex items-center gap-2"
-              [tuiSkeleton]="loading ? 'country, city' : false"
+        } @else if (global.isAdmin()) {
+          <div class="mt-8 flex justify-center">
+            <button
+              tuiButton
+              type="button"
+              appearance="secondary"
+              iconStart="@tui.download"
+              (click.zoneless)="openImport8aDialog()"
             >
-              {{ (countriesNames$ | async)?.[country]
-              }}{{ city ? ', ' + city : '' }}
-            </span>
-            @if (profileAge(); as age) {
-              |
-              <span>
-                {{ age }}
-                {{ 'labels.years' | translate | lowercase }}
-              </span>
-            }
-
-            @if (profile()?.starting_climbing_year; as year) {
-              <span class="opacity-70">
-                (
-                {{ 'labels.startingClimbingYear' | translate | lowercase }}
-                {{ year }}
-                )
-              </span>
-            }
+              {{ 'actions.import' | translate }} 8a.nu
+            </button>
           </div>
-          <div class="opacity-70">
-            @let bio = profile()?.bio;
-            <span
-              [tuiSkeleton]="
-                loading
-                  ? 'This text serves as the content behind the skeleton and adjusts the width.'
-                  : false
-              "
-            >
-              {{ bio }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      @if (projects().length > 0) {
-        <div class="mt-8 min-w-0">
-          <h3 class="text-xl font-semibold mb-4 capitalize">
-            {{ 'labels.projects' | translate }}
-          </h3>
-          <app-routes-table
-            [data]="projects()"
-            [showAdminActions]="false"
-            [showLocation]="true"
-            [showRowColors]="false"
-            (toggleLike)="onToggleLike($event)"
-            (toggleProject)="onToggleProject($event)"
-          />
-        </div>
-      }
-
-      @if (hasAscents() || query() || hasActiveFilters()) {
-        <div class="mt-8 min-w-0">
-          <h3 class="text-xl font-semibold capitalize mb-4">
-            {{ 'labels.ascents' | translate }}
-          </h3>
-
-          <div class="flex flex-wrap items-center gap-2 mb-4">
-            <tui-textfield
-              class="grow min-w-48"
-              [tuiTextfieldCleaner]="true"
-              tuiTextfieldSize="l"
-            >
-              <label tuiLabel for="route-search">{{
-                'labels.searchPlaceholder' | translate
-              }}</label>
-              <input
-                tuiTextfield
-                #routeSearch
-                id="route-search"
-                autocomplete="off"
-                [value]="query()"
-                (input.zoneless)="onQuery(routeSearch.value)"
-              />
-            </tui-textfield>
-
-            <tui-badged-content>
-              @if (hasActiveFilters()) {
-                <tui-badge-notification size="s" tuiSlot="top" />
-              }
-              <button
-                tuiButton
-                appearance="textfield"
-                size="l"
-                type="button"
-                iconStart="@tui.sliders-horizontal"
-                [attr.aria-label]="'labels.filters' | translate"
-                [tuiHint]="
-                  global.isMobile() ? null : ('labels.filters' | translate)
-                "
-                (click.zoneless)="openFilters()"
-              ></button>
-            </tui-badged-content>
-
-            <tui-textfield
-              class="w-full sm:w-48"
-              [tuiTextfieldCleaner]="false"
-              [stringify]="dateValueContent"
-              tuiTextfieldSize="l"
-            >
-              <label tuiLabel for="date-filter">
-                {{ 'labels.filterByDate' | translate }}
-              </label>
-              <input
-                tuiSelect
-                id="date-filter"
-                [formControl]="dateFilterControl"
-              />
-              <tui-data-list *tuiTextfieldDropdown>
-                <tui-data-list-wrapper new [items]="dateFilterOptions()" />
-              </tui-data-list>
-            </tui-textfield>
-          </div>
-
-          <app-ascents-table
-            [data]="ascents()"
-            [total]="totalAscents()"
-            [page]="global.ascentsPage()"
-            [size]="global.ascentsSize()"
-            (paginationChange)="global.onAscentsPagination($event)"
-            [showUser]="false"
-            [showRowColors]="false"
-            (updated)="ascentsResource.reload()"
-            (deleted)="onAscentDeleted($event)"
-          />
-        </div>
-      } @else if (global.isAdmin()) {
-        <div class="mt-8 flex justify-center">
-          <button
-            tuiButton
-            type="button"
-            appearance="secondary"
-            iconStart="@tui.download"
-            (click.zoneless)="openImport8aDialog()"
-          >
-            {{ 'actions.import' | translate }} 8a.nu
-          </button>
-        </div>
-      }
-    </section>
+        }
+      </section>
+    </tui-scrollbar>
   `,
   host: { class: 'flex grow overflow-y-auto' },
 })

@@ -23,7 +23,13 @@ import {
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
-import { TuiButton, TuiHint, TuiIcon, TuiLink } from '@taiga-ui/core';
+import {
+  TuiButton,
+  TuiHint,
+  TuiIcon,
+  TuiLink,
+  TuiScrollbar,
+} from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
@@ -101,11 +107,12 @@ export interface RoutesTableRow {
     TuiTableSortPipe,
     TuiIcon,
     TuiLink,
+    TuiScrollbar,
     AvatarGradeComponent,
     EmptyStateComponent,
   ],
   template: `
-    <div class="overflow-auto">
+    <tui-scrollbar class="grow min-h-0">
       <table
         tuiTable
         class="w-full"
@@ -367,9 +374,10 @@ export interface RoutesTableRow {
           }
         </tbody>
       </table>
-    </div>
+    </tui-scrollbar>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'flex flex-col min-h-0' },
 })
 export class RoutesTableComponent {
   protected readonly router = inject(Router);

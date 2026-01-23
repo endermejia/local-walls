@@ -19,11 +19,7 @@ import {
   TuiLoader,
   TuiTextfield,
 } from '@taiga-ui/core';
-import {
-  TuiAvatar,
-  TuiBadgedContent,
-  TuiBadgeNotification,
-} from '@taiga-ui/kit';
+import { TuiBadgedContent, TuiBadgeNotification } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -52,24 +48,10 @@ import { AscentsTableComponent } from '../components';
     TuiLabel,
     TuiBadgedContent,
     TuiBadgeNotification,
-    TuiAvatar,
     AscentsTableComponent,
   ],
   template: `
-    <section class="w-full max-w-5xl mx-auto p-4">
-      <header class="mb-6">
-        <h1 class="text-2xl font-bold flex items-center gap-2">
-          <tui-avatar
-            tuiThumbnail
-            size="l"
-            src="@tui.home"
-            class="self-center"
-            [attr.aria-label]="'nav.home' | translate"
-          />
-          {{ 'nav.home' | translate }}
-        </h1>
-      </header>
-
+    <section class="w-full max-w-5xl mx-auto p-4 flex flex-col grow min-h-0">
       <div class="mb-4 flex items-end gap-2">
         <tui-textfield class="grow block" tuiTextfieldSize="l">
           <label tuiLabel for="user-search">{{
@@ -104,11 +86,12 @@ import { AscentsTableComponent } from '../components';
       </div>
 
       @if (ascentsResource.isLoading()) {
-        <div class="flex items-center justify-center py-16">
+        <div class="flex grow min-h-0 items-center justify-center py-16">
           <tui-loader size="xxl" />
         </div>
       } @else {
         <app-ascents-table
+          class="grow min-h-0"
           [data]="filteredAscents()"
           [total]="ascentsResource.value()?.total ?? 0"
           [page]="page()"
@@ -122,7 +105,7 @@ import { AscentsTableComponent } from '../components';
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow overflow-y-auto' },
+  host: { class: 'flex grow min-h-0' },
 })
 export class HomeComponent {
   private readonly platformId = inject(PLATFORM_ID);
@@ -135,7 +118,7 @@ export class HomeComponent {
   readonly selectedCategories = this.global.areaListCategories;
 
   readonly page = signal(0);
-  readonly size = signal(50);
+  readonly size = signal(20);
 
   constructor() {
     this.global.resetDataByPage('home');

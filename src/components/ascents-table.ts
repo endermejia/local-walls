@@ -24,7 +24,13 @@ import {
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
-import { TuiFallbackSrcPipe, TuiHint, TuiIcon, TuiLink } from '@taiga-ui/core';
+import {
+  TuiFallbackSrcPipe,
+  TuiHint,
+  TuiIcon,
+  TuiLink,
+  TuiScrollbar,
+} from '@taiga-ui/core';
 import { TuiAvatar, TuiChip, TuiRating } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
 
@@ -84,6 +90,7 @@ export interface AscentsTableRow {
     TuiTableSortPipe,
     TuiTablePagination,
     TuiFallbackSrcPipe,
+    TuiScrollbar,
     AsyncPipe,
     TuiIcon,
     TuiLink,
@@ -91,7 +98,7 @@ export interface AscentsTableRow {
     EmptyStateComponent,
   ],
   template: `
-    <div class="overflow-auto">
+    <tui-scrollbar class="grow min-h-0">
       <table
         tuiTable
         class="w-full"
@@ -278,7 +285,7 @@ export interface AscentsTableRow {
           }
         </tbody>
       </table>
-    </div>
+    </tui-scrollbar>
     @if (total() > 0) {
       <tui-table-pagination
         [total]="total()"
@@ -301,6 +308,7 @@ export interface AscentsTableRow {
       },
     }),
   ],
+  host: { class: 'flex flex-col min-h-0' },
 })
 export class AscentsTableComponent {
   private readonly supabase = inject(SupabaseService);

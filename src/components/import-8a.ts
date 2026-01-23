@@ -104,7 +104,7 @@ import { AvatarGradeComponent } from './avatar-grade';
         <tui-stepper
           [activeItemIndex]="index"
           (activeItemIndexChange)="onStep($event)"
-          class="mb-6"
+          class="mb-4"
         >
           <button tuiStep>{{ 'import8a.steps.uploadCSV' | translate }}</button>
           <button tuiStep [disabled]="!control.value">
