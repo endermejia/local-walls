@@ -239,3 +239,7 @@ th[tuiTh] {
 .lw-icon-50 {
   --tui-icon-size: 50px;
 }
+
+[tuiCardLarge] {
+  touch-action: pan-y pinch-zoom;
+}

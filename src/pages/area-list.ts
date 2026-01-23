@@ -175,7 +175,7 @@ import {
     </tui-scrollbar>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow overflow-y-auto' },
+  host: { class: 'flex grow' },
 })
 export class AreaListComponent {
   private readonly areasService = inject(AreasService);

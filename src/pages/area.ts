@@ -231,7 +231,7 @@ import { handleErrorToast } from '../utils';
     </tui-scrollbar>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow overflow-y-auto' },
+  host: { class: 'flex grow' },
 })
 export class AreaComponent {
   private readonly platformId = inject(PLATFORM_ID);
