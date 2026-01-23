@@ -519,7 +519,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     </tui-scrollbar>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow overflow-y-auto' },
+  host: { class: 'flex grow min-h-0' },
 })
 export class CragComponent {
   protected readonly global = inject(GlobalData);

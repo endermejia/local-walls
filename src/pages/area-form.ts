@@ -71,7 +71,7 @@ import { handleErrorToast, slugify } from '../utils';
     </form>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow overflow-y-auto' },
+  host: { class: 'flex grow min-h-0' },
 })
 export class AreaFormComponent {
   private readonly areas = inject(AreasService);

@@ -206,7 +206,7 @@ import { handleErrorToast } from '../utils';
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow overflow-y-auto' },
+  host: { class: 'flex grow min-h-0' },
 })
 export class AdminEquippersListComponent {
   private readonly platformId = inject(PLATFORM_ID);

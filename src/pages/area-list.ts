@@ -99,9 +99,9 @@ import {
 
         <div class="sticky top-0 z-10 py-4 flex items-end gap-2">
           <tui-textfield class="grow block" tuiTextfieldSize="l">
-            <label tuiLabel for="areas-search">{{
-              'labels.searchPlaceholder' | translate
-            }}</label>
+            <label tuiLabel for="areas-search">
+              {{ 'labels.searchPlaceholder' | translate }}
+            </label>
             <input
               tuiTextfield
               #areasSearch
@@ -109,8 +109,9 @@ import {
               autocomplete="off"
               [value]="query()"
               (input.zoneless)="onQuery(areasSearch.value)"
-            /> </tui-textfield
-          ><tui-badged-content>
+            />
+          </tui-textfield>
+          <tui-badged-content>
             @if (hasActiveFilters()) {
               <tui-badge-notification size="s" tuiSlot="top" />
             }
@@ -173,7 +174,7 @@ import {
     </tui-scrollbar>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow overflow-y-auto' },
+  host: { class: 'flex grow min-h-0' },
 })
 export class AreaListComponent {
   private readonly areasService = inject(AreasService);

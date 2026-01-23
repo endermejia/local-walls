@@ -287,7 +287,7 @@ import { ORDERED_GRADE_VALUES } from '../models';
       </section>
     </tui-scrollbar>
   `,
-  host: { class: 'flex grow overflow-y-auto' },
+  host: { class: 'flex grow min-h-0' },
 })
 export class UserProfileComponent {
   private readonly platformId = inject(PLATFORM_ID);
