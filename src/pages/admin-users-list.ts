@@ -71,7 +71,7 @@ interface UserWithRole {
     WaIntersectionObserver,
   ],
   template: `
-    <section class="w-full max-w-5xl mx-auto p-4">
+    <section class="flex flex-col w-full max-w-5xl mx-auto p-4">
       <header class="mb-4 flex items-center justify-between gap-2">
         <h1 class="text-2xl font-bold flex items-center gap-2">
           <tui-badged-content [style.--tui-radius.%]="50">
@@ -130,11 +130,11 @@ interface UserWithRole {
         </tui-textfield>
       </div>
 
-      <tui-scrollbar waIntersectionRoot class="scrollbar">
+      <tui-scrollbar waIntersectionRoot class="flex grow">
         <table
           size="l"
           tuiTable
-          class="table"
+          class="w-full"
           [columns]="columns"
           [direction]="direction()"
           [sorter]="sorter()"
@@ -246,16 +246,8 @@ interface UserWithRole {
   `,
   styles: [
     `
-      .scrollbar {
-        max-height: calc(100vh - 200px);
-      }
-
       .is-current {
         background-color: var(--tui-status-info-pale);
-      }
-
-      .table {
-        width: 100%;
       }
 
       .user-column {

@@ -13,6 +13,7 @@ import {
   TuiButton,
   TuiHint,
   TuiLoader,
+  TuiScrollbar,
   TuiSurface,
   TuiTextfield,
   TuiTitle,
@@ -59,114 +60,117 @@ import {
     TuiBadgeNotification,
     TuiBadgedContentComponent,
     TuiHint,
+    TuiScrollbar,
   ],
   template: `
-    <section class="w-full max-w-5xl mx-auto p-4">
-      <header class="mb-4 flex items-center justify-between gap-2">
-        @let areasCount = filtered().length;
-        <h1 class="text-2xl font-bold">
-          <tui-avatar
-            tuiThumbnail
-            size="l"
-            [src]="global.iconSrc()('zone')"
-            class="self-center"
-            [attr.aria-label]="'labels.area' | translate"
-          />
-          {{ areasCount }}
-          {{
-            'labels.' + (areasCount === 1 ? 'area' : 'areas')
-              | translate
-              | lowercase
-          }}
-        </h1>
+    <tui-scrollbar class="flex grow">
+      <section class="w-full max-w-5xl mx-auto p-4">
+        <header class="flex items-center justify-between gap-2">
+          @let areasCount = filtered().length;
+          <h1 class="text-2xl font-bold">
+            <tui-avatar
+              tuiThumbnail
+              size="l"
+              [src]="global.iconSrc()('zone')"
+              class="self-center"
+              [attr.aria-label]="'labels.area' | translate"
+            />
+            {{ areasCount }}
+            {{
+              'labels.' + (areasCount === 1 ? 'area' : 'areas')
+                | translate
+                | lowercase
+            }}
+          </h1>
 
-        @if (global.isAdmin()) {
-          <button
-            tuiButton
-            appearance="textfield"
-            size="s"
-            type="button"
-            (click.zoneless)="openCreateArea()"
-            [iconStart]="'@tui.plus'"
-          >
-            {{ 'actions.new' | translate }}
-          </button>
-        }
-      </header>
-
-      <div class="mb-4 flex items-end gap-2">
-        <tui-textfield class="grow block" tuiTextfieldSize="l">
-          <label tuiLabel for="areas-search">{{
-            'labels.searchPlaceholder' | translate
-          }}</label>
-          <input
-            tuiTextfield
-            #areasSearch
-            id="areas-search"
-            autocomplete="off"
-            [value]="query()"
-            (input.zoneless)="onQuery(areasSearch.value)"
-          /> </tui-textfield
-        ><tui-badged-content>
-          @if (hasActiveFilters()) {
-            <tui-badge-notification size="s" tuiSlot="top" />
-          }
-          <button
-            tuiButton
-            appearance="textfield"
-            size="l"
-            type="button"
-            iconStart="@tui.sliders-horizontal"
-            [attr.aria-label]="'labels.filters' | translate"
-            [tuiHint]="
-              global.isMobile() ? null : ('labels.filters' | translate)
-            "
-            (click.zoneless)="openFilters()"
-          ></button>
-        </tui-badged-content>
-      </div>
-
-      <!-- Areas list -->
-      @if (!loading()) {
-        <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
-          @for (a of filtered(); track a.id) {
+          @if (global.isAdmin()) {
             <button
-              tuiCardLarge
-              [tuiSurface]="a.liked ? 'outline-destructive' : 'outline'"
-              [routerLink]="['/area', a.slug]"
+              tuiButton
+              appearance="textfield"
+              size="s"
+              type="button"
+              (click.zoneless)="openCreateArea()"
+              [iconStart]="'@tui.plus'"
             >
-              <div class="flex flex-col min-w-0 grow">
-                <header tuiHeader>
-                  <h2 tuiTitle>{{ a.name }}</h2>
-                </header>
-                <section class="flex items-center justify-between gap-2">
-                  <div class="text-xl">
-                    {{ a.crags_count }}
-                    {{
-                      'labels.' + (a.crags_count === 1 ? 'crag' : 'crags')
-                        | translate
-                        | lowercase
-                    }}
-                  </div>
-                  <app-chart-routes-by-grade
-                    (click.zoneless)="$event.stopPropagation()"
-                    [grades]="a.grades"
-                  />
-                </section>
-              </div>
+              {{ 'actions.new' | translate }}
             </button>
-          } @empty {
-            <div class="col-span-full">
-              <app-empty-state />
-            </div>
           }
+        </header>
+
+        <div class="sticky top-0 z-10 py-4 flex items-end gap-2">
+          <tui-textfield class="grow block" tuiTextfieldSize="l">
+            <label tuiLabel for="areas-search">{{
+              'labels.searchPlaceholder' | translate
+            }}</label>
+            <input
+              tuiTextfield
+              #areasSearch
+              id="areas-search"
+              autocomplete="off"
+              [value]="query()"
+              (input.zoneless)="onQuery(areasSearch.value)"
+            /> </tui-textfield
+          ><tui-badged-content>
+            @if (hasActiveFilters()) {
+              <tui-badge-notification size="s" tuiSlot="top" />
+            }
+            <button
+              tuiButton
+              appearance="textfield"
+              size="l"
+              type="button"
+              iconStart="@tui.sliders-horizontal"
+              [attr.aria-label]="'labels.filters' | translate"
+              [tuiHint]="
+                global.isMobile() ? null : ('labels.filters' | translate)
+              "
+              (click.zoneless)="openFilters()"
+            ></button>
+          </tui-badged-content>
         </div>
-      } @else {
-        <div class="flex items-center justify-center py-8">
-          <tui-loader size="xxl" />
-        </div>
-      }
-    </section>
+
+        <!-- Areas list -->
+        @if (!loading()) {
+          <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
+            @for (a of filtered(); track a.id) {
+              <a
+                tuiCardLarge
+                [tuiSurface]="a.liked ? 'outline-destructive' : 'outline'"
+                [routerLink]="['/area', a.slug]"
+              >
+                <div class="flex flex-col min-w-0 grow">
+                  <header tuiHeader>
+                    <h2 tuiTitle>{{ a.name }}</h2>
+                  </header>
+                  <section class="flex items-center justify-between gap-2">
+                    <div class="text-xl">
+                      {{ a.crags_count }}
+                      {{
+                        'labels.' + (a.crags_count === 1 ? 'crag' : 'crags')
+                          | translate
+                          | lowercase
+                      }}
+                    </div>
+                    <app-chart-routes-by-grade
+                      (click.zoneless)="$event.stopPropagation()"
+                      [grades]="a.grades"
+                    />
+                  </section>
+                </div>
+              </a>
+            } @empty {
+              <div class="col-span-full">
+                <app-empty-state />
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="flex items-center justify-center py-8">
+            <tui-loader size="xxl" />
+          </div>
+        }
+      </section>
+    </tui-scrollbar>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex grow overflow-y-auto' },

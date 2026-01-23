@@ -28,6 +28,7 @@ import {
   TuiIcon,
   TuiLink,
   TuiLoader,
+  TuiScrollbar,
 } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
@@ -100,6 +101,7 @@ export interface TopoRouteRow {
     AsyncPipe,
     TopoImagePipe,
     TuiTabs,
+    TuiScrollbar,
   ],
   template: `
     <div class="h-full w-full">
@@ -232,7 +234,7 @@ export interface TopoRouteRow {
             />
           </div>
 
-          <div class="overflow-auto">
+          <tui-scrollbar>
             <table
               tuiTable
               class="w-full"
@@ -241,7 +243,7 @@ export interface TopoRouteRow {
               [sorter]="sorter()"
               (sortChange)="onSortChange($event)"
             >
-              <thead>
+              <thead tuiThead>
                 <tr tuiThGroup>
                   @for (col of columns(); track col) {
                     <th
@@ -446,7 +448,7 @@ export interface TopoRouteRow {
                 }
               </tbody>
             </table>
-          </div>
+          </tui-scrollbar>
         } @else {
           <div class="flex items-center justify-center h-full">
             <tui-loader size="xxl" />
@@ -463,7 +465,7 @@ export interface TopoRouteRow {
 })
 export class TopoComponent {
   protected readonly imageFit: WritableSignal<'cover' | 'contain'> =
-    signal('cover');
+    signal('contain');
   protected readonly topoPhotoClass: Signal<'object-cover' | 'object-contain'> =
     computed(() =>
       this.imageFit() === 'cover' ? 'object-cover' : 'object-contain',

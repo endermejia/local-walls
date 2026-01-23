@@ -61,7 +61,7 @@ import { handleErrorToast } from '../utils';
     TuiTextfield,
   ],
   template: `
-    <section class="w-full max-w-5xl mx-auto p-4">
+    <section class="flex flex-col w-full max-w-5xl mx-auto p-4">
       <header class="mb-4 flex items-center justify-between gap-2">
         <h1 class="text-2xl font-bold flex items-center gap-2">
           <tui-badged-content [style.--tui-radius.%]="50">
@@ -109,11 +109,11 @@ import { handleErrorToast } from '../utils';
         </tui-textfield>
       </div>
 
-      <tui-scrollbar class="scrollbar">
+      <tui-scrollbar class="flex grow">
         <table
           size="l"
           tuiTable
-          class="table"
+          class="w-full"
           [columns]="columns"
           [direction]="direction()"
           [sorter]="sorter()"
@@ -205,16 +205,6 @@ import { handleErrorToast } from '../utils';
       </tui-scrollbar>
     </section>
   `,
-  styles: [
-    `
-      .scrollbar {
-        max-height: calc(100vh - 250px);
-      }
-      .table {
-        width: 100%;
-      }
-    `,
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex grow overflow-y-auto' },
 })

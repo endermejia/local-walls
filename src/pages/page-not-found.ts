@@ -25,7 +25,7 @@ import { GlobalData } from '../services';
 
         <p class="description">{{ 'notFound.description' | translate }}</p>
 
-        <button
+        <a
           tuiButton
           type="button"
           appearance="primary"
@@ -33,7 +33,7 @@ import { GlobalData } from '../services';
           (click.zoneless)="$event.stopPropagation()"
         >
           {{ 'notFound.goHome' | translate }}
-        </button>
+        </a>
       </tui-block-status>
     </div>
   `,

@@ -136,7 +136,7 @@ import { mapLocationUrl, remToPx } from '../utils';
       <div
         class="absolute w-full max-w-[40rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0"
       >
-        <button
+        <a
           tuiCardLarge
           tuiSurface="floating"
           class="relative pointer-events-auto m-4"
@@ -194,7 +194,7 @@ import { mapLocationUrl, remToPx } from '../utils';
               </div>
             </section>
           </div>
-        </button>
+        </a>
       </div>
     } @else if (global.selectedMapParkingItem(); as p) {
       <!-- Selected parking information section -->
@@ -309,7 +309,7 @@ import { mapLocationUrl, remToPx } from '../utils';
             >
               <div class="grid gap-2">
                 @for (a of areas; track a.slug) {
-                  <button
+                  <a
                     tuiCardLarge
                     [tuiSurface]="a.liked ? 'outline-destructive' : 'outline'"
                     [routerLink]="['/area', a.slug]"
@@ -337,7 +337,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                         }
                       </section>
                     </div>
-                  </button>
+                  </a>
                 }
               </div>
             </section>
@@ -369,7 +369,7 @@ import { mapLocationUrl, remToPx } from '../utils';
             >
               <div class="grid gap-2">
                 @for (c of crags; track c.id) {
-                  <button
+                  <a
                     tuiCardLarge
                     [tuiSurface]="c.liked ? 'outline-destructive' : 'outline'"
                     [routerLink]="['/area', c.area_slug, c.slug]"
@@ -409,7 +409,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                         </div>
                       </section>
                     </div>
-                  </button>
+                  </a>
                 }
               </div>
             </section>
