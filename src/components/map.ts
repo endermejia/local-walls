@@ -37,8 +37,37 @@ import { MapBuilder, MapBuilderCallbacks } from '../services/map-builder';
         aria-label="Interactive map"
         role="application"
       ></div>
-      <!-- Locate button -->
-      <div class="absolute left-4 top-24 z-1 pointer-events-none">
+
+      <div
+        class="absolute left-4 top-4 z-1 flex flex-col gap-2 pointer-events-none"
+      >
+        <!-- Zoom in button -->
+        <button
+          tuiIconButton
+          size="s"
+          appearance="primary-grayscale"
+          class="pointer-events-auto"
+          (click.zoneless)="onZoomInClick()"
+          [iconStart]="'@tui.plus'"
+          [tuiHint]="global.isMobile() ? null : ('labels.zoomIn' | translate)"
+        >
+          {{ 'labels.zoomIn' | translate }}
+        </button>
+
+        <!-- Zoom out button -->
+        <button
+          tuiIconButton
+          size="s"
+          appearance="primary-grayscale"
+          class="pointer-events-auto"
+          (click.zoneless)="onZoomOutClick()"
+          [iconStart]="'@tui.minus'"
+          [tuiHint]="global.isMobile() ? null : ('labels.zoomOut' | translate)"
+        >
+          {{ 'labels.zoomOut' | translate }}
+        </button>
+
+        <!-- Locate button -->
         <button
           tuiIconButton
           size="s"
@@ -151,6 +180,16 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   onLocateClick(): void {
     if (!this.isBrowser()) return;
     void this.mapBuilder.goToCurrentLocation();
+  }
+
+  onZoomInClick(): void {
+    if (!this.isBrowser()) return;
+    this.mapBuilder.zoomIn();
+  }
+
+  onZoomOutClick(): void {
+    if (!this.isBrowser()) return;
+    this.mapBuilder.zoomOut();
   }
 
   ngOnDestroy(): void {

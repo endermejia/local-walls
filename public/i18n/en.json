@@ -164,7 +164,9 @@
     "my-crags": "My crags",
     "admin-users": "Users",
     "admin-equippers": "Equippers",
-    "admin-parkings": "Parkings"
+    "admin-parkings": "Parkings",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out"
   },
   "explore": {
     "toggleView": "Toggle view"

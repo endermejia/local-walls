@@ -89,6 +89,7 @@ export class MapBuilder {
       center: options.center ?? [39.5, -0.5],
       zoom: options.zoom ?? 6,
       worldCopyJump: true,
+      zoomControl: false,
     });
 
     new L.TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -770,6 +771,20 @@ export class MapBuilder {
       icon,
       zIndexOffset: 2000,
     }).addTo(this.map);
+  }
+
+  /**
+   * Zooms the map in by one level.
+   */
+  public zoomIn(): void {
+    this.map?.zoomIn();
+  }
+
+  /**
+   * Zooms the map out by one level.
+   */
+  public zoomOut(): void {
+    this.map?.zoomOut();
   }
 
   private areBoundsValid(bounds: MapBounds): boolean {

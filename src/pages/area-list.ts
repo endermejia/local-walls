@@ -23,7 +23,7 @@ import {
   TuiBadgedContentComponent,
   TuiBadgeNotification,
 } from '@taiga-ui/kit';
-import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
+import { TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -54,7 +54,6 @@ import {
     TuiBadgeNotification,
     TuiBadgedContentComponent,
     TuiButton,
-    TuiCardLarge,
     TuiHeader,
     TuiHint,
     TuiLoader,
@@ -135,7 +134,7 @@ import {
           <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
             @for (a of filtered(); track a.id) {
               <a
-                tuiCardLarge
+                class="p-6 rounded-3xl"
                 [tuiAppearance]="a.liked ? 'outline-destructive' : 'outline'"
                 [routerLink]="['/area', a.slug]"
               >

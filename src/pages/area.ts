@@ -31,7 +31,7 @@ import {
   TuiBadgeNotification,
   type TuiConfirmData,
 } from '@taiga-ui/kit';
-import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
+import { TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
@@ -72,7 +72,6 @@ import { handleErrorToast } from '../utils';
     TuiBadgeNotification,
     TuiBadgedContent,
     TuiButton,
-    TuiCardLarge,
     TuiHeader,
     TuiHint,
     TuiLabel,
@@ -198,7 +197,7 @@ import { handleErrorToast } from '../utils';
           <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
             @for (crag of crags; track crag.slug) {
               <a
-                tuiCardLarge
+                class="p-6 rounded-3xl"
                 [tuiAppearance]="crag.liked ? 'outline-destructive' : 'outline'"
                 [routerLink]="['/area', area.slug, crag.slug]"
               >

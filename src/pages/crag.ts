@@ -34,7 +34,7 @@ import {
   TuiBadgeNotification,
   type TuiConfirmData,
 } from '@taiga-ui/kit';
-import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
+import { TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
@@ -91,7 +91,6 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     TuiBadgeNotification,
     TuiBadgedContent,
     TuiButton,
-    TuiCardLarge,
     TuiHeader,
     TuiHint,
     TuiIcon,
@@ -264,9 +263,8 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @for (p of c.parkings; track p.id) {
                   <div
-                    tuiCardLarge
                     tuiAppearance="flat"
-                    class="!p-4 flex flex-col justify-between"
+                    class="p-4 rounded-3xl flex flex-col justify-between"
                   >
                     <div class="flex flex-col gap-3">
                       <div class="flex items-start justify-between gap-2 ">
@@ -397,7 +395,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
             <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
               @for (t of topos(); track t.id) {
                 <a
-                  tuiCardLarge
+                  class="p-6 rounded-3xl"
                   tuiAppearance="outline"
                   [routerLink]="['/area', areaSlug(), cragSlug(), 'topo', t.id]"
                 >

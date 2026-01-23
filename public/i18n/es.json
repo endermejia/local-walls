@@ -164,7 +164,9 @@
     "my-crags": "Mis sectores",
     "admin-users": "Usuarios",
     "admin-equippers": "Equipadores",
-    "admin-parkings": "Parkings"
+    "admin-parkings": "Parkings",
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar"
   },
   "explore": {
     "toggleView": "Cambiar vista"

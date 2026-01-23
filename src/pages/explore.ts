@@ -310,7 +310,7 @@ import { mapLocationUrl, remToPx } from '../utils';
               <div class="grid gap-2">
                 @for (a of areas; track a.slug) {
                   <a
-                    tuiCardLarge
+                    class="p-6 rounded-3xl"
                     [tuiAppearance]="
                       a.liked ? 'outline-destructive' : 'outline'
                     "
@@ -372,7 +372,7 @@ import { mapLocationUrl, remToPx } from '../utils';
               <div class="grid gap-2">
                 @for (c of crags; track c.id) {
                   <a
-                    tuiCardLarge
+                    class="p-6 rounded-3xl"
                     [tuiAppearance]="
                       c.liked ? 'outline-destructive' : 'outline'
                     "
