@@ -6,6 +6,7 @@ import {
 } from '@angular/common/http';
 import {
   ApplicationConfig,
+  isDevMode,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
@@ -16,6 +17,7 @@ import {
   withIncrementalHydration,
 } from '@angular/platform-browser';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideServiceWorker } from '@angular/service-worker';
 
 import { provideEventPlugins } from '@taiga-ui/event-plugins';
 import { TUI_LANGUAGE } from '@taiga-ui/i18n';
@@ -66,6 +68,10 @@ export const appConfig: ApplicationConfig = {
     provideSupabaseConfig({
       url: ENV_SUPABASE_URL,
       anonKey: ENV_SUPABASE_ANON_KEY,
+    }),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
     }),
   ],
 };

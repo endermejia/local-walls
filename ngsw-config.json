@@ -1,0 +1,84 @@
+{
+  "$schema": "./node_modules/@angular/service-worker/config/schema.json",
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "resources": {
+        "files": [
+          "/favicon.ico",
+          "/index.html",
+          "/manifest.webmanifest",
+          "/*.css",
+          "/*.js"
+        ]
+      }
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/assets/**",
+          "/i18n/**",
+          "/image/**",
+          "/logo/**",
+          "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
+        ]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "supabase-api",
+      "urls": [
+        "https://*.supabase.co/rest/v1/**",
+        "https://*.supabase.co/auth/v1/**"
+      ],
+      "cacheConfig": {
+        "maxSize": 100,
+        "maxAge": "7d",
+        "timeout": "10s",
+        "strategy": "performance"
+      }
+    },
+    {
+      "name": "supabase-storage",
+      "urls": [
+        "https://*.supabase.co/storage/v1/object/public/**"
+      ],
+      "cacheConfig": {
+        "maxSize": 100,
+        "maxAge": "30d",
+        "timeout": "10s",
+        "strategy": "performance"
+      }
+    },
+    {
+      "name": "8anu-api",
+      "urls": [
+        "/api/8anu/**"
+      ],
+      "cacheConfig": {
+        "maxSize": 100,
+        "maxAge": "7d",
+        "timeout": "10s",
+        "strategy": "performance"
+      }
+    },
+    {
+      "name": "map-tiles",
+      "urls": [
+        "https://*.tile.openstreetmap.org/**"
+      ],
+      "cacheConfig": {
+        "maxSize": 500,
+        "maxAge": "30d",
+        "timeout": "10s",
+        "strategy": "performance"
+      }
+    }
+  ]
+}
