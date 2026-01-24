@@ -2,7 +2,6 @@ import {
   AmountByEveryGrade,
   RouteAscentDto,
   RouteDto,
-  RouteProjectDto,
   TopoDto,
 } from '../models';
 

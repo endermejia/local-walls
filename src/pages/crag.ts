@@ -12,7 +12,7 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 import {
   TuiAppearance,
@@ -82,7 +82,6 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     EmptyStateComponent,
     FormsModule,
     LowerCasePipe,
-    RouterLink,
     RoutesTableComponent,
     SectionHeaderComponent,
     TopoImagePipe,

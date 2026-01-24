@@ -72,4 +72,71 @@ export class FollowsService {
     this.toast.success('messages.toasts.userUnfollowed');
     return true;
   }
+  async getFollowing(userId: string): Promise<any[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+
+    const { data: follows, error: followsError } = await this.supabase.client
+      .from('user_follows')
+      .select('followed_user_id')
+      .eq('user_id', userId);
+
+    if (followsError || !follows || follows.length === 0) {
+      if (followsError)
+        console.error(
+          '[FollowsService] getFollowing follows error',
+          followsError,
+        );
+      return [];
+    }
+
+    const followedIds = follows.map((f: any) => f.followed_user_id);
+    const { data: profiles, error: profilesError } = await this.supabase.client
+      .from('user_profiles')
+      .select('*')
+      .in('id', followedIds);
+
+    if (profilesError) {
+      console.error(
+        '[FollowsService] getFollowing profiles error',
+        profilesError,
+      );
+      return [];
+    }
+
+    return profiles || [];
+  }
+
+  async getFollowers(userId: string): Promise<any[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+
+    const { data: follows, error: followsError } = await this.supabase.client
+      .from('user_follows')
+      .select('user_id')
+      .eq('followed_user_id', userId);
+
+    if (followsError || !follows || follows.length === 0) {
+      if (followsError)
+        console.error(
+          '[FollowsService] getFollowers follows error',
+          followsError,
+        );
+      return [];
+    }
+
+    const followerIds = follows.map((f: any) => f.user_id);
+    const { data: profiles, error: profilesError } = await this.supabase.client
+      .from('user_profiles')
+      .select('*')
+      .in('id', followerIds);
+
+    if (profilesError) {
+      console.error(
+        '[FollowsService] getFollowers profiles error',
+        profilesError,
+      );
+      return [];
+    }
+
+    return profiles || [];
+  }
 }

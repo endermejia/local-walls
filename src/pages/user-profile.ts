@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 import {
   TuiButton,
@@ -19,6 +20,8 @@ import {
   TuiFallbackSrcPipe,
   TuiHint,
   TuiLabel,
+  TuiLink,
+  TuiLoader,
   TuiScrollbar,
   TuiTextfield,
 } from '@taiga-ui/core';
@@ -31,6 +34,7 @@ import {
   TuiDataListWrapper,
   TuiSelect,
   TuiSkeleton,
+  TuiTabs,
 } from '@taiga-ui/kit';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -75,6 +79,10 @@ import { ORDERED_GRADE_VALUES } from '../models';
     TuiBadgedContent,
     TuiBadgeNotification,
     TuiScrollbar,
+    TuiTabs,
+    RouterLink,
+    TuiLink,
+    TuiLoader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -180,105 +188,210 @@ import { ORDERED_GRADE_VALUES } from '../models';
           </div>
         </div>
 
-        @if (projects().length > 0) {
-          <div class="mt-8 min-w-0">
-            <h3 class="text-xl font-semibold mb-4 capitalize">
-              {{ 'labels.projects' | translate }}
-            </h3>
-            <app-routes-table
-              [data]="projects()"
-              [showAdminActions]="false"
-              [showLocation]="true"
-              [showRowColors]="false"
-            />
-          </div>
-        }
+        <tui-tabs
+          [activeItemIndex]="activeTab()"
+          (activeItemIndexChange)="activeTab.set($event)"
+        >
+          <button tuiTab>
+            {{ 'labels.ascents' | translate }}
+          </button>
+          <button tuiTab>
+            {{ 'labels.projects' | translate }}
+          </button>
+          <button tuiTab>
+            {{ 'labels.social' | translate }}
+          </button>
+        </tui-tabs>
 
-        @if (hasAscents() || query() || hasActiveFilters()) {
-          <div class="mt-8 min-w-0">
-            <h3 class="text-xl font-semibold capitalize mb-4">
-              {{ 'labels.ascents' | translate }}
-            </h3>
+        @switch (activeTab()) {
+          @case (0) {
+            @if (hasAscents() || query() || hasActiveFilters()) {
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2 mb-4">
+                  <tui-textfield
+                    class="grow min-w-48"
+                    [tuiTextfieldCleaner]="true"
+                    tuiTextfieldSize="l"
+                  >
+                    <label tuiLabel for="route-search">{{
+                      'labels.searchPlaceholder' | translate
+                    }}</label>
+                    <input
+                      tuiTextfield
+                      #routeSearch
+                      id="route-search"
+                      autocomplete="off"
+                      [value]="query()"
+                      (input.zoneless)="onQuery(routeSearch.value)"
+                    />
+                  </tui-textfield>
 
-            <div class="flex flex-wrap items-center gap-2 mb-4">
-              <tui-textfield
-                class="grow min-w-48"
-                [tuiTextfieldCleaner]="true"
-                tuiTextfieldSize="l"
-              >
-                <label tuiLabel for="route-search">{{
-                  'labels.searchPlaceholder' | translate
-                }}</label>
-                <input
-                  tuiTextfield
-                  #routeSearch
-                  id="route-search"
-                  autocomplete="off"
-                  [value]="query()"
-                  (input.zoneless)="onQuery(routeSearch.value)"
+                  <tui-badged-content>
+                    @if (hasActiveFilters()) {
+                      <tui-badge-notification size="s" tuiSlot="top" />
+                    }
+                    <button
+                      tuiButton
+                      appearance="textfield"
+                      size="l"
+                      type="button"
+                      iconStart="@tui.sliders-horizontal"
+                      [attr.aria-label]="'labels.filters' | translate"
+                      [tuiHint]="
+                        global.isMobile()
+                          ? null
+                          : ('labels.filters' | translate)
+                      "
+                      (click.zoneless)="openFilters()"
+                    ></button>
+                  </tui-badged-content>
+
+                  <tui-textfield
+                    class="w-full sm:w-48"
+                    [tuiTextfieldCleaner]="false"
+                    [stringify]="dateValueContent"
+                    tuiTextfieldSize="l"
+                  >
+                    <label tuiLabel for="date-filter">
+                      {{ 'labels.filterByDate' | translate }}
+                    </label>
+                    <input
+                      tuiSelect
+                      id="date-filter"
+                      [formControl]="dateFilterControl"
+                    />
+                    <tui-data-list *tuiTextfieldDropdown>
+                      <tui-data-list-wrapper
+                        new
+                        [items]="dateFilterOptions()"
+                      />
+                    </tui-data-list>
+                  </tui-textfield>
+                </div>
+
+                <app-ascents-table
+                  [data]="ascents()"
+                  [total]="totalAscents()"
+                  [page]="global.ascentsPage()"
+                  [size]="global.ascentsSize()"
+                  (paginationChange)="global.onAscentsPagination($event)"
+                  [showUser]="false"
+                  [showRowColors]="false"
                 />
-              </tui-textfield>
-
-              <tui-badged-content>
-                @if (hasActiveFilters()) {
-                  <tui-badge-notification size="s" tuiSlot="top" />
-                }
+              </div>
+            } @else if (isOwnProfile()) {
+              <div class="mt-8 flex justify-center">
                 <button
                   tuiButton
-                  appearance="textfield"
-                  size="l"
                   type="button"
-                  iconStart="@tui.sliders-horizontal"
-                  [attr.aria-label]="'labels.filters' | translate"
-                  [tuiHint]="
-                    global.isMobile() ? null : ('labels.filters' | translate)
-                  "
-                  (click.zoneless)="openFilters()"
-                ></button>
-              </tui-badged-content>
-
-              <tui-textfield
-                class="w-full sm:w-48"
-                [tuiTextfieldCleaner]="false"
-                [stringify]="dateValueContent"
-                tuiTextfieldSize="l"
-              >
-                <label tuiLabel for="date-filter">
-                  {{ 'labels.filterByDate' | translate }}
-                </label>
-                <input
-                  tuiSelect
-                  id="date-filter"
-                  [formControl]="dateFilterControl"
-                />
-                <tui-data-list *tuiTextfieldDropdown>
-                  <tui-data-list-wrapper new [items]="dateFilterOptions()" />
-                </tui-data-list>
-              </tui-textfield>
+                  appearance="secondary"
+                  iconStart="@tui.download"
+                  (click.zoneless)="openImport8aDialog()"
+                >
+                  {{ 'actions.import' | translate }} 8a.nu
+                </button>
+              </div>
+            }
+          }
+          @case (1) {
+            <div class="min-w-0">
+              <app-routes-table
+                [data]="projects()"
+                [showAdminActions]="false"
+                [showLocation]="true"
+                [showRowColors]="false"
+              />
             </div>
+          }
+          @case (2) {
+            <div class="grid gap-8 sm:grid-cols-2">
+              <section>
+                <h3 class="text-xl font-semibold mb-4 capitalize">
+                  {{ 'labels.followers' | translate }}
+                  ({{ followersResource.value()?.length || 0 }})
+                </h3>
+                @if (followersResource.isLoading()) {
+                  <tui-loader class="m-8" />
+                } @else {
+                  <div class="grid gap-2">
+                    @for (user of followersResource.value(); track user.id) {
+                      <div
+                        class="flex items-center gap-3 p-3 rounded-2xl bg-surface-lowest border border-transparent hover:border-border transition-colors"
+                      >
+                        <tui-avatar
+                          [src]="
+                            supabase.buildAvatarUrl(user.avatar)
+                              | tuiFallbackSrc: '@tui.user'
+                              | async
+                          "
+                          size="s"
+                        />
+                        <a
+                          tuiLink
+                          [routerLink]="['/profile', user.id]"
+                          class="grow font-medium truncate"
+                        >
+                          {{ user.name }}
+                        </a>
+                      </div>
+                    } @empty {
+                      <div class="p-8 text-center opacity-50 italic">
+                        {{ 'messages.noFollowers' | translate }}
+                      </div>
+                    }
+                  </div>
+                }
+              </section>
 
-            <app-ascents-table
-              [data]="ascents()"
-              [total]="totalAscents()"
-              [page]="global.ascentsPage()"
-              [size]="global.ascentsSize()"
-              (paginationChange)="global.onAscentsPagination($event)"
-              [showUser]="false"
-              [showRowColors]="false"
-            />
-          </div>
-        } @else if (isOwnProfile()) {
-          <div class="mt-8 flex justify-center">
-            <button
-              tuiButton
-              type="button"
-              appearance="secondary"
-              iconStart="@tui.download"
-              (click.zoneless)="openImport8aDialog()"
-            >
-              {{ 'actions.import' | translate }} 8a.nu
-            </button>
-          </div>
+              <section>
+                <h3 class="text-xl font-semibold mb-4 capitalize">
+                  {{ 'labels.following' | translate }}
+                  ({{ followingResource.value()?.length || 0 }})
+                </h3>
+                @if (followingResource.isLoading()) {
+                  <tui-loader class="m-8" />
+                } @else {
+                  <div class="grid gap-2">
+                    @for (user of followingResource.value(); track user.id) {
+                      <div
+                        class="flex items-center gap-3 p-3 rounded-2xl bg-surface-lowest border border-transparent hover:border-border transition-colors"
+                      >
+                        <tui-avatar
+                          [src]="
+                            supabase.buildAvatarUrl(user.avatar)
+                              | tuiFallbackSrc: '@tui.user'
+                              | async
+                          "
+                          size="s"
+                        />
+                        <a
+                          tuiLink
+                          [routerLink]="['/profile', user.id]"
+                          class="grow font-medium truncate"
+                        >
+                          {{ user.name }}
+                        </a>
+                        @if (isOwnProfile()) {
+                          <button
+                            tuiIconButton
+                            size="s"
+                            appearance="secondary-grayscale"
+                            iconStart="@tui.user-minus"
+                            [tuiHint]="'actions.unfollow' | translate"
+                            (click)="onUnfollowFromSocial(user.id)"
+                          ></button>
+                        }
+                      </div>
+                    } @empty {
+                      <div class="p-8 text-center opacity-50 italic">
+                        {{ 'messages.noFollowing' | translate }}
+                      </div>
+                    }
+                  </div>
+                }
+              </section>
+            </div>
+          }
         }
       </section>
     </tui-scrollbar>
@@ -297,6 +410,26 @@ export class UserProfileComponent {
 
   // Route param (optional)
   id = input<string | undefined>();
+
+  protected readonly activeTab = signal(0);
+
+  protected readonly followersResource = resource({
+    params: () => this.profile()?.id,
+    loader: async ({ params: userId }) => {
+      if (!userId || !isPlatformBrowser(this.platformId)) return [];
+      const followers = await this.followsService.getFollowers(userId);
+      return followers;
+    },
+  });
+
+  protected readonly followingResource = resource({
+    params: () => this.profile()?.id,
+    loader: async ({ params: userId }) => {
+      if (!userId || !isPlatformBrowser(this.platformId)) return [];
+      const following = await this.followsService.getFollowing(userId);
+      return following;
+    },
+  });
 
   protected readonly query = signal('');
   protected readonly dateFilterControl = new FormControl<string>('last12', {
@@ -518,6 +651,16 @@ export class UserProfileComponent {
       if (success) {
         this.isFollowingResource.update(() => true);
       }
+    }
+  }
+
+  async onUnfollowFromSocial(userId: string): Promise<void> {
+    const success = await this.followsService.unfollow(userId);
+    if (success) {
+      if (userId === this.profile()?.id) {
+        this.isFollowingResource.update(() => false);
+      }
+      void this.followingResource.reload();
     }
   }
 }
