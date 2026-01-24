@@ -270,8 +270,6 @@ import { handleErrorToast } from '../utils';
               [size]="global.ascentsSize()"
               (paginationChange)="global.onAscentsPagination($event)"
               [showRoute]="false"
-              (updated)="global.routeAscentsResource.reload()"
-              (deleted)="onAscentDeleted($event)"
             />
           </div>
         </div>
@@ -363,12 +361,7 @@ export class RouteComponent {
         routeName: r.name,
         grade: r.grade,
       }),
-    ).then((success) => {
-      if (success) {
-        this.global.routeDetailResource.reload();
-        this.global.routeAscentsResource.reload();
-      }
-    });
+    );
   }
 
   onEditAscent(ascent: RouteAscentWithExtras, routeName?: string): void {
@@ -378,12 +371,7 @@ export class RouteComponent {
         routeName,
         ascentData: ascent,
       }),
-    ).then((success) => {
-      if (success) {
-        this.global.routeDetailResource.reload();
-        this.global.routeAscentsResource.reload();
-      }
-    });
+    );
   }
 
   openEditRoute(): void {
@@ -425,18 +413,6 @@ export class RouteComponent {
         .delete(r.id)
         .then(() => this.location.back())
         .catch((err) => handleErrorToast(err, this.toast));
-    });
-  }
-
-  onAscentDeleted(id: number): void {
-    this.global.routeAscentsResource.update((curr) => {
-      if (!curr) return { items: [], total: 0 };
-      const newItems = curr.items.filter((a) => a.id !== id);
-      const deletedCount = curr.items.length - newItems.length;
-      return {
-        items: newItems,
-        total: Math.max(0, curr.total - deletedCount),
-      };
     });
   }
 }

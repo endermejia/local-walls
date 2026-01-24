@@ -99,7 +99,6 @@ import { AscentsTableComponent } from '../components';
           [showUser]="true"
           [showRowColors]="false"
           (paginationChange)="onPagination($event)"
-          (updated)="ascentsResource.reload()"
         />
       }
     </section>

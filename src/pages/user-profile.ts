@@ -265,8 +265,6 @@ import { ORDERED_GRADE_VALUES } from '../models';
               (paginationChange)="global.onAscentsPagination($event)"
               [showUser]="false"
               [showRowColors]="false"
-              (updated)="ascentsResource.reload()"
-              (deleted)="onAscentDeleted($event)"
             />
           </div>
         } @else if (isOwnProfile()) {
@@ -492,20 +490,6 @@ export class UserProfileComponent {
   );
 
   readonly projects = computed(() => this.projectsResource.value() ?? []);
-
-  onAscentDeleted(id: number): void {
-    this.ascentsResource.update((curr) => {
-      if (!curr) return { items: [], total: 0 };
-      const newItems = curr.items.filter((a) => a.id !== id);
-      const deletedCount = curr.items.length - newItems.length;
-      return {
-        items: newItems,
-        total: Math.max(0, curr.total - deletedCount),
-      };
-    });
-    this.global.userTotalAscentsCountResource.reload();
-    this.projectsResource.reload();
-  }
 
   openEditDialog(): void {
     if (!this.isOwnProfile()) return;

@@ -331,9 +331,6 @@ export class AscentsTableComponent {
   showRoute: InputSignal<boolean> = input(true);
   showRowColors: InputSignal<boolean> = input(true);
 
-  deleted = output<number>();
-  updated = output<void>();
-
   readonly columns = computed(() => {
     const cols: string[] = [];
     if (this.showUser()) cols.push('user');
@@ -438,10 +435,6 @@ export class AscentsTableComponent {
         routeName: item.route_name,
         ascentData: item._ref,
       }),
-    ).then((success) => {
-      if (success) {
-        this.updated.emit();
-      }
-    });
+    );
   }
 }
