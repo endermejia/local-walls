@@ -394,10 +394,18 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
             </div>
             <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
               @for (t of topos(); track t.id) {
-                <a
+                <button
                   class="p-6 rounded-3xl"
                   tuiAppearance="outline"
-                  [routerLink]="['/area', areaSlug(), cragSlug(), 'topo', t.id]"
+                  (click.zoneless)="
+                    router.navigate([
+                      '/area',
+                      areaSlug(),
+                      cragSlug(),
+                      'topo',
+                      t.id,
+                    ])
+                  "
                 >
                   <div class="flex flex-col min-w-0 grow gap-2">
                     <header tuiHeader>
@@ -440,7 +448,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                       </div>
                     </section>
                   </div>
-                </a>
+                </button>
               } @empty {
                 <div class="col-span-full">
                   <app-empty-state />
@@ -522,7 +530,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
 export class CragComponent {
   protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
-  private readonly router = inject(Router);
+  protected readonly router = inject(Router);
   private readonly routesService = inject(RoutesService);
   private readonly parkingsService = inject(ParkingsService);
   private readonly cragsService = inject(CragsService);
@@ -599,7 +607,7 @@ export class CragComponent {
     const routes = this.global.cragRoutesResource.value() ?? [];
     const gradesVal: AmountByEveryGrade = {};
     for (const r of routes) {
-      if (typeof r.grade === 'number' && r.grade >= 0) {
+      if (r.grade >= 0) {
         const g = r.grade as VERTICAL_LIFE_GRADES; // Cast number to enum
         gradesVal[g] = (gradesVal[g] ?? 0) + 1;
       }

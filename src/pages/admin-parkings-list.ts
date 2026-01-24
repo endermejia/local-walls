@@ -214,8 +214,8 @@ import { handleErrorToast } from '../utils';
   host: { class: 'flex grow min-h-0' },
 })
 export class AdminParkingsListComponent {
-  private readonly platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);

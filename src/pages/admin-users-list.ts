@@ -276,9 +276,9 @@ interface UserWithRole {
   host: { class: 'flex grow min-h-0' },
 })
 export class AdminUsersListComponent {
-  private readonly platformId = inject(PLATFORM_ID);
-  protected readonly supabase = inject(SupabaseService);
   protected readonly global = inject(GlobalData);
+  protected readonly supabase = inject(SupabaseService);
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
 
   protected readonly options = { updateOn: 'blur' } as const;

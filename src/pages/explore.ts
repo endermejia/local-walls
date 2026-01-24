@@ -11,7 +11,7 @@ import {
   ViewChild,
   WritableSignal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import {
@@ -136,11 +136,11 @@ import { mapLocationUrl, remToPx } from '../utils';
       <div
         class="absolute w-full max-w-[40rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0"
       >
-        <a
+        <button
           tuiCardLarge
           tuiAppearance="floating"
           class="relative pointer-events-auto m-4"
-          [routerLink]="['/area', c.area_slug, c.slug]"
+          (click.zoneless)="router.navigate(['/area', c.area_slug, c.slug])"
         >
           <div class="flex flex-col min-w-0 grow">
             <header tuiHeader>
@@ -194,7 +194,7 @@ import { mapLocationUrl, remToPx } from '../utils';
               </div>
             </section>
           </div>
-        </a>
+        </button>
       </div>
     } @else if (global.selectedMapParkingItem(); as p) {
       <!-- Selected parking information section -->
@@ -309,12 +309,12 @@ import { mapLocationUrl, remToPx } from '../utils';
             >
               <div class="grid gap-2">
                 @for (a of areas; track a.slug) {
-                  <a
+                  <button
                     class="p-6 rounded-3xl"
                     [tuiAppearance]="
                       a.liked ? 'outline-destructive' : 'outline'
                     "
-                    [routerLink]="['/area', a.slug]"
+                    (click.zoneless)="router.navigate(['/area', a.slug])"
                   >
                     <div class="flex flex-col min-w-0 grow">
                       <header tuiHeader>
@@ -339,7 +339,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                         }
                       </section>
                     </div>
-                  </a>
+                  </button>
                 }
               </div>
             </section>
@@ -371,12 +371,14 @@ import { mapLocationUrl, remToPx } from '../utils';
             >
               <div class="grid gap-2">
                 @for (c of crags; track c.id) {
-                  <a
+                  <button
                     class="p-6 rounded-3xl"
                     [tuiAppearance]="
                       c.liked ? 'outline-destructive' : 'outline'
                     "
-                    [routerLink]="['/area', c.area_slug, c.slug]"
+                    (click.zoneless)="
+                      router.navigate(['/area', c.area_slug, c.slug])
+                    "
                   >
                     <div class="flex flex-col min-w-0 grow">
                       <header tuiHeader>
@@ -413,7 +415,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                         </div>
                       </section>
                     </div>
-                  </a>
+                  </button>
                 }
               </div>
             </section>
@@ -428,12 +430,13 @@ import { mapLocationUrl, remToPx } from '../utils';
   },
 })
 export class ExploreComponent {
-  protected readonly mapLocationUrl = mapLocationUrl;
+  protected readonly global = inject(GlobalData);
+  protected readonly router = inject(Router);
   private readonly filtersService = inject(FiltersService);
   private readonly parkingsService = inject(ParkingsService);
-
   private readonly _platformId = inject(PLATFORM_ID);
-  protected readonly global = inject(GlobalData);
+
+  protected readonly mapLocationUrl = mapLocationUrl;
 
   constructor() {
     this.global.resetDataByPage('explore');

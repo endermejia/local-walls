@@ -13,13 +13,11 @@ import {
 } from '@angular/forms';
 
 import {
-  TuiAppearance,
   TuiButton,
   TuiDialogContext,
   TuiHint,
   TuiIcon,
   TuiNotification,
-  TuiTitle,
 } from '@taiga-ui/core';
 import {
   type TuiFileLike,
@@ -31,7 +29,7 @@ import {
   TuiStepper,
 } from '@taiga-ui/kit';
 import { TuiAvatar } from '@taiga-ui/kit';
-import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
+import { TuiHeader } from '@taiga-ui/layout';
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -79,18 +77,15 @@ import { AvatarGradeComponent } from './avatar-grade';
     DatePipe,
     ReactiveFormsModule,
     FormsModule,
-    TuiAppearance,
     TuiButton,
     TuiSkeleton,
     TuiHeader,
     TuiStepper,
-    TuiTitle,
     TranslatePipe,
     TuiNotification,
     TuiSlides,
     TuiFiles,
     TuiInputFiles,
-    TuiCardLarge,
     TuiFileRejectedPipe,
     AsyncPipe,
     TuiAvatar,
@@ -116,59 +111,53 @@ import { AvatarGradeComponent } from './avatar-grade';
           <!-- Step 0: Upload CSV -->
           @if (index === 0) {
             <div class="grid gap-4">
-              <div tuiCardLarge tuiAppearance="floating">
-                <tui-notification appearance="info" class="mt-4">
-                  <div
-                    [innerHTML]="'import8a.csvInstructions' | translate"
-                  ></div>
-                </tui-notification>
+              <tui-notification appearance="info" class="mt-4">
+                <div [innerHTML]="'import8a.csvInstructions' | translate"></div>
+              </tui-notification>
 
-                <div class="mt-6">
-                  @if (!control.value) {
-                    <label tuiInputFiles>
-                      <input
-                        accept=".csv"
-                        tuiInputFiles
-                        [formControl]="control"
-                      />
-                    </label>
+              <div class="mt-6">
+                @if (!control.value) {
+                  <label tuiInputFiles>
+                    <input
+                      accept=".csv"
+                      tuiInputFiles
+                      [formControl]="control"
+                    />
+                  </label>
+                }
+
+                <tui-files class="mt-2">
+                  @if (
+                    control.value | tuiFileRejected: { accept: '.csv' } | async;
+                    as file
+                  ) {
+                    <tui-file
+                      state="error"
+                      [file]="file"
+                      (remove)="removeFile()"
+                    />
                   }
 
-                  <tui-files class="mt-2">
-                    @if (
-                      control.value
-                        | tuiFileRejected: { accept: '.csv' }
-                        | async;
-                      as file
-                    ) {
-                      <tui-file
-                        state="error"
-                        [file]="file"
-                        (remove)="removeFile()"
-                      />
-                    }
+                  @if (loadedFile(); as file) {
+                    <tui-file [file]="file" (remove)="removeFile()" />
+                  }
 
-                    @if (loadedFile(); as file) {
-                      <tui-file [file]="file" (remove)="removeFile()" />
-                    }
+                  @if (failedFiles$ | async; as file) {
+                    <tui-file
+                      state="error"
+                      [file]="file"
+                      (remove)="removeFile()"
+                    />
+                  }
 
-                    @if (failedFiles$ | async; as file) {
-                      <tui-file
-                        state="error"
-                        [file]="file"
-                        (remove)="removeFile()"
-                      />
-                    }
-
-                    @if (loadingFiles$ | async; as file) {
-                      <tui-file
-                        state="loading"
-                        [file]="file"
-                        (remove)="removeFile()"
-                      />
-                    }
-                  </tui-files>
-                </div>
+                  @if (loadingFiles$ | async; as file) {
+                    <tui-file
+                      state="loading"
+                      [file]="file"
+                      (remove)="removeFile()"
+                    />
+                  }
+                </tui-files>
               </div>
             </div>
           }
@@ -176,91 +165,86 @@ import { AvatarGradeComponent } from './avatar-grade';
           <!-- Step 1: Preview & Confirm -->
           @if (index === 1) {
             <div class="grid gap-4">
-              <div tuiCardLarge tuiAppearance="floating">
-                <header tuiHeader>
-                  <h2 tuiTitle>
-                    {{ 'import8a.confirmTitle' | translate }}
-                    <span tuiSubtitle>{{
-                      'import8a.confirmSubtitle'
-                        | translate: { count: ascents().length }
-                    }}</span>
-                  </h2>
-                </header>
+              <header tuiHeader>
+                <span tuiSubtitle>{{
+                  'import8a.confirmSubtitle'
+                    | translate: { count: ascents().length }
+                }}</span>
+              </header>
 
-                <div class="max-h-[35dvh] overflow-auto border rounded p-2">
-                  @for (
-                    ascent of ascents();
-                    track ascent.name + ascent.sector_name + ascent.date
-                  ) {
-                    @defer (on viewport) {
-                      <div
-                        class="p-2 border-b last:border-0 flex justify-between items-center gap-4"
-                      >
-                        <div class="flex items-center gap-3">
-                          <app-avatar-grade
-                            [grade]="
-                              LABEL_TO_VERTICAL_LIFE[ascent.difficulty] ?? 0
-                            "
-                            size="m"
-                          />
-                          <div>
-                            <div class="font-semibold">
-                              {{ ascent.name }}
-                            </div>
-                            <div class="text-xs opacity-70">
-                              {{ ascent.sector_name }} -
-                              {{ ascent.date | date }}
-                            </div>
+              <div class="max-h-[35dvh] overflow-auto border rounded p-2">
+                @for (
+                  ascent of ascents();
+                  track ascent.name + ascent.sector_name + ascent.date
+                ) {
+                  @defer (on viewport) {
+                    <div
+                      class="p-2 border-b last:border-0 flex justify-between items-center gap-4"
+                    >
+                      <div class="flex items-center gap-3">
+                        <app-avatar-grade
+                          [grade]="
+                            LABEL_TO_VERTICAL_LIFE[ascent.difficulty] ?? 0
+                          "
+                          size="m"
+                        />
+                        <div>
+                          <div class="font-semibold">
+                            {{ ascent.name }}
+                          </div>
+                          <div class="text-xs opacity-70">
+                            {{ ascent.sector_name }} -
+                            {{ ascent.date | date }}
                           </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                          <tui-avatar
-                            size="s"
-                            class="!text-white"
-                            [style.background]="
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <tui-avatar
+                          size="s"
+                          class="!text-white"
+                          [style.background]="
+                            ascentsService.ascentInfo()[
+                              ascent.type || 'default'
+                            ].background
+                          "
+                          [tuiHint]="
+                            'ascentTypes.' + (ascent.type || 'rp') | translate
+                          "
+                        >
+                          <tui-icon
+                            [icon]="
                               ascentsService.ascentInfo()[
                                 ascent.type || 'default'
-                              ].background
+                              ].icon
                             "
-                            [tuiHint]="
-                              'ascentTypes.' + (ascent.type || 'rp') | translate
-                            "
-                          >
-                            <tui-icon
-                              [icon]="
-                                ascentsService.ascentInfo()[
-                                  ascent.type || 'default'
-                                ].icon
-                              "
-                            />
-                          </tui-avatar>
-                        </div>
+                          />
+                        </tui-avatar>
                       </div>
-                    } @placeholder {
-                      <div
-                        class="p-2 border-b last:border-0 flex justify-between items-center gap-4"
-                      >
-                        <div class="flex items-center gap-3">
-                          <tui-avatar size="m" tuiSkeleton />
-                        </div>
-                        <div class="flex items-center gap-2">
-                          <tui-avatar size="s" tuiSkeleton />
-                        </div>
+                    </div>
+                  } @placeholder {
+                    <div
+                      class="p-2 border-b last:border-0 flex justify-between items-center gap-4"
+                    >
+                      <div class="flex items-center gap-3">
+                        <tui-avatar size="m" tuiSkeleton />
                       </div>
-                    }
+                      <div class="flex items-center gap-2">
+                        <tui-avatar size="s" tuiSkeleton />
+                      </div>
+                    </div>
                   }
-                </div>
+                }
+              </div>
 
-                <div class="mt-4 flex gap-2">
-                  <button
-                    tuiButton
-                    type="button"
-                    [disabled]="importing()"
-                    (click)="onImport()"
-                  >
-                    {{ 'actions.import' | translate }}
-                  </button>
-                </div>
+              <div class="mt-4 flex gap-2">
+                <button
+                  tuiButton
+                  type="button"
+                  [disabled]="importing()"
+                  (click)="onImport()"
+                >
+                  {{ 'actions.import' | translate }}
+                </button>
               </div>
             </div>
           }

@@ -155,8 +155,8 @@ export interface AscentsTableRow {
                             />
                           </a>
                           <a
-                            [routerLink]="['/profile', item.user_id]"
                             tuiLink
+                            [routerLink]="['/profile', item.user_id]"
                             (click)="$event.stopPropagation()"
                           >
                             {{ item.user_name }}
@@ -311,9 +311,9 @@ export interface AscentsTableRow {
   host: { class: 'flex flex-col min-h-0' },
 })
 export class AscentsTableComponent {
-  private readonly supabase = inject(SupabaseService);
   protected readonly global = inject(GlobalData);
   protected readonly ascentsService = inject(AscentsService);
+  private readonly supabase = inject(SupabaseService);
 
   data: InputSignal<RouteAscentWithExtras[]> =
     input.required<RouteAscentWithExtras[]>();

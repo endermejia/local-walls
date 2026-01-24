@@ -491,13 +491,13 @@ import { handleErrorToast } from '../utils';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class AscentFormComponent {
+  protected readonly global = inject(GlobalData);
   private readonly ascents = inject(AscentsService);
   private readonly supabase = inject(SupabaseService);
   private readonly routesService = inject(RoutesService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
-  protected readonly global = inject(GlobalData);
 
   private readonly _dialogCtx: TuiDialogContext<
     boolean,

@@ -7,7 +7,7 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 import {
   TuiAppearance,
@@ -47,7 +47,6 @@ import {
     ChartRoutesByGradeComponent,
     EmptyStateComponent,
     LowerCasePipe,
-    RouterLink,
     TranslatePipe,
     TuiAppearance,
     TuiAvatar,
@@ -133,10 +132,10 @@ import {
         @if (!loading()) {
           <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
             @for (a of filtered(); track a.id) {
-              <a
+              <button
                 class="p-6 rounded-3xl"
                 [tuiAppearance]="a.liked ? 'outline-destructive' : 'outline'"
-                [routerLink]="['/area', a.slug]"
+                (click.zoneless)="router.navigate(['/area', a.slug])"
               >
                 <div class="flex flex-col min-w-0 grow">
                   <header tuiHeader>
@@ -157,7 +156,7 @@ import {
                     />
                   </section>
                 </div>
-              </a>
+              </button>
             } @empty {
               <div class="col-span-full">
                 <app-empty-state />
@@ -176,8 +175,9 @@ import {
   host: { class: 'flex grow min-h-0' },
 })
 export class AreaListComponent {
-  private readonly areasService = inject(AreasService);
   protected readonly global = inject(GlobalData);
+  protected readonly router = inject(Router);
+  private readonly areasService = inject(AreasService);
   private readonly filtersService = inject(FiltersService);
 
   readonly loading = computed(() => this.areasService.loading());

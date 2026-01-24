@@ -410,7 +410,6 @@
     "csvInstructions": "Go to your profile at <a href=\"https://www.8a.nu\" target=\"_blank\">8a.nu</a>, click on <strong>Edit profile</strong> and download the <strong>CSV</strong> file with your ascents.",
     "dropCSV": "Drop the CSV file here or click to select it",
     "minChars": "Enter at least 2 characters",
-    "confirmTitle": "Ascents found",
     "confirmSubtitle": "We found {{count}} ascents in the CSV. Only those matching our database will be imported.",
     "importing": "Importing data...",
     "errors": {

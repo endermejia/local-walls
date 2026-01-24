@@ -387,11 +387,11 @@ export interface RoutesTableRow {
   host: { class: 'flex flex-col min-h-0' },
 })
 export class RoutesTableComponent {
+  protected readonly global = inject(GlobalData);
   protected readonly router = inject(Router);
+  protected readonly routesService = inject(RoutesService);
   protected readonly ascentsService = inject(AscentsService);
   private readonly platformId = inject(PLATFORM_ID);
-  protected readonly global = inject(GlobalData);
-  protected readonly routesService = inject(RoutesService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);

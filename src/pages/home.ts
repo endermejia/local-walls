@@ -107,8 +107,8 @@ import { AscentsTableComponent } from '../components';
   host: { class: 'flex grow min-h-0' },
 })
 export class HomeComponent {
-  private readonly platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly filtersService = inject(FiltersService);
 

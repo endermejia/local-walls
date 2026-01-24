@@ -209,9 +209,9 @@ import { handleErrorToast } from '../utils';
   host: { class: 'flex grow min-h-0' },
 })
 export class AdminEquippersListComponent {
-  private readonly platformId = inject(PLATFORM_ID);
-  protected readonly supabase = inject(SupabaseService);
   protected readonly global = inject(GlobalData);
+  protected readonly supabase = inject(SupabaseService);
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);

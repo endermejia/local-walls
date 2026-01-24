@@ -30,7 +30,6 @@ import { GlobalData } from '../services';
           type="button"
           appearance="primary"
           [routerLink]="['/home']"
-          (click.zoneless)="$event.stopPropagation()"
         >
           {{ 'notFound.goHome' | translate }}
         </a>

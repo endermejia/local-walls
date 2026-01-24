@@ -11,7 +11,7 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 import {
   TuiAppearance,
@@ -65,7 +65,6 @@ import { handleErrorToast } from '../utils';
     ChartRoutesByGradeComponent,
     EmptyStateComponent,
     LowerCasePipe,
-    RouterLink,
     SectionHeaderComponent,
     TranslatePipe,
     TuiAvatar,
@@ -196,10 +195,12 @@ import { handleErrorToast } from '../utils';
 
           <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
             @for (crag of crags; track crag.slug) {
-              <a
+              <button
                 class="p-6 rounded-3xl"
                 [tuiAppearance]="crag.liked ? 'outline-destructive' : 'outline'"
-                [routerLink]="['/area', area.slug, crag.slug]"
+                (click.zoneless)="
+                  router.navigate(['/area', area.slug, crag.slug])
+                "
               >
                 <div class="flex flex-col min-w-0 grow">
                   <header tuiHeader>
@@ -216,7 +217,7 @@ import { handleErrorToast } from '../utils';
                     />
                   </section>
                 </div>
-              </a>
+              </button>
             } @empty {
               <app-empty-state class="col-span-full" />
             }
@@ -233,15 +234,15 @@ import { handleErrorToast } from '../utils';
   host: { class: 'flex grow min-h-0' },
 })
 export class AreaComponent {
+  protected readonly global = inject(GlobalData);
+  protected readonly router = inject(Router);
+  protected readonly toast = inject(ToastService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly areas = inject(AreasService);
   private readonly cragsService = inject(CragsService);
-  protected readonly global = inject(GlobalData);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   private readonly filtersService = inject(FiltersService);
-  private readonly router = inject(Router);
-  private readonly toast = inject(ToastService);
 
   areaSlug: InputSignal<string> = input.required<string>();
   readonly query: WritableSignal<string> = signal('');
