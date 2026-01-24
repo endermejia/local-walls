@@ -72,7 +72,7 @@ import { handleErrorToast } from '../utils';
             class="w-full"
             [title]="r.name"
             [liked]="r.liked"
-            (toggleLike)="onToggleLike()"
+            (toggleLike)="routesService.toggleRouteLike(r.id, r)"
           />
           @if (global.isAdmin()) {
             <button
@@ -159,7 +159,7 @@ import { handleErrorToast } from '../utils';
                   [appearance]="r.project ? 'primary' : 'secondary'"
                   size="m"
                   iconStart="@tui.bookmark"
-                  (click)="onToggleProject()"
+                  (click)="routesService.toggleRouteProject(r.id, r)"
                 >
                   {{
                     (r.project
@@ -224,7 +224,6 @@ import { handleErrorToast } from '../utils';
                     [max]="5"
                     [ngModel]="r.rating || 0"
                     [readOnly]="true"
-                    class="!text-yellow-400"
                     [style.font-size.rem]="0.6"
                   />
                   @if (r.rating; as rating) {
@@ -289,7 +288,7 @@ import { handleErrorToast } from '../utils';
 export class RouteComponent {
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
-  private readonly routesService = inject(RoutesService);
+  protected readonly routesService = inject(RoutesService);
   protected readonly ascentsService = inject(AscentsService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
@@ -354,24 +353,6 @@ export class RouteComponent {
   });
 
   readonly climbingIcons = CLIMBING_ICONS;
-
-  onToggleLike(): void {
-    const r = this.route();
-    if (!r || !isPlatformBrowser(this.platformId)) return;
-
-    this.global.routeDetailResource.update((current) => {
-      if (!current) return current;
-      return { ...current, liked: !current.liked };
-    });
-
-    void this.routesService.toggleRouteLike(r.id);
-  }
-
-  onToggleProject(): void {
-    const r = this.route();
-    if (!r || !isPlatformBrowser(this.platformId)) return;
-    void this.routesService.toggleRouteProject(r.id);
-  }
 
   onLogAscent(): void {
     const r = this.route();

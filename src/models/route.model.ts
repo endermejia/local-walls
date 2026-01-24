@@ -10,5 +10,5 @@ export interface RouteWithExtras extends RouteDto {
   rating?: number;
   ascent_count?: number;
   climbed?: boolean;
-  own_ascent?: RouteAscentDto;
+  own_ascent?: RouteAscentDto | null;
 }

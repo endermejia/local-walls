@@ -44,6 +44,7 @@ import { firstValueFrom } from 'rxjs';
 
 import {
   RouteAscentWithExtras,
+  RouteWithExtras,
   TopoDetail,
   TopoListItem,
   TopoRouteWithRoute,
@@ -474,7 +475,7 @@ export class TopoComponent {
   protected readonly global = inject(GlobalData);
   protected readonly ascentsService = inject(AscentsService);
   private readonly toposService = inject(ToposService);
-  private readonly routesService = inject(RoutesService);
+  protected readonly routesService = inject(RoutesService);
   private readonly router = inject(Router);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
@@ -619,11 +620,16 @@ export class TopoComponent {
     );
   }
 
-  protected onToggleProject(item: TopoRouteRow): void {
-    void this.routesService.toggleRouteProject(item._ref.route_id).then(() => {
-      void this.global.topoDetailResource.reload();
-    });
-    item.project = !item.project;
+  protected async onToggleProject(item: TopoRouteRow): Promise<void> {
+    const routeToSync: RouteWithExtras = {
+      ...item._ref.route,
+      project: !!item._ref.route.project,
+      liked: false,
+    };
+    await this.routesService.toggleRouteProject(
+      item._ref.route_id,
+      routeToSync,
+    );
   }
 
   protected toggleImageFit(): void {

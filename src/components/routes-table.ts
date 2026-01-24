@@ -7,8 +7,6 @@ import {
   inject,
   input,
   InputSignal,
-  output,
-  OutputEmitterRef,
   PLATFORM_ID,
   Signal,
 } from '@angular/core';
@@ -196,7 +194,7 @@ export interface RoutesTableRow {
                                 item.liked ? 'var(--tui-status-negative)' : ''
                               "
                               class="align-self-start whitespace-nowrap font-bold text-base"
-                              (click)="$event.stopPropagation()"
+                              (click.zoneless)="$event.stopPropagation()"
                             >
                               {{ item.route || ('labels.route' | translate) }}
                             </a>
@@ -316,7 +314,11 @@ export interface RoutesTableRow {
                                     ) | translate)
                               "
                               (click.zoneless)="
-                                onToggleProject(item); $event.stopPropagation()
+                                routesService.toggleRouteProject(
+                                  item._ref.id,
+                                  item._ref
+                                );
+                                $event.stopPropagation()
                               "
                             >
                               {{
@@ -389,7 +391,7 @@ export class RoutesTableComponent {
   protected readonly ascentsService = inject(AscentsService);
   private readonly platformId = inject(PLATFORM_ID);
   protected readonly global = inject(GlobalData);
-  private readonly routesService = inject(RoutesService);
+  protected readonly routesService = inject(RoutesService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
@@ -401,12 +403,7 @@ export class RoutesTableComponent {
   );
   showAdminActions: InputSignal<boolean> = input(true);
   showRowColors: InputSignal<boolean> = input(true);
-
   showLocation: InputSignal<boolean> = input(false);
-
-  // Output to request more items when reaching the end
-  toggleLike: OutputEmitterRef<RouteItem> = output<RouteItem>();
-  toggleProject: OutputEmitterRef<RouteItem> = output<RouteItem>();
 
   readonly climbingIcons = CLIMBING_ICONS;
 
@@ -492,11 +489,6 @@ export class RoutesTableComponent {
   protected onSortChange(sort: TuiTableSortChange<RoutesTableRow>): void {
     this.currentSorter = sort.sortComparator || this.sorters['ascents'];
     this.currentDirection = sort.sortDirection;
-  }
-
-  protected onToggleProject(item: RoutesTableRow): void {
-    void this.routesService.toggleRouteProject(item._ref.id);
-    this.toggleProject.emit(item._ref);
   }
 
   protected onLogAscent(item: RouteItem): void {

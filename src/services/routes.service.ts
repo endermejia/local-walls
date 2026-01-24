@@ -14,6 +14,7 @@ import type {
   RouteDto,
   RouteInsertDto,
   RouteUpdateDto,
+  RouteWithExtras,
 } from '../models';
 
 import { GlobalData, SupabaseService, ToastService } from '../services';
@@ -194,7 +195,10 @@ export class RoutesService {
     return true;
   }
 
-  async toggleRouteLike(routeId: number): Promise<boolean | null> {
+  async toggleRouteLike(
+    routeId: number,
+    currentRoute?: RouteWithExtras,
+  ): Promise<boolean | null> {
     if (!isPlatformBrowser(this.platformId)) return null;
     await this.supabase.whenReady();
     try {
@@ -205,18 +209,16 @@ export class RoutesService {
         },
       );
       if (error) throw error;
-      this.global.cragRoutesResource.reload();
-      this.global.routeDetailResource.reload();
-      this.global.topoDetailResource.reload();
-      this.global.userAscentsResource.reload();
-      this.global.userProjectsResource.reload();
 
       const isLiked = data as boolean;
+
       this.toast.success(
         isLiked
           ? 'messages.toasts.favoriteAdded'
           : 'messages.toasts.favoriteRemoved',
       );
+
+      this.syncResources(routeId, { liked: isLiked }, currentRoute);
 
       return isLiked;
     } catch (e) {
@@ -238,17 +240,18 @@ export class RoutesService {
         });
 
       if (error) throw error;
-      this.global.cragRoutesResource.reload();
-      this.global.routeDetailResource.reload();
-      this.global.topoDetailResource.reload();
-      this.global.userProjectsResource.reload();
+
       this.toast.success('messages.toasts.projectRemoved');
+      this.syncResources(routeId, { project: false });
     } catch (e) {
       console.error('[RoutesService] removeRouteProject error', e);
     }
   }
 
-  async toggleRouteProject(routeId: number): Promise<boolean | null> {
+  async toggleRouteProject(
+    routeId: number,
+    currentRoute?: RouteWithExtras,
+  ): Promise<boolean | null> {
     if (!isPlatformBrowser(this.platformId)) return null;
     await this.supabase.whenReady();
     try {
@@ -259,22 +262,85 @@ export class RoutesService {
         },
       );
       if (error) throw error;
-      this.global.cragRoutesResource.reload();
-      this.global.routeDetailResource.reload();
-      this.global.topoDetailResource.reload();
-      this.global.userProjectsResource.reload();
 
       const isProject = data as boolean;
+
       this.toast.success(
         isProject
           ? 'messages.toasts.projectAdded'
           : 'messages.toasts.projectRemoved',
       );
 
+      this.syncResources(routeId, { project: isProject }, currentRoute);
+
       return isProject;
     } catch (e) {
       console.error('[RoutesService] toggleRouteProject error', e);
       throw e;
     }
+  }
+
+  private syncResources(
+    routeId: number,
+    changes: Partial<RouteWithExtras>,
+    currentRoute?: RouteWithExtras,
+  ): void {
+    const updateFn = (routes: RouteWithExtras[] | undefined) =>
+      (routes ?? []).map((route) =>
+        route.id === routeId ? { ...route, ...changes } : route,
+      );
+
+    // 1. Update cragRoutesResource
+    this.global.cragRoutesResource.update(updateFn);
+
+    // 2. Update userProjectsResource
+    if (changes.project !== undefined) {
+      const isProject = changes.project;
+      this.global.userProjectsResource.update((current) => {
+        if (isProject) {
+          const exists = (current ?? []).find((route) => route.id === routeId);
+          if (exists) return updateFn(current);
+          if (currentRoute) {
+            return [
+              ...(current ?? []),
+              {
+                ...currentRoute,
+                project: true,
+                crag_name: currentRoute.crag_name,
+                area_name: currentRoute.area_name,
+                crag_slug: currentRoute.crag_slug,
+                area_slug: currentRoute.area_slug,
+              },
+            ];
+          }
+          // If we don't have currentRoute, we might need to reload or just update if it existed.
+          // For now, if it doesn't exist and we don't have the object, we can't add it optimistically with all data.
+          // But in most cases where we toggle, we are in a context where we have the route data.
+          return current;
+        } else {
+          return (current ?? []).filter((route) => route.id !== routeId);
+        }
+      });
+    } else {
+      this.global.userProjectsResource.update(updateFn);
+    }
+
+    // 3. Update routeDetailResource
+    this.global.routeDetailResource.update((r) =>
+      r?.id === routeId ? { ...r, ...changes } : r,
+    );
+
+    // 4. Update topoDetailResource
+    this.global.topoDetailResource.update((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        topo_routes: current.topo_routes.map((tr) =>
+          tr.route_id === routeId
+            ? { ...tr, route: { ...tr.route, ...changes } }
+            : tr,
+        ),
+      };
+    });
   }
 }

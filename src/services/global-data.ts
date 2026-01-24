@@ -549,7 +549,7 @@ export class GlobalData {
             route: {
               ...tr.route,
               own_ascent: tr.route.own_ascent?.[0] || null,
-              project: tr.route.project?.[0] || null,
+              project: !!tr.route.project?.[0],
             },
           })) || [];
 
@@ -645,7 +645,8 @@ export class GlobalData {
             own_ascent:route_ascents(*),
             crag:crags(
               slug,
-              area:areas(slug)
+              name,
+              area:areas(slug, name)
             )
           `,
           )
@@ -678,7 +679,9 @@ export class GlobalData {
                 liked: (r.liked?.length ?? 0) > 0,
                 project: (r.project?.length ?? 0) > 0,
                 crag_slug: r.crag?.slug,
+                crag_name: r.crag?.name,
                 area_slug: r.crag?.area?.slug,
+                area_name: r.crag?.area?.name,
                 rating,
                 ascent_count: r.ascents?.length ?? 0,
                 climbed: (r.own_ascent?.length ?? 0) > 0,

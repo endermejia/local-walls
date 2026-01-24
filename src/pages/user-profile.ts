@@ -190,8 +190,6 @@ import { ORDERED_GRADE_VALUES } from '../models';
               [showAdminActions]="false"
               [showLocation]="true"
               [showRowColors]="false"
-              (toggleLike)="onToggleLike($event)"
-              (toggleProject)="onToggleProject($event)"
             />
           </div>
         }
@@ -271,7 +269,7 @@ import { ORDERED_GRADE_VALUES } from '../models';
               (deleted)="onAscentDeleted($event)"
             />
           </div>
-        } @else if (global.isAdmin()) {
+        } @else if (isOwnProfile()) {
           <div class="mt-8 flex justify-center">
             <button
               tuiButton
@@ -352,7 +350,7 @@ export class UserProfileComponent {
       this.global.profileUserId.set(profileId ?? null);
     });
 
-    // Auto-open profile config modal if user hasn't completed setup
+    // Auto-open profile config modal if the user hasn't completed setup
     effect(() => {
       if (!isPlatformBrowser(this.platformId)) return;
 
@@ -361,7 +359,7 @@ export class UserProfileComponent {
 
       // Only auto-open for own profile
       if (this.isOwnProfile() && profile && authUser?.email) {
-        // If name equals email, user hasn't completed profile setup
+        // If name equals email, the user hasn't completed profile setup
         if (profile.name === authUser.email) {
           // Use setTimeout to avoid opening modal during effect execution
           setTimeout(() => this.openEditDialog(), 0);
@@ -371,12 +369,12 @@ export class UserProfileComponent {
 
     // Sync initial global filters to local controls/signals if needed
     // However, global filters are typically reset to defaults on page entry.
-    // The effect below ensures that when local state changes, global state is updated and page is reset.
+    // The effect below ensures that when the local state changes, the global state is updated and the page is reset.
     effect(() => {
       const dateFilter = this.dateFilter();
       const query = this.query();
 
-      // Read global filters to re-run effect when they change (e.g. from filter dialog)
+      // Read global filters to re-run the effect when they change (e.g., from the filter dialog)
       this.selectedGradeRange();
       this.selectedCategories();
 
@@ -494,30 +492,6 @@ export class UserProfileComponent {
   );
 
   readonly projects = computed(() => this.projectsResource.value() ?? []);
-
-  onToggleLike(route: RouteItem): void {
-    this.projectsResource.update((current) =>
-      (current ?? []).map((item) =>
-        item.id === route.id ? { ...item, liked: !item.liked } : item,
-      ),
-    );
-  }
-
-  onToggleProject(route: RouteItem): void {
-    // If its own profile, and we are toggling off a project, remove from a list
-    if (this.isOwnProfile()) {
-      this.projectsResource.update((current) =>
-        (current ?? []).filter((item) => item.id !== route.id),
-      );
-    } else {
-      // If someone else's profile, just toggle the icon
-      this.projectsResource.update((current) =>
-        (current ?? []).map((item) =>
-          item.id === route.id ? { ...item, project: !item.project } : item,
-        ),
-      );
-    }
-  }
 
   onAscentDeleted(id: number): void {
     this.ascentsResource.update((curr) => {

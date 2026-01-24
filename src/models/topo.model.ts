@@ -19,7 +19,7 @@ export interface TopoListItem {
 
 export interface RouteWithOwnData extends RouteDto {
   own_ascent?: RouteAscentDto | null;
-  project?: Pick<RouteProjectDto, 'id'> | null;
+  project?: boolean;
 }
 
 export interface TopoRouteWithRoute {
