@@ -80,7 +80,7 @@
     "filters": "Filtros",
     "filterByDate": "Filtrar por fecha",
     "followers": "Seguidores",
-    "following": "Siguiendo",
+    "following": "Seguidos",
     "grade": "Grado",
     "height": "Altura",
     "language": "Idioma",
@@ -110,7 +110,10 @@
     "searchPlaceholder": "Buscar...",
     "sector": "Sector",
     "sectors": "Sectores",
-    "social": "Social",
+    "likes": "Me gusta",
+    "likedRoutes": "Vías que me gustan",
+    "likedCrags": "Sectores que me gustan",
+    "likedAreas": "Áreas que me gustan",
     "sex": "Género",
     "size": "Altura",
     "startingClimbingYear": "Escalando desde",
@@ -318,7 +321,7 @@
       "equalsEmail": "Por favor, cambia tu nombre. No puede ser igual a tu correo electrónico."
     },
     "bio": {
-      "tooLong": "La biografía debe tener 500 caracteres o menos."
+      "tooLong": "La biografía debe tener 50 caracteres o menos."
     },
     "city": {
       "tooLong": "La ciudad debe tener 100 caracteres o menos."

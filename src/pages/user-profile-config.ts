@@ -216,7 +216,7 @@ interface Country {
             name="bioInput"
             tuiTextarea
             rows="4"
-            maxlength="150"
+            maxlength="50"
             [(ngModel)]="bio"
             (blur)="saveBio()"
           ></textarea>

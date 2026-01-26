@@ -126,7 +126,11 @@
     "you": "you",
     "year": "Year",
     "years": "Years",
-    "empty": "No data to show"
+    "empty": "No data to show",
+    "likes": "Likes",
+    "likedRoutes": "Liked routes",
+    "likedCrags": "Liked crags",
+    "likedAreas": "Liked areas"
   },
   "auth": {
     "login": "Sign in",
@@ -314,7 +318,7 @@
       "equalsEmail": "Please change your name. It cannot be the same as your email."
     },
     "bio": {
-      "tooLong": "Bio must be 500 characters or less."
+      "tooLong": "Bio must be 50 characters or less."
     },
     "city": {
       "tooLong": "City must be 100 characters or less."
