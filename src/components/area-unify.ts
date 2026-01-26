@@ -12,7 +12,6 @@ import {
   TuiError,
   TuiLabel,
   TuiOptGroup,
-  TuiSelectLike,
   TuiTextfield,
 } from '@taiga-ui/core';
 import {
@@ -45,7 +44,6 @@ import { AreaDto } from '../models';
     TuiLabel,
     TuiMultiSelect,
     TuiOptGroup,
-    TuiSelectLike,
     TuiTextfield,
   ],
   template: `
@@ -66,7 +64,7 @@ import { AreaDto } from '../models';
           [placeholder]="'actions.select' | translate"
         />
         <tui-data-list *tuiTextfieldDropdown>
-          @for (area of areas() | tuiFilterByInput; track area.id) {
+          @for (area of global.areaList() | tuiFilterByInput; track area.id) {
             <button tuiOption new [value]="area">
               {{ area.name }}
             </button>
@@ -89,7 +87,6 @@ import { AreaDto } from '../models';
         }}</label>
         <input
           tuiInputChip
-          tuiSelectLike
           id="source-areas"
           autocomplete="off"
           [formControl]="sourceAreas"
@@ -153,11 +150,10 @@ import { AreaDto } from '../models';
   host: { class: 'block w-full' },
 })
 export class AreaUnifyComponent {
-  private readonly areasService = inject(AreasService);
-  private readonly global = inject(GlobalData);
+  protected readonly global = inject(GlobalData);
   protected readonly context = injectContext<TuiDialogContext<boolean, void>>();
+  private readonly areasService = inject(AreasService);
 
-  protected readonly areas = signal<AreaDto[]>([]);
   protected readonly loading = signal(false);
 
   targetArea = new FormControl<AreaDto | null>(null, Validators.required);
@@ -165,23 +161,13 @@ export class AreaUnifyComponent {
   newName = new FormControl<string>('');
 
   protected readonly isInvalidArea = (item: AreaDto): boolean =>
-    !this.areas().some((a) => a.id === item.id);
-
-  constructor() {
-    this.loadAreas();
-  }
-
-  private async loadAreas() {
-    // We can use the global list if available, or fetch it
-    const list = this.global.areaList() as unknown as AreaDto[]; // AreaListItem might need casting or we use a different source
-    this.areas.set(list);
-  }
+    !this.global.areaList().some((a) => a.id === item.id);
 
   protected readonly stringify = (area: AreaDto) => area.name;
 
   protected availableSources() {
     const targetId = this.targetArea.value?.id;
-    return this.areas().filter((a) => a.id !== targetId);
+    return this.global.areaList().filter((a) => a.id !== targetId);
   }
 
   async onUnify() {
