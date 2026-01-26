@@ -12,6 +12,7 @@ import {
   TuiError,
   TuiLabel,
   TuiOptGroup,
+  TuiSelectLike,
   TuiTextfield,
 } from '@taiga-ui/core';
 import {
@@ -33,18 +34,19 @@ import { AreaDto } from '../models';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    TuiButton,
-    TuiError,
-    TuiLabel,
-    TuiTextfield,
-    TuiComboBox,
-    TuiMultiSelect,
-    TuiDataList,
-    TuiOptGroup,
-    TuiChevron,
-    TuiInputChip,
-    TuiFilterByInputPipe,
     TranslatePipe,
+    TuiButton,
+    TuiChevron,
+    TuiComboBox,
+    TuiDataList,
+    TuiError,
+    TuiFilterByInputPipe,
+    TuiInputChip,
+    TuiLabel,
+    TuiMultiSelect,
+    TuiOptGroup,
+    TuiSelectLike,
+    TuiTextfield,
   ],
   template: `
     <div class="grid gap-4">
