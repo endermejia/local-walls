@@ -42,6 +42,7 @@ import {
   TuiInputDate,
   TuiInputNumber,
   TuiInputYear,
+  TuiSegmented,
   TuiSelect,
   TuiShimmer,
   TuiSwitch,
@@ -89,34 +90,35 @@ interface Country {
   selector: 'app-user-profile-config',
   standalone: true,
   imports: [
-    TranslatePipe,
-    TuiButton,
-    TuiHint,
+    AsyncPipe,
     FormsModule,
+    NgOptimizedImage,
     ReactiveFormsModule,
+    TranslatePipe,
+    TuiAvatar,
+    TuiBadge,
+    TuiBadgedContentComponent,
+    TuiButton,
     TuiChevron,
-    TuiSelect,
-    TuiTextfield,
-    TuiDataListWrapper,
-    TuiTextarea,
     TuiComboBox,
+    TuiDataListWrapper,
+    TuiFallbackSrcPipe,
     TuiFilterByInputPipe,
     TuiFlagPipe,
-    TuiInputNumber,
-    TuiInputDate,
-    TuiInputYear,
-    TuiSwitch,
-    TuiFallbackSrcPipe,
-    TuiAvatar,
-    AsyncPipe,
-    TuiShimmer,
-    TuiBadgedContentComponent,
-    TuiBadge,
+    TuiHint,
     TuiIcon,
-    NgOptimizedImage,
-    TuiNotification,
-    TuiTitle,
+    TuiInputDate,
+    TuiInputNumber,
+    TuiInputYear,
     TuiLoader,
+    TuiNotification,
+    TuiSegmented,
+    TuiSelect,
+    TuiShimmer,
+    TuiSwitch,
+    TuiTextarea,
+    TuiTextfield,
+    TuiTitle,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
@@ -459,19 +461,17 @@ interface Country {
         </div>
         <!-- Theme & Private profile -->
         <div class="flex flex-col items-end gap-4">
-          <div class="flex items-center gap-4">
-            <label tuiLabel for="themeSwitch">{{
-              'labels.darkMode' | translate
-            }}</label>
-            <input
-              id="themeSwitch"
-              name="themeSwitch"
-              tuiSwitch
-              type="checkbox"
-              [ngModel]="theme === Themes.DARK"
-              (ngModelChange)="toggleTheme($event)"
-            />
-          </div>
+          <tui-segmented
+            [activeItemIndex]="theme === Themes.DARK ? 1 : 0"
+            (activeItemIndexChange)="toggleTheme($event === 1)"
+          >
+            <button title="light" type="button">
+              <tui-icon icon="@tui.sun" />
+            </button>
+            <button title="dark" type="button">
+              <tui-icon icon="@tui.moon" />
+            </button>
+          </tui-segmented>
 
           <div class="flex items-center gap-4">
             <label tuiLabel for="privateSwitch">{{
