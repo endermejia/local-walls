@@ -920,6 +920,35 @@ export interface Database {
   };
   public: {
     Tables: {
+      area_equippers: {
+        Row: {
+          area_id: number;
+          created_at: string | null;
+          equipper_id: string;
+          id: number;
+        };
+        Insert: {
+          area_id: number;
+          created_at?: string | null;
+          equipper_id: string;
+          id?: number;
+        };
+        Update: {
+          area_id?: number;
+          created_at?: string | null;
+          equipper_id?: string;
+          id?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'area_equippers_area_id_fkey';
+            columns: ['area_id'];
+            isOneToOne: false;
+            referencedRelation: 'areas';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       area_likes: {
         Row: {
           area_id: number;
@@ -969,35 +998,6 @@ export interface Database {
           slug?: string;
         };
         Relationships: [];
-      };
-      crag_equippers: {
-        Row: {
-          crag_id: number;
-          created_at: string | null;
-          equipper_id: string;
-          id: number;
-        };
-        Insert: {
-          crag_id: number;
-          created_at?: string | null;
-          equipper_id: string;
-          id?: number;
-        };
-        Update: {
-          crag_id?: number;
-          created_at?: string | null;
-          equipper_id?: string;
-          id?: number;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'crag_equippers_crag_id_fkey';
-            columns: ['crag_id'];
-            isOneToOne: false;
-            referencedRelation: 'crags';
-            referencedColumns: ['id'];
-          },
-        ];
       };
       crag_likes: {
         Row: {
