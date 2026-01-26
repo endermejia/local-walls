@@ -1,4 +1,4 @@
-import { AsyncPipe, isPlatformBrowser, LowerCasePipe } from '@angular/common';
+import { AsyncPipe, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -13,12 +13,12 @@ import { RouterLink } from '@angular/router';
 
 import { TuiDialogContext } from '@taiga-ui/experimental';
 import {
+  TuiTextfield,
+  TuiButton,
   TuiFallbackSrcPipe,
   TuiLabel,
   TuiLoader,
   TuiScrollbar,
-  TuiTextfield,
-  TuiIcon,
 } from '@taiga-ui/core';
 import { TuiAvatar } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
@@ -29,13 +29,16 @@ import { UserProfileDto } from '../models';
 
 import { FollowsService, SupabaseService } from '../services';
 import { EmptyStateComponent } from './empty-state';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { TUI_CONFIRM, TuiConfirmData } from '@taiga-ui/kit';
+import { TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-user-follows-list',
   standalone: true,
   imports: [
     AsyncPipe,
-    LowerCasePipe,
     RouterLink,
     TuiAvatar,
     TuiFallbackSrcPipe,
@@ -44,16 +47,14 @@ import { EmptyStateComponent } from './empty-state';
     TranslatePipe,
     TuiTextfield,
     TuiLabel,
-    TuiIcon,
     EmptyStateComponent,
     WaIntersectionObserver,
+    TuiButton,
   ],
   template: `
     <div class="flex flex-col h-[60dvh] min-h-[400px] -m-4">
       <!-- Search Header -->
-      <div
-        class="p-4 border-b border-border-normal bg-neutral-pale sticky top-0 z-10"
-      >
+      <div class="sticky top-0 z-10">
         <tui-textfield
           [tuiTextfieldCleaner]="true"
           tuiTextfieldSize="m"
@@ -71,18 +72,10 @@ import { EmptyStateComponent } from './empty-state';
             (input)="query.set(userSearch.value)"
           />
         </tui-textfield>
-        <div class="mt-2 text-xs opacity-50 px-1">
-          {{ total() }}
-          {{
-            (type === 'followers' ? 'labels.followers' : 'labels.following')
-              | translate
-              | lowercase
-          }}
-        </div>
       </div>
 
       <tui-scrollbar waIntersectionRoot class="grow min-h-0">
-        <div class="p-2 flex flex-col gap-1">
+        <div class="flex flex-col gap-1">
           @for (user of users(); track user.id) {
             <a
               class="flex items-center gap-3 p-3 hover:bg-neutral-pale transition-colors rounded-xl cursor-pointer"
@@ -107,7 +100,44 @@ import { EmptyStateComponent } from './empty-state';
                   }}</span>
                 }
               </div>
-              <tui-icon icon="@tui.chevron-right" class="opacity-30" />
+
+              @if (isOwnProfile()) {
+                @if (type === 'following') {
+                  @if (followedIds().has(user.id)) {
+                    <button
+                      tuiButton
+                      appearance="secondary-grayscale"
+                      size="s"
+                      type="button"
+                      (click)="onUnfollow(user, $event)"
+                    >
+                      {{ 'actions.unfollow' | translate }}
+                    </button>
+                  } @else {
+                    <button
+                      tuiButton
+                      appearance="secondary-grayscale"
+                      size="s"
+                      type="button"
+                      (click)="onFollow(user, $event)"
+                    >
+                      {{ 'actions.follow' | translate }}
+                    </button>
+                  }
+                } @else if (
+                  type === 'followers' && !followedIds().has(user.id)
+                ) {
+                  <button
+                    tuiButton
+                    appearance="secondary-grayscale"
+                    size="s"
+                    type="button"
+                    (click)="onFollow(user, $event)"
+                  >
+                    {{ 'actions.follow' | translate }}
+                  </button>
+                }
+              }
             </a>
           } @empty {
             @if (!loading()) {
@@ -152,6 +182,8 @@ export class UserFollowsListComponent {
         { userId: string; type: 'followers' | 'following' }
       >
     >();
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
 
   protected readonly userId = this.context.data.userId;
   protected readonly type = this.context.data.type;
@@ -159,6 +191,11 @@ export class UserFollowsListComponent {
   protected readonly query = signal('');
   protected readonly page = signal(0);
   protected readonly pageSize = 20;
+
+  protected readonly isOwnProfile = computed(
+    () => this.userId === this.supabase.authUserId(),
+  );
+  protected readonly followedIds = signal<Set<string>>(new Set());
 
   protected readonly usersResource = resource({
     params: () => ({
@@ -198,35 +235,88 @@ export class UserFollowsListComponent {
   );
 
   constructor() {
+    this.loadFollowedIds();
+
     // Reset users when query changes
-    effect(
-      () => {
-        this.query();
-        this.page.set(0);
-        this.users.set([]);
-      },
-      { allowSignalWrites: true },
-    );
+    effect(() => {
+      this.query();
+      this.page.set(0);
+      this.users.set([]);
+    });
 
     // Append users when resource updates
-    effect(
-      () => {
-        const res = this.usersResource.value();
-        if (res && res.items.length > 0) {
-          this.users.update((current) => {
-            const currentIds = new Set(current.map((u) => u.id));
-            const newItems = res.items.filter((u) => !currentIds.has(u.id));
-            return [...current, ...newItems];
-          });
-        }
-      },
-      { allowSignalWrites: true },
-    );
+    effect(() => {
+      const res = this.usersResource.value();
+      if (res && res.items.length > 0) {
+        this.users.update((current) => {
+          const currentIds = new Set(current.map((u) => u.id));
+          const newItems = res.items.filter((u) => !currentIds.has(u.id));
+          return [...current, ...newItems];
+        });
+      }
+    });
   }
 
   onIntersection(entries: IntersectionObserverEntry[]) {
     if (entries[0].isIntersecting && this.hasMore() && !this.loading()) {
       this.page.update((p) => p + 1);
+    }
+  }
+
+  protected async loadFollowedIds() {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const ids = await this.followsService.getFollowedIds();
+    this.followedIds.set(new Set(ids));
+  }
+
+  protected onFollow(user: UserProfileDto, event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    void this.followsService.follow(user.id);
+    // followedIds and followChange signal will be updated by followsService
+    this.followedIds.update((ids) => {
+      const next = new Set(ids);
+      next.add(user.id);
+      return next;
+    });
+  }
+
+  protected async onUnfollow(user: UserProfileDto, event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const data: TuiConfirmData = {
+      content: this.translate.instant('actions.unfollowConfirm', {
+        name: user.name,
+      }),
+      yes: this.translate.instant('actions.unfollow'),
+      no: this.translate.instant('actions.cancel'),
+      appearance: 'negative',
+    };
+
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('actions.unfollowTitle'),
+        size: 's',
+        data,
+      }),
+      { defaultValue: false },
+    );
+
+    if (confirmed) {
+      const success = await this.followsService.unfollow(user.id);
+      if (success) {
+        this.followedIds.update((ids) => {
+          const next = new Set(ids);
+          next.delete(user.id);
+          return next;
+        });
+        // If we are in the "following" list of our own profile, we might want to remove the user from the list
+        // but the user didn't ask for that, they just asked for the button.
+        // Usually, the button would change to "Follow" or the user would disappear.
+        // For now, I'll just update followedIds which will change the button if it were Followers list.
+        // In Following list, the button stays "Unfollow" unless we remove the user.
+      }
     }
   }
 }

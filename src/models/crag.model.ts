@@ -52,11 +52,6 @@ export type CragParkingDto = TableRow<'crag_parkings'>;
 export type CragParkingInsertDto = TableInsert<'crag_parkings'>;
 export type CragParkingUpdateDto = TableUpdate<'crag_parkings'>;
 
-// Crag Equippers
-export type CragEquipperDto = TableRow<'crag_equippers'>;
-export type CragEquipperInsertDto = TableInsert<'crag_equippers'>;
-export type CragEquipperUpdateDto = TableUpdate<'crag_equippers'>;
-
 export type CragWithJoins = CragDto & {
   area: { name: string; slug: string } | null;
   crag_parkings: { parking: ParkingDto }[] | null;

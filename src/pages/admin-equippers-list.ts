@@ -336,6 +336,7 @@ export class AdminEquippersListComponent {
           no: this.translate.instant('actions.cancel'),
         } as TuiConfirmData,
       }),
+      { defaultValue: false },
     ).then((confirmed) => {
       if (!confirmed) return;
       this.performDelete(equipper.id);

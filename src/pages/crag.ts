@@ -757,6 +757,7 @@ export class CragComponent {
         size: 's',
         data,
       }),
+      { defaultValue: false },
     );
     if (!confirmed) return;
     try {

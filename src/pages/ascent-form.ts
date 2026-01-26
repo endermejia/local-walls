@@ -844,6 +844,7 @@ export default class AscentFormComponent {
           no: this.translate.instant('actions.cancel'),
         },
       }),
+      { defaultValue: false },
     );
 
     if (!confirmed) return;

@@ -14,6 +14,8 @@
     "follow": "Seguir",
     "import": "Importar",
     "unfollow": "Dejar de seguir",
+    "unfollowTitle": "Dejar de seguir",
+    "unfollowConfirm": "¿Seguro que quieres dejar de seguir a {{name}}?",
     "exitFullscreen": "Salir de pantalla completa",
     "favorite": {
       "add": "Marcar como favorito",

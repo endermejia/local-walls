@@ -367,6 +367,7 @@ export class AreaComponent {
         size: 's',
         data,
       }),
+      { defaultValue: false },
     );
     if (!confirmed) return;
     try {

@@ -291,6 +291,7 @@ export class AdminParkingsListComponent {
           appearance: 'negative',
         } as TuiConfirmData,
       }),
+      { defaultValue: false },
     ).then((confirmed) => {
       if (!confirmed) return;
       void this.performDelete(parking.id);

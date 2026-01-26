@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { UserProfileDto } from '../models';
 
 import { SupabaseService } from './supabase.service';
@@ -12,6 +12,12 @@ export class FollowsService {
   private readonly supabase = inject(SupabaseService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly toast = inject(ToastService);
+
+  readonly followChange = signal<number>(0);
+
+  private notifyChange() {
+    this.followChange.update((v) => v + 1);
+  }
 
   async isFollowing(followedUserId: string): Promise<boolean> {
     if (!isPlatformBrowser(this.platformId)) return false;
@@ -49,6 +55,7 @@ export class FollowsService {
       return false;
     }
 
+    this.notifyChange();
     this.toast.success('messages.toasts.userFollowed');
     return true;
   }
@@ -70,6 +77,7 @@ export class FollowsService {
       return false;
     }
 
+    this.notifyChange();
     this.toast.success('messages.toasts.userUnfollowed');
     return true;
   }
@@ -100,6 +108,24 @@ export class FollowsService {
       return 0;
     }
     return count || 0;
+  }
+
+  async getFollowedIds(): Promise<string[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    const userId = this.supabase.authUserId();
+    if (!userId) return [];
+
+    const { data, error } = await this.supabase.client
+      .from('user_follows')
+      .select('followed_user_id')
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('[FollowsService] getFollowedIds error', error);
+      return [];
+    }
+
+    return data?.map((f) => f.followed_user_id) || [];
   }
 
   async getFollowersPaginated(

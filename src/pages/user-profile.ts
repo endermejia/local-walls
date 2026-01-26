@@ -12,9 +12,11 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 import {
+  TuiAppearance,
+  TuiButton,
   TuiDataList,
   TuiFallbackSrcPipe,
   TuiHint,
@@ -23,7 +25,7 @@ import {
   TuiLoader,
   TuiScrollbar,
   TuiTextfield,
-  TuiButton,
+  TuiTitle,
 } from '@taiga-ui/core';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
 import {
@@ -31,16 +33,19 @@ import {
   TuiAvatar,
   TuiBadgedContent,
   TuiBadgeNotification,
+  TuiConfirmData,
   TuiDataListWrapper,
   TuiSelect,
   TuiSkeleton,
   TuiTabs,
 } from '@taiga-ui/kit';
+import { TuiHeader } from '@taiga-ui/layout';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TUI_CONFIRM } from '@taiga-ui/kit';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { startWith } from 'rxjs';
+import { firstValueFrom, startWith } from 'rxjs';
 
 import {
   FiltersService,
@@ -63,30 +68,32 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
   selector: 'app-user-profile',
   standalone: true,
   imports: [
-    TranslatePipe,
-    TuiAvatar,
-    TuiFallbackSrcPipe,
-    TuiButton,
-    TuiHint,
-    AsyncPipe,
-    TuiSkeleton,
-    LowerCasePipe,
-    RoutesTableComponent,
     AscentsTableComponent,
+    AsyncPipe,
     EmptyStateComponent,
+    LowerCasePipe,
     ReactiveFormsModule,
-    TuiSelect,
+    RoutesTableComponent,
+    TranslatePipe,
+    TuiAppearance,
+    TuiAvatar,
+    TuiBadgeNotification,
+    TuiBadgedContent,
+    TuiButton,
     TuiDataList,
     TuiDataListWrapper,
-    TuiTextfield,
+    TuiFallbackSrcPipe,
+    TuiHeader,
+    TuiHint,
     TuiLabel,
-    TuiBadgedContent,
-    TuiBadgeNotification,
-    TuiScrollbar,
-    TuiTabs,
-    RouterLink,
     TuiLink,
     TuiLoader,
+    TuiScrollbar,
+    TuiSelect,
+    TuiSkeleton,
+    TuiTabs,
+    TuiTextfield,
+    TuiTitle,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -110,7 +117,7 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
               </div>
               @if (isOwnProfile()) {
                 <button
-                  iconStart="@tui.bolt"
+                  iconStart="@tui.settings"
                   size="m"
                   tuiIconButton
                   type="button"
@@ -125,12 +132,14 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
               } @else {
                 @let following = isFollowing();
                 <button
-                  [iconStart]="following ? '@tui.user-minus' : '@tui.user-plus'"
+                  [iconStart]="
+                    following ? '@tui.badge-minus' : '@tui.badge-plus'
+                  "
                   size="m"
                   tuiIconButton
                   type="button"
                   [tuiSkeleton]="loading"
-                  [appearance]="following ? 'secondary' : 'primary'"
+                  appearance="action-grayscale"
                   [tuiHint]="
                     global.isMobile()
                       ? null
@@ -221,25 +230,14 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
             {{ 'labels.projects' | translate }}
           </button>
           @if (isOwnProfile()) {
-            <button tuiTab>
+            <button tuiTab class="flex gap-1">
               {{ 'labels.areas' | translate }}
-              @if (likedAreas().length) {
-                <span class="ml-1 opacity-60">({{ likedAreas().length }})</span>
-              }
             </button>
-            <button tuiTab>
+            <button tuiTab class="flex gap-1">
               {{ 'labels.crags' | translate }}
-              @if (likedCrags().length) {
-                <span class="ml-1 opacity-60">({{ likedCrags().length }})</span>
-              }
             </button>
-            <button tuiTab>
+            <button tuiTab class="flex gap-1">
               {{ 'labels.routes' | translate }}
-              @if (likedRoutes().length) {
-                <span class="ml-1 opacity-60"
-                  >({{ likedRoutes().length }})</span
-                >
-              }
             </button>
           }
         </tui-tabs>
@@ -332,6 +330,8 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
                   {{ 'actions.import' | translate }} 8a.nu
                 </button>
               </div>
+            } @else {
+              <app-empty-state />
             }
           }
           @case (1) {
@@ -345,50 +345,84 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
             </div>
           }
           @case (2) {
-            <div class="flex flex-col gap-2">
+            <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
               @if (likedAreasResource.isLoading()) {
-                <tui-loader class="m-4" />
+                <tui-loader class="col-span-full m-4" />
               } @else {
                 @for (area of likedAreas(); track area.id) {
-                  <a
-                    tuiLink
-                    [routerLink]="['/area', area.slug]"
-                    class="block p-2 font-bold !no-underline hover:opacity-80 border-b border-border-normal last:border-0"
+                  <button
+                    class="p-6 rounded-3xl"
+                    [tuiAppearance]="
+                      area.liked ? 'outline-destructive' : 'outline'
+                    "
+                    (click.zoneless)="router.navigate(['/area', area.slug])"
                   >
-                    <div class="flex items-baseline gap-2">
-                      <span class="text-lg text-text">{{ area.name }}</span>
-                      <span class="text-sm opacity-70 font-normal">
-                        {{ area.crags.length || 0 }}
-                        {{ 'labels.sectors' | translate }}
-                      </span>
+                    <div class="flex flex-col min-w-0 grow">
+                      <header tuiHeader>
+                        <h2 tuiTitle>{{ area.name }}</h2>
+                      </header>
+                      <section class="flex items-center justify-between gap-2">
+                        <div class="text-xl">
+                          {{ area.crags_count }}
+                          {{
+                            'labels.' +
+                              (area.crags_count === 1 ? 'crag' : 'crags')
+                              | translate
+                              | lowercase
+                          }}
+                        </div>
+                      </section>
                     </div>
-                  </a>
+                  </button>
                 } @empty {
-                  <app-empty-state icon="@tui.heart" />
+                  <div class="col-span-full">
+                    <app-empty-state icon="@tui.heart" />
+                  </div>
                 }
               }
             </div>
           }
           @case (3) {
-            <div class="flex flex-col gap-2">
+            <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
               @if (likedCragsResource.isLoading()) {
-                <tui-loader class="m-4" />
+                <tui-loader class="col-span-full m-4" />
               } @else {
                 @for (crag of likedCrags(); track crag.id) {
-                  <a
-                    tuiLink
-                    [routerLink]="['/area', crag.area_slug, crag.slug]"
-                    class="block p-2 font-bold !no-underline hover:opacity-80 border-b border-border-normal last:border-0"
+                  <button
+                    class="p-6 rounded-3xl"
+                    [tuiAppearance]="
+                      crag.liked ? 'outline-destructive' : 'outline'
+                    "
+                    (click.zoneless)="
+                      router.navigate(['/area', crag.area_slug, crag.slug])
+                    "
                   >
-                    <div class="flex items-baseline gap-2">
-                      <span class="text-lg text-text">{{ crag.name }}</span>
-                      <span class="text-sm opacity-70 font-normal">
-                        {{ crag.area_name }}
-                      </span>
+                    <div class="flex flex-col min-w-0 grow">
+                      <header tuiHeader>
+                        <h2 tuiTitle>{{ crag.name }}</h2>
+                      </header>
+                      <section class="flex items-center justify-between gap-2">
+                        <div class="flex flex-col items-start">
+                          <div class="text-xl">
+                            {{ crag.topos_count }}
+                            {{
+                              'labels.' +
+                                (crag.topos_count === 1 ? 'topo' : 'topos')
+                                | translate
+                                | lowercase
+                            }}
+                          </div>
+                          <div class="text-sm opacity-70">
+                            {{ crag.area_name }}
+                          </div>
+                        </div>
+                      </section>
                     </div>
-                  </a>
+                  </button>
                 } @empty {
-                  <app-empty-state icon="@tui.heart" />
+                  <div class="col-span-full">
+                    <app-empty-state icon="@tui.heart" />
+                  </div>
                 }
               }
             </div>
@@ -416,14 +450,15 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
   host: { class: 'flex grow min-h-0' },
 })
 export class UserProfileComponent {
-  private readonly platformId = inject(PLATFORM_ID);
+  protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
+  protected readonly router = inject(Router);
+  protected readonly countriesNames$ = inject(TUI_COUNTRIES);
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
   private readonly followsService = inject(FollowsService);
   private readonly userProfilesService = inject(UserProfilesService);
-  protected readonly global = inject(GlobalData);
   private readonly filtersService = inject(FiltersService);
-  protected readonly countriesNames$ = inject(TUI_COUNTRIES);
 
   // Route param (optional)
   id = input<string | undefined>();
@@ -433,16 +468,24 @@ export class UserProfileComponent {
   protected readonly activeTab = signal(0);
 
   protected readonly followersCountResource = resource({
-    params: () => this.profile()?.id,
-    loader: async ({ params: userId }) => {
+    params: () => ({
+      userId: this.profile()?.id,
+      change: this.followsService.followChange(),
+    }),
+    loader: async ({ params }) => {
+      const userId = params.userId;
       if (!userId || !isPlatformBrowser(this.platformId)) return 0;
       return await this.followsService.getFollowersCount(userId);
     },
   });
 
   protected readonly followingCountResource = resource({
-    params: () => this.profile()?.id,
-    loader: async ({ params: userId }) => {
+    params: () => ({
+      userId: this.profile()?.id,
+      change: this.followsService.followChange(),
+    }),
+    loader: async ({ params }) => {
+      const userId = params.userId;
       if (!userId || !isPlatformBrowser(this.platformId)) return 0;
       return await this.followsService.getFollowingCount(userId);
     },
@@ -543,13 +586,17 @@ export class UserProfileComponent {
       const cragIds = cragLikes?.map((c) => c.crag_id) || [];
       if (!cragIds.length) return [];
 
-      const { data, error } = await this.supabase.client
+      const { data: likedCrags, error } = await this.supabase.client
         .from('crags')
         .select(
           `
-        *,
-        area:areas(name, slug)
-      `,
+          id,
+          name,
+          slug,
+          area_id,
+          topos_count:topos(count),
+          area:areas(name, slug)
+        `,
         )
         .in('id', cragIds);
 
@@ -558,13 +605,13 @@ export class UserProfileComponent {
         return [];
       }
 
-      return (
-        data?.map((c) => ({
-          ...c,
-          area_name: c.area?.name,
-          area_slug: c.area?.slug,
-        })) || []
-      );
+      return likedCrags.map((c) => ({
+        ...c,
+        topos_count: c.topos_count?.[0]?.count ?? 0,
+        area_name: c.area?.name,
+        area_slug: c.area?.slug,
+        liked: true,
+      }));
     },
   });
 
@@ -581,13 +628,15 @@ export class UserProfileComponent {
       const areaIds = areaLikes?.map((a) => a.area_id) || [];
       if (!areaIds.length) return [];
 
-      const { data, error } = await this.supabase.client
+      const { data: likedAreas, error } = await this.supabase.client
         .from('areas')
         .select(
           `
-        *,
-        crags(id)
-      `,
+          id,
+          name,
+          slug,
+          crags_count:crags(count)
+        `,
         )
         .in('id', areaIds);
 
@@ -596,7 +645,11 @@ export class UserProfileComponent {
         return [];
       }
 
-      return data || [];
+      return likedAreas.map((a) => ({
+        ...a,
+        crags_count: a.crags_count?.[0]?.count ?? 0,
+        liked: true,
+      }));
     },
   });
 
@@ -765,6 +818,7 @@ export class UserProfileComponent {
     params: () => ({
       userId: this.supabase.authUserId(),
       followedUserId: this.profile()?.id,
+      change: this.followsService.followChange(),
     }),
     loader: async ({ params }) => {
       if (
@@ -825,21 +879,31 @@ export class UserProfileComponent {
   }
 
   async toggleFollow(): Promise<void> {
-    const followedUserId = this.profile()?.id;
+    const profile = this.profile();
+    const followedUserId = profile?.id;
     if (!followedUserId || this.isOwnProfile()) return;
 
     if (this.isFollowing()) {
-      const success = await this.followsService.unfollow(followedUserId);
-      if (success) {
-        this.isFollowingResource.update(() => false);
-        void this.followersCountResource.reload();
-      }
+      const data: TuiConfirmData = {
+        content: this.translate.instant('actions.unfollowConfirm', {
+          name: profile.name,
+        }),
+        yes: this.translate.instant('actions.unfollow'),
+        no: this.translate.instant('actions.cancel'),
+        appearance: 'negative',
+      };
+      const confirmed = await firstValueFrom(
+        this.dialogs.open<boolean>(TUI_CONFIRM, {
+          label: this.translate.instant('actions.unfollowTitle'),
+          size: 's',
+          data,
+        }),
+        { defaultValue: false },
+      );
+      if (!confirmed) return;
+      await this.followsService.unfollow(followedUserId);
     } else {
-      const success = await this.followsService.follow(followedUserId);
-      if (success) {
-        this.isFollowingResource.update(() => true);
-        void this.followersCountResource.reload();
-      }
+      await this.followsService.follow(followedUserId);
     }
   }
 
@@ -847,17 +911,17 @@ export class UserProfileComponent {
     const userId = this.profile()?.id;
     if (!userId) return;
 
-    this.dialogs
-      .open<boolean>(new PolymorpheusComponent(UserFollowsListComponent), {
-        data: { userId, type },
-        label: this.translate.instant(`labels.${type}`),
-        size: 'm',
-      })
-      .subscribe(() => {
-        // Option to reload counts if needed, but the counts should be reactive enough
-        void this.followersCountResource.reload();
-        void this.followingCountResource.reload();
-      });
+    void firstValueFrom(
+      this.dialogs.open<boolean>(
+        new PolymorpheusComponent(UserFollowsListComponent),
+        {
+          data: { userId, type },
+          label: this.translate.instant(`labels.${type}`),
+          size: 'm',
+        },
+      ),
+      { defaultValue: false },
+    );
   }
 }
 
