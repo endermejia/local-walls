@@ -981,18 +981,21 @@ export interface Database {
       areas: {
         Row: {
           created_at: string;
+          eight_anu_crag_slugs: string[] | null;
           id: number;
           name: string;
           slug: string;
         };
         Insert: {
           created_at?: string;
+          eight_anu_crag_slugs?: string[] | null;
           id?: number;
           name: string;
           slug: string;
         };
         Update: {
           created_at?: string;
+          eight_anu_crag_slugs?: string[] | null;
           id?: number;
           name?: string;
           slug?: string;
