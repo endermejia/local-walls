@@ -220,7 +220,7 @@ interface MinimalCrag {
     </form>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow min-h-0' },
+  host: { class: 'block w-full' },
 })
 export class CragFormComponent {
   protected readonly mapService = inject(MapService);

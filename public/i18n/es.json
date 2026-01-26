@@ -121,6 +121,7 @@
     "sectors": "Sectores",
     "sex": "Género",
     "size": "Altura",
+    "slug": "Slug",
     "startingClimbingYear": "Escalando desde",
     "topo": "Croquis",
     "topos": "Croquis",
@@ -213,6 +214,7 @@
       "areaCreated": "Área creada",
       "areaUpdated": "Área actualizada",
       "areaDeleted": "Área eliminada",
+      "areasUnified": "Áreas unificadas correctamente",
       "cragCreated": "Sector creado",
       "cragUpdated": "Sector actualizado",
       "cragDeleted": "Sector eliminado",
@@ -244,7 +246,13 @@
     "editTitle": "Editar área",
     "deleteTitle": "Eliminar área",
     "deleteConfirm": "¿Seguro que quieres eliminar el área \"{{name}}\"? Esta acción no se puede deshacer.",
-    "empty": "No hay áreas todavía"
+    "empty": "No hay áreas todavía",
+    "unify": "Unificar áreas",
+    "unifyTitle": "Unificar áreas",
+    "unifyDescription": "Selecciona las áreas que quieres unificar en una sola. Se conservarán todos los slugs de 8a.nu y los sectores se moverán al área seleccionada.",
+    "targetArea": "Área de destino (se mantendrá)",
+    "sourceAreas": "Áreas de origen (se eliminarán)",
+    "newName": "Nuevo nombre (opcional)"
   },
   "crags": {
     "newTitle": "Crear nuevo sector",
@@ -426,6 +434,7 @@
       "import": "Error al importar los encadenes",
       "parseCSV": "Error al leer el archivo CSV"
     },
+    "slugs": "Slugs de 8a.nu",
     "successTitle": "Importación completada",
     "success": "Se han importado {{importedCount}} encadenes{{skippedInfo}}{{createdInfo}}",
     "skipped": "{{count}} omitidos por duplicidad"

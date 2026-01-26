@@ -725,7 +725,15 @@ export class Import8aComponent {
           new Map(
             areasToCreate.map((name) => {
               const slug = areaToSlug.get(name) || slugify(name);
-              return [slug, { name, slug }];
+              const eightAnuSlug = areaToSlug.get(name);
+              return [
+                slug,
+                {
+                  name,
+                  slug: slugify(name),
+                  eight_anu_crag_slugs: eightAnuSlug ? [eightAnuSlug] : [],
+                },
+              ];
             }),
           ).values(),
         );

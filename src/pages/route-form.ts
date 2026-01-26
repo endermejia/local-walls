@@ -222,7 +222,7 @@ interface MinimalRoute {
     </form>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex grow min-h-0' },
+  host: { class: 'block w-full' },
 })
 export class RouteFormComponent {
   private readonly platformId = inject(PLATFORM_ID);

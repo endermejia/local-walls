@@ -82,16 +82,28 @@ import {
           </h1>
 
           @if (global.isAdmin()) {
-            <button
-              tuiButton
-              appearance="textfield"
-              size="s"
-              type="button"
-              (click.zoneless)="openCreateArea()"
-              [iconStart]="'@tui.plus'"
-            >
-              {{ 'actions.new' | translate }}
-            </button>
+            <div class="flex gap-2">
+              <button
+                tuiButton
+                appearance="textfield"
+                size="s"
+                type="button"
+                (click.zoneless)="areasService.openUnifyAreas()"
+                [iconStart]="'@tui.merge'"
+              >
+                {{ 'areas.unify' | translate }}
+              </button>
+              <button
+                tuiButton
+                appearance="textfield"
+                size="s"
+                type="button"
+                (click.zoneless)="openCreateArea()"
+                [iconStart]="'@tui.plus'"
+              >
+                {{ 'actions.new' | translate }}
+              </button>
+            </div>
           }
         </header>
 
@@ -177,7 +189,7 @@ import {
 export class AreaListComponent {
   protected readonly global = inject(GlobalData);
   protected readonly router = inject(Router);
-  private readonly areasService = inject(AreasService);
+  protected readonly areasService = inject(AreasService);
   private readonly filtersService = inject(FiltersService);
 
   readonly loading = computed(() => this.areasService.loading());

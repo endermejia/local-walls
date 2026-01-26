@@ -327,6 +327,7 @@ import { handleErrorToast } from '../utils';
                 <input tuiSelect id="ascentGrade" formControlName="grade" />
                 <tui-data-list-wrapper
                   *tuiTextfieldDropdown
+                  new
                   [items]="gradeOptions"
                 ></tui-data-list-wrapper>
               </tui-textfield>
@@ -489,6 +490,7 @@ import { handleErrorToast } from '../utils';
     </form>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block w-full' },
 })
 export default class AscentFormComponent {
   protected readonly global = inject(GlobalData);

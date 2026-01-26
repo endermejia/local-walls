@@ -17,6 +17,7 @@ import { firstValueFrom } from 'rxjs';
 import type { AreaDto, AreaInsertDto, AreaUpdateDto } from '../models';
 
 import { AreaFormComponent } from '../pages/area-form';
+import { AreaUnifyComponent } from '../components/area-unify';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
@@ -71,6 +72,22 @@ export class AreasService {
     });
   }
 
+  openUnifyAreas(): void {
+    void firstValueFrom(
+      this.dialogs.open<boolean>(
+        new PolymorpheusComponent(AreaUnifyComponent),
+        {
+          label: this.translate.instant('areas.unifyTitle'),
+          size: 'm',
+        },
+      ),
+    ).then((result) => {
+      if (result) {
+        this.global.areasListResource.reload();
+      }
+    });
+  }
+
   async create(
     payload: Omit<AreaInsertDto, 'created_at' | 'id'>,
   ): Promise<AreaDto | null> {
@@ -109,6 +126,89 @@ export class AreasService {
     this.global.areasListResource.reload();
     this.toast.success('messages.toasts.areaUpdated');
     return data as AreaDto;
+  }
+
+  async getById(id: number): Promise<{ data: AreaDto | null; error: unknown }> {
+    if (!isPlatformBrowser(this.platformId)) return { data: null, error: null };
+    await this.supabase.whenReady();
+    const { data, error } = await this.supabase.client
+      .from('areas')
+      .select('*')
+      .eq('id', id)
+      .single();
+    return { data: data as AreaDto, error };
+  }
+
+  async unify(
+    targetAreaId: number,
+    sourceAreaIds: number[],
+    newName: string,
+  ): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    await this.supabase.whenReady();
+    this.loading.set(true);
+    try {
+      // 1. Get all slugs from source areas and target area
+      const { data: areas, error: fetchError } = await this.supabase.client
+        .from('areas')
+        .select('id, slug, eight_anu_crag_slugs')
+        .in('id', [targetAreaId, ...sourceAreaIds]);
+
+      if (fetchError) throw fetchError;
+
+      const targetArea = areas.find((a) => a.id === targetAreaId);
+      if (!targetArea) throw new Error('Target area not found');
+
+      const allEightAnuSlugs = new Set<string>(
+        targetArea.eight_anu_crag_slugs || [],
+      );
+      for (const area of areas) {
+        if (area.eight_anu_crag_slugs) {
+          area.eight_anu_crag_slugs.forEach((s) => allEightAnuSlugs.add(s));
+        }
+        // Also add the current slug as an 8a.nu slug if it's not the target's slug
+        if (area.id !== targetAreaId) {
+          allEightAnuSlugs.add(area.slug);
+        }
+      }
+
+      // 2. Update crags to point to the target area
+      const { error: updateCragsError } = await this.supabase.client
+        .from('crags')
+        .update({ area_id: targetAreaId })
+        .in('area_id', sourceAreaIds);
+
+      if (updateCragsError) throw updateCragsError;
+
+      // 3. Update target area name and slugs
+      const { error: updateAreaError } = await this.supabase.client
+        .from('areas')
+        .update({
+          name: newName,
+          eight_anu_crag_slugs: Array.from(allEightAnuSlugs),
+        })
+        .eq('id', targetAreaId);
+
+      if (updateAreaError) throw updateAreaError;
+
+      // 4. Delete source areas
+      const { error: deleteError } = await this.supabase.client
+        .from('areas')
+        .delete()
+        .in('id', sourceAreaIds);
+
+      if (deleteError) throw deleteError;
+
+      this.global.areasListResource.reload();
+      this.toast.success('messages.toasts.areasUnified');
+      return true;
+    } catch (e) {
+      console.error('[AreasService] unify error', e);
+      this.toast.error('errors.unexpected');
+      return false;
+    } finally {
+      this.loading.set(false);
+    }
   }
 
   /** Delete an area by id (client-only). Returns true if deleted. */

@@ -120,6 +120,7 @@
     "sectors": "Sectors",
     "sex": "Gender",
     "size": "Height",
+    "slug": "Slug",
     "startingClimbingYear": "Climbing since",
     "topo": "Topo",
     "topos": "Topos",
@@ -210,6 +211,7 @@
       "areaCreated": "Area created",
       "areaUpdated": "Area updated",
       "areaDeleted": "Area deleted",
+      "areasUnified": "Areas unified successfully",
       "cragCreated": "Crag created",
       "cragUpdated": "Crag updated",
       "cragDeleted": "Crag deleted",
@@ -241,7 +243,13 @@
     "editTitle": "Edit area",
     "deleteTitle": "Delete area",
     "deleteConfirm": "Are you sure you want to delete area \"{{name}}\"? This action cannot be undone.",
-    "empty": "No areas yet"
+    "empty": "No areas yet",
+    "unify": "Unify areas",
+    "unifyTitle": "Unify areas",
+    "unifyDescription": "Select areas to unify into one. All 8a.nu slugs will be preserved and sectors will be moved to the selected target area.",
+    "targetArea": "Target area (will be kept)",
+    "sourceAreas": "Source areas (will be deleted)",
+    "newName": "New name (optional)"
   },
   "crags": {
     "newTitle": "Create new crag",
@@ -423,6 +431,7 @@
       "import": "Error importing ascents",
       "parseCSV": "Error parsing CSV file"
     },
+    "slugs": "8a.nu Slugs",
     "successTitle": "Import completed",
     "success": "Imported {{importedCount}} ascents{{skippedInfo}}{{createdInfo}}",
     "skipped": "{{count}} skipped as duplicates"
