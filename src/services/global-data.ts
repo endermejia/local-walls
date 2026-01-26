@@ -366,7 +366,8 @@ export class GlobalData {
             id, name, slug,
             liked:area_likes(id),
             crags (
-              routes (grade)
+              routes (grade, climbing_kind),
+              topos (shade_morning, shade_afternoon)
             )
           `,
           )
@@ -386,6 +387,9 @@ export class GlobalData {
         return (data || []).map((a) => {
           const grades: AmountByEveryGrade = {};
           let cragsCount = 0;
+          const climbingKinds = new Set<string>();
+          let shadeMorning = false;
+          let shadeAfternoon = false;
 
           (a.crags || []).forEach((c) => {
             cragsCount++;
@@ -394,7 +398,16 @@ export class GlobalData {
                 const g = r.grade as VERTICAL_LIFE_GRADES;
                 grades[g] = (grades[g] || 0) + 1;
               }
+              if (r.climbing_kind) {
+                climbingKinds.add(r.climbing_kind);
+              }
             });
+            if ((c.topos || []).some((t) => t.shade_morning)) {
+              shadeMorning = true;
+            }
+            if ((c.topos || []).some((t) => t.shade_afternoon)) {
+              shadeAfternoon = true;
+            }
           });
 
           const isLiked = (a.liked || []).length > 0;
@@ -406,11 +419,13 @@ export class GlobalData {
             liked: isLiked,
             grades,
             crags_count: cragsCount,
+            climbing_kind: Array.from(climbingKinds),
+            shade_morning: shadeMorning,
+            shade_afternoon: shadeAfternoon,
+            shade_all_day: shadeMorning && shadeAfternoon,
+            sun_all_day: !shadeMorning && !shadeAfternoon,
             area_type: 0,
-          } as MapAreaItem & {
-            grades: AmountByEveryGrade;
-            crags_count: number;
-          };
+          } as MapAreaItem;
         });
       } catch (e) {
         console.error('[GlobalData] areasMapResource exception', e);
