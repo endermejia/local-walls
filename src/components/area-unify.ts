@@ -47,7 +47,7 @@ import { AreaDto } from '../models';
     TuiTextfield,
   ],
   template: `
-    <div class="grid gap-4">
+    <div class="flex flex-col gap-4">
       <p class="text-sm opacity-70">
         {{ 'areas.unifyDescription' | translate }}
       </p>
@@ -141,7 +141,7 @@ import { AreaDto } from '../models';
           "
           (click)="onUnify()"
         >
-          {{ 'areas.unify' | translate }}
+          {{ 'actions.unify' | translate }}
         </button>
       </div>
     </div>

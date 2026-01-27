@@ -91,7 +91,7 @@ import {
                 (click.zoneless)="areasService.openUnifyAreas()"
                 [iconStart]="'@tui.merge'"
               >
-                {{ 'areas.unify' | translate }}
+                {{ 'actions.unify' | translate }}
               </button>
               <button
                 tuiButton
