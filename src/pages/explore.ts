@@ -79,7 +79,7 @@ import { mapLocationUrl, remToPx } from '../utils';
     TuiScrollbar,
     TuiTitle,
   ],
-  template: ` <div class="h-screen w-full flex">
+  template: ` <div class="h-full w-full flex min-h-0">
     <div
       class="relative h-full grow flex flex-col min-w-0 transition-[width] duration-300"
     >
@@ -444,7 +444,7 @@ import { mapLocationUrl, remToPx } from '../utils';
   </div>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'flex grow h-full',
+    class: 'flex grow min-h-0',
   },
 })
 export class ExploreComponent {
@@ -460,7 +460,7 @@ export class ExploreComponent {
     this.global.resetDataByPage('explore');
   }
 
-  protected readonly stops = ['10dvh', '50dvh'] as const;
+  protected readonly stops = ['7rem'] as const;
 
   @ViewChild('sheet', { read: ElementRef }) sheetRef?: ElementRef<HTMLElement>;
 
