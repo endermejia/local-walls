@@ -62,7 +62,7 @@
     "@taiga-ui/icons": "^4.67.0",
     "@taiga-ui/kit": "^4.67.0",
     "@taiga-ui/layout": "^4.67.0",
-    "@taiga-ui/polymorpheus": "^5.0.0",
+    "@taiga-ui/polymorpheus": "^4.9.0",
     "@tailwindcss/postcss": "^4.1.13",
     "@tailwindcss/vite": "^4.1.13",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
