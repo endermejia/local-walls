@@ -45,6 +45,11 @@ declare module 'leaflet' {
 
   export interface Map {
     getBounds(): LatLngBounds;
+    getBoundsZoom(
+      bounds: LatLngBounds,
+      inside?: boolean,
+      padding?: Point,
+    ): number;
     fitBounds(
       bounds: LatLngBounds,
       options?: {

@@ -559,11 +559,24 @@ export class MapBuilder {
               group.markers.map((c) => [c.latitude, c.longitude]),
             );
 
-            this.map.fitBounds(bounds, {
-              padding: [50, 50],
-              maxZoom: 18,
-              animate: true,
-            });
+            const currentZoom = this.map.getZoom();
+            const targetZoom = this.map.getBoundsZoom(bounds);
+
+            if (targetZoom <= currentZoom) {
+              this.map.setView(
+                group.center as [number, number],
+                currentZoom + 1,
+                {
+                  animate: true,
+                },
+              );
+            } else {
+              this.map.fitBounds(bounds, {
+                padding: [50, 50],
+                maxZoom: 18,
+                animate: true,
+              });
+            }
           });
         }
       }
