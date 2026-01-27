@@ -66,7 +66,12 @@ export class GlobalData {
 
   readonly isMobile = toSignal(
     this.breakpointService.pipe(map((b) => b === 'mobile')),
-    { initialValue: false },
+    {
+      initialValue:
+        isPlatformBrowser(this.platformId) && typeof window !== 'undefined'
+          ? window.innerWidth < 768
+          : false,
+    },
   );
 
   // Loading/Status state

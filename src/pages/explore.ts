@@ -7,12 +7,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   ElementRef,
   inject,
   PLATFORM_ID,
   signal,
   Signal,
-  ViewChild,
+  viewChild,
   WritableSignal,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
@@ -457,11 +458,20 @@ export class ExploreComponent {
 
   constructor() {
     this.global.resetDataByPage('explore');
+
+    effect(() => {
+      const el = this.sheet()?.nativeElement;
+      if (el && this.isBrowser()) {
+        window.requestAnimationFrame(() => {
+          this.updateBottomSheetScrollSignals(el);
+        });
+      }
+    });
   }
 
-  protected readonly stops = ['6rem'] as const;
+  protected readonly stops = ['6rem', '100%'] as const;
 
-  @ViewChild('sheet', { read: ElementRef }) sheetRef?: ElementRef<HTMLElement>;
+  protected readonly sheet = viewChild<ElementRef<HTMLElement>>('sheet');
 
   private readonly _sheetClientHeight: WritableSignal<number> = signal(0);
   private readonly _sheetScrollTop: WritableSignal<number> = signal(0);
@@ -649,7 +659,7 @@ export class ExploreComponent {
   protected onSheetScroll(event: Event): void {
     if (!this.isBrowser()) return;
     const target =
-      (event?.target as HTMLElement) || this.sheetRef?.nativeElement;
+      (event?.target as HTMLElement) || this.sheet()?.nativeElement;
     if (!target) return;
     this.updateBottomSheetScrollSignals(target);
   }
@@ -672,10 +682,10 @@ export class ExploreComponent {
       this.global.selectedMapParkingItem.set(null);
     }
 
-    const el = this.sheetRef?.nativeElement;
+    const el = this.sheet()?.nativeElement;
     if (!el) {
       window.requestAnimationFrame(() => {
-        const node = this.sheetRef?.nativeElement;
+        const node = this.sheet()?.nativeElement;
         if (!node) return;
         window.requestAnimationFrame(() => {
           const target =
@@ -715,7 +725,7 @@ export class ExploreComponent {
     };
 
     window.requestAnimationFrame(() => {
-      const nodeA = this.sheetRef?.nativeElement || el;
+      const nodeA = this.sheet()?.nativeElement || el;
       window.requestAnimationFrame(() => doScroll(nodeA));
     });
   }
