@@ -1,5 +1,6 @@
 export * from './area.model';
 export * from './ascent.model';
+export * from './breadcrumb-item.model';
 export * from './crag.model';
 export * from './eight-anu-ascent.model';
 export * from './eight-anu-user.model';

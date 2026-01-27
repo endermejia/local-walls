@@ -32,6 +32,7 @@ import {
   AmountByEveryGrade,
   AppRoles,
   AreaListItem,
+  BreadcrumbItem,
   ClimbingKinds,
   CragDetail,
   CragListItem,
@@ -72,6 +73,14 @@ export class GlobalData {
   readonly isMobile = toSignal(
     this.breakpointService.pipe(map((b) => b === 'mobile')),
     { initialValue: false },
+  );
+
+  readonly currentUrl = toSignal(
+    this.router.events.pipe(
+      startWith(null),
+      map(() => this.router.url),
+    ),
+    { initialValue: this.router.url },
   );
 
   // Loading/Status state
@@ -155,6 +164,46 @@ export class GlobalData {
       ],
       config,
     } satisfies OptionsData;
+  });
+
+  // ---- Breadcrumbs ----
+  breadcrumbs: Signal<BreadcrumbItem[]> = computed<BreadcrumbItem[]>(() => {
+    this.i18nTick();
+    const items: BreadcrumbItem[] = [
+      { caption: 'labels.areas', routerLink: ['/areas'] },
+    ];
+
+    const area = this.selectedArea();
+    const crag = this.selectedCrag();
+    const topo = this.topoDetailResource.value();
+    const route = this.routeDetailResource.value();
+
+    if (area) {
+      items.push({
+        caption: area.name,
+        routerLink: ['/area', area.slug],
+      });
+      if (crag) {
+        items.push({
+          caption: crag.name,
+          routerLink: ['/area', area.slug, crag.slug],
+        });
+        if (topo) {
+          items.push({
+            caption: topo.name,
+            routerLink: ['/area', area.slug, crag.slug, 'topo', topo.id],
+          });
+        }
+        if (route) {
+          items.push({
+            caption: route.name,
+            routerLink: ['/area', area.slug, crag.slug, route.slug],
+          });
+        }
+      }
+    }
+
+    return items.filter((i) => !!i.caption).slice(0, -1);
   });
 
   // ---- Auth (roles) ----

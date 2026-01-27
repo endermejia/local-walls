@@ -18,10 +18,10 @@ import { HeaderComponent } from '../components';
   template: `
     <tui-root class="overflow-hidden" [attr.tuiTheme]="global.selectedTheme()">
       <div class="h-[100dvh] flex flex-col">
+        <router-outlet />
         @if (showHeader()) {
           <app-header />
         }
-        <router-outlet />
       </div>
     </tui-root>
   `,

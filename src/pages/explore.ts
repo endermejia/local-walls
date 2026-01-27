@@ -39,7 +39,6 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 import {
   ClimbingKinds,
-  GradeLabel,
   isGradeRangeOverlap,
   MapAreaItem,
   MapCragItem,

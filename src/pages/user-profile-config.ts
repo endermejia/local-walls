@@ -123,13 +123,10 @@ interface Country {
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
   template: `
-    <section
-      class="w-full max-w-5xl mx-auto p-4 grid grid-cols-1 gap-4"
-      xmlns="http://www.w3.org/1999/html"
-    >
+    <section class="w-full max-w-5xl mx-auto grid grid-cols-1 gap-4">
       <!-- Sticky Header -->
       <div
-        class="sticky top-0 z-10 flex items-center gap-4 p-2 -mx-2 mb-4 bg-[var(--tui-background-base)]"
+        class="sticky top-0 z-10 flex items-center gap-4 p-4 -mt-6 -mx-4 mb-4 bg-[var(--tui-background-base)] shadow-md sm:shadow-none"
       >
         <button
           size="s"

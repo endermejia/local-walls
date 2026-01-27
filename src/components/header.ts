@@ -1,4 +1,4 @@
-import { AsyncPipe, isPlatformBrowser, KeyValuePipe } from '@angular/common';
+import { AsyncPipe, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -7,242 +7,228 @@ import {
   OnDestroy,
   PLATFORM_ID,
   signal,
-  Signal,
   WritableSignal,
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { effect, viewChild, ElementRef } from '@angular/core';
 
 import {
-  TuiButton,
   TuiDataListComponent,
+  TuiDataList,
+  TuiDropdown,
   TuiFallbackSrcPipe,
-  TuiHint,
-  TuiLink,
-  TuiOptGroup,
+  TuiIcon,
   TuiTextfield,
   TuiTitle,
+  TuiButton,
 } from '@taiga-ui/core';
-import { TuiOptionNew } from '@taiga-ui/core/components/data-list';
 import {
   TuiSearchHotkey,
   TuiSearchResultsComponent,
 } from '@taiga-ui/experimental';
-import { TuiAvatar, TuiBreadcrumbs, TuiSkeleton } from '@taiga-ui/kit';
-import { TuiCell, TuiInputSearch, TuiNavigation } from '@taiga-ui/layout';
+import {
+  TuiAvatar,
+  TuiDataListDropdownManager,
+  TuiSkeleton,
+} from '@taiga-ui/kit';
+import { TuiCell, TuiInputSearch } from '@taiga-ui/layout';
+import { TuiTabBar } from '@taiga-ui/addon-mobile';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   debounceTime,
   distinctUntilChanged,
-  filter,
   from,
   map,
   startWith,
   switchMap,
 } from 'rxjs';
 
-import { OptionsItem, SearchData, SearchItem } from '../models';
+import { SearchData, SearchItem } from '../models';
 
 import { GlobalData, SupabaseService } from '../services';
-
-type RouterCommand = readonly (string | number)[] | string;
-
-interface BreadcrumbItem {
-  caption: string;
-  routerLink: RouterCommand;
-}
 
 @Component({
   selector: 'app-header',
   imports: [
     AsyncPipe,
-    KeyValuePipe,
     ReactiveFormsModule,
     RouterLink,
     TuiAvatar,
-    TuiButton,
     TuiCell,
     TuiDataListComponent,
     TuiInputSearch,
-    TuiNavigation,
-    TuiOptGroup,
-    TuiOptionNew,
     TuiSearchHotkey,
     TuiSearchResultsComponent,
     TuiTextfield,
     TuiTitle,
-    TuiBreadcrumbs,
-    TuiLink,
-    TuiHint,
     TranslatePipe,
+    TuiDataList,
+    TuiDataListDropdownManager,
+    TuiDropdown,
     TuiFallbackSrcPipe,
+    TuiIcon,
+    TuiTabBar,
+    TuiButton,
     TuiSkeleton,
   ],
   template: `
-    <header
-      tuiNavigationHeader
-      class="flex items-center justify-between sm:gap-4"
-      ngSkipHydration
-    >
-      <div class="flex items-center gap-2 overflow-hidden" ngSkipHydration>
+    <nav class="flex justify-center" tuiTabBar ngSkipHydration>
+      <div class="w-full max-w-2xl flex justify-between">
         <button
-          [tuiHint]="global.isMobile() ? null : ('labels.menu' | translate)"
           tuiIconButton
-          tuiNavigationDrawer
+          appearance="action-grayscale"
           type="button"
-          [(open)]="drawerOpen"
+          iconStart="@tui.home"
+          routerLink="/home"
           ngSkipHydration
         >
-          <tui-data-list ngSkipHydration>
-            @for (group of global.drawer() | keyvalue; track group.key) {
-              <tui-opt-group [label]="group.key | translate" ngSkipHydration>
-                @for (item of group.value; track item.name) {
-                  <button
-                    tuiOption
-                    new
-                    type="button"
-                    (click.zoneless)="onClick(item); drawerOpen = false"
-                    class="gap-2"
-                    ngSkipHydration
-                  >
-                    <tui-avatar
-                      [src]="item.icon | tuiFallbackSrc: '@tui.file' | async"
-                    />
-                    {{ item.name | translate }}
-                  </button>
-                }
-              </tui-opt-group>
-            }
-          </tui-data-list>
+          {{ 'nav.home' | translate }}
         </button>
-        @let breadcrumbItems = items();
-        @if (breadcrumbItems.length > 0) {
-          <!-- Mobile -->
-          <div class="sm:hidden overflow-hidden">
-            <tui-breadcrumbs
-              ngSkipHydration
-              [itemsLimit]="breadcrumbItems.length > 1 ? 2 : 0"
-            >
-              @for (item of breadcrumbItems; track item.caption) {
-                <a
-                  class="overflow-hidden"
-                  *tuiItem
-                  tuiLink
-                  [routerLink]="item.routerLink"
-                >
-                  {{ item.caption | translate }}
-                </a>
-              }
-            </tui-breadcrumbs>
-          </div>
-          <!-- Desktop -->
-          <div class="hidden sm:flex overflow-hidden">
-            <tui-breadcrumbs ngSkipHydration>
-              @for (item of breadcrumbItems; track item.caption) {
-                <a
-                  class="overflow-hidden"
-                  *tuiItem
-                  tuiLink
-                  [routerLink]="item.routerLink"
-                >
-                  {{ item.caption | translate }}
-                </a>
-              }
-            </tui-breadcrumbs>
-          </div>
-        }
-      </div>
-      <div
-        class="flex items-center gap-2 sm:gap-4 whitespace-nowrap"
-        ngSkipHydration
-      >
-        <!-- Desktop: show full search input -->
-        <div class="hidden sm:block" ngSkipHydration>
-          <tui-textfield ngSkipHydration class="!m-0">
-            <input
-              #input
-              tuiSearchHotkey
-              autocomplete="off"
-              [formControl]="control"
-              [(tuiInputSearchOpen)]="searchOpen"
-              [tuiInputSearch]="search"
-              ngSkipHydration
-            />
-            <ng-template #search>
-              <tui-search-results [results]="results$ | async" ngSkipHydration>
-                <ng-template let-item>
-                  <a
-                    tuiCell
-                    [routerLink]="item.href"
-                    (click.zoneless)="searchOpen = false; control.setValue('')"
-                    ngSkipHydration
-                  >
-                    <tui-avatar
-                      [src]="item.icon | tuiFallbackSrc: '@tui.file' | async"
-                      ngSkipHydration
-                    />
-                    <span tuiTitle ngSkipHydration>
-                      {{ item.title }}
-                      <span tuiSubtitle ngSkipHydration>{{
-                        item.subtitle
-                      }}</span>
-                    </span>
-                  </a>
-                </ng-template>
-              </tui-search-results>
-            </ng-template>
-          </tui-textfield>
-        </div>
+        <button
+          tuiIconButton
+          appearance="action-grayscale"
+          type="button"
+          iconStart="@tui.map"
+          routerLink="/explore"
+          ngSkipHydration
+        >
+          {{ 'nav.explore' | translate }}
+        </button>
+        <button
+          tuiIconButton
+          appearance="action-grayscale"
+          type="button"
+          iconStart="@tui.list"
+          routerLink="/areas"
+          ngSkipHydration
+        >
+          {{ 'nav.areas' | translate }}
+        </button>
 
-        <!-- Mobile: Search and fullscreen buttons -->
-        <div class="sm:hidden">
-          <button
-            tuiIconButton
-            type="button"
-            [iconStart]="'@tui.search'"
-            [tuiHint]="
-              global.isMobile() ? null : ('actions.search' | translate)
-            "
-            (click.zoneless)="searchOpen = true"
-            ngSkipHydration
-          >
-            {{ 'actions.search' | translate }}
-          </button>
-          <button
-            tuiIconButton
-            type="button"
-            size="s"
-            (click.zoneless)="toggleFullscreen()"
-            [iconStart]="isFullscreen() ? '@tui.shrink' : '@tui.expand'"
-            [tuiHint]="
-              global.isMobile()
-                ? null
-                : ((isFullscreen()
-                    ? 'actions.exitFullscreen'
-                    : 'actions.fullscreen'
-                  ) | translate)
-            "
-            ngSkipHydration
-          >
-            {{
-              isFullscreen() ? 'actions.exitFullscreen' : 'actions.fullscreen'
-            }}
-          </button>
-        </div>
+        <button
+          tuiIconButton
+          appearance="action-grayscale"
+          type="button"
+          iconStart="@tui.search"
+          (click)="searchOpen = true"
+          ngSkipHydration
+        >
+          {{ 'labels.search' | translate }}
+        </button>
 
-        @let user = global.userProfile();
-        @if (user) {
+        <button
+          tuiIconButton
+          appearance="action-grayscale"
+          type="button"
+          iconStart="@tui.cog"
+          [tuiDropdown]="more"
+          [(tuiDropdownOpen)]="moreOpen"
+          (click)="moreOpen = true"
+          ngSkipHydration
+        >
+          {{ 'labels.more' | translate }}
+          <ng-template #more let-close>
+            <tui-data-list tuiDataListDropdownManager>
+              @if (global.isEquipper()) {
+                <button
+                  tuiOption
+                  type="button"
+                  routerLink="/my-crags"
+                  (click)="close()"
+                >
+                  <tui-icon icon="@tui.list" class="mr-2" />
+                  {{ 'nav.my-crags' | translate }}
+                </button>
+              }
+              @if (global.isAdmin()) {
+                <button
+                  tuiOption
+                  type="button"
+                  routerLink="/admin/users"
+                  (click)="close()"
+                >
+                  <tui-icon icon="@tui.users" class="mr-2" />
+                  {{ 'nav.admin-users' | translate }}
+                </button>
+                <button
+                  tuiOption
+                  type="button"
+                  routerLink="/admin/parkings"
+                  (click)="close()"
+                >
+                  <tui-icon icon="@tui.map-pin" class="mr-2" />
+                  {{ 'nav.admin-parkings' | translate }}
+                </button>
+              }
+              @if (global.isAdmin() || global.isEquipper()) {
+                <button
+                  tuiOption
+                  type="button"
+                  routerLink="/admin/equippers"
+                  (click)="close()"
+                >
+                  <tui-icon icon="@tui.hammer" class="mr-2" />
+                  {{ 'nav.admin-equippers' | translate }}
+                </button>
+              }
+            </tui-data-list>
+          </ng-template>
+        </button>
+
+        <button
+          tuiIconButton
+          appearance="action-grayscale"
+          type="button"
+          routerLink="/profile"
+          ngSkipHydration
+        >
           <tui-avatar
-            [src]="global.userAvatar() || user.name[0] || '@tui.user'"
-            routerLink="/profile"
-            style="cursor: pointer;"
+            [src]="global.userAvatar() || '@tui.user'"
+            [tuiSkeleton]="!global.userProfile()"
+            size="s"
+            type="button"
           />
-        } @else {
-          <tui-avatar tuiSkeleton />
-        }
+        </button>
       </div>
-    </header>
+    </nav>
+    <!-- Hidden search input -->
+    <div class="hidden">
+      <tui-textfield class="flex-1 !m-0">
+        <input
+          #input
+          tuiSearchHotkey
+          autocomplete="off"
+          [formControl]="control"
+          [(tuiInputSearchOpen)]="searchOpen"
+          [tuiInputSearch]="searchResults"
+          [placeholder]="'labels.searchPlaceholder' | translate"
+          ngSkipHydration
+        />
+        <ng-template #searchResults>
+          <tui-search-results [results]="results$ | async" ngSkipHydration>
+            <ng-template let-item>
+              <a
+                tuiCell
+                [routerLink]="item.href"
+                (click.zoneless)="searchOpen = false; control.setValue('')"
+                ngSkipHydration
+              >
+                <tui-avatar
+                  [src]="item.icon | tuiFallbackSrc: '@tui.file' | async"
+                  ngSkipHydration
+                />
+                <span tuiTitle ngSkipHydration>
+                  {{ item.title }}
+                  <span tuiSubtitle ngSkipHydration>{{ item.subtitle }}</span>
+                </span>
+              </a>
+            </ng-template>
+          </tui-search-results>
+        </ng-template>
+      </tui-textfield>
+    </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -260,62 +246,47 @@ export class HeaderComponent implements OnDestroy {
 
   isFullscreen: WritableSignal<boolean> = signal(false);
 
-  drawerOpen = false;
   searchOpen = false;
+  moreOpen = false;
   protected readonly control = new FormControl('');
+  private readonly searchInput =
+    viewChild<ElementRef<HTMLInputElement>>('input');
 
   constructor() {
     if (this.isBrowser) {
       this.isFullscreen.set(!!document.fullscreenElement);
       document.addEventListener('fullscreenchange', this.onFsChange);
     }
+
+    effect(() => {
+      if (this.searchOpen) {
+        setTimeout(() => this.searchInput()?.nativeElement?.focus(), 100);
+      }
+    });
   }
 
-  items: Signal<BreadcrumbItem[]> = computed<BreadcrumbItem[]>(() => {
-    const items: BreadcrumbItem[] = [
-      { caption: 'labels.areas', routerLink: ['/areas'] },
-    ];
-
-    const area = this.global.selectedArea();
-    const crag = this.global.selectedCrag();
-    const topo = this.global.topoDetailResource.value();
-    const route = this.global.routeDetailResource.value();
-
-    if (area) {
-      items.push({
-        caption: area.name,
-        routerLink: ['/area', area.slug],
-      });
-      if (crag) {
-        items.push({
-          caption: crag.name,
-          routerLink: ['/area', area.slug, crag.slug],
-        });
-        if (topo) {
-          items.push({
-            caption: topo.name,
-            routerLink: ['/area', area.slug, crag.slug, 'topo', topo.id],
-          });
-        }
-        if (route) {
-          items.push({
-            caption: route.name,
-            routerLink: ['/area', area.slug, crag.slug, route.slug],
-          });
-        }
-      }
+  protected readonly activeItemIndex = computed(() => {
+    const url = this.global.currentUrl();
+    if (url.includes('/home')) return 0;
+    if (url.includes('/explore')) return 1;
+    if (url.includes('/areas') || url.includes('/area')) return 2;
+    if (url.includes('/profile')) {
+      return this.global.isAdmin() || this.global.isEquipper() ? 5 : 4;
     }
-
-    return items.filter((i) => !!i.caption).slice(0, -1);
+    // Admin routes
+    if (url.includes('/admin') || url.includes('/my-crags')) {
+      return 4;
+    }
+    return -1;
   });
 
   protected readonly results$ = this.control.valueChanges.pipe(
     map((v) => (v ?? '').trim()),
-    filter((v) => v.length >= 2),
     debounceTime(300),
     distinctUntilChanged(),
-    switchMap((query) =>
-      from(
+    switchMap((query) => {
+      if (query.length < 2) return from([null]);
+      return from(
         (async (): Promise<SearchData> => {
           await this.supabase.whenReady();
           const q = `%${query}%`;
@@ -403,28 +374,10 @@ export class HeaderComponent implements OnDestroy {
 
           return results;
         })(),
-      ),
-    ),
+      );
+    }),
     startWith(null),
   );
-
-  protected onClick(item: OptionsItem) {
-    item?.fn?.(item);
-  }
-
-  toggleFullscreen() {
-    if (!this.isBrowser) return;
-    const docEl = document.documentElement as HTMLElement & {
-      requestFullscreen?: () => Promise<void>;
-    };
-    if (!document.fullscreenElement) {
-      if (docEl.requestFullscreen) {
-        void docEl.requestFullscreen();
-      }
-    } else if (document.exitFullscreen) {
-      void document.exitFullscreen();
-    }
-  }
 
   ngOnDestroy() {
     if (this.isBrowser) {

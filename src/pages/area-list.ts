@@ -108,7 +108,10 @@ import {
         </header>
 
         <div class="sticky top-0 z-10 py-4 flex items-end gap-2">
-          <tui-textfield class="grow block" tuiTextfieldSize="l">
+          <tui-textfield
+            class="grow block bg-[var(--tui-background-base)]"
+            tuiTextfieldSize="l"
+          >
             <label tuiLabel for="areas-search">
               {{ 'labels.searchPlaceholder' | translate }}
             </label>
@@ -121,7 +124,9 @@ import {
               (input.zoneless)="onQuery(areasSearch.value)"
             />
           </tui-textfield>
-          <tui-badged-content>
+          <tui-badged-content
+            class="bg-[var(--tui-background-base)] rounded-2xl"
+          >
             @if (hasActiveFilters()) {
               <tui-badge-notification size="s" tuiSlot="top" />
             }
