@@ -41,9 +41,16 @@ export class AppComponent {
     ),
     { initialValue: this.router.url },
   );
-  protected showHeader = computed(
-    () => !this.currentUrl().startsWith('/login'),
-  );
+  protected showHeader = computed(() => {
+    const url = this.currentUrl();
+    const profile = this.global.userProfile();
+    return (
+      profile &&
+      url !== '/login' &&
+      url !== '/signup' &&
+      !url?.startsWith('/reset-password')
+    );
+  });
 
   private readonly langChange = toSignal(
     merge(
