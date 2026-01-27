@@ -40,8 +40,10 @@ import { TranslatePipe } from '@ngx-translate/core';
 import {
   ClimbingKinds,
   GradeLabel,
+  isGradeRangeOverlap,
   MapAreaItem,
   MapCragItem,
+  matchesShadeFilter,
   normalizeRoutesByGrade,
   ORDERED_GRADE_VALUES,
   ParkingDto,
@@ -452,14 +454,13 @@ export class ExploreComponent {
   private readonly parkingsService = inject(ParkingsService);
   private readonly _platformId = inject(PLATFORM_ID);
 
-  protected readonly ClimbingKinds = ClimbingKinds;
   protected readonly mapLocationUrl = mapLocationUrl;
 
   constructor() {
     this.global.resetDataByPage('explore');
   }
 
-  protected readonly stops = ['6rem'] as const;
+  protected readonly stops = ['10dvh', '50dvh'] as const;
 
   @ViewChild('sheet', { read: ElementRef }) sheetRef?: ElementRef<HTMLElement>;
 
@@ -479,42 +480,11 @@ export class ExploreComponent {
 
     const overlapsSelectedGrades = (c: MapCragItem): boolean => {
       const byLabel = normalizeRoutesByGrade(c.grades);
-      const labels = Object.keys(byLabel);
-      if (!labels.length) return true; // no data, don't filter out
-      // compute min and max index present
-      let minIdx = Number.POSITIVE_INFINITY;
-      let maxIdx = Number.NEGATIVE_INFINITY;
-      for (const lab of labels) {
-        const idx = ORDERED_GRADE_VALUES.indexOf(lab as GradeLabel);
-        if (idx === -1) continue;
-        const count = byLabel[lab as GradeLabel];
-        if (!count) continue;
-        if (idx < minIdx) minIdx = idx;
-        if (idx > maxIdx) maxIdx = idx;
-      }
-      if (!Number.isFinite(minIdx) || !Number.isFinite(maxIdx)) return true;
-      // overlap check between [minIdx,maxIdx] and [selMin, selMax]
-      return maxIdx >= selMin && minIdx <= selMax;
+      return isGradeRangeOverlap(byLabel, selMin, selMax);
     };
 
     const matchesShade = (c: MapCragItem): boolean => {
-      if (!shade.length) return true;
-      if (
-        c.shade_morning === undefined &&
-        c.shade_afternoon === undefined &&
-        c.shade_all_day === undefined &&
-        c.sun_all_day === undefined
-      ) {
-        return true;
-      }
-
-      return shade.some((s) => {
-        if (s === 'shade_morning') return c.shade_morning;
-        if (s === 'shade_afternoon') return c.shade_afternoon;
-        if (s === 'shade_all_day') return c.shade_all_day;
-        if (s === 'sun_all_day') return c.sun_all_day;
-        return false;
-      });
+      return matchesShadeFilter(c, shade);
     };
 
     return items.filter((item): item is MapCragItem => {
@@ -549,40 +519,11 @@ export class ExploreComponent {
 
     const overlapsSelectedGrades = (a: MapAreaItem): boolean => {
       const byLabel = normalizeRoutesByGrade(a.grades || {});
-      const labels = Object.keys(byLabel);
-      if (!labels.length) return true;
-      let minIdx = Number.POSITIVE_INFINITY;
-      let maxIdx = Number.NEGATIVE_INFINITY;
-      for (const lab of labels) {
-        const idx = ORDERED_GRADE_VALUES.indexOf(lab as GradeLabel);
-        if (idx === -1) continue;
-        const count = byLabel[lab as GradeLabel];
-        if (!count) continue;
-        if (idx < minIdx) minIdx = idx;
-        if (idx > maxIdx) maxIdx = idx;
-      }
-      if (!Number.isFinite(minIdx) || !Number.isFinite(maxIdx)) return true;
-      return maxIdx >= selMin && minIdx <= selMax;
+      return isGradeRangeOverlap(byLabel, selMin, selMax);
     };
 
     const matchesShade = (a: MapAreaItem): boolean => {
-      if (!shade.length) return true;
-      if (
-        a.shade_morning === undefined &&
-        a.shade_afternoon === undefined &&
-        a.shade_all_day === undefined &&
-        a.sun_all_day === undefined
-      ) {
-        return true;
-      }
-
-      return shade.some((s) => {
-        if (s === 'shade_morning') return a.shade_morning;
-        if (s === 'shade_afternoon') return a.shade_afternoon;
-        if (s === 'shade_all_day') return a.shade_all_day;
-        if (s === 'sun_all_day') return a.sun_all_day;
-        return false;
-      });
+      return matchesShadeFilter(a, shade);
     };
 
     return items.filter((item): item is MapAreaItem => {

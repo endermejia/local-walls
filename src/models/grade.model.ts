@@ -173,3 +173,64 @@ export function normalizeRoutesByGrade(
   }
   return out;
 }
+
+/**
+ * Checks if the grades in byLabel overlap with the selected index range [selMin, selMax]
+ * in ORDERED_GRADE_VALUES.
+ */
+export function isGradeRangeOverlap(
+  byLabel: RoutesByGrade,
+  selMin: number,
+  selMax: number,
+): boolean {
+  const labels = Object.keys(byLabel);
+  if (!labels.length) return true; // no data, don't filter out
+
+  let minIdx = Number.POSITIVE_INFINITY;
+  let maxIdx = Number.NEGATIVE_INFINITY;
+
+  for (const lab of labels) {
+    const idx = ORDERED_GRADE_VALUES.indexOf(lab as GradeLabel);
+    if (idx === -1) continue;
+    const count = byLabel[lab as GradeLabel];
+    if (!count) continue;
+    if (idx < minIdx) minIdx = idx;
+    if (idx > maxIdx) maxIdx = idx;
+  }
+
+  if (!Number.isFinite(minIdx) || !Number.isFinite(maxIdx)) return true;
+  return maxIdx >= selMin && minIdx <= selMax;
+}
+
+export interface ShadeFilterOptions {
+  shade_morning?: boolean;
+  shade_afternoon?: boolean;
+  shade_all_day?: boolean;
+  sun_all_day?: boolean;
+}
+
+/**
+ * Checks if an item matches the selected shade filters.
+ */
+export function matchesShadeFilter(
+  item: ShadeFilterOptions,
+  selectedShades: string[],
+): boolean {
+  if (!selectedShades.length) return true;
+  if (
+    item.shade_morning === undefined &&
+    item.shade_afternoon === undefined &&
+    item.shade_all_day === undefined &&
+    item.sun_all_day === undefined
+  ) {
+    return true;
+  }
+
+  return selectedShades.some((s) => {
+    if (s === 'shade_morning') return item.shade_morning;
+    if (s === 'shade_afternoon') return item.shade_afternoon;
+    if (s === 'shade_all_day') return item.shade_all_day;
+    if (s === 'sun_all_day') return item.sun_all_day;
+    return false;
+  });
+}

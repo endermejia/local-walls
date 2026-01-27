@@ -1,4 +1,4 @@
-import { AmountByEveryGrade, VERTICAL_LIFE_SEASON } from '../models';
+import { AmountByEveryGrade } from '../models';
 
 export interface MapAreaItem {
   id: number;
@@ -70,50 +70,4 @@ export interface MapOptions {
   clusteringEnabled?: boolean;
   clusterRadius?: number;
   ignoreSavedViewport?: boolean;
-}
-
-/**
- * Map items GeoJSON (FeatureCollection with points)
- * Based on public/map/map_crags.json
- */
-export interface MapCragDataFeature {
-  type: 'Feature';
-  id?: string | number;
-  bbox?: [number, number, number, number];
-  properties: {
-    // Common
-    item_id?: number; // reference id for GeoJSON
-    id?: number; // zone id or area id
-    name?: string;
-    slug?: string;
-    country_name?: string;
-    country_slug?: string;
-    // For crags
-    area_name?: string;
-    area_slug?: string;
-    category?: number; // crag type/category
-    avg_rating?: number;
-    grades?: AmountByEveryGrade | Record<string, unknown>;
-    season?: VERTICAL_LIFE_SEASON[] | number[];
-    total_ascendables?: number;
-    total_ascents?: number;
-    liked?: boolean;
-    // For areas
-    area_type?: number | string;
-    b_box?: [[number, number], [number, number]];
-    // Generic
-    [key: string]: unknown;
-  };
-  geometry: {
-    type: 'Point';
-    // [lng, lat]
-    coordinates: [number, number];
-  };
-}
-
-export interface MapCragsData {
-  type: 'FeatureCollection';
-  name?: string;
-  bbox?: [number, number, number, number];
-  features: MapCragDataFeature[];
 }

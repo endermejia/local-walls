@@ -3,13 +3,7 @@ import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 
 import { LeafletEvent, LeafletNamespace, Map, Marker } from 'leaflet';
 
-import {
-  MapBounds,
-  MapCragDataFeature,
-  MapCragItem,
-  MapOptions,
-  ParkingDto,
-} from '../models';
+import { MapBounds, MapCragItem, MapOptions, ParkingDto } from '../models';
 
 import { GlobalData } from './global-data';
 import { LocalStorage } from './local-storage';
@@ -30,7 +24,6 @@ interface ClusterItem {
   markerType: 'api' | 'crag';
   liked?: boolean;
   apiItem?: MapCragItem;
-  cragFeature?: MapCragDataFeature;
   areaKeys?: string[];
   areaName?: string;
 }
