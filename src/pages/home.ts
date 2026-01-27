@@ -9,7 +9,6 @@ import {
   output,
   PLATFORM_ID,
   signal,
-  viewChild,
 } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -17,17 +16,13 @@ import { RouterLink } from '@angular/router';
 import {
   TuiDataList,
   TuiDropdown,
-  TuiFallbackSrcPipe,
+  TuiIcon,
   TuiLoader,
+  TuiOptGroup,
   TuiTextfield,
-  TuiTitle,
 } from '@taiga-ui/core';
-import {
-  TuiSearchHotkey,
-  TuiSearchResultsComponent,
-} from '@taiga-ui/experimental';
 import { TuiAvatar, TuiRating } from '@taiga-ui/kit';
-import { TuiCardLarge, TuiCell, TuiHeader, TuiInputSearch } from '@taiga-ui/layout';
+import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
@@ -59,17 +54,22 @@ import { GlobalData, SupabaseService } from '../services';
   standalone: true,
   template: '<div class="h-1 w-full"></div>',
 })
-export class InfiniteScrollTriggerComponent implements AfterViewInit {
+export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy {
   private el = inject(ElementRef);
   intersect = output<void>();
+  private observer?: IntersectionObserver;
 
   ngAfterViewInit() {
-    const observer = new IntersectionObserver((entries) => {
+    this.observer = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting) {
         this.intersect.emit();
       }
     });
-    observer.observe(this.el.nativeElement);
+    this.observer.observe(this.el.nativeElement);
+  }
+
+  ngOnDestroy() {
+    this.observer?.disconnect();
   }
 }
 
@@ -84,57 +84,57 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit {
     RouterLink,
     TuiAvatar,
     TuiCardLarge,
-    TuiCell,
     TuiDataList,
     TuiDropdown,
-    TuiFallbackSrcPipe,
     TuiHeader,
-    TuiInputSearch,
+    TuiIcon,
     TuiLoader,
+    TuiOptGroup,
     TuiRating,
-    TuiSearchHotkey,
-    TuiSearchResultsComponent,
     TuiTextfield,
-    TuiTitle,
     TranslatePipe,
     InfiniteScrollTriggerComponent,
   ],
   template: `
-    <div class="p-4 flex flex-col gap-4 max-w-2xl mx-auto min-h-screen pb-20">
-      <!-- Search moved from header -->
-      <tui-textfield class="w-full">
-        <input
-          #input
-          tuiSearchHotkey
-          autocomplete="off"
-          [formControl]="control"
-          [(tuiInputSearchOpen)]="searchOpen"
-          [tuiInputSearch]="searchResults"
-          [placeholder]="'labels.searchPlaceholder' | translate"
-          ngSkipHydration
-        />
+    <div class="p-4 flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32">
+      <!-- Search bar -->
+      <div
+        class="w-full"
+        [tuiDropdown]="searchResults"
+        [tuiDropdownOpen]="control.value !== '' && (results$ | async) !== null"
+        tuiDropdownLimitWidth="fixed"
+      >
+        <tui-textfield class="w-full">
+          <tui-icon tuiStart icon="@tui.search" />
+          <input
+            #input
+            tuiTextfield
+            autocomplete="off"
+            [formControl]="control"
+            [placeholder]="'labels.searchPlaceholder' | translate"
+          />
+        </tui-textfield>
+
         <ng-template #searchResults>
-          <tui-search-results [results]="results$ | async" ngSkipHydration>
-            <ng-template let-item>
-              <a
-                tuiCell
-                [routerLink]="item.href"
-                (click.zoneless)="searchOpen = false; control.setValue('')"
-                ngSkipHydration
-              >
-                <tui-avatar
-                  [src]="item.icon | tuiFallbackSrc: '@tui.file' | async"
-                  ngSkipHydration
-                />
-                <span tuiTitle ngSkipHydration>
-                  {{ item.title }}
-                  <span tuiSubtitle ngSkipHydration>{{ item.subtitle }}</span>
-                </span>
-              </a>
-            </ng-template>
-          </tui-search-results>
+          <tui-data-list>
+            @if (results$ | async; as results) {
+              @for (group of results | keyvalue; track group.key) {
+                <tui-opt-group [label]="group.key">
+                  @for (item of group.value; track item.href) {
+                    <a
+                      tuiOption
+                      [routerLink]="item.href"
+                      (click)="control.setValue('')"
+                    >
+                      {{ item.title }}
+                    </a>
+                  }
+                </tui-opt-group>
+              }
+            }
+          </tui-data-list>
         </ng-template>
-      </tui-textfield>
+      </div>
 
       <!-- Ascents Feed -->
       <div class="flex flex-col gap-6 mt-4">
@@ -143,7 +143,8 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit {
             @defer (on viewport) {
               <div
                 tuiCardLarge
-                class="flex flex-col gap-4 shadow-sm border border-gray-100 p-4 bg-white rounded-xl"
+                class="flex flex-col gap-4 shadow-sm border border-gray-100 p-4 bg-[var(--tui-background-base)] rounded-xl"
+                style="touch-action: pan-y pinch-zoom;"
               >
                 <header tuiHeader>
                   <a
@@ -239,6 +240,9 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit {
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'flex flex-1 flex-col overflow-y-auto min-h-0',
+  },
 })
 export class HomeComponent implements OnDestroy {
   protected readonly global = inject(GlobalData);
@@ -248,10 +252,7 @@ export class HomeComponent implements OnDestroy {
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   // Search logic
-  protected searchOpen = false;
   protected readonly control = new FormControl('');
-  private readonly searchInput =
-    viewChild<ElementRef<HTMLInputElement>>('input');
 
   protected readonly results$ = this.control.valueChanges.pipe(
     map((v) => (v ?? '').trim()),
@@ -352,6 +353,7 @@ export class HomeComponent implements OnDestroy {
       );
     }),
     startWith(null),
+    shareReplay(1),
   );
 
   // Infinite Scroll & Async Pipe for Ascents

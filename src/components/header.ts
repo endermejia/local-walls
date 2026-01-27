@@ -31,6 +31,9 @@ import { GlobalData } from '../services';
 @Component({
   selector: 'app-header',
   standalone: true,
+  host: {
+    class: 'z-[100] relative',
+  },
   imports: [
     RouterLink,
     TuiAvatar,
