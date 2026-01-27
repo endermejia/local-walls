@@ -15,12 +15,18 @@ import { Router } from '@angular/router';
 
 import { TuiTablePaginationEvent } from '@taiga-ui/addon-table';
 import { TuiBreakpointService } from '@taiga-ui/core';
-import { TUI_ENGLISH_LANGUAGE, TUI_SPANISH_LANGUAGE } from '@taiga-ui/i18n';
+import {
+  TUI_ENGLISH_LANGUAGE,
+  TUI_SPANISH_LANGUAGE,
+  TuiLanguage,
+} from '@taiga-ui/i18n';
 
 import { TranslateService } from '@ngx-translate/core';
 import { map, merge, startWith } from 'rxjs';
 
 import { LocalStorage, SupabaseService } from '../services';
+
+import { mapCragToDetail } from '../utils';
 
 import {
   AmountByEveryGrade,
@@ -47,7 +53,6 @@ import {
   Theme,
   Themes,
   TopoDetail,
-  TopoListItem,
   TopoRouteWithRoute,
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
@@ -80,9 +85,7 @@ export class GlobalData {
   selectedLanguage: Signal<Language> = computed(
     () => this.userProfile()?.language || Languages.ES,
   );
-  tuiLanguage: Signal<
-    typeof TUI_SPANISH_LANGUAGE | typeof TUI_ENGLISH_LANGUAGE
-  > = computed(() =>
+  tuiLanguage: Signal<TuiLanguage> = computed(() =>
     this.selectedLanguage() === Languages.ES
       ? TUI_SPANISH_LANGUAGE
       : TUI_ENGLISH_LANGUAGE,
@@ -308,15 +311,7 @@ export class GlobalData {
   readonly parkingsMapResource = resource({
     params: () => this.mapBounds(),
     loader: async ({ params: bounds }) => {
-      if (
-        !bounds ||
-        typeof bounds.south_west_latitude !== 'number' ||
-        typeof bounds.north_east_latitude !== 'number' ||
-        typeof bounds.south_west_longitude !== 'number' ||
-        typeof bounds.north_east_longitude !== 'number'
-      ) {
-        return [];
-      }
+      if (!bounds) return [];
 
       await this.supabase.whenReady();
       const { data, error } = await this.supabase.client
@@ -626,7 +621,7 @@ export class GlobalData {
           throw error;
         }
 
-        return this.mapCragToDetail(data as CragWithJoins);
+        return mapCragToDetail(data as CragWithJoins);
       } catch (e) {
         console.error('[GlobalData] cragDetailResource exception', e);
         return null;
@@ -1219,70 +1214,5 @@ export class GlobalData {
         break;
       }
     }
-  }
-  private mapCragToDetail(rawData: CragWithJoins): CragDetail {
-    const parkings =
-      rawData.crag_parkings?.map((cp) => cp.parking).filter(Boolean) ?? [];
-
-    const topos: TopoListItem[] =
-      rawData.topos?.map((t) => {
-        const grades: AmountByEveryGrade = {};
-        t.topo_routes.forEach((tr) => {
-          const g = tr.route?.grade;
-          if (g !== undefined && g !== null) {
-            grades[g as VERTICAL_LIFE_GRADES] =
-              (grades[g as VERTICAL_LIFE_GRADES] ?? 0) + 1;
-          }
-        });
-
-        return {
-          id: t.id,
-          name: t.name,
-          slug: t.slug,
-          photo: t.photo,
-          grades,
-          shade_afternoon: t.shade_afternoon,
-          shade_change_hour: t.shade_change_hour,
-          shade_morning: t.shade_morning,
-        };
-      }) ?? [];
-
-    const topos_count = topos.length;
-    const shade_morning = topos.some((t) => t.shade_morning);
-    const shade_afternoon = topos.some((t) => t.shade_afternoon);
-    const shade_all_day = topos.some(
-      (t) => t.shade_morning && t.shade_afternoon,
-    );
-    const sun_all_day = topos.some(
-      (t) => !t.shade_morning && !t.shade_afternoon,
-    );
-
-    return {
-      id: rawData.id,
-      name: rawData.name,
-      slug: rawData.slug,
-      area_id: rawData.area_id,
-      description_en: rawData.description_en ?? undefined,
-      description_es: rawData.description_es ?? undefined,
-      warning_en: rawData.warning_en ?? undefined,
-      warning_es: rawData.warning_es ?? undefined,
-      latitude: rawData.latitude ?? 0,
-      longitude: rawData.longitude ?? 0,
-      approach: rawData.approach ?? undefined,
-
-      area_name: rawData.area?.name ?? '',
-      area_slug: rawData.area?.slug ?? '',
-      grades: {},
-      liked: (rawData.liked?.length ?? 0) > 0,
-      parkings,
-      topos,
-
-      climbing_kind: [],
-      topos_count,
-      shade_morning,
-      shade_afternoon,
-      shade_all_day,
-      sun_all_day,
-    };
   }
 }
