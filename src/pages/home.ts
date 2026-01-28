@@ -22,7 +22,7 @@ import {
   TuiTextfield,
 } from '@taiga-ui/core';
 import { TuiAvatar, TuiRating } from '@taiga-ui/kit';
-import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
+import { TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
@@ -83,7 +83,6 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
     ReactiveFormsModule,
     RouterLink,
     TuiAvatar,
-    TuiCardLarge,
     TuiDataList,
     TuiDropdown,
     TuiHeader,
@@ -214,11 +213,11 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
                       <span class="font-semibold text-blue-600">
                         {{ getGradeLabel(ascent.route.grade) }}
                       </span>
-                      @if (ascent.ascent_type) {
+                      @if (ascent.type) {
                         <span
                           class="px-2 py-0.5 bg-gray-100 rounded text-[10px] uppercase font-bold"
                         >
-                          {{ getAscentTypeLabel(ascent.ascent_type) }}
+                          {{ getAscentTypeLabel(ascent.type) }}
                         </span>
                       }
                       <span>•</span>
