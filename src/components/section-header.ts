@@ -1,4 +1,3 @@
-import { Location } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -38,11 +37,7 @@ import { GlobalData } from '../services';
       <div class="flex flex-col gap-1 overflow-hidden">
         @let breadcrumbs = global.breadcrumbs();
         @if (breadcrumbs.length > 0) {
-          <tui-breadcrumbs
-            size="l"
-            [itemsLimit]="global.isMobile() ? 2 : 10"
-            ngSkipHydration
-          >
+          <tui-breadcrumbs size="l" ngSkipHydration>
             @for (item of breadcrumbs; track item.caption) {
               <a
                 *tuiItem
@@ -88,7 +83,6 @@ import { GlobalData } from '../services';
 })
 export class SectionHeaderComponent {
   protected readonly global = inject(GlobalData);
-  private readonly location = inject(Location);
   title = input.required<string>();
   liked = input(false);
   showLike = input(true);

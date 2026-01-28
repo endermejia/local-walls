@@ -84,7 +84,7 @@ import { handleErrorToast } from '../utils';
     <tui-scrollbar class="flex grow">
       <section class="w-full max-w-5xl mx-auto p-4">
         @if (global.selectedArea(); as area) {
-          <div class="mb-4 flex items-center justify-between gap-2">
+          <div class="mb-4 flex justify-between gap-2">
             <app-section-header
               class="w-full"
               [title]="area.name"

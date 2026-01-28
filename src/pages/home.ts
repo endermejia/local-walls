@@ -14,12 +14,13 @@ import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import {
-  TuiDataList,
-  TuiDropdown,
+  TuiAppearance,
+  TuiButton,
   TuiIcon,
   TuiLoader,
   TuiScrollbar,
   TuiTextfield,
+  TuiTitle,
 } from '@taiga-ui/core';
 import { TuiSearchHotkey, TuiSearchResults } from '@taiga-ui/experimental';
 import { TuiAvatar, TuiRating } from '@taiga-ui/kit';
@@ -42,12 +43,13 @@ import {
 } from 'rxjs';
 
 import {
+  GradeLabel,
   RouteAscentWithExtras,
   SearchData,
   SearchItem,
-  VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
+
 import { FollowsService, GlobalData, SupabaseService } from '../services';
 
 @Component({
@@ -55,7 +57,9 @@ import { FollowsService, GlobalData, SupabaseService } from '../services';
   standalone: true,
   template: '<div class="h-1 w-full"></div>',
 })
-export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy {
+export class InfiniteScrollTriggerComponent
+  implements AfterViewInit, OnDestroy
+{
   private el = inject(ElementRef);
   intersect = output<void>();
   private observer?: IntersectionObserver;
@@ -81,225 +85,235 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
     AsyncPipe,
     CommonModule,
     FormsModule,
+    InfiniteScrollTriggerComponent,
     ReactiveFormsModule,
     RouterLink,
+    TranslatePipe,
+    TuiAppearance,
     TuiAvatar,
+    TuiButton,
     TuiCell,
-    TuiDataList,
-    TuiDropdown,
     TuiHeader,
     TuiIcon,
     TuiInputSearch,
     TuiLoader,
-    TuiScrollbar,
     TuiRating,
+    TuiScrollbar,
     TuiSearchHotkey,
     TuiSearchResults,
     TuiTextfield,
-    TranslatePipe,
-    InfiniteScrollTriggerComponent,
+    TuiTitle,
   ],
   template: `
     <tui-scrollbar class="h-full">
       <div class="p-4 flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32">
         <!-- Search bar -->
-      <div class="w-full sticky top-0 z-50 bg-[var(--tui-background-base)] py-2">
-        <tui-textfield (pointerdown.capture.stop)="(0)">
-          <tui-icon tuiStart icon="@tui.search" />
-          <input
-            tuiSearchHotkey
-            autocomplete="off"
-            [formControl]="control"
-            [tuiInputSearch]="search"
-            [(tuiInputSearchOpen)]="searchOpen"
-            [placeholder]="'labels.searchPlaceholder' | translate"
-          />
-          <ng-template #search>
-            <tui-search-results [results]="results$ | async">
-              <ng-template let-item>
-                <a
-                  tuiCell
-                  [routerLink]="item.href"
-                  (click)="control.setValue(''); searchOpen = false"
-                >
-                  @if (item.type === 'user') {
-                    <tui-avatar
-                      [src]="item.icon || '@tui.user'"
-                      size="xs"
-                      class="mr-2"
-                    />
-                  } @else if (item.icon) {
-                    <tui-icon [icon]="item.icon" class="mr-2" />
-                  }
-                  <span tuiTitle>
-                    {{ item.title }}
-                    @if (item.subtitle) {
-                      <span tuiSubtitle>{{ item.subtitle }}</span>
-                    }
-                  </span>
-                </a>
-              </ng-template>
-            </tui-search-results>
-          </ng-template>
-        </tui-textfield>
-      </div>
-
-      <!-- Active Crags -->
-      @if (activeCrags$ | async; as crags) {
-        @if (crags.length > 0) {
-          <div class="flex flex-col gap-2 mt-2">
-            <span class="text-xs font-bold opacity-60 uppercase px-1">
-              {{ 'labels.crags' | translate }}
-            </span>
-            <div
-              class="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide no-scrollbar"
-            >
-              @for (c of crags; track c.id) {
-                <a
-                  [routerLink]="['/area', c.area_slug, c.slug]"
-                  tuiAppearance="outline"
-                  class="flex-none p-3 rounded-2xl flex items-center gap-2 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
-                >
-                  <tui-icon icon="@tui.mountain" />
-                  <span class="whitespace-nowrap font-bold text-sm">{{
-                    c.name
-                  }}</span>
-                </a>
-              }
-            </div>
-          </div>
-        }
-      }
-
-      <!-- Ascents Feed -->
-      <div class="flex flex-col gap-6 mt-4">
-        @if (ascents$ | async; as ascents) {
-          @for (ascent of ascents; track ascent.id) {
-            @defer (on viewport) {
-              <a
-                tuiAppearance="outline"
-                [routerLink]="
-                  ascent.route
-                    ? [
-                        '/area',
-                        ascent.route.area_slug,
-                        ascent.route.crag_slug,
-                        ascent.route.slug
-                      ]
-                    : null
-                "
-                class="flex flex-col gap-4 p-4 rounded-3xl relative no-underline text-inherit hover:no-underline"
-              >
-                <header tuiHeader class="flex justify-between items-center">
-                  <div
-                    role="link"
-                    tabindex="0"
-                    (click)="
-                      $event.stopPropagation();
-                      $event.preventDefault();
-                      router.navigate(['/profile', ascent.user_id])
-                    "
-                    (keydown.enter)="
-                      $event.stopPropagation();
-                      $event.preventDefault();
-                      router.navigate(['/profile', ascent.user_id])
-                    "
-                    class="flex items-center gap-3 no-underline text-inherit cursor-pointer group/user"
+        <div
+          class="w-full sticky top-0 z-50 bg-[var(--tui-background-base)] py-2"
+        >
+          <tui-textfield (pointerdown.capture.stop)="(0)">
+            <tui-icon icon="@tui.search" />
+            <input
+              tuiSearchHotkey
+              autocomplete="off"
+              [formControl]="control"
+              [tuiInputSearch]="search"
+              [(tuiInputSearchOpen)]="searchOpen"
+              [placeholder]="'labels.searchPlaceholder' | translate"
+            />
+            <ng-template #search>
+              <tui-search-results [results]="results$ | async">
+                <ng-template let-item>
+                  <a
+                    tuiCell
+                    [routerLink]="item.href"
+                    (click)="control.setValue(''); searchOpen = false"
                   >
-                    <tui-avatar
-                      [src]="
-                        supabase.buildAvatarUrl(ascent.user?.avatar) ||
-                        '@tui.user'
+                    @if (item.type === 'user') {
+                      <tui-avatar
+                        [src]="item.icon || '@tui.user'"
+                        size="xs"
+                        class="mr-2"
+                      />
+                    } @else if (item.icon) {
+                      <tui-icon [icon]="item.icon" class="mr-2" />
+                    }
+                    <span tuiTitle>
+                      {{ item.title }}
+                      @if (item.subtitle) {
+                        <span tuiSubtitle>{{ item.subtitle }}</span>
+                      }
+                    </span>
+                  </a>
+                </ng-template>
+              </tui-search-results>
+            </ng-template>
+          </tui-textfield>
+        </div>
+
+        <!-- Active Crags -->
+        @if (activeCrags$ | async; as crags) {
+          @if (crags.length > 0) {
+            <div class="flex flex-col gap-2 mt-2">
+              <span class="text-xs font-bold opacity-60 uppercase px-1">
+                {{ 'labels.crags' | translate }}
+              </span>
+              <div
+                class="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar"
+              >
+                @for (c of crags; track c.id) {
+                  <a
+                    [routerLink]="['/area', c.area_slug, c.slug]"
+                    tuiAppearance="textfield"
+                    class="flex-none p-3 rounded-2xl flex items-center gap-2 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
+                  >
+                    <span class="whitespace-nowrap font-bold text-sm">{{
+                      c.name
+                    }}</span>
+                  </a>
+                }
+              </div>
+            </div>
+          }
+        }
+
+        <!-- Ascents Feed -->
+        <div class="flex flex-col gap-6 mt-4">
+          @if (ascents$ | async; as ascents) {
+            @for (ascent of ascents; track ascent.id) {
+              @defer (on viewport) {
+                <a
+                  tuiAppearance="flat-grayscale"
+                  [routerLink]="
+                    ascent.route
+                      ? [
+                          '/area',
+                          ascent.route.area_slug,
+                          ascent.route.crag_slug,
+                          ascent.route.slug,
+                        ]
+                      : null
+                  "
+                  class="flex flex-col gap-4 p-4 rounded-3xl relative no-underline text-inherit hover:no-underline"
+                >
+                  <header tuiHeader class="flex justify-between items-center">
+                    <div
+                      role="link"
+                      tabindex="0"
+                      (click)="
+                        $event.stopPropagation();
+                        $event.preventDefault();
+                        router.navigate(['/profile', ascent.user_id])
                       "
-                      size="s"
-                    />
-                    <div class="flex flex-col">
-                      <span class="font-bold text-sm group-hover/user:underline">
-                        {{ ascent.user?.name || 'User' }}
-                      </span>
-                      <span class="text-xs text-gray-400">
-                        {{ ascent.date | date: 'mediumDate' }}
-                      </span>
+                      (keydown.enter)="
+                        $event.stopPropagation();
+                        $event.preventDefault();
+                        router.navigate(['/profile', ascent.user_id])
+                      "
+                      class="flex items-center gap-3 no-underline text-inherit cursor-pointer group/user"
+                    >
+                      <tui-avatar
+                        [src]="
+                          supabase.buildAvatarUrl(ascent.user?.avatar) ||
+                          '@tui.user'
+                        "
+                        size="s"
+                      />
+                      <div class="flex flex-col">
+                        <span
+                          class="font-bold text-sm group-hover/user:underline"
+                        >
+                          {{ ascent.user?.name || 'User' }}
+                        </span>
+                        <span class="text-xs text-gray-400">
+                          {{ ascent.date | date: 'mediumDate' }}
+                        </span>
+                      </div>
                     </div>
+
+                    @if (
+                      ascent.user_id !== supabase.authUserId() &&
+                      !followedIds().has(ascent.user_id)
+                    ) {
+                      <button
+                        tuiButton
+                        size="s"
+                        appearance="primary"
+                        class="!rounded-full"
+                        (click)="
+                          $event.stopPropagation(); follow(ascent.user_id)
+                        "
+                      >
+                        {{ 'actions.follow' | translate }}
+                      </button>
+                    }
+                  </header>
+
+                  <div class="flex flex-col gap-1">
+                    @if (ascent.route) {
+                      <div class="font-bold text-lg">
+                        {{ ascent.route.name }}
+                      </div>
+                      <div
+                        class="flex items-center gap-2 text-sm text-gray-600"
+                      >
+                        <span class="font-semibold text-blue-600">
+                          {{ gradeLabelByNumber[ascent.route.grade] }}
+                        </span>
+                        @if (ascent.type) {
+                          <span
+                            class="px-2 py-0.5 bg-gray-100 rounded text-[10px] uppercase font-bold"
+                          >
+                            {{ 'ascentTypes.' + ascent.type | translate }}
+                          </span>
+                        }
+                        <span>•</span>
+                        <span>{{ ascent.route.crag_name }}</span>
+                      </div>
+                    }
                   </div>
 
-                  @if (
-                    ascent.user_id !== supabase.authUserId() &&
-                    !followedIds().has(ascent.user_id)
-                  ) {
-                    <button
-                      tuiButton
-                      size="s"
-                      appearance="primary"
-                      class="!rounded-full"
-                      (click)="$event.stopPropagation(); follow(ascent.user_id)"
+                  @if (ascent.rate) {
+                    <tui-rating
+                      [ngModel]="ascent.rate"
+                      [max]="5"
+                      [readOnly]="true"
+                      class="pointer-events-none origin-left scale-75 h-6"
+                    />
+                  }
+
+                  @if (ascent.comment) {
+                    <p
+                      class="text-sm text-gray-700 italic border-l-2 border-gray-200 pl-3 py-1"
                     >
-                      {{ 'actions.follow' | translate }}
-                    </button>
+                      "{{ ascent.comment }}"
+                    </p>
                   }
-                </header>
+                </a>
+              } @placeholder {
+                <div
+                  class="h-64 w-full bg-gray-50 animate-pulse rounded-xl"
+                ></div>
+              }
+            }
 
-                <div class="flex flex-col gap-1">
-                  @if (ascent.route) {
-                    <div class="font-bold text-lg">
-                      {{ ascent.route.name }}
-                    </div>
-                    <div class="flex items-center gap-2 text-sm text-gray-600">
-                      <span class="font-semibold text-blue-600">
-                        {{ getGradeLabel(ascent.route.grade) }}
-                      </span>
-                      @if (ascent.type) {
-                        <span
-                          class="px-2 py-0.5 bg-gray-100 rounded text-[10px] uppercase font-bold"
-                        >
-                          {{ getAscentTypeLabel(ascent.type) }}
-                        </span>
-                      }
-                      <span>•</span>
-                      <span>{{ ascent.route.crag_name }}</span>
-                    </div>
-                  }
-                </div>
+            @if (isLoading()) {
+              <div class="flex justify-center p-8">
+                <tui-loader />
+              </div>
+            }
 
-                @if (ascent.rate) {
-                  <tui-rating
-                    [ngModel]="ascent.rate"
-                    [max]="5"
-                    [readOnly]="true"
-                    class="pointer-events-none origin-left scale-75 h-6"
-                  />
-                }
-
-                @if (ascent.comment) {
-                  <p
-                    class="text-sm text-gray-700 italic border-l-2 border-gray-200 pl-3 py-1"
-                  >
-                    "{{ ascent.comment }}"
-                  </p>
-                }
-              </a>
-            } @placeholder {
-              <div class="h-64 w-full bg-gray-50 animate-pulse rounded-xl"></div>
+            @if (ascents.length > 0 && !isLoading()) {
+              <app-infinite-scroll-trigger (intersect)="loadMore()" />
+            }
+          } @else {
+            @if (isLoading()) {
+              <div class="flex justify-center p-20">
+                <tui-loader size="xl" />
+              </div>
             }
           }
-
-          @if (isLoading()) {
-            <div class="flex justify-center p-8">
-              <tui-loader />
-            </div>
-          }
-
-          @if (ascents.length > 0 && !isLoading()) {
-            <app-infinite-scroll-trigger (intersect)="loadMore()" />
-          }
-        } @else {
-          @if (isLoading()) {
-            <div class="flex justify-center p-20">
-              <tui-loader size="xl" />
-            </div>
-          }
-        }
-      </div>
+        </div>
       </div>
     </tui-scrollbar>
   `,
@@ -317,6 +331,8 @@ export class HomeComponent implements OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
+  protected readonly gradeLabelByNumber: Partial<Record<number, GradeLabel>> =
+    VERTICAL_LIFE_TO_LABEL;
   protected readonly followedIds = signal<Set<string>>(new Set());
 
   protected readonly activeCrags$ = from(this.fetchActiveCrags()).pipe(
@@ -583,19 +599,7 @@ export class HomeComponent implements OnDestroy {
     }
   }
 
-  getGradeLabel(grade: number | null): string {
-    if (grade === null) return '';
-    return VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || '';
-  }
-
-  getAscentTypeLabel(type: string | null): string {
-    if (!type) return '';
-    return this.translate.instant(`ascentTypes.${type}`);
-  }
-
   ngOnDestroy() {
     this.loadMore$.complete();
   }
 }
-
-export default HomeComponent;

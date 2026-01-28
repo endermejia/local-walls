@@ -13,7 +13,7 @@ import { TranslatePipe } from '@ngx-translate/core';
   template: `
     <div class="p-4 flex flex-col gap-4 max-w-2xl mx-auto w-full">
       <header tuiHeader>
-        <h1 tuiTitle>{{ 'labels.more' | translate }}</h1>
+        <h1 tuiTitle>{{ 'config' | translate }}</h1>
       </header>
 
       <div class="grid gap-2">

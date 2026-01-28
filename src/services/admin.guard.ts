@@ -51,7 +51,9 @@ export const adminGuard: CanMatchFn = async (): Promise<boolean | UrlTree> => {
 };
 
 /** Allows route matching for admin or equipper users. On server, always allow. */
-export const equipperGuard: CanMatchFn = async (): Promise<boolean | UrlTree> => {
+export const equipperGuard: CanMatchFn = async (): Promise<
+  boolean | UrlTree
+> => {
   const router = inject(Router);
   const supabase = inject(SupabaseService);
   const platformId = inject(PLATFORM_ID);

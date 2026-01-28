@@ -8,7 +8,7 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { TuiIcon } from '@taiga-ui/core';
 import { TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
@@ -23,10 +23,17 @@ import { GlobalData } from '../services';
   host: {
     class: 'z-[100] relative md:w-20 md:h-full md:flex md:items-center',
   },
-  imports: [RouterLink, TuiAvatar, TranslatePipe, TuiIcon, TuiSkeleton],
+  imports: [
+    RouterLink,
+    TuiAvatar,
+    TranslatePipe,
+    TuiIcon,
+    TuiSkeleton,
+    RouterLinkActive,
+  ],
   template: `
     <nav
-      class="w-full md:w-20 md:hover:w-64 md:h-fit md:max-h-[60rem] md:my-auto bg-[var(--tui-background-base)] shadow-xs sm:shadow-none transition-[width] duration-300 z-[100] group flex flex-col border-t md:border-t-0 md:border-r border-[var(--tui-border-normal)] md:absolute md:left-0 md:top-0 md:bottom-0 overflow-hidden"
+      class="w-full md:w-20 md:hover:w-64 md:h-fit md:max-h-[60rem] md:my-auto bg-[var(--tui-background-base)] transition-[width] duration-300 z-[100] group flex flex-col border-t md:border-t-0 border-[var(--tui-border-normal)] md:absolute md:left-0 md:top-0 md:bottom-0 overflow-hidden rounded-2xl"
       ngSkipHydration
     >
       <div
@@ -82,7 +89,7 @@ import { GlobalData } from '../services';
               class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
             >
               @if (global.isAdmin()) {
-                {{ 'nav.admin-users' | translate }}
+                {{ 'config' | translate }}
               } @else {
                 {{ 'nav.my-crags' | translate }}
               }
@@ -113,8 +120,8 @@ import { GlobalData } from '../services';
 })
 export class HeaderComponent implements OnDestroy {
   protected global = inject(GlobalData);
-
   private readonly platformId: object = inject(PLATFORM_ID);
+
   private readonly isBrowser =
     isPlatformBrowser(this.platformId) && typeof document !== 'undefined';
   private readonly onFsChange = () => {
@@ -122,8 +129,6 @@ export class HeaderComponent implements OnDestroy {
   };
 
   isFullscreen: WritableSignal<boolean> = signal(false);
-
-  moreOpen = false;
 
   constructor() {
     if (this.isBrowser) {
