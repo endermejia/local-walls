@@ -34,6 +34,7 @@ import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
+  BehaviorSubject,
   finalize,
   firstValueFrom,
   type Observable,
@@ -552,10 +553,12 @@ export class Import8aComponent {
     const isAdmin = this.supabase.userRole() === 'admin';
 
     this.importing.set(true);
-    this.loaderClose$ = this.toast.showLoader('import8a.importing');
+    const progress$ = new BehaviorSubject<number>(0);
+    this.loaderClose$ = this.toast.showLoader('import8a.importing', progress$);
 
     try {
       console.log('[8a Import] Starting import for', ascents.length, 'ascents');
+
       // 1. Get all unique names of routes, areas, and crags
       const uniqueAreaNames = [...new Set(ascents.map((a) => a.location_name))];
       console.log('[8a Import] Unique areas:', uniqueAreaNames);
@@ -572,6 +575,30 @@ export class Import8aComponent {
         ).entries(),
       ];
 
+      const uniqueSectorsToFetch = [
+        ...new Map(
+          ascents.map((a) => [
+            `${slugify(a.location_name)}|${slugify(a.sector_name)}`,
+            {
+              locationName: a.location_name,
+              sectorName: a.sector_name,
+              countryCode: a.country_code,
+              climbingKind: a.climbing_kind!,
+            },
+          ]),
+        ).values(),
+      ];
+
+      const totalUnits = uniqueAreas.length + uniqueSectorsToFetch.length + 5;
+      let completedUnits = 0;
+
+      const incrementProgress = () => {
+        completedUnits++;
+        progress$.next(
+          Math.min(100, Math.floor((completedUnits / totalUnits) * 100)),
+        );
+      };
+
       for (const [areaName, countryCode] of uniqueAreas) {
         const searchResult = await this.eightAnuService.searchCrag(
           countryCode,
@@ -587,6 +614,7 @@ export class Import8aComponent {
             areaToSlug.set(areaName, searchResult.cragSlug);
           }
         }
+        incrementProgress();
       }
 
       // 1.2 Fetch all routes for each unique sector mentioned in the import to get correct slugs
@@ -595,20 +623,6 @@ export class Import8aComponent {
         { routes: EightAnuRoute[]; climbingKind: ClimbingKind }
       >();
       const sectorToCragSlug = new Map<string, string>(); // areaSlug|sectorSlug -> 8anu.sectorSlug
-
-      const uniqueSectorsToFetch = [
-        ...new Map(
-          ascents.map((a) => [
-            `${slugify(a.location_name)}|${slugify(a.sector_name)}`,
-            {
-              locationName: a.location_name,
-              sectorName: a.sector_name,
-              countryCode: a.country_code,
-              climbingKind: a.climbing_kind!,
-            },
-          ]),
-        ).values(),
-      ];
 
       for (const s of uniqueSectorsToFetch) {
         try {
@@ -683,6 +697,7 @@ export class Import8aComponent {
             e,
           );
         }
+        incrementProgress();
       }
 
       const toInsert: RouteAscentInsertDto[] = [];
@@ -766,6 +781,7 @@ export class Import8aComponent {
           }
         }
       }
+      incrementProgress();
 
       // 3. Identify/Create Crags
       console.log('[8a Import] Identifying/Creating crags');
@@ -922,6 +938,7 @@ export class Import8aComponent {
           }
         }
       }
+      incrementProgress();
 
       // 4. Match/Create Routes
       console.log('[8a Import] Identifying/Creating routes');
@@ -1157,6 +1174,7 @@ export class Import8aComponent {
           }
         }
       }
+      incrementProgress();
 
       // 4.1 Re-map toInsert for routes that were already there
       for (const a of ascents) {
@@ -1221,6 +1239,7 @@ export class Import8aComponent {
       const existingAscentKeys = new Set(
         existingUserAscents?.map((a) => `${a.route_id}|${a.date}`),
       );
+      incrementProgress();
 
       const finalToInsert = toInsert.filter(
         (i) => !existingAscentKeys.has(`${i.route_id}|${i.date}`),
@@ -1246,6 +1265,7 @@ export class Import8aComponent {
         this.global.cragDetailResource.reload();
         this.global.cragRoutesResource.reload();
       }
+      incrementProgress();
 
       const skippedCount = toInsert.length - finalToInsert.length;
 

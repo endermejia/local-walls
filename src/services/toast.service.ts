@@ -5,7 +5,7 @@ import { TuiToastOptions, TuiToastService } from '@taiga-ui/kit';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslateService } from '@ngx-translate/core';
-import { firstValueFrom, Subject, takeUntil } from 'rxjs';
+import { firstValueFrom, type Observable, Subject, takeUntil } from 'rxjs';
 
 import { LoaderDialogComponent } from '../components/loader-dialog';
 
@@ -50,14 +50,16 @@ export class ToastService {
     this.show(message, { appearance: 'warning', data: '@tui.circle-alert' });
   }
 
-  showLoader(message: string): Subject<void> {
+  showLoader(message: string, progress$?: Observable<number>): Subject<void> {
     const close$ = new Subject<void>();
     const translatedMessage = this.translate.instant(message);
 
     void firstValueFrom(
       this.dialog
         .open(new PolymorpheusComponent(LoaderDialogComponent), {
-          data: translatedMessage,
+          data: progress$
+            ? { message: translatedMessage, progress$ }
+            : translatedMessage,
           dismissible: false,
           size: 's',
           closable: false,

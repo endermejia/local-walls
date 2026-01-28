@@ -1,0 +1,67 @@
+
+> local-walls@0.0.0 start
+> ng serve --hmr=false
+
+❯ Building...
+✔ Building...
+Browser bundles
+Initial chunk files  | Names                |  Raw size
+chunk-UQPBGVQA.js    | -                    | 718.37 kB |
+styles.css           | styles               | 320.69 kB |
+main.js              | main                 |  11.59 kB |
+chunk-DOVIKCIA.js    | -                    |  11.32 kB |
+chunk-Z56SSN6E.js    | -                    |   1.60 kB |
+
+                     | Initial total        |   1.06 MB
+
+Lazy chunk files     | Names                |  Raw size
+chunk-6S7BU2PN.js    | crag                 |  67.54 kB |
+chunk-7DNWVRLA.js    | user-profile         |  62.59 kB |
+chunk-GRFS4QPR.js    | explore              |  61.57 kB |
+chunk-WNETCOSM.js    | topo                 |  56.95 kB |
+chunk-EXA35DEF.js    | home                 |  41.66 kB |
+chunk-KOLCY2Y4.js    | login                |  40.75 kB |
+chunk-XUVHAR57.js    | admin-users-list     |  32.34 kB |
+chunk-IH5JI546.js    | route                |  30.34 kB |
+chunk-TM5LT5TO.js    | admin-parkings-list  |  29.56 kB |
+chunk-MK2BN47K.js    | admin-equippers-list |  29.13 kB |
+chunk-OSDRHPRI.js    | area                 |  28.94 kB |
+chunk-KBBC3BHH.js    | area-list            |  20.74 kB |
+chunk-IZD4RCCL.js    | admin                |   5.63 kB |
+chunk-6S2GKVLF.js    | page-not-found       |   4.49 kB |
+chunk-2BQIDF2J.js    | my-areas             |   3.10 kB |
+...and 2 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files  | Names                |  Raw size
+chunk-MZGCHHUY.mjs   | -                    | 718.41 kB |
+main.server.mjs      | main.server          |  15.74 kB |
+chunk-XAZB3DNE.mjs   | -                    |  11.36 kB |
+server.mjs           | server               |   3.03 kB |
+chunk-NOTTJK7N.mjs   | -                    |   1.64 kB |
+polyfills.server.mjs | polyfills.server     | 243 bytes |
+
+Lazy chunk files     | Names                |  Raw size
+chunk-WMTOSIVX.mjs   | crag                 |  67.58 kB |
+chunk-HUPSEIN3.mjs   | user-profile         |  62.63 kB |
+chunk-VDOVMY2A.mjs   | explore              |  61.61 kB |
+chunk-LZGIKS2X.mjs   | topo                 |  56.99 kB |
+chunk-LBOQUIBY.mjs   | home                 |  41.70 kB |
+chunk-C4ZOP52D.mjs   | login                |  40.79 kB |
+chunk-V7UAUDDC.mjs   | admin-users-list     |  32.38 kB |
+chunk-K2W5FAQ4.mjs   | route                |  30.37 kB |
+chunk-5WDL5XMF.mjs   | admin-parkings-list  |  29.60 kB |
+chunk-YNK3WWQR.mjs   | admin-equippers-list |  29.17 kB |
+chunk-4E4S4WMO.mjs   | area                 |  28.97 kB |
+chunk-6SQBF6FI.mjs   | area-list            |  20.78 kB |
+chunk-CQDGDWH2.mjs   | admin                |   5.67 kB |
+chunk-P5NJ33LU.mjs   | page-not-found       |   4.53 kB |
+chunk-6URTKDC4.mjs   | my-areas             |   3.13 kB |
+...and 2 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [18.127 seconds] - 2026-01-28T22:05:53.595Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  ➜  Local:   http://localhost:4200/
