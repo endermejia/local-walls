@@ -105,6 +105,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
       <section class="w-full max-w-5xl mx-auto p-4">
         @let isMobile = global.isMobile();
         @let isAdmin = global.isAdmin();
+        @let isEquipper = global.isEquipper();
         @if (cragDetail(); as c) {
           <div class="mb-4">
             <app-section-header
@@ -113,7 +114,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
               (toggleLike)="onToggleLike()"
             >
               <!-- Admin action buttons -->
-              @if (isAdmin) {
+              @if (isAdmin || isEquipper) {
                 <div actionButtons class="flex gap-2">
                   <button
                     size="s"
@@ -221,10 +222,10 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
             />
           </div>
 
-          @if (c.parkings.length || isAdmin) {
+          @if (c.parkings.length || isAdmin || isEquipper) {
             <div class="mt-6">
               <div class="flex items-center justify-between gap-2 mb-4">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center w-full sm:w-auto gap-2">
                   <tui-avatar
                     tuiThumbnail
                     size="l"
@@ -236,8 +237,8 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                     {{ 'labels.parkings' | translate }}
                   </h2>
                 </div>
-                @if (isAdmin) {
-                  <div class="flex flex-wrap gap-2">
+                @if (isAdmin || isEquipper) {
+                  <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
                     <button
                       tuiButton
                       appearance="textfield"
@@ -285,7 +286,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                           </div>
                         }
 
-                        @if (isAdmin) {
+                        @if (isAdmin || isEquipper) {
                           <div class="flex gap-1">
                             <button
                               size="s"
@@ -361,7 +362,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
           }
 
           @let toposCount = c.topos.length;
-          @if (toposCount || isAdmin) {
+          @if (toposCount || isAdmin || isEquipper) {
             <div class="mt-6">
               <div class="flex items-center justify-between gap-2 mb-4">
                 <div class="flex items-center gap-2">
@@ -381,7 +382,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                     }}
                   </h2>
                 </div>
-                @if (isAdmin) {
+                @if (isAdmin || isEquipper) {
                   <button
                     tuiButton
                     appearance="textfield"
@@ -460,7 +461,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
             </div>
           }
           <div class="flex items-center justify-between gap-2 mb-4 mt-6">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center w-full sm:w-auto gap-2">
               <tui-avatar
                 tuiThumbnail
                 size="l"
@@ -473,8 +474,8 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                 {{ 'labels.routes' | translate | lowercase }}
               </h2>
             </div>
-            @if (isAdmin) {
-              <div class="flex gap-2">
+            @if (isAdmin || isEquipper) {
+              <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
                 <button
                   tuiButton
                   appearance="textfield"
