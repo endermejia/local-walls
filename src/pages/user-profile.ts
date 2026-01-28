@@ -230,14 +230,8 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
             {{ 'labels.projects' | translate }}
           </button>
           @if (isOwnProfile()) {
-            <button tuiTab class="flex gap-1">
-              {{ 'labels.areas' | translate }}
-            </button>
-            <button tuiTab class="flex gap-1">
-              {{ 'labels.crags' | translate }}
-            </button>
-            <button tuiTab class="flex gap-1">
-              {{ 'labels.routes' | translate }}
+            <button tuiTab>
+              {{ 'labels.likes' | translate }}
             </button>
           }
         </tui-tabs>
@@ -345,102 +339,126 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
             </div>
           }
           @case (2) {
-            <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
-              @if (likedAreasResource.isLoading()) {
-                <tui-loader class="col-span-full m-4" />
-              } @else {
-                @for (area of likedAreas(); track area.id) {
-                  <button
-                    class="p-6 rounded-3xl"
-                    [tuiAppearance]="
-                      area.liked ? 'outline-destructive' : 'outline'
-                    "
-                    (click.zoneless)="router.navigate(['/area', area.slug])"
-                  >
-                    <div class="flex flex-col min-w-0 grow">
-                      <header tuiHeader>
-                        <h2 tuiTitle>{{ area.name }}</h2>
-                      </header>
-                      <section class="flex items-center justify-between gap-2">
-                        <div class="text-xl">
-                          {{ area.crags_count }}
-                          {{
-                            'labels.' +
-                              (area.crags_count === 1 ? 'crag' : 'crags')
-                              | translate
-                              | lowercase
-                          }}
+            <div class="flex flex-col gap-8">
+              <!-- Liked Areas -->
+              <section class="grid gap-2">
+                <header tuiHeader>
+                  <h3 tuiTitle>{{ 'labels.likedAreas' | translate }}</h3>
+                </header>
+                <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
+                  @if (likedAreasResource.isLoading()) {
+                    <tui-loader class="col-span-full m-4" />
+                  } @else {
+                    @for (area of likedAreas(); track area.id) {
+                      <button
+                        class="p-6 rounded-3xl text-left"
+                        [tuiAppearance]="
+                          area.liked ? 'outline-destructive' : 'outline'
+                        "
+                        (click.zoneless)="router.navigate(['/area', area.slug])"
+                      >
+                        <div class="flex flex-col min-w-0 grow">
+                          <header tuiHeader>
+                            <h2 tuiTitle>{{ area.name }}</h2>
+                          </header>
+                          <section
+                            class="flex items-center justify-between gap-2"
+                          >
+                            <div class="text-xl">
+                              {{ area.crags_count }}
+                              {{
+                                'labels.' +
+                                  (area.crags_count === 1 ? 'crag' : 'crags')
+                                  | translate
+                                  | lowercase
+                              }}
+                            </div>
+                          </section>
                         </div>
-                      </section>
-                    </div>
-                  </button>
-                } @empty {
-                  <div class="col-span-full">
-                    <app-empty-state icon="@tui.heart" />
-                  </div>
-                }
-              }
-            </div>
-          }
-          @case (3) {
-            <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
-              @if (likedCragsResource.isLoading()) {
-                <tui-loader class="col-span-full m-4" />
-              } @else {
-                @for (crag of likedCrags(); track crag.id) {
-                  <button
-                    class="p-6 rounded-3xl"
-                    [tuiAppearance]="
-                      crag.liked ? 'outline-destructive' : 'outline'
-                    "
-                    (click.zoneless)="
-                      router.navigate(['/area', crag.area_slug, crag.slug])
-                    "
-                  >
-                    <div class="flex flex-col min-w-0 grow">
-                      <header tuiHeader>
-                        <h2 tuiTitle>{{ crag.name }}</h2>
-                      </header>
-                      <section class="flex items-center justify-between gap-2">
-                        <div class="flex flex-col items-start">
-                          <div class="text-xl">
-                            {{ crag.topos_count }}
-                            {{
-                              'labels.' +
-                                (crag.topos_count === 1 ? 'topo' : 'topos')
-                                | translate
-                                | lowercase
-                            }}
-                          </div>
-                          <div class="text-sm opacity-70">
-                            {{ crag.area_name }}
-                          </div>
+                      </button>
+                    } @empty {
+                      <div class="col-span-full opacity-50">
+                        <app-empty-state icon="@tui.heart" />
+                      </div>
+                    }
+                  }
+                </div>
+              </section>
+
+              <!-- Liked Crags -->
+              <section class="grid gap-2">
+                <header tuiHeader>
+                  <h3 tuiTitle>{{ 'labels.likedCrags' | translate }}</h3>
+                </header>
+                <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
+                  @if (likedCragsResource.isLoading()) {
+                    <tui-loader class="col-span-full m-4" />
+                  } @else {
+                    @for (crag of likedCrags(); track crag.id) {
+                      <button
+                        class="p-6 rounded-3xl text-left"
+                        [tuiAppearance]="
+                          crag.liked ? 'outline-destructive' : 'outline'
+                        "
+                        (click.zoneless)="
+                          router.navigate(['/area', crag.area_slug, crag.slug])
+                        "
+                      >
+                        <div class="flex flex-col min-w-0 grow">
+                          <header tuiHeader>
+                            <h2 tuiTitle>{{ crag.name }}</h2>
+                          </header>
+                          <section
+                            class="flex items-center justify-between gap-2"
+                          >
+                            <div class="flex flex-col items-start">
+                              <div class="text-xl">
+                                {{ crag.topos_count }}
+                                {{
+                                  'labels.' +
+                                    (crag.topos_count === 1 ? 'topo' : 'topos')
+                                    | translate
+                                    | lowercase
+                                }}
+                              </div>
+                              <div class="text-sm opacity-70">
+                                {{ crag.area_name }}
+                              </div>
+                            </div>
+                          </section>
                         </div>
-                      </section>
+                      </button>
+                    } @empty {
+                      <div class="col-span-full opacity-50">
+                        <app-empty-state icon="@tui.heart" />
+                      </div>
+                    }
+                  }
+                </div>
+              </section>
+
+              <!-- Liked Routes -->
+              <section class="grid gap-2">
+                <header tuiHeader>
+                  <h3 tuiTitle>{{ 'labels.likedRoutes' | translate }}</h3>
+                </header>
+                <div class="min-w-0">
+                  @if (likedRoutesResource.isLoading()) {
+                    <tui-loader class="m-4" />
+                  } @else if (likedRoutes().length) {
+                    <app-routes-table
+                      [data]="likedRoutes()"
+                      [showAdminActions]="false"
+                      [showLocation]="true"
+                      [showRowColors]="false"
+                    />
+                  } @else {
+                    <div class="opacity-50">
+                      <app-empty-state icon="@tui.heart" />
                     </div>
-                  </button>
-                } @empty {
-                  <div class="col-span-full">
-                    <app-empty-state icon="@tui.heart" />
-                  </div>
-                }
-              }
-            </div>
-          }
-          @case (4) {
-            <div class="min-w-0">
-              @if (likedRoutesResource.isLoading()) {
-                <tui-loader class="m-4" />
-              } @else if (likedRoutes().length) {
-                <app-routes-table
-                  [data]="likedRoutes()"
-                  [showAdminActions]="false"
-                  [showLocation]="true"
-                  [showRowColors]="false"
-                />
-              } @else {
-                <app-empty-state icon="@tui.heart" />
-              }
+                  }
+                </div>
+              </section>
             </div>
           }
         }
