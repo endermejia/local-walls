@@ -85,6 +85,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     SectionHeaderComponent,
     TopoImagePipe,
     TranslatePipe,
+    TuiAppearance,
     TuiAvatar,
     TuiBadgeNotification,
     TuiBadgedContent,
@@ -98,7 +99,6 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     TuiScrollbar,
     TuiTextfield,
     TuiTitle,
-    TuiAppearance,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -358,102 +358,104 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
           }
 
           @let toposCount = c.topos.length;
-          <div class="mt-6">
-            <div class="flex items-center justify-between gap-2 mb-4">
-              <div class="flex items-center gap-2">
-                <tui-avatar
-                  tuiThumbnail
-                  size="l"
-                  [src]="global.iconSrc()('topo')"
-                  class="self-center"
-                  [attr.aria-label]="'labels.topo' | translate"
-                />
-                <h2 class="text-2xl font-semibold">
-                  {{ toposCount }}
-                  {{
-                    'labels.' + (toposCount === 1 ? 'topo' : 'topos')
-                      | translate
-                      | lowercase
-                  }}
-                </h2>
-              </div>
-              @if (isAdmin) {
-                <button
-                  tuiButton
-                  appearance="textfield"
-                  size="s"
-                  type="button"
-                  (click.zoneless)="openCreateTopo()"
-                  [iconStart]="'@tui.plus'"
-                >
-                  {{ 'actions.new' | translate }}
-                </button>
-              }
-            </div>
-            <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
-              @for (t of topos(); track t.id) {
-                <button
-                  class="p-6 rounded-3xl"
-                  tuiAppearance="outline"
-                  (click.zoneless)="
-                    router.navigate([
-                      '/area',
-                      areaSlug(),
-                      cragSlug(),
-                      'topo',
-                      t.id,
-                    ])
-                  "
-                >
-                  <div class="flex flex-col min-w-0 grow gap-2">
-                    <header tuiHeader>
-                      <h2 tuiTitle>{{ t.name }}</h2>
-                    </header>
-                    <section class="flex flex-col gap-2">
-                      @if (t.photo; as photo) {
-                        <img
-                          [src]="
-                            (photo | topoImage | async) ||
-                            global.iconSrc()('topo')
-                          "
-                          alt="topo"
-                          class="w-full h-48 object-cover rounded shadow-sm"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      }
-                      <div
-                        class="flex items-center justify-between gap-2 mt-auto"
-                      >
-                        <div class="flex items-center justify-between gap-2">
-                          @let shade = getShadeInfo(t);
-                          <tui-icon
-                            [icon]="shade.icon"
-                            class="opacity-70 text-xl"
-                          />
-                          <span class="text-sm opacity-80">
-                            {{ shade.label | translate }}
-                            @if (t.shade_change_hour) {
-                              · {{ 'filters.shade.changeAt' | translate }}
-                              {{ t.shade_change_hour }}
-                            }
-                          </span>
-                        </div>
-                        <app-chart-routes-by-grade
-                          [grades]="t.grades"
-                          (click)="$event.stopPropagation()"
-                        />
-                      </div>
-                    </section>
-                  </div>
-                </button>
-              } @empty {
-                <div class="col-span-full">
-                  <app-empty-state />
+          @if (toposCount || isAdmin) {
+            <div class="mt-6">
+              <div class="flex items-center justify-between gap-2 mb-4">
+                <div class="flex items-center gap-2">
+                  <tui-avatar
+                    tuiThumbnail
+                    size="l"
+                    [src]="global.iconSrc()('topo')"
+                    class="self-center"
+                    [attr.aria-label]="'labels.topo' | translate"
+                  />
+                  <h2 class="text-2xl font-semibold">
+                    {{ toposCount }}
+                    {{
+                      'labels.' + (toposCount === 1 ? 'topo' : 'topos')
+                        | translate
+                        | lowercase
+                    }}
+                  </h2>
                 </div>
-              }
+                @if (isAdmin) {
+                  <button
+                    tuiButton
+                    appearance="textfield"
+                    size="s"
+                    type="button"
+                    (click.zoneless)="openCreateTopo()"
+                    [iconStart]="'@tui.plus'"
+                  >
+                    {{ 'actions.new' | translate }}
+                  </button>
+                }
+              </div>
+              <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
+                @for (t of topos(); track t.id) {
+                  <button
+                    class="p-6 rounded-3xl"
+                    tuiAppearance="outline"
+                    (click.zoneless)="
+                      router.navigate([
+                        '/area',
+                        areaSlug(),
+                        cragSlug(),
+                        'topo',
+                        t.id,
+                      ])
+                    "
+                  >
+                    <div class="flex flex-col min-w-0 grow gap-2">
+                      <header tuiHeader>
+                        <h2 tuiTitle>{{ t.name }}</h2>
+                      </header>
+                      <section class="flex flex-col gap-2">
+                        @if (t.photo; as photo) {
+                          <img
+                            [src]="
+                              (photo | topoImage | async) ||
+                              global.iconSrc()('topo')
+                            "
+                            alt="topo"
+                            class="w-full h-48 object-cover rounded shadow-sm"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        }
+                        <div
+                          class="flex items-center justify-between gap-2 mt-auto"
+                        >
+                          <div class="flex items-center justify-between gap-2">
+                            @let shade = getShadeInfo(t);
+                            <tui-icon
+                              [icon]="shade.icon"
+                              class="opacity-70 text-xl"
+                            />
+                            <span class="text-sm opacity-80">
+                              {{ shade.label | translate }}
+                              @if (t.shade_change_hour) {
+                                · {{ 'filters.shade.changeAt' | translate }}
+                                {{ t.shade_change_hour }}
+                              }
+                            </span>
+                          </div>
+                          <app-chart-routes-by-grade
+                            [grades]="t.grades"
+                            (click)="$event.stopPropagation()"
+                          />
+                        </div>
+                      </section>
+                    </div>
+                  </button>
+                } @empty {
+                  <div class="col-span-full">
+                    <app-empty-state />
+                  </div>
+                }
+              </div>
             </div>
-          </div>
+          }
           <div class="flex items-center justify-between gap-2 mb-4 mt-6">
             <div class="flex items-center gap-2">
               <tui-avatar

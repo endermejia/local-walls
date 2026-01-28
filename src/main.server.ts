@@ -9,4 +9,4 @@ import { config } from './app/app.config.server';
 const bootstrap = (context: BootstrapContext) =>
   bootstrapApplication(AppComponent, config, context);
 
-export default bootstrap;
+export { bootstrap as default };

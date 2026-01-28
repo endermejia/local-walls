@@ -109,8 +109,7 @@ export class InfiniteScrollTriggerComponent
         <div
           class="w-full sticky top-0 z-50 bg-[var(--tui-background-base)] py-2"
         >
-          <tui-textfield (pointerdown.capture.stop)="(0)">
-            <tui-icon icon="@tui.search" />
+          <tui-textfield>
             <input
               tuiSearchHotkey
               autocomplete="off"

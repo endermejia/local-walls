@@ -12,7 +12,7 @@ import { GlobalData } from '../services';
   selector: 'app-navbar',
   host: {
     class:
-      'z-[100] relative lg:absolute md:w-20 md:h-full md:flex md:items-center',
+      'z-[100] relative md:absolute md:w-20 md:h-full md:flex md:items-center',
   },
   imports: [
     RouterLink,
@@ -25,7 +25,7 @@ import { GlobalData } from '../services';
   ],
   template: `
     <nav
-      class="w-full md:w-20 md:hover:w-64 md:h-fit md:max-h-[60rem] md:my-auto bg-[var(--tui-background-base)] transition-[width] duration-300 z-[100] group flex flex-col border-t md:border-t-0 border-[var(--tui-border-normal)] md:absolute md:left-0 md:top-0 md:bottom-0 overflow-hidden rounded-2xl"
+      class="w-full md:w-20 md:hover:w-60 md:h-fit md:my-auto bg-[var(--tui-background-base)] transition-[width] duration-300 z-[100] group flex flex-col border-t md:border xl:border-none border-[var(--tui-border-normal)] md:absolute md:left-0 md:top-0 md:bottom-0 overflow-hidden sm:rounded-2xl"
       ngSkipHydration
     >
       <div

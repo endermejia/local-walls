@@ -3,13 +3,12 @@ import {
   Component,
   inject,
   input,
-  InputSignal,
   output,
 } from '@angular/core';
 
 import { TuiItem } from '@taiga-ui/cdk';
 import { TuiButton, TuiHint, TuiLink } from '@taiga-ui/core';
-import { TuiBreadcrumbs, TuiSkeleton } from '@taiga-ui/kit';
+import { TuiBreadcrumbs } from '@taiga-ui/kit';
 import { RouterLink } from '@angular/router';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -19,20 +18,16 @@ import { GlobalData } from '../services';
 @Component({
   selector: 'app-section-header',
   imports: [
+    RouterLink,
     TranslatePipe,
-    TuiSkeleton,
+    TuiBreadcrumbs,
     TuiButton,
     TuiHint,
-    TuiBreadcrumbs,
-    TuiLink,
-    RouterLink,
     TuiItem,
+    TuiLink,
   ],
   template: `
-    <header
-      class="flex items-start justify-between gap-2"
-      [tuiSkeleton]="tuiSkeleton()"
-    >
+    <header class="flex items-start justify-between gap-2">
       <div class="flex flex-col gap-1 overflow-hidden">
         @let breadcrumbs = global.breadcrumbs();
         @if (breadcrumbs.length > 0) {
@@ -85,7 +80,6 @@ export class SectionHeaderComponent {
   title = input.required<string>();
   liked = input(false);
   showLike = input(true);
-  tuiSkeleton: InputSignal<boolean> = input(false);
 
   toggleLike = output<void>();
 }
