@@ -48,7 +48,12 @@ import {
   ParkingDto,
 } from '../models';
 
-import { FiltersService, GlobalData, ParkingsService } from '../services';
+import {
+  FiltersService,
+  GlobalData,
+  ParkingsService,
+  AreasService,
+} from '../services';
 
 import { ChartRoutesByGradeComponent, MapComponent } from '../components';
 
@@ -78,345 +83,111 @@ import { mapLocationUrl, remToPx } from '../utils';
     TuiScrollbar,
     TuiTitle,
   ],
-  template: ` <div class="h-full w-full flex min-h-0">
-    <div
-      class="relative h-full grow flex flex-col min-w-0 transition-[width] duration-300"
-    >
-      <div class="absolute right-4 top-4 flex flex-col gap-2">
-        @let bottomSheetExpanded = isBottomSheetExpanded();
-        <div class="z-100">
-          @if (global.isMobile()) {
-            <button
-              tuiIconButton
-              size="s"
-              appearance="primary-grayscale"
-              [iconStart]="bottomSheetExpanded ? '@tui.map' : '@tui.list'"
-              class="pointer-events-auto"
-              (click.zoneless)="setBottomSheet('toggle')"
-            >
-              {{ 'explore.toggleView' | translate }}
-            </button>
-          }
-        </div>
-        <div class="z-10">
-          <tui-badged-content>
-            @if (hasActiveFilters()) {
-              <tui-badge-notification size="s" tuiSlot="top" />
-            }
-            <button
-              tuiIconButton
-              size="s"
-              appearance="primary-grayscale"
-              iconStart="@tui.sliders-horizontal"
-              class="pointer-events-auto"
-              [tuiHint]="
-                global.isMobile() ? null : ('labels.filters' | translate)
-              "
-              (click.zoneless)="openFilters()"
-            >
-              {{ 'labels.filters' | translate }}
-            </button>
-          </tui-badged-content>
-        </div>
-      </div>
-
-      <!-- Map -->
-      @defer (on viewport) {
-        <app-map
-          class="w-full h-full"
-          [mapCragItems]="mapCragItems()"
-          [selectedMapCragItem]="global.selectedMapCragItem()"
-          (selectedMapCragItemChange)="selectMapCragItem($event)"
-          [mapParkingItems]="global.parkingsMapResource.value() || []"
-          [selectedMapParkingItem]="global.selectedMapParkingItem()"
-          (selectedMapParkingItemChange)="selectMapParkingItem($event)"
-          (mapClick)="closeAll()"
-        />
-        <!-- (visibleChange)="remountBottomSheet()" -->
-      } @placeholder {
-        <tui-loader size="xxl" class="w-full h-full flex" />
-      }
-
-      @if (global.selectedMapCragItem(); as c) {
-        <!-- Selected crag information section with the same width as the bottom-sheet -->
-        <div
-          class="absolute w-full max-w-[30rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0"
-        >
-          <button
-            tuiCardLarge
-            tuiAppearance="floating"
-            class="relative pointer-events-auto m-4 sm:w-full"
-            (click.zoneless)="router.navigate(['/area', c.area_slug, c.slug])"
-          >
-            <div class="flex flex-col min-w-0 grow">
-              <header tuiHeader>
-                <h2 tuiTitle>{{ c.name }}</h2>
-              </header>
-              <section class="grid grid-cols-[1fr_auto] gap-2 items-stretch">
-                <div class="flex flex-col justify-between">
-                  <a
-                    tuiSubtitle
-                    tuiLink
-                    appearance="action-grayscale"
-                    class="!text-xl w-fit"
-                    [routerLink]="['/area', c.area_slug]"
-                    (click.zoneless)="$event.stopPropagation()"
-                    >{{ c.area_name }}</a
-                  >
-                  <div
-                    class="text-xl h-full mb-7 content-center flex items-center gap-4"
-                  >
-                    <div>
-                      {{ c.topos_count }}
-                      {{
-                        'labels.' + (c.topos_count === 1 ? 'topo' : 'topos')
-                          | translate
-                          | lowercase
-                      }}
-                    </div>
-                    @if (c.approach) {
-                      <div
-                        class="flex w-fit items-center gap-1 opacity-70"
-                        [tuiHint]="
-                          global.isMobile()
-                            ? null
-                            : ('labels.approach' | translate)
-                        "
-                      >
-                        <tui-icon icon="@tui.footprints" />
-                        <span class="whitespace-nowrap">
-                          {{ c.approach }}
-                          min.
-                        </span>
-                      </div>
-                    }
-                  </div>
-                </div>
-                <div class="flex items-center">
-                  <app-chart-routes-by-grade
-                    (click.zoneless)="$event.stopPropagation()"
-                    [grades]="c.grades"
-                  />
-                </div>
-              </section>
-            </div>
-          </button>
-        </div>
-      } @else if (global.selectedMapParkingItem(); as p) {
-        <!-- Selected parking information section -->
-        <div
-          class="absolute w-full max-w-[30rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0"
-        >
-          <div
-            tuiCardLarge
-            tuiAppearance="floating"
-            class="relative pointer-events-auto m-4 sm:w-full"
-          >
-            <div class="flex flex-col grow gap-2">
-              <header tuiHeader class="flex wrap gap-2">
-                <h2 tuiTitle>{{ p.name }}</h2>
-                <section class="text-sm opacity-80">
-                  @if (p.size) {
-                    <div
-                      class="flex w-fit items-center gap-1"
-                      [tuiHint]="
-                        global.isMobile()
-                          ? null
-                          : ('labels.capacity' | translate)
-                      "
-                    >
-                      <tui-icon icon="@tui.car" />
-                      <span class="text-lg">
-                        x
-                        {{ p.size }}
-                      </span>
-                    </div>
-                  }
-                </section>
-                @if (global.isAdmin()) {
-                  <button
-                    size="s"
-                    appearance="neutral"
-                    iconStart="@tui.square-pen"
-                    tuiIconButton
-                    type="button"
-                    class="!rounded-full"
-                    (click.zoneless)="openEditParking(p)"
-                    [tuiHint]="'actions.edit' | translate"
-                  >
-                    {{ 'actions.edit' | translate }}
-                  </button>
-                }
-              </header>
-              @if (p.latitude && p.longitude) {
-                <button
-                  appearance="flat"
-                  size="m"
-                  tuiButton
-                  type="button"
-                  class="lw-icon-50"
-                  [iconStart]="'/image/google-maps.svg'"
-                  (click.zoneless)="
-                    openExternal(
-                      mapLocationUrl({
-                        latitude: p.latitude,
-                        longitude: p.longitude,
-                      })
-                    )
-                  "
-                  [attr.aria-label]="'actions.openGoogleMaps' | translate"
-                >
-                  {{ 'actions.openGoogleMaps' | translate }}
-                </button>
-              }
-            </div>
-          </div>
-        </div>
-      }
-
-      <!-- BottomSheet (Mobile) / Sidebar (Desktop) -->
-      @let crags = mapCragItems();
-      @let areas = mapAreaItems();
-      @let loading =
-        global.mapResource.isLoading() || global.areasMapResource.isLoading();
-      @let isMobile = global.isMobile();
-
-      @if (!global.selectedMapCragItem() && !global.selectedMapParkingItem()) {
-        @if (loading) {
-          <div
-            class="absolute w-full h-full top-0 pointer-events-none z-50 flex items-center justify-center bg-base-100/30"
-          >
-            <tui-loader size="xxl" />
-          </div>
-        } @else if (areas.length || crags.length) {
-          @if (isMobile) {
-            <tui-bottom-sheet
-              #sheet
-              [stops]="stops"
-              class="z-50"
-              role="dialog"
-              aria-labelledby="areas-title crags-title"
-              (scroll.zoneless)="onSheetScroll($event)"
-            >
-              <ng-container *ngTemplateOutlet="listContent" />
-            </tui-bottom-sheet>
-          } @else {
-            <div
-              class="flex flex-col absolute right-0 top-0 z-1 h-full w-80 sm:w-96"
-            >
-              <tui-scrollbar class="h-full bg-[var(--tui-background-base)]">
-                <ng-container *ngTemplateOutlet="listContent" />
-              </tui-scrollbar>
-            </div>
-          }
-        }
-      }
-    </div>
-
-    <ng-template #listContent>
-      @if (areas.length) {
-        <h3 tuiHeader id="areas-title" class="justify-center sm:pt-4">
-          <div class="flex flex-row align-items-center justify-center gap-2">
-            <tui-avatar
-              tuiThumbnail
-              size="l"
-              [src]="global.iconSrc()('zone')"
-              [attr.aria-label]="'labels.area' | translate"
-            />
-            <span tuiTitle class="justify-center">
-              {{ areas.length }}
-              {{
-                'labels.' + (areas.length === 1 ? 'area' : 'areas')
-                  | translate
-                  | lowercase
-              }}
-            </span>
-          </div>
-        </h3>
-        <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-20">
-          <div class="grid gap-2">
-            @for (a of areas; track a.slug) {
+  template: ` @let isMobile = global.isMobile();
+    <div class="h-full w-full flex min-h-0">
+      <div
+        class="relative h-full grow flex flex-col min-w-0 transition-[width] duration-300"
+      >
+        <div class="absolute right-4 top-4 flex flex-col gap-2">
+          @let bottomSheetExpanded = isBottomSheetExpanded();
+          <div class="z-100">
+            @if (isMobile) {
               <button
-                class="p-6 rounded-3xl"
-                [tuiAppearance]="a.liked ? 'outline-destructive' : 'outline'"
-                (click.zoneless)="router.navigate(['/area', a.slug])"
+                tuiIconButton
+                size="s"
+                appearance="primary-grayscale"
+                [iconStart]="bottomSheetExpanded ? '@tui.map' : '@tui.list'"
+                class="pointer-events-auto"
+                (click.zoneless)="setBottomSheet('toggle')"
               >
-                <div class="flex flex-col min-w-0 grow">
-                  <header tuiHeader>
-                    <h2 tuiTitle>{{ a.name }}</h2>
-                  </header>
-                  <section class="flex items-center justify-between gap-2">
-                    @if (a.crags_count; as count) {
-                      <div class="text-xl">
-                        {{ count }}
-                        {{
-                          'labels.' + (count === 1 ? 'crag' : 'crags')
-                            | translate
-                            | lowercase
-                        }}
-                      </div>
-                    }
-                    @if (a.grades; as grades) {
-                      <app-chart-routes-by-grade
-                        (click.zoneless)="$event.stopPropagation()"
-                        [grades]="grades"
-                      />
-                    }
-                  </section>
-                </div>
+                {{ 'explore.toggleView' | translate }}
               </button>
             }
           </div>
-        </section>
-      }
-      @if (crags.length) {
-        <h3 tuiHeader id="crags-title" class="justify-center">
-          <div class="flex flex-row align-items-center justify-center gap-2">
-            <tui-avatar
-              tuiThumbnail
-              size="l"
-              [src]="global.iconSrc()('crag')"
-              class="self-center"
-              [attr.aria-label]="'labels.crag' | translate"
-            />
-            <span tuiTitle class="justify-center">
-              {{ crags.length }}
-              {{
-                'labels.' + (crags.length === 1 ? 'crag' : 'crags')
-                  | translate
-                  | lowercase
-              }}
-            </span>
-          </div>
-        </h3>
-        <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-20">
-          <div class="grid gap-2">
-            @for (c of crags; track c.id) {
+          <div class="z-10">
+            <tui-badged-content>
+              @if (hasActiveFilters()) {
+                <tui-badge-notification size="s" tuiSlot="top" />
+              }
               <button
-                class="p-6 rounded-3xl"
-                [tuiAppearance]="c.liked ? 'outline-destructive' : 'outline'"
-                (click.zoneless)="
-                  router.navigate(['/area', c.area_slug, c.slug])
-                "
+                tuiIconButton
+                size="s"
+                appearance="primary-grayscale"
+                iconStart="@tui.sliders-horizontal"
+                class="pointer-events-auto"
+                [tuiHint]="isMobile ? null : ('labels.filters' | translate)"
+                (click.zoneless)="openFilters()"
               >
-                <div class="flex flex-col min-w-0 grow">
-                  <header tuiHeader>
-                    <h2 tuiTitle>{{ c.name }}</h2>
-                  </header>
-                  <section
-                    class="grid grid-cols-[1fr_auto] gap-2 items-stretch"
-                  >
-                    <div class="flex flex-col justify-between">
-                      <a
-                        tuiSubtitle
-                        tuiLink
-                        appearance="action-grayscale"
-                        [routerLink]="['/area', c.area_slug]"
-                        class="!text-xl w-fit"
-                        (click.zoneless)="$event.stopPropagation()"
-                        >{{ c.area_name }}</a
-                      >
-                      <div class="text-xl h-full mb-7 content-center">
+                {{ 'labels.filters' | translate }}
+              </button>
+            </tui-badged-content>
+          </div>
+          @if (global.isAdmin() && !isMobile) {
+            <div class="z-10">
+              <button
+                tuiIconButton
+                size="s"
+                appearance="primary-grayscale"
+                iconStart="@tui.blend"
+                class="pointer-events-auto"
+                [tuiHint]="
+                  isMobile ? null : ('areas.unifyVisibleAreas' | translate)
+                "
+                (click.zoneless)="unifyVisibleAreas()"
+              >
+                {{ 'areas.unifyVisibleAreas' | translate }}
+              </button>
+            </div>
+          }
+        </div>
+
+        <!-- Map -->
+        @defer (on viewport) {
+          <app-map
+            class="w-full h-full"
+            [mapCragItems]="mapCragItems()"
+            [selectedMapCragItem]="global.selectedMapCragItem()"
+            (selectedMapCragItemChange)="selectMapCragItem($event)"
+            [mapParkingItems]="global.parkingsMapResource.value() || []"
+            [selectedMapParkingItem]="global.selectedMapParkingItem()"
+            (selectedMapParkingItemChange)="selectMapParkingItem($event)"
+            (mapClick)="closeAll()"
+          />
+          <!-- (visibleChange)="remountBottomSheet()" -->
+        } @placeholder {
+          <tui-loader size="xxl" class="w-full h-full flex" />
+        }
+
+        @if (global.selectedMapCragItem(); as c) {
+          <!-- Selected crag information section with the same width as the bottom-sheet -->
+          <div
+            class="absolute w-full max-w-[30rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0"
+          >
+            <button
+              tuiCardLarge
+              tuiAppearance="floating"
+              class="relative pointer-events-auto m-4 sm:w-full"
+              (click.zoneless)="router.navigate(['/area', c.area_slug, c.slug])"
+            >
+              <div class="flex flex-col min-w-0 grow">
+                <header tuiHeader>
+                  <h2 tuiTitle>{{ c.name }}</h2>
+                </header>
+                <section class="grid grid-cols-[1fr_auto] gap-2 items-stretch">
+                  <div class="flex flex-col justify-between">
+                    <a
+                      tuiSubtitle
+                      tuiLink
+                      appearance="action-grayscale"
+                      class="!text-xl w-fit"
+                      [routerLink]="['/area', c.area_slug]"
+                      (click.zoneless)="$event.stopPropagation()"
+                      >{{ c.area_name }}</a
+                    >
+                    <div
+                      class="text-xl h-full mb-7 content-center flex items-center gap-4"
+                    >
+                      <div>
                         {{ c.topos_count }}
                         {{
                           'labels.' + (c.topos_count === 1 ? 'topo' : 'topos')
@@ -424,22 +195,269 @@ import { mapLocationUrl, remToPx } from '../utils';
                             | lowercase
                         }}
                       </div>
+                      @if (c.approach) {
+                        <div
+                          class="flex w-fit items-center gap-1 opacity-70"
+                          [tuiHint]="
+                            isMobile ? null : ('labels.approach' | translate)
+                          "
+                        >
+                          <tui-icon icon="@tui.footprints" />
+                          <span class="whitespace-nowrap">
+                            {{ c.approach }}
+                            min.
+                          </span>
+                        </div>
+                      }
                     </div>
-                    <div class="flex items-center">
-                      <app-chart-routes-by-grade
-                        (click.zoneless)="$event.stopPropagation()"
-                        [grades]="c.grades"
-                      />
-                    </div>
-                  </section>
-                </div>
-              </button>
-            }
+                  </div>
+                  <div class="flex items-center">
+                    <app-chart-routes-by-grade
+                      (click.zoneless)="$event.stopPropagation()"
+                      [grades]="c.grades"
+                    />
+                  </div>
+                </section>
+              </div>
+            </button>
           </div>
-        </section>
-      }
-    </ng-template>
-  </div>`,
+        } @else if (global.selectedMapParkingItem(); as p) {
+          <!-- Selected parking information section -->
+          <div
+            class="absolute w-full max-w-[30rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0"
+          >
+            <div
+              tuiCardLarge
+              tuiAppearance="floating"
+              class="relative pointer-events-auto m-4 sm:w-full"
+            >
+              <div class="flex flex-col grow gap-2">
+                <header tuiHeader class="flex wrap gap-2">
+                  <h2 tuiTitle>{{ p.name }}</h2>
+                  <section class="text-sm opacity-80">
+                    @if (p.size) {
+                      <div
+                        class="flex w-fit items-center gap-1"
+                        [tuiHint]="
+                          isMobile ? null : ('labels.capacity' | translate)
+                        "
+                      >
+                        <tui-icon icon="@tui.car" />
+                        <span class="text-lg">
+                          x
+                          {{ p.size }}
+                        </span>
+                      </div>
+                    }
+                  </section>
+                  @if (global.isAdmin()) {
+                    <button
+                      size="s"
+                      appearance="neutral"
+                      iconStart="@tui.square-pen"
+                      tuiIconButton
+                      type="button"
+                      class="!rounded-full"
+                      (click.zoneless)="openEditParking(p)"
+                      [tuiHint]="'actions.edit' | translate"
+                    >
+                      {{ 'actions.edit' | translate }}
+                    </button>
+                  }
+                </header>
+                @if (p.latitude && p.longitude) {
+                  <button
+                    appearance="flat"
+                    size="m"
+                    tuiButton
+                    type="button"
+                    class="lw-icon-50"
+                    [iconStart]="'/image/google-maps.svg'"
+                    (click.zoneless)="
+                      openExternal(
+                        mapLocationUrl({
+                          latitude: p.latitude,
+                          longitude: p.longitude,
+                        })
+                      )
+                    "
+                    [attr.aria-label]="'actions.openGoogleMaps' | translate"
+                  >
+                    {{ 'actions.openGoogleMaps' | translate }}
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- BottomSheet (Mobile) / Sidebar (Desktop) -->
+        @let crags = mapCragItems();
+        @let areas = mapAreaItems();
+        @let loading =
+          global.mapResource.isLoading() || global.areasMapResource.isLoading();
+
+        @if (
+          !global.selectedMapCragItem() && !global.selectedMapParkingItem()
+        ) {
+          @if (loading) {
+            <div
+              class="absolute w-full h-full top-0 pointer-events-none z-50 flex items-center justify-center bg-base-100/30"
+            >
+              <tui-loader size="xxl" />
+            </div>
+          } @else if (areas.length || crags.length) {
+            @if (isMobile) {
+              <tui-bottom-sheet
+                #sheet
+                [stops]="stops"
+                class="z-50"
+                role="dialog"
+                aria-labelledby="areas-title crags-title"
+                (scroll.zoneless)="onSheetScroll($event)"
+              >
+                <ng-container *ngTemplateOutlet="listContent" />
+              </tui-bottom-sheet>
+            } @else {
+              <div
+                class="flex flex-col absolute right-0 top-0 z-1 h-full w-80 sm:w-96"
+              >
+                <tui-scrollbar class="h-full bg-[var(--tui-background-base)]">
+                  <ng-container *ngTemplateOutlet="listContent" />
+                </tui-scrollbar>
+              </div>
+            }
+          }
+        }
+      </div>
+
+      <ng-template #listContent>
+        @if (areas.length) {
+          <h3 tuiHeader id="areas-title" class="justify-center sm:pt-4">
+            <div class="flex flex-row align-items-center justify-center gap-2">
+              <tui-avatar
+                tuiThumbnail
+                size="l"
+                [src]="global.iconSrc()('zone')"
+                [attr.aria-label]="'labels.area' | translate"
+              />
+              <span tuiTitle class="justify-center">
+                {{ areas.length }}
+                {{
+                  'labels.' + (areas.length === 1 ? 'area' : 'areas')
+                    | translate
+                    | lowercase
+                }}
+              </span>
+            </div>
+          </h3>
+          <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-20">
+            <div class="grid gap-2">
+              @for (a of areas; track a.slug) {
+                <button
+                  class="p-6 rounded-3xl"
+                  [tuiAppearance]="a.liked ? 'outline-destructive' : 'outline'"
+                  (click.zoneless)="router.navigate(['/area', a.slug])"
+                >
+                  <div class="flex flex-col min-w-0 grow">
+                    <header tuiHeader>
+                      <h2 tuiTitle>{{ a.name }}</h2>
+                    </header>
+                    <section class="flex items-center justify-between gap-2">
+                      @if (a.crags_count; as count) {
+                        <div class="text-xl">
+                          {{ count }}
+                          {{
+                            'labels.' + (count === 1 ? 'crag' : 'crags')
+                              | translate
+                              | lowercase
+                          }}
+                        </div>
+                      }
+                      @if (a.grades; as grades) {
+                        <app-chart-routes-by-grade
+                          (click.zoneless)="$event.stopPropagation()"
+                          [grades]="grades"
+                        />
+                      }
+                    </section>
+                  </div>
+                </button>
+              }
+            </div>
+          </section>
+        }
+        @if (crags.length) {
+          <h3 tuiHeader id="crags-title" class="justify-center">
+            <div class="flex flex-row align-items-center justify-center gap-2">
+              <tui-avatar
+                tuiThumbnail
+                size="l"
+                [src]="global.iconSrc()('crag')"
+                class="self-center"
+                [attr.aria-label]="'labels.crag' | translate"
+              />
+              <span tuiTitle class="justify-center">
+                {{ crags.length }}
+                {{
+                  'labels.' + (crags.length === 1 ? 'crag' : 'crags')
+                    | translate
+                    | lowercase
+                }}
+              </span>
+            </div>
+          </h3>
+          <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-20">
+            <div class="grid gap-2">
+              @for (c of crags; track c.id) {
+                <button
+                  class="p-6 rounded-3xl"
+                  [tuiAppearance]="c.liked ? 'outline-destructive' : 'outline'"
+                  (click.zoneless)="
+                    router.navigate(['/area', c.area_slug, c.slug])
+                  "
+                >
+                  <div class="flex flex-col min-w-0 grow">
+                    <header tuiHeader>
+                      <h2 tuiTitle>{{ c.name }}</h2>
+                    </header>
+                    <section
+                      class="grid grid-cols-[1fr_auto] gap-2 items-stretch"
+                    >
+                      <div class="flex flex-col justify-between">
+                        <a
+                          tuiSubtitle
+                          tuiLink
+                          appearance="action-grayscale"
+                          [routerLink]="['/area', c.area_slug]"
+                          class="!text-xl w-fit"
+                          (click.zoneless)="$event.stopPropagation()"
+                          >{{ c.area_name }}</a
+                        >
+                        <div class="text-xl h-full mb-7 content-center">
+                          {{ c.topos_count }}
+                          {{
+                            'labels.' + (c.topos_count === 1 ? 'topo' : 'topos')
+                              | translate
+                              | lowercase
+                          }}
+                        </div>
+                      </div>
+                      <div class="flex items-center">
+                        <app-chart-routes-by-grade
+                          (click.zoneless)="$event.stopPropagation()"
+                          [grades]="c.grades"
+                        />
+                      </div>
+                    </section>
+                  </div>
+                </button>
+              }
+            </div>
+          </section>
+        }
+      </ng-template>
+    </div>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'flex grow min-h-0',
@@ -450,6 +468,7 @@ export class ExploreComponent {
   protected readonly router = inject(Router);
   private readonly filtersService = inject(FiltersService);
   private readonly parkingsService = inject(ParkingsService);
+  protected readonly areasService = inject(AreasService);
   private readonly _platformId = inject(PLATFORM_ID);
 
   protected readonly mapLocationUrl = mapLocationUrl;
@@ -555,6 +574,16 @@ export class ExploreComponent {
       this.global.areaListShade().length > 0
     );
   });
+
+  protected unifyVisibleAreas(): void {
+    const visibleAreaIds = new Set(
+      this.global.areasMapResource.value()?.map((ma) => ma.id),
+    );
+    const visibleAreas = this.global
+      .areaList()
+      .filter((a) => visibleAreaIds.has(a.id));
+    this.areasService.openUnifyAreas(visibleAreas);
+  }
 
   private isBrowser(): boolean {
     return isPlatformBrowser(this._platformId) && typeof window !== 'undefined';

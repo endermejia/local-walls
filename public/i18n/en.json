@@ -249,6 +249,7 @@
     "deleteConfirm": "Are you sure you want to delete area \"{{name}}\"? This action cannot be undone.",
     "empty": "No areas yet",
     "unifyTitle": "Unify areas",
+    "unifyVisibleAreas": "Unify visible areas",
     "unifyDescription": "Select areas to unify into one. All 8a.nu slugs will be preserved and sectors will be moved to the selected target area.",
     "targetArea": "Target area (will be kept)",
     "sourceAreas": "Source areas (will be deleted)",

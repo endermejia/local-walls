@@ -25,7 +25,7 @@ import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AreasService, GlobalData } from '../services';
-import { AreaDto } from '../models';
+import { AreaDto, AreaListItem } from '../models';
 
 @Component({
   selector: 'app-area-unify',
@@ -150,7 +150,10 @@ import { AreaDto } from '../models';
 })
 export class AreaUnifyComponent {
   protected readonly global = inject(GlobalData);
-  protected readonly context = injectContext<TuiDialogContext<boolean, void>>();
+  protected readonly context =
+    injectContext<
+      TuiDialogContext<boolean, AreaDto[] | AreaListItem[] | undefined>
+    >();
   private readonly areasService = inject(AreasService);
 
   protected readonly loading = signal(false);
@@ -158,6 +161,17 @@ export class AreaUnifyComponent {
   targetArea = new FormControl<AreaDto | null>(null, Validators.required);
   sourceAreas = new FormControl<AreaDto[]>([], Validators.required);
   newName = new FormControl<string>('');
+
+  constructor() {
+    const initialAreas = this.context.data;
+    if (initialAreas && initialAreas.length > 0) {
+      // Set the first area as target and the rest as sources
+      this.targetArea.setValue(initialAreas[0] as AreaDto);
+      if (initialAreas.length > 1) {
+        this.sourceAreas.setValue(initialAreas.slice(1) as AreaDto[]);
+      }
+    }
+  }
 
   protected readonly isInvalidArea = (item: AreaDto): boolean =>
     !this.global.areaList().some((a) => a.id === item.id);

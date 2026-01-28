@@ -14,7 +14,12 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
-import type { AreaDto, AreaInsertDto, AreaUpdateDto } from '../models';
+import type {
+  AreaDto,
+  AreaInsertDto,
+  AreaListItem,
+  AreaUpdateDto,
+} from '../models';
 
 import { AreaFormComponent } from '../pages/area-form';
 import { AreaUnifyComponent } from '../components/area-unify';
@@ -72,13 +77,14 @@ export class AreasService {
     });
   }
 
-  openUnifyAreas(): void {
+  openUnifyAreas(areas?: AreaDto[] | AreaListItem[]): void {
     void firstValueFrom(
       this.dialogs.open<boolean>(
         new PolymorpheusComponent(AreaUnifyComponent),
         {
           label: this.translate.instant('areas.unifyTitle'),
           size: 'm',
+          data: areas,
         },
       ),
     ).then((result) => {

@@ -252,6 +252,7 @@
     "deleteConfirm": "¿Seguro que quieres eliminar el área \"{{name}}\"? Esta acción no se puede deshacer.",
     "empty": "No hay áreas todavía",
     "unifyTitle": "Unificar áreas",
+    "unifyVisibleAreas": "Unificar áreas visibles",
     "unifyDescription": "Selecciona las áreas que quieres unificar en una sola. Se conservarán todos los slugs de 8a.nu y los sectores se moverán al área seleccionada.",
     "targetArea": "Área de destino (se mantendrá)",
     "sourceAreas": "Áreas de origen (se eliminarán)",
