@@ -110,23 +110,24 @@ export interface TopoRouteRow {
           <div class="mb-4">
             <app-section-header [title]="t.name" [showLike]="false">
               <!-- Shade info as title additional info -->
-              @if (shadeInfo(); as info) {
-                @let changeAt = 'filters.shade.changeAt' | translate;
-                @let hint =
-                  (info.label | translate) +
-                  (topo()?.shade_change_hour
-                    ? ' · ' + changeAt + ' ' + topo()?.shade_change_hour
-                    : '');
-                <tui-icon
-                  titleInfo
-                  [icon]="info.icon"
-                  class="text-2xl opacity-70"
-                  [tuiHint]="hint"
-                />
-              }
+              <ng-container titleInfo>
+                @if (shadeInfo(); as info) {
+                  @let changeAt = 'filters.shade.changeAt' | translate;
+                  @let hint =
+                    (info.label | translate) +
+                    (topo()?.shade_change_hour
+                      ? ' · ' + changeAt + ' ' + topo()?.shade_change_hour
+                      : '');
+                  <tui-icon
+                    [icon]="info.icon"
+                    class="text-2xl opacity-70"
+                    [tuiHint]="hint"
+                  />
+                }
+              </ng-container>
 
               <!-- Admin and utility action buttons -->
-              <div actionButtons class="flex gap-1">
+              <div actionButtons class="flex gap-2">
                 @if (global.isAdmin()) {
                   <button
                     tuiIconButton

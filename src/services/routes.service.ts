@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -8,6 +8,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 import { RouteFormComponent } from '../pages/route-form';
+import { RouteUnifyComponent } from '../components/route-unify';
 
 import type {
   EquipperDto,
@@ -27,6 +28,8 @@ export class RoutesService {
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
+
+  readonly loading = signal(false);
 
   openRouteForm(data: {
     cragId?: number;
@@ -58,6 +61,103 @@ export class RoutesService {
         this.global.routeDetailResource.reload();
       }
     });
+  }
+
+  openUnifyRoutes(): void {
+    void firstValueFrom(
+      this.dialogs.open<boolean>(
+        new PolymorpheusComponent(RouteUnifyComponent),
+        {
+          label: this.translate.instant('routes.unifyTitle'),
+          size: 'm',
+        },
+      ),
+    ).then((result) => {
+      if (result) {
+        this.global.cragRoutesResource.reload();
+      }
+    });
+  }
+
+  async unify(
+    targetRouteId: number,
+    sourceRouteIds: number[],
+    newName: string,
+  ): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    await this.supabase.whenReady();
+    this.loading.set(true);
+    try {
+      // 1. Get all slugs from source routes and target route
+      const { data: routes, error: fetchError } = await this.supabase.client
+        .from('routes')
+        .select('id, slug, eight_anu_route_slugs')
+        .in('id', [targetRouteId, ...sourceRouteIds]);
+
+      if (fetchError) throw fetchError;
+
+      const targetRoute = routes.find((a) => a.id === targetRouteId);
+      if (!targetRoute) throw new Error('Target route not found');
+
+      const allEightAnuSlugs = new Set<string>(
+        targetRoute.eight_anu_route_slugs || [],
+      );
+      for (const route of routes) {
+        if (route.eight_anu_route_slugs) {
+          route.eight_anu_route_slugs.forEach((s) => allEightAnuSlugs.add(s));
+        }
+        // Also add the current slug as an 8a.nu slug if it's not the target's slug
+        if (route.id !== targetRouteId) {
+          allEightAnuSlugs.add(route.slug);
+        }
+      }
+
+      // 2. Update related tables to point to the target route
+      const tablesToUpdate = [
+        'route_ascents',
+        'route_likes',
+        'route_projects',
+        'route_equippers',
+        'topo_routes',
+      ];
+
+      for (const table of tablesToUpdate) {
+        const { error } = await this.supabase.client
+          .from(table as any)
+          .update({ route_id: targetRouteId })
+          .in('route_id', sourceRouteIds);
+        if (error) throw error;
+      }
+
+      // 3. Update target route name and slugs
+      const { error: updateRouteError } = await this.supabase.client
+        .from('routes')
+        .update({
+          name: newName,
+          eight_anu_route_slugs: Array.from(allEightAnuSlugs),
+        })
+        .eq('id', targetRouteId);
+
+      if (updateRouteError) throw updateRouteError;
+
+      // 4. Delete source routes
+      const { error: deleteError } = await this.supabase.client
+        .from('routes')
+        .delete()
+        .in('id', sourceRouteIds);
+
+      if (deleteError) throw deleteError;
+
+      this.global.cragRoutesResource.reload();
+      this.toast.success('messages.toasts.routesUnified');
+      return true;
+    } catch (e) {
+      console.error('[RoutesService] unify error', e);
+      this.toast.error('errors.unexpected');
+      return false;
+    } finally {
+      this.loading.set(false);
+    }
   }
 
   async getRouteEquippers(routeId: number): Promise<EquipperDto[]> {
@@ -176,6 +276,19 @@ export class RoutesService {
     this.global.routeDetailResource.reload();
     this.toast.success('messages.toasts.routeUpdated');
     return data as RouteDto;
+  }
+
+  async getById(
+    id: number,
+  ): Promise<{ data: RouteDto | null; error: unknown }> {
+    if (!isPlatformBrowser(this.platformId)) return { data: null, error: null };
+    await this.supabase.whenReady();
+    const { data, error } = await this.supabase.client
+      .from('routes')
+      .select('*')
+      .eq('id', id)
+      .single();
+    return { data: data as RouteDto, error };
   }
 
   async delete(id: number): Promise<boolean> {

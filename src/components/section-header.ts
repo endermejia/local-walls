@@ -27,12 +27,14 @@ import { GlobalData } from '../services';
     TuiLink,
   ],
   template: `
-    <header class="flex flex-col gap-3 w-full">
+    <header class="flex flex-col w-full">
       <!-- Breadcrumb -->
-      @let breadcrumbs = global.breadcrumbs();
-      @if (breadcrumbs.length > 0) {
+      @let mobileBreadcrumbs = global.breadcrumbs();
+      @let desktopBreadcrumbs = global.slicedBreadcrumbs();
+      @let isMobile = global.isMobile();
+      @if (desktopBreadcrumbs.length && !isMobile) {
         <tui-breadcrumbs size="l" ngSkipHydration>
-          @for (item of breadcrumbs; track item.caption) {
+          @for (item of desktopBreadcrumbs; track item.caption) {
             <a
               *tuiItem
               tuiLink
@@ -49,16 +51,30 @@ import { GlobalData } from '../services';
       <div class="flex items-start justify-between gap-3">
         <!-- Title and additional info -->
         <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
-          <h1 class="text-2xl font-bold line-clamp-1">{{ title() }}</h1>
+          <h1 class="text-2xl font-bold line-clamp-1">
+            @if (isMobile) {
+              <tui-breadcrumbs size="l" [itemsLimit]="2" ngSkipHydration>
+                @for (item of mobileBreadcrumbs; track item.caption) {
+                  <a
+                    *tuiItem
+                    tuiLink
+                    [routerLink]="item.routerLink"
+                    class="text-xs opacity-60"
+                  >
+                    {{ item.caption | translate }}
+                  </a>
+                }
+              </tui-breadcrumbs>
+            } @else {
+              {{ title() }}
+            }
+          </h1>
           <!-- Additional title info (e.g., shade icon in topos) -->
           <ng-content select="[titleInfo]" />
         </div>
 
         <!-- Actions container -->
         <div class="flex flex-wrap items-center gap-2 shrink-0">
-          <!-- Custom action buttons slot -->
-          <ng-content select="[actionButtons]" />
-
           <!-- Like button -->
           @if (showLike()) {
             <button
@@ -84,6 +100,8 @@ import { GlobalData } from '../services';
               }}
             </button>
           }
+          <!-- Custom action buttons slot -->
+          <ng-content select="[actionButtons]" />
         </div>
       </div>
     </header>
@@ -92,6 +110,7 @@ import { GlobalData } from '../services';
 })
 export class SectionHeaderComponent {
   protected readonly global = inject(GlobalData);
+
   title = input.required<string>();
   liked = input(false);
   showLike = input(true);

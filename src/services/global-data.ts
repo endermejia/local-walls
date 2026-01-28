@@ -203,8 +203,12 @@ export class GlobalData {
       }
     }
 
-    return items.filter((i) => !!i.caption).slice(0, -1);
+    return items.filter((i) => !!i.caption);
   });
+
+  slicedBreadcrumbs: Signal<BreadcrumbItem[]> = computed(() =>
+    this.breadcrumbs().slice(0, -1),
+  );
 
   // ---- Auth (roles) ----
   readonly userProfile = computed(() => this.supabase.userProfile());

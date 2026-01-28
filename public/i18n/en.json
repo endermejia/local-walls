@@ -217,9 +217,11 @@
       "cragCreated": "Crag created",
       "cragUpdated": "Crag updated",
       "cragDeleted": "Crag deleted",
+      "cragsUnified": "Sectors unified successfully",
       "routeCreated": "Route created",
       "routeUpdated": "Route updated",
       "routeDeleted": "Route deleted",
+      "routesUnified": "Routes unified successfully",
       "topoCreated": "Topo created",
       "topoUpdated": "Topo updated",
       "topoDeleted": "Topo deleted",
@@ -256,7 +258,12 @@
     "newTitle": "Create new crag",
     "editTitle": "Edit crag",
     "deleteTitle": "Delete crag",
-    "deleteConfirm": "Are you sure you want to delete crag \"{{name}}\"? This action cannot be undone."
+    "deleteConfirm": "Are you sure you want to delete crag \"{{name}}\"? This action cannot be undone.",
+    "unifyTitle": "Unify sectors",
+    "unifyDescription": "Select sectors to unify into one. All 8a.nu slugs will be preserved and routes will be moved to the selected target sector.",
+    "targetCrag": "Target sector (will be kept)",
+    "sourceCrags": "Source sectors (will be deleted)",
+    "newName": "New name (optional)"
   },
   "topos": {
     "newTitle": "Create new topo",
@@ -278,7 +285,12 @@
     "deleteTitle": "Delete route",
     "deleteConfirm": "Are you sure you want to delete route \"{{name}}\"? This action cannot be undone.",
     "name": "Route name",
-    "height": "Height"
+    "height": "Height",
+    "unifyTitle": "Unify routes",
+    "unifyDescription": "Select routes to unify into one. All 8a.nu slugs will be preserved and ascents/likes/projects will be merged into the target route.",
+    "targetRoute": "Target route (will be kept)",
+    "sourceRoutes": "Source routes (will be deleted)",
+    "newName": "New name (optional)"
   },
   "admin": {
     "users": {

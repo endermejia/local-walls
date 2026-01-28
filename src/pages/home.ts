@@ -300,7 +300,7 @@ export class InfiniteScrollTriggerComponent
               </div>
             }
 
-            @if (ascents.length > 0 && !isLoading()) {
+            @if (ascents.length > 0 && !isLoading() && hasMore()) {
               <app-infinite-scroll-trigger (intersect)="loadMore()" />
             }
           } @else {
@@ -500,6 +500,7 @@ export class HomeComponent implements OnDestroy {
   // Infinite Scroll & Async Pipe for Ascents
   private readonly loadMore$ = new Subject<void>();
   protected readonly isLoading = signal(false);
+  protected readonly hasMore = signal(true);
 
   private readonly page$ = this.loadMore$.pipe(
     startWith(void 0),
@@ -545,7 +546,14 @@ export class HomeComponent implements OnDestroy {
       .range(fromIdx, toIdx)
       .overrideTypes<RouteAscentWithExtras[]>();
 
-    if (!ascents) return [];
+    if (!ascents || ascents.length === 0) {
+      this.hasMore.set(false);
+      return [];
+    }
+
+    if (ascents.length < size) {
+      this.hasMore.set(false);
+    }
 
     const userIds = [...new Set(ascents.map((a) => a.user_id))];
     const { data: profiles } = await this.supabase.client

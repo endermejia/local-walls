@@ -17,6 +17,7 @@ import { firstValueFrom } from 'rxjs';
 import type { CragDto, CragInsertDto, CragUpdateDto } from '../models';
 
 import { CragFormComponent } from '../pages/crag-form';
+import { CragUnifyComponent } from '../components/crag-unify';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
@@ -78,6 +79,94 @@ export class CragsService {
     });
   }
 
+  openUnifyCrags(): void {
+    void firstValueFrom(
+      this.dialogs.open<boolean>(
+        new PolymorpheusComponent(CragUnifyComponent),
+        {
+          label: this.translate.instant('crags.unifyTitle'),
+          size: 'm',
+        },
+      ),
+    ).then((result) => {
+      if (result) {
+        this.global.cragsListResource.reload();
+      }
+    });
+  }
+
+  async unify(
+    targetCragId: number,
+    sourceCragIds: number[],
+    newName: string,
+  ): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    await this.supabase.whenReady();
+    this.loading.set(true);
+    try {
+      // 1. Get all slugs from source crags and target crag
+      const { data: crags, error: fetchError } = await this.supabase.client
+        .from('crags')
+        .select('id, slug, eight_anu_sector_slugs')
+        .in('id', [targetCragId, ...sourceCragIds]);
+
+      if (fetchError) throw fetchError;
+
+      const targetCrag = crags.find((a) => a.id === targetCragId);
+      if (!targetCrag) throw new Error('Target crag not found');
+
+      const allEightAnuSlugs = new Set<string>(
+        targetCrag.eight_anu_sector_slugs || [],
+      );
+      for (const crag of crags) {
+        if (crag.eight_anu_sector_slugs) {
+          crag.eight_anu_sector_slugs.forEach((s) => allEightAnuSlugs.add(s));
+        }
+        // Also add the current slug as an 8a.nu slug if it's not the target's slug
+        if (crag.id !== targetCragId) {
+          allEightAnuSlugs.add(crag.slug);
+        }
+      }
+
+      // 2. Update routes to point to the target crag
+      const { error: updateRoutesError } = await this.supabase.client
+        .from('routes')
+        .update({ crag_id: targetCragId })
+        .in('crag_id', sourceCragIds);
+
+      if (updateRoutesError) throw updateRoutesError;
+
+      // 3. Update target crag name and slugs
+      const { error: updateCragError } = await this.supabase.client
+        .from('crags')
+        .update({
+          name: newName,
+          eight_anu_sector_slugs: Array.from(allEightAnuSlugs),
+        })
+        .eq('id', targetCragId);
+
+      if (updateCragError) throw updateCragError;
+
+      // 4. Delete source crags
+      const { error: deleteError } = await this.supabase.client
+        .from('crags')
+        .delete()
+        .in('id', sourceCragIds);
+
+      if (deleteError) throw deleteError;
+
+      this.global.cragsListResource.reload();
+      this.toast.success('messages.toasts.cragsUnified');
+      return true;
+    } catch (e) {
+      console.error('[CragsService] unify error', e);
+      this.toast.error('errors.unexpected');
+      return false;
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
   async create(
     payload: Omit<CragInsertDto, 'created_at' | 'id'>,
   ): Promise<CragDto | null> {
@@ -119,6 +208,17 @@ export class CragsService {
     this.global.cragDetailResource.reload();
     this.toast.success('messages.toasts.cragUpdated');
     return data as CragDto;
+  }
+
+  async getById(id: number): Promise<{ data: CragDto | null; error: unknown }> {
+    if (!isPlatformBrowser(this.platformId)) return { data: null, error: null };
+    await this.supabase.whenReady();
+    const { data, error } = await this.supabase.client
+      .from('crags')
+      .select('*')
+      .eq('id', id)
+      .single();
+    return { data: data as CragDto, error };
   }
 
   /** Delete a crag by id. Returns true if deleted. */

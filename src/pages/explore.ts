@@ -458,7 +458,7 @@ export class ExploreComponent {
     this.global.resetDataByPage('explore');
   }
 
-  protected readonly stops = ['7rem'] as const;
+  protected readonly stops = ['6.5rem'] as const;
 
   @ViewChild('sheet', { read: ElementRef }) sheetRef?: ElementRef<HTMLElement>;
 

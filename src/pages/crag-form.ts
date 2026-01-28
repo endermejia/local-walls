@@ -19,7 +19,7 @@ import {
   TuiTextfield,
 } from '@taiga-ui/core';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { TuiInputNumber, TuiTextarea } from '@taiga-ui/kit';
+import { TuiInputNumber, TuiTextarea, TuiInputChip } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -55,6 +55,7 @@ interface MinimalCrag {
     TuiInputNumber,
     TuiTextarea,
     TuiNumberFormat,
+    TuiInputChip,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
@@ -72,6 +73,25 @@ interface MinimalCrag {
           <tui-error [error]="'errors.required' | translate" />
         }
       </tui-textfield>
+
+      @if (isEdit()) {
+        <tui-textfield [tuiTextfieldCleaner]="false">
+          <label tuiLabel for="crag-slug">{{
+            'labels.slug' | translate
+          }}</label>
+          <input
+            tuiTextfield
+            id="crag-slug"
+            [formControl]="slug"
+            type="text"
+            required
+            [invalid]="slug.invalid && slug.touched"
+          />
+          @if (slug.invalid && slug.touched) {
+            <tui-error [error]="'errors.required' | translate" />
+          }
+        </tui-textfield>
+      }
 
       <div class="flex flex-wrap items-center gap-4">
         <h3 class="font-bold text-lg">{{ 'labels.location' | translate }}</h3>
@@ -198,6 +218,20 @@ interface MinimalCrag {
         ></textarea>
       </tui-textfield>
 
+      @if (isEdit()) {
+        <tui-textfield multi class="block">
+          <label tuiLabel for="eight-anu-slugs">
+            {{ 'import8a.slugs' | translate }}
+          </label>
+          <input
+            tuiInputChip
+            id="eight-anu-slugs"
+            [formControl]="eight_anu_sector_slugs"
+          />
+          <tui-input-chip *tuiItem />
+        </tui-textfield>
+      }
+
       <div class="flex flex-wrap gap-2 justify-end">
         <button
           tuiButton
@@ -208,7 +242,11 @@ interface MinimalCrag {
           {{ 'actions.cancel' | translate }}
         </button>
         <button
-          [disabled]="name.invalid || (!name.dirty && !isEdit())"
+          [disabled]="
+            name.invalid ||
+            (isEdit() && slug.invalid) ||
+            (!name.dirty && !isEdit())
+          "
           tuiButton
           appearance="primary"
           type="submit"
@@ -265,6 +303,10 @@ export class CragFormComponent {
     nonNullable: true,
     validators: [Validators.required],
   });
+  slug = new FormControl<string>('', {
+    nonNullable: true,
+    validators: [Validators.required],
+  });
   latitude = new FormControl<number | null>(null, [
     Validators.min(-90),
     Validators.max(90),
@@ -278,6 +320,7 @@ export class CragFormComponent {
   description_en = new FormControl<string | null>(null);
   warning_es = new FormControl<string | null>(null);
   warning_en = new FormControl<string | null>(null);
+  eight_anu_sector_slugs = new FormControl<string[] | null>([]);
 
   private editingId: number | null = null;
   private editingAreaId: number | null = null;
@@ -290,6 +333,7 @@ export class CragFormComponent {
       this.editingId = data.id;
       this.editingAreaId = data.area_id;
       this.name.setValue(data.name ?? '');
+      this.slug.setValue(data.slug ?? '');
       this.latitude.setValue(data.latitude ?? null);
       this.longitude.setValue(data.longitude ?? null);
       this.approach.setValue(data.approach ?? null);
@@ -297,7 +341,16 @@ export class CragFormComponent {
       this.description_en.setValue(data.description_en ?? null);
       this.warning_es.setValue(data.warning_es ?? null);
       this.warning_en.setValue(data.warning_en ?? null);
+      this.fetchFullCragData(data.id);
     });
+  }
+
+  private async fetchFullCragData(id: number) {
+    const { data, error } = await this.crags.getById(id);
+    if (data && !error) {
+      this.eight_anu_sector_slugs.setValue(data.eight_anu_sector_slugs || []);
+      this.name.markAsPristine();
+    }
   }
 
   async onSubmit(event?: Event): Promise<void> {
@@ -310,6 +363,7 @@ export class CragFormComponent {
     const name = this.name.value;
     const base = {
       name,
+      slug: this.slug.value,
       latitude: this.latitude.value,
       longitude: this.longitude.value,
       approach: this.approach.value,
@@ -317,6 +371,7 @@ export class CragFormComponent {
       description_en: this.description_en.value,
       warning_es: this.warning_es.value,
       warning_en: this.warning_en.value,
+      eight_anu_sector_slugs: this.eight_anu_sector_slugs.value,
     };
 
     try {
@@ -329,8 +384,8 @@ export class CragFormComponent {
         if (!area_id) return; // area required to create
         await this.crags.create({
           area_id,
-          slug: slugify(name),
           ...base,
+          slug: slugify(name),
         });
       }
       if (this._dialogCtx) {

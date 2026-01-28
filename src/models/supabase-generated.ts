@@ -1074,6 +1074,7 @@ export interface Database {
           created_at: string;
           description_en: string | null;
           description_es: string | null;
+          eight_anu_sector_slugs: string[] | null;
           id: number;
           latitude: number | null;
           longitude: number | null;
@@ -1088,6 +1089,7 @@ export interface Database {
           created_at?: string;
           description_en?: string | null;
           description_es?: string | null;
+          eight_anu_sector_slugs?: string[] | null;
           id?: number;
           latitude?: number | null;
           longitude?: number | null;
@@ -1102,6 +1104,7 @@ export interface Database {
           created_at?: string;
           description_en?: string | null;
           description_es?: string | null;
+          eight_anu_sector_slugs?: string[] | null;
           id?: number;
           latitude?: number | null;
           longitude?: number | null;
@@ -1401,6 +1404,7 @@ export interface Database {
           climbing_kind: Database['public']['Enums']['climbing_kind'];
           crag_id: number;
           created_at: string;
+          eight_anu_route_slugs: string[] | null;
           grade: number;
           height: number | null;
           id: number;
@@ -1411,6 +1415,7 @@ export interface Database {
           climbing_kind: Database['public']['Enums']['climbing_kind'];
           crag_id: number;
           created_at?: string;
+          eight_anu_route_slugs?: string[] | null;
           grade: number;
           height?: number | null;
           id?: number;
@@ -1421,6 +1426,7 @@ export interface Database {
           climbing_kind?: Database['public']['Enums']['climbing_kind'];
           crag_id?: number;
           created_at?: string;
+          eight_anu_route_slugs?: string[] | null;
           grade?: number;
           height?: number | null;
           id?: number;

@@ -114,7 +114,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
             >
               <!-- Admin action buttons -->
               @if (isAdmin) {
-                <div actionButtons class="flex gap-1">
+                <div actionButtons class="flex gap-2">
                   <button
                     size="s"
                     appearance="neutral"
@@ -474,16 +474,28 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
               </h2>
             </div>
             @if (isAdmin) {
-              <button
-                tuiButton
-                appearance="textfield"
-                size="s"
-                type="button"
-                (click.zoneless)="openCreateRoute()"
-                [iconStart]="'@tui.plus'"
-              >
-                {{ 'actions.new' | translate }}
-              </button>
+              <div class="flex gap-2">
+                <button
+                  tuiButton
+                  appearance="textfield"
+                  size="s"
+                  type="button"
+                  (click.zoneless)="routesService.openUnifyRoutes()"
+                  [iconStart]="'@tui.blend'"
+                >
+                  {{ 'actions.unify' | translate }}
+                </button>
+                <button
+                  tuiButton
+                  appearance="textfield"
+                  size="s"
+                  type="button"
+                  (click.zoneless)="openCreateRoute()"
+                  [iconStart]="'@tui.plus'"
+                >
+                  {{ 'actions.new' | translate }}
+                </button>
+              </div>
             }
           </div>
 
@@ -534,15 +546,15 @@ export class CragComponent {
   protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
-  private readonly routesService = inject(RoutesService);
-  private readonly parkingsService = inject(ParkingsService);
-  private readonly cragsService = inject(CragsService);
-  private readonly toposService = inject(ToposService);
-  private readonly filtersService = inject(FiltersService);
-  private readonly platformId = inject(PLATFORM_ID);
-  private readonly toast = inject(ToastService);
-  private readonly translate = inject(TranslateService);
-  private readonly dialogs = inject(TuiDialogService);
+  protected readonly routesService = inject(RoutesService);
+  protected readonly parkingsService = inject(ParkingsService);
+  protected readonly cragsService = inject(CragsService);
+  protected readonly toposService = inject(ToposService);
+  protected readonly filtersService = inject(FiltersService);
+  protected readonly platformId = inject(PLATFORM_ID);
+  protected readonly toast = inject(ToastService);
+  protected readonly translate = inject(TranslateService);
+  protected readonly dialogs = inject(TuiDialogService);
 
   protected readonly mapLocationUrl = mapLocationUrl;
 

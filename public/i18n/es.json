@@ -13,7 +13,7 @@
     "edit": "Editar",
     "follow": "Seguir",
     "import": "Importar",
-    "unfollow": "Dejar de seguir",
+    "unfollow": "Siguiendo",
     "unfollowTitle": "Dejar de seguir",
     "unfollowConfirm": "¿Seguro que quieres dejar de seguir a {{name}}?",
     "unify": "Unificar",
@@ -220,9 +220,11 @@
       "cragCreated": "Sector creado",
       "cragUpdated": "Sector actualizado",
       "cragDeleted": "Sector eliminado",
+      "cragsUnified": "Sectores unificados correctamente",
       "routeCreated": "Vía creada",
       "routeUpdated": "Vía actualizada",
       "routeDeleted": "Vía eliminada",
+      "routesUnified": "Vías unificadas correctamente",
       "topoCreated": "Croquis creado",
       "topoUpdated": "Croquis actualizado",
       "topoDeleted": "Croquis eliminado",
@@ -259,7 +261,12 @@
     "newTitle": "Nuevo sector",
     "editTitle": "Editar sector",
     "deleteTitle": "Eliminar sector",
-    "deleteConfirm": "¿Seguro que quieres eliminar el sector \"{{name}}\"? Esta acción no se puede deshacer."
+    "deleteConfirm": "¿Seguro que quieres eliminar el sector \"{{name}}\"? Esta acción no se puede deshacer.",
+    "unifyTitle": "Unificar sectores",
+    "unifyDescription": "Selecciona los sectores que quieres unificar en uno solo. Se conservarán todos los slugs de 8a.nu y las vías se moverán al sector seleccionado.",
+    "targetCrag": "Sector de destino (se mantendrá)",
+    "sourceCrags": "Sectores de origen (se eliminarán)",
+    "newName": "Nuevo nombre (opcional)"
   },
   "topos": {
     "newTitle": "Nuevo croquis",
@@ -281,7 +288,12 @@
     "deleteTitle": "Eliminar vía",
     "deleteConfirm": "¿Seguro que quieres eliminar la vía \"{{name}}\"? Esta acción no se puede deshacer.",
     "name": "Nombre",
-    "height": "Altura"
+    "height": "Altura",
+    "unifyTitle": "Unificar vías",
+    "unifyDescription": "Selecciona las vías que quieres unificar en una sola. Se conservarán todos los slugs de 8a.nu y los encadenes/likes/proyectos se combinarán en la vía de destino.",
+    "targetRoute": "Vía de destino (se mantendrá)",
+    "sourceRoutes": "Vías de origen (se eliminarán)",
+    "newName": "Nuevo nombre (opcional)"
   },
   "admin": {
     "users": {

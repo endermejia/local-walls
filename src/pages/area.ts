@@ -82,55 +82,57 @@ import { handleErrorToast } from '../utils';
   template: `
     <tui-scrollbar class="flex grow">
       <section class="w-full max-w-5xl mx-auto p-4">
+        @let isAdmin = global.isAdmin();
+        @let isEquipper = global.isEquipper();
         @if (global.selectedArea(); as area) {
-          <div class="mb-4 flex justify-between gap-2">
+          <div class="mb-4">
             <app-section-header
               class="w-full"
               [title]="area.name"
               [liked]="area.liked"
               (toggleLike)="onToggleLike()"
-            />
-            @if (global.isAdmin()) {
-              <button
-                size="s"
-                appearance="neutral"
-                iconStart="@tui.square-pen"
-                tuiIconButton
-                type="button"
-                class="!rounded-full"
-                [tuiHint]="
-                  global.isMobile() ? null : ('actions.edit' | translate)
-                "
-                (click.zoneless)="openEditArea()"
-              >
-                {{ 'actions.edit' | translate }}
-              </button>
-              <button
-                size="s"
-                appearance="negative"
-                iconStart="@tui.trash"
-                tuiIconButton
-                type="button"
-                class="!rounded-full"
-                [tuiHint]="
-                  global.isMobile() ? null : ('actions.delete' | translate)
-                "
-                (click.zoneless)="deleteArea()"
-              >
-                {{ 'actions.delete' | translate }}
-              </button>
-            }
+            >
+              @if (isAdmin) {
+                <div actionButtons class="flex gap-2">
+                  <button
+                    size="s"
+                    appearance="neutral"
+                    iconStart="@tui.square-pen"
+                    tuiIconButton
+                    type="button"
+                    class="!rounded-full"
+                    [tuiHint]="
+                      global.isMobile() ? null : ('actions.edit' | translate)
+                    "
+                    (click.zoneless)="openEditArea()"
+                  >
+                    {{ 'actions.edit' | translate }}
+                  </button>
+                  <button
+                    size="s"
+                    appearance="negative"
+                    iconStart="@tui.trash"
+                    tuiIconButton
+                    type="button"
+                    class="!rounded-full"
+                    [tuiHint]="
+                      global.isMobile() ? null : ('actions.delete' | translate)
+                    "
+                    (click.zoneless)="deleteArea()"
+                  >
+                    {{ 'actions.delete' | translate }}
+                  </button>
+                </div>
+              }
+            </app-section-header>
           </div>
 
           <div class="mb-4 flex justify-end">
             <app-chart-routes-by-grade [grades]="area.grades" />
           </div>
 
-          <!-- Crags list -->
-          @let crags = filteredCrags();
-          @let cragsCount = crags.length;
-          <div class="flex items-center justify-between gap-2">
-            <h2 class="text-2xl font-semibold">
+          <div class="flex items-center justify-between gap-2 mb-4">
+            <div class="flex items-center w-full sm:w-auto gap-2">
               <tui-avatar
                 tuiThumbnail
                 size="l"
@@ -138,24 +140,38 @@ import { handleErrorToast } from '../utils';
                 class="self-center"
                 [attr.aria-label]="'labels.crag' | translate"
               />
-              {{ cragsCount }}
-              {{
-                'labels.' + (cragsCount === 1 ? 'crag' : 'crags')
-                  | translate
-                  | lowercase
-              }}
-            </h2>
-            @if (global.isAdmin()) {
-              <button
-                tuiButton
-                appearance="textfield"
-                size="s"
-                type="button"
-                (click.zoneless)="openCreateCrag()"
-                [iconStart]="'@tui.plus'"
-              >
-                {{ 'actions.new' | translate }}
-              </button>
+              <h2 class="text-2xl font-semibold">
+                {{ cragsCount() }}
+                {{
+                  'labels.' + (cragsCount() === 1 ? 'crag' : 'crags')
+                    | translate
+                    | lowercase
+                }}
+              </h2>
+            </div>
+            @if (isAdmin || isEquipper) {
+              <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
+                <button
+                  tuiButton
+                  appearance="textfield"
+                  size="s"
+                  type="button"
+                  (click.zoneless)="cragsService.openUnifyCrags()"
+                  [iconStart]="'@tui.blend'"
+                >
+                  {{ 'actions.unify' | translate }}
+                </button>
+                <button
+                  tuiButton
+                  appearance="textfield"
+                  size="s"
+                  type="button"
+                  (click.zoneless)="openCreateCrag()"
+                  [iconStart]="'@tui.plus'"
+                >
+                  {{ 'actions.new' | translate }}
+                </button>
+              </div>
             }
           </div>
 
@@ -198,7 +214,7 @@ import { handleErrorToast } from '../utils';
           </div>
 
           <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
-            @for (crag of crags; track crag.slug) {
+            @for (crag of crags(); track crag.slug) {
               <button
                 class="p-6 rounded-3xl"
                 [tuiAppearance]="crag.liked ? 'outline-destructive' : 'outline'"
@@ -241,12 +257,12 @@ export class AreaComponent {
   protected readonly global = inject(GlobalData);
   protected readonly router = inject(Router);
   protected readonly toast = inject(ToastService);
-  private readonly platformId = inject(PLATFORM_ID);
-  private readonly areas = inject(AreasService);
-  private readonly cragsService = inject(CragsService);
-  private readonly dialogs = inject(TuiDialogService);
-  private readonly translate = inject(TranslateService);
-  private readonly filtersService = inject(FiltersService);
+  protected readonly platformId = inject(PLATFORM_ID);
+  protected readonly areas = inject(AreasService);
+  protected readonly cragsService = inject(CragsService);
+  protected readonly dialogs = inject(TuiDialogService);
+  protected readonly translate = inject(TranslateService);
+  protected readonly filtersService = inject(FiltersService);
 
   areaSlug: InputSignal<string> = input.required<string>();
   readonly query: WritableSignal<string> = signal('');
@@ -321,6 +337,9 @@ export class AreaComponent {
         textMatches(c) && gradeMatches(c) && kindMatches(c) && shadeMatches(c),
     );
   });
+
+  protected readonly crags = computed(() => this.filteredCrags());
+  protected readonly cragsCount = computed(() => this.filteredCrags().length);
 
   constructor() {
     effect(() => {

@@ -72,37 +72,40 @@ import { handleErrorToast } from '../utils';
             [title]="r.name"
             [liked]="r.liked"
             (toggleLike)="routesService.toggleRouteLike(r.id, r)"
-          />
-          @if (global.isAdmin()) {
-            <button
-              size="s"
-              appearance="neutral"
-              iconStart="@tui.square-pen"
-              tuiIconButton
-              type="button"
-              class="!rounded-full"
-              [tuiHint]="
-                global.isMobile() ? null : ('actions.edit' | translate)
-              "
-              (click.zoneless)="openEditRoute()"
-            >
-              {{ 'actions.edit' | translate }}
-            </button>
-            <button
-              size="s"
-              appearance="negative"
-              iconStart="@tui.trash"
-              tuiIconButton
-              type="button"
-              class="!rounded-full"
-              [tuiHint]="
-                global.isMobile() ? null : ('actions.delete' | translate)
-              "
-              (click.zoneless)="deleteRoute()"
-            >
-              {{ 'actions.delete' | translate }}
-            </button>
-          }
+          >
+            @if (global.isAdmin()) {
+              <div actionButtons class="flex gap-2">
+                <button
+                  size="s"
+                  appearance="neutral"
+                  iconStart="@tui.square-pen"
+                  tuiIconButton
+                  type="button"
+                  class="!rounded-full"
+                  [tuiHint]="
+                    global.isMobile() ? null : ('actions.edit' | translate)
+                  "
+                  (click.zoneless)="openEditRoute()"
+                >
+                  {{ 'actions.edit' | translate }}
+                </button>
+                <button
+                  size="s"
+                  appearance="negative"
+                  iconStart="@tui.trash"
+                  tuiIconButton
+                  type="button"
+                  class="!rounded-full"
+                  [tuiHint]="
+                    global.isMobile() ? null : ('actions.delete' | translate)
+                  "
+                  (click.zoneless)="deleteRoute()"
+                >
+                  {{ 'actions.delete' | translate }}
+                </button>
+              </div>
+            }
+          </app-section-header>
         </div>
 
         <!-- Chart and Stats Grid -->

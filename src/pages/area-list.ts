@@ -88,7 +88,7 @@ import {
                 size="s"
                 type="button"
                 (click.zoneless)="areasService.openUnifyAreas()"
-                [iconStart]="'@tui.merge'"
+                [iconStart]="'@tui.blend'"
               >
                 {{ 'actions.unify' | translate }}
               </button>

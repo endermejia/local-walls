@@ -14,7 +14,13 @@ import {
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { TuiIdentityMatcher } from '@taiga-ui/cdk';
-import { TuiButton, TuiDataList, TuiLabel, TuiTextfield } from '@taiga-ui/core';
+import {
+  TuiButton,
+  TuiDataList,
+  TuiError,
+  TuiLabel,
+  TuiTextfield,
+} from '@taiga-ui/core';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import {
   TuiChevron,
@@ -58,6 +64,7 @@ interface MinimalRoute {
     CommonModule,
     ReactiveFormsModule,
     TuiButton,
+    TuiError,
     TuiLabel,
     TuiTextfield,
     TranslatePipe,
@@ -76,6 +83,23 @@ interface MinimalRoute {
         <label tuiLabel for="name">{{ 'routes.name' | translate }}</label>
         <input tuiTextfield id="name" [formControl]="name" autocomplete="off" />
       </tui-textfield>
+
+      @if (isEdit()) {
+        <tui-textfield [tuiTextfieldCleaner]="false">
+          <label tuiLabel for="slug">{{ 'labels.slug' | translate }}</label>
+          <input
+            tuiTextfield
+            id="slug"
+            [formControl]="slug"
+            type="text"
+            required
+            [invalid]="slug.invalid && slug.touched"
+          />
+          @if (slug.invalid && slug.touched) {
+            <tui-error [error]="'errors.required' | translate" />
+          }
+        </tui-textfield>
+      }
 
       <tui-textfield
         multi
@@ -197,6 +221,20 @@ interface MinimalRoute {
         </div>
       </div>
 
+      @if (isEdit()) {
+        <tui-textfield multi class="block">
+          <label tuiLabel for="eight-anu-slugs">
+            {{ 'import8a.slugs' | translate }}
+          </label>
+          <input
+            tuiInputChip
+            id="eight-anu-slugs"
+            [formControl]="eight_anu_route_slugs"
+          />
+          <tui-input-chip *tuiItem />
+        </tui-textfield>
+      }
+
       <div class="flex flex-wrap gap-2 justify-end">
         <button
           tuiButton
@@ -271,6 +309,10 @@ export class RouteFormComponent {
     nonNullable: true,
     validators: [Validators.required],
   });
+  slug = new FormControl<string>('', {
+    nonNullable: true,
+    validators: [Validators.required],
+  });
   grade = new FormControl<number>(23, {
     nonNullable: true,
     validators: [Validators.required],
@@ -283,6 +325,7 @@ export class RouteFormComponent {
   equippers = new FormControl<readonly (EquipperDto | string)[]>([], {
     nonNullable: true,
   });
+  eight_anu_route_slugs = new FormControl<string[] | null>([]);
 
   private editingId: number | null = null;
 
@@ -346,6 +389,7 @@ export class RouteFormComponent {
       if (!data) return;
       this.editingId = data.id;
       this.name.setValue(data.name);
+      this.slug.setValue(data.slug);
       this.grade.setValue(data.grade);
       this.climbing_kind.setValue(data.climbing_kind);
       this.height.setValue(data.height ?? null);
@@ -353,7 +397,17 @@ export class RouteFormComponent {
       // Load equippers
       const equippers = await this.routes.getRouteEquippers(data.id);
       this.equippers.setValue(equippers);
+
+      this.fetchFullRouteData(data.id);
     });
+  }
+
+  private async fetchFullRouteData(id: number) {
+    const { data, error } = await this.routes.getById(id);
+    if (data && !error) {
+      this.eight_anu_route_slugs.setValue(data.eight_anu_route_slugs || []);
+      this.name.markAsPristine();
+    }
   }
 
   async onSubmit(event: Event): Promise<void> {
@@ -374,9 +428,11 @@ export class RouteFormComponent {
       if (this.isEdit() && this.editingId) {
         result = await this.routes.update(this.editingId, {
           name,
+          slug: this.slug.value,
           grade,
           climbing_kind,
           height,
+          eight_anu_route_slugs: this.eight_anu_route_slugs.value,
         });
       } else if (crag_id) {
         result = await this.routes.create({
