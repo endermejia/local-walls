@@ -51,9 +51,9 @@ import {
 } from '../services';
 
 import {
+  BreadcrumbComponent,
   ChartRoutesByGradeComponent,
   EmptyStateComponent,
-  SectionHeaderComponent,
 } from '../components';
 
 import { handleErrorToast } from '../utils';
@@ -62,10 +62,10 @@ import { handleErrorToast } from '../utils';
   selector: 'app-area',
   standalone: true,
   imports: [
+    BreadcrumbComponent,
     ChartRoutesByGradeComponent,
     EmptyStateComponent,
     LowerCasePipe,
-    SectionHeaderComponent,
     TranslatePipe,
     TuiAvatar,
     TuiBadgeNotification,
@@ -84,44 +84,70 @@ import { handleErrorToast } from '../utils';
     <tui-scrollbar class="flex grow">
       <section class="w-full max-w-5xl mx-auto p-4">
         @if (global.selectedArea(); as area) {
-          <div class="mb-4 flex justify-between gap-2">
-            <app-section-header
-              class="w-full"
-              [title]="area.name"
-              [liked]="area.liked"
-              (toggleLike)="onToggleLike()"
-            />
-            @if (global.isAdmin()) {
+          <app-breadcrumb />
+          <header class="mb-4 flex items-start justify-between gap-2">
+            <h1 class="text-2xl font-bold line-clamp-1">{{ area.name }}</h1>
+
+            <div
+              class="flex flex-wrap sm:flex-nowrap gap-2 justify-end items-center"
+            >
               <button
                 size="s"
-                appearance="neutral"
-                iconStart="@tui.square-pen"
+                [appearance]="area.liked ? 'accent' : 'neutral'"
+                iconStart="@tui.heart"
                 tuiIconButton
                 type="button"
                 class="!rounded-full"
                 [tuiHint]="
-                  global.isMobile() ? null : ('actions.edit' | translate)
+                  global.isMobile()
+                    ? null
+                    : ((area.liked
+                        ? 'actions.favorite.remove'
+                        : 'actions.favorite.add'
+                      ) | translate)
                 "
-                (click.zoneless)="openEditArea()"
+                (click.zoneless)="onToggleLike()"
               >
-                {{ 'actions.edit' | translate }}
+                {{
+                  (area.liked
+                    ? 'actions.favorite.remove'
+                    : 'actions.favorite.add'
+                  ) | translate
+                }}
               </button>
-              <button
-                size="s"
-                appearance="negative"
-                iconStart="@tui.trash"
-                tuiIconButton
-                type="button"
-                class="!rounded-full"
-                [tuiHint]="
-                  global.isMobile() ? null : ('actions.delete' | translate)
-                "
-                (click.zoneless)="deleteArea()"
-              >
-                {{ 'actions.delete' | translate }}
-              </button>
-            }
-          </div>
+
+              @if (global.isAdmin()) {
+                <button
+                  size="s"
+                  appearance="neutral"
+                  iconStart="@tui.square-pen"
+                  tuiIconButton
+                  type="button"
+                  class="!rounded-full"
+                  [tuiHint]="
+                    global.isMobile() ? null : ('actions.edit' | translate)
+                  "
+                  (click.zoneless)="openEditArea()"
+                >
+                  {{ 'actions.edit' | translate }}
+                </button>
+                <button
+                  size="s"
+                  appearance="negative"
+                  iconStart="@tui.trash"
+                  tuiIconButton
+                  type="button"
+                  class="!rounded-full"
+                  [tuiHint]="
+                    global.isMobile() ? null : ('actions.delete' | translate)
+                  "
+                  (click.zoneless)="deleteArea()"
+                >
+                  {{ 'actions.delete' | translate }}
+                </button>
+              }
+            </div>
+          </header>
 
           <div class="mb-4 flex justify-end">
             <app-chart-routes-by-grade [grades]="area.grades" />

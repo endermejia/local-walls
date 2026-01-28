@@ -62,8 +62,8 @@ import { TopoImagePipe } from '../pipes';
 
 import {
   AvatarGradeComponent,
+  BreadcrumbComponent,
   EmptyStateComponent,
-  SectionHeaderComponent,
 } from '../components';
 
 import { handleErrorToast } from '../utils';
@@ -84,9 +84,9 @@ export interface TopoRouteRow {
   selector: 'app-topo',
   standalone: true,
   imports: [
+    BreadcrumbComponent,
     EmptyStateComponent,
     TranslatePipe,
-    SectionHeaderComponent,
     TuiButton,
     TuiHint,
     TuiTable,
@@ -108,12 +108,10 @@ export interface TopoRouteRow {
     <div class="h-full w-full">
       <section class="flex flex-col w-full h-full max-w-5xl mx-auto p-4">
         @if (topo(); as t) {
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <app-section-header
-              class="grow"
-              [title]="t.name"
-              [showLike]="false"
-            >
+          <app-breadcrumb />
+          <header class="mb-4 flex flex-wrap items-start justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <h1 class="text-2xl font-bold line-clamp-1">{{ t.name }}</h1>
               @if (shadeInfo(); as info) {
                 @let changeAt = 'filters.shade.changeAt' | translate;
                 @let hint =
@@ -127,7 +125,7 @@ export interface TopoRouteRow {
                   [tuiHint]="hint"
                 />
               }
-            </app-section-header>
+            </div>
 
             <div class="flex flex-wrap gap-2 items-center">
               @if (global.isAdmin()) {
@@ -207,7 +205,7 @@ export interface TopoRouteRow {
                 Toggle image fit
               </button>
             </div>
-          </div>
+          </header>
 
           @if (allTopos().length > 1) {
             <tui-tabs [activeItemIndex]="currentTopoIndex()">

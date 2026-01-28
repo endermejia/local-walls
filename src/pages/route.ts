@@ -40,8 +40,8 @@ import {
 
 import {
   AscentsTableComponent,
+  BreadcrumbComponent,
   ChartAscentsByGradeComponent,
-  SectionHeaderComponent,
 } from '../components';
 
 import { handleErrorToast } from '../utils';
@@ -50,7 +50,7 @@ import { handleErrorToast } from '../utils';
   selector: 'app-route',
   standalone: true,
   imports: [
-    SectionHeaderComponent,
+    BreadcrumbComponent,
     TranslatePipe,
     TuiLoader,
     TuiAvatar,
@@ -67,44 +67,70 @@ import { handleErrorToast } from '../utils';
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
       @if (route(); as r) {
-        <div class="mb-4 flex items-center justify-between gap-2">
-          <app-section-header
-            class="w-full"
-            [title]="r.name"
-            [liked]="r.liked"
-            (toggleLike)="routesService.toggleRouteLike(r.id, r)"
-          />
-          @if (global.isAdmin()) {
+        <app-breadcrumb />
+        <header class="mb-4 flex items-start justify-between gap-2">
+          <h1 class="text-2xl font-bold line-clamp-1">{{ r.name }}</h1>
+
+          <div
+            class="flex flex-wrap sm:flex-nowrap gap-2 justify-end items-center"
+          >
             <button
               size="s"
-              appearance="neutral"
-              iconStart="@tui.square-pen"
+              [appearance]="r.liked ? 'accent' : 'neutral'"
+              iconStart="@tui.heart"
               tuiIconButton
               type="button"
               class="!rounded-full"
               [tuiHint]="
-                global.isMobile() ? null : ('actions.edit' | translate)
+                global.isMobile()
+                  ? null
+                  : ((r.liked
+                      ? 'actions.favorite.remove'
+                      : 'actions.favorite.add'
+                    ) | translate)
               "
-              (click.zoneless)="openEditRoute()"
+              (click.zoneless)="routesService.toggleRouteLike(r.id, r)"
             >
-              {{ 'actions.edit' | translate }}
+              {{
+                (r.liked
+                  ? 'actions.favorite.remove'
+                  : 'actions.favorite.add'
+                ) | translate
+              }}
             </button>
-            <button
-              size="s"
-              appearance="negative"
-              iconStart="@tui.trash"
-              tuiIconButton
-              type="button"
-              class="!rounded-full"
-              [tuiHint]="
-                global.isMobile() ? null : ('actions.delete' | translate)
-              "
-              (click.zoneless)="deleteRoute()"
-            >
-              {{ 'actions.delete' | translate }}
-            </button>
-          }
-        </div>
+
+            @if (global.isAdmin()) {
+              <button
+                size="s"
+                appearance="neutral"
+                iconStart="@tui.square-pen"
+                tuiIconButton
+                type="button"
+                class="!rounded-full"
+                [tuiHint]="
+                  global.isMobile() ? null : ('actions.edit' | translate)
+                "
+                (click.zoneless)="openEditRoute()"
+              >
+                {{ 'actions.edit' | translate }}
+              </button>
+              <button
+                size="s"
+                appearance="negative"
+                iconStart="@tui.trash"
+                tuiIconButton
+                type="button"
+                class="!rounded-full"
+                [tuiHint]="
+                  global.isMobile() ? null : ('actions.delete' | translate)
+                "
+                (click.zoneless)="deleteRoute()"
+              >
+                {{ 'actions.delete' | translate }}
+              </button>
+            }
+          </div>
+        </header>
 
         <!-- Chart and Stats Grid -->
         <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">

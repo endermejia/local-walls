@@ -1,6 +1,7 @@
 export * from './ascents-table';
 export * from './avatar-cropper';
 export * from './avatar-grade';
+export * from './breadcrumb';
 export * from './chart-ascents-by-grade';
 export * from './chart-routes-by-grade';
 export * from './empty-state';
@@ -9,5 +10,4 @@ export * from './import-8a';
 export * from './location-picker';
 export * from './map';
 export * from './routes-table';
-export * from './section-header';
 export * from './user-follows-list';

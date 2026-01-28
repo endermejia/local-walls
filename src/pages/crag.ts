@@ -65,10 +65,10 @@ import {
 import { TopoImagePipe } from '../pipes';
 
 import {
+  BreadcrumbComponent,
   ChartRoutesByGradeComponent,
   EmptyStateComponent,
   RoutesTableComponent,
-  SectionHeaderComponent,
 } from '../components';
 
 import { handleErrorToast, mapLocationUrl } from '../utils';
@@ -78,12 +78,12 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
   standalone: true,
   imports: [
     AsyncPipe,
+    BreadcrumbComponent,
     ChartRoutesByGradeComponent,
     EmptyStateComponent,
     FormsModule,
     LowerCasePipe,
     RoutesTableComponent,
-    SectionHeaderComponent,
     TopoImagePipe,
     TranslatePipe,
     TuiAvatar,
@@ -107,40 +107,66 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
         @let isMobile = global.isMobile();
         @let isAdmin = global.isAdmin();
         @if (cragDetail(); as c) {
-          <div class="mb-4 flex items-center justify-between gap-2">
-            <app-section-header
-              class="w-full"
-              [title]="c.name"
-              [liked]="c.liked"
-              (toggleLike)="onToggleLike()"
-            />
-            @if (isAdmin) {
+          <app-breadcrumb />
+          <header class="mb-4 flex items-start justify-between gap-2">
+            <h1 class="text-2xl font-bold line-clamp-1">{{ c.name }}</h1>
+
+            <div
+              class="flex flex-wrap sm:flex-nowrap gap-2 justify-end items-center"
+            >
               <button
                 size="s"
-                appearance="neutral"
-                iconStart="@tui.square-pen"
+                [appearance]="c.liked ? 'accent' : 'neutral'"
+                iconStart="@tui.heart"
                 tuiIconButton
                 type="button"
                 class="!rounded-full"
-                [tuiHint]="isMobile ? null : ('actions.edit' | translate)"
-                (click.zoneless)="openEditCrag()"
+                [tuiHint]="
+                  isMobile
+                    ? null
+                    : ((c.liked
+                        ? 'actions.favorite.remove'
+                        : 'actions.favorite.add'
+                      ) | translate)
+                "
+                (click.zoneless)="onToggleLike()"
               >
-                {{ 'actions.edit' | translate }}
+                {{
+                  (c.liked
+                    ? 'actions.favorite.remove'
+                    : 'actions.favorite.add'
+                  ) | translate
+                }}
               </button>
-              <button
-                size="s"
-                appearance="negative"
-                iconStart="@tui.trash"
-                tuiIconButton
-                type="button"
-                class="!rounded-full"
-                [tuiHint]="isMobile ? null : ('actions.delete' | translate)"
-                (click.zoneless)="deleteCrag()"
-              >
-                {{ 'actions.delete' | translate }}
-              </button>
-            }
-          </div>
+
+              @if (isAdmin) {
+                <button
+                  size="s"
+                  appearance="neutral"
+                  iconStart="@tui.square-pen"
+                  tuiIconButton
+                  type="button"
+                  class="!rounded-full"
+                  [tuiHint]="isMobile ? null : ('actions.edit' | translate)"
+                  (click.zoneless)="openEditCrag()"
+                >
+                  {{ 'actions.edit' | translate }}
+                </button>
+                <button
+                  size="s"
+                  appearance="negative"
+                  iconStart="@tui.trash"
+                  tuiIconButton
+                  type="button"
+                  class="!rounded-full"
+                  [tuiHint]="isMobile ? null : ('actions.delete' | translate)"
+                  (click.zoneless)="deleteCrag()"
+                >
+                  {{ 'actions.delete' | translate }}
+                </button>
+              }
+            </div>
+          </header>
 
           <div class="flex flex-col md:flex-row md:justify-between gap-4">
             <div class="flex flex-col gap-3 grow">
