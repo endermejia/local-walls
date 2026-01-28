@@ -18,11 +18,11 @@ import {
   TuiDropdown,
   TuiIcon,
   TuiLoader,
-  TuiOptGroup,
   TuiTextfield,
 } from '@taiga-ui/core';
+import { TuiSearchHotkey, TuiSearchResults } from '@taiga-ui/experimental';
 import { TuiAvatar, TuiRating } from '@taiga-ui/kit';
-import { TuiHeader } from '@taiga-ui/layout';
+import { TuiCell, TuiHeader, TuiInputSearch } from '@taiga-ui/layout';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
@@ -47,7 +47,7 @@ import {
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
-import { GlobalData, SupabaseService } from '../services';
+import { FollowsService, GlobalData, SupabaseService } from '../services';
 
 @Component({
   selector: 'app-infinite-scroll-trigger',
@@ -83,13 +83,16 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
     ReactiveFormsModule,
     RouterLink,
     TuiAvatar,
+    TuiCell,
     TuiDataList,
     TuiDropdown,
     TuiHeader,
     TuiIcon,
+    TuiInputSearch,
     TuiLoader,
-    TuiOptGroup,
     TuiRating,
+    TuiSearchHotkey,
+    TuiSearchResults,
     TuiTextfield,
     TranslatePipe,
     InfiniteScrollTriggerComponent,
@@ -97,59 +100,74 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
   template: `
     <div class="p-4 flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32">
       <!-- Search bar -->
-      <div
-        class="w-full sticky top-0 z-50 bg-[var(--tui-background-base)] py-2"
-        [tuiDropdown]="searchResults"
-        [tuiDropdownOpen]="control.value !== '' && (results$ | async) !== null"
-        tuiDropdownLimitWidth="fixed"
-      >
-        <tui-textfield class="w-full">
+      <div class="w-full sticky top-0 z-50 bg-[var(--tui-background-base)] py-2">
+        <tui-textfield (pointerdown.capture.stop)="(0)">
           <tui-icon tuiStart icon="@tui.search" />
           <input
-            #input
+            tuiSearchHotkey
             tuiTextfield
             autocomplete="off"
             [formControl]="control"
+            [tuiInputSearch]="search"
+            [(tuiInputSearchOpen)]="searchOpen"
             [placeholder]="'labels.searchPlaceholder' | translate"
           />
-        </tui-textfield>
-
-        <ng-template #searchResults>
-          <tui-data-list>
-            @if (results$ | async; as results) {
-              @for (group of results | keyvalue; track group.key) {
-                <tui-opt-group [label]="group.key">
-                  @for (item of group.value; track item.href) {
-                    <a
-                      tuiOption
-                      [routerLink]="item.href"
-                      (click)="control.setValue('')"
-                    >
-                      @if (group.key === ('labels.users' | translate)) {
-                        <tui-avatar
-                          [src]="item.icon || '@tui.user'"
-                          size="xs"
-                          class="mr-2"
-                        />
-                      } @else if (item.icon) {
-                        <tui-icon [icon]="item.icon" class="mr-2" />
-                      }
-                      <div class="flex flex-col">
-                        <span>{{ item.title }}</span>
-                        @if (item.subtitle) {
-                          <span class="text-xs opacity-60">{{
-                            item.subtitle
-                          }}</span>
-                        }
-                      </div>
-                    </a>
+          <ng-template #search>
+            <tui-search-results [results]="results$ | async">
+              <ng-template let-item>
+                <a
+                  tuiCell
+                  [routerLink]="item.href"
+                  (click)="control.setValue(''); searchOpen = false"
+                >
+                  @if (item.type === 'user') {
+                    <tui-avatar
+                      [src]="item.icon || '@tui.user'"
+                      size="xs"
+                      class="mr-2"
+                    />
+                  } @else if (item.icon) {
+                    <tui-icon [icon]="item.icon" class="mr-2" />
                   }
-                </tui-opt-group>
-              }
-            }
-          </tui-data-list>
-        </ng-template>
+                  <span tuiTitle>
+                    {{ item.title }}
+                    @if (item.subtitle) {
+                      <span tuiSubtitle>{{ item.subtitle }}</span>
+                    }
+                  </span>
+                </a>
+              </ng-template>
+            </tui-search-results>
+          </ng-template>
+        </tui-textfield>
       </div>
+
+      <!-- Active Crags -->
+      @if (activeCrags$ | async; as crags) {
+        @if (crags.length > 0) {
+          <div class="flex flex-col gap-2 mt-2">
+            <span class="text-xs font-bold opacity-60 uppercase px-1">
+              {{ 'labels.crags' | translate }}
+            </span>
+            <div
+              class="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide no-scrollbar"
+            >
+              @for (c of crags; track c.id) {
+                <a
+                  [routerLink]="['/area', c.area_slug, c.slug]"
+                  tuiAppearance="outline"
+                  class="flex-none p-3 rounded-2xl flex items-center gap-2 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
+                >
+                  <tui-icon icon="@tui.mountain" />
+                  <span class="whitespace-nowrap font-bold text-sm">{{
+                    c.name
+                  }}</span>
+                </a>
+              }
+            </div>
+          </div>
+        }
+      }
 
       <!-- Ascents Feed -->
       <div class="flex flex-col gap-6 mt-4">
@@ -170,7 +188,7 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
                 "
                 class="flex flex-col gap-4 p-4 rounded-3xl relative no-underline text-inherit hover:no-underline"
               >
-                <header tuiHeader>
+                <header tuiHeader class="flex justify-between items-center">
                   <div
                     role="link"
                     tabindex="0"
@@ -202,6 +220,21 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
                       </span>
                     </div>
                   </div>
+
+                  @if (
+                    ascent.user_id !== supabase.authUserId() &&
+                    !followedIds().has(ascent.user_id)
+                  ) {
+                    <button
+                      tuiButton
+                      size="s"
+                      appearance="primary"
+                      class="!rounded-full"
+                      (click)="$event.stopPropagation(); follow(ascent.user_id)"
+                    >
+                      {{ 'actions.follow' | translate }}
+                    </button>
+                  }
                 </header>
 
                 <div class="flex flex-col gap-1">
@@ -257,12 +290,6 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
           @if (ascents.length > 0 && !isLoading()) {
             <app-infinite-scroll-trigger (intersect)="loadMore()" />
           }
-
-          @if (ascents.length === 0 && !isLoading()) {
-            <div class="text-center py-20 text-gray-400">
-              {{ 'labels.noAscentsFollowed' | translate }}
-            </div>
-          }
         } @else {
           @if (isLoading()) {
             <div class="flex justify-center p-20">
@@ -282,12 +309,74 @@ export class HomeComponent implements OnDestroy {
   protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
+  private readonly followsService = inject(FollowsService);
   private readonly translate = inject(TranslateService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
+  protected readonly followedIds = signal<Set<string>>(new Set());
+
+  protected readonly activeCrags$ = from(this.fetchActiveCrags()).pipe(
+    shareReplay(1),
+  );
+
+  constructor() {
+    this.loadFollowedIds();
+  }
+
+  private async loadFollowedIds() {
+    if (!this.isBrowser) return;
+    const ids = await this.followsService.getFollowedIds();
+    this.followedIds.set(new Set(ids));
+  }
+
+  private async fetchActiveCrags() {
+    if (!this.isBrowser) return [];
+    await this.supabase.whenReady();
+    const { data } = await this.supabase.client
+      .from('route_ascents')
+      .select(
+        `
+        route:routes!inner(
+          crag:crags(
+            id, name, slug, area:areas(slug)
+          )
+        )
+      `,
+      )
+      .order('date', { ascending: false })
+      .limit(30);
+
+    const cragsMap = new Map<
+      number,
+      { id: number; name: string; slug: string; area_slug: string }
+    >();
+    data?.forEach((d) => {
+      const route = d.route as unknown as {
+        crag: {
+          id: number;
+          name: string;
+          slug: string;
+          area: { slug: string }[] | { slug: string };
+        }[];
+      };
+      const c = Array.isArray(route?.crag) ? route?.crag[0] : route?.crag;
+      if (c && !cragsMap.has(c.id)) {
+        const area = Array.isArray(c.area) ? c.area[0] : c.area;
+        cragsMap.set(c.id, {
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          area_slug: area?.slug,
+        });
+      }
+    });
+    return Array.from(cragsMap.values()).slice(0, 8);
+  }
+
   // Search logic
   protected readonly control = new FormControl('');
+  protected searchOpen = false;
 
   protected readonly results$ = this.control.valueChanges.pipe(
     map((v) => (v ?? '').trim()),
@@ -379,6 +468,7 @@ export class HomeComponent implements OnDestroy {
                   title: u.name,
                   href: `/profile/${u.id}`,
                   icon: this.supabase.buildAvatarUrl(u.avatar) || u.name[0],
+                  type: 'user',
                 }) as SearchItem,
             );
           }
@@ -415,14 +505,6 @@ export class HomeComponent implements OnDestroy {
     const userId = this.supabase.authUserId();
     if (!userId) return [];
 
-    const { data: follows } = await this.supabase.client
-      .from('user_follows')
-      .select('followed_user_id')
-      .eq('user_id', userId);
-
-    const followedIds = follows?.map((f) => f.followed_user_id) || [];
-    if (followedIds.length === 0) return [];
-
     const size = 10;
     const fromIdx = page * size;
     const toIdx = fromIdx + size - 1;
@@ -442,7 +524,7 @@ export class HomeComponent implements OnDestroy {
           )
         `,
       )
-      .in('user_id', followedIds)
+      .neq('user_id', userId)
       .order('date', { ascending: false })
       .range(fromIdx, toIdx)
       .overrideTypes<RouteAscentWithExtras[]>();
@@ -479,6 +561,17 @@ export class HomeComponent implements OnDestroy {
         route: mappedRoute,
       } as RouteAscentWithExtras;
     });
+  }
+
+  async follow(userId: string) {
+    const success = await this.followsService.follow(userId);
+    if (success) {
+      this.followedIds.update((s) => {
+        const next = new Set(s);
+        next.add(userId);
+        return next;
+      });
+    }
   }
 
   loadMore() {

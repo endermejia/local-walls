@@ -17,11 +17,13 @@ import { HeaderComponent } from '../components';
   imports: [RouterOutlet, TuiRoot, HeaderComponent],
   template: `
     <tui-root class="overflow-hidden" [attr.tuiTheme]="global.selectedTheme()">
-      <div class="h-[100dvh] flex flex-col">
-        <router-outlet />
+      <div class="h-[100dvh] flex flex-col-reverse md:flex-row">
         @if (showHeader()) {
           <app-header />
         }
+        <div class="flex-1 overflow-hidden relative flex flex-col">
+          <router-outlet />
+        </div>
       </div>
     </tui-root>
   `,

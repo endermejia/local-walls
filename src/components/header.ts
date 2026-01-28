@@ -48,51 +48,69 @@ import { GlobalData } from '../services';
     TuiSkeleton,
   ],
   template: `
-    <nav class="flex justify-center" tuiTabBar ngSkipHydration>
-      <div class="w-full max-w-2xl flex justify-between">
-        <button
-          tuiIconButton
-          appearance="action-grayscale"
-          type="button"
-          iconStart="@tui.home"
+    <nav
+      class="w-full md:w-20 md:hover:w-64 md:h-full bg-[var(--tui-background-base)] shadow-xs transition-[width] duration-300 z-[100] group flex flex-col border-t md:border-t-0 md:border-r border-[var(--tui-border-normal)]"
+      ngSkipHydration
+    >
+      <div
+        class="flex md:flex-col w-full h-full p-2 md:p-4 justify-around md:justify-start gap-2 md:gap-4"
+      >
+        <a
           routerLink="/home"
-          ngSkipHydration
+          routerLinkActive="!text-primary"
+          class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)] rounded-xl transition-colors w-fit md:w-full"
         >
-          {{ 'nav.home' | translate }}
-        </button>
-        <button
-          tuiIconButton
-          appearance="action-grayscale"
-          type="button"
-          iconStart="@tui.map"
+          <tui-icon icon="@tui.home" />
+          <span
+            class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+          >
+            {{ 'nav.home' | translate }}
+          </span>
+        </a>
+
+        <a
           routerLink="/explore"
-          ngSkipHydration
+          routerLinkActive="!text-primary"
+          class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)] rounded-xl transition-colors w-fit md:w-full"
         >
-          {{ 'nav.explore' | translate }}
-        </button>
-        <button
-          tuiIconButton
-          appearance="action-grayscale"
-          type="button"
-          iconStart="@tui.list"
+          <tui-icon icon="@tui.map" />
+          <span
+            class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+          >
+            {{ 'nav.explore' | translate }}
+          </span>
+        </a>
+
+        <a
           routerLink="/areas"
-          ngSkipHydration
+          routerLinkActive="!text-primary"
+          class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)] rounded-xl transition-colors w-fit md:w-full"
         >
-          {{ 'nav.areas' | translate }}
-        </button>
+          <tui-icon icon="@tui.list" />
+          <span
+            class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+          >
+            {{ 'nav.areas' | translate }}
+          </span>
+        </a>
 
         @if (global.isAdmin() || global.isEquipper()) {
           <button
-            tuiIconButton
-            appearance="action-grayscale"
+            appearance="flat"
+            tuiButton
             type="button"
-            iconStart="@tui.cog"
+            class="!flex items-center gap-4 p-3 md:p-3 cursor-pointer hover:bg-[var(--tui-background-neutral-1)] rounded-xl transition-colors w-fit md:w-full !border-0 !bg-transparent !text-inherit !h-auto !min-h-0"
             [tuiDropdown]="more"
             [(tuiDropdownOpen)]="moreOpen"
             (click)="moreOpen = true"
-            ngSkipHydration
           >
-            {{ 'labels.more' | translate }}
+            <tui-icon icon="@tui.cog" />
+            <span
+              class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+            >
+              {{ 'labels.more' | translate }}
+            </span>
+
             <ng-template #more let-close>
               <tui-data-list tuiDataListDropdownManager>
                 @if (global.isEquipper()) {
@@ -142,20 +160,22 @@ import { GlobalData } from '../services';
           </button>
         }
 
-        <button
-          tuiIconButton
-          appearance="action-grayscale"
-          type="button"
+        <a
           routerLink="/profile"
-          ngSkipHydration
+          routerLinkActive="!text-primary"
+          class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)] rounded-xl transition-colors w-fit md:w-full md:mt-auto"
         >
           <tui-avatar
             [src]="global.userAvatar() || '@tui.user'"
             [tuiSkeleton]="!global.userProfile()"
-            size="s"
-            type="button"
+            size="xs"
           />
-        </button>
+          <span
+            class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+          >
+            {{ 'nav.profile' | translate }}
+          </span>
+        </a>
       </div>
     </nav>
   `,
