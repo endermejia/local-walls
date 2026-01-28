@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { adminGuard, authGuard } from '../services';
+import { adminGuard, authGuard, equipperGuard } from '../services';
 
 export const routes: Routes = [
   {
@@ -56,7 +56,18 @@ export const routes: Routes = [
     canMatch: [authGuard],
     loadComponent: () => import('../pages/route').then((m) => m.RouteComponent),
   },
-  // Admin-only routes
+  // Admin and Equipper routes
+  {
+    path: 'admin',
+    canMatch: [adminGuard],
+    loadComponent: () => import('../pages/admin').then((m) => m.AdminComponent),
+  },
+  {
+    path: 'my-areas',
+    canMatch: [equipperGuard],
+    loadComponent: () =>
+      import('../pages/my-areas').then((m) => m.MyAreasComponent),
+  },
   {
     path: 'admin/users',
     canMatch: [adminGuard],

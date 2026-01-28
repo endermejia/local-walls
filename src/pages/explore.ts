@@ -333,7 +333,7 @@ import { mapLocationUrl, remToPx } from '../utils';
             </span>
           </div>
         </h3>
-        <section class="w-full max-w-5xl mx-auto sm:px-4 py-4">
+        <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-20">
           <div class="grid gap-2">
             @for (a of areas; track a.slug) {
               <button
@@ -389,7 +389,7 @@ import { mapLocationUrl, remToPx } from '../utils';
             </span>
           </div>
         </h3>
-        <section class="w-full max-w-5xl mx-auto sm:px-4 py-4">
+        <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-20">
           <div class="grid gap-2">
             @for (c of crags; track c.id) {
               <button
