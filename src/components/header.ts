@@ -40,11 +40,12 @@ import { GlobalData } from '../services';
         class="flex md:flex-col w-full h-full p-2 md:p-4 justify-around md:justify-start gap-2 md:gap-4"
       >
         <a
+          #home="routerLinkActive"
           routerLink="/home"
-          routerLinkActive="!text-primary"
+          routerLinkActive="!text-primary bg-[var(--tui-background-neutral-1)]"
           class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)] rounded-xl transition-colors w-fit md:w-full"
         >
-          <tui-icon icon="@tui.home" />
+          <tui-icon icon="@tui.home" [class.active-icon]="home.isActive" />
           <span
             class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
           >
@@ -53,11 +54,12 @@ import { GlobalData } from '../services';
         </a>
 
         <a
+          #explore="routerLinkActive"
           routerLink="/explore"
-          routerLinkActive="!text-primary"
+          routerLinkActive="!text-primary bg-[var(--tui-background-neutral-1)]"
           class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)] rounded-xl transition-colors w-fit md:w-full"
         >
-          <tui-icon icon="@tui.map" />
+          <tui-icon icon="@tui.map" [class.active-icon]="explore.isActive" />
           <span
             class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
           >
@@ -66,11 +68,12 @@ import { GlobalData } from '../services';
         </a>
 
         <a
+          #areas="routerLinkActive"
           routerLink="/areas"
-          routerLinkActive="!text-primary"
+          routerLinkActive="!text-primary bg-[var(--tui-background-neutral-1)]"
           class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)] rounded-xl transition-colors w-fit md:w-full"
         >
-          <tui-icon icon="@tui.list" />
+          <tui-icon icon="@tui.list" [class.active-icon]="areas.isActive" />
           <span
             class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
           >
@@ -80,11 +83,12 @@ import { GlobalData } from '../services';
 
         @if (global.isAdmin() || global.isEquipper()) {
           <a
+            #config="routerLinkActive"
             [routerLink]="global.isAdmin() ? '/admin' : '/my-areas'"
-            routerLinkActive="!text-primary"
+            routerLinkActive="!text-primary bg-[var(--tui-background-neutral-1)]"
             class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)] rounded-xl transition-colors w-fit md:w-full"
           >
-            <tui-icon icon="@tui.cog" />
+            <tui-icon icon="@tui.cog" [class.active-icon]="config.isActive" />
             <span
               class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
             >
@@ -98,13 +102,17 @@ import { GlobalData } from '../services';
         }
 
         <a
+          #profile="routerLinkActive"
           routerLink="/profile"
-          routerLinkActive="!text-primary"
+          routerLinkActive="!text-primary bg-[var(--tui-background-neutral-1)]"
           class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)] rounded-xl transition-colors w-fit md:w-full md:mt-auto"
         >
           <tui-avatar
             [src]="global.userAvatar() || '@tui.user'"
             [tuiSkeleton]="!global.userProfile()"
+            [class.ring-2]="profile.isActive"
+            [class.ring-primary]="profile.isActive"
+            [class.ring-offset-2]="profile.isActive"
             size="xs"
           />
           <span
@@ -115,6 +123,12 @@ import { GlobalData } from '../services';
         </a>
       </div>
     </nav>
+  `,
+  styles: `
+    .active-icon {
+      filter: drop-shadow(0.5px 0 0 currentColor)
+        drop-shadow(-0.5px 0 0 currentColor);
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
