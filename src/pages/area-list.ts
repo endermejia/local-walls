@@ -87,6 +87,16 @@ import {
                 appearance="textfield"
                 size="s"
                 type="button"
+                (click.zoneless)="areasService.openSync8a()"
+                [iconStart]="'@tui.refresh-ccw'"
+              >
+                {{ 'sync8a.button' | translate }}
+              </button>
+              <button
+                tuiButton
+                appearance="textfield"
+                size="s"
+                type="button"
                 (click.zoneless)="areasService.openUnifyAreas()"
                 [iconStart]="'@tui.blend'"
               >

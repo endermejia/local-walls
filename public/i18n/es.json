@@ -452,5 +452,16 @@
     "successTitle": "Importación completada",
     "success": "Se han importado {{importedCount}} encadenes{{skippedInfo}}{{createdInfo}}",
     "skipped": "{{count}} omitidos por duplicidad"
+  },
+  "sync8a": {
+    "button": "Sincronizar 8a.nu",
+    "title": "Sincronizar con 8a.nu",
+    "syncing": "Sincronizando con 8a.nu...",
+    "success": "Sincronización completada con éxito.",
+    "error": "Error al sincronizar con 8a.nu.",
+    "selectCountry": "Seleccionar país",
+    "searchArea": "Buscar área (8a.nu crag)",
+    "searchSector": "Buscar sector (8a.nu sector)",
+    "noResults": "No se encontraron resultados"
   }
 }

@@ -44,8 +44,28 @@ export class EightAnuService {
     cragName?: string,
     pageSize = 10,
   ): Promise<SearchCragItem | null> {
+    const items = await this.searchCrags(countryCode, cragName ? `${cragName} ${areaName}` : areaName, pageSize);
+    if (items.length > 0) {
+      if (cragName) {
+        // Buscar coincidencia exacta por nombre
+        const match = items.find(
+          (i) =>
+            i.cragName?.toLowerCase() === cragName.toLowerCase() &&
+            i.areaName?.toLowerCase() === areaName.toLowerCase(),
+        );
+        if (match) return match;
+      }
+      return items[0];
+    }
+    return null;
+  }
+
+  async searchCrags(
+    countryCode: string,
+    query: string,
+    pageSize = 10,
+  ): Promise<SearchCragItem[]> {
     try {
-      const query = cragName ? `${cragName} ${areaName}` : areaName;
       const response = await firstValueFrom(
         this.http.get<SearchApiResponse>(this.searchUrl, {
           params: {
@@ -57,26 +77,11 @@ export class EightAnuService {
           },
         }),
       );
-
-      if (response?.items && response.items.length > 0) {
-        if (cragName) {
-          // Buscar coincidencia exacta por nombre
-          const match = response.items.find(
-            (i) =>
-              i.type === 1 &&
-              i.cragName?.toLowerCase() === cragName.toLowerCase() &&
-              i.areaName?.toLowerCase() === areaName.toLowerCase(),
-          ) as SearchCragItem;
-          if (match) return match;
-        }
-
-        const item = response.items[0] as SearchCragItem;
-        return item;
-      }
+      return (response?.items || []).filter((i) => i.type === 1) as SearchCragItem[];
     } catch (e) {
-      console.error('[8a.nu] Error searching crag:', e);
+      console.error('[8a.nu] Error searching crags:', e);
+      return [];
     }
-    return null;
   }
 
   /**
@@ -89,6 +94,30 @@ export class EightAnuService {
     routeName?: string,
     pageSize = 10,
   ): Promise<SearchRouteItem | null> {
+    const items = await this.searchRoutes(countryCode, areaName, cragName, routeName, pageSize);
+    if (items.length > 0) {
+      if (routeName) {
+        // Buscar coincidencia exacta por nombre
+        const match = items.find(
+          (i) =>
+            i.zlaggableName?.toLowerCase() === routeName.toLowerCase() &&
+            i.cragName?.toLowerCase() === cragName.toLowerCase() &&
+            i.areaName?.toLowerCase() === areaName.toLowerCase(),
+        );
+        if (match) return match;
+      }
+      return items[0];
+    }
+    return null;
+  }
+
+  async searchRoutes(
+    countryCode: string,
+    areaName: string,
+    cragName: string,
+    routeName?: string,
+    pageSize = 10,
+  ): Promise<SearchRouteItem[]> {
     try {
       let query = `${cragName} ${areaName}`;
       if (routeName) {
@@ -106,36 +135,11 @@ export class EightAnuService {
           },
         }),
       );
-
-      if (response?.items && response.items.length > 0) {
-        if (routeName) {
-          // Buscar coincidencia exacta por nombre
-          const match = response.items.find(
-            (i) =>
-              i.type === 3 &&
-              i.zlaggableName?.toLowerCase() === routeName.toLowerCase() &&
-              i.cragName?.toLowerCase() === cragName.toLowerCase() &&
-              i.areaName?.toLowerCase() === areaName.toLowerCase(),
-          ) as SearchRouteItem;
-          if (match) return match;
-        }
-
-        // Si no hay routeName o no hay coincidencia exacta, devolver el primero que coincida con crag/area
-        const matchCrag = response.items.find(
-          (i) =>
-            i.type === 3 &&
-            i.cragName?.toLowerCase() === cragName.toLowerCase() &&
-            i.areaName?.toLowerCase() === areaName.toLowerCase(),
-        ) as SearchRouteItem;
-
-        if (matchCrag) return matchCrag;
-
-        return response.items[0] as SearchRouteItem;
-      }
+      return (response?.items || []).filter((i) => i.type === 3) as SearchRouteItem[];
     } catch (e) {
-      console.error('[8a.nu] Error searching route:', e);
+      console.error('[8a.nu] Error searching routes:', e);
+      return [];
     }
-    return null;
   }
 
   searchUsers(

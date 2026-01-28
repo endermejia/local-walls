@@ -449,5 +449,16 @@
     "successTitle": "Import completed",
     "success": "Imported {{importedCount}} ascents{{skippedInfo}}{{createdInfo}}",
     "skipped": "{{count}} skipped as duplicates"
+  },
+  "sync8a": {
+    "button": "Sync 8a.nu",
+    "title": "Sync with 8a.nu",
+    "syncing": "Syncing with 8a.nu...",
+    "success": "Sync completed successfully.",
+    "error": "Error syncing with 8a.nu.",
+    "selectCountry": "Select country",
+    "searchArea": "Search area (8a.nu crag)",
+    "searchSector": "Search sector (8a.nu sector)",
+    "noResults": "No results found"
   }
 }

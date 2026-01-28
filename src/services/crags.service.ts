@@ -18,6 +18,7 @@ import type { CragDto, CragInsertDto, CragUpdateDto } from '../models';
 
 import { CragFormComponent } from '../pages/crag-form';
 import { CragUnifyComponent } from '../components/crag-unify';
+import { Sync8aComponent } from '../components/sync-8a';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
@@ -75,6 +76,23 @@ export class CragsService {
             void this.router.navigate(['/area', areaSlug, result]);
           }
         }
+      }
+    });
+  }
+
+  openSync8a(data?: { areaId?: number; cragId?: number }): void {
+    void firstValueFrom(
+      this.dialogs.open<boolean>(
+        new PolymorpheusComponent(Sync8aComponent),
+        {
+          label: this.translate.instant('sync8a.title'),
+          size: 'm',
+          data,
+        },
+      ),
+    ).then((result) => {
+      if (result) {
+        this.global.cragRoutesResource.reload();
       }
     });
   }
