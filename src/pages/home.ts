@@ -105,7 +105,6 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
           <tui-icon tuiStart icon="@tui.search" />
           <input
             tuiSearchHotkey
-            tuiTextfield
             autocomplete="off"
             [formControl]="control"
             [tuiInputSearch]="search"
