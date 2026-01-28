@@ -941,7 +941,6 @@ export class Import8aComponent {
       sectorTo8aRoutes.forEach((data) =>
         data.routes.forEach((r) => allRouteSlugsToSearch.add(r.zlaggableSlug)),
       );
-      const routeSlugsChunk = [...allRouteSlugsToSearch];
 
       for (let i = 0; i < allCragIds.length; i += CHUNK_SIZE) {
         const chunk = allCragIds.slice(i, i + CHUNK_SIZE);

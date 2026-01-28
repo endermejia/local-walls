@@ -1,6 +1,7 @@
 import type { Database } from '../models';
 
 type Tables = Database['public']['Tables'];
+export type DatabaseTable = keyof Tables;
 
 // Enums
 export type AppRole = Database['public']['Enums']['app_role'];

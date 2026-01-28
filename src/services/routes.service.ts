@@ -11,6 +11,7 @@ import { RouteFormComponent } from '../pages/route-form';
 import { RouteUnifyComponent } from '../components/route-unify';
 
 import type {
+  DatabaseTable,
   EquipperDto,
   RouteDto,
   RouteInsertDto,
@@ -113,7 +114,7 @@ export class RoutesService {
       }
 
       // 2. Update related tables to point to the target route
-      const tablesToUpdate = [
+      const tablesToUpdate: DatabaseTable[] = [
         'route_ascents',
         'route_likes',
         'route_projects',
@@ -123,7 +124,7 @@ export class RoutesService {
 
       for (const table of tablesToUpdate) {
         const { error } = await this.supabase.client
-          .from(table as any)
+          .from(table)
           .update({ route_id: targetRouteId })
           .in('route_id', sourceRouteIds);
         if (error) throw error;
@@ -170,7 +171,10 @@ export class RoutesService {
       console.error('[RoutesService] getRouteEquippers error', error);
       return [];
     }
-    return (data || []).map((d) => d.equipper as EquipperDto);
+    return (data || []).map((d) => {
+      const item = d as unknown as { equipper: EquipperDto };
+      return item.equipper;
+    });
   }
 
   async setRouteEquippers(

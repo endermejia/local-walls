@@ -911,7 +911,7 @@ export class UserProfileComponent {
       };
       const confirmed = await firstValueFrom(
         this.dialogs.open<boolean>(TUI_CONFIRM, {
-          label: this.translate.instant('actions.unfollowTitle'),
+          label: this.translate.instant('actions.unfollow'),
           size: 's',
           data,
         }),

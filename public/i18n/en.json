@@ -14,7 +14,7 @@
     "follow": "Follow",
     "import": "Import",
     "unfollow": "Unfollow",
-    "unfollowTitle": "Unfollow",
+    "following": "Following",
     "unfollowConfirm": "Are you sure you want to unfollow {{name}}?",
     "unify": "Unify",
     "exitFullscreen": "Exit fullscreen",

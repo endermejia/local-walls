@@ -110,7 +110,7 @@ import { firstValueFrom } from 'rxjs';
                       type="button"
                       (click)="onUnfollow(user, $event)"
                     >
-                      {{ 'actions.unfollow' | translate }}
+                      {{ 'actions.following' | translate }}
                     </button>
                   } @else {
                     <button
@@ -295,7 +295,7 @@ export class UserFollowsListComponent {
 
     const confirmed = await firstValueFrom(
       this.dialogs.open<boolean>(TUI_CONFIRM, {
-        label: this.translate.instant('actions.unfollowTitle'),
+        label: this.translate.instant('actions.unfollow'),
         size: 's',
         data,
       }),
