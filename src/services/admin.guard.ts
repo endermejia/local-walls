@@ -49,3 +49,40 @@ export const adminGuard: CanMatchFn = async (): Promise<boolean | UrlTree> => {
   console.error('[AdminGuard] Timeout waiting for user role');
   return router.createUrlTree(['/page-not-found']);
 };
+
+/** Allows route matching for admin or equipper users. On server, always allow. */
+export const equipperGuard: CanMatchFn = async (): Promise<
+  boolean | UrlTree
+> => {
+  const router = inject(Router);
+  const supabase = inject(SupabaseService);
+  const platformId = inject(PLATFORM_ID);
+
+  if (!isPlatformBrowser(platformId)) return true;
+
+  await supabase.whenReady();
+  const session = await supabase.getSession();
+
+  if (!session) {
+    return router.createUrlTree(['/login']);
+  }
+
+  const maxAttempts = 60;
+  let attempts = 0;
+
+  while (attempts < maxAttempts) {
+    const roleData = supabase.userRoleResource.value();
+
+    if (roleData !== undefined) {
+      if (roleData?.role === 'admin' || roleData?.role === 'equipper') {
+        return true;
+      }
+      return router.createUrlTree(['/page-not-found']);
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    attempts++;
+  }
+
+  return router.createUrlTree(['/page-not-found']);
+};

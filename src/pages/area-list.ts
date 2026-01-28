@@ -65,7 +65,7 @@ import {
       <section class="w-full max-w-5xl mx-auto p-4">
         <header class="flex items-center justify-between gap-2">
           @let areasCount = filtered().length;
-          <h1 class="text-2xl font-bold">
+          <h1 class="text-2xl font-bold w-full sm:w-auto">
             <tui-avatar
               tuiThumbnail
               size="l"
@@ -82,7 +82,7 @@ import {
           </h1>
 
           @if (global.isAdmin()) {
-            <div class="flex gap-2">
+            <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
               <button
                 tuiButton
                 appearance="textfield"
@@ -108,7 +108,10 @@ import {
         </header>
 
         <div class="sticky top-0 z-10 py-4 flex items-end gap-2">
-          <tui-textfield class="grow block" tuiTextfieldSize="l">
+          <tui-textfield
+            class="grow block bg-[var(--tui-background-base)]"
+            tuiTextfieldSize="l"
+          >
             <label tuiLabel for="areas-search">
               {{ 'labels.searchPlaceholder' | translate }}
             </label>
@@ -121,7 +124,9 @@ import {
               (input.zoneless)="onQuery(areasSearch.value)"
             />
           </tui-textfield>
-          <tui-badged-content>
+          <tui-badged-content
+            class="bg-[var(--tui-background-base)] rounded-2xl"
+          >
             @if (hasActiveFilters()) {
               <tui-badge-notification size="s" tuiSlot="top" />
             }

@@ -84,7 +84,7 @@ import { handleErrorToast } from '../utils';
     <tui-scrollbar class="flex grow">
       <section class="w-full max-w-5xl mx-auto p-4">
         @if (global.selectedArea(); as area) {
-          <div class="mb-4 flex items-center justify-between gap-2">
+          <div class="mb-4 flex justify-between gap-2">
             <app-section-header
               class="w-full"
               [title]="area.name"
@@ -161,7 +161,10 @@ import { handleErrorToast } from '../utils';
           </div>
 
           <div class="sticky top-0 z-10 py-4 flex items-end gap-2">
-            <tui-textfield class="grow block" tuiTextfieldSize="l">
+            <tui-textfield
+              class="grow block bg-[var(--tui-background-base)]"
+              tuiTextfieldSize="l"
+            >
               <label tuiLabel for="crags-search">{{
                 'labels.searchPlaceholder' | translate
               }}</label>
@@ -174,7 +177,9 @@ import { handleErrorToast } from '../utils';
                 (input.zoneless)="onQuery(cragsSearch.value)"
               />
             </tui-textfield>
-            <tui-badged-content>
+            <tui-badged-content
+              class="bg-[var(--tui-background-base)] rounded-2xl"
+            >
               @if (hasActiveFilters()) {
                 <tui-badge-notification size="s" tuiSlot="top" />
               }

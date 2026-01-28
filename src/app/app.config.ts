@@ -14,6 +14,7 @@ import {
   provideClientHydration,
   withEventReplay,
   withIncrementalHydration,
+  withHttpTransferCacheOptions,
 } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
@@ -48,7 +49,13 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withFetch(), withInterceptors([errorInterceptor])),
-    provideClientHydration(withEventReplay(), withIncrementalHydration()),
+    provideClientHydration(
+      withEventReplay(),
+      withIncrementalHydration(),
+      withHttpTransferCacheOptions({
+        includePostRequests: true,
+      }),
+    ),
     provideTranslateService({
       loader: {
         provide: TranslateLoader,

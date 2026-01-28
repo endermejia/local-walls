@@ -1,4 +1,18 @@
 @import "tailwindcss";
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+.tabs {
+  min-inline-size: 25rem;
+  padding-block-end: env(safe-area-inset-bottom);
+}
 
 .leaflet-container {
   z-index: 1;

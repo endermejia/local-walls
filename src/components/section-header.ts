@@ -1,4 +1,3 @@
-import { Location } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -8,8 +7,10 @@ import {
   output,
 } from '@angular/core';
 
-import { TuiButton, TuiHint } from '@taiga-ui/core';
-import { TuiSkeleton } from '@taiga-ui/kit';
+import { TuiItem } from '@taiga-ui/cdk';
+import { TuiButton, TuiHint, TuiLink } from '@taiga-ui/core';
+import { TuiBreadcrumbs, TuiSkeleton } from '@taiga-ui/kit';
+import { RouterLink } from '@angular/router';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -18,29 +19,41 @@ import { GlobalData } from '../services';
 @Component({
   selector: 'app-section-header',
   standalone: true,
-  imports: [TranslatePipe, TuiSkeleton, TuiButton, TuiHint],
+  imports: [
+    TranslatePipe,
+    TuiSkeleton,
+    TuiButton,
+    TuiHint,
+    TuiBreadcrumbs,
+    TuiLink,
+    RouterLink,
+    TuiItem,
+  ],
   template: `
     <header
       class="flex items-start justify-between gap-2"
       [tuiSkeleton]="tuiSkeleton()"
     >
-      <div class="flex items-center gap-2">
-        <div class="hidden md:block">
-          <button
-            size="s"
-            appearance="neutral"
-            iconStart="@tui.chevron-left"
-            tuiIconButton
-            type="button"
-            class="!rounded-full"
-            [tuiHint]="global.isMobile() ? null : ('actions.back' | translate)"
-            (click.zoneless)="onBack()"
-          >
-            {{ 'actions.back' | translate }}
-          </button>
+      <div class="flex flex-col gap-1 overflow-hidden">
+        @let breadcrumbs = global.breadcrumbs();
+        @if (breadcrumbs.length > 0) {
+          <tui-breadcrumbs size="l" ngSkipHydration>
+            @for (item of breadcrumbs; track item.caption) {
+              <a
+                *tuiItem
+                tuiLink
+                [routerLink]="item.routerLink"
+                class="text-xs opacity-60"
+              >
+                {{ item.caption | translate }}
+              </a>
+            }
+          </tui-breadcrumbs>
+        }
+        <div class="flex items-center gap-2">
+          <h1 class="text-2xl font-bold line-clamp-1">{{ title() }}</h1>
+          <ng-content />
         </div>
-        <h1 class="text-2xl font-bold">{{ title() }}</h1>
-        <ng-content />
       </div>
       @if (showLike()) {
         <button
@@ -70,15 +83,10 @@ import { GlobalData } from '../services';
 })
 export class SectionHeaderComponent {
   protected readonly global = inject(GlobalData);
-  private readonly location = inject(Location);
   title = input.required<string>();
   liked = input(false);
   showLike = input(true);
   tuiSkeleton: InputSignal<boolean> = input(false);
 
   toggleLike = output<void>();
-
-  onBack(): void {
-    this.location.back();
-  }
 }

@@ -17,11 +17,13 @@ import { HeaderComponent } from '../components';
   imports: [RouterOutlet, TuiRoot, HeaderComponent],
   template: `
     <tui-root class="overflow-hidden" [attr.tuiTheme]="global.selectedTheme()">
-      <div class="h-[100dvh] flex flex-col">
+      <div class="h-[100dvh] flex flex-col-reverse md:flex-row">
         @if (showHeader()) {
           <app-header />
         }
-        <router-outlet />
+        <div class="flex-1 overflow-hidden relative flex flex-col">
+          <router-outlet />
+        </div>
       </div>
     </tui-root>
   `,
@@ -41,9 +43,16 @@ export class AppComponent {
     ),
     { initialValue: this.router.url },
   );
-  protected showHeader = computed(
-    () => !this.currentUrl().startsWith('/login'),
-  );
+  protected showHeader = computed(() => {
+    const url = this.currentUrl();
+    const profile = this.global.userProfile();
+    return (
+      profile &&
+      url !== '/login' &&
+      url !== '/signup' &&
+      !url?.startsWith('/reset-password')
+    );
+  });
 
   private readonly langChange = toSignal(
     merge(

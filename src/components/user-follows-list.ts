@@ -58,7 +58,7 @@ import { firstValueFrom } from 'rxjs';
         <tui-textfield
           [tuiTextfieldCleaner]="true"
           tuiTextfieldSize="m"
-          class="w-full"
+          class="w-full bg-[var(--tui-background-base)]"
         >
           <label tuiLabel for="user-search">
             {{ 'labels.search' | translate }}
