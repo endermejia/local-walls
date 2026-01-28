@@ -89,21 +89,6 @@ import { mapLocationUrl, remToPx } from '../utils';
         class="relative h-full grow flex flex-col min-w-0 transition-[width] duration-300"
       >
         <div class="absolute right-4 top-4 flex flex-col gap-2">
-          @let bottomSheetExpanded = isBottomSheetExpanded();
-          <div class="z-100">
-            @if (isMobile) {
-              <button
-                tuiIconButton
-                size="s"
-                appearance="primary-grayscale"
-                [iconStart]="bottomSheetExpanded ? '@tui.map' : '@tui.list'"
-                class="pointer-events-auto"
-                (click.zoneless)="setBottomSheet('toggle')"
-              >
-                {{ 'explore.toggleView' | translate }}
-              </button>
-            }
-          </div>
           <div class="z-10">
             <tui-badged-content>
               @if (hasActiveFilters()) {
@@ -140,6 +125,22 @@ import { mapLocationUrl, remToPx } from '../utils';
             </div>
           }
         </div>
+
+        @if (isMobile && isBottomSheetExpanded()) {
+          <div
+            class="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1001] pointer-events-auto"
+          >
+            <button
+              tuiButton
+              size="m"
+              appearance="primary"
+              iconStart="@tui.map"
+              (click.zoneless)="setBottomSheet('close')"
+            >
+              {{ 'labels.map' | translate }}
+            </button>
+          </div>
+        }
 
         <!-- Map -->
         @defer (on viewport) {
