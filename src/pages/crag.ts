@@ -119,6 +119,18 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                   <button
                     size="s"
                     appearance="neutral"
+                    iconStart="@tui.refresh-ccw"
+                    tuiIconButton
+                    type="button"
+                    class="!rounded-full"
+                    [tuiHint]="isMobile ? null : ('sync8a.button' | translate)"
+                    (click.zoneless)="cragsService.openSync8a({ cragId: c.id })"
+                  >
+                    {{ 'sync8a.button' | translate }}
+                  </button>
+                  <button
+                    size="s"
+                    appearance="neutral"
                     iconStart="@tui.square-pen"
                     tuiIconButton
                     type="button"

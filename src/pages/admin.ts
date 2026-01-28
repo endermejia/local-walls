@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { TuiIcon, TuiTitle } from '@taiga-ui/core';
 import { TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe } from '@ngx-translate/core';
+
+import { AreasService } from '../services';
 
 @Component({
   selector: 'app-admin',
@@ -16,6 +18,14 @@ import { TranslatePipe } from '@ngx-translate/core';
       </header>
 
       <div class="grid gap-2">
+        <button
+          (click)="areasService.openSync8a()"
+          class="flex items-center gap-4 p-4 bg-[var(--tui-background-base)] rounded-2xl border border-[var(--tui-border-normal)] no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)] w-full text-left"
+        >
+          <tui-icon icon="@tui.refresh-ccw" />
+          <span class="font-bold">{{ 'sync8a.button' | translate }}</span>
+        </button>
+
         <a
           routerLink="/admin/users"
           class="flex items-center gap-4 p-4 bg-[var(--tui-background-base)] rounded-2xl border border-[var(--tui-border-normal)] no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
@@ -44,6 +54,8 @@ import { TranslatePipe } from '@ngx-translate/core';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminComponent {}
+export class AdminComponent {
+  protected readonly areasService = inject(AreasService);
+}
 
 export default AdminComponent;
