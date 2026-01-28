@@ -167,9 +167,9 @@ import { mapLocationUrl, remToPx } from '../utils';
                     class="text-xl h-full mb-7 content-center flex items-center gap-4"
                   >
                     <div>
-                      {{ c.routes_count }}
+                      {{ c.topos_count }}
                       {{
-                        'labels.' + (c.routes_count === 1 ? 'route' : 'routes')
+                        'labels.' + (c.topos_count === 1 ? 'topo' : 'topos')
                           | translate
                           | lowercase
                       }}
@@ -417,10 +417,9 @@ import { mapLocationUrl, remToPx } from '../utils';
                         >{{ c.area_name }}</a
                       >
                       <div class="text-xl h-full mb-7 content-center">
-                        {{ c.routes_count }}
+                        {{ c.topos_count }}
                         {{
-                          'labels.' +
-                            (c.routes_count === 1 ? 'route' : 'routes')
+                          'labels.' + (c.topos_count === 1 ? 'topo' : 'topos')
                             | translate
                             | lowercase
                         }}

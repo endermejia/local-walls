@@ -84,7 +84,7 @@ import { handleErrorToast, slugify } from '../utils';
     TuiTitle,
   ],
   template: `
-    <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
+    <form class="grid w-full gap-4" (submit.zoneless)="onSubmit($event)">
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="name">{{ 'topos.name' | translate }}</label>
         <input tuiTextfield id="name" [formControl]="name" autocomplete="off" />
@@ -100,8 +100,8 @@ import { handleErrorToast, slugify } from '../utils';
         />
       </tui-textfield>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label class="flex items-center gap-2 cursor-pointer">
             <input tuiCheckbox type="checkbox" [formControl]="shade_morning" />
             <tui-icon icon="@tui.sunset" />

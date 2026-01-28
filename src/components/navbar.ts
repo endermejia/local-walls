@@ -12,7 +12,7 @@ import { GlobalData } from '../services';
   selector: 'app-navbar',
   host: {
     class:
-      'z-[100] relative md:absolute md:w-20 md:h-full md:flex md:items-center',
+      'z-[100] relative xl:absolute md:w-20 md:h-full md:flex md:items-center',
   },
   imports: [
     RouterLink,

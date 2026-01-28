@@ -106,39 +106,42 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
         @let isMobile = global.isMobile();
         @let isAdmin = global.isAdmin();
         @if (cragDetail(); as c) {
-          <div class="mb-4 flex items-center justify-between gap-2">
+          <div class="mb-4">
             <app-section-header
-              class="w-full"
               [title]="c.name"
               [liked]="c.liked"
               (toggleLike)="onToggleLike()"
-            />
-            @if (isAdmin) {
-              <button
-                size="s"
-                appearance="neutral"
-                iconStart="@tui.square-pen"
-                tuiIconButton
-                type="button"
-                class="!rounded-full"
-                [tuiHint]="isMobile ? null : ('actions.edit' | translate)"
-                (click.zoneless)="openEditCrag()"
-              >
-                {{ 'actions.edit' | translate }}
-              </button>
-              <button
-                size="s"
-                appearance="negative"
-                iconStart="@tui.trash"
-                tuiIconButton
-                type="button"
-                class="!rounded-full"
-                [tuiHint]="isMobile ? null : ('actions.delete' | translate)"
-                (click.zoneless)="deleteCrag()"
-              >
-                {{ 'actions.delete' | translate }}
-              </button>
-            }
+            >
+              <!-- Admin action buttons -->
+              @if (isAdmin) {
+                <div actionButtons class="flex gap-1">
+                  <button
+                    size="s"
+                    appearance="neutral"
+                    iconStart="@tui.square-pen"
+                    tuiIconButton
+                    type="button"
+                    class="!rounded-full"
+                    [tuiHint]="isMobile ? null : ('actions.edit' | translate)"
+                    (click.zoneless)="openEditCrag()"
+                  >
+                    {{ 'actions.edit' | translate }}
+                  </button>
+                  <button
+                    size="s"
+                    appearance="negative"
+                    iconStart="@tui.trash"
+                    tuiIconButton
+                    type="button"
+                    class="!rounded-full"
+                    [tuiHint]="isMobile ? null : ('actions.delete' | translate)"
+                    (click.zoneless)="deleteCrag()"
+                  >
+                    {{ 'actions.delete' | translate }}
+                  </button>
+                </div>
+              }
+            </app-section-header>
           </div>
 
           <div class="flex flex-col md:flex-row md:justify-between gap-4">

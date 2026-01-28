@@ -107,12 +107,9 @@ export interface TopoRouteRow {
     <div class="h-full w-full">
       <section class="flex flex-col w-full h-full max-w-5xl mx-auto p-4">
         @if (topo(); as t) {
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <app-section-header
-              class="grow"
-              [title]="t.name"
-              [showLike]="false"
-            >
+          <div class="mb-4">
+            <app-section-header [title]="t.name" [showLike]="false">
+              <!-- Shade info as title additional info -->
               @if (shadeInfo(); as info) {
                 @let changeAt = 'filters.shade.changeAt' | translate;
                 @let hint =
@@ -121,22 +118,22 @@ export interface TopoRouteRow {
                     ? ' · ' + changeAt + ' ' + topo()?.shade_change_hour
                     : '');
                 <tui-icon
+                  titleInfo
                   [icon]="info.icon"
                   class="text-2xl opacity-70"
                   [tuiHint]="hint"
                 />
               }
-            </app-section-header>
 
-            <div class="flex flex-wrap gap-2 items-center">
-              @if (global.isAdmin()) {
-                <div class="flex gap-1">
+              <!-- Admin and utility action buttons -->
+              <div actionButtons class="flex gap-1">
+                @if (global.isAdmin()) {
                   <button
                     tuiIconButton
                     size="s"
                     appearance="neutral"
                     iconStart="@tui.square-pen"
-                    class="pointer-events-auto !rounded-full"
+                    class="!rounded-full"
                     (click.zoneless)="openEditTopo(t)"
                     [tuiHint]="
                       global.isMobile() ? null : ('actions.edit' | translate)
@@ -149,7 +146,7 @@ export interface TopoRouteRow {
                     size="s"
                     appearance="neutral"
                     iconStart="@tui.upload"
-                    class="pointer-events-auto !rounded-full"
+                    class="!rounded-full"
                     (click.zoneless)="fileInput.click()"
                     [tuiHint]="
                       global.isMobile()
@@ -171,7 +168,7 @@ export interface TopoRouteRow {
                     size="s"
                     appearance="negative"
                     iconStart="@tui.trash"
-                    class="pointer-events-auto !rounded-full"
+                    class="!rounded-full"
                     (click.zoneless)="deleteTopo(t)"
                     [tuiHint]="
                       global.isMobile() ? null : ('actions.delete' | translate)
@@ -179,33 +176,33 @@ export interface TopoRouteRow {
                   >
                     {{ 'actions.delete' | translate }}
                   </button>
-                </div>
-              }
-              <!-- Toggle image fit button -->
-              @let imgFit = imageFit();
-              <button
-                tuiIconButton
-                size="s"
-                appearance="primary-grayscale"
-                class="pointer-events-auto !rounded-full"
-                [iconStart]="
-                  imgFit === 'cover'
-                    ? '@tui.unfold-horizontal'
-                    : '@tui.unfold-vertical'
-                "
-                [tuiHint]="
-                  global.isMobile()
-                    ? null
-                    : ((imgFit === 'cover'
-                        ? 'actions.fit.contain'
-                        : 'actions.fit.cover'
-                      ) | translate)
-                "
-                (click.zoneless)="toggleImageFit()"
-              >
-                Toggle image fit
-              </button>
-            </div>
+                }
+                <!-- Image fit toggle button (always visible) -->
+                @let imgFit = imageFit();
+                <button
+                  tuiIconButton
+                  size="s"
+                  appearance="primary-grayscale"
+                  class="!rounded-full"
+                  [iconStart]="
+                    imgFit === 'cover'
+                      ? '@tui.unfold-horizontal'
+                      : '@tui.unfold-vertical'
+                  "
+                  [tuiHint]="
+                    global.isMobile()
+                      ? null
+                      : ((imgFit === 'cover'
+                          ? 'actions.fit.contain'
+                          : 'actions.fit.cover'
+                        ) | translate)
+                  "
+                  (click.zoneless)="toggleImageFit()"
+                >
+                  Toggle image fit
+                </button>
+              </div>
+            </app-section-header>
           </div>
 
           @if (allTopos().length > 1) {

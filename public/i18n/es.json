@@ -244,7 +244,7 @@
     "imageAlt": "no encontrado"
   },
   "areas": {
-    "newTitle": "Crear nueva área",
+    "newTitle": "Nueva área",
     "editTitle": "Editar área",
     "deleteTitle": "Eliminar área",
     "deleteConfirm": "¿Seguro que quieres eliminar el área \"{{name}}\"? Esta acción no se puede deshacer.",
@@ -256,13 +256,13 @@
     "newName": "Nuevo nombre (opcional)"
   },
   "crags": {
-    "newTitle": "Crear nuevo sector",
+    "newTitle": "Nuevo sector",
     "editTitle": "Editar sector",
     "deleteTitle": "Eliminar sector",
     "deleteConfirm": "¿Seguro que quieres eliminar el sector \"{{name}}\"? Esta acción no se puede deshacer."
   },
   "topos": {
-    "newTitle": "Crear nuevo croquis",
+    "newTitle": "Nuevo croquis",
     "editTitle": "Editar croquis",
     "deleteTitle": "Eliminar croquis",
     "deleteConfirm": "¿Seguro que quieres eliminar el croquis \"{{name}}\"? Esta acción no se puede deshacer.",
@@ -276,7 +276,7 @@
   },
   "routes": {
     "edit": "Editar vía",
-    "newTitle": "Crear nueva vía",
+    "newTitle": "Nueva vía",
     "editTitle": "Editar vía",
     "deleteTitle": "Eliminar vía",
     "deleteConfirm": "¿Seguro que quieres eliminar la vía \"{{name}}\"? Esta acción no se puede deshacer.",

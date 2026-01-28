@@ -30,6 +30,7 @@ export interface MapCragItem {
   longitude: number;
   grades: AmountByEveryGrade;
   routes_count?: number; // routes
+  topos_count?: number; // topos
   ascents_count?: number; // ascents
   liked?: boolean;
   approach?: number;

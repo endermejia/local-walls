@@ -296,6 +296,7 @@ export class GlobalData {
           grades,
           category,
           routes_count: totalRoutes,
+          topos_count: (c.topos || []).length,
           shade_morning: shadeMorning,
           shade_afternoon: shadeAfternoon,
           shade_all_day: shadeMorning && shadeAfternoon,
