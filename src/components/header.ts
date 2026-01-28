@@ -10,19 +10,8 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import {
-  TuiDataListComponent,
-  TuiDataList,
-  TuiDropdown,
-  TuiIcon,
-  TuiButton,
-} from '@taiga-ui/core';
-import {
-  TuiAvatar,
-  TuiDataListDropdownManager,
-  TuiSkeleton,
-} from '@taiga-ui/kit';
-import { TuiTabBar } from '@taiga-ui/addon-mobile';
+import { TuiIcon } from '@taiga-ui/core';
+import { TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -32,24 +21,12 @@ import { GlobalData } from '../services';
   selector: 'app-header',
   standalone: true,
   host: {
-    class: 'z-[100] relative',
+    class: 'z-[100] relative md:w-20 md:h-full md:flex md:items-center',
   },
-  imports: [
-    RouterLink,
-    TuiAvatar,
-    TuiDataListComponent,
-    TranslatePipe,
-    TuiDataList,
-    TuiDataListDropdownManager,
-    TuiDropdown,
-    TuiIcon,
-    TuiTabBar,
-    TuiButton,
-    TuiSkeleton,
-  ],
+  imports: [RouterLink, TuiAvatar, TranslatePipe, TuiIcon, TuiSkeleton],
   template: `
     <nav
-      class="w-full md:w-20 md:hover:w-64 md:h-full bg-[var(--tui-background-base)] shadow-xs transition-[width] duration-300 z-[100] group flex flex-col border-t md:border-t-0 md:border-r border-[var(--tui-border-normal)]"
+      class="w-full md:w-20 md:hover:w-64 md:h-fit md:max-h-[60rem] md:my-auto bg-[var(--tui-background-base)] shadow-xs sm:shadow-none transition-[width] duration-300 z-[100] group flex flex-col border-t md:border-t-0 md:border-r border-[var(--tui-border-normal)] md:absolute md:left-0 md:top-0 md:bottom-0 overflow-hidden"
       ngSkipHydration
     >
       <div
@@ -95,69 +72,22 @@ import { GlobalData } from '../services';
         </a>
 
         @if (global.isAdmin() || global.isEquipper()) {
-          <button
-            appearance="flat"
-            tuiButton
-            type="button"
-            class="!flex items-center gap-4 p-3 md:p-3 cursor-pointer hover:bg-[var(--tui-background-neutral-1)] rounded-xl transition-colors w-fit md:w-full !border-0 !bg-transparent !text-inherit !h-auto !min-h-0"
-            [tuiDropdown]="more"
-            [(tuiDropdownOpen)]="moreOpen"
-            (click)="moreOpen = true"
+          <a
+            [routerLink]="global.isAdmin() ? '/admin' : '/my-areas'"
+            routerLinkActive="!text-primary"
+            class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)] rounded-xl transition-colors w-fit md:w-full"
           >
             <tui-icon icon="@tui.cog" />
             <span
               class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
             >
-              {{ 'labels.more' | translate }}
+              @if (global.isAdmin()) {
+                {{ 'nav.admin-users' | translate }}
+              } @else {
+                {{ 'nav.my-crags' | translate }}
+              }
             </span>
-
-            <ng-template #more let-close>
-              <tui-data-list tuiDataListDropdownManager>
-                @if (global.isEquipper()) {
-                  <button
-                    tuiOption
-                    type="button"
-                    routerLink="/my-crags"
-                    (click)="close()"
-                  >
-                    <tui-icon icon="@tui.list" class="mr-2" />
-                    {{ 'nav.my-crags' | translate }}
-                  </button>
-                }
-                @if (global.isAdmin()) {
-                  <button
-                    tuiOption
-                    type="button"
-                    routerLink="/admin/users"
-                    (click)="close()"
-                  >
-                    <tui-icon icon="@tui.users" class="mr-2" />
-                    {{ 'nav.admin-users' | translate }}
-                  </button>
-                  <button
-                    tuiOption
-                    type="button"
-                    routerLink="/admin/parkings"
-                    (click)="close()"
-                  >
-                    <tui-icon icon="@tui.map-pin" class="mr-2" />
-                    {{ 'nav.admin-parkings' | translate }}
-                  </button>
-                }
-                @if (global.isAdmin() || global.isEquipper()) {
-                  <button
-                    tuiOption
-                    type="button"
-                    routerLink="/admin/equippers"
-                    (click)="close()"
-                  >
-                    <tui-icon icon="@tui.hammer" class="mr-2" />
-                    {{ 'nav.admin-equippers' | translate }}
-                  </button>
-                }
-              </tui-data-list>
-            </ng-template>
-          </button>
+          </a>
         }
 
         <a

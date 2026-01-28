@@ -18,6 +18,7 @@ import {
   TuiDropdown,
   TuiIcon,
   TuiLoader,
+  TuiScrollbar,
   TuiTextfield,
 } from '@taiga-ui/core';
 import { TuiSearchHotkey, TuiSearchResults } from '@taiga-ui/experimental';
@@ -90,6 +91,7 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
     TuiIcon,
     TuiInputSearch,
     TuiLoader,
+    TuiScrollbar,
     TuiRating,
     TuiSearchHotkey,
     TuiSearchResults,
@@ -98,8 +100,9 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
     InfiniteScrollTriggerComponent,
   ],
   template: `
-    <div class="p-4 flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32">
-      <!-- Search bar -->
+    <tui-scrollbar class="h-full">
+      <div class="p-4 flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32">
+        <!-- Search bar -->
       <div class="w-full sticky top-0 z-50 bg-[var(--tui-background-base)] py-2">
         <tui-textfield (pointerdown.capture.stop)="(0)">
           <tui-icon tuiStart icon="@tui.search" />
@@ -297,11 +300,12 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
           }
         }
       </div>
-    </div>
+      </div>
+    </tui-scrollbar>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'flex flex-1 flex-col overflow-y-auto min-h-0',
+    class: 'flex flex-1 flex-col min-h-0',
   },
 })
 export class HomeComponent implements OnDestroy {
