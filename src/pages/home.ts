@@ -11,7 +11,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import {
   TuiDataList,
@@ -99,7 +99,7 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
     <div class="p-4 flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32">
       <!-- Search bar -->
       <div
-        class="w-full"
+        class="w-full sticky top-0 z-50 bg-[var(--tui-background-base)] py-2"
         [tuiDropdown]="searchResults"
         [tuiDropdownOpen]="control.value !== '' && (results$ | async) !== null"
         tuiDropdownLimitWidth="fixed"
@@ -126,7 +126,23 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
                       [routerLink]="item.href"
                       (click)="control.setValue('')"
                     >
-                      {{ item.title }}
+                      @if (group.key === ('labels.users' | translate)) {
+                        <tui-avatar
+                          [src]="item.icon || '@tui.user'"
+                          size="xs"
+                          class="mr-2"
+                        />
+                      } @else if (item.icon) {
+                        <tui-icon [icon]="item.icon" class="mr-2" />
+                      }
+                      <div class="flex flex-col">
+                        <span>{{ item.title }}</span>
+                        @if (item.subtitle) {
+                          <span class="text-xs opacity-60">{{
+                            item.subtitle
+                          }}</span>
+                        }
+                      </div>
                     </a>
                   }
                 </tui-opt-group>
@@ -141,15 +157,35 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
         @if (ascents$ | async; as ascents) {
           @for (ascent of ascents; track ascent.id) {
             @defer (on viewport) {
-              <div
-                tuiCardLarge
-                class="flex flex-col gap-4 shadow-sm border border-gray-100 p-4 bg-[var(--tui-background-base)] rounded-xl"
-                style="touch-action: pan-y pinch-zoom;"
+              <a
+                tuiAppearance="outline"
+                [routerLink]="
+                  ascent.route
+                    ? [
+                        '/area',
+                        ascent.route.area_slug,
+                        ascent.route.crag_slug,
+                        ascent.route.slug
+                      ]
+                    : null
+                "
+                class="flex flex-col gap-4 p-4 rounded-3xl relative no-underline text-inherit hover:no-underline"
               >
                 <header tuiHeader>
-                  <a
-                    [routerLink]="['/profile', ascent.user_id]"
-                    class="flex items-center gap-3 no-underline text-inherit"
+                  <div
+                    role="link"
+                    tabindex="0"
+                    (click)="
+                      $event.stopPropagation();
+                      $event.preventDefault();
+                      router.navigate(['/profile', ascent.user_id])
+                    "
+                    (keydown.enter)="
+                      $event.stopPropagation();
+                      $event.preventDefault();
+                      router.navigate(['/profile', ascent.user_id])
+                    "
+                    class="flex items-center gap-3 no-underline text-inherit cursor-pointer group/user"
                   >
                     <tui-avatar
                       [src]="
@@ -159,33 +195,32 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
                       size="s"
                     />
                     <div class="flex flex-col">
-                      <span class="font-bold text-sm">
+                      <span class="font-bold text-sm group-hover/user:underline">
                         {{ ascent.user?.name || 'User' }}
                       </span>
                       <span class="text-xs text-gray-400">
                         {{ ascent.date | date: 'mediumDate' }}
                       </span>
                     </div>
-                  </a>
+                  </div>
                 </header>
 
                 <div class="flex flex-col gap-1">
                   @if (ascent.route) {
-                    <a
-                      [routerLink]="[
-                        '/area',
-                        ascent.route.area_slug,
-                        ascent.route.crag_slug,
-                        ascent.route.slug
-                      ]"
-                      class="font-bold text-lg hover:underline"
-                    >
+                    <div class="font-bold text-lg">
                       {{ ascent.route.name }}
-                    </a>
+                    </div>
                     <div class="flex items-center gap-2 text-sm text-gray-600">
                       <span class="font-semibold text-blue-600">
                         {{ getGradeLabel(ascent.route.grade) }}
                       </span>
+                      @if (ascent.ascent_type) {
+                        <span
+                          class="px-2 py-0.5 bg-gray-100 rounded text-[10px] uppercase font-bold"
+                        >
+                          {{ getAscentTypeLabel(ascent.ascent_type) }}
+                        </span>
+                      }
                       <span>•</span>
                       <span>{{ ascent.route.crag_name }}</span>
                     </div>
@@ -197,7 +232,7 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
                     [ngModel]="ascent.rate"
                     [max]="5"
                     [readOnly]="true"
-                    class="pointer-events-none"
+                    class="pointer-events-none origin-left scale-75 h-6"
                   />
                 }
 
@@ -208,7 +243,7 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
                     "{{ ascent.comment }}"
                   </p>
                 }
-              </div>
+              </a>
             } @placeholder {
               <div class="h-64 w-full bg-gray-50 animate-pulse rounded-xl"></div>
             }
@@ -247,6 +282,7 @@ export class InfiniteScrollTriggerComponent implements AfterViewInit, OnDestroy 
 export class HomeComponent implements OnDestroy {
   protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
+  protected readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
@@ -455,6 +491,11 @@ export class HomeComponent implements OnDestroy {
   getGradeLabel(grade: number | null): string {
     if (grade === null) return '';
     return VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || '';
+  }
+
+  getAscentTypeLabel(type: string | null): string {
+    if (!type) return '';
+    return this.translate.instant(`ascentTypes.${type}`);
   }
 
   ngOnDestroy() {
