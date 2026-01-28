@@ -91,7 +91,6 @@ export interface RoutesTableRow {
 
 @Component({
   selector: 'app-routes-table',
-  standalone: true,
   imports: [
     RouterLink,
     TuiAvatar,

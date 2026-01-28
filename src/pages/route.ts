@@ -48,7 +48,6 @@ import { handleErrorToast } from '../utils';
 
 @Component({
   selector: 'app-route',
-  standalone: true,
   imports: [
     SectionHeaderComponent,
     TranslatePipe,

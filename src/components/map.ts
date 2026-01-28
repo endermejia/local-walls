@@ -27,7 +27,6 @@ import { MapBuilder, MapBuilderCallbacks } from '../services/map-builder';
 
 @Component({
   selector: 'app-map',
-  standalone: true,
   imports: [TuiButton, TuiHint, TranslatePipe],
   template: `
     <div class="relative w-full h-full">

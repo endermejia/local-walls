@@ -19,7 +19,6 @@ import {
 
 @Component({
   selector: 'app-avatar-grade',
-  standalone: true,
   imports: [TuiAvatar, TranslatePipe],
   template: `
     <tui-avatar

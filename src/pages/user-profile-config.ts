@@ -88,7 +88,6 @@ interface Country {
 
 @Component({
   selector: 'app-user-profile-config',
-  standalone: true,
   imports: [
     AsyncPipe,
     FormsModule,

@@ -29,7 +29,6 @@ import { AreaDto } from '../models';
 
 @Component({
   selector: 'app-area-unify',
-  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,

@@ -40,7 +40,6 @@ interface MinimalParking {
 
 @Component({
   selector: 'app-parking-form',
-  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,

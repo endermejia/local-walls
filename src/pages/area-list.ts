@@ -42,7 +42,6 @@ import {
 
 @Component({
   selector: 'app-area-list',
-  standalone: true,
   imports: [
     ChartRoutesByGradeComponent,
     EmptyStateComponent,

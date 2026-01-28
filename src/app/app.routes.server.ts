@@ -16,7 +16,7 @@ export const serverRoutes: ServerRoute[] = [
       return [];
     },
   },
-  { path: 'areas', renderMode: RenderMode.Prerender },
+  { path: 'area', renderMode: RenderMode.Prerender },
   {
     path: 'area/:areaSlug',
     renderMode: RenderMode.Prerender,

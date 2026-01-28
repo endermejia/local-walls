@@ -42,7 +42,6 @@ import { handleErrorToast } from '../utils';
 
 @Component({
   selector: 'app-admin-parkings-list',
-  standalone: true,
   imports: [
     EmptyStateComponent,
     FormsModule,

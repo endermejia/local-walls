@@ -36,7 +36,6 @@ import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-user-follows-list',
-  standalone: true,
   imports: [
     AsyncPipe,
     RouterLink,

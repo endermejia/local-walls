@@ -43,7 +43,6 @@ import { handleErrorToast } from '../utils';
 
 @Component({
   selector: 'app-admin-equippers-list',
-  standalone: true,
   imports: [
     EmptyStateComponent,
     FormsModule,

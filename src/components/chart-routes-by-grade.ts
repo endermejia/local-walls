@@ -27,7 +27,6 @@ import { computeGradeChartData } from '../utils';
 
 @Component({
   selector: 'app-chart-routes-by-grade',
-  standalone: true,
   imports: [TranslatePipe, TuiRingChart, LowerCasePipe, TuiSkeleton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },

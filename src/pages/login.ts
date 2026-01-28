@@ -28,7 +28,6 @@ import { SupabaseService } from '../services';
 
 @Component({
   selector: 'app-login',
-  standalone: true,
   imports: [
     TranslatePipe,
     TuiAppearance,

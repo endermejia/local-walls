@@ -29,7 +29,6 @@ import { handleErrorToast, slugify } from '../utils';
 
 @Component({
   selector: 'app-area-form',
-  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,

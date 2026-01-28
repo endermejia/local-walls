@@ -44,7 +44,6 @@ interface MinimalCrag {
 
 @Component({
   selector: 'app-crag-form',
-  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,

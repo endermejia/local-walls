@@ -25,7 +25,6 @@ export interface AvatarCropperResult {
 
 @Component({
   selector: 'app-avatar-cropper',
-  standalone: true,
   imports: [
     TuiButton,
     TuiSliderComponent,

@@ -18,7 +18,6 @@ import { GlobalData } from '../services';
 
 @Component({
   selector: 'app-section-header',
-  standalone: true,
   imports: [
     TranslatePipe,
     TuiSkeleton,

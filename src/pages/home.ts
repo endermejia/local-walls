@@ -54,7 +54,6 @@ import { FollowsService, GlobalData, SupabaseService } from '../services';
 
 @Component({
   selector: 'app-infinite-scroll-trigger',
-  standalone: true,
   template: '<div class="h-1 w-full"></div>',
 })
 export class InfiniteScrollTriggerComponent
@@ -80,7 +79,6 @@ export class InfiniteScrollTriggerComponent
 
 @Component({
   selector: 'app-home',
-  standalone: true,
   imports: [
     AsyncPipe,
     CommonModule,

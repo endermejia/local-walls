@@ -75,7 +75,6 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
 
 @Component({
   selector: 'app-crag',
-  standalone: true,
   imports: [
     AsyncPipe,
     ChartRoutesByGradeComponent,

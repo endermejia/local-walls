@@ -66,7 +66,6 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
 
 @Component({
   selector: 'app-user-profile',
-  standalone: true,
   imports: [
     AscentsTableComponent,
     AsyncPipe,

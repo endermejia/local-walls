@@ -31,7 +31,7 @@ export const routes: Routes = [
       import('../pages/user-profile').then((m) => m.UserProfileComponent),
   },
   {
-    path: 'areas',
+    path: 'area',
     canMatch: [authGuard],
     loadComponent: () =>
       import('../pages/area-list').then((m) => m.AreaListComponent),
@@ -63,7 +63,7 @@ export const routes: Routes = [
     loadComponent: () => import('../pages/admin').then((m) => m.AdminComponent),
   },
   {
-    path: 'my-areas',
+    path: 'admin/my-areas',
     canMatch: [equipperGuard],
     loadComponent: () =>
       import('../pages/my-areas').then((m) => m.MyAreasComponent),

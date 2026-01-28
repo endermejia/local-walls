@@ -6,7 +6,6 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-empty-state',
-  standalone: true,
   imports: [TuiIcon, TranslatePipe],
   template: `
     <div

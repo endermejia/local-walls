@@ -4,7 +4,6 @@ import { SupabaseService } from '../services';
 
 @Pipe({
   name: 'topoImage',
-  standalone: true,
 })
 export class TopoImagePipe implements PipeTransform {
   private readonly supabase = inject(SupabaseService);

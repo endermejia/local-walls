@@ -37,7 +37,6 @@ import { ParkingsService, SupabaseService } from '../services';
 
 @Component({
   selector: 'app-link-parking-form',
-  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,

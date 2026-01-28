@@ -54,7 +54,6 @@ interface MinimalRoute {
 
 @Component({
   selector: 'app-route-form',
-  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,

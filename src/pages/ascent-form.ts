@@ -68,7 +68,6 @@ import { handleErrorToast } from '../utils';
 
 @Component({
   selector: 'app-ascent-form',
-  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,

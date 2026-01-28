@@ -9,7 +9,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { GlobalData } from '../services';
 
 @Component({
-  standalone: true,
   selector: 'app-page-not-found',
   imports: [TuiBlockStatus, TuiButton, RouterLink, TranslateModule],
   template: `

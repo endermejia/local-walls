@@ -60,7 +60,6 @@ import { handleErrorToast } from '../utils';
 
 @Component({
   selector: 'app-area',
-  standalone: true,
   imports: [
     ChartRoutesByGradeComponent,
     EmptyStateComponent,
@@ -377,7 +376,7 @@ export class AreaComponent {
     if (!confirmed) return;
     try {
       await this.areas.delete(area.id);
-      await this.router.navigateByUrl('/areas');
+      await this.router.navigateByUrl('/area');
     } catch (e) {
       const error = e as Error;
       console.error('[AreaComponent] Error deleting area:', error);

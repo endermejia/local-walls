@@ -4,7 +4,6 @@ import { TuiDialogContext, TuiLoader } from '@taiga-ui/core';
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 
 @Component({
-  standalone: true,
   imports: [TuiLoader],
   template: `
     <div class="flex flex-col items-center justify-center p-4 gap-4">

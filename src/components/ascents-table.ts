@@ -75,7 +75,6 @@ export interface AscentsTableRow {
 
 @Component({
   selector: 'app-ascents-table',
-  standalone: true,
   imports: [
     CommonModule,
     RouterLink,

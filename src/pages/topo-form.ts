@@ -62,7 +62,6 @@ import { handleErrorToast, slugify } from '../utils';
 
 @Component({
   selector: 'app-topo-form',
-  standalone: true,
   imports: [
     AvatarGradeComponent,
     CommonModule,

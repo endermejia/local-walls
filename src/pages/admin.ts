@@ -8,7 +8,6 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-admin',
-  standalone: true,
   imports: [RouterLink, TuiIcon, TuiHeader, TuiTitle, TranslatePipe],
   template: `
     <div class="p-4 flex flex-col gap-4 max-w-2xl mx-auto w-full">

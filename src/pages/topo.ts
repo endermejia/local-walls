@@ -82,7 +82,6 @@ export interface TopoRouteRow {
 
 @Component({
   selector: 'app-topo',
-  standalone: true,
   imports: [
     EmptyStateComponent,
     TranslatePipe,

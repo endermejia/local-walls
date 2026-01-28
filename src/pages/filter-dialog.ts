@@ -45,7 +45,6 @@ export interface FilterDialog {
 }
 
 @Component({
-  standalone: true,
   selector: 'app-filter-dialog',
   imports: [
     FormsModule,

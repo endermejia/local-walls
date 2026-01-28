@@ -66,7 +66,6 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
           import {type TuiFileLike, TuiFiles} from '@taiga-ui/kit';
 
           @Component({
-          standalone: true,
           exportAs: "Example6",
           imports: [AsyncPipe, NgIf, ReactiveFormsModule, TuiFiles],
           templateUrl: './index.html',

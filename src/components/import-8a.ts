@@ -72,7 +72,6 @@ import { AvatarGradeComponent } from './avatar-grade';
 
 @Component({
   selector: 'app-import-8a',
-  standalone: true,
   imports: [
     DatePipe,
     ReactiveFormsModule,

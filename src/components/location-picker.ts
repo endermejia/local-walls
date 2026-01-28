@@ -16,7 +16,6 @@ import { MapComponent } from './map';
 
 @Component({
   selector: 'app-location-picker',
-  standalone: true,
   imports: [MapComponent, TuiButton, TranslatePipe],
   template: `
     <div class="flex flex-col h-full w-full relative">
