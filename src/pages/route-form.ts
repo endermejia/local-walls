@@ -9,6 +9,7 @@ import {
   InputSignal,
   PLATFORM_ID,
   resource,
+  signal,
   Signal,
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -38,6 +39,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   ClimbingKind,
   ClimbingKinds,
+  CragDto,
   EquipperDto,
   RouteDto,
   VERTICAL_LIFE_GRADES,
@@ -79,6 +81,25 @@ interface MinimalRoute {
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
+      @if (cragOptions.value()?.length) {
+        <tui-textfield
+          tuiChevron
+          [tuiTextfieldCleaner]="false"
+          [stringify]="cragStringify"
+          [identityMatcher]="cragIdentityMatcher"
+        >
+          <label tuiLabel for="crag">
+            {{ 'labels.crag' | translate }}
+          </label>
+          <input tuiSelect id="crag" [formControl]="crag_id" />
+          <tui-data-list-wrapper
+            *tuiTextfieldDropdown
+            new
+            [items]="cragOptions.value() || []"
+          />
+        </tui-textfield>
+      }
+
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="name">{{ 'routes.name' | translate }}</label>
         <input tuiTextfield id="name" [formControl]="name" autocomplete="off" />
@@ -247,7 +268,12 @@ interface MinimalRoute {
         <button
           [disabled]="
             name.invalid ||
-            (!name.dirty && !height.dirty && !grade.dirty && !isEdit())
+            crag_id.invalid ||
+            (!name.dirty &&
+              !height.dirty &&
+              !grade.dirty &&
+              !crag_id.dirty &&
+              !isEdit())
           "
           tuiButton
           appearance="primary"
@@ -309,6 +335,9 @@ export class RouteFormComponent {
     nonNullable: true,
     validators: [Validators.required],
   });
+  crag_id = new FormControl<CragDto | null>(null, {
+    validators: [Validators.required],
+  });
   slug = new FormControl<string>('', {
     nonNullable: true,
     validators: [Validators.required],
@@ -340,6 +369,50 @@ export class RouteFormComponent {
   protected readonly kindStringify = (kind: ClimbingKind): string =>
     this.translate.instant(`climbingKinds.${kind}`);
 
+  protected readonly cragStringify = (crag: CragDto): string => crag.name;
+
+  protected readonly cragIdentityMatcher: TuiIdentityMatcher<CragDto> = (
+    a,
+    b,
+  ) => a.id === b.id;
+
+  private readonly initialAreaId = signal<number | null>(null);
+
+  protected readonly cragOptions = resource<CragDto[], number | undefined>({
+    params: () => this.effectiveCragId(),
+    loader: async ({ params: cragId }) => {
+      await this.supabase.whenReady();
+      if (!isPlatformBrowser(this.platformId) || !cragId) return [];
+
+      let areaId = this.initialAreaId();
+
+      if (!areaId) {
+        // 1. Get area_id of the current crag
+        const { data: currentCrag } = await this.supabase.client
+          .from('crags')
+          .select('area_id')
+          .eq('id', cragId)
+          .maybeSingle();
+
+        areaId = currentCrag?.area_id ?? null;
+        if (areaId) {
+          this.initialAreaId.set(areaId);
+        }
+      }
+
+      if (!areaId) return [];
+
+      // 2. Get all crags of that area
+      const { data: crags } = await this.supabase.client
+        .from('crags')
+        .select('id, name')
+        .eq('area_id', areaId)
+        .order('name');
+
+      return (crags as CragDto[]) || [];
+    },
+  });
+
   protected readonly equipperStringify = (
     item: EquipperDto | string,
   ): string => (typeof item === 'string' ? item : item.name);
@@ -352,7 +425,7 @@ export class RouteFormComponent {
     return a.id === b.id;
   };
 
-  protected readonly allEquippers = resource({
+  protected readonly allEquippers = resource<EquipperDto[], undefined>({
     loader: async () => {
       await this.supabase.whenReady();
       if (!isPlatformBrowser(this.platformId)) return [];
@@ -386,6 +459,21 @@ export class RouteFormComponent {
   constructor() {
     effect(async () => {
       const data = this.effectiveRouteData();
+      const initialCragId = this.effectiveCragId();
+
+      // We need to wait for cragOptions to be loaded to find the correct object
+      const options = this.cragOptions.value();
+      if (!options?.length) return;
+
+      if (!this.crag_id.value) {
+        if (initialCragId) {
+          const selectedCrag = options.find((c) => c.id === initialCragId);
+          if (selectedCrag) {
+            this.crag_id.setValue(selectedCrag);
+          }
+        }
+      }
+
       if (!data) return;
       this.editingId = data.id;
       this.name.setValue(data.name);
@@ -393,6 +481,12 @@ export class RouteFormComponent {
       this.grade.setValue(data.grade);
       this.climbing_kind.setValue(data.climbing_kind);
       this.height.setValue(data.height ?? null);
+      if (data.crag_id) {
+        const selectedCrag = options.find((c) => c.id === data.crag_id);
+        if (selectedCrag) {
+          this.crag_id.setValue(selectedCrag);
+        }
+      }
 
       // Load equippers
       const equippers = await this.routes.getRouteEquippers(data.id);
@@ -412,10 +506,10 @@ export class RouteFormComponent {
 
   async onSubmit(event: Event): Promise<void> {
     event.preventDefault();
-    if (this.name.invalid) return;
+    if (this.name.invalid || this.crag_id.invalid) return;
 
-    const crag_id = this.effectiveCragId();
-    if (!crag_id && !this.isEdit()) return;
+    const crag_id = this.crag_id.value?.id;
+    if (!crag_id) return;
 
     const name = this.name.value;
     const grade = this.grade.value;
@@ -427,6 +521,7 @@ export class RouteFormComponent {
       let result: RouteDto | null = null;
       if (this.isEdit() && this.editingId) {
         result = await this.routes.update(this.editingId, {
+          crag_id,
           name,
           slug: this.slug.value,
           grade,
