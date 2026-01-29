@@ -198,6 +198,8 @@ export interface TopoRouteRow {
             class="flex flex-col md:flex-row w-full h-full gap-4 overflow-hidden"
           >
             <!-- Topo image container -->
+            @let imageUrl = topoImageUrl();
+            @let topoImage = imageUrl | topoImage | async;
             <div
               (tuiSwipe)="onSwipe($event)"
               [style.height]="isMobile ? '50%' : '100%'"
@@ -208,20 +210,40 @@ export interface TopoRouteRow {
                 class="h-full w-max flex items-center justify-center min-w-full"
               >
                 <img
-                  [src]="
-                    ({ path: t.photo, version: global.topoPhotoVersion() }
-                      | topoImage
-                      | async) || global.iconSrc()('topo')
-                  "
+                  [src]="topoImage || global.iconSrc()('topo')"
                   [alt]="t.name"
-                  class="w-auto h-full max-w-none cursor-pointer block"
-                  [class.object-contain]="imageFit() === 'contain'"
-                  [class.object-cover]="imageFit() === 'cover'"
+                  class="w-auto h-full max-w-none cursor-pointer block object-cover"
                   decoding="async"
-                  (click.zoneless)="toggleImageFit()"
+                  (click.zoneless)="toggleFullscreen(true)"
                 />
               </div>
             </div>
+            <!-- Topo fullscreen -->
+            @if (isFullscreen()) {
+              <div
+                class="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden touch-none"
+                (click.zoneless)="toggleFullscreen(false)"
+                (wheel.zoneless)="onWheel($any($event))"
+                (touchstart.zoneless)="onTouchStart($any($event))"
+                (touchmove.zoneless)="onTouchMove($any($event))"
+                (touchend.zoneless)="onTouchEnd()"
+              >
+                <img
+                  [src]="topoImage || global.iconSrc()('topo')"
+                  [alt]="t.name"
+                  class="max-w-full max-h-full object-contain transition-transform duration-75 ease-out select-none"
+                  [style.transform]="
+                    'translate(' +
+                    zoomPosition().x +
+                    'px, ' +
+                    zoomPosition().y +
+                    'px) scale(' +
+                    zoomScale() +
+                    ')'
+                  "
+                />
+              </div>
+            }
 
             <!-- Routes table container -->
             <div
@@ -500,6 +522,93 @@ export class TopoComponent {
   private readonly translate = inject(TranslateService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly toast = inject(ToastService);
+  protected readonly isFullscreen = signal(false);
+  protected readonly zoomScale = signal(1);
+  protected readonly zoomPosition = signal({ x: 0, y: 0 });
+
+  protected toggleFullscreen(value: boolean): void {
+    this.isFullscreen.set(value);
+    if (!value) {
+      this.resetZoom();
+    }
+  }
+
+  protected resetZoom(): void {
+    this.zoomScale.set(1);
+    this.zoomPosition.set({ x: 0, y: 0 });
+  }
+
+  protected onWheel(event: WheelEvent): void {
+    event.preventDefault();
+    const delta = -event.deltaY;
+    const factor = 0.1;
+    const newScale = Math.min(
+      Math.max(1, this.zoomScale() + (delta > 0 ? factor : -factor)),
+      5,
+    );
+
+    if (newScale === 1) {
+      this.resetZoom();
+    } else {
+      this.zoomScale.set(newScale);
+    }
+  }
+
+  private lastTouchDistance = 0;
+  private isPanning = false;
+  private lastTouchPos = { x: 0, y: 0 };
+
+  protected onTouchStart(event: TouchEvent): void {
+    if (event.touches.length === 2) {
+      this.lastTouchDistance = this.getTouchDistance(event.touches);
+    } else if (event.touches.length === 1 && this.zoomScale() > 1) {
+      this.isPanning = true;
+      this.lastTouchPos = {
+        x: event.touches[0].clientX,
+        y: event.touches[0].clientY,
+      };
+    }
+  }
+
+  protected onTouchMove(event: TouchEvent): void {
+    if (event.touches.length === 2) {
+      event.preventDefault();
+      const distance = this.getTouchDistance(event.touches);
+      const delta = distance - this.lastTouchDistance;
+      const factor = 0.01;
+      const newScale = Math.min(
+        Math.max(1, this.zoomScale() + delta * factor),
+        5,
+      );
+
+      this.zoomScale.set(newScale);
+      this.lastTouchDistance = distance;
+      if (newScale === 1) this.resetZoom();
+    } else if (event.touches.length === 1 && this.isPanning) {
+      event.preventDefault();
+      const touch = event.touches[0];
+      const dx = touch.clientX - this.lastTouchPos.x;
+      const dy = touch.clientY - this.lastTouchPos.y;
+
+      this.zoomPosition.update((pos) => ({
+        x: pos.x + dx,
+        y: pos.y + dy,
+      }));
+
+      this.lastTouchPos = { x: touch.clientX, y: touch.clientY };
+    }
+  }
+
+  protected onTouchEnd(): void {
+    this.isPanning = false;
+    this.lastTouchDistance = 0;
+  }
+
+  private getTouchDistance(touches: TouchList): number {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
 
   // Route params
   countrySlug: InputSignal<string> = input.required();
@@ -511,7 +620,11 @@ export class TopoComponent {
   protected readonly topo = this.global.topoDetailResource.value;
   protected readonly crag = this.global.cragDetailResource.value;
 
-  protected readonly imageFit = signal<'contain' | 'cover'>('contain');
+  protected readonly topoImageUrl = computed(() => {
+    const t = this.topo();
+    if (!t) return null;
+    return { path: t.photo, version: this.global.topoPhotoVersion() };
+  });
 
   protected readonly allTopos = computed(() => this.crag()?.topos || []);
   protected readonly currentTopoIndex = computed(() => {
@@ -652,10 +765,6 @@ export class TopoComponent {
       item._ref.route_id,
       routeToSync,
     );
-  }
-
-  protected toggleImageFit(): void {
-    this.imageFit.update((fit) => (fit === 'contain' ? 'cover' : 'contain'));
   }
 
   protected onUpdateRouteNumber(

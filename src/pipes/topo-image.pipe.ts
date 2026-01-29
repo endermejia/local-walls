@@ -18,9 +18,11 @@ export class TopoImagePipe implements PipeTransform {
     const signedUrl = await this.supabase.getTopoSignedUrl(path);
     if (!signedUrl) return '';
 
-    // Add cache-busting parameter
+    // Add version parameter if provided
     const url = new URL(signedUrl);
-    url.searchParams.set('t', Date.now().toString());
+    if (typeof input === 'object' && input !== null && input.version) {
+      url.searchParams.set('v', input.version.toString());
+    }
     return url.toString();
   }
 }
