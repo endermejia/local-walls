@@ -166,12 +166,12 @@ import { mapLocationUrl, remToPx } from '../utils';
         @if (global.selectedMapCragItem(); as c) {
           <!-- Selected crag information section with the same width as the bottom-sheet -->
           <div
-            class="absolute w-full max-w-[30rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0"
+            class="absolute w-full max-w-[30rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0 px-4 pb-4"
           >
             <button
               tuiCardLarge
               tuiAppearance="floating"
-              class="relative pointer-events-auto m-4 sm:w-full"
+              class="pointer-events-auto w-full"
               (click.zoneless)="router.navigate(['/area', c.area_slug, c.slug])"
             >
               <div class="flex flex-col min-w-0 grow">
@@ -229,12 +229,12 @@ import { mapLocationUrl, remToPx } from '../utils';
         } @else if (global.selectedMapParkingItem(); as p) {
           <!-- Selected parking information section -->
           <div
-            class="absolute w-full max-w-[30rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0"
+            class="absolute w-full max-w-[30rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0 px-4 pb-4"
           >
             <div
               tuiCardLarge
               tuiAppearance="floating"
-              class="relative pointer-events-auto m-4 sm:w-full"
+              class="pointer-events-auto w-full"
             >
               <div class="flex flex-col grow gap-2">
                 <header tuiHeader class="flex wrap gap-2">

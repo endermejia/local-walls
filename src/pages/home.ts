@@ -10,53 +10,40 @@ import {
   PLATFORM_ID,
   signal,
 } from '@angular/core';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import {
   TuiAppearance,
   TuiButton,
-  TuiIcon,
   TuiLoader,
   TuiScrollbar,
-  TuiTextfield,
-  TuiTitle,
 } from '@taiga-ui/core';
-import {
-  TuiDialogService,
-  TuiSearchHotkey,
-  TuiSearchResults,
-} from '@taiga-ui/experimental';
+import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
   TuiAvatar,
   TuiConfirmData,
   TuiRating,
 } from '@taiga-ui/kit';
-import { TuiCell, TuiHeader, TuiInputSearch } from '@taiga-ui/layout';
+import { TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   concatMap,
-  debounceTime,
-  distinctUntilChanged,
   firstValueFrom,
   from,
-  map,
   Observable,
   scan,
   shareReplay,
   startWith,
   Subject,
-  switchMap,
   tap,
 } from 'rxjs';
 
 import {
   GradeLabel,
   RouteAscentWithExtras,
-  SearchData,
-  SearchItem,
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
 
@@ -103,64 +90,14 @@ export class InfiniteScrollTriggerComponent
     TuiAppearance,
     TuiAvatar,
     TuiButton,
-    TuiCell,
     TuiHeader,
-    TuiIcon,
-    TuiInputSearch,
     TuiLoader,
     TuiRating,
     TuiScrollbar,
-    TuiSearchHotkey,
-    TuiSearchResults,
-    TuiTextfield,
-    TuiTitle,
   ],
   template: `
     <tui-scrollbar class="h-full">
       <div class="p-4 flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32">
-        <!-- Search bar -->
-        <div
-          class="w-full sticky top-0 z-50 bg-[var(--tui-background-base)] py-2"
-        >
-          <tui-textfield>
-            <input
-              tuiSearchHotkey
-              autocomplete="off"
-              [formControl]="control"
-              [tuiInputSearch]="search"
-              [(tuiInputSearchOpen)]="searchOpen"
-              [placeholder]="'labels.searchPlaceholder' | translate"
-            />
-            <ng-template #search>
-              <tui-search-results [results]="results$ | async">
-                <ng-template let-item>
-                  <a
-                    tuiCell
-                    [routerLink]="item.href"
-                    (click)="control.setValue(''); searchOpen = false"
-                  >
-                    @if (item.type === 'user') {
-                      <tui-avatar
-                        [src]="item.icon || '@tui.user'"
-                        size="xs"
-                        class="mr-2"
-                      />
-                    } @else if (item.icon) {
-                      <tui-icon [icon]="item.icon" class="mr-2" />
-                    }
-                    <span tuiTitle>
-                      {{ item.title }}
-                      @if (item.subtitle) {
-                        <span tuiSubtitle>{{ item.subtitle }}</span>
-                      }
-                    </span>
-                  </a>
-                </ng-template>
-              </tui-search-results>
-            </ng-template>
-          </tui-textfield>
-        </div>
-
         <!-- Active Crags -->
         @if (activeCrags$ | async; as crags) {
           @if (crags.length > 0) {
@@ -424,113 +361,6 @@ export class HomeComponent implements OnDestroy {
     });
     return Array.from(cragsMap.values()).slice(0, 8);
   }
-
-  // Search logic
-  protected readonly control = new FormControl('');
-  protected searchOpen = false;
-
-  protected readonly results$ = this.control.valueChanges.pipe(
-    map((v) => (v ?? '').trim()),
-    debounceTime(300),
-    distinctUntilChanged(),
-    switchMap((query) => {
-      if (query.length < 2) return from([null]);
-      return from(
-        (async (): Promise<SearchData> => {
-          await this.supabase.whenReady();
-          const q = `%${query}%`;
-
-          const [
-            { data: areas },
-            { data: crags },
-            { data: routes },
-            { data: users },
-          ] = await Promise.all([
-            this.supabase.client
-              .from('areas')
-              .select('id, name, slug')
-              .ilike('name', q)
-              .limit(5),
-            this.supabase.client
-              .from('crags')
-              .select('id, name, slug, area:areas(name, slug)')
-              .ilike('name', q)
-              .limit(5),
-            this.supabase.client
-              .from('routes')
-              .select(
-                'id, name, slug, crag:crags!routes_crag_id_fkey(name, slug, area:areas!crags_area_id_fkey(name, slug))',
-              )
-              .ilike('name', q)
-              .limit(5),
-            this.supabase.client
-              .from('user_profiles')
-              .select('id, name, avatar')
-              .ilike('name', q)
-              .limit(5),
-          ]);
-
-          const results: SearchData = {};
-
-          if (areas?.length) {
-            results[this.translate.instant('labels.areas')] = areas.map(
-              (a) =>
-                ({
-                  title: a.name,
-                  href: `/area/${a.slug}`,
-                  icon: '@tui.map-pin',
-                }) as SearchItem,
-            );
-          }
-
-          if (crags?.length) {
-            results[this.translate.instant('labels.crags')] = crags.map((c) => {
-              const area = Array.isArray(c.area) ? c.area[0] : c.area;
-              return {
-                title: c.name,
-                subtitle: area?.name,
-                href: `/area/${area?.slug}/${c.slug}`,
-                icon: '@tui.mountain',
-              } as SearchItem;
-            });
-          }
-
-          if (routes?.length) {
-            results[this.translate.instant('labels.routes')] = routes.map(
-              (r) => {
-                const crag = Array.isArray(r.crag) ? r.crag[0] : r.crag;
-                const area = Array.isArray(crag?.area)
-                  ? crag?.area[0]
-                  : crag?.area;
-                return {
-                  title: r.name,
-                  subtitle: `${area?.name || ''} > ${crag?.name || ''}`,
-                  href: `/area/${area?.slug}/${crag?.slug}/${r.slug}`,
-                  icon: '@tui.route',
-                } as SearchItem;
-              },
-            );
-          }
-
-          if (users?.length) {
-            results[this.translate.instant('labels.users')] = users.map(
-              (u) =>
-                ({
-                  title: u.name,
-                  href: `/profile/${u.id}`,
-                  icon: this.supabase.buildAvatarUrl(u.avatar) || u.name[0],
-                  type: 'user',
-                }) as SearchItem,
-            );
-          }
-
-          return results;
-        })(),
-      );
-    }),
-    startWith(null),
-    shareReplay(1),
-  );
 
   // Infinite Scroll & Async Pipe for Ascents
   private readonly loadMore$ = new Subject<void>();
