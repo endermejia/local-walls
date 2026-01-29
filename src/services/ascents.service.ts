@@ -73,6 +73,7 @@ export class AscentsService {
         ),
         size: 'm',
         data,
+        dismissible: false,
       })
       .pipe(
         tap((res) => {

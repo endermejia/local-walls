@@ -54,6 +54,7 @@ export class RoutesService {
           ),
           size: 'l',
           data,
+          dismissible: false,
         },
       ),
     ).then((result) => {
@@ -71,6 +72,7 @@ export class RoutesService {
         {
           label: this.translate.instant('routes.unifyTitle'),
           size: 'm',
+          dismissible: false,
         },
       ),
     ).then((result) => {

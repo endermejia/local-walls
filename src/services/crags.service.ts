@@ -62,6 +62,7 @@ export class CragsService {
           ),
           size: 'l',
           data,
+          dismissible: false,
         },
       ),
     ).then((result) => {
@@ -86,6 +87,7 @@ export class CragsService {
         {
           label: this.translate.instant('crags.unifyTitle'),
           size: 'm',
+          dismissible: false,
         },
       ),
     ).then((result) => {

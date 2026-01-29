@@ -25,6 +25,7 @@ export class MapService {
           lng: lng ?? undefined,
         },
         appearance: 'fullscreen',
+        dismissible: false,
       },
     );
   }

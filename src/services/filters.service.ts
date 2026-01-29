@@ -40,6 +40,7 @@ export class FiltersService {
           label: this.translate.instant('labels.filters'),
           size: 'l',
           data,
+          dismissible: false,
         },
       ),
     ).then((result) => {

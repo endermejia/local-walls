@@ -54,6 +54,7 @@ export class AreasService {
           ),
           size: 'l',
           data,
+          dismissible: false,
         },
       ),
     ).then((result) => {
@@ -85,6 +86,7 @@ export class AreasService {
           label: this.translate.instant('areas.unifyTitle'),
           size: 'm',
           data: areas,
+          dismissible: false,
         },
       ),
     ).then((result) => {

@@ -41,7 +41,7 @@ export class UserProfilesService {
       this.dialogs.open(new PolymorpheusComponent(Import8aComponent), {
         label: this.translate.instant('import8a.searchTitle'),
         size: 'l',
-        dismissible: true,
+        dismissible: false,
         closable: true,
       }),
       { defaultValue: undefined },
@@ -59,6 +59,7 @@ export class UserProfilesService {
         data: { file, size },
         appearance: 'fullscreen',
         closable: false,
+        dismissible: false,
       },
     );
   }

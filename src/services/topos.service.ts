@@ -46,6 +46,7 @@ export class ToposService {
           ),
           size: 'l',
           data,
+          dismissible: false,
         },
       ),
     ).then((result) => {
@@ -66,6 +67,7 @@ export class ToposService {
           label: this.translate.instant('topos.editRouteTitle'),
           size: 's',
           data,
+          dismissible: false,
         },
       ),
     ).then((result) => {

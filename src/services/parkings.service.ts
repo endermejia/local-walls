@@ -41,6 +41,7 @@ export class ParkingsService {
           ),
           size: 'l',
           data,
+          dismissible: false,
         },
       ),
     ).then((result) => {
@@ -64,6 +65,7 @@ export class ParkingsService {
           label: this.translate.instant('actions.link'),
           size: 'm',
           data,
+          dismissible: false,
         },
       ),
     ).then((result) => {
