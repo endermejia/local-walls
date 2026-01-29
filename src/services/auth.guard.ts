@@ -41,6 +41,18 @@ export const authGuard: CanMatchFn = async (
     if (profileName && profileName === session.user.email) {
       return router.createUrlTree(['/profile']);
     }
+  } else {
+    // When on the profile route, always fetch fresh data to check if setup is complete
+    const { data } = await supabase.client
+      .from('user_profiles')
+      .select('name')
+      .eq('id', session.user.id)
+      .maybeSingle();
+
+    // If profile is now complete (name != email), refresh the signal
+    if (data?.name && data.name !== session.user.email) {
+      supabase.userProfileResource.reload();
+    }
   }
 
   return true;
