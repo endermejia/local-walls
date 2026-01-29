@@ -51,6 +51,14 @@ export const serverRoutes: ServerRoute[] = [
   },
   // ADMIN
   {
+    path: 'admin',
+    renderMode: RenderMode.Prerender,
+  },
+  {
+    path: 'my-areas',
+    renderMode: RenderMode.Prerender,
+  },
+  {
     path: 'admin/users',
     renderMode: RenderMode.Prerender,
   },

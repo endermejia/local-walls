@@ -298,14 +298,17 @@
   },
   "admin": {
     "users": {
-      "title": "Usuarios"
+      "title": "Usuarios",
+      "description": "Gestiona los usuarios registrados y sus perfiles."
     },
     "equippers": {
       "title": "Equipadores",
+      "description": "Administra la lista de equipadores locales.",
       "deleteTitle": "Eliminar equipador",
       "deleteConfirm": "¿Seguro que quieres eliminar al equipador \"{{name}}\"? Esta acción no se puede deshacer."
     },
     "parkings": {
+      "description": "Gestiona los puntos de aparcamiento de las zonas.",
       "deleteTitle": "Eliminar parking",
       "deleteConfirm": "¿Seguro que quieres eliminar el parking \"{{name}}\"? Esta acción no se puede deshacer.",
       "unlinkTitle": "Desvincular parking",

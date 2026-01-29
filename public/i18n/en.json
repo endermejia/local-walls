@@ -295,14 +295,17 @@
   },
   "admin": {
     "users": {
-      "title": "Users Management"
+      "title": "Users Management",
+      "description": "Manage registered users and their profiles."
     },
     "equippers": {
       "title": "Equippers management",
+      "description": "Manage the list of local equippers.",
       "deleteTitle": "Delete equipper",
       "deleteConfirm": "Are you sure you want to delete equipper \"{{name}}\"? This action cannot be undone."
     },
     "parkings": {
+      "description": "Manage parking spots for the areas.",
       "deleteTitle": "Delete parking",
       "deleteConfirm": "Are you sure you want to delete parking \"{{name}}\"? This action cannot be undone.",
       "unlinkTitle": "Unlink parking",
