@@ -131,11 +131,6 @@ export class GlobalData {
         fn: () => this.router.navigateByUrl('/admin/users'),
       });
       config.push({
-        name: 'nav.admin-area-equippers',
-        icon: '@tui.hammer',
-        fn: () => this.router.navigateByUrl('/admin/area-equippers'),
-      });
-      config.push({
         name: 'nav.admin-parkings',
         icon: '@tui.map-pin',
         fn: () => this.router.navigateByUrl('/admin/parkings'),

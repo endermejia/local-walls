@@ -40,7 +40,6 @@
     "openMap": "Open location in Google Maps",
     "pickOnMap": "Pick on map",
     "register": "Register",
-    "removeAssignment": "Remove assignment",
     "save": "Save",
     "select": "Select",
     "share": "Share",
@@ -62,7 +61,6 @@
     "approach": "Approach",
     "area": "Area",
     "areas": "Areas",
-    "assignArea": "Assign area",
     "ascents": "Ascents",
     "bio": "Biography",
     "birthDate": "Birth date",
@@ -176,7 +174,6 @@
     "areas": "Areas",
     "my-crags": "My crags",
     "admin-users": "Users",
-    "admin-area-equippers": "Areas by equipper",
     "admin-equippers": "Equippers",
     "admin-parkings": "Parkings"
   },
