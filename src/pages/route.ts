@@ -65,7 +65,9 @@ import { handleErrorToast } from '../utils';
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
+      @let isAdmin = global.isAdmin();
       @if (route(); as r) {
+        @let isEquipper = global.isAllowedEquipper(r.area_id);
         <div class="mb-4 flex items-center justify-between gap-2">
           <app-section-header
             class="w-full"
@@ -73,7 +75,7 @@ import { handleErrorToast } from '../utils';
             [liked]="r.liked"
             (toggleLike)="routesService.toggleRouteLike(r.id, r)"
           >
-            @if (global.isAdmin()) {
+            @if (isAdmin || isEquipper) {
               <div actionButtons class="flex gap-2">
                 <button
                   size="s"

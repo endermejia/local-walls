@@ -40,6 +40,7 @@
     "openMap": "Abrir ubicación en Google Maps",
     "pickOnMap": "Seleccionar en el mapa",
     "register": "Regístrate",
+    "removeAssignment": "Eliminar asignación",
     "save": "Guardar",
     "select": "Seleccionar",
     "share": "Compartir",
@@ -61,6 +62,7 @@
     "approach": "Aproximación",
     "area": "Área",
     "areas": "Áreas",
+    "assignArea": "Asignar área",
     "ascents": "Encadenes",
     "bio": "Biografía",
     "birthDate": "Fecha de nacimiento",
@@ -175,6 +177,7 @@
     "areas": "Áreas",
     "my-crags": "Mis sectores",
     "admin-users": "Usuarios",
+    "admin-area-equippers": "Zonas por equipador",
     "admin-equippers": "Equipadores",
     "admin-parkings": "Parkings"
   },

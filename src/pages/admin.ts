@@ -25,6 +25,16 @@ import { TranslatePipe } from '@ngx-translate/core';
         </a>
 
         <a
+          routerLink="/admin/area-equippers"
+          class="flex items-center gap-4 p-4 bg-[var(--tui-background-base)] rounded-2xl border border-[var(--tui-border-normal)] no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
+        >
+          <tui-icon icon="@tui.hammer" />
+          <span class="font-bold">{{
+            'nav.admin-area-equippers' | translate
+          }}</span>
+        </a>
+
+        <a
           routerLink="/admin/parkings"
           class="flex items-center gap-4 p-4 bg-[var(--tui-background-base)] rounded-2xl border border-[var(--tui-border-normal)] no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
         >

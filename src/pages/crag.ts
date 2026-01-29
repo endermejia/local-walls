@@ -105,8 +105,8 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
       <section class="w-full max-w-5xl mx-auto p-4">
         @let isMobile = global.isMobile();
         @let isAdmin = global.isAdmin();
-        @let isEquipper = global.isEquipper();
         @if (cragDetail(); as c) {
+          @let isEquipper = global.isAllowedEquipper(c.area_id);
           <div class="mb-4">
             <app-section-header
               [title]="c.name"
