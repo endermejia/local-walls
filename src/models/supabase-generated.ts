@@ -1174,6 +1174,35 @@ export interface Database {
         };
         Relationships: [];
       };
+      route_ascent_likes: {
+        Row: {
+          created_at: string;
+          id: number;
+          route_ascent_id: number;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: number;
+          route_ascent_id: number;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: number;
+          route_ascent_id?: number;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'route_ascent_likes_route_ascent_id_fkey';
+            columns: ['route_ascent_id'];
+            isOneToOne: false;
+            referencedRelation: 'route_ascents';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       route_ascents: {
         Row: {
           anchor_replaced_by_me: boolean | null;
@@ -1657,6 +1686,10 @@ export interface Database {
       is_user_admin: { Args: { p_uid: string }; Returns: boolean };
       toggle_area_like: { Args: { p_area_id: number }; Returns: boolean };
       toggle_crag_like: { Args: { p_crag_id: number }; Returns: boolean };
+      toggle_route_ascent_like: {
+        Args: { p_route_ascent_id: number };
+        Returns: boolean;
+      };
       toggle_route_like: { Args: { p_route_id: number }; Returns: boolean };
       toggle_route_project: { Args: { p_route_id: number }; Returns: boolean };
     };

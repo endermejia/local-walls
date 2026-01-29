@@ -5,7 +5,7 @@ import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslateService } from '@ngx-translate/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, Subject, tap } from 'rxjs';
 
 import {
   AscentDialogData,
@@ -14,6 +14,7 @@ import {
   RouteAscentInsertDto,
   RouteAscentUpdateDto,
   RouteAscentWithExtras,
+  UserProfileDto,
 } from '../models';
 
 import AscentFormComponent from '../pages/ascent-form';
@@ -154,11 +155,151 @@ export class AscentsService {
     return true;
   }
 
+  private readonly ascentLikesUpdate$ = new Subject<{
+    ascentId: number;
+    user_liked: boolean;
+    likes_count: number;
+  }>();
+
+  async toggleLike(ascentId: number): Promise<boolean | null> {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    await this.supabase.whenReady();
+    const { data, error } = await this.supabase.client.rpc(
+      'toggle_route_ascent_like',
+      {
+        p_route_ascent_id: ascentId,
+      },
+    );
+    if (error) {
+      console.error('[AscentsService] toggleLike error', error);
+      throw error;
+    }
+
+    return data;
+  }
+
+  async getLikesInfo(ascentId: number): Promise<{
+    likes_count: number;
+    user_liked: boolean;
+  }> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return { likes_count: 0, user_liked: false };
+    }
+    await this.supabase.whenReady();
+    const userId = this.supabase.authUserId();
+
+    const { error, count } = await this.supabase.client
+      .from('route_ascent_likes')
+      .select('id', { count: 'exact', head: true })
+      .eq('route_ascent_id', ascentId);
+
+    if (error) {
+      console.error('[AscentsService] getLikesInfo count error', error);
+      throw error;
+    }
+
+    let user_liked = false;
+    if (userId) {
+      const { data: likeData, error: likeError } = await this.supabase.client
+        .from('route_ascent_likes')
+        .select('id')
+        .eq('route_ascent_id', ascentId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (likeError) {
+        console.error(
+          '[AscentsService] getLikesInfo like status error',
+          likeError,
+        );
+      }
+      user_liked = !!likeData;
+    }
+
+    return {
+      likes_count: count ?? 0,
+      user_liked,
+    };
+  }
+
+  async getLikesPaginated(
+    ascentId: number,
+    page = 0,
+    pageSize = 20,
+    query = '',
+  ): Promise<{ items: UserProfileDto[]; total: number }> {
+    if (!isPlatformBrowser(this.platformId)) return { items: [], total: 0 };
+    await this.supabase.whenReady();
+
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
+
+    const likesQuery = this.supabase.client
+      .from('route_ascent_likes')
+      .select('user_id', { count: 'exact' })
+      .eq('route_ascent_id', ascentId)
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    const { data: likesData, error: likesError, count } = await likesQuery;
+
+    if (likesError) {
+      console.error('[AscentsService] getLikesPaginated error', likesError);
+      throw likesError;
+    }
+
+    if (!likesData || likesData.length === 0) {
+      return { items: [], total: 0 };
+    }
+
+    const userIds = likesData.map((d) => d.user_id);
+    let profilesQuery = this.supabase.client
+      .from('user_profiles')
+      .select('*')
+      .in('id', userIds);
+
+    if (query) {
+      profilesQuery = profilesQuery.ilike('name', `%${query}%`);
+    }
+
+    const { data: profilesData, error: profilesError } = await profilesQuery;
+
+    if (profilesError) {
+      console.error(
+        '[AscentsService] getLikesPaginated profiles error',
+        profilesError,
+      );
+      throw profilesError;
+    }
+
+    // Sort profiles back to match the order of likes (created_at desc)
+    const profileMap = new Map(profilesData?.map((p) => [p.id, p]));
+    const sortedProfiles = userIds
+      .map((id) => profileMap.get(id))
+      .filter((p): p is UserProfileDto => !!p);
+
+    return {
+      items: sortedProfiles,
+      total: count || 0,
+    };
+  }
+
   refreshResources(
     ascentId?: number,
     changes?: Partial<RouteAscentWithExtras>,
   ): void {
     if (ascentId && changes) {
+      if (
+        changes.user_liked !== undefined &&
+        changes.likes_count !== undefined
+      ) {
+        this.ascentLikesUpdate$.next({
+          ascentId,
+          user_liked: changes.user_liked,
+          likes_count: changes.likes_count,
+        });
+      }
+
       const updateFn = (
         data: { items: RouteAscentWithExtras[]; total: number } | undefined,
       ) => {

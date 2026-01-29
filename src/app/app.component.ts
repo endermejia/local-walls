@@ -1,17 +1,10 @@
-import {
-  Component,
-  computed,
-  effect,
-  inject,
-  PLATFORM_ID,
-  signal,
-} from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Meta, Title } from '@angular/platform-browser';
 import { Router, RouterOutlet } from '@angular/router';
 
 import { TuiButton, TuiRoot } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/experimental';
 import { TuiBlockStatus } from '@taiga-ui/layout';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -20,7 +13,6 @@ import { map, merge, startWith } from 'rxjs';
 import { GlobalData, LocalStorage } from '../services';
 
 import { NavbarComponent } from '../components';
-import { NgOptimizedImage } from '@angular/common';
 
 @Component({
   selector: 'app-root',
@@ -98,12 +90,10 @@ export class AppComponent {
   private meta = inject(Meta);
   private translate = inject(TranslateService);
   private storage = inject(LocalStorage);
-  private dialogs = inject(TuiDialogService);
-  private platformId = inject(PLATFORM_ID);
 
   private readonly gdprKey = 'lw_gdpr_accepted';
   protected gdprAccepted = signal(
-    this.storage.getItem(this.gdprKey) === 'true',
+    this.storage.getItem(this.gdprKey) !== 'false',
   );
   protected showFullPrivacy = signal(false);
 

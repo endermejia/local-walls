@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { TuiDialogContext } from '@taiga-ui/experimental';
+import { TuiDialogContext, TuiDialogService } from '@taiga-ui/experimental';
 import {
   TuiTextfield,
   TuiButton,
@@ -20,22 +20,27 @@ import {
   TuiLoader,
   TuiScrollbar,
 } from '@taiga-ui/core';
-import { TuiAvatar } from '@taiga-ui/kit';
+import { TuiAvatar, TuiConfirmData, TUI_CONFIRM } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { WaIntersectionObserver } from '@ng-web-apis/intersection-observer';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 import { UserProfileDto } from '../models';
 
-import { FollowsService, SupabaseService } from '../services';
+import { FollowsService, SupabaseService, AscentsService } from '../services';
 import { EmptyStateComponent } from './empty-state';
-import { TuiDialogService } from '@taiga-ui/experimental';
-import { TUI_CONFIRM, TuiConfirmData } from '@taiga-ui/kit';
-import { TranslateService } from '@ngx-translate/core';
-import { firstValueFrom } from 'rxjs';
+
+export type UserListType = 'followers' | 'following' | 'ascent-likes';
+
+export interface UserListDialogData {
+  userId?: string;
+  ascentId?: number;
+  type: UserListType;
+}
 
 @Component({
-  selector: 'app-user-follows-list',
+  selector: 'app-user-list-dialog',
   imports: [
     AsyncPipe,
     RouterLink,
@@ -156,35 +161,30 @@ import { firstValueFrom } from 'rxjs';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UserFollowsListComponent {
+export class UserListDialogComponent {
   private readonly platformId = inject(PLATFORM_ID);
   protected readonly supabase = inject(SupabaseService);
   private readonly followsService = inject(FollowsService);
+  private readonly ascentsService = inject(AscentsService);
   protected readonly context =
-    injectContext<
-      TuiDialogContext<
-        boolean,
-        { userId: string; type: 'followers' | 'following' }
-      >
-    >();
+    injectContext<TuiDialogContext<boolean, UserListDialogData>>();
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
 
   protected readonly userId = this.context.data.userId;
+  protected readonly ascentId = this.context.data.ascentId;
   protected readonly type = this.context.data.type;
 
   protected readonly query = signal('');
   protected readonly page = signal(0);
   protected readonly pageSize = 20;
 
-  protected readonly isOwnProfile = computed(
-    () => this.userId === this.supabase.authUserId(),
-  );
   protected readonly followedIds = signal<Set<string>>(new Set());
 
   protected readonly usersResource = resource({
     params: () => ({
       userId: this.userId,
+      ascentId: this.ascentId,
       type: this.type,
       query: this.query(),
       page: this.page(),
@@ -192,20 +192,33 @@ export class UserFollowsListComponent {
     loader: async ({ params }) => {
       if (!isPlatformBrowser(this.platformId)) return { items: [], total: 0 };
 
-      if (params.type === 'followers') {
-        return await this.followsService.getFollowersPaginated(
-          params.userId,
-          params.page,
-          this.pageSize,
-          params.query,
-        );
-      } else {
-        return await this.followsService.getFollowingPaginated(
-          params.userId,
-          params.page,
-          this.pageSize,
-          params.query,
-        );
+      switch (params.type) {
+        case 'followers':
+          if (!params.userId) return { items: [], total: 0 };
+          return await this.followsService.getFollowersPaginated(
+            params.userId,
+            params.page,
+            this.pageSize,
+            params.query,
+          );
+        case 'following':
+          if (!params.userId) return { items: [], total: 0 };
+          return await this.followsService.getFollowingPaginated(
+            params.userId,
+            params.page,
+            this.pageSize,
+            params.query,
+          );
+        case 'ascent-likes':
+          if (!params.ascentId) return { items: [], total: 0 };
+          return await this.ascentsService.getLikesPaginated(
+            params.ascentId,
+            params.page,
+            this.pageSize,
+            params.query,
+          );
+        default:
+          return { items: [], total: 0 };
       }
     },
   });

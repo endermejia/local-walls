@@ -59,7 +59,7 @@ import {
   AscentsTableComponent,
   EmptyStateComponent,
   RoutesTableComponent,
-  UserFollowsListComponent,
+  UserListDialogComponent,
 } from '../components';
 
 import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
@@ -934,7 +934,7 @@ export class UserProfileComponent {
 
     void firstValueFrom(
       this.dialogs.open<boolean>(
-        new PolymorpheusComponent(UserFollowsListComponent),
+        new PolymorpheusComponent(UserListDialogComponent),
         {
           data: { userId, type },
           label: this.translate.instant(`labels.${type}`),

@@ -31,10 +31,11 @@ import {
   TuiLink,
   TuiScrollbar,
 } from '@taiga-ui/core';
+import { TuiDialogService } from '@taiga-ui/experimental';
 import { TuiAvatar, TuiChip, TuiRating } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
 
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 import {
@@ -46,6 +47,7 @@ import {
 
 import { AscentsService, GlobalData, SupabaseService } from '../services';
 
+import { AscentLikesComponent } from './ascent-likes';
 import { AvatarGradeComponent } from './avatar-grade';
 import { EmptyStateComponent } from './empty-state';
 
@@ -70,6 +72,8 @@ export interface AscentsTableRow {
   avatarSrc: string;
   canEdit: boolean;
   liked: boolean;
+  likes_count: number;
+  user_liked: boolean;
   _ref: RouteAscentWithExtras;
 }
 
@@ -93,6 +97,7 @@ export interface AscentsTableRow {
     AsyncPipe,
     TuiIcon,
     TuiLink,
+    AscentLikesComponent,
     AvatarGradeComponent,
     EmptyStateComponent,
   ],
@@ -113,7 +118,7 @@ export interface AscentsTableRow {
               @for (col of columns(); track col) {
                 <th *tuiHead="col" tuiTh [sorter]="getSorter(col)">
                   {{
-                    col === 'actions' || col === 'details'
+                    col === 'actions' || col === 'details' || col === 'likes'
                       ? ''
                       : ('labels.' + col | translate)
                   }}
@@ -274,6 +279,11 @@ export interface AscentsTableRow {
                           </tui-avatar>
                         </div>
                       }
+                      @case ('likes') {
+                        <div tuiCell size="m" class="flex items-center gap-1">
+                          <app-ascent-likes [ascentId]="item._ref.id" />
+                        </div>
+                      }
                     }
                   </td>
                 }
@@ -313,6 +323,8 @@ export class AscentsTableComponent {
   protected readonly global = inject(GlobalData);
   protected readonly ascentsService = inject(AscentsService);
   private readonly supabase = inject(SupabaseService);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
 
   data: InputSignal<RouteAscentWithExtras[]> =
     input.required<RouteAscentWithExtras[]>();
@@ -335,7 +347,7 @@ export class AscentsTableComponent {
     if (this.showUser()) cols.push('user');
     cols.push('grade');
     if (this.showRoute()) cols.push('route');
-    cols.push('date', 'type', 'comment', 'details', 'rating');
+    cols.push('date', 'type', 'comment', 'details', 'rating', 'likes');
     return cols;
   });
 
@@ -396,6 +408,8 @@ export class AscentsTableComponent {
         details,
         canEdit: a.user_id === this.supabase.authUser()?.id,
         liked: a.route?.liked ?? false,
+        likes_count: a.likes_count ?? 0,
+        user_liked: !!a.user_liked,
         avatarSrc: this.supabase.buildAvatarUrl(a.user?.avatar ?? null),
         _ref: a,
       };
@@ -413,7 +427,6 @@ export class AscentsTableComponent {
     date: (a, b) => tuiDefaultSort(a.date, b.date),
     rating: (a, b) => tuiDefaultSort(a.rating, b.rating),
     type: (a, b) => tuiDefaultSort(a.type, b.type),
-    comment: (a, b) => tuiDefaultSort(a.comment, b.comment),
   };
 
   protected tableSorter: TuiComparator<AscentsTableRow> = this.sorters['date'];
