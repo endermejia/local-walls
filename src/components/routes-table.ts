@@ -41,8 +41,6 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 import {
-  CLIMBING_ICONS,
-  ClimbingKind,
   RouteAscentWithExtras,
   RouteWithExtras,
   VERTICAL_LIFE_GRADES,
@@ -63,7 +61,6 @@ import { EmptyStateComponent } from './empty-state';
 
 export type RoutesTableKey =
   | 'grade'
-  | 'climbing_kind'
   | 'route'
   | 'rating'
   | 'ascents'
@@ -73,7 +70,6 @@ export type RouteItem = RouteWithExtras;
 export interface RoutesTableRow {
   key: string;
   grade: string;
-  climbing_kind: ClimbingKind;
   route: string;
   height: number | null;
   rating: number;
@@ -162,24 +158,6 @@ export interface RoutesTableRow {
                           <app-avatar-grade
                             [grade]="item._ref.grade"
                             size="m"
-                          />
-                        </div>
-                      }
-                      @case ('climbing_kind') {
-                        <div tuiCell size="m">
-                          <tui-avatar
-                            size="s"
-                            appearance="primary-grayscale"
-                            [src]="
-                              climbingIcons[item.climbing_kind] ||
-                              '@tui.mountain'
-                            "
-                            [tuiHint]="
-                              global.isMobile()
-                                ? null
-                                : ('filters.types.' + item.climbing_kind
-                                  | translate)
-                            "
                           />
                         </div>
                       }
@@ -407,14 +385,11 @@ export class RoutesTableComponent {
   showRowColors: InputSignal<boolean> = input(true);
   showLocation: InputSignal<boolean> = input(false);
 
-  readonly climbingIcons = CLIMBING_ICONS;
-
   protected readonly sorters: Record<
     RoutesTableKey,
     TuiComparator<RoutesTableRow>
   > = {
     grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
-    climbing_kind: (a, b) => tuiDefaultSort(a.climbing_kind, b.climbing_kind),
     route: (a, b) => tuiDefaultSort(a.route, b.route),
     height: (a, b) => tuiDefaultSort(a.height ?? 0, b.height),
     rating: (a, b) => tuiDefaultSort(a.rating, b.rating),
@@ -463,7 +438,6 @@ export class RoutesTableComponent {
       return {
         key,
         grade,
-        climbing_kind: r.climbing_kind,
         route: r.name,
         area_name: r.area_name,
         crag_name: r.crag_name,
