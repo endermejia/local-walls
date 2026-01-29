@@ -8,7 +8,7 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import {
@@ -18,8 +18,14 @@ import {
   TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
-import { tuiDefaultSort } from '@taiga-ui/cdk';
-import { TuiLink, TuiScrollbar, TuiTextfield } from '@taiga-ui/core';
+import { tuiDefaultSort, TuiIdentityMatcher } from '@taiga-ui/cdk';
+import {
+  TuiDataList,
+  TuiLink,
+  TuiOptGroup,
+  TuiScrollbar,
+  TuiTextfield,
+} from '@taiga-ui/core';
 import {
   TuiAvatar,
   TuiBadgedContentComponent,
@@ -27,14 +33,18 @@ import {
   TuiBadgeNotification,
   TuiChevron,
   TuiDataListWrapper,
+  TuiFilterByInputPipe,
+  TuiInputChip,
+  TuiMultiSelect,
   TuiSelect,
   TuiSkeleton,
 } from '@taiga-ui/kit';
+import { TuiCell } from '@taiga-ui/layout';
 
 import { WaIntersectionObserver } from '@ng-web-apis/intersection-observer';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-import { AppRole, AppRoles } from '../models';
+import { AppRole, AppRoles, AreaListItem } from '../models';
 
 import { GlobalData, SupabaseService } from '../services';
 
@@ -45,6 +55,8 @@ interface UserWithRole {
   name: string | null;
   avatar: string | null;
   role: AppRole;
+  assignedAreas: AreaListItem[];
+  areasControl: FormControl<AreaListItem[]>;
 }
 
 @Component({
@@ -52,15 +64,22 @@ interface UserWithRole {
   imports: [
     EmptyStateComponent,
     FormsModule,
+    ReactiveFormsModule,
     RouterLink,
     TranslatePipe,
     TuiAvatar,
     TuiBadgeNotification,
     TuiBadgedContentComponent,
     TuiBadgedContentDirective,
+    TuiCell,
     TuiChevron,
+    TuiDataList,
     TuiDataListWrapper,
+    TuiFilterByInputPipe,
+    TuiInputChip,
     TuiLink,
+    TuiMultiSelect,
+    TuiOptGroup,
     TuiScrollbar,
     TuiSelect,
     TuiSkeleton,
@@ -159,6 +178,14 @@ interface UserWithRole {
               >
                 {{ 'labels.role' | translate }}
               </th>
+              <th
+                *tuiHead="'areas'"
+                tuiTh
+                class="areas-column"
+                [sorter]="null"
+              >
+                {{ 'labels.areas' | translate }}
+              </th>
             </tr>
           </thead>
 
@@ -229,6 +256,47 @@ interface UserWithRole {
                       />
                     </tui-textfield>
                   </td>
+                  <td *tuiCell="'areas'" tuiTd class="areas-column">
+                    @if (user.role === 'equipper') {
+                      <tui-textfield
+                        multi
+                        tuiChevron
+                        [stringify]="stringifyArea"
+                        [identityMatcher]="areaIdentityMatcher"
+                        [tuiTextfieldCleaner]="true"
+                      >
+                        <label tuiLabel for="areas-select-{{ user.id }}">
+                          {{ 'labels.areas' | translate }}
+                        </label>
+                        <input
+                          tuiInputChip
+                          id="areas-select-{{ user.id }}"
+                          [formControl]="user.areasControl"
+                          [placeholder]="'actions.select' | translate"
+                        />
+                        <tui-input-chip *tuiItem />
+                        <tui-data-list *tuiTextfieldDropdown>
+                          <tui-opt-group
+                            [label]="'labels.areas' | translate"
+                            tuiMultiSelectGroup
+                          >
+                            @for (
+                              area of availableAreas() | tuiFilterByInput;
+                              track area.id
+                            ) {
+                              <button type="button" new tuiOption [value]="area">
+                                <div tuiCell size="s">
+                                  <div tuiTitle>
+                                    {{ area.name }}
+                                  </div>
+                                </div>
+                              </button>
+                            }
+                          </tui-opt-group>
+                        </tui-data-list>
+                      </tui-textfield>
+                    }
+                  </td>
                 </tr>
               } @empty {
                 <tr tuiTr>
@@ -257,6 +325,10 @@ interface UserWithRole {
         min-width: 200px;
       }
 
+      .areas-column {
+        min-width: 300px;
+      }
+
       .user-cell {
         padding: 1rem 0.5rem;
       }
@@ -281,7 +353,7 @@ export class AdminUsersListComponent {
   private readonly translate = inject(TranslateService);
 
   protected readonly options = { updateOn: 'blur' } as const;
-  protected readonly columns = ['user', 'role'] as const;
+  protected readonly columns = ['user', 'role', 'areas'] as const;
 
   protected readonly roleOptions = [
     AppRoles.CLIMBER,
@@ -330,6 +402,13 @@ export class AdminUsersListComponent {
   protected readonly loading: WritableSignal<boolean> = signal(true);
   protected readonly users: WritableSignal<UserWithRole[]> = signal([]);
 
+  protected readonly availableAreas = computed(() => this.global.areaList());
+  protected readonly stringifyArea = (a: AreaListItem) => a.name;
+  protected readonly areaIdentityMatcher: TuiIdentityMatcher<AreaListItem> = (
+    a,
+    b,
+  ) => a.id === b.id;
+
   protected readonly skeletons = Array(25).fill(0);
   protected readonly direction = signal<TuiSortDirection>(TuiSortDirection.Asc);
   protected readonly sorter = signal<TuiComparator<UserWithRole>>((a, b) =>
@@ -360,46 +439,74 @@ export class AdminUsersListComponent {
       this.loading.set(true);
       await this.supabase.whenReady();
 
-      // Fetch user profiles and roles with a join
+      // 1. Load areas if not already loaded
+      if (this.global.areaList().length === 0) {
+        // Wait for areas to load if needed
+        while (this.global.areasListResource.isLoading()) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+      }
+      const areas = this.global.areaList();
+      const areasMap = new Map(areas.map((a) => [a.id, a]));
+
+      // 2. Fetch user profiles
       const { data: profiles, error: profilesError } =
         await this.supabase.client
           .from('user_profiles')
           .select('id, name, avatar');
 
-      if (profilesError) {
-        console.error(
-          '[UsersListAdmin] Error fetching profiles:',
-          profilesError,
-        );
-        return;
-      }
-
+      if (profilesError) throw profilesError;
       if (!profiles) {
         this.users.set([]);
         return;
       }
 
-      // Fetch all user roles
+      // 3. Fetch all user roles
       const { data: roles, error: rolesError } = await this.supabase.client
         .from('user_roles')
         .select('id, role');
 
-      if (rolesError) {
-        console.error('[UsersListAdmin] Error fetching roles:', rolesError);
-        return;
-      }
+      if (rolesError) throw rolesError;
 
-      // Combine profiles and roles
+      // 4. Fetch all area-equipper mappings
+      const { data: mappings, error: mappingsError } = await this.supabase
+        .client
+        .from('area_equippers')
+        .select('*');
+
+      if (mappingsError) throw mappingsError;
+
       const rolesMap = new Map(
         (roles || []).map((r) => [r.id, r.role as AppRole]),
       );
 
-      const usersWithRoles: UserWithRole[] = profiles.map((profile) => ({
-        id: profile.id,
-        name: profile.name,
-        avatar: profile.avatar,
-        role: rolesMap.get(profile.id) || AppRoles.CLIMBER,
-      }));
+      const mappingsByEquipper = new Map<string, number[]>();
+      (mappings || []).forEach((m) => {
+        const list = mappingsByEquipper.get(m.equipper_id) || [];
+        list.push(m.area_id);
+        mappingsByEquipper.set(m.equipper_id, list);
+      });
+
+      const usersWithRoles: UserWithRole[] = profiles.map((profile) => {
+        const assignedAreaIds = mappingsByEquipper.get(profile.id) || [];
+        const assignedAreas = assignedAreaIds
+          .map((id) => areasMap.get(id))
+          .filter((a): a is AreaListItem => !!a);
+
+        const control = new FormControl(assignedAreas, { nonNullable: true });
+        control.valueChanges.subscribe((newAreas) => {
+          void this.onAreasChange(profile.id, newAreas);
+        });
+
+        return {
+          id: profile.id,
+          name: profile.name,
+          avatar: profile.avatar,
+          role: rolesMap.get(profile.id) || AppRoles.CLIMBER,
+          assignedAreas,
+          areasControl: control,
+        };
+      });
 
       this.users.set(usersWithRoles);
     } catch (e) {
@@ -439,6 +546,52 @@ export class AdminUsersListComponent {
       console.error('[UsersListAdmin] Exception updating role:', e);
       // Revert the change in the UI
       await this.loadUsers();
+    }
+  }
+
+  protected async onAreasChange(
+    userId: string,
+    newAreas: AreaListItem[],
+  ): Promise<void> {
+    try {
+      // 1. Get current mappings for this user from the local state
+      const user = this.users().find((u) => u.id === userId);
+      if (!user) return;
+
+      const oldAreaIds = user.assignedAreas.map((a) => a.id);
+      const newAreaIds = newAreas.map((a) => a.id);
+
+      // 2. Determine what to add and what to remove
+      const toAdd = newAreaIds.filter((id) => !oldAreaIds.includes(id));
+      const toRemove = oldAreaIds.filter((id) => !newAreaIds.includes(id));
+
+      if (toAdd.length === 0 && toRemove.length === 0) return;
+
+      // 3. Update the database
+      if (toAdd.length > 0) {
+        const { error: addError } = await this.supabase.client
+          .from('area_equippers')
+          .insert(toAdd.map((area_id) => ({ equipper_id: userId, area_id })));
+        if (addError) throw addError;
+      }
+
+      if (toRemove.length > 0) {
+        const { error: removeError } = await this.supabase.client
+          .from('area_equippers')
+          .delete()
+          .eq('equipper_id', userId)
+          .in('area_id', toRemove);
+        if (removeError) throw removeError;
+      }
+
+      // 4. Update the local user object (so that next change is compared correctly)
+      user.assignedAreas = newAreas;
+
+      console.log(`[UsersListAdmin] Mappings updated for user ${userId}`);
+    } catch (e) {
+      console.error('[UsersListAdmin] Exception updating areas:', e);
+      // We should probably reload to be safe, but it might create an infinite loop with control.valueChanges
+      // Better way: just log and maybe alert user.
     }
   }
 }

@@ -106,7 +106,9 @@ export interface TopoRouteRow {
   template: `
     <div class="h-full w-full">
       <section class="flex flex-col w-full h-full max-w-5xl mx-auto p-4">
+        @let isAdmin = global.isAdmin();
         @if (topo(); as t) {
+          @let isEquipper = global.isAllowedEquipper(crag()?.area_id);
           <div class="mb-4">
             <app-section-header [title]="t.name" [showLike]="false">
               <!-- Shade info as title additional info -->
@@ -128,7 +130,7 @@ export interface TopoRouteRow {
 
               <!-- Admin and utility action buttons -->
               <div actionButtons class="flex gap-2">
-                @if (global.isAdmin()) {
+                @if (isAdmin || isEquipper) {
                   <button
                     tuiIconButton
                     size="s"
@@ -529,7 +531,8 @@ export class TopoComponent {
 
   protected readonly columns = computed(() => {
     const base = ['index', 'grade', 'name', 'height', 'actions'];
-    if (this.global.isAdmin()) {
+    const crag = this.crag();
+    if (this.global.isAllowedEquipper(crag?.area_id)) {
       base.push('admin_actions');
     }
     return base;
