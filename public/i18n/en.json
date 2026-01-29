@@ -3,6 +3,7 @@
   "navigation": "Navigation",
   "config": "Configuration",
   "actions": {
+    "accept": "Accept",
     "apply": "Apply",
     "back": "Back",
     "cancel": "Cancel",
@@ -52,6 +53,13 @@
     "update": "Update"
   },
   "labels": {
+    "gdpr": {
+      "title": "Privacy Policy",
+      "message": "To continue using our application, you must accept our privacy policy and the use of cookies to improve your experience.",
+      "accept": "Accept and continue",
+      "readMore": "View privacy policy",
+      "fullPolicy": "Our privacy policy details how we collect, use, and protect your personal data.<br><br>By using <strong>Roca Nostra</strong>, you agree to the storage of technical cookies necessary for the application's operation, as well as the processing of your profile data to offer you a personalized experience in managing your climbing areas and ascents.<br><br>We do not share your data with third parties for advertising purposes. You can withdraw your consent at any time by deleting your account from the profile settings."
+    },
     "actions": "Actions",
     "age": "Age",
     "all": "All",

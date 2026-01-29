@@ -132,7 +132,7 @@ import { mapLocationUrl, remToPx } from '../utils';
 
         @if (isMobile && isBottomSheetExpanded()) {
           <div
-            class="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1001] pointer-events-auto"
+            class="absolute bottom-4 left-1/2 -translate-x-1/2 z-100 pointer-events-auto"
           >
             <button
               tuiButton
