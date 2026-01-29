@@ -100,35 +100,21 @@ import { firstValueFrom } from 'rxjs';
                 }
               </div>
 
-              @if (isOwnProfile()) {
-                @if (type === 'following') {
-                  @if (followedIds().has(user.id)) {
-                    <button
-                      tuiButton
-                      appearance="secondary-grayscale"
-                      size="s"
-                      type="button"
-                      (click)="onUnfollow(user, $event)"
-                    >
-                      {{ 'actions.following' | translate }}
-                    </button>
-                  } @else {
-                    <button
-                      tuiButton
-                      appearance="secondary-grayscale"
-                      size="s"
-                      type="button"
-                      (click)="onFollow(user, $event)"
-                    >
-                      {{ 'actions.follow' | translate }}
-                    </button>
-                  }
-                } @else if (
-                  type === 'followers' && !followedIds().has(user.id)
-                ) {
+              @if (user.id !== supabase.authUserId()) {
+                @if (followedIds().has(user.id)) {
                   <button
                     tuiButton
                     appearance="secondary-grayscale"
+                    size="s"
+                    type="button"
+                    (click)="onUnfollow(user, $event)"
+                  >
+                    {{ 'actions.following' | translate }}
+                  </button>
+                } @else {
+                  <button
+                    tuiButton
+                    appearance="action"
                     size="s"
                     type="button"
                     (click)="onFollow(user, $event)"
