@@ -282,7 +282,8 @@ export class InfiniteScrollTriggerComponent
                             [ngModel]="ascent.rate"
                             [max]="5"
                             [readOnly]="true"
-                            class="pointer-events-none origin-left scale-50 -ml-4"
+                            class="pointer-events-none"
+                            [style.font-size.rem]="0.5"
                           />
                         }
                       </div>
@@ -307,7 +308,7 @@ export class InfiniteScrollTriggerComponent
 
                   @if (ascent.comment) {
                     <p
-                      class="text-sm text-gray-700 italic border-l-2 border-gray-200 pl-3 py-1"
+                      class="text-sm text-gray-700 italic border-l-2 border-gray-200 pl-3 py-1 self-start"
                     >
                       "{{ ascent.comment }}"
                     </p>
