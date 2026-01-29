@@ -28,6 +28,7 @@ import {
   TuiLink,
   TuiLoader,
   TuiScrollbar,
+  TuiTextfield,
 } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
@@ -35,9 +36,11 @@ import {
   TuiAvatar,
   type TuiConfirmData,
   TuiTabs,
+  TuiInputNumber,
 } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
 
+import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
@@ -101,6 +104,9 @@ export interface TopoRouteRow {
     TopoImagePipe,
     TuiTabs,
     TuiScrollbar,
+    FormsModule,
+    TuiInputNumber,
+    TuiTextfield,
   ],
   template: `
     <div class="h-full w-full">
@@ -292,8 +298,28 @@ export interface TopoRouteRow {
                           >
                             @switch (col) {
                               @case ('index') {
-                                <div tuiCell size="m">
-                                  {{ item.index + 1 }}
+                                <div tuiCell size="m" class="justify-center">
+                                  @if (isAdmin || isEquipper) {
+                                    <tui-textfield
+                                      tuiTextfieldSize="s"
+                                      class="!w-16 !h-8"
+                                    >
+                                      <input
+                                        tuiInputNumber
+                                        decimal="never"
+                                        class="text-center !h-full !border-none !p-0"
+                                        [ngModel]="item.index + 1"
+                                        (change)="
+                                          onUpdateRouteNumber(
+                                            item._ref,
+                                            $any($event.target).value
+                                          )
+                                        "
+                                      />
+                                    </tui-textfield>
+                                  } @else {
+                                    {{ item.index + 1 }}
+                                  }
                                 </div>
                               }
                               @case ('name') {
@@ -630,6 +656,18 @@ export class TopoComponent {
 
   protected toggleImageFit(): void {
     this.imageFit.update((fit) => (fit === 'contain' ? 'cover' : 'contain'));
+  }
+
+  protected onUpdateRouteNumber(
+    tr: TopoRouteWithRoute,
+    newNumber: number | string | null,
+  ): void {
+    const val =
+      typeof newNumber === 'string' ? parseInt(newNumber, 10) : newNumber;
+    if (val === null || isNaN(val) || val === tr.number + 1) return;
+    this.toposService
+      .updateRouteOrder(tr.topo_id, tr.route_id, val - 1)
+      .catch((err) => handleErrorToast(err, this.toast));
   }
 
   openEditTopo(topo: TopoDetail): void {
