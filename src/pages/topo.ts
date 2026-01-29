@@ -10,7 +10,6 @@ import {
   PLATFORM_ID,
   signal,
   Signal,
-  WritableSignal,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
@@ -40,6 +39,7 @@ import {
 import { TuiCell } from '@taiga-ui/layout';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { firstValueFrom } from 'rxjs';
 
 import {
@@ -105,8 +105,9 @@ export interface TopoRouteRow {
   ],
   template: `
     <div class="h-full w-full">
-      <section class="flex flex-col w-full h-full max-w-5xl mx-auto p-4">
+      <section class="flex flex-col w-full h-full max-w-7xl mx-auto p-4">
         @let isAdmin = global.isAdmin();
+        @let isMobile = global.isMobile();
         @if (topo(); as t) {
           @let isEquipper = global.isAllowedEquipper(crag()?.area_id);
           <div class="mb-4">
@@ -138,9 +139,7 @@ export interface TopoRouteRow {
                     iconStart="@tui.square-pen"
                     class="!rounded-full"
                     (click.zoneless)="openEditTopo(t)"
-                    [tuiHint]="
-                      global.isMobile() ? null : ('actions.edit' | translate)
-                    "
+                    [tuiHint]="isMobile ? null : ('actions.edit' | translate)"
                   >
                     {{ 'actions.edit' | translate }}
                   </button>
@@ -152,9 +151,7 @@ export interface TopoRouteRow {
                     class="!rounded-full"
                     (click.zoneless)="fileInput.click()"
                     [tuiHint]="
-                      global.isMobile()
-                        ? null
-                        : ('actions.uploadPhoto' | translate)
+                      isMobile ? null : ('actions.uploadPhoto' | translate)
                     "
                   >
                     {{ 'actions.uploadPhoto' | translate }}
@@ -173,43 +170,17 @@ export interface TopoRouteRow {
                     iconStart="@tui.trash"
                     class="!rounded-full"
                     (click.zoneless)="deleteTopo(t)"
-                    [tuiHint]="
-                      global.isMobile() ? null : ('actions.delete' | translate)
-                    "
+                    [tuiHint]="isMobile ? null : ('actions.delete' | translate)"
                   >
                     {{ 'actions.delete' | translate }}
                   </button>
                 }
-                <!-- Image fit toggle button (always visible) -->
-                @let imgFit = imageFit();
-                <button
-                  tuiIconButton
-                  size="s"
-                  appearance="primary-grayscale"
-                  class="!rounded-full"
-                  [iconStart]="
-                    imgFit === 'cover'
-                      ? '@tui.unfold-horizontal'
-                      : '@tui.unfold-vertical'
-                  "
-                  [tuiHint]="
-                    global.isMobile()
-                      ? null
-                      : ((imgFit === 'cover'
-                          ? 'actions.fit.contain'
-                          : 'actions.fit.cover'
-                        ) | translate)
-                  "
-                  (click.zoneless)="toggleImageFit()"
-                >
-                  Toggle image fit
-                </button>
               </div>
             </app-section-header>
           </div>
 
           @if (allTopos().length > 1) {
-            <tui-tabs [activeItemIndex]="currentTopoIndex()">
+            <tui-tabs [activeItemIndex]="currentTopoIndex()" class="mb-4">
               @for (topoItem of allTopos(); track topoItem.id) {
                 <button tuiTab (click.zoneless)="navigateToTopo(topoItem)">
                   {{ topoItem.name }}
@@ -219,236 +190,264 @@ export interface TopoRouteRow {
           }
 
           <div
-            (tuiSwipe)="onSwipe($event)"
-            class="relative w-full aspect-video overflow-hidden"
+            class="flex flex-col md:flex-row w-full h-full gap-4 overflow-hidden"
           >
-            <img
-              [src]="
-                ({ path: t.photo, version: global.topoPhotoVersion() }
-                  | topoImage
-                  | async) || global.iconSrc()('topo')
-              "
-              [alt]="t.name"
-              [class]="'w-full h-full ' + topoPhotoClass()"
-              decoding="async"
-            />
-          </div>
-
-          <tui-scrollbar>
-            <table
-              tuiTable
-              class="w-full"
-              [columns]="columns()"
-              [direction]="direction()"
-              [sorter]="sorter()"
-              (sortChange)="onSortChange($event)"
+            <!-- Topo image container -->
+            <div
+              (tuiSwipe)="onSwipe($event)"
+              [style.height]="isMobile ? '50%' : '100%'"
+              [style.width]="isMobile ? '100%' : '50%'"
+              class="relative w-full bg-black/5 rounded-xl border border-black/5 overflow-x-auto"
             >
-              <thead tuiThead>
-                <tr tuiThGroup>
-                  @for (col of columns(); track col) {
-                    <th
-                      *tuiHead="col"
-                      tuiTh
-                      [sorter]="getSorter(col)"
-                      [class.text-center]="col !== 'name'"
-                      [class.!w-12]="col === 'index'"
-                      [class.!w-20]="col === 'grade'"
-                      [class.!w-24]="
-                        col === 'height' ||
-                        col === 'actions' ||
-                        col === 'admin_actions'
-                      "
-                    >
-                      @switch (col) {
-                        @case ('index') {
-                          #
-                        }
-                        @case ('name') {
-                          {{ 'routes.name' | translate }}
-                        }
-                        @case ('grade') {
-                          {{ 'labels.grade' | translate }}
-                        }
-                        @case ('height') {
-                          {{ 'routes.height' | translate }}
-                        }
+              <div
+                class="h-full w-max flex items-center justify-center min-w-full"
+              >
+                <img
+                  [src]="
+                    ({ path: t.photo, version: global.topoPhotoVersion() }
+                      | topoImage
+                      | async) || global.iconSrc()('topo')
+                  "
+                  [alt]="t.name"
+                  class="w-auto h-full max-w-none cursor-pointer block"
+                  [class.object-contain]="imageFit() === 'contain'"
+                  [class.object-cover]="imageFit() === 'cover'"
+                  decoding="async"
+                  (click.zoneless)="toggleImageFit()"
+                />
+              </div>
+            </div>
+
+            <!-- Routes table container -->
+            <div
+              [style.height]="isMobile ? '50%' : '100%'"
+              [style.width]="isMobile ? '100%' : '50%'"
+              class="w-full overflow-hidden"
+            >
+              <tui-scrollbar class="h-full">
+                <table
+                  tuiTable
+                  class="w-full"
+                  [columns]="columns()"
+                  [direction]="direction()"
+                  [sorter]="sorter()"
+                  (sortChange)="onSortChange($event)"
+                >
+                  <thead tuiThead>
+                    <tr tuiThGroup>
+                      @for (col of columns(); track col) {
+                        <th
+                          *tuiHead="col"
+                          tuiTh
+                          [sorter]="getSorter(col)"
+                          [class.text-center]="col !== 'name'"
+                          [class.!w-12]="col === 'index'"
+                          [class.!w-20]="col === 'grade'"
+                          [class.!w-24]="
+                            col === 'height' ||
+                            col === 'actions' ||
+                            col === 'admin_actions'
+                          "
+                        >
+                          @switch (col) {
+                            @case ('index') {
+                              #
+                            }
+                            @case ('name') {
+                              {{ 'routes.name' | translate }}
+                            }
+                            @case ('grade') {
+                              {{ 'labels.grade' | translate }}
+                            }
+                            @case ('height') {
+                              {{ 'routes.height' | translate }}
+                            }
+                          }
+                        </th>
                       }
-                    </th>
-                  }
-                </tr>
-              </thead>
-              @let sortedData = tableData() | tuiTableSort;
-              <tbody tuiTbody [data]="sortedData">
-                @for (item of sortedData; track item._ref.route_id) {
-                  <tr
-                    tuiTr
-                    [style.background]="
-                      item.climbed
-                        ? ascentsService.ascentInfo()[
-                            item._ref.route.own_ascent?.type || 'default'
-                          ].backgroundSubtle
-                        : item.project
-                          ? 'var(--tui-status-info-pale)'
-                          : ''
-                    "
-                  >
-                    @for (col of columns(); track col) {
-                      <td
-                        *tuiCell="col"
-                        tuiTd
-                        [class.text-center]="col !== 'name'"
+                    </tr>
+                  </thead>
+                  @let sortedData = tableData() | tuiTableSort;
+                  <tbody tuiTbody [data]="sortedData">
+                    @for (item of sortedData; track item._ref.route_id) {
+                      <tr
+                        tuiTr
+                        [style.background]="
+                          item.climbed
+                            ? ascentsService.ascentInfo()[
+                                item._ref.route.own_ascent?.type || 'default'
+                              ].backgroundSubtle
+                            : item.project
+                              ? 'var(--tui-status-info-pale)'
+                              : ''
+                        "
                       >
-                        @switch (col) {
-                          @case ('index') {
-                            <div tuiCell size="m">
-                              {{ item.index + 1 }}
-                            </div>
-                          }
-                          @case ('name') {
-                            <div tuiCell size="m">
-                              <a
-                                tuiLink
-                                [routerLink]="item.link"
-                                class="text-left"
-                              >
-                                {{ item.name }}
-                              </a>
-                            </div>
-                          }
-                          @case ('grade') {
-                            <div tuiCell size="m" class="justify-center">
-                              <app-avatar-grade [grade]="item.grade" size="s" />
-                            </div>
-                          }
-                          @case ('height') {
-                            <div tuiCell size="m">
-                              {{ item.height ? item.height + 'm' : '-' }}
-                            </div>
-                          }
-                          @case ('actions') {
-                            <div tuiCell size="m" class="justify-center">
-                              @if (!item.climbed) {
-                                <button
-                                  tuiIconButton
-                                  size="m"
-                                  appearance="neutral"
-                                  iconStart="@tui.circle-plus"
-                                  class="!rounded-full"
-                                  [tuiHint]="
-                                    global.isMobile()
-                                      ? null
-                                      : ('ascent.new' | translate)
-                                  "
-                                  (click.zoneless)="onLogAscent(item._ref)"
-                                >
-                                  {{ 'ascent.new' | translate }}
-                                </button>
-                              } @else if (
-                                item._ref.route.own_ascent;
-                                as ascentToEdit
-                              ) {
-                                <tui-avatar
-                                  class="cursor-pointer !text-white"
-                                  [style.background]="
-                                    ascentsService.ascentInfo()[
-                                      ascentToEdit?.type || 'default'
-                                    ].background
-                                  "
-                                  [tuiHint]="
-                                    global.isMobile()
-                                      ? null
-                                      : ('ascent.edit' | translate)
-                                  "
-                                  (click.zoneless)="
-                                    onEditAscent(ascentToEdit, item.name)
-                                  "
-                                >
-                                  <tui-icon
-                                    [icon]="
-                                      ascentsService.ascentInfo()[
-                                        ascentToEdit?.type || 'default'
-                                      ].icon
-                                    "
-                                  />
-                                </tui-avatar>
+                        @for (col of columns(); track col) {
+                          <td
+                            *tuiCell="col"
+                            tuiTd
+                            [class.text-center]="col !== 'name'"
+                          >
+                            @switch (col) {
+                              @case ('index') {
+                                <div tuiCell size="m">
+                                  {{ item.index + 1 }}
+                                </div>
                               }
-                              @if (!item.climbed) {
-                                <button
-                                  tuiIconButton
-                                  size="m"
-                                  [appearance]="
-                                    item.project ? 'primary' : 'neutral'
-                                  "
-                                  iconStart="@tui.bookmark"
-                                  class="!rounded-full"
-                                  [tuiHint]="
-                                    global.isMobile()
-                                      ? null
-                                      : ((item.project
+                              @case ('name') {
+                                <div tuiCell size="m">
+                                  <a
+                                    tuiLink
+                                    [routerLink]="item.link"
+                                    class="text-left"
+                                  >
+                                    {{ item.name }}
+                                  </a>
+                                </div>
+                              }
+                              @case ('grade') {
+                                <div tuiCell size="m" class="justify-center">
+                                  <app-avatar-grade
+                                    [grade]="item.grade"
+                                    size="s"
+                                  />
+                                </div>
+                              }
+                              @case ('height') {
+                                <div tuiCell size="m">
+                                  {{ item.height ? item.height + 'm' : '-' }}
+                                </div>
+                              }
+                              @case ('actions') {
+                                <div tuiCell size="m" class="justify-center">
+                                  @if (!item.climbed) {
+                                    <button
+                                      tuiIconButton
+                                      size="m"
+                                      appearance="neutral"
+                                      iconStart="@tui.circle-plus"
+                                      class="!rounded-full"
+                                      [tuiHint]="
+                                        isMobile
+                                          ? null
+                                          : ('ascent.new' | translate)
+                                      "
+                                      (click.zoneless)="onLogAscent(item._ref)"
+                                    >
+                                      {{ 'ascent.new' | translate }}
+                                    </button>
+                                  } @else if (
+                                    item._ref.route.own_ascent;
+                                    as ascentToEdit
+                                  ) {
+                                    <tui-avatar
+                                      class="cursor-pointer !text-white"
+                                      [style.background]="
+                                        ascentsService.ascentInfo()[
+                                          ascentToEdit?.type || 'default'
+                                        ].background
+                                      "
+                                      [tuiHint]="
+                                        isMobile
+                                          ? null
+                                          : ('ascent.edit' | translate)
+                                      "
+                                      (click.zoneless)="
+                                        onEditAscent(ascentToEdit, item.name)
+                                      "
+                                    >
+                                      <tui-icon
+                                        [icon]="
+                                          ascentsService.ascentInfo()[
+                                            ascentToEdit?.type || 'default'
+                                          ].icon
+                                        "
+                                      />
+                                    </tui-avatar>
+                                  }
+                                  @if (!item.climbed) {
+                                    <button
+                                      tuiIconButton
+                                      size="m"
+                                      [appearance]="
+                                        item.project ? 'primary' : 'neutral'
+                                      "
+                                      iconStart="@tui.bookmark"
+                                      class="!rounded-full"
+                                      [tuiHint]="
+                                        isMobile
+                                          ? null
+                                          : ((item.project
+                                              ? 'actions.project.remove'
+                                              : 'actions.project.add'
+                                            ) | translate)
+                                      "
+                                      (click.zoneless)="onToggleProject(item)"
+                                    >
+                                      {{
+                                        (item.project
                                           ? 'actions.project.remove'
                                           : 'actions.project.add'
-                                        ) | translate)
-                                  "
-                                  (click.zoneless)="onToggleProject(item)"
-                                >
-                                  {{
-                                    (item.project
-                                      ? 'actions.project.remove'
-                                      : 'actions.project.add'
-                                    ) | translate
-                                  }}
-                                </button>
+                                        ) | translate
+                                      }}
+                                    </button>
+                                  }
+                                </div>
                               }
-                            </div>
-                          }
-                          @case ('admin_actions') {
-                            <div tuiCell size="m" class="justify-center">
-                              <button
-                                tuiIconButton
-                                size="s"
-                                appearance="neutral"
-                                iconStart="@tui.square-pen"
-                                class="!rounded-full"
-                                [tuiHint]="
-                                  global.isMobile()
-                                    ? null
-                                    : ('actions.edit' | translate)
-                                "
-                                (click.zoneless)="openEditTopoRoute(item._ref)"
-                              >
-                                {{ 'actions.edit' | translate }}
-                              </button>
-                              <button
-                                tuiIconButton
-                                size="s"
-                                appearance="negative"
-                                iconStart="@tui.unlink"
-                                class="!rounded-full"
-                                [tuiHint]="
-                                  global.isMobile()
-                                    ? null
-                                    : ('actions.unlink' | translate)
-                                "
-                                (click.zoneless)="deleteTopoRoute(item._ref)"
-                              >
-                                {{ 'actions.unlink' | translate }}
-                              </button>
-                            </div>
-                          }
+                              @case ('admin_actions') {
+                                <div tuiCell size="m" class="justify-center">
+                                  <button
+                                    tuiIconButton
+                                    size="s"
+                                    appearance="neutral"
+                                    iconStart="@tui.square-pen"
+                                    class="!rounded-full"
+                                    [tuiHint]="
+                                      isMobile
+                                        ? null
+                                        : ('actions.edit' | translate)
+                                    "
+                                    (click.zoneless)="
+                                      openEditTopoRoute(item._ref)
+                                    "
+                                  >
+                                    {{ 'actions.edit' | translate }}
+                                  </button>
+                                  <button
+                                    tuiIconButton
+                                    size="s"
+                                    appearance="negative"
+                                    iconStart="@tui.unlink"
+                                    class="!rounded-full"
+                                    [tuiHint]="
+                                      isMobile
+                                        ? null
+                                        : ('actions.unlink' | translate)
+                                    "
+                                    (click.zoneless)="
+                                      deleteTopoRoute(item._ref)
+                                    "
+                                  >
+                                    {{ 'actions.unlink' | translate }}
+                                  </button>
+                                </div>
+                              }
+                            }
+                          </td>
                         }
-                      </td>
+                      </tr>
+                    } @empty {
+                      <tr tuiTr>
+                        <td [attr.colspan]="columns().length" tuiTd>
+                          <app-empty-state />
+                        </td>
+                      </tr>
                     }
-                  </tr>
-                } @empty {
-                  <tr tuiTr>
-                    <td [attr.colspan]="columns().length" tuiTd>
-                      <app-empty-state />
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </tui-scrollbar>
+                  </tbody>
+                </table>
+              </tui-scrollbar>
+            </div>
+          </div>
         } @else {
           <div class="flex items-center justify-center h-full">
             <tui-loader size="xxl" />
@@ -464,13 +463,6 @@ export interface TopoRouteRow {
   },
 })
 export class TopoComponent {
-  protected readonly imageFit: WritableSignal<'cover' | 'contain'> =
-    signal('contain');
-  protected readonly topoPhotoClass: Signal<'object-cover' | 'object-contain'> =
-    computed(() =>
-      this.imageFit() === 'cover' ? 'object-cover' : 'object-contain',
-    );
-
   protected readonly global = inject(GlobalData);
   protected readonly ascentsService = inject(AscentsService);
   private readonly toposService = inject(ToposService);
@@ -490,6 +482,8 @@ export class TopoComponent {
 
   protected readonly topo = this.global.topoDetailResource.value;
   protected readonly crag = this.global.cragDetailResource.value;
+
+  protected readonly imageFit = signal<'contain' | 'cover'>('contain');
 
   protected readonly allTopos = computed(() => this.crag()?.topos || []);
   protected readonly currentTopoIndex = computed(() => {
@@ -633,7 +627,7 @@ export class TopoComponent {
   }
 
   protected toggleImageFit(): void {
-    this.imageFit.update((v) => (v === 'cover' ? 'contain' : 'cover'));
+    this.imageFit.update((fit) => (fit === 'contain' ? 'cover' : 'contain'));
   }
 
   openEditTopo(topo: TopoDetail): void {
