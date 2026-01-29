@@ -86,12 +86,16 @@ export class LocationPickerComponent {
       return {
         center: [data.lat, data.lng],
         zoom: 16,
+        maxZoom: 22,
+        minZoom: 4,
         ignoreSavedViewport: true,
       };
     }
     return {
       center: [38.5, -0.6],
       zoom: 10,
+      maxZoom: 22,
+      minZoom: 4,
       ignoreSavedViewport: true,
     };
   });

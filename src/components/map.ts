@@ -120,8 +120,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   public options: InputSignal<MapOptions> = input<MapOptions>({
     center: [38.7, -0.7],
     zoom: 10,
-    maxZoom: 18,
-    minZoom: 6,
+    maxZoom: 22,
+    minZoom: 4,
   });
   public mapClick = output<{ lat: number; lng: number }>();
   public interactionStart = output<void>();

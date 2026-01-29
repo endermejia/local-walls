@@ -90,16 +90,6 @@ import { handleErrorToast, slugify } from '../utils';
         <input tuiTextfield id="name" [formControl]="name" autocomplete="off" />
       </tui-textfield>
 
-      <tui-textfield [tuiTextfieldCleaner]="false">
-        <label tuiLabel for="photo">{{ 'topos.photoUrl' | translate }}</label>
-        <input
-          tuiTextfield
-          id="photo"
-          [formControl]="photo"
-          autocomplete="off"
-        />
-      </tui-textfield>
-
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label class="flex items-center gap-2 cursor-pointer">
@@ -126,6 +116,7 @@ import { handleErrorToast, slugify } from '../utils';
           <input
             tuiInputTime
             id="shade_change_hour"
+            autocomplete="off"
             [formControl]="shade_change_hour"
           />
         </tui-textfield>
@@ -149,6 +140,7 @@ import { handleErrorToast, slugify } from '../utils';
           <input
             tuiInputChip
             id="routes-select"
+            autocomplete="off"
             [formControl]="selectedRoutes"
             [placeholder]="'actions.select' | translate"
           />

@@ -83,11 +83,13 @@ export class MapBuilder {
       zoom: options.zoom ?? 6,
       worldCopyJump: true,
       zoomControl: false,
+      maxZoom: options.maxZoom ?? 22,
+      minZoom: options.minZoom ?? 4,
     });
 
     new L.TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: options.maxZoom ?? 18,
-      minZoom: options.minZoom ?? 6,
+      maxZoom: options.maxZoom ?? 22,
+      minZoom: options.minZoom ?? 4,
     }).addTo(this.map);
 
     this.mapCragItems = mapCragItem;
@@ -131,8 +133,8 @@ export class MapBuilder {
               savedViewport.north_east_longitude) /
             2;
 
-          const minZ = options.minZoom ?? 6;
-          const maxZ = options.maxZoom ?? 18;
+          const minZ = options.minZoom ?? 4;
+          const maxZ = options.maxZoom ?? 22;
           const targetZ = Math.max(minZ, Math.min(maxZ, savedViewport.zoom));
 
           // Use setView instead of fitBounds for exact restoration
@@ -143,6 +145,10 @@ export class MapBuilder {
           viewportRestored = false;
         }
       }
+    } else if (options.center && options.zoom != null) {
+      // If we are ignoring saved viewport but have explicit center/zoom, use them
+      this.map.setView(options.center, options.zoom, { animate: false });
+      viewportRestored = true;
     }
 
     await this.rebuildMarkers(
@@ -180,7 +186,7 @@ export class MapBuilder {
           const bounds = new L.LatLngBounds(latLngs);
           this.map.fitBounds(bounds, {
             padding: [24, 24],
-            maxZoom: Math.min(9, options.maxZoom ?? 18),
+            maxZoom: Math.min(9, options.maxZoom ?? 22),
           });
         }
       } catch {
@@ -192,7 +198,7 @@ export class MapBuilder {
           const bounds = new L.LatLngBounds(latLngs);
           this.map.fitBounds(bounds, {
             padding: [24, 24],
-            maxZoom: Math.min(9, options.maxZoom ?? 18),
+            maxZoom: Math.min(9, options.maxZoom ?? 22),
           });
         }
       }
