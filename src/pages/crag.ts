@@ -516,7 +516,11 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
             </tui-textfield>
             <tui-badged-content>
               @if (hasActiveFilters()) {
-                <tui-badge-notification size="s" tuiSlot="top" />
+                <tui-badge-notification
+                  tuiAppearance="accent"
+                  size="s"
+                  tuiSlot="top"
+                />
               }
               <button
                 tuiButton
@@ -604,9 +608,7 @@ export class CragComponent {
       // 0=Sport, 1=Boulder, 2=Multipitch (from FilterDialog)
       if (categories.includes(0) && kind === ClimbingKinds.SPORT) return true;
       if (categories.includes(1) && kind === ClimbingKinds.BOULDER) return true;
-      if (categories.includes(2) && kind === ClimbingKinds.MULTIPITCH)
-        return true;
-      return false;
+      return categories.includes(2) && kind === ClimbingKinds.MULTIPITCH;
     };
 
     return list.filter(

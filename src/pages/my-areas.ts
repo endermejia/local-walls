@@ -64,18 +64,28 @@ import {
       <section class="w-full max-w-5xl mx-auto p-4">
         <header class="flex items-center justify-between gap-2">
           @let areasCount = filtered().length;
-          <h1 class="text-2xl font-bold w-full sm:w-auto">
-            <tui-avatar
-              tuiThumbnail
-              size="l"
-              [src]="global.iconSrc()('zone')"
-              class="self-center"
-              [attr.aria-label]="'nav.my-crags' | translate"
-            />
-            {{ 'nav.my-crags' | translate }}
-            @if (areasCount > 0) {
-              ({{ areasCount }})
-            }
+          <h1
+            class="text-2xl font-bold w-full sm:w-auto flex items-center gap-2"
+          >
+            <tui-badged-content [style.--tui-radius.%]="50">
+              @if (areasCount > 0) {
+                <tui-badge-notification
+                  tuiAppearance="accent"
+                  size="s"
+                  tuiSlot="top"
+                >
+                  {{ areasCount }}
+                </tui-badge-notification>
+              }
+              <tui-avatar
+                tuiThumbnail
+                size="l"
+                [src]="global.iconSrc()('zone')"
+                class="self-center"
+                [attr.aria-label]="'nav.my-areas' | translate"
+              />
+            </tui-badged-content>
+            <span>{{ 'nav.my-areas' | translate }}</span>
           </h1>
         </header>
 
@@ -100,7 +110,11 @@ import {
             class="bg-[var(--tui-background-base)] rounded-2xl"
           >
             @if (hasActiveFilters()) {
-              <tui-badge-notification size="s" tuiSlot="top" />
+              <tui-badge-notification
+                tuiAppearance="accent"
+                size="s"
+                tuiSlot="top"
+              />
             }
             <button
               tuiButton

@@ -119,9 +119,9 @@ export class GlobalData {
     const config = [];
     if (isEquipper) {
       config.push({
-        name: 'nav.my-crags',
+        name: 'nav.my-areas',
         icon: '@tui.list',
-        fn: () => this.router.navigateByUrl('/admin/my-areas'),
+        fn: () => this.router.navigateByUrl('/my-areas'),
       });
     }
     if (isAdmin) {
@@ -718,6 +718,7 @@ export class GlobalData {
             crag:crags(
               slug,
               name,
+              area_id,
               area:areas(slug, name)
             )
           `,
@@ -750,6 +751,7 @@ export class GlobalData {
                 ...r,
                 liked: (r.liked?.length ?? 0) > 0,
                 project: (r.project?.length ?? 0) > 0,
+                area_id: r.crag?.area_id,
                 crag_slug: r.crag?.slug,
                 crag_name: r.crag?.name,
                 area_slug: r.crag?.area?.slug,
@@ -791,6 +793,7 @@ export class GlobalData {
               crag:crags(
                 slug,
                 name,
+                area_id,
                 area:areas(slug, name)
               ),
               ascents:route_ascents(rate)
@@ -821,6 +824,7 @@ export class GlobalData {
               ...rest,
               liked: (liked?.length ?? 0) > 0,
               project: (project?.length ?? 0) > 0,
+              area_id: crag?.area_id,
               crag_slug: crag?.slug,
               crag_name: crag?.name,
               area_slug: crag?.area?.slug,
@@ -887,6 +891,7 @@ export class GlobalData {
               crag:crags(
                 slug,
                 name,
+                area_id,
                 area:areas(slug, name)
               )
             )
@@ -954,6 +959,7 @@ export class GlobalData {
               ...routeRest,
               liked: (liked?.length ?? 0) > 0,
               project: (project?.length ?? 0) > 0,
+              area_id: crag?.area_id,
               crag_slug: crag?.slug,
               crag_name: crag?.name,
               area_slug: crag?.area?.slug,

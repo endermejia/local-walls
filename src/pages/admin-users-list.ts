@@ -18,19 +18,21 @@ import {
   TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
-import { tuiDefaultSort, TuiIdentityMatcher } from '@taiga-ui/cdk';
+import { tuiDefaultSort, TuiIdentityMatcher, tuiIsString } from '@taiga-ui/cdk';
 import {
+  TuiAppearance,
   TuiDataList,
   TuiLink,
   TuiOptGroup,
   TuiScrollbar,
   TuiTextfield,
+  TuiTitle,
 } from '@taiga-ui/core';
 import {
   TuiAvatar,
+  TuiBadgeNotification,
   TuiBadgedContentComponent,
   TuiBadgedContentDirective,
-  TuiBadgeNotification,
   TuiChevron,
   TuiDataListWrapper,
   TuiFilterByInputPipe,
@@ -67,6 +69,7 @@ interface UserWithRole {
     ReactiveFormsModule,
     RouterLink,
     TranslatePipe,
+    TuiAppearance,
     TuiAvatar,
     TuiBadgeNotification,
     TuiBadgedContentComponent,
@@ -86,6 +89,7 @@ interface UserWithRole {
     TuiTable,
     TuiTableSortPipe,
     TuiTextfield,
+    TuiTitle,
     WaIntersectionObserver,
   ],
   template: `
@@ -94,7 +98,11 @@ interface UserWithRole {
         <h1 class="text-2xl font-bold flex items-center gap-2">
           <tui-badged-content [style.--tui-radius.%]="50">
             @if (users().length; as usersCount) {
-              <tui-badge-notification size="s" tuiSlot="top">
+              <tui-badge-notification
+                tuiAppearance="accent"
+                size="s"
+                tuiSlot="top"
+              >
                 {{ usersCount }}
               </tui-badge-notification>
             }
@@ -119,6 +127,7 @@ interface UserWithRole {
             id="user-search"
             tuiTextfield
             type="text"
+            autocomplete="off"
             [ngModel]="searchQuery()"
             (ngModelChange)="searchQuery.set($event)"
             [placeholder]="'labels.user' | translate"
@@ -178,12 +187,7 @@ interface UserWithRole {
               >
                 {{ 'labels.role' | translate }}
               </th>
-              <th
-                *tuiHead="'areas'"
-                tuiTh
-                class="areas-column"
-                [sorter]="null"
-              >
+              <th *tuiHead="'areas'" tuiTh class="areas-column" [sorter]="null">
                 {{ 'labels.areas' | translate }}
               </th>
             </tr>
@@ -262,12 +266,10 @@ interface UserWithRole {
                         multi
                         tuiChevron
                         [stringify]="stringifyArea"
+                        [disabledItemHandler]="strings"
                         [identityMatcher]="areaIdentityMatcher"
-                        [tuiTextfieldCleaner]="true"
+                        [tuiTextfieldCleaner]="false"
                       >
-                        <label tuiLabel for="areas-select-{{ user.id }}">
-                          {{ 'labels.areas' | translate }}
-                        </label>
                         <input
                           tuiInputChip
                           id="areas-select-{{ user.id }}"
@@ -284,7 +286,12 @@ interface UserWithRole {
                               area of availableAreas() | tuiFilterByInput;
                               track area.id
                             ) {
-                              <button type="button" new tuiOption [value]="area">
+                              <button
+                                type="button"
+                                new
+                                tuiOption
+                                [value]="area"
+                              >
                                 <div tuiCell size="s">
                                   <div tuiTitle>
                                     {{ area.name }}
@@ -409,6 +416,8 @@ export class AdminUsersListComponent {
     b,
   ) => a.id === b.id;
 
+  protected readonly strings = tuiIsString;
+
   protected readonly skeletons = Array(25).fill(0);
   protected readonly direction = signal<TuiSortDirection>(TuiSortDirection.Asc);
   protected readonly sorter = signal<TuiComparator<UserWithRole>>((a, b) =>
@@ -469,10 +478,8 @@ export class AdminUsersListComponent {
       if (rolesError) throw rolesError;
 
       // 4. Fetch all area-equipper mappings
-      const { data: mappings, error: mappingsError } = await this.supabase
-        .client
-        .from('area_equippers')
-        .select('*');
+      const { data: mappings, error: mappingsError } =
+        await this.supabase.client.from('area_equippers').select('*');
 
       if (mappingsError) throw mappingsError;
 

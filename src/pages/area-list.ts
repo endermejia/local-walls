@@ -127,7 +127,11 @@ import {
             class="bg-[var(--tui-background-base)] rounded-2xl"
           >
             @if (hasActiveFilters()) {
-              <tui-badge-notification size="s" tuiSlot="top" />
+              <tui-badge-notification
+                tuiAppearance="accent"
+                size="s"
+                tuiSlot="top"
+              />
             }
             <button
               tuiButton

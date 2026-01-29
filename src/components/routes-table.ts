@@ -332,42 +332,45 @@ export interface RoutesTableRow {
                       }
                       @case ('admin_actions') {
                         <div tuiCell size="m">
-                          <button
-                            size="s"
-                            appearance="neutral"
-                            iconStart="@tui.square-pen"
-                            tuiIconButton
-                            type="button"
-                            class="!rounded-full"
-                            [tuiHint]="
-                              global.isMobile()
-                                ? null
-                                : ('actions.edit' | translate)
-                            "
-                            (click.zoneless)="
-                              openEditRoute(item._ref); $event.stopPropagation()
-                            "
-                          >
-                            {{ 'actions.edit' | translate }}
-                          </button>
-                          <button
-                            size="s"
-                            appearance="negative"
-                            iconStart="@tui.trash"
-                            tuiIconButton
-                            type="button"
-                            class="!rounded-full"
-                            [tuiHint]="
-                              global.isMobile()
-                                ? null
-                                : ('actions.delete' | translate)
-                            "
-                            (click.zoneless)="
-                              deleteRoute(item._ref); $event.stopPropagation()
-                            "
-                          >
-                            {{ 'actions.delete' | translate }}
-                          </button>
+                          @if (global.isAllowedEquipper(item._ref.area_id)) {
+                            <button
+                              size="s"
+                              appearance="neutral"
+                              iconStart="@tui.square-pen"
+                              tuiIconButton
+                              type="button"
+                              class="!rounded-full"
+                              [tuiHint]="
+                                global.isMobile()
+                                  ? null
+                                  : ('actions.edit' | translate)
+                              "
+                              (click.zoneless)="
+                                openEditRoute(item._ref);
+                                $event.stopPropagation()
+                              "
+                            >
+                              {{ 'actions.edit' | translate }}
+                            </button>
+                            <button
+                              size="s"
+                              appearance="negative"
+                              iconStart="@tui.trash"
+                              tuiIconButton
+                              type="button"
+                              class="!rounded-full"
+                              [tuiHint]="
+                                global.isMobile()
+                                  ? null
+                                  : ('actions.delete' | translate)
+                              "
+                              (click.zoneless)="
+                                deleteRoute(item._ref); $event.stopPropagation()
+                              "
+                            >
+                              {{ 'actions.delete' | translate }}
+                            </button>
+                          }
                         </div>
                       }
                     }
@@ -434,7 +437,10 @@ export class RoutesTableComponent {
     if (this.global.isMobile()) {
       cols = cols.filter((col) => col !== 'height' && col !== 'rating');
     }
-    if (this.global.isAdmin() && this.showAdminActions()) {
+    if (
+      (this.global.isAdmin() || this.global.isEquipper()) &&
+      this.showAdminActions()
+    ) {
       cols.push('admin_actions');
     }
     return cols;

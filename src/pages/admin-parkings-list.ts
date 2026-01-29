@@ -17,16 +17,22 @@ import {
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
-import { TuiButton, TuiHint, TuiScrollbar, TuiTextfield } from '@taiga-ui/core';
+import {
+  TuiAppearance,
+  TuiButton,
+  TuiHint,
+  TuiScrollbar,
+  TuiTextfield,
+} from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
   TuiAvatar,
+  TuiBadgeNotification,
   TuiBadgedContentComponent,
   TuiBadgedContentDirective,
-  TuiBadgeNotification,
-  type TuiConfirmData,
   TuiSkeleton,
+  type TuiConfirmData,
 } from '@taiga-ui/kit';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -46,7 +52,11 @@ import { handleErrorToast } from '../utils';
     EmptyStateComponent,
     FormsModule,
     TranslatePipe,
+    TuiAppearance,
     TuiAvatar,
+    TuiBadgeNotification,
+    TuiBadgedContentComponent,
+    TuiBadgedContentDirective,
     TuiButton,
     TuiHint,
     TuiScrollbar,
@@ -54,9 +64,6 @@ import { handleErrorToast } from '../utils';
     TuiTable,
     TuiTableSortPipe,
     TuiTextfield,
-    TuiBadgedContentComponent,
-    TuiBadgeNotification,
-    TuiBadgedContentDirective,
   ],
   template: `
     <section class="flex flex-col w-full max-w-5xl mx-auto p-4">
@@ -64,7 +71,11 @@ import { handleErrorToast } from '../utils';
         <h1 class="text-2xl font-bold flex items-center gap-2">
           <tui-badged-content [style.--tui-radius.%]="50">
             @if (parkings().length; as parkingsCount) {
-              <tui-badge-notification size="s" tuiSlot="top">
+              <tui-badge-notification
+                tuiAppearance="accent"
+                size="s"
+                tuiSlot="top"
+              >
                 {{ parkingsCount }}
               </tui-badge-notification>
             }

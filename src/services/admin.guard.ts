@@ -74,8 +74,23 @@ export const equipperGuard: CanMatchFn = async (): Promise<
     const roleData = supabase.userRoleResource.value();
 
     if (roleData !== undefined) {
-      if (roleData?.role === 'admin' || roleData?.role === 'equipper') {
+      if (roleData?.role === 'admin') {
         return true;
+      }
+      if (roleData?.role === 'equipper') {
+        // Wait for equipper areas to load
+        while (attempts < maxAttempts) {
+          const areas = supabase.equipperAreasResource.value();
+          if (areas !== undefined) {
+            if (areas.length > 0) {
+              return true;
+            }
+            console.warn('[EquipperGuard] Equipper has no assigned areas');
+            return router.createUrlTree(['/page-not-found']);
+          }
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          attempts++;
+        }
       }
       return router.createUrlTree(['/page-not-found']);
     }

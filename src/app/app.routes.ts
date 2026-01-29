@@ -63,7 +63,7 @@ export const routes: Routes = [
     loadComponent: () => import('../pages/admin').then((m) => m.AdminComponent),
   },
   {
-    path: 'admin/my-areas',
+    path: 'my-areas',
     canMatch: [equipperGuard],
     loadComponent: () =>
       import('../pages/my-areas').then((m) => m.MyAreasComponent),

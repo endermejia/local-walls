@@ -92,7 +92,11 @@ import { mapLocationUrl, remToPx } from '../utils';
           <div class="z-10">
             <tui-badged-content>
               @if (hasActiveFilters()) {
-                <tui-badge-notification size="s" tuiSlot="top" />
+                <tui-badge-notification
+                  tuiAppearance="accent"
+                  size="s"
+                  tuiSlot="top"
+                />
               }
               <button
                 tuiIconButton

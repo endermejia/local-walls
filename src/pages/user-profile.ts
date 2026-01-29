@@ -260,7 +260,11 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
 
                   <tui-badged-content>
                     @if (hasActiveFilters()) {
-                      <tui-badge-notification size="s" tuiSlot="top" />
+                      <tui-badge-notification
+                        tuiAppearance="accent"
+                        size="s"
+                        tuiSlot="top"
+                      />
                     }
                     <button
                       tuiButton

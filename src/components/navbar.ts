@@ -82,10 +82,13 @@ import { GlobalData } from '../services';
           </span>
         </a>
 
-        @if (global.isAdmin() || global.isEquipper()) {
+        @if (
+          global.isAdmin() ||
+          (global.isEquipper() && global.equipperAreas().length > 0)
+        ) {
           <a
             #config="routerLinkActive"
-            [routerLink]="global.isAdmin() ? '/admin' : '/admin/my-areas'"
+            [routerLink]="global.isAdmin() ? '/admin' : '/my-areas'"
             routerLinkActive
             [tuiAppearance]="
               config.isActive ? 'flat-destructive' : 'flat-grayscale'
@@ -99,7 +102,7 @@ import { GlobalData } from '../services';
               @if (global.isAdmin()) {
                 {{ 'config' | translate }}
               } @else {
-                {{ 'nav.my-crags' | translate }}
+                {{ 'nav.my-areas' | translate }}
               }
             </span>
           </a>
