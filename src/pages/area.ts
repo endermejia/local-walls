@@ -83,8 +83,8 @@ import { handleErrorToast } from '../utils';
     <tui-scrollbar class="flex grow">
       <section class="w-full max-w-5xl mx-auto p-4">
         @let isAdmin = global.isAdmin();
-        @let isEquipper = global.isEquipper();
         @if (global.selectedArea(); as area) {
+          @let isEquipper = global.isAllowedEquipper(area.id);
           <div class="mb-4">
             <app-section-header
               class="w-full"

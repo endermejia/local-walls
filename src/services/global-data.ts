@@ -121,7 +121,7 @@ export class GlobalData {
       config.push({
         name: 'nav.my-crags',
         icon: '@tui.list',
-        fn: () => this.router.navigateByUrl('/my-crags'),
+        fn: () => this.router.navigateByUrl('/admin/my-areas'),
       });
     }
     if (isAdmin) {
@@ -129,6 +129,11 @@ export class GlobalData {
         name: 'nav.admin-users',
         icon: '@tui.users',
         fn: () => this.router.navigateByUrl('/admin/users'),
+      });
+      config.push({
+        name: 'nav.admin-area-equippers',
+        icon: '@tui.hammer',
+        fn: () => this.router.navigateByUrl('/admin/area-equippers'),
       });
       config.push({
         name: 'nav.admin-parkings',
@@ -215,6 +220,14 @@ export class GlobalData {
   readonly userRole = computed(() => this.supabase.userRole());
   readonly isAdmin = computed(() => this.userRole() === AppRoles.ADMIN);
   readonly isEquipper = computed(() => this.userRole() === AppRoles.EQUIPPER);
+  readonly equipperAreas = this.supabase.equipperAreas;
+
+  readonly isAllowedEquipper = (areaId: number | undefined) => {
+    if (this.isAdmin()) return true;
+    if (!areaId) return false;
+    return this.isEquipper() && this.equipperAreas().includes(areaId);
+  };
+
   readonly userAvatar = computed(() =>
     this.supabase.buildAvatarUrl(this.userProfile()?.avatar),
   );
@@ -647,7 +660,7 @@ export class GlobalData {
             `
             *,
             liked:crag_likes(id),
-            area: areas!inner ( name, slug ),
+            area: areas!inner ( id, name, slug ),
             crag_parkings (
               parking: parkings (*)
             ),
@@ -1017,9 +1030,10 @@ export class GlobalData {
             liked:route_likes(id),
             project:route_projects(id),
             crag:crags(
+              id,
               name,
               slug,
-              area:areas(name, slug)
+              area:areas(id, name, slug)
             ),
             ascents:route_ascents(rate),
             own_ascent:route_ascents(*)
@@ -1053,6 +1067,7 @@ export class GlobalData {
           project: (r.project?.length ?? 0) > 0,
           crag_name: r.crag?.name,
           crag_slug: r.crag?.slug,
+          area_id: r.crag?.area?.id,
           area_name: r.crag?.area?.name,
           area_slug: r.crag?.area?.slug,
           rating,
@@ -1060,7 +1075,7 @@ export class GlobalData {
           climbed: (r.own_ascent?.length ?? 0) > 0,
           own_ascent: r.own_ascent?.[0],
           key: `${cragId}:${routeSlug}`,
-        } as RouteWithExtras & { key: string };
+        } as RouteWithExtras & { area_id?: number; key: string };
       } catch (e) {
         console.error('[GlobalData] routeDetailResource exception', e);
         return null;

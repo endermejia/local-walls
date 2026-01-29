@@ -77,6 +77,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'admin/area-equippers',
+    canMatch: [adminGuard],
+    loadComponent: () =>
+      import('../pages/admin-area-equippers-list').then(
+        (m) => m.AdminAreaEquippersListComponent,
+      ),
+  },
+  {
     path: 'admin/equippers',
     canMatch: [adminGuard],
     loadComponent: () =>
