@@ -39,7 +39,6 @@ import {
 import { TuiCell } from '@taiga-ui/layout';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { firstValueFrom } from 'rxjs';
 
 import {
@@ -269,7 +268,10 @@ export interface TopoRouteRow {
                   </thead>
                   @let sortedData = tableData() | tuiTableSort;
                   <tbody tuiTbody [data]="sortedData">
-                    @for (item of sortedData; track item._ref.route_id) {
+                    @for (
+                      item of sortedData;
+                      track item._ref.topo_id + '-' + item._ref.route_id
+                    ) {
                       <tr
                         tuiTr
                         [style.background]="

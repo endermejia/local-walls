@@ -615,15 +615,24 @@ export class GlobalData {
           throw error;
         }
 
-        const topo_routes: TopoRouteWithRoute[] =
-          data.topo_routes?.map((tr) => ({
-            ...tr,
-            route: {
-              ...tr.route,
-              own_ascent: tr.route.own_ascent?.[0] || null,
-              project: !!tr.route.project?.[0],
-            },
-          })) || [];
+        const topo_routes: TopoRouteWithRoute[] = [];
+        const seenRouteIds = new Set<number>();
+
+        if (data.topo_routes) {
+          for (const tr of data.topo_routes) {
+            if (!seenRouteIds.has(tr.route_id)) {
+              seenRouteIds.add(tr.route_id);
+              topo_routes.push({
+                ...tr,
+                route: {
+                  ...tr.route,
+                  own_ascent: tr.route.own_ascent?.[0] || null,
+                  project: !!tr.route.project?.[0],
+                },
+              });
+            }
+          }
+        }
 
         return {
           ...data,
