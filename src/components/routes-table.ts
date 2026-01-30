@@ -126,6 +126,9 @@ export interface RoutesTableRow {
                   [class.text-right]="
                     col === 'actions' || col === 'admin_actions'
                   "
+                  [class.!w-20]="col === 'height' || col === 'ascents'"
+                  [class.!w-24]="col === 'rating'"
+                  [class.!w-32]="col === 'actions' || col === 'admin_actions'"
                 >
                   <div>
                     {{

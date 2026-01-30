@@ -134,10 +134,20 @@ import { handleErrorToast } from '../utils';
               <th *tuiHead="'name'" tuiTh [sorter]="nameSorter">
                 {{ 'labels.name' | translate }}
               </th>
-              <th *tuiHead="'description'" tuiTh [sorter]="descriptionSorter">
+              <th
+                *tuiHead="'description'"
+                tuiTh
+                [sorter]="descriptionSorter"
+                class="!w-96"
+              >
                 {{ 'labels.description' | translate }}
               </th>
-              <th *tuiHead="'actions'" tuiTh [sorter]="null"></th>
+              <th
+                *tuiHead="'actions'"
+                tuiTh
+                [sorter]="null"
+                class="!w-24 text-right"
+              ></th>
             </tr>
           </thead>
 

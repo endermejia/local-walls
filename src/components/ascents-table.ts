@@ -123,6 +123,11 @@ export interface AscentsTableRow {
                   tuiTh
                   [sorter]="getSorter(col)"
                   [class.text-right]="col === 'likes'"
+                  [class.!w-40]="col === 'user'"
+                  [class.!w-20]="
+                    col === 'grade' || col === 'type' || col === 'rating'
+                  "
+                  [class.!w-28]="col === 'date' || col === 'likes'"
                 >
                   {{
                     col === 'actions' || col === 'details' || col === 'likes'

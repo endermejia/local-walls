@@ -132,16 +132,21 @@ import { handleErrorToast } from '../utils';
               <th *tuiHead="'name'" tuiTh [sorter]="nameSorter">
                 {{ 'labels.name' | translate }}
               </th>
-              <th *tuiHead="'lat'" tuiTh [sorter]="latSorter">
+              <th *tuiHead="'lat'" tuiTh [sorter]="latSorter" class="!w-24">
                 {{ 'labels.lat' | translate }}
               </th>
-              <th *tuiHead="'lng'" tuiTh [sorter]="lngSorter">
+              <th *tuiHead="'lng'" tuiTh [sorter]="lngSorter" class="!w-24">
                 {{ 'labels.lng' | translate }}
               </th>
-              <th *tuiHead="'size'" tuiTh [sorter]="sizeSorter">
+              <th *tuiHead="'size'" tuiTh [sorter]="sizeSorter" class="!w-24">
                 {{ 'labels.capacity' | translate }}
               </th>
-              <th *tuiHead="'actions'" tuiTh [sorter]="null"></th>
+              <th
+                *tuiHead="'actions'"
+                tuiTh
+                [sorter]="null"
+                class="!w-32 text-right"
+              ></th>
             </tr>
           </thead>
 

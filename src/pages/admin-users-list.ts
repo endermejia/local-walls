@@ -181,13 +181,18 @@ interface UserWithRole {
               <th
                 *tuiHead="'role'"
                 tuiTh
-                class="role-column"
+                class="role-column !w-48"
                 [sorter]="roleSorter"
                 [sticky]="true"
               >
                 {{ 'labels.role' | translate }}
               </th>
-              <th *tuiHead="'areas'" tuiTh class="areas-column" [sorter]="null">
+              <th
+                *tuiHead="'areas'"
+                tuiTh
+                class="areas-column !w-80"
+                [sorter]="null"
+              >
                 {{ 'labels.areas' | translate }}
               </th>
             </tr>

@@ -100,7 +100,6 @@ import { GlobalData } from '../services';
             class="!text-2xl !font-bold !text-inherit !no-underline !bg-transparent"
             [tuiDropdown]="template"
             [(tuiDropdownOpen)]="dropdownOpen"
-            (click)="dropdownOpen.set(!dropdownOpen())"
           >
             {{ title() }}
           </button>
