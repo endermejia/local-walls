@@ -131,9 +131,7 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
               } @else {
                 @let following = isFollowing();
                 <button
-                  [iconStart]="
-                    following ? '@tui.badge-minus' : '@tui.badge-plus'
-                  "
+                  [iconStart]="following ? '@tui.bell-filled' : '@tui.bell'"
                   size="m"
                   tuiIconButton
                   type="button"
@@ -147,10 +145,12 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
                   "
                   (click)="toggleFollow()"
                 >
-                  {{
-                    (following ? 'actions.unfollow' : 'actions.follow')
-                      | translate
-                  }}
+                  <span class="sr-only">
+                    {{
+                      (following ? 'actions.unfollow' : 'actions.follow')
+                        | translate
+                    }}
+                  </span>
                 </button>
               }
             </div>

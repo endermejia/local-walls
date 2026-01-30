@@ -1,5 +1,7 @@
 export * from './ascents-table';
 export * from './ascent-likes';
+export * from './ascent-comments';
+export * from './ascent-comments-dialog';
 export * from './avatar-cropper';
 export * from './avatar-grade';
 export * from './chart-ascents-by-grade';
