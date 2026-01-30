@@ -1,5 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -29,6 +30,7 @@ export class RoutesService {
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
+  private readonly router = inject(Router);
 
   readonly loading = signal(false);
 
@@ -45,8 +47,9 @@ export class RoutesService {
     };
   }): void {
     const isEdit = !!data.routeData;
+    const oldSlug = data.routeData?.slug;
     void firstValueFrom(
-      this.dialogs.open<boolean>(
+      this.dialogs.open<string | boolean | null>(
         new PolymorpheusComponent(RouteFormComponent),
         {
           label: this.translate.instant(
@@ -61,6 +64,23 @@ export class RoutesService {
       if (result) {
         this.global.cragRoutesResource.reload();
         this.global.routeDetailResource.reload();
+
+        if (
+          isEdit &&
+          oldSlug &&
+          typeof result === 'string' &&
+          result !== oldSlug
+        ) {
+          const areaSlug = this.global.selectedAreaSlug();
+          const cragSlug = this.global.selectedCragSlug();
+          if (
+            areaSlug &&
+            cragSlug &&
+            this.global.selectedRouteSlug() === oldSlug
+          ) {
+            void this.router.navigate(['/area', areaSlug, cragSlug, result]);
+          }
+        }
       }
     });
   }
