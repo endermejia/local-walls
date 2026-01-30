@@ -1,4 +1,6 @@
 export * from './ascents-table';
+export * from './ascent-card';
+export * from './ascents-feed';
 export * from './ascent-likes';
 export * from './ascent-comments';
 export * from './ascent-comments-dialog';
@@ -7,6 +9,7 @@ export * from './avatar-grade';
 export * from './chart-ascents-by-grade';
 export * from './chart-routes-by-grade';
 export * from './empty-state';
+export * from './infinite-scroll-trigger';
 export * from './navbar';
 export * from './import-8a';
 export * from './location-picker';

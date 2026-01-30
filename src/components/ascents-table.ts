@@ -347,10 +347,14 @@ export class AscentsTableComponent {
 
   readonly columns = computed(() => {
     const cols: string[] = [];
+    const isMobile = this.global.isMobile();
     if (this.showUser()) cols.push('user');
     cols.push('grade');
     if (this.showRoute()) cols.push('route');
-    cols.push('date', 'type', 'comment', 'details', 'rating', 'likes');
+    if (!isMobile) {
+      cols.push('date', 'type', 'comment', 'details', 'rating');
+    }
+    cols.push('likes');
     return cols;
   });
 

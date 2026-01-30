@@ -1,0 +1,90 @@
+
+> local-walls@0.0.0 start
+> ng serve --hmr=false
+
+❯ Building...
+✔ Building...
+Browser bundles
+Initial chunk files  | Names                |  Raw size
+chunk-UEIBTVL5.js    | -                    | 722.38 kB |
+styles.css           | styles               | 324.94 kB |
+main.js              | main                 |  18.64 kB |
+chunk-2MU4Y35N.js    | -                    |  12.81 kB |
+
+                     | Initial total        |   1.08 MB
+
+Lazy chunk files     | Names                |  Raw size
+chunk-B6O4R5YV.js    | crag                 |  72.27 kB |
+chunk-MCPZIOJZ.js    | topo                 |  70.16 kB |
+chunk-WQGH2VTM.js    | user-profile         |  67.00 kB |
+chunk-5ENRZITB.js    | user-profile-config  |  63.65 kB |
+chunk-CF2MDBPR.js    | explore              |  61.24 kB |
+chunk-EJTWSUX7.js    | admin-users-list     |  43.33 kB |
+chunk-ELUHK6HU.js    | login                |  40.72 kB |
+chunk-SN62JHOP.js    | route                |  30.66 kB |
+chunk-NPQCJSLB.js    | admin-parkings-list  |  29.70 kB |
+chunk-PS647KYU.js    | admin-equippers-list |  29.27 kB |
+chunk-CFRYMNV7.js    | area                 |  28.96 kB |
+chunk-M26YQLVE.js    | area-list            |  20.81 kB |
+chunk-LQUMJTK7.js    | my-areas             |  19.07 kB |
+chunk-D5CKVW7Y.js    | home                 |  14.58 kB |
+chunk-PT3SVGFS.js    | admin                |  10.55 kB |
+...and 4 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files  | Names                |  Raw size
+chunk-M4PZNPVE.mjs   | -                    | 722.41 kB |
+main.server.mjs      | main.server          |  22.99 kB |
+chunk-I4GE77IS.mjs   | -                    |  12.84 kB |
+server.mjs           | server               |   3.03 kB |
+polyfills.server.mjs | polyfills.server     | 243 bytes |
+
+Lazy chunk files     | Names                |  Raw size
+chunk-653EXJJV.mjs   | crag                 |  72.30 kB |
+chunk-VM6WG7IU.mjs   | topo                 |  70.20 kB |
+chunk-FWPQIV3W.mjs   | user-profile         |  67.03 kB |
+chunk-NZ6WDEI4.mjs   | user-profile-config  |  63.69 kB |
+chunk-QLWVUZE6.mjs   | explore              |  61.27 kB |
+chunk-YKM7UWXE.mjs   | admin-users-list     |  43.37 kB |
+chunk-MBWTZ6JV.mjs   | login                |  40.76 kB |
+chunk-T3MPRAOT.mjs   | route                |  30.69 kB |
+chunk-XXSGS5MB.mjs   | admin-parkings-list  |  29.73 kB |
+chunk-7CRPXLEI.mjs   | admin-equippers-list |  29.31 kB |
+chunk-CKL6IEKY.mjs   | area                 |  29.00 kB |
+chunk-VXQBVACQ.mjs   | area-list            |  20.85 kB |
+chunk-3C7TCR5R.mjs   | my-areas             |  19.10 kB |
+chunk-XRCNK5WQ.mjs   | home                 |  14.62 kB |
+chunk-DYJ3TTOT.mjs   | admin                |  10.58 kB |
+...and 4 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [25.819 seconds] - 2026-01-30T18:16:41.373Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  ➜  Local:   http://localhost:4200/
+fatal error: all goroutines are asleep - deadlock!
+
+goroutine 1 [chan receive]:
+github.com/evanw/esbuild/internal/helpers.(*ThreadSafeWaitGroup).Wait(...)
+	github.com/evanw/esbuild/internal/helpers/waitgroup.go:36
+main.runService.func2()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:114 +0x51
+main.runService(0x1)
+	github.com/evanw/esbuild/cmd/esbuild/service.go:160 +0x50c
+main.main()
+	github.com/evanw/esbuild/cmd/esbuild/main.go:252 +0xb6b
+
+goroutine 49 [chan receive]:
+main.runService.func1()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:98 +0x45
+created by main.runService in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:97 +0x1db
+
+goroutine 50 [chan receive]:
+main.(*serviceType).sendRequest(0xc000206690, {0x98ffc0, 0xc026b5bf20})
+	github.com/evanw/esbuild/cmd/esbuild/service.go:192 +0x12b
+main.runService.func3()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:125 +0x3e
+created by main.runService in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:122 +0x30d

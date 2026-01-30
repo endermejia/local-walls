@@ -57,18 +57,22 @@ import {
 } from '../services';
 
 import {
-  AscentsTableComponent,
+  AscentsFeedComponent,
   EmptyStateComponent,
   RoutesTableComponent,
   UserListDialogComponent,
 } from '../components';
 
-import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
+import {
+  ORDERED_GRADE_VALUES,
+  RouteAscentWithExtras,
+  RouteWithExtras,
+} from '../models';
 
 @Component({
   selector: 'app-user-profile',
   imports: [
-    AscentsTableComponent,
+    AscentsFeedComponent,
     AsyncPipe,
     EmptyStateComponent,
     LowerCasePipe,
@@ -308,16 +312,36 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
                       />
                     </tui-data-list>
                   </tui-textfield>
+
+                  <tui-textfield
+                    class="w-full sm:w-48"
+                    [tuiTextfieldCleaner]="false"
+                    [stringify]="sortValueContent"
+                    tuiTextfieldSize="l"
+                  >
+                    <label tuiLabel for="sort-filter">
+                      {{ 'labels.sortBy' | translate }}
+                    </label>
+                    <input
+                      tuiSelect
+                      id="sort-filter"
+                      [formControl]="sortFilterControl"
+                    />
+                    <tui-data-list *tuiTextfieldDropdown>
+                      <tui-data-list-wrapper
+                        new
+                        [items]="['grade', 'date']"
+                      />
+                    </tui-data-list>
+                  </tui-textfield>
                 </div>
 
-                <app-ascents-table
-                  [data]="ascents()"
-                  [total]="totalAscents()"
-                  [page]="global.ascentsPage()"
-                  [size]="global.ascentsSize()"
-                  (paginationChange)="global.onAscentsPagination($event)"
+                <app-ascents-feed
+                  [ascents]="accumulatedAscents()"
+                  [isLoading]="isLoading()"
+                  [hasMore]="hasMore()"
                   [showUser]="false"
-                  [showRowColors]="false"
+                  (loadMore)="loadMore()"
                 />
               </div>
             } @else if (isOwnProfile()) {
@@ -711,6 +735,19 @@ export class UserProfileComponent {
     { initialValue: this.dateFilterControl.value },
   );
 
+  protected readonly sortFilterControl = new FormControl<'grade' | 'date'>(
+    this.global.ascentsSort(),
+    {
+      nonNullable: true,
+    },
+  );
+  protected readonly sortFilter = toSignal(
+    this.sortFilterControl.valueChanges.pipe(
+      startWith(this.sortFilterControl.value),
+    ),
+    { initialValue: this.sortFilterControl.value },
+  );
+
   protected readonly selectedGradeRange = this.global.areaListGradeRange;
   protected readonly selectedCategories = this.global.areaListCategories;
 
@@ -741,6 +778,22 @@ export class UserProfileComponent {
     return option;
   };
 
+  protected readonly sortValueContent = (option: 'grade' | 'date'): string => {
+    return this.translate.instant(
+      option === 'grade' ? 'labels.orderByGrade' : 'labels.orderByDate',
+    );
+  };
+
+  protected readonly accumulatedAscents = signal<RouteAscentWithExtras[]>([]);
+  protected readonly isLoading = signal(false);
+
+  loadMore() {
+    if (this.hasMore() && !this.isLoading()) {
+      this.isLoading.set(true);
+      this.global.ascentsPage.update((p) => p + 1);
+    }
+  }
+
   constructor() {
     effect(() => {
       // Reset breadcrumbs when navigating to the profile page
@@ -751,6 +804,18 @@ export class UserProfileComponent {
       if (profileId && profileId !== this.global.profileUserId()) {
         this.global.resetDataByPage('home');
         this.global.profileUserId.set(profileId);
+      }
+    });
+
+    effect(() => {
+      const res = this.ascentsResource.value();
+      if (res) {
+        if (this.global.ascentsPage() === 0) {
+          this.accumulatedAscents.set(res.items);
+        } else {
+          this.accumulatedAscents.update((prev) => [...prev, ...res.items]);
+        }
+        this.isLoading.set(false);
       }
     });
 
@@ -777,6 +842,7 @@ export class UserProfileComponent {
     effect(() => {
       const dateFilter = this.dateFilter();
       const query = this.query();
+      const sort = this.sortFilter();
 
       // Read global filters to re-run the effect when they change (e.g., from the filter dialog)
       this.selectedGradeRange();
@@ -788,6 +854,7 @@ export class UserProfileComponent {
       // Sync local filters with global signals
       this.global.ascentsDateFilter.set(dateFilter);
       this.global.ascentsQuery.set(query || null);
+      this.global.ascentsSort.set(sort);
     });
 
     // Guard for activeTab index when switching between own profile and others
@@ -900,6 +967,9 @@ export class UserProfileComponent {
   readonly totalAscents = computed(
     () => this.ascentsResource.value()?.total ?? 0,
   );
+  readonly hasMore = computed(() => {
+    return this.accumulatedAscents().length < this.totalAscents();
+  });
   readonly hasAscents = computed(
     () => this.global.userTotalAscentsCountResource.value() !== 0,
   );

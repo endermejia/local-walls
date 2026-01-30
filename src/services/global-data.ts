@@ -913,6 +913,7 @@ export class GlobalData {
   readonly ascentsSize = signal(10);
   readonly ascentsDateFilter = signal<string | null>(null);
   readonly ascentsQuery = signal<string | null>(null);
+  readonly ascentsSort = signal<'date' | 'grade'>('grade');
 
   onAscentsPagination({ page, size }: TuiTablePaginationEvent): void {
     this.ascentsPage.set(page);
@@ -928,6 +929,7 @@ export class GlobalData {
       query: this.ascentsQuery(),
       grades: this.areaListGradeRange(),
       categories: this.areaListCategories(),
+      sort: this.ascentsSort(),
     }),
     loader: async ({ params }): Promise<PaginatedAscents> => {
       const {
@@ -938,6 +940,7 @@ export class GlobalData {
         query: queryText,
         grades,
         categories,
+        sort,
       } = params;
       if (!userId || !isPlatformBrowser(this.platformId))
         return { items: [], total: 0 };
@@ -1008,6 +1011,10 @@ export class GlobalData {
         }
 
         const { data, error, count } = await query
+          .order(sort === 'grade' ? 'grade' : 'date', {
+            referencedTable: sort === 'grade' ? 'route' : undefined,
+            ascending: false,
+          })
           .order('date', { ascending: false })
           .range(from, to);
 

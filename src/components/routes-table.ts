@@ -410,7 +410,9 @@ export class RoutesTableComponent {
   protected readonly columns = computed(() => {
     let cols = ['grade', 'route', 'height', 'rating', 'ascents', 'actions'];
     if (this.global.isMobile()) {
-      cols = cols.filter((col) => col !== 'height' && col !== 'rating');
+      cols = cols.filter(
+        (col) => col !== 'height' && col !== 'rating' && col !== 'ascents',
+      );
     }
     if (
       (this.global.isAdmin() || this.global.isEquipper()) &&
