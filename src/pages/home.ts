@@ -184,7 +184,6 @@ export class InfiniteScrollTriggerComponent
                         <button
                           tuiButton
                           size="s"
-                          iconStart="@tui.bell-off"
                           appearance="secondary-grayscale"
                           class="!rounded-full"
                           (click)="
@@ -201,7 +200,6 @@ export class InfiniteScrollTriggerComponent
                         <button
                           tuiButton
                           size="s"
-                          iconStart="@tui.bell-ring"
                           appearance="action"
                           class="!rounded-full"
                           (click)="
