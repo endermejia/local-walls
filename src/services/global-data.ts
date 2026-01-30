@@ -598,9 +598,9 @@ export class GlobalData {
         const { data, error } = await this.supabase.client
           .from('topos')
           .select(
-            '*, crag:crags!inner(slug, area:areas!inner(slug)), topo_routes(route:routes(grade))',
+            '*, crags!inner(slug, areas!inner(slug)), topo_routes(route:routes(grade))',
           )
-          .eq('crag.area.slug', areaSlug);
+          .eq('crags.areas.slug', areaSlug);
 
         if (error) {
           console.error('[GlobalData] areaToposResource error', error);
@@ -625,7 +625,7 @@ export class GlobalData {
             shade_afternoon: t.shade_afternoon,
             shade_change_hour: t.shade_change_hour,
             grades,
-            crag_slug: t.crag.slug,
+            crag_slug: t.crags.slug,
           };
         });
       } catch (e) {

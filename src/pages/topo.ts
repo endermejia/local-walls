@@ -147,16 +147,7 @@ export interface TopoRouteRow {
                       [disabled]="item.id === t.id"
                       (click.zoneless)="navigateToTopo(item)"
                     >
-                      <div class="flex items-center gap-2">
-                        @if (item.photo; as photo) {
-                          <img
-                            [src]="(photo | topoImage | async) || global.iconSrc()('topo')"
-                            alt="topo"
-                            class="w-10 h-10 object-cover rounded shadow-sm"
-                          />
-                        }
-                        <span>{{ item.name }}</span>
-                      </div>
+                      {{ item.name }}
                     </button>
                   }
                 </tui-data-list>
