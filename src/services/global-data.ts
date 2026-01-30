@@ -600,7 +600,7 @@ export class GlobalData {
           .select(
             '*, crag:crags!inner(slug, area:areas!inner(slug)), topo_routes(route:routes(grade))',
           )
-          .eq('crags.areas.slug', areaSlug);
+          .eq('crag.area.slug', areaSlug);
 
         if (error) {
           console.error('[GlobalData] areaToposResource error', error);

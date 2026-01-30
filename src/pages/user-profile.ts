@@ -14,6 +14,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
+import { TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
 import {
   TuiAppearance,
   TuiButton,
@@ -90,6 +91,7 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
     TuiScrollbar,
     TuiSelect,
     TuiSkeleton,
+    TuiSwipe,
     TuiTabs,
     TuiTextfield,
     TuiTitle,
@@ -97,7 +99,10 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <tui-scrollbar class="flex grow">
-      <section class="w-full max-w-5xl mx-auto p-4 grid gap-4">
+      <section
+        (tuiSwipe)="onSwipe($event)"
+        class="w-full max-w-5xl mx-auto p-4 grid gap-4"
+      >
         @let loading = !profile();
         <div class="flex items-center gap-4">
           @let avatar = profileAvatarSrc();
@@ -487,6 +492,17 @@ export class UserProfileComponent {
   private readonly dialogs = inject(TuiDialogService);
 
   protected readonly activeTab = signal(0);
+
+  protected onSwipe(event: TuiSwipeEvent): void {
+    const direction = event.direction;
+    const currentIndex = this.activeTab();
+    const maxIndex = this.isOwnProfile() ? 2 : 1;
+    if (direction === 'left' && currentIndex < maxIndex) {
+      this.activeTab.set(currentIndex + 1);
+    } else if (direction === 'right' && currentIndex > 0) {
+      this.activeTab.set(currentIndex - 1);
+    }
+  }
 
   protected readonly followersCountResource = resource({
     params: () => ({

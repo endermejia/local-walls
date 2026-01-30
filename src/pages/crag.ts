@@ -14,6 +14,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
+import { TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
 import {
   TuiAppearance,
   TuiButton,
@@ -98,13 +99,17 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     TuiLoader,
     TuiNotification,
     TuiScrollbar,
+    TuiSwipe,
     TuiTabs,
     TuiTextfield,
     TuiTitle,
   ],
   template: `
     <tui-scrollbar class="flex grow">
-      <section class="w-full max-w-5xl mx-auto p-4 flex flex-col min-h-full">
+      <section
+        (tuiSwipe)="onSwipe($event)"
+        class="w-full max-w-5xl mx-auto p-4 flex flex-col min-h-full"
+      >
         @let isMobile = global.isMobile();
         @let isAdmin = global.isAdmin();
         @if (cragDetail(); as c) {
@@ -595,6 +600,16 @@ export class CragComponent {
   protected readonly dialogs = inject(TuiDialogService);
 
   protected readonly mapLocationUrl = mapLocationUrl;
+
+  protected onSwipe(event: TuiSwipeEvent): void {
+    const direction = event.direction;
+    const currentIndex = this.activeTabIndex();
+    if (direction === 'left' && currentIndex < 2) {
+      this.activeTabIndex.set(currentIndex + 1);
+    } else if (direction === 'right' && currentIndex > 0) {
+      this.activeTabIndex.set(currentIndex - 1);
+    }
+  }
 
   areaSlug: InputSignal<string> = input.required<string>();
   cragSlug: InputSignal<string> = input.required<string>();

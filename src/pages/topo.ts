@@ -142,6 +142,7 @@ export interface TopoRouteRow {
                   @for (item of allAreaTopos(); track item.id) {
                     <button
                       tuiOption
+                      new
                       type="button"
                       [disabled]="item.id === t.id"
                       (click.zoneless)="navigateToTopo(item)"

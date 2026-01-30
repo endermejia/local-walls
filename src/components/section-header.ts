@@ -43,8 +43,11 @@ import { GlobalData } from '../services';
       <!-- Title row with actions -->
       <div class="flex items-start justify-between gap-3">
         <!-- Title and additional info -->
-        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
-          <h1 class="text-2xl font-bold line-clamp-1">
+        <div class="flex items-center gap-2 min-w-0 flex-1">
+          <h1
+            class="text-2xl font-bold"
+            [class.line-clamp-1]="!titleDropdown()"
+          >
             @if (breadcrumbs.length) {
               <tui-breadcrumbs
                 size="l"
@@ -70,8 +73,7 @@ import { GlobalData } from '../services';
                 tuiChevron
                 appearance="flat"
                 type="button"
-                size="m"
-                class="!text-2xl !font-bold !text-inherit !no-underline !h-auto !p-0 !min-h-0 !bg-transparent"
+                class="!text-2xl !font-bold !text-inherit !no-underline !bg-transparent"
                 [tuiDropdown]="template"
               >
                 {{ title() }}
