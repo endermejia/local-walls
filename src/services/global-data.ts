@@ -597,8 +597,10 @@ export class GlobalData {
         await this.supabase.whenReady();
         const { data, error } = await this.supabase.client
           .from('topos')
-          .select('*, crag:crags!inner(slug, area:areas!inner(slug)), topo_routes(route:routes(grade))')
-          .eq('crag.area.slug', areaSlug);
+          .select(
+            '*, crag:crags!inner(slug, area:areas!inner(slug)), topo_routes(route:routes(grade))',
+          )
+          .eq('crags.areas.slug', areaSlug);
 
         if (error) {
           console.error('[GlobalData] areaToposResource error', error);

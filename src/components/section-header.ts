@@ -8,8 +8,13 @@ import {
 } from '@angular/core';
 
 import { TuiItem } from '@taiga-ui/cdk';
-import { TuiButton, TuiDropdown, TuiHint, TuiIcon, TuiLink } from '@taiga-ui/core';
-import { TuiBreadcrumbs } from '@taiga-ui/kit';
+import {
+  TuiButton,
+  TuiDropdown,
+  TuiHint,
+  TuiLink,
+} from '@taiga-ui/core';
+import { TuiBreadcrumbs, TuiChevron } from '@taiga-ui/kit';
 import { RouterLink } from '@angular/router';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -23,9 +28,9 @@ import { GlobalData } from '../services';
     TranslatePipe,
     TuiBreadcrumbs,
     TuiButton,
+    TuiChevron,
     TuiDropdown,
     TuiHint,
-    TuiIcon,
     TuiItem,
     TuiLink,
   ],
@@ -61,14 +66,15 @@ import { GlobalData } from '../services';
 
             @if (titleDropdown(); as template) {
               <button
-                tuiLink
+                tuiButton
+                tuiChevron
                 appearance="flat"
                 type="button"
-                class="!text-2xl !font-bold !text-inherit !no-underline"
+                size="m"
+                class="!text-2xl !font-bold !text-inherit !no-underline !h-auto !p-0 !min-h-0 !bg-transparent"
                 [tuiDropdown]="template"
               >
                 {{ title() }}
-                <tui-icon icon="@tui.chevron-down" class="ml-1" />
               </button>
             } @else {
               {{ title() }}
