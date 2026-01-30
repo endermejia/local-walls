@@ -54,7 +54,7 @@ export class CragsService {
     const isEdit = !!data?.cragData;
     const oldSlug = data?.cragData?.slug;
     void firstValueFrom(
-      this.dialogs.open<string | null>(
+      this.dialogs.open<string | boolean | null>(
         new PolymorpheusComponent(CragFormComponent),
         {
           label: this.translate.instant(
@@ -70,7 +70,12 @@ export class CragsService {
         this.global.cragsListResource.reload();
         this.global.cragDetailResource.reload();
 
-        if (isEdit && oldSlug && result !== oldSlug) {
+        if (
+          isEdit &&
+          oldSlug &&
+          typeof result === 'string' &&
+          result !== oldSlug
+        ) {
           const areaSlug = this.global.selectedAreaSlug();
           if (areaSlug && this.global.selectedCragSlug() === oldSlug) {
             void this.router.navigate(['/area', areaSlug, result]);
