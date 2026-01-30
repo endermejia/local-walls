@@ -23,6 +23,7 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
           <app-ascent-card
             [data]="ascent"
             [showUser]="showUser()"
+            [showRoute]="showRoute()"
             [isFollowed]="followedIds().has(ascent.user_id)"
             (followEvent)="follow.emit($event)"
             (unfollowEvent)="unfollow.emit($event)"
@@ -50,6 +51,7 @@ export class AscentsFeedComponent {
   isLoading = input(false);
   hasMore = input(false);
   showUser = input(true);
+  showRoute = input(true);
   followedIds = input<Set<string>>(new Set());
 
   loadMore = output<void>();

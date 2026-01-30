@@ -132,7 +132,9 @@ export interface RoutesTableRow {
                     col === 'actions' || col === 'admin_actions'
                   "
                   [class.!w-12]="col === 'expand'"
-                  [class.!w-20]="col === 'height' || col === 'ascents'"
+                  [class.!w-20]="
+                    col === 'grade' || col === 'height' || col === 'ascents'
+                  "
                   [class.!w-24]="col === 'rating'"
                   [class.!w-32]="col === 'actions' || col === 'admin_actions'"
                 >
@@ -142,8 +144,7 @@ export interface RoutesTableRow {
                       col === 'admin_actions' ||
                       col === 'expand'
                         ? ''
-                        : ('labels.' + (col === 'route' ? 'grade' : col)
-                          | translate)
+                        : ('labels.' + col | translate)
                     }}
                   </div>
                 </th>
@@ -193,16 +194,16 @@ export interface RoutesTableRow {
                           Toggle
                         </button>
                       }
-                      @case ('route') {
-                        <div
-                          tuiCell
-                          size="m"
-                          class="!flex-row !gap-2 !items-center"
-                        >
+                      @case ('grade') {
+                        <div tuiCell size="m">
                           <app-avatar-grade
                             [grade]="item._ref.grade"
                             size="s"
                           />
+                        </div>
+                      }
+                      @case ('route') {
+                        <div tuiCell size="m">
                           <div class="flex flex-col min-w-0">
                             <a
                               tuiLink
@@ -215,7 +216,7 @@ export interface RoutesTableRow {
                             >
                               {{ item.route || ('labels.route' | translate) }}
                             </a>
-                            @if (showLocation()) {
+                            @if (showLocation() && !isMobile) {
                               <div
                                 class="text-xs opacity-70 flex gap-1 items-center whitespace-nowrap"
                               >
@@ -398,40 +399,127 @@ export interface RoutesTableRow {
               <tui-table-expand #exp [expanded]="false">
                 <tr tuiTr>
                   <td [colSpan]="columns().length" tuiTd>
-                    <div class="flex flex-col gap-2 p-2 text-sm">
-                      <div class="flex justify-between items-center">
-                        <span class="opacity-70">{{
-                          'labels.height' | translate
-                        }}</span>
-                        <span class="font-medium">{{
-                          item.height ? item.height + 'm' : '-'
-                        }}</span>
+                    <div class="flex flex-col gap-4 p-4 text-sm bg-neutral-50/50 rounded-xl">
+                      <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex gap-4">
+                          @if (item.height) {
+                            <div class="flex flex-col">
+                              <span class="text-[10px] uppercase opacity-50 font-bold leading-none mb-1">
+                                {{ 'labels.height' | translate }}
+                              </span>
+                              <span class="font-semibold text-base">{{ item.height }}m</span>
+                            </div>
+                          }
+                          <div class="flex flex-col">
+                            <span class="text-[10px] uppercase opacity-50 font-bold leading-none mb-1">
+                               {{ 'labels.rating' | translate }}
+                            </span>
+                            <tui-rating
+                              [ngModel]="item.rating"
+                              [readOnly]="true"
+                              [max]="5"
+                              class="!h-5"
+                              [style.font-size.rem]="0.5"
+                            />
+                          </div>
+                          <div class="flex flex-col">
+                            <span class="text-[10px] uppercase opacity-50 font-bold leading-none mb-1">
+                               {{ 'labels.ascents' | translate }}
+                            </span>
+                            <span class="font-semibold text-base">{{ item.ascents }}</span>
+                          </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                           @if (!item.climbed) {
+                            <button
+                              size="m"
+                              appearance="neutral"
+                              iconStart="@tui.circle-plus"
+                              tuiIconButton
+                              type="button"
+                              class="!rounded-full"
+                              (click.zoneless)="
+                                onLogAscent(item._ref); $event.stopPropagation()
+                              "
+                            >
+                              {{ 'ascent.new' | translate }}
+                            </button>
+                          } @else if (item._ref.own_ascent; as ascentToEdit) {
+                            <tui-avatar
+                              class="cursor-pointer !text-white"
+                              [style.background]="
+                                ascentsService.ascentInfo()[
+                                  ascentToEdit?.type || 'default'
+                                ].background
+                              "
+                              (click.zoneless)="
+                                onEditAscent(ascentToEdit, item._ref.name);
+                                $event.stopPropagation()
+                              "
+                            >
+                              <tui-icon
+                                [icon]="
+                                  ascentsService.ascentInfo()[
+                                    ascentToEdit?.type || 'default'
+                                  ].icon
+                                "
+                              />
+                            </tui-avatar>
+                          }
+
+                          @if (!item.climbed) {
+                            <button
+                              size="m"
+                              [appearance]="
+                                item.project ? 'primary' : 'neutral'
+                              "
+                              iconStart="@tui.bookmark"
+                              tuiIconButton
+                              type="button"
+                              class="!rounded-full"
+                              (click.zoneless)="
+                                routesService.toggleRouteProject(
+                                  item._ref.id,
+                                  item._ref
+                                );
+                                $event.stopPropagation()
+                              "
+                            >
+                              {{
+                                (item.project
+                                  ? 'actions.project.remove'
+                                  : 'actions.project.add'
+                                ) | translate
+                              }}
+                            </button>
+                          }
+                        </div>
                       </div>
-                      <div class="flex justify-between items-center">
-                        <span class="opacity-70">{{
-                          'labels.rating' | translate
-                        }}</span>
-                        <tui-rating
-                          [ngModel]="item.rating"
-                          [readOnly]="true"
-                          [max]="5"
-                          [style.font-size.rem]="0.6"
-                        />
-                      </div>
-                      <div class="flex justify-between items-center">
-                        <span class="opacity-70">{{
-                          'labels.ascents' | translate
-                        }}</span>
-                        <span class="font-medium">{{ item.ascents }}</span>
-                      </div>
-                      @if (
-                        (global.isAdmin() || global.isEquipper()) &&
-                        showAdminActions()
-                      ) {
-                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-black/5">
-                          <span class="opacity-70">{{ 'labels.admin_actions' | translate }}</span>
-                          <div class="flex gap-1">
-                             @if (global.isAllowedEquipper(item._ref.area_id)) {
+
+                      @if (showLocation()) {
+                         <div class="flex flex-col gap-1 border-t border-black/5 pt-3">
+                            <span class="text-[10px] uppercase opacity-50 font-bold leading-none">
+                               {{ 'labels.location' | translate }}
+                            </span>
+                            <div class="flex gap-1 items-center opacity-70">
+                                <a tuiLink [routerLink]="['/area', item.area_slug]" (click)="$event.stopPropagation()">
+                                  {{ item.area_name }}
+                                </a>
+                                <span>/</span>
+                                <a tuiLink [routerLink]="['/area', item.area_slug, item.crag_slug]" (click)="$event.stopPropagation()">
+                                  {{ item.crag_name }}
+                                </a>
+                            </div>
+                         </div>
+                      }
+
+                      @if ((global.isAdmin() || global.isAllowedEquipper(item._ref.area_id)) && showAdminActions()) {
+                        <div class="flex flex-col gap-2 border-t border-black/5 pt-3">
+                          <span class="text-[10px] uppercase opacity-50 font-bold leading-none">
+                               {{ 'labels.admin_actions' | translate }}
+                          </span>
+                          <div class="flex gap-2">
                               <button
                                 size="s"
                                 appearance="neutral"
@@ -459,7 +547,6 @@ export interface RoutesTableRow {
                               >
                                 {{ 'actions.delete' | translate }}
                               </button>
-                            }
                           </div>
                         </div>
                       }
@@ -522,10 +609,10 @@ export class RoutesTableComponent {
   protected readonly columns = computed(() => {
     const isMobile = this.global.isMobile();
     if (isMobile) {
-      return ['expand', 'route', 'actions'];
+      return ['expand', 'grade', 'route'];
     }
 
-    const cols = ['route', 'height', 'rating', 'ascents', 'actions'];
+    const cols = ['grade', 'route', 'height', 'rating', 'ascents', 'actions'];
     if (
       (this.global.isAdmin() || this.global.isEquipper()) &&
       this.showAdminActions()

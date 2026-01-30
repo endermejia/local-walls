@@ -1,4 +1,9 @@
-import { DecimalPipe, isPlatformBrowser, Location } from '@angular/common';
+import {
+  DecimalPipe,
+  isPlatformBrowser,
+  Location,
+  LowerCasePipe,
+} from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,6 +14,7 @@ import {
   InputSignal,
   PLATFORM_ID,
   resource,
+  signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -39,7 +45,7 @@ import {
 } from '../services';
 
 import {
-  AscentsTableComponent,
+  AscentsFeedComponent,
   ChartAscentsByGradeComponent,
   SectionHeaderComponent,
 } from '../components';
@@ -59,9 +65,10 @@ import { handleErrorToast } from '../utils';
     TuiRating,
     DecimalPipe,
     FormsModule,
-    AscentsTableComponent,
+    AscentsFeedComponent,
     TuiIcon,
     ChartAscentsByGradeComponent,
+    LowerCasePipe,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -261,21 +268,18 @@ import { handleErrorToast } from '../utils';
           </div>
         </div>
 
-        <!-- Ascents Table Section -->
+        <!-- Ascents Section -->
         <div class="mt-6">
           <h2 class="text-2xl font-bold mb-4">
-            {{ 'labels.ascents' | translate }}
+            {{ totalAscents() }} {{ 'labels.ascents' | translate | lowercase }}
           </h2>
-          <div>
-            <app-ascents-table
-              [data]="ascents()"
-              [total]="totalAscents()"
-              [page]="global.ascentsPage()"
-              [size]="global.ascentsSize()"
-              (paginationChange)="global.onAscentsPagination($event)"
-              [showRoute]="false"
-            />
-          </div>
+          <app-ascents-feed
+            [ascents]="accumulatedAscents()"
+            [isLoading]="isLoading()"
+            [hasMore]="hasMore()"
+            [showRoute]="false"
+            (loadMore)="loadMore()"
+          />
         </div>
       } @else {
         <div class="flex items-center justify-center w-full min-h-[50vh]">
@@ -328,6 +332,20 @@ export class RouteComponent {
     () => this.global.routeAscentsResource.value()?.total ?? 0,
   );
 
+  protected readonly accumulatedAscents = signal<RouteAscentWithExtras[]>([]);
+  protected readonly isLoading = signal(false);
+
+  protected readonly hasMore = computed(() => {
+    return this.accumulatedAscents().length < this.totalAscents();
+  });
+
+  loadMore() {
+    if (this.hasMore() && !this.isLoading()) {
+      this.isLoading.set(true);
+      this.global.ascentsPage.update((p) => p + 1);
+    }
+  }
+
   protected readonly equippersNames = computed(() =>
     this.equippers()
       .map((e) => e.name)
@@ -344,6 +362,23 @@ export class RouteComponent {
       this.global.selectedAreaSlug.set(aSlug);
       this.global.selectedCragSlug.set(cSlug);
       this.global.selectedRouteSlug.set(rSlug);
+    });
+
+    effect(() => {
+      const res = this.global.routeAscentsResource.value();
+      if (res) {
+        if (this.global.ascentsPage() === 0) {
+          this.accumulatedAscents.set(res.items);
+        } else {
+          this.accumulatedAscents.update((prev: RouteAscentWithExtras[]) => [
+            ...prev,
+            ...res.items,
+          ]);
+        }
+        this.isLoading.set(false);
+      } else if (this.global.routeAscentsResource.error()) {
+        this.isLoading.set(false);
+      }
     });
   }
 

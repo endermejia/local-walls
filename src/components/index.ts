@@ -1,4 +1,3 @@
-export * from './ascents-table';
 export * from './ascent-card';
 export * from './ascents-feed';
 export * from './ascent-likes';

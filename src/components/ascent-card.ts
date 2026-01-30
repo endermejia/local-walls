@@ -128,7 +128,7 @@ import { AscentLikesComponent } from './ascent-likes';
       </header>
 
       <div class="flex flex-col gap-1">
-        @if (ascent.route) {
+        @if (ascent.route && showRoute()) {
           <div class="flex flex-wrap items-center gap-2">
             <span class="font-bold text-lg">
               {{ ascent.route.name }}
@@ -156,6 +156,25 @@ import { AscentLikesComponent } from './ascent-likes';
             }
             <span>•</span>
             <span>{{ ascent.route.crag_name }}</span>
+          </div>
+        } @else {
+          <div class="flex items-center gap-2 text-sm text-gray-600">
+            @if (ascent.type) {
+              <span
+                class="px-2 py-0.5 bg-gray-100 rounded text-[10px] uppercase font-bold"
+              >
+                {{ 'ascentTypes.' + ascent.type | translate }}
+              </span>
+            }
+            @if (ascent.rate) {
+              <tui-rating
+                [ngModel]="ascent.rate"
+                [max]="5"
+                [readOnly]="true"
+                class="pointer-events-none"
+                [style.font-size.rem]="0.5"
+              />
+            }
           </div>
         }
       </div>
@@ -185,6 +204,7 @@ export class AscentCardComponent {
 
   data = input.required<RouteAscentWithExtras>();
   showUser = input(true);
+  showRoute = input(true);
   isFollowed = input(false);
 
   followEvent = output<string>();
