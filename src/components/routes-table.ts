@@ -16,6 +16,7 @@ import { Router, RouterLink } from '@angular/router';
 import {
   TuiSortDirection,
   TuiTable,
+  TuiTableExpand,
   TuiTableSortChange,
   TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
@@ -32,6 +33,7 @@ import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
   TuiAvatar,
+  TuiChevron,
   type TuiConfirmData,
   TuiRating,
 } from '@taiga-ui/kit';
@@ -103,9 +105,12 @@ export interface RoutesTableRow {
     TuiScrollbar,
     AvatarGradeComponent,
     EmptyStateComponent,
+    TuiTableExpand,
+    TuiChevron,
   ],
   template: `
     @let data = tableData();
+    @let isMobile = global.isMobile();
     @if (data.length > 0) {
       <tui-scrollbar class="grow min-h-0 no-scrollbar">
         <table
@@ -126,13 +131,16 @@ export interface RoutesTableRow {
                   [class.text-right]="
                     col === 'actions' || col === 'admin_actions'
                   "
+                  [class.!w-12]="col === 'expand'"
                   [class.!w-20]="col === 'height' || col === 'ascents'"
                   [class.!w-24]="col === 'rating'"
                   [class.!w-32]="col === 'actions' || col === 'admin_actions'"
                 >
                   <div>
                     {{
-                      col === 'actions' || col === 'admin_actions'
+                      col === 'actions' ||
+                      col === 'admin_actions' ||
+                      col === 'expand'
                         ? ''
                         : ('labels.' + (col === 'route' ? 'grade' : col)
                           | translate)
@@ -143,8 +151,8 @@ export interface RoutesTableRow {
             </tr>
           </thead>
           @let sortedData = data | tuiTableSort;
-          <tbody tuiTbody [data]="sortedData">
-            @for (item of sortedData; track item.key) {
+          @for (item of sortedData; track item.key) {
+            <tbody tuiTbody>
               <tr
                 tuiTr
                 class="cursor-pointer"
@@ -159,7 +167,9 @@ export interface RoutesTableRow {
                         : ''
                     : ''
                 "
-                (click.zoneless)="router.navigate(item.link)"
+                (click.zoneless)="
+                  isMobile ? exp.toggle() : router.navigate(item.link)
+                "
               >
                 @for (col of columns(); track col) {
                   <td
@@ -170,6 +180,19 @@ export interface RoutesTableRow {
                     "
                   >
                     @switch (col) {
+                      @case ('expand') {
+                        <button
+                          appearance="flat-grayscale"
+                          size="xs"
+                          tuiIconButton
+                          type="button"
+                          class="!rounded-full"
+                          [tuiChevron]="exp.expanded()"
+                          (click.zoneless)="exp.toggle(); $event.stopPropagation()"
+                        >
+                          Toggle
+                        </button>
+                      }
                       @case ('route') {
                         <div
                           tuiCell
@@ -372,8 +395,80 @@ export interface RoutesTableRow {
                   </td>
                 }
               </tr>
-            }
-          </tbody>
+              <tui-table-expand #exp [expanded]="false">
+                <tr tuiTr>
+                  <td [colSpan]="columns().length" tuiTd>
+                    <div class="flex flex-col gap-2 p-2 text-sm">
+                      <div class="flex justify-between items-center">
+                        <span class="opacity-70">{{
+                          'labels.height' | translate
+                        }}</span>
+                        <span class="font-medium">{{
+                          item.height ? item.height + 'm' : '-'
+                        }}</span>
+                      </div>
+                      <div class="flex justify-between items-center">
+                        <span class="opacity-70">{{
+                          'labels.rating' | translate
+                        }}</span>
+                        <tui-rating
+                          [ngModel]="item.rating"
+                          [readOnly]="true"
+                          [max]="5"
+                          [style.font-size.rem]="0.6"
+                        />
+                      </div>
+                      <div class="flex justify-between items-center">
+                        <span class="opacity-70">{{
+                          'labels.ascents' | translate
+                        }}</span>
+                        <span class="font-medium">{{ item.ascents }}</span>
+                      </div>
+                      @if (
+                        (global.isAdmin() || global.isEquipper()) &&
+                        showAdminActions()
+                      ) {
+                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-black/5">
+                          <span class="opacity-70">{{ 'labels.admin_actions' | translate }}</span>
+                          <div class="flex gap-1">
+                             @if (global.isAllowedEquipper(item._ref.area_id)) {
+                              <button
+                                size="s"
+                                appearance="neutral"
+                                iconStart="@tui.square-pen"
+                                tuiIconButton
+                                type="button"
+                                class="!rounded-full"
+                                (click.zoneless)="
+                                  openEditRoute(item._ref);
+                                  $event.stopPropagation()
+                                "
+                              >
+                                {{ 'actions.edit' | translate }}
+                              </button>
+                              <button
+                                size="s"
+                                appearance="negative"
+                                iconStart="@tui.trash"
+                                tuiIconButton
+                                type="button"
+                                class="!rounded-full"
+                                (click.zoneless)="
+                                  deleteRoute(item._ref); $event.stopPropagation()
+                                "
+                              >
+                                {{ 'actions.delete' | translate }}
+                              </button>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              </tui-table-expand>
+            </tbody>
+          }
         </table>
       </tui-scrollbar>
     } @else {
@@ -425,12 +520,12 @@ export class RoutesTableComponent {
   }
 
   protected readonly columns = computed(() => {
-    let cols = ['route', 'height', 'rating', 'ascents', 'actions'];
-    if (this.global.isMobile()) {
-      cols = cols.filter(
-        (col) => col !== 'height' && col !== 'rating' && col !== 'ascents',
-      );
+    const isMobile = this.global.isMobile();
+    if (isMobile) {
+      return ['expand', 'route', 'actions'];
     }
+
+    const cols = ['route', 'height', 'rating', 'ascents', 'actions'];
     if (
       (this.global.isAdmin() || this.global.isEquipper()) &&
       this.showAdminActions()
@@ -480,7 +575,8 @@ export class RoutesTableComponent {
   );
 
   protected getSorter(col: string): TuiComparator<RoutesTableRow> | null {
-    if (col === 'actions' || col === 'admin_actions') return null;
+    if (col === 'actions' || col === 'admin_actions' || col === 'expand')
+      return null;
     if (col === 'route') return this.sorters['grade'];
     return this.sorters[col as RoutesTableKey] ?? null;
   }

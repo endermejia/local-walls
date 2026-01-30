@@ -16,6 +16,7 @@ import { RouterLink } from '@angular/router';
 import {
   TuiSortDirection,
   TuiTable,
+  TuiTableExpand,
   TuiTablePagination,
   type TuiTablePaginationEvent,
   tuiTablePaginationOptionsProvider,
@@ -32,7 +33,7 @@ import {
   TuiScrollbar,
 } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { TuiAvatar, TuiChip, TuiRating } from '@taiga-ui/kit';
+import { TuiAvatar, TuiChevron, TuiChip, TuiRating } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -102,9 +103,12 @@ export interface AscentsTableRow {
     AscentCommentsComponent,
     AvatarGradeComponent,
     EmptyStateComponent,
+    TuiTableExpand,
+    TuiChevron,
   ],
   template: `
     @let data = tableData();
+    @let isMobile = global.isMobile();
     @if (data.length > 0) {
       <tui-scrollbar class="grow min-h-0 no-scrollbar">
         <table
@@ -123,6 +127,7 @@ export interface AscentsTableRow {
                   tuiTh
                   [sorter]="getSorter(col)"
                   [class.text-right]="col === 'likes'"
+                  [class.!w-12]="col === 'expand'"
                   [class.!w-40]="col === 'user'"
                   [class.!w-20]="
                     col === 'grade' || col === 'type' || col === 'rating'
@@ -130,7 +135,10 @@ export interface AscentsTableRow {
                   [class.!w-28]="col === 'date' || col === 'likes'"
                 >
                   {{
-                    col === 'actions' || col === 'details' || col === 'likes'
+                    col === 'actions' ||
+                    col === 'details' ||
+                    col === 'likes' ||
+                    col === 'expand'
                       ? ''
                       : ('labels.' + (col === 'route' ? 'grade' : col)
                         | translate)
@@ -140,18 +148,18 @@ export interface AscentsTableRow {
             </tr>
           </thead>
           @let sortedData = data | tuiTableSort;
-          <tbody tuiTbody [data]="sortedData">
-            @for (item of sortedData; track item.key) {
+          @for (item of sortedData; track item.key) {
+            <tbody tuiTbody>
               <tr
                 tuiTr
-                [class.cursor-pointer]="item.canEdit"
+                [class.cursor-pointer]="item.canEdit || isMobile"
                 [style.background]="
                   showRowColors() && item.canEdit
                     ? ascentsService.ascentInfo()[item.type || 'default']
                         .backgroundSubtle
                     : ''
                 "
-                (click.zoneless)="item.canEdit && onEdit(item)"
+                (click.zoneless)="isMobile ? exp.toggle() : (item.canEdit && onEdit(item))"
               >
                 @for (col of columns(); track col) {
                   <td
@@ -160,6 +168,19 @@ export interface AscentsTableRow {
                     [class.text-right]="col === 'likes'"
                   >
                     @switch (col) {
+                      @case ('expand') {
+                        <button
+                          appearance="flat-grayscale"
+                          size="xs"
+                          tuiIconButton
+                          type="button"
+                          class="!rounded-full"
+                          [tuiChevron]="exp.expanded()"
+                          (click.zoneless)="exp.toggle(); $event.stopPropagation()"
+                        >
+                          Toggle
+                        </button>
+                      }
                       @case ('user') {
                         <div tuiCell size="m" class="flex items-center">
                           <a
@@ -316,8 +337,73 @@ export interface AscentsTableRow {
                   </td>
                 }
               </tr>
-            }
-          </tbody>
+              <tui-table-expand #exp [expanded]="false">
+                <tr tuiTr>
+                  <td [colSpan]="columns().length" tuiTd>
+                    <div class="flex flex-col gap-2 p-2 text-sm">
+                      <div class="flex justify-between items-start">
+                        <span class="opacity-70">{{ 'labels.user' | translate }}</span>
+                        <div class="flex items-center gap-2">
+                           <tui-avatar
+                              size="xs"
+                              [src]="item.avatarSrc | tuiFallbackSrc: '@tui.user' | async"
+                            />
+                           <span class="font-medium">{{ item.user_name }}</span>
+                        </div>
+                      </div>
+                      <div class="flex justify-between items-center">
+                        <span class="opacity-70">{{ 'labels.date' | translate }}</span>
+                        <span class="font-medium">{{ item.date | date: 'dd/MM/yyyy' }}</span>
+                      </div>
+                      <div class="flex justify-between items-center">
+                         <span class="opacity-70">{{ 'labels.type' | translate }}</span>
+                         <tui-chip size="xxs">
+                            {{ 'ascentTypes.' + (item.type || 'rp') | translate }}
+                         </tui-chip>
+                      </div>
+                      <div class="flex justify-between items-center">
+                        <span class="opacity-70">{{ 'labels.rating' | translate }}</span>
+                        <tui-rating
+                          [ngModel]="item.rating"
+                          [readOnly]="true"
+                          [max]="5"
+                          [style.font-size.rem]="0.6"
+                        />
+                      </div>
+                      @if (item.comment && (item.showComment || item.canEdit)) {
+                        <div class="flex flex-col gap-1 mt-1">
+                          <span class="opacity-70">{{ 'labels.comment' | translate }}</span>
+                          <span class="italic opacity-90">{{ item.comment }}</span>
+                        </div>
+                      }
+                      @if (item.details.length) {
+                        <div class="flex flex-wrap gap-1 mt-1">
+                          @for (tag of item.details; track tag) {
+                            <tui-chip size="xxs">
+                              {{ tag | translate }}
+                            </tui-chip>
+                          }
+                        </div>
+                      }
+                      @if (item.canEdit) {
+                        <div class="flex justify-end mt-2 pt-2 border-t border-black/5">
+                           <button
+                              tuiButton
+                              size="s"
+                              appearance="textfield"
+                              iconStart="@tui.square-pen"
+                              (click.zoneless)="onEdit(item); $event.stopPropagation()"
+                           >
+                              {{ 'actions.edit' | translate }}
+                           </button>
+                        </div>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              </tui-table-expand>
+            </tbody>
+          }
         </table>
       </tui-scrollbar>
     } @else {
@@ -371,18 +457,19 @@ export class AscentsTableComponent {
   showRowColors: InputSignal<boolean> = input(true);
 
   readonly columns = computed(() => {
-    const cols: string[] = [];
     const isMobile = this.global.isMobile();
+    if (isMobile) {
+      return ['expand', 'route', 'likes'];
+    }
+
+    const cols: string[] = [];
     if (this.showUser()) cols.push('user');
     if (this.showRoute()) {
       cols.push('route');
     } else {
       cols.push('grade');
     }
-    if (!isMobile) {
-      cols.push('date', 'type', 'comment', 'details', 'rating');
-    }
-    cols.push('likes');
+    cols.push('date', 'type', 'comment', 'details', 'rating', 'likes');
     return cols;
   });
 
@@ -471,6 +558,7 @@ export class AscentsTableComponent {
   protected tableSorter: TuiComparator<AscentsTableRow> = this.sorters['date'];
 
   protected getSorter(col: string): TuiComparator<AscentsTableRow> | null {
+    if (col === 'expand') return null;
     return this.sorters[col] ?? null;
   }
 

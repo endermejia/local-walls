@@ -121,7 +121,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
 
           <ng-template #cragSwitcher>
             <tui-data-list>
-              @for (cragItem of global.cragsList(); track cragItem.id) {
+              @for (cragItem of sortedCrags(); track cragItem.id) {
                 <button
                   tuiOption
                   (click)="
@@ -727,6 +727,11 @@ export class CragComponent {
   });
 
   readonly loading = this.cragsService.loading;
+  protected readonly sortedCrags = computed(() => {
+    const list = this.global.cragsList() || [];
+    return [...list].sort((a, b) => a.name.localeCompare(b.name));
+  });
+
   protected readonly cragDetail = computed<CragDetail | null>(() => {
     const c = this.global.cragDetailResource.value();
     if (!c) return null;
