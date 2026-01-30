@@ -486,7 +486,7 @@ export class UserProfileComponent {
 
   private readonly dialogs = inject(TuiDialogService);
 
-  protected readonly activeTab = signal(0);
+  protected readonly activeTab = this.global.profileActiveTab;
 
   protected readonly followersCountResource = resource({
     params: () => ({
@@ -730,8 +730,12 @@ export class UserProfileComponent {
       // Reset breadcrumbs when navigating to the profile page
       const profileId = this.profile()?.id;
       this.id(); // Track the id signal
-      this.global.resetDataByPage('home');
-      this.global.profileUserId.set(profileId ?? null);
+
+      // Only reset data if the profile user ID has changed
+      if (profileId && profileId !== this.global.profileUserId()) {
+        this.global.resetDataByPage('home');
+        this.global.profileUserId.set(profileId);
+      }
     });
 
     // Auto-open profile config modal if the user hasn't completed setup

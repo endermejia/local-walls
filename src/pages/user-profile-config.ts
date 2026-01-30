@@ -1,6 +1,7 @@
 import {
   AsyncPipe,
   isPlatformBrowser,
+  Location,
   NgOptimizedImage,
 } from '@angular/common';
 import {
@@ -15,6 +16,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { TuiDay, TuiStringMatcher } from '@taiga-ui/cdk';
 import {
@@ -26,6 +28,7 @@ import {
   TuiIcon,
   TuiLoader,
   TuiNotification,
+  TuiScrollbar,
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
@@ -111,6 +114,7 @@ interface Country {
     TuiInputYear,
     TuiLoader,
     TuiNotification,
+    TuiScrollbar,
     TuiSegmented,
     TuiSelect,
     TuiShimmer,
@@ -121,28 +125,32 @@ interface Country {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
+  host: { class: 'flex grow min-h-0' },
   template: `
-    <section class="w-full max-w-5xl mx-auto grid grid-cols-1 gap-4">
-      <!-- Sticky Header -->
-      <div
-        class="sticky top-0 z-10 flex items-center gap-4 p-4 -mt-6 -mx-4 mb-4 bg-[var(--tui-background-base)] shadow-md sm:shadow-none"
+    <tui-scrollbar class="flex grow">
+      <section
+        class="w-full max-w-5xl mx-auto p-4 grid grid-cols-1 gap-4 pb-32"
       >
-        <button
-          size="s"
-          appearance="neutral"
-          iconStart="@tui.chevron-left"
-          tuiIconButton
-          type="button"
-          class="!rounded-full"
-          [tuiHint]="global.isMobile() ? null : ('actions.back' | translate)"
-          (click)="close()"
+        <!-- Sticky Header -->
+        <div
+          class="sticky top-0 z-10 flex items-center gap-4 p-4 -mt-4 -mx-4 mb-4 bg-[var(--tui-background-base)] shadow-md sm:shadow-none"
         >
-          {{ 'actions.back' | translate }}
-        </button>
-        <h2 class="text-xl font-bold m-0">
-          {{ 'profile.title' | translate }}
-        </h2>
-      </div>
+          <button
+            size="s"
+            appearance="neutral"
+            iconStart="@tui.chevron-left"
+            tuiIconButton
+            type="button"
+            class="!rounded-full"
+            [tuiHint]="global.isMobile() ? null : ('actions.back' | translate)"
+            (click)="close()"
+          >
+            {{ 'actions.back' | translate }}
+          </button>
+          <h2 class="text-xl font-bold m-0">
+            {{ 'profile.title' | translate }}
+          </h2>
+        </div>
 
       <!-- Avatar y Nombre -->
       <div class="flex flex-col md:flex-row items-center gap-4">
@@ -514,6 +522,7 @@ interface Country {
         </button>
       </div>
     </section>
+    </tui-scrollbar>
   `,
 })
 export class UserProfileConfigComponent {
@@ -523,6 +532,8 @@ export class UserProfileConfigComponent {
   private readonly userProfilesService = inject(UserProfilesService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
+  private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly dialogContext: TuiDialogContext<unknown, unknown> | null =
     (() => {
       try {
@@ -930,6 +941,10 @@ export class UserProfileConfigComponent {
   }
 
   close(): void {
-    this.dialogContext?.$implicit.complete();
+    if (this.dialogContext) {
+      this.dialogContext.$implicit.complete();
+    } else {
+      this.location.back();
+    }
   }
 }

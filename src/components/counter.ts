@@ -108,8 +108,12 @@ export class CounterComponent implements ControlValueAccessor, OnInit {
     nonNullable: true,
   });
 
-  private onChange: (value: number) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (value: number) => void = () => {
+    // no-op
+  };
+  private onTouched: () => void = () => {
+    // no-op
+  };
 
   constructor() {
     effect(() => {
