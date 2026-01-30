@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -14,7 +15,6 @@ import {
   Import8aComponent,
 } from '../components';
 
-import { UserProfileConfigComponent } from '../pages/user-profile-config';
 import { SupabaseService } from './supabase.service';
 
 @Injectable({
@@ -24,16 +24,10 @@ export class UserProfilesService {
   private supabase = inject(SupabaseService);
   private dialogs = inject(TuiDialogService);
   private translate = inject(TranslateService);
+  private router = inject(Router);
 
   openUserProfileConfigForm(): void {
-    void firstValueFrom(
-      this.dialogs.open(new PolymorpheusComponent(UserProfileConfigComponent), {
-        appearance: 'fullscreen',
-        closable: false,
-        dismissible: false,
-      }),
-      { defaultValue: undefined },
-    );
+    void this.router.navigate(['/profile/config']);
   }
 
   openImport8aDialog(): void {

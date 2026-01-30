@@ -109,10 +109,10 @@ export class CounterComponent implements ControlValueAccessor, OnInit {
   });
 
   private onChange: (value: number) => void = () => {
-    // noop
+    // no-op
   };
   private onTouched: () => void = () => {
-    // noop
+    // no-op
   };
 
   constructor() {
