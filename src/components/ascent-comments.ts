@@ -22,7 +22,7 @@ import { AscentCommentsDialogComponent } from './ascent-comments-dialog';
       <tui-icon
         type="button"
         size="m"
-        icon="@tui.message-square"
+        icon="@tui.message-circle"
         (click)="showComments($event)"
       />
       <button
@@ -30,7 +30,7 @@ import { AscentCommentsDialogComponent } from './ascent-comments-dialog';
         type="button"
         size="m"
         appearance="action-grayscale"
-        class="h-auto px-1"
+        class="!pr-1 !pl-1 !h-auto"
         (click)="showComments($event)"
       >
         0

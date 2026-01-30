@@ -109,6 +109,7 @@ export interface UserListDialogData {
                 @if (followedIds().has(user.id)) {
                   <button
                     tuiButton
+                    iconStart="@tui.bell-off"
                     appearance="secondary-grayscale"
                     size="s"
                     type="button"
@@ -119,6 +120,7 @@ export interface UserListDialogData {
                 } @else {
                   <button
                     tuiButton
+                    iconStart="@tui.bell-ring"
                     appearance="action"
                     size="s"
                     type="button"

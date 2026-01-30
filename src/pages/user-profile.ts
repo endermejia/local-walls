@@ -132,7 +132,7 @@ import { ORDERED_GRADE_VALUES, RouteWithExtras } from '../models';
                 @let following = isFollowing();
                 <button
                   [iconStart]="
-                    following ? '@tui.badge-minus' : '@tui.badge-plus'
+                    following ? '@tui.bell-off' : '@tui.bell-ring'
                   "
                   size="m"
                   tuiIconButton
