@@ -3,7 +3,13 @@ import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 
 import { LeafletEvent, LeafletNamespace, Map, Marker } from 'leaflet';
 
-import { MapBounds, MapCragItem, MapOptions, ParkingDto } from '../models';
+import {
+  MapAreaItem,
+  MapBounds,
+  MapCragItem,
+  MapOptions,
+  ParkingDto,
+} from '../models';
 
 import { GlobalData } from './global-data';
 import { LocalStorage } from './local-storage';
@@ -63,6 +69,7 @@ export class MapBuilder {
    * @param selectedMapCragItem - Currently selected crag item, if any
    * @param mapParkingItems
    * @param selectedMapParkingItem
+   * @param mapAreaItems
    * @param cb - Callback functions for map interactions
    */
   async init(
@@ -72,6 +79,7 @@ export class MapBuilder {
     selectedMapCragItem: MapCragItem | null,
     mapParkingItems: readonly ParkingDto[],
     selectedMapParkingItem: ParkingDto | null,
+    mapAreaItems: readonly MapAreaItem[],
     cb: MapBuilderCallbacks,
   ): Promise<void> {
     if (this.initialized || !this.isBrowser()) return;
@@ -156,6 +164,7 @@ export class MapBuilder {
       selectedMapCragItem,
       mapParkingItems,
       selectedMapParkingItem,
+      mapAreaItems,
       cb,
     );
     // Disable cluster spawn animation after the first render to avoid flicker on pans
@@ -236,6 +245,7 @@ export class MapBuilder {
         selectedMapCragItem,
         mapParkingItems,
         selectedMapParkingItem,
+        mapAreaItems,
         cb,
       );
       emitViewport();
@@ -247,6 +257,7 @@ export class MapBuilder {
         selectedMapCragItem,
         mapParkingItems,
         selectedMapParkingItem,
+        mapAreaItems,
         cb,
       );
       emitViewport();
@@ -273,6 +284,7 @@ export class MapBuilder {
     selectedMapCragItem: MapCragItem | null,
     mapParkingItems: readonly ParkingDto[],
     selectedMapParkingItem: ParkingDto | null,
+    mapAreaItems: readonly MapAreaItem[],
     cb: MapBuilderCallbacks,
   ): Promise<void> {
     if (!this.map) return;
@@ -283,6 +295,7 @@ export class MapBuilder {
       selectedMapCragItem,
       mapParkingItems,
       selectedMapParkingItem,
+      mapAreaItems,
       cb,
     );
   }
@@ -413,6 +426,7 @@ export class MapBuilder {
     selectedMapCragItem: MapCragItem | null,
     mapParkingItems: readonly ParkingDto[],
     selectedMapParkingItem: ParkingDto | null,
+    mapAreaItems: readonly MapAreaItem[],
     cb: MapBuilderCallbacks,
   ): Promise<void> {
     if (!this.map || !this.L) return;
@@ -545,8 +559,16 @@ export class MapBuilder {
               ? group.markers[0].areaName
               : undefined;
 
+          const isAreaLiked =
+            commonAreaName &&
+            mapAreaItems.find((a) => a.name === commonAreaName)?.liked;
+
           const icon = new L.DivIcon({
-            html: this.clusterLabelHtml(group.count, commonAreaName),
+            html: this.clusterLabelHtml(
+              group.count,
+              commonAreaName,
+              !!isAreaLiked,
+            ),
             className: 'marker-cluster',
             iconSize: new L.Point(size, size),
             iconAnchor: [size / 2, size / 2],
@@ -656,7 +678,11 @@ export class MapBuilder {
         </div>`;
   }
 
-  private clusterLabelHtml(count: number, areaName?: string): string {
+  private clusterLabelHtml(
+    count: number,
+    areaName?: string,
+    isLiked = false,
+  ): string {
     const sizeClass =
       count >= 200
         ? 'xl'
@@ -671,11 +697,14 @@ export class MapBuilder {
       ? ' lw-cluster--spawn'
       : '';
 
+    const areaColorClass = isLiked ? 'lw-marker--accent' : 'lw-marker--glass';
+    const clusterColorClass = isLiked ? ' lw-cluster--accent' : '';
+
     const areaHtml = areaName
-      ? `<div class="lw-cluster-area absolute top-full left-1/2 -translate-x-1/2 mt-1 px-1.5 py-0.5 lw-marker--glass rounded-lg text-[10px] leading-tight whitespace-nowrap shadow-sm pointer-events-none">${areaName}</div>`
+      ? `<div class="lw-cluster-area absolute top-full left-1/2 -translate-x-1/2 mt-1 px-1.5 py-0.5 ${areaColorClass} rounded-lg text-[10px] leading-tight whitespace-nowrap shadow-sm pointer-events-none">${areaName}</div>`
       : '';
 
-    return `<div class="lw-cluster lw-cluster--${sizeClass}${spawnClass} relative" data-count="${count}">
+    return `<div class="lw-cluster lw-cluster--${sizeClass}${spawnClass}${clusterColorClass} relative" data-count="${count}">
               ${count}
               ${areaHtml}
             </div>`;

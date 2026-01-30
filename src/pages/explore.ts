@@ -151,6 +151,7 @@ import { mapLocationUrl, remToPx } from '../utils';
           <app-map
             class="w-full h-full"
             [mapCragItems]="mapCragItems()"
+            [mapAreaItems]="global.areasMapResource.value() || []"
             [selectedMapCragItem]="global.selectedMapCragItem()"
             (selectedMapCragItemChange)="selectMapCragItem($event)"
             [mapParkingItems]="global.parkingsMapResource.value() || []"

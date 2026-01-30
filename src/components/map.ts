@@ -20,7 +20,13 @@ import { TuiButton, TuiHint } from '@taiga-ui/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import type { MapBounds, MapCragItem, MapOptions, ParkingDto } from '../models';
+import type {
+  MapAreaItem,
+  MapBounds,
+  MapCragItem,
+  MapOptions,
+  ParkingDto,
+} from '../models';
 
 import { GlobalData } from '../services';
 import { MapBuilder, MapBuilderCallbacks } from '../services/map-builder';
@@ -99,6 +105,10 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     readonly MapCragItem[]
   >([]);
 
+  public mapAreaItems: InputSignal<readonly MapAreaItem[]> = input<
+    readonly MapAreaItem[]
+  >([]);
+
   public selectedMapCragItem: InputSignal<MapCragItem | null> =
     input<MapCragItem | null>(null);
   public selectedMapCragItemChange: OutputEmitterRef<MapCragItem | null> =
@@ -149,6 +159,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   constructor() {
     effect(() => {
       const crags = this.mapCragItems();
+      const areas = this.mapAreaItems();
       const selectedCrag = this.selectedMapCragItem();
       const parkings = this.mapParkingItems();
       const selectedParking = this.selectedMapParkingItem();
@@ -159,6 +170,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
           selectedCrag,
           parkings,
           selectedParking,
+          areas,
           this.callbacks,
         );
       }
@@ -221,6 +233,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.selectedMapCragItem(),
       this.mapParkingItems(),
       this.selectedMapParkingItem(),
+      this.mapAreaItems(),
       this.callbacks,
     );
     this.mapInitialized.set(true);
