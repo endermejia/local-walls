@@ -47,6 +47,7 @@ import {
 
 import { AscentsService, GlobalData, SupabaseService } from '../services';
 
+import { AscentCommentsComponent } from './ascent-comments';
 import { AscentLikesComponent } from './ascent-likes';
 import { AvatarGradeComponent } from './avatar-grade';
 import { EmptyStateComponent } from './empty-state';
@@ -98,6 +99,7 @@ export interface AscentsTableRow {
     TuiIcon,
     TuiLink,
     AscentLikesComponent,
+    AscentCommentsComponent,
     AvatarGradeComponent,
     EmptyStateComponent,
   ],
@@ -282,6 +284,7 @@ export interface AscentsTableRow {
                       @case ('likes') {
                         <div tuiCell size="m" class="flex items-center gap-1">
                           <app-ascent-likes [ascentId]="item._ref.id" />
+                          <app-ascent-comments [ascentId]="item._ref.id" />
                         </div>
                       }
                     }
