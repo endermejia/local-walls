@@ -227,7 +227,12 @@ export class AdminEquippersListComponent {
   private readonly dialogs = inject(TuiDialogService);
 
   protected readonly options = { updateOn: 'blur' } as const;
-  protected readonly columns = ['name', 'description', 'actions'] as const;
+  protected readonly columns = computed(() => {
+    const cols = ['name', 'description', 'actions'];
+    return this.global.isMobile()
+      ? cols.filter((c) => c !== 'description')
+      : cols;
+  });
 
   protected readonly loading = signal(true);
   protected readonly equippers: WritableSignal<EquipperDto[]> = signal([]);

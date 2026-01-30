@@ -107,7 +107,7 @@ export interface RoutesTableRow {
   template: `
     @let data = tableData();
     @if (data.length > 0) {
-      <tui-scrollbar class="grow min-h-0">
+      <tui-scrollbar class="grow min-h-0 no-scrollbar">
         <table
           tuiTable
           class="w-full"
@@ -119,12 +119,20 @@ export interface RoutesTableRow {
           <thead tuiThead>
             <tr tuiThGroup>
               @for (col of columns(); track col) {
-                <th *tuiHead="col" tuiTh [sorter]="getSorter(col)">
+                <th
+                  *tuiHead="col"
+                  tuiTh
+                  [sorter]="getSorter(col)"
+                  [class.text-right]="
+                    col === 'actions' || col === 'admin_actions'
+                  "
+                >
                   <div>
                     {{
                       col === 'actions' || col === 'admin_actions'
                         ? ''
-                        : ('labels.' + col | translate)
+                        : ('labels.' + (col === 'route' ? 'grade' : col)
+                          | translate)
                     }}
                   </div>
                 </th>
@@ -151,26 +159,32 @@ export interface RoutesTableRow {
                 (click.zoneless)="router.navigate(item.link)"
               >
                 @for (col of columns(); track col) {
-                  <td *tuiCell="col" tuiTd>
+                  <td
+                    *tuiCell="col"
+                    tuiTd
+                    [class.text-right]="
+                      col === 'actions' || col === 'admin_actions'
+                    "
+                  >
                     @switch (col) {
-                      @case ('grade') {
-                        <div tuiCell size="m">
+                      @case ('route') {
+                        <div
+                          tuiCell
+                          size="m"
+                          class="!flex-row !gap-2 !items-center"
+                        >
                           <app-avatar-grade
                             [grade]="item._ref.grade"
-                            size="m"
+                            size="s"
                           />
-                        </div>
-                      }
-                      @case ('route') {
-                        <div tuiCell size="m">
-                          <div class="flex flex-col">
+                          <div class="flex flex-col min-w-0">
                             <a
                               tuiLink
                               [routerLink]="item.link"
                               [style.color]="
                                 item.liked ? 'var(--tui-status-negative)' : ''
                               "
-                              class="align-self-start whitespace-nowrap font-bold text-base"
+                              class="align-self-start whitespace-nowrap font-bold text-base line-clamp-1"
                               (click.zoneless)="$event.stopPropagation()"
                             >
                               {{ item.route || ('labels.route' | translate) }}
@@ -389,8 +403,8 @@ export class RoutesTableComponent {
     RoutesTableKey,
     TuiComparator<RoutesTableRow>
   > = {
-    grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
-    route: (a, b) => tuiDefaultSort(a.route, b.route),
+    grade: (a, b) => tuiDefaultSort(a._ref.grade, b._ref.grade),
+    route: () => 0,
     height: (a, b) => tuiDefaultSort(a.height ?? 0, b.height),
     rating: (a, b) => tuiDefaultSort(a.rating, b.rating),
     ascents: (a, b) => tuiDefaultSort(a.ascents, b.ascents),
@@ -398,7 +412,7 @@ export class RoutesTableComponent {
 
   // Internal state for sorting
   protected currentSorter: TuiComparator<RoutesTableRow> =
-    this.sorters['ascents'];
+    this.sorters['grade'];
   protected currentDirection: TuiSortDirection = TuiSortDirection.Desc;
 
   constructor() {
@@ -408,7 +422,7 @@ export class RoutesTableComponent {
   }
 
   protected readonly columns = computed(() => {
-    let cols = ['grade', 'route', 'height', 'rating', 'ascents', 'actions'];
+    let cols = ['route', 'height', 'rating', 'ascents', 'actions'];
     if (this.global.isMobile()) {
       cols = cols.filter(
         (col) => col !== 'height' && col !== 'rating' && col !== 'ascents',
@@ -464,11 +478,12 @@ export class RoutesTableComponent {
 
   protected getSorter(col: string): TuiComparator<RoutesTableRow> | null {
     if (col === 'actions' || col === 'admin_actions') return null;
+    if (col === 'route') return this.sorters['grade'];
     return this.sorters[col as RoutesTableKey] ?? null;
   }
 
   protected onSortChange(sort: TuiTableSortChange<RoutesTableRow>): void {
-    this.currentSorter = sort.sortComparator || this.sorters['ascents'];
+    this.currentSorter = sort.sortComparator || this.sorters['grade'];
     this.currentDirection = sort.sortDirection;
   }
 

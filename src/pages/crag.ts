@@ -18,6 +18,7 @@ import { TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
 import {
   TuiAppearance,
   TuiButton,
+  TuiDataList,
   TuiHint,
   TuiIcon,
   TuiLabel,
@@ -33,6 +34,7 @@ import {
   TuiAvatar,
   TuiBadgedContent,
   TuiBadgeNotification,
+  TuiDataListWrapper,
   TuiTabs,
   type TuiConfirmData,
 } from '@taiga-ui/kit';
@@ -92,6 +94,8 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     TuiBadgeNotification,
     TuiBadgedContent,
     TuiButton,
+    TuiDataList,
+    TuiDataListWrapper,
     TuiHeader,
     TuiHint,
     TuiIcon,
@@ -114,10 +118,27 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
         @let isAdmin = global.isAdmin();
         @if (cragDetail(); as c) {
           @let isEquipper = global.isAllowedEquipper(c.area_id);
+
+          <ng-template #cragSwitcher>
+            <tui-data-list>
+              @for (cragItem of global.cragsList(); track cragItem.id) {
+                <button
+                  tuiOption
+                  (click)="
+                    router.navigate(['/area', areaSlug(), cragItem.slug])
+                  "
+                >
+                  {{ cragItem.name }}
+                </button>
+              }
+            </tui-data-list>
+          </ng-template>
+
           <div class="mb-6">
             <app-section-header
               [title]="c.name"
               [liked]="c.liked"
+              [titleDropdown]="cragSwitcher"
               (toggleLike)="onToggleLike()"
             >
               <!-- Admin action buttons -->
@@ -229,24 +250,30 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
             />
           </div>
 
-          <tui-tabs
-            [activeItemIndex]="activeTabIndex()"
-            (activeItemIndexChange)="activeTabIndex.set($event)"
-            class="mt-6"
-          >
-            <button tuiTab>
-              {{ 'labels.routes' | translate }}
-            </button>
-            <button tuiTab>
-              {{ 'labels.topos' | translate }}
-            </button>
-            <button tuiTab>
-              {{ 'labels.parkings' | translate }}
-            </button>
-          </tui-tabs>
+          @if (visibleTabs().length > 1) {
+            <tui-tabs
+              [activeItemIndex]="activeTabIndex()"
+              (activeItemIndexChange)="activeTabIndex.set($event)"
+              class="mt-6"
+            >
+              @for (tabIdx of visibleTabs(); track tabIdx) {
+                <button tuiTab>
+                  {{
+                    (tabIdx === 0
+                      ? 'labels.routes'
+                      : tabIdx === 1
+                        ? 'labels.topos'
+                        : 'labels.parkings'
+                    ) | translate
+                  }}
+                </button>
+              }
+            </tui-tabs>
+          }
 
           <div class="mt-6">
-            @switch (activeTabIndex()) {
+            @let currentTab = visibleTabs()[activeTabIndex()];
+            @switch (currentTab) {
               @case (0) {
                 <!-- Routes -->
                 <div class="flex items-center justify-between gap-2 mb-4">
@@ -604,12 +631,47 @@ export class CragComponent {
   protected onSwipe(event: TuiSwipeEvent): void {
     const direction = event.direction;
     const currentIndex = this.activeTabIndex();
-    if (direction === 'left' && currentIndex < 2) {
+    const maxIndex = this.visibleTabs().length - 1;
+    if (direction === 'left' && currentIndex < maxIndex) {
       this.activeTabIndex.set(currentIndex + 1);
     } else if (direction === 'right' && currentIndex > 0) {
       this.activeTabIndex.set(currentIndex - 1);
     }
   }
+
+  readonly showRoutesTab = computed(() => {
+    const isAdmin = this.global.isAdmin();
+    const isEquipper = this.global.isAllowedEquipper(this.cragDetail()?.area_id);
+    return (
+      (this.global.cragRoutesResource.value()?.length ?? 0) > 0 ||
+      isAdmin ||
+      isEquipper
+    );
+  });
+
+  readonly showToposTab = computed(() => {
+    const isAdmin = this.global.isAdmin();
+    const isEquipper = this.global.isAllowedEquipper(this.cragDetail()?.area_id);
+    return (
+      (this.cragDetail()?.topos?.length ?? 0) > 0 || isAdmin || isEquipper
+    );
+  });
+
+  readonly showParkingsTab = computed(() => {
+    const isAdmin = this.global.isAdmin();
+    const isEquipper = this.global.isAllowedEquipper(this.cragDetail()?.area_id);
+    return (
+      (this.cragDetail()?.parkings?.length ?? 0) > 0 || isAdmin || isEquipper
+    );
+  });
+
+  readonly visibleTabs = computed(() => {
+    const tabs = [];
+    if (this.showRoutesTab()) tabs.push(0);
+    if (this.showToposTab()) tabs.push(1);
+    if (this.showParkingsTab()) tabs.push(2);
+    return tabs;
+  });
 
   areaSlug: InputSignal<string> = input.required<string>();
   cragSlug: InputSignal<string> = input.required<string>();
@@ -702,6 +764,13 @@ export class CragComponent {
       this.global.resetDataByPage('crag');
       this.global.selectedAreaSlug.set(aSlug);
       this.global.selectedCragSlug.set(cSlug);
+    });
+
+    effect(() => {
+      const tabs = this.visibleTabs();
+      if (this.activeTabIndex() >= tabs.length && tabs.length > 0) {
+        this.activeTabIndex.set(0);
+      }
     });
   }
 

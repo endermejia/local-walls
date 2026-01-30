@@ -231,13 +231,12 @@ export class AdminParkingsListComponent {
   private readonly dialogs = inject(TuiDialogService);
   private readonly parkingsService = inject(ParkingsService);
 
-  protected readonly columns = [
-    'name',
-    'lat',
-    'lng',
-    'size',
-    'actions',
-  ] as const;
+  protected readonly columns = computed(() => {
+    const cols = ['name', 'lat', 'lng', 'size', 'actions'];
+    return this.global.isMobile()
+      ? cols.filter((c) => c === 'name' || c === 'actions')
+      : cols;
+  });
 
   protected readonly loading = this.global.adminParkingsResource.isLoading;
   protected readonly parkings = computed(

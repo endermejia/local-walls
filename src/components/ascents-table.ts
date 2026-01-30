@@ -106,7 +106,7 @@ export interface AscentsTableRow {
   template: `
     @let data = tableData();
     @if (data.length > 0) {
-      <tui-scrollbar class="grow min-h-0">
+      <tui-scrollbar class="grow min-h-0 no-scrollbar">
         <table
           tuiTable
           class="w-full"
@@ -118,11 +118,17 @@ export interface AscentsTableRow {
           <thead tuiThead>
             <tr tuiThGroup>
               @for (col of columns(); track col) {
-                <th *tuiHead="col" tuiTh [sorter]="getSorter(col)">
+                <th
+                  *tuiHead="col"
+                  tuiTh
+                  [sorter]="getSorter(col)"
+                  [class.text-right]="col === 'likes'"
+                >
                   {{
                     col === 'actions' || col === 'details' || col === 'likes'
                       ? ''
-                      : ('labels.' + col | translate)
+                      : ('labels.' + (col === 'route' ? 'grade' : col)
+                        | translate)
                   }}
                 </th>
               }
@@ -143,7 +149,11 @@ export interface AscentsTableRow {
                 (click.zoneless)="item.canEdit && onEdit(item)"
               >
                 @for (col of columns(); track col) {
-                  <td *tuiCell="col" tuiTd>
+                  <td
+                    *tuiCell="col"
+                    tuiTd
+                    [class.text-right]="col === 'likes'"
+                  >
                     @switch (col) {
                       @case ('user') {
                         <div tuiCell size="m" class="flex items-center">
@@ -170,8 +180,18 @@ export interface AscentsTableRow {
                         </div>
                       }
                       @case ('route') {
-                        <div tuiCell size="m">
-                          <div class="flex flex-col">
+                        <div
+                          tuiCell
+                          size="m"
+                          class="!flex-row !gap-2 !items-center"
+                        >
+                          <app-avatar-grade
+                            [grade]="
+                              item._ref.grade ?? item._ref.route?.grade ?? 0
+                            "
+                            size="s"
+                          />
+                          <div class="flex flex-col min-w-0">
                             <a
                               tuiLink
                               [routerLink]="[
@@ -180,7 +200,7 @@ export interface AscentsTableRow {
                                 item.crag_slug,
                                 item.route_slug,
                               ]"
-                              class="align-self-start whitespace-nowrap font-bold text-base"
+                              class="align-self-start whitespace-nowrap font-bold text-base line-clamp-1"
                               [style.color]="
                                 item.liked ? 'var(--tui-status-negative)' : ''
                               "
@@ -349,8 +369,11 @@ export class AscentsTableComponent {
     const cols: string[] = [];
     const isMobile = this.global.isMobile();
     if (this.showUser()) cols.push('user');
-    cols.push('grade');
-    if (this.showRoute()) cols.push('route');
+    if (this.showRoute()) {
+      cols.push('route');
+    } else {
+      cols.push('grade');
+    }
     if (!isMobile) {
       cols.push('date', 'type', 'comment', 'details', 'rating');
     }
@@ -425,7 +448,11 @@ export class AscentsTableComponent {
 
   protected readonly sorters: Record<string, TuiComparator<AscentsTableRow>> = {
     user: (a, b) => tuiDefaultSort(a.user_name, b.user_name),
-    route: (a, b) => tuiDefaultSort(a.route_name, b.route_name),
+    route: (a, b) =>
+      tuiDefaultSort(
+        a._ref.grade ?? a._ref.route?.grade ?? 0,
+        b._ref.grade ?? b._ref.route?.grade ?? 0,
+      ),
     grade: (a, b) =>
       tuiDefaultSort(
         a._ref.grade ?? a._ref.route?.grade ?? 0,

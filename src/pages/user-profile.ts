@@ -816,6 +816,8 @@ export class UserProfileComponent {
           this.accumulatedAscents.update((prev) => [...prev, ...res.items]);
         }
         this.isLoading.set(false);
+      } else if (this.ascentsResource.error()) {
+        this.isLoading.set(false);
       }
     });
 

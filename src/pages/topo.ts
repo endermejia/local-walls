@@ -674,7 +674,10 @@ export class TopoComponent {
   });
 
   protected readonly columns = computed(() => {
-    const base = ['index', 'grade', 'name', 'height', 'actions'];
+    const isMobile = this.global.isMobile();
+    const base = isMobile
+      ? ['index', 'grade', 'name', 'actions']
+      : ['index', 'grade', 'name', 'height', 'actions'];
     const crag = this.crag();
     if (this.global.isAllowedEquipper(crag?.area_id)) {
       base.push('admin_actions');

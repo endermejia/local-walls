@@ -360,7 +360,10 @@ export class AdminUsersListComponent {
   private readonly translate = inject(TranslateService);
 
   protected readonly options = { updateOn: 'blur' } as const;
-  protected readonly columns = ['user', 'role', 'areas'] as const;
+  protected readonly columns = computed(() => {
+    const cols = ['user', 'role', 'areas'];
+    return this.global.isMobile() ? cols.filter((c) => c !== 'areas') : cols;
+  });
 
   protected readonly roleOptions = [
     AppRoles.CLIMBER,
