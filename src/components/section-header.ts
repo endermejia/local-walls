@@ -4,10 +4,11 @@ import {
   inject,
   input,
   output,
+  TemplateRef,
 } from '@angular/core';
 
 import { TuiItem } from '@taiga-ui/cdk';
-import { TuiButton, TuiHint, TuiLink } from '@taiga-ui/core';
+import { TuiButton, TuiDropdown, TuiHint, TuiIcon, TuiLink } from '@taiga-ui/core';
 import { TuiBreadcrumbs } from '@taiga-ui/kit';
 import { RouterLink } from '@angular/router';
 
@@ -22,7 +23,9 @@ import { GlobalData } from '../services';
     TranslatePipe,
     TuiBreadcrumbs,
     TuiButton,
+    TuiDropdown,
     TuiHint,
+    TuiIcon,
     TuiItem,
     TuiLink,
   ],
@@ -55,7 +58,21 @@ import { GlobalData } from '../services';
                 }
               </tui-breadcrumbs>
             }
-            {{ title() }}
+
+            @if (titleDropdown(); as template) {
+              <button
+                tuiLink
+                appearance="flat"
+                type="button"
+                class="!text-2xl !font-bold !text-inherit !no-underline"
+                [tuiDropdown]="template"
+              >
+                {{ title() }}
+                <tui-icon icon="@tui.chevron-down" class="ml-1" />
+              </button>
+            } @else {
+              {{ title() }}
+            }
           </h1>
           <!-- Additional title info (e.g., shade icon in topos) -->
           <ng-content select="[titleInfo]" />
@@ -100,6 +117,7 @@ export class SectionHeaderComponent {
   protected readonly global = inject(GlobalData);
 
   title = input.required<string>();
+  titleDropdown = input<TemplateRef<Record<string, unknown>> | null>(null);
   liked = input(false);
   showLike = input(true);
 

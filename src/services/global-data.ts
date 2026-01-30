@@ -50,6 +50,7 @@ import {
   PaginatedAscents,
   ParkingDto,
   RouteAscentWithExtras,
+  TopoListItem,
   RouteWithExtras,
   Theme,
   Themes,
@@ -587,6 +588,50 @@ export class GlobalData {
   });
 
   selectedTopoId: WritableSignal<string | null> = signal(null);
+
+  readonly areaToposResource = resource({
+    params: () => this.selectedAreaSlug(),
+    loader: async ({ params: areaSlug }): Promise<(TopoListItem & { crag_slug: string })[]> => {
+      if (!areaSlug || !isPlatformBrowser(this.platformId)) return [];
+      try {
+        await this.supabase.whenReady();
+        const { data, error } = await this.supabase.client
+          .from('topos')
+          .select('*, crag:crags!inner(slug, area:areas!inner(slug)), topo_routes(route:routes(grade))')
+          .eq('crag.area.slug', areaSlug);
+
+        if (error) {
+          console.error('[GlobalData] areaToposResource error', error);
+          throw error;
+        }
+
+        return (data || []).map((t) => {
+          const grades: AmountByEveryGrade = {};
+          (t.topo_routes || []).forEach((tr) => {
+            const g = tr.route?.grade;
+            if (typeof g === 'number' && g >= 0) {
+              grades[g as VERTICAL_LIFE_GRADES] = (grades[g as VERTICAL_LIFE_GRADES] ?? 0) + 1;
+            }
+          });
+
+          return {
+            id: t.id,
+            name: t.name,
+            slug: t.slug,
+            photo: t.photo,
+            shade_morning: t.shade_morning,
+            shade_afternoon: t.shade_afternoon,
+            shade_change_hour: t.shade_change_hour,
+            grades,
+            crag_slug: t.crag.slug,
+          };
+        });
+      } catch (e) {
+        console.error('[GlobalData] areaToposResource exception', e);
+        return [];
+      }
+    },
+  });
 
   readonly topoDetailResource = resource({
     params: () => this.selectedTopoId(),
