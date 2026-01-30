@@ -4,11 +4,13 @@ import {
   inject,
   input,
   output,
+  signal,
+  TemplateRef,
 } from '@angular/core';
 
 import { TuiItem } from '@taiga-ui/cdk';
-import { TuiButton, TuiHint, TuiLink } from '@taiga-ui/core';
-import { TuiBreadcrumbs } from '@taiga-ui/kit';
+import { TuiButton, TuiDropdown, TuiHint, TuiLink } from '@taiga-ui/core';
+import { TuiBreadcrumbs, TuiChevron } from '@taiga-ui/kit';
 import { RouterLink } from '@angular/router';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -22,45 +24,37 @@ import { GlobalData } from '../services';
     TranslatePipe,
     TuiBreadcrumbs,
     TuiButton,
+    TuiChevron,
+    TuiDropdown,
     TuiHint,
     TuiItem,
     TuiLink,
   ],
   template: `
     <header class="flex flex-col w-full">
-      <!-- Breadcrumb -->
       @let breadcrumbs = global.slicedBreadcrumbs();
       @let isMobile = global.isMobile();
 
-      <!-- Title row with actions -->
       <div class="flex items-start justify-between gap-3">
-        <!-- Title and additional info -->
-        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
-          <h1 class="text-2xl font-bold line-clamp-1">
-            @if (breadcrumbs.length) {
-              <tui-breadcrumbs
-                size="l"
-                [itemsLimit]="isMobile && breadcrumbs.length > 1 ? 2 : 1"
-                ngSkipHydration
+        <!-- Breadcrumb -->
+        @if (breadcrumbs.length) {
+          <tui-breadcrumbs
+            size="l"
+            [itemsLimit]="isMobile && breadcrumbs.length > 1 ? 2 : 1"
+            ngSkipHydration
+          >
+            @for (item of breadcrumbs; track item.caption) {
+              <a
+                *tuiItem
+                tuiLink
+                [routerLink]="item.routerLink"
+                class="text-xs opacity-60"
               >
-                @for (item of breadcrumbs; track item.caption) {
-                  <a
-                    *tuiItem
-                    tuiLink
-                    [routerLink]="item.routerLink"
-                    class="text-xs opacity-60"
-                  >
-                    {{ item.caption | translate }}
-                  </a>
-                }
-              </tui-breadcrumbs>
+                {{ item.caption | translate }}
+              </a>
             }
-            {{ title() }}
-          </h1>
-          <!-- Additional title info (e.g., shade icon in topos) -->
-          <ng-content select="[titleInfo]" />
-        </div>
-
+          </tui-breadcrumbs>
+        }
         <!-- Actions container -->
         <div class="flex flex-wrap items-center gap-2 shrink-0">
           <!-- Like button -->
@@ -92,6 +86,30 @@ import { GlobalData } from '../services';
           <ng-content select="[actionButtons]" />
         </div>
       </div>
+      <!-- Title / Dropdown -->
+      <h1
+        class="text-2xl font-bold flex gap-2 items-center w-full"
+        [class.line-clamp-1]="!titleDropdown()"
+      >
+        @if (titleDropdown(); as template) {
+          <button
+            tuiLink
+            tuiChevron
+            appearance="flat"
+            type="button"
+            class="!text-2xl !font-bold !text-inherit !no-underline !bg-transparent"
+            [tuiDropdown]="template"
+            [(tuiDropdownOpen)]="dropdownOpen"
+            (click)="dropdownOpen.set(!dropdownOpen())"
+          >
+            {{ title() }}
+          </button>
+        } @else {
+          {{ title() }}
+        }
+        <!-- Additional title info (e.g., shade icon in topos) -->
+        <ng-content select="[titleInfo]" />
+      </h1>
     </header>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -100,8 +118,11 @@ export class SectionHeaderComponent {
   protected readonly global = inject(GlobalData);
 
   title = input.required<string>();
+  titleDropdown = input<TemplateRef<Record<string, unknown>> | null>(null);
   liked = input(false);
   showLike = input(true);
+
+  dropdownOpen = signal(false);
 
   toggleLike = output<void>();
 }

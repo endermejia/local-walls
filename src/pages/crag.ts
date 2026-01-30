@@ -14,6 +14,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
+import { TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
 import {
   TuiAppearance,
   TuiButton,
@@ -32,6 +33,7 @@ import {
   TuiAvatar,
   TuiBadgedContent,
   TuiBadgeNotification,
+  TuiTabs,
   type TuiConfirmData,
 } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
@@ -97,17 +99,22 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     TuiLoader,
     TuiNotification,
     TuiScrollbar,
+    TuiSwipe,
+    TuiTabs,
     TuiTextfield,
     TuiTitle,
   ],
   template: `
     <tui-scrollbar class="flex grow">
-      <section class="w-full max-w-5xl mx-auto p-4">
+      <section
+        (tuiSwipe)="onSwipe($event)"
+        class="w-full max-w-5xl mx-auto p-4 flex flex-col min-h-full"
+      >
         @let isMobile = global.isMobile();
         @let isAdmin = global.isAdmin();
         @if (cragDetail(); as c) {
           @let isEquipper = global.isAllowedEquipper(c.area_id);
-          <div class="mb-4">
+          <div class="mb-6">
             <app-section-header
               [title]="c.name"
               [liked]="c.liked"
@@ -222,320 +229,350 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
             />
           </div>
 
-          @if (c.parkings.length || isAdmin || isEquipper) {
-            <div class="mt-6">
-              <div class="flex items-center justify-between gap-2 mb-4">
-                <div class="flex items-center w-full sm:w-auto gap-2">
-                  <tui-avatar
-                    tuiThumbnail
-                    size="l"
-                    src="@tui.parking-square"
-                    class="self-center"
-                    [attr.aria-label]="'labels.parkings' | translate"
-                  />
-                  <h2 class="text-2xl font-semibold">
-                    {{ 'labels.parkings' | translate }}
-                  </h2>
+          <tui-tabs
+            [activeItemIndex]="activeTabIndex()"
+            (activeItemIndexChange)="activeTabIndex.set($event)"
+            class="mt-6"
+          >
+            <button tuiTab>
+              {{ 'labels.routes' | translate }}
+            </button>
+            <button tuiTab>
+              {{ 'labels.topos' | translate }}
+            </button>
+            <button tuiTab>
+              {{ 'labels.parkings' | translate }}
+            </button>
+          </tui-tabs>
+
+          <div class="mt-6">
+            @switch (activeTabIndex()) {
+              @case (0) {
+                <!-- Routes -->
+                <div class="flex items-center justify-between gap-2 mb-4">
+                  <div class="flex items-center w-full sm:w-auto gap-2">
+                    <tui-avatar
+                      tuiThumbnail
+                      size="l"
+                      src="@tui.route"
+                      class="self-center"
+                      [attr.aria-label]="'labels.routes' | translate"
+                    />
+                    <h2 class="text-2xl font-semibold">
+                      {{ routesCount() }}
+                      {{ 'labels.routes' | translate | lowercase }}
+                    </h2>
+                  </div>
+                  @if (isAdmin || isEquipper) {
+                    <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
+                      <button
+                        tuiButton
+                        appearance="textfield"
+                        size="s"
+                        type="button"
+                        (click.zoneless)="routesService.openUnifyRoutes()"
+                        [iconStart]="'@tui.blend'"
+                      >
+                        {{ 'actions.unify' | translate }}
+                      </button>
+                      <button
+                        tuiButton
+                        appearance="textfield"
+                        size="s"
+                        type="button"
+                        (click.zoneless)="openCreateRoute()"
+                        [iconStart]="'@tui.plus'"
+                      >
+                        {{ 'actions.new' | translate }}
+                      </button>
+                    </div>
+                  }
                 </div>
-                @if (isAdmin || isEquipper) {
-                  <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
+
+                <div class="mb-4 flex items-end gap-2">
+                  <tui-textfield class="grow block" tuiTextfieldSize="l">
+                    <label tuiLabel for="routes-search">{{
+                      'labels.searchPlaceholder' | translate
+                    }}</label>
+                    <input
+                      tuiTextfield
+                      #routesSearch
+                      id="routes-search"
+                      autocomplete="off"
+                      [value]="query()"
+                      (input.zoneless)="onQuery(routesSearch.value)"
+                    />
+                  </tui-textfield>
+                  <tui-badged-content>
+                    @if (hasActiveFilters()) {
+                      <tui-badge-notification
+                        tuiAppearance="accent"
+                        size="s"
+                        tuiSlot="top"
+                      />
+                    }
+                    <button
+                      tuiButton
+                      appearance="textfield"
+                      size="l"
+                      type="button"
+                      iconStart="@tui.sliders-horizontal"
+                      [attr.aria-label]="'labels.filters' | translate"
+                      [tuiHint]="
+                        isMobile ? null : ('labels.filters' | translate)
+                      "
+                      (click.zoneless)="openFilters()"
+                    ></button>
+                  </tui-badged-content>
+                </div>
+
+                <app-routes-table [data]="filteredRoutes()" />
+              }
+              @case (1) {
+                <!-- Topos -->
+                @let toposCount = c.topos.length;
+                <div class="flex items-center justify-between gap-2 mb-4">
+                  <div class="flex items-center gap-2">
+                    <tui-avatar
+                      tuiThumbnail
+                      size="l"
+                      [src]="global.iconSrc()('topo')"
+                      class="self-center"
+                      [attr.aria-label]="'labels.topo' | translate"
+                    />
+                    <h2 class="text-2xl font-semibold">
+                      {{ toposCount }}
+                      {{
+                        'labels.' + (toposCount === 1 ? 'topo' : 'topos')
+                          | translate
+                          | lowercase
+                      }}
+                    </h2>
+                  </div>
+                  @if (isAdmin || isEquipper) {
                     <button
                       tuiButton
                       appearance="textfield"
                       size="s"
                       type="button"
-                      (click.zoneless)="openLinkParking()"
-                      [iconStart]="'@tui.link'"
-                    >
-                      {{ 'actions.link' | translate }}
-                    </button>
-                    <button
-                      tuiButton
-                      appearance="textfield"
-                      size="s"
-                      type="button"
-                      (click.zoneless)="openCreateParking()"
+                      (click.zoneless)="openCreateTopo()"
                       [iconStart]="'@tui.plus'"
                     >
                       {{ 'actions.new' | translate }}
                     </button>
+                  }
+                </div>
+                <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
+                  @for (t of topos(); track t.id) {
+                    <button
+                      class="p-6 rounded-3xl"
+                      tuiAppearance="outline"
+                      (click.zoneless)="
+                        router.navigate([
+                          '/area',
+                          areaSlug(),
+                          cragSlug(),
+                          'topo',
+                          t.id,
+                        ])
+                      "
+                    >
+                      <div class="flex flex-col min-w-0 grow gap-2">
+                        <header tuiHeader>
+                          <h2 tuiTitle>{{ t.name }}</h2>
+                        </header>
+                        <section class="flex flex-col gap-2">
+                          @if (t.photo; as photo) {
+                            <img
+                              [src]="
+                                (photo | topoImage | async) ||
+                                global.iconSrc()('topo')
+                              "
+                              alt="topo"
+                              class="w-full h-48 object-cover rounded shadow-sm"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          }
+                          <div
+                            class="flex items-center justify-between gap-2 mt-auto"
+                          >
+                            <div
+                              class="flex items-center justify-between gap-2"
+                            >
+                              @let shade = getShadeInfo(t);
+                              <tui-icon
+                                [icon]="shade.icon"
+                                class="opacity-70 text-xl"
+                              />
+                              <span class="text-sm opacity-80">
+                                {{ shade.label | translate }}
+                                @if (t.shade_change_hour) {
+                                  · {{ 'filters.shade.changeAt' | translate }}
+                                  {{ t.shade_change_hour }}
+                                }
+                              </span>
+                            </div>
+                            <app-chart-routes-by-grade
+                              [grades]="t.grades"
+                              (click)="$event.stopPropagation()"
+                            />
+                          </div>
+                        </section>
+                      </div>
+                    </button>
+                  } @empty {
+                    <div class="col-span-full">
+                      <app-empty-state />
+                    </div>
+                  }
+                </div>
+              }
+              @case (2) {
+                <!-- Parkings -->
+                <div class="flex items-center justify-between gap-2 mb-4">
+                  <div class="flex items-center w-full sm:w-auto gap-2">
+                    <tui-avatar
+                      tuiThumbnail
+                      size="l"
+                      src="@tui.parking-square"
+                      class="self-center"
+                      [attr.aria-label]="'labels.parkings' | translate"
+                    />
+                    <h2 class="text-2xl font-semibold">
+                      {{ 'labels.parkings' | translate }}
+                    </h2>
                   </div>
-                }
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @for (p of c.parkings; track p.id) {
-                  <div
-                    tuiAppearance="flat"
-                    class="p-4 rounded-3xl flex flex-col justify-between"
-                  >
-                    <div class="flex flex-col gap-3">
-                      <div class="flex items-start justify-between gap-2 ">
-                        <div class="flex flex-wrap gap-2">
-                          <span tuiTitle class="!text-lg">{{ p.name }}</span>
+                  @if (isAdmin || isEquipper) {
+                    <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
+                      <button
+                        tuiButton
+                        appearance="textfield"
+                        size="s"
+                        type="button"
+                        (click.zoneless)="openLinkParking()"
+                        [iconStart]="'@tui.link'"
+                      >
+                        {{ 'actions.link' | translate }}
+                      </button>
+                      <button
+                        tuiButton
+                        appearance="textfield"
+                        size="s"
+                        type="button"
+                        (click.zoneless)="openCreateParking()"
+                        [iconStart]="'@tui.plus'"
+                      >
+                        {{ 'actions.new' | translate }}
+                      </button>
+                    </div>
+                  }
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  @for (p of c.parkings; track p.id) {
+                    <div
+                      tuiAppearance="flat"
+                      class="p-4 rounded-3xl flex flex-col justify-between"
+                    >
+                      <div class="flex flex-col gap-3">
+                        <div class="flex items-start justify-between gap-2 ">
+                          <div class="flex flex-wrap gap-2">
+                            <span tuiTitle class="!text-lg">{{ p.name }}</span>
+                          </div>
+
+                          @if (p.size) {
+                            <div
+                              class="flex flex-nowrap items-center gap-1 opacity-80 whitespace-nowrap"
+                              [tuiHint]="
+                                isMobile
+                                  ? null
+                                  : ('labels.capacity' | translate)
+                              "
+                            >
+                              <tui-icon icon="@tui.car" />
+                              <span class="text-lg"> x {{ p.size }} </span>
+                            </div>
+                          }
+
+                          @if (isAdmin || isEquipper) {
+                            <div class="flex gap-1">
+                              <button
+                                size="s"
+                                appearance="neutral"
+                                iconStart="@tui.square-pen"
+                                tuiIconButton
+                                type="button"
+                                class="!rounded-full"
+                                (click.zoneless)="openEditParking(p)"
+                                [tuiHint]="'actions.edit' | translate"
+                              >
+                                {{ 'actions.edit' | translate }}
+                              </button>
+                              <button
+                                size="s"
+                                appearance="negative"
+                                iconStart="@tui.unlink"
+                                tuiIconButton
+                                type="button"
+                                class="!rounded-full"
+                                [tuiHint]="'actions.unlink' | translate"
+                                (click.zoneless)="removeParking(p)"
+                              >
+                                {{ 'actions.unlink' | translate }}
+                              </button>
+                            </div>
+                          }
                         </div>
 
-                        @if (p.size) {
-                          <div
-                            class="flex flex-nowrap items-center gap-1 opacity-80 whitespace-nowrap"
-                            [tuiHint]="
-                              isMobile ? null : ('labels.capacity' | translate)
-                            "
-                          >
-                            <tui-icon icon="@tui.car" />
-                            <span class="text-lg"> x {{ p.size }} </span>
-                          </div>
-                        }
-
-                        @if (isAdmin || isEquipper) {
-                          <div class="flex gap-1">
+                        @if (p.latitude && p.longitude) {
+                          <div class="flex flex-wrap gap-2 mt-2">
                             <button
+                              tuiButton
+                              appearance="secondary"
                               size="s"
-                              appearance="neutral"
-                              iconStart="@tui.square-pen"
-                              tuiIconButton
                               type="button"
                               class="!rounded-full"
-                              (click.zoneless)="openEditParking(p)"
-                              [tuiHint]="'actions.edit' | translate"
+                              (click.zoneless)="
+                                viewOnMap(p.latitude, p.longitude)
+                              "
+                              [iconStart]="'@tui.map-pin'"
                             >
-                              {{ 'actions.edit' | translate }}
+                              {{ 'actions.viewOnMap' | translate }}
                             </button>
                             <button
+                              appearance="secondary"
                               size="s"
-                              appearance="negative"
-                              iconStart="@tui.unlink"
-                              tuiIconButton
+                              tuiButton
                               type="button"
-                              class="!rounded-full"
-                              [tuiHint]="'actions.unlink' | translate"
-                              (click.zoneless)="removeParking(p)"
+                              class="!rounded-full lw-icon-50"
+                              [iconStart]="'/image/google-maps.svg'"
+                              (click.zoneless)="
+                                openExternal(
+                                  mapLocationUrl({
+                                    latitude: p.latitude,
+                                    longitude: p.longitude,
+                                  })
+                                )
+                              "
+                              [attr.aria-label]="
+                                'actions.openGoogleMaps' | translate
+                              "
                             >
-                              {{ 'actions.unlink' | translate }}
+                              {{ 'actions.openGoogleMaps' | translate }}
                             </button>
                           </div>
                         }
                       </div>
-
-                      @if (p.latitude && p.longitude) {
-                        <div class="flex flex-wrap gap-2 mt-2">
-                          <button
-                            tuiButton
-                            appearance="secondary"
-                            size="s"
-                            type="button"
-                            class="!rounded-full"
-                            (click.zoneless)="
-                              viewOnMap(p.latitude, p.longitude)
-                            "
-                            [iconStart]="'@tui.map-pin'"
-                          >
-                            {{ 'actions.viewOnMap' | translate }}
-                          </button>
-                          <button
-                            appearance="secondary"
-                            size="s"
-                            tuiButton
-                            type="button"
-                            class="!rounded-full lw-icon-50"
-                            [iconStart]="'/image/google-maps.svg'"
-                            (click.zoneless)="
-                              openExternal(
-                                mapLocationUrl({
-                                  latitude: p.latitude,
-                                  longitude: p.longitude,
-                                })
-                              )
-                            "
-                            [attr.aria-label]="
-                              'actions.openGoogleMaps' | translate
-                            "
-                          >
-                            {{ 'actions.openGoogleMaps' | translate }}
-                          </button>
-                        </div>
-                      }
                     </div>
-                  </div>
-                }
-              </div>
-            </div>
-          }
-
-          @let toposCount = c.topos.length;
-          @if (toposCount || isAdmin || isEquipper) {
-            <div class="mt-6">
-              <div class="flex items-center justify-between gap-2 mb-4">
-                <div class="flex items-center gap-2">
-                  <tui-avatar
-                    tuiThumbnail
-                    size="l"
-                    [src]="global.iconSrc()('topo')"
-                    class="self-center"
-                    [attr.aria-label]="'labels.topo' | translate"
-                  />
-                  <h2 class="text-2xl font-semibold">
-                    {{ toposCount }}
-                    {{
-                      'labels.' + (toposCount === 1 ? 'topo' : 'topos')
-                        | translate
-                        | lowercase
-                    }}
-                  </h2>
+                  } @empty {
+                    <div class="col-span-full">
+                      <app-empty-state />
+                    </div>
+                  }
                 </div>
-                @if (isAdmin || isEquipper) {
-                  <button
-                    tuiButton
-                    appearance="textfield"
-                    size="s"
-                    type="button"
-                    (click.zoneless)="openCreateTopo()"
-                    [iconStart]="'@tui.plus'"
-                  >
-                    {{ 'actions.new' | translate }}
-                  </button>
-                }
-              </div>
-              <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
-                @for (t of topos(); track t.id) {
-                  <button
-                    class="p-6 rounded-3xl"
-                    tuiAppearance="outline"
-                    (click.zoneless)="
-                      router.navigate([
-                        '/area',
-                        areaSlug(),
-                        cragSlug(),
-                        'topo',
-                        t.id,
-                      ])
-                    "
-                  >
-                    <div class="flex flex-col min-w-0 grow gap-2">
-                      <header tuiHeader>
-                        <h2 tuiTitle>{{ t.name }}</h2>
-                      </header>
-                      <section class="flex flex-col gap-2">
-                        @if (t.photo; as photo) {
-                          <img
-                            [src]="
-                              (photo | topoImage | async) ||
-                              global.iconSrc()('topo')
-                            "
-                            alt="topo"
-                            class="w-full h-48 object-cover rounded shadow-sm"
-                            loading="lazy"
-                            decoding="async"
-                          />
-                        }
-                        <div
-                          class="flex items-center justify-between gap-2 mt-auto"
-                        >
-                          <div class="flex items-center justify-between gap-2">
-                            @let shade = getShadeInfo(t);
-                            <tui-icon
-                              [icon]="shade.icon"
-                              class="opacity-70 text-xl"
-                            />
-                            <span class="text-sm opacity-80">
-                              {{ shade.label | translate }}
-                              @if (t.shade_change_hour) {
-                                · {{ 'filters.shade.changeAt' | translate }}
-                                {{ t.shade_change_hour }}
-                              }
-                            </span>
-                          </div>
-                          <app-chart-routes-by-grade
-                            [grades]="t.grades"
-                            (click)="$event.stopPropagation()"
-                          />
-                        </div>
-                      </section>
-                    </div>
-                  </button>
-                } @empty {
-                  <div class="col-span-full">
-                    <app-empty-state />
-                  </div>
-                }
-              </div>
-            </div>
-          }
-          <div class="flex items-center justify-between gap-2 mb-4 mt-6">
-            <div class="flex items-center w-full sm:w-auto gap-2">
-              <tui-avatar
-                tuiThumbnail
-                size="l"
-                src="@tui.route"
-                class="self-center"
-                [attr.aria-label]="'labels.routes' | translate"
-              />
-              <h2 class="text-2xl font-semibold">
-                {{ routesCount() }}
-                {{ 'labels.routes' | translate | lowercase }}
-              </h2>
-            </div>
-            @if (isAdmin || isEquipper) {
-              <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
-                <button
-                  tuiButton
-                  appearance="textfield"
-                  size="s"
-                  type="button"
-                  (click.zoneless)="routesService.openUnifyRoutes()"
-                  [iconStart]="'@tui.blend'"
-                >
-                  {{ 'actions.unify' | translate }}
-                </button>
-                <button
-                  tuiButton
-                  appearance="textfield"
-                  size="s"
-                  type="button"
-                  (click.zoneless)="openCreateRoute()"
-                  [iconStart]="'@tui.plus'"
-                >
-                  {{ 'actions.new' | translate }}
-                </button>
-              </div>
+              }
             }
           </div>
-
-          <div class="mb-4 flex items-end gap-2">
-            <tui-textfield class="grow block" tuiTextfieldSize="l">
-              <label tuiLabel for="routes-search">{{
-                'labels.searchPlaceholder' | translate
-              }}</label>
-              <input
-                tuiTextfield
-                #routesSearch
-                id="routes-search"
-                autocomplete="off"
-                [value]="query()"
-                (input.zoneless)="onQuery(routesSearch.value)"
-              />
-            </tui-textfield>
-            <tui-badged-content>
-              @if (hasActiveFilters()) {
-                <tui-badge-notification
-                  tuiAppearance="accent"
-                  size="s"
-                  tuiSlot="top"
-                />
-              }
-              <button
-                tuiButton
-                appearance="textfield"
-                size="l"
-                type="button"
-                iconStart="@tui.sliders-horizontal"
-                [attr.aria-label]="'labels.filters' | translate"
-                [tuiHint]="isMobile ? null : ('labels.filters' | translate)"
-                (click.zoneless)="openFilters()"
-              ></button>
-            </tui-badged-content>
-          </div>
-
-          <app-routes-table [data]="filteredRoutes()" />
         } @else {
           <div class="flex items-center justify-center w-full min-h-[50vh]">
             <tui-loader size="xxl" />
@@ -549,6 +586,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
 })
 export class CragComponent {
   protected readonly global = inject(GlobalData);
+  protected readonly activeTabIndex = signal(0);
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
   protected readonly routesService = inject(RoutesService);
@@ -562,6 +600,16 @@ export class CragComponent {
   protected readonly dialogs = inject(TuiDialogService);
 
   protected readonly mapLocationUrl = mapLocationUrl;
+
+  protected onSwipe(event: TuiSwipeEvent): void {
+    const direction = event.direction;
+    const currentIndex = this.activeTabIndex();
+    if (direction === 'left' && currentIndex < 2) {
+      this.activeTabIndex.set(currentIndex + 1);
+    } else if (direction === 'right' && currentIndex > 0) {
+      this.activeTabIndex.set(currentIndex - 1);
+    }
+  }
 
   areaSlug: InputSignal<string> = input.required<string>();
   cragSlug: InputSignal<string> = input.required<string>();

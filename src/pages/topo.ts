@@ -23,6 +23,7 @@ import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort, TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
 import {
   TuiButton,
+  TuiDataList,
   TuiHint,
   TuiIcon,
   TuiLink,
@@ -35,7 +36,6 @@ import {
   TUI_CONFIRM,
   TuiAvatar,
   type TuiConfirmData,
-  TuiTabs,
   TuiInputNumber,
 } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
@@ -48,7 +48,6 @@ import {
   RouteAscentWithExtras,
   RouteWithExtras,
   TopoDetail,
-  TopoListItem,
   TopoRouteWithRoute,
 } from '../models';
 
@@ -102,11 +101,11 @@ export interface TopoRouteRow {
     TuiSwipe,
     AsyncPipe,
     TopoImagePipe,
-    TuiTabs,
     TuiScrollbar,
     FormsModule,
     TuiInputNumber,
     TuiTextfield,
+    TuiDataList,
   ],
   template: `
     <div class="h-full w-full">
@@ -116,7 +115,11 @@ export interface TopoRouteRow {
         @if (topo(); as t) {
           @let isEquipper = global.isAllowedEquipper(crag()?.area_id);
           <div class="mb-4">
-            <app-section-header [title]="t.name" [showLike]="false">
+            <app-section-header
+              [title]="t.name"
+              [showLike]="false"
+              [titleDropdown]="topoDropdown"
+            >
               <!-- Shade info as title additional info -->
               <ng-container titleInfo>
                 @if (shadeInfo(); as info) {
@@ -133,6 +136,22 @@ export interface TopoRouteRow {
                   />
                 }
               </ng-container>
+
+              <ng-template #topoDropdown>
+                <tui-data-list>
+                  @for (item of allAreaTopos(); track item.id) {
+                    <button
+                      tuiOption
+                      new
+                      type="button"
+                      [disabled]="item.id === t.id"
+                      (click.zoneless)="navigateToTopo(item)"
+                    >
+                      {{ item.name }}
+                    </button>
+                  }
+                </tui-data-list>
+              </ng-template>
 
               <!-- Admin and utility action buttons -->
               <div actionButtons class="flex gap-2">
@@ -183,16 +202,6 @@ export interface TopoRouteRow {
               </div>
             </app-section-header>
           </div>
-
-          @if (allTopos().length > 1) {
-            <tui-tabs [activeItemIndex]="currentTopoIndex()" class="mb-4">
-              @for (topoItem of allTopos(); track topoItem.id) {
-                <button tuiTab (click.zoneless)="navigateToTopo(topoItem)">
-                  {{ topoItem.name }}
-                </button>
-              }
-            </tui-tabs>
-          }
 
           <div
             class="flex flex-col md:flex-row w-full h-full gap-4 overflow-hidden"
@@ -619,6 +628,7 @@ export class TopoComponent {
 
   protected readonly topo = this.global.topoDetailResource.value;
   protected readonly crag = this.global.cragDetailResource.value;
+  protected readonly allAreaTopos = this.global.areaToposResource.value;
 
   protected readonly topoImageUrl = computed(() => {
     const t = this.topo();
@@ -626,24 +636,23 @@ export class TopoComponent {
     return { path: t.photo, version: this.global.topoPhotoVersion() };
   });
 
-  protected readonly allTopos = computed(() => this.crag()?.topos || []);
   protected readonly currentTopoIndex = computed(() => {
     const topo = this.topo();
-    const topos = this.allTopos();
+    const topos = this.allAreaTopos() || [];
     if (!topo || !topos.length) return -1;
     return topos.findIndex((t) => t.id === topo.id);
   });
 
   protected readonly prevTopo = computed(() => {
     const i = this.currentTopoIndex();
-    const topos = this.allTopos();
+    const topos = this.allAreaTopos() || [];
     if (!topos.length) return null;
     return topos[(i - 1 + topos.length) % topos.length];
   });
 
   protected readonly nextTopo = computed(() => {
     const i = this.currentTopoIndex();
-    const topos = this.allTopos();
+    const topos = this.allAreaTopos() || [];
     if (!topos.length) return null;
     return topos[(i + 1) % topos.length];
   });
@@ -861,11 +870,11 @@ export class TopoComponent {
     });
   }
 
-  protected navigateToTopo(topo: TopoListItem): void {
+  protected navigateToTopo(topo: { id: number; crag_slug?: string }): void {
     void this.router.navigate([
       '/area',
       this.areaSlug(),
-      this.cragSlug(),
+      topo.crag_slug || this.cragSlug(),
       'topo',
       topo.id,
     ]);
