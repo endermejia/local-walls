@@ -86,36 +86,38 @@ interface MinimalParking {
         </button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-        <tui-textfield [tuiTextfieldCleaner]="false">
-          <label tuiLabel for="lat">{{ 'labels.lat' | translate }}</label>
-          <input
-            tuiInputNumber
-            id="lat"
-            [formControl]="latitude"
-            [min]="-90"
-            [max]="90"
-            [tuiNumberFormat]="{ precision: 6 }"
-            (paste)="onPasteLocation($event)"
-            (change.zoneless)="
-              mapService.sanitizeCoordinates(latitude, longitude)
-            "
-          />
-        </tui-textfield>
-        <tui-textfield [tuiTextfieldCleaner]="false">
-          <label tuiLabel for="lng">{{ 'labels.lng' | translate }}</label>
-          <input
-            tuiInputNumber
-            id="lng"
-            [min]="-180"
-            [max]="180"
-            [tuiNumberFormat]="{ precision: 6 }"
-            [formControl]="longitude"
-            (change.zoneless)="
-              mapService.sanitizeCoordinates(latitude, longitude)
-            "
-          />
-        </tui-textfield>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+        <div class="grid grid-cols-2 gap-4">
+          <tui-textfield [tuiTextfieldCleaner]="false">
+            <label tuiLabel for="lat">{{ 'labels.lat' | translate }}</label>
+            <input
+              tuiInputNumber
+              id="lat"
+              [formControl]="latitude"
+              [min]="-90"
+              [max]="90"
+              [tuiNumberFormat]="{ precision: 6 }"
+              (paste)="onPasteLocation($event)"
+              (change.zoneless)="
+                mapService.sanitizeCoordinates(latitude, longitude)
+              "
+            />
+          </tui-textfield>
+          <tui-textfield [tuiTextfieldCleaner]="false">
+            <label tuiLabel for="lng">{{ 'labels.lng' | translate }}</label>
+            <input
+              tuiInputNumber
+              id="lng"
+              [min]="-180"
+              [max]="180"
+              [tuiNumberFormat]="{ precision: 6 }"
+              [formControl]="longitude"
+              (change.zoneless)="
+                mapService.sanitizeCoordinates(latitude, longitude)
+              "
+            />
+          </tui-textfield>
+        </div>
 
         <app-counter [formControl]="size" label="labels.capacity" [min]="0" />
       </div>

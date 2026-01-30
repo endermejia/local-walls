@@ -47,7 +47,7 @@ import { TranslatePipe } from '@ngx-translate/core';
       >
         -
       </button>
-      <tui-textfield [tuiTextfieldCleaner]="false" class="grow overflow-hidden">
+      <tui-textfield [tuiTextfieldCleaner]="false" class="grow min-w-0">
         <label tuiLabel [for]="id()">{{ label() | translate }}</label>
         <input
           tuiInputNumber
@@ -55,6 +55,7 @@ import { TranslatePipe } from '@ngx-translate/core';
           [min]="min()"
           [max]="max()"
           [formControl]="control"
+          class="!w-full"
         />
         @if (suffix()) {
           <span class="tui-textfield__suffix">{{ suffix() }}</span>

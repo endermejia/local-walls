@@ -3,6 +3,7 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -12,15 +13,6 @@
 .tabs {
   min-inline-size: 25rem;
   padding-block-end: env(safe-area-inset-bottom);
-}
-
-.leaflet-container {
-  z-index: 1;
-  /* Prevent text selection during map interactions */
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
 }
 
 ._loading {
@@ -38,11 +30,40 @@
   ) !important;
 }
 
-/* Ensure table header text is visible */
 th[tuiTh] {
   color: currentColor;
   font-weight: 600;
   background: var(--tui-background-base) !important;
+}
+
+@media (max-width: 768px) {
+  /* Adjust this breakpoint as needed */
+  tui-dialog._closable {
+    width: calc(100% - 2rem) !important;
+    max-width: 400px !important;
+    margin: 1rem auto !important;
+  }
+
+  section.t-dialog {
+    display: grid !important;
+    place-items: center !important;
+    min-height: 100vh !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+  }
+}
+
+/* MAP STYLES*/
+
+.leaflet-container {
+  z-index: 1;
+  /* Prevent text selection during map interactions */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 /* Map marker/cluster styles using Taiga UI theme variables */
@@ -72,21 +93,25 @@ th[tuiTh] {
   height: 28px;
   font-size: 12px;
 }
+
 .lw-cluster--sm {
   width: 36px;
   height: 36px;
   font-size: 12px;
 }
+
 .lw-cluster--md {
   width: 46px;
   height: 46px;
   font-size: 13px;
 }
+
 .lw-cluster--lg {
   width: 58px;
   height: 58px;
   font-size: 14px;
 }
+
 .lw-cluster--xl {
   width: 72px;
   height: 72px;
@@ -126,6 +151,7 @@ th[tuiTh] {
   animation: lw-cluster-pop 220ms ease-out;
   position: relative;
 }
+
 .lw-cluster--spawn::after {
   content: "";
   position: absolute;
@@ -164,16 +190,19 @@ th[tuiTh] {
   background: var(--tui-background-accent-2);
   color: var(--tui-text-primary-on-accent-2);
 }
+
 .lw-marker--primary {
   /* Primary (non-favorites) */
   background: var(--tui-background-accent-1);
   color: var(--tui-text-primary-on-accent-1);
 }
+
 .lw-marker--glass {
   /* Glass (parkings) */
   background: var(--tui-background-accent-opposite-pressed);
   color: var(--tui-background-elevation-1);
 }
+
 .lw-marker:hover {
   filter: brightness(0.95);
 }

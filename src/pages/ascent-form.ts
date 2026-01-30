@@ -255,7 +255,7 @@ import { handleErrorToast } from '../utils';
               {{ 'ascent.soft' | translate }}
             </button>
 
-            <div class="flex items-center gap-2 grow">
+            <div class="flex items-center gap-2 grow min-w-0">
               <button
                 tuiIconButton
                 type="button"
@@ -273,7 +273,7 @@ import { handleErrorToast } from '../utils';
                 [tuiTextfieldCleaner]="false"
                 [stringify]="gradeStringify"
                 tuiTextfieldSize="m"
-                class="grow"
+                class="grow min-w-0"
               >
                 <label tuiLabel for="ascentGrade">{{
                   'labels.grade' | translate

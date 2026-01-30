@@ -171,7 +171,7 @@ interface MinimalRoute {
         />
       </tui-textfield>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="flex items-center gap-2">
           <button
             tuiIconButton
@@ -188,7 +188,7 @@ interface MinimalRoute {
             tuiChevron
             [tuiTextfieldCleaner]="false"
             [stringify]="gradeStringify"
-            class="grow"
+            class="grow min-w-0"
           >
             <label tuiLabel for="grade">{{ 'labels.grade' | translate }}</label>
             <input tuiSelect id="grade" [formControl]="grade" />
