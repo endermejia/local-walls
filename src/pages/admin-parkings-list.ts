@@ -122,7 +122,7 @@ import { handleErrorToast } from '../utils';
           size="l"
           tuiTable
           class="w-full"
-          [columns]="columns"
+          [columns]="columns()"
           [direction]="direction()"
           [sorter]="sorter()"
           (sortChange)="onSortChange($event)"
@@ -150,7 +150,7 @@ import { handleErrorToast } from '../utils';
             @if (loading()) {
               @for (_item of skeletons; track $index) {
                 <tr tuiTr>
-                  @for (col of columns; track col) {
+                  @for (col of columns(); track col) {
                     <td *tuiCell="col" tuiTd>
                       <div [tuiSkeleton]="true" class="w-full h-10"></div>
                     </td>
@@ -209,7 +209,7 @@ import { handleErrorToast } from '../utils';
                 </tr>
               } @empty {
                 <tr tuiTr>
-                  <td [attr.colspan]="columns.length" tuiTd>
+                  <td [attr.colspan]="columns().length" tuiTd>
                     <app-empty-state />
                   </td>
                 </tr>

@@ -162,7 +162,7 @@ interface UserWithRole {
           size="l"
           tuiTable
           class="w-full"
-          [columns]="columns"
+          [columns]="columns()"
           [direction]="direction()"
           [sorter]="sorter()"
           (sortChange)="onSortChange($event)"
@@ -307,7 +307,7 @@ interface UserWithRole {
                 </tr>
               } @empty {
                 <tr tuiTr>
-                  <td [attr.colspan]="columns.length" tuiTd>
+                  <td [attr.colspan]="columns().length" tuiTd>
                     <app-empty-state />
                   </td>
                 </tr>
