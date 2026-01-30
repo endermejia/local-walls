@@ -230,7 +230,7 @@ export interface TopoRouteRow {
             <!-- Topo fullscreen -->
             @if (isFullscreen()) {
               <div
-                class="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden touch-none"
+                class="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden touch-none backdrop-blur-xl"
                 (click.zoneless)="toggleFullscreen(false)"
                 (wheel.zoneless)="onWheel($any($event))"
                 (touchstart.zoneless)="onTouchStart($any($event))"

@@ -49,7 +49,7 @@ import {
 
 import { FollowsService, GlobalData, SupabaseService } from '../services';
 
-import { AscentLikesComponent } from '../components';
+import { AscentCommentsComponent, AscentLikesComponent } from '../components';
 
 @Component({
   selector: 'app-infinite-scroll-trigger',
@@ -80,6 +80,7 @@ export class InfiniteScrollTriggerComponent
   selector: 'app-home',
   imports: [
     AscentLikesComponent,
+    AscentCommentsComponent,
     AsyncPipe,
     CommonModule,
     FormsModule,
@@ -256,6 +257,7 @@ export class InfiniteScrollTriggerComponent
 
                   <footer class="flex items-center gap-4 mt-2">
                     <app-ascent-likes [ascentId]="ascent.id" />
+                    <app-ascent-comments [ascentId]="ascent.id" />
                   </footer>
                 </button>
               } @placeholder {

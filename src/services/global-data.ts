@@ -591,7 +591,9 @@ export class GlobalData {
 
   readonly areaToposResource = resource({
     params: () => this.selectedAreaSlug(),
-    loader: async ({ params: areaSlug }): Promise<(TopoListItem & { crag_slug: string })[]> => {
+    loader: async ({
+      params: areaSlug,
+    }): Promise<(TopoListItem & { crag_slug: string })[]> => {
       if (!areaSlug || !isPlatformBrowser(this.platformId)) return [];
       try {
         await this.supabase.whenReady();
@@ -612,7 +614,8 @@ export class GlobalData {
           (t.topo_routes || []).forEach((tr) => {
             const g = tr.route?.grade;
             if (typeof g === 'number' && g >= 0) {
-              grades[g as VERTICAL_LIFE_GRADES] = (grades[g as VERTICAL_LIFE_GRADES] ?? 0) + 1;
+              grades[g as VERTICAL_LIFE_GRADES] =
+                (grades[g as VERTICAL_LIFE_GRADES] ?? 0) + 1;
             }
           });
 
@@ -837,6 +840,7 @@ export class GlobalData {
   // ---- Route Detail ----
   selectedRouteSlug: WritableSignal<string | null> = signal(null);
   profileUserId: WritableSignal<string | null> = signal(null);
+  profileActiveTab: WritableSignal<number> = signal(0);
 
   readonly userProjectsResource = resource({
     params: () => this.profileUserId(),
@@ -1341,6 +1345,7 @@ export class GlobalData {
         this.areaListGradeRange.set([0, ORDERED_GRADE_VALUES.length - 1]);
         this.areaListCategories.set([]);
         this.areaListShade.set([]);
+        this.profileActiveTab.set(0);
         break;
       }
       case 'area': {

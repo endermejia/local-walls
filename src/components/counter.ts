@@ -108,8 +108,12 @@ export class CounterComponent implements ControlValueAccessor, OnInit {
     nonNullable: true,
   });
 
-  private onChange: (value: number) => void = () => {}; // eslint-disable-line @typescript-eslint/no-empty-function
-  private onTouched: () => void = () => {}; // eslint-disable-line @typescript-eslint/no-empty-function
+  private onChange: (value: number) => void = () => {
+    // no-op
+  };
+  private onTouched: () => void = () => {
+    // no-op
+  };
 
   constructor() {
     effect(() => {

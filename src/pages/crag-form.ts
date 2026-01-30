@@ -369,7 +369,7 @@ export class CragFormComponent {
       }
       if (this._dialogCtx) {
         this._dialogCtx.completeWith(
-          this.isEdit() ? (this.effectiveCragData()?.slug ?? true) : true,
+          this.isEdit() ? this.slug.value || true : true,
         );
       } else {
         this.goBack();

@@ -1,6 +1,7 @@
 import {
   AsyncPipe,
   isPlatformBrowser,
+  Location,
   NgOptimizedImage,
 } from '@angular/common';
 import {
@@ -15,6 +16,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { TuiDay, TuiStringMatcher } from '@taiga-ui/cdk';
 import {
@@ -26,6 +28,7 @@ import {
   TuiIcon,
   TuiLoader,
   TuiNotification,
+  TuiScrollbar,
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
@@ -111,6 +114,7 @@ interface Country {
     TuiInputYear,
     TuiLoader,
     TuiNotification,
+    TuiScrollbar,
     TuiSegmented,
     TuiSelect,
     TuiShimmer,
@@ -121,369 +125,379 @@ interface Country {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
+  host: { class: 'flex grow min-h-0' },
   template: `
-    <section class="w-full max-w-5xl mx-auto grid grid-cols-1 gap-4">
-      <!-- Sticky Header -->
-      <div
-        class="sticky top-0 z-10 flex items-center gap-4 p-4 -mt-6 -mx-4 mb-4 bg-[var(--tui-background-base)] shadow-md sm:shadow-none"
+    <tui-scrollbar class="flex grow">
+      <section
+        class="w-full max-w-5xl mx-auto p-4 grid grid-cols-1 gap-4 pb-32"
       >
-        <button
-          size="s"
-          appearance="neutral"
-          iconStart="@tui.chevron-left"
-          tuiIconButton
-          type="button"
-          class="!rounded-full"
-          [tuiHint]="global.isMobile() ? null : ('actions.back' | translate)"
-          (click)="close()"
+        <!-- Sticky Header -->
+        <div
+          class="sticky top-0 z-10 flex items-center gap-4 p-4 -mt-4 -mx-4 mb-4 bg-[var(--tui-background-base)] shadow-md sm:shadow-none"
         >
-          {{ 'actions.back' | translate }}
-        </button>
-        <h2 class="text-xl font-bold m-0">
-          {{ 'profile.title' | translate }}
-        </h2>
-      </div>
-
-      <!-- Avatar y Nombre -->
-      <div class="flex flex-col md:flex-row items-center gap-4">
-        <div class="relative inline-block">
-          <tui-badged-content [style.--tui-radius.%]="50">
-            <tui-icon icon="@tui.upload" tuiSlot="top" tuiBadge />
-            <tui-avatar
-              (mouseenter)="avatarHovered.set(true)"
-              (mouseleave)="avatarHovered.set(false)"
-              (click)="!isUploadingAvatar() && uploadAvatar()"
-              class="cursor-pointer"
-              size="xxl"
-              [src]="avatarSrc() | tuiFallbackSrc: '@tui.user' | async"
-              [tuiShimmer]="isUploadingAvatar()"
-            />
-          </tui-badged-content>
-        </div>
-        <div class="w-full">
-          <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-            <label tuiLabel for="nameInput">{{
-              'labels.userName' | translate
-            }}</label>
-            <input
-              id="nameInput"
-              name="nameInput"
-              tuiTextfield
-              type="text"
-              autocomplete="off"
-              required
-              minlength="3"
-              maxlength="50"
-              [(ngModel)]="displayName"
-              (blur)="saveName()"
-              (keydown.enter)="saveName()"
-            />
-          </tui-textfield>
-          @if (nameEqualsEmail()) {
-            <tui-notification appearance="warning" class="mt-2">
-              <h3 tuiTitle>
-                {{ 'profile.name.equalsEmail' | translate }}
-              </h3>
-            </tui-notification>
-          }
-        </div>
-      </div>
-      <!-- Email (readonly) -->
-      <div>
-        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-          <label tuiLabel for="emailInput">{{
-            'labels.email' | translate
-          }}</label>
-          <input
-            id="emailInput"
-            tuiTextfield
-            type="email"
-            autocomplete="off"
-            [value]="userEmail()"
-            readonly
-            disabled
-          />
-        </tui-textfield>
-      </div>
-      <!-- Bio -->
-      <div>
-        <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-          <label tuiLabel for="bioInput">{{ 'labels.bio' | translate }}</label>
-          <textarea
-            id="bioInput"
-            name="bioInput"
-            tuiTextarea
-            rows="4"
-            maxlength="50"
-            [(ngModel)]="bio"
-            (blur)="saveBio()"
-          ></textarea>
-        </tui-textfield>
-      </div>
-      <!-- 8a.nu User -->
-      <div class="flex items-center gap-4">
-        @if (selectedEightAnuUser.value(); as user) {
-          <tui-avatar size="l" [src]="user.avatar" />
-        }
-
-        @let items = eightAnuResults$ | async;
-        <tui-textfield
-          class="w-full"
-          [tuiTextfieldCleaner]="true"
-          [stringify]="stringifyEightAnuUser"
-        >
-          <label tuiLabel for="eightAnuSearch">{{
-            'labels.eightAnuUser' | translate
-          }}</label>
-          <input
-            #eightAnuInput
-            id="eightAnuSearch"
-            name="eightAnuSearch"
-            tuiComboBox
-            autocomplete="off"
-            [ngModel]="selectedEightAnuUser.value()"
-            (ngModelChange)="saveEightAnuUser($event)"
-            (input)="eightAnuSearch$.next($any($event.target).value)"
-          />
-          <tui-data-list-wrapper
-            *tuiTextfieldDropdown
-            new
-            [emptyContent]="
-              eightAnuInput.value.length < 3
-                ? ('import8a.minChars' | translate)
-                : ('notFound.title' | translate)
-            "
-            [itemContent]="eightAnuItem"
-            [items]="eightAnuInput.value.length < 3 ? [] : items || []"
-          />
-          <ng-template #eightAnuItem let-item>
-            <div class="flex items-center gap-2">
-              <tui-avatar size="s" [src]="item.avatar" />
-              <span>{{ item.userName }}</span>
-            </div>
-          </ng-template>
-          @if (items && eightAnuShowLoader()) {
-            <tui-loader />
-          }
-        </tui-textfield>
-      </div>
-      <!-- Country & City -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Country -->
-        <div>
-          <tui-textfield
-            tuiChevron
-            [tuiTextfieldCleaner]="false"
-            [stringify]="stringifyCountryId"
+          <button
+            size="s"
+            appearance="neutral"
+            iconStart="@tui.chevron-left"
+            tuiIconButton
+            type="button"
+            class="!rounded-full"
+            [tuiHint]="global.isMobile() ? null : ('actions.back' | translate)"
+            (click)="close()"
           >
-            <label tuiLabel for="countrySelect">{{
-              'labels.country' | translate
-            }}</label>
-            <input
-              id="countrySelect"
-              name="countrySelect"
-              tuiComboBox
-              autocomplete="off"
-              [(ngModel)]="country"
-              [matcher]="matcher"
-              [strict]="true"
-              (ngModelChange)="saveCountry()"
-            />
-            <tui-data-list-wrapper
-              *tuiTextfieldDropdown
-              new
-              [items]="countryIds() | tuiFilterByInput"
-              [itemContent]="countryItem"
-            />
-            <ng-template #countryItem let-item>
-              <img
-                [ngSrc]="item | tuiFlag"
-                alt="{{ idToName(item) }}"
-                width="20"
-                height="15"
-                [style.margin-right.px]="8"
-                [style.vertical-align]="'middle'"
+            {{ 'actions.back' | translate }}
+          </button>
+          <h2 class="text-xl font-bold m-0">
+            {{ 'profile.title' | translate }}
+          </h2>
+        </div>
+
+        <!-- Avatar y Nombre -->
+        <div class="flex flex-col md:flex-row items-center gap-4">
+          <div class="relative inline-block">
+            <tui-badged-content [style.--tui-radius.%]="50">
+              <tui-icon icon="@tui.upload" tuiSlot="top" tuiBadge />
+              <tui-avatar
+                (mouseenter)="avatarHovered.set(true)"
+                (mouseleave)="avatarHovered.set(false)"
+                (click)="!isUploadingAvatar() && uploadAvatar()"
+                class="cursor-pointer"
+                size="xxl"
+                [src]="avatarSrc() | tuiFallbackSrc: '@tui.user' | async"
+                [tuiShimmer]="isUploadingAvatar()"
               />
-              {{ idToName(item) }}
-            </ng-template>
-          </tui-textfield>
+            </tui-badged-content>
+          </div>
+          <div class="w-full">
+            <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+              <label tuiLabel for="nameInput">{{
+                'labels.userName' | translate
+              }}</label>
+              <input
+                id="nameInput"
+                name="nameInput"
+                tuiTextfield
+                type="text"
+                autocomplete="off"
+                required
+                minlength="3"
+                maxlength="50"
+                [(ngModel)]="displayName"
+                (blur)="saveName()"
+                (keydown.enter)="saveName()"
+              />
+            </tui-textfield>
+            @if (nameEqualsEmail()) {
+              <tui-notification appearance="warning" class="mt-2">
+                <h3 tuiTitle>
+                  {{ 'profile.name.equalsEmail' | translate }}
+                </h3>
+              </tui-notification>
+            }
+          </div>
         </div>
-        <!-- City -->
+        <!-- Email (readonly) -->
         <div>
           <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-            <label tuiLabel for="cityInput">{{
-              'labels.city' | translate
+            <label tuiLabel for="emailInput">{{
+              'labels.email' | translate
             }}</label>
             <input
-              id="cityInput"
-              name="cityInput"
+              id="emailInput"
               tuiTextfield
-              type="text"
+              type="email"
               autocomplete="off"
-              maxlength="100"
-              [(ngModel)]="city"
-              (blur)="saveCity()"
-              (keydown.enter)="saveCity()"
+              [value]="userEmail()"
+              readonly
+              disabled
             />
           </tui-textfield>
         </div>
-      </div>
-      <!-- Birth Date & Starting Climbing Year -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Birth Date -->
+        <!-- Bio -->
         <div>
           <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-            <label tuiLabel for="birthDateInput">{{
-              'labels.birthDate' | translate
+            <label tuiLabel for="bioInput">{{
+              'labels.bio' | translate
             }}</label>
-            <input
-              id="birthDateInput"
-              name="birthDateInput"
-              tuiInputDate
-              [max]="today"
-              [min]="minBirthDate"
-              [(ngModel)]="birthDate"
-              (ngModelChange)="saveBirthDate()"
-            />
-            <tui-calendar *tuiTextfieldDropdown />
+            <textarea
+              id="bioInput"
+              name="bioInput"
+              tuiTextarea
+              rows="4"
+              maxlength="50"
+              [(ngModel)]="bio"
+              (blur)="saveBio()"
+            ></textarea>
           </tui-textfield>
         </div>
-        <!-- Starting Climbing Year -->
-        <div>
-          <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-            <label tuiLabel for="startingClimbingYearInput">{{
-              'labels.startingClimbingYear' | translate
-            }}</label>
-            <input
-              id="startingClimbingYearInput"
-              name="startingClimbingYearInput"
-              tuiInputYear
-              [min]="minYear"
-              [max]="currentYear"
-              [(ngModel)]="startingClimbingYear"
-              (ngModelChange)="saveStartingClimbingYear()"
-            />
-            <tui-calendar-year *tuiTextfieldDropdown />
-          </tui-textfield>
-        </div>
-      </div>
-      <!-- Size & Sex -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Size -->
-        <div>
-          <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-            <label tuiLabel for="sizeInput">{{
-              'labels.size' | translate
-            }}</label>
-            <input
-              id="sizeInput"
-              name="sizeInput"
-              tuiInputNumber
-              [min]="0"
-              [max]="300"
-              [(ngModel)]="size"
-              (blur)="saveSize()"
-              (keydown.enter)="saveSize()"
-            />
-            <span class="tui-textfield__suffix">cm</span>
-          </tui-textfield>
-        </div>
-        <!-- Sex -->
-        <div>
+        <!-- 8a.nu User -->
+        <div class="flex items-center gap-4">
+          @if (selectedEightAnuUser.value(); as user) {
+            <tui-avatar size="l" [src]="user.avatar" />
+          }
+
+          @let items = eightAnuResults$ | async;
           <tui-textfield
-            tuiChevron
             class="w-full"
             [tuiTextfieldCleaner]="true"
-            [stringify]="stringifySex()"
+            [stringify]="stringifyEightAnuUser"
           >
-            <label tuiLabel for="sexSelect">{{
-              'labels.sex' | translate
+            <label tuiLabel for="eightAnuSearch">{{
+              'labels.eightAnuUser' | translate
             }}</label>
             <input
-              id="sexSelect"
-              name="sexSelect"
-              tuiSelect
-              [(ngModel)]="sex"
-              (ngModelChange)="saveSex()"
-            />
-            <tui-data-list-wrapper *tuiTextfieldDropdown new [items]="sexes" />
-          </tui-textfield>
-        </div>
-      </div>
-
-      <br />
-
-      <!-- PREFERENCES -->
-      <div class="flex items-center justify-between gap-4">
-        <h2 class="text-lg font-bold m-0">
-          {{ 'labels.preferences' | translate }}
-        </h2>
-        <button
-          iconStart="@tui.download"
-          size="s"
-          tuiButton
-          type="button"
-          appearance="action-grayscale"
-          (click)="openImport8aDialog()"
-        >
-          {{ 'import8a.button' | translate }}
-        </button>
-      </div>
-      <!-- Language & Theme -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Language -->
-        <div>
-          <tui-textfield
-            tuiChevron
-            [tuiTextfieldCleaner]="false"
-            [stringify]="stringifyLanguage()"
-          >
-            <label tuiLabel for="languageSelect">{{
-              'labels.language' | translate
-            }}</label>
-            <input
-              id="languageSelect"
-              name="languageSelect"
-              tuiSelect
-              [(ngModel)]="language"
-              (ngModelChange)="saveLanguage()"
+              #eightAnuInput
+              id="eightAnuSearch"
+              name="eightAnuSearch"
+              tuiComboBox
+              autocomplete="off"
+              [ngModel]="selectedEightAnuUser.value()"
+              (ngModelChange)="saveEightAnuUser($event)"
+              (input)="eightAnuSearch$.next($any($event.target).value)"
             />
             <tui-data-list-wrapper
               *tuiTextfieldDropdown
               new
-              [items]="languages"
+              [emptyContent]="
+                eightAnuInput.value.length < 3
+                  ? ('import8a.minChars' | translate)
+                  : ('notFound.title' | translate)
+              "
+              [itemContent]="eightAnuItem"
+              [items]="eightAnuInput.value.length < 3 ? [] : items || []"
             />
+            <ng-template #eightAnuItem let-item>
+              <div class="flex items-center gap-2">
+                <tui-avatar size="s" [src]="item.avatar" />
+                <span>{{ item.userName }}</span>
+              </div>
+            </ng-template>
+            @if (items && eightAnuShowLoader()) {
+              <tui-loader />
+            }
           </tui-textfield>
         </div>
-        <!-- Theme & Private profile -->
-        <div class="flex flex-col items-end gap-4">
-          <tui-segmented
-            [activeItemIndex]="theme === Themes.DARK ? 1 : 0"
-            (activeItemIndexChange)="toggleTheme($event === 1)"
-          >
-            <button title="light" type="button">
-              <tui-icon icon="@tui.sun" />
-            </button>
-            <button title="dark" type="button">
-              <tui-icon icon="@tui.moon" />
-            </button>
-          </tui-segmented>
-
-          <div class="flex items-center gap-4">
-            <label tuiLabel for="editingSwitch">{{
-              'labels.editingMode' | translate
-            }}</label>
-            <input
-              id="editingSwitch"
-              name="editingSwitch"
-              tuiSwitch
-              type="checkbox"
-              [ngModel]="global.editingMode()"
-              (ngModelChange)="global.editingMode.set($event)"
-            />
+        <!-- Country & City -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Country -->
+          <div>
+            <tui-textfield
+              tuiChevron
+              [tuiTextfieldCleaner]="false"
+              [stringify]="stringifyCountryId"
+            >
+              <label tuiLabel for="countrySelect">{{
+                'labels.country' | translate
+              }}</label>
+              <input
+                id="countrySelect"
+                name="countrySelect"
+                tuiComboBox
+                autocomplete="off"
+                [(ngModel)]="country"
+                [matcher]="matcher"
+                [strict]="true"
+                (ngModelChange)="saveCountry()"
+              />
+              <tui-data-list-wrapper
+                *tuiTextfieldDropdown
+                new
+                [items]="countryIds() | tuiFilterByInput"
+                [itemContent]="countryItem"
+              />
+              <ng-template #countryItem let-item>
+                <img
+                  [ngSrc]="item | tuiFlag"
+                  alt="{{ idToName(item) }}"
+                  width="20"
+                  height="15"
+                  [style.margin-right.px]="8"
+                  [style.vertical-align]="'middle'"
+                />
+                {{ idToName(item) }}
+              </ng-template>
+            </tui-textfield>
           </div>
+          <!-- City -->
+          <div>
+            <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+              <label tuiLabel for="cityInput">{{
+                'labels.city' | translate
+              }}</label>
+              <input
+                id="cityInput"
+                name="cityInput"
+                tuiTextfield
+                type="text"
+                autocomplete="off"
+                maxlength="100"
+                [(ngModel)]="city"
+                (blur)="saveCity()"
+                (keydown.enter)="saveCity()"
+              />
+            </tui-textfield>
+          </div>
+        </div>
+        <!-- Birth Date & Starting Climbing Year -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Birth Date -->
+          <div>
+            <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+              <label tuiLabel for="birthDateInput">{{
+                'labels.birthDate' | translate
+              }}</label>
+              <input
+                id="birthDateInput"
+                name="birthDateInput"
+                tuiInputDate
+                [max]="today"
+                [min]="minBirthDate"
+                [(ngModel)]="birthDate"
+                (ngModelChange)="saveBirthDate()"
+              />
+              <tui-calendar *tuiTextfieldDropdown />
+            </tui-textfield>
+          </div>
+          <!-- Starting Climbing Year -->
+          <div>
+            <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+              <label tuiLabel for="startingClimbingYearInput">{{
+                'labels.startingClimbingYear' | translate
+              }}</label>
+              <input
+                id="startingClimbingYearInput"
+                name="startingClimbingYearInput"
+                tuiInputYear
+                [min]="minYear"
+                [max]="currentYear"
+                [(ngModel)]="startingClimbingYear"
+                (ngModelChange)="saveStartingClimbingYear()"
+              />
+              <tui-calendar-year *tuiTextfieldDropdown />
+            </tui-textfield>
+          </div>
+        </div>
+        <!-- Size & Sex -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Size -->
+          <div>
+            <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+              <label tuiLabel for="sizeInput">{{
+                'labels.size' | translate
+              }}</label>
+              <input
+                id="sizeInput"
+                name="sizeInput"
+                tuiInputNumber
+                [min]="0"
+                [max]="300"
+                [(ngModel)]="size"
+                (blur)="saveSize()"
+                (keydown.enter)="saveSize()"
+              />
+              <span class="tui-textfield__suffix">cm</span>
+            </tui-textfield>
+          </div>
+          <!-- Sex -->
+          <div>
+            <tui-textfield
+              tuiChevron
+              class="w-full"
+              [tuiTextfieldCleaner]="true"
+              [stringify]="stringifySex()"
+            >
+              <label tuiLabel for="sexSelect">{{
+                'labels.sex' | translate
+              }}</label>
+              <input
+                id="sexSelect"
+                name="sexSelect"
+                tuiSelect
+                [(ngModel)]="sex"
+                (ngModelChange)="saveSex()"
+              />
+              <tui-data-list-wrapper
+                *tuiTextfieldDropdown
+                new
+                [items]="sexes"
+              />
+            </tui-textfield>
+          </div>
+        </div>
 
-          <!-- <div class="flex items-center gap-4">
+        <br />
+
+        <!-- PREFERENCES -->
+        <div class="flex items-center justify-between gap-4">
+          <h2 class="text-lg font-bold m-0">
+            {{ 'labels.preferences' | translate }}
+          </h2>
+          <button
+            iconStart="@tui.download"
+            size="s"
+            tuiButton
+            type="button"
+            appearance="action-grayscale"
+            (click)="openImport8aDialog()"
+          >
+            {{ 'import8a.button' | translate }}
+          </button>
+        </div>
+        <!-- Language & Theme -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Language -->
+          <div>
+            <tui-textfield
+              tuiChevron
+              [tuiTextfieldCleaner]="false"
+              [stringify]="stringifyLanguage()"
+            >
+              <label tuiLabel for="languageSelect">{{
+                'labels.language' | translate
+              }}</label>
+              <input
+                id="languageSelect"
+                name="languageSelect"
+                tuiSelect
+                [(ngModel)]="language"
+                (ngModelChange)="saveLanguage()"
+              />
+              <tui-data-list-wrapper
+                *tuiTextfieldDropdown
+                new
+                [items]="languages"
+              />
+            </tui-textfield>
+          </div>
+          <!-- Theme & Private profile -->
+          <div class="flex flex-col items-end gap-4">
+            <tui-segmented
+              [activeItemIndex]="theme === Themes.DARK ? 1 : 0"
+              (activeItemIndexChange)="toggleTheme($event === 1)"
+            >
+              <button title="light" type="button">
+                <tui-icon icon="@tui.sun" />
+              </button>
+              <button title="dark" type="button">
+                <tui-icon icon="@tui.moon" />
+              </button>
+            </tui-segmented>
+
+            <div class="flex items-center gap-4">
+              <label tuiLabel for="editingSwitch">{{
+                'labels.editingMode' | translate
+              }}</label>
+              <input
+                id="editingSwitch"
+                name="editingSwitch"
+                tuiSwitch
+                type="checkbox"
+                [ngModel]="global.editingMode()"
+                (ngModelChange)="global.editingMode.set($event)"
+              />
+            </div>
+
+            <!-- <div class="flex items-center gap-4">
             <label tuiLabel for="privateSwitch">{{
               'labels.privateProfile' | translate
             }}</label>
@@ -496,24 +510,25 @@ interface Country {
               (ngModelChange)="togglePrivateProfile($event)"
             />
           </div> -->
+          </div>
         </div>
-      </div>
 
-      <br />
+        <br />
 
-      <!-- Logout button -->
-      <div class="flex items-center justify-center">
-        <button
-          tuiButton
-          appearance="action-destructive"
-          type="button"
-          size="m"
-          (click)="logout()"
-        >
-          {{ 'auth.logout' | translate }}
-        </button>
-      </div>
-    </section>
+        <!-- Logout button -->
+        <div class="flex items-center justify-center">
+          <button
+            tuiButton
+            appearance="action-destructive"
+            type="button"
+            size="m"
+            (click)="logout()"
+          >
+            {{ 'auth.logout' | translate }}
+          </button>
+        </div>
+      </section>
+    </tui-scrollbar>
   `,
 })
 export class UserProfileConfigComponent {
@@ -523,6 +538,8 @@ export class UserProfileConfigComponent {
   private readonly userProfilesService = inject(UserProfilesService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
+  private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly dialogContext: TuiDialogContext<unknown, unknown> | null =
     (() => {
       try {
@@ -930,6 +947,10 @@ export class UserProfileConfigComponent {
   }
 
   close(): void {
-    this.dialogContext?.$implicit.complete();
+    if (this.dialogContext) {
+      this.dialogContext.$implicit.complete();
+    } else {
+      this.location.back();
+    }
   }
 }

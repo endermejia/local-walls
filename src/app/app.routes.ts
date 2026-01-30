@@ -25,6 +25,14 @@ export const routes: Routes = [
       import('../pages/user-profile').then((m) => m.UserProfileComponent),
   },
   {
+    path: 'profile/config',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/user-profile-config').then(
+        (m) => m.UserProfileConfigComponent,
+      ),
+  },
+  {
     path: 'profile/:id',
     canMatch: [authGuard],
     loadComponent: () =>
