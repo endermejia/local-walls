@@ -29,32 +29,21 @@ import { GlobalData } from '../services';
   template: `
     <header class="flex flex-col w-full">
       <!-- Breadcrumb -->
-      @let mobileBreadcrumbs = global.breadcrumbs();
-      @let desktopBreadcrumbs = global.slicedBreadcrumbs();
+      @let breadcrumbs = global.slicedBreadcrumbs();
       @let isMobile = global.isMobile();
-      @if (desktopBreadcrumbs.length && !isMobile) {
-        <tui-breadcrumbs size="l" ngSkipHydration>
-          @for (item of desktopBreadcrumbs; track item.caption) {
-            <a
-              *tuiItem
-              tuiLink
-              [routerLink]="item.routerLink"
-              class="text-xs opacity-60"
-            >
-              {{ item.caption | translate }}
-            </a>
-          }
-        </tui-breadcrumbs>
-      }
 
       <!-- Title row with actions -->
       <div class="flex items-start justify-between gap-3">
         <!-- Title and additional info -->
         <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
           <h1 class="text-2xl font-bold line-clamp-1">
-            @if (isMobile) {
-              <tui-breadcrumbs size="l" [itemsLimit]="2" ngSkipHydration>
-                @for (item of mobileBreadcrumbs; track item.caption) {
+            @if (breadcrumbs.length) {
+              <tui-breadcrumbs
+                size="l"
+                [itemsLimit]="isMobile && breadcrumbs.length > 1 ? 2 : 1"
+                ngSkipHydration
+              >
+                @for (item of breadcrumbs; track item.caption) {
                   <a
                     *tuiItem
                     tuiLink
@@ -65,9 +54,8 @@ import { GlobalData } from '../services';
                   </a>
                 }
               </tui-breadcrumbs>
-            } @else {
-              {{ title() }}
             }
+            {{ title() }}
           </h1>
           <!-- Additional title info (e.g., shade icon in topos) -->
           <ng-content select="[titleInfo]" />

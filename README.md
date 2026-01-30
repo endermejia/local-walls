@@ -26,7 +26,7 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Next Steps
 
-- **Ascent Social Features**: Add likes, comments, and photos to route ascents.
+- **Ascent Social Features**: Add comments and photos to route ascents.
 - **8a.nu Integration**:
   - Copy 8a.nu ascents database.
   - Direct data import using 8a.nu user credentials.

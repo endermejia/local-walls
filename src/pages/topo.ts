@@ -214,7 +214,7 @@ export interface TopoRouteRow {
                   [alt]="t.name"
                   class="w-auto h-full max-w-none cursor-pointer block object-cover"
                   decoding="async"
-                  (click.zoneless)="toggleFullscreen(true)"
+                  (click.zoneless)="toggleFullscreen(!!topoImage)"
                 />
               </div>
             </div>
