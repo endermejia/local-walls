@@ -86,6 +86,7 @@
     "description": "Descripción",
     "description_en": "Descripción en ingés",
     "description_es": "Descripción en español",
+    "editingMode": "Modo edición",
     "eightAnuUser": "Usuario 8a.nu",
     "email": "Correo electrónico",
     "empty": "No hay datos para mostrar",

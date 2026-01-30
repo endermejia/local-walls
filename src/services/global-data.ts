@@ -213,13 +213,20 @@ export class GlobalData {
   // ---- Auth (roles) ----
   readonly userProfile = computed(() => this.supabase.userProfile());
   readonly userRole = computed(() => this.supabase.userRole());
-  readonly isAdmin = computed(() => this.userRole() === AppRoles.ADMIN);
-  readonly isEquipper = computed(() => this.userRole() === AppRoles.EQUIPPER);
+  readonly editingMode: WritableSignal<boolean> = signal(false);
+  private readonly editingModeStorageKey = 'editing_mode_v1';
+
+  readonly isAdmin = computed(
+    () => this.editingMode() && this.userRole() === AppRoles.ADMIN,
+  );
+  readonly isEquipper = computed(
+    () => this.editingMode() && this.userRole() === AppRoles.EQUIPPER,
+  );
   readonly equipperAreas = this.supabase.equipperAreas;
 
   readonly isAllowedEquipper = (areaId: number | undefined) => {
     if (this.isAdmin()) return true;
-    if (!areaId) return false;
+    if (!areaId || !this.editingMode()) return false;
     return this.isEquipper() && this.equipperAreas().includes(areaId);
   };
 
@@ -1217,6 +1224,13 @@ export class GlobalData {
 
     // Hydrate last map bounds from storage on a browser
     try {
+      const rawEditingMode = this.localStorage.getItem(
+        this.editingModeStorageKey,
+      );
+      if (rawEditingMode) {
+        this.editingMode.set(rawEditingMode === 'true');
+      }
+
       const rawBounds = this.localStorage.getItem(this.mapBoundsStorageKey);
       if (rawBounds) {
         const parsed = JSON.parse(rawBounds) as MapBounds;
@@ -1225,6 +1239,14 @@ export class GlobalData {
     } catch {
       // ignore corrupted viewport state
     }
+
+    // Persist editing mode changes
+    effect(() => {
+      this.localStorage.setItem(
+        this.editingModeStorageKey,
+        String(this.editingMode()),
+      );
+    });
 
     // Persist and react to map bounds changes
     effect(() => {
