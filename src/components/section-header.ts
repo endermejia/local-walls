@@ -4,10 +4,11 @@ import {
   inject,
   input,
   output,
+  signal,
   TemplateRef,
 } from '@angular/core';
 
-import { TuiItem } from '@taiga-ui/cdk';
+import { TuiActiveZone, TuiItem, TuiObscured } from '@taiga-ui/cdk';
 import {
   TuiButton,
   TuiDropdown,
@@ -26,6 +27,7 @@ import { GlobalData } from '../services';
   imports: [
     RouterLink,
     TranslatePipe,
+    TuiActiveZone,
     TuiBreadcrumbs,
     TuiButton,
     TuiChevron,
@@ -33,6 +35,7 @@ import { GlobalData } from '../services';
     TuiHint,
     TuiItem,
     TuiLink,
+    TuiObscured,
   ],
   template: `
     <header class="flex flex-col w-full">
@@ -71,10 +74,17 @@ import { GlobalData } from '../services';
               <button
                 tuiButton
                 tuiChevron
+                tuiActiveZone
+                tuiObscured
                 appearance="flat"
                 type="button"
                 class="!text-2xl !font-bold !text-inherit !no-underline !bg-transparent"
                 [tuiDropdown]="template"
+                [tuiDropdownManual]="open()"
+                [tuiObscuredEnabled]="open()"
+                (click)="open.set(!open())"
+                (tuiActiveZoneChange)="open.set($event && open())"
+                (tuiObscured)="open.set(false)"
               >
                 {{ title() }}
               </button>
@@ -130,4 +140,6 @@ export class SectionHeaderComponent {
   showLike = input(true);
 
   toggleLike = output<void>();
+
+  protected readonly open = signal(false);
 }
