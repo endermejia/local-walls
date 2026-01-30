@@ -35,7 +35,6 @@ import {
   TuiChevron,
   TuiDataListWrapper,
   TuiInputDate,
-  TuiInputNumber,
   TuiRating,
   TuiSelect,
   TuiTextarea,
@@ -64,6 +63,8 @@ import {
   ToastService,
 } from '../services';
 
+import { CounterComponent } from '../components/counter';
+
 import { handleErrorToast } from '../utils';
 
 @Component({
@@ -78,7 +79,6 @@ import { handleErrorToast } from '../utils';
     TuiRating,
     TuiDataListWrapper,
     TuiInputDate,
-    TuiInputNumber,
     TuiCheckbox,
     TuiSelect,
     TuiChevron,
@@ -86,6 +86,7 @@ import { handleErrorToast } from '../utils';
     TuiLabel,
     TuiTextarea,
     TuiAppearance,
+    CounterComponent,
   ],
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
   template: `
@@ -170,58 +171,12 @@ import { handleErrorToast } from '../utils';
             }
           </div>
 
-          @let isMobile = global.isMobile();
-          <div class="flex items-center gap-2 mt-2">
-            <button
-              tuiIconButton
-              type="button"
-              size="m"
-              appearance="secondary"
-              iconStart="@tui.minus"
-              class="!rounded-full"
-              [disabled]="form.get('attempts')?.disabled"
-              (click)="changeAttempts(-1)"
-            >
-              -
-            </button>
-            <div class="flex flex-col gap-1">
-              <tui-textfield
-                [tuiTextfieldCleaner]="false"
-                size="m"
-                [class.w-32]="!isMobile"
-                [class.w-full]="isMobile"
-              >
-                @if (isMobile) {
-                  <label tuiLabel for="ascentAttempts">{{
-                    'ascent.tries' | translate
-                  }}</label>
-                }
-                <input
-                  id="ascentAttempts"
-                  tuiInputNumber
-                  [min]="form.get('type')?.value === 'rp' ? 2 : 1"
-                  formControlName="attempts"
-                />
-                @if (!isMobile) {
-                  <span class="tui-textfield__suffix">{{
-                    'ascent.tries' | translate | lowercase
-                  }}</span>
-                }
-              </tui-textfield>
-            </div>
-            <button
-              tuiIconButton
-              type="button"
-              size="m"
-              appearance="secondary"
-              iconStart="@tui.plus"
-              class="!rounded-full"
-              [disabled]="form.get('attempts')?.disabled"
-              (click)="changeAttempts(1)"
-            >
-              +
-            </button>
-          </div>
+          <app-counter
+            formControlName="attempts"
+            label="ascent.tries"
+            [min]="form.get('type')?.value === 'rp' ? 2 : 1"
+            [disabled]="form.get('attempts')?.disabled ?? false"
+          />
         </section>
 
         <!-- SHARE YOUR THOUGHTS -->
@@ -633,15 +588,6 @@ export default class AscentFormComponent {
 
   protected readonly gradeStringify = (grade: number): string =>
     VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || '';
-
-  protected changeAttempts(delta: number): void {
-    const ctrl = this.form.get('attempts');
-    if (!ctrl || ctrl.disabled) return;
-    const current = ctrl.value ?? 0;
-    const min = this.form.get('type')?.value === 'rp' ? 2 : 1;
-    const next = Math.max(min, current + delta);
-    ctrl.setValue(next);
-  }
 
   protected changeGrade(delta: number): void {
     const ctrl = this.form.get('grade');

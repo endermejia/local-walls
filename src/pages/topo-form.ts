@@ -84,7 +84,10 @@ import { handleErrorToast, slugify } from '../utils';
     TuiTitle,
   ],
   template: `
-    <form class="grid w-full gap-4" (submit.zoneless)="onSubmit($event)">
+    <form
+      class="flex flex-col w-full gap-4"
+      (submit.zoneless)="onSubmit($event)"
+    >
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="name">{{ 'topos.name' | translate }}</label>
         <input tuiTextfield id="name" [formControl]="name" autocomplete="off" />

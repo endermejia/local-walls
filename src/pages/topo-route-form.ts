@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { TuiButton, TuiLabel, TuiTextfield } from '@taiga-ui/core';
+import { TuiButton, TuiTextfield } from '@taiga-ui/core';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { TuiInputNumber } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
@@ -22,6 +22,7 @@ import { TopoRouteWithRoute } from '../models';
 
 import { ToastService, ToposService } from '../services';
 
+import { CounterComponent } from '../components/counter';
 import { handleErrorToast } from '../utils';
 
 @Component({
@@ -30,10 +31,10 @@ import { handleErrorToast } from '../utils';
     CommonModule,
     ReactiveFormsModule,
     TuiButton,
-    TuiLabel,
     TuiTextfield,
     TranslatePipe,
     TuiInputNumber,
+    CounterComponent,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
@@ -42,34 +43,7 @@ import { handleErrorToast } from '../utils';
       </div>
 
       <div class="flex items-center gap-2 justify-center">
-        <button
-          tuiIconButton
-          type="button"
-          size="m"
-          appearance="secondary"
-          iconStart="@tui.minus"
-          class="!rounded-full shrink-0"
-          (click)="changeNumber(-1)"
-        >
-          -
-        </button>
-        <tui-textfield [tuiTextfieldCleaner]="false" class="w-24">
-          <label tuiLabel for="number">
-            {{ 'labels.number' | translate }}
-          </label>
-          <input tuiInputNumber id="number" [formControl]="number" />
-        </tui-textfield>
-        <button
-          tuiIconButton
-          type="button"
-          size="m"
-          appearance="secondary"
-          iconStart="@tui.plus"
-          class="!rounded-full shrink-0"
-          (click)="changeNumber(1)"
-        >
-          +
-        </button>
+        <app-counter [formControl]="number" label="labels.number" [min]="1" />
       </div>
 
       <div class="flex flex-wrap gap-2 justify-end mt-4">
@@ -126,13 +100,6 @@ export class TopoRouteFormComponent {
     nonNullable: true,
     validators: [Validators.required, Validators.min(1)],
   });
-
-  protected changeNumber(delta: number): void {
-    const current = this.number.value;
-    const next = Math.max(1, current + delta);
-    this.number.setValue(next);
-    this.number.markAsDirty();
-  }
 
   constructor() {
     effect(() => {

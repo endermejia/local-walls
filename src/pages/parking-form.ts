@@ -28,6 +28,7 @@ import { ParkingDto } from '../models';
 
 import { MapService, ParkingsService, ToastService } from '../services';
 
+import { CounterComponent } from '../components/counter';
 import { handleErrorToast } from '../utils';
 
 interface MinimalParking {
@@ -50,6 +51,7 @@ interface MinimalParking {
     TranslatePipe,
     TuiInputNumber,
     TuiNumberFormat,
+    CounterComponent,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
@@ -115,36 +117,7 @@ interface MinimalParking {
           />
         </tui-textfield>
 
-        <div class="flex items-center gap-2">
-          <button
-            tuiIconButton
-            type="button"
-            size="m"
-            appearance="secondary"
-            iconStart="@tui.minus"
-            class="!rounded-full shrink-0"
-            (click)="changeSize(-1)"
-          >
-            -
-          </button>
-          <tui-textfield [tuiTextfieldCleaner]="false" class="grow">
-            <label tuiLabel for="size">{{
-              'labels.capacity' | translate
-            }}</label>
-            <input tuiInputNumber id="size" [formControl]="size" [min]="0" />
-          </tui-textfield>
-          <button
-            tuiIconButton
-            type="button"
-            size="m"
-            appearance="secondary"
-            iconStart="@tui.plus"
-            class="!rounded-full shrink-0"
-            (click)="changeSize(1)"
-          >
-            +
-          </button>
-        </div>
+        <app-counter [formControl]="size" label="labels.capacity" [min]="0" />
       </div>
 
       <div class="flex flex-wrap gap-2 justify-end">
@@ -253,13 +226,6 @@ export class ParkingFormComponent {
   size = new FormControl<number>(0, { nonNullable: true });
 
   private editingId: number | null = null;
-
-  protected changeSize(delta: number): void {
-    const current = this.size.value ?? 0;
-    const next = Math.max(0, current + delta);
-    this.size.setValue(next);
-    this.size.markAsDirty();
-  }
 
   constructor() {
     effect(() => {

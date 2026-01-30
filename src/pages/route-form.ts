@@ -48,6 +48,7 @@ import {
 
 import { RoutesService, SupabaseService, ToastService } from '../services';
 
+import { CounterComponent } from '../components/counter';
 import { handleErrorToast, slugify } from '../utils';
 
 interface MinimalRoute {
@@ -78,6 +79,7 @@ interface MinimalRoute {
     TuiFilterByInputPipe,
     TuiDataList,
     TuiHideSelectedPipe,
+    CounterComponent,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
@@ -209,37 +211,12 @@ interface MinimalRoute {
           </button>
         </div>
 
-        <div class="flex items-center gap-2">
-          <button
-            tuiIconButton
-            type="button"
-            size="m"
-            appearance="secondary"
-            iconStart="@tui.minus"
-            class="!rounded-full shrink-0"
-            (click)="changeHeight(-1)"
-          >
-            -
-          </button>
-          <tui-textfield [tuiTextfieldCleaner]="false" class="grow">
-            <label tuiLabel for="height">
-              {{ 'routes.height' | translate }}
-            </label>
-            <input tuiInputNumber id="height" [formControl]="height" />
-            <span class="tui-textfield__suffix">m</span>
-          </tui-textfield>
-          <button
-            tuiIconButton
-            type="button"
-            size="m"
-            appearance="secondary"
-            iconStart="@tui.plus"
-            class="!rounded-full shrink-0"
-            (click)="changeHeight(1)"
-          >
-            +
-          </button>
-        </div>
+        <app-counter
+          [formControl]="height"
+          label="routes.height"
+          suffix="m"
+          [min]="0"
+        />
       </div>
 
       @if (isEdit()) {
@@ -437,14 +414,7 @@ export class RouteFormComponent {
     },
   });
 
-  protected changeHeight(delta: number): void {
-    const current = this.height.value ?? 0;
-    const next = Math.max(0, current + delta);
-    this.height.setValue(next);
-    this.height.markAsDirty();
-  }
-
-  protected changeGrade(delta: number): void {
+  changeGrade(delta: number): void {
     const current = this.grade.value;
     const currentIndex = this.gradeOptions.indexOf(current);
     if (currentIndex === -1) return;

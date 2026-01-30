@@ -26,6 +26,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 import { CragsService, MapService, ToastService } from '../services';
 
+import { CounterComponent } from '../components/counter';
 import { handleErrorToast, slugify } from '../utils';
 
 interface MinimalCrag {
@@ -56,6 +57,7 @@ interface MinimalCrag {
     TuiTextarea,
     TuiNumberFormat,
     TuiInputChip,
+    CounterComponent,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
@@ -137,37 +139,12 @@ interface MinimalCrag {
             "
           />
         </tui-textfield>
-        <div class="flex items-center gap-2">
-          <button
-            tuiIconButton
-            type="button"
-            size="m"
-            appearance="secondary"
-            iconStart="@tui.minus"
-            class="!rounded-full shrink-0"
-            (click)="changeApproach(-1)"
-          >
-            -
-          </button>
-          <tui-textfield [tuiTextfieldCleaner]="false" class="grow">
-            <label tuiLabel for="approach">{{
-              'labels.approach' | translate
-            }}</label>
-            <input tuiInputNumber id="approach" [formControl]="approach" />
-            <span class="tui-textfield__suffix">min.</span>
-          </tui-textfield>
-          <button
-            tuiIconButton
-            type="button"
-            size="m"
-            appearance="secondary"
-            iconStart="@tui.plus"
-            class="!rounded-full shrink-0"
-            (click)="changeApproach(1)"
-          >
-            +
-          </button>
-        </div>
+        <app-counter
+          [formControl]="approach"
+          label="labels.approach"
+          suffix="min."
+          [min]="0"
+        />
       </div>
 
       <tui-textfield [tuiTextfieldCleaner]="false">
@@ -412,12 +389,6 @@ export class CragFormComponent {
 
   pickLocation(): void {
     this.mapService.pickLocationAndUpdate(this.latitude, this.longitude);
-  }
-
-  changeApproach(delta: number): void {
-    const current = this.approach.value ?? 0;
-    this.approach.setValue(Math.max(0, current + delta));
-    this.approach.markAsDirty();
   }
 
   onPasteLocation(event: ClipboardEvent): void {
