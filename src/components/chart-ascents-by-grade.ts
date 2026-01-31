@@ -88,7 +88,8 @@ export class ChartAscentsByGradeComponent {
   private readonly normalizedCounts: Signal<RoutesByGrade> = computed(() => {
     const counts: RoutesByGrade = {};
     for (const ascent of this.ascents()) {
-      const g = VERTICAL_LIFE_TO_LABEL[ascent.grade as VERTICAL_LIFE_GRADES];
+      const displayGrade = ascent.grade ?? ascent.route?.grade;
+      const g = VERTICAL_LIFE_TO_LABEL[displayGrade as VERTICAL_LIFE_GRADES];
       if (g) {
         const gradeLabel = g as GradeLabel;
         counts[gradeLabel] = (counts[gradeLabel] ?? 0) + 1;
