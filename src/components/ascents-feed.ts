@@ -1,9 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  output,
+} from '@angular/core';
 
 import { TuiSkeleton } from '@taiga-ui/kit';
 
-import { RouteAscentWithExtras } from '../models';
+import {
+  RouteAscentWithExtras,
+  VERTICAL_LIFE_GRADES,
+  VERTICAL_LIFE_TO_LABEL,
+} from '../models';
 
 import { AscentCardComponent } from './ascent-card';
 import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
@@ -19,6 +28,22 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
   template: `
     <div class="flex flex-col gap-6 mt-4">
       @for (ascent of ascents(); track ascent.id) {
+        @if (groupByGrade()) {
+          @let grade = ascent.grade ?? ascent.route?.grade;
+          @if (
+            grade !== null &&
+            grade !== undefined &&
+            showGradeHeader(ascent, $index)
+          ) {
+            <div class="mt-4 mb-2">
+              <span
+                class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-bold text-sm"
+              >
+                {{ gradeLabelByNumber[asGrade(grade)] }}
+              </span>
+            </div>
+          }
+        }
         @defer (on viewport) {
           <app-ascent-card
             [data]="ascent"
@@ -88,6 +113,7 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
 })
 export class AscentsFeedComponent {
   ascents = input.required<RouteAscentWithExtras[]>();
+  groupByGrade = input(false);
   isLoading = input(false);
   hasMore = input(false);
   showUser = input(true);
@@ -97,4 +123,21 @@ export class AscentsFeedComponent {
   loadMore = output<void>();
   follow = output<string>();
   unfollow = output<string>();
+
+  protected readonly gradeLabelByNumber = VERTICAL_LIFE_TO_LABEL;
+
+  protected asGrade(grade: number): VERTICAL_LIFE_GRADES {
+    return grade as VERTICAL_LIFE_GRADES;
+  }
+
+  protected showGradeHeader(
+    ascent: RouteAscentWithExtras,
+    index: number,
+  ): boolean {
+    if (index === 0) return true;
+    const prev = this.ascents()[index - 1];
+    const currentGrade = ascent.grade ?? ascent.route?.grade;
+    const prevGrade = prev.grade ?? prev.route?.grade;
+    return currentGrade !== prevGrade;
+  }
 }

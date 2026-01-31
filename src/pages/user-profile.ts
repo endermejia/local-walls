@@ -342,6 +342,7 @@ import {
                   [hasMore]="hasMore()"
                   [showUser]="false"
                   [followedIds]="followedIds()"
+                  [groupByGrade]="sortFilter() === 'grade'"
                   (loadMore)="loadMore()"
                   (follow)="onFollow($event)"
                   (unfollow)="onUnfollow($event)"

@@ -102,13 +102,11 @@ export class CounterComponent implements ControlValueAccessor, OnInit {
   step = input<number>(1);
   disabled = input<boolean>(false);
 
-  value = model<number>(0);
+  value = model<number | null>(null);
 
-  protected readonly control = new FormControl<number>(0, {
-    nonNullable: true,
-  });
+  protected readonly control = new FormControl<number | null>(null);
 
-  private onChange: (value: number) => void = () => {
+  private onChange: (value: number | null) => void = () => {
     // no-op
   };
   private onTouched: () => void = () => {
@@ -136,20 +134,20 @@ export class CounterComponent implements ControlValueAccessor, OnInit {
   }
 
   change(delta: number): void {
-    const currentValue = this.control.value ?? 0;
+    const currentValue = this.control.value;
     const newValue = Math.min(
       this.max(),
-      Math.max(this.min(), currentValue + delta),
+      Math.max(this.min(), (currentValue || 0) + delta),
     );
     this.control.setValue(newValue);
     this.onTouched();
   }
 
-  writeValue(value: number): void {
-    this.control.setValue(value || 0, { emitEvent: false });
+  writeValue(value: number | null): void {
+    this.control.setValue(value, { emitEvent: false });
   }
 
-  registerOnChange(fn: (value: number) => void): void {
+  registerOnChange(fn: (value: number | null) => void): void {
     this.onChange = fn;
   }
 
