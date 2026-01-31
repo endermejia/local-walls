@@ -35,12 +35,11 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
             grade !== undefined &&
             showGradeHeader(ascent, $index)
           ) {
-            <div class="mt-4 mb-2">
-              <span
-                class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-bold text-sm"
-              >
+            <div class="mt-10 mb-4 flex items-center gap-4">
+              <span class="text-2xl font-black shrink-0">
                 {{ gradeLabelByNumber[asGrade(grade)] }}
               </span>
+              <div class="h-px grow bg-neutral-200"></div>
             </div>
           }
         }
