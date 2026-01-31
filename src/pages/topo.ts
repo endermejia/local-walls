@@ -289,20 +289,25 @@ export interface TopoRouteRow {
                             col === 'admin_actions'
                           "
                         >
-                          @switch (col) {
-                            @case ('index') {
-                              #
+                          <div [class.flex]="col === 'expand'" class="items-center justify-center gap-1">
+                            @if (col === 'expand' && isMobile) {
+                              <tui-icon icon="@tui.square-check-big" class="text-xs" />
                             }
-                            @case ('name') {
-                              {{ 'routes.name' | translate }}
+                            @switch (col) {
+                              @case ('index') {
+                                #
+                              }
+                              @case ('name') {
+                                {{ 'routes.name' | translate }}
+                              }
+                              @case ('grade') {
+                                {{ 'labels.grade' | translate }}
+                              }
+                              @case ('height') {
+                                {{ 'routes.height' | translate }}
+                              }
                             }
-                            @case ('grade') {
-                              {{ 'labels.grade' | translate }}
-                            }
-                            @case ('height') {
-                              {{ 'routes.height' | translate }}
-                            }
-                          }
+                          </div>
                         </th>
                       }
                     </tr>
@@ -518,38 +523,97 @@ export interface TopoRouteRow {
                       <tui-table-expand #exp [expanded]="false">
                         <tr tuiTr>
                           <td [colSpan]="columns().length" tuiTd>
-                            <div class="flex flex-col gap-2 p-2 text-sm">
-                               <div class="flex justify-between items-center">
-                                  <span class="opacity-70">{{ 'routes.height' | translate }}</span>
-                                  <span class="font-medium">{{ item.height ? item.height + 'm' : '-' }}</span>
-                               </div>
-                               @if (isAdmin || isEquipper) {
-                                  <div class="flex justify-between items-center mt-2 pt-2 border-t border-black/5">
-                                     <span class="opacity-70">{{ 'labels.admin_actions' | translate }}</span>
-                                     <div class="flex gap-1">
-                                        <button
-                                          tuiIconButton
-                                          size="s"
-                                          appearance="neutral"
-                                          iconStart="@tui.square-pen"
-                                          class="!rounded-full"
-                                          (click.zoneless)="openEditTopoRoute(item._ref)"
-                                        >
-                                          {{ 'actions.edit' | translate }}
-                                        </button>
-                                        <button
-                                          tuiIconButton
-                                          size="s"
-                                          appearance="negative"
-                                          iconStart="@tui.unlink"
-                                          class="!rounded-full"
-                                          (click.zoneless)="deleteTopoRoute(item._ref)"
-                                        >
-                                          {{ 'actions.unlink' | translate }}
-                                        </button>
-                                     </div>
-                                  </div>
-                               }
+                            <div class="flex flex-col gap-3 p-3 bg-neutral-50 rounded-2xl border border-black/5">
+                              <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-3">
+                                  @if (item.height) {
+                                    <div class="flex items-center gap-1 opacity-70">
+                                      <tui-icon icon="@tui.arrow-up-right" class="text-xs" />
+                                      <span class="font-medium">{{ item.height }}m</span>
+                                    </div>
+                                  }
+                                </div>
+
+                                <div class="flex items-center gap-3">
+                                  @if (!item.climbed) {
+                                    <button
+                                      tuiIconButton
+                                      size="m"
+                                      appearance="neutral"
+                                      iconStart="@tui.circle-plus"
+                                      class="!rounded-full"
+                                      (click.zoneless)="onLogAscent(item._ref); $event.stopPropagation()"
+                                    >
+                                      {{ 'ascent.new' | translate }}
+                                    </button>
+                                  } @else if (item._ref.route.own_ascent; as ascentToEdit) {
+                                    <tui-avatar
+                                      size="m"
+                                      class="cursor-pointer !text-white"
+                                      [style.background]="
+                                        ascentsService.ascentInfo()[
+                                          ascentToEdit?.type || 'default'
+                                        ].background
+                                      "
+                                      (click.zoneless)="
+                                        onEditAscent(ascentToEdit, item.name);
+                                        $event.stopPropagation()
+                                      "
+                                    >
+                                      <tui-icon
+                                        [icon]="
+                                          ascentsService.ascentInfo()[
+                                            ascentToEdit?.type || 'default'
+                                          ].icon
+                                        "
+                                      />
+                                    </tui-avatar>
+                                  }
+
+                                  @if (!item.climbed) {
+                                    <button
+                                      tuiIconButton
+                                      size="m"
+                                      [appearance]="
+                                        item.project ? 'primary' : 'neutral'
+                                      "
+                                      iconStart="@tui.bookmark"
+                                      class="!rounded-full"
+                                      (click.zoneless)="onToggleProject(item); $event.stopPropagation()"
+                                    >
+                                      {{
+                                        (item.project
+                                          ? 'actions.project.remove'
+                                          : 'actions.project.add'
+                                        ) | translate
+                                      }}
+                                    </button>
+                                  }
+
+                                  @if (isAdmin || isEquipper) {
+                                      <button
+                                        tuiIconButton
+                                        size="m"
+                                        appearance="neutral"
+                                        iconStart="@tui.square-pen"
+                                        class="!rounded-full"
+                                        (click.zoneless)="openEditTopoRoute(item._ref); $event.stopPropagation()"
+                                      >
+                                        {{ 'actions.edit' | translate }}
+                                      </button>
+                                      <button
+                                        tuiIconButton
+                                        size="m"
+                                        appearance="negative"
+                                        iconStart="@tui.unlink"
+                                        class="!rounded-full"
+                                        (click.zoneless)="deleteTopoRoute(item._ref); $event.stopPropagation()"
+                                      >
+                                        {{ 'actions.unlink' | translate }}
+                                      </button>
+                                  }
+                                </div>
+                              </div>
                             </div>
                           </td>
                         </tr>
@@ -742,7 +806,7 @@ export class TopoComponent {
   protected readonly columns = computed(() => {
     const isMobile = this.global.isMobile();
     const base = isMobile
-      ? ['expand', 'index', 'grade', 'name', 'actions']
+      ? ['expand', 'index', 'grade', 'name']
       : ['index', 'grade', 'name', 'height', 'actions'];
     const crag = this.crag();
     if (this.global.isAllowedEquipper(crag?.area_id) && !isMobile) {
@@ -786,8 +850,8 @@ export class TopoComponent {
   );
 
   protected getSorter(col: string): TuiComparator<TopoRouteRow> | null {
-    if (col === 'actions' || col === 'admin_actions' || col === 'expand')
-      return null;
+    if (col === 'actions' || col === 'admin_actions') return null;
+    if (col === 'expand') return this.sorters['index'];
     return this.sorters[col] ?? null;
   }
 

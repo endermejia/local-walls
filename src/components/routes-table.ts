@@ -140,7 +140,10 @@ export interface RoutesTableRow {
                   [class.!w-24]="col === 'rating'"
                   [class.!w-32]="col === 'actions' || col === 'admin_actions'"
                 >
-                  <div>
+                  <div class="flex items-center gap-1">
+                    @if (col === 'expand' && isMobile) {
+                      <tui-icon icon="@tui.square-check-big" class="text-xs" />
+                    }
                     {{
                       col === 'actions' ||
                       col === 'admin_actions' ||
@@ -424,7 +427,7 @@ export interface RoutesTableRow {
                         <div class="flex items-center gap-3">
                            @if (!item.climbed) {
                             <button
-                              size="s"
+                              size="m"
                               appearance="neutral"
                               iconStart="@tui.circle-plus"
                               tuiIconButton
@@ -438,7 +441,7 @@ export interface RoutesTableRow {
                             </button>
                           } @else if (item._ref.own_ascent; as ascentToEdit) {
                             <tui-avatar
-                              size="s"
+                              size="m"
                               class="cursor-pointer !text-white"
                               [style.background]="
                                 ascentsService.ascentInfo()[
@@ -462,7 +465,7 @@ export interface RoutesTableRow {
 
                           @if (!item.climbed) {
                             <button
-                              size="s"
+                              size="m"
                               [appearance]="
                                 item.project ? 'primary' : 'neutral'
                               "
@@ -489,7 +492,7 @@ export interface RoutesTableRow {
 
                           @if ((global.isAdmin() || global.isAllowedEquipper(item._ref.area_id)) && showAdminActions()) {
                               <button
-                                size="s"
+                                size="m"
                                 appearance="neutral"
                                 iconStart="@tui.square-pen"
                                 tuiIconButton
@@ -503,7 +506,7 @@ export interface RoutesTableRow {
                                 {{ 'actions.edit' | translate }}
                               </button>
                               <button
-                                size="s"
+                                size="m"
                                 appearance="negative"
                                 iconStart="@tui.trash"
                                 tuiIconButton
@@ -570,7 +573,7 @@ export class RoutesTableComponent {
     TuiComparator<RoutesTableRow>
   > = {
     grade: (a, b) => tuiDefaultSort(a._ref.grade, b._ref.grade),
-    route: () => 0,
+    route: (a, b) => tuiDefaultSort(a.route, b.route),
     height: (a, b) => tuiDefaultSort(a.height ?? 0, b.height),
     rating: (a, b) => tuiDefaultSort(a.rating, b.rating),
     ascents: (a, b) => tuiDefaultSort(a.ascents, b.ascents),
@@ -578,7 +581,7 @@ export class RoutesTableComponent {
 
   // Internal state for sorting
   protected currentSorter: TuiComparator<RoutesTableRow> =
-    this.sorters['grade'];
+    this.sorters['ascents'];
   protected currentDirection: TuiSortDirection = TuiSortDirection.Desc;
 
   constructor() {
@@ -643,9 +646,8 @@ export class RoutesTableComponent {
   );
 
   protected getSorter(col: string): TuiComparator<RoutesTableRow> | null {
-    if (col === 'actions' || col === 'admin_actions' || col === 'expand')
-      return null;
-    if (col === 'route') return this.sorters['grade'];
+    if (col === 'actions' || col === 'admin_actions') return null;
+    if (col === 'expand') return this.sorters['ascents'];
     return this.sorters[col as RoutesTableKey] ?? null;
   }
 
