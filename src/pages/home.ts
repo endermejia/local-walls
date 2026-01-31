@@ -1,12 +1,9 @@
 import { AsyncPipe, CommonModule, isPlatformBrowser } from '@angular/common';
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
   inject,
   OnDestroy,
-  output,
   PLATFORM_ID,
   signal,
 } from '@angular/core';
@@ -15,23 +12,14 @@ import { Router, RouterLink } from '@angular/router';
 
 import {
   TuiAppearance,
-  TuiButton,
   TuiLoader,
   TuiScrollbar,
 } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
-import {
-  TUI_CONFIRM,
-  TuiAvatar,
-  TuiConfirmData,
-  TuiRating,
-} from '@taiga-ui/kit';
-import { TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   concatMap,
-  firstValueFrom,
   from,
   Observable,
   scan,
@@ -49,51 +37,20 @@ import {
 
 import { FollowsService, GlobalData, SupabaseService } from '../services';
 
-import { AscentCommentsComponent, AscentLikesComponent } from '../components';
-
-@Component({
-  selector: 'app-infinite-scroll-trigger',
-  template: '<div class="h-1 w-full"></div>',
-})
-export class InfiniteScrollTriggerComponent
-  implements AfterViewInit, OnDestroy
-{
-  private el = inject(ElementRef);
-  intersect = output<void>();
-  private observer?: IntersectionObserver;
-
-  ngAfterViewInit() {
-    this.observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        this.intersect.emit();
-      }
-    });
-    this.observer.observe(this.el.nativeElement);
-  }
-
-  ngOnDestroy() {
-    this.observer?.disconnect();
-  }
-}
+import { AscentsFeedComponent } from '../components';
 
 @Component({
   selector: 'app-home',
   imports: [
-    AscentLikesComponent,
-    AscentCommentsComponent,
+    AscentsFeedComponent,
     AsyncPipe,
     CommonModule,
     FormsModule,
-    InfiniteScrollTriggerComponent,
     ReactiveFormsModule,
     RouterLink,
     TranslatePipe,
     TuiAppearance,
-    TuiAvatar,
-    TuiButton,
-    TuiHeader,
     TuiLoader,
-    TuiRating,
     TuiScrollbar,
   ],
   template: `
@@ -126,164 +83,23 @@ export class InfiniteScrollTriggerComponent
         }
 
         <!-- Ascents Feed -->
-        <div class="flex flex-col gap-6 mt-4">
-          @if (ascents$ | async; as ascents) {
-            @for (ascent of ascents; track ascent.id) {
-              @defer (on viewport) {
-                <button
-                  tuiAppearance="flat-grayscale"
-                  (click)="
-                    ascent.route
-                      ? router.navigate([
-                          '/area',
-                          ascent.route.area_slug,
-                          ascent.route.crag_slug,
-                          ascent.route.slug,
-                        ])
-                      : null
-                  "
-                  class="flex flex-col gap-4 p-4 rounded-3xl relative no-underline text-inherit hover:no-underline"
-                >
-                  <header tuiHeader class="flex justify-between items-center">
-                    <div
-                      role="link"
-                      tabindex="0"
-                      (click)="
-                        $event.stopPropagation();
-                        $event.preventDefault();
-                        router.navigate(['/profile', ascent.user_id])
-                      "
-                      (keydown.enter)="
-                        $event.stopPropagation();
-                        $event.preventDefault();
-                        router.navigate(['/profile', ascent.user_id])
-                      "
-                      class="flex items-center gap-3 no-underline text-inherit cursor-pointer group/user"
-                    >
-                      <tui-avatar
-                        [src]="
-                          supabase.buildAvatarUrl(ascent.user?.avatar) ||
-                          '@tui.user'
-                        "
-                        size="s"
-                      />
-                      <div class="flex flex-col">
-                        <span
-                          class="font-bold text-sm group-hover/user:underline"
-                        >
-                          {{ ascent.user?.name || 'User' }}
-                        </span>
-                        <span class="text-xs text-gray-400">
-                          {{ ascent.date | date: 'mediumDate' }}
-                        </span>
-                      </div>
-                    </div>
-
-                    @if (ascent.user_id !== supabase.authUserId()) {
-                      @if (followedIds().has(ascent.user_id)) {
-                        <button
-                          tuiButton
-                          size="s"
-                          appearance="secondary-grayscale"
-                          class="!rounded-full"
-                          (click)="
-                            unfollow(
-                              ascent.user_id,
-                              ascent.user?.name || 'User'
-                            );
-                            $event.stopPropagation()
-                          "
-                        >
-                          {{ 'actions.following' | translate }}
-                        </button>
-                      } @else {
-                        <button
-                          tuiButton
-                          size="s"
-                          appearance="action"
-                          class="!rounded-full"
-                          (click)="
-                            follow(ascent.user_id); $event.stopPropagation()
-                          "
-                        >
-                          {{ 'actions.follow' | translate }}
-                        </button>
-                      }
-                    }
-                  </header>
-
-                  <div class="flex flex-col gap-1">
-                    @if (ascent.route) {
-                      <div class="flex flex-wrap items-center gap-2">
-                        <span class="font-bold text-lg">
-                          {{ ascent.route.name }}
-                        </span>
-                        @if (ascent.rate) {
-                          <tui-rating
-                            [ngModel]="ascent.rate"
-                            [max]="5"
-                            [readOnly]="true"
-                            class="pointer-events-none"
-                            [style.font-size.rem]="0.5"
-                          />
-                        }
-                      </div>
-                      <div
-                        class="flex items-center gap-2 text-sm text-gray-600"
-                      >
-                        <span class="font-semibold text-blue-600">
-                          {{ gradeLabelByNumber[ascent.route.grade] }}
-                        </span>
-                        @if (ascent.type) {
-                          <span
-                            class="px-2 py-0.5 bg-gray-100 rounded text-[10px] uppercase font-bold"
-                          >
-                            {{ 'ascentTypes.' + ascent.type | translate }}
-                          </span>
-                        }
-                        <span>•</span>
-                        <span>{{ ascent.route.crag_name }}</span>
-                      </div>
-                    }
-                  </div>
-
-                  @if (ascent.comment) {
-                    <p
-                      class="text-sm text-gray-700 italic border-l-2 border-gray-200 pl-3 py-1 self-start"
-                    >
-                      "{{ ascent.comment }}"
-                    </p>
-                  }
-
-                  <footer class="flex items-center gap-4 mt-2">
-                    <app-ascent-likes [ascentId]="ascent.id" />
-                    <app-ascent-comments [ascentId]="ascent.id" />
-                  </footer>
-                </button>
-              } @placeholder {
-                <div
-                  class="h-64 w-full bg-gray-50 animate-pulse rounded-xl"
-                ></div>
-              }
-            }
-
-            @if (isLoading()) {
-              <div class="flex justify-center p-8">
-                <tui-loader />
-              </div>
-            }
-
-            @if (ascents.length > 0 && !isLoading() && hasMore()) {
-              <app-infinite-scroll-trigger (intersect)="loadMore()" />
-            }
-          } @else {
-            @if (isLoading()) {
-              <div class="flex justify-center p-20">
-                <tui-loader size="xl" />
-              </div>
-            }
+        @if (ascents$ | async; as ascents) {
+          <app-ascents-feed
+            [ascents]="ascents"
+            [isLoading]="isLoading()"
+            [hasMore]="hasMore()"
+            [followedIds]="followedIds()"
+            (loadMore)="loadMore()"
+            (follow)="onFollow($event)"
+            (unfollow)="onUnfollow($event)"
+          />
+        } @else {
+          @if (isLoading()) {
+            <div class="flex justify-center p-20">
+              <tui-loader size="xl" />
+            </div>
           }
-        </div>
+        }
       </div>
     </tui-scrollbar>
   `,
@@ -454,46 +270,20 @@ export class HomeComponent implements OnDestroy {
     });
   }
 
-  async follow(userId: string) {
-    const success = await this.followsService.follow(userId);
-    if (success) {
-      this.followedIds.update((s) => {
-        const next = new Set(s);
-        next.add(userId);
-        return next;
-      });
-    }
+  onFollow(userId: string) {
+    this.followedIds.update((s) => {
+      const next = new Set(s);
+      next.add(userId);
+      return next;
+    });
   }
 
-  async unfollow(userId: string, name: string) {
-    const data: TuiConfirmData = {
-      content: this.translate.instant('actions.unfollowConfirm', {
-        name,
-      }),
-      yes: this.translate.instant('actions.unfollow'),
-      no: this.translate.instant('actions.cancel'),
-      appearance: 'negative',
-    };
-
-    const confirmed = await firstValueFrom(
-      this.dialogs.open<boolean>(TUI_CONFIRM, {
-        label: this.translate.instant('actions.unfollow'),
-        size: 's',
-        data,
-      }),
-      { defaultValue: false },
-    );
-
-    if (confirmed) {
-      const success = await this.followsService.unfollow(userId);
-      if (success) {
-        this.followedIds.update((s) => {
-          const next = new Set(s);
-          next.delete(userId);
-          return next;
-        });
-      }
-    }
+  onUnfollow(userId: string) {
+    this.followedIds.update((s) => {
+      const next = new Set(s);
+      next.delete(userId);
+      return next;
+    });
   }
 
   loadMore() {

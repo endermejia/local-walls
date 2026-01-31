@@ -124,7 +124,7 @@ import { handleErrorToast } from '../utils';
           size="l"
           tuiTable
           class="w-full"
-          [columns]="columns"
+          [columns]="columns()"
           [direction]="direction()"
           [sorter]="sorter()"
           (sortChange)="onSortChange($event)"
@@ -134,10 +134,20 @@ import { handleErrorToast } from '../utils';
               <th *tuiHead="'name'" tuiTh [sorter]="nameSorter">
                 {{ 'labels.name' | translate }}
               </th>
-              <th *tuiHead="'description'" tuiTh [sorter]="descriptionSorter">
+              <th
+                *tuiHead="'description'"
+                tuiTh
+                [sorter]="descriptionSorter"
+                class="!w-96"
+              >
                 {{ 'labels.description' | translate }}
               </th>
-              <th *tuiHead="'actions'" tuiTh [sorter]="null"></th>
+              <th
+                *tuiHead="'actions'"
+                tuiTh
+                [sorter]="null"
+                class="!w-24 text-right"
+              ></th>
             </tr>
           </thead>
 
@@ -204,7 +214,7 @@ import { handleErrorToast } from '../utils';
                 </tr>
               } @empty {
                 <tr tuiTr>
-                  <td [attr.colspan]="columns.length" tuiTd>
+                  <td [attr.colspan]="columns().length" tuiTd>
                     <app-empty-state />
                   </td>
                 </tr>
@@ -227,7 +237,12 @@ export class AdminEquippersListComponent {
   private readonly dialogs = inject(TuiDialogService);
 
   protected readonly options = { updateOn: 'blur' } as const;
-  protected readonly columns = ['name', 'description', 'actions'] as const;
+  protected readonly columns = computed(() => {
+    const cols = ['name', 'description', 'actions'];
+    return this.global.isMobile()
+      ? cols.filter((c) => c !== 'description')
+      : cols;
+  });
 
   protected readonly loading = signal(true);
   protected readonly equippers: WritableSignal<EquipperDto[]> = signal([]);

@@ -1,4 +1,9 @@
-import { DecimalPipe, isPlatformBrowser, Location } from '@angular/common';
+import {
+  DecimalPipe,
+  isPlatformBrowser,
+  Location,
+  LowerCasePipe,
+} from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,6 +14,7 @@ import {
   InputSignal,
   PLATFORM_ID,
   resource,
+  signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -33,13 +39,14 @@ import {
 
 import {
   AscentsService,
+  FollowsService,
   GlobalData,
   RoutesService,
   ToastService,
 } from '../services';
 
 import {
-  AscentsTableComponent,
+  AscentsFeedComponent,
   ChartAscentsByGradeComponent,
   SectionHeaderComponent,
 } from '../components';
@@ -59,9 +66,10 @@ import { handleErrorToast } from '../utils';
     TuiRating,
     DecimalPipe,
     FormsModule,
-    AscentsTableComponent,
+    AscentsFeedComponent,
     TuiIcon,
     ChartAscentsByGradeComponent,
+    LowerCasePipe,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -261,21 +269,26 @@ import { handleErrorToast } from '../utils';
           </div>
         </div>
 
-        <!-- Ascents Table Section -->
+        <!-- Ascents Section -->
         <div class="mt-6">
           <h2 class="text-2xl font-bold mb-4">
-            {{ 'labels.ascents' | translate }}
+            {{ totalAscents() }}
+            {{
+              'labels.' + (totalAscents() === 1 ? 'ascent' : 'ascents')
+                | translate
+                | lowercase
+            }}
           </h2>
-          <div>
-            <app-ascents-table
-              [data]="ascents()"
-              [total]="totalAscents()"
-              [page]="global.ascentsPage()"
-              [size]="global.ascentsSize()"
-              (paginationChange)="global.onAscentsPagination($event)"
-              [showRoute]="false"
-            />
-          </div>
+          <app-ascents-feed
+            [ascents]="accumulatedAscents()"
+            [isLoading]="isLoading()"
+            [hasMore]="hasMore()"
+            [showRoute]="false"
+            [followedIds]="followedIds()"
+            (loadMore)="loadMore()"
+            (follow)="onFollow($event)"
+            (unfollow)="onUnfollow($event)"
+          />
         </div>
       } @else {
         <div class="flex items-center justify-center w-full min-h-[50vh]">
@@ -292,6 +305,7 @@ export class RouteComponent {
   private readonly location = inject(Location);
   protected readonly routesService = inject(RoutesService);
   protected readonly ascentsService = inject(AscentsService);
+  private readonly followsService = inject(FollowsService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
@@ -328,6 +342,37 @@ export class RouteComponent {
     () => this.global.routeAscentsResource.value()?.total ?? 0,
   );
 
+  protected readonly accumulatedAscents = signal<RouteAscentWithExtras[]>([]);
+  protected readonly isLoading = signal(false);
+  protected readonly followedIds = signal<Set<string>>(new Set());
+
+  protected readonly hasMore = computed(() => {
+    return this.accumulatedAscents().length < this.totalAscents();
+  });
+
+  loadMore() {
+    if (this.hasMore() && !this.isLoading()) {
+      this.isLoading.set(true);
+      this.global.ascentsPage.update((p) => p + 1);
+    }
+  }
+
+  onFollow(userId: string) {
+    this.followedIds.update((s) => {
+      const next = new Set(s);
+      next.add(userId);
+      return next;
+    });
+  }
+
+  onUnfollow(userId: string) {
+    this.followedIds.update((s) => {
+      const next = new Set(s);
+      next.delete(userId);
+      return next;
+    });
+  }
+
   protected readonly equippersNames = computed(() =>
     this.equippers()
       .map((e) => e.name)
@@ -335,6 +380,13 @@ export class RouteComponent {
   );
 
   constructor() {
+    const isBrowser = isPlatformBrowser(this.platformId);
+    if (isBrowser) {
+      void this.followsService
+        .getFollowedIds()
+        .then((ids) => this.followedIds.set(new Set(ids)));
+    }
+
     effect(() => {
       const aSlug = this.areaSlug();
       const cSlug = this.cragSlug();
@@ -344,6 +396,23 @@ export class RouteComponent {
       this.global.selectedAreaSlug.set(aSlug);
       this.global.selectedCragSlug.set(cSlug);
       this.global.selectedRouteSlug.set(rSlug);
+    });
+
+    effect(() => {
+      const res = this.global.routeAscentsResource.value();
+      if (res) {
+        if (this.global.ascentsPage() === 0) {
+          this.accumulatedAscents.set(res.items);
+        } else {
+          this.accumulatedAscents.update((prev: RouteAscentWithExtras[]) => [
+            ...prev,
+            ...res.items,
+          ]);
+        }
+        this.isLoading.set(false);
+      } else if (this.global.routeAscentsResource.error()) {
+        this.isLoading.set(false);
+      }
     });
   }
 

@@ -1,4 +1,4 @@
-import { isPlatformBrowser } from '@angular/common';
+import { DecimalPipe, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -16,6 +16,7 @@ import { Router, RouterLink } from '@angular/router';
 import {
   TuiSortDirection,
   TuiTable,
+  TuiTableExpand,
   TuiTableSortChange,
   TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
@@ -32,6 +33,7 @@ import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
   TuiAvatar,
+  TuiChevron,
   type TuiConfirmData,
   TuiRating,
 } from '@taiga-ui/kit';
@@ -103,14 +105,19 @@ export interface RoutesTableRow {
     TuiScrollbar,
     AvatarGradeComponent,
     EmptyStateComponent,
+    TuiTableExpand,
+    TuiChevron,
+    DecimalPipe,
   ],
   template: `
     @let data = tableData();
+    @let isMobile = global.isMobile();
     @if (data.length > 0) {
-      <tui-scrollbar class="grow min-h-0">
+      <tui-scrollbar class="grow min-h-0 no-scrollbar">
         <table
           tuiTable
           class="w-full"
+          [class.table-fixed]="isMobile"
           [columns]="columns()"
           [direction]="currentDirection"
           [sorter]="currentSorter"
@@ -119,10 +126,28 @@ export interface RoutesTableRow {
           <thead tuiThead>
             <tr tuiThGroup>
               @for (col of columns(); track col) {
-                <th *tuiHead="col" tuiTh [sorter]="getSorter(col)">
-                  <div>
+                <th
+                  *tuiHead="col"
+                  tuiTh
+                  [sorter]="getSorter(col)"
+                  [class.text-right]="
+                    col === 'actions' || col === 'admin_actions'
+                  "
+                  [class.!w-12]="col === 'expand'"
+                  [class.!w-20]="
+                    col === 'grade' || col === 'height' || col === 'ascents'
+                  "
+                  [class.!w-24]="col === 'rating'"
+                  [class.!w-32]="col === 'actions' || col === 'admin_actions'"
+                >
+                  <div class="flex items-center gap-1">
+                    @if (col === 'expand' && isMobile) {
+                      <tui-icon icon="@tui.square-check-big" class="text-xs" />
+                    }
                     {{
-                      col === 'actions' || col === 'admin_actions'
+                      col === 'actions' ||
+                      col === 'admin_actions' ||
+                      col === 'expand'
                         ? ''
                         : ('labels.' + col | translate)
                     }}
@@ -132,8 +157,8 @@ export interface RoutesTableRow {
             </tr>
           </thead>
           @let sortedData = data | tuiTableSort;
-          <tbody tuiTbody [data]="sortedData">
-            @for (item of sortedData; track item.key) {
+          @for (item of sortedData; track item.key) {
+            <tbody tuiTbody>
               <tr
                 tuiTr
                 class="cursor-pointer"
@@ -148,34 +173,55 @@ export interface RoutesTableRow {
                         : ''
                     : ''
                 "
-                (click.zoneless)="router.navigate(item.link)"
+                (click.zoneless)="
+                  isMobile ? exp.toggle() : router.navigate(item.link)
+                "
               >
                 @for (col of columns(); track col) {
-                  <td *tuiCell="col" tuiTd>
+                  <td
+                    *tuiCell="col"
+                    tuiTd
+                    [class.text-right]="
+                      col === 'actions' || col === 'admin_actions'
+                    "
+                  >
                     @switch (col) {
+                      @case ('expand') {
+                        <button
+                          appearance="flat-grayscale"
+                          size="xs"
+                          tuiIconButton
+                          type="button"
+                          class="!rounded-full"
+                          [tuiChevron]="exp.expanded()"
+                          (click.zoneless)="exp.toggle(); $event.stopPropagation()"
+                        >
+                          Toggle
+                        </button>
+                      }
                       @case ('grade') {
                         <div tuiCell size="m">
                           <app-avatar-grade
                             [grade]="item._ref.grade"
-                            size="m"
+                            [size]="isMobile ? 'm' : 's'"
                           />
                         </div>
                       }
                       @case ('route') {
                         <div tuiCell size="m">
-                          <div class="flex flex-col">
+                          <div class="flex flex-col min-w-0">
                             <a
                               tuiLink
                               [routerLink]="item.link"
                               [style.color]="
                                 item.liked ? 'var(--tui-status-negative)' : ''
                               "
-                              class="align-self-start whitespace-nowrap font-bold text-base"
+                              class="align-self-start font-bold text-base truncate max-w-full block"
                               (click.zoneless)="$event.stopPropagation()"
                             >
                               {{ item.route || ('labels.route' | translate) }}
                             </a>
-                            @if (showLocation()) {
+                            @if (showLocation() && !isMobile) {
                               <div
                                 class="text-xs opacity-70 flex gap-1 items-center whitespace-nowrap"
                               >
@@ -246,6 +292,7 @@ export interface RoutesTableRow {
                             </button>
                           } @else if (item._ref.own_ascent; as ascentToEdit) {
                             <tui-avatar
+                              size="s"
                               class="cursor-pointer !text-white"
                               [style.background]="
                                 ascentsService.ascentInfo()[
@@ -355,8 +402,144 @@ export interface RoutesTableRow {
                   </td>
                 }
               </tr>
-            }
-          </tbody>
+              <tui-table-expand #exp [expanded]="false">
+                <tr tuiTr>
+                  <td [colSpan]="columns().length" tuiTd>
+                    <div class="flex flex-col gap-3 p-3 bg-neutral-50 rounded-2xl border border-black/5">
+                      <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-3">
+                          @if (item.height) {
+                            <div class="flex items-center gap-1 opacity-70">
+                              <tui-icon icon="@tui.arrow-up-right" class="text-xs" />
+                              <span class="font-medium">{{ item.height }}m</span>
+                            </div>
+                          }
+                          <div class="flex items-center gap-1 opacity-70">
+                            <tui-icon icon="@tui.star" class="text-xs" />
+                            <span class="font-medium">{{ item.rating | number: '1.1-1' }}</span>
+                          </div>
+                          <div class="flex items-center gap-1 opacity-70">
+                            <tui-icon icon="@tui.square-check-big" class="text-xs" />
+                            <span class="font-medium">{{ item.ascents }}</span>
+                          </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                           @if (!item.climbed) {
+                            <button
+                              size="m"
+                              appearance="neutral"
+                              iconStart="@tui.circle-plus"
+                              tuiIconButton
+                              type="button"
+                              class="!rounded-full"
+                              (click.zoneless)="
+                                onLogAscent(item._ref); $event.stopPropagation()
+                              "
+                            >
+                              {{ 'ascent.new' | translate }}
+                            </button>
+                          } @else if (item._ref.own_ascent; as ascentToEdit) {
+                            <tui-avatar
+                              size="m"
+                              class="cursor-pointer !text-white"
+                              [style.background]="
+                                ascentsService.ascentInfo()[
+                                  ascentToEdit?.type || 'default'
+                                ].background
+                              "
+                              (click.zoneless)="
+                                onEditAscent(ascentToEdit, item._ref.name);
+                                $event.stopPropagation()
+                              "
+                            >
+                              <tui-icon
+                                [icon]="
+                                  ascentsService.ascentInfo()[
+                                    ascentToEdit?.type || 'default'
+                                  ].icon
+                                "
+                              />
+                            </tui-avatar>
+                          }
+
+                          @if (!item.climbed) {
+                            <button
+                              size="m"
+                              [appearance]="
+                                item.project ? 'primary' : 'neutral'
+                              "
+                              iconStart="@tui.bookmark"
+                              tuiIconButton
+                              type="button"
+                              class="!rounded-full"
+                              (click.zoneless)="
+                                routesService.toggleRouteProject(
+                                  item._ref.id,
+                                  item._ref
+                                );
+                                $event.stopPropagation()
+                              "
+                            >
+                              {{
+                                (item.project
+                                  ? 'actions.project.remove'
+                                  : 'actions.project.add'
+                                ) | translate
+                              }}
+                            </button>
+                          }
+
+                          @if ((global.isAdmin() || global.isAllowedEquipper(item._ref.area_id)) && showAdminActions()) {
+                              <button
+                                size="m"
+                                appearance="neutral"
+                                iconStart="@tui.square-pen"
+                                tuiIconButton
+                                type="button"
+                                class="!rounded-full"
+                                (click.zoneless)="
+                                  openEditRoute(item._ref);
+                                  $event.stopPropagation()
+                                "
+                              >
+                                {{ 'actions.edit' | translate }}
+                              </button>
+                              <button
+                                size="m"
+                                appearance="negative"
+                                iconStart="@tui.trash"
+                                tuiIconButton
+                                type="button"
+                                class="!rounded-full"
+                                (click.zoneless)="
+                                  deleteRoute(item._ref); $event.stopPropagation()
+                                "
+                              >
+                                {{ 'actions.delete' | translate }}
+                              </button>
+                          }
+                        </div>
+                      </div>
+
+                      @if (showLocation()) {
+                         <div class="text-xs opacity-60 flex gap-1 items-center border-t border-black/5 pt-2">
+                            <tui-icon icon="@tui.map-pin" class="text-[10px]" />
+                            <a tuiLink [routerLink]="['/area', item.area_slug]" (click)="$event.stopPropagation()">
+                              {{ item.area_name }}
+                            </a>
+                            <span>/</span>
+                            <a tuiLink [routerLink]="['/area', item.area_slug, item.crag_slug]" (click)="$event.stopPropagation()">
+                              {{ item.crag_name }}
+                            </a>
+                         </div>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              </tui-table-expand>
+            </tbody>
+          }
         </table>
       </tui-scrollbar>
     } @else {
@@ -389,7 +572,7 @@ export class RoutesTableComponent {
     RoutesTableKey,
     TuiComparator<RoutesTableRow>
   > = {
-    grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
+    grade: (a, b) => tuiDefaultSort(a._ref.grade, b._ref.grade),
     route: (a, b) => tuiDefaultSort(a.route, b.route),
     height: (a, b) => tuiDefaultSort(a.height ?? 0, b.height),
     rating: (a, b) => tuiDefaultSort(a.rating, b.rating),
@@ -408,10 +591,12 @@ export class RoutesTableComponent {
   }
 
   protected readonly columns = computed(() => {
-    let cols = ['grade', 'route', 'height', 'rating', 'ascents', 'actions'];
-    if (this.global.isMobile()) {
-      cols = cols.filter((col) => col !== 'height' && col !== 'rating');
+    const isMobile = this.global.isMobile();
+    if (isMobile) {
+      return ['expand', 'grade', 'route'];
     }
+
+    const cols = ['grade', 'route', 'height', 'rating', 'ascents', 'actions'];
     if (
       (this.global.isAdmin() || this.global.isEquipper()) &&
       this.showAdminActions()
@@ -462,11 +647,12 @@ export class RoutesTableComponent {
 
   protected getSorter(col: string): TuiComparator<RoutesTableRow> | null {
     if (col === 'actions' || col === 'admin_actions') return null;
+    if (col === 'expand') return this.sorters['ascents'];
     return this.sorters[col as RoutesTableKey] ?? null;
   }
 
   protected onSortChange(sort: TuiTableSortChange<RoutesTableRow>): void {
-    this.currentSorter = sort.sortComparator || this.sorters['ascents'];
+    this.currentSorter = sort.sortComparator || this.sorters['grade'];
     this.currentDirection = sort.sortDirection;
   }
 

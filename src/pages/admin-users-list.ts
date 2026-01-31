@@ -162,7 +162,7 @@ interface UserWithRole {
           size="l"
           tuiTable
           class="w-full"
-          [columns]="columns"
+          [columns]="columns()"
           [direction]="direction()"
           [sorter]="sorter()"
           (sortChange)="onSortChange($event)"
@@ -181,13 +181,18 @@ interface UserWithRole {
               <th
                 *tuiHead="'role'"
                 tuiTh
-                class="role-column"
+                class="role-column !w-48"
                 [sorter]="roleSorter"
                 [sticky]="true"
               >
                 {{ 'labels.role' | translate }}
               </th>
-              <th *tuiHead="'areas'" tuiTh class="areas-column" [sorter]="null">
+              <th
+                *tuiHead="'areas'"
+                tuiTh
+                class="areas-column !w-80"
+                [sorter]="null"
+              >
                 {{ 'labels.areas' | translate }}
               </th>
             </tr>
@@ -307,7 +312,7 @@ interface UserWithRole {
                 </tr>
               } @empty {
                 <tr tuiTr>
-                  <td [attr.colspan]="columns.length" tuiTd>
+                  <td [attr.colspan]="columns().length" tuiTd>
                     <app-empty-state />
                   </td>
                 </tr>
@@ -360,7 +365,10 @@ export class AdminUsersListComponent {
   private readonly translate = inject(TranslateService);
 
   protected readonly options = { updateOn: 'blur' } as const;
-  protected readonly columns = ['user', 'role', 'areas'] as const;
+  protected readonly columns = computed(() => {
+    const cols = ['user', 'role', 'areas'];
+    return this.global.isMobile() ? cols.filter((c) => c !== 'areas') : cols;
+  });
 
   protected readonly roleOptions = [
     AppRoles.CLIMBER,

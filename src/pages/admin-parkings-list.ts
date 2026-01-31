@@ -122,7 +122,7 @@ import { handleErrorToast } from '../utils';
           size="l"
           tuiTable
           class="w-full"
-          [columns]="columns"
+          [columns]="columns()"
           [direction]="direction()"
           [sorter]="sorter()"
           (sortChange)="onSortChange($event)"
@@ -132,16 +132,21 @@ import { handleErrorToast } from '../utils';
               <th *tuiHead="'name'" tuiTh [sorter]="nameSorter">
                 {{ 'labels.name' | translate }}
               </th>
-              <th *tuiHead="'lat'" tuiTh [sorter]="latSorter">
+              <th *tuiHead="'lat'" tuiTh [sorter]="latSorter" class="!w-24">
                 {{ 'labels.lat' | translate }}
               </th>
-              <th *tuiHead="'lng'" tuiTh [sorter]="lngSorter">
+              <th *tuiHead="'lng'" tuiTh [sorter]="lngSorter" class="!w-24">
                 {{ 'labels.lng' | translate }}
               </th>
-              <th *tuiHead="'size'" tuiTh [sorter]="sizeSorter">
+              <th *tuiHead="'size'" tuiTh [sorter]="sizeSorter" class="!w-24">
                 {{ 'labels.capacity' | translate }}
               </th>
-              <th *tuiHead="'actions'" tuiTh [sorter]="null"></th>
+              <th
+                *tuiHead="'actions'"
+                tuiTh
+                [sorter]="null"
+                class="!w-32 text-right"
+              ></th>
             </tr>
           </thead>
 
@@ -150,7 +155,7 @@ import { handleErrorToast } from '../utils';
             @if (loading()) {
               @for (_item of skeletons; track $index) {
                 <tr tuiTr>
-                  @for (col of columns; track col) {
+                  @for (col of columns(); track col) {
                     <td *tuiCell="col" tuiTd>
                       <div [tuiSkeleton]="true" class="w-full h-10"></div>
                     </td>
@@ -209,7 +214,7 @@ import { handleErrorToast } from '../utils';
                 </tr>
               } @empty {
                 <tr tuiTr>
-                  <td [attr.colspan]="columns.length" tuiTd>
+                  <td [attr.colspan]="columns().length" tuiTd>
                     <app-empty-state />
                   </td>
                 </tr>
@@ -231,13 +236,12 @@ export class AdminParkingsListComponent {
   private readonly dialogs = inject(TuiDialogService);
   private readonly parkingsService = inject(ParkingsService);
 
-  protected readonly columns = [
-    'name',
-    'lat',
-    'lng',
-    'size',
-    'actions',
-  ] as const;
+  protected readonly columns = computed(() => {
+    const cols = ['name', 'lat', 'lng', 'size', 'actions'];
+    return this.global.isMobile()
+      ? cols.filter((c) => c === 'name' || c === 'actions')
+      : cols;
+  });
 
   protected readonly loading = this.global.adminParkingsResource.isLoading;
   protected readonly parkings = computed(

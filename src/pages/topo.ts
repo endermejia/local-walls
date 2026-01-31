@@ -16,6 +16,7 @@ import { Router, RouterLink } from '@angular/router';
 import {
   TuiSortDirection,
   TuiTable,
+  TuiTableExpand,
   TuiTableSortChange,
   TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
@@ -35,6 +36,7 @@ import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
   TuiAvatar,
+  TuiChevron,
   type TuiConfirmData,
   TuiInputNumber,
 } from '@taiga-ui/kit';
@@ -106,6 +108,8 @@ export interface TopoRouteRow {
     TuiInputNumber,
     TuiTextfield,
     TuiDataList,
+    TuiTableExpand,
+    TuiChevron,
   ],
   template: `
     <div class="h-full w-full">
@@ -139,7 +143,7 @@ export interface TopoRouteRow {
 
               <ng-template #topoDropdown>
                 <tui-data-list>
-                  @for (item of allAreaTopos(); track item.id) {
+                  @for (item of sortedAreaTopos(); track item.id) {
                     <button
                       tuiOption
                       new
@@ -277,7 +281,7 @@ export interface TopoRouteRow {
                           tuiTh
                           [sorter]="getSorter(col)"
                           [class.text-center]="col !== 'name'"
-                          [class.!w-12]="col === 'index'"
+                          [class.!w-12]="col === 'index' || col === 'expand'"
                           [class.!w-20]="col === 'grade'"
                           [class.!w-24]="
                             col === 'height' ||
@@ -285,30 +289,35 @@ export interface TopoRouteRow {
                             col === 'admin_actions'
                           "
                         >
-                          @switch (col) {
-                            @case ('index') {
-                              #
+                          <div [class.flex]="col === 'expand'" class="items-center justify-center gap-1">
+                            @if (col === 'expand' && isMobile) {
+                              <tui-icon icon="@tui.square-check-big" class="text-xs" />
                             }
-                            @case ('name') {
-                              {{ 'routes.name' | translate }}
+                            @switch (col) {
+                              @case ('index') {
+                                #
+                              }
+                              @case ('name') {
+                                {{ 'routes.name' | translate }}
+                              }
+                              @case ('grade') {
+                                {{ 'labels.grade' | translate }}
+                              }
+                              @case ('height') {
+                                {{ 'routes.height' | translate }}
+                              }
                             }
-                            @case ('grade') {
-                              {{ 'labels.grade' | translate }}
-                            }
-                            @case ('height') {
-                              {{ 'routes.height' | translate }}
-                            }
-                          }
+                          </div>
                         </th>
                       }
                     </tr>
                   </thead>
                   @let sortedData = tableData() | tuiTableSort;
-                  <tbody tuiTbody [data]="sortedData">
-                    @for (
-                      item of sortedData;
-                      track item._ref.topo_id + '-' + item._ref.route_id
-                    ) {
+                  @for (
+                    item of sortedData;
+                    track item._ref.topo_id + '-' + item._ref.route_id
+                  ) {
+                    <tbody tuiTbody>
                       <tr
                         tuiTr
                         [style.background]="
@@ -320,6 +329,8 @@ export interface TopoRouteRow {
                               ? 'var(--tui-status-info-pale)'
                               : ''
                         "
+                        class="cursor-pointer"
+                        (click.zoneless)="isMobile ? exp.toggle() : null"
                       >
                         @for (col of columns(); track col) {
                           <td
@@ -328,6 +339,19 @@ export interface TopoRouteRow {
                             [class.text-center]="col !== 'name'"
                           >
                             @switch (col) {
+                              @case ('expand') {
+                                <button
+                                  appearance="flat-grayscale"
+                                  size="xs"
+                                  tuiIconButton
+                                  type="button"
+                                  class="!rounded-full"
+                                  [tuiChevron]="exp.expanded()"
+                                  (click.zoneless)="exp.toggle(); $event.stopPropagation()"
+                                >
+                                  Toggle
+                                </button>
+                              }
                               @case ('index') {
                                 <div tuiCell size="m" class="justify-center">
                                   @if (isAdmin || isEquipper) {
@@ -391,7 +415,7 @@ export interface TopoRouteRow {
                                           ? null
                                           : ('ascent.new' | translate)
                                       "
-                                      (click.zoneless)="onLogAscent(item._ref)"
+                                      (click.zoneless)="onLogAscent(item._ref); $event.stopPropagation()"
                                     >
                                       {{ 'ascent.new' | translate }}
                                     </button>
@@ -412,7 +436,8 @@ export interface TopoRouteRow {
                                           : ('ascent.edit' | translate)
                                       "
                                       (click.zoneless)="
-                                        onEditAscent(ascentToEdit, item.name)
+                                        onEditAscent(ascentToEdit, item.name);
+                                        $event.stopPropagation()
                                       "
                                     >
                                       <tui-icon
@@ -441,7 +466,7 @@ export interface TopoRouteRow {
                                               : 'actions.project.add'
                                             ) | translate)
                                       "
-                                      (click.zoneless)="onToggleProject(item)"
+                                      (click.zoneless)="onToggleProject(item); $event.stopPropagation()"
                                     >
                                       {{
                                         (item.project
@@ -467,7 +492,7 @@ export interface TopoRouteRow {
                                         : ('actions.edit' | translate)
                                     "
                                     (click.zoneless)="
-                                      openEditTopoRoute(item._ref)
+                                      openEditTopoRoute(item._ref); $event.stopPropagation()
                                     "
                                   >
                                     {{ 'actions.edit' | translate }}
@@ -484,7 +509,7 @@ export interface TopoRouteRow {
                                         : ('actions.unlink' | translate)
                                     "
                                     (click.zoneless)="
-                                      deleteTopoRoute(item._ref)
+                                      deleteTopoRoute(item._ref); $event.stopPropagation()
                                     "
                                   >
                                     {{ 'actions.unlink' | translate }}
@@ -495,14 +520,114 @@ export interface TopoRouteRow {
                           </td>
                         }
                       </tr>
-                    } @empty {
+                      <tui-table-expand #exp [expanded]="false">
+                        <tr tuiTr>
+                          <td [colSpan]="columns().length" tuiTd>
+                            <div class="flex flex-col gap-3 p-3 bg-neutral-50 rounded-2xl border border-black/5">
+                              <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-3">
+                                  @if (item.height) {
+                                    <div class="flex items-center gap-1 opacity-70">
+                                      <tui-icon icon="@tui.arrow-up-right" class="text-xs" />
+                                      <span class="font-medium">{{ item.height }}m</span>
+                                    </div>
+                                  }
+                                </div>
+
+                                <div class="flex items-center gap-3">
+                                  @if (!item.climbed) {
+                                    <button
+                                      tuiIconButton
+                                      size="m"
+                                      appearance="neutral"
+                                      iconStart="@tui.circle-plus"
+                                      class="!rounded-full"
+                                      (click.zoneless)="onLogAscent(item._ref); $event.stopPropagation()"
+                                    >
+                                      {{ 'ascent.new' | translate }}
+                                    </button>
+                                  } @else if (item._ref.route.own_ascent; as ascentToEdit) {
+                                    <tui-avatar
+                                      size="m"
+                                      class="cursor-pointer !text-white"
+                                      [style.background]="
+                                        ascentsService.ascentInfo()[
+                                          ascentToEdit?.type || 'default'
+                                        ].background
+                                      "
+                                      (click.zoneless)="
+                                        onEditAscent(ascentToEdit, item.name);
+                                        $event.stopPropagation()
+                                      "
+                                    >
+                                      <tui-icon
+                                        [icon]="
+                                          ascentsService.ascentInfo()[
+                                            ascentToEdit?.type || 'default'
+                                          ].icon
+                                        "
+                                      />
+                                    </tui-avatar>
+                                  }
+
+                                  @if (!item.climbed) {
+                                    <button
+                                      tuiIconButton
+                                      size="m"
+                                      [appearance]="
+                                        item.project ? 'primary' : 'neutral'
+                                      "
+                                      iconStart="@tui.bookmark"
+                                      class="!rounded-full"
+                                      (click.zoneless)="onToggleProject(item); $event.stopPropagation()"
+                                    >
+                                      {{
+                                        (item.project
+                                          ? 'actions.project.remove'
+                                          : 'actions.project.add'
+                                        ) | translate
+                                      }}
+                                    </button>
+                                  }
+
+                                  @if (isAdmin || isEquipper) {
+                                      <button
+                                        tuiIconButton
+                                        size="m"
+                                        appearance="neutral"
+                                        iconStart="@tui.square-pen"
+                                        class="!rounded-full"
+                                        (click.zoneless)="openEditTopoRoute(item._ref); $event.stopPropagation()"
+                                      >
+                                        {{ 'actions.edit' | translate }}
+                                      </button>
+                                      <button
+                                        tuiIconButton
+                                        size="m"
+                                        appearance="negative"
+                                        iconStart="@tui.unlink"
+                                        class="!rounded-full"
+                                        (click.zoneless)="deleteTopoRoute(item._ref); $event.stopPropagation()"
+                                      >
+                                        {{ 'actions.unlink' | translate }}
+                                      </button>
+                                  }
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      </tui-table-expand>
+                    </tbody>
+                  } @empty {
+                    <tbody tuiTbody>
                       <tr tuiTr>
                         <td [attr.colspan]="columns().length" tuiTd>
                           <app-empty-state />
                         </td>
                       </tr>
-                    }
-                  </tbody>
+                    </tbody>
+                  }
                 </table>
               </tui-scrollbar>
             </div>
@@ -630,6 +755,11 @@ export class TopoComponent {
   protected readonly crag = this.global.cragDetailResource.value;
   protected readonly allAreaTopos = this.global.areaToposResource.value;
 
+  protected readonly sortedAreaTopos = computed(() => {
+    const topos = this.allAreaTopos() || [];
+    return [...topos].sort((a, b) => a.name.localeCompare(b.name));
+  });
+
   protected readonly topoImageUrl = computed(() => {
     const t = this.topo();
     if (!t) return null;
@@ -674,9 +804,12 @@ export class TopoComponent {
   });
 
   protected readonly columns = computed(() => {
-    const base = ['index', 'grade', 'name', 'height', 'actions'];
+    const isMobile = this.global.isMobile();
+    const base = isMobile
+      ? ['expand', 'index', 'grade', 'name']
+      : ['index', 'grade', 'name', 'height', 'actions'];
     const crag = this.crag();
-    if (this.global.isAllowedEquipper(crag?.area_id)) {
+    if (this.global.isAllowedEquipper(crag?.area_id) && !isMobile) {
       base.push('admin_actions');
     }
     return base;
@@ -718,6 +851,7 @@ export class TopoComponent {
 
   protected getSorter(col: string): TuiComparator<TopoRouteRow> | null {
     if (col === 'actions' || col === 'admin_actions') return null;
+    if (col === 'expand') return this.sorters['index'];
     return this.sorters[col] ?? null;
   }
 
