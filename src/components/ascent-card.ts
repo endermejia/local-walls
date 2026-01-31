@@ -150,9 +150,12 @@ import { AscentLikesComponent } from './ascent-likes';
             }
           </div>
           <div class="flex items-center gap-2 text-sm text-gray-600">
-            <span class="font-semibold text-blue-600">
-              {{ gradeLabelByNumber[ascent.grade ?? ascent.route.grade] }}
-            </span>
+            @let displayGrade = ascent.grade ?? ascent.route?.grade;
+            @if (displayGrade !== null && displayGrade !== undefined) {
+              <span class="font-semibold text-blue-600">
+                {{ gradeLabelByNumber[displayGrade] }}
+              </span>
+            }
             @if (ascent.type) {
               <span
                 class="px-2 py-0.5 bg-gray-100 rounded text-[10px] uppercase font-bold"
@@ -223,7 +226,7 @@ export class AscentCardComponent {
   followEvent = output<string>();
   unfollowEvent = output<string>();
 
-  protected readonly gradeLabelByNumber: Partial<Record<number, GradeLabel>> =
+  protected readonly gradeLabelByNumber: Partial<Record<number, string>> =
     VERTICAL_LIFE_TO_LABEL;
 
   async follow(userId: string) {

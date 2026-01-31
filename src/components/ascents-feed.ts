@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 
 import { TuiSkeleton } from '@taiga-ui/kit';
 
-import { RouteAscentWithExtras } from '../models';
+import { RouteAscentWithExtras, VERTICAL_LIFE_TO_LABEL } from '../models';
 
 import { AscentCardComponent } from './ascent-card';
 import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
@@ -18,7 +18,33 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
   ],
   template: `
     <div class="flex flex-col gap-6 mt-4">
-      @for (ascent of ascents(); track ascent.id) {
+      @for (ascent of ascents(); track ascent.id; let i = $index) {
+        @let currentGrade = ascent.grade ?? ascent.route?.grade;
+        @let currentLabel =
+          currentGrade !== null && currentGrade !== undefined
+            ? gradeLabelByNumber[currentGrade]
+            : null;
+        @let prevGrade =
+          i > 0
+            ? (ascents()[i - 1].grade ?? ascents()[i - 1].route?.grade)
+            : null;
+        @let prevLabel =
+          prevGrade !== null && prevGrade !== undefined
+            ? gradeLabelByNumber[prevGrade]
+            : null;
+
+        @if (currentLabel && currentLabel !== prevLabel) {
+          <div class="flex items-center gap-4 w-full">
+            <div class="h-px bg-neutral-100 grow"></div>
+            <span
+              class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest"
+            >
+              {{ currentLabel }}
+            </span>
+            <div class="h-px bg-neutral-100 grow"></div>
+          </div>
+        }
+
         @defer (on viewport) {
           <app-ascent-card
             [data]="ascent"
@@ -97,4 +123,7 @@ export class AscentsFeedComponent {
   loadMore = output<void>();
   follow = output<string>();
   unfollow = output<string>();
+
+  protected readonly gradeLabelByNumber: Partial<Record<number, string>> =
+    VERTICAL_LIFE_TO_LABEL;
 }
