@@ -39,6 +39,7 @@ import {
 
 import {
   AscentsService,
+  FollowsService,
   GlobalData,
   RoutesService,
   ToastService,
@@ -283,7 +284,10 @@ import { handleErrorToast } from '../utils';
             [isLoading]="isLoading()"
             [hasMore]="hasMore()"
             [showRoute]="false"
+            [followedIds]="followedIds()"
             (loadMore)="loadMore()"
+            (follow)="onFollow($event)"
+            (unfollow)="onUnfollow($event)"
           />
         </div>
       } @else {
@@ -301,6 +305,7 @@ export class RouteComponent {
   private readonly location = inject(Location);
   protected readonly routesService = inject(RoutesService);
   protected readonly ascentsService = inject(AscentsService);
+  private readonly followsService = inject(FollowsService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
@@ -339,6 +344,7 @@ export class RouteComponent {
 
   protected readonly accumulatedAscents = signal<RouteAscentWithExtras[]>([]);
   protected readonly isLoading = signal(false);
+  protected readonly followedIds = signal<Set<string>>(new Set());
 
   protected readonly hasMore = computed(() => {
     return this.accumulatedAscents().length < this.totalAscents();
@@ -351,6 +357,22 @@ export class RouteComponent {
     }
   }
 
+  onFollow(userId: string) {
+    this.followedIds.update((s) => {
+      const next = new Set(s);
+      next.add(userId);
+      return next;
+    });
+  }
+
+  onUnfollow(userId: string) {
+    this.followedIds.update((s) => {
+      const next = new Set(s);
+      next.delete(userId);
+      return next;
+    });
+  }
+
   protected readonly equippersNames = computed(() =>
     this.equippers()
       .map((e) => e.name)
@@ -358,6 +380,13 @@ export class RouteComponent {
   );
 
   constructor() {
+    const isBrowser = isPlatformBrowser(this.platformId);
+    if (isBrowser) {
+      void this.followsService
+        .getFollowedIds()
+        .then((ids) => this.followedIds.set(new Set(ids)));
+    }
+
     effect(() => {
       const aSlug = this.areaSlug();
       const cSlug = this.cragSlug();

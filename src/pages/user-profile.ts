@@ -341,7 +341,10 @@ import {
                   [isLoading]="isLoading()"
                   [hasMore]="hasMore()"
                   [showUser]="false"
+                  [followedIds]="followedIds()"
                   (loadMore)="loadMore()"
+                  (follow)="onFollow($event)"
+                  (unfollow)="onUnfollow($event)"
                 />
               </div>
             } @else if (isOwnProfile()) {
@@ -786,6 +789,7 @@ export class UserProfileComponent {
 
   protected readonly accumulatedAscents = signal<RouteAscentWithExtras[]>([]);
   protected readonly isLoading = signal(false);
+  protected readonly followedIds = signal<Set<string>>(new Set());
 
   loadMore() {
     if (this.hasMore() && !this.isLoading()) {
@@ -795,6 +799,13 @@ export class UserProfileComponent {
   }
 
   constructor() {
+    const isBrowser = isPlatformBrowser(this.platformId);
+    if (isBrowser) {
+      void this.followsService
+        .getFollowedIds()
+        .then((ids) => this.followedIds.set(new Set(ids)));
+    }
+
     effect(() => {
       // Reset breadcrumbs when navigating to the profile page
       const profileId = this.profile()?.id;
@@ -870,6 +881,22 @@ export class UserProfileComponent {
 
   onQuery(v: string) {
     this.query.set(v);
+  }
+
+  onFollow(userId: string) {
+    this.followedIds.update((s) => {
+      const next = new Set(s);
+      next.add(userId);
+      return next;
+    });
+  }
+
+  onUnfollow(userId: string) {
+    this.followedIds.update((s) => {
+      const next = new Set(s);
+      next.delete(userId);
+      return next;
+    });
   }
 
   // Currently viewed profile (if by id)
