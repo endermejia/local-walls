@@ -28,7 +28,12 @@ import {
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
 
-import { FollowsService, GlobalData, SupabaseService } from '../services';
+import {
+  AscentsService,
+  FollowsService,
+  GlobalData,
+  SupabaseService,
+} from '../services';
 
 import { AscentCommentsComponent } from './ascent-comments';
 import { AscentLikesComponent } from './ascent-likes';
@@ -120,15 +125,38 @@ import { AscentLikesComponent } from './ascent-likes';
                 {{ 'actions.follow' | translate }}
               </button>
             }
+          } @else {
+            <button
+              tuiButton
+              size="s"
+              appearance="secondary-grayscale"
+              class="!rounded-full"
+              (click)="editAscent(); $event.stopPropagation()"
+            >
+              {{ 'actions.edit' | translate }}
+            </button>
           }
         } @else {
-          <div class="flex flex-col">
-            <span class="text-xs text-gray-400">
-              {{
-                ascent.date
-                  | date: 'longDate' : undefined : global.selectedLanguage()
-              }}
-            </span>
+          <div class="flex justify-between items-center w-full">
+            <div class="flex flex-col">
+              <span class="text-xs text-gray-400">
+                {{
+                  ascent.date
+                    | date: 'longDate' : undefined : global.selectedLanguage()
+                }}
+              </span>
+            </div>
+            @if (ascent.user_id === supabase.authUserId()) {
+              <button
+                tuiButton
+                size="s"
+                appearance="secondary-grayscale"
+                class="!rounded-full"
+                (click)="editAscent(); $event.stopPropagation()"
+              >
+                {{ 'actions.edit' | translate }}
+              </button>
+            }
           </div>
         }
       </header>
@@ -211,6 +239,7 @@ export class AscentCardComponent {
   protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
+  private readonly ascentsService = inject(AscentsService);
   private readonly followsService = inject(FollowsService);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
@@ -225,6 +254,10 @@ export class AscentCardComponent {
 
   protected readonly gradeLabelByNumber: Partial<Record<number, GradeLabel>> =
     VERTICAL_LIFE_TO_LABEL;
+
+  editAscent() {
+    this.ascentsService.openAscentForm({ ascentData: this.data() }).subscribe();
+  }
 
   async follow(userId: string) {
     const success = await this.followsService.follow(userId);

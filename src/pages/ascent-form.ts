@@ -619,23 +619,25 @@ export default class AscentFormComponent {
     });
 
     // Handle tries auto-disable for OS/Flash
+    const typeValue = toSignal(
+      this.form
+        .get('type')!
+        .valueChanges.pipe(startWith(this.form.get('type')!.value)),
+    );
+
     effect(() => {
-      const type = toSignal(
-        this.form
-          .get('type')!
-          .valueChanges.pipe(startWith(this.form.get('type')!.value)),
-      )();
-      this.updateTriesState(type);
+      this.updateTriesState(typeValue());
     });
 
     // Handle recommended -> rating
+    const recommended = toSignal(
+      this.form
+        .get('recommended')!
+        .valueChanges.pipe(startWith(this.form.get('recommended')!.value)),
+    );
+
     effect(() => {
-      const recommended = toSignal(
-        this.form
-          .get('recommended')!
-          .valueChanges.pipe(startWith(this.form.get('recommended')!.value)),
-      )();
-      if (recommended) {
+      if (recommended()) {
         this.form.get('rate')?.setValue(5);
       }
     });
@@ -653,14 +655,18 @@ export default class AscentFormComponent {
     if (type === AscentTypes.OS || type === AscentTypes.F) {
       attemptsCtrl.setValue(1, { emitEvent: false });
       attemptsCtrl.disable({ emitEvent: false });
+      attemptsCtrl.setValidators([Validators.required, Validators.min(1)]);
     } else if (type === AscentTypes.RP) {
       if (attemptsCtrl.value === 1) {
         attemptsCtrl.setValue(null, { emitEvent: false });
       }
       attemptsCtrl.enable({ emitEvent: false });
+      attemptsCtrl.setValidators([Validators.required, Validators.min(2)]);
     } else {
       attemptsCtrl.enable({ emitEvent: false });
+      attemptsCtrl.setValidators([Validators.required, Validators.min(1)]);
     }
+    attemptsCtrl.updateValueAndValidity({ emitEvent: false });
   }
 
   private populateForm(data: RouteAscentDto): void {

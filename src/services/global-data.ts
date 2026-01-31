@@ -913,7 +913,7 @@ export class GlobalData {
   readonly ascentsSize = signal(10);
   readonly ascentsDateFilter = signal<string | null>(null);
   readonly ascentsQuery = signal<string | null>(null);
-  readonly ascentsSort = signal<'date' | 'grade'>('grade');
+  readonly ascentsSort = signal<'date' | 'grade'>('date');
 
   onAscentsPagination({ page, size }: TuiTablePaginationEvent): void {
     this.ascentsPage.set(page);
@@ -1010,13 +1010,16 @@ export class GlobalData {
           query = query.in('route.climbing_kind', allowedKinds);
         }
 
-        const { data, error, count } = await query
-          .order(sort === 'grade' ? 'grade' : 'date', {
-            referencedTable: sort === 'grade' ? 'route' : undefined,
-            ascending: false,
-          })
-          .order('date', { ascending: false })
-          .range(from, to);
+        let finalQuery = query;
+        if (sort === 'grade') {
+          finalQuery = finalQuery
+            .order('grade', { ascending: false })
+            .order('date', { ascending: false });
+        } else {
+          finalQuery = finalQuery.order('date', { ascending: false });
+        }
+
+        const { data, error, count } = await finalQuery.range(from, to);
 
         if (error) {
           console.error('[GlobalData] userAscentsResource error', error);
