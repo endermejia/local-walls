@@ -28,7 +28,7 @@ import {
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
 
-import { FollowsService, SupabaseService } from '../services';
+import { FollowsService, GlobalData, SupabaseService } from '../services';
 
 import { AscentCommentsComponent } from './ascent-comments';
 import { AscentLikesComponent } from './ascent-likes';
@@ -90,7 +90,10 @@ import { AscentLikesComponent } from './ascent-likes';
                 {{ ascent.user?.name || 'User' }}
               </span>
               <span class="text-xs text-gray-400">
-                {{ ascent.date | date: 'mediumDate' }}
+                {{
+                  ascent.date
+                    | date: 'longDate' : undefined : global.selectedLanguage()
+                }}
               </span>
             </div>
           </div>
@@ -121,7 +124,10 @@ import { AscentLikesComponent } from './ascent-likes';
         } @else {
           <div class="flex flex-col">
             <span class="text-xs text-gray-400">
-              {{ ascent.date | date: 'mediumDate' }}
+              {{
+                ascent.date
+                  | date: 'longDate' : undefined : global.selectedLanguage()
+              }}
             </span>
           </div>
         }
@@ -202,6 +208,7 @@ import { AscentLikesComponent } from './ascent-likes';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AscentCardComponent {
+  protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
   private readonly followsService = inject(FollowsService);
