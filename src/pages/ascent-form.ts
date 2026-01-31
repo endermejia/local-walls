@@ -630,13 +630,14 @@ export default class AscentFormComponent {
     });
 
     // Handle recommended -> rating
+    const recommended = toSignal(
+      this.form
+        .get('recommended')!
+        .valueChanges.pipe(startWith(this.form.get('recommended')!.value)),
+    );
+
     effect(() => {
-      const recommended = toSignal(
-        this.form
-          .get('recommended')!
-          .valueChanges.pipe(startWith(this.form.get('recommended')!.value)),
-      )();
-      if (recommended) {
+      if (recommended()) {
         this.form.get('rate')?.setValue(5);
       }
     });
