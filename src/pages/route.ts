@@ -271,7 +271,12 @@ import { handleErrorToast } from '../utils';
         <!-- Ascents Section -->
         <div class="mt-6">
           <h2 class="text-2xl font-bold mb-4">
-            {{ totalAscents() }} {{ 'labels.ascents' | translate | lowercase }}
+            {{ totalAscents() }}
+            {{
+              'labels.' + (totalAscents() === 1 ? 'ascent' : 'ascents')
+                | translate
+                | lowercase
+            }}
           </h2>
           <app-ascents-feed
             [ascents]="accumulatedAscents()"

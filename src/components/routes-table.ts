@@ -416,12 +416,12 @@ export interface RoutesTableRow {
                             <span class="font-medium">{{ item.rating | number: '1.1-1' }}</span>
                           </div>
                           <div class="flex items-center gap-1 opacity-70">
-                            <tui-icon icon="@tui.message-square" class="text-xs" />
+                            <tui-icon icon="@tui.square-check-big" class="text-xs" />
                             <span class="font-medium">{{ item.ascents }}</span>
                           </div>
                         </div>
 
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-3">
                            @if (!item.climbed) {
                             <button
                               size="s"
