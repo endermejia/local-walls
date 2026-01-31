@@ -913,7 +913,7 @@ export class GlobalData {
   readonly ascentsSize = signal(10);
   readonly ascentsDateFilter = signal<string | null>(null);
   readonly ascentsQuery = signal<string | null>(null);
-  readonly ascentsSort = signal<'date' | 'grade'>('grade');
+  readonly ascentsSort = signal<'date' | 'grade'>('date');
 
   onAscentsPagination({ page, size }: TuiTablePaginationEvent): void {
     this.ascentsPage.set(page);
@@ -1013,7 +1013,7 @@ export class GlobalData {
         let finalQuery = query;
         if (sort === 'grade') {
           finalQuery = finalQuery
-            .order('grade', { referencedTable: 'route', ascending: false })
+            .order('grade', { ascending: false })
             .order('date', { ascending: false });
         } else {
           finalQuery = finalQuery.order('date', { ascending: false });
