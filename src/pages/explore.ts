@@ -137,7 +137,7 @@ import { mapLocationUrl, remToPx } from '../utils';
             <button
               tuiButton
               size="m"
-              appearance="primary"
+              appearance="primary-grayscale"
               iconStart="@tui.map"
               (click.zoneless)="setBottomSheet('close')"
             >
