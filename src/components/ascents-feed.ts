@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
-import { TuiLoader } from '@taiga-ui/core';
+import { TuiSkeleton } from '@taiga-ui/kit';
 
 import { RouteAscentWithExtras } from '../models';
 
@@ -14,7 +14,7 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
     AscentCardComponent,
     CommonModule,
     InfiniteScrollTriggerComponent,
-    TuiLoader,
+    TuiSkeleton,
   ],
   template: `
     <div class="flex flex-col gap-6 mt-4">
@@ -34,9 +34,25 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
       }
 
       @if (isLoading()) {
-        <div class="flex justify-center p-8">
-          <tui-loader />
-        </div>
+        @for (_ of [1, 2, 3]; track $index) {
+          <div class="flex flex-col gap-4 p-4 rounded-3xl bg-neutral-50 border border-black/5">
+            <div class="flex items-center gap-3">
+              <div [tuiSkeleton]="true" class="w-10 h-10 rounded-full"></div>
+              <div class="flex flex-col gap-1">
+                <div [tuiSkeleton]="true" class="w-32 h-4"></div>
+                <div [tuiSkeleton]="true" class="w-24 h-3"></div>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div [tuiSkeleton]="true" class="w-3/4 h-6"></div>
+              <div [tuiSkeleton]="true" class="w-1/2 h-4"></div>
+            </div>
+            <div class="flex gap-4 mt-2">
+              <div [tuiSkeleton]="true" class="w-16 h-8 rounded-full"></div>
+              <div [tuiSkeleton]="true" class="w-16 h-8 rounded-full"></div>
+            </div>
+          </div>
+        }
       }
 
       @if (ascents().length > 0 && !isLoading() && hasMore()) {

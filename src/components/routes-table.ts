@@ -1,4 +1,4 @@
-import { isPlatformBrowser } from '@angular/common';
+import { DecimalPipe, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -107,6 +107,7 @@ export interface RoutesTableRow {
     EmptyStateComponent,
     TuiTableExpand,
     TuiChevron,
+    DecimalPipe,
   ],
   template: `
     @let data = tableData();
@@ -116,6 +117,7 @@ export interface RoutesTableRow {
         <table
           tuiTable
           class="w-full"
+          [class.table-fixed]="isMobile"
           [columns]="columns()"
           [direction]="currentDirection"
           [sorter]="currentSorter"
@@ -198,7 +200,7 @@ export interface RoutesTableRow {
                         <div tuiCell size="m">
                           <app-avatar-grade
                             [grade]="item._ref.grade"
-                            size="s"
+                            [size]="isMobile ? 'm' : 's'"
                           />
                         </div>
                       }
@@ -211,7 +213,7 @@ export interface RoutesTableRow {
                               [style.color]="
                                 item.liked ? 'var(--tui-status-negative)' : ''
                               "
-                              class="align-self-start whitespace-nowrap font-bold text-base line-clamp-1"
+                              class="align-self-start font-bold text-base truncate max-w-full block"
                               (click.zoneless)="$event.stopPropagation()"
                             >
                               {{ item.route || ('labels.route' | translate) }}
@@ -287,6 +289,7 @@ export interface RoutesTableRow {
                             </button>
                           } @else if (item._ref.own_ascent; as ascentToEdit) {
                             <tui-avatar
+                              size="s"
                               class="cursor-pointer !text-white"
                               [style.background]="
                                 ascentsService.ascentInfo()[
@@ -399,41 +402,29 @@ export interface RoutesTableRow {
               <tui-table-expand #exp [expanded]="false">
                 <tr tuiTr>
                   <td [colSpan]="columns().length" tuiTd>
-                    <div class="flex flex-col gap-4 p-4 text-sm bg-neutral-50/50 rounded-xl">
-                      <div class="flex flex-wrap items-center justify-between gap-4">
-                        <div class="flex gap-4">
+                    <div class="flex flex-col gap-3 p-3 bg-neutral-50 rounded-2xl border border-black/5">
+                      <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-3">
                           @if (item.height) {
-                            <div class="flex flex-col">
-                              <span class="text-[10px] uppercase opacity-50 font-bold leading-none mb-1">
-                                {{ 'labels.height' | translate }}
-                              </span>
-                              <span class="font-semibold text-base">{{ item.height }}m</span>
+                            <div class="flex items-center gap-1 opacity-70">
+                              <tui-icon icon="@tui.arrow-up-right" class="text-xs" />
+                              <span class="font-medium">{{ item.height }}m</span>
                             </div>
                           }
-                          <div class="flex flex-col">
-                            <span class="text-[10px] uppercase opacity-50 font-bold leading-none mb-1">
-                               {{ 'labels.rating' | translate }}
-                            </span>
-                            <tui-rating
-                              [ngModel]="item.rating"
-                              [readOnly]="true"
-                              [max]="5"
-                              class="!h-5"
-                              [style.font-size.rem]="0.5"
-                            />
+                          <div class="flex items-center gap-1 opacity-70">
+                            <tui-icon icon="@tui.star" class="text-xs" />
+                            <span class="font-medium">{{ item.rating | number: '1.1-1' }}</span>
                           </div>
-                          <div class="flex flex-col">
-                            <span class="text-[10px] uppercase opacity-50 font-bold leading-none mb-1">
-                               {{ 'labels.ascents' | translate }}
-                            </span>
-                            <span class="font-semibold text-base">{{ item.ascents }}</span>
+                          <div class="flex items-center gap-1 opacity-70">
+                            <tui-icon icon="@tui.message-square" class="text-xs" />
+                            <span class="font-medium">{{ item.ascents }}</span>
                           </div>
                         </div>
 
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1">
                            @if (!item.climbed) {
                             <button
-                              size="m"
+                              size="s"
                               appearance="neutral"
                               iconStart="@tui.circle-plus"
                               tuiIconButton
@@ -447,6 +438,7 @@ export interface RoutesTableRow {
                             </button>
                           } @else if (item._ref.own_ascent; as ascentToEdit) {
                             <tui-avatar
+                              size="s"
                               class="cursor-pointer !text-white"
                               [style.background]="
                                 ascentsService.ascentInfo()[
@@ -470,7 +462,7 @@ export interface RoutesTableRow {
 
                           @if (!item.climbed) {
                             <button
-                              size="m"
+                              size="s"
                               [appearance]="
                                 item.project ? 'primary' : 'neutral'
                               "
@@ -494,32 +486,8 @@ export interface RoutesTableRow {
                               }}
                             </button>
                           }
-                        </div>
-                      </div>
 
-                      @if (showLocation()) {
-                         <div class="flex flex-col gap-1 border-t border-black/5 pt-3">
-                            <span class="text-[10px] uppercase opacity-50 font-bold leading-none">
-                               {{ 'labels.location' | translate }}
-                            </span>
-                            <div class="flex gap-1 items-center opacity-70">
-                                <a tuiLink [routerLink]="['/area', item.area_slug]" (click)="$event.stopPropagation()">
-                                  {{ item.area_name }}
-                                </a>
-                                <span>/</span>
-                                <a tuiLink [routerLink]="['/area', item.area_slug, item.crag_slug]" (click)="$event.stopPropagation()">
-                                  {{ item.crag_name }}
-                                </a>
-                            </div>
-                         </div>
-                      }
-
-                      @if ((global.isAdmin() || global.isAllowedEquipper(item._ref.area_id)) && showAdminActions()) {
-                        <div class="flex flex-col gap-2 border-t border-black/5 pt-3">
-                          <span class="text-[10px] uppercase opacity-50 font-bold leading-none">
-                               {{ 'labels.admin_actions' | translate }}
-                          </span>
-                          <div class="flex gap-2">
+                          @if ((global.isAdmin() || global.isAllowedEquipper(item._ref.area_id)) && showAdminActions()) {
                               <button
                                 size="s"
                                 appearance="neutral"
@@ -547,8 +515,21 @@ export interface RoutesTableRow {
                               >
                                 {{ 'actions.delete' | translate }}
                               </button>
-                          </div>
+                          }
                         </div>
+                      </div>
+
+                      @if (showLocation()) {
+                         <div class="text-xs opacity-60 flex gap-1 items-center border-t border-black/5 pt-2">
+                            <tui-icon icon="@tui.map-pin" class="text-[10px]" />
+                            <a tuiLink [routerLink]="['/area', item.area_slug]" (click)="$event.stopPropagation()">
+                              {{ item.area_name }}
+                            </a>
+                            <span>/</span>
+                            <a tuiLink [routerLink]="['/area', item.area_slug, item.crag_slug]" (click)="$event.stopPropagation()">
+                              {{ item.crag_name }}
+                            </a>
+                         </div>
                       }
                     </div>
                   </td>
