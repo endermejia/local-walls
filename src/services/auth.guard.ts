@@ -24,8 +24,8 @@ export const authGuard: CanMatchFn = async (
   }
 
   // If the user name is equal to their email, they need to complete their profile setup.
-  // We redirect them to /profile unless they are already going there.
-  if (route.path !== 'profile') {
+  // We redirect them to /profile/config unless they are already going there.
+  if (route.path !== 'profile/config') {
     // We try to get the profile from the resource, or fetch it if not available yet.
     let profileName = supabase.userProfile()?.name;
 
@@ -39,10 +39,10 @@ export const authGuard: CanMatchFn = async (
     }
 
     if (profileName && profileName === session.user.email) {
-      return router.createUrlTree(['/profile']);
+      return router.createUrlTree(['/profile/config']);
     }
   } else {
-    // When on the profile route, always fetch fresh data to check if setup is complete
+    // When on the profile config route, always fetch fresh data to check if setup is complete
     const { data } = await supabase.client
       .from('user_profiles')
       .select('name')

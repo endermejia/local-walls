@@ -830,22 +830,6 @@ export class UserProfileComponent {
       }
     });
 
-    // Auto-open profile config modal if the user hasn't completed setup
-    effect(() => {
-      if (!isPlatformBrowser(this.platformId)) return;
-
-      const profile = this.profile();
-      const authUser = this.supabase.authUser();
-
-      // Only auto-open for own profile
-      if (this.isOwnProfile() && profile && authUser?.email) {
-        // If name equals email, the user hasn't completed profile setup
-        if (profile.name === authUser.email) {
-          // Use setTimeout to avoid opening modal during effect execution
-          setTimeout(() => this.openEditDialog(), 0);
-        }
-      }
-    });
 
     // Sync initial global filters to local controls/signals if needed
     // However, global filters are typically reset to defaults on page entry.
