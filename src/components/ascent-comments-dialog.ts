@@ -19,7 +19,7 @@ import {
 } from '@taiga-ui/core';
 import { TuiDialogContext } from '@taiga-ui/experimental';
 import { TuiAvatar } from '@taiga-ui/kit';
-import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
