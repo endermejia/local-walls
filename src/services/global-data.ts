@@ -508,6 +508,10 @@ export class GlobalData {
   });
 
   // ---- Area List Filters (Persisted) ----
+  private readonly areaListGradeRangeKey = 'area_list_grade_range_v1';
+  private readonly areaListCategoriesKey = 'area_list_categories_v1';
+  private readonly areaListShadeKey = 'area_list_shade_v1';
+
   areaListGradeRange: WritableSignal<[number, number]> = signal([
     0,
     ORDERED_GRADE_VALUES.length - 1,
@@ -1305,6 +1309,34 @@ export class GlobalData {
         const parsed = JSON.parse(rawBounds) as MapBounds;
         this.mapBounds.set(parsed);
       }
+
+      const rawGradeRange = this.localStorage.getItem(
+        this.areaListGradeRangeKey,
+      );
+      if (rawGradeRange) {
+        const parsed = JSON.parse(rawGradeRange);
+        if (Array.isArray(parsed) && parsed.length === 2) {
+          const [a, b] = parsed;
+          const clamp = (v: number) =>
+            Math.max(
+              0,
+              Math.min(ORDERED_GRADE_VALUES.length - 1, Math.round(v)),
+            );
+          this.areaListGradeRange.set([clamp(a), clamp(b)]);
+        }
+      }
+
+      const rawCategories = this.localStorage.getItem(
+        this.areaListCategoriesKey,
+      );
+      if (rawCategories) {
+        this.areaListCategories.set(JSON.parse(rawCategories));
+      }
+
+      const rawShade = this.localStorage.getItem(this.areaListShadeKey);
+      if (rawShade) {
+        this.areaListShade.set(JSON.parse(rawShade));
+      }
     } catch {
       // ignore corrupted viewport state
     }
@@ -1331,6 +1363,26 @@ export class GlobalData {
           // ignore corrupted viewport state
         }
       }
+    });
+
+    // Persist filters
+    effect(() => {
+      this.localStorage.setItem(
+        this.areaListGradeRangeKey,
+        JSON.stringify(this.areaListGradeRange()),
+      );
+    });
+    effect(() => {
+      this.localStorage.setItem(
+        this.areaListCategoriesKey,
+        JSON.stringify(this.areaListCategories()),
+      );
+    });
+    effect(() => {
+      this.localStorage.setItem(
+        this.areaListShadeKey,
+        JSON.stringify(this.areaListShade()),
+      );
     });
 
     effect(() => {
@@ -1360,9 +1412,6 @@ export class GlobalData {
         this.selectedAreaSlug.set(null);
         this.selectedCragSlug.set(null);
         this.selectedRouteSlug.set(null);
-        this.areaListGradeRange.set([0, ORDERED_GRADE_VALUES.length - 1]);
-        this.areaListCategories.set([]);
-        this.areaListShade.set([]);
         this.profileActiveTab.set(0);
         break;
       }
