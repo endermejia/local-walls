@@ -48,6 +48,7 @@ import {
   TuiSegmented,
   TuiSelect,
   TuiShimmer,
+  TuiSkeleton,
   TuiSwitch,
   TuiTextarea,
 } from '@taiga-ui/kit';
@@ -118,6 +119,7 @@ interface Country {
     TuiSegmented,
     TuiSelect,
     TuiShimmer,
+    TuiSkeleton,
     TuiSwitch,
     TuiTextarea,
     TuiTextfield,
@@ -156,7 +158,9 @@ interface Country {
         <div class="flex flex-col md:flex-row items-center gap-4">
           <div class="relative inline-block">
             <tui-badged-content [style.--tui-radius.%]="50">
-              <tui-icon icon="@tui.upload" tuiSlot="top" tuiBadge />
+              @if (userEmail()) {
+                <tui-icon icon="@tui.upload" tuiSlot="top" tuiBadge />
+              }
               <tui-avatar
                 (mouseenter)="avatarHovered.set(true)"
                 (mouseleave)="avatarHovered.set(false)"
@@ -165,6 +169,7 @@ interface Country {
                 size="xxl"
                 [src]="avatarSrc() | tuiFallbackSrc: '@tui.user' | async"
                 [tuiShimmer]="isUploadingAvatar()"
+                [tuiSkeleton]="!userEmail()"
               />
             </tui-badged-content>
           </div>
@@ -185,6 +190,7 @@ interface Country {
                 [(ngModel)]="displayName"
                 (blur)="saveName()"
                 (keydown.enter)="saveName()"
+                [tuiSkeleton]="!userEmail()"
               />
             </tui-textfield>
             @if (nameEqualsEmail()) {
@@ -210,6 +216,7 @@ interface Country {
               [value]="userEmail()"
               readonly
               disabled
+              [tuiSkeleton]="!userEmail()"
             />
           </tui-textfield>
         </div>
@@ -227,6 +234,7 @@ interface Country {
               maxlength="50"
               [(ngModel)]="bio"
               (blur)="saveBio()"
+              [tuiSkeleton]="!userEmail()"
             ></textarea>
           </tui-textfield>
         </div>
@@ -254,6 +262,7 @@ interface Country {
               [ngModel]="selectedEightAnuUser.value()"
               (ngModelChange)="saveEightAnuUser($event)"
               (input)="eightAnuSearch$.next($any($event.target).value)"
+              [tuiSkeleton]="!userEmail()"
             />
             <tui-data-list-wrapper
               *tuiTextfieldDropdown
@@ -298,6 +307,7 @@ interface Country {
                 [matcher]="matcher"
                 [strict]="true"
                 (ngModelChange)="saveCountry()"
+                [tuiSkeleton]="!userEmail()"
               />
               <tui-data-list-wrapper
                 *tuiTextfieldDropdown
@@ -334,6 +344,7 @@ interface Country {
                 [(ngModel)]="city"
                 (blur)="saveCity()"
                 (keydown.enter)="saveCity()"
+                [tuiSkeleton]="!userEmail()"
               />
             </tui-textfield>
           </div>
@@ -354,6 +365,7 @@ interface Country {
                 [min]="minBirthDate"
                 [(ngModel)]="birthDate"
                 (ngModelChange)="saveBirthDate()"
+                [tuiSkeleton]="!userEmail()"
               />
               <tui-calendar *tuiTextfieldDropdown />
             </tui-textfield>
@@ -372,6 +384,7 @@ interface Country {
                 [max]="currentYear"
                 [(ngModel)]="startingClimbingYear"
                 (ngModelChange)="saveStartingClimbingYear()"
+                [tuiSkeleton]="!userEmail()"
               />
               <tui-calendar-year *tuiTextfieldDropdown />
             </tui-textfield>
@@ -394,6 +407,7 @@ interface Country {
                 [(ngModel)]="size"
                 (blur)="saveSize()"
                 (keydown.enter)="saveSize()"
+                [tuiSkeleton]="!userEmail()"
               />
               <span class="tui-textfield__suffix">cm</span>
             </tui-textfield>
@@ -415,6 +429,7 @@ interface Country {
                 tuiSelect
                 [(ngModel)]="sex"
                 (ngModelChange)="saveSex()"
+                [tuiSkeleton]="!userEmail()"
               />
               <tui-data-list-wrapper
                 *tuiTextfieldDropdown
@@ -461,6 +476,7 @@ interface Country {
                 tuiSelect
                 [(ngModel)]="language"
                 (ngModelChange)="saveLanguage()"
+                [tuiSkeleton]="!userEmail()"
               />
               <tui-data-list-wrapper
                 *tuiTextfieldDropdown
