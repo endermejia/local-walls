@@ -156,7 +156,7 @@ import { handleErrorToast, slugify } from '../utils';
               ) {
                 <button type="button" new tuiOption [value]="route">
                   <div tuiCell size="s">
-                    <app-avatar-grade [grade]="route.grade" size="s" />
+                    <app-avatar-grade [grade]="route.grade" />
                     <div tuiTitle>
                       {{ route.name }}
                     </div>

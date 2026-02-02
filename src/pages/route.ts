@@ -99,20 +99,22 @@ import { handleErrorToast } from '../utils';
                 >
                   {{ 'actions.edit' | translate }}
                 </button>
-                <button
-                  size="s"
-                  appearance="negative"
-                  iconStart="@tui.trash"
-                  tuiIconButton
-                  type="button"
-                  class="!rounded-full"
-                  [tuiHint]="
-                    global.isMobile() ? null : ('actions.delete' | translate)
-                  "
-                  (click.zoneless)="deleteRoute()"
-                >
-                  {{ 'actions.delete' | translate }}
-                </button>
+                @if (isAdmin) {
+                  <button
+                    size="s"
+                    appearance="negative"
+                    iconStart="@tui.trash"
+                    tuiIconButton
+                    type="button"
+                    class="!rounded-full"
+                    [tuiHint]="
+                      global.isMobile() ? null : ('actions.delete' | translate)
+                    "
+                    (click.zoneless)="deleteRoute()"
+                  >
+                    {{ 'actions.delete' | translate }}
+                  </button>
+                }
               </div>
             }
           </app-section-header>

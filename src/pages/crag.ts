@@ -34,7 +34,6 @@ import {
   TuiAvatar,
   TuiBadgedContent,
   TuiBadgeNotification,
-  TuiDataListWrapper,
   TuiTabs,
   type TuiConfirmData,
 } from '@taiga-ui/kit';
@@ -95,7 +94,6 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     TuiBadgedContent,
     TuiButton,
     TuiDataList,
-    TuiDataListWrapper,
     TuiHeader,
     TuiHint,
     TuiIcon,
@@ -156,18 +154,22 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                   >
                     {{ 'actions.edit' | translate }}
                   </button>
-                  <button
-                    size="s"
-                    appearance="negative"
-                    iconStart="@tui.trash"
-                    tuiIconButton
-                    type="button"
-                    class="!rounded-full"
-                    [tuiHint]="isMobile ? null : ('actions.delete' | translate)"
-                    (click.zoneless)="deleteCrag()"
-                  >
-                    {{ 'actions.delete' | translate }}
-                  </button>
+                  @if (isAdmin) {
+                    <button
+                      size="s"
+                      appearance="negative"
+                      iconStart="@tui.trash"
+                      tuiIconButton
+                      type="button"
+                      class="!rounded-full"
+                      [tuiHint]="
+                        isMobile ? null : ('actions.delete' | translate)
+                      "
+                      (click.zoneless)="deleteCrag()"
+                    >
+                      {{ 'actions.delete' | translate }}
+                    </button>
+                  }
                 </div>
               }
             </app-section-header>
@@ -291,7 +293,9 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                     </h2>
                   </div>
                   @if (isAdmin || isEquipper) {
-                    <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
+                    <div
+                      class="flex gap-2 flex-wrap sm:flex-nowrap justify-end"
+                    >
                       <button
                         tuiButton
                         appearance="textfield"
@@ -471,7 +475,9 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                     </h2>
                   </div>
                   @if (isAdmin || isEquipper) {
-                    <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
+                    <div
+                      class="flex gap-2 flex-wrap sm:flex-nowrap justify-end"
+                    >
                       <button
                         tuiButton
                         appearance="textfield"
@@ -641,7 +647,9 @@ export class CragComponent {
 
   readonly showRoutesTab = computed(() => {
     const isAdmin = this.global.isAdmin();
-    const isEquipper = this.global.isAllowedEquipper(this.cragDetail()?.area_id);
+    const isEquipper = this.global.isAllowedEquipper(
+      this.cragDetail()?.area_id,
+    );
     return (
       (this.global.cragRoutesResource.value()?.length ?? 0) > 0 ||
       isAdmin ||
@@ -651,15 +659,17 @@ export class CragComponent {
 
   readonly showToposTab = computed(() => {
     const isAdmin = this.global.isAdmin();
-    const isEquipper = this.global.isAllowedEquipper(this.cragDetail()?.area_id);
-    return (
-      (this.cragDetail()?.topos?.length ?? 0) > 0 || isAdmin || isEquipper
+    const isEquipper = this.global.isAllowedEquipper(
+      this.cragDetail()?.area_id,
     );
+    return (this.cragDetail()?.topos?.length ?? 0) > 0 || isAdmin || isEquipper;
   });
 
   readonly showParkingsTab = computed(() => {
     const isAdmin = this.global.isAdmin();
-    const isEquipper = this.global.isAllowedEquipper(this.cragDetail()?.area_id);
+    const isEquipper = this.global.isAllowedEquipper(
+      this.cragDetail()?.area_id,
+    );
     return (
       (this.cragDetail()?.parkings?.length ?? 0) > 0 || isAdmin || isEquipper
     );

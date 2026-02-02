@@ -223,6 +223,14 @@ export class GlobalData {
   readonly isEquipper = computed(
     () => this.editingMode() && this.userRole() === AppRoles.EQUIPPER,
   );
+
+  readonly isActualAdmin = computed(() => this.userRole() === AppRoles.ADMIN);
+  readonly isActualEquipper = computed(
+    () => this.userRole() === AppRoles.EQUIPPER,
+  );
+  readonly isUserAdminOrEquipper = computed(
+    () => this.isActualAdmin() || this.isActualEquipper(),
+  );
   readonly equipperAreas = this.supabase.equipperAreas;
 
   readonly isAllowedEquipper = (areaId: number | undefined) => {

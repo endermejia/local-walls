@@ -9,7 +9,7 @@ import {
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { TuiAppearance, TuiButton } from '@taiga-ui/core';
+import { TuiAppearance, TuiButton, TuiHint, TuiIcon } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
@@ -22,11 +22,7 @@ import { TuiHeader } from '@taiga-ui/layout';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
-import {
-  GradeLabel,
-  RouteAscentWithExtras,
-  VERTICAL_LIFE_TO_LABEL,
-} from '../models';
+import { CLIMBING_ICONS, RouteAscentWithExtras } from '../models';
 
 import {
   AscentsService,
@@ -37,12 +33,16 @@ import {
 
 import { AscentCommentsComponent } from './ascent-comments';
 import { AscentLikesComponent } from './ascent-likes';
+import { AvatarGradeComponent } from './avatar-grade';
+import { AvatarAscentTypeComponent } from './avatar-ascent-type';
 
 @Component({
   selector: 'app-ascent-card',
   imports: [
-    AscentLikesComponent,
     AscentCommentsComponent,
+    AscentLikesComponent,
+    AvatarAscentTypeComponent,
+    AvatarGradeComponent,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
@@ -51,6 +51,8 @@ import { AscentLikesComponent } from './ascent-likes';
     TuiAvatar,
     TuiButton,
     TuiHeader,
+    TuiHint,
+    TuiIcon,
     TuiRating,
   ],
   template: `
@@ -87,7 +89,9 @@ import { AscentLikesComponent } from './ascent-likes';
             class="flex items-center gap-3 no-underline text-inherit cursor-pointer group/user"
           >
             <tui-avatar
-              [src]="supabase.buildAvatarUrl(ascent.user?.avatar) || '@tui.user'"
+              [src]="
+                supabase.buildAvatarUrl(ascent.user?.avatar) || '@tui.user'
+              "
               size="s"
             />
             <div class="flex flex-col">
@@ -110,7 +114,10 @@ import { AscentLikesComponent } from './ascent-likes';
                 size="s"
                 appearance="secondary-grayscale"
                 class="!rounded-full"
-                (click)="unfollow(ascent.user_id, ascent.user?.name || 'User'); $event.stopPropagation()"
+                (click)="
+                  unfollow(ascent.user_id, ascent.user?.name || 'User');
+                  $event.stopPropagation()
+                "
               >
                 {{ 'actions.following' | translate }}
               </button>
@@ -162,11 +169,63 @@ import { AscentLikesComponent } from './ascent-likes';
       </header>
 
       <div class="flex flex-col gap-1">
-        @if (ascent.route && showRoute()) {
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="font-bold text-lg">
-              {{ ascent.route.name }}
-            </span>
+        <div class="flex flex-col gap-1">
+          @if (ascent.route && showRoute()) {
+            <div class="flex flex-wrap items-center gap-2">
+              @if (ascent.route.climbing_kind; as kind) {
+                <tui-icon
+                  [icon]="climbingIcons[kind] || '@tui.mountain'"
+                  class="text-gray-400"
+                  [tuiHint]="'climbingKinds.' + kind | translate"
+                />
+              }
+              <span class="font-bold text-lg">
+                {{ ascent.route.name }}
+              </span>
+              @if (ascent.route && showRoute()) {
+                <span>•</span>
+                <div
+                  role="link"
+                  tabindex="0"
+                  class="hover:underline cursor-pointer flex items-center gap-1"
+                  (click)="
+                    $event.stopPropagation();
+                    $event.preventDefault();
+                    router.navigate([
+                      '/area',
+                      ascent.route.area_slug,
+                      ascent.route.crag_slug,
+                    ])
+                  "
+                  (keydown.enter)="
+                    $event.stopPropagation();
+                    $event.preventDefault();
+                    router.navigate([
+                      '/area',
+                      ascent.route.area_slug,
+                      ascent.route.crag_slug,
+                    ])
+                  "
+                >
+                  <span>{{ ascent.route.crag_name }}</span>
+                </div>
+              }
+            </div>
+          }
+          <div class="flex items-center gap-2 text-sm text-gray-600">
+            @if (ascent.grade; as ascentGrade) {
+              <app-avatar-grade [grade]="ascentGrade" size="s" />
+            }
+            @if (ascent.type; as ascentType) {
+              <div class="flex items-center gap-1">
+                <app-avatar-ascent-type [type]="ascentType" size="xs" />
+                <span
+                  class="px-2 py-0.5 bg-gray-100 rounded text-[10px] uppercase font-bold"
+                >
+                  {{ 'ascentTypes.' + ascentType | translate }}
+                </span>
+              </div>
+            }
             @if (ascent.rate) {
               <tui-rating
                 [ngModel]="ascent.rate"
@@ -177,53 +236,14 @@ import { AscentLikesComponent } from './ascent-likes';
               />
             }
           </div>
-          <div class="flex items-center gap-2 text-sm text-gray-600">
-            <span class="font-semibold text-blue-600">
-              {{ gradeLabelByNumber[ascent.grade ?? ascent.route.grade] }}
-            </span>
-            @if (ascent.type) {
-              <span
-                class="px-2 py-0.5 bg-gray-100 rounded text-[10px] uppercase font-bold"
-              >
-                {{ 'ascentTypes.' + ascent.type | translate }}
-              </span>
-            }
-            <span>•</span>
-            <span>{{ ascent.route.crag_name }}</span>
-          </div>
-        } @else {
-          <div class="flex items-center gap-2 text-sm text-gray-600">
-            @let displayGrade = ascent.grade ?? ascent.route?.grade;
-            @if (displayGrade !== null && displayGrade !== undefined) {
-              <span class="font-semibold text-blue-600">
-                {{ gradeLabelByNumber[displayGrade] }}
-              </span>
-            }
-            @if (ascent.type) {
-              <span
-                class="px-2 py-0.5 bg-gray-100 rounded text-[10px] uppercase font-bold"
-              >
-                {{ 'ascentTypes.' + ascent.type | translate }}
-              </span>
-            }
-            @if (ascent.rate) {
-              <tui-rating
-                [ngModel]="ascent.rate"
-                [max]="5"
-                [readOnly]="true"
-                class="pointer-events-none"
-                [style.font-size.rem]="0.5"
-              />
-            }
-          </div>
-        }
+        </div>
       </div>
 
-      @if (ascent.comment) {
+      @if (ascent.comment; as ascentComment) {
         <p
           class="text-sm text-gray-700 italic border-l-2 border-gray-200 pl-3 py-1 self-start"
         >
-          "{{ ascent.comment }}"
+          "{{ ascentComment }}"
         </p>
       }
 
@@ -237,6 +257,7 @@ import { AscentLikesComponent } from './ascent-likes';
 })
 export class AscentCardComponent {
   protected readonly global = inject(GlobalData);
+  protected readonly climbingIcons = CLIMBING_ICONS;
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
   private readonly ascentsService = inject(AscentsService);
@@ -251,9 +272,6 @@ export class AscentCardComponent {
 
   followEvent = output<string>();
   unfollowEvent = output<string>();
-
-  protected readonly gradeLabelByNumber: Partial<Record<number, GradeLabel>> =
-    VERTICAL_LIFE_TO_LABEL;
 
   editAscent() {
     this.ascentsService.openAscentForm({ ascentData: this.data() }).subscribe();

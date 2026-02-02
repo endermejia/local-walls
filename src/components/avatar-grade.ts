@@ -5,7 +5,7 @@ import {
   input,
 } from '@angular/core';
 
-import { TuiSizeL, TuiSizeS } from '@taiga-ui/core';
+import { TuiSizeL, TuiSizeS, TuiSizeXS } from '@taiga-ui/core';
 import { TuiAvatar } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -25,6 +25,7 @@ import {
       tuiThumbnail
       [size]="size()"
       class="self-center font-semibold select-none !text-white"
+      [class.!text-[10px]]="size() === 'xs'"
       [style.background]="getGradeColor()"
       [attr.aria-label]="'labels.grade' | translate"
     >
@@ -35,7 +36,7 @@ import {
 })
 export class AvatarGradeComponent {
   grade = input.required<number>();
-  size = input<TuiSizeS | TuiSizeL>('m');
+  size = input<TuiSizeS | TuiSizeL | TuiSizeXS>('m');
 
   protected readonly gradeLabel = computed(() => {
     const g = this.grade();

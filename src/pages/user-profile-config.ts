@@ -483,19 +483,21 @@ interface Country {
               </button>
             </tui-segmented>
 
-            <div class="flex items-center gap-4">
-              <label tuiLabel for="editingSwitch">{{
-                'labels.editingMode' | translate
-              }}</label>
-              <input
-                id="editingSwitch"
-                name="editingSwitch"
-                tuiSwitch
-                type="checkbox"
-                [ngModel]="global.editingMode()"
-                (ngModelChange)="global.editingMode.set($event)"
-              />
-            </div>
+            @if (global.isUserAdminOrEquipper()) {
+              <div class="flex items-center gap-4">
+                <label tuiLabel for="editingSwitch">{{
+                  'labels.editingMode' | translate
+                }}</label>
+                <input
+                  id="editingSwitch"
+                  name="editingSwitch"
+                  tuiSwitch
+                  type="checkbox"
+                  [ngModel]="global.editingMode()"
+                  (ngModelChange)="global.editingMode.set($event)"
+                />
+              </div>
+            }
 
             <!-- <div class="flex items-center gap-4">
             <label tuiLabel for="privateSwitch">{{

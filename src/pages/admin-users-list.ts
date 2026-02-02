@@ -497,9 +497,9 @@ export class AdminUsersListComponent {
 
       const mappingsByEquipper = new Map<string, number[]>();
       (mappings || []).forEach((m) => {
-        const list = mappingsByEquipper.get(m.equipper_id) || [];
+        const list = mappingsByEquipper.get(m.user_id) || [];
         list.push(m.area_id);
-        mappingsByEquipper.set(m.equipper_id, list);
+        mappingsByEquipper.set(m.user_id, list);
       });
 
       const usersWithRoles: UserWithRole[] = profiles.map((profile) => {
@@ -586,7 +586,7 @@ export class AdminUsersListComponent {
       if (toAdd.length > 0) {
         const { error: addError } = await this.supabase.client
           .from('area_equippers')
-          .insert(toAdd.map((area_id) => ({ equipper_id: userId, area_id })));
+          .insert(toAdd.map((area_id) => ({ user_id: userId, area_id })));
         if (addError) throw addError;
       }
 
@@ -594,7 +594,7 @@ export class AdminUsersListComponent {
         const { error: removeError } = await this.supabase.client
           .from('area_equippers')
           .delete()
-          .eq('equipper_id', userId)
+          .eq('user_id', userId)
           .in('area_id', toRemove);
         if (removeError) throw removeError;
       }

@@ -5,6 +5,7 @@ export * from './ascent-comments';
 export * from './ascent-comments-dialog';
 export * from './avatar-cropper';
 export * from './avatar-grade';
+export * from './avatar-ascent-type';
 export * from './chart-ascents-by-grade';
 export * from './chart-routes-by-grade';
 export * from './empty-state';

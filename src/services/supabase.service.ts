@@ -120,7 +120,7 @@ export class SupabaseService {
       const { data, error } = await this.client
         .from('area_equippers')
         .select('area_id')
-        .eq('equipper_id', userId);
+        .eq('user_id', userId);
       if (error) {
         console.error('[SupabaseService] equipperAreasResource error', error);
         return [];

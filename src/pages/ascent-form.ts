@@ -661,7 +661,7 @@ export default class AscentFormComponent {
         attemptsCtrl.setValue(null, { emitEvent: false });
       }
       attemptsCtrl.enable({ emitEvent: false });
-      attemptsCtrl.setValidators([Validators.required, Validators.min(2)]);
+      attemptsCtrl.setValidators([Validators.min(2)]);
     } else {
       attemptsCtrl.enable({ emitEvent: false });
       attemptsCtrl.setValidators([Validators.required, Validators.min(1)]);

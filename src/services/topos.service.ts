@@ -12,12 +12,10 @@ import type {
   TopoDto,
   TopoInsertDto,
   TopoRouteInsertDto,
-  TopoRouteWithRoute,
   TopoUpdateDto,
 } from '../models';
 
 import TopoFormComponent from '../pages/topo-form';
-import TopoRouteFormComponent from '../pages/topo-route-form';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
@@ -55,24 +53,6 @@ export class ToposService {
         if (this.global.selectedTopoId()) {
           this.global.topoDetailResource.reload();
         }
-      }
-    });
-  }
-
-  openTopoRouteForm(data: { topoRouteData: TopoRouteWithRoute }): void {
-    void firstValueFrom(
-      this.dialogs.open<boolean>(
-        new PolymorpheusComponent(TopoRouteFormComponent),
-        {
-          label: this.translate.instant('topos.editRouteTitle'),
-          size: 's',
-          data,
-          dismissible: false,
-        },
-      ),
-    ).then((result) => {
-      if (result) {
-        this.global.topoDetailResource.reload();
       }
     });
   }

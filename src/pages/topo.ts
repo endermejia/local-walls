@@ -84,28 +84,28 @@ export interface TopoRouteRow {
 @Component({
   selector: 'app-topo',
   imports: [
-    EmptyStateComponent,
-    TranslatePipe,
-    SectionHeaderComponent,
-    TuiButton,
-    TuiHint,
-    TuiTable,
-    TuiLoader,
-    TuiLink,
-    AvatarGradeComponent,
-    TuiTableSortPipe,
-    RouterLink,
-    TuiIcon,
-    TuiAvatar,
-    TuiCell,
-    TuiSwipe,
     AsyncPipe,
-    TopoImagePipe,
-    TuiScrollbar,
+    AvatarGradeComponent,
+    EmptyStateComponent,
     FormsModule,
-    TuiInputNumber,
-    TuiTextfield,
+    RouterLink,
+    SectionHeaderComponent,
+    TopoImagePipe,
+    TranslatePipe,
+    TuiAvatar,
+    TuiButton,
+    TuiCell,
     TuiDataList,
+    TuiHint,
+    TuiIcon,
+    TuiInputNumber,
+    TuiLink,
+    TuiLoader,
+    TuiScrollbar,
+    TuiSwipe,
+    TuiTable,
+    TuiTableSortPipe,
+    TuiTextfield,
   ],
   template: `
     <div class="h-full w-full">
@@ -187,17 +187,21 @@ export interface TopoRouteRow {
                     accept="image/*"
                     (change)="onFileSelected($event)"
                   />
-                  <button
-                    tuiIconButton
-                    size="s"
-                    appearance="negative"
-                    iconStart="@tui.trash"
-                    class="!rounded-full"
-                    (click.zoneless)="deleteTopo(t)"
-                    [tuiHint]="isMobile ? null : ('actions.delete' | translate)"
-                  >
-                    {{ 'actions.delete' | translate }}
-                  </button>
+                  @if (isAdmin) {
+                    <button
+                      tuiIconButton
+                      size="s"
+                      appearance="negative"
+                      iconStart="@tui.trash"
+                      class="!rounded-full"
+                      (click.zoneless)="deleteTopo(t)"
+                      [tuiHint]="
+                        isMobile ? null : ('actions.delete' | translate)
+                      "
+                    >
+                      {{ 'actions.delete' | translate }}
+                    </button>
+                  }
                 }
               </div>
             </app-section-header>
@@ -279,11 +283,18 @@ export interface TopoRouteRow {
                           [sorter]="getSorter(col)"
                           [class.text-center]="col !== 'name'"
                           [class.!w-10]="isMobile && col === 'index'"
-                          [class.!w-12]="!isMobile && col === 'index'"
-                          [class.!w-12]="isMobile && col === 'grade'"
+                          [class.!w-12]="
+                            (!isMobile && col === 'index') ||
+                            (isMobile && col === 'grade')
+                          "
                           [class.!w-20]="!isMobile && col === 'grade'"
-                          [class.!w-24]="isMobile && (col === 'actions' || col === 'admin_actions')"
-                          [class.!w-24]="!isMobile && (col === 'height' || col === 'admin_actions')"
+                          [class.!w-20]="!isMobile && col === 'grade'"
+                          [class.!w-24]="
+                            (isMobile &&
+                              (col === 'actions' || col === 'admin_actions')) ||
+                            (!isMobile &&
+                              (col === 'height' || col === 'admin_actions'))
+                          "
                           [class.!w-28]="!isMobile && col === 'actions'"
                         >
                           <div class="items-center justify-center gap-1">
@@ -344,7 +355,6 @@ export interface TopoRouteRow {
                                     >
                                       <input
                                         tuiInputNumber
-                                        decimal="never"
                                         class="text-center !h-full !border-none !p-0"
                                         [ngModel]="item.index + 1"
                                         (change)="
@@ -373,10 +383,7 @@ export interface TopoRouteRow {
                               }
                               @case ('grade') {
                                 <div tuiCell size="m" class="justify-center">
-                                  <app-avatar-grade
-                                    [grade]="item.grade"
-                                    [size]="isMobile ? 'm' : 's'"
-                                  />
+                                  <app-avatar-grade [grade]="item.grade" />
                                 </div>
                               }
                               @case ('height') {
@@ -389,7 +396,7 @@ export interface TopoRouteRow {
                                   @if (!item.climbed) {
                                     <button
                                       tuiIconButton
-                                      [size]="isMobile ? 's' : 'm'"
+                                      size="m"
                                       appearance="neutral"
                                       iconStart="@tui.circle-plus"
                                       class="!rounded-full"
@@ -398,7 +405,10 @@ export interface TopoRouteRow {
                                           ? null
                                           : ('ascent.new' | translate)
                                       "
-                                      (click.zoneless)="onLogAscent(item._ref); $event.stopPropagation()"
+                                      (click.zoneless)="
+                                        onLogAscent(item._ref);
+                                        $event.stopPropagation()
+                                      "
                                     >
                                       {{ 'ascent.new' | translate }}
                                     </button>
@@ -435,7 +445,7 @@ export interface TopoRouteRow {
                                   @if (!item.climbed) {
                                     <button
                                       tuiIconButton
-                                      [size]="isMobile ? 's' : 'm'"
+                                      size="m"
                                       [appearance]="
                                         item.project ? 'primary' : 'neutral'
                                       "
@@ -449,7 +459,10 @@ export interface TopoRouteRow {
                                               : 'actions.project.add'
                                             ) | translate)
                                       "
-                                      (click.zoneless)="onToggleProject(item); $event.stopPropagation()"
+                                      (click.zoneless)="
+                                        onToggleProject(item);
+                                        $event.stopPropagation()
+                                      "
                                     >
                                       {{
                                         (item.project
@@ -466,23 +479,6 @@ export interface TopoRouteRow {
                                   <button
                                     tuiIconButton
                                     size="s"
-                                    appearance="neutral"
-                                    iconStart="@tui.square-pen"
-                                    class="!rounded-full"
-                                    [tuiHint]="
-                                      isMobile
-                                        ? null
-                                        : ('actions.edit' | translate)
-                                    "
-                                    (click.zoneless)="
-                                      openEditTopoRoute(item._ref); $event.stopPropagation()
-                                    "
-                                  >
-                                    {{ 'actions.edit' | translate }}
-                                  </button>
-                                  <button
-                                    tuiIconButton
-                                    size="s"
                                     appearance="negative"
                                     iconStart="@tui.unlink"
                                     class="!rounded-full"
@@ -492,7 +488,8 @@ export interface TopoRouteRow {
                                         : ('actions.unlink' | translate)
                                     "
                                     (click.zoneless)="
-                                      deleteTopoRoute(item._ref); $event.stopPropagation()
+                                      deleteTopoRoute(item._ref);
+                                      $event.stopPropagation()
                                     "
                                   >
                                     {{ 'actions.unlink' | translate }}
@@ -813,13 +810,6 @@ export class TopoComponent {
       cragId: topo.crag_id,
       topoData: topo,
       initialRouteIds,
-    });
-  }
-
-  openEditTopoRoute(topoRoute: TopoRouteWithRoute): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-    this.toposService.openTopoRouteForm({
-      topoRouteData: topoRoute,
     });
   }
 

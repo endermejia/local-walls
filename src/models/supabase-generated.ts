@@ -924,20 +924,20 @@ export interface Database {
         Row: {
           area_id: number;
           created_at: string | null;
-          equipper_id: string;
           id: number;
+          user_id: string;
         };
         Insert: {
           area_id: number;
           created_at?: string | null;
-          equipper_id: string;
           id?: number;
+          user_id: string;
         };
         Update: {
           area_id?: number;
           created_at?: string | null;
-          equipper_id?: string;
           id?: number;
+          user_id?: string;
         };
         Relationships: [
           {
@@ -1173,6 +1173,38 @@ export interface Database {
           size?: number;
         };
         Relationships: [];
+      };
+      route_ascent_comments: {
+        Row: {
+          comment: string;
+          created_at: string;
+          id: number;
+          route_ascent_id: number;
+          user_id: string;
+        };
+        Insert: {
+          comment: string;
+          created_at?: string;
+          id?: number;
+          route_ascent_id: number;
+          user_id: string;
+        };
+        Update: {
+          comment?: string;
+          created_at?: string;
+          id?: number;
+          route_ascent_id?: number;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'route_ascent_comments_route_ascent_id_fkey';
+            columns: ['route_ascent_id'];
+            isOneToOne: false;
+            referencedRelation: 'route_ascents';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       route_ascent_likes: {
         Row: {
@@ -1683,6 +1715,8 @@ export interface Database {
           topos_count: number;
         }[];
       };
+      is_area_equipper: { Args: { p_area_id: number }; Returns: boolean };
+      is_crag_equipper: { Args: { p_crag_id: number }; Returns: boolean };
       is_user_admin: { Args: { p_uid: string }; Returns: boolean };
       toggle_area_like: { Args: { p_area_id: number }; Returns: boolean };
       toggle_crag_like: { Args: { p_crag_id: number }; Returns: boolean };

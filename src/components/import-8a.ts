@@ -186,7 +186,6 @@ import { AvatarGradeComponent } from './avatar-grade';
                           [grade]="
                             LABEL_TO_VERTICAL_LIFE[ascent.difficulty] ?? 0
                           "
-                          size="m"
                         />
                         <div>
                           <div class="font-semibold">
