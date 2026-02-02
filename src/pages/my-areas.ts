@@ -162,7 +162,7 @@ import {
               </button>
             } @empty {
               <div class="col-span-full">
-                <app-empty-state />
+                <app-empty-state icon="@tui.star" />
               </div>
             }
           </div>

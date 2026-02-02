@@ -132,7 +132,7 @@ export interface UserListDialogData {
           } @empty {
             @if (!loading()) {
               <div class="py-12">
-                <app-empty-state />
+                <app-empty-state [icon]="emptyIcon()" />
               </div>
             }
           }
@@ -231,6 +231,14 @@ export class UserListDialogComponent {
   protected readonly hasMore = computed(
     () => this.users().length < this.total(),
   );
+  protected readonly emptyIcon = computed(() => {
+    switch (this.type) {
+      case 'ascent-likes':
+        return '@tui.heart';
+      default:
+        return '@tui.users';
+    }
+  });
 
   constructor() {
     this.loadFollowedIds();

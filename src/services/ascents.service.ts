@@ -15,6 +15,8 @@ import {
   RouteAscentUpdateDto,
   RouteAscentWithExtras,
   UserProfileDto,
+  RouteAscentCommentDto,
+  RouteAscentCommentInsertDto,
 } from '../models';
 
 import AscentFormComponent from '../pages/ascent-form';
@@ -162,6 +164,16 @@ export class AscentsService {
     likes_count: number;
   }>();
 
+  private readonly ascentCommentsUpdate$ = new Subject<number>();
+
+  get ascentLikesUpdate() {
+    return this.ascentLikesUpdate$.asObservable();
+  }
+
+  get ascentCommentsUpdate() {
+    return this.ascentCommentsUpdate$.asObservable();
+  }
+
   async toggleLike(ascentId: number): Promise<boolean | null> {
     if (!isPlatformBrowser(this.platformId)) return null;
     await this.supabase.whenReady();
@@ -283,6 +295,125 @@ export class AscentsService {
       items: sortedProfiles,
       total: count || 0,
     };
+  }
+
+  async getCommentsCount(ascentId: number): Promise<number> {
+    if (!isPlatformBrowser(this.platformId)) return 0;
+    await this.supabase.whenReady();
+
+    const { error, count } = await this.supabase.client
+      .from('route_ascent_comments')
+      .select('id', { count: 'exact', head: true })
+      .eq('route_ascent_id', ascentId);
+
+    if (error) {
+      console.error('[AscentsService] getCommentsCount error', error);
+      throw error;
+    }
+
+    return count ?? 0;
+  }
+
+  async getComments(
+    ascentId: number,
+  ): Promise<(RouteAscentCommentDto & { user_profiles: UserProfileDto })[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+
+    const { data: commentsData, error: commentsError } =
+      await this.supabase.client
+        .from('route_ascent_comments')
+        .select('*')
+        .eq('route_ascent_id', ascentId)
+        .order('created_at', { ascending: true });
+
+    if (commentsError) {
+      console.error('[AscentsService] getComments error', commentsError);
+      throw commentsError;
+    }
+
+    if (!commentsData || commentsData.length === 0) {
+      return [];
+    }
+
+    const userIds = [...new Set(commentsData.map((c) => c.user_id))];
+    const { data: profilesData, error: profilesError } =
+      await this.supabase.client
+        .from('user_profiles')
+        .select('*')
+        .in('id', userIds);
+
+    if (profilesError) {
+      console.error(
+        '[AscentsService] getComments profiles error',
+        profilesError,
+      );
+      throw profilesError;
+    }
+
+    const profileMap = new Map(profilesData?.map((p) => [p.id, p]));
+
+    return commentsData
+      .map((comment) => ({
+        ...comment,
+        user_profiles: profileMap.get(comment.user_id)!,
+      }))
+      .filter((c) => !!c.user_profiles);
+  }
+
+  async addComment(
+    ascentId: number,
+    comment: string,
+  ): Promise<RouteAscentCommentDto | null> {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    await this.supabase.whenReady();
+
+    const userId = this.supabase.authUserId();
+    if (!userId) return null;
+
+    const payload: RouteAscentCommentInsertDto = {
+      route_ascent_id: ascentId,
+      user_id: userId,
+      comment,
+    };
+
+    const { data, error } = await this.supabase.client
+      .from('route_ascent_comments')
+      .insert(payload)
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('[AscentsService] addComment error', error);
+      throw error;
+    }
+
+    this.refreshComments(ascentId);
+
+    return data;
+  }
+
+  async deleteComment(ascentId: number, commentId: number): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    await this.supabase.whenReady();
+
+    const { error } = await this.supabase.client
+      .from('route_ascent_comments')
+      .delete()
+      .eq('id', commentId);
+
+    if (error) {
+      console.error('[AscentsService] deleteComment error', error);
+      throw error;
+    }
+
+    this.refreshComments(ascentId);
+
+    return true;
+  }
+
+  refreshComments(ascentId: number): void {
+    this.ascentCommentsUpdate$.next(ascentId);
   }
 
   refreshResources(

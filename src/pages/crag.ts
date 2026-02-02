@@ -454,7 +454,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                     </button>
                   } @empty {
                     <div class="col-span-full">
-                      <app-empty-state />
+                      <app-empty-state icon="@tui.image" />
                     </div>
                   }
                 </div>
@@ -599,7 +599,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                     </div>
                   } @empty {
                     <div class="col-span-full">
-                      <app-empty-state />
+                      <app-empty-state icon="@tui.car" />
                     </div>
                   }
                 </div>

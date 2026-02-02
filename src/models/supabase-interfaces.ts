@@ -104,9 +104,7 @@ export type UserProfileDto = TableRow<'user_profiles'>;
 export type UserProfileInsertDto = TableInsert<'user_profiles'>;
 export type UserProfileUpdateDto = TableUpdate<'user_profiles'>;
 
-// TODO: ascent_comments table
-// id: uuid (primary key)
-// created_at: timestamptz
-// user_id: uuid (references user_profiles.id)
-// route_ascent_id: bigint (references route_ascents.id)
-// comment: text
+// Route Ascent Comments
+export type RouteAscentCommentDto = TableRow<'route_ascent_comments'>;
+export type RouteAscentCommentInsertDto = TableInsert<'route_ascent_comments'>;
+export type RouteAscentCommentUpdateDto = TableUpdate<'route_ascent_comments'>;

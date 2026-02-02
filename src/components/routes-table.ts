@@ -556,7 +556,7 @@ export interface RoutesTableRow {
           </table>
         </tui-scrollbar>
       } @else {
-        <app-empty-state />
+        <app-empty-state icon="@tui.list" />
       }
     }
   `,

@@ -179,7 +179,7 @@ import {
               </button>
             } @empty {
               <div class="col-span-full">
-                <app-empty-state />
+                <app-empty-state icon="@tui.map" />
               </div>
             }
           </div>

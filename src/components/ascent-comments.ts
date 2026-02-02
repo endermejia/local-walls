@@ -3,7 +3,9 @@ import {
   Component,
   inject,
   input,
+  resource,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TranslateService } from '@ngx-translate/core';
 import { TuiButton, TuiIcon } from '@taiga-ui/core';
@@ -11,6 +13,7 @@ import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { firstValueFrom } from 'rxjs';
 
+import { AscentsService } from '../services';
 import { AscentCommentsDialogComponent } from './ascent-comments-dialog';
 
 @Component({
@@ -25,16 +28,18 @@ import { AscentCommentsDialogComponent } from './ascent-comments-dialog';
         icon="@tui.message-circle"
         (click)="showComments($event)"
       />
-      <button
-        tuiButton
-        type="button"
-        size="m"
-        appearance="action-grayscale"
-        class="!pr-1 !pl-1 !h-auto"
-        (click)="showComments($event)"
-      >
-        0
-      </button>
+      @if (commentsCountResource.value(); as count) {
+        <button
+          tuiButton
+          type="button"
+          size="m"
+          appearance="action-grayscale"
+          class="!pr-1 !pl-1 !h-auto"
+          (click)="showComments($event)"
+        >
+          {{ count }}
+        </button>
+      }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,8 +47,24 @@ import { AscentCommentsDialogComponent } from './ascent-comments-dialog';
 export class AscentCommentsComponent {
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
+  private readonly ascentsService = inject(AscentsService);
 
   ascentId = input.required<number>();
+
+  protected readonly commentsCountResource = resource({
+    params: () => this.ascentId(),
+    loader: ({ params: id }) => this.ascentsService.getCommentsCount(id),
+  });
+
+  constructor() {
+    this.ascentsService.ascentCommentsUpdate
+      .pipe(takeUntilDestroyed())
+      .subscribe((id) => {
+        if (id === this.ascentId()) {
+          this.commentsCountResource.reload();
+        }
+      });
+  }
 
   protected showComments(event: Event): void {
     event.stopPropagation();

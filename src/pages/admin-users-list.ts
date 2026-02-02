@@ -313,7 +313,7 @@ interface UserWithRole {
               } @empty {
                 <tr tuiTr>
                   <td [attr.colspan]="columns().length" tuiTd>
-                    <app-empty-state />
+                    <app-empty-state icon="@tui.users" />
                   </td>
                 </tr>
               }

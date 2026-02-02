@@ -328,10 +328,7 @@ import {
                       [formControl]="sortFilterControl"
                     />
                     <tui-data-list *tuiTextfieldDropdown>
-                      <tui-data-list-wrapper
-                        new
-                        [items]="['grade', 'date']"
-                      />
+                      <tui-data-list-wrapper new [items]="['grade', 'date']" />
                     </tui-data-list>
                   </tui-textfield>
                 </div>
@@ -361,7 +358,7 @@ import {
                 </button>
               </div>
             } @else {
-              <app-empty-state />
+              <app-empty-state icon="@tui.list" />
             }
           }
           @case (1) {

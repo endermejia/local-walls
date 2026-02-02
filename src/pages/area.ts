@@ -243,7 +243,7 @@ import { handleErrorToast } from '../utils';
                 </div>
               </button>
             } @empty {
-              <app-empty-state class="col-span-full" />
+              <app-empty-state class="col-span-full" icon="@tui.layout-grid" />
             }
           </div>
         } @else {
