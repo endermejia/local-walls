@@ -5,10 +5,6 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'login', renderMode: RenderMode.Prerender },
   { path: 'explore', renderMode: RenderMode.Prerender },
   {
-    path: 'profile',
-    renderMode: RenderMode.Prerender,
-  },
-  {
     path: 'profile/config',
     renderMode: RenderMode.Prerender,
   },
@@ -19,6 +15,10 @@ export const serverRoutes: ServerRoute[] = [
     async getPrerenderParams() {
       return [];
     },
+  },
+  {
+    path: 'profile',
+    renderMode: RenderMode.Prerender,
   },
   { path: 'area', renderMode: RenderMode.Prerender },
   {
