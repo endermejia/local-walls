@@ -174,7 +174,11 @@ export interface RoutesTableRow {
                           : ''
                       : ''
                   "
+                  tabindex="0"
                   (click.zoneless)="
+                    isMobile ? exp.toggle() : router.navigate(item.link)
+                  "
+                  (keydown.enter)="
                     isMobile ? exp.toggle() : router.navigate(item.link)
                   "
                 >
@@ -297,7 +301,12 @@ export interface RoutesTableRow {
                                 [tuiHint]="
                                   isMobile ? null : ('ascent.edit' | translate)
                                 "
+                                tabindex="0"
                                 (click.zoneless)="
+                                  onEditAscent(ascentToEdit, item._ref.name);
+                                  $event.stopPropagation()
+                                "
+                                (keydown.enter)="
                                   onEditAscent(ascentToEdit, item._ref.name);
                                   $event.stopPropagation()
                                 "
@@ -451,7 +460,12 @@ export interface RoutesTableRow {
                                 [type]="ascentToEdit?.type"
                                 size="m"
                                 class="cursor-pointer"
+                                tabindex="0"
                                 (click.zoneless)="
+                                  onEditAscent(ascentToEdit, item._ref.name);
+                                  $event.stopPropagation()
+                                "
+                                (keydown.enter)="
                                   onEditAscent(ascentToEdit, item._ref.name);
                                   $event.stopPropagation()
                                 "

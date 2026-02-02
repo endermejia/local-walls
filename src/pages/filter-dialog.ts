@@ -96,7 +96,9 @@ export interface FilterDialog {
                 tuiLink
                 appearance="action-grayscale"
                 role="button"
+                tabindex="0"
                 (click.zoneless)="onTickClick(keySteps[i][1])"
+                (keydown.enter)="onTickClick(keySteps[i][1])"
                 >{{ label }}</a
               >
             }

@@ -227,7 +227,9 @@ export interface TopoRouteRow {
                   [alt]="t.name"
                   class="w-auto h-full max-w-none cursor-pointer block object-cover"
                   decoding="async"
+                  tabindex="0"
                   (click.zoneless)="toggleFullscreen(!!topoImage)"
+                  (keydown.enter)="toggleFullscreen(!!topoImage)"
                 />
               </div>
             </div>
@@ -235,7 +237,9 @@ export interface TopoRouteRow {
             @if (isFullscreen()) {
               <div
                 class="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden touch-none backdrop-blur-xl"
+                tabindex="0"
                 (click.zoneless)="toggleFullscreen(false)"
+                (keydown.enter)="toggleFullscreen(false)"
                 (wheel.zoneless)="onWheel($any($event))"
                 (touchstart.zoneless)="onTouchStart($any($event))"
                 (touchmove.zoneless)="onTouchMove($any($event))"
@@ -334,8 +338,10 @@ export interface TopoRouteRow {
                               ? 'var(--tui-status-info-pale)'
                               : ''
                         "
+                        tabindex="0"
                         class="cursor-pointer"
                         (click.zoneless)="router.navigate(item.link)"
+                        (keydown.enter)="router.navigate(item.link)"
                       >
                         @for (col of columns(); track col) {
                           <td
@@ -428,7 +434,12 @@ export interface TopoRouteRow {
                                           ? null
                                           : ('ascent.edit' | translate)
                                       "
+                                      tabindex="0"
                                       (click.zoneless)="
+                                        onEditAscent(ascentToEdit, item.name);
+                                        $event.stopPropagation()
+                                      "
+                                      (keydown.enter)="
                                         onEditAscent(ascentToEdit, item.name);
                                         $event.stopPropagation()
                                       "

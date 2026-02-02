@@ -165,6 +165,8 @@ interface Country {
                 (mouseenter)="avatarHovered.set(true)"
                 (mouseleave)="avatarHovered.set(false)"
                 (click)="!isUploadingAvatar() && uploadAvatar()"
+                (keydown.enter)="!isUploadingAvatar() && uploadAvatar()"
+                tabindex="0"
                 class="cursor-pointer"
                 size="xxl"
                 [src]="avatarSrc() | tuiFallbackSrc: '@tui.user' | async"
