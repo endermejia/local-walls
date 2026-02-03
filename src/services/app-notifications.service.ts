@@ -5,7 +5,8 @@ import { PLATFORM_ID } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import {
   NotificationInsertDto,
-  NotificationWithActor
+  NotificationWithActor,
+  UserProfileDto
 } from '../models';
 
 @Injectable({
@@ -35,10 +36,12 @@ export class AppNotificationsService {
       return [];
     }
 
-    return (data as any[]).map(d => ({
-        ...d,
-        actor: Array.isArray(d.actor) ? d.actor[0] : d.actor
-    })) as NotificationWithActor[];
+    const typedData = data as unknown as (NotificationWithActor & { actor: UserProfileDto | UserProfileDto[] })[];
+
+    return typedData.map((d) => ({
+      ...d,
+      actor: Array.isArray(d.actor) ? d.actor[0] : d.actor,
+    }));
   }
 
   async createNotification(payload: NotificationInsertDto): Promise<void> {

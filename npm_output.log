@@ -636,3 +636,236 @@ chunk-CC7R6VOC.mjs   | admin                |  10.58 kB |
 Application bundle generation complete. [9.067 seconds] - 2026-02-03T01:04:32.056Z
 
 Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names                |  Raw size
+chunk-WXWIKKZZ.js   | -                    | 809.18 kB |
+main.js             | main                 |  18.89 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-J5HV6PCP.js   | crag                 |  78.52 kB |
+chunk-33BFWGAK.js   | topo                 |  74.43 kB |
+chunk-FKVFKQBA.js   | user-profile         |  69.44 kB |
+chunk-3UVSRL5S.js   | user-profile-config  |  66.73 kB |
+chunk-BDFBQSJP.js   | explore              |  61.26 kB |
+chunk-Y7GX7NMV.js   | admin-users-list     |  43.65 kB |
+chunk-3RV7HVVK.js   | login                |  40.72 kB |
+chunk-RSVRY5EL.js   | route                |  34.21 kB |
+chunk-TVEE2BFM.js   | admin-parkings-list  |  30.28 kB |
+chunk-OVKBWXZR.js   | admin-equippers-list |  29.92 kB |
+chunk-VY5YBQQD.js   | area                 |  29.01 kB |
+chunk-YYLVXIYC.js   | area-list            |  20.86 kB |
+chunk-Q445OCHZ.js   | home                 |  20.37 kB |
+chunk-YRY4VTV4.js   | my-areas             |  19.11 kB |
+chunk-67DPK6TJ.js   | admin                |  10.55 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files | Names                |  Raw size
+chunk-YLG6LDCE.mjs  | -                    | 809.22 kB |
+main.server.mjs     | main.server          |  23.02 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-R5NMXMLX.mjs  | crag                 |  78.56 kB |
+chunk-R53GQ4AK.mjs  | topo                 |  74.47 kB |
+chunk-AMJY5QDZ.mjs  | user-profile         |  69.47 kB |
+chunk-ZDIKJTEC.mjs  | user-profile-config  |  66.76 kB |
+chunk-HJWIEFPV.mjs  | explore              |  61.29 kB |
+chunk-6QW6I7WY.mjs  | admin-users-list     |  43.69 kB |
+chunk-B5YV5MB4.mjs  | login                |  40.76 kB |
+chunk-XMEUZWHJ.mjs  | route                |  34.25 kB |
+chunk-KAM3QN5J.mjs  | admin-parkings-list  |  30.32 kB |
+chunk-KMG2XZ5K.mjs  | admin-equippers-list |  29.96 kB |
+chunk-XIBESXQS.mjs  | area                 |  29.05 kB |
+chunk-KSRCOE4B.mjs  | area-list            |  20.89 kB |
+chunk-5CVMFJB2.mjs  | home                 |  20.40 kB |
+chunk-YFO3YO7X.mjs  | my-areas             |  19.14 kB |
+chunk-KALXLJQY.mjs  | admin                |  10.58 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [25.494 seconds] - 2026-02-03T08:17:53.688Z
+
+Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names                |  Raw size
+chunk-R2VLUE4F.js   | -                    | 809.24 kB |
+main.js             | main                 |  18.89 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-BLRY7HKO.js   | crag                 |  78.52 kB |
+chunk-Z2IVZG6A.js   | topo                 |  74.43 kB |
+chunk-4RUQ4YNB.js   | user-profile         |  69.44 kB |
+chunk-HZF5BZPX.js   | user-profile-config  |  66.73 kB |
+chunk-X3DHDG6J.js   | explore              |  61.26 kB |
+chunk-U4BO3DDA.js   | admin-users-list     |  43.65 kB |
+chunk-FPUU47LX.js   | login                |  40.72 kB |
+chunk-B7M5BXJG.js   | route                |  34.21 kB |
+chunk-JVSJT4Z4.js   | admin-parkings-list  |  30.28 kB |
+chunk-XH7OARBJ.js   | admin-equippers-list |  29.92 kB |
+chunk-GLPILHVG.js   | area                 |  29.01 kB |
+chunk-CDNMNLYD.js   | area-list            |  20.86 kB |
+chunk-AX7UBMGE.js   | home                 |  20.37 kB |
+chunk-4IZPA46Q.js   | my-areas             |  19.11 kB |
+chunk-Y7NDZHYW.js   | admin                |  10.55 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files | Names                |  Raw size
+chunk-RGT67MPW.mjs  | -                    | 809.28 kB |
+main.server.mjs     | main.server          |  23.02 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-XBJU776H.mjs  | crag                 |  78.56 kB |
+chunk-WVOFALVW.mjs  | topo                 |  74.47 kB |
+chunk-A3IAWSJW.mjs  | user-profile         |  69.47 kB |
+chunk-3I2CAUOX.mjs  | user-profile-config  |  66.76 kB |
+chunk-QSKMF5NS.mjs  | explore              |  61.29 kB |
+chunk-SPHM3CZV.mjs  | admin-users-list     |  43.69 kB |
+chunk-54QMKVUW.mjs  | login                |  40.76 kB |
+chunk-D42W243X.mjs  | route                |  34.25 kB |
+chunk-IF5Y2KNQ.mjs  | admin-parkings-list  |  30.32 kB |
+chunk-HKO5FZIM.mjs  | admin-equippers-list |  29.96 kB |
+chunk-WJUZ4A4N.mjs  | area                 |  29.05 kB |
+chunk-IJPZAKI3.mjs  | area-list            |  20.89 kB |
+chunk-E47TYZ42.mjs  | home                 |  20.40 kB |
+chunk-F3IBJJVK.mjs  | my-areas             |  19.14 kB |
+chunk-5DQGX756.mjs  | admin                |  10.58 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [9.763 seconds] - 2026-02-03T08:18:07.795Z
+
+Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names                |  Raw size
+chunk-7WSJ726S.js   | -                    | 809.28 kB |
+main.js             | main                 |  18.89 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-XXFQ2QUN.js   | crag                 |  78.52 kB |
+chunk-5LLQWBMB.js   | topo                 |  74.43 kB |
+chunk-IMMKS4FE.js   | user-profile         |  69.44 kB |
+chunk-2I2IPQYM.js   | user-profile-config  |  66.73 kB |
+chunk-FFFYRN3Z.js   | explore              |  61.26 kB |
+chunk-TLSJ3LUF.js   | admin-users-list     |  43.65 kB |
+chunk-6FNMWXY3.js   | login                |  40.72 kB |
+chunk-EC3ALFZR.js   | route                |  34.21 kB |
+chunk-EV7JHLSD.js   | admin-parkings-list  |  30.28 kB |
+chunk-GPRSLEZH.js   | admin-equippers-list |  29.92 kB |
+chunk-M77OM7XS.js   | area                 |  29.01 kB |
+chunk-2TAWH2XS.js   | area-list            |  20.86 kB |
+chunk-TBUFISFA.js   | home                 |  20.37 kB |
+chunk-G6Z4Q4CB.js   | my-areas             |  19.11 kB |
+chunk-2XELDARR.js   | admin                |  10.55 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files | Names                |  Raw size
+chunk-2QJURZT2.mjs  | -                    | 809.32 kB |
+main.server.mjs     | main.server          |  23.02 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-R2OIFHD7.mjs  | crag                 |  78.56 kB |
+chunk-7SASVPME.mjs  | topo                 |  74.47 kB |
+chunk-YD7IWNLZ.mjs  | user-profile         |  69.47 kB |
+chunk-IWMXUIXR.mjs  | user-profile-config  |  66.76 kB |
+chunk-7IM5YBIC.mjs  | explore              |  61.29 kB |
+chunk-7S3K5ME3.mjs  | admin-users-list     |  43.69 kB |
+chunk-BXOEUEUS.mjs  | login                |  40.76 kB |
+chunk-2TOC5LNQ.mjs  | route                |  34.25 kB |
+chunk-XQYEAWBX.mjs  | admin-parkings-list  |  30.32 kB |
+chunk-4UFOBNO6.mjs  | admin-equippers-list |  29.96 kB |
+chunk-WLOG4QBO.mjs  | area                 |  29.05 kB |
+chunk-AOEVGN4R.mjs  | area-list            |  20.89 kB |
+chunk-OQYDEZ26.mjs  | home                 |  20.40 kB |
+chunk-HG45MNKR.mjs  | my-areas             |  19.14 kB |
+chunk-DD3ZFJP7.mjs  | admin                |  10.58 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [2.081 seconds] - 2026-02-03T08:20:56.513Z
+
+Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Application bundle generation failed. [1.489 seconds] - 2026-02-03T08:20:59.733Z
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'UserProfileDto'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/services/app-notifications.service.ts:38:75:
+[37m      38 │ ...cationWithActor & { actor: [32mUserProfileDto[37m | UserProfileDto[] })[];
+         ╵                               [32m~~~~~~~~~~~~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'UserProfileDto'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/services/app-notifications.service.ts:38:92:
+[37m      38 │ ...cationWithActor & { actor: UserProfileDto | [32mUserProfileDto[37m[] })[];
+         ╵                                                [32m~~~~~~~~~~~~~~[0m
+
+
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files  | Names                |  Raw size
+chunk-3CUITPMC.js    | -                    | 809.31 kB |
+styles.css           | styles               | 328.34 kB |
+main.js              | main                 |  18.89 kB |
+chunk-3FTOJOXH.js    | -                    |  12.92 kB |
+
+                     | Initial total        |   1.17 MB
+
+Lazy chunk files     | Names                |  Raw size
+chunk-W3TDOMV3.js    | crag                 |  78.52 kB |
+chunk-MIRAGRYC.js    | topo                 |  74.43 kB |
+chunk-FWOTFXMS.js    | user-profile         |  69.44 kB |
+chunk-N42D7B4G.js    | user-profile-config  |  66.73 kB |
+chunk-CTKUFE6Z.js    | explore              |  61.26 kB |
+chunk-HPNPP44P.js    | admin-users-list     |  43.65 kB |
+chunk-CDPB3TJY.js    | login                |  40.72 kB |
+chunk-4GY26SVZ.js    | route                |  34.21 kB |
+chunk-GQSSGPP3.js    | admin-parkings-list  |  30.28 kB |
+chunk-MPAIEEKC.js    | admin-equippers-list |  29.92 kB |
+chunk-GFHEB4JZ.js    | area                 |  29.01 kB |
+chunk-P2AOHPYU.js    | area-list            |  20.86 kB |
+chunk-KB2YCACF.js    | home                 |  20.37 kB |
+chunk-ZL5DS6YV.js    | my-areas             |  19.11 kB |
+chunk-WZX22NI6.js    | admin                |  10.55 kB |
+...and 4 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files  | Names                |  Raw size
+chunk-HEPRJ25V.mjs   | -                    | 809.35 kB |
+main.server.mjs      | main.server          |  23.02 kB |
+chunk-UHCQOT6O.mjs   | -                    |  12.95 kB |
+server.mjs           | server               |   3.03 kB |
+polyfills.server.mjs | polyfills.server     | 243 bytes |
+
+Lazy chunk files     | Names                |  Raw size
+chunk-WZV46FFY.mjs   | crag                 |  78.56 kB |
+chunk-WTUBXSWU.mjs   | topo                 |  74.47 kB |
+chunk-UGF73PF2.mjs   | user-profile         |  69.47 kB |
+chunk-TGVWXLKS.mjs   | user-profile-config  |  66.76 kB |
+chunk-YPBADFHM.mjs   | explore              |  61.29 kB |
+chunk-JNNO64IO.mjs   | admin-users-list     |  43.69 kB |
+chunk-E2XHQGBI.mjs   | login                |  40.76 kB |
+chunk-BBE6ZQN3.mjs   | route                |  34.25 kB |
+chunk-4Y6QA7ND.mjs   | admin-parkings-list  |  30.32 kB |
+chunk-AS7L7UCS.mjs   | admin-equippers-list |  29.96 kB |
+chunk-7EFI75X2.mjs   | area                 |  29.05 kB |
+chunk-2TVOCAU2.mjs   | area-list            |  20.89 kB |
+chunk-DC5FPHUD.mjs   | home                 |  20.40 kB |
+chunk-IBQTHLLY.mjs   | my-areas             |  19.14 kB |
+chunk-G7SKYEIF.mjs   | admin                |  10.58 kB |
+...and 4 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [1.406 seconds] - 2026-02-03T08:22:19.188Z
+
+Page reload sent to client(s).

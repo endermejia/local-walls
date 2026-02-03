@@ -20,6 +20,7 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { AppNotificationsService, SupabaseService } from '../services';
+import { NotificationWithActor } from '../models';
 import { EmptyStateComponent } from './empty-state';
 
 @Component({
@@ -108,7 +109,7 @@ export class NotificationsDialogComponent {
   protected readonly loading = computed(() => this.notificationsResource.isLoading());
   protected readonly unreadCount = computed(() => this.notifications().filter(n => !n.read_at).length);
 
-  protected getNotificationText(notif: any): string {
+  protected getNotificationText(notif: NotificationWithActor): string {
     switch (notif.type) {
         case 'like': return 'notifications.likedAscent';
         case 'comment': return 'notifications.commentedAscent';
@@ -123,7 +124,7 @@ export class NotificationsDialogComponent {
     });
   }
 
-  protected onNotificationClick(notif: any) {
+  protected onNotificationClick(notif: NotificationWithActor) {
     if (!notif.read_at) {
         void this.notificationsService.markAsRead(notif.id).then(() => {
             this.notificationsResource.reload();

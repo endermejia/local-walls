@@ -4,9 +4,10 @@ import { PLATFORM_ID } from '@angular/core';
 
 import { SupabaseService } from './supabase.service';
 import {
-  ChatMessageDto,
-  ChatMessageInsertDto,
-  ChatRoomWithParticipant,
+    ChatMessageDto,
+    ChatMessageInsertDto,
+    ChatRoomWithParticipant,
+    UserProfileDto
 } from '../models';
 
 @Injectable({
@@ -25,25 +26,22 @@ export class MessagingService {
     if (!userId) return [];
 
     // Get rooms where I am a participant
-    const { data: participations, error: partError } =
-      await this.supabase.client
-        .from('chat_participants')
-        .select('room_id')
-        .eq('user_id', userId);
+    const { data: participations, error: partError } = await this.supabase.client
+      .from('chat_participants')
+      .select('room_id')
+      .eq('user_id', userId);
 
     if (partError || !participations?.length) return [];
 
-    const roomIds = participations.map((p) => p.room_id);
+    const roomIds = participations.map(p => p.room_id);
 
     const { data: rooms, error: roomsError } = await this.supabase.client
       .from('chat_rooms')
-      .select(
-        `
+      .select(`
         *,
         participants:chat_participants(user:user_profiles(*)),
         messages:chat_messages(text, created_at, sender_id, read_at)
-      `,
-      )
+      `)
       .in('id', roomIds)
       .order('last_message_at', { ascending: false });
 
@@ -52,22 +50,41 @@ export class MessagingService {
       return [];
     }
 
-    return rooms.map((r) => {
-      const otherParticipant = (r.participants as any[]).find(
+    interface RoomQueryResult {
+      id: string;
+      created_at: string;
+      last_message_at: string;
+      participants: {
+        user: UserProfileDto;
+      }[];
+      messages: {
+        text: string;
+        created_at: string;
+        sender_id: string;
+        read_at: string | null;
+      }[];
+    }
+
+    const typedRooms = rooms as unknown as RoomQueryResult[];
+
+    return typedRooms.map((r) => {
+      const otherParticipant = r.participants.find(
         (p) => p.user.id !== userId,
       )?.user;
 
-      const lastMessage = (r.messages as any[]).sort(
+      const lastMessage = [...r.messages].sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       )[0];
 
-      const unreadCount = (r.messages as any[]).filter(
+      const unreadCount = r.messages.filter(
         (m) => m.sender_id !== userId && !m.read_at,
       ).length;
 
       return {
-        ...r,
+        id: r.id,
+        created_at: r.created_at,
+        last_message_at: r.last_message_at,
         participant: otherParticipant,
         last_message: lastMessage,
         unread_count: unreadCount,
@@ -75,11 +92,7 @@ export class MessagingService {
     });
   }
 
-  async getMessages(
-    roomId: string,
-    limit = 20,
-    offset = 0,
-  ): Promise<ChatMessageDto[]> {
+  async getMessages(roomId: string, limit = 20, offset = 0): Promise<ChatMessageDto[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
 
@@ -98,10 +111,7 @@ export class MessagingService {
     return data;
   }
 
-  async sendMessage(
-    roomId: string,
-    text: string,
-  ): Promise<ChatMessageDto | null> {
+  async sendMessage(roomId: string, text: string): Promise<ChatMessageDto | null> {
     if (!isPlatformBrowser(this.platformId)) return null;
     await this.supabase.whenReady();
     const userId = this.supabase.authUserId();
@@ -110,7 +120,7 @@ export class MessagingService {
     const payload: ChatMessageInsertDto = {
       room_id: roomId,
       sender_id: userId,
-      text,
+      text
     };
 
     const { data, error } = await this.supabase.client
@@ -120,15 +130,15 @@ export class MessagingService {
       .single();
 
     if (error) {
-      console.error('[MessagingService] sendMessage error', error);
-      return null;
+        console.error('[MessagingService] sendMessage error', error);
+        return null;
     }
 
     // Update last_message_at in room
     await this.supabase.client
-      .from('chat_rooms')
-      .update({ last_message_at: new Date().toISOString() })
-      .eq('id', roomId);
+        .from('chat_rooms')
+        .update({ last_message_at: new Date().toISOString() })
+        .eq('id', roomId);
 
     return data;
   }
@@ -141,34 +151,34 @@ export class MessagingService {
 
     // Check if room already exists between these two
     const { data: myRooms } = await this.supabase.client
-      .from('chat_participants')
-      .select('room_id')
-      .eq('user_id', userId);
+        .from('chat_participants')
+        .select('room_id')
+        .eq('user_id', userId);
 
     const { data: otherRooms } = await this.supabase.client
-      .from('chat_participants')
-      .select('room_id')
-      .eq('user_id', otherUserId);
+        .from('chat_participants')
+        .select('room_id')
+        .eq('user_id', otherUserId);
 
-    const commonRoomId = myRooms?.find((mr) =>
-      otherRooms?.some((or) => or.room_id === mr.room_id),
-    )?.room_id;
+    const commonRoomId = myRooms?.find(mr => otherRooms?.some(or => or.room_id === mr.room_id))?.room_id;
 
     if (commonRoomId) return commonRoomId;
 
     // Create new room
     const { data: newRoom, error: roomError } = await this.supabase.client
-      .from('chat_rooms')
-      .insert({})
-      .select()
-      .single();
+        .from('chat_rooms')
+        .insert({})
+        .select()
+        .single();
 
     if (roomError) return null;
 
-    await this.supabase.client.from('chat_participants').insert([
-      { room_id: newRoom.id, user_id: userId },
-      { room_id: newRoom.id, user_id: otherUserId },
-    ]);
+    await this.supabase.client
+        .from('chat_participants')
+        .insert([
+            { room_id: newRoom.id, user_id: userId },
+            { room_id: newRoom.id, user_id: otherUserId }
+        ]);
 
     return newRoom.id;
   }
@@ -180,14 +190,14 @@ export class MessagingService {
     if (!userId) return;
 
     const { error } = await this.supabase.client
-      .from('chat_messages')
-      .update({ read_at: new Date().toISOString() })
-      .eq('room_id', roomId)
-      .neq('sender_id', userId)
-      .is('read_at', null);
+        .from('chat_messages')
+        .update({ read_at: new Date().toISOString() })
+        .eq('room_id', roomId)
+        .neq('sender_id', userId)
+        .is('read_at', null);
 
     if (!error) {
-      this.refreshUnreadCount();
+        this.refreshUnreadCount();
     }
   }
 
@@ -198,26 +208,26 @@ export class MessagingService {
     if (!userId) return;
 
     const { data: myRooms } = await this.supabase.client
-      .from('chat_participants')
-      .select('room_id')
-      .eq('user_id', userId);
+        .from('chat_participants')
+        .select('room_id')
+        .eq('user_id', userId);
 
     if (!myRooms?.length) {
-      this.unreadMessagesCount.set(0);
-      return;
+        this.unreadMessagesCount.set(0);
+        return;
     }
 
-    const roomIds = myRooms.map((r) => r.room_id);
+    const roomIds = myRooms.map(r => r.room_id);
 
     const { count, error } = await this.supabase.client
-      .from('chat_messages')
-      .select('*', { count: 'exact', head: true })
-      .in('room_id', roomIds)
-      .neq('sender_id', userId)
-      .is('read_at', null);
+        .from('chat_messages')
+        .select('*', { count: 'exact', head: true })
+        .in('room_id', roomIds)
+        .neq('sender_id', userId)
+        .is('read_at', null);
 
     if (!error) {
-      this.unreadMessagesCount.set(count ?? 0);
+        this.unreadMessagesCount.set(count ?? 0);
     }
   }
 }
