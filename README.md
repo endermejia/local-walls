@@ -26,6 +26,10 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Next Steps
 
+- **Chat Integration**
+- **Notifications**
+- **Private profile**
+- **Crag weather**
 - **Ascent Social Features**: Add photos to route ascents.
 - **8a.nu Integration**:
   - Copy 8a.nu ascents database.
@@ -36,6 +40,8 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
   - Develop a data persistence strategy (e.g., IndexedDB) for offline route browsing and ascent logging.
   - Implement Background Sync for queued offline actions (likes, comments, ascents).
   - Enable map tile caching for offline navigation in climbing areas.
+- **¿Area calendar?**:
+  - Mark if you go to a crag on a specific day.
 
 ## Navigation
 

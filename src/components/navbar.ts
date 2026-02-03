@@ -13,7 +13,7 @@ import {
   TuiAvatar,
   TuiBadgedContent,
   TuiBadgeNotification,
-  TuiSkeleton
+  TuiSkeleton,
 } from '@taiga-ui/kit';
 import { TuiCell, TuiInputSearch } from '@taiga-ui/layout';
 
@@ -68,33 +68,33 @@ import { TuiAutoFocus } from '@taiga-ui/cdk';
         class="flex md:flex-col w-full h-full p-2 md:p-4 justify-around md:justify-start gap-2 md:gap-4"
       >
         <!-- Home -->
-        <a
-          #home="routerLinkActive"
-          routerLink="/home"
-          routerLinkActive
-          [tuiAppearance]="
-            home.isActive ? 'flat-destructive' : 'flat-grayscale'
-          "
-          class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
-        >
-          <tui-badged-content class="flex">
-            <tui-icon icon="@tui.home" />
-            @let totalUnread = global.unreadMessagesCount() + global.unreadNotificationsCount();
-            @if (totalUnread > 0) {
-              <tui-badge-notification
-                tuiAppearance="accent"
-                size="xs"
-                tuiSlot="top"
-              />
-            }
-          </tui-badged-content>
-          <span
-            class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+        <tui-badged-content [style.--tui-radius.%]="270">
+          <a
+            #home="routerLinkActive"
+            routerLink="/home"
+            routerLinkActive
+            [tuiAppearance]="
+              home.isActive ? 'flat-destructive' : 'flat-grayscale'
+            "
+            class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
           >
-            {{ 'nav.home' | translate }}
-          </span>
-        </a>
-
+            <tui-icon icon="@tui.home" />
+            <span
+              class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+            >
+              {{ 'nav.home' | translate }}
+            </span>
+          </a>
+          @if (
+            global.unreadMessagesCount() + global.unreadNotificationsCount()
+          ) {
+            <tui-badge-notification
+              tuiAppearance="accent"
+              size="xs"
+              tuiSlot="top"
+            />
+          }
+        </tui-badged-content>
         <!-- Explore -->
         <a
           #explore="routerLinkActive"
