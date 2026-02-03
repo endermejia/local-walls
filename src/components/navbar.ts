@@ -77,7 +77,8 @@ import { TuiAutoFocus } from '@taiga-ui/cdk';
           "
           class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
         >
-          <tui-badged-content>
+          <tui-badged-content class="flex">
+            <tui-icon icon="@tui.home" />
             @let totalUnread = global.unreadMessagesCount() + global.unreadNotificationsCount();
             @if (totalUnread > 0) {
               <tui-badge-notification
@@ -86,7 +87,6 @@ import { TuiAutoFocus } from '@taiga-ui/cdk';
                 tuiSlot="top"
               />
             }
-            <tui-icon icon="@tui.home" />
           </tui-badged-content>
           <span
             class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"

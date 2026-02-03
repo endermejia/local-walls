@@ -12,7 +12,6 @@ import {
   TuiFallbackSrcPipe,
   TuiLoader,
   TuiScrollbar,
-  TuiTitle,
 } from '@taiga-ui/core';
 import { TuiDialogContext } from '@taiga-ui/experimental';
 import { TuiAvatar } from '@taiga-ui/kit';
@@ -37,12 +36,10 @@ import { EmptyStateComponent } from './empty-state';
     AsyncPipe,
     DatePipe,
     CommonModule,
-    TuiTitle
   ],
   template: `
     <div class="flex flex-col h-[60dvh] min-h-[400px] -m-4">
-      <div class="flex justify-between items-center p-4 border-b border-[var(--tui-border-normal)]">
-        <h2 tuiTitle>{{ 'labels.notifications' | translate }}</h2>
+      <div class="flex justify-end items-center p-4 border-b border-[var(--tui-border-normal)]">
         <button
             tuiButton
             type="button"

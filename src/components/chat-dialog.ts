@@ -10,26 +10,28 @@ import {
   ViewChild,
   effect
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import {
   TuiButton,
+  TuiDataList,
   TuiFallbackSrcPipe,
   TuiIcon,
   TuiLabel,
   TuiLoader,
   TuiScrollbar,
   TuiTextfield,
-  TuiTitle,
 } from '@taiga-ui/core';
 import { TuiDialogContext } from '@taiga-ui/experimental';
-import { TuiAvatar, TuiBadgeNotification } from '@taiga-ui/kit';
+import { TuiAvatar, TuiBadgeNotification, TuiDataListWrapper } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
+import { debounceTime, distinctUntilChanged, switchMap, of, from } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { MessagingService, SupabaseService } from '../services';
-import { ChatMessageDto, ChatRoomWithParticipant } from '../models';
+import { MessagingService, SupabaseService, UserProfilesService } from '../services';
+import { ChatMessageDto, ChatRoomWithParticipant, UserProfileDto } from '../models';
 import { EmptyStateComponent } from './empty-state';
 
 export interface ChatDialogData {
@@ -54,8 +56,10 @@ export interface ChatDialogData {
     FormsModule,
     CommonModule,
     TuiBadgeNotification,
-    TuiTitle,
-    TuiIcon
+    TuiIcon,
+    ReactiveFormsModule,
+    TuiDataListWrapper,
+    TuiDataList
   ],
   template: `
     <div class="flex flex-col h-[70dvh] min-h-[500px] -m-4">
@@ -146,9 +150,40 @@ export interface ChatDialogData {
         </div>
       } @else {
         <!-- Rooms View -->
-        <div class="p-4 border-b border-[var(--tui-border-normal)]">
-            <h2 tuiTitle>{{ 'labels.messages' | translate }}</h2>
+        <div class="p-4 border-b border-[var(--tui-border-normal)] relative z-50">
+            <tui-textfield class="w-full" tuiTextfieldSize="m">
+                <label tuiLabel for="user-search">{{ 'labels.searchUser' | translate }}</label>
+                <input
+                    tuiTextfield
+                    id="user-search"
+                    autocomplete="off"
+                    [formControl]="userSearchControl"
+                />
+                <tui-icon icon="@tui.search" />
+            </tui-textfield>
+
+            @if (searchResults().length > 0) {
+                <div class="absolute left-4 right-4 mt-1 shadow-2xl rounded-xl overflow-hidden border border-[var(--tui-border-normal)] bg-[var(--tui-background-base)] z-[100]">
+                    <tui-data-list>
+                        @for (user of searchResults(); track user.id) {
+                            <button
+                                tuiOption
+                                type="button"
+                                (click)="onSelectUser(user)"
+                            >
+                                <tui-avatar
+                                    [src]="supabase.buildAvatarUrl(user.avatar) | tuiFallbackSrc: '@tui.user' | async"
+                                    size="xs"
+                                    class="mr-2"
+                                />
+                                {{ user.name }}
+                            </button>
+                        }
+                    </tui-data-list>
+                </div>
+            }
         </div>
+
         <tui-scrollbar class="grow min-h-0">
             <div class="flex flex-col">
                 @for (room of rooms(); track room.id) {
@@ -184,7 +219,7 @@ export interface ChatDialogData {
                 } @empty {
                     @if (!loadingRooms()) {
                         <div class="py-20">
-                            <app-empty-state icon="@tui.message-square" />
+                            <app-empty-state icon="@tui.messages-square" />
                         </div>
                     }
                 }
@@ -204,6 +239,7 @@ export interface ChatDialogData {
 export class ChatDialogComponent {
   protected readonly supabase = inject(SupabaseService);
   protected readonly messagingService = inject(MessagingService);
+  protected readonly userProfilesService = inject(UserProfilesService);
   protected readonly context = injectContext<TuiDialogContext<void, ChatDialogData>>();
 
   @ViewChild('scrollbar', { read: ElementRef })
@@ -214,6 +250,9 @@ export class ChatDialogComponent {
   protected readonly sending = signal(false);
   protected readonly messagesOffset = signal(0);
   protected readonly limit = 20;
+
+  protected readonly userSearchControl = new FormControl('');
+  protected readonly searchResults = signal<UserProfileDto[]>([]);
 
   protected readonly roomsResource = resource({
     loader: () => this.messagingService.getRooms(),
@@ -243,6 +282,18 @@ export class ChatDialogComponent {
     if (initialUserId) {
         void this.openChatWithUser(initialUserId);
     }
+
+    this.userSearchControl.valueChanges.pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap(val => {
+            if (!val || val.length < 2) return of([]);
+            return from(this.userProfilesService.searchUsers(val));
+        }),
+        takeUntilDestroyed()
+    ).subscribe(users => {
+        this.searchResults.set(users);
+    });
 
     effect(() => {
         const res = this.messagesResource.value();
@@ -276,7 +327,15 @@ export class ChatDialogComponent {
     this.messagesOffset.set(0);
     this.accumulatedMessages.set([]);
     this.hasMore.set(true);
+    this.userSearchControl.setValue('', { emitEvent: false });
+    this.searchResults.set([]);
     void this.messagingService.markAsRead(room.id);
+  }
+
+  protected onSelectUser(user: UserProfileDto) {
+    void this.openChatWithUser(user.id);
+    this.userSearchControl.setValue('', { emitEvent: false });
+    this.searchResults.set([]);
   }
 
   protected async onSendMessage() {

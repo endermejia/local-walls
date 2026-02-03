@@ -85,7 +85,7 @@ import {
                 type="button"
                 appearance="flat-grayscale"
                 size="m"
-                iconStart="@tui.message-square"
+                iconStart="@tui.messages-square"
                 (click)="openChat()"
               >
                 {{ 'labels.messages' | translate }}

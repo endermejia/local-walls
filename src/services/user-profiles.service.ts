@@ -95,4 +95,15 @@ export class UserProfilesService {
       };
     }
   }
+
+  async searchUsers(query: string): Promise<UserProfileDto[]> {
+    if (!query.trim()) return [];
+    const { data } = await this.supabase.client
+      .from('user_profiles')
+      .select('*')
+      .ilike('name', `%${query}%`)
+      .neq('id', this.supabase.authUserId() || '')
+      .limit(10);
+    return data || [];
+  }
 }
