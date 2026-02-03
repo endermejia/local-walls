@@ -16,3 +16,4 @@ export * from './search-item.model';
 export * from './supabase-generated';
 export * from './supabase-interfaces';
 export * from './topo.model';
+export * from './weather.model';

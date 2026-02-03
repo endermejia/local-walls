@@ -72,6 +72,7 @@ import {
   EmptyStateComponent,
   RoutesTableComponent,
   SectionHeaderComponent,
+  WeatherForecastComponent,
 } from '../components';
 
 import { handleErrorToast, mapLocationUrl } from '../utils';
@@ -86,6 +87,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     LowerCasePipe,
     RoutesTableComponent,
     SectionHeaderComponent,
+    WeatherForecastComponent,
     TopoImagePipe,
     TranslatePipe,
     TuiAppearance,
@@ -251,6 +253,13 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
               [grades]="c.grades"
             />
           </div>
+
+          @if (c.latitude && c.longitude) {
+            <app-weather-forecast
+              class="mt-6"
+              [coords]="{ lat: c.latitude, lng: c.longitude }"
+            />
+          }
 
           @if (visibleTabs().length > 1) {
             <tui-tabs

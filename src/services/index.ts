@@ -21,3 +21,4 @@ export * from './supabase.service';
 export * from './toast.service';
 export * from './topos.service';
 export * from './user-profiles.service';
+export * from './weather.service';
