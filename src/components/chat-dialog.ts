@@ -320,7 +320,9 @@ export class ChatDialogComponent implements OnDestroy {
     loader: () => this.messagingService.getRooms(),
   });
 
-  protected readonly rooms = computed(() => this.roomsResource.value() ?? []);
+  protected readonly rooms = computed(() =>
+    (this.roomsResource.value() ?? []).filter((r) => !!r.participant),
+  );
   protected readonly loadingRooms = computed(() =>
     this.roomsResource.isLoading(),
   );

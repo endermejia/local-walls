@@ -27,17 +27,6 @@ export class MessagingService {
     const userId = this.supabase.authUserId();
     if (!userId) return [];
 
-    // Get rooms where I am a participant
-    const { data: participations, error: partError } =
-      await this.supabase.client
-        .from('chat_participants')
-        .select('room_id')
-        .eq('user_id', userId);
-
-    if (partError || !participations?.length) return [];
-
-    const roomIds = participations.map((p) => p.room_id);
-
     const { data: rooms, error: roomsError } = await this.supabase.client
       .from('chat_rooms')
       .select(
@@ -47,8 +36,9 @@ export class MessagingService {
         messages:chat_messages(text, created_at, sender_id, read_at)
       `,
       )
-      .in('id', roomIds)
-      .order('last_message_at', { ascending: false });
+      .order('last_message_at', { ascending: false })
+      .order('created_at', { foreignTable: 'chat_messages', ascending: false })
+      .limit(50, { foreignTable: 'chat_messages' });
 
     if (roomsError) {
       console.error('[MessagingService] getRooms error', roomsError);

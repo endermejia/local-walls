@@ -108,7 +108,7 @@
     "schema_name": "public",
     "table_name": "chat_participants",
     "for_command": "r",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "using_expression": "(EXISTS ( SELECT 1 FROM chat_participants cp WHERE ((cp.room_id = chat_participants.room_id) AND (cp.user_id = auth.uid()))))",
     "with_check_expression": null
   },
   {
@@ -144,11 +144,11 @@
     "with_check_expression": "true"
   },
   {
-    "policy_name": "auth_can_select",
+    "policy_name": "participant_can_read",
     "schema_name": "public",
     "table_name": "chat_rooms",
     "for_command": "r",
-    "using_expression": "true",
+    "using_expression": "(EXISTS ( SELECT 1 FROM chat_participants WHERE ((chat_participants.room_id = chat_rooms.id) AND (chat_participants.user_id = auth.uid()))))",
     "with_check_expression": null
   },
   {
