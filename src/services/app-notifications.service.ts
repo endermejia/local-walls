@@ -6,7 +6,7 @@ import { SupabaseService } from './supabase.service';
 import {
   NotificationInsertDto,
   NotificationWithActor,
-  UserProfileDto
+  UserProfileDto,
 } from '../models';
 
 @Injectable({
@@ -26,7 +26,7 @@ export class AppNotificationsService {
 
     const { data, error } = await this.supabase.client
       .from('notifications')
-      .select('*, actor:user_profiles(*)')
+      .select('*, actor:user_profiles!notifications_actor_id_fkey(*)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(50);
@@ -36,7 +36,9 @@ export class AppNotificationsService {
       return [];
     }
 
-    const typedData = data as unknown as (NotificationWithActor & { actor: UserProfileDto | UserProfileDto[] })[];
+    const typedData = data as unknown as (NotificationWithActor & {
+      actor: UserProfileDto | UserProfileDto[];
+    })[];
 
     return typedData.map((d) => ({
       ...d,
@@ -56,9 +58,12 @@ export class AppNotificationsService {
       .insert(payload);
 
     if (error) {
-      console.error('[AppNotificationsService] createNotification error', error);
+      console.error(
+        '[AppNotificationsService] createNotification error',
+        error,
+      );
     } else {
-        // We could emit something here or rely on polling/realtime
+      // We could emit something here or rely on polling/realtime
     }
   }
 
@@ -74,7 +79,7 @@ export class AppNotificationsService {
     if (error) {
       console.error('[AppNotificationsService] markAsRead error', error);
     } else {
-        this.refreshUnreadCount();
+      this.refreshUnreadCount();
     }
   }
 
@@ -93,7 +98,7 @@ export class AppNotificationsService {
     if (error) {
       console.error('[AppNotificationsService] markAllAsRead error', error);
     } else {
-        this.unreadCount.set(0);
+      this.unreadCount.set(0);
     }
   }
 

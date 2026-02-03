@@ -2,7 +2,7 @@ import {
   ChatMessageDto,
   ChatRoomDto,
   NotificationDto,
-  UserProfileDto
+  UserProfileDto,
 } from './supabase-interfaces';
 
 export interface ChatRoomWithParticipant extends ChatRoomDto {

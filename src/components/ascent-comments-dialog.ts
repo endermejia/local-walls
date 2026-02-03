@@ -10,6 +10,7 @@ import {
 import { FormsModule } from '@angular/forms';
 
 import {
+  TuiAppearance,
   TuiButton,
   TuiFallbackSrcPipe,
   TuiLabel,
@@ -17,11 +18,12 @@ import {
   TuiScrollbar,
   TuiTextfield,
 } from '@taiga-ui/core';
-import { TuiDialogContext } from '@taiga-ui/experimental';
-import { TuiAvatar } from '@taiga-ui/kit';
+import { TuiDialogContext, TuiDialogService } from '@taiga-ui/experimental';
+import { TUI_CONFIRM, TuiAvatar, TuiConfirmData } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 
 import { AscentsService, SupabaseService } from '../services';
 import { EmptyStateComponent } from './empty-state';
@@ -143,6 +145,8 @@ export interface AscentCommentsDialogData {
 export class AscentCommentsDialogComponent {
   protected readonly supabase = inject(SupabaseService);
   private readonly ascentsService = inject(AscentsService);
+  private readonly translate = inject(TranslateService);
+  private readonly dialogs = inject(TuiDialogService);
   protected readonly context =
     injectContext<TuiDialogContext<void, AscentCommentsDialogData>>();
 
@@ -182,12 +186,30 @@ export class AscentCommentsDialogComponent {
   }
 
   protected async onDeleteComment(commentId: number) {
-    const success = await this.ascentsService.deleteComment(
-      this.ascentId,
-      commentId,
+    const data: TuiConfirmData = {
+      content: this.translate.instant('actions.deleteCommentConfirm'),
+      yes: this.translate.instant('actions.delete'),
+      no: this.translate.instant('actions.cancel'),
+      appearance: 'negative',
+    };
+
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('actions.deleteComment'),
+        size: 's',
+        data,
+      }),
+      { defaultValue: false },
     );
-    if (success) {
-      this.commentsResource.reload();
+
+    if (confirmed) {
+      const success = await this.ascentsService.deleteComment(
+        this.ascentId,
+        commentId,
+      );
+      if (success) {
+        this.commentsResource.reload();
+      }
     }
   }
 }

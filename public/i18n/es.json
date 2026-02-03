@@ -11,6 +11,8 @@
     "close": "Cerrar",
     "create": "Crear",
     "delete": "Eliminar",
+    "deleteComment": "Eliminar comentario",
+    "deleteCommentConfirm": "¿Estás seguro de que quieres eliminar este comentario?",
     "edit": "Editar",
     "follow": "Seguir",
     "import": "Importar",

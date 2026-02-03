@@ -838,7 +838,6 @@ export class UserProfileComponent {
       }
     });
 
-
     // Sync initial global filters to local controls/signals if needed
     // However, global filters are typically reset to defaults on page entry.
     // The effect below ensures that when the local state changes, the global state is updated and the page is reset.

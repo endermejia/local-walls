@@ -25,10 +25,10 @@ import { TranslateService } from '@ngx-translate/core';
 import { map, merge, startWith } from 'rxjs';
 
 import {
-    AppNotificationsService,
-    LocalStorage,
-    MessagingService,
-    SupabaseService
+  AppNotificationsService,
+  LocalStorage,
+  MessagingService,
+  SupabaseService,
 } from '../services';
 
 import { mapCragToDetail } from '../utils';
@@ -1404,11 +1404,11 @@ export class GlobalData {
 
     // Refresh unread counts when user changes or periodically
     effect(() => {
-        const userId = this.supabase.authUserId();
-        if (userId) {
-            void this.notificationsService.refreshUnreadCount();
-            void this.messagingService.refreshUnreadCount();
-        }
+      const userId = this.supabase.authUserId();
+      if (userId) {
+        void this.notificationsService.refreshUnreadCount();
+        void this.messagingService.refreshUnreadCount();
+      }
     });
   }
 

@@ -40,16 +40,18 @@ import { EmptyStateComponent } from './empty-state';
   ],
   template: `
     <div class="flex flex-col h-[60dvh] min-h-[400px] -m-4">
-      <div class="flex justify-end items-center p-4 border-b border-[var(--tui-border-normal)]">
+      <div
+        class="flex justify-end items-center p-4 border-b border-[var(--tui-border-normal)]"
+      >
         <button
-            tuiButton
-            type="button"
-            appearance="flat-grayscale"
-            size="xs"
-            (click)="onMarkAllRead()"
-            [disabled]="unreadCount() === 0"
+          tuiButton
+          type="button"
+          appearance="flat-grayscale"
+          size="xs"
+          (click)="onMarkAllRead()"
+          [disabled]="unreadCount() === 0"
         >
-            {{ 'actions.markAllRead' | translate }}
+          {{ 'actions.markAllRead' | translate }}
         </button>
       </div>
 
@@ -57,12 +59,16 @@ import { EmptyStateComponent } from './empty-state';
         <div class="flex flex-col">
           @for (notif of notifications(); track notif.id) {
             <button
-                class="flex gap-3 p-4 border-b border-[var(--tui-border-normal)] last:border-0 text-left hover:bg-[var(--tui-background-neutral-1)] transition-colors w-full"
-                [class.bg-[var(--tui-background-accent-subtle)]]="!notif.read_at"
-                (click)="onNotificationClick(notif)"
+              class="flex gap-3 p-4 border-b border-[var(--tui-border-normal)] last:border-0 text-left hover:bg-[var(--tui-background-neutral-1)] transition-colors w-full"
+              [class.bg-[var(--tui-background-accent-subtle)]]="!notif.read_at"
+              (click)="onNotificationClick(notif)"
             >
               <tui-avatar
-                [src]="supabase.buildAvatarUrl(notif.actor.avatar) | tuiFallbackSrc: '@tui.user' | async"
+                [src]="
+                  supabase.buildAvatarUrl(notif.actor.avatar)
+                    | tuiFallbackSrc: '@tui.user'
+                    | async
+                "
                 size="s"
               />
               <div class="flex flex-col grow min-w-0">
@@ -105,30 +111,40 @@ export class NotificationsDialogComponent {
     loader: () => this.notificationsService.getNotifications(),
   });
 
-  protected readonly notifications = computed(() => this.notificationsResource.value() ?? []);
-  protected readonly loading = computed(() => this.notificationsResource.isLoading());
-  protected readonly unreadCount = computed(() => this.notifications().filter(n => !n.read_at).length);
+  protected readonly notifications = computed(
+    () => this.notificationsResource.value() ?? [],
+  );
+  protected readonly loading = computed(() =>
+    this.notificationsResource.isLoading(),
+  );
+  protected readonly unreadCount = computed(
+    () => this.notifications().filter((n) => !n.read_at).length,
+  );
 
   protected getNotificationText(notif: NotificationWithActor): string {
     switch (notif.type) {
-        case 'like': return 'notifications.likedAscent';
-        case 'comment': return 'notifications.commentedAscent';
-        case 'message': return 'notifications.sentMessage';
-        default: return 'notifications.unknown';
+      case 'like':
+        return 'notifications.likedAscent';
+      case 'comment':
+        return 'notifications.commentedAscent';
+      case 'message':
+        return 'notifications.sentMessage';
+      default:
+        return 'notifications.unknown';
     }
   }
 
   protected onMarkAllRead() {
     void this.notificationsService.markAllAsRead().then(() => {
-        this.notificationsResource.reload();
+      this.notificationsResource.reload();
     });
   }
 
   protected onNotificationClick(notif: NotificationWithActor) {
     if (!notif.read_at) {
-        void this.notificationsService.markAsRead(notif.id).then(() => {
-            this.notificationsResource.reload();
-        });
+      void this.notificationsService.markAsRead(notif.id).then(() => {
+        this.notificationsResource.reload();
+      });
     }
   }
 }
