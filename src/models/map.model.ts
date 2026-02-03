@@ -57,7 +57,7 @@ export interface MapBounds {
   south_west_longitude: number;
   north_east_latitude: number;
   north_east_longitude: number;
-  zoom: number;
+  zoom?: number;
 }
 
 /**
