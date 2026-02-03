@@ -170,6 +170,7 @@
     "setNewPassword": "Set new password",
     "passwordUpdated": "Your password has been updated.",
     "passwordMinLength": "Password must be at least {{min}} characters.",
+    "passwordRequirements": "Password must be at least {{min}} characters long and include uppercase, lowercase, numbers, and symbols.",
     "register": "Register",
     "alreadyAccount": "Already have an account?",
     "inRecoveryInfo": "You are changing your password. Enter and confirm your new password."
@@ -178,6 +179,7 @@
     "invalidCredentials": "Invalid credentials",
     "unexpected": "Unexpected error",
     "required": "Required field",
+    "passwordMismatch": "Passwords do not match",
     "database": {
       "foreign_key_violation": "Cannot be deleted because it still has related items.",
       "unique_violation": "This item already exists."

@@ -114,17 +114,17 @@ import { SupabaseService } from '../services';
                 [value]="password()"
                 (input.zoneless)="onInputPassword(passwordInput.value)"
                 [attr.aria-invalid]="
-                  validate() && !passwordValid() ? 'true' : null
+                  validate() && isRegister() && !passwordValid() ? 'true' : null
                 "
                 autocomplete="current-password"
               />
               <tui-icon tuiPassword />
             </tui-textfield>
 
-            @if (validate() && !passwordValid()) {
+            @if (validate() && isRegister() && !passwordValid()) {
               <tui-notification appearance="warning">
                 <h3 tuiTitle>
-                  {{ 'auth.passwordMinLength' | translate: { min: 6 } }}
+                  {{ 'auth.passwordRequirements' | translate: { min: 6 } }}
                 </h3>
               </tui-notification>
             }
@@ -244,7 +244,7 @@ import { SupabaseService } from '../services';
             @if (validate() && !newPasswordValid()) {
               <tui-notification appearance="warning">
                 <h3 tuiTitle>
-                  {{ 'auth.passwordMinLength' | translate: { min: 6 } }}
+                  {{ 'auth.passwordRequirements' | translate: { min: 6 } }}
                 </h3>
               </tui-notification>
             }
@@ -336,10 +336,27 @@ export class LoginComponent {
 
   // Validators
   readonly emailValid = computed(() => /.+@.+\..+/.test(this.email().trim()));
-  readonly passwordValid = computed(() => this.password().length >= 6);
-  readonly newPasswordValid = computed(() => this.newPassword().length >= 6);
+
+  private isComplexPassword(p: string): boolean {
+    return (
+      p.length >= 6 &&
+      /[A-Z]/.test(p) &&
+      /[a-z]/.test(p) &&
+      /[0-9]/.test(p) &&
+      /[^A-Za-z0-9]/.test(p)
+    );
+  }
+
+  readonly passwordValid = computed(() =>
+    this.isComplexPassword(this.password()),
+  );
+
+  readonly newPasswordValid = computed(() =>
+    this.isComplexPassword(this.newPassword()),
+  );
+
   readonly canSignIn = computed(
-    () => this.emailValid() && this.passwordValid(),
+    () => this.emailValid() && this.password().length > 0,
   );
   readonly canRegister = computed(
     () =>
@@ -484,8 +501,8 @@ export class LoginComponent {
       this.error.set('errors.passwordMismatch');
       return;
     }
-    if (npw.length < 6) {
-      this.error.set('auth.passwordMinLength');
+    if (!this.newPasswordValid()) {
+      this.error.set('auth.passwordRequirements');
       return;
     }
     this.loading.set(true);
