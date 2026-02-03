@@ -19,3 +19,4 @@ export * from './map';
 export * from './routes-table';
 export * from './section-header';
 export * from './user-list-dialog';
+export * from './weather-forecast';

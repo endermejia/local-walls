@@ -272,6 +272,9 @@
     "title": "Roca nostra 🤫",
     "description": "App de croquis de escalada hechos por equipadores locales. Encuentra y comparte zonas de escalada, sectores y vías cerca de ti."
   },
+  "weather": {
+    "title": "Meteo"
+  },
   "notFound": {
     "title": "No encontrado",
     "description": "Intenta refrescar o vuelve a la página de inicio.",

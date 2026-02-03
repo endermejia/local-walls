@@ -269,6 +269,9 @@
     "title": "Roca nostra 🤫",
     "description": "Climbing topos app made by local equippers. Find and share climbing areas, sectors and routes near you."
   },
+  "weather": {
+    "title": "Weather"
+  },
   "notFound": {
     "title": "Not found",
     "description": "Try refreshing or go back to the home page.",
