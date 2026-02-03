@@ -1,4 +1,5 @@
 export * from './ascent-card';
+export * from './ascent-detail-dialog';
 export * from './ascents-feed';
 export * from './chat-dialog';
 export * from './ascent-likes';

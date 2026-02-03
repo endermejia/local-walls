@@ -121,7 +121,9 @@ export class AppNotificationsService {
     }
   }
 
-  watchNotifications(callback: () => void): RealtimeChannel | null {
+  watchNotifications(
+    callback: (payload: NotificationInsertDto) => void,
+  ): RealtimeChannel | null {
     if (!isPlatformBrowser(this.platformId)) return null;
     const userId = this.supabase.authUserId();
     if (!userId) return null;
@@ -131,13 +133,13 @@ export class AppNotificationsService {
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'notifications',
           filter: `user_id=eq.${userId}`,
         },
-        () => {
-          callback();
+        (payload) => {
+          callback(payload.new as NotificationInsertDto);
         },
       )
       .subscribe();

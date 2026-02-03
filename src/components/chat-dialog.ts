@@ -386,6 +386,7 @@ export class ChatDialogComponent implements OnDestroy {
 
     this.roomsSubscription = this.messagingService.watchUnreadCount(() => {
       void this.roomsResource.reload();
+      void this.messagingService.refreshUnreadCount();
     });
   }
 

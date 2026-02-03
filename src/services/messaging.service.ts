@@ -265,19 +265,19 @@ export class MessagingService {
       .subscribe();
   }
 
-  watchUnreadCount(callback: () => void): RealtimeChannel | null {
+  watchUnreadCount(callback: (payload: ChatMessageDto) => void): RealtimeChannel | null {
     if (!isPlatformBrowser(this.platformId)) return null;
     return this.supabase.client
       .channel('unread-messages')
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'chat_messages',
         },
-        () => {
-          callback();
+        (payload) => {
+          callback(payload.new as ChatMessageDto);
         },
       )
       .subscribe();

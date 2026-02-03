@@ -14,6 +14,7 @@ import {
   RouteAscentInsertDto,
   RouteAscentUpdateDto,
   RouteAscentWithExtras,
+  RouteWithExtras,
   UserProfileDto,
   RouteAscentCommentDto,
   RouteAscentCommentInsertDto,
@@ -68,6 +69,73 @@ export class AscentsService {
     };
     return info;
   });
+
+  async getAscentById(id: number): Promise<RouteAscentWithExtras | null> {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    await this.supabase.whenReady();
+    const { data, error } = await this.supabase.client
+      .from('route_ascents')
+      .select(
+        `
+        *,
+        route:routes(
+          *,
+          crag:crags(
+            slug,
+            name,
+            area_id,
+            area:areas(slug, name)
+          )
+        )
+      `,
+      )
+      .eq('id', id)
+      .single();
+
+    if (error || !data) {
+      if (error) console.error('[AscentsService] getAscentById error', error);
+      return null;
+    }
+
+    const a = data;
+
+    // Fetch user separately
+    const { data: user } = await this.supabase.client
+      .from('user_profiles')
+      .select('*')
+      .eq('id', a.user_id)
+      .single();
+
+    let mappedRoute: RouteWithExtras | undefined = undefined;
+    if (a.route) {
+      const routeData = a.route as unknown as Record<string, unknown>;
+      const cragData = (
+        Array.isArray(routeData['crag'])
+          ? routeData['crag'][0]
+          : routeData['crag']
+      ) as Record<string, unknown> | undefined;
+      const areaData = (
+        Array.isArray(cragData?.['area'])
+          ? cragData?.['area'][0]
+          : cragData?.['area']
+      ) as Record<string, unknown> | undefined;
+
+      mappedRoute = {
+        ...(a.route as unknown as RouteWithExtras),
+        area_id: cragData?.['area_id'] as number,
+        crag_slug: cragData?.['slug'] as string,
+        crag_name: cragData?.['name'] as string,
+        area_slug: areaData?.['slug'] as string,
+        area_name: areaData?.['name'] as string,
+      } as RouteWithExtras;
+    }
+
+    return {
+      ...a,
+      user: (user as UserProfileDto) || undefined,
+      route: mappedRoute,
+    } as RouteAscentWithExtras;
+  }
 
   openAscentForm(data: AscentDialogData): Observable<boolean> {
     return this.dialogs
