@@ -308,7 +308,7 @@ import { mapLocationUrl, remToPx } from '../utils';
         ) {
           @if (loading) {
             <div
-              class="absolute w-full h-full top-0 pointer-events-none z-50 flex items-center justify-center bg-base-100/30"
+              class="absolute w-full h-full top-0 pointer-events-none z-50 flex items-center justify-center bg-[color-mix(in_oklab,var(--tui-background-base),transparent_70%)]"
             >
               <tui-loader size="xxl" />
             </div>

@@ -401,7 +401,7 @@ export interface RoutesTableRow {
                   <tr tuiTr>
                     <td [colSpan]="columns().length" tuiTd>
                       <div
-                        class="flex flex-col gap-3 p-3 bg-neutral-50 rounded-2xl border border-black/5"
+                        class="flex flex-col gap-3 p-3 bg-[var(--tui-background-neutral-1)] rounded-2xl border border-[var(--tui-border-normal)]"
                       >
                         <div
                           class="flex flex-wrap items-center justify-between gap-2"
@@ -537,7 +537,7 @@ export interface RoutesTableRow {
 
                         @if (showLocation()) {
                           <div
-                            class="text-xs opacity-60 flex gap-1 items-center border-t border-black/5 pt-2"
+                            class="text-xs opacity-60 flex gap-1 items-center border-t border-[var(--tui-border-normal)] pt-2"
                           >
                             <tui-icon icon="@tui.map-pin" class="text-[10px]" />
                             <a

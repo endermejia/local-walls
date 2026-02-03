@@ -82,7 +82,7 @@ export interface UserListDialogData {
         <div class="flex flex-col gap-1">
           @for (user of users(); track user.id) {
             <a
-              class="flex items-center gap-3 p-3 hover:bg-neutral-pale transition-colors rounded-xl cursor-pointer"
+              class="flex items-center gap-3 p-3 hover:bg-[var(--tui-background-neutral-1)] transition-colors rounded-xl cursor-pointer"
               [routerLink]="['/profile', user.id]"
               (click)="context.completeWith(true)"
             >

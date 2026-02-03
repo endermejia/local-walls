@@ -126,34 +126,3 @@ export type ChatMessageUpdateDto = TableUpdate<'chat_messages'>;
 export type NotificationDto = TableRow<'notifications'>;
 export type NotificationInsertDto = TableInsert<'notifications'>;
 export type NotificationUpdateDto = TableUpdate<'notifications'>;
-
-/**
- * TODO: Para habilitar el chat en tiempo real y las notificaciones en directo,
- * ejecuta los siguientes comandos SQL en tu consola de Supabase:
- *
- * ALTER PUBLICATION supabase_realtime ADD TABLE chat_messages;
- * ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
- *
- * -- Para habilitar RLS en las tablas de social y chat:
- * ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
- * ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
- * ALTER TABLE chat_participants ENABLE ROW LEVEL SECURITY;
- * ALTER TABLE chat_rooms ENABLE ROW LEVEL SECURITY;
- *
- * -- Políticas para notifications:
- * CREATE POLICY "Users can see their own notifications" ON notifications FOR SELECT TO authenticated USING (auth.uid() = user_id);
- * CREATE POLICY "Users can update their own notifications" ON notifications FOR UPDATE TO authenticated USING (auth.uid() = user_id);
- * CREATE POLICY "Users can insert notifications for others" ON notifications FOR INSERT TO authenticated WITH CHECK (auth.uid() = actor_id);
- *
- * -- Políticas para chat_rooms:
- * CREATE POLICY "Users can see rooms they are in" ON chat_rooms FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM chat_participants WHERE room_id = chat_rooms.id AND user_id = auth.uid()));
- * CREATE POLICY "Authenticated users can create rooms" ON chat_rooms FOR INSERT TO authenticated WITH CHECK (true);
- *
- * -- Políticas para chat_participants:
- * CREATE POLICY "Users can see other participants in their rooms" ON chat_participants FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM chat_participants AS cp WHERE cp.room_id = chat_participants.room_id AND cp.user_id = auth.uid()));
- * CREATE POLICY "Authenticated users can add themselves/others to rooms" ON chat_participants FOR INSERT TO authenticated WITH CHECK (true);
- *
- * -- Políticas para chat_messages:
- * CREATE POLICY "Users can see messages in their rooms" ON chat_messages FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM chat_participants WHERE room_id = chat_messages.room_id AND user_id = auth.uid()));
- * CREATE POLICY "Users can send messages to their rooms" ON chat_messages FOR INSERT TO authenticated WITH CHECK (auth.uid() = sender_id AND EXISTS (SELECT 1 FROM chat_participants WHERE room_id = chat_messages.room_id AND user_id = auth.uid()));
- */
