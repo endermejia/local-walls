@@ -114,18 +114,27 @@ import { SupabaseService } from '../services';
                 [value]="password()"
                 (input.zoneless)="onInputPassword(passwordInput.value)"
                 [attr.aria-invalid]="
-                  validate() && !passwordValid() ? 'true' : null
+                  validate() &&
+                  (isRegister() ? !passwordValid() : password().length === 0)
+                    ? 'true'
+                    : null
                 "
                 autocomplete="current-password"
               />
               <tui-icon tuiPassword />
             </tui-textfield>
 
-            @if (validate() && !passwordValid()) {
+            @if (validate() && isRegister() && !passwordValid()) {
               <tui-notification appearance="warning">
                 <h3 tuiTitle>
-                  {{ 'auth.passwordMinLength' | translate: { min: 6 } }}
+                  {{ 'auth.passwordRequirements' | translate: { min: 6 } }}
                 </h3>
+              </tui-notification>
+            } @else if (
+              validate() && !isRegister() && password().length === 0
+            ) {
+              <tui-notification appearance="warning">
+                <h3 tuiTitle>{{ 'errors.required' | translate }}</h3>
               </tui-notification>
             }
 
@@ -179,7 +188,7 @@ import { SupabaseService } from '../services';
                   tuiButton
                   type="submit"
                   class="w-full"
-                  [disabled]="!canSignIn() || loading()"
+                  [disabled]="loading()"
                 >
                   {{ 'actions.signIn' | translate }}
                 </button>
@@ -199,7 +208,7 @@ import { SupabaseService } from '../services';
                   tuiButton
                   type="button"
                   class="w-full"
-                  [disabled]="!canRegister() || loading()"
+                  [disabled]="loading()"
                   (click.zoneless)="submitRegister()"
                 >
                   {{ 'actions.register' | translate }}
@@ -244,7 +253,7 @@ import { SupabaseService } from '../services';
             @if (validate() && !newPasswordValid()) {
               <tui-notification appearance="warning">
                 <h3 tuiTitle>
-                  {{ 'auth.passwordMinLength' | translate: { min: 6 } }}
+                  {{ 'auth.passwordRequirements' | translate: { min: 6 } }}
                 </h3>
               </tui-notification>
             }
@@ -284,7 +293,7 @@ import { SupabaseService } from '../services';
                 type="button"
                 class="w-full"
                 (click.zoneless)="submitNewPassword()"
-                [disabled]="!canChangePassword() || loading()"
+                [disabled]="loading()"
               >
                 {{ 'auth.setNewPassword' | translate }}
               </button>
@@ -336,20 +345,33 @@ export class LoginComponent {
 
   // Validators
   readonly emailValid = computed(() => /.+@.+\..+/.test(this.email().trim()));
-  readonly passwordValid = computed(() => this.password().length >= 6);
-  readonly newPasswordValid = computed(() => this.newPassword().length >= 6);
+
+  private isComplexPassword(p: string): boolean {
+    return (
+      p.length >= 6 &&
+      /[A-Z]/.test(p) &&
+      /[a-z]/.test(p) &&
+      /[0-9]/.test(p) &&
+      /[^A-Za-z0-9]/.test(p)
+    );
+  }
+
+  readonly passwordValid = computed(() =>
+    this.isComplexPassword(this.password()),
+  );
+
+  readonly newPasswordValid = computed(() =>
+    this.isComplexPassword(this.newPassword()),
+  );
+
   readonly canSignIn = computed(
-    () => this.emailValid() && this.passwordValid(),
+    () => this.emailValid() && this.password().length > 0,
   );
   readonly canRegister = computed(
     () =>
       this.emailValid() &&
       this.passwordValid() &&
       this.confirmPassword() === this.password(),
-  );
-  readonly canChangePassword = computed(
-    () =>
-      this.newPasswordValid() && this.confirmPassword() === this.newPassword(),
   );
 
   constructor() {
@@ -484,8 +506,8 @@ export class LoginComponent {
       this.error.set('errors.passwordMismatch');
       return;
     }
-    if (npw.length < 6) {
-      this.error.set('auth.passwordMinLength');
+    if (!this.newPasswordValid()) {
+      this.error.set('auth.passwordRequirements');
       return;
     }
     this.loading.set(true);
