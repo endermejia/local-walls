@@ -1,0 +1,730 @@
+[
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "area_equippers",
+    "for_command": "d",
+    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "area_equippers",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "area_equippers",
+    "for_command": "w",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "area_equippers",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_delete",
+    "schema_name": "public",
+    "table_name": "area_likes",
+    "for_command": "d",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_insert",
+    "schema_name": "public",
+    "table_name": "area_likes",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+  },
+  {
+    "policy_name": "own_user_can_read",
+    "schema_name": "public",
+    "table_name": "area_likes",
+    "for_command": "r",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "areas",
+    "for_command": "d",
+    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "areas",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "areas",
+    "for_command": "w",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "areas",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "participant_can_insert",
+    "schema_name": "public",
+    "table_name": "chat_messages",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "((auth.uid() = sender_id) AND (EXISTS ( SELECT 1 FROM chat_participants WHERE ((chat_participants.room_id = chat_messages.room_id) AND (chat_participants.user_id = auth.uid())))))"
+  },
+  {
+    "policy_name": "participant_can_read",
+    "schema_name": "public",
+    "table_name": "chat_messages",
+    "for_command": "r",
+    "using_expression": "(EXISTS ( SELECT 1 FROM chat_participants WHERE ((chat_participants.room_id = chat_messages.room_id) AND (chat_participants.user_id = auth.uid()))))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "participant_can_read",
+    "schema_name": "public",
+    "table_name": "chat_participants",
+    "for_command": "r",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "participants_insert_by_admin",
+    "schema_name": "public",
+    "table_name": "chat_participants",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "((( SELECT auth.uid() AS uid) IS NOT NULL) AND (( SELECT is_user_admin(( SELECT auth.uid() AS uid)) AS is_user_admin) = true))"
+  },
+  {
+    "policy_name": "participants_insert_by_member",
+    "schema_name": "public",
+    "table_name": "chat_participants",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "((( SELECT auth.uid() AS uid) IS NOT NULL) AND (EXISTS ( SELECT 1 FROM chat_participants cp WHERE ((cp.room_id = chat_participants.room_id) AND (cp.user_id = ( SELECT auth.uid() AS uid))))))"
+  },
+  {
+    "policy_name": "participants_insert_own",
+    "schema_name": "public",
+    "table_name": "chat_participants",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "((( SELECT auth.uid() AS uid) IS NOT NULL) AND (user_id = ( SELECT auth.uid() AS uid)) AND (EXISTS ( SELECT 1 FROM chat_rooms WHERE (chat_rooms.id = chat_participants.room_id))))"
+  },
+  {
+    "policy_name": "auth_can_insert",
+    "schema_name": "public",
+    "table_name": "chat_rooms",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "policy_name": "auth_can_select",
+    "schema_name": "public",
+    "table_name": "chat_rooms",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_delete",
+    "schema_name": "public",
+    "table_name": "crag_likes",
+    "for_command": "d",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_insert",
+    "schema_name": "public",
+    "table_name": "crag_likes",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+  },
+  {
+    "policy_name": "own_user_can_read",
+    "schema_name": "public",
+    "table_name": "crag_likes",
+    "for_command": "r",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "crag_parkings",
+    "for_command": "d",
+    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "crag_parkings",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "crag_parkings",
+    "for_command": "w",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "crag_parkings",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "d",
+    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "w",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "equippers_can_delete",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "d",
+    "using_expression": "( SELECT is_area_equipper(crags.area_id) AS is_area_equipper)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "equippers_can_insert",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "( SELECT is_area_equipper(crags.area_id) AS is_area_equipper)"
+  },
+  {
+    "policy_name": "equippers_can_update",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "w",
+    "using_expression": "( SELECT is_area_equipper(crags.area_id) AS is_area_equipper)",
+    "with_check_expression": "( SELECT is_area_equipper(crags.area_id) AS is_area_equipper)"
+  },
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "equippers",
+    "for_command": "d",
+    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "equippers",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "equippers",
+    "for_command": "w",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "equippers",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "auth_can_insert",
+    "schema_name": "public",
+    "table_name": "notifications",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "policy_name": "own_can_delete",
+    "schema_name": "public",
+    "table_name": "notifications",
+    "for_command": "d",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_can_read",
+    "schema_name": "public",
+    "table_name": "notifications",
+    "for_command": "r",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "parkings",
+    "for_command": "d",
+    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "parkings",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "parkings",
+    "for_command": "w",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "parkings",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "route_ascent_comments",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "ouwn_can_delete",
+    "schema_name": "public",
+    "table_name": "route_ascent_comments",
+    "for_command": "d",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_can_insert",
+    "schema_name": "public",
+    "table_name": "route_ascent_comments",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "route_ascent_likes",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_can_delete",
+    "schema_name": "public",
+    "table_name": "route_ascent_likes",
+    "for_command": "d",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_can_insert",
+    "schema_name": "public",
+    "table_name": "route_ascent_likes",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "route_ascents",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_delete",
+    "schema_name": "public",
+    "table_name": "route_ascents",
+    "for_command": "d",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_insert",
+    "schema_name": "public",
+    "table_name": "route_ascents",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+  },
+  {
+    "policy_name": "own_user_can_update",
+    "schema_name": "public",
+    "table_name": "route_ascents",
+    "for_command": "w",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+  },
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "route_equippers",
+    "for_command": "d",
+    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "route_equippers",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "route_equippers",
+    "for_command": "w",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "route_equippers",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_delete",
+    "schema_name": "public",
+    "table_name": "route_likes",
+    "for_command": "d",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_insert",
+    "schema_name": "public",
+    "table_name": "route_likes",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+  },
+  {
+    "policy_name": "own_user_can_read",
+    "schema_name": "public",
+    "table_name": "route_likes",
+    "for_command": "r",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_delete",
+    "schema_name": "public",
+    "table_name": "route_projects",
+    "for_command": "d",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_insert",
+    "schema_name": "public",
+    "table_name": "route_projects",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+  },
+  {
+    "policy_name": "own_user_can_read",
+    "schema_name": "public",
+    "table_name": "route_projects",
+    "for_command": "r",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "routes",
+    "for_command": "d",
+    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "routes",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "routes",
+    "for_command": "w",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "routes",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "equippers_can_delete",
+    "schema_name": "public",
+    "table_name": "routes",
+    "for_command": "d",
+    "using_expression": "is_crag_equipper(crag_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "equippers_can_insert",
+    "schema_name": "public",
+    "table_name": "routes",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_crag_equipper(crag_id)"
+  },
+  {
+    "policy_name": "equippers_can_update",
+    "schema_name": "public",
+    "table_name": "routes",
+    "for_command": "w",
+    "using_expression": "is_crag_equipper(crag_id)",
+    "with_check_expression": "is_crag_equipper(crag_id)"
+  },
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "topo_routes",
+    "for_command": "d",
+    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "topo_routes",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "topo_routes",
+    "for_command": "w",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "topo_routes",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "topos",
+    "for_command": "d",
+    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "topos",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "topos",
+    "for_command": "w",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
+    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "topos",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "equippers_can_delete",
+    "schema_name": "public",
+    "table_name": "topos",
+    "for_command": "d",
+    "using_expression": "is_crag_equipper(crag_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "equippers_can_insert",
+    "schema_name": "public",
+    "table_name": "topos",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_crag_equipper(crag_id)"
+  },
+  {
+    "policy_name": "equippers_can_update",
+    "schema_name": "public",
+    "table_name": "topos",
+    "for_command": "w",
+    "using_expression": "is_crag_equipper(crag_id)",
+    "with_check_expression": "is_crag_equipper(crag_id)"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "user_follows",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "users_can_delete_own_follows",
+    "schema_name": "public",
+    "table_name": "user_follows",
+    "for_command": "d",
+    "using_expression": "(user_id = ( SELECT auth.uid() AS uid))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "users_can_insert_own_follows",
+    "schema_name": "public",
+    "table_name": "user_follows",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "((user_id = ( SELECT auth.uid() AS uid)) AND (user_id <> followed_user_id))"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "user_profiles",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_update",
+    "schema_name": "public",
+    "table_name": "user_profiles",
+    "for_command": "w",
+    "using_expression": "(( SELECT auth.uid() AS uid) = id)",
+    "with_check_expression": "(( SELECT auth.uid() AS uid) = id)"
+  },
+  {
+    "policy_name": "admin_can_read",
+    "schema_name": "public",
+    "table_name": "user_roles",
+    "for_command": "r",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "user_roles",
+    "for_command": "w",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_read",
+    "schema_name": "public",
+    "table_name": "user_roles",
+    "for_command": "r",
+    "using_expression": "(( SELECT auth.uid() AS uid) = id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  }
+]

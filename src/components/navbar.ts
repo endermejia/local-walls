@@ -68,7 +68,10 @@ import { TuiAutoFocus } from '@taiga-ui/cdk';
         class="flex md:flex-col w-full h-full p-2 md:p-4 justify-around md:justify-start gap-2 md:gap-4"
       >
         <!-- Home -->
-        <tui-badged-content [style.--tui-radius.%]="80">
+        <tui-badged-content
+          class="w-auto md:!w-full"
+          [style.--tui-radius.%]="80"
+        >
           <a
             #home="routerLinkActive"
             routerLink="/home"
