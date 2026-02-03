@@ -203,9 +203,10 @@ export class AscentDetailDialogComponent {
   private readonly ascentsService = inject(AscentsService);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
-  protected readonly context = injectContext<TuiDialogContext<void, number>>();
+  protected readonly context =
+    injectContext<TuiDialogContext<void, { ascentId: number }>>();
 
-  protected readonly ascentId = signal(this.context.data);
+  protected readonly ascentId = signal(this.context.data.ascentId);
   protected readonly newComment = signal('');
   protected readonly sending = signal(false);
 

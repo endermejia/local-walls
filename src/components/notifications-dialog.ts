@@ -158,7 +158,7 @@ export class NotificationsDialogComponent {
           .open(new PolymorpheusComponent(AscentDetailDialogComponent), {
             label: this.translate.instant('labels.ascent'),
             size: 'm',
-            data: ascentId,
+            data: { ascentId },
           })
           .subscribe();
       }
