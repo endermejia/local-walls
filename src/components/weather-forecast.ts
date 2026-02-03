@@ -1,9 +1,10 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   inject,
   input,
+  signal,
 } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
@@ -17,32 +18,83 @@ import { GlobalData, WeatherService } from '../services';
 @Component({
   selector: 'app-weather-forecast',
   standalone: true,
-  imports: [CommonModule, TuiIcon, TuiScrollbar, TranslatePipe],
+  imports: [
+    CommonModule,
+    TuiIcon,
+    TuiScrollbar,
+    TranslatePipe,
+    DatePipe,
+    DecimalPipe,
+  ],
   template: `
     @if (weather(); as days) {
-      <div class="flex flex-col gap-2">
-        <h3 class="text-sm font-semibold flex items-center gap-2 opacity-70 uppercase tracking-wider">
+      <div class="flex flex-col gap-4">
+        <h3
+          class="text-sm font-semibold flex items-center gap-2 opacity-70 uppercase tracking-wider"
+        >
           <tui-icon icon="@tui.cloud-sun" class="!size-4" />
           {{ 'weather.title' | translate }}
         </h3>
+
+        <!-- Days Selection -->
         <tui-scrollbar class="pb-2">
-          <div class="flex gap-2 overflow-x-auto pb-2">
-            @for (day of days; track day.date) {
-              <div
-                class="flex flex-col items-center p-3 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 min-w-[70px]"
+          <div class="flex gap-2">
+            @for (day of days; track day.date; let idx = $index) {
+              <button
+                type="button"
+                (click)="selectedDayIdx.set(idx)"
+                class="flex flex-col items-center p-3 rounded-2xl border transition-all min-w-[70px]"
+                [class.bg-neutral-100]="selectedDayIdx() === idx"
+                [class.dark:bg-neutral-800]="selectedDayIdx() === idx"
+                [class.border-primary]="selectedDayIdx() === idx"
+                [class.bg-neutral-50]="selectedDayIdx() !== idx"
+                [class.dark:bg-neutral-900]="selectedDayIdx() !== idx"
+                [class.border-neutral-200]="selectedDayIdx() !== idx"
+                [class.dark:border-neutral-800]="selectedDayIdx() !== idx"
               >
                 <span class="text-xs opacity-70 mb-1 capitalize">
-                  {{ day.date | date: 'EEE' : undefined : global.selectedLanguage() }}
+                  {{
+                    day.date
+                      | date: 'EEE' : undefined : global.selectedLanguage()
+                  }}
                 </span>
                 <tui-icon [icon]="day.icon" class="!size-8 my-1" />
                 <div class="flex flex-col items-center">
-                  <span class="font-bold">{{ day.maxTemp | number: '1.0-0' }}°</span>
-                  <span class="text-xs opacity-60">{{ day.minTemp | number: '1.0-0' }}°</span>
+                  <span class="font-bold">
+                    {{ day.maxTemp | number: '1.0-0' }}°
+                  </span>
+                  <span class="text-xs opacity-60">
+                    {{ day.minTemp | number: '1.0-0' }}°
+                  </span>
                 </div>
-              </div>
+              </button>
             }
           </div>
         </tui-scrollbar>
+
+        <!-- Hourly Forecast for Selected Day -->
+        @if (days[selectedDayIdx()]; as selectedDay) {
+          <tui-scrollbar class="pb-2">
+            <div class="flex gap-4">
+              @for (hour of selectedDay.hourly; track hour.time) {
+                <div class="flex flex-col items-center min-w-[45px] py-1">
+                  <span class="text-[10px] opacity-60">
+                    {{ hour.time | date: 'HH:mm' }}
+                  </span>
+                  <tui-icon [icon]="hour.icon" class="!size-6 my-1" />
+                  <span class="text-xs font-medium">
+                    {{ hour.temp | number: '1.0-0' }}°
+                  </span>
+                  @if (hour.precipProb > 0) {
+                    <span class="text-[9px] text-blue-500 font-bold">
+                      {{ hour.precipProb }}%
+                    </span>
+                  }
+                </div>
+              }
+            </div>
+          </tui-scrollbar>
+        }
       </div>
     }
   `,
@@ -51,6 +103,7 @@ import { GlobalData, WeatherService } from '../services';
 export class WeatherForecastComponent {
   private readonly weatherService = inject(WeatherService);
   protected readonly global = inject(GlobalData);
+  protected readonly selectedDayIdx = signal(0);
 
   coords = input.required<{ lat: number; lng: number }>();
 

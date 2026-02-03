@@ -254,13 +254,6 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
             />
           </div>
 
-          @if (c.latitude && c.longitude) {
-            <app-weather-forecast
-              class="mt-6"
-              [coords]="{ lat: c.latitude, lng: c.longitude }"
-            />
-          }
-
           @if (visibleTabs().length > 1) {
             <tui-tabs
               [activeItemIndex]="activeTabIndex()"
@@ -274,7 +267,9 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                       ? 'labels.routes'
                       : tabIdx === 1
                         ? 'labels.topos'
-                        : 'labels.parkings'
+                        : tabIdx === 2
+                          ? 'labels.parkings'
+                          : 'weather.title'
                     ) | translate
                   }}
                 </button>
@@ -613,6 +608,11 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                   }
                 </div>
               }
+              @case (3) {
+                <app-weather-forecast
+                  [coords]="{ lat: c.latitude, lng: c.longitude }"
+                />
+              }
             }
           </div>
         } @else {
@@ -673,7 +673,6 @@ export class CragComponent {
     );
     return (this.cragDetail()?.topos?.length ?? 0) > 0 || isAdmin || isEquipper;
   });
-
   readonly showParkingsTab = computed(() => {
     const isAdmin = this.global.isAdmin();
     const isEquipper = this.global.isAllowedEquipper(
@@ -684,11 +683,17 @@ export class CragComponent {
     );
   });
 
+  readonly showWeatherTab = computed(() => {
+    const c = this.cragDetail();
+    return !!(c?.latitude && c?.longitude);
+  });
+
   readonly visibleTabs = computed(() => {
     const tabs = [];
     if (this.showRoutesTab()) tabs.push(0);
     if (this.showToposTab()) tabs.push(1);
     if (this.showParkingsTab()) tabs.push(2);
+    if (this.showWeatherTab()) tabs.push(3);
     return tabs;
   });
 
