@@ -205,12 +205,12 @@ export class AscentDetailDialogComponent {
   private readonly dialogs = inject(TuiDialogService);
   protected readonly context = injectContext<TuiDialogContext<void, number>>();
 
-  protected readonly ascentId = this.context.data;
+  protected readonly ascentId = signal(this.context.data);
   protected readonly newComment = signal('');
   protected readonly sending = signal(false);
 
   protected readonly ascentResource = resource({
-    params: () => this.ascentId,
+    params: () => this.ascentId(),
     loader: ({ params: id }) => this.ascentsService.getAscentById(id),
   });
 
@@ -218,7 +218,7 @@ export class AscentDetailDialogComponent {
   protected readonly loading = computed(() => this.ascentResource.isLoading());
 
   protected readonly likesResource = resource({
-    params: () => this.ascentId,
+    params: () => this.ascentId(),
     loader: ({ params: id }) =>
       this.ascentsService.getLikesPaginated(id, 0, 50),
   });
@@ -231,7 +231,7 @@ export class AscentDetailDialogComponent {
   );
 
   protected readonly commentsResource = resource({
-    params: () => this.ascentId,
+    params: () => this.ascentId(),
     loader: ({ params: id }) => this.ascentsService.getComments(id),
   });
 
@@ -249,7 +249,7 @@ export class AscentDetailDialogComponent {
     this.sending.set(true);
     try {
       const result = await this.ascentsService.addComment(
-        this.ascentId,
+        this.ascentId(),
         commentText,
       );
       if (result) {
@@ -280,7 +280,7 @@ export class AscentDetailDialogComponent {
 
     if (confirmed) {
       const success = await this.ascentsService.deleteComment(
-        this.ascentId,
+        this.ascentId(),
         commentId,
       );
       if (success) {

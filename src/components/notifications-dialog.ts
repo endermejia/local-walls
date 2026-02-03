@@ -152,12 +152,13 @@ export class NotificationsDialogComponent {
     }
 
     if (notif.type === 'like' || notif.type === 'comment') {
-      if (notif.resource_id) {
+      const ascentId = Number(notif.resource_id);
+      if (!isNaN(ascentId) && ascentId > 0) {
         this.dialogs
           .open(new PolymorpheusComponent(AscentDetailDialogComponent), {
             label: this.translate.instant('labels.ascent'),
             size: 'm',
-            data: Number(notif.resource_id),
+            data: ascentId,
           })
           .subscribe();
       }

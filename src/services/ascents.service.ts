@@ -71,6 +71,7 @@ export class AscentsService {
   });
 
   async getAscentById(id: number): Promise<RouteAscentWithExtras | null> {
+    if (!id || isNaN(id) || id <= 0) return null;
     if (!isPlatformBrowser(this.platformId)) return null;
     await this.supabase.whenReady();
     const { data, error } = await this.supabase.client
