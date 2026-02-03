@@ -47,6 +47,7 @@ import {
   CragsService,
   FiltersService,
   GlobalData,
+  SupabaseService,
   ToastService,
 } from '../services';
 
@@ -127,7 +128,17 @@ import { handleErrorToast } from '../utils';
             </app-section-header>
           </div>
 
-          <div class="mb-4 flex justify-end">
+          <div class="mb-4 flex justify-between items-end gap-2">
+            <button
+              tuiButton
+              appearance="flat"
+              size="m"
+              type="button"
+              (click.zoneless)="viewOnMap()"
+              [iconStart]="'@tui.map-pin'"
+            >
+              {{ 'actions.viewOnMap' | translate }}
+            </button>
             <app-chart-routes-by-grade [grades]="area.grades" />
           </div>
 
@@ -264,6 +275,7 @@ export class AreaComponent {
   protected readonly platformId = inject(PLATFORM_ID);
   protected readonly areas = inject(AreasService);
   protected readonly cragsService = inject(CragsService);
+  protected readonly supabase = inject(SupabaseService);
   protected readonly dialogs = inject(TuiDialogService);
   protected readonly translate = inject(TranslateService);
   protected readonly filtersService = inject(FiltersService);
@@ -419,5 +431,44 @@ export class AreaComponent {
     const current = this.global.selectedArea();
     if (!current) return;
     this.cragsService.openCragForm({ areaId: current.id });
+  }
+
+  async viewOnMap(): Promise<void> {
+    const area = this.global.selectedArea();
+    if (!area) return;
+
+    await this.supabase.whenReady();
+    const { data, error } = await this.supabase.client
+      .from('crags')
+      .select('latitude, longitude')
+      .eq('area_id', area.id)
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null);
+
+    if (error || !data || data.length === 0) {
+      void this.router.navigateByUrl('/explore');
+      return;
+    }
+
+    let minLat = Infinity;
+    let maxLat = -Infinity;
+    let minLng = Infinity;
+    let maxLng = -Infinity;
+
+    data.forEach((c) => {
+      if (c.latitude! < minLat) minLat = c.latitude!;
+      if (c.latitude! > maxLat) maxLat = c.latitude!;
+      if (c.longitude! < minLng) minLng = c.longitude!;
+      if (c.longitude! > maxLng) maxLng = c.longitude!;
+    });
+
+    this.global.mapBounds.set({
+      south_west_latitude: minLat,
+      south_west_longitude: minLng,
+      north_east_latitude: maxLat,
+      north_east_longitude: maxLng,
+    });
+
+    void this.router.navigateByUrl('/explore');
   }
 }

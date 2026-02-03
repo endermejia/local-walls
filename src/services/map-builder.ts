@@ -131,22 +131,38 @@ export class MapBuilder {
       // Apply saved viewport if valid
       if (savedViewport && this.areBoundsValid(savedViewport)) {
         try {
-          // Calculate the center from the bounds
-          const centerLat =
-            (savedViewport.south_west_latitude +
-              savedViewport.north_east_latitude) /
-            2;
-          const centerLng =
-            (savedViewport.south_west_longitude +
-              savedViewport.north_east_longitude) /
-            2;
+          if (savedViewport.zoom != null) {
+            // Calculate the center from the bounds
+            const centerLat =
+              (savedViewport.south_west_latitude +
+                savedViewport.north_east_latitude) /
+              2;
+            const centerLng =
+              (savedViewport.south_west_longitude +
+                savedViewport.north_east_longitude) /
+              2;
 
-          const minZ = options.minZoom ?? 4;
-          const maxZ = options.maxZoom ?? 22;
-          const targetZ = Math.max(minZ, Math.min(maxZ, savedViewport.zoom));
+            const minZ = options.minZoom ?? 4;
+            const maxZ = options.maxZoom ?? 22;
+            const targetZ = Math.max(minZ, Math.min(maxZ, savedViewport.zoom));
 
-          // Use setView instead of fitBounds for exact restoration
-          this.map.setView([centerLat, centerLng], targetZ, { animate: false });
+            // Use setView instead of fitBounds for exact restoration
+            this.map.setView([centerLat, centerLng], targetZ, {
+              animate: false,
+            });
+          } else {
+            const bounds = new L.LatLngBounds([
+              [
+                savedViewport.south_west_latitude,
+                savedViewport.south_west_longitude,
+              ],
+              [
+                savedViewport.north_east_latitude,
+                savedViewport.north_east_longitude,
+              ],
+            ]);
+            this.map.fitBounds(bounds, { animate: false, padding: [24, 24] });
+          }
           viewportRestored = true;
         } catch (e) {
           console.warn('Failed to restore saved viewport', e);
