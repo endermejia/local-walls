@@ -13,6 +13,7 @@ import {
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import {
+  TuiAppearance,
   TuiButton,
   TuiDataList,
   TuiFallbackSrcPipe,
@@ -23,11 +24,7 @@ import {
   TuiTextfield,
 } from '@taiga-ui/core';
 import { TuiDialogContext } from '@taiga-ui/experimental';
-import {
-  TuiAvatar,
-  TuiBadgeNotification,
-  TuiDataListWrapper,
-} from '@taiga-ui/kit';
+import { TuiAvatar, TuiBadgeNotification } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -70,8 +67,8 @@ export interface ChatDialogData {
     TuiBadgeNotification,
     TuiIcon,
     ReactiveFormsModule,
-    TuiDataListWrapper,
     TuiDataList,
+    TuiAppearance,
   ],
   template: `
     <div class="flex flex-col h-[70dvh] min-h-[500px] -m-4">
@@ -265,7 +262,7 @@ export interface ChatDialogData {
                       {{ room.last_message?.text || '...' }}
                     </p>
                     @if (room.unread_count > 0) {
-                      <tui-badge-notification size="s" appearance="accent">
+                      <tui-badge-notification tuiAppearance="accent" size="s">
                         {{ room.unread_count }}
                       </tui-badge-notification>
                     }
@@ -305,7 +302,7 @@ export class ChatDialogComponent {
   protected readonly selectedRoom = signal<ChatRoomWithParticipant | null>(
     null,
   );
-  protected readonly newMessage = signal('');
+  protected newMessage = signal('');
   protected readonly sending = signal(false);
   protected readonly messagesOffset = signal(0);
   protected readonly limit = 20;
@@ -386,9 +383,35 @@ export class ChatDialogComponent {
     const roomId = await this.messagingService.getOrCreateRoom(userId);
     if (roomId) {
       await this.roomsResource.reload();
-      const room = this.rooms().find((r) => r.id === roomId);
+      // Wait for rooms to be loaded if they are not yet
+      let room = this.rooms().find((r) => r.id === roomId);
+
+      if (!room) {
+        // If not found, it might be a brand new room, we can try to construct a minimal one
+        // or just wait for the resource to finish loading.
+        // Since getRooms() returns ChatRoomWithParticipant[], we need the participant info.
+        // Let's try to find it one more time after a short delay if it's still loading
+        if (this.loadingRooms()) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          room = this.rooms().find((r) => r.id === roomId);
+        }
+      }
+
       if (room) {
         this.onSelectRoom(room);
+      } else {
+        // Fallback: if we still don't have the room object, we might need to fetch the participant
+        const user = await this.userProfilesService.getUserProfile(userId);
+        if (user) {
+          this.onSelectRoom({
+            id: roomId,
+            participant: user,
+            unread_count: 0,
+            last_message: undefined,
+            created_at: new Date().toISOString(),
+            last_message_at: null,
+          });
+        }
       }
     }
   }

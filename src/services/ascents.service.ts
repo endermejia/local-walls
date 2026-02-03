@@ -190,7 +190,7 @@ export class AscentsService {
       throw error;
     }
 
-    if (data === true) {
+    if (data) {
       void this.triggerLikeNotification(ascentId);
     }
 

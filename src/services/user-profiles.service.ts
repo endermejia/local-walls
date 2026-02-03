@@ -106,4 +106,19 @@ export class UserProfilesService {
       .limit(10);
     return data || [];
   }
+
+  async getUserProfile(userId: string): Promise<UserProfileDto | null> {
+    const { data, error } = await this.supabase.client
+      .from('user_profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[UserProfileService] Error getting profile:', error);
+      return null;
+    }
+
+    return data;
+  }
 }

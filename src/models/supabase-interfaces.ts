@@ -126,37 +126,3 @@ export type ChatMessageUpdateDto = TableUpdate<'chat_messages'>;
 export type NotificationDto = TableRow<'notifications'>;
 export type NotificationInsertDto = TableInsert<'notifications'>;
 export type NotificationUpdateDto = TableUpdate<'notifications'>;
-
-// TODO: Execute the following SQL commands to create the necessary tables for Chat and Notifications:
-/*
-CREATE TABLE chat_rooms (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    created_at timestamptz DEFAULT now(),
-    last_message_at timestamptz DEFAULT now()
-);
-
-CREATE TABLE chat_participants (
-    room_id uuid REFERENCES chat_rooms(id) ON DELETE CASCADE,
-    user_id uuid REFERENCES user_profiles(id) ON DELETE CASCADE,
-    PRIMARY KEY (room_id, user_id)
-);
-
-CREATE TABLE chat_messages (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    created_at timestamptz DEFAULT now(),
-    room_id uuid REFERENCES chat_rooms(id) ON DELETE CASCADE,
-    sender_id uuid REFERENCES user_profiles(id) ON DELETE CASCADE,
-    text text NOT NULL,
-    read_at timestamptz
-);
-
-CREATE TABLE notifications (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    created_at timestamptz DEFAULT now(),
-    user_id uuid REFERENCES user_profiles(id) ON DELETE CASCADE,
-    actor_id uuid REFERENCES user_profiles(id) ON DELETE CASCADE,
-    type text NOT NULL, -- 'like', 'comment', 'message'
-    resource_id text,
-    read_at timestamptz
-);
-*/

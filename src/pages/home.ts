@@ -44,7 +44,7 @@ import { FollowsService, GlobalData, SupabaseService } from '../services';
 import {
   AscentsFeedComponent,
   ChatDialogComponent,
-  NotificationsDialogComponent
+  NotificationsDialogComponent,
 } from '../components';
 
 @Component({
@@ -70,7 +70,7 @@ import {
         <header class="flex justify-between items-center p-4 pb-0 w-full">
           <h1 class="text-2xl font-bold">LocalWalls</h1>
           <div class="flex gap-2">
-            <tui-badged-content>
+            <tui-badged-content [style.--tui-radius.%]="80">
               @if (global.unreadMessagesCount() > 0) {
                 <tui-badge-notification
                   tuiAppearance="accent"
@@ -92,7 +92,7 @@ import {
               </button>
             </tui-badged-content>
 
-            <tui-badged-content>
+            <tui-badged-content [style.--tui-radius.%]="80">
               @if (global.unreadNotificationsCount() > 0) {
                 <tui-badge-notification
                   tuiAppearance="accent"
@@ -118,49 +118,49 @@ import {
 
         <div class="px-4 flex flex-col gap-4">
           <!-- Active Crags -->
-        @if (activeCrags$ | async; as crags) {
-          @if (crags.length > 0) {
-            <div class="flex flex-col gap-2 mt-2">
-              <span class="text-xs font-bold opacity-60 uppercase px-1">
-                {{ 'labels.crags' | translate }}
-              </span>
-              <div
-                class="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar"
-              >
-                @for (c of crags; track c.id) {
-                  <a
-                    [routerLink]="['/area', c.area_slug, c.slug]"
-                    tuiAppearance="textfield"
-                    class="flex-none p-3 rounded-2xl flex items-center gap-2 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
-                  >
-                    <span class="whitespace-nowrap font-bold text-sm">{{
-                      c.name
-                    }}</span>
-                  </a>
-                }
+          @if (activeCrags$ | async; as crags) {
+            @if (crags.length > 0) {
+              <div class="flex flex-col gap-2 mt-2">
+                <span class="text-xs font-bold opacity-60 uppercase px-1">
+                  {{ 'labels.crags' | translate }}
+                </span>
+                <div
+                  class="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar"
+                >
+                  @for (c of crags; track c.id) {
+                    <a
+                      [routerLink]="['/area', c.area_slug, c.slug]"
+                      tuiAppearance="textfield"
+                      class="flex-none p-3 rounded-2xl flex items-center gap-2 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
+                    >
+                      <span class="whitespace-nowrap font-bold text-sm">{{
+                        c.name
+                      }}</span>
+                    </a>
+                  }
+                </div>
               </div>
-            </div>
+            }
           }
-        }
 
-        <!-- Ascents Feed -->
-        @if (ascents$ | async; as ascents) {
-          <app-ascents-feed
-            [ascents]="ascents"
-            [isLoading]="isLoading()"
-            [hasMore]="hasMore()"
-            [followedIds]="followedIds()"
-            (loadMore)="loadMore()"
-            (follow)="onFollow($event)"
-            (unfollow)="onUnfollow($event)"
-          />
-        } @else {
-          @if (isLoading()) {
-            <div class="flex justify-center p-20">
-              <tui-loader size="xl" />
-            </div>
+          <!-- Ascents Feed -->
+          @if (ascents$ | async; as ascents) {
+            <app-ascents-feed
+              [ascents]="ascents"
+              [isLoading]="isLoading()"
+              [hasMore]="hasMore()"
+              [followedIds]="followedIds()"
+              (loadMore)="loadMore()"
+              (follow)="onFollow($event)"
+              (unfollow)="onUnfollow($event)"
+            />
+          } @else {
+            @if (isLoading()) {
+              <div class="flex justify-center p-20">
+                <tui-loader size="xl" />
+              </div>
+            }
           }
-        }
         </div>
       </div>
     </tui-scrollbar>
@@ -365,10 +365,13 @@ export class HomeComponent implements OnDestroy {
 
   openNotifications() {
     void firstValueFrom(
-      this.dialogs.open(new PolymorpheusComponent(NotificationsDialogComponent), {
-        label: this.translate.instant('labels.notifications'),
-        size: 'm',
-      }),
+      this.dialogs.open(
+        new PolymorpheusComponent(NotificationsDialogComponent),
+        {
+          label: this.translate.instant('labels.notifications'),
+          size: 'm',
+        },
+      ),
     );
   }
 

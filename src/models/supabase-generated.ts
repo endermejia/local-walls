@@ -1002,6 +1002,96 @@ export interface Database {
         };
         Relationships: [];
       };
+      chat_messages: {
+        Row: {
+          created_at: string | null;
+          id: string;
+          read_at: string | null;
+          room_id: string | null;
+          sender_id: string | null;
+          text: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          id?: string;
+          read_at?: string | null;
+          room_id?: string | null;
+          sender_id?: string | null;
+          text: string;
+        };
+        Update: {
+          created_at?: string | null;
+          id?: string;
+          read_at?: string | null;
+          room_id?: string | null;
+          sender_id?: string | null;
+          text?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'chat_messages_room_id_fkey';
+            columns: ['room_id'];
+            isOneToOne: false;
+            referencedRelation: 'chat_rooms';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'chat_messages_sender_id_fkey';
+            columns: ['sender_id'];
+            isOneToOne: false;
+            referencedRelation: 'user_profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      chat_participants: {
+        Row: {
+          room_id: string;
+          user_id: string;
+        };
+        Insert: {
+          room_id: string;
+          user_id: string;
+        };
+        Update: {
+          room_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'chat_participants_room_id_fkey';
+            columns: ['room_id'];
+            isOneToOne: false;
+            referencedRelation: 'chat_rooms';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'chat_participants_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user_profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      chat_rooms: {
+        Row: {
+          created_at: string | null;
+          id: string;
+          last_message_at: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          id?: string;
+          last_message_at?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          id?: string;
+          last_message_at?: string | null;
+        };
+        Relationships: [];
+      };
       crag_likes: {
         Row: {
           crag_id: number;
@@ -1066,82 +1156,6 @@ export interface Database {
             referencedColumns: ['id'];
           },
         ];
-      };
-      chat_messages: {
-        Row: {
-          created_at: string;
-          id: string;
-          read_at: string | null;
-          room_id: string;
-          sender_id: string;
-          text: string;
-        };
-        Insert: {
-          created_at?: string;
-          id?: string;
-          read_at?: string | null;
-          room_id: string;
-          sender_id: string;
-          text: string;
-        };
-        Update: {
-          created_at?: string;
-          id?: string;
-          read_at?: string | null;
-          room_id?: string;
-          sender_id?: string;
-          text?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'chat_messages_room_id_fkey';
-            columns: ['room_id'];
-            isOneToOne: false;
-            referencedRelation: 'chat_rooms';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      chat_participants: {
-        Row: {
-          room_id: string;
-          user_id: string;
-        };
-        Insert: {
-          room_id: string;
-          user_id: string;
-        };
-        Update: {
-          room_id?: string;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'chat_participants_room_id_fkey';
-            columns: ['room_id'];
-            isOneToOne: false;
-            referencedRelation: 'chat_rooms';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      chat_rooms: {
-        Row: {
-          created_at: string;
-          id: string;
-          last_message_at: string;
-        };
-        Insert: {
-          created_at?: string;
-          id?: string;
-          last_message_at?: string;
-        };
-        Update: {
-          created_at?: string;
-          id?: string;
-          last_message_at?: string;
-        };
-        Relationships: [];
       };
       crags: {
         Row: {
@@ -1222,6 +1236,51 @@ export interface Database {
           photo?: string | null;
         };
         Relationships: [];
+      };
+      notifications: {
+        Row: {
+          actor_id: string | null;
+          created_at: string | null;
+          id: string;
+          read_at: string | null;
+          resource_id: string | null;
+          type: string;
+          user_id: string | null;
+        };
+        Insert: {
+          actor_id?: string | null;
+          created_at?: string | null;
+          id?: string;
+          read_at?: string | null;
+          resource_id?: string | null;
+          type: string;
+          user_id?: string | null;
+        };
+        Update: {
+          actor_id?: string | null;
+          created_at?: string | null;
+          id?: string;
+          read_at?: string | null;
+          resource_id?: string | null;
+          type?: string;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notifications_actor_id_fkey';
+            columns: ['actor_id'];
+            isOneToOne: false;
+            referencedRelation: 'user_profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notifications_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user_profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       parkings: {
         Row: {
@@ -1738,36 +1797,6 @@ export interface Database {
           starting_climbing_year?: number | null;
           theme?: Database['public']['Enums']['theme'] | null;
           updated_at?: string | null;
-        };
-        Relationships: [];
-      };
-      notifications: {
-        Row: {
-          actor_id: string;
-          created_at: string;
-          id: string;
-          read_at: string | null;
-          resource_id: string | null;
-          type: string;
-          user_id: string;
-        };
-        Insert: {
-          actor_id: string;
-          created_at?: string;
-          id?: string;
-          read_at?: string | null;
-          resource_id?: string | null;
-          type: string;
-          user_id: string;
-        };
-        Update: {
-          actor_id?: string;
-          created_at?: string;
-          id?: string;
-          read_at?: string | null;
-          resource_id?: string | null;
-          type?: string;
-          user_id?: string;
         };
         Relationships: [];
       };
