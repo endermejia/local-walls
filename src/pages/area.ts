@@ -128,7 +128,7 @@ import { handleErrorToast } from '../utils';
             </app-section-header>
           </div>
 
-          <div class="mb-4 flex justify-between items-end gap-2">
+          <div class="mb-4 flex justify-between items-center gap-2">
             <button
               tuiButton
               appearance="flat"

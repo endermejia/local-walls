@@ -207,7 +207,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
               }
 
               <div
-                class="flex flex-row flex-wrap justify-between items-start gap-2"
+                class="flex flex-row flex-wrap justify-between items-center gap-2"
               >
                 @if (c.latitude && c.longitude) {
                   <div class="flex flex-col md:flex-row gap-2 items-start">
