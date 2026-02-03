@@ -25,7 +25,7 @@ import {
   TuiTextfield,
 } from '@taiga-ui/core';
 import { TuiDialogContext } from '@taiga-ui/experimental';
-import { TuiAvatar, TuiBadgeNotification } from '@taiga-ui/kit';
+import { TuiAvatar, TuiBadgeNotification, TuiMessage } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { RealtimeChannel } from '@supabase/supabase-js';
@@ -72,6 +72,7 @@ export interface ChatDialogData {
     ReactiveFormsModule,
     TuiDataList,
     TuiAppearance,
+    TuiMessage,
   ],
   template: `
     <div class="flex flex-col h-[70dvh] min-h-[500px] -m-4">
@@ -132,10 +133,9 @@ export interface ChatDialogData {
               @let isMe = msg.sender_id === supabase.authUserId();
               <div class="flex" [class.justify-end]="isMe">
                 <div
-                  class="max-w-[85%] p-3 rounded-2xl text-sm"
-                  [class.bg-[var(--tui-background-accent)]]="isMe"
-                  [class.text-[var(--tui-text-on-accent)]]="isMe"
-                  [class.bg-[var(--tui-background-neutral-1)]]="!isMe"
+                  [appearance]="isMe ? 'accent' : ''"
+                  tuiMessage
+                  class="max-w-[85%]"
                 >
                   <p class="whitespace-pre-wrap break-words leading-tight">
                     {{ msg.text }}
