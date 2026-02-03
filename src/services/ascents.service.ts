@@ -92,8 +92,8 @@ export class AscentsService {
       .eq('id', id)
       .single();
 
-    if (error) {
-      console.error('[AscentsService] getAscentById error', error);
+    if (error || !data) {
+      if (error) console.error('[AscentsService] getAscentById error', error);
       return null;
     }
 
@@ -110,7 +110,9 @@ export class AscentsService {
     if (a.route) {
       const routeData = a.route as unknown as Record<string, unknown>;
       const cragData = (
-        Array.isArray(routeData['crag']) ? routeData['crag'][0] : routeData['crag']
+        Array.isArray(routeData['crag'])
+          ? routeData['crag'][0]
+          : routeData['crag']
       ) as Record<string, unknown> | undefined;
       const areaData = (
         Array.isArray(cragData?.['area'])
@@ -130,7 +132,7 @@ export class AscentsService {
 
     return {
       ...a,
-      user: user as UserProfileDto,
+      user: (user as UserProfileDto) || undefined,
       route: mappedRoute,
     } as RouteAscentWithExtras;
   }
