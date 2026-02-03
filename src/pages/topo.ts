@@ -217,7 +217,7 @@ export interface TopoRouteRow {
               (tuiSwipe)="onSwipe($event)"
               [style.height]="isMobile ? '50%' : '100%'"
               [style.width]="isMobile ? '100%' : '50%'"
-              class="relative w-full bg-black/5 rounded-xl border border-black/5 overflow-x-auto"
+              class="relative w-full bg-[var(--tui-background-neutral-1)] rounded-xl border border-[var(--tui-border-normal)] overflow-x-auto"
             >
               <div
                 class="h-full w-max flex items-center justify-center min-w-full"

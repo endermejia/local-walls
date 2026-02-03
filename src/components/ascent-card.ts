@@ -220,7 +220,7 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
               <div class="flex items-center gap-1">
                 <app-avatar-ascent-type [type]="ascentType" size="xs" />
                 <span
-                  class="px-2 py-0.5 bg-gray-100 rounded text-[10px] uppercase font-bold"
+                  class="px-2 py-0.5 bg-[var(--tui-background-neutral-1)] rounded text-[10px] uppercase font-bold"
                 >
                   {{ 'ascentTypes.' + ascentType | translate }}
                 </span>
@@ -241,7 +241,7 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
 
       @if (ascent.comment; as ascentComment) {
         <p
-          class="text-sm text-gray-700 italic border-l-2 border-gray-200 pl-3 py-1 self-start"
+          class="text-sm text-gray-700 italic border-l-2 border-[var(--tui-border-normal)] pl-3 py-1 self-start"
         >
           "{{ ascentComment }}"
         </p>

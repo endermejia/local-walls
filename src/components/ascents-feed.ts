@@ -39,7 +39,7 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
               <span class="text-2xl font-black shrink-0">
                 {{ gradeLabelByNumber[asGrade(grade)] }}
               </span>
-              <div class="h-px grow bg-neutral-200"></div>
+              <div class="h-px grow bg-[var(--tui-border-normal)]"></div>
             </div>
           }
         }
@@ -53,14 +53,14 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
             (unfollowEvent)="unfollow.emit($event)"
           />
         } @placeholder {
-          <div class="h-64 w-full bg-gray-50 animate-pulse rounded-xl"></div>
+          <div class="h-64 w-full bg-[var(--tui-background-neutral-1)] animate-pulse rounded-xl"></div>
         }
       }
 
       @if (isLoading()) {
         @for (_ of [1, 2, 3]; track $index) {
           <div
-            class="flex flex-col gap-4 p-4 rounded-3xl bg-neutral-50/50 border border-black/5"
+            class="flex flex-col gap-4 p-4 rounded-3xl bg-[var(--tui-background-neutral-1)] border border-[var(--tui-border-normal)]"
           >
             <div class="flex justify-between items-center">
               <div class="flex items-center gap-3">

@@ -44,13 +44,10 @@ import { GlobalData, WeatherService } from '../services';
                 type="button"
                 (click)="selectedDayIdx.set(idx)"
                 class="flex flex-col items-center p-3 rounded-2xl border transition-all min-w-[70px]"
-                [class.bg-neutral-100]="selectedDayIdx() === idx"
-                [class.dark:bg-neutral-800]="selectedDayIdx() === idx"
+                [class.bg-[var(--tui-background-neutral-1)]]="selectedDayIdx() === idx"
                 [class.border-primary]="selectedDayIdx() === idx"
-                [class.bg-neutral-50]="selectedDayIdx() !== idx"
-                [class.dark:bg-neutral-900]="selectedDayIdx() !== idx"
-                [class.border-neutral-200]="selectedDayIdx() !== idx"
-                [class.dark:border-neutral-800]="selectedDayIdx() !== idx"
+                [class.bg-[var(--tui-background-base)]]="selectedDayIdx() !== idx"
+                [class.border-[var(--tui-border-normal)]]="selectedDayIdx() !== idx"
               >
                 <span class="text-xs opacity-70 mb-1 capitalize">
                   {{

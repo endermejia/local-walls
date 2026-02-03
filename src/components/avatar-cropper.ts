@@ -41,7 +41,7 @@ export interface AvatarCropperResult {
       >
         <canvas
           #canvas
-          class="rounded-lg shadow border border-black/5 touch-none select-none"
+          class="rounded-lg shadow border border-[var(--tui-border-normal)] touch-none select-none"
           [attr.width]="canvasSize()"
           [attr.height]="canvasSize()"
           (pointerdown.zoneless)="onPointerDown($event)"
