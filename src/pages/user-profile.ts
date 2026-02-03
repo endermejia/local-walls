@@ -58,6 +58,7 @@ import {
 
 import {
   AscentsFeedComponent,
+  ChatDialogComponent,
   EmptyStateComponent,
   RoutesTableComponent,
   UserListDialogComponent,
@@ -159,6 +160,25 @@ import {
                       (following ? 'actions.unfollow' : 'actions.follow')
                         | translate
                     }}
+                  </span>
+                </button>
+
+                <button
+                  iconStart="@tui.message-square"
+                  size="m"
+                  tuiIconButton
+                  type="button"
+                  [tuiSkeleton]="loading"
+                  appearance="action-grayscale"
+                  [tuiHint]="
+                    global.isMobile()
+                      ? null
+                      : ('actions.sendMessage' | translate)
+                  "
+                  (click)="openChat()"
+                >
+                  <span class="sr-only">
+                    {{ 'actions.sendMessage' | translate }}
                   </span>
                 </button>
               }
@@ -1043,6 +1063,19 @@ export class UserProfileComponent {
         },
       ),
       { defaultValue: false },
+    );
+  }
+
+  protected openChat(): void {
+    const userId = this.profile()?.id;
+    if (!userId) return;
+
+    void firstValueFrom(
+      this.dialogs.open(new PolymorpheusComponent(ChatDialogComponent), {
+        data: { userId },
+        label: this.translate.instant('labels.messages'),
+        size: 'm',
+      }),
     );
   }
 }

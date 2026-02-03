@@ -1,5 +1,6 @@
 export * from './admin.guard';
 export * from './api-core';
+export * from './app-notifications.service';
 export * from './areas.service';
 export * from './ascents.service';
 export * from './auth.guard';
@@ -9,6 +10,7 @@ export * from './error.interceptor';
 export * from './filters.service';
 export * from './follows.service';
 export * from './global-data';
+export * from './messaging.service';
 export * from './local-storage';
 export * from './map.service';
 export * from './notification.service';

@@ -7,6 +7,7 @@ export * from './eight-anu-user.model';
 export * from './grade.model';
 export * from './icon-name.model';
 export * from './map.model';
+export * from './social.model';
 export * from './options-item.model';
 export * from './route-ascent.model';
 export * from './route.model';

@@ -1,0 +1,92 @@
+
+> local-walls@0.0.0 start
+> ng serve --hmr=false
+
+❯ Building...
+✔ Building...
+Browser bundles
+Initial chunk files  | Names                |  Raw size
+chunk-LW6XRVTJ.js    | -                    | 803.55 kB |
+styles.css           | styles               | 328.07 kB |
+main.js              | main                 |  18.89 kB |
+chunk-3FTOJOXH.js    | -                    |  12.92 kB |
+
+                     | Initial total        |   1.16 MB
+
+Lazy chunk files     | Names                |  Raw size
+chunk-ALX3S7FR.js    | crag                 |  78.52 kB |
+chunk-2HW6WQEN.js    | topo                 |  74.43 kB |
+chunk-5IDOOO5C.js    | user-profile         |  70.33 kB |
+chunk-VR2TZSC7.js    | user-profile-config  |  66.73 kB |
+chunk-OVJ24X44.js    | explore              |  61.26 kB |
+chunk-BBSXC6X4.js    | admin-users-list     |  43.65 kB |
+chunk-4YUASUPW.js    | login                |  40.72 kB |
+chunk-SHQFKT2U.js    | route                |  34.21 kB |
+chunk-UYIJ5RTL.js    | admin-parkings-list  |  30.28 kB |
+chunk-ZDYSFVWQ.js    | admin-equippers-list |  29.92 kB |
+chunk-NDROHGXL.js    | area                 |  29.01 kB |
+chunk-THP5D7RR.js    | area-list            |  20.86 kB |
+chunk-6FO7E6EX.js    | home                 |  20.39 kB |
+chunk-R4VCDQSL.js    | my-areas             |  19.11 kB |
+chunk-SRWKZPZT.js    | admin                |  10.55 kB |
+...and 4 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files  | Names                |  Raw size
+chunk-W56NBZCF.mjs   | -                    | 803.59 kB |
+main.server.mjs      | main.server          |  23.02 kB |
+chunk-UHCQOT6O.mjs   | -                    |  12.95 kB |
+server.mjs           | server               |   3.03 kB |
+polyfills.server.mjs | polyfills.server     | 243 bytes |
+
+Lazy chunk files     | Names                |  Raw size
+chunk-VEZQ4CL7.mjs   | crag                 |  78.56 kB |
+chunk-JX22V6XF.mjs   | topo                 |  74.47 kB |
+chunk-ZKYDPC2S.mjs   | user-profile         |  70.36 kB |
+chunk-K2K3A5FH.mjs   | user-profile-config  |  66.76 kB |
+chunk-WDIN3KIL.mjs   | explore              |  61.29 kB |
+chunk-W57BLAR4.mjs   | admin-users-list     |  43.69 kB |
+chunk-UAJVQNK7.mjs   | login                |  40.76 kB |
+chunk-OTMN6TXE.mjs   | route                |  34.25 kB |
+chunk-4QTP6IC4.mjs   | admin-parkings-list  |  30.32 kB |
+chunk-2MRWSSJ2.mjs   | admin-equippers-list |  29.96 kB |
+chunk-W6I2ZDZE.mjs   | area                 |  29.05 kB |
+chunk-XCT5ZDHW.mjs   | area-list            |  20.89 kB |
+chunk-ZTQRKQVW.mjs   | home                 |  20.43 kB |
+chunk-DMRM6USY.mjs   | my-areas             |  19.14 kB |
+chunk-LXIX7M7L.mjs   | admin                |  10.58 kB |
+...and 4 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [26.016 seconds] - 2026-02-03T00:34:25.005Z
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: TuiIcon is not used within the template of HomeComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/pages/home.ts:63:4:
+[37m      63 │     [32mTuiIcon[37m,
+         ╵     [32m~~~~~~~[0m
+
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  ➜  Local:   http://localhost:4200/
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names       | Raw size
+main.js             | main        | 18.89 kB |
+
+Lazy chunk files    | Names       | Raw size
+chunk-VDGOWVMR.js   | home        | 20.37 kB |
+
+
+Server bundles
+Initial chunk files | Names       | Raw size
+main.server.mjs     | main.server | 23.02 kB |
+
+Lazy chunk files    | Names       | Raw size
+chunk-PRO5IY4S.mjs  | home        | 20.40 kB |
+
+Application bundle generation complete. [15.308 seconds] - 2026-02-03T00:35:51.652Z
+
+Page reload sent to client(s).

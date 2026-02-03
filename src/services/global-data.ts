@@ -24,7 +24,12 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { map, merge, startWith } from 'rxjs';
 
-import { LocalStorage, SupabaseService } from '../services';
+import {
+    AppNotificationsService,
+    LocalStorage,
+    MessagingService,
+    SupabaseService
+} from '../services';
 
 import { mapCragToDetail } from '../utils';
 
@@ -69,6 +74,8 @@ export class GlobalData {
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private supabase = inject(SupabaseService);
+  private readonly notificationsService = inject(AppNotificationsService);
+  private readonly messagingService = inject(MessagingService);
   private breakpointService = inject(TuiBreakpointService);
 
   readonly isMobile = toSignal(
@@ -232,6 +239,9 @@ export class GlobalData {
     () => this.isActualAdmin() || this.isActualEquipper(),
   );
   readonly equipperAreas = this.supabase.equipperAreas;
+
+  readonly unreadNotificationsCount = this.notificationsService.unreadCount;
+  readonly unreadMessagesCount = this.messagingService.unreadMessagesCount;
 
   readonly isAllowedEquipper = (areaId: number | undefined) => {
     if (this.isAdmin()) return true;
@@ -1390,6 +1400,15 @@ export class GlobalData {
       if (selectedLanguage) {
         this.translate.use(selectedLanguage);
       }
+    });
+
+    // Refresh unread counts when user changes or periodically
+    effect(() => {
+        const userId = this.supabase.authUserId();
+        if (userId) {
+            void this.notificationsService.refreshUnreadCount();
+            void this.messagingService.refreshUnreadCount();
+        }
     });
   }
 
