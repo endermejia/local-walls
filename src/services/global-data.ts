@@ -26,9 +26,11 @@ import { map, merge, startWith } from 'rxjs';
 
 import {
   AppNotificationsService,
+  BrowserNotificationService,
   LocalStorage,
   MessagingService,
   SupabaseService,
+  UserProfilesService,
 } from '../services';
 
 import { mapCragToDetail } from '../utils';
@@ -76,6 +78,8 @@ export class GlobalData {
   private supabase = inject(SupabaseService);
   private readonly notificationsService = inject(AppNotificationsService);
   private readonly messagingService = inject(MessagingService);
+  private readonly browserNotifications = inject(BrowserNotificationService);
+  private readonly userProfilesService = inject(UserProfilesService);
   private breakpointService = inject(TuiBreakpointService);
 
   readonly isMobile = toSignal(
@@ -1402,6 +1406,10 @@ export class GlobalData {
       }
     });
 
+    if (isPlatformBrowser(this.platformId)) {
+      void this.browserNotifications.requestPermission();
+    }
+
     // Refresh unread counts when user changes and setup Realtime
     effect((onCleanup) => {
       const userId = this.supabase.authUserId();
@@ -1409,11 +1417,46 @@ export class GlobalData {
         void this.notificationsService.refreshUnreadCount();
         void this.messagingService.refreshUnreadCount();
 
-        const nSub = this.notificationsService.watchNotifications(() => {
+        const nSub = this.notificationsService.watchNotifications((notif) => {
           void this.notificationsService.refreshUnreadCount();
+
+          // Browser notification for general notifications
+          if (notif.actor_id) {
+            void this.userProfilesService
+              .getUserProfile(notif.actor_id)
+              .then((actor) => {
+                const title = actor?.name || 'Topo';
+                let body = '';
+                switch (notif.type) {
+                  case 'like':
+                    body = this.translate.instant('notifications.likedAscent');
+                    break;
+                  case 'comment':
+                    body = this.translate.instant(
+                      'notifications.commentedAscent',
+                    );
+                    break;
+                }
+                if (body) {
+                  this.browserNotifications.show(title, { body });
+                }
+              });
+          }
         });
-        const mSub = this.messagingService.watchUnreadCount(() => {
+
+        const mSub = this.messagingService.watchUnreadCount((msg) => {
           void this.messagingService.refreshUnreadCount();
+
+          // Only show if not from me
+          if (msg.sender_id !== userId) {
+            void this.userProfilesService
+              .getUserProfile(msg.sender_id!)
+              .then((sender) => {
+                this.browserNotifications.show(sender?.name || 'Chat', {
+                  body: msg.text,
+                });
+              });
+          }
         });
 
         onCleanup(() => {

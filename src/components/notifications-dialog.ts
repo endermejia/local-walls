@@ -13,15 +13,17 @@ import {
   TuiLoader,
   TuiScrollbar,
 } from '@taiga-ui/core';
-import { TuiDialogContext } from '@taiga-ui/experimental';
+import { TuiDialogContext, TuiDialogService } from '@taiga-ui/experimental';
 import { TuiAvatar } from '@taiga-ui/kit';
-import { injectContext } from '@taiga-ui/polymorpheus';
+import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { AppNotificationsService, SupabaseService } from '../services';
 import { NotificationWithActor } from '../models';
 import { EmptyStateComponent } from './empty-state';
+import { AscentDetailDialogComponent } from './ascent-detail-dialog';
+import { ChatDialogComponent } from './chat-dialog';
 
 @Component({
   selector: 'app-notifications-dialog',
@@ -105,6 +107,8 @@ import { EmptyStateComponent } from './empty-state';
 export class NotificationsDialogComponent {
   protected readonly supabase = inject(SupabaseService);
   private readonly notificationsService = inject(AppNotificationsService);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
   protected readonly context = injectContext<TuiDialogContext<void, void>>();
 
   protected readonly notificationsResource = resource({
@@ -145,6 +149,26 @@ export class NotificationsDialogComponent {
       void this.notificationsService.markAsRead(notif.id).then(() => {
         this.notificationsResource.reload();
       });
+    }
+
+    if (notif.type === 'like' || notif.type === 'comment') {
+      if (notif.resource_id) {
+        this.dialogs
+          .open(new PolymorpheusComponent(AscentDetailDialogComponent), {
+            label: this.translate.instant('labels.ascent'),
+            size: 'm',
+            data: Number(notif.resource_id),
+          })
+          .subscribe();
+      }
+    } else if (notif.type === 'message') {
+      this.dialogs
+        .open(new PolymorpheusComponent(ChatDialogComponent), {
+          label: this.translate.instant('nav.chat'),
+          size: 'm',
+          data: { userId: notif.actor_id },
+        })
+        .subscribe();
     }
   }
 }

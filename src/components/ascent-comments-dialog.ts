@@ -10,7 +10,6 @@ import {
 import { FormsModule } from '@angular/forms';
 
 import {
-  TuiAppearance,
   TuiButton,
   TuiFallbackSrcPipe,
   TuiLabel,
