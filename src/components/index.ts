@@ -1,5 +1,6 @@
 export * from './ascent-card';
 export * from './ascents-feed';
+export * from './chat-dialog';
 export * from './ascent-likes';
 export * from './ascent-comments';
 export * from './ascent-comments-dialog';
@@ -11,6 +12,7 @@ export * from './chart-routes-by-grade';
 export * from './empty-state';
 export * from './infinite-scroll-trigger';
 export * from './navbar';
+export * from './notifications-dialog';
 export * from './import-8a';
 export * from './location-picker';
 export * from './map';

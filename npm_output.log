@@ -1,0 +1,871 @@
+
+> local-walls@0.0.0 start
+> ng serve --hmr=false
+
+❯ Building...
+✔ Building...
+Browser bundles
+Initial chunk files  | Names                |  Raw size
+chunk-LW6XRVTJ.js    | -                    | 803.55 kB |
+styles.css           | styles               | 328.07 kB |
+main.js              | main                 |  18.89 kB |
+chunk-3FTOJOXH.js    | -                    |  12.92 kB |
+
+                     | Initial total        |   1.16 MB
+
+Lazy chunk files     | Names                |  Raw size
+chunk-ALX3S7FR.js    | crag                 |  78.52 kB |
+chunk-2HW6WQEN.js    | topo                 |  74.43 kB |
+chunk-5IDOOO5C.js    | user-profile         |  70.33 kB |
+chunk-VR2TZSC7.js    | user-profile-config  |  66.73 kB |
+chunk-OVJ24X44.js    | explore              |  61.26 kB |
+chunk-BBSXC6X4.js    | admin-users-list     |  43.65 kB |
+chunk-4YUASUPW.js    | login                |  40.72 kB |
+chunk-SHQFKT2U.js    | route                |  34.21 kB |
+chunk-UYIJ5RTL.js    | admin-parkings-list  |  30.28 kB |
+chunk-ZDYSFVWQ.js    | admin-equippers-list |  29.92 kB |
+chunk-NDROHGXL.js    | area                 |  29.01 kB |
+chunk-THP5D7RR.js    | area-list            |  20.86 kB |
+chunk-6FO7E6EX.js    | home                 |  20.39 kB |
+chunk-R4VCDQSL.js    | my-areas             |  19.11 kB |
+chunk-SRWKZPZT.js    | admin                |  10.55 kB |
+...and 4 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files  | Names                |  Raw size
+chunk-W56NBZCF.mjs   | -                    | 803.59 kB |
+main.server.mjs      | main.server          |  23.02 kB |
+chunk-UHCQOT6O.mjs   | -                    |  12.95 kB |
+server.mjs           | server               |   3.03 kB |
+polyfills.server.mjs | polyfills.server     | 243 bytes |
+
+Lazy chunk files     | Names                |  Raw size
+chunk-VEZQ4CL7.mjs   | crag                 |  78.56 kB |
+chunk-JX22V6XF.mjs   | topo                 |  74.47 kB |
+chunk-ZKYDPC2S.mjs   | user-profile         |  70.36 kB |
+chunk-K2K3A5FH.mjs   | user-profile-config  |  66.76 kB |
+chunk-WDIN3KIL.mjs   | explore              |  61.29 kB |
+chunk-W57BLAR4.mjs   | admin-users-list     |  43.69 kB |
+chunk-UAJVQNK7.mjs   | login                |  40.76 kB |
+chunk-OTMN6TXE.mjs   | route                |  34.25 kB |
+chunk-4QTP6IC4.mjs   | admin-parkings-list  |  30.32 kB |
+chunk-2MRWSSJ2.mjs   | admin-equippers-list |  29.96 kB |
+chunk-W6I2ZDZE.mjs   | area                 |  29.05 kB |
+chunk-XCT5ZDHW.mjs   | area-list            |  20.89 kB |
+chunk-ZTQRKQVW.mjs   | home                 |  20.43 kB |
+chunk-DMRM6USY.mjs   | my-areas             |  19.14 kB |
+chunk-LXIX7M7L.mjs   | admin                |  10.58 kB |
+...and 4 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [26.016 seconds] - 2026-02-03T00:34:25.005Z
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: TuiIcon is not used within the template of HomeComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/pages/home.ts:63:4:
+[37m      63 │     [32mTuiIcon[37m,
+         ╵     [32m~~~~~~~[0m
+
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  ➜  Local:   http://localhost:4200/
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names       | Raw size
+main.js             | main        | 18.89 kB |
+
+Lazy chunk files    | Names       | Raw size
+chunk-VDGOWVMR.js   | home        | 20.37 kB |
+
+
+Server bundles
+Initial chunk files | Names       | Raw size
+main.server.mjs     | main.server | 23.02 kB |
+
+Lazy chunk files    | Names       | Raw size
+chunk-PRO5IY4S.mjs  | home        | 20.40 kB |
+
+Application bundle generation complete. [15.308 seconds] - 2026-02-03T00:35:51.652Z
+
+Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names       | Raw size
+main.js             | main        | 18.89 kB |
+
+Lazy chunk files    | Names       | Raw size
+chunk-S4HOINMO.js   | home        | 20.37 kB |
+
+
+Server bundles
+Initial chunk files | Names       | Raw size
+main.server.mjs     | main.server | 23.02 kB |
+
+Lazy chunk files    | Names       | Raw size
+chunk-FS6UOVMF.mjs  | home        | 20.40 kB |
+
+Application bundle generation complete. [9.740 seconds] - 2026-02-03T01:00:00.503Z
+
+Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names                |  Raw size
+chunk-T7KBEXD6.js   | -                    | 803.55 kB |
+main.js             | main                 |  18.89 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-HQCLJSOX.js   | crag                 |  78.52 kB |
+chunk-AI5AHA6B.js   | topo                 |  74.43 kB |
+chunk-3ETFPLXI.js   | user-profile         |  70.33 kB |
+chunk-FXSPOIMR.js   | user-profile-config  |  66.73 kB |
+chunk-K6J3DLRQ.js   | explore              |  61.26 kB |
+chunk-64OD5J2R.js   | admin-users-list     |  43.65 kB |
+chunk-22HQLQXJ.js   | login                |  40.72 kB |
+chunk-QQVNOOSW.js   | route                |  34.21 kB |
+chunk-6JYCWOZA.js   | admin-parkings-list  |  30.28 kB |
+chunk-VMXOFODL.js   | admin-equippers-list |  29.92 kB |
+chunk-FRJFHXMD.js   | area                 |  29.01 kB |
+chunk-4DWLYK2Y.js   | area-list            |  20.86 kB |
+chunk-FMYVUHHL.js   | home                 |  20.37 kB |
+chunk-WZOH7CE5.js   | my-areas             |  19.11 kB |
+chunk-E5KHJMZS.js   | admin                |  10.55 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files | Names                |  Raw size
+chunk-IJ4UXOE6.mjs  | -                    | 803.59 kB |
+main.server.mjs     | main.server          |  23.02 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-7CJ5HKAY.mjs  | crag                 |  78.56 kB |
+chunk-I6CM5MSW.mjs  | topo                 |  74.47 kB |
+chunk-NADOWC7N.mjs  | user-profile         |  70.37 kB |
+chunk-2G3WKLME.mjs  | user-profile-config  |  66.76 kB |
+chunk-DQOMCGV7.mjs  | explore              |  61.29 kB |
+chunk-LFPVMDWD.mjs  | admin-users-list     |  43.69 kB |
+chunk-H5VE2UE2.mjs  | login                |  40.76 kB |
+chunk-RNKCK5BG.mjs  | route                |  34.25 kB |
+chunk-MCPE3DER.mjs  | admin-parkings-list  |  30.32 kB |
+chunk-IHJLO7JX.mjs  | admin-equippers-list |  29.96 kB |
+chunk-LKLWBC6H.mjs  | area                 |  29.05 kB |
+chunk-NUQ3PMPF.mjs  | area-list            |  20.89 kB |
+chunk-3CPQHXPB.mjs  | home                 |  20.40 kB |
+chunk-BA7JFJ7V.mjs  | my-areas             |  19.14 kB |
+chunk-EF6WOGBM.mjs  | admin                |  10.58 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [17.106 seconds] - 2026-02-03T01:00:17.989Z
+
+Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names                |  Raw size
+chunk-BS5OQLWG.js   | -                    | 803.58 kB |
+main.js             | main                 |  18.89 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-ZIGYZ3T7.js   | crag                 |  78.52 kB |
+chunk-4H27X5D2.js   | topo                 |  74.43 kB |
+chunk-F7HCMOVZ.js   | user-profile         |  70.33 kB |
+chunk-XG4YDNBJ.js   | user-profile-config  |  66.73 kB |
+chunk-746DAZ3J.js   | explore              |  61.26 kB |
+chunk-E47PLWSH.js   | admin-users-list     |  43.65 kB |
+chunk-7JFXWOHH.js   | login                |  40.72 kB |
+chunk-EC6SDWSX.js   | route                |  34.21 kB |
+chunk-J2EDZLHJ.js   | admin-parkings-list  |  30.28 kB |
+chunk-BCGNUHDW.js   | admin-equippers-list |  29.92 kB |
+chunk-R2ZXXHEN.js   | area                 |  29.01 kB |
+chunk-D7IE6V4L.js   | area-list            |  20.86 kB |
+chunk-7U5UVIO4.js   | home                 |  20.37 kB |
+chunk-YLYOUWXM.js   | my-areas             |  19.11 kB |
+chunk-YKJPQ4VR.js   | admin                |  10.55 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files | Names                |  Raw size
+chunk-L3LA3WJK.mjs  | -                    | 803.62 kB |
+main.server.mjs     | main.server          |  23.02 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-XTALZRSV.mjs  | crag                 |  78.56 kB |
+chunk-ROID2EUM.mjs  | topo                 |  74.47 kB |
+chunk-J5JBXAUH.mjs  | user-profile         |  70.37 kB |
+chunk-WB7AKZ3D.mjs  | user-profile-config  |  66.76 kB |
+chunk-AA6KEA6O.mjs  | explore              |  61.29 kB |
+chunk-A72LZ2K5.mjs  | admin-users-list     |  43.69 kB |
+chunk-UNIEUCP5.mjs  | login                |  40.76 kB |
+chunk-RCGDDGDR.mjs  | route                |  34.25 kB |
+chunk-Y2JIJO7I.mjs  | admin-parkings-list  |  30.32 kB |
+chunk-WWQYXTT6.mjs  | admin-equippers-list |  29.96 kB |
+chunk-PVXRTUES.mjs  | area                 |  29.05 kB |
+chunk-DZ275E6G.mjs  | area-list            |  20.89 kB |
+chunk-BTNLBLRP.mjs  | home                 |  20.40 kB |
+chunk-W4ZS6NVT.mjs  | my-areas             |  19.14 kB |
+chunk-XTAHTZ2H.mjs  | admin                |  10.58 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [18.274 seconds] - 2026-02-03T01:01:12.688Z
+
+Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names                |  Raw size
+chunk-BWTJGHSZ.js   | -                    | 803.07 kB |
+main.js             | main                 |  18.89 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-UIOTBMN7.js   | crag                 |  78.52 kB |
+chunk-KKA3MORE.js   | topo                 |  74.43 kB |
+chunk-OI4L5BKX.js   | user-profile         |  70.33 kB |
+chunk-QTTCG4U3.js   | user-profile-config  |  66.73 kB |
+chunk-LICNY6FJ.js   | explore              |  61.26 kB |
+chunk-5WNQW72X.js   | admin-users-list     |  43.65 kB |
+chunk-CDD5IOTI.js   | login                |  40.72 kB |
+chunk-VBTEFCQO.js   | route                |  34.21 kB |
+chunk-YUAJ7G5Q.js   | admin-parkings-list  |  30.28 kB |
+chunk-SOWX4544.js   | admin-equippers-list |  29.92 kB |
+chunk-TZI2XV5W.js   | area                 |  29.01 kB |
+chunk-EUOWSN4M.js   | area-list            |  20.86 kB |
+chunk-7ECN37YJ.js   | home                 |  20.37 kB |
+chunk-6POC73A5.js   | my-areas             |  19.11 kB |
+chunk-UX52ZWR5.js   | admin                |  10.55 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files | Names                |  Raw size
+chunk-Q7YUM5Z2.mjs  | -                    | 803.11 kB |
+main.server.mjs     | main.server          |  23.02 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-Y6F3P3CZ.mjs  | crag                 |  78.56 kB |
+chunk-K4T3HBKW.mjs  | topo                 |  74.47 kB |
+chunk-BTY3L7KM.mjs  | user-profile         |  70.37 kB |
+chunk-77ZKPXNN.mjs  | user-profile-config  |  66.76 kB |
+chunk-C4CVMT4Y.mjs  | explore              |  61.29 kB |
+chunk-PVDUZUJQ.mjs  | admin-users-list     |  43.69 kB |
+chunk-ZQ6RE7MY.mjs  | login                |  40.76 kB |
+chunk-V5VTMQ3R.mjs  | route                |  34.25 kB |
+chunk-DMPPKS7C.mjs  | admin-parkings-list  |  30.32 kB |
+chunk-IC4HQOEM.mjs  | admin-equippers-list |  29.96 kB |
+chunk-DQTPXGH3.mjs  | area                 |  29.05 kB |
+chunk-FYPAH76F.mjs  | area-list            |  20.89 kB |
+chunk-FPU2QVBP.mjs  | home                 |  20.40 kB |
+chunk-SQI7UZRN.mjs  | my-areas             |  19.14 kB |
+chunk-DCLUGWFY.mjs  | admin                |  10.58 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [12.228 seconds] - 2026-02-03T01:01:27.292Z
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: TuiTitle is not used within the template of ChatDialogComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/chat-dialog.ts:57:4:
+[37m      57 │     [32mTuiTitle[37m,
+         ╵     [32m~~~~~~~~[0m
+
+
+Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names                |  Raw size
+chunk-5M2G2LRB.js   | -                    | 802.66 kB |
+main.js             | main                 |  18.89 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-IPMGS43N.js   | crag                 |  78.52 kB |
+chunk-3UWGOB53.js   | topo                 |  74.43 kB |
+chunk-5CDUUXUP.js   | user-profile         |  70.33 kB |
+chunk-7KOOQ5QZ.js   | user-profile-config  |  66.73 kB |
+chunk-NHOEWL2O.js   | explore              |  61.26 kB |
+chunk-PNCIQTEX.js   | admin-users-list     |  43.65 kB |
+chunk-J4CXG2BX.js   | login                |  40.72 kB |
+chunk-VR2A5B2G.js   | route                |  34.21 kB |
+chunk-7LRD6P75.js   | admin-parkings-list  |  30.28 kB |
+chunk-7WNIJ5KO.js   | admin-equippers-list |  29.92 kB |
+chunk-RAQUWFXU.js   | area                 |  29.01 kB |
+chunk-BRLXDPIV.js   | area-list            |  20.86 kB |
+chunk-IMAFSYYP.js   | home                 |  20.37 kB |
+chunk-PIDASILO.js   | my-areas             |  19.11 kB |
+chunk-OV4ZRB3V.js   | admin                |  10.55 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files | Names                |  Raw size
+chunk-SJFWU5YL.mjs  | -                    | 802.70 kB |
+main.server.mjs     | main.server          |  23.02 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-2WOJMXFO.mjs  | crag                 |  78.56 kB |
+chunk-EFUTLKV7.mjs  | topo                 |  74.47 kB |
+chunk-NXHDO5RF.mjs  | user-profile         |  70.37 kB |
+chunk-6JBGQ7QV.mjs  | user-profile-config  |  66.76 kB |
+chunk-6CPBRP3M.mjs  | explore              |  61.29 kB |
+chunk-XQQZCSIQ.mjs  | admin-users-list     |  43.69 kB |
+chunk-4AMPO2WE.mjs  | login                |  40.76 kB |
+chunk-METMHFWR.mjs  | route                |  34.25 kB |
+chunk-VR2ESR3Y.mjs  | admin-parkings-list  |  30.32 kB |
+chunk-W2MNTE6K.mjs  | admin-equippers-list |  29.96 kB |
+chunk-7M2CKGLD.mjs  | area                 |  29.05 kB |
+chunk-UV34MYIW.mjs  | area-list            |  20.89 kB |
+chunk-3BAHO3JM.mjs  | home                 |  20.40 kB |
+chunk-UNKW4VWD.mjs  | my-areas             |  19.14 kB |
+chunk-T4I37TRK.mjs  | admin                |  10.58 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [9.783 seconds] - 2026-02-03T01:01:38.296Z
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: TuiTitle is not used within the template of ChatDialogComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/chat-dialog.ts:57:4:
+[37m      57 │     [32mTuiTitle[37m,
+         ╵     [32m~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: TuiTitle is not used within the template of NotificationsDialogComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/notifications-dialog.ts:40:4:
+[37m      40 │     [32mTuiTitle[37m
+         ╵     [32m~~~~~~~~[0m
+
+
+Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names        | Raw size
+main.js             | main         | 18.89 kB |
+
+Lazy chunk files    | Names        | Raw size
+chunk-5D2UYJMQ.js   | user-profile | 69.44 kB |
+
+
+Server bundles
+Initial chunk files | Names        | Raw size
+main.server.mjs     | main.server  | 23.02 kB |
+
+Lazy chunk files    | Names        | Raw size
+chunk-ZPX7ZC6K.mjs  | user-profile | 69.47 kB |
+
+Application bundle generation complete. [9.982 seconds] - 2026-02-03T01:01:49.445Z
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: TuiTitle is not used within the template of ChatDialogComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/chat-dialog.ts:57:4:
+[37m      57 │     [32mTuiTitle[37m,
+         ╵     [32m~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: TuiTitle is not used within the template of NotificationsDialogComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/notifications-dialog.ts:40:4:
+[37m      40 │     [32mTuiTitle[37m
+         ╵     [32m~~~~~~~~[0m
+
+
+Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names                |  Raw size
+chunk-GB72TSD2.js   | -                    | 802.92 kB |
+main.js             | main                 |  18.89 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-UZ2DDRGA.js   | crag                 |  78.52 kB |
+chunk-OQOZZEY2.js   | topo                 |  74.43 kB |
+chunk-RZL2223Q.js   | user-profile         |  69.44 kB |
+chunk-SZLED7KZ.js   | user-profile-config  |  66.73 kB |
+chunk-RXJWZEWE.js   | explore              |  61.26 kB |
+chunk-RCM66SL2.js   | admin-users-list     |  43.65 kB |
+chunk-4M3BLXXC.js   | login                |  40.72 kB |
+chunk-FDO3CSVF.js   | route                |  34.21 kB |
+chunk-R5QMIWU4.js   | admin-parkings-list  |  30.28 kB |
+chunk-2TR3UCGU.js   | admin-equippers-list |  29.92 kB |
+chunk-O4TBW6XY.js   | area                 |  29.01 kB |
+chunk-EMKLYBCF.js   | area-list            |  20.86 kB |
+chunk-BODD4P7L.js   | home                 |  20.37 kB |
+chunk-QWL7GT74.js   | my-areas             |  19.11 kB |
+chunk-NI3G3FTP.js   | admin                |  10.55 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files | Names                |  Raw size
+chunk-TR4CCPXV.mjs  | -                    | 802.96 kB |
+main.server.mjs     | main.server          |  23.02 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-ZY7HRMG4.mjs  | crag                 |  78.56 kB |
+chunk-L4ZBHECY.mjs  | topo                 |  74.47 kB |
+chunk-P24NCKOE.mjs  | user-profile         |  69.47 kB |
+chunk-RGDBLBLT.mjs  | user-profile-config  |  66.76 kB |
+chunk-TFXI3RHU.mjs  | explore              |  61.29 kB |
+chunk-DDOYNWCO.mjs  | admin-users-list     |  43.69 kB |
+chunk-MQOSK4S2.mjs  | login                |  40.76 kB |
+chunk-RWQU6WZA.mjs  | route                |  34.25 kB |
+chunk-B26GP44I.mjs  | admin-parkings-list  |  30.32 kB |
+chunk-QFE3RL22.mjs  | admin-equippers-list |  29.96 kB |
+chunk-P4XMYHSV.mjs  | area                 |  29.05 kB |
+chunk-BZJ6JL62.mjs  | area-list            |  20.89 kB |
+chunk-UPHKJ44T.mjs  | home                 |  20.40 kB |
+chunk-VATS4VJ2.mjs  | my-areas             |  19.14 kB |
+chunk-EGQDZT3B.mjs  | admin                |  10.58 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [9.639 seconds] - 2026-02-03T01:02:05.743Z
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: TuiTitle is not used within the template of ChatDialogComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/chat-dialog.ts:57:4:
+[37m      57 │     [32mTuiTitle[37m,
+         ╵     [32m~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: TuiTitle is not used within the template of NotificationsDialogComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/notifications-dialog.ts:40:4:
+[37m      40 │     [32mTuiTitle[37m
+         ╵     [32m~~~~~~~~[0m
+
+
+Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Application bundle generation failed. [7.776 seconds] - 2026-02-03T01:02:14.524Z
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: TuiTitle is not used within the template of ChatDialogComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/chat-dialog.ts:59:4:
+[37m      59 │     [32mTuiTitle[37m,
+         ╵     [32m~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: TuiTitle is not used within the template of NotificationsDialogComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/notifications-dialog.ts:40:4:
+[37m      40 │     [32mTuiTitle[37m
+         ╵     [32m~~~~~~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mNG8001: 'tui-data-list' is not a known element:
+1. If 'tui-data-list' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. If 'tui-data-list' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/chat-dialog.ts:167:20:
+[37m      167 │                     [32m<tui-data-list>[37m
+          ╵                     [32m~~~~~~~~~~~~~~~[0m
+
+
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Application bundle generation failed. [0.140 seconds] - 2026-02-03T01:02:24.700Z
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: TuiTitle is not used within the template of ChatDialogComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/chat-dialog.ts:59:4:
+[37m      59 │     [32mTuiTitle[37m,
+         ╵     [32m~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: TuiTitle is not used within the template of NotificationsDialogComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/notifications-dialog.ts:40:4:
+[37m      40 │     [32mTuiTitle[37m
+         ╵     [32m~~~~~~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mNG8001: 'tui-data-list' is not a known element:
+1. If 'tui-data-list' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. If 'tui-data-list' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/chat-dialog.ts:167:20:
+[37m      167 │                     [32m<tui-data-list>[37m
+          ╵                     [32m~~~~~~~~~~~~~~~[0m
+
+
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Application bundle generation failed. [0.123 seconds] - 2026-02-03T01:02:29.702Z
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: TuiTitle is not used within the template of ChatDialogComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/chat-dialog.ts:59:4:
+[37m      59 │     [32mTuiTitle[37m,
+         ╵     [32m~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: TuiTitle is not used within the template of NotificationsDialogComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/notifications-dialog.ts:40:4:
+[37m      40 │     [32mTuiTitle[37m
+         ╵     [32m~~~~~~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mNG8001: 'tui-data-list' is not a known element:
+1. If 'tui-data-list' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. If 'tui-data-list' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/chat-dialog.ts:167:20:
+[37m      167 │                     [32m<tui-data-list>[37m
+          ╵                     [32m~~~~~~~~~~~~~~~[0m
+
+
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Application bundle generation failed. [8.450 seconds] - 2026-02-03T01:03:44.941Z
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: TuiTitle is not used within the template of NotificationsDialogComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/notifications-dialog.ts:40:4:
+[37m      40 │     [32mTuiTitle[37m
+         ╵     [32m~~~~~~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mNG1010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value could not be determined statically.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/chat-dialog.ts:62:4:
+[37m      62 │     [32mTuiDataList[37m
+         ╵     [32m~~~~~~~~~~~[0m
+
+  Unknown reference.
+
+    src/components/chat-dialog.ts:62:4:
+[37m      62 │     [32mTuiDataList[37m
+         ╵     [32m~~~~~~~~~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'TuiDataList'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/chat-dialog.ts:62:4:
+[37m      62 │     [32mTuiDataList[37m
+         ╵     [32m~~~~~~~~~~~[0m
+
+
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Application bundle generation failed. [7.809 seconds] - 2026-02-03T01:03:52.764Z
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mNG1010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value could not be determined statically.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/chat-dialog.ts:62:4:
+[37m      62 │     [32mTuiDataList[37m
+         ╵     [32m~~~~~~~~~~~[0m
+
+  Unknown reference.
+
+    src/components/chat-dialog.ts:62:4:
+[37m      62 │     [32mTuiDataList[37m
+         ╵     [32m~~~~~~~~~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'TuiDataList'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/chat-dialog.ts:62:4:
+[37m      62 │     [32mTuiDataList[37m
+         ╵     [32m~~~~~~~~~~~[0m
+
+
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files  | Names                |  Raw size
+chunk-7UHMOHVE.js    | -                    | 809.18 kB |
+styles.css           | styles               | 328.34 kB |
+main.js              | main                 |  18.89 kB |
+chunk-3FTOJOXH.js    | -                    |  12.92 kB |
+
+                     | Initial total        |   1.17 MB
+
+Lazy chunk files     | Names                |  Raw size
+chunk-FH4WN4XV.js    | crag                 |  78.52 kB |
+chunk-J537KNS2.js    | topo                 |  74.43 kB |
+chunk-I2SZF2Z7.js    | user-profile         |  69.44 kB |
+chunk-ZQAQWSHE.js    | user-profile-config  |  66.73 kB |
+chunk-RQUFIHOC.js    | explore              |  61.26 kB |
+chunk-KGSAJ4KU.js    | admin-users-list     |  43.65 kB |
+chunk-WIZUC3NF.js    | login                |  40.72 kB |
+chunk-KOBWKHY2.js    | route                |  34.21 kB |
+chunk-7FICFHWR.js    | admin-parkings-list  |  30.28 kB |
+chunk-QK7KD6K6.js    | admin-equippers-list |  29.92 kB |
+chunk-6NLPRALX.js    | area                 |  29.01 kB |
+chunk-UPXURXX4.js    | area-list            |  20.86 kB |
+chunk-WZJLWERQ.js    | home                 |  20.37 kB |
+chunk-WN3UW65W.js    | my-areas             |  19.11 kB |
+chunk-DNTHK7SG.js    | admin                |  10.55 kB |
+...and 4 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files  | Names                |  Raw size
+chunk-BATBO53Q.mjs   | -                    | 809.22 kB |
+main.server.mjs      | main.server          |  23.02 kB |
+chunk-UHCQOT6O.mjs   | -                    |  12.95 kB |
+server.mjs           | server               |   3.03 kB |
+polyfills.server.mjs | polyfills.server     | 243 bytes |
+
+Lazy chunk files     | Names                |  Raw size
+chunk-OF6UMA7Z.mjs   | crag                 |  78.56 kB |
+chunk-XC53PQD2.mjs   | topo                 |  74.47 kB |
+chunk-BLP6KDQX.mjs   | user-profile         |  69.47 kB |
+chunk-SA7A6HQZ.mjs   | user-profile-config  |  66.76 kB |
+chunk-WTY65K4X.mjs   | explore              |  61.29 kB |
+chunk-MA3IPONR.mjs   | admin-users-list     |  43.69 kB |
+chunk-V52MI5GQ.mjs   | login                |  40.76 kB |
+chunk-2OGQ3RWF.mjs   | route                |  34.25 kB |
+chunk-C7BTJF6S.mjs   | admin-parkings-list  |  30.32 kB |
+chunk-VAW5IA7U.mjs   | admin-equippers-list |  29.96 kB |
+chunk-26G2422E.mjs   | area                 |  29.05 kB |
+chunk-C5LTZO2Z.mjs   | area-list            |  20.89 kB |
+chunk-7LHFAP6X.mjs   | home                 |  20.40 kB |
+chunk-XHFNVIW2.mjs   | my-areas             |  19.14 kB |
+chunk-CC7R6VOC.mjs   | admin                |  10.58 kB |
+...and 4 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [9.067 seconds] - 2026-02-03T01:04:32.056Z
+
+Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names                |  Raw size
+chunk-WXWIKKZZ.js   | -                    | 809.18 kB |
+main.js             | main                 |  18.89 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-J5HV6PCP.js   | crag                 |  78.52 kB |
+chunk-33BFWGAK.js   | topo                 |  74.43 kB |
+chunk-FKVFKQBA.js   | user-profile         |  69.44 kB |
+chunk-3UVSRL5S.js   | user-profile-config  |  66.73 kB |
+chunk-BDFBQSJP.js   | explore              |  61.26 kB |
+chunk-Y7GX7NMV.js   | admin-users-list     |  43.65 kB |
+chunk-3RV7HVVK.js   | login                |  40.72 kB |
+chunk-RSVRY5EL.js   | route                |  34.21 kB |
+chunk-TVEE2BFM.js   | admin-parkings-list  |  30.28 kB |
+chunk-OVKBWXZR.js   | admin-equippers-list |  29.92 kB |
+chunk-VY5YBQQD.js   | area                 |  29.01 kB |
+chunk-YYLVXIYC.js   | area-list            |  20.86 kB |
+chunk-Q445OCHZ.js   | home                 |  20.37 kB |
+chunk-YRY4VTV4.js   | my-areas             |  19.11 kB |
+chunk-67DPK6TJ.js   | admin                |  10.55 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files | Names                |  Raw size
+chunk-YLG6LDCE.mjs  | -                    | 809.22 kB |
+main.server.mjs     | main.server          |  23.02 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-R5NMXMLX.mjs  | crag                 |  78.56 kB |
+chunk-R53GQ4AK.mjs  | topo                 |  74.47 kB |
+chunk-AMJY5QDZ.mjs  | user-profile         |  69.47 kB |
+chunk-ZDIKJTEC.mjs  | user-profile-config  |  66.76 kB |
+chunk-HJWIEFPV.mjs  | explore              |  61.29 kB |
+chunk-6QW6I7WY.mjs  | admin-users-list     |  43.69 kB |
+chunk-B5YV5MB4.mjs  | login                |  40.76 kB |
+chunk-XMEUZWHJ.mjs  | route                |  34.25 kB |
+chunk-KAM3QN5J.mjs  | admin-parkings-list  |  30.32 kB |
+chunk-KMG2XZ5K.mjs  | admin-equippers-list |  29.96 kB |
+chunk-XIBESXQS.mjs  | area                 |  29.05 kB |
+chunk-KSRCOE4B.mjs  | area-list            |  20.89 kB |
+chunk-5CVMFJB2.mjs  | home                 |  20.40 kB |
+chunk-YFO3YO7X.mjs  | my-areas             |  19.14 kB |
+chunk-KALXLJQY.mjs  | admin                |  10.58 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [25.494 seconds] - 2026-02-03T08:17:53.688Z
+
+Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names                |  Raw size
+chunk-R2VLUE4F.js   | -                    | 809.24 kB |
+main.js             | main                 |  18.89 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-BLRY7HKO.js   | crag                 |  78.52 kB |
+chunk-Z2IVZG6A.js   | topo                 |  74.43 kB |
+chunk-4RUQ4YNB.js   | user-profile         |  69.44 kB |
+chunk-HZF5BZPX.js   | user-profile-config  |  66.73 kB |
+chunk-X3DHDG6J.js   | explore              |  61.26 kB |
+chunk-U4BO3DDA.js   | admin-users-list     |  43.65 kB |
+chunk-FPUU47LX.js   | login                |  40.72 kB |
+chunk-B7M5BXJG.js   | route                |  34.21 kB |
+chunk-JVSJT4Z4.js   | admin-parkings-list  |  30.28 kB |
+chunk-XH7OARBJ.js   | admin-equippers-list |  29.92 kB |
+chunk-GLPILHVG.js   | area                 |  29.01 kB |
+chunk-CDNMNLYD.js   | area-list            |  20.86 kB |
+chunk-AX7UBMGE.js   | home                 |  20.37 kB |
+chunk-4IZPA46Q.js   | my-areas             |  19.11 kB |
+chunk-Y7NDZHYW.js   | admin                |  10.55 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files | Names                |  Raw size
+chunk-RGT67MPW.mjs  | -                    | 809.28 kB |
+main.server.mjs     | main.server          |  23.02 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-XBJU776H.mjs  | crag                 |  78.56 kB |
+chunk-WVOFALVW.mjs  | topo                 |  74.47 kB |
+chunk-A3IAWSJW.mjs  | user-profile         |  69.47 kB |
+chunk-3I2CAUOX.mjs  | user-profile-config  |  66.76 kB |
+chunk-QSKMF5NS.mjs  | explore              |  61.29 kB |
+chunk-SPHM3CZV.mjs  | admin-users-list     |  43.69 kB |
+chunk-54QMKVUW.mjs  | login                |  40.76 kB |
+chunk-D42W243X.mjs  | route                |  34.25 kB |
+chunk-IF5Y2KNQ.mjs  | admin-parkings-list  |  30.32 kB |
+chunk-HKO5FZIM.mjs  | admin-equippers-list |  29.96 kB |
+chunk-WJUZ4A4N.mjs  | area                 |  29.05 kB |
+chunk-IJPZAKI3.mjs  | area-list            |  20.89 kB |
+chunk-E47TYZ42.mjs  | home                 |  20.40 kB |
+chunk-F3IBJJVK.mjs  | my-areas             |  19.14 kB |
+chunk-5DQGX756.mjs  | admin                |  10.58 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [9.763 seconds] - 2026-02-03T08:18:07.795Z
+
+Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names                |  Raw size
+chunk-7WSJ726S.js   | -                    | 809.28 kB |
+main.js             | main                 |  18.89 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-XXFQ2QUN.js   | crag                 |  78.52 kB |
+chunk-5LLQWBMB.js   | topo                 |  74.43 kB |
+chunk-IMMKS4FE.js   | user-profile         |  69.44 kB |
+chunk-2I2IPQYM.js   | user-profile-config  |  66.73 kB |
+chunk-FFFYRN3Z.js   | explore              |  61.26 kB |
+chunk-TLSJ3LUF.js   | admin-users-list     |  43.65 kB |
+chunk-6FNMWXY3.js   | login                |  40.72 kB |
+chunk-EC3ALFZR.js   | route                |  34.21 kB |
+chunk-EV7JHLSD.js   | admin-parkings-list  |  30.28 kB |
+chunk-GPRSLEZH.js   | admin-equippers-list |  29.92 kB |
+chunk-M77OM7XS.js   | area                 |  29.01 kB |
+chunk-2TAWH2XS.js   | area-list            |  20.86 kB |
+chunk-TBUFISFA.js   | home                 |  20.37 kB |
+chunk-G6Z4Q4CB.js   | my-areas             |  19.11 kB |
+chunk-2XELDARR.js   | admin                |  10.55 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files | Names                |  Raw size
+chunk-2QJURZT2.mjs  | -                    | 809.32 kB |
+main.server.mjs     | main.server          |  23.02 kB |
+
+Lazy chunk files    | Names                |  Raw size
+chunk-R2OIFHD7.mjs  | crag                 |  78.56 kB |
+chunk-7SASVPME.mjs  | topo                 |  74.47 kB |
+chunk-YD7IWNLZ.mjs  | user-profile         |  69.47 kB |
+chunk-IWMXUIXR.mjs  | user-profile-config  |  66.76 kB |
+chunk-7IM5YBIC.mjs  | explore              |  61.29 kB |
+chunk-7S3K5ME3.mjs  | admin-users-list     |  43.69 kB |
+chunk-BXOEUEUS.mjs  | login                |  40.76 kB |
+chunk-2TOC5LNQ.mjs  | route                |  34.25 kB |
+chunk-XQYEAWBX.mjs  | admin-parkings-list  |  30.32 kB |
+chunk-4UFOBNO6.mjs  | admin-equippers-list |  29.96 kB |
+chunk-WLOG4QBO.mjs  | area                 |  29.05 kB |
+chunk-AOEVGN4R.mjs  | area-list            |  20.89 kB |
+chunk-OQYDEZ26.mjs  | home                 |  20.40 kB |
+chunk-HG45MNKR.mjs  | my-areas             |  19.14 kB |
+chunk-DD3ZFJP7.mjs  | admin                |  10.58 kB |
+...and 3 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [2.081 seconds] - 2026-02-03T08:20:56.513Z
+
+Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Application bundle generation failed. [1.489 seconds] - 2026-02-03T08:20:59.733Z
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'UserProfileDto'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/services/app-notifications.service.ts:38:75:
+[37m      38 │ ...cationWithActor & { actor: [32mUserProfileDto[37m | UserProfileDto[] })[];
+         ╵                               [32m~~~~~~~~~~~~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'UserProfileDto'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/services/app-notifications.service.ts:38:92:
+[37m      38 │ ...cationWithActor & { actor: UserProfileDto | [32mUserProfileDto[37m[] })[];
+         ╵                                                [32m~~~~~~~~~~~~~~[0m
+
+
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files  | Names                |  Raw size
+chunk-3CUITPMC.js    | -                    | 809.31 kB |
+styles.css           | styles               | 328.34 kB |
+main.js              | main                 |  18.89 kB |
+chunk-3FTOJOXH.js    | -                    |  12.92 kB |
+
+                     | Initial total        |   1.17 MB
+
+Lazy chunk files     | Names                |  Raw size
+chunk-W3TDOMV3.js    | crag                 |  78.52 kB |
+chunk-MIRAGRYC.js    | topo                 |  74.43 kB |
+chunk-FWOTFXMS.js    | user-profile         |  69.44 kB |
+chunk-N42D7B4G.js    | user-profile-config  |  66.73 kB |
+chunk-CTKUFE6Z.js    | explore              |  61.26 kB |
+chunk-HPNPP44P.js    | admin-users-list     |  43.65 kB |
+chunk-CDPB3TJY.js    | login                |  40.72 kB |
+chunk-4GY26SVZ.js    | route                |  34.21 kB |
+chunk-GQSSGPP3.js    | admin-parkings-list  |  30.28 kB |
+chunk-MPAIEEKC.js    | admin-equippers-list |  29.92 kB |
+chunk-GFHEB4JZ.js    | area                 |  29.01 kB |
+chunk-P2AOHPYU.js    | area-list            |  20.86 kB |
+chunk-KB2YCACF.js    | home                 |  20.37 kB |
+chunk-ZL5DS6YV.js    | my-areas             |  19.11 kB |
+chunk-WZX22NI6.js    | admin                |  10.55 kB |
+...and 4 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files  | Names                |  Raw size
+chunk-HEPRJ25V.mjs   | -                    | 809.35 kB |
+main.server.mjs      | main.server          |  23.02 kB |
+chunk-UHCQOT6O.mjs   | -                    |  12.95 kB |
+server.mjs           | server               |   3.03 kB |
+polyfills.server.mjs | polyfills.server     | 243 bytes |
+
+Lazy chunk files     | Names                |  Raw size
+chunk-WZV46FFY.mjs   | crag                 |  78.56 kB |
+chunk-WTUBXSWU.mjs   | topo                 |  74.47 kB |
+chunk-UGF73PF2.mjs   | user-profile         |  69.47 kB |
+chunk-TGVWXLKS.mjs   | user-profile-config  |  66.76 kB |
+chunk-YPBADFHM.mjs   | explore              |  61.29 kB |
+chunk-JNNO64IO.mjs   | admin-users-list     |  43.69 kB |
+chunk-E2XHQGBI.mjs   | login                |  40.76 kB |
+chunk-BBE6ZQN3.mjs   | route                |  34.25 kB |
+chunk-4Y6QA7ND.mjs   | admin-parkings-list  |  30.32 kB |
+chunk-AS7L7UCS.mjs   | admin-equippers-list |  29.96 kB |
+chunk-7EFI75X2.mjs   | area                 |  29.05 kB |
+chunk-2TVOCAU2.mjs   | area-list            |  20.89 kB |
+chunk-DC5FPHUD.mjs   | home                 |  20.40 kB |
+chunk-IBQTHLLY.mjs   | my-areas             |  19.14 kB |
+chunk-G7SKYEIF.mjs   | admin                |  10.58 kB |
+...and 4 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [1.406 seconds] - 2026-02-03T08:22:19.188Z
+
+Page reload sent to client(s).

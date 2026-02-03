@@ -23,6 +23,7 @@ import AscentFormComponent from '../pages/ascent-form';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
+import { AppNotificationsService } from './app-notifications.service';
 
 @Injectable({ providedIn: 'root' })
 export class AscentsService {
@@ -32,6 +33,7 @@ export class AscentsService {
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
+  private readonly notificationsService = inject(AppNotificationsService);
 
   readonly ascentInfo = computed<
     Record<
@@ -188,7 +190,28 @@ export class AscentsService {
       throw error;
     }
 
+    if (data === true) {
+      void this.triggerLikeNotification(ascentId);
+    }
+
     return data;
+  }
+
+  private async triggerLikeNotification(ascentId: number) {
+    const { data: ascent } = await this.supabase.client
+      .from('route_ascents')
+      .select('user_id')
+      .eq('id', ascentId)
+      .single();
+
+    if (ascent) {
+      await this.notificationsService.createNotification({
+        user_id: ascent.user_id,
+        actor_id: this.supabase.authUserId()!,
+        type: 'like',
+        resource_id: ascentId.toString(),
+      });
+    }
   }
 
   async getLikesInfo(ascentId: number): Promise<{
@@ -388,9 +411,30 @@ export class AscentsService {
       throw error;
     }
 
+    if (data) {
+      void this.triggerCommentNotification(ascentId);
+    }
+
     this.refreshComments(ascentId);
 
     return data;
+  }
+
+  private async triggerCommentNotification(ascentId: number) {
+    const { data: ascent } = await this.supabase.client
+      .from('route_ascents')
+      .select('user_id')
+      .eq('id', ascentId)
+      .single();
+
+    if (ascent) {
+      await this.notificationsService.createNotification({
+        user_id: ascent.user_id,
+        actor_id: this.supabase.authUserId()!,
+        type: 'comment',
+        resource_id: ascentId.toString(),
+      });
+    }
   }
 
   async deleteComment(ascentId: number, commentId: number): Promise<boolean> {

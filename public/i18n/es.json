@@ -37,6 +37,8 @@
     "unlink": "Desvincular",
     "loadMore": "Cargar más",
     "loading": "Cargando...",
+    "markAllRead": "Marcar todo como leído",
+    "sendMessage": "Enviar mensaje",
     "openGoogleMaps": "Google Maps",
     "openMap": "Abrir ubicación en Google Maps",
     "pickOnMap": "Seleccionar en el mapa",
@@ -109,6 +111,8 @@
     "last12Months": "Últimos 12 meses",
     "lat": "Lat",
     "latestAscents": "Últimos encadenes",
+    "messages": "Mensajes",
+    "notifications": "Notificaciones",
     "likedAreas": "Áreas",
     "likedCrags": "Sectores",
     "likedRoutes": "Vías",
@@ -135,6 +139,7 @@
     "routes": "Vías",
     "search": "Buscar",
     "searchPlaceholder": "Buscar...",
+    "searchUser": "Buscar usuario",
     "sector": "Sector",
     "sectors": "Sectores",
     "sex": "Género",
@@ -144,6 +149,7 @@
     "topo": "Croquis",
     "topos": "Croquis",
     "type": "Tipo",
+    "typeMessage": "Escribe un mensaje",
     "user": "Usuario",
     "userInfo": "Información",
     "userName": "Nombre completo",
@@ -198,6 +204,12 @@
   },
   "explore": {
     "toggleView": "Cambiar vista"
+  },
+  "notifications": {
+    "likedAscent": "le ha dado a me gusta a tu encadene",
+    "commentedAscent": "ha comentado en tu encadene",
+    "sentMessage": "te ha enviado un mensaje",
+    "unknown": "nueva notificación"
   },
   "filters": {
     "selectedRange": "Rango seleccionado:",

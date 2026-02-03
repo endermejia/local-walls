@@ -37,6 +37,8 @@
     "unlink": "Unlink",
     "loadMore": "Load more",
     "loading": "Loading...",
+    "markAllRead": "Mark all as read",
+    "sendMessage": "Send message",
     "openGoogleMaps": "Open Google Maps",
     "openMap": "Open location in Google Maps",
     "pickOnMap": "Pick on map",
@@ -108,6 +110,8 @@
     "last12Months": "Last 12 months",
     "lat": "Lat",
     "latestAscents": "Latest ascents",
+    "messages": "Messages",
+    "notifications": "Notifications",
     "likedAreas": "Liked areas",
     "likedCrags": "Liked crags",
     "likedRoutes": "Liked routes",
@@ -134,6 +138,7 @@
     "routes": "Routes",
     "search": "Search",
     "searchPlaceholder": "Search...",
+    "searchUser": "Search user",
     "sector": "Sector",
     "sectors": "Sectors",
     "sex": "Gender",
@@ -143,6 +148,7 @@
     "topo": "Topo",
     "topos": "Topos",
     "type": "Type",
+    "typeMessage": "Type a message",
     "user": "User",
     "userInfo": "Information",
     "userName": "Full name",
@@ -197,6 +203,12 @@
   },
   "explore": {
     "toggleView": "Toggle view"
+  },
+  "notifications": {
+    "likedAscent": "liked your ascent",
+    "commentedAscent": "commented on your ascent",
+    "sentMessage": "sent you a message",
+    "unknown": "new notification"
   },
   "filters": {
     "selectedRange": "Selected range:",

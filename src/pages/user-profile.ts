@@ -58,6 +58,7 @@ import {
 
 import {
   AscentsFeedComponent,
+  ChatDialogComponent,
   EmptyStateComponent,
   RoutesTableComponent,
   UserListDialogComponent,
@@ -137,30 +138,6 @@ import {
                 >
                   {{ 'actions.edit' | translate }}
                 </button>
-              } @else {
-                @let following = isFollowing();
-                <button
-                  [iconStart]="following ? '@tui.bell-filled' : '@tui.bell'"
-                  size="m"
-                  tuiIconButton
-                  type="button"
-                  [tuiSkeleton]="loading"
-                  appearance="action-grayscale"
-                  [tuiHint]="
-                    global.isMobile()
-                      ? null
-                      : ((following ? 'actions.unfollow' : 'actions.follow')
-                        | translate)
-                  "
-                  (click)="toggleFollow()"
-                >
-                  <span class="sr-only">
-                    {{
-                      (following ? 'actions.unfollow' : 'actions.follow')
-                        | translate
-                    }}
-                  </span>
-                </button>
               }
             </div>
 
@@ -226,6 +203,37 @@ import {
             </div>
           </div>
         </div>
+
+        @if (!isOwnProfile()) {
+          <div class="flex gap-2">
+            @let following = isFollowing();
+            <button
+              tuiButton
+              type="button"
+              appearance="secondary"
+              size="m"
+              [iconStart]="following ? '@tui.bell-filled' : '@tui.bell'"
+              [tuiSkeleton]="loading"
+              (click)="toggleFollow()"
+            >
+              {{
+                (following ? 'actions.unfollow' : 'actions.follow') | translate
+              }}
+            </button>
+
+            <button
+              tuiButton
+              type="button"
+              appearance="secondary"
+              size="m"
+              iconStart="@tui.messages-square"
+              [tuiSkeleton]="loading"
+              (click)="openChat()"
+            >
+              {{ 'actions.sendMessage' | translate }}
+            </button>
+          </div>
+        }
 
         <tui-tabs
           [activeItemIndex]="activeTab()"
@@ -1043,6 +1051,19 @@ export class UserProfileComponent {
         },
       ),
       { defaultValue: false },
+    );
+  }
+
+  protected openChat(): void {
+    const userId = this.profile()?.id;
+    if (!userId) return;
+
+    void firstValueFrom(
+      this.dialogs.open(new PolymorpheusComponent(ChatDialogComponent), {
+        data: { userId },
+        label: this.translate.instant('labels.messages'),
+        size: 'm',
+      }),
     );
   }
 }

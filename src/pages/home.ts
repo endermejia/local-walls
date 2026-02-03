@@ -12,10 +12,13 @@ import { Router, RouterLink } from '@angular/router';
 
 import {
   TuiAppearance,
+  TuiButton,
   TuiLoader,
   TuiScrollbar,
 } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiBadgedContent, TuiBadgeNotification } from '@taiga-ui/kit';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
@@ -25,6 +28,7 @@ import {
   scan,
   shareReplay,
   startWith,
+  firstValueFrom,
   Subject,
   tap,
 } from 'rxjs';
@@ -37,7 +41,11 @@ import {
 
 import { FollowsService, GlobalData, SupabaseService } from '../services';
 
-import { AscentsFeedComponent } from '../components';
+import {
+  AscentsFeedComponent,
+  ChatDialogComponent,
+  NotificationsDialogComponent
+} from '../components';
 
 @Component({
   selector: 'app-home',
@@ -50,13 +58,66 @@ import { AscentsFeedComponent } from '../components';
     RouterLink,
     TranslatePipe,
     TuiAppearance,
+    TuiButton,
     TuiLoader,
     TuiScrollbar,
+    TuiBadgedContent,
+    TuiBadgeNotification,
   ],
   template: `
     <tui-scrollbar class="h-full">
-      <div class="p-4 flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32">
-        <!-- Active Crags -->
+      <div class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32">
+        <header class="flex justify-between items-center p-4 pb-0 w-full">
+          <h1 class="text-2xl font-bold">LocalWalls</h1>
+          <div class="flex gap-2">
+            <tui-badged-content>
+              @if (global.unreadMessagesCount() > 0) {
+                <tui-badge-notification
+                  tuiAppearance="accent"
+                  size="s"
+                  tuiSlot="top"
+                >
+                  {{ global.unreadMessagesCount() }}
+                </tui-badge-notification>
+              }
+              <button
+                tuiIconButton
+                type="button"
+                appearance="flat-grayscale"
+                size="m"
+                iconStart="@tui.messages-square"
+                (click)="openChat()"
+              >
+                {{ 'labels.messages' | translate }}
+              </button>
+            </tui-badged-content>
+
+            <tui-badged-content>
+              @if (global.unreadNotificationsCount() > 0) {
+                <tui-badge-notification
+                  tuiAppearance="accent"
+                  size="s"
+                  tuiSlot="top"
+                >
+                  {{ global.unreadNotificationsCount() }}
+                </tui-badge-notification>
+              }
+              <button
+                tuiIconButton
+                type="button"
+                appearance="flat-grayscale"
+                size="m"
+                iconStart="@tui.bell"
+                (click)="openNotifications()"
+              >
+                {{ 'labels.notifications' | translate }}
+              </button>
+            </tui-badged-content>
+          </div>
+        </header>
+
+        <div class="px-4 flex flex-col gap-4">
+          <!-- Active Crags -->
         @if (activeCrags$ | async; as crags) {
           @if (crags.length > 0) {
             <div class="flex flex-col gap-2 mt-2">
@@ -100,6 +161,7 @@ import { AscentsFeedComponent } from '../components';
             </div>
           }
         }
+        </div>
       </div>
     </tui-scrollbar>
   `,
@@ -290,6 +352,24 @@ export class HomeComponent implements OnDestroy {
     if (this.isBrowser && !this.isLoading()) {
       this.loadMore$.next();
     }
+  }
+
+  openChat() {
+    void firstValueFrom(
+      this.dialogs.open(new PolymorpheusComponent(ChatDialogComponent), {
+        label: this.translate.instant('labels.messages'),
+        size: 'm',
+      }),
+    );
+  }
+
+  openNotifications() {
+    void firstValueFrom(
+      this.dialogs.open(new PolymorpheusComponent(NotificationsDialogComponent), {
+        label: this.translate.instant('labels.notifications'),
+        size: 'm',
+      }),
+    );
   }
 
   ngOnDestroy() {
