@@ -2,6 +2,8 @@ import { inject, Injectable, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 
+import { RealtimeChannel } from '@supabase/supabase-js';
+
 import { SupabaseService } from './supabase.service';
 import {
   NotificationInsertDto,
@@ -112,5 +114,27 @@ export class AppNotificationsService {
     if (!error) {
       this.unreadCount.set(count ?? 0);
     }
+  }
+
+  watchNotifications(callback: () => void): RealtimeChannel | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    const userId = this.supabase.authUserId();
+    if (!userId) return null;
+
+    return this.supabase.client
+      .channel(`notifications-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => {
+          callback();
+        }
+      )
+      .subscribe();
   }
 }

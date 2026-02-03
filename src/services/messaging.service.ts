@@ -2,6 +2,8 @@ import { inject, Injectable, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 
+import { RealtimeChannel } from '@supabase/supabase-js';
+
 import { SupabaseService } from './supabase.service';
 import {
     ChatMessageDto,
@@ -229,5 +231,45 @@ export class MessagingService {
     if (!error) {
         this.unreadMessagesCount.set(count ?? 0);
     }
+  }
+
+  watchMessages(
+    roomId: string,
+    callback: (message: ChatMessageDto) => void,
+  ): RealtimeChannel | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    return this.supabase.client
+      .channel(`room-${roomId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `room_id=eq.${roomId}`,
+        },
+        (payload) => {
+          callback(payload.new as ChatMessageDto);
+        }
+      )
+      .subscribe();
+  }
+
+  watchUnreadCount(callback: () => void): RealtimeChannel | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    return this.supabase.client
+      .channel('unread-messages')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chat_messages',
+        },
+        () => {
+          callback();
+        }
+      )
+      .subscribe();
   }
 }

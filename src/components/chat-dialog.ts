@@ -9,6 +9,7 @@ import {
   ElementRef,
   ViewChild,
   effect,
+  OnDestroy,
 } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
@@ -26,6 +27,8 @@ import {
 import { TuiDialogContext } from '@taiga-ui/experimental';
 import { TuiAvatar, TuiBadgeNotification } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
+
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 import { TranslatePipe } from '@ngx-translate/core';
 import { debounceTime, distinctUntilChanged, switchMap, of, from } from 'rxjs';
@@ -289,7 +292,7 @@ export interface ChatDialogData {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ChatDialogComponent {
+export class ChatDialogComponent implements OnDestroy {
   protected readonly supabase = inject(SupabaseService);
   protected readonly messagingService = inject(MessagingService);
   protected readonly userProfilesService = inject(UserProfilesService);
@@ -298,6 +301,9 @@ export class ChatDialogComponent {
 
   @ViewChild('scrollbar', { read: ElementRef })
   private scrollbar?: ElementRef<HTMLElement>;
+
+  private roomSubscription?: RealtimeChannel | null;
+  private roomsSubscription?: RealtimeChannel | null;
 
   protected readonly selectedRoom = signal<ChatRoomWithParticipant | null>(
     null,
@@ -377,6 +383,10 @@ export class ChatDialogComponent {
         }
       }
     });
+
+    this.roomsSubscription = this.messagingService.watchUnreadCount(() => {
+      void this.roomsResource.reload();
+    });
   }
 
   private async openChatWithUser(userId: string) {
@@ -424,6 +434,18 @@ export class ChatDialogComponent {
     this.userSearchControl.setValue('', { emitEvent: false });
     this.searchResults.set([]);
     void this.messagingService.markAsRead(room.id);
+
+    this.roomSubscription?.unsubscribe();
+    this.roomSubscription = this.messagingService.watchMessages(
+      room.id,
+      (msg) => {
+        if (msg.sender_id !== this.supabase.authUserId()) {
+          this.accumulatedMessages.update((prev) => [msg, ...prev]);
+          void this.messagingService.markAsRead(room.id);
+          this.scrollToBottom();
+        }
+      },
+    );
   }
 
   protected onSelectUser(user: UserProfileDto) {
@@ -470,6 +492,11 @@ export class ChatDialogComponent {
           this.scrollbar.nativeElement.scrollHeight;
       }
     }, 100);
+  }
+
+  ngOnDestroy() {
+    this.roomSubscription?.unsubscribe();
+    this.roomsSubscription?.unsubscribe();
   }
 }
 
