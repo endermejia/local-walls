@@ -1402,12 +1402,24 @@ export class GlobalData {
       }
     });
 
-    // Refresh unread counts when user changes or periodically
-    effect(() => {
+    // Refresh unread counts when user changes and setup Realtime
+    effect((onCleanup) => {
       const userId = this.supabase.authUserId();
       if (userId) {
         void this.notificationsService.refreshUnreadCount();
         void this.messagingService.refreshUnreadCount();
+
+        const nSub = this.notificationsService.watchNotifications(() => {
+          void this.notificationsService.refreshUnreadCount();
+        });
+        const mSub = this.messagingService.watchUnreadCount(() => {
+          void this.messagingService.refreshUnreadCount();
+        });
+
+        onCleanup(() => {
+          nSub?.unsubscribe();
+          mSub?.unsubscribe();
+        });
       }
     });
   }

@@ -126,3 +126,11 @@ export type ChatMessageUpdateDto = TableUpdate<'chat_messages'>;
 export type NotificationDto = TableRow<'notifications'>;
 export type NotificationInsertDto = TableInsert<'notifications'>;
 export type NotificationUpdateDto = TableUpdate<'notifications'>;
+
+/**
+ * TODO: Para habilitar el chat en tiempo real y las notificaciones en directo,
+ * ejecuta los siguientes comandos SQL en tu consola de Supabase:
+ *
+ * ALTER PUBLICATION supabase_realtime ADD TABLE chat_messages;
+ * ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+ */
