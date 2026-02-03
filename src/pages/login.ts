@@ -114,7 +114,7 @@ import { SupabaseService } from '../services';
                 [value]="password()"
                 (input.zoneless)="onInputPassword(passwordInput.value)"
                 [attr.aria-invalid]="
-                  validate() &&
+                  (validate() || (isRegister() && password().length >= 6)) &&
                   (isRegister()
                     ? !passwordValid()
                     : password().length === 0)
@@ -126,7 +126,11 @@ import { SupabaseService } from '../services';
               <tui-icon tuiPassword />
             </tui-textfield>
 
-            @if (validate() && isRegister() && !passwordValid()) {
+            @if (
+              (validate() || (isRegister() && password().length >= 6)) &&
+              isRegister() &&
+              !passwordValid()
+            ) {
               <tui-notification appearance="warning">
                 <h3 tuiTitle>
                   {{ 'auth.passwordRequirements' | translate: { min: 6 } }}
@@ -153,7 +157,8 @@ import { SupabaseService } from '../services';
                     confirmPassword.set(confirmRegPasswordInput.value)
                   "
                   [attr.aria-invalid]="
-                    validate() && confirmPassword() !== password()
+                    (validate() || confirmPassword().length >= 3) &&
+                    isMismatch()
                       ? 'true'
                       : null
                   "
@@ -162,7 +167,7 @@ import { SupabaseService } from '../services';
                 <tui-icon tuiPassword />
               </tui-textfield>
 
-              @if (validate() && confirmPassword() !== password()) {
+              @if ((validate() || confirmPassword().length >= 3) && isMismatch()) {
                 <tui-notification appearance="warning">
                   <h3 tuiTitle>{{ 'errors.passwordMismatch' | translate }}</h3>
                 </tui-notification>
@@ -243,14 +248,19 @@ import { SupabaseService } from '../services';
                 [value]="newPassword()"
                 (input.zoneless)="newPassword.set(newPasswordInput.value)"
                 [attr.aria-invalid]="
-                  validate() && !newPasswordValid() ? 'true' : null
+                  (validate() || newPassword().length >= 6) &&
+                  !newPasswordValid()
+                    ? 'true'
+                    : null
                 "
                 autocomplete="new-password"
               />
               <tui-icon tuiPassword />
             </tui-textfield>
 
-            @if (validate() && !newPasswordValid()) {
+            @if (
+              (validate() || newPassword().length >= 6) && !newPasswordValid()
+            ) {
               <tui-notification appearance="warning">
                 <h3 tuiTitle>
                   {{ 'auth.passwordRequirements' | translate: { min: 6 } }}
@@ -272,7 +282,8 @@ import { SupabaseService } from '../services';
                   confirmPassword.set(confirmPasswordInput.value)
                 "
                 [attr.aria-invalid]="
-                  validate() && confirmPassword() !== newPassword()
+                  (validate() || confirmPassword().length >= 3) &&
+                  isMismatch()
                     ? 'true'
                     : null
                 "
@@ -281,7 +292,7 @@ import { SupabaseService } from '../services';
               <tui-icon tuiPassword />
             </tui-textfield>
 
-            @if (validate() && confirmPassword() !== newPassword()) {
+            @if ((validate() || confirmPassword().length >= 3) && isMismatch()) {
               <tui-notification appearance="warning">
                 <h3 tuiTitle>{{ 'errors.passwordMismatch' | translate }}</h3>
               </tui-notification>
@@ -364,6 +375,13 @@ export class LoginComponent {
     this.isComplexPassword(this.newPassword()),
   );
 
+  readonly isMismatch = computed(() => {
+    const cp = this.confirmPassword();
+    if (cp.length === 0) return false;
+    const p = this.isRecovery() ? this.newPassword() : this.password();
+    return cp !== p;
+  });
+
   readonly canSignIn = computed(
     () => this.emailValid() && this.password().length > 0,
   );
@@ -393,7 +411,7 @@ export class LoginComponent {
     this.password.set(value);
   }
 
-  async submit(evt?: Event) {
+  async submit(evt?: Event): Promise<void> {
     evt?.preventDefault?.();
     this.error.set(null);
     this.validate.set(true);
@@ -401,7 +419,8 @@ export class LoginComponent {
       return this.submitRegister();
     }
     if (!this.canSignIn()) {
-      return; // Do not proceed; show the validation state without native browser errors
+      this.error.set('errors.formError');
+      return;
     }
     this.loading.set(true);
     try {
@@ -436,10 +455,11 @@ export class LoginComponent {
     this.confirmPassword.set('');
   }
 
-  async submitRegister() {
+  async submitRegister(): Promise<void> {
     this.error.set(null);
     this.validate.set(true);
     if (!this.canRegister()) {
+      this.error.set('errors.formError');
       return;
     }
     this.loading.set(true);
@@ -494,20 +514,13 @@ export class LoginComponent {
     }
   }
 
-  async submitNewPassword() {
+  async submitNewPassword(): Promise<void> {
     this.error.set(null);
     this.validate.set(true);
     const npw = this.newPassword();
     const cpw = this.confirmPassword();
-    if (!npw || !cpw) {
-      return;
-    }
-    if (npw !== cpw) {
-      this.error.set('errors.passwordMismatch');
-      return;
-    }
-    if (!this.newPasswordValid()) {
-      this.error.set('auth.passwordRequirements');
+    if (!npw || !cpw || npw !== cpw || !this.newPasswordValid()) {
+      this.error.set('errors.formError');
       return;
     }
     this.loading.set(true);

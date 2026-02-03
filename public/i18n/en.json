@@ -180,6 +180,7 @@
     "unexpected": "Unexpected error",
     "required": "Required field",
     "passwordMismatch": "Passwords do not match",
+    "formError": "Please check the errors in the form.",
     "database": {
       "foreign_key_violation": "Cannot be deleted because it still has related items.",
       "unique_violation": "This item already exists."

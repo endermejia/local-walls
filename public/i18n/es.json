@@ -181,6 +181,7 @@
     "unexpected": "Error inesperado",
     "required": "Campo obligatorio",
     "passwordMismatch": "Las contraseñas no coinciden",
+    "formError": "Por favor, revisa los errores en el formulario.",
     "database": {
       "foreign_key_violation": "No se puede eliminar porque todavía hay elementos relacionados.",
       "unique_violation": "Este elemento ya existe."
