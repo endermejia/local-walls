@@ -114,7 +114,12 @@ import { SupabaseService } from '../services';
                 [value]="password()"
                 (input.zoneless)="onInputPassword(passwordInput.value)"
                 [attr.aria-invalid]="
-                  validate() && isRegister() && !passwordValid() ? 'true' : null
+                  validate() &&
+                  (isRegister()
+                    ? !passwordValid()
+                    : password().length === 0)
+                    ? 'true'
+                    : null
                 "
                 autocomplete="current-password"
               />
@@ -126,6 +131,10 @@ import { SupabaseService } from '../services';
                 <h3 tuiTitle>
                   {{ 'auth.passwordRequirements' | translate: { min: 6 } }}
                 </h3>
+              </tui-notification>
+            } @else if (validate() && !isRegister() && password().length === 0) {
+              <tui-notification appearance="warning">
+                <h3 tuiTitle>{{ 'errors.required' | translate }}</h3>
               </tui-notification>
             }
 
@@ -179,7 +188,7 @@ import { SupabaseService } from '../services';
                   tuiButton
                   type="submit"
                   class="w-full"
-                  [disabled]="!canSignIn() || loading()"
+                  [disabled]="loading()"
                 >
                   {{ 'actions.signIn' | translate }}
                 </button>
@@ -199,7 +208,7 @@ import { SupabaseService } from '../services';
                   tuiButton
                   type="button"
                   class="w-full"
-                  [disabled]="!canRegister() || loading()"
+                  [disabled]="loading()"
                   (click.zoneless)="submitRegister()"
                 >
                   {{ 'actions.register' | translate }}
@@ -284,7 +293,7 @@ import { SupabaseService } from '../services';
                 type="button"
                 class="w-full"
                 (click.zoneless)="submitNewPassword()"
-                [disabled]="!canChangePassword() || loading()"
+                [disabled]="loading()"
               >
                 {{ 'auth.setNewPassword' | translate }}
               </button>
@@ -363,10 +372,6 @@ export class LoginComponent {
       this.emailValid() &&
       this.passwordValid() &&
       this.confirmPassword() === this.password(),
-  );
-  readonly canChangePassword = computed(
-    () =>
-      this.newPasswordValid() && this.confirmPassword() === this.newPassword(),
   );
 
   constructor() {
