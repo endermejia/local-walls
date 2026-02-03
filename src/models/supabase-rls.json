@@ -87,70 +87,7 @@
     "using_expression": "true",
     "with_check_expression": null
   },
-  {
-    "policy_name": "participant_can_insert",
-    "schema_name": "public",
-    "table_name": "chat_messages",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "((auth.uid() = sender_id) AND (EXISTS ( SELECT 1 FROM chat_participants WHERE ((chat_participants.room_id = chat_messages.room_id) AND (chat_participants.user_id = auth.uid())))))"
-  },
-  {
-    "policy_name": "participant_can_read",
-    "schema_name": "public",
-    "table_name": "chat_messages",
-    "for_command": "r",
-    "using_expression": "(EXISTS ( SELECT 1 FROM chat_participants WHERE ((chat_participants.room_id = chat_messages.room_id) AND (chat_participants.user_id = auth.uid()))))",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "participant_can_read",
-    "schema_name": "public",
-    "table_name": "chat_participants",
-    "for_command": "r",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "participants_insert_by_admin",
-    "schema_name": "public",
-    "table_name": "chat_participants",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "((( SELECT auth.uid() AS uid) IS NOT NULL) AND (( SELECT is_user_admin(( SELECT auth.uid() AS uid)) AS is_user_admin) = true))"
-  },
-  {
-    "policy_name": "participants_insert_by_member",
-    "schema_name": "public",
-    "table_name": "chat_participants",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "((( SELECT auth.uid() AS uid) IS NOT NULL) AND (EXISTS ( SELECT 1 FROM chat_participants cp WHERE ((cp.room_id = chat_participants.room_id) AND (cp.user_id = ( SELECT auth.uid() AS uid))))))"
-  },
-  {
-    "policy_name": "participants_insert_own",
-    "schema_name": "public",
-    "table_name": "chat_participants",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "((( SELECT auth.uid() AS uid) IS NOT NULL) AND (user_id = ( SELECT auth.uid() AS uid)) AND (EXISTS ( SELECT 1 FROM chat_rooms WHERE (chat_rooms.id = chat_participants.room_id))))"
-  },
-  {
-    "policy_name": "auth_can_insert",
-    "schema_name": "public",
-    "table_name": "chat_rooms",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "true"
-  },
-  {
-    "policy_name": "auth_can_select",
-    "schema_name": "public",
-    "table_name": "chat_rooms",
-    "for_command": "r",
-    "using_expression": "true",
-    "with_check_expression": null
-  },
+
   {
     "policy_name": "own_user_can_delete",
     "schema_name": "public",
