@@ -12,8 +12,8 @@ import { UserProfileDto } from '../models';
 import {
   AvatarCropperComponent,
   AvatarCropperResult,
-  Import8aComponent,
-} from '../components';
+} from '../components/avatar-cropper';
+import { Import8aComponent } from '../components/import-8a';
 
 import { SupabaseService } from './supabase.service';
 

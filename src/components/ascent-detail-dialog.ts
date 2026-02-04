@@ -317,3 +317,5 @@ export class AscentDetailDialogComponent {
     }
   }
 }
+
+export default AscentDetailDialogComponent;
