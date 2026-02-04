@@ -17,6 +17,7 @@ export * from './map.service';
 export * from './notification.service';
 export * from './parkings.service';
 export * from './routes.service';
+export * from './scroll.service';
 export * from './search.service';
 export * from './supabase.service';
 export * from './toast.service';

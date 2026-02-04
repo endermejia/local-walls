@@ -5,7 +5,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { TuiAppearance, TuiIcon, TuiTextfield, TuiTitle } from '@taiga-ui/core';
 import { TuiSearchHotkey, TuiSearchResults } from '@taiga-ui/experimental';
@@ -29,7 +29,7 @@ import {
   switchMap,
 } from 'rxjs';
 
-import { GlobalData, SearchService } from '../services';
+import { GlobalData, ScrollService, SearchService } from '../services';
 import { SearchData } from '../models';
 import { TuiAutoFocus } from '@taiga-ui/cdk';
 
@@ -80,6 +80,7 @@ import { TuiAutoFocus } from '@taiga-ui/cdk';
               home.isActive ? 'flat-destructive' : 'flat-grayscale'
             "
             class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
+            (click)="scrollToTop($event)"
           >
             <tui-icon icon="@tui.home" />
 
@@ -255,6 +256,8 @@ import { TuiAutoFocus } from '@taiga-ui/cdk';
 export class NavbarComponent {
   protected global = inject(GlobalData);
   private readonly searchService = inject(SearchService);
+  private readonly router = inject(Router);
+  private readonly scrollService = inject(ScrollService);
 
   protected readonly searchExpanded = signal(false);
   protected readonly control = new FormControl('');
@@ -273,5 +276,12 @@ export class NavbarComponent {
   protected onResultClick(): void {
     this.searchOpen = false;
     this.control.setValue('', { emitEvent: false });
+  }
+
+  protected scrollToTop(event: MouseEvent): void {
+    if (this.router.url === '/home') {
+      event.preventDefault();
+      this.scrollService.scrollToTop();
+    }
   }
 }

@@ -2,11 +2,14 @@ import { AsyncPipe, CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   inject,
   OnDestroy,
   PLATFORM_ID,
   signal,
+  ViewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
@@ -39,7 +42,12 @@ import {
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
 
-import { FollowsService, GlobalData, SupabaseService } from '../services';
+import {
+  FollowsService,
+  GlobalData,
+  ScrollService,
+  SupabaseService,
+} from '../services';
 
 import { AscentsFeedComponent } from '../components/ascents-feed';
 import { ChatDialogComponent } from '../components/chat-dialog';
@@ -177,6 +185,10 @@ export class HomeComponent implements OnDestroy {
   private readonly dialogs = inject(TuiDialogService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
+  private readonly scrollService = inject(ScrollService);
+
+  @ViewChild(TuiScrollbar, { read: ElementRef })
+  scrollbar?: ElementRef<HTMLElement>;
 
   protected readonly gradeLabelByNumber: Partial<Record<number, GradeLabel>> =
     VERTICAL_LIFE_TO_LABEL;
@@ -188,6 +200,10 @@ export class HomeComponent implements OnDestroy {
 
   constructor() {
     this.loadFollowedIds();
+
+    this.scrollService.scrollToTop$.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.scrollToTop();
+    });
   }
 
   private async loadFollowedIds() {
@@ -379,6 +395,12 @@ export class HomeComponent implements OnDestroy {
       ),
       { defaultValue: undefined },
     );
+  }
+
+  private scrollToTop() {
+    if (this.scrollbar?.nativeElement) {
+      this.scrollbar.nativeElement.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   ngOnDestroy() {
