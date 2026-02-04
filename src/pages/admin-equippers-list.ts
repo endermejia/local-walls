@@ -43,7 +43,7 @@ import { EquipperDto } from '../models';
 
 import { GlobalData, SupabaseService, ToastService } from '../services';
 
-import { EmptyStateComponent } from '../components';
+import { EmptyStateComponent } from '../components/empty-state';
 
 import { handleErrorToast } from '../utils';
 

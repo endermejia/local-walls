@@ -67,13 +67,11 @@ import {
 
 import { TopoImagePipe } from '../pipes';
 
-import {
-  ChartRoutesByGradeComponent,
-  EmptyStateComponent,
-  RoutesTableComponent,
-  SectionHeaderComponent,
-  WeatherForecastComponent,
-} from '../components';
+import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
+import { EmptyStateComponent } from '../components/empty-state';
+import { RoutesTableComponent } from '../components/routes-table';
+import { SectionHeaderComponent } from '../components/section-header';
+import { WeatherForecastComponent } from '../components/weather-forecast';
 
 import { handleErrorToast, mapLocationUrl } from '../utils';
 

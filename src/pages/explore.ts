@@ -55,7 +55,8 @@ import {
   AreasService,
 } from '../services';
 
-import { ChartRoutesByGradeComponent, MapComponent } from '../components';
+import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
+import { MapComponent } from '../components/map';
 
 import { mapLocationUrl, remToPx } from '../utils';
 

@@ -211,14 +211,7 @@ export class AscentDetailDialogComponent {
   protected readonly newComment = signal('');
   protected readonly sending = signal(false);
 
-  constructor() {
-    console.log('AscentDetailDialog constructor - context:', this.context);
-    console.log(
-      'AscentDetailDialog constructor - context.data:',
-      this.context.data,
-    );
-    console.log('AscentDetailDialog constructor - ascentId:', this.ascentId());
-  }
+  constructor() {}
 
   protected readonly ascentResource = resource({
     params: () => {
@@ -317,5 +310,3 @@ export class AscentDetailDialogComponent {
     }
   }
 }
-
-export default AscentDetailDialogComponent;
