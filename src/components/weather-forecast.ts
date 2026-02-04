@@ -2,9 +2,13 @@ import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
+  effect,
   inject,
   input,
   signal,
+  untracked,
+  ViewChild,
 } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
@@ -37,7 +41,12 @@ import { GlobalData, WeatherService } from '../services';
         </h3>
 
         <!-- Days Selection -->
-        <tui-scrollbar class="pb-2">
+        <tui-scrollbar
+          class="pb-2"
+          (touchstart)="$event.stopPropagation()"
+          (touchmove)="$event.stopPropagation()"
+          (touchend)="$event.stopPropagation()"
+        >
           <div class="flex gap-2">
             @for (day of days; track day.date; let idx = $index) {
               <button
@@ -77,7 +86,13 @@ import { GlobalData, WeatherService } from '../services';
 
         <!-- Hourly Forecast for Selected Day -->
         @if (days[selectedDayIdx()]; as selectedDay) {
-          <tui-scrollbar class="pb-2">
+          <tui-scrollbar
+            #hourlyScroll
+            class="pb-2"
+            (touchstart)="$event.stopPropagation()"
+            (touchmove)="$event.stopPropagation()"
+            (touchend)="$event.stopPropagation()"
+          >
             <div class="flex gap-4">
               @for (hour of selectedDay.hourly; track hour.time) {
                 <div class="flex flex-col items-center min-w-[45px] py-1">
@@ -108,6 +123,9 @@ export class WeatherForecastComponent {
   protected readonly global = inject(GlobalData);
   protected readonly selectedDayIdx = signal(0);
 
+  @ViewChild('hourlyScroll', { read: ElementRef })
+  hourlyScroll?: ElementRef<HTMLElement>;
+
   coords = input.required<{ lat: number; lng: number }>();
 
   readonly weather = toSignal(
@@ -116,4 +134,20 @@ export class WeatherForecastComponent {
       switchMap((c) => this.weatherService.getForecast(c.lat, c.lng)),
     ),
   );
+
+  constructor() {
+    effect(() => {
+      this.weather();
+      this.selectedDayIdx();
+
+      untracked(() => {
+        setTimeout(() => {
+          const el = this.hourlyScroll?.nativeElement;
+          if (el) {
+            el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2;
+          }
+        }, 0);
+      });
+    });
+  }
 }
