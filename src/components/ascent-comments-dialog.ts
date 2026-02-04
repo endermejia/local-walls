@@ -133,7 +133,9 @@ export interface AscentCommentsDialogData {
             (click)="onAddComment()"
             [disabled]="!newComment().trim() || sending()"
           >
-            {{ 'actions.send' | translate }}
+            <span class="hidden md:block">
+              {{ 'actions.send' | translate }}
+            </span>
           </button>
         </tui-textfield>
       </div>

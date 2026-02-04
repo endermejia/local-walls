@@ -184,7 +184,9 @@ export interface ChatDialogData {
               (click)="onSendMessage()"
               [disabled]="!newMessage().trim() || sending()"
             >
-              {{ 'actions.send' | translate }}
+              <span class="hidden md:block">
+                {{ 'actions.send' | translate }}
+              </span>
             </button>
           </tui-textfield>
         </div>
