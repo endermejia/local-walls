@@ -23,7 +23,7 @@ import { firstValueFrom } from 'rxjs';
 import { AppNotificationsService, SupabaseService } from '../services';
 import { NotificationWithActor } from '../models';
 import { EmptyStateComponent } from './empty-state';
-import { AscentDetailDialogComponent } from './ascent-detail-dialog';
+import { AscentCardDialogComponent } from './ascent-card-dialog';
 import { ChatDialogComponent } from './chat-dialog';
 
 @Component({
@@ -165,7 +165,7 @@ export class NotificationsDialogComponent {
         });
         void firstValueFrom(
           this.dialogs.open(
-            new PolymorpheusComponent(AscentDetailDialogComponent),
+            new PolymorpheusComponent(AscentCardDialogComponent),
             {
               label: this.translate.instant('labels.ascent'),
               size: 'm',
