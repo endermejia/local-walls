@@ -211,8 +211,11 @@
   },
   "notifications": {
     "likedAscent": "le ha dado a me gusta a tu encadene en '{{routeName}}'",
+    "likedAscentPlural": "le han dado a me gusta a tu encadene en '{{routeName}}'",
     "commentedAscent": "ha comentado en tu encadene en '{{routeName}}'",
+    "commentedAscentPlural": "han comentado en tu encadene en '{{routeName}}'",
     "sentMessage": "te ha enviado un mensaje",
+    "andOthers": "otros {{count}}",
     "unknown": "nueva notificación"
   },
   "filters": {
