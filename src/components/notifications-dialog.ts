@@ -154,15 +154,7 @@ export class NotificationsDialogComponent {
 
     if (notif.type === 'like' || notif.type === 'comment') {
       const ascentId = Number(notif.resource_id);
-      console.log(
-        'NotificationsDialog - notif.resource_id:',
-        notif.resource_id,
-      );
-      console.log('NotificationsDialog - ascentId:', ascentId);
       if (!isNaN(ascentId) && ascentId > 0) {
-        console.log('NotificationsDialog - opening dialog with data:', {
-          ascentId,
-        });
         void firstValueFrom(
           this.dialogs.open(
             new PolymorpheusComponent(AscentDetailDialogComponent),

@@ -35,10 +35,8 @@ import {
 
 import { AreasService, FiltersService, GlobalData } from '../services';
 
-import {
-  ChartRoutesByGradeComponent,
-  EmptyStateComponent,
-} from '../components';
+import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
+import { EmptyStateComponent } from '../components/empty-state';
 
 @Component({
   selector: 'app-area-list',

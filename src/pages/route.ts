@@ -45,11 +45,9 @@ import {
   ToastService,
 } from '../services';
 
-import {
-  AscentsFeedComponent,
-  ChartAscentsByGradeComponent,
-  SectionHeaderComponent,
-} from '../components';
+import { AscentsFeedComponent } from '../components/ascents-feed';
+import { ChartAscentsByGradeComponent } from '../components/chart-ascents-by-grade';
+import { SectionHeaderComponent } from '../components/section-header';
 
 import { handleErrorToast } from '../utils';
 

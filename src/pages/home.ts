@@ -41,11 +41,9 @@ import {
 
 import { FollowsService, GlobalData, SupabaseService } from '../services';
 
-import {
-  AscentsFeedComponent,
-  ChatDialogComponent,
-  NotificationsDialogComponent,
-} from '../components';
+import { AscentsFeedComponent } from '../components/ascents-feed';
+import { ChatDialogComponent } from '../components/chat-dialog';
+import { NotificationsDialogComponent } from '../components/notifications-dialog';
 
 @Component({
   selector: 'app-home',

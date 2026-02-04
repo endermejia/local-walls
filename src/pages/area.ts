@@ -51,11 +51,9 @@ import {
   ToastService,
 } from '../services';
 
-import {
-  ChartRoutesByGradeComponent,
-  EmptyStateComponent,
-  SectionHeaderComponent,
-} from '../components';
+import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
+import { EmptyStateComponent } from '../components/empty-state';
+import { SectionHeaderComponent } from '../components/section-header';
 
 import { handleErrorToast } from '../utils';
 

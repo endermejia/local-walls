@@ -50,7 +50,7 @@ import { AppRole, AppRoles, AreaListItem } from '../models';
 
 import { GlobalData, SupabaseService } from '../services';
 
-import { EmptyStateComponent } from '../components';
+import { EmptyStateComponent } from '../components/empty-state';
 
 interface UserWithRole {
   id: string;

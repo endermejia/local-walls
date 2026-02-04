@@ -15,7 +15,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { AscentsService } from '../services';
 
-import { UserListDialogComponent } from '../components';
+import { UserListDialogComponent } from './user-list-dialog';
 
 @Component({
   selector: 'app-ascent-likes',

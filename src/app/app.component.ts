@@ -12,7 +12,7 @@ import { map, merge, startWith } from 'rxjs';
 
 import { GlobalData, LocalStorage } from '../services';
 
-import { NavbarComponent } from '../components';
+import { NavbarComponent } from '../components/navbar';
 
 @Component({
   selector: 'app-root',

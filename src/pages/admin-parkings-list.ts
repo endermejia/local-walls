@@ -42,7 +42,7 @@ import { ParkingDto } from '../models';
 
 import { GlobalData, ParkingsService, ToastService } from '../services';
 
-import { EmptyStateComponent } from '../components';
+import { EmptyStateComponent } from '../components/empty-state';
 
 import { handleErrorToast } from '../utils';
 

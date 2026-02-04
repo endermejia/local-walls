@@ -61,11 +61,9 @@ import {
 
 import { TopoImagePipe } from '../pipes';
 
-import {
-  AvatarGradeComponent,
-  EmptyStateComponent,
-  SectionHeaderComponent,
-} from '../components';
+import { AvatarGradeComponent } from '../components/avatar-grade';
+import { EmptyStateComponent } from '../components/empty-state';
+import { SectionHeaderComponent } from '../components/section-header';
 
 import { handleErrorToast } from '../utils';
 

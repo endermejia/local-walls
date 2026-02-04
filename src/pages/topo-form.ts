@@ -56,7 +56,7 @@ import {
 
 import { GlobalData, ToastService, ToposService } from '../services';
 
-import { AvatarGradeComponent } from '../components';
+import { AvatarGradeComponent } from '../components/avatar-grade';
 
 import { handleErrorToast, slugify } from '../utils';
 
