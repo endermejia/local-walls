@@ -261,7 +261,11 @@ export class HomeComponent implements OnDestroy {
     this.page$.pipe(
       tap(() => this.isLoading.set(true)),
       concatMap((page) => this.fetchAscents(page)),
-      scan((acc, curr) => [...acc, ...curr], [] as RouteAscentWithExtras[]),
+      scan((acc, curr) => {
+        const existingIds = new Set(acc.map((a) => a.id));
+        const uniqueCurr = curr.filter((a) => !existingIds.has(a.id));
+        return [...acc, ...uniqueCurr];
+      }, [] as RouteAscentWithExtras[]),
       tap(() => this.isLoading.set(false)),
       shareReplay(1),
     );

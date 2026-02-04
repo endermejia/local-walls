@@ -406,10 +406,11 @@ export class RouteComponent {
         if (this.global.ascentsPage() === 0) {
           this.accumulatedAscents.set(res.items);
         } else {
-          this.accumulatedAscents.update((prev: RouteAscentWithExtras[]) => [
-            ...prev,
-            ...res.items,
-          ]);
+          this.accumulatedAscents.update((prev: RouteAscentWithExtras[]) => {
+            const existingIds = new Set(prev.map((a) => a.id));
+            const uniqueItems = res.items.filter((a) => !existingIds.has(a.id));
+            return [...prev, ...uniqueItems];
+          });
         }
         this.isLoading.set(false);
       } else if (this.global.routeAscentsResource.error()) {

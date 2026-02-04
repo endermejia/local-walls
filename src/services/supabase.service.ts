@@ -196,17 +196,11 @@ export class SupabaseService {
           detectSessionInUrl: true,
           // Use a custom storage key to avoid collisions
           storageKey: 'lw-auth-token',
-          // If storage is unavailable, disable locking to avoid potential direct localStorage access by the library
-          ...(!this.localStorage.isAvailable
-            ? {
-                lock: (async (
-                  _name: string,
-                  acquire: () => Promise<unknown>,
-                ) => {
-                  return await acquire();
-                }) as any,
-              }
-            : {}),
+          // Provide a custom lock function that doesn't use the Web Locks API or localStorage directly
+          // This avoids "Access to storage is not allowed" errors in restricted contexts
+          lock: (async (_name: string, acquire: () => Promise<unknown>) => {
+            return await acquire();
+          }) as any,
         },
       });
       this._client = client as unknown as SupabaseClient<Database>;

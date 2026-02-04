@@ -17,16 +17,20 @@ export class LocalStorage {
     this.isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
     let storage: Storage | null = null;
 
-    if (this.isBrowser) {
+    if (this.isBrowser && typeof window !== 'undefined') {
       try {
         // Explicitly check for window.localStorage access as it may throw in some contexts
-        storage = typeof window !== 'undefined' ? window.localStorage : null;
-        if (storage) {
+        // We use a temporary variable and test it before assigning to this.storage
+        const win = window as any;
+        if (win && win.localStorage) {
+          const s = win.localStorage;
           const testKey = '__storage_test__';
-          storage.setItem(testKey, testKey);
-          storage.removeItem(testKey);
+          s.setItem(testKey, testKey);
+          s.removeItem(testKey);
+          storage = s;
         }
       } catch (e) {
+        // Access to localStorage is denied
         storage = null;
       }
     }
