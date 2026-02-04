@@ -23,7 +23,7 @@ import { firstValueFrom } from 'rxjs';
 import { AppNotificationsService, SupabaseService } from '../services';
 import { NotificationWithActor } from '../models';
 import { EmptyStateComponent } from './empty-state';
-import { AscentDetailDialogComponent } from './ascent-detail-dialog';
+import { AscentDialogComponent } from './ascent-dialog';
 import { ChatDialogComponent } from './chat-dialog';
 
 @Component({
@@ -155,17 +155,7 @@ export class NotificationsDialogComponent {
     if (notif.type === 'like' || notif.type === 'comment') {
       const ascentId = Number(notif.resource_id);
       if (!isNaN(ascentId) && ascentId > 0) {
-        void firstValueFrom(
-          this.dialogs.open(
-            new PolymorpheusComponent(AscentDetailDialogComponent),
-            {
-              label: this.translate.instant('labels.ascent'),
-              size: 'm',
-              data: { ascentId },
-            },
-          ),
-          { defaultValue: undefined },
-        );
+        this.openAscentDialog(ascentId);
       }
     } else if (notif.type === 'message') {
       void firstValueFrom(
@@ -177,6 +167,17 @@ export class NotificationsDialogComponent {
         { defaultValue: undefined },
       );
     }
+  }
+
+  private openAscentDialog(ascentId: number) {
+    void firstValueFrom(
+      this.dialogs.open(new PolymorpheusComponent(AscentDialogComponent), {
+        label: this.translate.instant('labels.ascent'),
+        size: 'm',
+        data: { ascentId },
+      }),
+      { defaultValue: undefined },
+    );
   }
 }
 
