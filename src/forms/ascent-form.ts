@@ -34,7 +34,12 @@ import {
   TuiCheckbox,
   TuiChevron,
   TuiDataListWrapper,
+  TuiFile,
+  TuiFileLike,
+  TuiFileRejectedPipe,
+  TuiFiles,
   TuiInputDate,
+  TuiInputFiles,
   TuiRating,
   TuiSelect,
   TuiTextarea,
@@ -65,7 +70,7 @@ import {
 
 import { CounterComponent } from '../components/counter';
 
-import { handleErrorToast } from '../utils';
+import { handleErrorToast, uploadRouteAscentPhoto } from '../utils';
 
 @Component({
   selector: 'app-ascent-form',
@@ -87,6 +92,10 @@ import { handleErrorToast } from '../utils';
     TuiTextarea,
     TuiAppearance,
     CounterComponent,
+    TuiInputFiles,
+    TuiFiles,
+    TuiFile,
+    TuiFileRejectedPipe,
   ],
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
   template: `
@@ -204,6 +213,49 @@ import { handleErrorToast } from '../utils';
             />
             <span class="text-sm">{{ 'ascent.private' | translate }}</span>
           </label>
+        </section>
+
+        <!-- PHOTO -->
+        <section class="grid gap-3">
+          <span class="text-sm font-semibold opacity-70 px-1">{{
+            'ascent.photo' | translate
+          }}</span>
+
+          @if (existingPhotoPath(); as path) {
+            <div
+              class="relative rounded-xl overflow-hidden border border-[var(--tui-border-normal)]"
+            >
+              <img
+                [src]="supabase.buildAscentPhotoUrl(path)"
+                class="w-full h-48 object-cover"
+                alt="Ascent Photo"
+              />
+              <button
+                tuiIconButton
+                iconStart="@tui.trash"
+                appearance="flat-destructive"
+                size="s"
+                type="button"
+                class="absolute top-2 right-2 !bg-white/80"
+                (click)="removeExistingPhoto()"
+              >
+                {{ 'actions.delete' | translate }}
+              </button>
+            </div>
+          } @else {
+            <label tuiInputFiles>
+              <input tuiInputFiles accept="image/*" [formControl]="photoControl" />
+            </label>
+            <tui-files class="mt-2">
+              @if (photoControl.value | tuiFileRejected: { accept: 'image/*' } | async; as file) {
+                <tui-file state="error" [file]="file" (remove)="removeFile()" />
+              }
+
+              @if (photoControl.value; as file) {
+                <tui-file [file]="file" (remove)="removeFile()" />
+              }
+            </tui-files>
+          }
         </section>
 
         <!-- DID YOU LIKE IT? -->
@@ -449,7 +501,7 @@ import { handleErrorToast } from '../utils';
 export default class AscentFormComponent {
   protected readonly global = inject(GlobalData);
   private readonly ascents = inject(AscentsService);
-  private readonly supabase = inject(SupabaseService);
+  protected readonly supabase = inject(SupabaseService);
   private readonly routesService = inject(RoutesService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
@@ -494,6 +546,9 @@ export default class AscentFormComponent {
   readonly showMore = signal(false);
 
   readonly today = TuiDay.currentLocal();
+
+  readonly photoControl = new FormControl<TuiFileLike | null>(null);
+  readonly existingPhotoPath = signal<string | null>(null);
 
   readonly form = new FormGroup({
     type: new FormControl<string>(AscentTypes.RP, {
@@ -707,6 +762,18 @@ export default class AscentFormComponent {
         date: new TuiDay(d.getFullYear(), d.getMonth(), d.getDate()),
       });
     }
+    if (data.photo_path) {
+      this.existingPhotoPath.set(data.photo_path);
+    }
+  }
+
+  protected removeFile(): void {
+    this.photoControl.setValue(null);
+  }
+
+  protected removeExistingPhoto(): void {
+    this.existingPhotoPath.set(null);
+    this.form.markAsDirty();
   }
 
   protected toggleBool(key: string): void {
@@ -754,11 +821,25 @@ export default class AscentFormComponent {
     if (!user_id) return;
 
     const values = this.form.getRawValue();
+
+    let photo_path = this.existingPhotoPath();
+    if (this.photoControl.value) {
+      const uploadedPath = await uploadRouteAscentPhoto(
+        this.supabase.client,
+        this.photoControl.value,
+        user_id,
+      );
+      if (uploadedPath) {
+        photo_path = uploadedPath;
+      }
+    }
+
     const payload: Omit<RouteAscentInsertDto, 'user_id' | 'route_id'> = {
       ...values,
       date: `${values.date.year}-${String(values.date.month + 1).padStart(2, '0')}-${String(values.date.day).padStart(2, '0')}`,
       type: values.type as AscentType,
       rate: values.rate === 0 ? null : values.rate,
+      photo_path,
     };
 
     try {

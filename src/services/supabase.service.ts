@@ -148,6 +148,16 @@ export class SupabaseService {
   }
 
   /**
+   * Builds a complete public URL for an ascent photo stored in the Supabase "ascents" bucket
+   */
+  buildAscentPhotoUrl(path: string | null | undefined): string {
+    if (!path) return '';
+    const base = (ENV_SUPABASE_URL || '').replace(/\/$/, '');
+    const rel = String(path).replace(/^\//, '');
+    return `${base}/storage/v1/object/public/ascents/${rel}`;
+  }
+
+  /**
    * Gets a signed URL for a topo photo stored in the private "topos" bucket.
    */
   async getTopoSignedUrl(path: string | null | undefined): Promise<string> {

@@ -71,6 +71,14 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
       "
       class="flex flex-col gap-4 p-4 rounded-3xl relative no-underline text-inherit hover:no-underline w-full text-left"
     >
+      @if (ascent.photo_path) {
+        <img
+          [src]="supabase.buildAscentPhotoUrl(ascent.photo_path)"
+          class="w-full h-64 object-cover rounded-2xl mb-2"
+          alt="Ascent Photo"
+        />
+      }
+
       <header tuiHeader class="flex justify-between items-center">
         @if (showUser()) {
           <div
