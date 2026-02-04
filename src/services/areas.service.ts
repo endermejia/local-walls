@@ -21,8 +21,8 @@ import type {
   AreaUpdateDto,
 } from '../models';
 
-import { AreaFormComponent } from '../pages/area-form';
-import { AreaUnifyComponent } from '../components/area-unify';
+import { AreaFormComponent } from '../forms/area-form';
+import { AreaUnifyComponent } from '../forms/area-unify';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';

@@ -7,7 +7,7 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, type Observable, Subject, takeUntil } from 'rxjs';
 
-import { LoaderDialogComponent } from '../components/loader-dialog';
+import { LoaderDialogComponent } from '../dialogs/loader-dialog';
 
 @Injectable({
   providedIn: 'root',

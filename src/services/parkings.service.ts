@@ -9,8 +9,8 @@ import { firstValueFrom } from 'rxjs';
 
 import type { ParkingDto, ParkingInsertDto, ParkingUpdateDto } from '../models';
 
-import LinkParkingFormComponent from '../pages/link-parking-form';
-import ParkingFormComponent from '../pages/parking-form';
+import LinkParkingFormComponent from '../forms/link-parking-form';
+import ParkingFormComponent from '../forms/parking-form';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';

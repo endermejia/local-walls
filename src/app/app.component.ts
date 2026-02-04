@@ -15,9 +15,9 @@ import { firstValueFrom, map, merge, startWith } from 'rxjs';
 
 import { GlobalData, LocalStorage } from '../services';
 
-import { NavbarComponent } from '../components';
-import { ChatDialogComponent } from '../components/chat-dialog';
-import { NotificationsDialogComponent } from '../components/notifications-dialog';
+import { NavbarComponent } from '../components/navbar';
+import { ChatDialogComponent } from '../dialogs/chat-dialog';
+import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
 
 @Component({
   selector: 'app-root',

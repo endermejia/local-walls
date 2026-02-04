@@ -8,7 +8,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { ORDERED_GRADE_VALUES } from '../models';
 
-import { FilterDialog, FilterDialogComponent } from '../pages/filter-dialog';
+import { FilterDialog, FilterDialogComponent } from '../dialogs/filter-dialog';
 import { GlobalData } from './global-data';
 
 @Injectable({ providedIn: 'root' })

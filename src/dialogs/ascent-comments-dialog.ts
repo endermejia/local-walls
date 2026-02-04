@@ -25,7 +25,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 import { AscentsService, SupabaseService } from '../services';
-import { EmptyStateComponent } from './empty-state';
+import { EmptyStateComponent } from '../components/empty-state';
 
 export interface AscentCommentsDialogData {
   ascentId: number;
