@@ -40,12 +40,44 @@ export class AppNotificationsService {
 
     const typedData = data as unknown as (NotificationWithActor & {
       actor: UserProfileDto | UserProfileDto[];
+      resource_id: number;
     })[];
 
-    return typedData.map((d) => ({
+    // Fetch related resource info (e.g. ascent route name)
+    const notifications = typedData.map((d) => ({
       ...d,
       actor: Array.isArray(d.actor) ? d.actor[0] : d.actor,
     }));
+
+    // Collect ascent IDs to fetch route names
+    const ascentIds = notifications
+      .filter(
+        (n) => (n.type === 'like' || n.type === 'comment') && n.resource_id,
+      )
+      .map((n) => Number(n.resource_id));
+
+    if (ascentIds.length > 0) {
+      const { data: ascents } = await this.supabase.client
+        .from('route_ascents')
+        .select('id, routes(name)')
+        .in('id', ascentIds);
+
+      if (ascents) {
+        const ascentMap = new Map(
+          ascents.map((a) => [a.id, (a.routes as any)?.name]),
+        );
+        notifications.forEach((n) => {
+          if ((n.type === 'like' || n.type === 'comment') && n.resource_id) {
+            const routeName = ascentMap.get(Number(n.resource_id));
+            if (routeName) {
+              (n as any).resource_name = routeName;
+            }
+          }
+        });
+      }
+    }
+
+    return notifications;
   }
 
   async createNotification(payload: NotificationInsertDto): Promise<void> {

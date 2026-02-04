@@ -8,13 +8,14 @@ import {
 } from '@angular/core';
 
 import {
+  TuiAppearance,
   TuiButton,
   TuiFallbackSrcPipe,
   TuiLoader,
   TuiScrollbar,
 } from '@taiga-ui/core';
 import { TuiDialogContext, TuiDialogService } from '@taiga-ui/experimental';
-import { TuiAvatar } from '@taiga-ui/kit';
+import { TuiAvatar, TuiBadgeNotification } from '@taiga-ui/kit';
 import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -30,16 +31,18 @@ import { ChatDialogComponent } from './chat-dialog';
   selector: 'app-notifications-dialog',
   standalone: true,
   imports: [
+    AsyncPipe,
+    CommonModule,
+    DatePipe,
     EmptyStateComponent,
     TranslatePipe,
-    TuiButton,
-    TuiScrollbar,
-    TuiLoader,
+    TuiAppearance,
     TuiAvatar,
+    TuiBadgeNotification,
+    TuiButton,
     TuiFallbackSrcPipe,
-    AsyncPipe,
-    DatePipe,
-    CommonModule,
+    TuiLoader,
+    TuiScrollbar,
   ],
   template: `
     <div class="flex flex-col h-[60dvh] min-h-[400px] -m-4">
@@ -62,12 +65,7 @@ import { ChatDialogComponent } from './chat-dialog';
         <div class="flex flex-col">
           @for (notif of notifications(); track notif.id) {
             <button
-              class="relative flex gap-3 p-4 border-b border-[var(--tui-border-normal)] last:border-0 text-left transition-colors w-full"
-              [class]="
-                !notif.read_at
-                  ? 'bg-[var(--tui-background-accent-2)] text-[var(--tui-text-primary-on-accent-1)] hover:bg-[var(--tui-background-accent-2-hover)] hover:opacity-90'
-                  : 'hover:bg-[var(--tui-background-neutral-1)]'
-              "
+              class="relative flex gap-3 p-4 border-b border-[var(--tui-border-normal)] last:border-0 text-left transition-colors w-full hover:bg-[var(--tui-background-neutral-1)]"
               (click)="onNotificationClick(notif)"
             >
               <tui-avatar
@@ -82,14 +80,21 @@ import { ChatDialogComponent } from './chat-dialog';
                 <div class="flex justify-between items-start gap-2">
                   <span class="text-sm">
                     <span class="font-bold">{{ notif.actor.name }}</span>
-                    {{ getNotificationText(notif) | translate }}
+                    {{
+                      getNotificationText(notif)
+                        | translate: { routeName: notif.resource_name || '' }
+                    }}
                   </span>
-                  <span
-                    class="text-[10px] opacity-50 whitespace-nowrap pt-0.5"
-                    [class.opacity-80]="!notif.read_at"
-                  >
-                    {{ notif.created_at | date: 'd/M/yy, HH:mm' }}
-                  </span>
+                  <div class="flex flex-col items-end gap-1">
+                    <span
+                      class="text-[10px] opacity-50 whitespace-nowrap pt-0.5"
+                    >
+                      {{ notif.created_at | date: 'd/M/yy, HH:mm' }}
+                    </span>
+                    @if (!notif.read_at) {
+                      <tui-badge-notification tuiAppearance="accent" size="s" />
+                    }
+                  </div>
                 </div>
               </div>
             </button>

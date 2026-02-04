@@ -257,6 +257,10 @@ export class GlobalData {
     this.supabase.buildAvatarUrl(this.userProfile()?.avatar),
   );
 
+  // ---- Audio Preferences ----
+  readonly messageSoundEnabled: WritableSignal<boolean> = signal(true);
+  readonly notificationSoundEnabled: WritableSignal<boolean> = signal(false);
+
   // ---- Map ----
   mapBounds: WritableSignal<MapBounds | null> = signal(null);
   private readonly mapBoundsStorageKey = 'map_bounds_v1';
@@ -1424,6 +1428,40 @@ export class GlobalData {
       }
     }
 
+    // Hydrate audio preferences
+    try {
+      const msgSound = this.localStorage.getItem('message_sound_enabled_v1');
+      if (msgSound === null) {
+        // Default to true
+        this.messageSoundEnabled.set(true);
+      } else {
+        this.messageSoundEnabled.set(msgSound === 'true');
+      }
+
+      const notifSound = this.localStorage.getItem(
+        'notification_sound_enabled_v1',
+      );
+      if (notifSound !== null) {
+        this.notificationSoundEnabled.set(notifSound === 'true');
+      }
+    } catch {
+      // ignore
+    }
+
+    // Persist audio preferences
+    effect(() => {
+      this.localStorage.setItem(
+        'message_sound_enabled_v1',
+        String(this.messageSoundEnabled()),
+      );
+    });
+    effect(() => {
+      this.localStorage.setItem(
+        'notification_sound_enabled_v1',
+        String(this.notificationSoundEnabled()),
+      );
+    });
+
     // Refresh unread counts when user changes and setup Realtime
     effect((onCleanup) => {
       const userId = this.supabase.authUserId();
@@ -1459,9 +1497,13 @@ export class GlobalData {
                     body,
                   );
                   this.browserNotifications.show(title, { body });
+
                   if (typeof document !== 'undefined' && document.hidden) {
-                    this.browserNotifications.playSound();
                     this.browserNotifications.flashTitle(title);
+
+                    if (this.notificationSoundEnabled()) {
+                      this.browserNotifications.playSound();
+                    }
                   }
                 } else {
                   console.warn(
@@ -1491,9 +1533,15 @@ export class GlobalData {
                 this.browserNotifications.show(title, {
                   body: msg.text,
                 });
+
+                // Flash title if hidden
                 if (typeof document !== 'undefined' && document.hidden) {
-                  this.browserNotifications.playSound();
                   this.browserNotifications.flashTitle(title);
+                }
+
+                // Play sound if enabled
+                if (this.messageSoundEnabled()) {
+                  this.browserNotifications.playSound();
                 }
               });
           }

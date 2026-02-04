@@ -146,6 +146,8 @@
     "sectors": "Sectores",
     "sex": "Género",
     "size": "Altura",
+    "messageSound": "Sonido de mensajes",
+    "notificationSound": "Sonido de notificaciones",
     "slug": "Slug",
     "startingClimbingYear": "Escalando desde",
     "topo": "Croquis",
@@ -208,8 +210,8 @@
     "toggleView": "Cambiar vista"
   },
   "notifications": {
-    "likedAscent": "le ha dado a me gusta a tu encadene",
-    "commentedAscent": "ha comentado en tu encadene",
+    "likedAscent": "le ha dado a me gusta a tu encadene en '{{routeName}}'",
+    "commentedAscent": "ha comentado en tu encadene en '{{routeName}}'",
     "sentMessage": "te ha enviado un mensaje",
     "unknown": "nueva notificación"
   },

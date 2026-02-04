@@ -13,4 +13,5 @@ export interface ChatRoomWithParticipant extends ChatRoomDto {
 
 export interface NotificationWithActor extends NotificationDto {
   actor: UserProfileDto;
+  resource_name?: string;
 }

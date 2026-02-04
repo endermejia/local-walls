@@ -501,6 +501,32 @@ interface Country {
               </button>
             </tui-segmented>
 
+            <div class="flex items-center gap-4">
+              <label tuiLabel for="msgSoundUtil">{{
+                'labels.messageSound' | translate
+              }}</label>
+              <input
+                id="msgSoundUtil"
+                tuiSwitch
+                type="checkbox"
+                [ngModel]="global.messageSoundEnabled()"
+                (ngModelChange)="global.messageSoundEnabled.set($event)"
+              />
+            </div>
+
+            <div class="flex items-center gap-4">
+              <label tuiLabel for="notifSoundUtil">{{
+                'labels.notificationSound' | translate
+              }}</label>
+              <input
+                id="notifSoundUtil"
+                tuiSwitch
+                type="checkbox"
+                [ngModel]="global.notificationSoundEnabled()"
+                (ngModelChange)="global.notificationSoundEnabled.set($event)"
+              />
+            </div>
+
             @if (global.isUserAdminOrEquipper()) {
               <div class="flex items-center gap-4">
                 <label tuiLabel for="editingSwitch">{{

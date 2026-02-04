@@ -145,6 +145,8 @@
     "sectors": "Sectors",
     "sex": "Gender",
     "size": "Height",
+    "messageSound": "Message sound",
+    "notificationSound": "Notification sound",
     "slug": "Slug",
     "startingClimbingYear": "Climbing since",
     "topo": "Topo",
@@ -207,8 +209,8 @@
     "toggleView": "Toggle view"
   },
   "notifications": {
-    "likedAscent": "liked your ascent",
-    "commentedAscent": "commented on your ascent",
+    "likedAscent": "liked your ascent on '{{routeName}}'",
+    "commentedAscent": "commented on your ascent on '{{routeName}}'",
     "sentMessage": "sent you a message",
     "unknown": "new notification"
   },
