@@ -71,6 +71,7 @@ export class AscentsService {
   });
 
   async getAscentById(id: number): Promise<RouteAscentWithExtras | null> {
+    if (!id || isNaN(id) || id <= 0) return null;
     if (!isPlatformBrowser(this.platformId)) return null;
     await this.supabase.whenReady();
     const { data, error } = await this.supabase.client
@@ -90,7 +91,7 @@ export class AscentsService {
       `,
       )
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
       if (error) console.error('[AscentsService] getAscentById error', error);
@@ -104,11 +105,12 @@ export class AscentsService {
       .from('user_profiles')
       .select('*')
       .eq('id', a.user_id)
-      .single();
+      .maybeSingle();
 
     let mappedRoute: RouteWithExtras | undefined = undefined;
     if (a.route) {
-      const routeData = a.route as unknown as Record<string, unknown>;
+      const routeRaw = Array.isArray(a.route) ? a.route[0] : a.route;
+      const routeData = routeRaw as unknown as Record<string, unknown>;
       const cragData = (
         Array.isArray(routeData['crag'])
           ? routeData['crag'][0]
@@ -121,7 +123,7 @@ export class AscentsService {
       ) as Record<string, unknown> | undefined;
 
       mappedRoute = {
-        ...(a.route as unknown as RouteWithExtras),
+        ...(routeData as unknown as RouteWithExtras),
         area_id: cragData?.['area_id'] as number,
         crag_slug: cragData?.['slug'] as string,
         crag_name: cragData?.['name'] as string,

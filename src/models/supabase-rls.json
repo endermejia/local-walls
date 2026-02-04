@@ -257,6 +257,102 @@
     "with_check_expression": null
   },
   {
+    "policy_name": "own_can_update",
+    "schema_name": "public",
+    "table_name": "notifications",
+    "for_command": "w",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+  },
+  {
+    "policy_name": "participants_can_read",
+    "schema_name": "public",
+    "table_name": "chat_rooms",
+    "for_command": "r",
+    "using_expression": "is_chat_participant(id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "participants_can_update",
+    "schema_name": "public",
+    "table_name": "chat_rooms",
+    "for_command": "w",
+    "using_expression": "is_chat_participant(id)",
+    "with_check_expression": "is_chat_participant(id)"
+  },
+  {
+    "policy_name": "auth_can_insert",
+    "schema_name": "public",
+    "table_name": "chat_rooms",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "policy_name": "participants_can_delete",
+    "schema_name": "public",
+    "table_name": "chat_rooms",
+    "for_command": "d",
+    "using_expression": "is_chat_participant(id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "participants_can_read",
+    "schema_name": "public",
+    "table_name": "chat_participants",
+    "for_command": "r",
+    "using_expression": "((( SELECT auth.uid() AS uid) = user_id) OR is_chat_participant(room_id))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "auth_can_insert",
+    "schema_name": "public",
+    "table_name": "chat_participants",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "policy_name": "own_can_delete",
+    "schema_name": "public",
+    "table_name": "chat_participants",
+    "for_command": "d",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "participants_can_read",
+    "schema_name": "public",
+    "table_name": "chat_messages",
+    "for_command": "r",
+    "using_expression": "is_chat_participant(room_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "participants_can_insert",
+    "schema_name": "public",
+    "table_name": "chat_messages",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(is_chat_participant(room_id) AND (( SELECT auth.uid() AS uid) = sender_id))"
+  },
+  {
+    "policy_name": "sender_can_delete",
+    "schema_name": "public",
+    "table_name": "chat_messages",
+    "for_command": "d",
+    "using_expression": "(( SELECT auth.uid() AS uid) = sender_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "recipient_can_update",
+    "schema_name": "public",
+    "table_name": "chat_messages",
+    "for_command": "w",
+    "using_expression": "(is_chat_participant(room_id) AND (( SELECT auth.uid() AS uid) <> sender_id))",
+    "with_check_expression": "(is_chat_participant(room_id) AND (( SELECT auth.uid() AS uid) <> sender_id))"
+  },
+  {
     "policy_name": "admin_can_delete",
     "schema_name": "public",
     "table_name": "parkings",

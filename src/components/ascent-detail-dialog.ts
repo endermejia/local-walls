@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   resource,
   signal,
@@ -203,24 +204,45 @@ export class AscentDetailDialogComponent {
   private readonly ascentsService = inject(AscentsService);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
-  protected readonly context = injectContext<TuiDialogContext<void, number>>();
+  protected readonly context =
+    injectContext<TuiDialogContext<void, { ascentId: number }>>();
 
-  protected readonly ascentId = this.context.data;
+  protected readonly ascentId = signal(this.context.data?.ascentId ?? 0);
   protected readonly newComment = signal('');
   protected readonly sending = signal(false);
 
+  constructor() {
+    console.log('AscentDetailDialog constructor - context:', this.context);
+    console.log(
+      'AscentDetailDialog constructor - context.data:',
+      this.context.data,
+    );
+    console.log('AscentDetailDialog constructor - ascentId:', this.ascentId());
+  }
+
   protected readonly ascentResource = resource({
-    params: () => this.ascentId,
-    loader: ({ params: id }) => this.ascentsService.getAscentById(id),
+    params: () => {
+      const id = this.ascentId();
+      return id > 0 ? id : null;
+    },
+    loader: ({ params: id }) => {
+      if (!id) return Promise.resolve(null);
+      return this.ascentsService.getAscentById(id);
+    },
   });
 
   protected readonly ascent = computed(() => this.ascentResource.value());
   protected readonly loading = computed(() => this.ascentResource.isLoading());
 
   protected readonly likesResource = resource({
-    params: () => this.ascentId,
-    loader: ({ params: id }) =>
-      this.ascentsService.getLikesPaginated(id, 0, 50),
+    params: () => {
+      const id = this.ascentId();
+      return id > 0 ? id : null;
+    },
+    loader: ({ params: id }) => {
+      if (!id) return Promise.resolve(null);
+      return this.ascentsService.getLikesPaginated(id, 0, 50);
+    },
   });
 
   protected readonly likes = computed(
@@ -231,8 +253,14 @@ export class AscentDetailDialogComponent {
   );
 
   protected readonly commentsResource = resource({
-    params: () => this.ascentId,
-    loader: ({ params: id }) => this.ascentsService.getComments(id),
+    params: () => {
+      const id = this.ascentId();
+      return id > 0 ? id : null;
+    },
+    loader: ({ params: id }) => {
+      if (!id) return Promise.resolve(null);
+      return this.ascentsService.getComments(id);
+    },
   });
 
   protected readonly comments = computed(
@@ -249,7 +277,7 @@ export class AscentDetailDialogComponent {
     this.sending.set(true);
     try {
       const result = await this.ascentsService.addComment(
-        this.ascentId,
+        this.ascentId(),
         commentText,
       );
       if (result) {
@@ -280,7 +308,7 @@ export class AscentDetailDialogComponent {
 
     if (confirmed) {
       const success = await this.ascentsService.deleteComment(
-        this.ascentId,
+        this.ascentId(),
         commentId,
       );
       if (success) {
@@ -289,5 +317,3 @@ export class AscentDetailDialogComponent {
     }
   }
 }
-
-export default AscentDetailDialogComponent;

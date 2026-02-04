@@ -14,7 +14,7 @@ import { LoaderDialogComponent } from '../components/loader-dialog';
 })
 export class ToastService {
   private readonly toast = inject(TuiToastService);
-  private readonly dialog = inject(TuiDialogService);
+  private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
 
   private show(
@@ -55,7 +55,7 @@ export class ToastService {
     const translatedMessage = this.translate.instant(message);
 
     void firstValueFrom(
-      this.dialog
+      this.dialogs
         .open(new PolymorpheusComponent(LoaderDialogComponent), {
           data: progress$
             ? { message: translatedMessage, progress$ }

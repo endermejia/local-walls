@@ -194,8 +194,13 @@ export class HomeComponent implements OnDestroy {
 
   private async loadFollowedIds() {
     if (!this.isBrowser) return;
-    const ids = await this.followsService.getFollowedIds();
-    this.followedIds.set(new Set(ids));
+    try {
+      await this.supabase.whenReady();
+      const ids = await this.followsService.getFollowedIds();
+      this.followedIds.set(new Set(ids));
+    } catch (error) {
+      console.error('Error loading followed ids:', error);
+    }
   }
 
   private async fetchActiveCrags() {
@@ -360,6 +365,7 @@ export class HomeComponent implements OnDestroy {
         label: this.translate.instant('labels.messages'),
         size: 'm',
       }),
+      { defaultValue: undefined },
     );
   }
 
@@ -372,6 +378,7 @@ export class HomeComponent implements OnDestroy {
           size: 'm',
         },
       ),
+      { defaultValue: undefined },
     );
   }
 

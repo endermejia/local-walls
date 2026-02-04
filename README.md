@@ -26,7 +26,15 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Next Steps
 
-- **Ascent Social Features**: Add photos to route ascents.
+- **Al recibir una notificacion, debes poder ver el route_ascent en el dialog del que recibes la notificacion**
+- **Las notificaciones deben desaparecer al darle a ver notificaciones**
+- **Establecer politicas RLS para chat y notifications**
+- **Agregar subida de fotos al ascent**
+- **Cuando se borre un ascent, debe borrar la foto del ascent**
+- **Cuando se borra un topo, debe borrar las fotos del topo**
+
+## Future Features
+
 - **8a.nu Integration**:
   - Copy 8a.nu ascents database.
   - Direct data import using 8a.nu user credentials.
