@@ -4,8 +4,8 @@ import { TuiDialogContext } from '@taiga-ui/experimental';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { AscentsService } from '../services';
-import { AscentCardComponent } from './ascent-card';
-import { EmptyStateComponent } from './empty-state';
+import { AscentCardComponent } from '../components/ascent-card';
+import { EmptyStateComponent } from '../components/empty-state';
 
 export interface AscentDialogData {
   ascentId: number;

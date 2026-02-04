@@ -16,8 +16,8 @@ import { firstValueFrom } from 'rxjs';
 
 import type { CragDto, CragInsertDto, CragUpdateDto } from '../models';
 
-import { CragFormComponent } from '../pages/crag-form';
-import { CragUnifyComponent } from '../components/crag-unify';
+import { CragFormComponent } from '../forms/crag-form';
+import { CragUnifyComponent } from '../forms/crag-unify';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';

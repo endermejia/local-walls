@@ -14,7 +14,7 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { firstValueFrom } from 'rxjs';
 
 import { AscentsService } from '../services';
-import { AscentCommentsDialogComponent } from './ascent-comments-dialog';
+import { AscentCommentsDialogComponent } from '../dialogs/ascent-comments-dialog';
 
 @Component({
   selector: 'app-ascent-comments',

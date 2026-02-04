@@ -15,7 +15,7 @@ import type {
   TopoUpdateDto,
 } from '../models';
 
-import TopoFormComponent from '../pages/topo-form';
+import TopoFormComponent from '../forms/topo-form';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';

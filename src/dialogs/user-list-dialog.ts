@@ -29,7 +29,7 @@ import { firstValueFrom } from 'rxjs';
 import { UserProfileDto } from '../models';
 
 import { FollowsService, SupabaseService, AscentsService } from '../services';
-import { EmptyStateComponent } from './empty-state';
+import { EmptyStateComponent } from '../components/empty-state';
 
 export type UserListType = 'followers' | 'following' | 'ascent-likes';
 

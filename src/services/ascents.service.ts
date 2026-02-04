@@ -20,7 +20,7 @@ import {
   RouteAscentCommentInsertDto,
 } from '../models';
 
-import AscentFormComponent from '../pages/ascent-form';
+import AscentFormComponent from '../forms/ascent-form';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';

@@ -44,7 +44,7 @@ import {
   ChatRoomWithParticipant,
   UserProfileDto,
 } from '../models';
-import { EmptyStateComponent } from './empty-state';
+import { EmptyStateComponent } from '../components/empty-state';
 
 export interface ChatDialogData {
   userId?: string;

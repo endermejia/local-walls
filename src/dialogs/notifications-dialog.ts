@@ -23,7 +23,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { AppNotificationsService, SupabaseService } from '../services';
 import { NotificationWithActor } from '../models';
-import { EmptyStateComponent } from './empty-state';
+import { EmptyStateComponent } from '../components/empty-state';
 import { AscentDialogComponent } from './ascent-dialog';
 import { ChatDialogComponent } from './chat-dialog';
 
