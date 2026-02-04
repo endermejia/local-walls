@@ -6,25 +6,32 @@ import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 })
 export class LocalStorage {
   private readonly isBrowser: boolean;
-  private readonly isAvailable: boolean;
+  private readonly storage: Storage | null = null;
   private readonly memoryStorage = new Map<string, string>();
+
+  get isAvailable(): boolean {
+    return this.storage !== null;
+  }
 
   constructor() {
     this.isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
-    let available = false;
+    let storage: Storage | null = null;
 
     if (this.isBrowser) {
       try {
-        const testKey = '__storage_test__';
-        localStorage.setItem(testKey, testKey);
-        localStorage.removeItem(testKey);
-        available = true;
+        // Explicitly check for window.localStorage access as it may throw in some contexts
+        storage = typeof window !== 'undefined' ? window.localStorage : null;
+        if (storage) {
+          const testKey = '__storage_test__';
+          storage.setItem(testKey, testKey);
+          storage.removeItem(testKey);
+        }
       } catch (e) {
-        available = false;
+        storage = null;
       }
     }
 
-    this.isAvailable = available;
+    this.storage = storage;
   }
 
   /**
@@ -33,9 +40,9 @@ export class LocalStorage {
    * @returns The value or null if not found
    */
   getItem(key: string): string | null {
-    if (this.isAvailable) {
+    if (this.storage) {
       try {
-        return localStorage.getItem(key);
+        return this.storage.getItem(key);
       } catch (e) {
         // Fallback to memory if it fails at runtime
       }
@@ -49,9 +56,9 @@ export class LocalStorage {
    * @param value The value to set
    */
   setItem(key: string, value: string): void {
-    if (this.isAvailable) {
+    if (this.storage) {
       try {
-        localStorage.setItem(key, value);
+        this.storage.setItem(key, value);
         return;
       } catch (e) {
         // Fallback to memory if it fails at runtime
@@ -65,9 +72,9 @@ export class LocalStorage {
    * @param key The key to remove
    */
   removeItem(key: string): void {
-    if (this.isAvailable) {
+    if (this.storage) {
       try {
-        localStorage.removeItem(key);
+        this.storage.removeItem(key);
         return;
       } catch (e) {
         // Fallback to memory if it fails at runtime
@@ -80,9 +87,9 @@ export class LocalStorage {
    * Clears all items from localStorage (browser) or memory storage (server/restricted)
    */
   clear(): void {
-    if (this.isAvailable) {
+    if (this.storage) {
       try {
-        localStorage.clear();
+        this.storage.clear();
         return;
       } catch (e) {
         // Fallback to memory if it fails at runtime

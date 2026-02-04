@@ -188,19 +188,33 @@ export class SupabaseService {
     }
     try {
       const { createClient } = await import('@supabase/supabase-js');
-      this._client = createClient<Database>(this.url, this.anonKey, {
+      const client = createClient<Database>(this.url, this.anonKey, {
         auth: {
           storage: this.localStorage,
           autoRefreshToken: true,
           persistSession: true,
           detectSessionInUrl: true,
+          // Use a custom storage key to avoid collisions
+          storageKey: 'lw-auth-token',
+          // If storage is unavailable, disable locking to avoid potential direct localStorage access by the library
+          ...(!this.localStorage.isAvailable
+            ? {
+                lock: (async (
+                  _name: string,
+                  acquire: () => Promise<unknown>,
+                ) => {
+                  return await acquire();
+                }) as any,
+              }
+            : {}),
         },
       });
+      this._client = client as unknown as SupabaseClient<Database>;
       // Initial session fetch
-      const { data } = await this._client.auth.getSession();
+      const { data } = await client.auth.getSession();
       this._session.set(data.session ?? null);
       // Subscribe to auth state changes
-      this._client.auth.onAuthStateChange((event, sess) => {
+      client.auth.onAuthStateChange((event, sess) => {
         this._session.set(sess ?? null);
         this._lastEvent.set(event ?? null);
       });
