@@ -32,8 +32,12 @@ import {
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
 import {
+  TuiDialogService,
+  type TuiDialogContext,
+} from '@taiga-ui/experimental';
+import {
+  TUI_CONFIRM,
   TUI_COUNTRIES,
   TuiAvatar,
   TuiBadge,
@@ -543,19 +547,19 @@ interface Country {
               </div>
             }
 
-            <!-- <div class="flex items-center gap-4">
-            <label tuiLabel for="privateSwitch">{{
-              'labels.privateProfile' | translate
-            }}</label>
-            <input
-              id="privateSwitch"
-              name="privateSwitch"
-              tuiSwitch
-              type="checkbox"
-              [ngModel]="isPrivate"
-              (ngModelChange)="togglePrivateProfile($event)"
-            />
-          </div> -->
+            <div class="flex items-center gap-4">
+              <label tuiLabel for="privateSwitch">{{
+                'labels.privateProfile' | translate
+              }}</label>
+              <input
+                id="privateSwitch"
+                name="privateSwitch"
+                tuiSwitch
+                type="checkbox"
+                [ngModel]="isPrivate"
+                (ngModelChange)="togglePrivateProfile($event)"
+              />
+            </div>
           </div>
         </div>
 
@@ -586,6 +590,7 @@ export class UserProfileConfigComponent {
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
+  private readonly dialogs = inject(TuiDialogService);
   private readonly dialogContext: TuiDialogContext<unknown, unknown> | null =
     (() => {
       try {
@@ -755,6 +760,28 @@ export class UserProfileConfigComponent {
     if (this.isPrivate === isPrivate) {
       return;
     }
+
+    if (isPrivate) {
+      const confirmed = await firstValueFrom(
+        this.dialogs.open<boolean>(TUI_CONFIRM, {
+          label: this.translate.instant('labels.privateProfile'),
+          size: 'm',
+          data: {
+            content:
+              'No se verán sus encadenes, pero seguirá siendo visible para el resto de usuarios y podrá recibir mensajes.',
+            yes: this.translate.instant('actions.accept'),
+            no: this.translate.instant('actions.cancel'),
+          },
+        }),
+        { defaultValue: false },
+      );
+
+      if (!confirmed) {
+        this.isPrivate = false;
+        return;
+      }
+    }
+
     this.isPrivate = isPrivate;
     await this.updateProfile({ private: this.isPrivate });
   }

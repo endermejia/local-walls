@@ -204,19 +204,22 @@ import {
         @if (!isOwnProfile()) {
           <div class="flex gap-2">
             @let following = isFollowing();
-            <button
-              tuiButton
-              type="button"
-              appearance="secondary"
-              size="m"
-              [iconStart]="following ? '@tui.bell-filled' : '@tui.bell'"
-              [tuiSkeleton]="loading"
-              (click)="toggleFollow()"
-            >
-              {{
-                (following ? 'actions.following' : 'actions.follow') | translate
-              }}
-            </button>
+            @if (!profile()?.private) {
+              <button
+                tuiButton
+                type="button"
+                appearance="secondary"
+                size="m"
+                [iconStart]="following ? '@tui.bell-filled' : '@tui.bell'"
+                [tuiSkeleton]="loading"
+                (click)="toggleFollow()"
+              >
+                {{
+                  (following ? 'actions.following' : 'actions.follow')
+                    | translate
+                }}
+              </button>
+            }
 
             <button
               tuiButton
