@@ -87,7 +87,6 @@
     "using_expression": "true",
     "with_check_expression": null
   },
-
   {
     "policy_name": "own_user_can_delete",
     "schema_name": "public",
@@ -325,7 +324,7 @@
     "schema_name": "public",
     "table_name": "chat_messages",
     "for_command": "r",
-    "using_expression": "is_chat_participant(room_id)",
+    "using_expression": "is_chat_participant(room_id) AND NOT (EXISTS ( SELECT 1 FROM user_blocks WHERE ((user_blocks.blocker_id = auth.uid()) AND (user_blocks.blocked_id = chat_messages.sender_id)) OR ((user_blocks.blocker_id = chat_messages.sender_id) AND (user_blocks.blocked_id = auth.uid()))))",
     "with_check_expression": null
   },
   {
@@ -437,7 +436,7 @@
     "schema_name": "public",
     "table_name": "route_ascents",
     "for_command": "r",
-    "using_expression": "((auth.uid() = user_id) OR is_profile_public(user_id))",
+    "using_expression": "((auth.uid() = user_id) OR (is_profile_public(user_id) AND NOT (EXISTS ( SELECT 1 FROM user_blocks WHERE ((user_blocks.blocker_id = auth.uid()) AND (user_blocks.blocked_id = route_ascents.user_id)) OR ((user_blocks.blocker_id = route_ascents.user_id) AND (user_blocks.blocked_id = auth.uid()))))))",
     "with_check_expression": null
   },
   {
@@ -758,6 +757,30 @@
     "table_name": "objects",
     "for_command": "r",
     "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "Users can see blocks where they are the blocker",
+    "schema_name": "public",
+    "table_name": "user_blocks",
+    "for_command": "r",
+    "using_expression": "(auth.uid() = blocker_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "Users can insert their own blocks",
+    "schema_name": "public",
+    "table_name": "user_blocks",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(auth.uid() = blocker_id)"
+  },
+  {
+    "policy_name": "Users can delete their own blocks",
+    "schema_name": "public",
+    "table_name": "user_blocks",
+    "for_command": "d",
+    "using_expression": "(auth.uid() = blocker_id)",
     "with_check_expression": null
   }
 ]
