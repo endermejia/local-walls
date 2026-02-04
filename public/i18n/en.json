@@ -463,7 +463,11 @@
       "no_score": "No score",
       "first_ascent": "First ascent",
       "traditional": "Traditional"
-    }
+    },
+    "photo": "Photo",
+    "deletePhoto": "Delete photo",
+    "deletePhotoTitle": "Delete photo",
+    "deletePhotoConfirm": "Are you sure you want to delete the photo of this ascent?"
   },
   "climbingKinds": {
     "sport": "Sport",

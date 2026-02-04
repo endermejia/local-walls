@@ -466,7 +466,11 @@
       "no_score": "No puntúa",
       "first_ascent": "Primera ascensión",
       "traditional": "Clásica"
-    }
+    },
+    "photo": "Foto",
+    "deletePhoto": "Eliminar foto",
+    "deletePhotoTitle": "Borrar foto",
+    "deletePhotoConfirm": "¿Estás seguro de que quieres borrar la foto de este encadene?"
   },
   "climbingKinds": {
     "sport": "Deportiva",

@@ -61,9 +61,7 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
 
       @if (isLoading()) {
         @for (_ of [1, 2, 3]; track $index) {
-          <div
-            class="flex flex-col gap-4 p-4 rounded-3xl bg-[var(--tui-background-neutral-1)] border border-[var(--tui-border-normal)]"
-          >
+          <div class="flex flex-col gap-4 p-4 rounded-3xl">
             <div class="flex justify-between items-center">
               <div class="flex items-center gap-3">
                 <div [tuiSkeleton]="true" class="w-10 h-10 rounded-full"></div>

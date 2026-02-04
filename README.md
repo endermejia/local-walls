@@ -31,6 +31,7 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 - **Cuando se borra un topo, debe borrar las fotos del topo**
 - **Gestionar subscriptions en la app**
 - **Corregir errores en console de la app**
+- **Gestionar perfil privado por politicas RLS**
 
 ## Future Features
 

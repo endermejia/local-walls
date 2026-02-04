@@ -101,17 +101,54 @@ export class ToposService {
   async delete(id: number): Promise<boolean> {
     if (!isPlatformBrowser(this.platformId)) return false;
     await this.supabase.whenReady();
+
+    // 1. Delete photo from storage via Edge Function if exists
+    // We do this BEFORE deleting the topo record to ensure permissions
+    try {
+      await this.deletePhoto(id);
+    } catch (e) {
+      console.warn(
+        '[ToposService] Could not delete photo during topo deletion',
+        e,
+      );
+    }
+
     const { error } = await this.supabase.client
       .from('topos')
       .delete()
       .eq('id', id);
+
     if (error) {
       console.error('[ToposService] delete error', error);
       throw error;
     }
+
     this.global.cragDetailResource.reload();
     this.toast.success('messages.toasts.topoDeleted');
     return true;
+  }
+
+  async deletePhoto(topoId: number): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    await this.supabase.whenReady();
+
+    const { error } = await this.supabase.client.functions.invoke(
+      'delete-topo',
+      {
+        headers: {
+          'topo-id': topoId.toString(),
+        },
+      },
+    );
+
+    if (error) {
+      console.error('[ToposService] deletePhoto error', error);
+      throw error;
+    }
+
+    this.global.topoPhotoVersion.update((v) => v + 1);
+    this.global.topoDetailResource.reload();
+    this.global.cragDetailResource.reload();
   }
 
   async addRoute(payload: TopoRouteInsertDto): Promise<void> {

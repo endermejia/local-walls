@@ -7,6 +7,7 @@ import {
   inject,
   input,
   InputSignal,
+  resource,
   signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -38,8 +39,11 @@ import {
   TuiRating,
   TuiSelect,
   TuiTextarea,
+  TuiFiles,
+  TuiInputFiles,
+  TuiFileRejectedPipe,
 } from '@taiga-ui/kit';
-import { injectContext } from '@taiga-ui/polymorpheus';
+import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, startWith } from 'rxjs';
@@ -87,6 +91,9 @@ import { handleErrorToast } from '../utils';
     TuiTextarea,
     TuiAppearance,
     CounterComponent,
+    TuiFiles,
+    TuiInputFiles,
+    TuiFileRejectedPipe,
   ],
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
   template: `
@@ -175,7 +182,6 @@ import { handleErrorToast } from '../utils';
             formControlName="attempts"
             label="ascent.tries"
             [min]="form.get('type')?.value === 'rp' ? 2 : 1"
-            [disabled]="form.get('attempts')?.disabled ?? false"
           />
         </section>
 
@@ -204,6 +210,76 @@ import { handleErrorToast } from '../utils';
             />
             <span class="text-sm">{{ 'ascent.private' | translate }}</span>
           </label>
+        </section>
+
+        <section class="grid gap-3">
+          <div class="flex items-center justify-between px-1">
+            <span class="text-xs font-bold opacity-60 uppercase">{{
+              'ascent.photo' | translate
+            }}</span>
+            @if (existingPhotoUrl()) {
+              <button
+                tuiButton
+                type="button"
+                appearance="negative"
+                size="s"
+                iconStart="@tui.trash"
+                (click)="onDeleteExistingPhoto()"
+              >
+                {{ 'ascent.deletePhoto' | translate }}
+              </button>
+            }
+          </div>
+
+          <div class="grid gap-2">
+            @if (!photoValue() && !existingPhotoUrl()) {
+              <label tuiInputFiles>
+                <input
+                  accept="image/*"
+                  tuiInputFiles
+                  [formControl]="photoControl"
+                />
+              </label>
+            }
+
+            <tui-files class="mt-2">
+              @if (
+                photoValue() | tuiFileRejected: { accept: 'image/*' } | async;
+                as file
+              ) {
+                <tui-file
+                  state="error"
+                  [file]="file"
+                  (remove)="removePhotoFile()"
+                />
+              }
+
+              @if (photoValue(); as file) {
+                <div class="relative group">
+                  <tui-file [file]="file" (remove)="removePhotoFile()" />
+                  @if (previewUrl()) {
+                    <div class="mt-2 rounded-xl overflow-hidden">
+                      <img
+                        [src]="previewUrl()"
+                        class="w-full h-auto max-h-48 object-cover"
+                        alt="Preview"
+                      />
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (existingPhotoUrl(); as photoUrl) {
+                <div class="rounded-xl overflow-hidden">
+                  <img
+                    [src]="photoUrl"
+                    class="w-full h-auto max-h-48 object-cover"
+                    alt="Existing photo"
+                  />
+                </div>
+              }
+            </tui-files>
+          </div>
         </section>
 
         <!-- DID YOU LIKE IT? -->
@@ -493,6 +569,29 @@ export default class AscentFormComponent {
   readonly isEdit = computed(() => !!this.effectiveAscentData());
   readonly showMore = signal(false);
 
+  protected readonly photoControl = new FormControl<File | null>(null);
+  protected readonly photoValue = toSignal(
+    this.photoControl.valueChanges.pipe(startWith(this.photoControl.value)),
+    { initialValue: null },
+  );
+  protected readonly previewUrl = signal<string | null>(null);
+
+  protected readonly isExistingPhotoDeleted = signal(false);
+
+  protected readonly existingPhotoResource = resource({
+    params: () => {
+      const data = this.effectiveAscentData();
+      return data?.photo_path || null;
+    },
+    loader: async ({ params: path }) => {
+      if (!path) return null;
+      return this.supabase.getAscentSignedUrl(path);
+    },
+  });
+  protected readonly existingPhotoUrl = computed(() =>
+    this.isExistingPhotoDeleted() ? null : this.existingPhotoResource.value(),
+  );
+
   readonly today = TuiDay.currentLocal();
 
   readonly form = new FormGroup({
@@ -612,6 +711,22 @@ export default class AscentFormComponent {
   protected readonly gradeOptions = this.gradeItems.map((i) => i.id);
 
   constructor() {
+    effect(
+      () => {
+        const file = this.photoValue();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            this.previewUrl.set(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+        } else {
+          this.previewUrl.set(null);
+        }
+      },
+      { allowSignalWrites: true },
+    );
+
     effect(() => {
       const data = this.effectiveAscentData();
       if (!data) return;
@@ -762,21 +877,59 @@ export default class AscentFormComponent {
     };
 
     try {
+      let savedAscent: RouteAscentDto | null = null;
       if (ascentData) {
-        await this.ascents.update(ascentData.id, payload);
+        savedAscent = await this.ascents.update(ascentData.id, payload);
       } else if (route_id && user_id) {
-        await this.ascents.create({
+        savedAscent = await this.ascents.create({
           ...payload,
           route_id,
           user_id,
         });
         await this.routesService.removeRouteProject(route_id);
       }
+
+      // Handle photo upload if a new file was selected
+      const photoFile = this.photoControl.value;
+      if (savedAscent && photoFile) {
+        await this.ascents.uploadPhoto(savedAscent.id, photoFile);
+      }
     } catch (e) {
       const error = e as Error;
       handleErrorToast(error, this.toast);
     } finally {
       this._dialogCtx?.completeWith(true);
+    }
+  }
+
+  protected removePhotoFile(): void {
+    this.photoControl.setValue(null);
+  }
+
+  protected async onDeleteExistingPhoto(): Promise<void> {
+    const data = this.effectiveAscentData();
+    if (!data || !data.photo_path) return;
+
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('ascent.deletePhotoTitle'),
+        size: 's',
+        data: {
+          content: this.translate.instant('ascent.deletePhotoConfirm'),
+          yes: this.translate.instant('actions.delete'),
+          no: this.translate.instant('actions.cancel'),
+        },
+      }),
+      { defaultValue: false },
+    );
+
+    if (confirmed) {
+      try {
+        await this.ascents.deletePhoto(data.id, data.photo_path);
+        this.isExistingPhotoDeleted.set(true);
+      } catch (e) {
+        console.error('[AscentForm] Error deleting photo', e);
+      }
     }
   }
 

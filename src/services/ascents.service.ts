@@ -139,6 +139,65 @@ export class AscentsService {
     } as RouteAscentWithExtras;
   }
 
+  async uploadPhoto(ascentId: number, file: File): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const toBase64 = (f: File) =>
+      new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(f);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (error) => reject(error);
+      });
+
+    try {
+      const base64 = await toBase64(file);
+      await this.supabase.whenReady();
+      const { error } = await this.supabase.client.functions.invoke(
+        'upload-route-ascent-photo',
+        {
+          body: {
+            file_name: file.name,
+            content_type: file.type,
+            base64,
+          },
+          headers: {
+            'ascent-id': ascentId.toString(),
+          },
+        },
+      );
+
+      if (error) throw error;
+
+      this.toast.success('messages.toasts.ascentUpdated');
+      this.refreshResources(ascentId);
+    } catch (e) {
+      console.error('[AscentsService] uploadPhoto error', e);
+      throw e;
+    }
+  }
+
+  async deletePhoto(ascentId: number, photoPath: string): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    await this.supabase.whenReady();
+
+    const { error } = await this.supabase.client.functions.invoke(
+      'delete-route-ascent-photo',
+      {
+        headers: {
+          'ascent-id': ascentId.toString(),
+        },
+      },
+    );
+
+    if (error) {
+      console.error('[AscentsService] deletePhoto error', error);
+      throw error;
+    }
+
+    this.refreshResources(ascentId);
+  }
+
   openAscentForm(data: AscentDialogData): Observable<boolean> {
     return this.dialogs
       .open<boolean>(new PolymorpheusComponent(AscentFormComponent), {
@@ -201,10 +260,31 @@ export class AscentsService {
   async delete(id: number): Promise<boolean> {
     if (!isPlatformBrowser(this.platformId)) return false;
     await this.supabase.whenReady();
+
+    // 1. Delete photo from storage via Edge Function if exists
+    // We do this BEFORE deleting the record so the function can verify ownership
+    const { data: ascent } = await this.supabase.client
+      .from('route_ascents')
+      .select('photo_path')
+      .eq('id', id)
+      .maybeSingle();
+
+    try {
+      if (ascent?.photo_path) {
+        await this.deletePhoto(id, ascent.photo_path);
+      }
+    } catch (e) {
+      console.warn(
+        '[AscentsService] Could not delete photo during ascent deletion',
+        e,
+      );
+    }
+
     const { error } = await this.supabase.client
       .from('route_ascents')
       .delete()
       .eq('id', id);
+
     if (error) {
       console.error('[AscentsService] delete error', error);
       throw error;

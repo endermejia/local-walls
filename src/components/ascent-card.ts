@@ -2,9 +2,11 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   input,
   output,
+  resource,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -57,18 +59,8 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
   ],
   template: `
     @let ascent = data();
-    <button
+    <div
       tuiAppearance="flat-grayscale"
-      (click)="
-        ascent.route
-          ? router.navigate([
-              '/area',
-              ascent.route.area_slug,
-              ascent.route.crag_slug,
-              ascent.route.slug,
-            ])
-          : null
-      "
       class="flex flex-col gap-4 p-4 rounded-3xl relative no-underline text-inherit hover:no-underline w-full text-left"
     >
       <header tuiHeader class="flex justify-between items-center">
@@ -168,6 +160,17 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
         }
       </header>
 
+      @if (ascentPhotoUrl(); as photoUrl) {
+        <div class="aspect-video w-full rounded-2xl overflow-hidden">
+          <img
+            [src]="photoUrl"
+            class="w-full h-full object-cover"
+            [alt]="ascent.route?.name || 'Ascent photo'"
+            loading="lazy"
+          />
+        </div>
+      }
+
       <div class="flex flex-col gap-1">
         <div class="flex flex-col gap-1">
           @if (ascent.route && showRoute()) {
@@ -179,7 +182,18 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
                   [tuiHint]="'climbingKinds.' + kind | translate"
                 />
               }
-              <span class="font-bold text-lg">
+              <span
+                class="font-bold text-lg hover:underline cursor-pointer"
+                (click)="
+                  $event.stopPropagation();
+                  router.navigate([
+                    '/area',
+                    ascent.route.area_slug,
+                    ascent.route.crag_slug,
+                    ascent.route.slug,
+                  ])
+                "
+              >
                 {{ ascent.route.name }}
               </span>
               @if (ascent.route && showRoute()) {
@@ -251,7 +265,7 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
         <app-ascent-likes [ascentId]="ascent.id" />
         <app-ascent-comments [ascentId]="ascent.id" />
       </footer>
-    </button>
+    </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -272,6 +286,17 @@ export class AscentCardComponent {
 
   followEvent = output<string>();
   unfollowEvent = output<string>();
+
+  protected readonly ascentPhotoResource = resource({
+    params: () => this.data().photo_path,
+    loader: async ({ params: path }) => {
+      if (!path) return null;
+      return this.supabase.getAscentSignedUrl(path);
+    },
+  });
+  protected readonly ascentPhotoUrl = computed(() =>
+    this.ascentPhotoResource.value(),
+  );
 
   editAscent() {
     this.ascentsService.openAscentForm({ ascentData: this.data() }).subscribe();

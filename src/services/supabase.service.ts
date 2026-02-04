@@ -141,10 +141,15 @@ export class SupabaseService {
    * Does not access browser APIs; is SSR-safe.
    */
   buildAvatarUrl(path: string | null | undefined): string {
+    return this.getPublicUrl('avatar', path);
+  }
+
+  getPublicUrl(bucket: string, path: string | null | undefined): string {
     if (!path) return '';
-    const base = (ENV_SUPABASE_URL || '').replace(/\/$/, '');
+    if (path.startsWith('http')) return path;
+    const base = (this.url || ENV_SUPABASE_URL || '').replace(/\/$/, '');
     const rel = String(path).replace(/^\//, '');
-    return `${base}/storage/v1/object/public/avatar/${rel}`;
+    return `${base}/storage/v1/object/public/${bucket}/${rel}`;
   }
 
   /**
@@ -158,6 +163,22 @@ export class SupabaseService {
       .createSignedUrl(path, 3600); // 1 hour
     if (error) {
       console.error('[SupabaseService] getTopoSignedUrl error', error);
+      return '';
+    }
+    return data.signedUrl;
+  }
+
+  /**
+   * Gets a signed URL for an ascent photo stored in the private "route-ascent-photos" bucket.
+   */
+  async getAscentSignedUrl(path: string | null | undefined): Promise<string> {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    const { data, error } = await this.client.storage
+      .from('route-ascent-photos')
+      .createSignedUrl(path, 3600); // 1 hour
+    if (error) {
+      console.error('[SupabaseService] getAscentSignedUrl error', error);
       return '';
     }
     return data.signedUrl;
