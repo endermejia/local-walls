@@ -214,7 +214,8 @@ import {
               (click)="toggleFollow()"
             >
               {{
-                (following ? 'actions.following' : 'actions.follow') | translate
+                (following ? 'actions.following' : 'actions.follow')
+                  | translate
               }}
             </button>
 

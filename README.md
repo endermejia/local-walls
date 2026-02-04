@@ -92,6 +92,20 @@ npm run build
 npm run serve:ssr:local-walls
 ```
 
+## Politicas RLS (Row Level Security)
+
+Para garantizar la privacidad de los usuarios con perfil privado, es necesario actualizar las políticas de seguridad en Supabase.
+
+### Tabla `route_ascents`
+
+La política de `SELECT` debe restringir el acceso si el usuario propietario del encadene tiene el perfil privado (`private = true`), a menos que el solicitante sea el propio usuario.
+
+Ejemplo de expresión para la política `SELECT`:
+
+```sql
+((auth.uid() = user_id) OR (EXISTS (SELECT 1 FROM user_profiles WHERE ((user_profiles.id = route_ascents.user_id) AND (user_profiles.private IS NOT TRUE)))))
+```
+
 ## Contributing
 
 This repo runs Prettier automatically before each commit via Husky + lint-staged.

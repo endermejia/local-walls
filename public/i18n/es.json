@@ -405,6 +405,9 @@
     },
     "size": {
       "invalid": "La altura debe estar entre 0 y 300 cm."
+    },
+    "private": {
+      "confirmation": "No se verán sus encadenes, pero seguirá siendo visible para el resto de usuarios y podrá recibir mensajes."
     }
   },
   "ascentTypes": {
