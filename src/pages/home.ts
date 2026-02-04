@@ -293,6 +293,7 @@ export class HomeComponent implements OnDestroy {
       )
       .neq('user_id', userId)
       .order('date', { ascending: false })
+      .order('id', { ascending: false })
       .range(fromIdx, toIdx)
       .overrideTypes<RouteAscentWithExtras[]>();
 

@@ -19,6 +19,7 @@ import { AppRole } from '../models';
 import { Database } from '../models/supabase-generated';
 
 import { ENV_SUPABASE_URL } from '../environments/environment';
+import { LocalStorage } from './local-storage';
 
 export interface SupabaseConfig {
   url: string;
@@ -43,6 +44,7 @@ export class SupabaseService {
   private readonly url = inject(SUPABASE_URL, { optional: true });
   private readonly anonKey = inject(SUPABASE_ANON_KEY, { optional: true });
   private readonly router = inject(Router);
+  private readonly localStorage = inject(LocalStorage);
 
   private _client: SupabaseClient<Database> | null = null;
   private _readyResolve: (() => void) | null = null;
@@ -186,7 +188,14 @@ export class SupabaseService {
     }
     try {
       const { createClient } = await import('@supabase/supabase-js');
-      this._client = createClient<Database>(this.url, this.anonKey);
+      this._client = createClient<Database>(this.url, this.anonKey, {
+        auth: {
+          storage: this.localStorage,
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: true,
+        },
+      });
       // Initial session fetch
       const { data } = await this._client.auth.getSession();
       this._session.set(data.session ?? null);

@@ -1040,9 +1040,12 @@ export class GlobalData {
         if (sort === 'grade') {
           finalQuery = finalQuery
             .order('grade', { ascending: false })
-            .order('date', { ascending: false });
+            .order('date', { ascending: false })
+            .order('id', { ascending: false });
         } else {
-          finalQuery = finalQuery.order('date', { ascending: false });
+          finalQuery = finalQuery
+            .order('date', { ascending: false })
+            .order('id', { ascending: false });
         }
 
         const { data, error, count } = await finalQuery.range(from, to);
@@ -1212,6 +1215,7 @@ export class GlobalData {
           .select('*', { count: 'exact' })
           .eq('route_id', routeId)
           .order('date', { ascending: false })
+          .order('id', { ascending: false })
           .range(from, to);
 
         if (ascentsError) {
