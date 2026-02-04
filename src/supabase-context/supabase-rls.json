@@ -437,7 +437,7 @@
     "schema_name": "public",
     "table_name": "route_ascents",
     "for_command": "r",
-    "using_expression": "true",
+    "using_expression": "((auth.uid() = user_id) OR is_profile_public(user_id))",
     "with_check_expression": null
   },
   {
