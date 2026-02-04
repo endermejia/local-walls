@@ -1,0 +1,158 @@
+
+> local-walls@0.0.0 start
+> ng serve --hmr=false
+
+❯ Building...
+✔ Building...
+Application bundle generation failed. [23.691 seconds] - 2026-02-04T20:42:38.575Z
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2353: Object literal may only specify known properties, and 'read' does not exist in type '{ debugName?: string | undefined; }'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/weather-forecast.ts:116:4:
+[37m      116 │     [32mread[37m: ElementRef,
+          ╵     [32m~~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'nativeElement' does not exist on type '{}'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/weather-forecast.ts:135:42:
+[37m      135 │           const el = this.hourlyScroll()?.[32mnativeElement[37m;
+          ╵                                           [32m~~~~~~~~~~~~~[0m
+
+
+Watch mode enabled. Watching for file changes...
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Application bundle generation failed. [14.705 seconds] - 2026-02-04T20:43:05.489Z
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2353: Object literal may only specify known properties, and 'read' does not exist in type '{ debugName?: string | undefined; }'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/weather-forecast.ts:116:4:
+[37m      116 │     [32mread[37m: ElementRef,
+          ╵     [32m~~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'nativeElement' does not exist on type '{}'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/components/weather-forecast.ts:135:42:
+[37m      135 │           const el = this.hourlyScroll()?.[32mnativeElement[37m;
+          ╵                                           [32m~~~~~~~~~~~~~[0m
+
+
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files  | Names                |  Raw size
+chunk-ZLJLCPGD.js    | -                    | 543.23 kB |
+styles.css           | styles               | 328.41 kB |
+chunk-RN45UMXX.js    | -                    |  74.41 kB |
+main.js              | main                 |  69.72 kB |
+chunk-C4QCOXUC.js    | -                    |  58.15 kB |
+chunk-3P6QL2IJ.js    | -                    |  36.68 kB |
+chunk-AUENSI4O.js    | -                    |  21.90 kB |
+chunk-Z4U6M73G.js    | -                    |  21.45 kB |
+chunk-WV6V63AM.js    | -                    |  13.92 kB |
+chunk-S5LJSA6Q.js    | -                    |  12.92 kB |
+chunk-VB3FAXBB.js    | -                    |  12.81 kB |
+chunk-ZSYTBYIC.js    | -                    |   9.55 kB |
+chunk-3RYPKPWU.js    | -                    |   9.24 kB |
+chunk-EJI4NIT3.js    | -                    |   3.06 kB |
+chunk-45GFFECS.js    | -                    |   2.77 kB |
+
+                     | Initial total        |   1.22 MB
+
+Lazy chunk files     | Names                |  Raw size
+chunk-5J55RNAZ.js    | crag                 |  82.45 kB |
+chunk-RVVEJT3W.js    | topo                 |  74.72 kB |
+chunk-WXJQEDPS.js    | user-profile         |  69.64 kB |
+chunk-LN4FHGDL.js    | user-profile-config  |  69.57 kB |
+chunk-LITXAIOP.js    | explore              |  61.65 kB |
+chunk-C2XMJRBN.js    | admin-users-list     |  43.69 kB |
+chunk-TV45V6QL.js    | login                |  42.56 kB |
+chunk-2R55VPJH.js    | route                |  34.32 kB |
+chunk-7JRQ6UCL.js    | area                 |  31.42 kB |
+chunk-W7X7LCSQ.js    | admin-parkings-list  |  30.32 kB |
+chunk-TNJNNBLT.js    | admin-equippers-list |  29.96 kB |
+chunk-WTLCGQN3.js    | area-list            |  20.93 kB |
+chunk-J7ZQJHJL.js    | my-areas             |  19.18 kB |
+chunk-ESEZAKCQ.js    | home                 |  15.72 kB |
+chunk-D7XLS3MZ.js    | admin                |  10.55 kB |
+...and 4 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files  | Names                |  Raw size
+chunk-5AA3NBNI.mjs   | -                    | 543.26 kB |
+chunk-J3G6D54B.mjs   | -                    |  74.45 kB |
+main.server.mjs      | main.server          |  73.86 kB |
+chunk-NVYZPUDC.mjs   | -                    |  58.19 kB |
+chunk-2FYXVTFA.mjs   | -                    |  36.72 kB |
+chunk-22ALCFTG.mjs   | -                    |  21.94 kB |
+chunk-35EWEK3U.mjs   | -                    |  21.49 kB |
+chunk-X2YKLSOQ.mjs   | -                    |  13.95 kB |
+chunk-VIR2JAQB.mjs   | -                    |  12.95 kB |
+chunk-NQABGACH.mjs   | -                    |  12.85 kB |
+chunk-UAUNU7JJ.mjs   | -                    |   9.59 kB |
+chunk-FAJGKYHT.mjs   | -                    |   9.27 kB |
+chunk-5BBSG4BH.mjs   | -                    |   3.10 kB |
+server.mjs           | server               |   3.03 kB |
+chunk-MVRDGLSK.mjs   | -                    |   2.81 kB |
+polyfills.server.mjs | polyfills.server     | 243 bytes |
+
+Lazy chunk files     | Names                |  Raw size
+chunk-362KUTBX.mjs   | crag                 |  82.50 kB |
+chunk-75YCSHKI.mjs   | topo                 |  74.76 kB |
+chunk-PTM65Q5G.mjs   | user-profile         |  69.68 kB |
+chunk-4LE2IRQY.mjs   | user-profile-config  |  69.61 kB |
+chunk-CJX3WWOY.mjs   | explore              |  61.69 kB |
+chunk-7ME6R62E.mjs   | admin-users-list     |  43.73 kB |
+chunk-NVQAIXSD.mjs   | login                |  42.59 kB |
+chunk-B3FBIQ63.mjs   | route                |  34.36 kB |
+chunk-KHK4PGRR.mjs   | area                 |  31.46 kB |
+chunk-37Q4AICE.mjs   | admin-parkings-list  |  30.36 kB |
+chunk-HPXHQTNI.mjs   | admin-equippers-list |  30.00 kB |
+chunk-QYT5YTTQ.mjs   | area-list            |  20.97 kB |
+chunk-OHFCOMMN.mjs   | my-areas             |  19.22 kB |
+chunk-KR5UEVVW.mjs   | home                 |  15.76 kB |
+chunk-W3HNBMA6.mjs   | admin                |  10.58 kB |
+...and 4 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [3.192 seconds] - 2026-02-04T20:44:07.489Z
+
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  ➜  Local:   http://localhost:4200/
+ERROR RuntimeError: NG02100: InvalidPipeArgument: 'NG0701: Missing locale data for the locale "es".' for pipe 'DatePipe'
+    at invalidPipeArgumentError (/app/.angular/cache/20.3.1/local-walls/vite/deps_ssr/chunk-GPMY2GL5.js:3166:10)
+    at _DatePipe.transform (/app/.angular/cache/20.3.1/local-walls/vite/deps_ssr/chunk-GPMY2GL5.js:3391:13)
+    at pureFunction4Internal (/app/.angular/cache/20.3.1/local-walls/vite/deps_ssr/chunk-YLVGIEKD.js:18745:129)
+    at Module.ɵɵpipeBind4 (/app/.angular/cache/20.3.1/local-walls/vite/deps_ssr/chunk-YLVGIEKD.js:18859:41)
+    at WeatherForecastComponent_Conditional_0_For_8_Template (/app/.angular/vite-root/local-walls/src/components/weather-forecast.ts:74:21)
+    at executeTemplate (/app/.angular/cache/20.3.1/local-walls/vite/deps_ssr/chunk-YLVGIEKD.js:5129:5)
+    at refreshView (/app/.angular/cache/20.3.1/local-walls/vite/deps_ssr/chunk-YLVGIEKD.js:5861:7)
+    at detectChangesInView (/app/.angular/cache/20.3.1/local-walls/vite/deps_ssr/chunk-YLVGIEKD.js:6038:5)
+    at detectChangesInViewIfAttached (/app/.angular/cache/20.3.1/local-walls/vite/deps_ssr/chunk-YLVGIEKD.js:6020:3)
+    at detectChangesInEmbeddedViews (/app/.angular/cache/20.3.1/local-walls/vite/deps_ssr/chunk-YLVGIEKD.js:5987:7) {
+  code: 2100
+}
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names       | Raw size
+main.js             | main        | 69.72 kB |
+
+Lazy chunk files    | Names       | Raw size
+chunk-DODRNJZS.js   | crag        | 82.45 kB |
+chunk-BQVWLZLG.js   | login       | 41.78 kB |
+
+
+Server bundles
+Initial chunk files | Names       | Raw size
+main.server.mjs     | main.server | 73.86 kB |
+
+Lazy chunk files    | Names       | Raw size
+chunk-3IGK7AIY.mjs  | crag        | 82.50 kB |
+chunk-ROZ773TQ.mjs  | login       | 41.81 kB |
+
+Application bundle generation complete. [1.843 seconds] - 2026-02-04T20:45:19.564Z
+
+Page reload sent to client(s).
