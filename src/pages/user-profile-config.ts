@@ -767,8 +767,7 @@ export class UserProfileConfigComponent {
           label: this.translate.instant('labels.privateProfile'),
           size: 'm',
           data: {
-            content:
-              'No se verán sus encadenes, pero seguirá siendo visible para el resto de usuarios y podrá recibir mensajes.',
+            content: this.translate.instant('profile.private.confirmation'),
             yes: this.translate.instant('actions.accept'),
             no: this.translate.instant('actions.cancel'),
           },

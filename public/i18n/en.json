@@ -399,6 +399,9 @@
     },
     "size": {
       "invalid": "Height must be between 0 and 300 cm."
+    },
+    "private": {
+      "confirmation": "Your ascents will not be visible, but you will still be visible to other users and can receive messages."
     }
   },
   "ascentTypes": {
