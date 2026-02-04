@@ -72,33 +72,35 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
                   </button>
                 </tui-badged-content>
 
-                <tui-badged-content [style.--tui-radius.%]="50">
-                  @if (
-                    global.unreadNotificationsCount();
-                    as unreadNotifications
-                  ) {
-                    <tui-badge-notification
-                      tuiAppearance="accent"
-                      size="s"
-                      tuiSlot="top"
+                @if (!global.userProfile()?.private) {
+                  <tui-badged-content [style.--tui-radius.%]="50">
+                    @if (
+                      global.unreadNotificationsCount();
+                      as unreadNotifications
+                    ) {
+                      <tui-badge-notification
+                        tuiAppearance="accent"
+                        size="s"
+                        tuiSlot="top"
+                      >
+                        {{ unreadNotifications }}
+                      </tui-badge-notification>
+                    }
+                    <button
+                      tuiButton
+                      type="button"
+                      appearance="secondary-grayscale"
+                      size="m"
+                      class="!rounded-full aspect-square md:aspect-auto md:!px-4 flex items-center justify-center !bg-[var(--tui-background-base)] hover:!bg-[var(--tui-background-base-alt)] shadow-md"
+                      iconStart="@tui.bell"
+                      (click)="openNotifications()"
                     >
-                      {{ unreadNotifications }}
-                    </tui-badge-notification>
-                  }
-                  <button
-                    tuiButton
-                    type="button"
-                    appearance="secondary-grayscale"
-                    size="m"
-                    class="!rounded-full aspect-square md:aspect-auto md:!px-4 flex items-center justify-center !bg-[var(--tui-background-base)] hover:!bg-[var(--tui-background-base-alt)] shadow-md"
-                    iconStart="@tui.bell"
-                    (click)="openNotifications()"
-                  >
-                    <span class="hidden md:block">{{
-                      'labels.notifications' | translate
-                    }}</span>
-                  </button>
-                </tui-badged-content>
+                      <span class="hidden md:block">{{
+                        'labels.notifications' | translate
+                      }}</span>
+                    </button>
+                  </tui-badged-content>
+                }
               </div>
             }
           </div>
