@@ -41,7 +41,12 @@ import { GlobalData, WeatherService } from '../services';
         </h3>
 
         <!-- Days Selection -->
-        <tui-scrollbar class="pb-2">
+        <tui-scrollbar
+          class="pb-2"
+          (touchstart)="$event.stopPropagation()"
+          (touchmove)="$event.stopPropagation()"
+          (touchend)="$event.stopPropagation()"
+        >
           <div class="flex gap-2">
             @for (day of days; track day.date; let idx = $index) {
               <button
@@ -81,7 +86,13 @@ import { GlobalData, WeatherService } from '../services';
 
         <!-- Hourly Forecast for Selected Day -->
         @if (days[selectedDayIdx()]; as selectedDay) {
-          <tui-scrollbar #hourlyScroll class="pb-2">
+          <tui-scrollbar
+            #hourlyScroll
+            class="pb-2"
+            (touchstart)="$event.stopPropagation()"
+            (touchmove)="$event.stopPropagation()"
+            (touchend)="$event.stopPropagation()"
+          >
             <div class="flex gap-4">
               @for (hour of selectedDay.hourly; track hour.time) {
                 <div class="flex flex-col items-center min-w-[45px] py-1">

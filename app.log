@@ -156,3 +156,25 @@ chunk-ROZ773TQ.mjs  | login       | 41.81 kB |
 Application bundle generation complete. [1.843 seconds] - 2026-02-04T20:45:19.564Z
 
 Page reload sent to client(s).
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files | Names       | Raw size
+main.js             | main        | 69.72 kB |
+chunk-CAVRC5QA.js   | -           | 16.65 kB |
+
+Lazy chunk files    | Names       | Raw size
+chunk-SYJBWGWP.js   | crag        | 82.45 kB |
+
+
+Server bundles
+Initial chunk files | Names       | Raw size
+main.server.mjs     | main.server | 73.86 kB |
+chunk-EQ4TGJFA.mjs  | -           | 16.68 kB |
+
+Lazy chunk files    | Names       | Raw size
+chunk-X5RQMJ4G.mjs  | crag        | 82.50 kB |
+
+Application bundle generation complete. [7.396 seconds] - 2026-02-04T20:54:09.499Z
+
+Page reload sent to client(s).
