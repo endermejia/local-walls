@@ -48,7 +48,9 @@ export class MessagingService {
       `,
       )
       .in('id', roomIds)
-      .order('last_message_at', { ascending: false });
+      .order('last_message_at', { ascending: false })
+      .order('created_at', { referencedTable: 'messages', ascending: false })
+      .limit(50, { foreignTable: 'messages' });
 
     if (roomsError) {
       console.error('[MessagingService] getRooms error', roomsError);
@@ -265,10 +267,12 @@ export class MessagingService {
       .subscribe();
   }
 
-  watchUnreadCount(callback: (payload: ChatMessageDto) => void): RealtimeChannel | null {
+  watchUnreadCount(
+    callback: (payload: ChatMessageDto) => void,
+  ): RealtimeChannel | null {
     if (!isPlatformBrowser(this.platformId)) return null;
     return this.supabase.client
-      .channel('unread-messages')
+      .channel(`unread-messages-${Math.random().toString(36).substring(2, 9)}`)
       .on(
         'postgres_changes',
         {
