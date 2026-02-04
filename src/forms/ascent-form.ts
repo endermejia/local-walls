@@ -59,8 +59,6 @@ import {
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
 
-import { ImageEditorDialogComponent } from '../dialogs';
-
 import {
   AscentsService,
   GlobalData,
@@ -867,6 +865,9 @@ export default class AscentFormComponent {
 
   private async openEditor(file: File): Promise<void> {
     try {
+      const { ImageEditorDialogComponent } = await import(
+        '../dialogs/image-editor-dialog'
+      );
       const newFile = await firstValueFrom(
         this.dialogs.open<File | null>(
           new PolymorpheusComponent(ImageEditorDialogComponent),

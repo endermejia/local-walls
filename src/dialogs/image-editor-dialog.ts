@@ -2,13 +2,17 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   inject,
   signal,
+  ViewChild,
+  effect,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TuiButton, TuiDialogContext, TuiTextfield } from '@taiga-ui/core';
+import { TuiButton, TuiDialogContext } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
+import { Canvas, FabricImage, IText } from 'fabric';
 
 @Component({
   selector: 'app-image-editor-dialog',
@@ -18,84 +22,106 @@ import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
     FormsModule,
     ImageCropperComponent,
     TuiButton,
-    TuiTextfield,
   ],
   template: `
     <div class="flex flex-col h-full gap-4" style="max-height: 80vh">
-      <div class="relative grow min-h-0 bg-black rounded-lg overflow-hidden flex items-center justify-center">
-        <image-cropper
-          [imageFile]="file"
-          [maintainAspectRatio]="true"
-          [aspectRatio]="aspectRatio()"
-          [resizeToWidth]="1920"
-          format="jpeg"
-          (imageCropped)="imageCropped($event)"
-          class="max-h-full w-full"
-        ></image-cropper>
-      </div>
 
-      <div class="grid gap-4">
-        <!-- Aspect Ratio Controls -->
-        <div class="flex justify-center gap-2">
-          <button
-            tuiButton
-            size="s"
-            [appearance]="aspectRatio() === 1 ? 'primary' : 'secondary'"
-            (click)="setRatio(1)"
-          >
-            1:1
-          </button>
-          <button
-            tuiButton
-            size="s"
-            [appearance]="aspectRatio() === 0.8 ? 'primary' : 'secondary'"
-            (click)="setRatio(0.8)"
-          >
-            4:5
-          </button>
-          <button
-            tuiButton
-            size="s"
-            [appearance]="aspectRatio() === 1.91 ? 'primary' : 'secondary'"
-            (click)="setRatio(1.91)"
-          >
-            1.91:1
-          </button>
+      <!-- STEP 1: CROP -->
+      <ng-container *ngIf="step() === 'crop'">
+        <div class="relative grow min-h-0 bg-black rounded-lg overflow-hidden flex items-center justify-center">
+          <image-cropper
+            [imageFile]="file"
+            [maintainAspectRatio]="true"
+            [aspectRatio]="aspectRatio()"
+            [resizeToWidth]="1920"
+            format="jpeg"
+            (imageCropped)="imageCropped($event)"
+            class="max-h-full w-full"
+          ></image-cropper>
         </div>
 
-        <!-- Text Input -->
-        <tui-textfield iconStart="@tui.type">
-          <input
-            tuiInput
-            [(ngModel)]="text"
-            placeholder="Añadir texto..."
-          />
-        </tui-textfield>
+        <div class="grid gap-4">
+          <!-- Aspect Ratio Controls -->
+          <div class="flex justify-center gap-2">
+            <button
+              tuiButton
+              size="s"
+              [appearance]="aspectRatio() === 1 ? 'primary' : 'secondary'"
+              (click)="setRatio(1)"
+            >
+              1:1
+            </button>
+            <button
+              tuiButton
+              size="s"
+              [appearance]="aspectRatio() === 0.8 ? 'primary' : 'secondary'"
+              (click)="setRatio(0.8)"
+            >
+              4:5
+            </button>
+            <button
+              tuiButton
+              size="s"
+              [appearance]="aspectRatio() === 16/9 ? 'primary' : 'secondary'"
+              (click)="setRatio(16/9)"
+            >
+              16:9
+            </button>
+          </div>
 
-        <!-- Preview (Miniature) if text is present -->
-        <div *ngIf="text()" class="text-center">
-            <p class="text-xs opacity-70 mb-1">Previsualización del texto:</p>
-            <div class="relative inline-block border border-gray-300 rounded overflow-hidden" style="max-height: 100px;">
-                <img [src]="currentPreviewUrl()" class="h-full object-contain" style="max-height: 100px;">
-                <div
-                    class="absolute bottom-1 w-full text-center text-white font-bold pointer-events-none px-1"
-                    style="text-shadow: 1px 1px 2px black, 0 0 1em black;"
-                >
-                    {{ text() }}
-                </div>
-            </div>
+          <!-- Actions -->
+          <div class="flex justify-end gap-2">
+            <button tuiButton appearance="secondary" (click)="cancel()">
+              Cancelar
+            </button>
+            <button tuiButton (click)="goToText()">
+              Siguiente
+            </button>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- STEP 2: TEXT -->
+      <ng-container *ngIf="step() === 'text'">
+        <div class="relative grow min-h-0 bg-neutral-100 rounded-lg overflow-hidden flex items-center justify-center border border-gray-200">
+          <canvas #fabricCanvas></canvas>
         </div>
 
-        <!-- Actions -->
-        <div class="flex justify-end gap-2">
-          <button tuiButton appearance="secondary" (click)="cancel()">
-            Cancelar
-          </button>
-          <button tuiButton (click)="save()">
-            Guardar
-          </button>
+        <div class="grid gap-4">
+           <div class="flex justify-center gap-2">
+             <button
+               tuiButton
+               size="m"
+               appearance="secondary"
+               iconStart="@tui.type"
+               (click)="addText()"
+             >
+               Añadir Texto
+             </button>
+             <button
+                tuiButton
+                size="m"
+                appearance="negative"
+                iconStart="@tui.trash"
+                (click)="deleteSelected()"
+                [disabled]="!hasSelection()"
+             >
+                Borrar
+             </button>
+           </div>
+
+           <!-- Actions -->
+           <div class="flex justify-end gap-2">
+            <button tuiButton appearance="secondary" (click)="step.set('crop')">
+              Atrás
+            </button>
+            <button tuiButton (click)="save()">
+              Guardar
+            </button>
+           </div>
         </div>
-      </div>
+      </ng-container>
+
     </div>
   `,
   styles: [
@@ -113,102 +139,165 @@ export class ImageEditorDialogComponent {
   private readonly context = injectContext<TuiDialogContext<File | null, File>>();
 
   protected readonly file = this.context.data;
-  protected readonly aspectRatio = signal(1); // Default 1:1
-  protected readonly text = signal('');
-  protected readonly currentPreviewUrl = signal<string | null>(null);
+  protected readonly step = signal<'crop' | 'text'>('crop');
 
-  private croppedBlob: Blob | null | undefined = null;
+  // Crop Step
+  protected readonly aspectRatio = signal(1); // Default 1:1
+  private currentCroppedEvent: ImageCroppedEvent | null = null;
+
+  // Text Step
+  @ViewChild('fabricCanvas') fabricCanvasEl?: ElementRef<HTMLCanvasElement>;
+  private canvas?: Canvas;
+  protected readonly hasSelection = signal(false);
+
+  constructor() {
+    effect(() => {
+      if (this.step() === 'text' && this.currentCroppedEvent?.objectUrl) {
+        // Wait for view to init (effect runs usually after render, but setTimeout ensures element is in DOM)
+        setTimeout(() => {
+            this.initFabric(this.currentCroppedEvent!.objectUrl!);
+        }, 50);
+      }
+    });
+  }
+
+  // --- CROP LOGIC ---
 
   setRatio(ratio: number) {
     this.aspectRatio.set(ratio);
   }
 
   imageCropped(event: ImageCroppedEvent) {
-    this.croppedBlob = event.blob;
-    if (event.objectUrl) {
-        this.currentPreviewUrl.set(event.objectUrl);
+    this.currentCroppedEvent = event;
+  }
+
+  goToText() {
+    if (this.currentCroppedEvent) {
+      this.step.set('text');
     }
   }
 
-  async save() {
-    if (!this.croppedBlob) {
-      this.cancel();
-      return;
+  // --- TEXT LOGIC ---
+
+  private async initFabric(imageUrl: string) {
+    if (!this.fabricCanvasEl) return;
+
+    // Dispose previous if any
+    if (this.canvas) {
+        this.canvas.dispose();
     }
 
-    const finalBlob = await this.processImage(this.croppedBlob, this.text());
+    // Determine dimensions
+    // We want to fit the canvas in the view (max width e.g. 500px)
+    const maxWidth = 500;
+    const maxHeight = 500; // soft limit
 
-    // Convert Blob to File
-    const finalFile = new File([finalBlob], this.file.name, {
-      type: 'image/jpeg',
-      lastModified: Date.now(),
+    const img = await FabricImage.fromURL(imageUrl);
+
+    // Calculate scale to fit maxWidth
+    let displayWidth = img.width || 1000;
+    let displayHeight = img.height || 1000;
+    const aspect = displayWidth / displayHeight;
+
+    if (displayWidth > maxWidth) {
+        displayWidth = maxWidth;
+        displayHeight = displayWidth / aspect;
+    }
+
+    // Create canvas
+    this.canvas = new Canvas(this.fabricCanvasEl.nativeElement, {
+        width: displayWidth,
+        height: displayHeight,
+        selection: false, // disable group selection dragging for cleaner mobile UX? Or keep it.
     });
 
-    this.context.completeWith(finalFile);
+    // Set Background
+    img.scaleToWidth(displayWidth);
+    this.canvas.backgroundImage = img;
+    this.canvas.renderAll();
+
+    // Event listeners
+    this.canvas.on('selection:created', () => this.hasSelection.set(true));
+    this.canvas.on('selection:updated', () => this.hasSelection.set(true));
+    this.canvas.on('selection:cleared', () => this.hasSelection.set(false));
+  }
+
+  addText() {
+    if (!this.canvas) return;
+
+    const text = new IText('Texto', {
+        left: this.canvas.width / 2,
+        top: this.canvas.height / 2,
+        originX: 'center',
+        originY: 'center',
+        fontFamily: 'sans-serif',
+        fontSize: this.canvas.width / 15, // Responsive font size
+        fill: '#ffffff',
+        stroke: '#000000',
+        strokeWidth: 1, // Will be scaled up on export
+        fontWeight: 'bold',
+        cornerColor: 'white',
+        cornerStrokeColor: 'black',
+        transparentCorners: false,
+    });
+
+    this.canvas.add(text);
+    this.canvas.setActiveObject(text);
+  }
+
+  deleteSelected() {
+    if (!this.canvas) return;
+    const active = this.canvas.getActiveObject();
+    if (active) {
+        this.canvas.remove(active);
+        this.canvas.discardActiveObject();
+        this.canvas.requestRenderAll();
+    }
+  }
+
+  // --- SAVE ---
+
+  save() {
+    if (this.step() === 'crop') {
+        // If they click save in crop step (shouldn't happen with current template, but safety)
+        this.goToText();
+        // Wait? No, save happens in text step
+        return;
+    }
+
+    if (!this.canvas || !this.currentCroppedEvent) {
+        this.cancel();
+        return;
+    }
+
+    // Export logic
+    // We are working on a scaled down canvas (e.g. 500px width).
+    // The original cropped image was likely 1920px (resizeToWidth=1920).
+    // We need to export at the original resolution.
+
+    const originalWidth = this.currentCroppedEvent.width;
+    const canvasWidth = this.canvas.width;
+    const multiplier = originalWidth / canvasWidth;
+
+    const dataUrl = this.canvas.toDataURL({
+        format: 'jpeg',
+        quality: 0.85,
+        multiplier: multiplier
+    });
+
+    // Convert DataURL to File
+    fetch(dataUrl)
+        .then(res => res.blob())
+        .then(blob => {
+            const finalFile = new File([blob], this.file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+            });
+            this.context.completeWith(finalFile);
+        });
   }
 
   cancel() {
     this.context.completeWith(null);
-  }
-
-  private processImage(blob: Blob, text: string): Promise<Blob> {
-    return new Promise((resolve, reject) => {
-      if (!text) {
-        resolve(blob);
-        return;
-      }
-
-      const img = new Image();
-      const url = URL.createObjectURL(blob);
-
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          URL.revokeObjectURL(url);
-          resolve(blob);
-          return;
-        }
-
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        // Draw image
-        ctx.drawImage(img, 0, 0);
-
-        // Draw text
-        const fontSize = Math.max(24, Math.floor(canvas.width / 20)); // Responsive font size
-        ctx.font = `bold ${fontSize}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        ctx.fillStyle = 'white';
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = Math.max(2, fontSize / 10);
-
-        const x = canvas.width / 2;
-        const y = canvas.height - (fontSize * 1.5); // Bottom margin
-
-        ctx.strokeText(text, x, y);
-        ctx.fillText(text, x, y);
-
-        // Export
-        canvas.toBlob(
-          (result) => {
-            URL.revokeObjectURL(url);
-            if (result) resolve(result);
-            else resolve(blob);
-          },
-          'image/jpeg',
-          0.85
-        );
-      };
-
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        resolve(blob);
-      };
-
-      img.src = url;
-    });
   }
 }
