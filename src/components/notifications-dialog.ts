@@ -62,8 +62,12 @@ import { ChatDialogComponent } from './chat-dialog';
         <div class="flex flex-col">
           @for (notif of notifications(); track notif.id) {
             <button
-              class="flex gap-3 p-4 border-b border-[var(--tui-border-normal)] last:border-0 text-left hover:bg-[var(--tui-background-neutral-1)] transition-colors w-full"
-              [class.bg-[var(--tui-background-accent-subtle)]]="!notif.read_at"
+              class="relative flex gap-3 p-4 border-b border-[var(--tui-border-normal)] last:border-0 text-left transition-colors w-full"
+              [class]="
+                !notif.read_at
+                  ? 'bg-[var(--tui-background-accent-2)] text-[var(--tui-text-primary-on-accent-1)] hover:bg-[var(--tui-background-accent-2-hover)] hover:opacity-90'
+                  : 'hover:bg-[var(--tui-background-neutral-1)]'
+              "
               (click)="onNotificationClick(notif)"
             >
               <tui-avatar
@@ -80,7 +84,10 @@ import { ChatDialogComponent } from './chat-dialog';
                     <span class="font-bold">{{ notif.actor.name }}</span>
                     {{ getNotificationText(notif) | translate }}
                   </span>
-                  <span class="text-[10px] opacity-50 whitespace-nowrap pt-0.5">
+                  <span
+                    class="text-[10px] opacity-50 whitespace-nowrap pt-0.5"
+                    [class.opacity-80]="!notif.read_at"
+                  >
                     {{ notif.created_at | date: 'd/M/yy, HH:mm' }}
                   </span>
                 </div>

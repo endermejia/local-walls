@@ -246,7 +246,7 @@ interface Country {
             <tui-avatar size="l" [src]="user.avatar" />
           }
 
-          @let items = eightAnuResults$ | async;
+          @let items = eightAnuResults();
           <tui-textfield
             class="w-full"
             [tuiTextfieldCleaner]="true"
@@ -574,17 +574,21 @@ export class UserProfileConfigComponent {
 
   protected readonly eightAnuShowLoader = signal(false);
   protected readonly eightAnuSearch$ = new Subject<string>();
-  protected readonly eightAnuResults$ = this.eightAnuSearch$.pipe(
-    debounceTime(0),
-    filter(() => !this.selectedEightAnuUser.value()),
-    tap(() => this.eightAnuShowLoader.set(true)),
-    debounceTime(300),
-    switchMap((query) =>
-      query.length >= 3
-        ? this.eightAnuService.searchUsers(query).pipe(map((res) => res.items))
-        : of([]),
+  protected readonly eightAnuResults = toSignal(
+    this.eightAnuSearch$.pipe(
+      debounceTime(0),
+      filter(() => !this.selectedEightAnuUser.value()),
+      tap(() => this.eightAnuShowLoader.set(true)),
+      debounceTime(300),
+      switchMap((query) =>
+        query.length >= 3
+          ? this.eightAnuService
+              .searchUsers(query)
+              .pipe(map((res) => res.items))
+          : of([]),
+      ),
+      tap(() => this.eightAnuShowLoader.set(false)),
     ),
-    tap(() => this.eightAnuShowLoader.set(false)),
   );
 
   readonly selectedEightAnuUser = resource<EightAnuUser | null, string | null>({

@@ -1,4 +1,4 @@
-import { AsyncPipe, CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,6 +6,8 @@ import {
   inject,
   OnDestroy,
   PLATFORM_ID,
+  resource,
+  computed,
   signal,
   ViewChild,
 } from '@angular/core';
@@ -24,17 +26,7 @@ import { TuiBadgedContent, TuiBadgeNotification } from '@taiga-ui/kit';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import {
-  concatMap,
-  from,
-  Observable,
-  scan,
-  shareReplay,
-  startWith,
-  firstValueFrom,
-  Subject,
-  tap,
-} from 'rxjs';
+import { concatMap, firstValueFrom, scan, startWith, Subject, tap } from 'rxjs';
 
 import {
   GradeLabel,
@@ -57,7 +49,6 @@ import { NotificationsDialogComponent } from '../components/notifications-dialog
   selector: 'app-home',
   imports: [
     AscentsFeedComponent,
-    AsyncPipe,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
@@ -124,7 +115,7 @@ import { NotificationsDialogComponent } from '../components/notifications-dialog
 
         <div class="px-4 flex flex-col gap-4">
           <!-- Active Crags -->
-          @if (activeCrags$ | async; as crags) {
+          @if (activeCrags(); as crags) {
             @if (crags.length > 0) {
               <div class="flex flex-col gap-2 mt-2">
                 <span class="text-xs font-bold opacity-60 uppercase px-1">
@@ -150,7 +141,7 @@ import { NotificationsDialogComponent } from '../components/notifications-dialog
           }
 
           <!-- Ascents Feed -->
-          @if (ascents$ | async; as ascents) {
+          @if (ascents(); as ascents) {
             <app-ascents-feed
               [ascents]="ascents"
               [isLoading]="isLoading()"
@@ -194,8 +185,12 @@ export class HomeComponent implements OnDestroy {
     VERTICAL_LIFE_TO_LABEL;
   protected readonly followedIds = signal<Set<string>>(new Set());
 
-  protected readonly activeCrags$ = from(this.fetchActiveCrags()).pipe(
-    shareReplay(1),
+  protected readonly activeCragsResource = resource({
+    loader: () => this.fetchActiveCrags(),
+  });
+
+  protected readonly activeCrags = computed(
+    () => this.activeCragsResource.value() ?? [],
   );
 
   constructor() {
@@ -204,6 +199,17 @@ export class HomeComponent implements OnDestroy {
     this.scrollService.scrollToTop$.pipe(takeUntilDestroyed()).subscribe(() => {
       this.scrollToTop();
     });
+
+    this.page$
+      .pipe(
+        takeUntilDestroyed(),
+        tap(() => this.isLoading.set(true)),
+        concatMap((page) => this.fetchAscents(page)),
+        tap(() => this.isLoading.set(false)), // Note: Ensure this runs even on error if needed, but for now simple
+      )
+      .subscribe((newAscents) => {
+        this.ascents.update((current) => [...current, ...newAscents]);
+      });
   }
 
   private async loadFollowedIds() {
@@ -265,20 +271,12 @@ export class HomeComponent implements OnDestroy {
   private readonly loadMore$ = new Subject<void>();
   protected readonly isLoading = signal(false);
   protected readonly hasMore = signal(true);
+  protected readonly ascents = signal<RouteAscentWithExtras[]>([]);
 
   private readonly page$ = this.loadMore$.pipe(
     startWith(void 0),
     scan((acc) => acc + 1, -1),
   );
-
-  protected readonly ascents$: Observable<RouteAscentWithExtras[]> =
-    this.page$.pipe(
-      tap(() => this.isLoading.set(true)),
-      concatMap((page) => this.fetchAscents(page)),
-      scan((acc, curr) => [...acc, ...curr], [] as RouteAscentWithExtras[]),
-      tap(() => this.isLoading.set(false)),
-      shareReplay(1),
-    );
 
   private async fetchAscents(page: number): Promise<RouteAscentWithExtras[]> {
     if (!this.isBrowser) return [];

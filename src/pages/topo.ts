@@ -8,6 +8,7 @@ import {
   input,
   InputSignal,
   PLATFORM_ID,
+  resource,
   signal,
   Signal,
 } from '@angular/core';
@@ -55,6 +56,7 @@ import {
   AscentsService,
   GlobalData,
   RoutesService,
+  SupabaseService,
   ToastService,
   ToposService,
 } from '../services';
@@ -82,13 +84,11 @@ export interface TopoRouteRow {
 @Component({
   selector: 'app-topo',
   imports: [
-    AsyncPipe,
     AvatarGradeComponent,
     EmptyStateComponent,
     FormsModule,
     RouterLink,
     SectionHeaderComponent,
-    TopoImagePipe,
     TranslatePipe,
     TuiAvatar,
     TuiButton,
@@ -209,8 +209,7 @@ export interface TopoRouteRow {
             class="flex flex-col md:flex-row w-full h-full gap-4 overflow-hidden"
           >
             <!-- Topo image container -->
-            @let imageUrl = topoImageUrl();
-            @let topoImage = imageUrl | topoImage | async;
+            @let topoImage = topoImageResource.value();
             <div
               (tuiSwipe)="onSwipe($event)"
               [style.height]="isMobile ? '50%' : '100%'"
@@ -539,6 +538,7 @@ export interface TopoRouteRow {
 })
 export class TopoComponent {
   protected readonly global = inject(GlobalData);
+  private readonly supabase = inject(SupabaseService);
   protected readonly ascentsService = inject(AscentsService);
   private readonly toposService = inject(ToposService);
   protected readonly routesService = inject(RoutesService);
@@ -651,10 +651,23 @@ export class TopoComponent {
     return [...topos].sort((a, b) => a.name.localeCompare(b.name));
   });
 
-  protected readonly topoImageUrl = computed(() => {
-    const t = this.topo();
-    if (!t) return null;
-    return { path: t.photo, version: this.global.topoPhotoVersion() };
+  protected readonly topoImageResource = resource({
+    params: () => {
+      const t = this.topo();
+      if (!t?.photo) return null;
+      return { path: t.photo, version: this.global.topoPhotoVersion() };
+    },
+    loader: async ({ params }) => {
+      if (!params) return null;
+      const signedUrl = await this.supabase.getTopoSignedUrl(params.path);
+      if (!signedUrl) return '';
+
+      const url = new URL(signedUrl);
+      if (params.version) {
+        url.searchParams.set('v', params.version.toString());
+      }
+      return url.toString();
+    },
   });
 
   protected readonly currentTopoIndex = computed(() => {

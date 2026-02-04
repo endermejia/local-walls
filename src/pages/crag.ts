@@ -872,14 +872,37 @@ export class CragComponent {
     });
   }
 
-  viewOnMap(lat: number, lng: number): void {
-    const zoom = 13;
+  async viewOnMap(lat: number, lng: number): Promise<void> {
+    const area = this.global.selectedArea();
+    let minLat = lat;
+    let maxLat = lat;
+    let minLng = lng;
+    let maxLng = lng;
+
+    if (area) {
+      await this.supabase.whenReady();
+      const { data } = await this.supabase.client
+        .from('crags')
+        .select('latitude, longitude')
+        .eq('area_id', area.id)
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null);
+
+      if (data) {
+        data.forEach((c) => {
+          if (c.latitude! < minLat) minLat = c.latitude!;
+          if (c.latitude! > maxLat) maxLat = c.latitude!;
+          if (c.longitude! < minLng) minLng = c.longitude!;
+          if (c.longitude! > maxLng) maxLng = c.longitude!;
+        });
+      }
+    }
+
     this.global.mapBounds.set({
-      south_west_latitude: lat,
-      south_west_longitude: lng,
-      north_east_latitude: lat,
-      north_east_longitude: lng,
-      zoom,
+      south_west_latitude: minLat,
+      south_west_longitude: minLng,
+      north_east_latitude: maxLat,
+      north_east_longitude: maxLng,
     });
     void this.router.navigateByUrl('/explore');
   }

@@ -18,13 +18,11 @@ import {
 import { TuiCell, TuiInputSearch } from '@taiga-ui/layout';
 
 import { TranslatePipe } from '@ngx-translate/core';
-import { AsyncPipe } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   debounceTime,
   distinctUntilChanged,
   map,
-  Observable,
-  shareReplay,
   startWith,
   switchMap,
 } from 'rxjs';
@@ -40,7 +38,6 @@ import { TuiAutoFocus } from '@taiga-ui/cdk';
       'z-[100] relative xl:absolute md:w-20 md:h-full md:flex md:items-center',
   },
   imports: [
-    AsyncPipe,
     ReactiveFormsModule,
     RouterLink,
     RouterLinkActive,
@@ -137,7 +134,9 @@ import { TuiAutoFocus } from '@taiga-ui/cdk';
           </span>
         </a>
 
-        @let showConfig = global.isAdmin() || global.equipperAreas().length;
+        @let showConfig =
+          global.isAdmin() ||
+          (global.isEquipper() && global.equipperAreas().length);
         @if (showConfig) {
           <!-- Configuration -->
           <a
@@ -192,7 +191,7 @@ import { TuiAutoFocus } from '@taiga-ui/cdk';
                 [placeholder]="'labels.searchPlaceholder' | translate"
               />
               <ng-template #search>
-                <tui-search-results [results]="results$ | async">
+                <tui-search-results [results]="results()">
                   <ng-template let-item>
                     <a
                       tuiCell
@@ -263,15 +262,16 @@ export class NavbarComponent {
   protected readonly control = new FormControl('');
   protected searchOpen = false;
 
-  protected readonly results$: Observable<SearchData | null> =
+  protected readonly results = toSignal(
     this.control.valueChanges.pipe(
       map((v) => (v ?? '').trim()),
       debounceTime(300),
       distinctUntilChanged(),
       switchMap((query) => this.searchService.search(query)),
       startWith(null),
-      shareReplay(1),
-    );
+    ),
+    { initialValue: null },
+  );
 
   protected onResultClick(): void {
     this.searchOpen = false;

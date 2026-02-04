@@ -109,7 +109,7 @@ export interface ChatDialogData {
           class="grow min-h-0"
           (scroll)="onScroll($event)"
         >
-          <div class="flex flex-col gap-4 p-4">
+          <div class="flex flex-col gap-2 p-4">
             @if (hasMore() && !loadingMessages()) {
               <div class="flex justify-center">
                 <button
@@ -133,7 +133,7 @@ export interface ChatDialogData {
               @let isMe = msg.sender_id === supabase.authUserId();
               <div class="flex" [class.justify-end]="isMe">
                 <div
-                  [appearance]="isMe ? 'accent' : ''"
+                  [appearance]="isMe ? 'accent' : 'secondary-grayscale'"
                   tuiMessage
                   class="max-w-[85%]"
                 >
@@ -145,14 +145,10 @@ export interface ChatDialogData {
                   >
                     {{ msg.created_at | date: 'HH:mm' }}
                     @if (isMe) {
-                      @if (msg.read_at) {
-                        <tui-icon
-                          icon="@tui.check-check"
-                          class="!w-3 !h-3 text-blue-400"
-                        />
-                      } @else {
-                        <tui-icon icon="@tui.check" class="!w-3 !h-3" />
-                      }
+                      <tui-icon
+                        [icon]="msg.read_at ? '@tui.check-check' : '@tui.check'"
+                        class="!w-3 !h-3"
+                      />
                     }
                   </div>
                 </div>

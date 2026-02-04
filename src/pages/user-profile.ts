@@ -146,8 +146,7 @@ import {
                 class="flex items-center gap-2"
                 [tuiSkeleton]="loading ? 'country, city' : false"
               >
-                {{ (countriesNames$ | async)?.[country]
-                }}{{ city ? ', ' + city : '' }}
+                {{ countriesNames()?.[country] }}{{ city ? ', ' + city : '' }}
               </span>
               @if (profileAge(); as age) {
                 |
@@ -510,7 +509,8 @@ export class UserProfileComponent {
   protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
-  protected readonly countriesNames$ = inject(TUI_COUNTRIES);
+  private readonly countriesNames$ = inject(TUI_COUNTRIES);
+  protected readonly countriesNames = toSignal(this.countriesNames$);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
   private readonly followsService = inject(FollowsService);

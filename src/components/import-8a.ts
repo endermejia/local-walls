@@ -5,6 +5,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormsModule,
@@ -328,7 +329,7 @@ export class Import8aComponent {
   );
 
   constructor() {
-    this.loadedFiles$.subscribe();
+    this.loadedFiles$.pipe(takeUntilDestroyed()).subscribe();
   }
 
   protected removeFile(): void {
