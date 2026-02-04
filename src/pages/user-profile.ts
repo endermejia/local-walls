@@ -49,6 +49,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, startWith } from 'rxjs';
 
 import {
+  BlockingService,
   FiltersService,
   FollowsService,
   GlobalData,
@@ -229,6 +230,18 @@ import {
               (click)="openChat()"
             >
               {{ 'actions.sendMessage' | translate }}
+            </button>
+
+            <button
+              tuiButton
+              type="button"
+              [appearance]="isBlocked() ? 'secondary' : 'secondary-destructive'"
+              size="m"
+              iconStart="@tui.ban"
+              [tuiSkeleton]="loading"
+              (click)="toggleBlock()"
+            >
+              {{ (isBlocked() ? 'actions.unblock' : 'actions.block') | translate }}
             </button>
           </div>
         }
@@ -515,6 +528,7 @@ export class UserProfileComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
   private readonly followsService = inject(FollowsService);
+  private readonly blockingService = inject(BlockingService);
   private readonly userProfilesService = inject(UserProfilesService);
   private readonly filtersService = inject(FiltersService);
 
@@ -959,6 +973,18 @@ export class UserProfileComponent {
   });
   readonly isFollowing = computed(() => !!this.isFollowingResource.value());
 
+  readonly isBlockedResource = resource({
+    params: () => ({
+      userId: this.profile()?.id,
+      change: this.blockingService.blockChange(),
+    }),
+    loader: async ({ params }) => {
+      if (!params.userId || !isPlatformBrowser(this.platformId)) return false;
+      return this.blockingService.isBlocked(params.userId);
+    },
+  });
+  readonly isBlocked = computed(() => !!this.isBlockedResource.value());
+
   readonly profileAvatarSrc = computed(() =>
     this.supabase.buildAvatarUrl(this.profile()?.avatar),
   );
@@ -1032,6 +1058,38 @@ export class UserProfileComponent {
       await this.followsService.unfollow(followedUserId);
     } else {
       await this.followsService.follow(followedUserId);
+    }
+  }
+
+  async toggleBlock(): Promise<void> {
+    const profile = this.profile();
+    const userId = profile?.id;
+    if (!userId || this.isOwnProfile()) return;
+
+    if (this.isBlocked()) {
+      await this.blockingService.unblock(userId);
+    } else {
+      const data: TuiConfirmData = {
+        content: this.translate.instant('actions.blockConfirm', {
+          name: profile.name,
+        }),
+        yes: this.translate.instant('actions.block'),
+        no: this.translate.instant('actions.cancel'),
+        appearance: 'negative',
+      };
+      const confirmed = await firstValueFrom(
+        this.dialogs.open<boolean>(TUI_CONFIRM, {
+          label: this.translate.instant('actions.block'),
+          size: 's',
+          data,
+        }),
+        { defaultValue: false },
+      );
+      if (!confirmed) return;
+      await this.blockingService.block(userId);
+      if (this.isFollowing()) {
+        await this.followsService.unfollow(userId);
+      }
     }
   }
 
