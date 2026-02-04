@@ -4,15 +4,20 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Meta, Title } from '@angular/platform-browser';
 import { Router, RouterOutlet } from '@angular/router';
 
-import { TuiButton, TuiRoot } from '@taiga-ui/core';
+import { TuiAppearance, TuiButton, TuiRoot } from '@taiga-ui/core';
 import { TuiBlockStatus } from '@taiga-ui/layout';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TuiBadgedContent, TuiBadgeNotification } from '@taiga-ui/kit';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { map, merge, startWith } from 'rxjs';
+import { firstValueFrom, map, merge, startWith } from 'rxjs';
 
 import { GlobalData, LocalStorage } from '../services';
 
 import { NavbarComponent } from '../components/navbar';
+import { ChatDialogComponent } from '../components/chat-dialog';
+import { NotificationsDialogComponent } from '../components/notifications-dialog';
 
 @Component({
   selector: 'app-root',
@@ -24,6 +29,9 @@ import { NavbarComponent } from '../components/navbar';
     TuiBlockStatus,
     TuiButton,
     TuiRoot,
+    TuiBadgedContent,
+    TuiBadgeNotification,
+    TuiAppearance,
   ],
   template: `
     <tui-root class="overflow-hidden" [attr.tuiTheme]="global.selectedTheme()">
@@ -34,6 +42,65 @@ import { NavbarComponent } from '../components/navbar';
           }
           <div class="flex-1 overflow-hidden relative flex flex-col">
             <router-outlet />
+
+            @if (showHeader()) {
+              <div
+                class="absolute bottom-4 right-4 flex flex-col items-end gap-2 z-50"
+              >
+                <tui-badged-content [style.--tui-radius.%]="50">
+                  @if (global.unreadMessagesCount(); as unreadMessages) {
+                    <tui-badge-notification
+                      tuiAppearance="accent"
+                      size="s"
+                      tuiSlot="top"
+                    >
+                      {{ unreadMessages }}
+                    </tui-badge-notification>
+                  }
+                  <button
+                    tuiButton
+                    type="button"
+                    appearance="secondary-grayscale"
+                    size="m"
+                    class="!rounded-full aspect-square md:aspect-auto md:!px-4 flex items-center justify-center !bg-[var(--tui-background-base)] hover:!bg-[var(--tui-background-base-alt)] shadow-md"
+                    iconStart="@tui.messages-square"
+                    (click)="openChat()"
+                  >
+                    <span class="hidden md:block">{{
+                      'labels.messages' | translate
+                    }}</span>
+                  </button>
+                </tui-badged-content>
+
+                <tui-badged-content [style.--tui-radius.%]="50">
+                  @if (
+                    global.unreadNotificationsCount();
+                    as unreadNotifications
+                  ) {
+                    <tui-badge-notification
+                      tuiAppearance="accent"
+                      size="s"
+                      tuiSlot="top"
+                    >
+                      {{ unreadNotifications }}
+                    </tui-badge-notification>
+                  }
+                  <button
+                    tuiButton
+                    type="button"
+                    appearance="secondary-grayscale"
+                    size="m"
+                    class="!rounded-full aspect-square md:aspect-auto md:!px-4 flex items-center justify-center !bg-[var(--tui-background-base)] hover:!bg-[var(--tui-background-base-alt)] shadow-md"
+                    iconStart="@tui.bell"
+                    (click)="openNotifications()"
+                  >
+                    <span class="hidden md:block">{{
+                      'labels.notifications' | translate
+                    }}</span>
+                  </button>
+                </tui-badged-content>
+              </div>
+            }
           </div>
         </div>
       } @else {
@@ -90,6 +157,7 @@ export class AppComponent {
   private meta = inject(Meta);
   private translate = inject(TranslateService);
   private storage = inject(LocalStorage);
+  private readonly dialogs = inject(TuiDialogService);
 
   private readonly gdprKey = 'lw_gdpr_accepted';
   protected gdprAccepted = signal(
@@ -134,6 +202,29 @@ export class AppComponent {
   protected acceptGdpr(): void {
     this.storage.setItem(this.gdprKey, 'true');
     this.gdprAccepted.set(true);
+  }
+
+  openChat() {
+    void firstValueFrom(
+      this.dialogs.open(new PolymorpheusComponent(ChatDialogComponent), {
+        label: this.translate.instant('labels.messages'),
+        size: 'm',
+      }),
+      { defaultValue: undefined },
+    );
+  }
+
+  openNotifications() {
+    void firstValueFrom(
+      this.dialogs.open(
+        new PolymorpheusComponent(NotificationsDialogComponent),
+        {
+          label: this.translate.instant('labels.notifications'),
+          size: 'm',
+        },
+      ),
+      { defaultValue: undefined },
+    );
   }
 
   private updateSeoTags() {

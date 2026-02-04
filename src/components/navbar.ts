@@ -9,12 +9,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { TuiAppearance, TuiIcon, TuiTextfield, TuiTitle } from '@taiga-ui/core';
 import { TuiSearchHotkey, TuiSearchResults } from '@taiga-ui/experimental';
-import {
-  TuiAvatar,
-  TuiBadgedContent,
-  TuiBadgeNotification,
-  TuiSkeleton,
-} from '@taiga-ui/kit';
+import { TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
 import { TuiCell, TuiInputSearch } from '@taiga-ui/layout';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -44,8 +39,6 @@ import { TuiAutoFocus } from '@taiga-ui/cdk';
     TranslatePipe,
     TuiAppearance,
     TuiAvatar,
-    TuiBadgedContent,
-    TuiBadgeNotification,
     TuiIcon,
     TuiInputSearch,
     TuiSearchHotkey,
@@ -65,38 +58,25 @@ import { TuiAutoFocus } from '@taiga-ui/cdk';
         class="flex md:flex-col w-full h-full p-2 md:p-4 justify-around md:justify-start gap-2 md:gap-4"
       >
         <!-- Home -->
-        <tui-badged-content
-          class="w-auto md:!w-full"
-          [style.--tui-radius.%]="80"
+        <!-- Home -->
+        <a
+          #home="routerLinkActive"
+          routerLink="/home"
+          routerLinkActive
+          [tuiAppearance]="
+            home.isActive ? 'flat-destructive' : 'flat-grayscale'
+          "
+          class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
+          (click)="scrollToTop($event)"
         >
-          <a
-            #home="routerLinkActive"
-            routerLink="/home"
-            routerLinkActive
-            [tuiAppearance]="
-              home.isActive ? 'flat-destructive' : 'flat-grayscale'
-            "
-            class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
-            (click)="scrollToTop($event)"
-          >
-            <tui-icon icon="@tui.home" />
+          <tui-icon icon="@tui.home" />
 
-            <span
-              class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
-            >
-              {{ 'nav.home' | translate }}
-            </span>
-          </a>
-          @let totalUnread =
-            global.unreadMessagesCount() + global.unreadNotificationsCount();
-          @if (totalUnread > 0) {
-            <tui-badge-notification
-              tuiAppearance="accent"
-              size="xs"
-              tuiSlot="top"
-            />
-          }
-        </tui-badged-content>
+          <span
+            class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+          >
+            {{ 'nav.home' | translate }}
+          </span>
+        </a>
 
         <!-- Explore -->
         <a

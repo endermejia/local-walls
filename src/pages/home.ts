@@ -15,18 +15,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
-import {
-  TuiAppearance,
-  TuiButton,
-  TuiLoader,
-  TuiScrollbar,
-} from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/experimental';
-import { TuiBadgedContent, TuiBadgeNotification } from '@taiga-ui/kit';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TuiAppearance, TuiLoader, TuiScrollbar } from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { concatMap, firstValueFrom, scan, startWith, Subject, tap } from 'rxjs';
+import { concatMap, scan, startWith, Subject, tap } from 'rxjs';
 
 import {
   GradeLabel,
@@ -42,8 +34,6 @@ import {
 } from '../services';
 
 import { AscentsFeedComponent } from '../components/ascents-feed';
-import { ChatDialogComponent } from '../components/chat-dialog';
-import { NotificationsDialogComponent } from '../components/notifications-dialog';
 
 @Component({
   selector: 'app-home',
@@ -55,64 +45,12 @@ import { NotificationsDialogComponent } from '../components/notifications-dialog
     RouterLink,
     TranslatePipe,
     TuiAppearance,
-    TuiButton,
     TuiLoader,
     TuiScrollbar,
-    TuiBadgedContent,
-    TuiBadgeNotification,
   ],
   template: `
     <tui-scrollbar class="h-full">
-      <div class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32">
-        <header class="flex justify-between items-center p-4 pb-0 w-full">
-          <h1 class="text-2xl font-bold">LocalWalls</h1>
-          <div class="flex gap-2">
-            <tui-badged-content [style.--tui-radius.%]="80">
-              @if (global.unreadMessagesCount() > 0) {
-                <tui-badge-notification
-                  tuiAppearance="accent"
-                  size="s"
-                  tuiSlot="top"
-                >
-                  {{ global.unreadMessagesCount() }}
-                </tui-badge-notification>
-              }
-              <button
-                tuiIconButton
-                type="button"
-                appearance="flat-grayscale"
-                size="m"
-                iconStart="@tui.messages-square"
-                (click)="openChat()"
-              >
-                {{ 'labels.messages' | translate }}
-              </button>
-            </tui-badged-content>
-
-            <tui-badged-content [style.--tui-radius.%]="80">
-              @if (global.unreadNotificationsCount() > 0) {
-                <tui-badge-notification
-                  tuiAppearance="accent"
-                  size="s"
-                  tuiSlot="top"
-                >
-                  {{ global.unreadNotificationsCount() }}
-                </tui-badge-notification>
-              }
-              <button
-                tuiIconButton
-                type="button"
-                appearance="flat-grayscale"
-                size="m"
-                iconStart="@tui.bell"
-                (click)="openNotifications()"
-              >
-                {{ 'labels.notifications' | translate }}
-              </button>
-            </tui-badged-content>
-          </div>
-        </header>
-
+      <div class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32 pt-4">
         <div class="px-4 flex flex-col gap-4">
           <!-- Active Crags -->
           @if (activeCrags(); as crags) {
@@ -172,8 +110,6 @@ export class HomeComponent implements OnDestroy {
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
   private readonly followsService = inject(FollowsService);
-  private readonly translate = inject(TranslateService);
-  private readonly dialogs = inject(TuiDialogService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly scrollService = inject(ScrollService);
@@ -370,29 +306,6 @@ export class HomeComponent implements OnDestroy {
     if (this.isBrowser && !this.isLoading()) {
       this.loadMore$.next();
     }
-  }
-
-  openChat() {
-    void firstValueFrom(
-      this.dialogs.open(new PolymorpheusComponent(ChatDialogComponent), {
-        label: this.translate.instant('labels.messages'),
-        size: 'm',
-      }),
-      { defaultValue: undefined },
-    );
-  }
-
-  openNotifications() {
-    void firstValueFrom(
-      this.dialogs.open(
-        new PolymorpheusComponent(NotificationsDialogComponent),
-        {
-          label: this.translate.instant('labels.notifications'),
-          size: 'm',
-        },
-      ),
-      { defaultValue: undefined },
-    );
   }
 
   private scrollToTop() {

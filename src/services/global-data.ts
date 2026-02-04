@@ -1411,7 +1411,17 @@ export class GlobalData {
     });
 
     if (isPlatformBrowser(this.platformId)) {
-      void this.browserNotifications.requestPermission();
+      this.browserNotifications.bindUserGesture();
+
+      if (Notification.permission === 'default') {
+        const requestPermission = () => {
+          void this.browserNotifications.requestPermission();
+          window.removeEventListener('click', requestPermission);
+        };
+        window.addEventListener('click', requestPermission);
+      } else {
+        void this.browserNotifications.requestPermission();
+      }
     }
 
     // Refresh unread counts when user changes and setup Realtime
@@ -1422,6 +1432,7 @@ export class GlobalData {
         void this.messagingService.refreshUnreadCount();
 
         const nSub = this.notificationsService.watchNotifications((notif) => {
+          console.log('[GlobalData] Notification received:', notif);
           void this.notificationsService.refreshUnreadCount();
 
           // Browser notification for general notifications
@@ -1442,13 +1453,28 @@ export class GlobalData {
                     break;
                 }
                 if (body) {
+                  console.log(
+                    '[GlobalData] Showing browser notification:',
+                    title,
+                    body,
+                  );
                   this.browserNotifications.show(title, { body });
+                  if (typeof document !== 'undefined' && document.hidden) {
+                    this.browserNotifications.playSound();
+                    this.browserNotifications.flashTitle(title);
+                  }
+                } else {
+                  console.warn(
+                    '[GlobalData] Unknown notification type or missing body:',
+                    notif.type,
+                  );
                 }
               });
           }
         });
 
         const mSub = this.messagingService.watchUnreadCount((msg) => {
+          console.log('[GlobalData] Message received:', msg);
           void this.messagingService.refreshUnreadCount();
 
           // Only show if not from me
@@ -1456,9 +1482,19 @@ export class GlobalData {
             void this.userProfilesService
               .getUserProfile(msg.sender_id!)
               .then((sender) => {
-                this.browserNotifications.show(sender?.name || 'Chat', {
+                const title = sender?.name || 'Chat';
+                console.log(
+                  '[GlobalData] Showing chat notification:',
+                  title,
+                  msg.text,
+                );
+                this.browserNotifications.show(title, {
                   body: msg.text,
                 });
+                if (typeof document !== 'undefined' && document.hidden) {
+                  this.browserNotifications.playSound();
+                  this.browserNotifications.flashTitle(title);
+                }
               });
           }
         });
