@@ -210,8 +210,11 @@
   },
   "notifications": {
     "likedAscent": "liked your ascent on '{{routeName}}'",
+    "likedAscentPlural": "liked your ascent on '{{routeName}}'",
     "commentedAscent": "commented on your ascent on '{{routeName}}'",
+    "commentedAscentPlural": "commented on your ascent on '{{routeName}}'",
     "sentMessage": "sent you a message",
+    "andOthers": "{{count}} others",
     "unknown": "new notification"
   },
   "filters": {
