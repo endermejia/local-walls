@@ -1063,6 +1063,7 @@ export class UserProfileComponent {
         label: this.translate.instant('labels.messages'),
         size: 'm',
       }),
+      { defaultValue: undefined },
     );
   }
 }

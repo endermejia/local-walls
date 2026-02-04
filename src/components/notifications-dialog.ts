@@ -18,6 +18,7 @@ import { TuiAvatar } from '@taiga-ui/kit';
 import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 
 import { AppNotificationsService, SupabaseService } from '../services';
 import { NotificationWithActor } from '../models';
@@ -153,23 +154,36 @@ export class NotificationsDialogComponent {
 
     if (notif.type === 'like' || notif.type === 'comment') {
       const ascentId = Number(notif.resource_id);
+      console.log(
+        'NotificationsDialog - notif.resource_id:',
+        notif.resource_id,
+      );
+      console.log('NotificationsDialog - ascentId:', ascentId);
       if (!isNaN(ascentId) && ascentId > 0) {
-        this.dialogs
-          .open(new PolymorpheusComponent(AscentDetailDialogComponent), {
-            label: this.translate.instant('labels.ascent'),
-            size: 'm',
-            data: { ascentId },
-          })
-          .subscribe();
+        console.log('NotificationsDialog - opening dialog with data:', {
+          ascentId,
+        });
+        void firstValueFrom(
+          this.dialogs.open(
+            new PolymorpheusComponent(AscentDetailDialogComponent),
+            {
+              label: this.translate.instant('labels.ascent'),
+              size: 'm',
+              data: { ascentId },
+            },
+          ),
+          { defaultValue: undefined },
+        );
       }
     } else if (notif.type === 'message') {
-      this.dialogs
-        .open(new PolymorpheusComponent(ChatDialogComponent), {
+      void firstValueFrom(
+        this.dialogs.open(new PolymorpheusComponent(ChatDialogComponent), {
           label: this.translate.instant('nav.chat'),
           size: 'm',
           data: { userId: notif.actor_id },
-        })
-        .subscribe();
+        }),
+        { defaultValue: undefined },
+      );
     }
   }
 }
