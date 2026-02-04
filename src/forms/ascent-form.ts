@@ -59,6 +59,8 @@ import {
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
 
+import { ImageEditorDialogComponent } from '../dialogs';
+
 import {
   AscentsService,
   GlobalData,
@@ -710,16 +712,22 @@ export default class AscentFormComponent {
 
   protected readonly gradeOptions = this.gradeItems.map((i) => i.id);
 
+  private processedFiles = new WeakSet<File>();
+
   constructor() {
     effect(
       () => {
         const file = this.photoValue();
         if (file) {
-          const reader = new FileReader();
-          reader.onload = () => {
-            this.previewUrl.set(reader.result as string);
-          };
-          reader.readAsDataURL(file);
+          if (!this.processedFiles.has(file)) {
+            void this.openEditor(file);
+          } else {
+            const reader = new FileReader();
+            reader.onload = () => {
+              this.previewUrl.set(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+          }
         } else {
           this.previewUrl.set(null);
         }
@@ -855,6 +863,31 @@ export default class AscentFormComponent {
     this.form.patchValue({
       date: new TuiDay(d.getFullYear(), d.getMonth(), d.getDate()),
     });
+  }
+
+  private async openEditor(file: File): Promise<void> {
+    try {
+      const newFile = await firstValueFrom(
+        this.dialogs.open<File | null>(
+          new PolymorpheusComponent(ImageEditorDialogComponent),
+          {
+            data: file,
+            size: 'l',
+            dismissible: false,
+            closeable: false,
+          },
+        ),
+      );
+
+      if (newFile) {
+        this.processedFiles.add(newFile);
+        this.photoControl.setValue(newFile);
+      } else {
+        this.photoControl.setValue(null);
+      }
+    } catch {
+      this.photoControl.setValue(null);
+    }
   }
 
   async onSubmit(event: Event): Promise<void> {
