@@ -321,7 +321,8 @@
     "editor": {
       "addPoint": "Click para añadir punto",
       "movePoint": "Arrastra para mover",
-      "deletePoint": "Click derecho para borrar"
+      "deletePoint": "Click derecho para borrar",
+      "lines": "Líneas"
     },
     "deletePhotoTitle": "Eliminar foto del croquis",
     "deletePhotoConfirm": "¿Estás seguro de que quieres eliminar la foto de este croquis?"
@@ -527,7 +528,7 @@
     "finetune": "Afinar",
     "filters": "Filtros",
     "watermark": "Marca de agua",
-    "annotate": "Texto",
+    "annotate": "Pintar",
     "resize": "Redimensionar",
     "invalidImageError": "Imagen inválida proporcionada.",
     "uploadImageError": "Error al cargar imagen.",

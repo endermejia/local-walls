@@ -269,7 +269,7 @@ export class ToposService {
   async updateRoutePath(
     topoId: number,
     routeId: number,
-    path: { x: number; y: number }[],
+    path: { points: { x: number; y: number }[]; color?: string },
   ): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     await this.supabase.whenReady();

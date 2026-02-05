@@ -158,7 +158,11 @@ export interface TopoPathEditorConfig {
                 <polyline
                   [attr.points]="getPointsString(entry.value)"
                   fill="none"
-                  [attr.stroke]="isSelected ? 'var(--tui-primary)' : 'rgba(255,255,255,0.4)'"
+                  [attr.stroke]="
+                    isSelected
+                      ? entry.value.color || 'var(--tui-primary)'
+                      : 'rgba(255,255,255,0.4)'
+                  "
                   [attr.stroke-width]="isSelected ? 4 : 2"
                   [attr.stroke-dasharray]="isSelected ? 'none' : '4 4'"
                   stroke-linejoin="round"
@@ -168,7 +172,7 @@ export interface TopoPathEditorConfig {
 
                 <!-- Control Points -->
                 @if (isSelected) {
-                  @for (pt of entry.value; track $index) {
+                  @for (pt of entry.value.points; track $index) {
                     <g
                       class="cursor-move group"
                       (mousedown)="startDragging($event, +entry.key, $index)"
@@ -185,7 +189,7 @@ export interface TopoPathEditorConfig {
                         [attr.cx]="pt.x * width()"
                         [attr.cy]="pt.y * height()"
                         r="6"
-                        [attr.fill]="'var(--tui-primary)'"
+                        [attr.fill]="entry.value.color || 'var(--tui-primary)'"
                         class="group-hover:scale-125 transition-transform"
                       />
                       <!-- Point Number Bubble -->
@@ -244,7 +248,10 @@ export class TopoPathEditorDialogComponent {
 
   loading = signal(false);
   selectedRoute = signal<TopoRouteWithRoute | null>(null);
-  pathsMap = new Map<number, { x: number; y: number }[]>();
+  pathsMap = new Map<
+    number,
+    { points: { x: number; y: number }[]; color?: string }
+  >();
 
   width = signal(0);
   height = signal(0);
@@ -256,7 +263,10 @@ export class TopoPathEditorDialogComponent {
     // Initialize paths from existing data
     this.context.data.topo.topo_routes.forEach((tr) => {
       if (tr.path) {
-        this.pathsMap.set(tr.route_id, [...tr.path]);
+        this.pathsMap.set(tr.route_id, {
+          points: [...tr.path.points],
+          color: tr.path.color,
+        });
       }
     });
 
@@ -277,12 +287,15 @@ export class TopoPathEditorDialogComponent {
   }
 
   hasPath(routeId: number): boolean {
-    const path = this.pathsMap.get(routeId);
-    return !!path && path.length > 0;
+    const pathData = this.pathsMap.get(routeId);
+    return !!pathData && pathData.points.length > 0;
   }
 
-  getPointsString(path: { x: number; y: number }[]): string {
-    return path
+  getPointsString(pathData: {
+    points: { x: number; y: number }[];
+    color?: string;
+  }): string {
+    return pathData.points
       .map((p) => `${p.x * this.width()},${p.y * this.height()}`)
       .join(' ');
   }
@@ -297,8 +310,11 @@ export class TopoPathEditorDialogComponent {
     const x = (event.clientX - rect.left) / rect.width;
     const y = (event.clientY - rect.top) / rect.height;
 
-    const currentPath = this.pathsMap.get(route.route_id) || [];
-    this.pathsMap.set(route.route_id, [...currentPath, { x, y }]);
+    const current = this.pathsMap.get(route.route_id) || { points: [] };
+    this.pathsMap.set(route.route_id, {
+      ...current,
+      points: [...current.points, { x, y }],
+    });
   }
 
   startDragging(event: MouseEvent, routeId: any, index: number): void {
@@ -312,10 +328,10 @@ export class TopoPathEditorDialogComponent {
       const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
       const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
 
-      const path = this.pathsMap.get(this.draggingPoint.routeId);
-      if (path) {
-        path[this.draggingPoint.index] = { x, y };
-        this.pathsMap.set(this.draggingPoint.routeId, [...path]);
+      const pathData = this.pathsMap.get(this.draggingPoint.routeId);
+      if (pathData) {
+        pathData.points[this.draggingPoint.index] = { x, y };
+        this.pathsMap.set(this.draggingPoint.routeId, { ...pathData });
       }
     };
 
@@ -332,10 +348,10 @@ export class TopoPathEditorDialogComponent {
   removePoint(event: MouseEvent, routeId: any, index: number): void {
     event.preventDefault();
     event.stopPropagation();
-    const path = this.pathsMap.get(+routeId);
-    if (path) {
-      path.splice(index, 1);
-      this.pathsMap.set(+routeId, [...path]);
+    const pathData = this.pathsMap.get(+routeId);
+    if (pathData) {
+      pathData.points.splice(index, 1);
+      this.pathsMap.set(+routeId, { ...pathData });
     }
   }
 

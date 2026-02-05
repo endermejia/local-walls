@@ -130,22 +130,17 @@ export function bandForGradeLabel(g: GradeLabel): 0 | 1 | 2 | 3 | 4 {
   return 4; // 9
 }
 
+export const GRADE_COLORS = [
+  'var(--tui-text-positive)', // easy/green
+  'var(--tui-status-info)', // moderate/blue
+  'var(--tui-status-warning)', // difficult/orange
+  'var(--tui-status-negative)', // hard/red
+  'var(--tui-background-accent-opposite)', // extreme/black
+];
+
 export function colorForGrade(g: GradeLabel): string {
   const band = bandForGradeLabel(g);
-  switch (band) {
-    case 0:
-      return 'var(--tui-text-positive)';
-    case 1:
-      return 'var(--tui-status-info)';
-    case 2:
-      return 'var(--tui-status-warning)';
-    case 3:
-      return 'var(--tui-status-negative)';
-    case 4:
-      return 'var(--tui-background-accent-opposite)';
-    default:
-      return 'var(--tui-text-primary)';
-  }
+  return GRADE_COLORS[band] || 'var(--tui-text-primary)';
 }
 
 export function normalizeRoutesByGrade(

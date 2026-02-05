@@ -26,7 +26,8 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Next Steps
 
-- **Corregir errores en console de la app**
+- **Todo el mundo debe poder crear areas, crags y routes**
+- **Los equipadores deben poder crear topos con las lineas traqueadas para poder clickar en la tabla y que se marque la via en la imagen**
 
 ## Future Features
 

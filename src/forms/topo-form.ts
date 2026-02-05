@@ -398,6 +398,13 @@ export class TopoFormComponent {
   protected readonly previewUrl = signal<string | null>(null);
   protected readonly isProcessingPhoto = signal(false);
   protected readonly isExistingPhotoDeleted = signal(false);
+  protected showDeleteConfirm = signal(false);
+  protected pendingPaths = signal<
+    {
+      routeId: number;
+      path: { points: { x: number; y: number }[]; color?: string };
+    }[]
+  >([]);
 
   protected readonly existingPhotoUrl = resource({
     params: () => {
@@ -539,6 +546,7 @@ export class TopoFormComponent {
         );
         await this.handlePhotoUpload(topo);
         await this.handleTopoRoutes(topo);
+        await this.handleTopoPaths(topo);
         if (this._dialogCtx) {
           this._dialogCtx.completeWith(topo?.slug || true);
         }
@@ -560,6 +568,7 @@ export class TopoFormComponent {
         const topo = await this.topos.create(payload);
         await this.handlePhotoUpload(topo);
         await this.handleTopoRoutes(topo);
+        await this.handleTopoPaths(topo);
         if (this._dialogCtx) {
           this._dialogCtx.completeWith(topo?.slug || true);
         }
@@ -606,6 +615,17 @@ export class TopoFormComponent {
     }
   }
 
+  private async handleTopoPaths(topo: TopoDto | null): Promise<void> {
+    if (!topo) return;
+    const paths = this.pendingPaths();
+    if (!paths.length) return;
+
+    for (const p of paths) {
+      await this.topos.updateRoutePath(topo.id, p.routeId, p.path);
+    }
+    this.pendingPaths.set([]);
+  }
+
   private handleSubmitError(e: unknown): void {
     const error = e as Error;
     console.error('[TopoFormComponent] Error submitting topo:', error);
@@ -622,6 +642,17 @@ export class TopoFormComponent {
       imageUrl: imageUrl ?? undefined,
       maintainAspectRatio: false,
       allowFree: true,
+      allowDrawing: true,
+      topoRoutes: (this.selectedRoutes.value || []).map((r, i) => ({
+        route_id: r.id,
+        number: i,
+        route: { name: r.name, grade: r.grade },
+        path:
+          this.pendingPaths().find((p) => p.routeId === r.id)?.path ||
+          this.effectiveTopoData()?.topo_routes?.find(
+            (tr) => tr.route_id === r.id,
+          )?.path,
+      })),
     };
 
     if (!data.file && !data.imageUrl) {
@@ -630,7 +661,7 @@ export class TopoFormComponent {
     }
 
     const result = await firstValueFrom(
-      this.dialogs.open<File | null>(
+      this.dialogs.open<any>(
         new PolymorpheusComponent(ImageEditorDialogComponent),
         {
           data,
@@ -645,14 +676,21 @@ export class TopoFormComponent {
     this.isProcessingPhoto.set(false);
 
     if (result) {
-      // If we got a result, set it without triggering the effect again
-      this.photoControl.setValue(result, { emitEvent: false });
+      if ('file' in result) {
+        this.photoControl.setValue(result.file, { emitEvent: false });
+        if (result.paths) {
+          this.pendingPaths.set(result.paths);
+        }
+      } else {
+        // Fallback for simple File result
+        this.photoControl.setValue(result, { emitEvent: false });
+      }
       // Manually trigger preview update
       const reader = new FileReader();
       reader.onload = () => {
         this.previewUrl.set(reader.result as string);
       };
-      reader.readAsDataURL(result);
+      reader.readAsDataURL(result.file || result);
     } else {
       // User cancelled, clear the photo
       this.photoControl.setValue(null);

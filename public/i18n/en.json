@@ -321,7 +321,8 @@
     "editor": {
       "addPoint": "Click to add point",
       "movePoint": "Drag to move",
-      "deletePoint": "Right click to delete"
+      "deletePoint": "Right click to delete",
+      "lines": "Lines"
     },
     "deletePhotoTitle": "Delete topo photo",
     "deletePhotoConfirm": "Are you sure you want to delete the photo of this topo?"

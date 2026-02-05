@@ -710,7 +710,10 @@ export class GlobalData {
             if (!seenRouteIds.has(tr.route_id)) {
               seenRouteIds.add(tr.route_id);
               topo_routes.push({
-                ...tr,
+                topo_id: tr.topo_id,
+                route_id: tr.route_id,
+                number: tr.number,
+                path: tr.path as any,
                 route: {
                   ...tr.route,
                   own_ascent: tr.route.own_ascent?.[0] || null,

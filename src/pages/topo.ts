@@ -199,17 +199,23 @@ export interface TopoRouteRow {
                       preserveAspectRatio="none"
                     >
                       @for (tr of t.topo_routes; track tr.route_id) {
-                        @if (tr.path && tr.path.length > 0) {
+                        @if (tr.path && tr.path.points.length > 0) {
                           <polyline
                             [attr.points]="getPointsString(tr.path)"
                             fill="none"
                             [attr.stroke]="
-                              hoveredRouteId() === tr.route_id
-                                ? 'var(--tui-primary)'
-                                : 'rgba(255, 255, 255, 0.7)'
+                              selectedRouteId() === tr.route_id
+                                ? tr.path.color || 'var(--tui-primary)'
+                                : hoveredRouteId() === tr.route_id
+                                  ? tr.path.color || 'var(--tui-primary)'
+                                  : 'rgba(255, 255, 255, 0.7)'
                             "
                             [attr.stroke-width]="
-                              hoveredRouteId() === tr.route_id ? 0.01 : 0.006
+                              selectedRouteId() === tr.route_id
+                                ? 0.012
+                                : hoveredRouteId() === tr.route_id
+                                  ? 0.01
+                                  : 0.006
                             "
                             stroke-linejoin="round"
                             stroke-linecap="round"
@@ -217,7 +223,7 @@ export interface TopoRouteRow {
                             style="filter: drop-shadow(0 0 0.001px black)"
                           />
                           <!-- Point Number at first point -->
-                          @if (tr.path[0]; as first) {
+                          @if (tr.path.points[0]; as first) {
                             <circle
                               [attr.cx]="first.x"
                               [attr.cy]="first.y"
@@ -250,17 +256,27 @@ export interface TopoRouteRow {
               <div
                 class="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden touch-none backdrop-blur-xl"
                 tabindex="0"
-                (click.zoneless)="toggleFullscreen(false)"
                 (keydown.enter)="toggleFullscreen(false)"
                 (wheel.zoneless)="onWheel($any($event))"
                 (touchstart.zoneless)="onTouchStart($any($event))"
                 (touchmove.zoneless)="onTouchMove($any($event))"
                 (touchend.zoneless)="onTouchEnd()"
               >
-                <img
-                  [src]="topoImage || global.iconSrc()('topo')"
-                  [alt]="t.name"
-                  class="max-w-full max-h-full object-contain transition-transform duration-75 ease-out select-none"
+                <!-- Close button -->
+                <div class="absolute top-4 right-4 z-[1001]">
+                  <button
+                    tuiIconButton
+                    appearance="floating"
+                    [size]="isMobile ? 'm' : 'l'"
+                    class="bg-[var(--tui-background-base)]"
+                    (click)="toggleFullscreen(false); $event.stopPropagation()"
+                  >
+                    <tui-icon icon="@tui.x" />
+                  </button>
+                </div>
+
+                <div
+                  class="relative transition-transform duration-75 ease-out"
                   [style.transform]="
                     'translate(' +
                     zoomPosition().x +
@@ -270,7 +286,114 @@ export interface TopoRouteRow {
                     zoomScale() +
                     ')'
                   "
-                />
+                >
+                  <img
+                    [src]="topoImage || global.iconSrc()('topo')"
+                    [alt]="t.name"
+                    class="max-w-[90vw] max-h-[90vh] object-contain select-none block"
+                  />
+                  <!-- SVG Paths Overlay in Fullscreen -->
+                  @if (topoImage) {
+                    <svg
+                      class="absolute inset-0 w-full h-full pointer-events-none"
+                      viewBox="0 0 1 1"
+                      preserveAspectRatio="none"
+                    >
+                      @for (tr of t.topo_routes; track tr.route_id) {
+                        @if (tr.path && tr.path.points.length > 0) {
+                          <g
+                            class="pointer-events-auto cursor-pointer"
+                            (click)="
+                              onPathClick($event, tr); $event.stopPropagation()
+                            "
+                            (mouseenter)="hoveredRouteId.set(tr.route_id)"
+                            (mouseleave)="hoveredRouteId.set(null)"
+                          >
+                            <polyline
+                              [attr.points]="getPointsString(tr.path)"
+                              fill="none"
+                              [attr.stroke]="
+                                selectedRouteId() === tr.route_id
+                                  ? tr.path.color || 'var(--tui-primary)'
+                                  : hoveredRouteId() === tr.route_id
+                                    ? tr.path.color || 'var(--tui-primary)'
+                                    : 'rgba(255, 255, 255, 0.7)'
+                              "
+                              [attr.stroke-width]="
+                                selectedRouteId() === tr.route_id
+                                  ? 0.012
+                                  : hoveredRouteId() === tr.route_id
+                                    ? 0.01
+                                    : 0.006
+                              "
+                              stroke-linejoin="round"
+                              stroke-linecap="round"
+                              class="transition-all duration-300"
+                              style="filter: drop-shadow(0 0 0.001px black)"
+                            />
+                            <!-- Point Number at first point -->
+                            @if (tr.path.points[0]; as first) {
+                              <circle
+                                [attr.cx]="first.x"
+                                [attr.cy]="first.y"
+                                r="0.012"
+                                fill="white"
+                                stroke="black"
+                                stroke-width="0.001"
+                              />
+                              <text
+                                [attr.x]="first.x"
+                                [attr.y]="first.y + 0.004"
+                                text-anchor="middle"
+                                fill="black"
+                                font-size="0.012"
+                                font-weight="bold"
+                                font-family="sans-serif"
+                              >
+                                {{ tr.number + 1 }}
+                              </text>
+                            }
+                          </g>
+                        }
+                      }
+                    </svg>
+                  }
+                </div>
+
+                <!-- Route Info Tooltip -->
+                @if (selectedRouteInfo(); as selectedRoute) {
+                  <div
+                    class="absolute top-4 left-1/2 -translate-x-1/2 bg-[var(--tui-background-base)] border border-[var(--tui-border-normal)] rounded-2xl shadow-2xl p-4 min-w-64 z-10"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <div class="flex items-center gap-3">
+                      <span class="text-2xl font-bold opacity-60">
+                        {{ selectedRoute.number + 1 }}.
+                      </span>
+                      <div class="flex-1">
+                        <div class="font-bold text-lg">
+                          {{ selectedRoute.route.name }}
+                        </div>
+                        <div class="mt-2">
+                          <app-avatar-grade
+                            [grade]="selectedRoute.route.grade"
+                            size="m"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        tuiIconButton
+                        appearance="flat"
+                        size="s"
+                        (click)="
+                          selectedRouteId.set(null); $event.stopPropagation()
+                        "
+                      >
+                        <tui-icon icon="@tui.x" />
+                      </button>
+                    </div>
+                  </div>
+                }
               </div>
             }
 
@@ -350,9 +473,16 @@ export interface TopoRouteRow {
                               ? 'var(--tui-status-info-pale)'
                               : ''
                         "
-                        class="group"
+                        class="group cursor-pointer"
                         (mouseenter)="hoveredRouteId.set(item._ref.route_id)"
                         (mouseleave)="hoveredRouteId.set(null)"
+                        (click)="
+                          selectedRouteId.set(
+                            selectedRouteId() === item._ref.route_id
+                              ? null
+                              : item._ref.route_id
+                          )
+                        "
                       >
                         @for (col of columns(); track col) {
                           <td
@@ -537,9 +667,27 @@ export class TopoComponent {
   protected readonly zoomScale = signal(1);
   protected readonly zoomPosition = signal({ x: 0, y: 0 });
   protected readonly hoveredRouteId = signal<number | null>(null);
+  protected readonly selectedRouteId = signal<number | null>(null);
 
-  protected getPointsString(path: { x: number; y: number }[]): string {
-    return path.map((p) => `${p.x},${p.y}`).join(' ');
+  protected readonly selectedRouteInfo = computed(() => {
+    const routeId = this.selectedRouteId();
+    const topo = this.topo();
+    if (!routeId || !topo) return null;
+    return topo.topo_routes.find((r) => r.route_id === routeId) || null;
+  });
+
+  protected getPointsString(pathData: {
+    points: { x: number; y: number }[];
+    color?: string;
+  }): string {
+    return pathData.points.map((p) => `${p.x},${p.y}`).join(' ');
+  }
+
+  protected onPathClick(event: Event, route: TopoRouteWithRoute): void {
+    event.stopPropagation();
+    this.selectedRouteId.set(
+      this.selectedRouteId() === route.route_id ? null : route.route_id,
+    );
   }
 
   protected toggleFullscreen(value: boolean): void {

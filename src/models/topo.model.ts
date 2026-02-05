@@ -26,7 +26,7 @@ export interface TopoRouteWithRoute {
   route_id: number;
   number: number;
   route: RouteWithOwnData;
-  path?: { x: number; y: number }[] | null;
+  path?: { points: { x: number; y: number }[]; color?: string } | null;
 }
 
 export interface TopoDetail extends TopoDto {

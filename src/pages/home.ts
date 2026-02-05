@@ -32,11 +32,7 @@ import {
   tap,
 } from 'rxjs';
 
-import {
-  GradeLabel,
-  RouteAscentWithExtras,
-  VERTICAL_LIFE_TO_LABEL,
-} from '../models';
+import { RouteAscentWithExtras } from '../models';
 
 import {
   FollowsService,
@@ -144,8 +140,6 @@ export class HomeComponent implements OnDestroy {
   @ViewChild(TuiScrollbar, { read: ElementRef })
   scrollbar?: ElementRef<HTMLElement>;
 
-  protected readonly gradeLabelByNumber: Partial<Record<number, GradeLabel>> =
-    VERTICAL_LIFE_TO_LABEL;
   protected readonly followedIds = signal<Set<string>>(new Set());
   protected readonly followsLoaded = signal(false);
 
@@ -180,8 +174,8 @@ export class HomeComponent implements OnDestroy {
     ])
       .pipe(
         takeUntilDestroyed(),
-        filter(([_, loaded]) => loaded),
-        map(([f, _]) => f as 'following' | 'all'),
+        filter(([, loaded]) => loaded),
+        map(([f]) => f as 'following' | 'all'),
         distinctUntilChanged(),
         switchMap((filter) => {
           this.ascents.set([]);

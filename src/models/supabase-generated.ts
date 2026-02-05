@@ -40,44 +40,65 @@ export interface Database {
       };
       flow_state: {
         Row: {
-          auth_code: string;
+          auth_code: string | null;
           auth_code_issued_at: string | null;
           authentication_method: string;
-          code_challenge: string;
-          code_challenge_method: Database['auth']['Enums']['code_challenge_method'];
+          code_challenge: string | null;
+          code_challenge_method:
+            | Database['auth']['Enums']['code_challenge_method']
+            | null;
           created_at: string | null;
+          email_optional: boolean;
           id: string;
+          invite_token: string | null;
+          linking_target_id: string | null;
+          oauth_client_state_id: string | null;
           provider_access_token: string | null;
           provider_refresh_token: string | null;
           provider_type: string;
+          referrer: string | null;
           updated_at: string | null;
           user_id: string | null;
         };
         Insert: {
-          auth_code: string;
+          auth_code?: string | null;
           auth_code_issued_at?: string | null;
           authentication_method: string;
-          code_challenge: string;
-          code_challenge_method: Database['auth']['Enums']['code_challenge_method'];
+          code_challenge?: string | null;
+          code_challenge_method?:
+            | Database['auth']['Enums']['code_challenge_method']
+            | null;
           created_at?: string | null;
+          email_optional?: boolean;
           id: string;
+          invite_token?: string | null;
+          linking_target_id?: string | null;
+          oauth_client_state_id?: string | null;
           provider_access_token?: string | null;
           provider_refresh_token?: string | null;
           provider_type: string;
+          referrer?: string | null;
           updated_at?: string | null;
           user_id?: string | null;
         };
         Update: {
-          auth_code?: string;
+          auth_code?: string | null;
           auth_code_issued_at?: string | null;
           authentication_method?: string;
-          code_challenge?: string;
-          code_challenge_method?: Database['auth']['Enums']['code_challenge_method'];
+          code_challenge?: string | null;
+          code_challenge_method?:
+            | Database['auth']['Enums']['code_challenge_method']
+            | null;
           created_at?: string | null;
+          email_optional?: boolean;
           id?: string;
+          invite_token?: string | null;
+          linking_target_id?: string | null;
+          oauth_client_state_id?: string | null;
           provider_access_token?: string | null;
           provider_refresh_token?: string | null;
           provider_type?: string;
+          referrer?: string | null;
           updated_at?: string | null;
           user_id?: string | null;
         };
@@ -392,6 +413,7 @@ export interface Database {
           logo_uri: string | null;
           redirect_uris: string;
           registration_type: Database['auth']['Enums']['oauth_registration_type'];
+          token_endpoint_auth_method: string;
           updated_at: string;
         };
         Insert: {
@@ -406,6 +428,7 @@ export interface Database {
           logo_uri?: string | null;
           redirect_uris: string;
           registration_type: Database['auth']['Enums']['oauth_registration_type'];
+          token_endpoint_auth_method: string;
           updated_at?: string;
         };
         Update: {
@@ -420,6 +443,7 @@ export interface Database {
           logo_uri?: string | null;
           redirect_uris?: string;
           registration_type?: Database['auth']['Enums']['oauth_registration_type'];
+          token_endpoint_auth_method?: string;
           updated_at?: string;
         };
         Relationships: [];
@@ -1644,6 +1668,7 @@ export interface Database {
           created_at: string;
           id: number;
           number: number;
+          path: Json | null;
           route_id: number;
           topo_id: number;
         };
@@ -1651,6 +1676,7 @@ export interface Database {
           created_at?: string;
           id?: number;
           number: number;
+          path?: Json | null;
           route_id: number;
           topo_id: number;
         };
@@ -1658,6 +1684,7 @@ export interface Database {
           created_at?: string;
           id?: number;
           number?: number;
+          path?: Json | null;
           route_id?: number;
           topo_id?: number;
         };
