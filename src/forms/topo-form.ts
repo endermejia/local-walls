@@ -649,13 +649,14 @@ export class TopoFormComponent {
         );
         return {
           route_id: r.id,
-          number: existing ? existing.number : i + 1,
+          number: (existing?.number || i) + 1,
           route: { name: r.name, grade: r.grade },
           path:
             this.pendingPaths().find((p) => p.routeId === r.id)?.path ||
             existing?.path,
         };
       }),
+      initialMode: imageUrl ? ('draw' as const) : undefined,
     };
 
     if (!data.file && !data.imageUrl) {

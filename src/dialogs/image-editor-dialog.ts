@@ -62,6 +62,7 @@ export interface ImageEditorConfig {
     route: { name: string; grade: number };
     path?: { points: { x: number; y: number }[]; color?: string } | null;
   }[];
+  initialMode?: 'transform' | 'draw';
 }
 
 @Component({
@@ -134,6 +135,7 @@ export interface ImageEditorConfig {
               class="max-h-full max-w-full"
               [imageChangedEvent]="imageChangedEvent"
               [imageFile]="imageFile"
+              [imageBase64]="imageBase64()"
               [maintainAspectRatio]="maintainAspectRatio"
               [aspectRatio]="aspectRatio"
               [resizeToWidth]="resizeToWidth"
@@ -171,49 +173,56 @@ export interface ImageEditorConfig {
                 class="absolute inset-0 w-full h-full cursor-crosshair"
                 [attr.viewBox]="viewBox()"
               >
-                @for (entry of pathsMap | keyvalue; track entry.key) {
-                  @let isSelected = selectedRoute()?.route_id === +entry.key;
-                  @let rColor = getRouteColor(+entry.key);
-                  <polyline
-                    [attr.points]="getPointsString(entry.value.points)"
-                    fill="none"
-                    [attr.stroke]="
-                      isSelected
-                        ? selectedColor() || entry.value.color || rColor
-                        : 'white'
-                    "
-                    [attr.stroke-width]="isSelected ? 4 : 2"
-                    [attr.stroke-dasharray]="isSelected ? 'none' : '4 4'"
-                    stroke-linejoin="round"
-                    stroke-linecap="round"
-                    class="pointer-events-none transition-all duration-300"
-                  />
+                @for (tr of topoRoutes; track tr.route_id) {
+                  @let entry = pathsMap.get(tr.route_id);
+                  @if (entry) {
+                    @let isSelected = selectedRoute()?.route_id === tr.route_id;
+                    @let rColor = getRouteColor(tr.route_id);
+                    <polyline
+                      [attr.points]="getPointsString(entry.points)"
+                      fill="none"
+                      [attr.stroke]="
+                        isSelected
+                          ? selectedColor() || entry.color || rColor
+                          : 'white'
+                      "
+                      [attr.stroke-width]="isSelected ? 4 : 2"
+                      [attr.stroke-dasharray]="isSelected ? 'none' : '4 4'"
+                      stroke-linejoin="round"
+                      stroke-linecap="round"
+                      class="pointer-events-none transition-all duration-300"
+                    />
 
-                  @if (isSelected) {
-                    @for (pt of entry.value.points; track $index) {
-                      <g
-                        class="cursor-move"
-                        (mousedown)="startDragging($event, +entry.key, $index)"
-                        (touchstart)="
-                          startDraggingTouch($event, +entry.key, $index)
-                        "
-                        (contextmenu)="removePoint($event, +entry.key, $index)"
-                      >
-                        <circle
-                          [attr.cx]="pt.x * drawWidth()"
-                          [attr.cy]="pt.y * drawHeight()"
-                          r="12"
-                          fill="rgba(0,0,0,0.3)"
-                        />
-                        <circle
-                          [attr.cx]="pt.x * drawWidth()"
-                          [attr.cy]="pt.y * drawHeight()"
-                          r="6"
-                          [attr.fill]="
-                            selectedColor() || entry.value.color || rColor
+                    @if (isSelected) {
+                      @for (pt of entry.points; track $index) {
+                        <g
+                          class="cursor-move"
+                          (mousedown)="
+                            startDragging($event, tr.route_id, $index)
                           "
-                        />
-                      </g>
+                          (touchstart)="
+                            startDraggingTouch($event, tr.route_id, $index)
+                          "
+                          (contextmenu)="
+                            removePoint($event, tr.route_id, $index)
+                          "
+                        >
+                          <circle
+                            [attr.cx]="pt.x * drawWidth()"
+                            [attr.cy]="pt.y * drawHeight()"
+                            r="12"
+                            fill="rgba(0,0,0,0.3)"
+                          />
+                          <circle
+                            [attr.cx]="pt.x * drawWidth()"
+                            [attr.cy]="pt.y * drawHeight()"
+                            r="6"
+                            [attr.fill]="
+                              selectedColor() || entry.color || rColor
+                            "
+                          />
+                        </g>
+                      }
                     }
                   }
                 }
@@ -507,6 +516,7 @@ export class ImageEditorDialogComponent {
 
   imageChangedEvent: Event | null = null;
   imageFile: File | undefined;
+  imageBase64 = signal<string | undefined>(undefined);
   croppedImage: SafeUrl = '';
   cropperVisible = signal(false);
   loading = signal(false);
@@ -573,7 +583,12 @@ export class ImageEditorDialogComponent {
     this.maintainAspectRatio =
       data.maintainAspectRatio !== undefined ? data.maintainAspectRatio : true;
     this.allowDrawing = !!data.allowDrawing;
-    this.topoRoutes = data.topoRoutes || [];
+    if (data.initialMode) {
+      this.mode.set(data.initialMode);
+    }
+    this.topoRoutes = (data.topoRoutes || []).sort(
+      (a, b) => a.number - b.number,
+    );
 
     // Initialize paths from routes
     this.topoRoutes.forEach((tr) => {
@@ -607,24 +622,41 @@ export class ImageEditorDialogComponent {
 
   private async loadFromUrl(url: string): Promise<void> {
     try {
+      // Pre-set croppedImage so we can see something in drawing mode while loading
+      this.croppedImage = this.sanitizer.bypassSecurityTrustUrl(url);
+
       const response = await fetch(url);
+      if (!response.ok) throw new Error('Network response was not ok');
+
       const blob = await response.blob();
-      const fileName = url.split('/').pop() || 'image';
-      this.imageFile = new File([blob], fileName, { type: blob.type });
 
-      if (this.allowDrawing) {
-        this.mode.set('draw');
-        const objectUrl = URL.createObjectURL(blob);
-        this.croppedImage = this.sanitizer.bypassSecurityTrustUrl(objectUrl);
-        this.croppedImageBlob = blob;
-      }
+      // Convert to Base64 to avoid CORS issues in the cropper component
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        this.imageBase64.set(base64);
 
-      // Set cropperVisible to true after loading to show the editor
-      this.cropperVisible.set(true);
+        // If in draw mode, also set the preview image to the data URL for better quality/consistency
+        if (this.mode() === 'draw') {
+          this.croppedImage = this.sanitizer.bypassSecurityTrustUrl(base64);
+        }
+
+        // Set cropperVisible to true after loading to show the editor
+        this.cropperVisible.set(true);
+        this.cdr.detectChanges();
+      };
+      reader.readAsDataURL(blob);
     } catch (error) {
       console.error('[ImageEditor] Error loading image from URL', error);
-      this.toast.error('imageEditor.invalidImageError');
-      this.context.completeWith(null);
+      // If we are in draw mode, we can still continue as we set croppedImage at the start
+      if (this.mode() === 'draw' && this.croppedImage) {
+        console.warn(
+          '[ImageEditor] Could not load blob for cropping, only drawing will be available',
+        );
+      } else {
+        this.toast.error('imageEditor.invalidImageError');
+        this.context.completeWith(null);
+      }
     }
   }
 
@@ -823,6 +855,7 @@ export class ImageEditorDialogComponent {
   fileChangeEvent(event: Event): void {
     this.imageChangedEvent = event;
     this.imageFile = undefined;
+    this.imageBase64.set(undefined);
     this.cropperVisible.set(false);
   }
 
@@ -844,8 +877,13 @@ export class ImageEditorDialogComponent {
   }
 
   loadImageFailed(): void {
-    this.toast.error('imageEditor.invalidImageError');
-    if (this.imageFile && !this.imageChangedEvent) {
+    if (
+      this.mode() !== 'draw' &&
+      (this.imageFile || this.imageBase64()) &&
+      !this.imageChangedEvent
+    ) {
+      console.warn('[ImageEditor] Image loader failed');
+      this.toast.error('imageEditor.invalidImageError');
       this.context.completeWith(null);
     } else {
       this.cropperVisible.set(true);
@@ -905,29 +943,38 @@ export class ImageEditorDialogComponent {
   }
 
   async save(): Promise<void> {
-    if (!this.croppedImageBlob) return;
+    if (!this.croppedImageBlob && this.pathsMap.size === 0) return;
 
-    if (this.croppedImageBlob.size > 5 * 1024 * 1024) {
+    if (this.croppedImageBlob && this.croppedImageBlob.size > 5 * 1024 * 1024) {
       this.toast.error('profile.avatar.upload.tooLarge');
       return;
     }
 
     this.loading.set(true);
     try {
-      let fileName = 'image.webp';
-      if (this.context.data.file) {
-        fileName =
-          this.context.data.file.name.replace(/\.[^/.]+$/, '') + '.webp';
-      } else if (this.imageChangedEvent) {
-        const input = this.imageChangedEvent.target as HTMLInputElement;
-        if (input.files?.[0]) {
-          fileName = input.files[0].name.replace(/\.[^/.]+$/, '') + '.webp';
-        }
-      }
+      let file: File | undefined;
 
-      const file = new File([this.croppedImageBlob], fileName, {
-        type: 'image/webp',
-      });
+      if (this.croppedImageBlob) {
+        let fileName = 'image.webp';
+        if (this.context.data.file) {
+          fileName =
+            this.context.data.file.name.replace(/\.[^/.]+$/, '') + '.webp';
+        } else if (this.imageChangedEvent) {
+          const input = this.imageChangedEvent.target as HTMLInputElement;
+          if (input.files?.[0]) {
+            fileName = input.files[0].name.replace(/\.[^/.]+$/, '') + '.webp';
+          }
+        } else if (this.context.data.imageUrl) {
+          fileName =
+            (this.context.data.imageUrl.split('/').pop() || 'image')
+              .split('?')[0]
+              .replace(/\.[^/.]+$/, '') + '.webp';
+        }
+
+        file = new File([this.croppedImageBlob], fileName, {
+          type: 'image/webp',
+        });
+      }
 
       if (this.allowDrawing) {
         const paths = Array.from(this.pathsMap.entries()).map(
