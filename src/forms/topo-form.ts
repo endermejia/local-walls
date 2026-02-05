@@ -66,7 +66,7 @@ import {
   ToposService,
 } from '../services';
 
-import { ImageEditorDialogComponent } from '../dialogs';
+import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
 import { AvatarGradeComponent } from '../components/avatar-grade';
 
 import { handleErrorToast, slugify } from '../utils';
@@ -398,7 +398,6 @@ export class TopoFormComponent {
   protected readonly previewUrl = signal<string | null>(null);
   protected readonly isProcessingPhoto = signal(false);
   protected readonly isExistingPhotoDeleted = signal(false);
-  protected showDeleteConfirm = signal(false);
   protected pendingPaths = signal<
     {
       routeId: number;
@@ -722,7 +721,7 @@ export class TopoFormComponent {
         this.global.topoDetailResource.reload();
       } catch (e) {
         console.error('[TopoFormComponent] Error deleting photo', e);
-        handleErrorToast(e as any, this.toast);
+        handleErrorToast(e as Error, this.toast);
       }
     }
   }

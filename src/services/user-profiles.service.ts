@@ -9,7 +9,7 @@ import { firstValueFrom, Observable } from 'rxjs';
 
 import { UserProfileDto } from '../models';
 
-import { ImageEditorDialogComponent } from '../dialogs';
+import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
 import { Import8aComponent } from '../components/import-8a';
 
 import { SupabaseService } from './supabase.service';

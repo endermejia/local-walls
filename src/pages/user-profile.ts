@@ -58,13 +58,11 @@ import {
   UserProfilesService,
 } from '../services';
 
-import {
-  AscentsFeedComponent,
-  EmptyStateComponent,
-  RoutesTableComponent,
-} from '../components';
+import { AscentsFeedComponent } from '../components/ascents-feed';
+import { EmptyStateComponent } from '../components/empty-state';
+import { RoutesTableComponent } from '../components/routes-table';
 import { ChatDialogComponent } from '../dialogs/chat-dialog';
-import { UserListDialogComponent } from '../dialogs';
+import { UserListDialogComponent } from '../dialogs/user-list-dialog';
 
 import {
   ORDERED_GRADE_VALUES,

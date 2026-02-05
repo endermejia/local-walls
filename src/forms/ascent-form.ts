@@ -68,7 +68,7 @@ import {
   ToastService,
 } from '../services';
 
-import { ImageEditorDialogComponent } from '../dialogs';
+import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
 import { CounterComponent } from '../components/counter';
 
 import { handleErrorToast } from '../utils';
