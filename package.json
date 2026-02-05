@@ -74,12 +74,12 @@
     "leaflet": "2.0.0-alpha.1",
     "libphonenumber-js": "^1.12.35",
     "prettier-eslint": "^16.3.0",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "react-filerobot-image-editor": "^5.0.0-beta.153",
-    "react-konva": "^19.2.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-filerobot-image-editor": "^4.8.1",
+    "react-konva": "^18.2.10",
     "rxjs": "~7.8.0",
-    "styled-components": "^6.3.8",
+    "styled-components": "^5.3.6",
     "tslib": "^2.3.0"
   },
   "devDependencies": {

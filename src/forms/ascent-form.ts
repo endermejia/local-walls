@@ -218,18 +218,35 @@ import { handleErrorToast } from '../utils';
             <span class="text-xs font-bold opacity-60 uppercase">{{
               'ascent.photo' | translate
             }}</span>
-            @if (existingPhotoUrl()) {
-              <button
-                tuiButton
-                type="button"
-                appearance="negative"
-                size="s"
-                iconStart="@tui.trash"
-                (click)="onDeleteExistingPhoto()"
-              >
-                {{ 'ascent.deletePhoto' | translate }}
-              </button>
-            }
+            <div class="flex items-center gap-2">
+              @if (photoValue() || existingPhotoUrl()) {
+                <button
+                  tuiButton
+                  type="button"
+                  appearance="secondary"
+                  size="s"
+                  iconStart="@tui.pencil"
+                  (click)="
+                    editPhoto(photoValue() || null, existingPhotoUrl() || undefined)
+                  "
+                >
+                  {{ 'actions.edit' | translate }}
+                </button>
+              }
+
+              @if (existingPhotoUrl()) {
+                <button
+                  tuiButton
+                  type="button"
+                  appearance="negative"
+                  size="s"
+                  iconStart="@tui.trash"
+                  (click)="onDeleteExistingPhoto()"
+                >
+                  {{ 'ascent.deletePhoto' | translate }}
+                </button>
+              }
+            </div>
           </div>
 
           <div class="grid gap-2">
@@ -265,17 +282,6 @@ import { handleErrorToast } from '../utils';
                         class="w-full h-auto max-h-48 object-cover"
                         alt="Preview"
                       />
-                      <button
-                        tuiIconButton
-                        type="button"
-                        appearance="secondary"
-                        size="s"
-                        iconStart="@tui.pencil"
-                        class="absolute top-2 right-2 !rounded-full shadow-md"
-                        (click)="editPhoto(file)"
-                      >
-                        {{ 'actions.edit' | translate }}
-                      </button>
                     </div>
                   }
                 </div>
@@ -289,17 +295,6 @@ import { handleErrorToast } from '../utils';
                       class="w-full h-auto max-h-48 object-cover"
                       alt="Existing photo"
                     />
-                    <button
-                      tuiIconButton
-                      type="button"
-                      appearance="secondary"
-                      size="s"
-                      iconStart="@tui.pencil"
-                      class="absolute top-2 right-2 !rounded-full shadow-md"
-                      (click)="editPhoto(null, photoUrl)"
-                    >
-                      {{ 'actions.edit' | translate }}
-                    </button>
                   </div>
                 }
               }
