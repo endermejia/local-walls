@@ -8,12 +8,13 @@ import {
   ViewChild,
   effect,
   OnDestroy,
+  NgZone,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { TuiButton, TuiDataList, TuiDialogContext, TuiIcon, TuiLoader } from '@taiga-ui/core';
 import { TuiDataListWrapper, TuiSelect } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { Canvas, FabricImage, IText, Rect, ActiveSelection, FabricObject } from 'fabric';
+import { Canvas, FabricImage, IText, Rect, FabricObject } from 'fabric';
 import * as WebFont from 'webfontloader';
 
 @Component({
@@ -21,6 +22,7 @@ import * as WebFont from 'webfontloader';
   standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     FormsModule,
     TuiButton,
     TuiIcon,
@@ -30,19 +32,22 @@ import * as WebFont from 'webfontloader';
     TuiLoader,
   ],
   template: `
-    <div class="flex flex-col h-full gap-4 relative" style="max-height: 80vh">
+    <div class="flex flex-col h-full gap-4 relative w-full" style="max-height: 85vh">
 
       <!-- CANVAS AREA -->
-      <div class="relative grow min-h-0 bg-neutral-900 rounded-lg overflow-hidden flex items-center justify-center border border-gray-700">
-        <canvas #fabricCanvas></canvas>
+      <div
+        #canvasContainer
+        class="relative grow min-h-0 bg-neutral-900 rounded-lg overflow-hidden flex items-center justify-center border border-gray-700 w-full"
+      >
+        <canvas #fabricCanvas class="w-full h-full"></canvas>
         <tui-loader *ngIf="loading()" class="absolute inset-0" [overlay]="true"></tui-loader>
       </div>
 
       <!-- CONTROLS -->
-      <div class="grid gap-4">
+      <div class="grid gap-4 shrink-0">
 
         <!-- ROW 1: Aspect Ratio -->
-        <div class="flex justify-center gap-2">
+        <div class="flex justify-center gap-2 overflow-x-auto py-1">
            <button
              tuiButton
              size="s"
@@ -69,54 +74,70 @@ import * as WebFont from 'webfontloader';
            </button>
         </div>
 
-        <!-- ROW 2: Text Tools (Visible if text selected or always available) -->
-        <div class="flex flex-wrap items-center justify-center gap-2 p-2 bg-neutral-100 rounded-lg" *ngIf="hasSelection()">
-            <tui-select
-                [(ngModel)]="selectedFont"
-                (ngModelChange)="changeFont($event)"
-                size="m"
-                class="w-48"
-            >
-                <ng-template tuiDataList>
-                   <tui-data-list>
-                      <button *ngFor="let item of fonts" tuiOption [value]="item">
-                          {{ item }}
-                      </button>
-                   </tui-data-list>
-                </ng-template>
-                {{ selectedFont() }}
-            </tui-select>
+        <!-- ROW 2: Text Tools & List -->
+        <div class="grid gap-3 p-3 bg-neutral-100 rounded-lg border border-neutral-200">
+            <!-- Text Actions -->
+             <div class="flex flex-wrap gap-2 items-center justify-between">
+                <button
+                   tuiButton
+                   size="s"
+                   appearance="secondary"
+                   iconStart="@tui.type"
+                   (click)="addText()"
+                 >
+                   Añadir Texto
+                 </button>
 
-             <button
-                tuiButton
-                size="m"
-                appearance="negative"
-                iconStart="@tui.trash"
-                (click)="deleteSelected()"
-             >
-             </button>
+                <tui-select
+                    *ngIf="hasSelection()"
+                    [formControl]="fontControl"
+                    size="s"
+                    class="w-48"
+                >
+                    <ng-template tuiDataList>
+                       <tui-data-list>
+                          <button *ngFor="let item of fonts" tuiOption [value]="item">
+                              {{ item }}
+                          </button>
+                       </tui-data-list>
+                    </ng-template>
+                    {{ fontControl.value }}
+                </tui-select>
+             </div>
+
+             <!-- Text Layers List -->
+             <div *ngIf="textLayers().length > 0" class="flex flex-col gap-1 max-h-32 overflow-y-auto pr-1">
+                <div class="text-xs font-bold opacity-50 uppercase tracking-wider mb-1">Capas de texto</div>
+                @for (text of textLayers(); track text) {
+                  <div
+                    class="flex items-center gap-2 p-2 rounded bg-white border border-neutral-200 cursor-pointer hover:bg-neutral-50 transition-colors"
+                    [class.!border-primary]="isActive(text)"
+                    (click)="selectText(text)"
+                  >
+                    <div class="grow text-sm truncate font-medium">
+                        {{ text.text || 'Texto sin contenido' }}
+                    </div>
+                    <button
+                        tuiIconButton
+                        size="xs"
+                        appearance="icon"
+                        icon="@tui.trash"
+                        class="opacity-50 hover:opacity-100"
+                        (click)="deleteTextLayer($event, text)"
+                    ></button>
+                  </div>
+                }
+             </div>
         </div>
 
         <!-- ROW 3: Main Actions -->
-        <div class="flex justify-between items-center gap-2">
-            <button
-               tuiButton
-               size="m"
-               appearance="secondary"
-               iconStart="@tui.type"
-               (click)="addText()"
-             >
-               Añadir Texto
-             </button>
-
-            <div class="flex gap-2">
-                <button tuiButton appearance="secondary" (click)="cancel()">
-                  Cancelar
-                </button>
-                <button tuiButton (click)="save()">
-                  Guardar
-                </button>
-            </div>
+        <div class="flex justify-end items-center gap-2 pt-2 border-t border-neutral-200">
+            <button tuiButton appearance="secondary" (click)="cancel()">
+              Cancelar
+            </button>
+            <button tuiButton (click)="save()">
+              Guardar
+            </button>
         </div>
       </div>
     </div>
@@ -126,7 +147,7 @@ import * as WebFont from 'webfontloader';
       :host {
         display: block;
         width: 100%;
-        max-width: 600px;
+        max-width: 800px; /* Increased max width for better desktop experience */
       }
     `,
   ],
@@ -134,18 +155,24 @@ import * as WebFont from 'webfontloader';
 })
 export class ImageEditorDialogComponent implements OnDestroy {
   private readonly context = injectContext<TuiDialogContext<File | null, File>>();
+  private readonly ngZone = inject(NgZone);
 
   protected readonly file = this.context.data;
   protected readonly loading = signal(true);
 
   @ViewChild('fabricCanvas') fabricCanvasEl?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('canvasContainer') canvasContainerEl?: ElementRef<HTMLDivElement>;
+
   private canvas?: Canvas;
   private _objectUrl: string | null = null;
+  private resizeObserver?: ResizeObserver;
 
   // State
   protected readonly aspectRatio = signal(1);
   protected readonly hasSelection = signal(false);
-  protected readonly selectedFont = signal<string>('Roboto');
+  protected readonly fontControl = new FormControl('Roboto', { nonNullable: true });
+
+  protected readonly textLayers = signal<IText[]>([]);
 
   // Resources
   protected readonly fonts = [
@@ -182,9 +209,15 @@ export class ImageEditorDialogComponent implements OnDestroy {
             }
         }, 100);
     });
+
+    // Font change listener
+    this.fontControl.valueChanges.subscribe(font => {
+        this.changeFont(font);
+    });
   }
 
   ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
     if (this._objectUrl) {
       URL.revokeObjectURL(this._objectUrl);
     }
@@ -192,15 +225,17 @@ export class ImageEditorDialogComponent implements OnDestroy {
   }
 
   private async initFabric() {
-    if (!this.fabricCanvasEl) return;
+    if (!this.fabricCanvasEl || !this.canvasContainerEl) return;
 
-    // 1. Setup Canvas Size
-    // We fit into the view (max 500px, but responsive)
-    const viewSize = Math.min(500, window.innerWidth - 32); // 32px padding safety
+    // 1. Setup Canvas Size based on Container
+    const containerWidth = this.canvasContainerEl.nativeElement.clientWidth;
+    // We want a square canvas area initially, or responsive height?
+    // Let's max out height at 60vh
+    const containerHeight = Math.min(containerWidth, window.innerHeight * 0.6);
 
     this.canvas = new Canvas(this.fabricCanvasEl.nativeElement, {
-        width: viewSize,
-        height: viewSize,
+        width: containerWidth,
+        height: containerHeight,
         backgroundColor: '#111',
         preserveObjectStacking: true,
     });
@@ -210,13 +245,15 @@ export class ImageEditorDialogComponent implements OnDestroy {
     const img = await FabricImage.fromURL(this._objectUrl);
 
     // Scale image to cover the canvas initially
-    const scale = Math.max(viewSize / img.width!, viewSize / img.height!);
+    // We want the image to fit fully visible initially? Or cover?
+    // "Cover" is usually better for cropping.
+    const scale = Math.max(containerWidth / img.width!, containerHeight / img.height!);
     img.scale(scale);
     img.set({
         originX: 'center',
         originY: 'center',
-        left: viewSize / 2,
-        top: viewSize / 2,
+        left: containerWidth / 2,
+        top: containerHeight / 2,
         selectable: true,
         evented: true,
     });
@@ -231,36 +268,78 @@ export class ImageEditorDialogComponent implements OnDestroy {
         this.hasSelection.set(false);
     });
 
+    // Track text objects
+    this.canvas.on('object:added', () => this.updateTextLayers());
+    this.canvas.on('object:removed', () => this.updateTextLayers());
+    this.canvas.on('object:modified', () => this.updateTextLayers()); // Text content change
+
     // 4. Create Mask
     this.createOverlayMask();
     this.updateCropArea(1); // Default 1:1
+
+    // 5. Responsive Resize
+    this.resizeObserver = new ResizeObserver(() => {
+        this.ngZone.run(() => {
+            // Re-calc canvas dimensions if container changes?
+            // Fabric handling resize is complex (scaling everything).
+            // For this dialog, maybe we just stick to initial size or simple centered resize?
+            // Let's skip complex dynamic resize for now to avoid bugs, usually dialog width is stable.
+        });
+    });
+    this.resizeObserver.observe(this.canvasContainerEl.nativeElement);
   }
 
   private handleSelection(obj: FabricObject) {
     if (obj instanceof IText) {
         this.hasSelection.set(true);
-        this.selectedFont.set(obj.fontFamily || 'Roboto');
+        this.fontControl.setValue(obj.fontFamily || 'Roboto', { emitEvent: false });
     } else {
         this.hasSelection.set(false);
     }
+    // Update list highlight
+    this.updateTextLayers();
+  }
+
+  private updateTextLayers() {
+    if (!this.canvas) return;
+    const texts = this.canvas.getObjects().filter(o => o instanceof IText) as IText[];
+    // Reverse to show newest on top? Or match visual stack (top is last).
+    // Usually layers list shows Top item at Top.
+    this.textLayers.set([...texts].reverse());
+  }
+
+  protected isActive(text: IText): boolean {
+    return this.canvas?.getActiveObject() === text;
+  }
+
+  protected selectText(text: IText) {
+    if (!this.canvas) return;
+    this.canvas.setActiveObject(text);
+    this.canvas.requestRenderAll();
+  }
+
+  protected deleteTextLayer(event: Event, text: IText) {
+    event.stopPropagation();
+    if (!this.canvas) return;
+    this.canvas.remove(text);
+    this.canvas.requestRenderAll();
   }
 
   // --- MASK & CROP LOGIC ---
 
   private createOverlayMask() {
-    // We use 4 rectangles to create a "hole"
-    // Top, Bottom, Left, Right
     const commonProps = {
         fill: 'rgba(0,0,0,0.7)',
         selectable: false,
-        evented: false, // Let clicks pass through to image/text
+        evented: false,
+        excludeFromExport: true // Custom prop to identify mask
     };
 
     this.overlayRects = [
-        new Rect({ ...commonProps }), // Top
-        new Rect({ ...commonProps }), // Bottom
-        new Rect({ ...commonProps }), // Left
-        new Rect({ ...commonProps }), // Right
+        new Rect({ ...commonProps }),
+        new Rect({ ...commonProps }),
+        new Rect({ ...commonProps }),
+        new Rect({ ...commonProps }),
     ];
 
     this.canvas?.add(...this.overlayRects);
@@ -315,7 +394,7 @@ export class ImageEditorDialogComponent implements OnDestroy {
   addText() {
     if (!this.canvas) return;
 
-    // Responsive font size: e.g. 10% of canvas width
+    // Responsive font size
     const fontSize = this.canvas.width * 0.08;
 
     const text = new IText('Texto', {
@@ -323,7 +402,7 @@ export class ImageEditorDialogComponent implements OnDestroy {
         top: this.canvas.height / 2,
         originX: 'center',
         originY: 'center',
-        fontFamily: this.selectedFont(),
+        fontFamily: this.fontControl.value,
         fontSize: fontSize,
         fill: '#ffffff',
         stroke: '#000000',
@@ -337,7 +416,6 @@ export class ImageEditorDialogComponent implements OnDestroy {
     this.canvas.add(text);
     this.canvas.setActiveObject(text);
 
-    // Ensure mask is on top of the text (so text outside crop area is dimmed)
     this.bringMaskToFront();
   }
 
@@ -345,7 +423,7 @@ export class ImageEditorDialogComponent implements OnDestroy {
     if (!this.canvas) return;
     const active = this.canvas.getActiveObject();
     if (active && active instanceof IText) {
-        // Load font if needed (WebFont loader usually caches, but ensure applied)
+        // Load font
         WebFont.load({
             google: { families: [font] },
             active: () => {
@@ -353,20 +431,8 @@ export class ImageEditorDialogComponent implements OnDestroy {
                 this.canvas?.requestRenderAll();
             }
         });
-        // Optimistic set
         active.set('fontFamily', font);
         this.canvas.requestRenderAll();
-    }
-  }
-
-  deleteSelected() {
-    if (!this.canvas) return;
-    const active = this.canvas.getActiveObject();
-    if (active) {
-        this.canvas.remove(active);
-        this.canvas.discardActiveObject();
-        this.canvas.requestRenderAll();
-        this.hasSelection.set(false);
     }
   }
 
@@ -382,8 +448,6 @@ export class ImageEditorDialogComponent implements OnDestroy {
     // 2. Export only the crop area
     const { left, top, width, height } = this.cropArea;
 
-    // Multiplier to get ~1920px width (high quality)
-    // Current width is `width` (e.g. 400). Target 1920.
     const multiplier = 1920 / width;
 
     const dataUrl = this.canvas.toDataURL({
