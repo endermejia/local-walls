@@ -24,7 +24,6 @@ import {
   TuiButton,
   tuiDateFormatProvider,
   TuiDialogService,
-  TuiHint,
   TuiIcon,
   TuiLabel,
   TuiTextfield,
@@ -43,7 +42,7 @@ import {
   TuiInputFiles,
   TuiFileRejectedPipe,
 } from '@taiga-ui/kit';
-import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, startWith } from 'rxjs';
@@ -87,7 +86,6 @@ import { handleErrorToast } from '../utils';
     TuiCheckbox,
     TuiSelect,
     TuiChevron,
-    TuiHint,
     TuiLabel,
     TuiTextarea,
     TuiAppearance,
@@ -227,7 +225,10 @@ import { handleErrorToast } from '../utils';
                   size="s"
                   iconStart="@tui.pencil"
                   (click)="
-                    editPhoto(photoValue() || null, existingPhotoUrl() || undefined)
+                    editPhoto(
+                      photoValue() || null,
+                      existingPhotoUrl() || undefined
+                    )
                   "
                 >
                   {{ 'actions.edit' | translate }}
@@ -317,9 +318,6 @@ import { handleErrorToast } from '../utils';
               "
               size="m"
               (click)="toggleBool('recommended')"
-              [tuiHint]="
-                global.isMobile() ? null : ('ascent.recommend' | translate)
-              "
             >
               <tui-icon
                 [icon]="
@@ -976,7 +974,7 @@ export default class AscentFormComponent {
 
     if (confirmed) {
       try {
-        await this.ascents.deletePhoto(data.id, data.photo_path);
+        await this.ascents.deletePhoto(data.id);
         this.isExistingPhotoDeleted.set(true);
       } catch (e) {
         console.error('[AscentForm] Error deleting photo', e);

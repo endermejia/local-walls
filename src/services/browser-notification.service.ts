@@ -8,7 +8,7 @@ export class BrowserNotificationService {
   private readonly platformId = inject(PLATFORM_ID);
   private audioContext: AudioContext | null = null;
   private originalTitle: string | null = null;
-  private titleInterval: any = null;
+  private titleInterval: ReturnType<typeof setInterval> | null = null;
 
   async requestPermission(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -198,7 +198,9 @@ export class BrowserNotificationService {
     if (this.audioContext) return;
     try {
       const AudioRef =
-        window.AudioContext || (window as any).webkitAudioContext;
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext })
+          .webkitAudioContext;
       if (AudioRef) {
         this.audioContext = new AudioRef();
       }

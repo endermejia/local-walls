@@ -16,7 +16,7 @@ import {
   ViewChild,
 } from '@angular/core';
 
-import { TuiButton, TuiHint } from '@taiga-ui/core';
+import { TuiButton } from '@taiga-ui/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -33,7 +33,7 @@ import { MapBuilder, MapBuilderCallbacks } from '../services/map-builder';
 
 @Component({
   selector: 'app-map',
-  imports: [TuiButton, TuiHint, TranslatePipe],
+  imports: [TuiButton, TranslatePipe],
   template: `
     <div class="relative w-full h-full">
       <div
@@ -54,7 +54,6 @@ import { MapBuilder, MapBuilderCallbacks } from '../services/map-builder';
           class="pointer-events-auto"
           (click.zoneless)="onZoomInClick()"
           [iconStart]="'@tui.plus'"
-          [tuiHint]="global.isMobile() ? null : ('labels.zoomIn' | translate)"
         >
           {{ 'labels.zoomIn' | translate }}
         </button>
@@ -67,7 +66,6 @@ import { MapBuilder, MapBuilderCallbacks } from '../services/map-builder';
           class="pointer-events-auto"
           (click.zoneless)="onZoomOutClick()"
           [iconStart]="'@tui.minus'"
-          [tuiHint]="global.isMobile() ? null : ('labels.zoomOut' | translate)"
         >
           {{ 'labels.zoomOut' | translate }}
         </button>
@@ -80,9 +78,6 @@ import { MapBuilder, MapBuilderCallbacks } from '../services/map-builder';
           class="pointer-events-auto"
           (click.zoneless)="onLocateClick()"
           [iconStart]="'@tui.locate'"
-          [tuiHint]="
-            global.isMobile() ? null : ('labels.myLocation' | translate)
-          "
         >
           {{ 'labels.myLocation' | translate }}
         </button>

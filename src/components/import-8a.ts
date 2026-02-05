@@ -16,7 +16,6 @@ import {
 import {
   TuiButton,
   TuiDialogContext,
-  TuiHint,
   TuiIcon,
   TuiNotification,
 } from '@taiga-ui/core';
@@ -91,7 +90,6 @@ import { AvatarGradeComponent } from './avatar-grade';
     AsyncPipe,
     TuiAvatar,
     TuiIcon,
-    TuiHint,
     AvatarGradeComponent,
   ],
   template: `
@@ -206,9 +204,6 @@ import { AvatarGradeComponent } from './avatar-grade';
                             ascentsService.ascentInfo()[
                               ascent.type || 'default'
                             ].background
-                          "
-                          [tuiHint]="
-                            'ascentTypes.' + (ascent.type || 'rp') | translate
                           "
                         >
                           <tui-icon
@@ -672,6 +667,7 @@ export class Import8aComponent {
                 realAreaSlug, // This is the 8anu cragSlug (our Area)
                 realSectorSlug, // This is the 8anu sectorSlug (our Crag)
               ),
+              { defaultValue: null },
             );
             if (response?.items) {
               console.log(

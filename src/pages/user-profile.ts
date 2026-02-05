@@ -19,8 +19,8 @@ import {
   TuiAppearance,
   TuiButton,
   TuiDataList,
+  TuiDropdown,
   TuiFallbackSrcPipe,
-  TuiHint,
   TuiLabel,
   TuiLink,
   TuiLoader,
@@ -49,18 +49,22 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, startWith } from 'rxjs';
 
 import {
+  BlockingService,
   FiltersService,
   FollowsService,
   GlobalData,
   SupabaseService,
+  ToastService,
   UserProfilesService,
 } from '../services';
 
-import { AscentsFeedComponent } from '../components/ascents-feed';
+import {
+  AscentsFeedComponent,
+  EmptyStateComponent,
+  RoutesTableComponent,
+} from '../components';
 import { ChatDialogComponent } from '../dialogs/chat-dialog';
-import { EmptyStateComponent } from '../components/empty-state';
-import { RoutesTableComponent } from '../components/routes-table';
-import { UserListDialogComponent } from '../dialogs/user-list-dialog';
+import { UserListDialogComponent } from '../dialogs';
 
 import {
   ORDERED_GRADE_VALUES,
@@ -85,9 +89,9 @@ import {
     TuiButton,
     TuiDataList,
     TuiDataListWrapper,
+    TuiDropdown,
     TuiFallbackSrcPipe,
     TuiHeader,
-    TuiHint,
     TuiLabel,
     TuiLink,
     TuiLoader,
@@ -129,13 +133,61 @@ import {
                   tuiIconButton
                   type="button"
                   appearance="action-grayscale"
-                  [tuiHint]="
-                    global.isMobile() ? null : ('actions.edit' | translate)
-                  "
                   (click)="openEditDialog()"
                 >
                   {{ 'actions.edit' | translate }}
                 </button>
+              } @else {
+                @let blockMessages = blockState().blockMessages;
+                @let blockAscents = blockState().blockAscents;
+                <button
+                  [appearance]="
+                    blockMessages || blockAscents
+                      ? 'negative'
+                      : 'action-grayscale'
+                  "
+                  iconStart="@tui.ellipsis-vertical"
+                  size="m"
+                  tuiIconButton
+                  type="button"
+                  [tuiSkeleton]="loading"
+                  [tuiDropdown]="dropdownContent"
+                  [(tuiDropdownOpen)]="dropdownOpen"
+                >
+                  {{ 'labels.options' | translate }}
+                </button>
+                <ng-template #dropdownContent>
+                  <tui-data-list>
+                    <button
+                      tuiOption
+                      new
+                      [tuiAppearance]="blockMessages ? 'negative' : 'neutral'"
+                      iconStart="@tui.message-circle-off"
+                      (click)="toggleBlockMessages(); dropdownOpen.set(false)"
+                    >
+                      {{
+                        (blockMessages
+                          ? 'actions.messagesBlocked'
+                          : 'actions.blockMessages'
+                        ) | translate
+                      }}
+                    </button>
+                    <button
+                      tuiOption
+                      new
+                      [tuiAppearance]="blockAscents ? 'negative' : 'neutral'"
+                      iconStart="@tui.bell-off"
+                      (click)="toggleHideAscents(); dropdownOpen.set(false)"
+                    >
+                      {{
+                        (blockAscents
+                          ? 'actions.ascentsHidden'
+                          : 'actions.hideAscents'
+                        ) | translate
+                      }}
+                    </button>
+                  </tui-data-list>
+                </ng-template>
               }
             </div>
 
@@ -214,8 +266,7 @@ import {
               (click)="toggleFollow()"
             >
               {{
-                (following ? 'actions.following' : 'actions.follow')
-                  | translate
+                (following ? 'actions.following' : 'actions.follow') | translate
               }}
             </button>
 
@@ -288,11 +339,6 @@ import {
                       type="button"
                       iconStart="@tui.sliders-horizontal"
                       [attr.aria-label]="'labels.filters' | translate"
-                      [tuiHint]="
-                        global.isMobile()
-                          ? null
-                          : ('labels.filters' | translate)
-                      "
                       (click.zoneless)="openFilters()"
                     ></button>
                   </tui-badged-content>
@@ -515,11 +561,15 @@ export class UserProfileComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
   private readonly followsService = inject(FollowsService);
+  private readonly blockingService = inject(BlockingService);
+  private readonly toast = inject(ToastService);
   private readonly userProfilesService = inject(UserProfilesService);
   private readonly filtersService = inject(FiltersService);
 
   // Route param (optional)
   id = input<string | undefined>();
+
+  protected dropdownOpen = signal(false);
 
   private readonly dialogs = inject(TuiDialogService);
 
@@ -959,6 +1009,25 @@ export class UserProfileComponent {
   });
   readonly isFollowing = computed(() => !!this.isFollowingResource.value());
 
+  readonly blockStateResource = resource({
+    params: () => ({
+      userId: this.profile()?.id,
+      change: this.blockingService.blockChange(),
+    }),
+    loader: async ({ params }) => {
+      if (!params.userId || !isPlatformBrowser(this.platformId))
+        return { blockMessages: false, blockAscents: false };
+      return this.blockingService.getBlockState(params.userId);
+    },
+  });
+  readonly blockState = computed(
+    () =>
+      this.blockStateResource.value() ?? {
+        blockMessages: false,
+        blockAscents: false,
+      },
+  );
+
   readonly profileAvatarSrc = computed(() =>
     this.supabase.buildAvatarUrl(this.profile()?.avatar),
   );
@@ -1032,6 +1101,117 @@ export class UserProfileComponent {
       await this.followsService.unfollow(followedUserId);
     } else {
       await this.followsService.follow(followedUserId);
+    }
+  }
+
+  async toggleBlockMessages(): Promise<void> {
+    const profile = this.profile();
+    const userId = profile?.id;
+    if (!userId || this.isOwnProfile()) return;
+
+    const current = this.blockState();
+    const isBlocking = !current.blockMessages;
+
+    const data: TuiConfirmData = {
+      content: this.translate.instant(
+        isBlocking
+          ? 'actions.blockMessagesConfirm'
+          : 'actions.unblockMessagesConfirm',
+        { name: profile.name },
+      ),
+      yes: this.translate.instant(
+        isBlocking ? 'actions.block' : 'actions.unblock',
+      ),
+      no: this.translate.instant('actions.cancel'),
+      appearance: isBlocking ? 'negative' : 'primary',
+    };
+
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant(
+          isBlocking ? 'actions.blockMessages' : 'actions.unblockMessages',
+        ),
+        size: 's',
+        data,
+      }),
+      { defaultValue: false },
+    );
+
+    if (!confirmed) return;
+
+    const success = isBlocking
+      ? await this.blockingService.toggleBlockMessages(
+          userId,
+          current.blockAscents,
+        )
+      : await this.blockingService.toggleUnblockMessages(
+          userId,
+          current.blockAscents,
+        );
+
+    if (success) {
+      this.toast.success(
+        isBlocking
+          ? 'messages.toasts.messagesBlocked'
+          : 'messages.toasts.messagesUnblocked',
+      );
+    }
+  }
+
+  async toggleHideAscents(): Promise<void> {
+    const profile = this.profile();
+    const userId = profile?.id;
+    if (!userId || this.isOwnProfile()) return;
+
+    const current = this.blockState();
+    const isHiding = !current.blockAscents;
+
+    const data: TuiConfirmData = {
+      content: this.translate.instant(
+        isHiding ? 'actions.hideAscentsConfirm' : 'actions.showAscentsConfirm',
+        { name: profile.name },
+      ),
+      yes: this.translate.instant(
+        isHiding ? 'actions.hide' : 'actions.showAscents',
+      ),
+      no: this.translate.instant('actions.cancel'),
+      appearance: isHiding ? 'negative' : 'primary',
+    };
+
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant(
+          isHiding ? 'actions.hideAscents' : 'actions.showAscents',
+        ),
+        size: 's',
+        data,
+      }),
+      { defaultValue: false },
+    );
+
+    if (!confirmed) return;
+
+    const success = isHiding
+      ? await this.blockingService.toggleBlockAscents(
+          userId,
+          current.blockMessages,
+        )
+      : await this.blockingService.toggleUnblockAscents(
+          userId,
+          current.blockMessages,
+        );
+
+    if (success) {
+      this.toast.success(
+        isHiding
+          ? 'messages.toasts.ascentsHidden'
+          : 'messages.toasts.ascentsShown',
+      );
+
+      // If hiding ascents, we might want to unfollow as well?
+      if (isHiding && this.isFollowing()) {
+        await this.followsService.unfollow(userId);
+      }
     }
   }
 

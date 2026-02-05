@@ -1,4 +1,4 @@
-import { AsyncPipe, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -25,7 +25,6 @@ import { tuiDefaultSort, TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
 import {
   TuiButton,
   TuiDataList,
-  TuiHint,
   TuiIcon,
   TuiLink,
   TuiLoader,
@@ -61,8 +60,6 @@ import {
   ToposService,
 } from '../services';
 
-import { TopoImagePipe } from '../pipes';
-
 import { AvatarGradeComponent } from '../components/avatar-grade';
 import { EmptyStateComponent } from '../components/empty-state';
 import { SectionHeaderComponent } from '../components/section-header';
@@ -94,7 +91,6 @@ export interface TopoRouteRow {
     TuiButton,
     TuiCell,
     TuiDataList,
-    TuiHint,
     TuiIcon,
     TuiInputNumber,
     TuiLink,
@@ -121,17 +117,7 @@ export interface TopoRouteRow {
               <!-- Shade info as title additional info -->
               <ng-container titleInfo>
                 @if (shadeInfo(); as info) {
-                  @let changeAt = 'filters.shade.changeAt' | translate;
-                  @let hint =
-                    (info.label | translate) +
-                    (topo()?.shade_change_hour
-                      ? ' · ' + changeAt + ' ' + topo()?.shade_change_hour
-                      : '');
-                  <tui-icon
-                    [icon]="info.icon"
-                    class="text-2xl opacity-70"
-                    [tuiHint]="hint"
-                  />
+                  <tui-icon [icon]="info.icon" class="text-2xl opacity-70" />
                 }
               </ng-container>
 
@@ -161,7 +147,6 @@ export interface TopoRouteRow {
                     iconStart="@tui.square-pen"
                     class="!rounded-full"
                     (click.zoneless)="openEditTopo(t)"
-                    [tuiHint]="isMobile ? null : ('actions.edit' | translate)"
                   >
                     {{ 'actions.edit' | translate }}
                   </button>
@@ -172,9 +157,6 @@ export interface TopoRouteRow {
                     iconStart="@tui.upload"
                     class="!rounded-full"
                     (click.zoneless)="fileInput.click()"
-                    [tuiHint]="
-                      isMobile ? null : ('actions.uploadPhoto' | translate)
-                    "
                   >
                     {{ 'actions.uploadPhoto' | translate }}
                   </button>
@@ -193,9 +175,6 @@ export interface TopoRouteRow {
                       iconStart="@tui.trash"
                       class="!rounded-full"
                       (click.zoneless)="deleteTopo(t)"
-                      [tuiHint]="
-                        isMobile ? null : ('actions.delete' | translate)
-                      "
                     >
                       {{ 'actions.delete' | translate }}
                     </button>
@@ -403,11 +382,6 @@ export interface TopoRouteRow {
                                       appearance="neutral"
                                       iconStart="@tui.circle-plus"
                                       class="!rounded-full"
-                                      [tuiHint]="
-                                        isMobile
-                                          ? null
-                                          : ('ascent.new' | translate)
-                                      "
                                       (click.zoneless)="
                                         onLogAscent(item._ref);
                                         $event.stopPropagation()
@@ -425,11 +399,6 @@ export interface TopoRouteRow {
                                         ascentsService.ascentInfo()[
                                           ascentToEdit?.type || 'default'
                                         ].background
-                                      "
-                                      [tuiHint]="
-                                        isMobile
-                                          ? null
-                                          : ('ascent.edit' | translate)
                                       "
                                       tabindex="0"
                                       (click.zoneless)="
@@ -459,25 +428,12 @@ export interface TopoRouteRow {
                                       "
                                       iconStart="@tui.bookmark"
                                       class="!rounded-full"
-                                      [tuiHint]="
-                                        isMobile
-                                          ? null
-                                          : ((item.project
-                                              ? 'actions.project.remove'
-                                              : 'actions.project.add'
-                                            ) | translate)
-                                      "
                                       (click.zoneless)="
                                         onToggleProject(item);
                                         $event.stopPropagation()
                                       "
                                     >
-                                      {{
-                                        (item.project
-                                          ? 'actions.project.remove'
-                                          : 'actions.project.add'
-                                        ) | translate
-                                      }}
+                                      {{ 'labels.project' | translate }}
                                     </button>
                                   }
                                 </div>
@@ -490,11 +446,6 @@ export interface TopoRouteRow {
                                     appearance="negative"
                                     iconStart="@tui.unlink"
                                     class="!rounded-full"
-                                    [tuiHint]="
-                                      isMobile
-                                        ? null
-                                        : ('actions.unlink' | translate)
-                                    "
                                     (click.zoneless)="
                                       deleteTopoRoute(item._ref);
                                       $event.stopPropagation()
@@ -785,6 +736,7 @@ export class TopoComponent {
         routeName: route.name,
         grade: route.grade,
       }),
+      { defaultValue: undefined },
     );
   }
 
@@ -798,6 +750,7 @@ export class TopoComponent {
         routeName,
         ascentData: ascent,
       }),
+      { defaultValue: undefined },
     );
   }
 

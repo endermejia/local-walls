@@ -11,14 +11,26 @@ import {
   signal,
   ViewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { TuiAppearance, TuiLoader, TuiScrollbar } from '@taiga-ui/core';
+import { TuiSegmented } from '@taiga-ui/kit';
 
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { concatMap, scan, startWith, Subject, tap } from 'rxjs';
+import { TranslatePipe } from '@ngx-translate/core';
+import {
+  combineLatest,
+  concatMap,
+  distinctUntilChanged,
+  filter,
+  map,
+  scan,
+  startWith,
+  Subject,
+  switchMap,
+  tap,
+} from 'rxjs';
 
 import {
   GradeLabel,
@@ -47,6 +59,7 @@ import { AscentsFeedComponent } from '../components/ascents-feed';
     TuiAppearance,
     TuiLoader,
     TuiScrollbar,
+    TuiSegmented,
   ],
   template: `
     <tui-scrollbar class="h-full">
@@ -76,6 +89,20 @@ import { AscentsFeedComponent } from '../components/ascents-feed';
                 </div>
               </div>
             }
+          }
+
+          <!-- Filter Segmented -->
+          @if (followsLoaded() && followedIds().size > 0) {
+            <div class="flex justify-center">
+              <tui-segmented [(activeItemIndex)]="filterIndex">
+                <button type="button">
+                  {{ 'actions.following' | translate }}
+                </button>
+                <button type="button">
+                  {{ 'labels.all' | translate }}
+                </button>
+              </tui-segmented>
+            </div>
           }
 
           <!-- Ascents Feed -->
@@ -120,6 +147,7 @@ export class HomeComponent implements OnDestroy {
   protected readonly gradeLabelByNumber: Partial<Record<number, GradeLabel>> =
     VERTICAL_LIFE_TO_LABEL;
   protected readonly followedIds = signal<Set<string>>(new Set());
+  protected readonly followsLoaded = signal(false);
 
   protected readonly activeCragsResource = resource({
     loader: () => this.fetchActiveCrags(),
@@ -129,6 +157,16 @@ export class HomeComponent implements OnDestroy {
     () => this.activeCragsResource.value() ?? [],
   );
 
+  protected readonly feedFilter = signal<'following' | 'all'>('following');
+
+  protected get filterIndex(): number {
+    return this.feedFilter() === 'following' ? 0 : 1;
+  }
+
+  protected set filterIndex(index: number) {
+    this.feedFilter.set(index === 0 ? 'following' : 'all');
+  }
+
   constructor() {
     this.loadFollowedIds();
 
@@ -136,12 +174,26 @@ export class HomeComponent implements OnDestroy {
       this.scrollToTop();
     });
 
-    this.page$
+    combineLatest([
+      toObservable(this.feedFilter),
+      toObservable(this.followsLoaded),
+    ])
       .pipe(
         takeUntilDestroyed(),
-        tap(() => this.isLoading.set(true)),
-        concatMap((page) => this.fetchAscents(page)),
-        tap(() => this.isLoading.set(false)), // Note: Ensure this runs even on error if needed, but for now simple
+        filter(([_, loaded]) => loaded),
+        map(([f, _]) => f as 'following' | 'all'),
+        distinctUntilChanged(),
+        switchMap((filter) => {
+          this.ascents.set([]);
+          this.hasMore.set(true);
+          this.isLoading.set(true);
+          return this.loadMore$.pipe(
+            startWith(void 0),
+            scan((acc) => acc + 1, -1),
+            concatMap((page) => this.fetchAscents(page, filter)),
+            tap(() => this.isLoading.set(false)),
+          );
+        }),
       )
       .subscribe((newAscents) => {
         this.ascents.update((current) => [...current, ...newAscents]);
@@ -149,13 +201,22 @@ export class HomeComponent implements OnDestroy {
   }
 
   private async loadFollowedIds() {
-    if (!this.isBrowser) return;
+    if (!this.isBrowser) {
+      this.followsLoaded.set(true);
+      return;
+    }
     try {
       await this.supabase.whenReady();
       const ids = await this.followsService.getFollowedIds();
       this.followedIds.set(new Set(ids));
+      if (ids.length === 0) {
+        this.feedFilter.set('all');
+      }
     } catch (error) {
       console.error('Error loading followed ids:', error);
+      this.feedFilter.set('all');
+    } finally {
+      this.followsLoaded.set(true);
     }
   }
 
@@ -209,12 +270,10 @@ export class HomeComponent implements OnDestroy {
   protected readonly hasMore = signal(true);
   protected readonly ascents = signal<RouteAscentWithExtras[]>([]);
 
-  private readonly page$ = this.loadMore$.pipe(
-    startWith(void 0),
-    scan((acc) => acc + 1, -1),
-  );
-
-  private async fetchAscents(page: number): Promise<RouteAscentWithExtras[]> {
+  private async fetchAscents(
+    page: number,
+    filter: 'following' | 'all' = this.feedFilter(),
+  ): Promise<RouteAscentWithExtras[]> {
     if (!this.isBrowser) return [];
     await this.supabase.whenReady();
     const userId = this.supabase.authUserId();
@@ -224,7 +283,7 @@ export class HomeComponent implements OnDestroy {
     const fromIdx = page * size;
     const toIdx = fromIdx + size - 1;
 
-    const { data: ascents } = await this.supabase.client
+    let query = this.supabase.client
       .from('route_ascents')
       .select(
         `
@@ -239,7 +298,18 @@ export class HomeComponent implements OnDestroy {
           )
         `,
       )
-      .neq('user_id', userId)
+      .neq('user_id', userId);
+
+    if (filter === 'following') {
+      const followed = Array.from(this.followedIds());
+      if (followed.length === 0) {
+        this.hasMore.set(false);
+        return [];
+      }
+      query = query.in('user_id', followed);
+    }
+
+    const { data: ascents } = await query
       .order('date', { ascending: false })
       .order('id', { ascending: false })
       .range(fromIdx, toIdx)

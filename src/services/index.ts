@@ -1,6 +1,7 @@
 export * from './admin.guard';
 export * from './api-core';
 export * from './app-notifications.service';
+export * from './blocking.service';
 export * from './browser-notification.service';
 export * from './areas.service';
 export * from './ascents.service';

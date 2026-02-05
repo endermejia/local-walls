@@ -19,7 +19,7 @@ export class LocalStorage {
         localStorage.setItem(testKey, testKey);
         localStorage.removeItem(testKey);
         available = true;
-      } catch (e) {
+      } catch {
         available = false;
       }
     }
@@ -36,7 +36,7 @@ export class LocalStorage {
     if (this.isAvailable) {
       try {
         return localStorage.getItem(key);
-      } catch (e) {
+      } catch {
         // Fallback to memory if it fails at runtime
       }
     }
@@ -53,7 +53,7 @@ export class LocalStorage {
       try {
         localStorage.setItem(key, value);
         return;
-      } catch (e) {
+      } catch {
         // Fallback to memory if it fails at runtime
       }
     }
@@ -69,7 +69,7 @@ export class LocalStorage {
       try {
         localStorage.removeItem(key);
         return;
-      } catch (e) {
+      } catch {
         // Fallback to memory if it fails at runtime
       }
     }
@@ -84,7 +84,7 @@ export class LocalStorage {
       try {
         localStorage.clear();
         return;
-      } catch (e) {
+      } catch {
         // Fallback to memory if it fails at runtime
       }
     }

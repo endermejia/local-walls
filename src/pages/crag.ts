@@ -19,7 +19,6 @@ import {
   TuiAppearance,
   TuiButton,
   TuiDataList,
-  TuiHint,
   TuiIcon,
   TuiLabel,
   TuiLoader,
@@ -95,7 +94,6 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     TuiButton,
     TuiDataList,
     TuiHeader,
-    TuiHint,
     TuiIcon,
     TuiLabel,
     TuiLoader,
@@ -112,7 +110,6 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
         (tuiSwipe)="onSwipe($event)"
         class="w-full max-w-5xl mx-auto p-4 flex flex-col min-h-full"
       >
-        @let isMobile = global.isMobile();
         @let isAdmin = global.isAdmin();
         @if (cragDetail(); as c) {
           @let isEquipper = global.isAllowedEquipper(c.area_id);
@@ -149,7 +146,6 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                     tuiIconButton
                     type="button"
                     class="!rounded-full"
-                    [tuiHint]="isMobile ? null : ('actions.edit' | translate)"
                     (click.zoneless)="openEditCrag()"
                   >
                     {{ 'actions.edit' | translate }}
@@ -162,10 +158,6 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                       tuiIconButton
                       type="button"
                       class="!rounded-full"
-                      [tuiHint]="
-                        isMobile ? null : ('actions.delete' | translate)
-                      "
-                      (click.zoneless)="deleteCrag()"
                     >
                       {{ 'actions.delete' | translate }}
                     </button>
@@ -186,10 +178,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
               }
 
               @if (c.approach) {
-                <div
-                  class="flex w-fit items-center gap-1 opacity-70"
-                  [tuiHint]="isMobile ? null : ('labels.approach' | translate)"
-                >
+                <div class="flex w-fit items-center gap-1 opacity-70">
                   <tui-icon icon="@tui.footprints" />
                   <span class="text-lg font-medium whitespace-nowrap">
                     {{ c.approach }}
@@ -351,9 +340,6 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                       type="button"
                       iconStart="@tui.sliders-horizontal"
                       [attr.aria-label]="'labels.filters' | translate"
-                      [tuiHint]="
-                        isMobile ? null : ('labels.filters' | translate)
-                      "
                       (click.zoneless)="openFilters()"
                     ></button>
                   </tui-badged-content>
@@ -518,11 +504,6 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                           @if (p.size) {
                             <div
                               class="flex flex-nowrap items-center gap-1 opacity-80 whitespace-nowrap"
-                              [tuiHint]="
-                                isMobile
-                                  ? null
-                                  : ('labels.capacity' | translate)
-                              "
                             >
                               <tui-icon icon="@tui.car" />
                               <span class="text-lg"> x {{ p.size }} </span>
@@ -539,7 +520,6 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                                 type="button"
                                 class="!rounded-full"
                                 (click.zoneless)="openEditParking(p)"
-                                [tuiHint]="'actions.edit' | translate"
                               >
                                 {{ 'actions.edit' | translate }}
                               </button>
@@ -550,7 +530,6 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                                 tuiIconButton
                                 type="button"
                                 class="!rounded-full"
-                                [tuiHint]="'actions.unlink' | translate"
                                 (click.zoneless)="removeParking(p)"
                               >
                                 {{ 'actions.unlink' | translate }}

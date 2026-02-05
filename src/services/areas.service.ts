@@ -57,6 +57,7 @@ export class AreasService {
           dismissible: false,
         },
       ),
+      { defaultValue: null },
     ).then((result) => {
       if (result) {
         this.global.areasListResource.reload();
@@ -89,6 +90,7 @@ export class AreasService {
           dismissible: false,
         },
       ),
+      { defaultValue: false },
     ).then((result) => {
       if (result) {
         this.global.areasListResource.reload();

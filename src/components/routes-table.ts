@@ -22,13 +22,7 @@ import {
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
-import {
-  TuiButton,
-  TuiHint,
-  TuiIcon,
-  TuiLink,
-  TuiScrollbar,
-} from '@taiga-ui/core';
+import { TuiButton, TuiIcon, TuiLink, TuiScrollbar } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
@@ -101,7 +95,6 @@ export interface RoutesTableRow {
     TuiButton,
     TuiCell,
     TuiChevron,
-    TuiHint,
     TuiIcon,
     TuiLink,
     TuiRating,
@@ -283,9 +276,6 @@ export interface RoutesTableRow {
                                 tuiIconButton
                                 type="button"
                                 class="!rounded-full"
-                                [tuiHint]="
-                                  isMobile ? null : ('ascent.new' | translate)
-                                "
                                 (click.zoneless)="
                                   onLogAscent(item._ref);
                                   $event.stopPropagation()
@@ -298,9 +288,6 @@ export interface RoutesTableRow {
                                 [type]="ascentToEdit?.type"
                                 size="m"
                                 class="cursor-pointer"
-                                [tuiHint]="
-                                  isMobile ? null : ('ascent.edit' | translate)
-                                "
                                 tabindex="0"
                                 (click.zoneless)="
                                   onEditAscent(ascentToEdit, item._ref.name);
@@ -323,14 +310,6 @@ export interface RoutesTableRow {
                                 tuiIconButton
                                 type="button"
                                 class="!rounded-full"
-                                [tuiHint]="
-                                  isMobile
-                                    ? null
-                                    : ((item.project
-                                        ? 'actions.project.remove'
-                                        : 'actions.project.add'
-                                      ) | translate)
-                                "
                                 (click.zoneless)="
                                   routesService.toggleRouteProject(
                                     item._ref.id,
@@ -339,12 +318,7 @@ export interface RoutesTableRow {
                                   $event.stopPropagation()
                                 "
                               >
-                                {{
-                                  (item.project
-                                    ? 'actions.project.remove'
-                                    : 'actions.project.add'
-                                  ) | translate
-                                }}
+                                {{ 'labels.project' | translate }}
                               </button>
                             }
                           </div>
@@ -359,9 +333,6 @@ export interface RoutesTableRow {
                                 tuiIconButton
                                 type="button"
                                 class="!rounded-full"
-                                [tuiHint]="
-                                  isMobile ? null : ('actions.edit' | translate)
-                                "
                                 (click.zoneless)="
                                   openEditRoute(item._ref);
                                   $event.stopPropagation()
@@ -377,11 +348,6 @@ export interface RoutesTableRow {
                                   tuiIconButton
                                   type="button"
                                   class="!rounded-full"
-                                  [tuiHint]="
-                                    isMobile
-                                      ? null
-                                      : ('actions.delete' | translate)
-                                  "
                                   (click.zoneless)="
                                     deleteRoute(item._ref);
                                     $event.stopPropagation()
@@ -490,12 +456,7 @@ export interface RoutesTableRow {
                                   $event.stopPropagation()
                                 "
                               >
-                                {{
-                                  (item.project
-                                    ? 'actions.project.remove'
-                                    : 'actions.project.add'
-                                  ) | translate
-                                }}
+                                {{ 'labels.project' | translate }}
                               </button>
                             }
 

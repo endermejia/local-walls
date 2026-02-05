@@ -26,12 +26,7 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Next Steps
 
-- **Agregar subida de fotos al ascent**
-- **Cuando se borre un ascent, debe borrar la foto del ascent**
-- **Cuando se borra un topo, debe borrar las fotos del topo**
-- **Gestionar subscriptions en la app**
 - **Corregir errores en console de la app**
-- **Gestionar perfil privado por politicas RLS**
 
 ## Future Features
 

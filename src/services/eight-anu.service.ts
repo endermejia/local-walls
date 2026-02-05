@@ -56,6 +56,7 @@ export class EightAnuService {
             showOnMap: 'false',
           },
         }),
+        { defaultValue: null },
       );
 
       if (response?.items && response.items.length > 0) {
@@ -105,6 +106,7 @@ export class EightAnuService {
             showOnMap: 'false',
           },
         }),
+        { defaultValue: null },
       );
 
       if (response?.items && response.items.length > 0) {
@@ -214,6 +216,7 @@ export class EightAnuService {
         this.http.get<{
           crag?: { location?: { latitude: number; longitude: number } };
         }>(url),
+        { defaultValue: null },
       );
       if (data?.crag?.location?.latitude && data?.crag?.location?.longitude) {
         return {
