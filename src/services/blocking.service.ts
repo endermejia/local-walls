@@ -30,7 +30,7 @@ export class BlockingService {
     if (!userId) return { blockMessages: false, blockAscents: false };
 
     const { data, error } = await this.supabase.client
-      .from('user_blocks' as any)
+      .from('user_blocks')
       .select('block_messages, block_ascents')
       .eq('blocker_id', userId)
       .eq('blocked_id', targetUserId)
@@ -89,7 +89,7 @@ export class BlockingService {
     // If both are false, we delete the row
     if (!blockMessages && !blockAscents) {
       const { error } = await this.supabase.client
-        .from('user_blocks' as any)
+        .from('user_blocks')
         .delete()
         .eq('blocker_id', userId)
         .eq('blocked_id', targetUserId);
@@ -104,17 +104,15 @@ export class BlockingService {
     }
 
     // Otherwise upsert
-    const { error } = await this.supabase.client
-      .from('user_blocks' as any)
-      .upsert(
-        {
-          blocker_id: userId,
-          blocked_id: targetUserId,
-          block_messages: blockMessages,
-          block_ascents: blockAscents,
-        },
-        { onConflict: 'blocker_id, blocked_id' },
-      );
+    const { error } = await this.supabase.client.from('user_blocks').upsert(
+      {
+        blocker_id: userId,
+        blocked_id: targetUserId,
+        block_messages: blockMessages,
+        block_ascents: blockAscents,
+      },
+      { onConflict: 'blocker_id, blocked_id' },
+    );
 
     if (error) {
       console.error('[BlockingService] upsert block error', error);
