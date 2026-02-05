@@ -9,10 +9,7 @@ import { firstValueFrom, Observable } from 'rxjs';
 
 import { UserProfileDto } from '../models';
 
-import {
-  AvatarCropperComponent,
-  AvatarCropperResult,
-} from '../components/avatar-cropper';
+import { ImageEditorDialogComponent } from '../dialogs';
 import { Import8aComponent } from '../components/import-8a';
 
 import { SupabaseService } from './supabase.service';
@@ -42,15 +39,16 @@ export class UserProfilesService {
     );
   }
 
-  openAvatarCropper(
-    file: File,
-    size = 512,
-  ): Observable<AvatarCropperResult | null> {
-    return this.dialogs.open<AvatarCropperResult | null>(
-      new PolymorpheusComponent(AvatarCropperComponent),
+  openAvatarCropper(file: File, size = 512): Observable<File | null> {
+    return this.dialogs.open<File | null>(
+      new PolymorpheusComponent(ImageEditorDialogComponent),
       {
-        size: 'm',
-        data: { file, size },
+        size: 'l',
+        data: {
+          file,
+          aspectRatios: [{ titleKey: '1:1', descriptionKey: '1:1', ratio: 1 }],
+          forceAspectRatio: true,
+        },
         appearance: 'fullscreen',
         closable: false,
         dismissible: false,

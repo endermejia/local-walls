@@ -978,10 +978,7 @@ export class UserProfileConfigComponent {
       );
 
       if (!result) return; // canceled
-      const croppedFile = new File([result.blob], result.fileName, {
-        type: result.mimeType,
-        lastModified: Date.now(),
-      });
+      const croppedFile = result;
       this.isUploadingAvatar.set(true);
       try {
         const upload = await this.supabase.uploadAvatar(croppedFile);

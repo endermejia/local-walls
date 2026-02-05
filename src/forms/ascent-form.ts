@@ -23,12 +23,14 @@ import {
   TuiAppearance,
   TuiButton,
   tuiDateFormatProvider,
-  TuiDialogService,
   TuiIcon,
   TuiLabel,
   TuiTextfield,
 } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
+import {
+  type TuiDialogContext,
+  TuiDialogService,
+} from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
   TuiCheckbox,
@@ -42,7 +44,7 @@ import {
   TuiInputFiles,
   TuiFileRejectedPipe,
 } from '@taiga-ui/kit';
-import { injectContext } from '@taiga-ui/polymorpheus';
+import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, startWith } from 'rxjs';
@@ -66,6 +68,7 @@ import {
   ToastService,
 } from '../services';
 
+import { ImageEditorDialogComponent } from '../dialogs';
 import { CounterComponent } from '../components/counter';
 
 import { handleErrorToast } from '../utils';
@@ -215,18 +218,41 @@ import { handleErrorToast } from '../utils';
             <span class="text-xs font-bold opacity-60 uppercase">{{
               'ascent.photo' | translate
             }}</span>
-            @if (existingPhotoUrl()) {
-              <button
-                tuiButton
-                type="button"
-                appearance="negative"
-                size="s"
-                iconStart="@tui.trash"
-                (click)="onDeleteExistingPhoto()"
-              >
-                {{ 'ascent.deletePhoto' | translate }}
-              </button>
-            }
+            <div class="flex items-center gap-2">
+              @if (existingPhotoUrl(); as photoUrl) {
+                <button
+                  tuiButton
+                  type="button"
+                  appearance="neutral"
+                  size="s"
+                  iconStart="@tui.edit-2"
+                  (click)="editPhoto(null, photoUrl)"
+                >
+                  {{ 'actions.edit' | translate }}
+                </button>
+                <button
+                  tuiButton
+                  type="button"
+                  appearance="negative"
+                  size="s"
+                  iconStart="@tui.trash"
+                  (click)="onDeleteExistingPhoto()"
+                >
+                  {{ 'ascent.deletePhoto' | translate }}
+                </button>
+              } @else if (photoValue(); as file) {
+                <button
+                  tuiButton
+                  type="button"
+                  appearance="neutral"
+                  size="s"
+                  iconStart="@tui.edit-2"
+                  (click)="editPhoto(file)"
+                >
+                  {{ 'actions.edit' | translate }}
+                </button>
+              }
+            </div>
           </div>
 
           <div class="grid gap-2">
@@ -242,7 +268,10 @@ import { handleErrorToast } from '../utils';
 
             <tui-files class="mt-2">
               @if (
-                photoValue() | tuiFileRejected: { accept: 'image/*' } | async;
+                photoValue()
+                  | tuiFileRejected
+                    : { accept: 'image/*', maxFileSize: 5 * 1024 * 1024 }
+                  | async;
                 as file
               ) {
                 <tui-file
@@ -256,7 +285,7 @@ import { handleErrorToast } from '../utils';
                 <div class="relative group">
                   <tui-file [file]="file" (remove)="removePhotoFile()" />
                   @if (previewUrl()) {
-                    <div class="mt-2 rounded-xl overflow-hidden">
+                    <div class="mt-2 rounded-xl overflow-hidden relative group">
                       <img
                         [src]="previewUrl()"
                         class="w-full h-auto max-h-48 object-cover"
@@ -268,13 +297,15 @@ import { handleErrorToast } from '../utils';
               }
 
               @if (existingPhotoUrl(); as photoUrl) {
-                <div class="rounded-xl overflow-hidden">
-                  <img
-                    [src]="photoUrl"
-                    class="w-full h-auto max-h-48 object-cover"
-                    alt="Existing photo"
-                  />
-                </div>
+                @if (!photoValue()) {
+                  <div class="rounded-xl overflow-hidden relative group">
+                    <img
+                      [src]="photoUrl"
+                      class="w-full h-auto max-h-48 object-cover"
+                      alt="Existing photo"
+                    />
+                  </div>
+                }
               }
             </tui-files>
           </div>
@@ -572,6 +603,7 @@ export default class AscentFormComponent {
   protected readonly previewUrl = signal<string | null>(null);
 
   protected readonly isExistingPhotoDeleted = signal(false);
+  protected readonly isProcessingPhoto = signal(false);
 
   protected readonly existingPhotoResource = resource({
     params: () => {
@@ -756,6 +788,14 @@ export default class AscentFormComponent {
     if (!this.effectiveAscentData() && this.dialogGrade !== undefined) {
       this.form.patchValue({ grade: this.dialogGrade });
     }
+
+    // Auto-open editor when a new file is selected from file input
+    this.photoControl.valueChanges.subscribe((file) => {
+      if (file && !this.isProcessingPhoto()) {
+        this.isProcessingPhoto.set(true);
+        this.editPhoto(file, undefined);
+      }
+    });
   }
 
   private updateTriesState(type: string | null | undefined): void {
@@ -899,6 +939,52 @@ export default class AscentFormComponent {
 
   protected removePhotoFile(): void {
     this.photoControl.setValue(null);
+  }
+
+  async editPhoto(file?: File | null, imageUrl?: string): Promise<void> {
+    const data = {
+      file: file ?? undefined,
+      imageUrl: imageUrl ?? undefined,
+      aspectRatios: [
+        { titleKey: '1:1', descriptionKey: '1:1', ratio: 1 },
+        { titleKey: '4:5', descriptionKey: '4:5', ratio: 4 / 5 },
+        { titleKey: '16:9', descriptionKey: '16:9', ratio: 16 / 9 },
+      ],
+    };
+
+    if (!data.file && !data.imageUrl) {
+      this.isProcessingPhoto.set(false);
+      return;
+    }
+
+    const result = await firstValueFrom(
+      this.dialogs.open<File | null>(
+        new PolymorpheusComponent(ImageEditorDialogComponent),
+        {
+          data,
+          appearance: 'fullscreen',
+          closable: false,
+          dismissible: false,
+        },
+      ),
+    );
+
+    // Reset processing flag
+    this.isProcessingPhoto.set(false);
+
+    if (result) {
+      // If we got a result, set it without triggering the effect again
+      this.photoControl.setValue(result, { emitEvent: false });
+      // Manually trigger preview update
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.previewUrl.set(reader.result as string);
+      };
+      reader.readAsDataURL(result);
+    } else {
+      // User cancelled, clear the photo
+      this.photoControl.setValue(null);
+    }
   }
 
   protected async onDeleteExistingPhoto(): Promise<void> {
