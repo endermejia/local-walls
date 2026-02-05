@@ -643,16 +643,19 @@ export class TopoFormComponent {
       maintainAspectRatio: false,
       allowFree: true,
       allowDrawing: true,
-      topoRoutes: (this.selectedRoutes.value || []).map((r, i) => ({
-        route_id: r.id,
-        number: i,
-        route: { name: r.name, grade: r.grade },
-        path:
-          this.pendingPaths().find((p) => p.routeId === r.id)?.path ||
-          this.effectiveTopoData()?.topo_routes?.find(
-            (tr) => tr.route_id === r.id,
-          )?.path,
-      })),
+      topoRoutes: (this.selectedRoutes.value || []).map((r, i) => {
+        const existing = this.effectiveTopoData()?.topo_routes?.find(
+          (tr) => tr.route_id === r.id,
+        );
+        return {
+          route_id: r.id,
+          number: existing ? existing.number : i + 1,
+          route: { name: r.name, grade: r.grade },
+          path:
+            this.pendingPaths().find((p) => p.routeId === r.id)?.path ||
+            existing?.path,
+        };
+      }),
     };
 
     if (!data.file && !data.imageUrl) {

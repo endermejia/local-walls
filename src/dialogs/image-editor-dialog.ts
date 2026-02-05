@@ -611,6 +611,14 @@ export class ImageEditorDialogComponent {
       const blob = await response.blob();
       const fileName = url.split('/').pop() || 'image';
       this.imageFile = new File([blob], fileName, { type: blob.type });
+
+      if (this.allowDrawing) {
+        this.mode.set('draw');
+        const objectUrl = URL.createObjectURL(blob);
+        this.croppedImage = this.sanitizer.bypassSecurityTrustUrl(objectUrl);
+        this.croppedImageBlob = blob;
+      }
+
       // Set cropperVisible to true after loading to show the editor
       this.cropperVisible.set(true);
     } catch (error) {
