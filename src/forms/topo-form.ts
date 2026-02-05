@@ -7,6 +7,8 @@ import {
   inject,
   input,
   InputSignal,
+  resource,
+  signal,
   Signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -21,6 +23,7 @@ import { TuiIdentityMatcher, tuiIsString, TuiTime } from '@taiga-ui/cdk';
 import {
   TuiButton,
   TuiDataList,
+  TuiDialogService,
   TuiIcon,
   TuiLabel,
   TuiOptGroup,
@@ -31,17 +34,19 @@ import { type TuiDialogContext } from '@taiga-ui/experimental';
 import {
   TuiCheckbox,
   TuiChevron,
+  TUI_CONFIRM,
   TuiFilterByInputPipe,
   TuiInputChip,
   TuiInputTime,
   tuiInputTimeOptionsProvider,
   TuiMultiSelect,
+  TuiFiles,
+  TuiInputFiles,
 } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
-import { injectContext } from '@taiga-ui/polymorpheus';
-
-import { TranslatePipe } from '@ngx-translate/core';
-import { startWith } from 'rxjs';
+import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom, startWith } from 'rxjs';
 
 import {
   RouteDto,
@@ -54,8 +59,14 @@ import {
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
 
-import { GlobalData, ToastService, ToposService } from '../services';
+import {
+  GlobalData,
+  SupabaseService,
+  ToastService,
+  ToposService,
+} from '../services';
 
+import { ImageEditorDialogComponent } from '../dialogs';
 import { AvatarGradeComponent } from '../components/avatar-grade';
 
 import { handleErrorToast, slugify } from '../utils';
@@ -82,6 +93,8 @@ import { handleErrorToast, slugify } from '../utils';
     TuiOptGroup,
     TuiTextfield,
     TuiTitle,
+    TuiFiles,
+    TuiInputFiles,
   ],
   template: `
     <form
@@ -124,6 +137,123 @@ import { handleErrorToast, slugify } from '../utils';
           />
         </tui-textfield>
       </div>
+
+      <section class="grid gap-3">
+        <div class="flex items-center justify-between px-1">
+          <div class="flex items-center gap-2">
+            @if (
+              isEdit() &&
+              topoData()?.photo &&
+              !photoValue() &&
+              !isExistingPhotoDeleted()
+            ) {
+              @if (existingPhotoUrl(); as url) {
+                <button
+                  tuiButton
+                  type="button"
+                  appearance="neutral"
+                  size="s"
+                  iconStart="@tui.edit-2"
+                  (click)="editPhoto(null, url)"
+                >
+                  {{ 'actions.edit' | translate }}
+                </button>
+              }
+              <button
+                tuiButton
+                type="button"
+                appearance="neutral"
+                size="s"
+                iconStart="@tui.pencil"
+                (click)="openPathEditor()"
+              >
+                {{ 'actions.draw' | translate }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="grid gap-2">
+          @if (
+            !photoValue() &&
+            (!effectiveTopoData()?.photo || isExistingPhotoDeleted())
+          ) {
+            <label tuiInputFiles>
+              <input
+                accept="image/*"
+                tuiInputFiles
+                [formControl]="photoControl"
+              />
+            </label>
+          }
+
+          <tui-files class="mt-2">
+            @if (photoValue(); as file) {
+              <div class="relative group">
+                <tui-file
+                  [file]="file"
+                  (remove)="removePhotoFile()"
+                  (click.zoneless)="editPhoto(file)"
+                />
+                @if (previewUrl()) {
+                  <div
+                    class="mt-2 rounded-xl overflow-hidden relative group cursor-pointer"
+                    (click.zoneless)="editPhoto(file)"
+                  >
+                    <img
+                      [src]="previewUrl()"
+                      class="w-full h-auto max-h-48 object-cover"
+                      alt="Preview"
+                    />
+                    <div
+                      class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <tui-icon
+                        icon="@tui.edit-2"
+                        class="text-white text-3xl"
+                      />
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else if (effectiveTopoData()?.photo; as photoPath) {
+              @if (!isExistingPhotoDeleted()) {
+                <div class="relative group">
+                  <tui-file
+                    [file]="{ name: photoPath }"
+                    (remove)="onDeleteExistingPhoto()"
+                    (click.zoneless)="
+                      existingPhotoUrl()
+                        ? editPhoto(null, existingPhotoUrl()!)
+                        : null
+                    "
+                  />
+                  @if (existingPhotoUrl(); as url) {
+                    <div
+                      class="mt-2 rounded-xl overflow-hidden relative group cursor-pointer"
+                      (click.zoneless)="editPhoto(null, url)"
+                    >
+                      <img
+                        [src]="url"
+                        class="w-full h-auto max-h-48 object-cover"
+                        alt="Existing photo"
+                      />
+                      <div
+                        class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <tui-icon
+                          icon="@tui.edit-2"
+                          class="text-white text-3xl"
+                        />
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          </tui-files>
+        </div>
+      </section>
 
       <div class="mt-4">
         <h3 class="text-lg font-semibold mb-2">
@@ -208,6 +338,9 @@ export class TopoFormComponent {
   private readonly global = inject(GlobalData);
   private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
+  private readonly supabase = inject(SupabaseService);
 
   private readonly _dialogCtx: TuiDialogContext<
     string | boolean | null,
@@ -237,12 +370,11 @@ export class TopoFormComponent {
   private readonly initialRouteIds =
     this._dialogCtx?.data?.initialRouteIds ?? [];
 
-  private readonly effectiveCragId: Signal<number | undefined> = computed(
+  protected readonly effectiveCragId: Signal<number | undefined> = computed(
     () => this.dialogCragId ?? this.cragId(),
   );
-  private readonly effectiveTopoData: Signal<TopoDetail | undefined> = computed(
-    () => this.dialogTopoData ?? this.topoData(),
-  );
+  protected readonly effectiveTopoData: Signal<TopoDetail | undefined> =
+    computed(() => this.dialogTopoData ?? this.topoData());
 
   readonly isEdit: Signal<boolean> = computed(() => !!this.effectiveTopoData());
 
@@ -257,6 +389,27 @@ export class TopoFormComponent {
   selectedRoutes = new FormControl<readonly RouteDto[]>([], {
     nonNullable: true,
   });
+
+  protected readonly photoControl = new FormControl<File | null>(null);
+  protected readonly photoValue = toSignal(
+    this.photoControl.valueChanges.pipe(startWith(this.photoControl.value)),
+    { initialValue: null },
+  );
+  protected readonly previewUrl = signal<string | null>(null);
+  protected readonly isProcessingPhoto = signal(false);
+  protected readonly isExistingPhotoDeleted = signal(false);
+
+  protected readonly existingPhotoUrl = resource({
+    params: () => {
+      const data = this.effectiveTopoData();
+      if (!data?.photo || this.isExistingPhotoDeleted()) return null;
+      return data.photo;
+    },
+    loader: async ({ params }) => {
+      if (!params) return null;
+      return await this.supabase.getTopoSignedUrl(params);
+    },
+  }).value;
 
   private readonly shadeMorningSignal = toSignal(
     this.shade_morning.valueChanges.pipe(startWith(this.shade_morning.value)),
@@ -298,6 +451,30 @@ export class TopoFormComponent {
   protected readonly strings = tuiIsString;
 
   constructor() {
+    effect(
+      () => {
+        const file = this.photoValue();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            this.previewUrl.set(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+        } else {
+          this.previewUrl.set(null);
+        }
+      },
+      { allowSignalWrites: true },
+    );
+
+    // Auto-open editor when a new file is selected from file input
+    this.photoControl.valueChanges.subscribe((file) => {
+      if (file && !this.isProcessingPhoto()) {
+        this.isProcessingPhoto.set(true);
+        this.editPhoto(file, undefined);
+      }
+    });
+
     effect(() => {
       const data = this.effectiveTopoData();
       const available = this.availableRoutes();
@@ -360,6 +537,7 @@ export class TopoFormComponent {
           this.effectiveTopoData()!.id,
           payload,
         );
+        await this.handlePhotoUpload(topo);
         await this.handleTopoRoutes(topo);
         if (this._dialogCtx) {
           this._dialogCtx.completeWith(topo?.slug || true);
@@ -380,6 +558,7 @@ export class TopoFormComponent {
 
       try {
         const topo = await this.topos.create(payload);
+        await this.handlePhotoUpload(topo);
         await this.handleTopoRoutes(topo);
         if (this._dialogCtx) {
           this._dialogCtx.completeWith(topo?.slug || true);
@@ -387,6 +566,13 @@ export class TopoFormComponent {
       } catch (e) {
         this.handleSubmitError(e);
       }
+    }
+  }
+
+  private async handlePhotoUpload(topo: TopoDto | null): Promise<void> {
+    const photoFile = this.photoControl.value;
+    if (topo && photoFile) {
+      await this.topos.uploadPhoto(topo.id, photoFile);
     }
   }
 
@@ -424,6 +610,92 @@ export class TopoFormComponent {
     const error = e as Error;
     console.error('[TopoFormComponent] Error submitting topo:', error);
     handleErrorToast(error, this.toast);
+  }
+
+  protected removePhotoFile(): void {
+    this.photoControl.setValue(null);
+  }
+
+  async editPhoto(file?: File | null, imageUrl?: string): Promise<void> {
+    const data = {
+      file: file ?? undefined,
+      imageUrl: imageUrl ?? undefined,
+      maintainAspectRatio: false,
+      allowFree: true,
+    };
+
+    if (!data.file && !data.imageUrl) {
+      this.isProcessingPhoto.set(false);
+      return;
+    }
+
+    const result = await firstValueFrom(
+      this.dialogs.open<File | null>(
+        new PolymorpheusComponent(ImageEditorDialogComponent),
+        {
+          data,
+          appearance: 'fullscreen',
+          closeable: false,
+          dismissible: false,
+        },
+      ),
+    );
+
+    // Reset processing flag
+    this.isProcessingPhoto.set(false);
+
+    if (result) {
+      // If we got a result, set it without triggering the effect again
+      this.photoControl.setValue(result, { emitEvent: false });
+      // Manually trigger preview update
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.previewUrl.set(reader.result as string);
+      };
+      reader.readAsDataURL(result);
+    } else {
+      // User cancelled, clear the photo
+      this.photoControl.setValue(null);
+    }
+  }
+
+  protected async onDeleteExistingPhoto(): Promise<void> {
+    const data = this.effectiveTopoData();
+    if (!data || !data.photo) return;
+
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('topos.deletePhotoTitle'),
+        size: 's',
+        data: {
+          content: this.translate.instant('topos.deletePhotoConfirm'),
+          yes: this.translate.instant('actions.delete'),
+          no: this.translate.instant('actions.cancel'),
+        },
+      }),
+      { defaultValue: false },
+    );
+
+    if (confirmed) {
+      try {
+        await this.topos.deletePhoto(data.id);
+        this.isExistingPhotoDeleted.set(true);
+        // Reload topo in global state to reflect photo deletion
+        this.global.topoDetailResource.reload();
+      } catch (e) {
+        console.error('[TopoFormComponent] Error deleting photo', e);
+        handleErrorToast(e as any, this.toast);
+      }
+    }
+  }
+
+  protected openPathEditor(): void {
+    const topo = this.effectiveTopoData();
+    const url = this.existingPhotoUrl();
+    if (!topo || !url) return;
+
+    this._dialogCtx?.completeWith(false); // Close form first
+    this.topos.openTopoPathEditor({ topo, imageUrl: url });
   }
 
   goBack(): void {

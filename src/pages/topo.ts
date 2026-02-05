@@ -150,23 +150,6 @@ export interface TopoRouteRow {
                   >
                     {{ 'actions.edit' | translate }}
                   </button>
-                  <button
-                    tuiIconButton
-                    size="s"
-                    appearance="neutral"
-                    iconStart="@tui.upload"
-                    class="!rounded-full"
-                    (click.zoneless)="fileInput.click()"
-                  >
-                    {{ 'actions.uploadPhoto' | translate }}
-                  </button>
-                  <input
-                    #fileInput
-                    type="file"
-                    class="hidden"
-                    accept="image/*"
-                    (change)="onFileSelected($event)"
-                  />
                   @if (isAdmin) {
                     <button
                       tuiIconButton
@@ -198,15 +181,68 @@ export interface TopoRouteRow {
               <div
                 class="h-full w-max flex items-center justify-center min-w-full"
               >
-                <img
-                  [src]="topoImage || global.iconSrc()('topo')"
-                  [alt]="t.name"
-                  class="w-auto h-full max-w-none cursor-pointer block object-cover"
-                  decoding="async"
-                  tabindex="0"
-                  (click.zoneless)="toggleFullscreen(!!topoImage)"
-                  (keydown.enter)="toggleFullscreen(!!topoImage)"
-                />
+                <div class="relative h-full">
+                  <img
+                    [src]="topoImage || global.iconSrc()('topo')"
+                    [alt]="t.name"
+                    class="w-auto h-full max-w-none cursor-pointer block object-cover"
+                    decoding="async"
+                    tabindex="0"
+                    (click.zoneless)="toggleFullscreen(!!topoImage)"
+                    (keydown.enter)="toggleFullscreen(!!topoImage)"
+                  />
+                  <!-- SVG Paths Overlay -->
+                  @if (topoImage) {
+                    <svg
+                      class="absolute inset-0 w-full h-full pointer-events-none"
+                      viewBox="0 0 1 1"
+                      preserveAspectRatio="none"
+                    >
+                      @for (tr of t.topo_routes; track tr.route_id) {
+                        @if (tr.path && tr.path.length > 0) {
+                          <polyline
+                            [attr.points]="getPointsString(tr.path)"
+                            fill="none"
+                            [attr.stroke]="
+                              hoveredRouteId() === tr.route_id
+                                ? 'var(--tui-primary)'
+                                : 'rgba(255, 255, 255, 0.7)'
+                            "
+                            [attr.stroke-width]="
+                              hoveredRouteId() === tr.route_id ? 0.01 : 0.006
+                            "
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            class="transition-all duration-300 shadow-xl"
+                            style="filter: drop-shadow(0 0 0.001px black)"
+                          />
+                          <!-- Point Number at first point -->
+                          @if (tr.path[0]; as first) {
+                            <circle
+                              [attr.cx]="first.x"
+                              [attr.cy]="first.y"
+                              r="0.012"
+                              fill="white"
+                              stroke="black"
+                              stroke-width="0.001"
+                            />
+                            <text
+                              [attr.x]="first.x"
+                              [attr.y]="first.y + 0.004"
+                              text-anchor="middle"
+                              fill="black"
+                              font-size="0.012"
+                              font-weight="bold"
+                              font-family="sans-serif"
+                            >
+                              {{ tr.number + 1 }}
+                            </text>
+                          }
+                        }
+                      }
+                    </svg>
+                  }
+                </div>
               </div>
             </div>
             <!-- Topo fullscreen -->
@@ -314,10 +350,9 @@ export interface TopoRouteRow {
                               ? 'var(--tui-status-info-pale)'
                               : ''
                         "
-                        tabindex="0"
-                        class="cursor-pointer"
-                        (click.zoneless)="router.navigate(item.link)"
-                        (keydown.enter)="router.navigate(item.link)"
+                        class="group"
+                        (mouseenter)="hoveredRouteId.set(item._ref.route_id)"
+                        (mouseleave)="hoveredRouteId.set(null)"
                       >
                         @for (col of columns(); track col) {
                           <td
@@ -501,6 +536,11 @@ export class TopoComponent {
   protected readonly isFullscreen = signal(false);
   protected readonly zoomScale = signal(1);
   protected readonly zoomPosition = signal({ x: 0, y: 0 });
+  protected readonly hoveredRouteId = signal<number | null>(null);
+
+  protected getPointsString(path: { x: number; y: number }[]): string {
+    return path.map((p) => `${p.x},${p.y}`).join(' ');
+  }
 
   protected toggleFullscreen(value: boolean): void {
     this.isFullscreen.set(value);
@@ -786,19 +826,6 @@ export class TopoComponent {
       topoData: topo,
       initialRouteIds,
     });
-  }
-
-  protected onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-
-    const topo = this.topo();
-    if (!topo) return;
-
-    this.toposService
-      .uploadPhoto(topo.id, file)
-      .catch((e) => handleErrorToast(e, this.toast));
   }
 
   deleteTopo(topo: TopoDetail): void {

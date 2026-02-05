@@ -13,6 +13,7 @@
     "deleteComment": "Eliminar comentario",
     "deleteCommentConfirm": "¿Estás seguro de que quieres eliminar este comentario?",
     "edit": "Editar",
+    "draw": "Dibujar",
     "follow": "Seguir",
     "import": "Importar",
     "unfollow": "Dejar de seguir",
@@ -313,9 +314,17 @@
     "deleteConfirm": "¿Seguro que quieres eliminar el croquis \"{{name}}\"? Esta acción no se puede deshacer.",
     "name": "Nombre del croquis",
     "photoUrl": "URL de la foto",
+    "shadeChangeHour": "Hora de cambio de sombra",
     "manageRoutes": "Gestionar vías asociadas",
     "removeRouteTitle": "Eliminar vía del croquis",
-    "removeRouteConfirm": "¿Seguro que quieres eliminar la vía \"{{name}}\" de este croquis? La vía no se borrará del sistema, solo se desvinculará de este croquis."
+    "removeRouteConfirm": "¿Seguro que quieres eliminar la vía \"{{name}}\" de este croquis? La vía no se borrará del sistema, solo se desvinculará de este croquis.",
+    "editor": {
+      "addPoint": "Click para añadir punto",
+      "movePoint": "Arrastra para mover",
+      "deletePoint": "Click derecho para borrar"
+    },
+    "deletePhotoTitle": "Eliminar foto del croquis",
+    "deletePhotoConfirm": "¿Estás seguro de que quieres eliminar la foto de este croquis?"
   },
   "routes": {
     "edit": "Editar vía",
@@ -528,6 +537,7 @@
     "crop": "Recortar",
     "original": "Original",
     "custom": "Personalizado",
+    "free": "Libre",
     "square": "Cuadrado",
     "landscape": "Paisaje",
     "portrait": "Retrato",

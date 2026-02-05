@@ -223,33 +223,12 @@ import { handleErrorToast } from '../utils';
                 <button
                   tuiButton
                   type="button"
-                  appearance="neutral"
-                  size="s"
-                  iconStart="@tui.edit-2"
-                  (click)="editPhoto(null, photoUrl)"
-                >
-                  {{ 'actions.edit' | translate }}
-                </button>
-                <button
-                  tuiButton
-                  type="button"
                   appearance="negative"
                   size="s"
                   iconStart="@tui.trash"
                   (click)="onDeleteExistingPhoto()"
                 >
                   {{ 'ascent.deletePhoto' | translate }}
-                </button>
-              } @else if (photoValue(); as file) {
-                <button
-                  tuiButton
-                  type="button"
-                  appearance="neutral"
-                  size="s"
-                  iconStart="@tui.edit-2"
-                  (click)="editPhoto(file)"
-                >
-                  {{ 'actions.edit' | translate }}
                 </button>
               }
             </div>
@@ -283,14 +262,29 @@ import { handleErrorToast } from '../utils';
 
               @if (photoValue(); as file) {
                 <div class="relative group">
-                  <tui-file [file]="file" (remove)="removePhotoFile()" />
+                  <tui-file
+                    [file]="file"
+                    (remove)="removePhotoFile()"
+                    (click.zoneless)="editPhoto(file)"
+                  />
                   @if (previewUrl()) {
-                    <div class="mt-2 rounded-xl overflow-hidden relative group">
+                    <div
+                      class="mt-2 rounded-xl overflow-hidden relative group cursor-pointer"
+                      (click.zoneless)="editPhoto(file)"
+                    >
                       <img
                         [src]="previewUrl()"
                         class="w-full h-auto max-h-48 object-cover"
                         alt="Preview"
                       />
+                      <div
+                        class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <tui-icon
+                          icon="@tui.edit-2"
+                          class="text-white text-3xl"
+                        />
+                      </div>
                     </div>
                   }
                 </div>
@@ -298,12 +292,23 @@ import { handleErrorToast } from '../utils';
 
               @if (existingPhotoUrl(); as photoUrl) {
                 @if (!photoValue()) {
-                  <div class="rounded-xl overflow-hidden relative group">
+                  <div
+                    class="rounded-xl overflow-hidden relative group cursor-pointer"
+                    (click.zoneless)="editPhoto(null, photoUrl)"
+                  >
                     <img
                       [src]="photoUrl"
                       class="w-full h-auto max-h-48 object-cover"
                       alt="Existing photo"
                     />
+                    <div
+                      class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <tui-icon
+                        icon="@tui.edit-2"
+                        class="text-white text-3xl"
+                      />
+                    </div>
                   </div>
                 }
               }
@@ -950,6 +955,7 @@ export default class AscentFormComponent {
         { titleKey: '4:5', descriptionKey: '4:5', ratio: 4 / 5 },
         { titleKey: '16:9', descriptionKey: '16:9', ratio: 16 / 9 },
       ],
+      allowFree: false,
     };
 
     if (!data.file && !data.imageUrl) {

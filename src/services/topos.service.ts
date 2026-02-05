@@ -14,6 +14,10 @@ import type {
   TopoRouteInsertDto,
   TopoUpdateDto,
 } from '../models';
+import {
+  TopoPathEditorConfig,
+  TopoPathEditorDialogComponent,
+} from '../dialogs/topo-path-editor-dialog';
 
 import TopoFormComponent from '../forms/topo-form';
 import { GlobalData } from './global-data';
@@ -237,6 +241,46 @@ export class ToposService {
     } catch (e) {
       console.error('[ToposService] uploadPhoto error', e);
       throw e;
+    }
+  }
+
+  async openTopoPathEditor(data: TopoPathEditorConfig): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) return false;
+
+    return firstValueFrom(
+      this.dialogs.open<boolean>(
+        new PolymorpheusComponent(TopoPathEditorDialogComponent),
+        {
+          data,
+          size: 'l',
+          closable: false,
+          dismissible: false,
+        },
+      ),
+      { defaultValue: false },
+    ).then((result) => {
+      if (result) {
+        this.global.topoDetailResource.reload();
+      }
+      return result;
+    });
+  }
+
+  async updateRoutePath(
+    topoId: number,
+    routeId: number,
+    path: { x: number; y: number }[],
+  ): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    await this.supabase.whenReady();
+    const { error } = await this.supabase.client
+      .from('topo_routes')
+      .update({ path } as any)
+      .match({ topo_id: topoId, route_id: routeId });
+
+    if (error) {
+      console.error('[ToposService] updateRoutePath error', error);
+      throw error;
     }
   }
 }

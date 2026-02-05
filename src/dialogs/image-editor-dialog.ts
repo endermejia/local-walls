@@ -8,13 +8,13 @@ import {
   TuiLoader,
 } from '@taiga-ui/core';
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ToastService } from '../services';
 import {
-  ImageCropperComponent,
   ImageCroppedEvent,
-  LoadedImage,
+  ImageCropperComponent,
   ImageTransform,
+  LoadedImage,
 } from 'ngx-image-cropper';
 
 export interface ImageEditorConfig {
@@ -28,6 +28,12 @@ export interface ImageEditorConfig {
   }[];
   // If true, forces the first aspect ratio and might restrict UI
   forceAspectRatio?: boolean;
+  // If false, allow free resizing by default
+  maintainAspectRatio?: boolean;
+  // If true, shows the 'Free' option in the UI
+  allowFree?: boolean;
+  // If provided, the output image will be resized to this width
+  resizeToWidth?: number;
 }
 
 @Component({
@@ -85,7 +91,7 @@ export interface ImageEditorConfig {
           [imageFile]="imageFile"
           [maintainAspectRatio]="maintainAspectRatio"
           [aspectRatio]="aspectRatio"
-          [resizeToWidth]="2048"
+          [resizeToWidth]="resizeToWidth"
           [cropperMinWidth]="128"
           [roundCropper]="false"
           [canvasRotation]="canvasRotation"
@@ -102,7 +108,7 @@ export interface ImageEditorConfig {
         @if (!cropperVisible()) {
           <div
             class="absolute inset-0 flex items-center justify-center backdrop-blur-sm z-10"
-            style="background: var(--tui-background-base-opacity)"
+            style="background: var(--tui-background-base-alt)"
           >
             <tui-loader size="xl"></tui-loader>
           </div>
@@ -112,10 +118,9 @@ export interface ImageEditorConfig {
       <!-- Bottom Toolbar -->
       <div
         class="p-6 shrink-0 border-t backdrop-blur-xl"
-        style="background: var(--tui-background-base-opacity); border-color: var(--tui-border-normal)"
+        style="background: var(--tui-background-base-alt); border-color: var(--tui-border-normal)"
       >
         <div class="max-w-4xl mx-auto flex flex-col gap-6">
-          <!-- Aspect Ratios -->
           @if (!forceAspectRatio) {
             <div
               class="flex items-center justify-center gap-2 overflow-x-auto pb-1 scrollbar-none"
@@ -126,11 +131,24 @@ export interface ImageEditorConfig {
                   size="s"
                   class="!rounded-full !transition-all !duration-200"
                   [appearance]="
-                    aspectRatio === ratio.ratio ? 'primary' : 'flat'
+                    maintainAspectRatio && aspectRatio === ratio.ratio
+                      ? 'primary'
+                      : 'flat'
                   "
                   (click)="setAspectRatio(ratio.ratio)"
                 >
                   {{ ratio.titleKey }}
+                </button>
+              }
+              @if (!forceAspectRatio && allowFree) {
+                <button
+                  tuiButton
+                  size="s"
+                  class="!rounded-full !transition-all !duration-200"
+                  [appearance]="!maintainAspectRatio ? 'primary' : 'flat'"
+                  (click)="toggleMaintainAspectRatio()"
+                >
+                  {{ 'imageEditor.free' | translate }}
                 </button>
               }
             </div>
@@ -270,7 +288,6 @@ export interface ImageEditorConfig {
 })
 export class ImageEditorDialogComponent {
   private readonly sanitizer = inject(DomSanitizer);
-  private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
 
   imageChangedEvent: Event | null = null;
@@ -298,6 +315,8 @@ export class ImageEditorDialogComponent {
   ];
 
   forceAspectRatio = false;
+  allowFree = true;
+  resizeToWidth = 2048;
 
   constructor(
     @Inject(POLYMORPHEUS_CONTEXT)
@@ -306,6 +325,10 @@ export class ImageEditorDialogComponent {
   ) {
     const data = this.context.data;
     this.forceAspectRatio = !!data.forceAspectRatio;
+    this.allowFree = data.allowFree !== undefined ? data.allowFree : true;
+    this.resizeToWidth = data.resizeToWidth || 2048;
+    this.maintainAspectRatio =
+      data.maintainAspectRatio !== undefined ? data.maintainAspectRatio : true;
 
     if (data.aspectRatios && data.aspectRatios.length > 0) {
       this.availableRatios = data.aspectRatios.map((r) => ({

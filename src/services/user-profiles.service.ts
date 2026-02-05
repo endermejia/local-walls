@@ -48,6 +48,7 @@ export class UserProfilesService {
           file,
           aspectRatios: [{ titleKey: '1:1', descriptionKey: '1:1', ratio: 1 }],
           forceAspectRatio: true,
+          resizeToWidth: size,
         },
         appearance: 'fullscreen',
         closable: false,
