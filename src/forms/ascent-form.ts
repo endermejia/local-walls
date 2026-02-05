@@ -67,6 +67,7 @@ import {
   ToastService,
 } from '../services';
 
+import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
 import { CounterComponent } from '../components/counter';
 
 import { handleErrorToast } from '../utils';
@@ -258,25 +259,49 @@ import { handleErrorToast } from '../utils';
                 <div class="relative group">
                   <tui-file [file]="file" (remove)="removePhotoFile()" />
                   @if (previewUrl()) {
-                    <div class="mt-2 rounded-xl overflow-hidden">
+                    <div class="mt-2 rounded-xl overflow-hidden relative group">
                       <img
                         [src]="previewUrl()"
                         class="w-full h-auto max-h-48 object-cover"
                         alt="Preview"
                       />
+                      <button
+                        tuiIconButton
+                        type="button"
+                        appearance="secondary"
+                        size="s"
+                        iconStart="@tui.pencil"
+                        class="absolute top-2 right-2 !rounded-full shadow-md"
+                        (click)="editPhoto(file)"
+                      >
+                        {{ 'actions.edit' | translate }}
+                      </button>
                     </div>
                   }
                 </div>
               }
 
               @if (existingPhotoUrl(); as photoUrl) {
-                <div class="rounded-xl overflow-hidden">
-                  <img
-                    [src]="photoUrl"
-                    class="w-full h-auto max-h-48 object-cover"
-                    alt="Existing photo"
-                  />
-                </div>
+                @if (!photoValue()) {
+                  <div class="rounded-xl overflow-hidden relative group">
+                    <img
+                      [src]="photoUrl"
+                      class="w-full h-auto max-h-48 object-cover"
+                      alt="Existing photo"
+                    />
+                    <button
+                      tuiIconButton
+                      type="button"
+                      appearance="secondary"
+                      size="s"
+                      iconStart="@tui.pencil"
+                      class="absolute top-2 right-2 !rounded-full shadow-md"
+                      (click)="editPhoto(null, photoUrl)"
+                    >
+                      {{ 'actions.edit' | translate }}
+                    </button>
+                  </div>
+                }
               }
             </tui-files>
           </div>
@@ -904,6 +929,37 @@ export default class AscentFormComponent {
 
   protected removePhotoFile(): void {
     this.photoControl.setValue(null);
+  }
+
+  async editPhoto(file?: File | null, imageUrl?: string): Promise<void> {
+    const data = {
+      file: file ?? undefined,
+      imageUrl: imageUrl ?? undefined,
+      aspectRatios: [
+        { titleKey: 'square', descriptionKey: '1:1', ratio: 1 },
+        { titleKey: 'portrait', descriptionKey: '4:5', ratio: 4 / 5 },
+        { titleKey: 'landscape', descriptionKey: '16:9', ratio: 16 / 9 },
+      ],
+    };
+
+    if (!data.file && !data.imageUrl) return;
+
+    const result = await firstValueFrom(
+      this.dialogs.open<File | null>(
+        new PolymorpheusComponent(ImageEditorDialogComponent),
+        {
+          size: 'l',
+          data,
+          appearance: 'fullscreen',
+          closeable: false,
+          dismissible: false,
+        },
+      ),
+    );
+
+    if (result) {
+      this.photoControl.setValue(result);
+    }
   }
 
   protected async onDeleteExistingPhoto(): Promise<void> {

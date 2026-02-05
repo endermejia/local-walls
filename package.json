@@ -70,10 +70,16 @@
     "eslint-config-prettier": "^10.0.2",
     "eslint-plugin-prettier": "^5.2.3",
     "express": "^4.18.2",
+    "filerobot-image-editor": "^4.8.1",
     "leaflet": "2.0.0-alpha.1",
     "libphonenumber-js": "^1.12.35",
     "prettier-eslint": "^16.3.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-filerobot-image-editor": "^5.0.0-beta.153",
+    "react-konva": "^19.2.2",
     "rxjs": "~7.8.0",
+    "styled-components": "^6.3.8",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
