@@ -433,12 +433,7 @@ export interface TopoRouteRow {
                                         $event.stopPropagation()
                                       "
                                     >
-                                      {{
-                                        (item.project
-                                          ? 'actions.project.remove'
-                                          : 'actions.project.add'
-                                        ) | translate
-                                      }}
+                                      {{ 'labels.project' | translate }}
                                     </button>
                                   }
                                 </div>

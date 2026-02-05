@@ -1,5 +1,4 @@
 {
-  "Menu": "Menú",
   "navigation": "Navegación",
   "config": "Configuración",
   "actions": {
@@ -20,16 +19,11 @@
     "following": "Siguiendo",
     "unfollowConfirm": "¿Seguro que quieres dejar de seguir a {{name}}?",
     "unify": "Unificar",
-    "exitFullscreen": "Salir de pantalla completa",
     "favorite": {
       "add": "Marcar como favorito",
       "remove": "Quitar favorito"
     },
     "new": "Nuevo",
-    "project": {
-      "add": "Proyecto",
-      "remove": "Proyecto"
-    },
     "fit": {
       "cover": "Ajustar al ancho",
       "contain": "Ajustar al alto"
@@ -42,13 +36,11 @@
     "markAllRead": "Marcar todo como leído",
     "sendMessage": "Enviar mensaje",
     "openGoogleMaps": "Google Maps",
-    "openMap": "Abrir ubicación en Google Maps",
     "pickOnMap": "Seleccionar en el mapa",
     "register": "Regístrate",
     "save": "Guardar",
     "select": "Seleccionar",
     "send": "Enviar",
-    "share": "Compartir",
     "signIn": "Iniciar sesión",
     "signUp": "Crear cuenta",
     "viewOnMap": "Ver mapa",
@@ -68,8 +60,7 @@
     "ascentsHidden": "Encadenes ocultados",
     "showAscents": "Mostrar encadenes",
     "hideAscentsConfirm": "¿Estás seguro de que quieres ocultar los encadenes de {{name}}? No verá tus encadenes y tú no verás los suyos.",
-    "showAscentsConfirm": "¿Estás seguro de que quieres volver a mostrar los encadenes de {{name}}?",
-    "blockConfirm": "¿Estás seguro de que quieres bloquear a {{name}}? No podrá enviarte mensajes ni ver tus encadenes."
+    "showAscentsConfirm": "¿Estás seguro de que quieres volver a mostrar los encadenes de {{name}}?"
   },
   "labels": {
     "gdpr": {
@@ -80,7 +71,6 @@
       "fullPolicy": "Nuestra política de privacidad detalla cómo recopilamos, usamos y protegemos tus datos personales.<br><br>Al utilizar <strong>Roca Nostra</strong>, aceptas el almacenamiento de cookies técnicas necesarias para el funcionamiento de la aplicación, así como el tratamiento de tus datos de perfil para ofrecerte una experiencia personalizada en la gestión de tus zonas y encadenes de escalada.<br><br>No compartimos tus datos con terceros para fines publicitarios. Puedes retirar tu consentimiento en cualquier momento eliminando tu cuenta desde los ajustes de perfil."
     },
     "actions": "Acciones",
-    "age": "Edad",
     "all": "Todos",
     "allTime": "Todo el tiempo",
     "anonymous": "Anónimo",
@@ -92,7 +82,6 @@
     "ascents": "Encadenes",
     "bio": "Biografía",
     "birthDate": "Fecha de nacimiento",
-    "boulders": "Bloques",
     "capacity": "Capacidad",
     "city": "Ciudad",
     "climbing_kind": "Tipo de escalada",
@@ -103,10 +92,8 @@
     "country": "País",
     "crag": "Sector",
     "crags": "Sectores",
-    "darkMode": "Modo oscuro",
-    "date": "Fecha",
     "description": "Descripción",
-    "description_en": "Descripción en ingés",
+    "description_en": "Descripción en inglés",
     "description_es": "Descripción en español",
     "editingMode": "Modo edición",
     "eightAnuUser": "Usuario 8a.nu",
@@ -126,19 +113,15 @@
     "language": "Idioma",
     "last12Months": "Últimos 12 meses",
     "lat": "Lat",
-    "latestAscents": "Últimos encadenes",
     "messages": "Mensajes",
     "notifications": "Notificaciones",
     "likedAreas": "Áreas",
     "likedCrags": "Sectores",
     "likedRoutes": "Vías",
     "likes": "Favoritos",
-    "list": "Lista",
     "lng": "Lng",
     "location": "Ubicación",
     "map": "Mapa",
-    "menu": "Menú",
-    "more": "Más",
     "options": "Opciones",
     "myLocation": "Mi ubicación",
     "name": "Nombre",
@@ -149,6 +132,7 @@
     "password": "Contraseña",
     "preferences": "Preferencias",
     "privateProfile": "Perfil privado",
+    "project": "Proyecto",
     "projects": "Proyectos",
     "rating": "Valoración",
     "role": "Rol",
@@ -173,7 +157,7 @@
     "userInfo": "Información",
     "userName": "Nombre completo",
     "users": "Usuarios",
-    "warning_en": "Avisos en ingés",
+    "warning_en": "Avisos en inglés",
     "warning_es": "Avisos en español",
     "year": "Año",
     "years": "Años",
@@ -189,13 +173,11 @@
     "registrationSuccess": "Registro exitoso. Revisa tu correo para confirmar tu cuenta.",
     "forgotPassword": "¿Has olvidado tu contraseña?",
     "noAccount": "¿Aún no tienes cuenta?",
-    "or": "o",
     "resetEmailSent": "Te hemos enviado un correo para restablecer tu contraseña.",
     "provideEmail": "Introduce tu correo electrónico para continuar.",
     "enterValidEmail": "Introduce un correo electrónico válido.",
     "setNewPassword": "Establecer nueva contraseña",
     "passwordUpdated": "Tu contraseña ha sido actualizada.",
-    "passwordMinLength": "La contraseña debe tener al menos {{min}} caracteres.",
     "passwordRequirements": "La contraseña debe tener al menos {{min}} caracteres, incluyendo mayúsculas, minúsculas, números y símbolos.",
     "register": "Registrarse",
     "alreadyAccount": "¿Ya tienes cuenta?",
@@ -221,9 +203,6 @@
     "admin-equippers": "Equipadores",
     "admin-parkings": "Parkings"
   },
-  "explore": {
-    "toggleView": "Cambiar vista"
-  },
   "notifications": {
     "likedAscent": "le ha dado a me gusta a tu encadene en '{{routeName}}'",
     "likedAscentPlural": "le han dado a me gusta a tu encadene en '{{routeName}}'",
@@ -234,7 +213,6 @@
     "unknown": "nueva notificación"
   },
   "filters": {
-    "selectedRange": "Rango seleccionado:",
     "types": {
       "sport": "Deportiva",
       "boulder": "Boulder",
@@ -249,9 +227,6 @@
     }
   },
   "messages": {
-    "offline": "Estás sin conexión. Algunas funciones pueden no estar disponibles.",
-    "commentsSoon": "La funcionalidad de comentarios estará disponible próximamente",
-    "updateAvailable": "Hay una nueva versión disponible.",
     "errorFollow": "Ha ocurrido un error al seguir al usuario",
     "errorUnfollow": "Ha ocurrido un error al dejar de seguir al usuario",
     "errorBlock": "Ha ocurrido un error al bloquear al usuario",
@@ -265,7 +240,6 @@
       "messagesUnblocked": "Mensajes desbloqueados",
       "ascentsHidden": "Encadenes ocultados",
       "ascentsShown": "Encadenes mostrados",
-      "blockUpdated": "Ajustes de bloqueo actualizados",
       "projectAdded": "Marcada como proyecto",
       "projectRemoved": "Proyecto eliminado",
       "ascentCreated": "Encadene registrado",
@@ -339,9 +313,7 @@
     "deleteConfirm": "¿Seguro que quieres eliminar el croquis \"{{name}}\"? Esta acción no se puede deshacer.",
     "name": "Nombre del croquis",
     "photoUrl": "URL de la foto",
-    "shadeChangeHour": "Hora de cambio de sombra",
     "manageRoutes": "Gestionar vías asociadas",
-    "editRouteTitle": "Editar número de vía",
     "removeRouteTitle": "Eliminar vía del croquis",
     "removeRouteConfirm": "¿Seguro que quieres eliminar la vía \"{{name}}\" de este croquis? La vía no se borrará del sistema, solo se desvinculará de este croquis."
   },
@@ -512,7 +484,6 @@
     },
     "searchTitle": "Importar encadenes",
     "csvInstructions": "Accede a tu perfil en <strong><a href=\"https://www.8a.nu\" target=\"_blank\">8a.nu</a></strong>, haz clic en <strong>Editar perfil</strong> y descarga el archivo <strong>CSV</strong> con tus encadenes.",
-    "dropCSV": "Arrastra aquí el archivo CSV o haz clic para seleccionarlo",
     "minChars": "Introduce al menos 2 caracteres",
     "confirmSubtitle": "Hemos encontrado {{count}} encadenes en el CSV. Solo se importarán los que coincidan con vías de nuestra base de datos.",
     "importing": "Importando datos...",

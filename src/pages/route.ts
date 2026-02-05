@@ -166,12 +166,7 @@ import { handleErrorToast } from '../utils';
                   iconStart="@tui.bookmark"
                   (click)="routesService.toggleRouteProject(r.id, r)"
                 >
-                  {{
-                    (r.project
-                      ? 'actions.project.remove'
-                      : 'actions.project.add'
-                    ) | translate
-                  }}
+                  {{ 'labels.project' | translate }}
                 </button>
               }
             </div>

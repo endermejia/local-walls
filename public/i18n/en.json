@@ -1,5 +1,4 @@
 {
-  "Menu": "Menu",
   "navigation": "Navigation",
   "config": "Configuration",
   "actions": {
@@ -20,16 +19,11 @@
     "following": "Following",
     "unfollowConfirm": "Are you sure you want to unfollow {{name}}?",
     "unify": "Unify",
-    "exitFullscreen": "Exit fullscreen",
     "favorite": {
       "add": "Add to favorites",
       "remove": "Remove from favorites"
     },
     "new": "New",
-    "project": {
-      "add": "Mark as project",
-      "remove": "Remove from projects"
-    },
     "fit": {
       "cover": "Fit to width",
       "contain": "Fit to height"
@@ -42,13 +36,11 @@
     "markAllRead": "Mark all as read",
     "sendMessage": "Send message",
     "openGoogleMaps": "Open Google Maps",
-    "openMap": "Open location in Google Maps",
     "pickOnMap": "Pick on map",
     "register": "Register",
     "save": "Save",
     "select": "Select",
     "send": "Send",
-    "share": "Share",
     "signIn": "Sign in",
     "signUp": "Sign up",
     "viewOnMap": "View on map",
@@ -68,8 +60,7 @@
     "ascentsHidden": "Ascents hidden",
     "showAscents": "Show ascents",
     "hideAscentsConfirm": "Are you sure you want to hide ascents from {{name}}? They will not see your ascents and you will not see theirs.",
-    "showAscentsConfirm": "Are you sure you want to show ascents from {{name}} again?",
-    "blockConfirm": "Are you sure you want to block {{name}}? They will not be able to message you or see your ascents."
+    "showAscentsConfirm": "Are you sure you want to show ascents from {{name}} again?"
   },
   "labels": {
     "gdpr": {
@@ -80,7 +71,6 @@
       "fullPolicy": "Our privacy policy details how we collect, use, and protect your personal data.<br><br>By using <strong>Roca Nostra</strong>, you agree to the storage of technical cookies necessary for the application's operation, as well as the processing of your profile data to offer you a personalized experience in managing your climbing areas and ascents.<br><br>We do not share your data with third parties for advertising purposes. You can withdraw your consent at any time by deleting your account from the profile settings."
     },
     "actions": "Actions",
-    "age": "Age",
     "all": "All",
     "allTime": "All time",
     "anonymous": "Anonymous",
@@ -92,7 +82,6 @@
     "ascents": "Ascents",
     "bio": "Biography",
     "birthDate": "Birth date",
-    "boulders": "Boulders",
     "capacity": "Capacity",
     "city": "City",
     "climbing_kind": "Climbing kind",
@@ -103,8 +92,6 @@
     "country": "Country",
     "crag": "Crag",
     "crags": "Crags",
-    "darkMode": "Dark mode",
-    "date": "Date",
     "description": "Description",
     "description_en": "English description",
     "description_es": "Spanish description",
@@ -125,19 +112,15 @@
     "language": "Language",
     "last12Months": "Last 12 months",
     "lat": "Lat",
-    "latestAscents": "Latest ascents",
     "messages": "Messages",
     "notifications": "Notifications",
     "likedAreas": "Liked areas",
     "likedCrags": "Liked crags",
     "likedRoutes": "Liked routes",
     "likes": "Likes",
-    "list": "List",
     "lng": "Lng",
     "location": "Location",
     "map": "Map",
-    "menu": "Menu",
-    "more": "More",
     "options": "Options",
     "myLocation": "My location",
     "name": "Name",
@@ -148,6 +131,7 @@
     "password": "Password",
     "preferences": "Preferences",
     "privateProfile": "Private profile",
+    "project": "Project",
     "projects": "Projects",
     "rating": "Rating",
     "role": "Role",
@@ -178,7 +162,8 @@
     "years": "Years",
     "you": "you",
     "zoomIn": "Zoom in",
-    "zoomOut": "Zoom out"
+    "zoomOut": "Zoom out",
+    "following": "Following"
   },
   "auth": {
     "login": "Sign in",
@@ -188,13 +173,11 @@
     "registrationSuccess": "Registration successful. Check your email to confirm your account.",
     "forgotPassword": "Forgot your password?",
     "noAccount": "Don't have an account yet?",
-    "or": "or",
     "resetEmailSent": "We have sent you an email to reset your password.",
     "provideEmail": "Enter your email to continue.",
     "enterValidEmail": "Enter a valid email address.",
     "setNewPassword": "Set new password",
     "passwordUpdated": "Your password has been updated.",
-    "passwordMinLength": "Password must be at least {{min}} characters.",
     "passwordRequirements": "Password must be at least {{min}} characters long and include uppercase, lowercase, numbers, and symbols.",
     "register": "Register",
     "alreadyAccount": "Already have an account?",
@@ -220,9 +203,6 @@
     "admin-equippers": "Equippers",
     "admin-parkings": "Parkings"
   },
-  "explore": {
-    "toggleView": "Toggle view"
-  },
   "notifications": {
     "likedAscent": "liked your ascent on '{{routeName}}'",
     "likedAscentPlural": "liked your ascent on '{{routeName}}'",
@@ -233,7 +213,6 @@
     "unknown": "new notification"
   },
   "filters": {
-    "selectedRange": "Selected range:",
     "types": {
       "sport": "Sport",
       "boulder": "Boulder",
@@ -248,9 +227,6 @@
     }
   },
   "messages": {
-    "offline": "You are offline. Some features may not be available.",
-    "commentsSoon": "Comments functionality will be available soon",
-    "updateAvailable": "A new version is available.",
     "errorFollow": "An error occurred while following the user",
     "errorUnfollow": "An error occurred while unfollowing the user",
     "errorBlock": "An error occurred while blocking the user",
@@ -262,7 +238,6 @@
       "messagesUnblocked": "Messages unblocked",
       "ascentsHidden": "Ascents hidden",
       "ascentsShown": "Ascents shown",
-      "blockUpdated": "Block settings updated",
       "projectAdded": "Marked as project",
       "projectRemoved": "Project removed",
       "ascentCreated": "Ascent logged",
@@ -290,7 +265,9 @@
       "parkingDeleted": "Parking deleted",
       "parkingLinked": "Parking linked",
       "parkingUnlinked": "Parking unlinked"
-    }
+    },
+    "noFollowers": "You don't have any followers yet",
+    "noFollowing": "You are not following anyone yet"
   },
   "seo": {
     "title": "Roca nostra 🤫",
@@ -336,9 +313,7 @@
     "deleteConfirm": "Are you sure you want to delete the topo \"{{name}}\"? This action cannot be undone.",
     "name": "Topo name",
     "photoUrl": "Photo URL",
-    "shadeChangeHour": "Shade change hour",
     "manageRoutes": "Manage linked routes",
-    "editRouteTitle": "Edit route number",
     "removeRouteTitle": "Remove route from topo",
     "removeRouteConfirm": "Are you sure you want to remove the route \"{{name}}\" from this topo? The route will not be deleted from the system, only unlinked from this topo."
   },
@@ -509,7 +484,6 @@
     },
     "searchTitle": "Import from CSV",
     "csvInstructions": "Go to your profile at <a href=\"https://www.8a.nu\" target=\"_blank\">8a.nu</a>, click on <strong>Edit profile</strong> and download the <strong>CSV</strong> file with your ascents.",
-    "dropCSV": "Drop the CSV file here or click to select it",
     "minChars": "Enter at least 2 characters",
     "confirmSubtitle": "We found {{count}} ascents in the CSV. Only those matching our database will be imported.",
     "importing": "Importing data...",
