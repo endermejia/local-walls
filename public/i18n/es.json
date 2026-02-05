@@ -55,7 +55,19 @@
     "previous": "Anterior",
     "next": "Siguiente",
     "uploadPhoto": "Subir foto",
-    "update": "Actualizar"
+    "update": "Actualizar",
+    "block": "Bloquear",
+    "unblock": "Desbloquear",
+    "blockMessages": "Bloquear mensajes",
+    "unblockMessages": "Desbloquear mensajes",
+    "blockMessagesConfirm": "¿Estás seguro de que quieres bloquear los mensajes de {{name}}? No recibirás mensajes de este usuario.",
+    "hide": "Ocultar",
+    "hideAscents": "Ocultar encadenes",
+    "showAscents": "Mostrar encadenes",
+    "hideAscentsConfirm": "¿Estás seguro de que quieres ocultar los encadenes de {{name}}? No verá tus encadenes y tú no verás los suyos.",
+    "blockConfirm": "¿Estás seguro de que quieres bloquear a {{name}}? No podrá enviarte mensajes ni ver tus encadenes.",
+    "cancel": "Cancelar",
+    "clear": "Limpiar"
   },
   "labels": {
     "gdpr": {
@@ -125,6 +137,7 @@
     "map": "Mapa",
     "menu": "Menú",
     "more": "Más",
+    "options": "Opciones",
     "myLocation": "Mi ubicación",
     "name": "Nombre",
     "newPassword": "Nueva contraseña",

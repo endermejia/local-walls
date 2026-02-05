@@ -4,6 +4,11 @@ import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
 
+export interface BlockState {
+  blockMessages: boolean;
+  blockAscents: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -18,68 +23,107 @@ export class BlockingService {
     this.blockChange.update((v) => v + 1);
   }
 
-  async isBlocked(targetUserId: string): Promise<boolean> {
-    if (!isPlatformBrowser(this.platformId)) return false;
+  async getBlockState(targetUserId: string): Promise<BlockState> {
+    if (!isPlatformBrowser(this.platformId))
+      return { blockMessages: false, blockAscents: false };
     const userId = this.supabase.authUserId();
-    if (!userId) return false;
+    if (!userId) return { blockMessages: false, blockAscents: false };
 
     const { data, error } = await this.supabase.client
       .from('user_blocks' as any)
-      .select('id')
+      .select('block_messages, block_ascents')
       .eq('blocker_id', userId)
       .eq('blocked_id', targetUserId)
       .maybeSingle();
 
     if (error) {
-      console.error('[BlockingService] isBlocked error', error);
-      return false;
+      console.error('[BlockingService] getBlockState error', error);
+      return { blockMessages: false, blockAscents: false };
     }
 
-    return !!data;
+    if (!data) return { blockMessages: false, blockAscents: false };
+
+    return {
+      blockMessages: !!(data as any).block_messages,
+      blockAscents: !!(data as any).block_ascents,
+    };
   }
 
-  async block(targetUserId: string): Promise<boolean> {
+  async toggleBlockMessages(
+    targetUserId: string,
+    currentAscentsBlocked: boolean,
+  ): Promise<boolean> {
+    return this.upsertBlock(targetUserId, true, currentAscentsBlocked);
+  }
+
+  async toggleUnblockMessages(
+    targetUserId: string,
+    currentAscentsBlocked: boolean,
+  ): Promise<boolean> {
+    return this.upsertBlock(targetUserId, false, currentAscentsBlocked);
+  }
+
+  async toggleBlockAscents(
+    targetUserId: string,
+    currentMessagesBlocked: boolean,
+  ): Promise<boolean> {
+    return this.upsertBlock(targetUserId, currentMessagesBlocked, true);
+  }
+
+  async toggleUnblockAscents(
+    targetUserId: string,
+    currentMessagesBlocked: boolean,
+  ): Promise<boolean> {
+    return this.upsertBlock(targetUserId, currentMessagesBlocked, false);
+  }
+
+  private async upsertBlock(
+    targetUserId: string,
+    blockMessages: boolean,
+    blockAscents: boolean,
+  ): Promise<boolean> {
     if (!isPlatformBrowser(this.platformId)) return false;
     const userId = this.supabase.authUserId();
     if (!userId) return false;
 
+    // If both are false, we delete the row
+    if (!blockMessages && !blockAscents) {
+      const { error } = await this.supabase.client
+        .from('user_blocks' as any)
+        .delete()
+        .eq('blocker_id', userId)
+        .eq('blocked_id', targetUserId);
+
+      if (error) {
+        console.error('[BlockingService] delete block error', error);
+        this.toast.error('messages.errorUnblock');
+        return false;
+      }
+      this.notifyChange();
+      return true;
+    }
+
+    // Otherwise upsert
     const { error } = await this.supabase.client
       .from('user_blocks' as any)
-      .insert({
-        blocker_id: userId,
-        blocked_id: targetUserId,
-      });
+      .upsert(
+        {
+          blocker_id: userId,
+          blocked_id: targetUserId,
+          block_messages: blockMessages,
+          block_ascents: blockAscents,
+        },
+        { onConflict: 'blocker_id, blocked_id' },
+      );
 
     if (error) {
-      console.error('[BlockingService] block error', error);
+      console.error('[BlockingService] upsert block error', error);
       this.toast.error('messages.errorBlock');
       return false;
     }
 
     this.notifyChange();
-    this.toast.success('messages.toasts.userBlocked');
-    return true;
-  }
-
-  async unblock(targetUserId: string): Promise<boolean> {
-    if (!isPlatformBrowser(this.platformId)) return false;
-    const userId = this.supabase.authUserId();
-    if (!userId) return false;
-
-    const { error } = await this.supabase.client
-      .from('user_blocks' as any)
-      .delete()
-      .eq('blocker_id', userId)
-      .eq('blocked_id', targetUserId);
-
-    if (error) {
-      console.error('[BlockingService] unblock error', error);
-      this.toast.error('messages.errorUnblock');
-      return false;
-    }
-
-    this.notifyChange();
-    this.toast.success('messages.toasts.userUnblocked');
+    this.toast.success('messages.toasts.blockUpdated');
     return true;
   }
 }
