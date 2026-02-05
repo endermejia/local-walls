@@ -55,7 +55,19 @@
     "previous": "Previous",
     "next": "Next",
     "uploadPhoto": "Upload photo",
-    "update": "Update"
+    "update": "Update",
+    "block": "Block",
+    "unblock": "Unblock",
+    "blockMessages": "Block messages",
+    "unblockMessages": "Unblock messages",
+    "blockMessagesConfirm": "Are you sure you want to block messages from {{name}}? You will not receive messages from this user.",
+    "hide": "Hide",
+    "hideAscents": "Hide ascents",
+    "showAscents": "Show ascents",
+    "hideAscentsConfirm": "Are you sure you want to hide ascents from {{name}}? They will not see your ascents and you will not see theirs.",
+    "blockConfirm": "Are you sure you want to block {{name}}? They will not be able to message you or see your ascents.",
+    "cancel": "Cancel",
+    "clear": "Clear"
   },
   "labels": {
     "gdpr": {
@@ -124,6 +136,7 @@
     "map": "Map",
     "menu": "Menu",
     "more": "More",
+    "options": "Options",
     "myLocation": "My location",
     "name": "Name",
     "newPassword": "New password",
@@ -238,9 +251,14 @@
     "updateAvailable": "A new version is available.",
     "errorFollow": "An error occurred while following the user",
     "errorUnfollow": "An error occurred while unfollowing the user",
+    "errorBlock": "An error occurred while blocking the user",
+    "errorUnblock": "An error occurred while unblocking the user",
     "toasts": {
       "userFollowed": "You are now following this user",
       "userUnfollowed": "You have unfollowed this user",
+      "userBlocked": "User blocked",
+      "userUnblocked": "User unblocked",
+      "blockUpdated": "Block settings updated",
       "projectAdded": "Marked as project",
       "projectRemoved": "Project removed",
       "ascentCreated": "Ascent logged",

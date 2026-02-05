@@ -19,6 +19,7 @@ import {
   TuiAppearance,
   TuiButton,
   TuiDataList,
+  TuiDropdown,
   TuiFallbackSrcPipe,
   TuiHint,
   TuiLabel,
@@ -49,6 +50,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, startWith } from 'rxjs';
 
 import {
+  BlockingService,
   FiltersService,
   FollowsService,
   GlobalData,
@@ -85,6 +87,7 @@ import {
     TuiButton,
     TuiDataList,
     TuiDataListWrapper,
+    TuiDropdown,
     TuiFallbackSrcPipe,
     TuiHeader,
     TuiHint,
@@ -136,6 +139,45 @@ import {
                 >
                   {{ 'actions.edit' | translate }}
                 </button>
+              } @else {
+                <button
+                  appearance="icon"
+                  iconStart="@tui.ellipsis-vertical"
+                  size="m"
+                  tuiIconButton
+                  type="button"
+                  [tuiDropdown]="dropdownContent"
+                  [(tuiDropdownOpen)]="dropdownOpen"
+                  [tuiHint]="
+                    global.isMobile() ? null : ('labels.options' | translate)
+                  "
+                ></button>
+                <ng-template #dropdownContent>
+                  <tui-data-list>
+                    <button
+                      tuiOption
+                      (click)="toggleBlockMessages(); dropdownOpen.set(false)"
+                    >
+                      {{
+                        (blockState().blockMessages
+                          ? 'actions.unblockMessages'
+                          : 'actions.blockMessages'
+                        ) | translate
+                      }}
+                    </button>
+                    <button
+                      tuiOption
+                      (click)="toggleHideAscents(); dropdownOpen.set(false)"
+                    >
+                      {{
+                        (blockState().blockAscents
+                          ? 'actions.showAscents'
+                          : 'actions.hideAscents'
+                        ) | translate
+                      }}
+                    </button>
+                  </tui-data-list>
+                </ng-template>
               }
             </div>
 
@@ -515,11 +557,14 @@ export class UserProfileComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
   private readonly followsService = inject(FollowsService);
+  private readonly blockingService = inject(BlockingService);
   private readonly userProfilesService = inject(UserProfilesService);
   private readonly filtersService = inject(FiltersService);
 
   // Route param (optional)
   id = input<string | undefined>();
+
+  protected readonly dropdownOpen = signal(false);
 
   private readonly dialogs = inject(TuiDialogService);
 
@@ -959,6 +1004,25 @@ export class UserProfileComponent {
   });
   readonly isFollowing = computed(() => !!this.isFollowingResource.value());
 
+  readonly blockStateResource = resource({
+    params: () => ({
+      userId: this.profile()?.id,
+      change: this.blockingService.blockChange(),
+    }),
+    loader: async ({ params }) => {
+      if (!params.userId || !isPlatformBrowser(this.platformId))
+        return { blockMessages: false, blockAscents: false };
+      return this.blockingService.getBlockState(params.userId);
+    },
+  });
+  readonly blockState = computed(
+    () =>
+      this.blockStateResource.value() ?? {
+        blockMessages: false,
+        blockAscents: false,
+      },
+  );
+
   readonly profileAvatarSrc = computed(() =>
     this.supabase.buildAvatarUrl(this.profile()?.avatar),
   );
@@ -1032,6 +1096,86 @@ export class UserProfileComponent {
       await this.followsService.unfollow(followedUserId);
     } else {
       await this.followsService.follow(followedUserId);
+    }
+  }
+
+  async toggleBlockMessages(): Promise<void> {
+    const profile = this.profile();
+    const userId = profile?.id;
+    if (!userId || this.isOwnProfile()) return;
+
+    const current = this.blockState();
+
+    if (current.blockMessages) {
+      await this.blockingService.toggleUnblockMessages(
+        userId,
+        current.blockAscents,
+      );
+    } else {
+      const data: TuiConfirmData = {
+        content: this.translate.instant('actions.blockMessagesConfirm', {
+          name: profile.name,
+        }),
+        yes: this.translate.instant('actions.block'),
+        no: this.translate.instant('actions.cancel'),
+        appearance: 'negative',
+      };
+      const confirmed = await firstValueFrom(
+        this.dialogs.open<boolean>(TUI_CONFIRM, {
+          label: this.translate.instant('actions.blockMessages'),
+          size: 's',
+          data,
+        }),
+        { defaultValue: false },
+      );
+      if (!confirmed) return;
+      await this.blockingService.toggleBlockMessages(
+        userId,
+        current.blockAscents,
+      );
+    }
+  }
+
+  async toggleHideAscents(): Promise<void> {
+    const profile = this.profile();
+    const userId = profile?.id;
+    if (!userId || this.isOwnProfile()) return;
+
+    const current = this.blockState();
+
+    if (current.blockAscents) {
+      await this.blockingService.toggleUnblockAscents(
+        userId,
+        current.blockMessages,
+      );
+    } else {
+      const data: TuiConfirmData = {
+        content: this.translate.instant('actions.hideAscentsConfirm', {
+          name: profile.name,
+        }),
+        yes: this.translate.instant('actions.hide'),
+        no: this.translate.instant('actions.cancel'),
+        appearance: 'negative',
+      };
+      const confirmed = await firstValueFrom(
+        this.dialogs.open<boolean>(TUI_CONFIRM, {
+          label: this.translate.instant('actions.hideAscents'),
+          size: 's',
+          data,
+        }),
+        { defaultValue: false },
+      );
+      if (!confirmed) return;
+      await this.blockingService.toggleBlockAscents(
+        userId,
+        current.blockMessages,
+      );
+      // If hiding ascents, we might want to unfollow as well?
+      // Usually blocking implies unfollowing, but "hiding ascents" is ambiguous.
+      // If I hide ascents, following makes no sense as I won't see them.
+      if (this.isFollowing()) {
+        await this.followsService.unfollow(userId);
+      }
     }
   }
 
