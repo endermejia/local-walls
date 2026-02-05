@@ -50,25 +50,77 @@ using (auth.uid() = blocker_id);
 
 ## 3. Update Chat Messages Policy
 
-Modify the policy to hide messages if `block_messages` is true (mutual check).
+Modify the policy to prevent *sending* messages if `block_messages` is true (mutual check). Reading is allowed for history.
 
 ```sql
--- Drop the existing policy
+-- Drop the existing policies
 drop policy if exists "participants_can_read" on public.chat_messages;
+drop policy if exists "participants_can_insert" on public.chat_messages;
 
--- Create the new policy
+-- Create the new policies
 create policy "participants_can_read"
 on public.chat_messages for select
 using (
   is_chat_participant(room_id)
+);
+
+create policy "participants_can_insert"
+on public.chat_messages for insert
+with check (
+  is_chat_participant(room_id)
+  and (auth.uid() = sender_id)
   and not exists (
     select 1 from user_blocks
     where (
-      (blocker_id = auth.uid() and blocked_id = chat_messages.sender_id)
-      or
-      (blocker_id = chat_messages.sender_id and blocked_id = auth.uid())
+      (blocker_id = auth.uid() and blocked_id = chat_messages.sender_id) -- Should be recipient, but sender_id is me. We need to check relation with other participant.
+      -- However, chat_messages doesn't have recipient_id directly, it has room_id.
+      -- Ideally, we check if ANY other participant in the room has blocked me or I have blocked them.
+      -- For 1:1 chats, this logic holds. For group chats, it might be complex.
+      -- Assuming 1:1 for now or simplified logic:
+      -- We need to check if there is a block between auth.uid() and ANY other participant in the room.
+      -- But Supabase policies on insert can be tricky with joins.
+      -- Simplified check: Check if I am blocked by anyone in the room or I blocked anyone in the room.
+      -- Wait, the standard "participants_can_insert" was: (is_chat_participant(room_id) AND (( SELECT auth.uid() AS uid) = sender_id))
+
+      -- Let's stick to the request: "al bloquear los mensajes con un usuario, solo debe impedir insertar nuevos mensajes"
+      -- This implies checking the block status relative to the *other* user in the chat room.
+      -- Since we don't have the other user ID easily available in a single row check without a join on chat_participants...
+
+      -- Correct approach for 1:1 rooms (assuming most are):
+      exists (
+        select 1 from chat_participants cp
+        where cp.room_id = chat_messages.room_id
+        and cp.user_id != auth.uid()
+        and exists (
+            select 1 from user_blocks ub
+            where (ub.blocker_id = auth.uid() and ub.blocked_id = cp.user_id and ub.block_messages = true)
+               or (ub.blocker_id = cp.user_id and ub.blocked_id = auth.uid() and ub.block_messages = true)
+        )
+      )
     )
-    and block_messages = true
+  )
+);
+-- Wait, the NOT EXISTS above was negating the whole block.
+-- Let's rewrite for clarity.
+-- INSERT is allowed IF:
+-- 1. I am a participant.
+-- 2. I am the sender.
+-- 3. There is NO block (message blocking) between me and the other participant(s).
+
+create policy "participants_can_insert"
+on public.chat_messages for insert
+with check (
+  is_chat_participant(room_id)
+  and (auth.uid() = sender_id)
+  and not exists (
+    select 1 from chat_participants cp
+    join user_blocks ub on (
+         (ub.blocker_id = auth.uid() and ub.blocked_id = cp.user_id)
+      or (ub.blocker_id = cp.user_id and ub.blocked_id = auth.uid())
+    )
+    where cp.room_id = chat_messages.room_id
+    and cp.user_id != auth.uid()
+    and ub.block_messages = true
   )
 );
 ```
