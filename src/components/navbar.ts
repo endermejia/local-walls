@@ -23,7 +23,6 @@ import {
 } from 'rxjs';
 
 import { GlobalData, ScrollService, SearchService } from '../services';
-import { SearchData } from '../models';
 import { TuiAutoFocus } from '@taiga-ui/cdk';
 
 @Component({

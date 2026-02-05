@@ -21,7 +21,6 @@ import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
 import {
   TuiAppearance,
   TuiButton,
-  TuiHint,
   TuiIcon,
   TuiLink,
   TuiLoader,
@@ -77,7 +76,6 @@ import { mapLocationUrl, remToPx } from '../utils';
     TuiButton,
     TuiCardLarge,
     TuiHeader,
-    TuiHint,
     TuiIcon,
     TuiLink,
     TuiLoader,
@@ -105,7 +103,6 @@ import { mapLocationUrl, remToPx } from '../utils';
                 appearance="primary-grayscale"
                 iconStart="@tui.sliders-horizontal"
                 class="pointer-events-auto"
-                [tuiHint]="isMobile ? null : ('labels.filters' | translate)"
                 (click.zoneless)="openFilters()"
               >
                 {{ 'labels.filters' | translate }}
@@ -120,9 +117,6 @@ import { mapLocationUrl, remToPx } from '../utils';
                 appearance="primary-grayscale"
                 iconStart="@tui.blend"
                 class="pointer-events-auto"
-                [tuiHint]="
-                  isMobile ? null : ('areas.unifyVisibleAreas' | translate)
-                "
                 (click.zoneless)="unifyVisibleAreas()"
               >
                 {{ 'areas.unifyVisibleAreas' | translate }}
@@ -203,12 +197,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                         }}
                       </div>
                       @if (c.approach) {
-                        <div
-                          class="flex w-fit items-center gap-1 opacity-70"
-                          [tuiHint]="
-                            isMobile ? null : ('labels.approach' | translate)
-                          "
-                        >
+                        <div class="flex w-fit items-center gap-1 opacity-70">
                           <tui-icon icon="@tui.footprints" />
                           <span class="whitespace-nowrap">
                             {{ c.approach }}
@@ -243,12 +232,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                   <h2 tuiTitle>{{ p.name }}</h2>
                   <section class="text-sm opacity-80">
                     @if (p.size) {
-                      <div
-                        class="flex w-fit items-center gap-1"
-                        [tuiHint]="
-                          isMobile ? null : ('labels.capacity' | translate)
-                        "
-                      >
+                      <div class="flex w-fit items-center gap-1">
                         <tui-icon icon="@tui.car" />
                         <span class="text-lg">
                           x
@@ -266,7 +250,6 @@ import { mapLocationUrl, remToPx } from '../utils';
                       type="button"
                       class="!rounded-full"
                       (click.zoneless)="openEditParking(p)"
-                      [tuiHint]="'actions.edit' | translate"
                     >
                       {{ 'actions.edit' | translate }}
                     </button>

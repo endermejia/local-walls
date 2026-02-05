@@ -60,6 +60,7 @@ export class RoutesService {
           dismissible: false,
         },
       ),
+      { defaultValue: null },
     ).then((result) => {
       if (result) {
         this.global.cragRoutesResource.reload();
@@ -95,6 +96,7 @@ export class RoutesService {
           dismissible: false,
         },
       ),
+      { defaultValue: false },
     ).then((result) => {
       if (result) {
         this.global.cragRoutesResource.reload();

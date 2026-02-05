@@ -47,6 +47,7 @@ export class ToposService {
           dismissible: false,
         },
       ),
+      { defaultValue: null },
     ).then((result) => {
       if (result) {
         this.global.cragDetailResource.reload();

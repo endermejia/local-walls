@@ -16,7 +16,6 @@ import { Router } from '@angular/router';
 import {
   TuiAppearance,
   TuiButton,
-  TuiHint,
   TuiLabel,
   TuiLoader,
   TuiScrollbar,
@@ -70,7 +69,6 @@ import { handleErrorToast } from '../utils';
     TuiBadgedContent,
     TuiButton,
     TuiHeader,
-    TuiHint,
     TuiLabel,
     TuiLoader,
     TuiScrollbar,
@@ -100,9 +98,6 @@ import { handleErrorToast } from '../utils';
                     tuiIconButton
                     type="button"
                     class="!rounded-full"
-                    [tuiHint]="
-                      global.isMobile() ? null : ('actions.edit' | translate)
-                    "
                     (click.zoneless)="openEditArea()"
                   >
                     {{ 'actions.edit' | translate }}
@@ -114,9 +109,6 @@ import { handleErrorToast } from '../utils';
                     tuiIconButton
                     type="button"
                     class="!rounded-full"
-                    [tuiHint]="
-                      global.isMobile() ? null : ('actions.delete' | translate)
-                    "
                     (click.zoneless)="deleteArea()"
                   >
                     {{ 'actions.delete' | translate }}
@@ -218,9 +210,6 @@ import { handleErrorToast } from '../utils';
                 type="button"
                 iconStart="@tui.sliders-horizontal"
                 [attr.aria-label]="'labels.filters' | translate"
-                [tuiHint]="
-                  global.isMobile() ? null : ('labels.filters' | translate)
-                "
                 (click.zoneless)="openFilters()"
               ></button>
             </tui-badged-content>

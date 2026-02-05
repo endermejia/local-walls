@@ -12,7 +12,6 @@ import { Router } from '@angular/router';
 import {
   TuiAppearance,
   TuiButton,
-  TuiHint,
   TuiLoader,
   TuiScrollbar,
   TuiTextfield,
@@ -51,7 +50,6 @@ import { EmptyStateComponent } from '../components/empty-state';
     TuiBadgedContentComponent,
     TuiButton,
     TuiHeader,
-    TuiHint,
     TuiLoader,
     TuiScrollbar,
     TuiTextfield,
@@ -138,9 +136,6 @@ import { EmptyStateComponent } from '../components/empty-state';
               type="button"
               iconStart="@tui.sliders-horizontal"
               [attr.aria-label]="'labels.filters' | translate"
-              [tuiHint]="
-                global.isMobile() ? null : ('labels.filters' | translate)
-              "
               (click.zoneless)="openFilters()"
             ></button>
           </tui-badged-content>

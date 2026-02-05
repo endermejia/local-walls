@@ -18,7 +18,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { TuiButton, TuiHint, TuiIcon, TuiLoader } from '@taiga-ui/core';
+import { TuiButton, TuiIcon, TuiLoader } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
@@ -60,7 +60,6 @@ import { handleErrorToast } from '../utils';
     TuiAvatar,
 
     TuiButton,
-    TuiHint,
     TuiRating,
     DecimalPipe,
     FormsModule,
@@ -90,9 +89,6 @@ import { handleErrorToast } from '../utils';
                   tuiIconButton
                   type="button"
                   class="!rounded-full"
-                  [tuiHint]="
-                    global.isMobile() ? null : ('actions.edit' | translate)
-                  "
                   (click.zoneless)="openEditRoute()"
                 >
                   {{ 'actions.edit' | translate }}
@@ -105,9 +101,6 @@ import { handleErrorToast } from '../utils';
                     tuiIconButton
                     type="button"
                     class="!rounded-full"
-                    [tuiHint]="
-                      global.isMobile() ? null : ('actions.delete' | translate)
-                    "
                     (click.zoneless)="deleteRoute()"
                   >
                     {{ 'actions.delete' | translate }}

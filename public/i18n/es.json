@@ -60,14 +60,16 @@
     "unblock": "Desbloquear",
     "blockMessages": "Bloquear mensajes",
     "unblockMessages": "Desbloquear mensajes",
+    "messagesBlocked": "Mensajes bloqueados",
     "blockMessagesConfirm": "¿Estás seguro de que quieres bloquear los mensajes de {{name}}? No recibirás mensajes de este usuario.",
+    "unblockMessagesConfirm": "¿Estás seguro de que quieres volver a permitir mensajes de {{name}}?",
     "hide": "Ocultar",
     "hideAscents": "Ocultar encadenes",
+    "ascentsHidden": "Encadenes ocultados",
     "showAscents": "Mostrar encadenes",
     "hideAscentsConfirm": "¿Estás seguro de que quieres ocultar los encadenes de {{name}}? No verá tus encadenes y tú no verás los suyos.",
-    "blockConfirm": "¿Estás seguro de que quieres bloquear a {{name}}? No podrá enviarte mensajes ni ver tus encadenes.",
-    "cancel": "Cancelar",
-    "clear": "Limpiar"
+    "showAscentsConfirm": "¿Estás seguro de que quieres volver a mostrar los encadenes de {{name}}?",
+    "blockConfirm": "¿Estás seguro de que quieres bloquear a {{name}}? No podrá enviarte mensajes ni ver tus encadenes."
   },
   "labels": {
     "gdpr": {
@@ -259,8 +261,10 @@
     "toasts": {
       "userFollowed": "Ahora sigues a este usuario",
       "userUnfollowed": "Has dejado de seguir a este usuario",
-      "userBlocked": "Usuario bloqueado",
-      "userUnblocked": "Usuario desbloqueado",
+      "messagesBlocked": "Mensajes bloqueados",
+      "messagesUnblocked": "Mensajes desbloqueados",
+      "ascentsHidden": "Encadenes ocultados",
+      "ascentsShown": "Encadenes mostrados",
       "blockUpdated": "Ajustes de bloqueo actualizados",
       "projectAdded": "Marcada como proyecto",
       "projectRemoved": "Proyecto eliminado",

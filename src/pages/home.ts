@@ -17,7 +17,7 @@ import { Router, RouterLink } from '@angular/router';
 
 import { TuiAppearance, TuiLoader, TuiScrollbar } from '@taiga-ui/core';
 
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { concatMap, scan, startWith, Subject, tap } from 'rxjs';
 
 import {

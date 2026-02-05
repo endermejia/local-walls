@@ -64,13 +64,20 @@ export class AppNotificationsService {
 
       if (ascents) {
         const ascentMap = new Map(
-          ascents.map((a) => [a.id, (a.routes as any)?.name]),
+          ascents.map((a) => [
+            a.id,
+            (a.routes as unknown as { name: string })?.name,
+          ]),
         );
         notifications.forEach((n) => {
           if ((n.type === 'like' || n.type === 'comment') && n.resource_id) {
             const routeName = ascentMap.get(Number(n.resource_id));
             if (routeName) {
-              (n as any).resource_name = routeName;
+              (
+                n as NotificationWithActor & {
+                  resource_name: string;
+                }
+              ).resource_name = routeName;
             }
           }
         });

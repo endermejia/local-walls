@@ -21,7 +21,6 @@ import { tuiDefaultSort } from '@taiga-ui/cdk';
 import {
   TuiAppearance,
   TuiButton,
-  TuiHint,
   TuiScrollbar,
   TuiTextfield,
 } from '@taiga-ui/core';
@@ -59,7 +58,6 @@ import { handleErrorToast } from '../utils';
     TuiBadgedContentComponent,
     TuiBadgedContentDirective,
     TuiButton,
-    TuiHint,
     TuiScrollbar,
     TuiSkeleton,
     TuiTable,
@@ -201,11 +199,6 @@ import { handleErrorToast } from '../utils';
                       appearance="negative"
                       iconStart="@tui.trash"
                       class="!rounded-full"
-                      [tuiHint]="
-                        global.isMobile()
-                          ? null
-                          : ('actions.delete' | translate)
-                      "
                       (click.zoneless)="deleteEquipper(item)"
                     >
                       {{ 'actions.delete' | translate }}

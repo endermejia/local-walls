@@ -44,8 +44,8 @@ export class BlockingService {
     if (!data) return { blockMessages: false, blockAscents: false };
 
     return {
-      blockMessages: !!(data as any).block_messages,
-      blockAscents: !!(data as any).block_ascents,
+      blockMessages: data.block_messages,
+      blockAscents: data.block_ascents,
     };
   }
 
@@ -121,7 +121,6 @@ export class BlockingService {
     }
 
     this.notifyChange();
-    this.toast.success('messages.toasts.blockUpdated');
     return true;
   }
 }

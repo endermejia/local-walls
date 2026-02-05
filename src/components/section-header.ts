@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 
 import { TuiItem } from '@taiga-ui/cdk';
-import { TuiButton, TuiDropdown, TuiHint, TuiLink } from '@taiga-ui/core';
+import { TuiButton, TuiDropdown, TuiLink } from '@taiga-ui/core';
 import { TuiBreadcrumbs, TuiChevron } from '@taiga-ui/kit';
 import { RouterLink } from '@angular/router';
 
@@ -26,7 +26,6 @@ import { GlobalData } from '../services';
     TuiButton,
     TuiChevron,
     TuiDropdown,
-    TuiHint,
     TuiItem,
     TuiLink,
   ],
@@ -66,14 +65,6 @@ import { GlobalData } from '../services';
               tuiIconButton
               type="button"
               class="!rounded-full"
-              [tuiHint]="
-                global.isMobile()
-                  ? null
-                  : ((liked()
-                      ? 'actions.favorite.remove'
-                      : 'actions.favorite.add'
-                    ) | translate)
-              "
               (click.zoneless)="toggleLike.emit()"
             >
               {{

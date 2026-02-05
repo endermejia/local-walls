@@ -24,7 +24,6 @@ import {
   tuiDateFormatProvider,
   TuiFallbackSrcPipe,
   TuiFlagPipe,
-  TuiHint,
   TuiIcon,
   TuiLoader,
   TuiNotification,
@@ -112,7 +111,6 @@ interface Country {
     TuiFallbackSrcPipe,
     TuiFilterByInputPipe,
     TuiFlagPipe,
-    TuiHint,
     TuiIcon,
     TuiInputDate,
     TuiInputNumber,
@@ -148,7 +146,6 @@ interface Country {
             tuiIconButton
             type="button"
             class="!rounded-full"
-            [tuiHint]="global.isMobile() ? null : ('actions.back' | translate)"
             (click)="close()"
           >
             {{ 'actions.back' | translate }}

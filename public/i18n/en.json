@@ -59,15 +59,17 @@
     "block": "Block",
     "unblock": "Unblock",
     "blockMessages": "Block messages",
+    "messagesBlocked": "Messages blocked",
     "unblockMessages": "Unblock messages",
     "blockMessagesConfirm": "Are you sure you want to block messages from {{name}}? You will not receive messages from this user.",
+    "unblockMessagesConfirm": "Are you sure you want to allow messages from {{name}} again?",
     "hide": "Hide",
     "hideAscents": "Hide ascents",
+    "ascentsHidden": "Ascents hidden",
     "showAscents": "Show ascents",
     "hideAscentsConfirm": "Are you sure you want to hide ascents from {{name}}? They will not see your ascents and you will not see theirs.",
-    "blockConfirm": "Are you sure you want to block {{name}}? They will not be able to message you or see your ascents.",
-    "cancel": "Cancel",
-    "clear": "Clear"
+    "showAscentsConfirm": "Are you sure you want to show ascents from {{name}} again?",
+    "blockConfirm": "Are you sure you want to block {{name}}? They will not be able to message you or see your ascents."
   },
   "labels": {
     "gdpr": {
@@ -256,8 +258,10 @@
     "toasts": {
       "userFollowed": "You are now following this user",
       "userUnfollowed": "You have unfollowed this user",
-      "userBlocked": "User blocked",
-      "userUnblocked": "User unblocked",
+      "messagesBlocked": "Messages blocked",
+      "messagesUnblocked": "Messages unblocked",
+      "ascentsHidden": "Ascents hidden",
+      "ascentsShown": "Ascents shown",
       "blockUpdated": "Block settings updated",
       "projectAdded": "Marked as project",
       "projectRemoved": "Project removed",

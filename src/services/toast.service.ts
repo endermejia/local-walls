@@ -28,6 +28,7 @@ export class ToastService {
         autoClose,
         ...options,
       }),
+      { defaultValue: undefined },
     );
   }
 
@@ -65,6 +66,7 @@ export class ToastService {
           closable: false,
         })
         .pipe(takeUntil(close$)),
+      { defaultValue: undefined },
     );
 
     return close$;

@@ -9,9 +9,9 @@ import {
   resource,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
-import { TuiAppearance, TuiButton, TuiHint, TuiIcon } from '@taiga-ui/core';
+import { TuiAppearance, TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
@@ -48,12 +48,12 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    RouterLink,
     TranslatePipe,
     TuiAppearance,
     TuiAvatar,
     TuiButton,
     TuiHeader,
-    TuiHint,
     TuiIcon,
     TuiRating,
   ],
@@ -65,19 +65,8 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
     >
       <header tuiHeader class="flex justify-between items-center">
         @if (showUser()) {
-          <div
-            role="link"
-            tabindex="0"
-            (click)="
-              $event.stopPropagation();
-              $event.preventDefault();
-              router.navigate(['/profile', ascent.user_id])
-            "
-            (keydown.enter)="
-              $event.stopPropagation();
-              $event.preventDefault();
-              router.navigate(['/profile', ascent.user_id])
-            "
+          <a
+            [routerLink]="['/profile', ascent.user_id]"
             class="flex items-center gap-3 no-underline text-inherit cursor-pointer group/user"
           >
             <tui-avatar
@@ -97,7 +86,7 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
                 }}
               </span>
             </div>
-          </div>
+          </a>
 
           @if (ascent.user_id !== supabase.authUserId()) {
             @if (isFollowed()) {
@@ -106,10 +95,7 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
                 size="s"
                 appearance="secondary-grayscale"
                 class="!rounded-full"
-                (click)="
-                  unfollow(ascent.user_id, ascent.user?.name || 'User');
-                  $event.stopPropagation()
-                "
+                (click)="unfollow(ascent.user_id, ascent.user?.name || 'User')"
               >
                 {{ 'actions.following' | translate }}
               </button>
@@ -119,7 +105,7 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
                 size="s"
                 appearance="action"
                 class="!rounded-full"
-                (click)="follow(ascent.user_id); $event.stopPropagation()"
+                (click)="follow(ascent.user_id)"
               >
                 {{ 'actions.follow' | translate }}
               </button>
@@ -130,7 +116,7 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
               size="s"
               appearance="secondary-grayscale"
               class="!rounded-full"
-              (click)="editAscent(); $event.stopPropagation()"
+              (click)="editAscent()"
             >
               {{ 'actions.edit' | translate }}
             </button>
@@ -151,7 +137,7 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
                 size="s"
                 appearance="secondary-grayscale"
                 class="!rounded-full"
-                (click)="editAscent(); $event.stopPropagation()"
+                (click)="editAscent()"
               >
                 {{ 'actions.edit' | translate }}
               </button>
@@ -179,50 +165,31 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
                 <tui-icon
                   [icon]="climbingIcons[kind] || '@tui.mountain'"
                   class="text-gray-400"
-                  [tuiHint]="'climbingKinds.' + kind | translate"
                 />
               }
-              <span
+              <a
                 class="font-bold text-lg hover:underline cursor-pointer"
-                (click)="
-                  $event.stopPropagation();
-                  router.navigate([
+                [routerLink]="[
+                  '/area',
+                  ascent.route.area_slug,
+                  ascent.route.crag_slug,
+                  ascent.route.slug,
+                ]"
+              >
+                {{ ascent.route.name }}
+              </a>
+              @if (ascent.route && showRoute()) {
+                <span>•</span>
+                <a
+                  class="hover:underline cursor-pointer flex items-center gap-1"
+                  [routerLink]="[
                     '/area',
                     ascent.route.area_slug,
                     ascent.route.crag_slug,
-                    ascent.route.slug,
-                  ])
-                "
-              >
-                {{ ascent.route.name }}
-              </span>
-              @if (ascent.route && showRoute()) {
-                <span>•</span>
-                <div
-                  role="link"
-                  tabindex="0"
-                  class="hover:underline cursor-pointer flex items-center gap-1"
-                  (click)="
-                    $event.stopPropagation();
-                    $event.preventDefault();
-                    router.navigate([
-                      '/area',
-                      ascent.route.area_slug,
-                      ascent.route.crag_slug,
-                    ])
-                  "
-                  (keydown.enter)="
-                    $event.stopPropagation();
-                    $event.preventDefault();
-                    router.navigate([
-                      '/area',
-                      ascent.route.area_slug,
-                      ascent.route.crag_slug,
-                    ])
-                  "
+                  ]"
                 >
                   <span>{{ ascent.route.crag_name }}</span>
-                </div>
+                </a>
               }
             </div>
           }

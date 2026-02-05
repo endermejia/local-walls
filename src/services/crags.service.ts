@@ -65,6 +65,7 @@ export class CragsService {
           dismissible: false,
         },
       ),
+      { defaultValue: null },
     ).then((result) => {
       if (result) {
         this.global.cragsListResource.reload();
@@ -95,6 +96,7 @@ export class CragsService {
           dismissible: false,
         },
       ),
+      { defaultValue: false },
     ).then((result) => {
       if (result) {
         this.global.cragsListResource.reload();

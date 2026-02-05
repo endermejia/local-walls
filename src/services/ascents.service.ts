@@ -177,7 +177,7 @@ export class AscentsService {
     }
   }
 
-  async deletePhoto(ascentId: number, photoPath: string): Promise<void> {
+  async deletePhoto(ascentId: number): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     await this.supabase.whenReady();
 
@@ -271,7 +271,7 @@ export class AscentsService {
 
     try {
       if (ascent?.photo_path) {
-        await this.deletePhoto(id, ascent.photo_path);
+        await this.deletePhoto(id);
       }
     } catch (e) {
       console.warn(
