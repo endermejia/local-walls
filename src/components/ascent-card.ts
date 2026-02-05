@@ -27,7 +27,7 @@ import { firstValueFrom } from 'rxjs';
 import { CLIMBING_ICONS, RouteAscentWithExtras } from '../models';
 
 import {
-  AscentsService,
+  AscentFormService,
   FollowsService,
   GlobalData,
   SupabaseService,
@@ -238,7 +238,7 @@ export class AscentCardComponent {
   protected readonly climbingIcons = CLIMBING_ICONS;
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
-  private readonly ascentsService = inject(AscentsService);
+  private readonly ascentFormService = inject(AscentFormService);
   private readonly followsService = inject(FollowsService);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
@@ -263,7 +263,9 @@ export class AscentCardComponent {
   );
 
   editAscent() {
-    this.ascentsService.openAscentForm({ ascentData: this.data() }).subscribe();
+    this.ascentFormService
+      .openAscentForm({ ascentData: this.data() })
+      .subscribe();
   }
 
   async follow(userId: string) {

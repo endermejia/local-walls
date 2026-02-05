@@ -38,6 +38,7 @@ import {
 } from '../models';
 
 import {
+  AscentFormService,
   AscentsService,
   FollowsService,
   GlobalData,
@@ -293,6 +294,7 @@ export class RouteComponent {
   private readonly location = inject(Location);
   protected readonly routesService = inject(RoutesService);
   protected readonly ascentsService = inject(AscentsService);
+  protected readonly ascentFormService = inject(AscentFormService);
   private readonly followsService = inject(FollowsService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
@@ -417,7 +419,7 @@ export class RouteComponent {
     const r = this.route();
     if (!r) return;
     void firstValueFrom(
-      this.ascentsService.openAscentForm({
+      this.ascentFormService.openAscentForm({
         routeId: r.id,
         routeName: r.name,
         grade: r.grade,
@@ -427,7 +429,7 @@ export class RouteComponent {
 
   onEditAscent(ascent: RouteAscentWithExtras, routeName?: string): void {
     void firstValueFrom(
-      this.ascentsService.openAscentForm({
+      this.ascentFormService.openAscentForm({
         routeId: ascent.route_id,
         routeName,
         ascentData: ascent,

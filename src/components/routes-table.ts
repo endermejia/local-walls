@@ -43,6 +43,7 @@ import {
 } from '../models';
 
 import {
+  AscentFormService,
   AscentsService,
   GlobalData,
   RoutesService,
@@ -543,6 +544,7 @@ export class RoutesTableComponent {
   protected readonly router = inject(Router);
   protected readonly routesService = inject(RoutesService);
   protected readonly ascentsService = inject(AscentsService);
+  protected readonly ascentFormService = inject(AscentFormService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
@@ -647,7 +649,7 @@ export class RoutesTableComponent {
 
   protected onLogAscent(item: RouteItem): void {
     void firstValueFrom(
-      this.ascentsService.openAscentForm({
+      this.ascentFormService.openAscentForm({
         routeId: item.id,
         routeName: item.name,
         grade: item.grade,
@@ -660,7 +662,7 @@ export class RoutesTableComponent {
     routeName: string,
   ): void {
     void firstValueFrom(
-      this.ascentsService.openAscentForm({
+      this.ascentFormService.openAscentForm({
         routeId: ascent.route_id,
         routeName: routeName,
         ascentData: ascent,

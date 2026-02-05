@@ -4,6 +4,7 @@ export * from './app-notifications.service';
 export * from './blocking.service';
 export * from './browser-notification.service';
 export * from './areas.service';
+export * from './ascent-form.service';
 export * from './ascents.service';
 export * from './auth.guard';
 export * from './crags.service';

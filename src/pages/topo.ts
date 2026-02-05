@@ -52,6 +52,7 @@ import {
 } from '../models';
 
 import {
+  AscentFormService,
   AscentsService,
   GlobalData,
   RoutesService,
@@ -656,6 +657,7 @@ export class TopoComponent {
   protected readonly global = inject(GlobalData);
   private readonly supabase = inject(SupabaseService);
   protected readonly ascentsService = inject(AscentsService);
+  protected readonly ascentFormService = inject(AscentFormService);
   private readonly toposService = inject(ToposService);
   protected readonly routesService = inject(RoutesService);
   protected readonly router = inject(Router);
@@ -919,7 +921,7 @@ export class TopoComponent {
   protected onLogAscent(tr: TopoRouteWithRoute): void {
     const route = tr.route;
     void firstValueFrom(
-      this.ascentsService.openAscentForm({
+      this.ascentFormService.openAscentForm({
         routeId: route.id,
         routeName: route.name,
         grade: route.grade,
@@ -933,7 +935,7 @@ export class TopoComponent {
     routeName?: string,
   ): void {
     void firstValueFrom(
-      this.ascentsService.openAscentForm({
+      this.ascentFormService.openAscentForm({
         routeId: ascent.route_id,
         routeName,
         ascentData: ascent,

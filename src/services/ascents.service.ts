@@ -1,14 +1,9 @@
 import { isPlatformBrowser } from '@angular/common';
 import { computed, inject, Injectable, PLATFORM_ID } from '@angular/core';
 
-import { TuiDialogService } from '@taiga-ui/experimental';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-
-import { TranslateService } from '@ngx-translate/core';
-import { Observable, Subject, tap } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 
 import {
-  AscentDialogData,
   AscentType,
   RouteAscentDto,
   RouteAscentInsertDto,
@@ -20,7 +15,6 @@ import {
   RouteAscentCommentInsertDto,
 } from '../models';
 
-import AscentFormComponent from '../forms/ascent-form';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
@@ -31,8 +25,6 @@ export class AscentsService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly global = inject(GlobalData);
-  private readonly dialogs = inject(TuiDialogService);
-  private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
   private readonly notificationsService = inject(AppNotificationsService);
 
@@ -196,25 +188,6 @@ export class AscentsService {
     }
 
     this.refreshResources(ascentId);
-  }
-
-  openAscentForm(data: AscentDialogData): Observable<boolean> {
-    return this.dialogs
-      .open<boolean>(new PolymorpheusComponent(AscentFormComponent), {
-        label: this.translate.instant(
-          data.ascentData ? 'ascent.edit' : 'ascent.new',
-        ),
-        size: 'm',
-        data,
-        dismissible: false,
-      })
-      .pipe(
-        tap((res) => {
-          if (res === null || res) {
-            void this.refreshResources();
-          }
-        }),
-      );
   }
 
   async create(
