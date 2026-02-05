@@ -9,7 +9,7 @@ import { firstValueFrom, Observable } from 'rxjs';
 
 import { UserProfileDto } from '../models';
 
-import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
+import { ImageEditorDialogComponent } from '../dialogs';
 import { Import8aComponent } from '../components/import-8a';
 
 import { SupabaseService } from './supabase.service';
@@ -46,9 +46,7 @@ export class UserProfilesService {
         size: 'l',
         data: {
           file,
-          aspectRatios: [
-            { titleKey: 'square', descriptionKey: '1:1', ratio: 1 },
-          ],
+          aspectRatios: [{ titleKey: '1:1', descriptionKey: '1:1', ratio: 1 }],
           forceAspectRatio: true,
         },
         appearance: 'fullscreen',

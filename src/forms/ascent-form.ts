@@ -23,12 +23,14 @@ import {
   TuiAppearance,
   TuiButton,
   tuiDateFormatProvider,
-  TuiDialogService,
   TuiIcon,
   TuiLabel,
   TuiTextfield,
 } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
+import {
+  type TuiDialogContext,
+  TuiDialogService,
+} from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
   TuiCheckbox,
@@ -42,7 +44,7 @@ import {
   TuiInputFiles,
   TuiFileRejectedPipe,
 } from '@taiga-ui/kit';
-import { injectContext } from '@taiga-ui/polymorpheus';
+import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, startWith } from 'rxjs';
@@ -66,7 +68,7 @@ import {
   ToastService,
 } from '../services';
 
-import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
+import { ImageEditorDialogComponent } from '../dialogs';
 import { CounterComponent } from '../components/counter';
 
 import { handleErrorToast } from '../utils';
@@ -217,25 +219,17 @@ import { handleErrorToast } from '../utils';
               'ascent.photo' | translate
             }}</span>
             <div class="flex items-center gap-2">
-              @if (photoValue() || existingPhotoUrl()) {
+              @if (existingPhotoUrl(); as photoUrl) {
                 <button
                   tuiButton
                   type="button"
-                  appearance="secondary"
+                  appearance="neutral"
                   size="s"
-                  iconStart="@tui.pencil"
-                  (click)="
-                    editPhoto(
-                      photoValue() || null,
-                      existingPhotoUrl() || undefined
-                    )
-                  "
+                  iconStart="@tui.edit-2"
+                  (click)="editPhoto(null, photoUrl)"
                 >
                   {{ 'actions.edit' | translate }}
                 </button>
-              }
-
-              @if (existingPhotoUrl()) {
                 <button
                   tuiButton
                   type="button"
@@ -245,6 +239,17 @@ import { handleErrorToast } from '../utils';
                   (click)="onDeleteExistingPhoto()"
                 >
                   {{ 'ascent.deletePhoto' | translate }}
+                </button>
+              } @else if (photoValue(); as file) {
+                <button
+                  tuiButton
+                  type="button"
+                  appearance="neutral"
+                  size="s"
+                  iconStart="@tui.edit-2"
+                  (click)="editPhoto(file)"
+                >
+                  {{ 'actions.edit' | translate }}
                 </button>
               }
             </div>
@@ -263,7 +268,10 @@ import { handleErrorToast } from '../utils';
 
             <tui-files class="mt-2">
               @if (
-                photoValue() | tuiFileRejected: { accept: 'image/*' } | async;
+                photoValue()
+                  | tuiFileRejected
+                    : { accept: 'image/*', maxFileSize: 5 * 1024 * 1024 }
+                  | async;
                 as file
               ) {
                 <tui-file
@@ -595,6 +603,7 @@ export default class AscentFormComponent {
   protected readonly previewUrl = signal<string | null>(null);
 
   protected readonly isExistingPhotoDeleted = signal(false);
+  protected readonly isProcessingPhoto = signal(false);
 
   protected readonly existingPhotoResource = resource({
     params: () => {
@@ -779,6 +788,14 @@ export default class AscentFormComponent {
     if (!this.effectiveAscentData() && this.dialogGrade !== undefined) {
       this.form.patchValue({ grade: this.dialogGrade });
     }
+
+    // Auto-open editor when a new file is selected from file input
+    this.photoControl.valueChanges.subscribe((file) => {
+      if (file && !this.isProcessingPhoto()) {
+        this.isProcessingPhoto.set(true);
+        this.editPhoto(file, undefined);
+      }
+    });
   }
 
   private updateTriesState(type: string | null | undefined): void {
@@ -929,29 +946,44 @@ export default class AscentFormComponent {
       file: file ?? undefined,
       imageUrl: imageUrl ?? undefined,
       aspectRatios: [
-        { titleKey: 'square', descriptionKey: '1:1', ratio: 1 },
-        { titleKey: 'portrait', descriptionKey: '4:5', ratio: 4 / 5 },
-        { titleKey: 'landscape', descriptionKey: '16:9', ratio: 16 / 9 },
+        { titleKey: '1:1', descriptionKey: '1:1', ratio: 1 },
+        { titleKey: '4:5', descriptionKey: '4:5', ratio: 4 / 5 },
+        { titleKey: '16:9', descriptionKey: '16:9', ratio: 16 / 9 },
       ],
     };
 
-    if (!data.file && !data.imageUrl) return;
+    if (!data.file && !data.imageUrl) {
+      this.isProcessingPhoto.set(false);
+      return;
+    }
 
     const result = await firstValueFrom(
       this.dialogs.open<File | null>(
         new PolymorpheusComponent(ImageEditorDialogComponent),
         {
-          size: 'l',
           data,
           appearance: 'fullscreen',
-          closeable: false,
+          closable: false,
           dismissible: false,
         },
       ),
     );
 
+    // Reset processing flag
+    this.isProcessingPhoto.set(false);
+
     if (result) {
-      this.photoControl.setValue(result);
+      // If we got a result, set it without triggering the effect again
+      this.photoControl.setValue(result, { emitEvent: false });
+      // Manually trigger preview update
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.previewUrl.set(reader.result as string);
+      };
+      reader.readAsDataURL(result);
+    } else {
+      // User cancelled, clear the photo
+      this.photoControl.setValue(null);
     }
   }
 

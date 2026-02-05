@@ -79,7 +79,7 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
               <span class="font-bold text-sm group-hover/user:underline">
                 {{ ascent.user?.name || 'User' }}
               </span>
-              <span class="text-xs text-gray-400">
+              <span class="text-xs">
                 {{
                   ascent.date
                     | date: 'longDate' : undefined : global.selectedLanguage()
@@ -162,10 +162,7 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
           @if (ascent.route && showRoute()) {
             <div class="flex flex-wrap items-center gap-2">
               @if (ascent.route.climbing_kind; as kind) {
-                <tui-icon
-                  [icon]="climbingIcons[kind] || '@tui.mountain'"
-                  class="text-gray-400"
-                />
+                <tui-icon [icon]="climbingIcons[kind] || '@tui.mountain'" />
               }
               <a
                 class="font-bold text-lg hover:underline cursor-pointer"
@@ -193,7 +190,7 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
               }
             </div>
           }
-          <div class="flex items-center gap-2 text-sm text-gray-600">
+          <div class="flex items-center gap-2 text-sm">
             @if (ascent.grade; as ascentGrade) {
               <app-avatar-grade [grade]="ascentGrade" size="s" />
             }
@@ -222,7 +219,7 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
 
       @if (ascent.comment; as ascentComment) {
         <p
-          class="text-sm text-gray-700 italic border-l-2 border-[var(--tui-border-normal)] pl-3 py-1 self-start"
+          class="text-sm italic border-l-2 border-[var(--tui-border-normal)] pl-3 py-1 self-start"
         >
           "{{ ascentComment }}"
         </p>
