@@ -334,7 +334,7 @@
     "table_name": "chat_messages",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "(is_chat_participant(room_id) AND (( SELECT auth.uid() AS uid) = sender_id) AND NOT (EXISTS ( SELECT 1 FROM chat_participants cp JOIN user_blocks ub ON (((ub.blocker_id = auth.uid()) AND (ub.blocked_id = cp.user_id)) OR ((ub.blocker_id = cp.user_id) AND (ub.blocked_id = auth.uid()))) WHERE ((cp.room_id = chat_messages.room_id) AND (cp.user_id <> auth.uid()) AND (ub.block_messages = true)))))"
+    "with_check_expression": "(is_chat_participant(room_id) AND (( SELECT auth.uid() AS uid) = sender_id) AND NOT is_room_blocked(room_id, auth.uid()))"
   },
   {
     "policy_name": "sender_can_delete",
@@ -437,7 +437,7 @@
     "schema_name": "public",
     "table_name": "route_ascents",
     "for_command": "r",
-    "using_expression": "((auth.uid() = user_id) OR (is_profile_public(user_id) AND NOT (EXISTS ( SELECT 1 FROM user_blocks WHERE (((user_blocks.blocker_id = auth.uid()) AND (user_blocks.blocked_id = route_ascents.user_id)) OR ((user_blocks.blocker_id = route_ascents.user_id) AND (user_blocks.blocked_id = auth.uid()))) AND (user_blocks.block_ascents = true)))))",
+    "using_expression": "((auth.uid() = user_id) OR (is_profile_public(user_id) AND NOT has_ascent_blocking(auth.uid(), user_id)))",
     "with_check_expression": null
   },
   {
@@ -761,7 +761,7 @@
     "with_check_expression": null
   },
   {
-    "policy_name": "Users can see blocks where they are the blocker",
+    "policy_name": "own_user_can_read",
     "schema_name": "public",
     "table_name": "user_blocks",
     "for_command": "r",
@@ -769,7 +769,7 @@
     "with_check_expression": null
   },
   {
-    "policy_name": "Users can insert their own blocks",
+    "policy_name": "own_user_can_insert",
     "schema_name": "public",
     "table_name": "user_blocks",
     "for_command": "a",
@@ -777,7 +777,7 @@
     "with_check_expression": "(auth.uid() = blocker_id)"
   },
   {
-    "policy_name": "Users can update their own blocks",
+    "policy_name": "own_user_can_update",
     "schema_name": "public",
     "table_name": "user_blocks",
     "for_command": "w",
@@ -785,7 +785,7 @@
     "with_check_expression": "(auth.uid() = blocker_id)"
   },
   {
-    "policy_name": "Users can delete their own blocks",
+    "policy_name": "own_user_can_delete",
     "schema_name": "public",
     "table_name": "user_blocks",
     "for_command": "d",

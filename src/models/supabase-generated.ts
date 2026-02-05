@@ -1722,6 +1722,33 @@ export interface Database {
           },
         ];
       };
+      user_blocks: {
+        Row: {
+          block_ascents: boolean;
+          block_messages: boolean;
+          blocked_id: string;
+          blocker_id: string;
+          created_at: string;
+          id: number;
+        };
+        Insert: {
+          block_ascents?: boolean;
+          block_messages?: boolean;
+          blocked_id: string;
+          blocker_id: string;
+          created_at?: string;
+          id?: number;
+        };
+        Update: {
+          block_ascents?: boolean;
+          block_messages?: boolean;
+          blocked_id?: string;
+          blocker_id?: string;
+          created_at?: string;
+          id?: number;
+        };
+        Relationships: [];
+      };
       user_follows: {
         Row: {
           created_at: string;
@@ -1850,8 +1877,25 @@ export interface Database {
           topos_count: number;
         }[];
       };
+      has_ascent_blocking: {
+        Args: { user_a: string; user_b: string };
+        Returns: boolean;
+      };
+      has_message_blocking: {
+        Args: { user_a: string; user_b: string };
+        Returns: boolean;
+      };
       is_area_equipper: { Args: { p_area_id: number }; Returns: boolean };
+      is_chat_participant: {
+        Args: { room_id_param: string };
+        Returns: boolean;
+      };
       is_crag_equipper: { Args: { p_crag_id: number }; Returns: boolean };
+      is_profile_public: { Args: { p_user_id: string }; Returns: boolean };
+      is_room_blocked: {
+        Args: { p_room_id: string; p_user_id: string };
+        Returns: boolean;
+      };
       is_user_admin: { Args: { p_uid: string }; Returns: boolean };
       toggle_area_like: { Args: { p_area_id: number }; Returns: boolean };
       toggle_crag_like: { Args: { p_crag_id: number }; Returns: boolean };
