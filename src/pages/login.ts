@@ -9,7 +9,8 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { take } from 'rxjs';
 
 import {
   TuiAppearance,
@@ -320,6 +321,7 @@ import { SupabaseService } from '../services';
 export class LoginComponent {
   private readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly platformId = inject(PLATFORM_ID);
 
   email: WritableSignal<string> = signal('');
@@ -375,6 +377,12 @@ export class LoginComponent {
   );
 
   constructor() {
+    this.route.queryParams.pipe(take(1)).subscribe((params) => {
+      if (params['register'] === 'true') {
+        this.isRegister.set(true);
+      }
+    });
+
     // Ensure that when entering from a recovery link, the token is exchanged and there is an active session
     if (isPlatformBrowser(this.platformId) && typeof window !== 'undefined') {
       afterNextRender(() => {
