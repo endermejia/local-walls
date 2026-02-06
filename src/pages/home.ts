@@ -16,7 +16,12 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { TuiAppearance, TuiLoader, TuiScrollbar } from '@taiga-ui/core';
-import { TuiSegmented } from '@taiga-ui/kit';
+import {
+  TuiSegmented,
+  TuiAvatar,
+  TuiBadgedContent,
+  TuiPulse,
+} from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
 import {
@@ -61,16 +66,21 @@ import { TuiButton, TuiDropdown } from '@taiga-ui/core';
     TuiSegmented,
     TuiDropdown,
     TuiButton,
+    TuiPulse,
   ],
   template: `
     <tui-scrollbar class="h-full">
       <div class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32 pt-4">
         <div
-          class="px-4 flex flex-col gap-4"
+          class="px-4 flex flex-col gap-4 relative"
           [tuiDropdown]="tourHint"
           [tuiDropdownOpen]="tourService.step() === TourStep.HOME"
           tuiDropdownDirection="bottom"
         >
+          <tui-pulse
+            *ngIf="tourService.step() === TourStep.HOME"
+            class="absolute top-2 right-6"
+          />
           <!-- Active Crags -->
           @if (activeCrags(); as crags) {
             @if (crags.length > 0) {

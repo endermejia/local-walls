@@ -4,12 +4,18 @@ import { SupabaseService } from './supabase.service';
 import { UserProfilesService } from './user-profiles.service';
 
 export enum TourStep {
-  HOME = 0,
-  EXPLORE = 1,
-  AREAS = 2,
-  CRAG = 3,
-  ROUTE = 4,
-  PROFILE = 5,
+  WELCOME = 0,
+  HOME = 1,
+  EXPLORE = 2,
+  AREAS = 3,
+  CRAG = 4,
+  CRAG_TOPOS = 5,
+  CRAG_PARKINGS = 6,
+  CRAG_WEATHER = 7,
+  ROUTE = 8,
+  PROFILE = 9,
+  PROFILE_PROJECTS = 10,
+  PROFILE_LIKES = 11,
   OFF = -1,
 }
 
@@ -26,7 +32,7 @@ export class TourService {
 
   async start(): Promise<void> {
     this.isActive.set(true);
-    await this.goToStep(TourStep.HOME);
+    await this.goToStep(TourStep.WELCOME);
   }
 
   async next(): Promise<void> {
@@ -51,6 +57,9 @@ export class TourService {
   private async goToStep(step: TourStep): Promise<void> {
     this.step.set(step);
     switch (step) {
+      case TourStep.WELCOME:
+        await this.router.navigate(['/profile/config']);
+        break;
       case TourStep.HOME:
         await this.router.navigate(['/home']);
         break;
@@ -61,12 +70,17 @@ export class TourService {
         await this.router.navigate(['/area']);
         break;
       case TourStep.CRAG:
+      case TourStep.CRAG_TOPOS:
+      case TourStep.CRAG_PARKINGS:
+      case TourStep.CRAG_WEATHER:
         await this.navigateToAnyCrag();
         break;
       case TourStep.ROUTE:
         await this.navigateToAnyRoute();
         break;
       case TourStep.PROFILE:
+      case TourStep.PROFILE_PROJECTS:
+      case TourStep.PROFILE_LIKES:
         await this.router.navigate(['/profile']);
         break;
     }

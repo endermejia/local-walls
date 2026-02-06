@@ -39,6 +39,7 @@ import {
   TuiSelect,
   TuiSkeleton,
   TuiTabs,
+  TuiPulse,
 } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
 import { TuiDialogService } from '@taiga-ui/experimental';
@@ -102,6 +103,7 @@ import {
     TuiTabs,
     TuiTextfield,
     TuiTitle,
+    TuiPulse,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -292,7 +294,22 @@ import {
         <tui-tabs
           [activeItemIndex]="activeTab()"
           (activeItemIndexChange)="activeTab.set($event)"
+          [tuiDropdown]="tourHint"
+          [tuiDropdownOpen]="
+            tourService.step() === TourStep.PROFILE ||
+            tourService.step() === TourStep.PROFILE_PROJECTS ||
+            tourService.step() === TourStep.PROFILE_LIKES
+          "
+          tuiDropdownDirection="top"
         >
+          <tui-pulse
+            *ngIf="
+              tourService.step() === TourStep.PROFILE ||
+              tourService.step() === TourStep.PROFILE_PROJECTS ||
+              tourService.step() === TourStep.PROFILE_LIKES
+            "
+            class="absolute -top-1 -right-1"
+          />
           <button tuiTab>
             {{ 'labels.ascents' | translate }}
           </button>
@@ -509,7 +526,7 @@ import {
                                     (crag.topos_count === 1 ? 'topo' : 'topos')
                                     | translate
                                     | lowercase
-                                  }}
+                                }}
                               </div>
                               <div class="text-sm opacity-70">
                                 {{ crag.area_name }}
@@ -557,14 +574,27 @@ import {
 
     <ng-template #tourHint>
       <div class="flex flex-col gap-2 max-w-xs">
-        <p>{{ 'tour.profile.description' | translate }}</p>
+        <p>
+          {{
+            (tourService.step() === TourStep.PROFILE
+              ? 'tour.profile.ascentsDescription'
+              : tourService.step() === TourStep.PROFILE_PROJECTS
+                ? 'tour.profile.projectsDescription'
+                : 'tour.profile.likesDescription'
+            ) | translate
+          }}
+        </p>
         <button
           tuiButton
           size="s"
           appearance="primary"
           (click)="tourService.next()"
         >
-          {{ 'tour.finish' | translate }}
+          {{
+            tourService.step() === TourStep.PROFILE_LIKES
+              ? ('tour.finish' | translate)
+              : ('tour.next' | translate)
+          }}
         </button>
       </div>
     </ng-template>
@@ -881,6 +911,22 @@ export class UserProfileComponent {
         .getFollowedIds()
         .then((ids) => this.followedIds.set(new Set(ids)));
     }
+
+    effect(() => {
+      const step = this.tourService.step();
+      if (step === TourStep.PROFILE) {
+        this.activeTab.set(0);
+      } else if (step === TourStep.PROFILE_PROJECTS) {
+        this.activeTab.set(1);
+      } else if (step === TourStep.PROFILE_LIKES) {
+        if (this.isOwnProfile()) {
+          this.activeTab.set(2);
+        } else {
+          // If not own profile, skip likes and finish
+          this.activeTab.set(1);
+        }
+      }
+    });
 
     effect(() => {
       // Reset breadcrumbs when navigating to the profile page

@@ -625,6 +625,9 @@
     "home": {
       "description": "Este es tu panel de inicio. Aquí verás la actividad reciente y tus zonas favoritas."
     },
+    "config": {
+      "description": "Configura tu perfil para que otros escaladores te conozcan mejor."
+    },
     "explore": {
       "description": "Explora el mapa para encontrar zonas de escalada cerca de ti."
     },
@@ -632,13 +635,18 @@
       "description": "Consulta el listado completo de áreas y filtra por tus preferencias."
     },
     "crag": {
-      "description": "Aquí tienes los detalles del sector: vías, croquis, parkings y meteo."
+      "routesDescription": "Consulta el listado de vías de este sector, con sus grados y valoraciones.",
+      "toposDescription": "Visualiza los croquis para identificar las líneas en la roca.",
+      "parkingsDescription": "Encuentra dónde aparcar para acceder a este sector.",
+      "weatherDescription": "Revisa la previsión meteorológica para planificar tu escalada."
     },
     "route": {
       "description": "Información detallada de la vía, encadenes y estadísticas."
     },
     "profile": {
-      "description": "Tu perfil: gestiona tus encadenes, proyectos y estadísticas."
+      "ascentsDescription": "Aquí verás el registro de tus encadenes y estadísticas.",
+      "projectsDescription": "Gestiona tus proyectos pendientes y objetivos.",
+      "likesDescription": "Accede rápidamente a tus zonas, sectores y vías favoritas."
     }
   }
 }

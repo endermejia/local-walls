@@ -625,6 +625,9 @@
     "home": {
       "description": "This is your dashboard. Here you will see recent activity and your favorite spots."
     },
+    "config": {
+      "description": "Set up your profile so other climbers can get to know you better."
+    },
     "explore": {
       "description": "Explore the map to find climbing spots near you."
     },
@@ -632,13 +635,18 @@
       "description": "Browse the full list of areas and filter by your preferences."
     },
     "crag": {
-      "description": "Here are the sector details: routes, topos, parkings, and weather."
+      "routesDescription": "Browse the list of routes for this sector, including grades and ratings.",
+      "toposDescription": "View topos to identify the lines on the rock.",
+      "parkingsDescription": "Find where to park to access this sector.",
+      "weatherDescription": "Check the weather forecast to plan your climb."
     },
     "route": {
       "description": "Detailed route info, ascents, and stats."
     },
     "profile": {
-      "description": "Your profile: manage your ascents, projects, and stats."
+      "ascentsDescription": "Here you will see your logbook and statistics.",
+      "projectsDescription": "Manage your pending projects and goals.",
+      "likesDescription": "Quickly access your favorite areas, sectors, and routes."
     }
   }
 }

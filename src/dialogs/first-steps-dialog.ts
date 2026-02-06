@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TuiButton, TuiDialogContext, TuiTitle } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TranslatePipe } from '@ngx-translate/core';
+import { TourService } from '../services';
 
 @Component({
   selector: 'app-first-steps-dialog',
@@ -34,8 +35,10 @@ import { TranslatePipe } from '@ngx-translate/core';
 })
 export class FirstStepsDialogComponent {
   private readonly context = injectContext<TuiDialogContext<void>>();
+  private readonly tourService = inject(TourService);
 
   close(): void {
+    void this.tourService.start();
     this.context.completeWith();
   }
 }

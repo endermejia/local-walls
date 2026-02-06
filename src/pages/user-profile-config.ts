@@ -30,6 +30,7 @@ import {
   TuiScrollbar,
   TuiTextfield,
   TuiTitle,
+  TuiDropdown,
 } from '@taiga-ui/core';
 import {
   TuiDialogService,
@@ -54,6 +55,7 @@ import {
   TuiSkeleton,
   TuiSwitch,
   TuiTextarea,
+  TuiPulse,
   type TuiConfirmData,
 } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
@@ -88,6 +90,7 @@ import {
   UserProfilesService,
   EightAnuService,
   TourService,
+  TourStep,
 } from '../services';
 import { FirstStepsDialogComponent } from '../dialogs/first-steps-dialog';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -129,7 +132,8 @@ interface Country {
     TuiSwitch,
     TuiTextarea,
     TuiTextfield,
-    TuiTitle,
+    TuiDropdown,
+    TuiPulse,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
@@ -138,6 +142,9 @@ interface Country {
     <tui-scrollbar class="flex grow">
       <section
         class="w-full max-w-5xl mx-auto p-4 grid grid-cols-1 gap-4 pb-32"
+        [tuiDropdown]="tourHint"
+        [tuiDropdownOpen]="tourService.step() === TourStep.WELCOME"
+        tuiDropdownDirection="bottom"
       >
         <!-- Sticky Header -->
         <div
@@ -158,9 +165,15 @@ interface Country {
                 : ('actions.back' | translate)
             }}
           </button>
-          <h2 class="text-xl font-bold m-0">
-            {{ 'profile.title' | translate }}
-          </h2>
+          <div class="flex items-center gap-2">
+            <h2 class="text-xl font-bold m-0">
+              {{ 'profile.title' | translate }}
+            </h2>
+            <tui-pulse
+              *ngIf="tourService.step() === TourStep.WELCOME"
+              class="self-center"
+            />
+          </div>
         </div>
 
         <!-- Avatar y Nombre -->
@@ -611,6 +624,20 @@ interface Country {
         </div>
       </section>
     </tui-scrollbar>
+
+    <ng-template #tourHint>
+      <div class="flex flex-col gap-2 max-w-xs">
+        <p>{{ 'tour.config.description' | translate }}</p>
+        <button
+          tuiButton
+          size="s"
+          appearance="primary"
+          (click)="tourService.next()"
+        >
+          {{ 'tour.next' | translate }}
+        </button>
+      </div>
+    </ng-template>
   `,
 })
 export class UserProfileConfigComponent {
@@ -618,7 +645,8 @@ export class UserProfileConfigComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly userProfilesService = inject(UserProfilesService);
-  private readonly tourService = inject(TourService);
+  protected readonly tourService = inject(TourService);
+  protected readonly TourStep = TourStep;
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
@@ -766,9 +794,12 @@ export class UserProfileConfigComponent {
     });
 
     effect(() => {
+      // isFirstSteps() can be true because it's calculated from the profile.
+      // We only show the welcome dialog if we haven't already and the tour isn't active.
       if (
         this.isFirstSteps() &&
         !this.hasOpenedWelcome &&
+        this.tourService.step() === TourStep.OFF &&
         isPlatformBrowser(this.platformId)
       ) {
         this.hasOpenedWelcome = true;

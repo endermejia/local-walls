@@ -35,6 +35,7 @@ import {
   TuiBadgedContent,
   TuiBadgeNotification,
   TuiTabs,
+  TuiPulse,
   type TuiConfirmData,
 } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
@@ -107,6 +108,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     TuiTextfield,
     TuiTitle,
     TuiDropdown,
+    TuiPulse,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -251,9 +253,23 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
               (activeItemIndexChange)="activeTabIndex.set($event)"
               class="mt-6"
               [tuiDropdown]="tourHint"
-              [tuiDropdownOpen]="tourService.step() === TourStep.CRAG"
+              [tuiDropdownOpen]="
+                tourService.step() === TourStep.CRAG ||
+                tourService.step() === TourStep.CRAG_TOPOS ||
+                tourService.step() === TourStep.CRAG_PARKINGS ||
+                tourService.step() === TourStep.CRAG_WEATHER
+              "
               tuiDropdownDirection="top"
             >
+              <tui-pulse
+                *ngIf="
+                  tourService.step() === TourStep.CRAG ||
+                  tourService.step() === TourStep.CRAG_TOPOS ||
+                  tourService.step() === TourStep.CRAG_PARKINGS ||
+                  tourService.step() === TourStep.CRAG_WEATHER
+                "
+                class="absolute -top-1 -right-1"
+              />
               @for (tabIdx of visibleTabs(); track tabIdx) {
                 <button tuiTab>
                   {{
@@ -611,7 +627,18 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
 
     <ng-template #tourHint>
       <div class="flex flex-col gap-2 max-w-xs">
-        <p>{{ 'tour.crag.description' | translate }}</p>
+        <p>
+          {{
+            (tourService.step() === TourStep.CRAG
+              ? 'tour.crag.routesDescription'
+              : tourService.step() === TourStep.CRAG_TOPOS
+                ? 'tour.crag.toposDescription'
+                : tourService.step() === TourStep.CRAG_PARKINGS
+                  ? 'tour.crag.parkingsDescription'
+                  : 'tour.crag.weatherDescription'
+            ) | translate
+          }}
+        </p>
         <button
           tuiButton
           size="s"
@@ -788,6 +815,22 @@ export class CragComponent {
   });
 
   constructor() {
+    effect(() => {
+      const step = this.tourService.step();
+      const tabs = this.visibleTabs();
+      if (!tabs.length) return;
+
+      if (step === TourStep.CRAG) {
+        if (tabs.includes(0)) this.activeTabIndex.set(tabs.indexOf(0));
+      } else if (step === TourStep.CRAG_TOPOS) {
+        if (tabs.includes(1)) this.activeTabIndex.set(tabs.indexOf(1));
+      } else if (step === TourStep.CRAG_PARKINGS) {
+        if (tabs.includes(2)) this.activeTabIndex.set(tabs.indexOf(2));
+      } else if (step === TourStep.CRAG_WEATHER) {
+        if (tabs.includes(3)) this.activeTabIndex.set(tabs.indexOf(3));
+      }
+    });
+
     // Synchronize the selected area /crag in global state from route
     effect(() => {
       const aSlug = this.areaSlug();
