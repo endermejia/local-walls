@@ -25,7 +25,6 @@ import {
   TuiFallbackSrcPipe,
   TuiFlagPipe,
   TuiIcon,
-  TuiLoader,
   TuiNotification,
   TuiScrollbar,
   TuiTextfield,
@@ -116,7 +115,6 @@ interface Country {
     TuiInputDate,
     TuiInputNumber,
     TuiInputYear,
-    TuiLoader,
     TuiNotification,
     TuiScrollbar,
     TuiSegmented,
@@ -243,6 +241,7 @@ interface Country {
           </tui-textfield>
         </div>
         <!-- 8a.nu User -->
+        <!-- Temporarily hidden
         <div class="flex items-center gap-4">
           @if (selectedEightAnuUser.value(); as user) {
             <tui-avatar size="l" [src]="user.avatar" />
@@ -290,6 +289,7 @@ interface Country {
             }
           </tui-textfield>
         </div>
+        -->
         <!-- Country & City -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Country -->
