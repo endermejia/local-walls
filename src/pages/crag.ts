@@ -112,7 +112,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
       >
         @let isAdmin = global.isAdmin();
         @if (cragDetail(); as c) {
-          @let isEquipper = global.isAllowedEquipper(c.area_id);
+          @let isEquipper = global.permissions.areaEquipper()[c.area_id];
 
           <ng-template #cragSwitcher>
             <tui-data-list>
@@ -136,8 +136,8 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
               [titleDropdown]="cragSwitcher"
               (toggleLike)="onToggleLike()"
             >
-              <!-- Admin action buttons -->
-              @if (isAdmin || isEquipper) {
+              <!-- Admin/Creator action buttons -->
+              @if (global.canEditCrag()) {
                 <div actionButtons class="flex gap-2">
                   <button
                     size="s"
@@ -283,20 +283,22 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                       {{ 'labels.routes' | translate | lowercase }}
                     </h2>
                   </div>
-                  @if (isAdmin || isEquipper) {
+                  @if (global.editingMode()) {
                     <div
                       class="flex gap-2 flex-wrap sm:flex-nowrap justify-end"
                     >
-                      <button
-                        tuiButton
-                        appearance="textfield"
-                        size="s"
-                        type="button"
-                        (click.zoneless)="routesService.openUnifyRoutes()"
-                        [iconStart]="'@tui.blend'"
-                      >
-                        {{ 'actions.unify' | translate }}
-                      </button>
+                      @if (isAdmin || isEquipper) {
+                        <button
+                          tuiButton
+                          appearance="textfield"
+                          size="s"
+                          type="button"
+                          (click.zoneless)="routesService.openUnifyRoutes()"
+                          [iconStart]="'@tui.blend'"
+                        >
+                          {{ 'actions.unify' | translate }}
+                        </button>
+                      }
                       <button
                         tuiButton
                         appearance="textfield"
@@ -368,7 +370,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                       }}
                     </h2>
                   </div>
-                  @if (isAdmin || isEquipper) {
+                  @if (global.editingMode()) {
                     <button
                       tuiButton
                       appearance="textfield"
@@ -462,7 +464,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                       {{ 'labels.parkings' | translate }}
                     </h2>
                   </div>
-                  @if (isAdmin || isEquipper) {
+                  @if (global.userProfile()) {
                     <div
                       class="flex gap-2 flex-wrap sm:flex-nowrap justify-end"
                     >

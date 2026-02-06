@@ -81,7 +81,7 @@ import { handleErrorToast } from '../utils';
       <section class="w-full max-w-5xl mx-auto p-4">
         @let isAdmin = global.isAdmin();
         @if (global.selectedArea(); as area) {
-          @let isEquipper = global.isAllowedEquipper(area.id);
+          @let isEquipper = global.permissions.areaEquipper()[area.id];
           <div class="mb-4">
             <app-section-header
               class="w-full"
@@ -89,7 +89,7 @@ import { handleErrorToast } from '../utils';
               [liked]="area.liked"
               (toggleLike)="onToggleLike()"
             >
-              @if (isAdmin) {
+              @if (global.canEditArea()) {
                 <div actionButtons class="flex gap-2">
                   <button
                     size="s"
@@ -102,17 +102,19 @@ import { handleErrorToast } from '../utils';
                   >
                     {{ 'actions.edit' | translate }}
                   </button>
-                  <button
-                    size="s"
-                    appearance="negative"
-                    iconStart="@tui.trash"
-                    tuiIconButton
-                    type="button"
-                    class="!rounded-full"
-                    (click.zoneless)="deleteArea()"
-                  >
-                    {{ 'actions.delete' | translate }}
-                  </button>
+                  @if (isAdmin) {
+                    <button
+                      size="s"
+                      appearance="negative"
+                      iconStart="@tui.trash"
+                      tuiIconButton
+                      type="button"
+                      class="!rounded-full"
+                      (click.zoneless)="deleteArea()"
+                    >
+                      {{ 'actions.delete' | translate }}
+                    </button>
+                  }
                 </div>
               }
             </app-section-header>
@@ -150,8 +152,8 @@ import { handleErrorToast } from '../utils';
                 }}
               </h2>
             </div>
-            @if (isAdmin || isEquipper) {
-              <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
+            <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
+              @if (isAdmin || isEquipper) {
                 <button
                   tuiButton
                   appearance="textfield"
@@ -162,6 +164,8 @@ import { handleErrorToast } from '../utils';
                 >
                   {{ 'actions.unify' | translate }}
                 </button>
+              }
+              @if (global.editingMode()) {
                 <button
                   tuiButton
                   appearance="textfield"
@@ -172,8 +176,8 @@ import { handleErrorToast } from '../utils';
                 >
                   {{ 'actions.new' | translate }}
                 </button>
-              </div>
-            }
+              }
+            </div>
           </div>
 
           <div class="sticky top-0 z-10 py-4 flex items-end gap-2">

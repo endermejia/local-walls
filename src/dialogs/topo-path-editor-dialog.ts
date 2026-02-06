@@ -4,7 +4,6 @@ import {
   Component,
   computed,
   ElementRef,
-  Inject,
   inject,
   signal,
   ViewChild,
@@ -16,7 +15,7 @@ import {
   TuiLoader,
   TuiScrollbar,
 } from '@taiga-ui/core';
-import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
+import { injectContext } from '@taiga-ui/polymorpheus';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TopoDetail, TopoRouteWithRoute } from '../models';
 import { AvatarGradeComponent } from '../components/avatar-grade';
@@ -85,6 +84,7 @@ export interface TopoPathEditorConfig {
                     [class.bg-primary]="selectedRoute()?.route_id === tr.route_id"
                     [class.text-white]="selectedRoute()?.route_id === tr.route_id"
                     [class.hover:bg-white/10]="selectedRoute()?.route_id !== tr.route_id"
+                    [attr.aria-label]="tr.route.name"
                     (click)="selectRoute(tr)"
                   >
                     <div
@@ -175,8 +175,8 @@ export interface TopoPathEditorConfig {
                   @for (pt of entry.value.points; track $index) {
                     <g
                       class="cursor-move group"
-                      (mousedown)="startDragging($event, +entry.key, $index)"
-                      (contextmenu)="removePoint($event, +entry.key, $index)"
+                      (mousedown)="startDragging($event, entry.key, $index)"
+                      (contextmenu)="removePoint($event, entry.key, $index)"
                     >
                       <circle
                         [attr.cx]="pt.x * width()"
@@ -317,7 +317,7 @@ export class TopoPathEditorDialogComponent {
     });
   }
 
-  startDragging(event: MouseEvent, routeId: any, index: number): void {
+  startDragging(event: MouseEvent, routeId: number, index: number): void {
     event.stopPropagation();
     event.preventDefault();
     this.draggingPoint = { routeId: +routeId, index };
@@ -345,13 +345,13 @@ export class TopoPathEditorDialogComponent {
     window.addEventListener('mouseup', onMouseUp);
   }
 
-  removePoint(event: MouseEvent, routeId: any, index: number): void {
+  removePoint(event: MouseEvent, routeId: number, index: number): void {
     event.preventDefault();
     event.stopPropagation();
-    const pathData = this.pathsMap.get(+routeId);
+    const pathData = this.pathsMap.get(routeId);
     if (pathData) {
       pathData.points.splice(index, 1);
-      this.pathsMap.set(+routeId, { ...pathData });
+      this.pathsMap.set(routeId, { ...pathData });
     }
   }
 
@@ -375,9 +375,4 @@ export class TopoPathEditorDialogComponent {
       this.loading.set(false);
     }
   }
-}
-
-// Helper to inject context in standalone components
-function injectContext<T>() {
-  return inject(POLYMORPHEUS_CONTEXT) as T;
 }

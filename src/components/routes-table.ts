@@ -150,8 +150,7 @@ export interface RoutesTableRow {
             </thead>
             @let sortedData = data | tuiTableSort;
             @for (item of sortedData; track item.key) {
-              @let isAllowedEquipper =
-                global.isAllowedEquipper(item._ref.area_id);
+              @let canEditRoute = global.permissions.routeEdit()[item._ref.id];
               <tbody tuiTbody>
                 <tr
                   tuiTr
@@ -325,7 +324,7 @@ export interface RoutesTableRow {
                         }
                         @case ('admin_actions') {
                           <div tuiCell size="m">
-                            @if (isAllowedEquipper) {
+                            @if (canEditRoute) {
                               <button
                                 size="s"
                                 appearance="neutral"
@@ -460,10 +459,7 @@ export interface RoutesTableRow {
                               </button>
                             }
 
-                            @if (
-                              (isAdmin || isAllowedEquipper) &&
-                              showAdminActions()
-                            ) {
+                            @if (canEditRoute && showAdminActions()) {
                               <button
                                 size="s"
                                 appearance="neutral"
@@ -586,10 +582,7 @@ export class RoutesTableComponent {
     }
 
     const cols = ['grade', 'route', 'height', 'rating', 'ascents', 'actions'];
-    if (
-      (this.global.isAdmin() || this.global.isEquipper()) &&
-      this.showAdminActions()
-    ) {
+    if (this.global.editingMode() && this.showAdminActions()) {
       cols.push('admin_actions');
     }
     return cols;

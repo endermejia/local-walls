@@ -26,8 +26,8 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Next Steps
 
-- **Todo el mundo debe poder crear areas, crags y routes**
-- **Los equipadores deben poder crear topos con las lineas traqueadas para poder clickar en la tabla y que se marque la via en la imagen**
+- **El admin debe poder hacer Sync del area con 8a.nu, actualizando los crags y routes**
+- **Tanto sync como import deben traer tambien los datos de boulders y no solo sportclimbing**
 
 ## Future Features
 

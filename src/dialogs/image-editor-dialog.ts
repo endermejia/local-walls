@@ -33,6 +33,8 @@ import {
   VERTICAL_LIFE_TO_LABEL,
   GradeLabel,
   colorForGrade,
+  ImageEditorResult,
+  TopoRouteWithRoute,
 } from '../models';
 import { AvatarGradeComponent } from '../components/avatar-grade';
 import { TuiScrollbar } from '@taiga-ui/core';
@@ -56,12 +58,7 @@ export interface ImageEditorConfig {
   resizeToWidth?: number;
   // Topo drawing specific
   allowDrawing?: boolean;
-  topoRoutes?: {
-    route_id: number;
-    number: number;
-    route: { name: string; grade: number };
-    path?: { points: { x: number; y: number }[]; color?: string } | null;
-  }[];
+  topoRoutes?: TopoRouteWithRoute[];
   initialMode?: 'transform' | 'draw';
 }
 
@@ -166,6 +163,7 @@ export interface ImageEditorConfig {
                 [src]="croppedImage"
                 class="max-w-full max-h-[70dvh] block pointer-events-none"
                 (load)="onDrawImageLoad()"
+                alt="Source for annotation"
               />
 
               <!-- SVG Overlay -->
@@ -244,6 +242,8 @@ export interface ImageEditorConfig {
           <div
             class="md:hidden fixed inset-0 z-30 bg-[var(--tui-background-backdrop)]"
             (click)="sidebarOpen.set(false)"
+            (keydown.escape)="sidebarOpen.set(false)"
+            role="presentation"
           ></div>
         }
 
@@ -323,10 +323,10 @@ export interface ImageEditorConfig {
             >
               <div class="flex flex-wrap gap-2 justify-center">
                 @for (c of palette; track c) {
+                  @let selected = selectedRoute();
                   @let isSelectedColor =
                     (selectedColor() ||
-                      (selectedRoute() &&
-                        getRouteColor(selectedRoute().route_id))) === c;
+                      (selected && getRouteColor(selected.route_id))) === c;
                   <button
                     class="w-8 h-8 border-2"
                     style="border-radius: 50%"
@@ -335,6 +335,7 @@ export interface ImageEditorConfig {
                       isSelectedColor ? 'var(--tui-primary)' : 'transparent'
                     "
                     (click)="setPathColor(c)"
+                    [attr.aria-label]="'imageEditor.setColor' | translate"
                   ></button>
                 }
               </div>
@@ -534,7 +535,7 @@ export class ImageEditorDialogComponent {
 
   allowDrawing = false;
   topoRoutes: ImageEditorConfig['topoRoutes'] = [];
-  selectedRoute = signal<any>(null);
+  selectedRoute = signal<TopoRouteWithRoute | null>(null);
   selectedColor = signal<string | null>(null);
   pathsMap = new Map<
     number,
@@ -572,7 +573,10 @@ export class ImageEditorDialogComponent {
 
   constructor(
     @Inject(POLYMORPHEUS_CONTEXT)
-    private readonly context: TuiDialogContext<any, ImageEditorConfig>,
+    private readonly context: TuiDialogContext<
+      ImageEditorResult | File | null,
+      ImageEditorConfig
+    >,
     @Inject(PLATFORM_ID) private readonly platformId: object,
     private readonly cdr: ChangeDetectorRef,
   ) {
@@ -667,7 +671,7 @@ export class ImageEditorDialogComponent {
     this.drawHeight.set(img.clientHeight);
   }
 
-  selectRoute(tr: any): void {
+  selectRoute(tr: TopoRouteWithRoute): void {
     this.selectedRoute.set(tr);
     const existing = this.pathsMap.get(tr.route_id);
     if (existing?.color) {
@@ -831,13 +835,20 @@ export class ImageEditorDialogComponent {
         this.cdr.markForCheck();
       }
       this.draggingPoint = null;
-      window.removeEventListener('touchmove', onTouchMove as any);
+      window.removeEventListener(
+        'touchmove',
+        onTouchMove as EventListenerOrEventListenerObject,
+      );
       window.removeEventListener('touchend', onTouchEnd);
     };
 
-    window.addEventListener('touchmove', onTouchMove as any, {
-      passive: false,
-    });
+    window.addEventListener(
+      'touchmove',
+      onTouchMove as EventListenerOrEventListenerObject,
+      {
+        passive: false,
+      },
+    );
     window.addEventListener('touchend', onTouchEnd);
   }
 
@@ -985,7 +996,7 @@ export class ImageEditorDialogComponent {
         );
         this.context.completeWith({ file, paths });
       } else {
-        this.context.completeWith(file);
+        this.context.completeWith(file || null);
       }
     } catch (error) {
       console.error('[ImageEditor] Error saving image', error);

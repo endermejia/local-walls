@@ -11,8 +11,10 @@ import type {
   TopoDetail,
   TopoDto,
   TopoInsertDto,
+  TopoPath,
   TopoRouteInsertDto,
   TopoUpdateDto,
+  Json,
 } from '../models';
 import {
   TopoPathEditorConfig,
@@ -269,13 +271,13 @@ export class ToposService {
   async updateRoutePath(
     topoId: number,
     routeId: number,
-    path: { points: { x: number; y: number }[]; color?: string },
+    path: TopoPath,
   ): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     await this.supabase.whenReady();
     const { error } = await this.supabase.client
       .from('topo_routes')
-      .update({ path } as any)
+      .update({ path: path as unknown as Json })
       .match({ topo_id: topoId, route_id: routeId });
 
     if (error) {

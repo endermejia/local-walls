@@ -107,7 +107,6 @@ export interface TopoRouteRow {
         @let isAdmin = global.isAdmin();
         @let isMobile = global.isMobile();
         @if (topo(); as t) {
-          @let isEquipper = global.isAllowedEquipper(crag()?.area_id);
           <div class="mb-4">
             <app-section-header
               [title]="t.name"
@@ -139,7 +138,7 @@ export interface TopoRouteRow {
 
               <!-- Admin and utility action buttons -->
               <div actionButtons class="flex gap-2">
-                @if (isAdmin || isEquipper) {
+                @if (global.canEditCrag()) {
                   <button
                     tuiIconButton
                     size="s"
@@ -365,6 +364,8 @@ export interface TopoRouteRow {
                   <div
                     class="absolute top-4 left-1/2 -translate-x-1/2 bg-[var(--tui-background-base)] border border-[var(--tui-border-normal)] rounded-2xl shadow-2xl p-4 min-w-64 z-10"
                     (click)="$event.stopPropagation()"
+                    (keydown.enter)="$event.stopPropagation()"
+                    tabindex="-1"
                   >
                     <div class="flex items-center gap-3">
                       <span class="text-2xl font-bold opacity-60">
@@ -493,7 +494,7 @@ export interface TopoRouteRow {
                             @switch (col) {
                               @case ('index') {
                                 <div tuiCell size="m" class="justify-center">
-                                  @if (isAdmin || isEquipper) {
+                                  @if (global.canEditCrag()) {
                                     <tui-textfield
                                       tuiTextfieldSize="s"
                                       [class.!w-16]="!isMobile"
@@ -605,19 +606,21 @@ export interface TopoRouteRow {
                               }
                               @case ('admin_actions') {
                                 <div tuiCell size="m" class="justify-center">
-                                  <button
-                                    tuiIconButton
-                                    size="s"
-                                    appearance="negative"
-                                    iconStart="@tui.unlink"
-                                    class="!rounded-full"
-                                    (click.zoneless)="
-                                      deleteTopoRoute(item._ref);
-                                      $event.stopPropagation()
-                                    "
-                                  >
-                                    {{ 'actions.unlink' | translate }}
-                                  </button>
+                                  @if (global.canEditCrag()) {
+                                    <button
+                                      tuiIconButton
+                                      size="s"
+                                      appearance="negative"
+                                      iconStart="@tui.unlink"
+                                      class="!rounded-full"
+                                      (click.zoneless)="
+                                        deleteTopoRoute(item._ref);
+                                        $event.stopPropagation()
+                                      "
+                                    >
+                                      {{ 'actions.unlink' | translate }}
+                                    </button>
+                                  }
                                 </div>
                               }
                             }

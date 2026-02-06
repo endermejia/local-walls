@@ -57,6 +57,7 @@ import {
   TopoUpdateDto,
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
+  ImageEditorResult,
 } from '../models';
 
 import {
@@ -648,12 +649,14 @@ export class TopoFormComponent {
           (tr) => tr.route_id === r.id,
         );
         return {
+          topo_id: this.effectiveTopoData()?.id || 0,
           route_id: r.id,
           number: (existing?.number || i) + 1,
-          route: { name: r.name, grade: r.grade },
+          route: { ...r, own_ascent: null, project: false },
           path:
             this.pendingPaths().find((p) => p.routeId === r.id)?.path ||
-            existing?.path,
+            existing?.path ||
+            null,
         };
       }),
       initialMode: imageUrl ? ('draw' as const) : undefined,
@@ -665,7 +668,7 @@ export class TopoFormComponent {
     }
 
     const result = await firstValueFrom(
-      this.dialogs.open<any>(
+      this.dialogs.open<ImageEditorResult | File | null>(
         new PolymorpheusComponent(ImageEditorDialogComponent),
         {
           data,
@@ -680,21 +683,26 @@ export class TopoFormComponent {
     this.isProcessingPhoto.set(false);
 
     if (result) {
-      if ('file' in result) {
-        this.photoControl.setValue(result.file, { emitEvent: false });
-        if (result.paths) {
+      const isEditorResult = typeof result === 'object' && 'file' in result;
+      const file = isEditorResult
+        ? result.file
+        : result instanceof File
+          ? result
+          : null;
+
+      if (file) {
+        this.photoControl.setValue(file, { emitEvent: false });
+        if (isEditorResult && result.paths) {
           this.pendingPaths.set(result.paths);
         }
-      } else {
-        // Fallback for simple File result
-        this.photoControl.setValue(result, { emitEvent: false });
+
+        // Manually trigger preview update
+        const reader = new FileReader();
+        reader.onload = () => {
+          this.previewUrl.set(reader.result as string);
+        };
+        reader.readAsDataURL(file);
       }
-      // Manually trigger preview update
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.previewUrl.set(reader.result as string);
-      };
-      reader.readAsDataURL(result.file || result);
     } else {
       // User cancelled, clear the photo
       this.photoControl.setValue(null);
@@ -726,7 +734,7 @@ export class TopoFormComponent {
         this.global.topoDetailResource.reload();
       } catch (e) {
         console.error('[TopoFormComponent] Error deleting photo', e);
-        handleErrorToast(e as any, this.toast);
+        handleErrorToast(e as Error, this.toast);
       }
     }
   }

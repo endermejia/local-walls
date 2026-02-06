@@ -1,4 +1,4 @@
-import type { Database } from '../models';
+import type { Database } from './supabase-generated';
 
 type Tables = Database['public']['Tables'];
 export type DatabaseTable = keyof Tables;
