@@ -1,6 +1,12 @@
 import { Routes } from '@angular/router';
 
-import { adminGuard, authGuard, equipperGuard, sessionGuard } from '../services';
+import {
+  adminGuard,
+  authGuard,
+  equipperGuard,
+  rootRedirectGuard,
+  sessionGuard,
+} from '../services';
 
 export const routes: Routes = [
   {
@@ -101,18 +107,17 @@ export const routes: Routes = [
         (m) => m.AdminParkingsListComponent,
       ),
   },
+  // Public landing page
+  {
+    path: 'info',
+    loadComponent: () =>
+      import('../pages/landing').then((m) => m.LandingComponent),
+  },
   // SSR fallback routes
   {
     path: '',
-    canMatch: [sessionGuard],
-    redirectTo: 'home',
-    pathMatch: 'full',
-  },
-  {
-    path: '',
-    loadComponent: () =>
-      import('../pages/landing').then((m) => m.LandingComponent),
-    pathMatch: 'full',
+    canActivate: [rootRedirectGuard],
+    children: [],
   },
   {
     path: 'page-not-found',

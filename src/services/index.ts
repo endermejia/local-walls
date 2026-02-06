@@ -17,6 +17,7 @@ export * from './local-storage';
 export * from './map.service';
 export * from './notification.service';
 export * from './parkings.service';
+export * from './root-redirect.guard';
 export * from './routes.service';
 export * from './scroll.service';
 export * from './search.service';

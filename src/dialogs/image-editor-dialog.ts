@@ -283,7 +283,7 @@ export interface ImageEditorConfig {
         <!-- Sidebar (only in Drawing mode) -->
         @if (mode() === 'draw') {
           <div
-            class="w-72 shrink-0 border-l flex flex-col overflow-hidden transition-all duration-300 md:relative absolute top-0 bottom-0 right-0 z-40 border-[var(--tui-border-normal)] bg-[var(--tui-background-base)]"
+            class="w-72 shrink-0 border-l flex flex-col overflow-hidden transition-all duration-300 md:relative absolute top-0 bottom-0 right-0 z-100 border-[var(--tui-border-normal)] bg-[var(--tui-background-base)]"
             [class.translate-x-full]="!sidebarOpen()"
             [class.md:translate-x-0]="true"
             [class.shadow-2xl]="sidebarOpen()"
