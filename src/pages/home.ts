@@ -44,7 +44,7 @@ import {
 } from '../services';
 
 import { AscentsFeedComponent } from '../components/ascents-feed';
-import { TuiButton, TuiHint } from '@taiga-ui/core';
+import { TuiButton, TuiDropdown } from '@taiga-ui/core';
 
 @Component({
   selector: 'app-home',
@@ -59,7 +59,7 @@ import { TuiButton, TuiHint } from '@taiga-ui/core';
     TuiLoader,
     TuiScrollbar,
     TuiSegmented,
-    TuiHint,
+    TuiDropdown,
     TuiButton,
   ],
   template: `
@@ -67,9 +67,9 @@ import { TuiButton, TuiHint } from '@taiga-ui/core';
       <div class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32 pt-4">
         <div
           class="px-4 flex flex-col gap-4"
-          [tuiHint]="tourHint"
-          [tuiHintOpened]="tourService.step() === TourStep.HOME"
-          tuiHintDirection="bottom-left"
+          [tuiDropdown]="tourHint"
+          [tuiDropdownOpen]="tourService.step() === TourStep.HOME"
+          tuiDropdownDirection="bottom-left"
         >
           <!-- Active Crags -->
           @if (activeCrags(); as crags) {

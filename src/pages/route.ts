@@ -18,7 +18,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { TuiButton, TuiIcon, TuiLoader, TuiHint } from '@taiga-ui/core';
+import { TuiButton, TuiIcon, TuiLoader, TuiDropdown } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
@@ -69,7 +69,7 @@ import { handleErrorToast } from '../utils';
     TuiIcon,
     ChartAscentsByGradeComponent,
     LowerCasePipe,
-    TuiHint,
+    TuiDropdown,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -77,9 +77,9 @@ import { handleErrorToast } from '../utils';
       @if (route(); as r) {
         <div
           class="mb-4 flex items-center justify-between gap-2"
-          [tuiHint]="tourHint"
-          [tuiHintOpened]="tourService.step() === TourStep.ROUTE"
-          tuiHintDirection="bottom-left"
+          [tuiDropdown]="tourHint"
+          [tuiDropdownOpen]="tourService.step() === TourStep.ROUTE"
+          tuiDropdownDirection="bottom-left"
         >
           <app-section-header
             class="w-full"

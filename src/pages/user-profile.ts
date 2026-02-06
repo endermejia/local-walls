@@ -27,7 +27,6 @@ import {
   TuiScrollbar,
   TuiTextfield,
   TuiTitle,
-  TuiHint,
 } from '@taiga-ui/core';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
 import {
@@ -103,7 +102,6 @@ import {
     TuiTabs,
     TuiTextfield,
     TuiTitle,
-    TuiHint,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -115,9 +113,9 @@ import {
         @let loading = !profile();
         <div
           class="flex items-center gap-4"
-          [tuiHint]="tourHint"
-          [tuiHintOpened]="tourService.step() === TourStep.PROFILE"
-          tuiHintDirection="bottom-left"
+          [tuiDropdown]="tourHint"
+          [tuiDropdownOpen]="tourService.step() === TourStep.PROFILE"
+          tuiDropdownDirection="bottom-left"
         >
           @let avatar = profileAvatarSrc();
           <tui-avatar

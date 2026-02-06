@@ -26,7 +26,7 @@ import {
   TuiScrollbar,
   TuiTextfield,
   TuiTitle,
-  TuiHint,
+  TuiDropdown,
 } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
@@ -106,7 +106,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     TuiTabs,
     TuiTextfield,
     TuiTitle,
-    TuiHint,
+    TuiDropdown,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -250,9 +250,9 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
               [activeItemIndex]="activeTabIndex()"
               (activeItemIndexChange)="activeTabIndex.set($event)"
               class="mt-6"
-              [tuiHint]="tourHint"
-              [tuiHintOpened]="tourService.step() === TourStep.CRAG"
-              tuiHintDirection="top-left"
+              [tuiDropdown]="tourHint"
+              [tuiDropdownOpen]="tourService.step() === TourStep.CRAG"
+              tuiDropdownDirection="top-left"
             >
               @for (tabIdx of visibleTabs(); track tabIdx) {
                 <button tuiTab>

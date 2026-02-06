@@ -42,7 +42,7 @@ import {
 
 import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
 import { EmptyStateComponent } from '../components/empty-state';
-import { TuiHint } from '@taiga-ui/core';
+import { TuiDropdown } from '@taiga-ui/core';
 
 @Component({
   selector: 'app-area-list',
@@ -61,16 +61,16 @@ import { TuiHint } from '@taiga-ui/core';
     TuiScrollbar,
     TuiTextfield,
     TuiTitle,
-    TuiHint,
+    TuiDropdown,
   ],
   template: `
     <tui-scrollbar class="flex grow">
       <section class="w-full max-w-5xl mx-auto p-4">
         <header
           class="flex items-center justify-between gap-2"
-          [tuiHint]="tourHint"
-          [tuiHintOpened]="tourService.step() === TourStep.AREAS"
-          tuiHintDirection="bottom-left"
+          [tuiDropdown]="tourHint"
+          [tuiDropdownOpen]="tourService.step() === TourStep.AREAS"
+          tuiDropdownDirection="bottom-left"
         >
           @let areasCount = filtered().length;
           <h1 class="text-2xl font-bold w-full sm:w-auto">

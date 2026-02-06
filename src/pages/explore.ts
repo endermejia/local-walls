@@ -58,7 +58,7 @@ import {
 
 import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
 import { MapComponent } from '../components/map';
-import { TuiHint } from '@taiga-ui/core';
+import { TuiDropdown } from '@taiga-ui/core';
 
 import { mapLocationUrl, remToPx } from '../utils';
 
@@ -84,15 +84,15 @@ import { mapLocationUrl, remToPx } from '../utils';
     TuiLoader,
     TuiScrollbar,
     TuiTitle,
-    TuiHint,
+    TuiDropdown,
   ],
   template: ` @let isMobile = global.isMobile();
     <div class="h-full w-full flex min-h-0">
       <div
         class="relative h-full grow flex flex-col min-w-0 transition-[width] duration-300"
-        [tuiHint]="tourHint"
-        [tuiHintOpened]="tourService.step() === TourStep.EXPLORE"
-        tuiHintDirection="bottom-right"
+        [tuiDropdown]="tourHint"
+        [tuiDropdownOpen]="tourService.step() === TourStep.EXPLORE"
+        tuiDropdownDirection="bottom-right"
       >
         <div class="absolute right-4 top-4 flex flex-col gap-2">
           <div class="z-10">

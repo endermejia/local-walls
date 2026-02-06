@@ -766,7 +766,7 @@ export class UserProfileConfigComponent {
             .open(new PolymorpheusComponent(FirstStepsDialogComponent), {
               size: 'm',
               dismissible: false,
-              closeable: false,
+              closable: false,
             })
             .subscribe();
         }, 500);
