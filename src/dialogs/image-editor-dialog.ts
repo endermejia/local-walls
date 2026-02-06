@@ -125,8 +125,11 @@ export interface ImageEditorConfig {
         >
           <!-- CROPPER MODE -->
           <div
-            class="w-full h-full flex items-center justify-center"
-            [class.hidden]="mode() !== 'transform'"
+            class="w-full h-full flex items-center justify-center transition-opacity duration-300"
+            [style.visibility]="mode() === 'transform' ? 'visible' : 'hidden'"
+            [style.position]="mode() === 'transform' ? 'relative' : 'absolute'"
+            [style.opacity]="mode() === 'transform' ? '1' : '0'"
+            [style.pointer-events]="mode() === 'transform' ? 'all' : 'none'"
           >
             <image-cropper
               class="max-h-full max-w-full"
@@ -176,20 +179,35 @@ export interface ImageEditorConfig {
                   @if (entry) {
                     @let isSelected = selectedRoute()?.route_id === tr.route_id;
                     @let rColor = getRouteColor(tr.route_id);
-                    <polyline
-                      [attr.points]="getPointsString(entry.points)"
-                      fill="none"
-                      [attr.stroke]="
-                        isSelected
-                          ? selectedColor() || entry.color || rColor
-                          : 'white'
-                      "
-                      [attr.stroke-width]="isSelected ? 4 : 2"
-                      [attr.stroke-dasharray]="isSelected ? 'none' : '4 4'"
-                      stroke-linejoin="round"
-                      stroke-linecap="round"
-                      class="pointer-events-none transition-all duration-300"
-                    />
+                    <g
+                      class="pointer-events-auto cursor-pointer"
+                      (click)="selectRoute(tr); $event.stopPropagation()"
+                      (touchstart)="selectRoute(tr); $event.stopPropagation()"
+                    >
+                      <!-- Thicker transparent path for much easier hit detection -->
+                      <polyline
+                        [attr.points]="getPointsString(entry.points)"
+                        fill="none"
+                        stroke="transparent"
+                        [attr.stroke-width]="isSelected ? 80 : 50"
+                        stroke-linejoin="round"
+                        stroke-linecap="round"
+                      />
+                      <polyline
+                        [attr.points]="getPointsString(entry.points)"
+                        fill="none"
+                        [attr.stroke]="
+                          isSelected
+                            ? selectedColor() || entry.color || rColor
+                            : 'white'
+                        "
+                        [attr.stroke-width]="isSelected ? 4 : 2"
+                        [attr.stroke-dasharray]="isSelected ? 'none' : '4 4'"
+                        stroke-linejoin="round"
+                        stroke-linecap="round"
+                        class="transition-all duration-300"
+                      />
+                    </g>
 
                     @if (isSelected) {
                       @for (pt of entry.points; track $index) {
@@ -795,10 +813,34 @@ export class ImageEditorDialogComponent {
     let rafId: number | null = null;
     let pendingUpdate = false;
 
+    const LONG_PRESS_DELAY = 600;
+    const MOVE_THRESHOLD = 10;
+    const startX = event.touches[0].clientX;
+    const startY = event.touches[0].clientY;
+    let isLongPress = false;
+
+    const longPressTimeout = setTimeout(() => {
+      isLongPress = true;
+      this.removePoint(event, routeId, index);
+      onTouchEnd();
+    }, LONG_PRESS_DELAY);
+
     const onTouchMove = (e: TouchEvent) => {
       if (!this.draggingPoint || e.touches.length === 0) return;
-      e.preventDefault();
+
       const touch = e.touches[0];
+      const dist = Math.sqrt(
+        Math.pow(touch.clientX - startX, 2) +
+          Math.pow(touch.clientY - startY, 2),
+      );
+
+      if (dist > MOVE_THRESHOLD) {
+        clearTimeout(longPressTimeout);
+      }
+
+      if (isLongPress) return;
+
+      e.preventDefault();
       const rect =
         this.drawContainerElement.nativeElement.getBoundingClientRect();
       const x = Math.max(
@@ -825,12 +867,13 @@ export class ImageEditorDialogComponent {
     };
 
     const onTouchEnd = () => {
+      clearTimeout(longPressTimeout);
       // Cancel any pending animation frame
       if (rafId !== null) {
         cancelAnimationFrame(rafId);
       }
       // Trigger change detection only once when dragging ends
-      if (pathData) {
+      if (pathData && !isLongPress) {
         this.pathsMap.set(routeId, { ...pathData });
         this.cdr.markForCheck();
       }
@@ -852,8 +895,10 @@ export class ImageEditorDialogComponent {
     window.addEventListener('touchend', onTouchEnd);
   }
 
-  removePoint(event: MouseEvent, routeId: number, index: number): void {
-    event.preventDefault();
+  removePoint(event: Event, routeId: number, index: number): void {
+    if (event instanceof MouseEvent || event.cancelable) {
+      event.preventDefault();
+    }
     event.stopPropagation();
     const pathData = this.pathsMap.get(routeId);
     if (pathData) {

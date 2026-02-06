@@ -256,6 +256,7 @@ export interface TopoRouteRow {
                 class="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden touch-none backdrop-blur-xl"
                 tabindex="0"
                 (keydown.enter)="toggleFullscreen(false)"
+                (click)="toggleFullscreen(false)"
                 (wheel.zoneless)="onWheel($any($event))"
                 (touchstart.zoneless)="onTouchStart($any($event))"
                 (touchmove.zoneless)="onTouchMove($any($event))"
@@ -276,6 +277,9 @@ export interface TopoRouteRow {
 
                 <div
                   class="relative transition-transform duration-75 ease-out"
+                  (click)="$event.stopPropagation()"
+                  (keydown.enter)="$event.stopPropagation()"
+                  tabindex="-1"
                   [style.transform]="
                     'translate(' +
                     zoomPosition().x +
@@ -305,9 +309,23 @@ export interface TopoRouteRow {
                             (click)="
                               onPathClick($event, tr); $event.stopPropagation()
                             "
+                            (touchstart)="
+                              onPathClick($event, tr); $event.stopPropagation()
+                            "
                             (mouseenter)="hoveredRouteId.set(tr.route_id)"
                             (mouseleave)="hoveredRouteId.set(null)"
                           >
+                            <!-- Thicker transparent path for much easier hit detection -->
+                            <polyline
+                              [attr.points]="getPointsString(tr.path)"
+                              fill="none"
+                              stroke="transparent"
+                              [attr.stroke-width]="
+                                selectedRouteId() === tr.route_id ? 0.1 : 0.05
+                              "
+                              stroke-linejoin="round"
+                              stroke-linecap="round"
+                            />
                             <polyline
                               [attr.points]="getPointsString(tr.path)"
                               fill="none"
@@ -427,7 +445,6 @@ export interface TopoRouteRow {
                             (!isMobile && col === 'index') ||
                             (isMobile && col === 'grade')
                           "
-                          [class.!w-20]="!isMobile && col === 'grade'"
                           [class.!w-20]="!isMobile && col === 'grade'"
                           [class.!w-24]="
                             (isMobile &&

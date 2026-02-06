@@ -155,20 +155,35 @@ export interface TopoPathEditorConfig {
               <!-- Draw all paths -->
               @for (entry of pathsMap | keyvalue; track entry.key) {
                 @let isSelected = selectedRoute()?.route_id === +entry.key;
-                <polyline
-                  [attr.points]="getPointsString(entry.value)"
-                  fill="none"
-                  [attr.stroke]="
-                    isSelected
-                      ? entry.value.color || 'var(--tui-primary)'
-                      : 'rgba(255,255,255,0.4)'
-                  "
-                  [attr.stroke-width]="isSelected ? 4 : 2"
-                  [attr.stroke-dasharray]="isSelected ? 'none' : '4 4'"
-                  stroke-linejoin="round"
-                  stroke-linecap="round"
-                  class="pointer-events-none transition-all duration-300"
-                />
+                <g
+                  class="pointer-events-auto cursor-pointer"
+                  (click)="selectRoute(entry.value._ref || { route_id: +entry.key }); $event.stopPropagation()"
+                  (touchstart)="selectRoute(entry.value._ref || { route_id: +entry.key }); $event.stopPropagation()"
+                >
+                  <!-- Thicker transparent path for much easier hit detection -->
+                  <polyline
+                    [attr.points]="getPointsString(entry.value)"
+                    fill="none"
+                    stroke="transparent"
+                    [attr.stroke-width]="isSelected ? 0.08 : 0.04"
+                    stroke-linejoin="round"
+                    stroke-linecap="round"
+                  />
+                  <polyline
+                    [attr.points]="getPointsString(entry.value)"
+                    fill="none"
+                    [attr.stroke]="
+                      isSelected
+                        ? entry.value.color || 'var(--tui-primary)'
+                        : 'rgba(255,255,255,0.4)'
+                    "
+                    [attr.stroke-width]="isSelected ? 4 : 2"
+                    [attr.stroke-dasharray]="isSelected ? 'none' : '4 4'"
+                    stroke-linejoin="round"
+                    stroke-linecap="round"
+                    class="transition-all duration-300"
+                  />
+                </g>
 
                 <!-- Control Points -->
                 @if (isSelected) {
@@ -176,6 +191,7 @@ export interface TopoPathEditorConfig {
                     <g
                       class="cursor-move group"
                       (mousedown)="startDragging($event, entry.key, $index)"
+                      (touchstart)="startDraggingTouch($event, entry.key, $index)"
                       (contextmenu)="removePoint($event, entry.key, $index)"
                     >
                       <circle
@@ -250,7 +266,11 @@ export class TopoPathEditorDialogComponent {
   selectedRoute = signal<TopoRouteWithRoute | null>(null);
   pathsMap = new Map<
     number,
-    { points: { x: number; y: number }[]; color?: string }
+    {
+      points: { x: number; y: number }[];
+      color?: string;
+      _ref: TopoRouteWithRoute;
+    }
   >();
 
   width = signal(0);
@@ -266,6 +286,7 @@ export class TopoPathEditorDialogComponent {
         this.pathsMap.set(tr.route_id, {
           points: [...tr.path.points],
           color: tr.path.color,
+          _ref: tr,
         });
       }
     });
@@ -310,7 +331,10 @@ export class TopoPathEditorDialogComponent {
     const x = (event.clientX - rect.left) / rect.width;
     const y = (event.clientY - rect.top) / rect.height;
 
-    const current = this.pathsMap.get(route.route_id) || { points: [] };
+    const current = this.pathsMap.get(route.route_id) || {
+      points: [],
+      _ref: route,
+    };
     this.pathsMap.set(route.route_id, {
       ...current,
       points: [...current.points, { x, y }],
@@ -341,12 +365,81 @@ export class TopoPathEditorDialogComponent {
       window.removeEventListener('mouseup', onMouseUp);
     };
 
-    window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
   }
 
-  removePoint(event: MouseEvent, routeId: number, index: number): void {
+  startDraggingTouch(event: TouchEvent, routeId: number, index: number): void {
+    event.stopPropagation();
     event.preventDefault();
+    this.draggingPoint = { routeId: +routeId, index };
+
+    const LONG_PRESS_DELAY = 600;
+    const MOVE_THRESHOLD = 10;
+    const startX = event.touches[0].clientX;
+    const startY = event.touches[0].clientY;
+    let isLongPress = false;
+
+    const longPressTimeout = setTimeout(() => {
+      isLongPress = true;
+      this.removePoint(event, routeId, index);
+      onTouchEnd();
+    }, LONG_PRESS_DELAY);
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!this.draggingPoint || e.touches.length === 0) return;
+
+      const touch = e.touches[0];
+      const dist = Math.sqrt(
+        Math.pow(touch.clientX - startX, 2) +
+          Math.pow(touch.clientY - startY, 2),
+      );
+
+      if (dist > MOVE_THRESHOLD) {
+        clearTimeout(longPressTimeout);
+      }
+
+      if (isLongPress) return;
+
+      e.preventDefault();
+      const rect = this.containerElement.nativeElement.getBoundingClientRect();
+      const x = Math.max(
+        0,
+        Math.min(1, (touch.clientX - rect.left) / rect.width),
+      );
+      const y = Math.max(
+        0,
+        Math.min(1, (touch.clientY - rect.top) / rect.height),
+      );
+
+      const pathData = this.pathsMap.get(this.draggingPoint.routeId);
+      if (pathData) {
+        pathData.points[this.draggingPoint.index] = { x, y };
+        this.pathsMap.set(this.draggingPoint.routeId, { ...pathData });
+      }
+    };
+
+    const onTouchEnd = () => {
+      clearTimeout(longPressTimeout);
+      this.draggingPoint = null;
+      window.removeEventListener(
+        'touchmove',
+        onTouchMove as EventListenerOrEventListenerObject,
+      );
+      window.removeEventListener('touchend', onTouchEnd);
+    };
+
+    window.addEventListener(
+      'touchmove',
+      onTouchMove as EventListenerOrEventListenerObject,
+      { passive: false },
+    );
+    window.addEventListener('touchend', onTouchEnd);
+  }
+
+  removePoint(event: Event, routeId: number, index: number): void {
+    if (event instanceof MouseEvent || event.cancelable) {
+      event.preventDefault();
+    }
     event.stopPropagation();
     const pathData = this.pathsMap.get(routeId);
     if (pathData) {
