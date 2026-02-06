@@ -20,7 +20,7 @@ import { TuiAppearance, TuiButton, TuiTitle } from '@taiga-ui/core';
     >
       <div class="mb-8 relative w-[150px] h-[150px]">
         <img
-          ngSrc="/logo/local-walls.png"
+          ngSrc="/logo/climbeast.svg"
           alt="ClimBeast Logo"
           fill
           class="object-contain"
