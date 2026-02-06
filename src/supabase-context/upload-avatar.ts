@@ -38,7 +38,7 @@ Deno.serve(async (req: Request) => {
    */
   const ALLOWED_ORIGINS = [
     'http://localhost:4200',
-    'https://local-walls.vercel.app',
+    'https://climbeast.vercel.app',
   ];
   const origin = req.headers.get('origin') ?? '';
   const corsHeaders: Record<string, string> = {};

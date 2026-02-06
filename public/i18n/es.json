@@ -69,13 +69,13 @@
       "message": "Para continuar utilizando nuestra aplicación, debes aceptar nuestra política de privacidad y el uso de cookies para mejorar tu experiencia.",
       "accept": "Aceptar y continuar",
       "readMore": "Ver política de privacidad",
-      "fullPolicy": "Nuestra política de privacidad detalla cómo recopilamos, usamos y protegemos tus datos personales.<br><br>Al utilizar <strong>Roca Nostra</strong>, aceptas el almacenamiento de cookies técnicas necesarias para el funcionamiento de la aplicación, así como el tratamiento de tus datos de perfil para ofrecerte una experiencia personalizada en la gestión de tus zonas y encadenes de escalada.<br><br>No compartimos tus datos con terceros para fines publicitarios. Puedes retirar tu consentimiento en cualquier momento eliminando tu cuenta desde los ajustes de perfil."
+      "fullPolicy": "Nuestra política de privacidad detalla cómo recopilamos, usamos y protegemos tus datos personales.<br><br>Al utilizar <strong>ClimBeast</strong>, aceptas el almacenamiento de cookies técnicas necesarias para el funcionamiento de la aplicación, así como el tratamiento de tus datos de perfil para ofrecerte una experiencia personalizada en la gestión de tus zonas y encadenes de escalada.<br><br>No compartimos tus datos con terceros para fines publicitarios. Puedes retirar tu consentimiento en cualquier momento eliminando tu cuenta desde los ajustes de perfil."
     },
     "actions": "Acciones",
     "all": "Todos",
     "allTime": "Todo el tiempo",
     "anonymous": "Anónimo",
-    "appName": "Roca nostra",
+    "appName": "ClimBeast",
     "approach": "Aproximación",
     "area": "Área",
     "areas": "Áreas",
@@ -271,7 +271,7 @@
     }
   },
   "seo": {
-    "title": "Roca nostra 🤫",
+    "title": "ClimBeast | fanatic community",
     "description": "App de croquis de escalada hechos por equipadores locales. Encuentra y comparte zonas de escalada, sectores y vías cerca de ti."
   },
   "weather": {
