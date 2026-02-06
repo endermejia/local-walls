@@ -49,7 +49,8 @@ import {
 } from '../services';
 
 import { AscentsFeedComponent } from '../components/ascents-feed';
-import { TuiButton, TuiDropdown } from '@taiga-ui/core';
+import { TourHintComponent } from '../components/tour-hint';
+import { TuiDropdown } from '@taiga-ui/core';
 
 @Component({
   selector: 'app-home',
@@ -59,13 +60,13 @@ import { TuiButton, TuiDropdown } from '@taiga-ui/core';
     FormsModule,
     ReactiveFormsModule,
     RouterLink,
+    TourHintComponent,
     TranslatePipe,
     TuiAppearance,
     TuiLoader,
     TuiScrollbar,
     TuiSegmented,
     TuiDropdown,
-    TuiButton,
     TuiPulse,
   ],
   template: `
@@ -77,10 +78,9 @@ import { TuiButton, TuiDropdown } from '@taiga-ui/core';
           [tuiDropdownOpen]="tourService.step() === TourStep.HOME"
           tuiDropdownDirection="bottom"
         >
-          <tui-pulse
-            *ngIf="tourService.step() === TourStep.HOME"
-            class="absolute top-2 right-6"
-          />
+          @if (tourService.step() === TourStep.HOME) {
+            <tui-pulse class="absolute top-2 right-6" />
+          }
           <!-- Active Crags -->
           @if (activeCrags(); as crags) {
             @if (crags.length > 0) {
@@ -144,17 +144,10 @@ import { TuiButton, TuiDropdown } from '@taiga-ui/core';
     </tui-scrollbar>
 
     <ng-template #tourHint>
-      <div class="flex flex-col gap-2 max-w-xs">
-        <p>{{ 'tour.home.description' | translate }}</p>
-        <button
-          tuiButton
-          size="s"
-          appearance="primary"
-          (click)="tourService.next()"
-        >
-          {{ 'tour.next' | translate }}
-        </button>
-      </div>
+      <app-tour-hint
+        [description]="'tour.home.description' | translate"
+        (next)="tourService.next()"
+      />
     </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

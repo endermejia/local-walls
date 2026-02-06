@@ -58,6 +58,7 @@ import {
 
 import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
 import { MapComponent } from '../components/map';
+import { TourHintComponent } from '../components/tour-hint';
 import { TuiDropdown } from '@taiga-ui/core';
 
 import { mapLocationUrl, remToPx } from '../utils';
@@ -70,6 +71,7 @@ import { mapLocationUrl, remToPx } from '../utils';
     LowerCasePipe,
     MapComponent,
     RouterLink,
+    TourHintComponent,
     TranslatePipe,
     TuiAppearance,
     TuiAvatar,
@@ -90,11 +92,14 @@ import { mapLocationUrl, remToPx } from '../utils';
     <div class="h-full w-full flex min-h-0">
       <div
         class="relative h-full grow flex flex-col min-w-0 transition-[width] duration-300"
-        [tuiDropdown]="tourHint"
-        [tuiDropdownOpen]="tourService.step() === TourStep.EXPLORE"
-        tuiDropdownDirection="bottom"
       >
-        <div class="absolute right-4 top-4 flex flex-col gap-2">
+        <div
+          class="absolute right-4 top-4 flex flex-col gap-2"
+          [tuiDropdown]="tourHint"
+          [tuiDropdownOpen]="tourService.step() === TourStep.EXPLORE"
+          tuiDropdownDirection="bottom"
+          tuiDropdownAlign="right"
+        >
           <div class="z-10">
             <tui-badged-content>
               @if (hasActiveFilters()) {
@@ -329,17 +334,10 @@ import { mapLocationUrl, remToPx } from '../utils';
       </div>
 
       <ng-template #tourHint>
-        <div class="flex flex-col gap-2 max-w-xs">
-          <p>{{ 'tour.explore.description' | translate }}</p>
-          <button
-            tuiButton
-            size="s"
-            appearance="primary"
-            (click)="tourService.next()"
-          >
-            {{ 'tour.next' | translate }}
-          </button>
-        </div>
+        <app-tour-hint
+          [description]="'tour.explore.description' | translate"
+          (next)="tourService.next()"
+        />
       </ng-template>
 
       <ng-template #listContent>

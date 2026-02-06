@@ -42,6 +42,7 @@ import {
 
 import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
 import { EmptyStateComponent } from '../components/empty-state';
+import { TourHintComponent } from '../components/tour-hint';
 import { TuiDropdown } from '@taiga-ui/core';
 
 @Component({
@@ -50,6 +51,7 @@ import { TuiDropdown } from '@taiga-ui/core';
     ChartRoutesByGradeComponent,
     EmptyStateComponent,
     LowerCasePipe,
+    TourHintComponent,
     TranslatePipe,
     TuiAppearance,
     TuiAvatar,
@@ -200,17 +202,10 @@ import { TuiDropdown } from '@taiga-ui/core';
     </tui-scrollbar>
 
     <ng-template #tourHint>
-      <div class="flex flex-col gap-2 max-w-xs">
-        <p>{{ 'tour.areas.description' | translate }}</p>
-        <button
-          tuiButton
-          size="s"
-          appearance="primary"
-          (click)="tourService.next()"
-        >
-          {{ 'tour.next' | translate }}
-        </button>
-      </div>
+      <app-tour-hint
+        [description]="'tour.areas.description' | translate"
+        (next)="tourService.next()"
+      />
     </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

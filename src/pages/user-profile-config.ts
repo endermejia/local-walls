@@ -94,6 +94,7 @@ import {
 } from '../services';
 import { FirstStepsDialogComponent } from '../dialogs/first-steps-dialog';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TourHintComponent } from '../components/tour-hint';
 
 interface Country {
   id: string;
@@ -107,6 +108,7 @@ interface Country {
     FormsModule,
     NgOptimizedImage,
     ReactiveFormsModule,
+    TourHintComponent,
     TranslatePipe,
     TuiAvatar,
     TuiBadge,
@@ -169,10 +171,9 @@ interface Country {
             <h2 class="text-xl font-bold m-0">
               {{ 'profile.title' | translate }}
             </h2>
-            <tui-pulse
-              *ngIf="tourService.step() === TourStep.WELCOME"
-              class="self-center"
-            />
+            @if (tourService.step() === TourStep.WELCOME) {
+              <tui-pulse class="self-center" />
+            }
           </div>
         </div>
 
@@ -626,17 +627,10 @@ interface Country {
     </tui-scrollbar>
 
     <ng-template #tourHint>
-      <div class="flex flex-col gap-2 max-w-xs">
-        <p>{{ 'tour.config.description' | translate }}</p>
-        <button
-          tuiButton
-          size="s"
-          appearance="primary"
-          (click)="tourService.next()"
-        >
-          {{ 'tour.next' | translate }}
-        </button>
-      </div>
+      <app-tour-hint
+        [description]="'tour.config.description' | translate"
+        (next)="tourService.next()"
+      />
     </ng-template>
   `,
 })

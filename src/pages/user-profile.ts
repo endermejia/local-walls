@@ -64,6 +64,7 @@ import {
 import { AscentsFeedComponent } from '../components/ascents-feed';
 import { EmptyStateComponent } from '../components/empty-state';
 import { RoutesTableComponent } from '../components/routes-table';
+import { TourHintComponent } from '../components/tour-hint';
 import { ChatDialogComponent } from '../dialogs/chat-dialog';
 import { UserListDialogComponent } from '../dialogs/user-list-dialog';
 
@@ -82,6 +83,7 @@ import {
     LowerCasePipe,
     ReactiveFormsModule,
     RoutesTableComponent,
+    TourHintComponent,
     TranslatePipe,
     TuiAppearance,
     TuiAvatar,
@@ -302,14 +304,13 @@ import {
           "
           tuiDropdownDirection="top"
         >
-          <tui-pulse
-            *ngIf="
-              tourService.step() === TourStep.PROFILE ||
-              tourService.step() === TourStep.PROFILE_PROJECTS ||
-              tourService.step() === TourStep.PROFILE_LIKES
-            "
-            class="absolute -top-1 -right-1"
-          />
+          @if (
+            tourService.step() === TourStep.PROFILE ||
+            tourService.step() === TourStep.PROFILE_PROJECTS ||
+            tourService.step() === TourStep.PROFILE_LIKES
+          ) {
+            <tui-pulse class="absolute -top-1 -right-1" />
+          }
           <button tuiTab>
             {{ 'labels.ascents' | translate }}
           </button>
@@ -573,30 +574,18 @@ import {
     </tui-scrollbar>
 
     <ng-template #tourHint>
-      <div class="flex flex-col gap-2 max-w-xs">
-        <p>
-          {{
-            (tourService.step() === TourStep.PROFILE
-              ? 'tour.profile.ascentsDescription'
-              : tourService.step() === TourStep.PROFILE_PROJECTS
-                ? 'tour.profile.projectsDescription'
-                : 'tour.profile.likesDescription'
-            ) | translate
-          }}
-        </p>
-        <button
-          tuiButton
-          size="s"
-          appearance="primary"
-          (click)="tourService.next()"
-        >
-          {{
-            tourService.step() === TourStep.PROFILE_LIKES
-              ? ('tour.finish' | translate)
-              : ('tour.next' | translate)
-          }}
-        </button>
-      </div>
+      <app-tour-hint
+        [description]="
+          (tourService.step() === TourStep.PROFILE
+            ? 'tour.profile.ascentsDescription'
+            : tourService.step() === TourStep.PROFILE_PROJECTS
+              ? 'tour.profile.projectsDescription'
+              : 'tour.profile.likesDescription'
+          ) | translate
+        "
+        [isLast]="tourService.step() === TourStep.PROFILE_LIKES"
+        (next)="tourService.next()"
+      />
     </ng-template>
   `,
   host: { class: 'flex grow min-h-0' },

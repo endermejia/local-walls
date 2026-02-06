@@ -50,6 +50,7 @@ import {
 import { AscentsFeedComponent } from '../components/ascents-feed';
 import { ChartAscentsByGradeComponent } from '../components/chart-ascents-by-grade';
 import { SectionHeaderComponent } from '../components/section-header';
+import { TourHintComponent } from '../components/tour-hint';
 
 import { handleErrorToast } from '../utils';
 
@@ -66,6 +67,7 @@ import { handleErrorToast } from '../utils';
     DecimalPipe,
     FormsModule,
     AscentsFeedComponent,
+    TourHintComponent,
     TuiIcon,
     ChartAscentsByGradeComponent,
     LowerCasePipe,
@@ -293,17 +295,10 @@ import { handleErrorToast } from '../utils';
     </section>
 
     <ng-template #tourHint>
-      <div class="flex flex-col gap-2 max-w-xs">
-        <p>{{ 'tour.route.description' | translate }}</p>
-        <button
-          tuiButton
-          size="s"
-          appearance="primary"
-          (click)="tourService.next()"
-        >
-          {{ 'tour.next' | translate }}
-        </button>
-      </div>
+      <app-tour-hint
+        [description]="'tour.route.description' | translate"
+        (next)="tourService.next()"
+      />
     </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

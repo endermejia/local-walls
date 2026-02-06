@@ -74,6 +74,7 @@ import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade
 import { EmptyStateComponent } from '../components/empty-state';
 import { RoutesTableComponent } from '../components/routes-table';
 import { SectionHeaderComponent } from '../components/section-header';
+import { TourHintComponent } from '../components/tour-hint';
 import { WeatherForecastComponent } from '../components/weather-forecast';
 
 import { handleErrorToast, mapLocationUrl } from '../utils';
@@ -88,6 +89,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     LowerCasePipe,
     RoutesTableComponent,
     SectionHeaderComponent,
+    TourHintComponent,
     WeatherForecastComponent,
     TopoImagePipe,
     TranslatePipe,
@@ -261,15 +263,14 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
               "
               tuiDropdownDirection="top"
             >
-              <tui-pulse
-                *ngIf="
-                  tourService.step() === TourStep.CRAG ||
-                  tourService.step() === TourStep.CRAG_TOPOS ||
-                  tourService.step() === TourStep.CRAG_PARKINGS ||
-                  tourService.step() === TourStep.CRAG_WEATHER
-                "
-                class="absolute -top-1 -right-1"
-              />
+              @if (
+                tourService.step() === TourStep.CRAG ||
+                tourService.step() === TourStep.CRAG_TOPOS ||
+                tourService.step() === TourStep.CRAG_PARKINGS ||
+                tourService.step() === TourStep.CRAG_WEATHER
+              ) {
+                <tui-pulse class="absolute -top-1 -right-1" />
+              }
               @for (tabIdx of visibleTabs(); track tabIdx) {
                 <button tuiTab>
                   {{
@@ -626,28 +627,19 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     </tui-scrollbar>
 
     <ng-template #tourHint>
-      <div class="flex flex-col gap-2 max-w-xs">
-        <p>
-          {{
-            (tourService.step() === TourStep.CRAG
-              ? 'tour.crag.routesDescription'
-              : tourService.step() === TourStep.CRAG_TOPOS
-                ? 'tour.crag.toposDescription'
-                : tourService.step() === TourStep.CRAG_PARKINGS
-                  ? 'tour.crag.parkingsDescription'
-                  : 'tour.crag.weatherDescription'
-            ) | translate
-          }}
-        </p>
-        <button
-          tuiButton
-          size="s"
-          appearance="primary"
-          (click)="tourService.next()"
-        >
-          {{ 'tour.next' | translate }}
-        </button>
-      </div>
+      <app-tour-hint
+        [description]="
+          (tourService.step() === TourStep.CRAG
+            ? 'tour.crag.routesDescription'
+            : tourService.step() === TourStep.CRAG_TOPOS
+              ? 'tour.crag.toposDescription'
+              : tourService.step() === TourStep.CRAG_PARKINGS
+                ? 'tour.crag.parkingsDescription'
+                : 'tour.crag.weatherDescription'
+          ) | translate
+        "
+        (next)="tourService.next()"
+      />
     </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
