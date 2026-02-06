@@ -69,7 +69,7 @@ import { TuiButton, TuiDropdown } from '@taiga-ui/core';
           class="px-4 flex flex-col gap-4"
           [tuiDropdown]="tourHint"
           [tuiDropdownOpen]="tourService.step() === TourStep.HOME"
-          tuiDropdownDirection="bottom-left"
+          tuiDropdownDirection="bottom"
         >
           <!-- Active Crags -->
           @if (activeCrags(); as crags) {

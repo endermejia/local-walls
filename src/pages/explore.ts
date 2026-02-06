@@ -92,7 +92,7 @@ import { mapLocationUrl, remToPx } from '../utils';
         class="relative h-full grow flex flex-col min-w-0 transition-[width] duration-300"
         [tuiDropdown]="tourHint"
         [tuiDropdownOpen]="tourService.step() === TourStep.EXPLORE"
-        tuiDropdownDirection="bottom-right"
+        tuiDropdownDirection="bottom"
       >
         <div class="absolute right-4 top-4 flex flex-col gap-2">
           <div class="z-10">

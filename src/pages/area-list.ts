@@ -70,7 +70,7 @@ import { TuiDropdown } from '@taiga-ui/core';
           class="flex items-center justify-between gap-2"
           [tuiDropdown]="tourHint"
           [tuiDropdownOpen]="tourService.step() === TourStep.AREAS"
-          tuiDropdownDirection="bottom-left"
+          tuiDropdownDirection="bottom"
         >
           @let areasCount = filtered().length;
           <h1 class="text-2xl font-bold w-full sm:w-auto">

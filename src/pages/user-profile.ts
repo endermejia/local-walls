@@ -115,7 +115,7 @@ import {
           class="flex items-center gap-4"
           [tuiDropdown]="tourHint"
           [tuiDropdownOpen]="tourService.step() === TourStep.PROFILE"
-          tuiDropdownDirection="bottom-left"
+          tuiDropdownDirection="bottom"
         >
           @let avatar = profileAvatarSrc();
           <tui-avatar

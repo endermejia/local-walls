@@ -79,7 +79,7 @@ import { handleErrorToast } from '../utils';
           class="mb-4 flex items-center justify-between gap-2"
           [tuiDropdown]="tourHint"
           [tuiDropdownOpen]="tourService.step() === TourStep.ROUTE"
-          tuiDropdownDirection="bottom-left"
+          tuiDropdownDirection="bottom"
         >
           <app-section-header
             class="w-full"

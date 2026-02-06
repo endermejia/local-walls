@@ -252,7 +252,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
               class="mt-6"
               [tuiDropdown]="tourHint"
               [tuiDropdownOpen]="tourService.step() === TourStep.CRAG"
-              tuiDropdownDirection="top-left"
+              tuiDropdownDirection="top"
             >
               @for (tabIdx of visibleTabs(); track tabIdx) {
                 <button tuiTab>
