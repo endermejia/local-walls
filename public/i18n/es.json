@@ -412,6 +412,11 @@
     },
     "private": {
       "confirmation": "No se verán sus encadenes, pero seguirá siendo visible para el resto de usuarios y podrá recibir mensajes."
+    },
+    "editing": {
+      "confirmationTitle": "Activar modo edición",
+      "confirmationUser": "Al activar este modo, aparecerán botones en las pantallas para crear áreas, sectores y rutas. Podrás editar los elementos que crees durante una semana tras su creación.",
+      "confirmationEquipper": "Al activar este modo, aparecerán botones para crear contenido. Además, como eres equipador, podrás gestionar y editar sectores, rutas y croquis en tus áreas asignadas desde la sección 'Mis áreas' en cualquier momento."
     }
   },
   "ascentTypes": {

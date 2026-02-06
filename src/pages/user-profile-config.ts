@@ -54,6 +54,7 @@ import {
   TuiSkeleton,
   TuiSwitch,
   TuiTextarea,
+  type TuiConfirmData,
 } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
@@ -528,21 +529,19 @@ interface Country {
               />
             </div>
 
-            @if (global.isUserAdminOrEquipper()) {
-              <div class="flex items-center gap-4">
-                <label tuiLabel for="editingSwitch">{{
-                  'labels.editingMode' | translate
-                }}</label>
-                <input
-                  id="editingSwitch"
-                  name="editingSwitch"
-                  tuiSwitch
-                  type="checkbox"
-                  [ngModel]="global.editingMode()"
-                  (ngModelChange)="global.editingMode.set($event)"
-                />
-              </div>
-            }
+            <div class="flex items-center gap-4">
+              <label tuiLabel for="editingSwitch">{{
+                'labels.editingMode' | translate
+              }}</label>
+              <input
+                id="editingSwitch"
+                name="editingSwitch"
+                tuiSwitch
+                type="checkbox"
+                [ngModel]="global.editingMode()"
+                (ngModelChange)="toggleEditingMode($event)"
+              />
+            </div>
 
             <div class="flex items-center gap-4">
               <label tuiLabel for="privateSwitch">{{
@@ -1008,6 +1007,40 @@ export class UserProfileConfigComponent {
       console.error('Error saving profile:', result.error);
       this.toast.error('Error: ' + result.error);
     }
+  }
+
+  async toggleEditingMode(enabled: boolean): Promise<void> {
+    if (this.global.editingMode() === enabled) {
+      return;
+    }
+
+    if (enabled && !this.global.isActualAdmin()) {
+      const isEquipper = this.global.isActualEquipper();
+      const messageKey = isEquipper
+        ? 'profile.editing.confirmationEquipper'
+        : 'profile.editing.confirmationUser';
+
+      const confirmed = await firstValueFrom(
+        this.dialogs.open<boolean>(TUI_CONFIRM, {
+          label: this.translate.instant('profile.editing.confirmationTitle'),
+          size: 'm',
+          data: {
+            content: this.translate.instant(messageKey),
+            yes: this.translate.instant('actions.accept'),
+            no: this.translate.instant('actions.cancel'),
+          } as TuiConfirmData,
+        }),
+        { defaultValue: false },
+      );
+
+      if (!confirmed) {
+        // Force the switch to stay false
+        this.global.editingMode.set(false);
+        return;
+      }
+    }
+
+    this.global.editingMode.set(enabled);
   }
 
   async logout(): Promise<void> {

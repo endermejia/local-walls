@@ -1009,6 +1009,7 @@ export interface Database {
           id: number;
           name: string;
           slug: string;
+          user_creator_id: string | null;
         };
         Insert: {
           created_at?: string;
@@ -1016,6 +1017,7 @@ export interface Database {
           id?: number;
           name: string;
           slug: string;
+          user_creator_id?: string | null;
         };
         Update: {
           created_at?: string;
@@ -1023,6 +1025,7 @@ export interface Database {
           id?: number;
           name?: string;
           slug?: string;
+          user_creator_id?: string | null;
         };
         Relationships: [];
       };
@@ -1194,6 +1197,7 @@ export interface Database {
           longitude: number | null;
           name: string;
           slug: string;
+          user_creator_id: string | null;
           warning_en: string | null;
           warning_es: string | null;
         };
@@ -1209,6 +1213,7 @@ export interface Database {
           longitude?: number | null;
           name: string;
           slug: string;
+          user_creator_id?: string | null;
           warning_en?: string | null;
           warning_es?: string | null;
         };
@@ -1224,6 +1229,7 @@ export interface Database {
           longitude?: number | null;
           name?: string;
           slug?: string;
+          user_creator_id?: string | null;
           warning_en?: string | null;
           warning_es?: string | null;
         };
@@ -1630,6 +1636,7 @@ export interface Database {
           id: number;
           name: string;
           slug: string;
+          user_creator_id: string | null;
         };
         Insert: {
           climbing_kind: Database['public']['Enums']['climbing_kind'];
@@ -1641,6 +1648,7 @@ export interface Database {
           id?: number;
           name: string;
           slug: string;
+          user_creator_id?: string | null;
         };
         Update: {
           climbing_kind?: Database['public']['Enums']['climbing_kind'];
@@ -1652,6 +1660,7 @@ export interface Database {
           id?: number;
           name?: string;
           slug?: string;
+          user_creator_id?: string | null;
         };
         Relationships: [
           {
@@ -1877,6 +1886,7 @@ export interface Database {
         Returns: {
           climbing_kind: Database['public']['Enums']['climbing_kind'][];
           crags_count: number;
+          created_at: string;
           grades: Json;
           id: number;
           liked: boolean;
@@ -1886,12 +1896,15 @@ export interface Database {
           shade_morning: boolean;
           slug: string;
           sun_all_day: boolean;
+          user_creator_id: string;
         }[];
       };
       get_crags_list_by_area_slug: {
         Args: { p_area_slug: string };
         Returns: {
+          area_id: number;
           climbing_kind: Database['public']['Enums']['climbing_kind'][];
+          created_at: string;
           grades: Json;
           id: number;
           liked: boolean;
@@ -1902,6 +1915,7 @@ export interface Database {
           slug: string;
           sun_all_day: boolean;
           topos_count: number;
+          user_creator_id: string;
         }[];
       };
       has_ascent_blocking: {

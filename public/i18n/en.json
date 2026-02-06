@@ -412,6 +412,11 @@
     },
     "private": {
       "confirmation": "Your ascents will not be visible, but you will still be visible to other users and can receive messages."
+    },
+    "editing": {
+      "confirmationTitle": "Enable editing mode",
+      "confirmationUser": "By enabling this mode, buttons will appear on screens to create areas, sectors, and routes. You will be able to edit the items you create for one week after creation.",
+      "confirmationEquipper": "By enabling this mode, buttons will appear to create content. Additionally, as an equipper, you can manage and edit sectors, routes, and topos in your assigned areas from the 'My Areas' section at any time."
     }
   },
   "ascentTypes": {

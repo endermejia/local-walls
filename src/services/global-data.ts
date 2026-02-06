@@ -11,9 +11,7 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
 
-import { TuiTablePaginationEvent } from '@taiga-ui/addon-table';
 import { TuiBreakpointService } from '@taiga-ui/core';
 import {
   TUI_ENGLISH_LANGUAGE,
@@ -38,6 +36,7 @@ import { mapCragToDetail } from '../utils';
 import {
   AmountByEveryGrade,
   AppRoles,
+  AreaDto,
   AreaListItem,
   BreadcrumbItem,
   ClimbingKinds,
@@ -52,7 +51,6 @@ import {
   MapCragItem,
   MapItem,
   MapResponse,
-  OptionsData,
   ORDERED_GRADE_VALUES,
   PaginatedAscents,
   ParkingDto,
@@ -62,6 +60,7 @@ import {
   Theme,
   Themes,
   TopoDetail,
+  TopoPath,
   TopoRouteWithRoute,
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
@@ -73,7 +72,6 @@ import {
 export class GlobalData {
   private translate = inject(TranslateService);
   private localStorage = inject(LocalStorage);
-  private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private supabase = inject(SupabaseService);
   private readonly notificationsService = inject(AppNotificationsService);
@@ -85,14 +83,6 @@ export class GlobalData {
   readonly isMobile = toSignal(
     this.breakpointService.pipe(map((b) => b === 'mobile')),
     { initialValue: false },
-  );
-
-  readonly currentUrl = toSignal(
-    this.router.events.pipe(
-      startWith(null),
-      map(() => this.router.url),
-    ),
-    { initialValue: this.router.url },
   );
 
   // Loading/Status state
@@ -120,62 +110,6 @@ export class GlobalData {
     const theme = this.selectedTheme();
     // Return the icon URL based on the theme
     return (name: IconName) => `/image/${name}-${theme}.svg`;
-  });
-
-  // ---- Drawer ----
-  drawer: Signal<OptionsData> = computed(() => {
-    this.i18nTick();
-    const isAdmin = this.isAdmin();
-    const isEquipper = this.isEquipper();
-
-    const config = [];
-    if (isEquipper) {
-      config.push({
-        name: 'nav.my-areas',
-        icon: '@tui.list',
-        fn: () => this.router.navigateByUrl('/my-areas'),
-      });
-    }
-    if (isAdmin) {
-      config.push({
-        name: 'nav.admin-users',
-        icon: '@tui.users',
-        fn: () => this.router.navigateByUrl('/admin/users'),
-      });
-      config.push({
-        name: 'nav.admin-parkings',
-        icon: '@tui.map-pin',
-        fn: () => this.router.navigateByUrl('/admin/parkings'),
-      });
-    }
-    if (isAdmin || isEquipper) {
-      config.push({
-        name: 'nav.admin-equippers',
-        icon: '@tui.hammer',
-        fn: () => this.router.navigateByUrl('/admin/equippers'),
-      });
-    }
-    return {
-      navigation: [
-        {
-          name: 'nav.home',
-          icon: '@tui.home',
-          fn: () => this.router.navigateByUrl('/home'),
-        },
-
-        {
-          name: 'nav.explore',
-          icon: '@tui.map',
-          fn: () => this.router.navigateByUrl('/explore'),
-        },
-        {
-          name: 'nav.areas',
-          icon: '@tui.list',
-          fn: () => this.router.navigateByUrl('/area'),
-        },
-      ],
-      config,
-    } satisfies OptionsData;
   });
 
   // ---- Breadcrumbs ----
@@ -239,9 +173,6 @@ export class GlobalData {
   readonly isActualEquipper = computed(
     () => this.userRole() === AppRoles.EQUIPPER,
   );
-  readonly isUserAdminOrEquipper = computed(
-    () => this.isActualAdmin() || this.isActualEquipper(),
-  );
   readonly equipperAreas = this.supabase.equipperAreas;
 
   readonly unreadNotificationsCount = this.notificationsService.unreadCount;
@@ -251,6 +182,125 @@ export class GlobalData {
     if (this.isAdmin()) return true;
     if (!areaId || !this.editingMode()) return false;
     return this.isEquipper() && this.equipperAreas().includes(areaId);
+  };
+
+  /** Helper to check if any area can be edited by current user */
+  readonly checkAreaEditPermission = (
+    area: AreaListItem | AreaDto | null | undefined,
+  ) => {
+    if (this.isAdmin()) return true;
+    if (!area || !this.editingMode()) return false;
+    const userId = this.userProfile()?.id;
+    if (!userId) return false;
+
+    const isCreator = area.user_creator_id === userId;
+    const isEquipper =
+      this.isEquipper() && this.equipperAreas().includes(area.id);
+
+    if (isCreator && !isEquipper) {
+      return this.isWithinOneWeek(area.created_at);
+    }
+
+    return isCreator || isEquipper;
+  };
+
+  /** Computed for the currently selected area */
+  readonly canEditArea = computed(() =>
+    this.checkAreaEditPermission(this.selectedArea()),
+  );
+
+  /** Helper to check if any crag can be edited by current user */
+  readonly checkCragEditPermission = (
+    crag: CragListItem | CragDetail | null | undefined,
+  ) => {
+    if (this.isAdmin()) return true;
+    if (!crag || !this.editingMode()) return false;
+    const userId = this.userProfile()?.id;
+    if (!userId) return false;
+
+    const isCreator = crag.user_creator_id === userId;
+    const isEquipper =
+      this.isEquipper() && this.equipperAreas().includes(crag.area_id);
+
+    if (isCreator && !isEquipper) {
+      return this.isWithinOneWeek(crag.created_at);
+    }
+
+    return isCreator || isEquipper;
+  };
+
+  /** Computed for the currently selected crag */
+  readonly canEditCrag = computed(() =>
+    this.checkCragEditPermission(this.cragDetailResource.value()),
+  );
+
+  /** Helper to check if any route can be edited by current user */
+  readonly checkRouteEditPermission = (
+    route: RouteWithExtras | null | undefined,
+  ) => {
+    if (this.isAdmin()) return true;
+    if (!route || !this.editingMode()) return false;
+    const userId = this.userProfile()?.id;
+    if (!userId) return false;
+
+    const isCreator = route.user_creator_id === userId;
+    const isEquipper = this.isAllowedEquipper(route.area_id);
+
+    if (isCreator && !isEquipper) {
+      return this.isWithinOneWeek(route.created_at);
+    }
+
+    return isCreator || isEquipper;
+  };
+
+  /** Computed for the currently selected route */
+  readonly canEditRoute = computed(() =>
+    this.checkRouteEditPermission(this.routeDetailResource.value()),
+  );
+
+  private isWithinOneWeek(createdAt: string | null | undefined): boolean {
+    if (!createdAt) return true; // If no date, allow for now (legacy or unsaved)
+    const date = new Date(createdAt);
+    const now = new Date();
+    const oneWeekInMs = 7 * 24 * 60 * 60 * 1000;
+    return now.getTime() - date.getTime() < oneWeekInMs;
+  }
+
+  /** Dictionary of permissions as maps for direct ID access in templates */
+  readonly permissions = {
+    /** Map of area ID -> canEdit */
+    areaEdit: computed(() => {
+      const res: Record<number, boolean> = {};
+      this.areaList()?.forEach(
+        (a: AreaListItem) => (res[a.id] = this.checkAreaEditPermission(a)),
+      );
+      return res;
+    }),
+    /** Map of crag ID -> canEdit */
+    cragEdit: computed(() => {
+      const res: Record<number, boolean> = {};
+      this.cragsList()?.forEach(
+        (c: CragListItem) => (res[c.id] = this.checkCragEditPermission(c)),
+      );
+      return res;
+    }),
+    /** Map of route ID -> canEdit */
+    routeEdit: computed(() => {
+      const res: Record<number, boolean> = {};
+      const routes = this.cragRoutesResource.value() ?? [];
+      routes.forEach(
+        (r: RouteWithExtras) => (res[r.id] = this.checkRouteEditPermission(r)),
+      );
+      return res;
+    }),
+    /** Map of area ID -> isEquipper */
+    areaEquipper: computed(() => {
+      const res: Record<number, boolean> = {};
+      const isAdmin = this.isAdmin();
+      this.equipperAreas().forEach((id: number) => (res[id] = true));
+      // If admin, any ID access should return true via Proxy
+      return isAdmin ? new Proxy(res, { get: () => true }) : res;
+    }),
   };
 
   readonly userAvatar = computed(() =>
@@ -316,9 +366,7 @@ export class GlobalData {
 
         (c.routes || []).forEach((r) => {
           totalRoutes++;
-          if (typeof r.grade === 'number') {
-            grades[r.grade] = (grades[r.grade] || 0) + 1;
-          }
+          grades[r.grade] = (grades[r.grade] || 0) + 1;
           if (r.climbing_kind) climbingKinds.add(r.climbing_kind);
         });
 
@@ -485,10 +533,8 @@ export class GlobalData {
           (a.crags || []).forEach((c) => {
             cragsCount++;
             (c.routes || []).forEach((r) => {
-              if (typeof r.grade === 'number') {
-                const g = r.grade as VERTICAL_LIFE_GRADES;
-                grades[g] = (grades[g] || 0) + 1;
-              }
+              const g = r.grade as VERTICAL_LIFE_GRADES;
+              grades[g] = (grades[g] || 0) + 1;
               if (r.climbing_kind) {
                 climbingKinds.add(r.climbing_kind);
               }
@@ -643,7 +689,7 @@ export class GlobalData {
           const grades: AmountByEveryGrade = {};
           (t.topo_routes || []).forEach((tr) => {
             const g = tr.route?.grade;
-            if (typeof g === 'number' && g >= 0) {
+            if (g >= 0) {
               grades[g as VERTICAL_LIFE_GRADES] =
                 (grades[g as VERTICAL_LIFE_GRADES] ?? 0) + 1;
             }
@@ -713,7 +759,7 @@ export class GlobalData {
                 topo_id: tr.topo_id,
                 route_id: tr.route_id,
                 number: tr.number,
-                path: tr.path as any,
+                path: tr.path as TopoPath,
                 route: {
                   ...tr.route,
                   own_ascent: tr.route.own_ascent?.[0] || null,
@@ -947,11 +993,6 @@ export class GlobalData {
   readonly ascentsDateFilter = signal<string | null>(null);
   readonly ascentsQuery = signal<string | null>(null);
   readonly ascentsSort = signal<'date' | 'grade'>('date');
-
-  onAscentsPagination({ page, size }: TuiTablePaginationEvent): void {
-    this.ascentsPage.set(page);
-    this.ascentsSize.set(size);
-  }
 
   readonly userAscentsResource = resource({
     params: () => ({

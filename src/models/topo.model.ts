@@ -1,9 +1,5 @@
-import {
-  AmountByEveryGrade,
-  RouteAscentDto,
-  RouteDto,
-  TopoDto,
-} from '../models';
+import { AmountByEveryGrade } from './grade.model';
+import { RouteAscentDto, RouteDto, TopoDto } from './supabase-interfaces';
 
 export interface TopoListItem {
   id: number;
@@ -21,14 +17,28 @@ export interface RouteWithOwnData extends RouteDto {
   project?: boolean;
 }
 
+export interface TopoPath {
+  points: { x: number; y: number }[];
+  color?: string;
+  [key: string]: unknown;
+}
+
 export interface TopoRouteWithRoute {
   topo_id: number;
   route_id: number;
   number: number;
   route: RouteWithOwnData;
-  path?: { points: { x: number; y: number }[]; color?: string } | null;
+  path?: TopoPath | null;
 }
 
 export interface TopoDetail extends TopoDto {
   topo_routes: TopoRouteWithRoute[];
+}
+
+export interface ImageEditorResult {
+  file?: File;
+  paths?: {
+    routeId: number;
+    path: TopoPath;
+  }[];
 }

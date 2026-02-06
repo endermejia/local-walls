@@ -76,8 +76,8 @@ import { EmptyStateComponent } from '../components/empty-state';
             }}
           </h1>
 
-          @if (global.isAdmin()) {
-            <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
+          <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
+            @if (global.isAdmin()) {
               <button
                 tuiButton
                 appearance="textfield"
@@ -88,6 +88,8 @@ import { EmptyStateComponent } from '../components/empty-state';
               >
                 {{ 'actions.unify' | translate }}
               </button>
+            }
+            @if (global.editingMode()) {
               <button
                 tuiButton
                 appearance="textfield"
@@ -98,8 +100,8 @@ import { EmptyStateComponent } from '../components/empty-state';
               >
                 {{ 'actions.new' | translate }}
               </button>
-            </div>
-          }
+            }
+          </div>
         </header>
 
         <div class="sticky top-0 z-10 py-4 flex items-end gap-2">

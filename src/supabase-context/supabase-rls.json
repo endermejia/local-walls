@@ -80,6 +80,22 @@
     "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
   },
   {
+    "policy_name": "auth_can_insert",
+    "schema_name": "public",
+    "table_name": "areas",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(auth.uid() IS NOT NULL)"
+  },
+  {
+    "policy_name": "creator_can_update",
+    "schema_name": "public",
+    "table_name": "areas",
+    "for_command": "w",
+    "using_expression": "(auth.uid() = user_creator_id)",
+    "with_check_expression": "(auth.uid() = user_creator_id)"
+  },
+  {
     "policy_name": "auth_can_read",
     "schema_name": "public",
     "table_name": "areas",
@@ -167,6 +183,22 @@
     "for_command": "w",
     "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
     "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "auth_can_insert",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(auth.uid() IS NOT NULL)"
+  },
+  {
+    "policy_name": "creator_can_update",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "w",
+    "using_expression": "(auth.uid() = user_creator_id)",
+    "with_check_expression": "(auth.uid() = user_creator_id)"
   },
   {
     "policy_name": "auth_can_read",
@@ -567,6 +599,22 @@
     "for_command": "w",
     "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
     "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+  },
+  {
+    "policy_name": "auth_can_insert",
+    "schema_name": "public",
+    "table_name": "routes",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(auth.uid() IS NOT NULL)"
+  },
+  {
+    "policy_name": "creator_can_update",
+    "schema_name": "public",
+    "table_name": "routes",
+    "for_command": "w",
+    "using_expression": "(auth.uid() = user_creator_id)",
+    "with_check_expression": "(auth.uid() = user_creator_id)"
   },
   {
     "policy_name": "auth_can_read",

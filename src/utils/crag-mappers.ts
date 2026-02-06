@@ -59,6 +59,9 @@ export function mapCragToDetail(rawData: CragWithJoins): CragDetail {
     parkings,
     topos,
 
+    user_creator_id: rawData.user_creator_id ?? '',
+    created_at: rawData.created_at,
+
     climbing_kind: [],
     topos_count,
     shade_morning,
