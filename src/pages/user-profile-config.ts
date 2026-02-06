@@ -475,16 +475,28 @@ interface Country {
           <h2 class="text-lg font-bold m-0">
             {{ 'labels.preferences' | translate }}
           </h2>
-          <button
-            iconStart="@tui.download"
-            size="s"
-            tuiButton
-            type="button"
-            appearance="action-grayscale"
-            (click)="openImport8aDialog()"
-          >
-            {{ 'import8a.button' | translate }}
-          </button>
+          <div class="flex gap-2">
+            <button
+              iconStart="@tui.refresh-cw"
+              size="s"
+              tuiButton
+              type="button"
+              appearance="action-grayscale"
+              (click)="restartFirstSteps()"
+            >
+              {{ 'firstSteps.restart' | translate }}
+            </button>
+            <button
+              iconStart="@tui.download"
+              size="s"
+              tuiButton
+              type="button"
+              appearance="action-grayscale"
+              (click)="openImport8aDialog()"
+            >
+              {{ 'import8a.button' | translate }}
+            </button>
+          </div>
         </div>
         <!-- Language & Theme -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1047,6 +1059,26 @@ export class UserProfileConfigComponent {
 
   openImport8aDialog(): void {
     this.userProfilesService.openImport8aDialog();
+  }
+
+  async restartFirstSteps(): Promise<void> {
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('firstSteps.restart'),
+        size: 'm',
+        data: {
+          content: this.translate.instant('firstSteps.restartConfirm'),
+          yes: this.translate.instant('actions.accept'),
+          no: this.translate.instant('actions.cancel'),
+        },
+      }),
+      { defaultValue: false },
+    );
+
+    if (confirmed) {
+      this.hasOpenedWelcome = false;
+      await this.updateProfile({ first_steps: true });
+    }
   }
 
   private async updateProfile(updates: Partial<UserProfileDto>): Promise<void> {

@@ -615,7 +615,9 @@
     "welcomeTitle": "Welcome to ClimBeast!",
     "welcomeDescription": "The fanatic climbing community. Set up your profile to get started.",
     "startSetup": "Start",
-    "next": "Next"
+    "next": "Next",
+    "restart": "Restart tour",
+    "restartConfirm": "Do you want to see the first steps tour again?"
   },
   "tour": {
     "next": "Next",

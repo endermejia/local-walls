@@ -615,7 +615,9 @@
     "welcomeTitle": "¡Bienvenido a ClimBeast!",
     "welcomeDescription": "La comunidad fanática de escalada. Configura tu perfil para empezar.",
     "startSetup": "Empezar",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "restart": "Reiniciar tour",
+    "restartConfirm": "¿Quieres volver a ver el tour de primeros pasos?"
   },
   "tour": {
     "next": "Siguiente",
