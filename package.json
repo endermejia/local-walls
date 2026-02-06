@@ -1,5 +1,5 @@
 {
-  "name": "local-walls",
+  "name": "climbeast",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
@@ -7,7 +7,7 @@
     "start": "ng serve --hmr=false",
     "start:hmr": "ng serve",
     "build": "ng build",
-    "serve:ssr:local-walls": "node dist/local-walls/server/server.mjs",
+    "serve:ssr:climbeast": "node dist/climbeast/server/server.mjs",
     "watch": "ng build --watch --configuration development",
     "supabase:init": "npx supabase login",
     "gen:supabase-types": "npx supabase gen types typescript --project-id \"eswbehepsagigvlytfxv\" --schema public,storage,auth > src/models/supabase-generated.ts",

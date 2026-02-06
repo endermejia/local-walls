@@ -181,7 +181,7 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
 ## 10) Desarrollo y SSR local
 
 - Desarrollo SPA: `npm start` (sin SSR).
-- Build SSR: `npm run build` y luego `npm run serve:ssr:local-walls` para servir SSR desde `dist/`.
+- Build SSR: `npm run build` y luego `npm run serve:ssr:climbeast` para servir SSR desde `dist/`.
 - Verifica siempre que:
   - No hay errores de acceso a `window/document` en servidor.
   - Las vistas hidratan sin errores en cliente.
@@ -238,7 +238,7 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
 - netlify.toml: No uses redirects en Netlify para SSR, hazlos en `serverRoutes`.
   ```toml
   [build]
-    publish = "dist/local-walls/browser"
+    publish = "dist/climbeast/browser"
     command = "npm run build"
   ```
 

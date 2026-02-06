@@ -170,7 +170,7 @@ export class BrowserNotificationService {
     this.titleInterval = setInterval(() => {
       document.title = showMessage
         ? message
-        : this.originalTitle || 'Local Walls';
+        : this.originalTitle || 'CLIMBEAST';
       showMessage = !showMessage;
     }, 1000);
 

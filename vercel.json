@@ -1,6 +1,6 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "dist/local-walls/browser",
+  "outputDirectory": "dist/climbeast/browser",
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
