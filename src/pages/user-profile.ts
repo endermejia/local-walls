@@ -27,6 +27,7 @@ import {
   TuiScrollbar,
   TuiTextfield,
   TuiTitle,
+  TuiHint,
 } from '@taiga-ui/core';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
 import {
@@ -56,6 +57,8 @@ import {
   SupabaseService,
   ToastService,
   UserProfilesService,
+  TourService,
+  TourStep,
 } from '../services';
 
 import { AscentsFeedComponent } from '../components/ascents-feed';
@@ -100,6 +103,7 @@ import {
     TuiTabs,
     TuiTextfield,
     TuiTitle,
+    TuiHint,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -109,7 +113,12 @@ import {
         class="w-full max-w-5xl mx-auto p-4 grid gap-4"
       >
         @let loading = !profile();
-        <div class="flex items-center gap-4">
+        <div
+          class="flex items-center gap-4"
+          [tuiHint]="tourHint"
+          [tuiHintOpened]="tourService.step() === TourStep.PROFILE"
+          tuiHintDirection="bottom-left"
+        >
           @let avatar = profileAvatarSrc();
           <tui-avatar
             [src]="avatar | tuiFallbackSrc: '@tui.user' | async"
@@ -502,7 +511,7 @@ import {
                                     (crag.topos_count === 1 ? 'topo' : 'topos')
                                     | translate
                                     | lowercase
-                                }}
+                                  }}
                               </div>
                               <div class="text-sm opacity-70">
                                 {{ crag.area_name }}
@@ -547,6 +556,20 @@ import {
         }
       </section>
     </tui-scrollbar>
+
+    <ng-template #tourHint>
+      <div class="flex flex-col gap-2 max-w-xs">
+        <p>{{ 'tour.profile.description' | translate }}</p>
+        <button
+          tuiButton
+          size="s"
+          appearance="primary"
+          (click)="tourService.next()"
+        >
+          {{ 'tour.finish' | translate }}
+        </button>
+      </div>
+    </ng-template>
   `,
   host: { class: 'flex grow min-h-0' },
 })
@@ -554,6 +577,8 @@ export class UserProfileComponent {
   protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
+  protected readonly tourService = inject(TourService);
+  protected readonly TourStep = TourStep;
   private readonly countriesNames$ = inject(TUI_COUNTRIES);
   protected readonly countriesNames = toSignal(this.countriesNames$);
   private readonly platformId = inject(PLATFORM_ID);

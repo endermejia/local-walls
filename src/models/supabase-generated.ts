@@ -1815,6 +1815,7 @@ export interface Database {
           city: string | null;
           country: string | null;
           created_at: string | null;
+          first_steps: boolean | null;
           id: string;
           language: Database['public']['Enums']['language'] | null;
           name: string;
@@ -1833,6 +1834,7 @@ export interface Database {
           city?: string | null;
           country?: string | null;
           created_at?: string | null;
+          first_steps?: boolean | null;
           id?: string;
           language?: Database['public']['Enums']['language'] | null;
           name: string;
@@ -1851,6 +1853,7 @@ export interface Database {
           city?: string | null;
           country?: string | null;
           created_at?: string | null;
+          first_steps?: boolean | null;
           id?: string;
           language?: Database['public']['Enums']['language'] | null;
           name?: string;

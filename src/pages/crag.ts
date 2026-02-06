@@ -26,6 +26,7 @@ import {
   TuiScrollbar,
   TuiTextfield,
   TuiTitle,
+  TuiHint,
 } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
@@ -62,6 +63,8 @@ import {
   SupabaseService,
   ToastService,
   ToposService,
+  TourService,
+  TourStep,
 } from '../services';
 
 import { TopoImagePipe } from '../pipes';
@@ -103,6 +106,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     TuiTabs,
     TuiTextfield,
     TuiTitle,
+    TuiHint,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -246,6 +250,9 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
               [activeItemIndex]="activeTabIndex()"
               (activeItemIndexChange)="activeTabIndex.set($event)"
               class="mt-6"
+              [tuiHint]="tourHint"
+              [tuiHintOpened]="tourService.step() === TourStep.CRAG"
+              tuiHintDirection="top-left"
             >
               @for (tabIdx of visibleTabs(); track tabIdx) {
                 <button tuiTab>
@@ -601,6 +608,20 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
         }
       </section>
     </tui-scrollbar>
+
+    <ng-template #tourHint>
+      <div class="flex flex-col gap-2 max-w-xs">
+        <p>{{ 'tour.crag.description' | translate }}</p>
+        <button
+          tuiButton
+          size="s"
+          appearance="primary"
+          (click)="tourService.next()"
+        >
+          {{ 'tour.next' | translate }}
+        </button>
+      </div>
+    </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex grow min-h-0' },
@@ -619,6 +640,8 @@ export class CragComponent {
   protected readonly toast = inject(ToastService);
   protected readonly translate = inject(TranslateService);
   protected readonly dialogs = inject(TuiDialogService);
+  protected readonly tourService = inject(TourService);
+  protected readonly TourStep = TourStep;
 
   protected readonly mapLocationUrl = mapLocationUrl;
 

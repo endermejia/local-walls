@@ -32,10 +32,17 @@ import {
   ORDERED_GRADE_VALUES,
 } from '../models';
 
-import { AreasService, FiltersService, GlobalData } from '../services';
+import {
+  AreasService,
+  FiltersService,
+  GlobalData,
+  TourService,
+  TourStep,
+} from '../services';
 
 import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
 import { EmptyStateComponent } from '../components/empty-state';
+import { TuiHint } from '@taiga-ui/core';
 
 @Component({
   selector: 'app-area-list',
@@ -54,11 +61,17 @@ import { EmptyStateComponent } from '../components/empty-state';
     TuiScrollbar,
     TuiTextfield,
     TuiTitle,
+    TuiHint,
   ],
   template: `
     <tui-scrollbar class="flex grow">
       <section class="w-full max-w-5xl mx-auto p-4">
-        <header class="flex items-center justify-between gap-2">
+        <header
+          class="flex items-center justify-between gap-2"
+          [tuiHint]="tourHint"
+          [tuiHintOpened]="tourService.step() === TourStep.AREAS"
+          tuiHintDirection="bottom-left"
+        >
           @let areasCount = filtered().length;
           <h1 class="text-2xl font-bold w-full sm:w-auto">
             <tui-avatar
@@ -185,6 +198,20 @@ import { EmptyStateComponent } from '../components/empty-state';
         }
       </section>
     </tui-scrollbar>
+
+    <ng-template #tourHint>
+      <div class="flex flex-col gap-2 max-w-xs">
+        <p>{{ 'tour.areas.description' | translate }}</p>
+        <button
+          tuiButton
+          size="s"
+          appearance="primary"
+          (click)="tourService.next()"
+        >
+          {{ 'tour.next' | translate }}
+        </button>
+      </div>
+    </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex grow min-h-0' },
@@ -193,6 +220,8 @@ export class AreaListComponent {
   protected readonly global = inject(GlobalData);
   protected readonly router = inject(Router);
   protected readonly areasService = inject(AreasService);
+  protected readonly tourService = inject(TourService);
+  protected readonly TourStep = TourStep;
   private readonly filtersService = inject(FiltersService);
 
   readonly loading = computed(() => this.areasService.loading());

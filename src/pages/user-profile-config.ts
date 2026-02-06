@@ -87,7 +87,10 @@ import {
   ToastService,
   UserProfilesService,
   EightAnuService,
+  TourService,
 } from '../services';
+import { FirstStepsDialogComponent } from '../dialogs/first-steps-dialog';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 interface Country {
   id: string;
@@ -147,9 +150,13 @@ interface Country {
             tuiIconButton
             type="button"
             class="!rounded-full"
-            (click)="close()"
+            (click)="isFirstSteps() ? startTour() : close()"
           >
-            {{ 'actions.back' | translate }}
+            {{
+              isFirstSteps()
+                ? ('firstSteps.next' | translate)
+                : ('actions.back' | translate)
+            }}
           </button>
           <h2 class="text-xl font-bold m-0">
             {{ 'profile.title' | translate }}
@@ -159,7 +166,12 @@ interface Country {
         <!-- Avatar y Nombre -->
         <div class="flex flex-col md:flex-row items-center gap-4">
           <div class="relative inline-block">
-            <tui-badged-content [style.--tui-radius.%]="50">
+            <tui-badged-content
+              [style.--tui-radius.%]="50"
+              [class.ring-4]="isFirstSteps()"
+              [class.ring-primary]="isFirstSteps()"
+              class="rounded-full"
+            >
               @if (userEmail()) {
                 <tui-icon icon="@tui.upload" tuiSlot="top" tuiBadge />
               }
@@ -178,7 +190,13 @@ interface Country {
             </tui-badged-content>
           </div>
           <div class="w-full">
-            <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+            <tui-textfield
+              class="w-full"
+              [tuiTextfieldCleaner]="false"
+              [class.ring-2]="isFirstSteps()"
+              [class.ring-primary]="isFirstSteps()"
+              class="rounded-xl"
+            >
               <label tuiLabel for="nameInput">{{
                 'labels.userName' | translate
               }}</label>
@@ -226,7 +244,13 @@ interface Country {
         </div>
         <!-- Bio -->
         <div>
-          <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+          <tui-textfield
+            class="w-full"
+            [tuiTextfieldCleaner]="false"
+            [class.ring-2]="isFirstSteps()"
+            [class.ring-primary]="isFirstSteps()"
+            class="rounded-xl"
+          >
             <label tuiLabel for="bioInput">{{
               'labels.bio' | translate
             }}</label>
@@ -582,6 +606,7 @@ export class UserProfileConfigComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly userProfilesService = inject(UserProfilesService);
+  private readonly tourService = inject(TourService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
@@ -597,6 +622,10 @@ export class UserProfileConfigComponent {
     })();
 
   protected readonly profile = computed(() => this.global.userProfile());
+  protected readonly isFirstSteps = computed(
+    () => this.profile()?.first_steps ?? false,
+  );
+  private hasOpenedWelcome = false;
   protected readonly eightAnuService = inject(EightAnuService);
 
   protected readonly eightAnuShowLoader = signal(false);
@@ -722,6 +751,26 @@ export class UserProfileConfigComponent {
     effect(() => {
       const userProfile = this.profile();
       if (userProfile) void this.loadProfile();
+    });
+
+    effect(() => {
+      if (
+        this.isFirstSteps() &&
+        !this.hasOpenedWelcome &&
+        isPlatformBrowser(this.platformId)
+      ) {
+        this.hasOpenedWelcome = true;
+        // Small delay to ensure UI is ready
+        setTimeout(() => {
+          this.dialogs
+            .open(new PolymorpheusComponent(FirstStepsDialogComponent), {
+              size: 'm',
+              dismissible: false,
+              closeable: false,
+            })
+            .subscribe();
+        }, 500);
+      }
     });
   }
 
@@ -1055,5 +1104,9 @@ export class UserProfileConfigComponent {
     } else {
       this.location.back();
     }
+  }
+
+  startTour(): void {
+    void this.tourService.start();
   }
 }

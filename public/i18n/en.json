@@ -610,5 +610,33 @@
     "invert": "Invert",
     "sharpen": "Sharpen",
     "noFilter": "No filter"
+  },
+  "firstSteps": {
+    "welcomeTitle": "Welcome to ClimBeast!",
+    "welcomeDescription": "The fanatic climbing community. Set up your profile to get started.",
+    "startSetup": "Start",
+    "next": "Next"
+  },
+  "tour": {
+    "next": "Next",
+    "finish": "Finish",
+    "home": {
+      "description": "This is your dashboard. Here you will see recent activity and your favorite spots."
+    },
+    "explore": {
+      "description": "Explore the map to find climbing spots near you."
+    },
+    "areas": {
+      "description": "Browse the full list of areas and filter by your preferences."
+    },
+    "crag": {
+      "description": "Here are the sector details: routes, topos, parkings, and weather."
+    },
+    "route": {
+      "description": "Detailed route info, ascents, and stats."
+    },
+    "profile": {
+      "description": "Your profile: manage your ascents, projects, and stats."
+    }
   }
 }

@@ -18,7 +18,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { TuiButton, TuiIcon, TuiLoader } from '@taiga-ui/core';
+import { TuiButton, TuiIcon, TuiLoader, TuiHint } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
@@ -43,6 +43,8 @@ import {
   GlobalData,
   RoutesService,
   ToastService,
+  TourService,
+  TourStep,
 } from '../services';
 
 import { AscentsFeedComponent } from '../components/ascents-feed';
@@ -67,12 +69,18 @@ import { handleErrorToast } from '../utils';
     TuiIcon,
     ChartAscentsByGradeComponent,
     LowerCasePipe,
+    TuiHint,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
       @let isAdmin = global.isAdmin();
       @if (route(); as r) {
-        <div class="mb-4 flex items-center justify-between gap-2">
+        <div
+          class="mb-4 flex items-center justify-between gap-2"
+          [tuiHint]="tourHint"
+          [tuiHintOpened]="tourService.step() === TourStep.ROUTE"
+          tuiHintDirection="bottom-left"
+        >
           <app-section-header
             class="w-full"
             [title]="r.name"
@@ -283,6 +291,20 @@ import { handleErrorToast } from '../utils';
         </div>
       }
     </section>
+
+    <ng-template #tourHint>
+      <div class="flex flex-col gap-2 max-w-xs">
+        <p>{{ 'tour.route.description' | translate }}</p>
+        <button
+          tuiButton
+          size="s"
+          appearance="primary"
+          (click)="tourService.next()"
+        >
+          {{ 'tour.next' | translate }}
+        </button>
+      </div>
+    </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex grow overflow-auto' },
@@ -292,6 +314,8 @@ export class RouteComponent {
   private readonly location = inject(Location);
   protected readonly routesService = inject(RoutesService);
   protected readonly ascentsService = inject(AscentsService);
+  protected readonly tourService = inject(TourService);
+  protected readonly TourStep = TourStep;
   private readonly followsService = inject(FollowsService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);

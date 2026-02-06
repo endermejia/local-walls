@@ -610,5 +610,33 @@
     "invert": "Invertir",
     "sharpen": "Nitidez",
     "noFilter": "Sin filtro"
+  },
+  "firstSteps": {
+    "welcomeTitle": "¡Bienvenido a ClimBeast!",
+    "welcomeDescription": "La comunidad fanática de escalada. Configura tu perfil para empezar.",
+    "startSetup": "Empezar",
+    "next": "Siguiente"
+  },
+  "tour": {
+    "next": "Siguiente",
+    "finish": "Finalizar",
+    "home": {
+      "description": "Este es tu panel de inicio. Aquí verás la actividad reciente y tus zonas favoritas."
+    },
+    "explore": {
+      "description": "Explora el mapa para encontrar zonas de escalada cerca de ti."
+    },
+    "areas": {
+      "description": "Consulta el listado completo de áreas y filtra por tus preferencias."
+    },
+    "crag": {
+      "description": "Aquí tienes los detalles del sector: vías, croquis, parkings y meteo."
+    },
+    "route": {
+      "description": "Información detallada de la vía, encadenes y estadísticas."
+    },
+    "profile": {
+      "description": "Tu perfil: gestiona tus encadenes, proyectos y estadísticas."
+    }
   }
 }

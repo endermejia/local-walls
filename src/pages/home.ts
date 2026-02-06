@@ -39,9 +39,12 @@ import {
   GlobalData,
   ScrollService,
   SupabaseService,
+  TourService,
+  TourStep,
 } from '../services';
 
 import { AscentsFeedComponent } from '../components/ascents-feed';
+import { TuiButton, TuiHint } from '@taiga-ui/core';
 
 @Component({
   selector: 'app-home',
@@ -56,11 +59,18 @@ import { AscentsFeedComponent } from '../components/ascents-feed';
     TuiLoader,
     TuiScrollbar,
     TuiSegmented,
+    TuiHint,
+    TuiButton,
   ],
   template: `
     <tui-scrollbar class="h-full">
       <div class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32 pt-4">
-        <div class="px-4 flex flex-col gap-4">
+        <div
+          class="px-4 flex flex-col gap-4"
+          [tuiHint]="tourHint"
+          [tuiHintOpened]="tourService.step() === TourStep.HOME"
+          tuiHintDirection="bottom-left"
+        >
           <!-- Active Crags -->
           @if (activeCrags(); as crags) {
             @if (crags.length > 0) {
@@ -122,6 +132,20 @@ import { AscentsFeedComponent } from '../components/ascents-feed';
         </div>
       </div>
     </tui-scrollbar>
+
+    <ng-template #tourHint>
+      <div class="flex flex-col gap-2 max-w-xs">
+        <p>{{ 'tour.home.description' | translate }}</p>
+        <button
+          tuiButton
+          size="s"
+          appearance="primary"
+          (click)="tourService.next()"
+        >
+          {{ 'tour.next' | translate }}
+        </button>
+      </div>
+    </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -132,6 +156,8 @@ export class HomeComponent implements OnDestroy {
   protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
+  protected readonly tourService = inject(TourService);
+  protected readonly TourStep = TourStep;
   private readonly followsService = inject(FollowsService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
