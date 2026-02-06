@@ -417,6 +417,13 @@
       "confirmationTitle": "Enable editing mode",
       "confirmationUser": "By enabling this mode, buttons will appear on screens to create areas, sectors, and routes. You will be able to edit the items you create for one week after creation.",
       "confirmationEquipper": "By enabling this mode, buttons will appear to create content. Additionally, as an equipper, you can manage and edit sectors, routes, and topos in your assigned areas from the 'My Areas' section at any time."
+    },
+    "deleteAccount": {
+      "button": "Delete account",
+      "title": "Delete account",
+      "warning": "This action is irreversible. All your data, ascents, and photos will be deleted.",
+      "instruction": "Type your email <strong>{{email}}</strong> to confirm.",
+      "success": "Account deleted successfully."
     }
   },
   "ascentTypes": {
@@ -610,6 +617,10 @@
     "invert": "Invert",
     "sharpen": "Sharpen",
     "noFilter": "No filter"
+  },
+  "landing": {
+    "welcome": "Welcome to ClimBeast",
+    "description": "Your climbing community. Log your ascents, find new crags, and share with friends."
   },
   "firstSteps": {
     "welcomeTitle": "Welcome to ClimBeast!",

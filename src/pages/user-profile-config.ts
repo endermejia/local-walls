@@ -15,7 +15,7 @@ import {
   signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { TuiDay, TuiStringMatcher } from '@taiga-ui/cdk';
@@ -25,7 +25,6 @@ import {
   TuiFallbackSrcPipe,
   TuiFlagPipe,
   TuiIcon,
-  TuiLoader,
   TuiNotification,
   TuiScrollbar,
   TuiTextfield,
@@ -36,6 +35,7 @@ import {
   TuiDialogService,
   type TuiDialogContext,
 } from '@taiga-ui/experimental';
+import { PolymorpheusContent } from '@taiga-ui/polymorpheus';
 import {
   TUI_CONFIRM,
   TUI_COUNTRIES,
@@ -124,7 +124,6 @@ interface Country {
     TuiInputDate,
     TuiInputNumber,
     TuiInputYear,
-    TuiLoader,
     TuiNotification,
     TuiScrollbar,
     TuiSegmented,
@@ -136,6 +135,7 @@ interface Country {
     TuiTextfield,
     TuiDropdown,
     TuiPulse,
+    TuiTitle,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
@@ -209,7 +209,6 @@ interface Country {
               [tuiTextfieldCleaner]="false"
               [class.ring-2]="isFirstSteps()"
               [class.ring-primary]="isFirstSteps()"
-              class="rounded-xl"
             >
               <label tuiLabel for="nameInput">{{
                 'labels.userName' | translate
@@ -263,7 +262,6 @@ interface Country {
             [tuiTextfieldCleaner]="false"
             [class.ring-2]="isFirstSteps()"
             [class.ring-primary]="isFirstSteps()"
-            class="rounded-xl"
           >
             <label tuiLabel for="bioInput">{{
               'labels.bio' | translate
@@ -281,6 +279,7 @@ interface Country {
           </tui-textfield>
         </div>
         <!-- 8a.nu User -->
+        <!-- Temporarily hidden
         <div class="flex items-center gap-4">
           @if (selectedEightAnuUser.value(); as user) {
             <tui-avatar size="l" [src]="user.avatar" />
@@ -328,6 +327,7 @@ interface Country {
             }
           </tui-textfield>
         </div>
+        -->
         <!-- Country & City -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Country -->
@@ -514,8 +514,9 @@ interface Country {
         </div>
         <!-- Language & Theme -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Language -->
-          <div>
+          <!-- Left Column: Language & Theme -->
+          <div class="flex flex-col gap-6">
+            <!-- Language -->
             <tui-textfield
               tuiChevron
               [tuiTextfieldCleaner]="false"
@@ -538,10 +539,11 @@ interface Country {
                 [items]="languages"
               />
             </tui-textfield>
-          </div>
-          <!-- Theme & Private profile -->
-          <div class="flex flex-col items-end gap-4">
+
+            <!-- Theme -->
             <tui-segmented
+              size="l"
+              class="w-fit"
               [activeItemIndex]="theme === Themes.DARK ? 1 : 0"
               (activeItemIndexChange)="toggleTheme($event === 1)"
             >
@@ -552,7 +554,10 @@ interface Country {
                 <tui-icon icon="@tui.moon" />
               </button>
             </tui-segmented>
+          </div>
 
+          <!-- Right Column: Switches -->
+          <div class="flex flex-col items-end gap-4">
             <div class="flex items-center gap-4">
               <label tuiLabel for="msgSoundUtil">{{
                 'labels.messageSound' | translate
@@ -611,21 +616,77 @@ interface Country {
 
         <br />
 
-        <!-- Logout button -->
-        <div class="flex items-center justify-center">
+        <!-- Account Actions -->
+        <div
+          class="flex flex-col sm:flex-row items-center sm:justify-center gap-4 mt-8 border-t border-[var(--tui-border-normal)] pt-8"
+        >
           <button
             tuiButton
-            appearance="action-destructive"
+            appearance="secondary"
             type="button"
             size="m"
+            class="w-full sm:w-auto"
             (click)="logout()"
           >
             {{ 'auth.logout' | translate }}
+          </button>
+
+          <button
+            tuiButton
+            appearance="flat-destructive"
+            type="button"
+            size="m"
+            class="w-full sm:w-auto"
+            (click)="deleteAccount(deleteDialog)"
+          >
+            {{ 'profile.deleteAccount.button' | translate }}
           </button>
         </div>
       </section>
     </tui-scrollbar>
 
+    <ng-template #deleteDialog let-observer>
+      <div class="flex flex-col gap-4">
+        <h3 tuiTitle>{{ 'profile.deleteAccount.title' | translate }}</h3>
+        <p class="text-red-500 font-bold">
+          {{ 'profile.deleteAccount.warning' | translate }}
+        </p>
+        <p
+          [innerHTML]="
+            'profile.deleteAccount.instruction'
+              | translate: { email: userEmail() }
+          "
+        ></p>
+
+        <tui-textfield>
+          <input
+            tuiTextfield
+            [formControl]="deleteEmailControl"
+            (paste)="$event.preventDefault()"
+            autocomplete="off"
+            placeholder="email@example.com"
+          />
+        </tui-textfield>
+
+        <div class="flex justify-end gap-2">
+          <button
+            tuiButton
+            appearance="secondary"
+            (click)="observer.complete()"
+          >
+            {{ 'actions.cancel' | translate }}
+          </button>
+          <button
+            tuiButton
+            appearance="primary"
+            [disabled]="deleteEmailControl.value !== userEmail()"
+            (click)="confirmDeleteAccount(observer)"
+          >
+            {{ 'profile.deleteAccount.button' | translate }}
+          </button>
+        </div>
+      </div>
+    </ng-template>
     <ng-template #tourHint>
       <app-tour-hint
         [description]="'tour.config.description' | translate"
@@ -721,6 +782,8 @@ export class UserProfileConfigComponent {
   size: number | null = null;
   sex: Sex | null = null;
   isPrivate = false;
+
+  deleteEmailControl = new FormControl('');
 
   // Validation helpers and bounds
   readonly today: TuiDay = TuiDay.currentLocal();
@@ -1153,6 +1216,30 @@ export class UserProfileConfigComponent {
     if (!isPlatformBrowser(this.platformId)) return;
     this.close();
     await this.supabase.logout();
+  }
+
+  deleteAccount(template: PolymorpheusContent<TuiDialogContext<void>>): void {
+    this.deleteEmailControl.reset();
+    this.dialogs
+      .open(template, {
+        size: 'm',
+      })
+      .subscribe();
+  }
+
+  async confirmDeleteAccount(observer: any): Promise<void> {
+    if (this.deleteEmailControl.value !== this.userEmail()) {
+      return;
+    }
+    observer.complete();
+    try {
+      await this.supabase.deleteAccount();
+      this.toast.success('profile.deleteAccount.success');
+      this.close();
+    } catch (e) {
+      console.error('Error deleting account:', e);
+      this.toast.error('Error deleting account');
+    }
   }
 
   close(): void {

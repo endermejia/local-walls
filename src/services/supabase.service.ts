@@ -296,6 +296,21 @@ export class SupabaseService {
     }
   }
 
+  async deleteAccount(): Promise<void> {
+    if (!this._client) throw new Error('Supabase client not ready');
+
+    const response = await this.client.functions.invoke('delete-user', {
+      method: 'POST',
+    });
+
+    if (response.error) {
+      console.error('[SupabaseService] deleteAccount error', response.error);
+      throw response.error;
+    }
+
+    await this.logout();
+  }
+
   /** Send password reset email */
   async resetPassword(email: string, redirectTo?: string) {
     if (!this._client) throw new Error('Supabase client not ready');

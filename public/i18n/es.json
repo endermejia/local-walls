@@ -417,6 +417,13 @@
       "confirmationTitle": "Activar modo edición",
       "confirmationUser": "Al activar este modo, aparecerán botones en las pantallas para crear áreas, sectores y rutas. Podrás editar los elementos que crees durante una semana tras su creación.",
       "confirmationEquipper": "Al activar este modo, aparecerán botones para crear contenido. Además, como eres equipador, podrás gestionar y editar sectores, rutas y croquis en tus áreas asignadas desde la sección 'Mis áreas' en cualquier momento."
+    },
+    "deleteAccount": {
+      "button": "Eliminar cuenta",
+      "title": "Eliminar cuenta",
+      "warning": "Esta acción es irreversible. Se eliminarán todos tus datos, encadenes y fotos.",
+      "instruction": "Escribe tu correo <strong>{{email}}</strong> para confirmar.",
+      "success": "Cuenta eliminada correctamente."
     }
   },
   "ascentTypes": {
@@ -610,6 +617,10 @@
     "invert": "Invertir",
     "sharpen": "Nitidez",
     "noFilter": "Sin filtro"
+  },
+  "landing": {
+    "welcome": "Bienvenido a ClimBeast",
+    "description": "Tu comunidad de escalada. Registra tus encadenes, encuentra nuevas zonas y comparte con amigos."
   },
   "firstSteps": {
     "welcomeTitle": "¡Bienvenido a ClimBeast!",
