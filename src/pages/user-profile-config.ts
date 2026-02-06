@@ -465,8 +465,9 @@ interface Country {
         </div>
         <!-- Language & Theme -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Language -->
-          <div>
+          <!-- Left Column: Language & Theme -->
+          <div class="flex flex-col gap-6">
+            <!-- Language -->
             <tui-textfield
               tuiChevron
               [tuiTextfieldCleaner]="false"
@@ -489,10 +490,11 @@ interface Country {
                 [items]="languages"
               />
             </tui-textfield>
-          </div>
-          <!-- Theme & Private profile -->
-          <div class="flex flex-col items-end gap-4">
+
+            <!-- Theme -->
             <tui-segmented
+              size="l"
+              class="w-fit"
               [activeItemIndex]="theme === Themes.DARK ? 1 : 0"
               (activeItemIndexChange)="toggleTheme($event === 1)"
             >
@@ -503,7 +505,10 @@ interface Country {
                 <tui-icon icon="@tui.moon" />
               </button>
             </tui-segmented>
+          </div>
 
+          <!-- Right Column: Switches -->
+          <div class="flex flex-col items-end gap-4">
             <div class="flex items-center gap-4">
               <label tuiLabel for="msgSoundUtil">{{
                 'labels.messageSound' | translate
@@ -562,26 +567,27 @@ interface Country {
 
         <br />
 
-        <!-- Logout button -->
-        <div class="flex items-center justify-center">
+        <!-- Account Actions -->
+        <div
+          class="flex flex-col sm:flex-row items-center sm:justify-center gap-4 mt-8 border-t border-[var(--tui-border-normal)] pt-8"
+        >
           <button
             tuiButton
-            appearance="action-destructive"
+            appearance="secondary"
             type="button"
             size="m"
+            class="w-full sm:w-auto"
             (click)="logout()"
           >
             {{ 'auth.logout' | translate }}
           </button>
-        </div>
 
-        <!-- Delete Account -->
-        <div class="flex items-center justify-center mt-4">
           <button
             tuiButton
-            appearance="action-destructive"
+            appearance="flat-destructive"
             type="button"
             size="m"
+            class="w-full sm:w-auto"
             (click)="deleteAccount(deleteDialog)"
           >
             {{ 'profile.deleteAccount.button' | translate }}
