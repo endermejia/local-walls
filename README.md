@@ -28,6 +28,13 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 - **El admin debe poder hacer Sync del area con 8a.nu, actualizando los crags y routes**
 - **Tanto sync como import deben traer tambien los datos de boulders y no solo sportclimbing**
+- **Opcion para eliminar usuario, con advertencia de borrado de datos y confirmacion escribiendo su correo a mano sin copiar**
+- **Primeros pasos para nuevos usuarios. Añadir boolean first_steps en user-profile para ver primeros pasos.**
+  - Debe mostrar un mensaje de bienvenida, logo de la app y breve explicacion.
+  - Al ir a la pantalla user-profile-config (pantalla a la que vas al ser nuevo usuario), debe remarcar los campos que hay que cambiar
+  - Al terminar, debe hacer un tour por la app.
+    - El tour debe ir a home, explorar, areas, crag (ver las tabs del crag: routes, topos, parkings, meteo), routes y user-profile (con todas sus tabs).
+    - Usa tui-pulse para hacer el tour, puedes consultar su documentacion en el archivo taiga-ui-reference.txt en la sección '#### Popover'.
 
 ## Future Features
 
