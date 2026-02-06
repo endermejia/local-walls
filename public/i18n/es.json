@@ -610,5 +610,9 @@
     "invert": "Invertir",
     "sharpen": "Nitidez",
     "noFilter": "Sin filtro"
+  },
+  "landing": {
+    "welcome": "Bienvenido a ClimBeast",
+    "description": "Tu comunidad de escalada. Registra tus encadenes, encuentra nuevas zonas y comparte con amigos."
   }
 }

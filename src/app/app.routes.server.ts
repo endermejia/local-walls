@@ -3,6 +3,7 @@ import { PrerenderFallback, RenderMode, ServerRoute } from '@angular/ssr';
 export const serverRoutes: ServerRoute[] = [
   { path: 'home', renderMode: RenderMode.Prerender },
   { path: 'login', renderMode: RenderMode.Prerender },
+  { path: 'info', renderMode: RenderMode.Prerender },
   { path: 'explore', renderMode: RenderMode.Prerender },
   {
     path: 'profile/config',
@@ -78,7 +79,7 @@ export const serverRoutes: ServerRoute[] = [
   {
     path: '',
     renderMode: RenderMode.Server,
-    headers: { Location: '/home' },
+    headers: { Location: '/info' },
     status: 302,
   },
   {

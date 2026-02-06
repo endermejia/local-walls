@@ -610,5 +610,9 @@
     "invert": "Invert",
     "sharpen": "Sharpen",
     "noFilter": "No filter"
+  },
+  "landing": {
+    "welcome": "Welcome to ClimBeast",
+    "description": "Your climbing community. Log your ascents, find new crags, and share with friends."
   }
 }
