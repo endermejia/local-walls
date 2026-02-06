@@ -5,7 +5,6 @@ import {
   authGuard,
   equipperGuard,
   rootRedirectGuard,
-  sessionGuard,
 } from '../services';
 
 export const routes: Routes = [

@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  output,
+} from '@angular/core';
 import { TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -8,7 +13,7 @@ import { TranslatePipe } from '@ngx-translate/core';
   imports: [TuiButton, TuiIcon, TranslatePipe],
   template: `
     <div
-      class="flex flex-col gap-4 p-4 max-w-xs bg-[var(--tui-background-base)] rounded-xl shadow-lg border border-[var(--tui-border-normal)]"
+      class="flex flex-col gap-4 p-4 max-w-sm bg-[var(--tui-background-base)] rounded-xl shadow-lg border border-[var(--tui-border-normal)]"
     >
       <div class="flex items-start gap-3">
         <tui-icon
@@ -20,12 +25,7 @@ import { TranslatePipe } from '@ngx-translate/core';
         </p>
       </div>
       <div class="flex justify-end">
-        <button
-          tuiButton
-          size="s"
-          appearance="primary"
-          (click)="onNext()"
-        >
+        <button tuiButton size="s" appearance="primary" (click)="onNext()">
           {{ (isLast() ? 'tour.finish' : 'tour.next') | translate }}
         </button>
       </div>

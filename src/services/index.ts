@@ -21,7 +21,6 @@ export * from './root-redirect.guard';
 export * from './routes.service';
 export * from './scroll.service';
 export * from './search.service';
-export * from './session.guard';
 export * from './supabase.service';
 export * from './toast.service';
 export * from './topos.service';

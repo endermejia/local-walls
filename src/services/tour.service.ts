@@ -37,7 +37,7 @@ export class TourService {
 
   async next(): Promise<void> {
     const current = this.step();
-    if (current === TourStep.PROFILE) {
+    if (current === TourStep.PROFILE_LIKES) {
       await this.finish();
       return;
     }
@@ -55,7 +55,7 @@ export class TourService {
   }
 
   private async goToStep(step: TourStep): Promise<void> {
-    this.step.set(step);
+    // Navigate first
     switch (step) {
       case TourStep.WELCOME:
         await this.router.navigate(['/profile/config']);
@@ -84,6 +84,8 @@ export class TourService {
         await this.router.navigate(['/profile']);
         break;
     }
+
+    this.step.set(step);
   }
 
   private async navigateToAnyCrag(): Promise<void> {

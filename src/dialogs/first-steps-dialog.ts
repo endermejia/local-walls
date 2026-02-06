@@ -3,13 +3,20 @@ import { TuiButton, TuiDialogContext, TuiTitle } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TourService } from '../services';
+import { NgOptimizedImage } from '@angular/common';
 
 @Component({
   selector: 'app-first-steps-dialog',
-  imports: [TuiButton, TuiTitle, TranslatePipe],
+  imports: [TuiButton, TuiTitle, TranslatePipe, NgOptimizedImage],
   template: `
     <div class="flex flex-col items-center gap-6 text-center p-4">
-      <img src="/logo.svg" alt="Climbeast Logo" class="w-32 h-32" />
+      <img
+        ngSrc="/logo/climbeast.svg"
+        alt="Climbeast Logo"
+        class="w-32 h-32"
+        height="16"
+        width="16"
+      />
 
       <div class="space-y-2">
         <h2 tuiTitle class="text-2xl font-bold">

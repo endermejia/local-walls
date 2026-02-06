@@ -115,12 +115,13 @@ import {
         class="w-full max-w-5xl mx-auto p-4 grid gap-4"
       >
         @let loading = !profile();
-        <div
-          class="flex items-center gap-4"
-          [tuiDropdown]="tourHint"
-          [tuiDropdownOpen]="tourService.step() === TourStep.PROFILE"
-          tuiDropdownDirection="bottom"
-        >
+        <div class="flex items-center gap-4">
+          <div
+            class="absolute inset-0 pointer-events-none"
+            [tuiDropdown]="tourHint"
+            [tuiDropdownOpen]="tourService.step() === TourStep.PROFILE"
+            tuiDropdownDirection="bottom"
+          ></div>
           @let avatar = profileAvatarSrc();
           <tui-avatar
             [src]="avatar | tuiFallbackSrc: '@tui.user' | async"
@@ -296,6 +297,7 @@ import {
         <tui-tabs
           [activeItemIndex]="activeTab()"
           (activeItemIndexChange)="activeTab.set($event)"
+          class="w-full mt-6"
           [tuiDropdown]="tourHint"
           [tuiDropdownOpen]="
             tourService.step() === TourStep.PROFILE ||
@@ -304,21 +306,23 @@ import {
           "
           tuiDropdownDirection="top"
         >
-          @if (
-            tourService.step() === TourStep.PROFILE ||
-            tourService.step() === TourStep.PROFILE_PROJECTS ||
-            tourService.step() === TourStep.PROFILE_LIKES
-          ) {
-            <tui-pulse class="absolute -top-1 -right-1" />
-          }
-          <button tuiTab>
+          <button tuiTab class="relative">
+            @if (tourService.step() === TourStep.PROFILE) {
+              <tui-pulse class="absolute -top-1 -right-1" />
+            }
             {{ 'labels.ascents' | translate }}
           </button>
-          <button tuiTab>
+          <button tuiTab class="relative">
+            @if (tourService.step() === TourStep.PROFILE_PROJECTS) {
+              <tui-pulse class="absolute -top-1 -right-1" />
+            }
             {{ 'labels.projects' | translate }}
           </button>
           @if (isOwnProfile()) {
-            <button tuiTab>
+            <button tuiTab class="relative">
+              @if (tourService.step() === TourStep.PROFILE_LIKES) {
+                <tui-pulse class="absolute -top-1 -right-1" />
+              }
               {{ 'labels.likes' | translate }}
             </button>
           }

@@ -263,16 +263,19 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
               "
               tuiDropdownDirection="top"
             >
-              @if (
-                tourService.step() === TourStep.CRAG ||
-                tourService.step() === TourStep.CRAG_TOPOS ||
-                tourService.step() === TourStep.CRAG_PARKINGS ||
-                tourService.step() === TourStep.CRAG_WEATHER
-              ) {
-                <tui-pulse class="absolute -top-1 -right-1" />
-              }
               @for (tabIdx of visibleTabs(); track tabIdx) {
-                <button tuiTab>
+                <button tuiTab class="relative">
+                  @if (
+                    (tabIdx === 0 && tourService.step() === TourStep.CRAG) ||
+                    (tabIdx === 1 &&
+                      tourService.step() === TourStep.CRAG_TOPOS) ||
+                    (tabIdx === 2 &&
+                      tourService.step() === TourStep.CRAG_PARKINGS) ||
+                    (tabIdx === 3 &&
+                      tourService.step() === TourStep.CRAG_WEATHER)
+                  ) {
+                    <tui-pulse class="absolute -top-1 -right-1" />
+                  }
                   {{
                     (tabIdx === 0
                       ? 'labels.routes'

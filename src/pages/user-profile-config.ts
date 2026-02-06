@@ -70,6 +70,7 @@ import {
   Subject,
   switchMap,
   tap,
+  Observer,
 } from 'rxjs';
 
 import {
@@ -144,9 +145,6 @@ interface Country {
     <tui-scrollbar class="flex grow">
       <section
         class="w-full max-w-5xl mx-auto p-4 grid grid-cols-1 gap-4 pb-32"
-        [tuiDropdown]="tourHint"
-        [tuiDropdownOpen]="tourService.step() === TourStep.WELCOME"
-        tuiDropdownDirection="bottom"
       >
         <!-- Sticky Header -->
         <div
@@ -171,9 +169,6 @@ interface Country {
             <h2 class="text-xl font-bold m-0">
               {{ 'profile.title' | translate }}
             </h2>
-            @if (tourService.step() === TourStep.WELCOME) {
-              <tui-pulse class="self-center" />
-            }
           </div>
         </div>
 
@@ -203,12 +198,17 @@ interface Country {
               />
             </tui-badged-content>
           </div>
-          <div class="w-full">
+          <div
+            class="w-full"
+            [tuiDropdown]="tourHint"
+            [tuiDropdownOpen]="tourService.step() === TourStep.WELCOME"
+            tuiDropdownDirection="bottom"
+          >
             <tui-textfield
               class="w-full"
               [tuiTextfieldCleaner]="false"
-              [class.ring-2]="isFirstSteps()"
-              [class.ring-primary]="isFirstSteps()"
+              [class.ring-2]="tourService.step() === TourStep.WELCOME"
+              [class.ring-primary]="tourService.step() === TourStep.WELCOME"
             >
               <label tuiLabel for="nameInput">{{
                 'labels.userName' | translate
@@ -228,6 +228,9 @@ interface Country {
                 [tuiSkeleton]="!userEmail()"
               />
             </tui-textfield>
+            @if (tourService.step() === TourStep.WELCOME) {
+              <tui-pulse class="!absolute top-0 right-0 -mt-1 -mr-1 z-10" />
+            }
             @if (nameEqualsEmail()) {
               <tui-notification appearance="warning" class="mt-2">
                 <h3 tuiTitle>
@@ -489,28 +492,16 @@ interface Country {
           <h2 class="text-lg font-bold m-0">
             {{ 'labels.preferences' | translate }}
           </h2>
-          <div class="flex gap-2">
-            <button
-              iconStart="@tui.refresh-cw"
-              size="s"
-              tuiButton
-              type="button"
-              appearance="action-grayscale"
-              (click)="restartFirstSteps()"
-            >
-              {{ 'firstSteps.restart' | translate }}
-            </button>
-            <button
-              iconStart="@tui.download"
-              size="s"
-              tuiButton
-              type="button"
-              appearance="action-grayscale"
-              (click)="openImport8aDialog()"
-            >
-              {{ 'import8a.button' | translate }}
-            </button>
-          </div>
+          <button
+            iconStart="@tui.download"
+            size="s"
+            tuiButton
+            type="button"
+            appearance="action-grayscale"
+            (click)="openImport8aDialog()"
+          >
+            {{ 'import8a.button' | translate }}
+          </button>
         </div>
         <!-- Language & Theme -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -558,6 +549,20 @@ interface Country {
 
           <!-- Right Column: Switches -->
           <div class="flex flex-col items-end gap-4">
+            <!-- Switches -->
+            <div class="flex items-center gap-4">
+              <label tuiLabel for="firstStepsSwitch">{{
+                'labels.firstSteps' | translate
+              }}</label>
+              <input
+                id="firstStepsSwitch"
+                tuiSwitch
+                type="checkbox"
+                [ngModel]="false"
+                (ngModelChange)="onRestartFirstStepsChange($event)"
+              />
+            </div>
+
             <div class="flex items-center gap-4">
               <label tuiLabel for="msgSoundUtil">{{
                 'labels.messageSound' | translate
@@ -859,17 +864,19 @@ export class UserProfileConfigComponent {
         this.tourService.step() === TourStep.OFF &&
         isPlatformBrowser(this.platformId)
       ) {
+        // Double check with latest profile data or force a check if needed,
+        // but currently isFirstSteps() relies on computed signal.
+        // We set hasOpenedWelcome to true immediately to prevent double opening.
         this.hasOpenedWelcome = true;
-        // Small delay to ensure UI is ready
-        setTimeout(() => {
-          this.dialogs
-            .open(new PolymorpheusComponent(FirstStepsDialogComponent), {
-              size: 'm',
-              dismissible: false,
-              closable: false,
-            })
-            .subscribe();
-        }, 500);
+
+        if (!this.isFirstSteps()) return;
+        this.dialogs
+          .open(new PolymorpheusComponent(FirstStepsDialogComponent), {
+            size: 'm',
+            dismissible: false,
+            closable: false,
+          })
+          .subscribe();
       }
     });
   }
@@ -1149,7 +1156,9 @@ export class UserProfileConfigComponent {
     this.userProfilesService.openImport8aDialog();
   }
 
-  async restartFirstSteps(): Promise<void> {
+  async onRestartFirstStepsChange(enabled: boolean): Promise<void> {
+    if (!enabled) return;
+
     const confirmed = await firstValueFrom(
       this.dialogs.open<boolean>(TUI_CONFIRM, {
         label: this.translate.instant('firstSteps.restart'),
@@ -1227,7 +1236,7 @@ export class UserProfileConfigComponent {
       .subscribe();
   }
 
-  async confirmDeleteAccount(observer: any): Promise<void> {
+  async confirmDeleteAccount(observer: Observer<void>): Promise<void> {
     if (this.deleteEmailControl.value !== this.userEmail()) {
       return;
     }

@@ -24,6 +24,10 @@ import {
 
 import { GlobalData, ScrollService, SearchService } from '../services';
 import { TuiAutoFocus } from '@taiga-ui/cdk';
+import { TourService, TourStep } from '../services';
+import { TourHintComponent } from './tour-hint';
+import { TuiDropdown } from '@taiga-ui/core';
+import { TuiPulse } from '@taiga-ui/kit';
 
 @Component({
   selector: 'app-navbar',
@@ -47,6 +51,9 @@ import { TuiAutoFocus } from '@taiga-ui/cdk';
     TuiCell,
     TuiTitle,
     TuiAutoFocus,
+    TuiDropdown,
+    TuiPulse,
+    TourHintComponent,
   ],
   template: `
     <nav
@@ -65,9 +72,18 @@ import { TuiAutoFocus } from '@taiga-ui/cdk';
           [tuiAppearance]="
             home.isActive ? 'flat-destructive' : 'flat-grayscale'
           "
-          class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
+          class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full relative"
           (click)="scrollToTop($event)"
         >
+          <div
+            class="absolute inset-0 pointer-events-none"
+            [tuiDropdown]="tourHint"
+            [tuiDropdownOpen]="tourService.step() === TourStep.HOME"
+            tuiDropdownDirection="bottom"
+          ></div>
+          @if (tourService.step() === TourStep.HOME) {
+            <tui-pulse class="absolute to-0 right-0 -mt-1 -mr-1" />
+          }
           <tui-icon icon="@tui.home" />
 
           <span
@@ -228,11 +244,20 @@ import { TuiAutoFocus } from '@taiga-ui/cdk';
         </a>
       </div>
     </nav>
+
+    <ng-template #tourHint>
+      <app-tour-hint
+        [description]="'tour.home.description' | translate"
+        (next)="tourService.next()"
+      />
+    </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavbarComponent {
   protected global = inject(GlobalData);
+  protected readonly tourService = inject(TourService);
+  protected readonly TourStep = TourStep;
   private readonly searchService = inject(SearchService);
   private readonly router = inject(Router);
   private readonly scrollService = inject(ScrollService);
