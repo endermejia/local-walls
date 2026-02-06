@@ -1,0 +1,88 @@
+
+> climbeast@0.0.0 start
+> ng serve --hmr=false
+
+❯ Building...
+✔ Building...
+Application bundle generation failed. [26.289 seconds] - 2026-02-06T13:00:12.388Z
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2345: Argument of type 'unknown' is not assignable to parameter of type 'PolymorpheusContent<TuiDialogOptions<any> & TuiPopoverContext<void>>'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/pages/user-profile-config.ts:1113:12:
+[37m      1113 │       .open([32mtemplate[37m, {
+           ╵             [32m~~~~~~~~[0m
+
+
+Watch mode enabled. Watching for file changes...
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files  | Names                |  Raw size
+chunk-OCJWRZYQ.js    | -                    | 686.27 kB |
+styles.css           | styles               | 338.46 kB |
+main.js              | main                 |  73.89 kB |
+chunk-FYNH2WEN.js    | -                    |  56.04 kB |
+chunk-OWNKVRRU.js    | -                    |  36.68 kB |
+chunk-KPB2R3TL.js    | -                    |  21.90 kB |
+chunk-5VC5MX2D.js    | -                    |  11.45 kB |
+chunk-TPQYOAT5.js    | -                    |   3.06 kB |
+chunk-O2NU756V.js    | -                    |   2.77 kB |
+chunk-Z56SSN6E.js    | -                    |   1.60 kB |
+
+                     | Initial total        |   1.23 MB
+
+Lazy chunk files     | Names                |  Raw size
+chunk-ZAIVIDFB.js    | crag                 |  96.24 kB |
+chunk-RLYOTLBA.js    | topo                 |  94.20 kB |
+chunk-RCH7JM5O.js    | user-profile         |  79.01 kB |
+chunk-DXLXRZLA.js    | user-profile-config  |  77.90 kB |
+chunk-2DF4DLXD.js    | -                    |  70.12 kB |
+chunk-DLV6QEWA.js    | explore              |  59.79 kB |
+chunk-V7UGMJWN.js    | admin-users-list     |  43.73 kB |
+chunk-4G7G2SRH.js    | route                |  42.87 kB |
+chunk-YDGLJO4H.js    | login                |  42.05 kB |
+chunk-5ATO3OLL.js    | area                 |  31.95 kB |
+chunk-3KA3V34K.js    | admin-equippers-list |  29.49 kB |
+chunk-WTGBVA34.js    | admin-parkings-list  |  29.43 kB |
+chunk-EO2I5VHH.js    | -                    |  21.30 kB |
+chunk-DQFNDWXM.js    | area-list            |  21.21 kB |
+chunk-XT3P3S6H.js    | home                 |  19.30 kB |
+...and 9 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files  | Names                |  Raw size
+chunk-DZB2X25A.mjs   | -                    | 686.30 kB |
+main.server.mjs      | main.server          |  78.08 kB |
+chunk-4U3KXWAT.mjs   | -                    |  56.08 kB |
+chunk-SR46C2WK.mjs   | -                    |  36.72 kB |
+chunk-JWWVRTNN.mjs   | -                    |  21.94 kB |
+chunk-CRVYUXEZ.mjs   | -                    |  11.48 kB |
+chunk-2YRQK3YP.mjs   | -                    |   3.10 kB |
+server.mjs           | server               |   3.06 kB |
+chunk-EXMF5GAT.mjs   | -                    |   2.81 kB |
+chunk-NOTTJK7N.mjs   | -                    |   1.64 kB |
+polyfills.server.mjs | polyfills.server     | 278 bytes |
+
+Lazy chunk files     | Names                |  Raw size
+chunk-CVNLLVMF.mjs   | crag                 |  96.28 kB |
+chunk-6IZLCWDY.mjs   | topo                 |  94.24 kB |
+chunk-2VRCZYID.mjs   | user-profile         |  79.05 kB |
+chunk-ZWRFB7SY.mjs   | user-profile-config  |  77.93 kB |
+chunk-QZZLFJD7.mjs   | -                    |  70.16 kB |
+chunk-BUQVZPM6.mjs   | explore              |  59.83 kB |
+chunk-XKYWLX4W.mjs   | admin-users-list     |  43.77 kB |
+chunk-GD7RFUJ3.mjs   | route                |  42.91 kB |
+chunk-WTI5OL3B.mjs   | login                |  42.08 kB |
+chunk-J2AUVNTN.mjs   | area                 |  31.99 kB |
+chunk-V2LEPHIL.mjs   | admin-equippers-list |  29.53 kB |
+chunk-XYYEZNYQ.mjs   | admin-parkings-list  |  29.47 kB |
+chunk-RAIYILVM.mjs   | -                    |  21.34 kB |
+chunk-AS2D5GOB.mjs   | area-list            |  21.25 kB |
+chunk-TU5ONSP6.mjs   | home                 |  19.33 kB |
+...and 9 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [15.185 seconds] - 2026-02-06T13:01:04.582Z
+
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  ➜  Local:   http://localhost:4200/
