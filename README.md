@@ -26,6 +26,7 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Next Steps
 
+- **Incluir landing page con logo y breve explicacion de la app, para gente no autorizada con boton de login y registro**
 - **El admin debe poder hacer Sync del area con 8a.nu, actualizando los crags y routes**
 - **Tanto sync como import deben traer tambien los datos de boulders y no solo sportclimbing**
 - **Opcion para eliminar usuario, con advertencia de borrado de datos y confirmacion escribiendo su correo a mano sin copiar**
