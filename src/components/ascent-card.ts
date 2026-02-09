@@ -154,7 +154,10 @@ import { AscentLastCommentComponent } from './ascent-last-comment';
             [src]="photoUrl"
             class="w-full h-auto"
             [alt]="ascent.route?.name || 'Ascent photo'"
-            loading="lazy"
+            [loading]="priority() ? 'eager' : 'lazy'"
+            [attr.fetchpriority]="priority() ? 'high' : null"
+            width="600"
+            height="800"
           />
         </div>
       }
@@ -253,6 +256,7 @@ export class AscentCardComponent {
   showUser = input(true);
   showRoute = input(true);
   isFollowed = input(false);
+  priority = input(false);
 
   followEvent = output<string>();
   unfollowEvent = output<string>();

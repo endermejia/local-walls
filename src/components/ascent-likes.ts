@@ -23,16 +23,20 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
   imports: [TuiButton, TuiIcon, TranslatePipe],
   template: `
     <div class="flex items-center gap-1">
-      <tui-icon
+      <button
         type="button"
-        size="m"
-        [icon]="item().user_liked ? '@tui.heart-filled' : '@tui.heart'"
-        [style.color]="item().user_liked ? 'var(--tui-status-negative)' : ''"
-        (click)="toggleLike($event)"
+        class="appearance-none p-0 bg-transparent border-none cursor-pointer flex items-center"
         [attr.aria-label]="'actions.like' | translate"
+        (click)="toggleLike($event)"
       >
-        ❤
-      </tui-icon>
+        <tui-icon
+          size="m"
+          [icon]="item().user_liked ? '@tui.heart-filled' : '@tui.heart'"
+          [style.color]="item().user_liked ? 'var(--tui-status-negative)' : ''"
+        >
+          ❤
+        </tui-icon>
+      </button>
       @if (item().likes_count) {
         <button
           tuiButton
