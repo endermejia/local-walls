@@ -233,6 +233,7 @@
     "errorUnfollow": "Ha ocurrido un error al dejar de seguir al usuario",
     "errorBlock": "Ha ocurrido un error al bloquear al usuario",
     "errorUnblock": "Ha ocurrido un error al desbloquear al usuario",
+    "userBlocked": "Has bloqueado a este usuario.",
     "noFollowers": "Aún no tienes seguidores",
     "noFollowing": "Aún no sigues a nadie",
     "toasts": {

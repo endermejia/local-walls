@@ -102,6 +102,22 @@ export interface ChatDialogData {
           <span class="font-bold truncate text-sm">{{
             room.participant.name
           }}</span>
+          <button
+            tuiIconButton
+            type="button"
+            [appearance]="
+              isBlockedByMe() ? 'primary-destructive' : 'flat-grayscale'
+            "
+            size="s"
+            [iconStart]="isBlockedByMe() ? '@tui.lock' : '@tui.lock-open'"
+            (click)="toggleBlock(room.participant.id)"
+            class="ml-auto"
+          >
+            {{
+              (isBlockedByMe() ? 'actions.unblock' : 'actions.block')
+                | translate
+            }}
+          </button>
         </div>
 
         <tui-scrollbar
@@ -158,37 +174,56 @@ export interface ChatDialogData {
         </tui-scrollbar>
 
         <div class="p-4 border-t border-[var(--tui-border-normal)]">
-          <tui-textfield
-            class="w-full"
-            tuiTextfieldSize="m"
-            [tuiTextfieldCleaner]="false"
-          >
-            <label tuiLabel for="new-message">{{
-              'labels.typeMessage' | translate
-            }}</label>
-            <input
-              tuiTextfield
-              id="new-message"
-              autocomplete="off"
-              placeholder="..."
-              [(ngModel)]="newMessage"
-              (keyup.enter)="onSendMessage()"
-              [disabled]="sending()"
-            />
-            <button
-              tuiButton
-              type="button"
-              appearance="primary"
-              size="s"
-              iconStart="@tui.send"
-              (click)="onSendMessage()"
-              [disabled]="!newMessage().trim() || sending()"
+          @if (isBlockedByMe()) {
+            <div
+              class="flex flex-col items-center justify-center p-4 gap-2 opacity-70"
             >
-              <span class="hidden md:block">
-                {{ 'actions.send' | translate }}
-              </span>
-            </button>
-          </tui-textfield>
+              <span class="text-sm">{{
+                'messages.userBlocked' | translate
+              }}</span>
+              <button
+                tuiButton
+                type="button"
+                appearance="flat"
+                size="s"
+                (click)="toggleBlock(room.participant.id)"
+              >
+                {{ 'actions.unblock' | translate }}
+              </button>
+            </div>
+          } @else {
+            <tui-textfield
+              class="w-full"
+              tuiTextfieldSize="m"
+              [tuiTextfieldCleaner]="false"
+            >
+              <label tuiLabel for="new-message">{{
+                'labels.typeMessage' | translate
+              }}</label>
+              <input
+                tuiTextfield
+                id="new-message"
+                autocomplete="off"
+                placeholder="..."
+                [(ngModel)]="newMessage"
+                (keyup.enter)="onSendMessage()"
+                [disabled]="sending()"
+              />
+              <button
+                tuiButton
+                type="button"
+                appearance="primary"
+                size="s"
+                iconStart="@tui.send"
+                (click)="onSendMessage()"
+                [disabled]="!newMessage().trim() || sending()"
+              >
+                <span class="hidden md:block">
+                  {{ 'actions.send' | translate }}
+                </span>
+              </button>
+            </tui-textfield>
+          }
         </div>
       } @else {
         <!-- Rooms View -->
@@ -307,6 +342,7 @@ export class ChatDialogComponent implements OnDestroy {
     null,
   );
   protected newMessage = signal('');
+  protected readonly isBlockedByMe = signal(false);
   protected readonly sending = signal(false);
   protected readonly messagesOffset = signal(0);
   protected readonly limit = 20;
@@ -445,6 +481,23 @@ export class ChatDialogComponent implements OnDestroy {
         }
       },
     );
+
+    this.checkBlockStatus(room.participant.id);
+  }
+
+  private async checkBlockStatus(userId: string) {
+    const blocked = await this.messagingService.isUserBlockedByMe(userId);
+    this.isBlockedByMe.set(blocked);
+  }
+
+  protected async toggleBlock(userId: string) {
+    if (this.isBlockedByMe()) {
+      const success = await this.messagingService.unblockUserMessages(userId);
+      if (success) this.isBlockedByMe.set(false);
+    } else {
+      const success = await this.messagingService.blockUserMessages(userId);
+      if (success) this.isBlockedByMe.set(true);
+    }
   }
 
   protected onSelectUser(user: UserProfileDto) {

@@ -233,6 +233,7 @@
     "errorUnfollow": "An error occurred while unfollowing the user",
     "errorBlock": "An error occurred while blocking the user",
     "errorUnblock": "An error occurred while unblocking the user",
+    "userBlocked": "You have blocked this user.",
     "toasts": {
       "userFollowed": "You are now following this user",
       "userUnfollowed": "You have unfollowed this user",
