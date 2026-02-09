@@ -1425,7 +1425,7 @@ export interface Database {
           no_score: boolean | null;
           overhang: boolean | null;
           photo_path: string | null;
-          private_comment: boolean | null;
+          private_ascent: boolean | null;
           rate: number | null;
           rebolted_by_me: boolean | null;
           recommended: boolean | null;
@@ -1465,7 +1465,7 @@ export interface Database {
           no_score?: boolean | null;
           overhang?: boolean | null;
           photo_path?: string | null;
-          private_comment?: boolean | null;
+          private_ascent?: boolean | null;
           rate?: number | null;
           rebolted_by_me?: boolean | null;
           recommended?: boolean | null;
@@ -1505,7 +1505,7 @@ export interface Database {
           no_score?: boolean | null;
           overhang?: boolean | null;
           photo_path?: string | null;
-          private_comment?: boolean | null;
+          private_ascent?: boolean | null;
           rate?: number | null;
           rebolted_by_me?: boolean | null;
           recommended?: boolean | null;
