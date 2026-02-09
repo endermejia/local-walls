@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 import {
   TuiButton,
@@ -47,6 +48,7 @@ export interface AscentCommentsDialogData {
     AsyncPipe,
     DatePipe,
     FormsModule,
+    RouterLink,
   ],
   template: `
     <div class="flex flex-col h-[60dvh] min-h-[400px] -m-4">
@@ -54,19 +56,29 @@ export interface AscentCommentsDialogData {
         <div class="flex flex-col gap-4 p-4">
           @for (comment of comments(); track comment.id) {
             <div class="flex gap-3">
-              <tui-avatar
-                [src]="
-                  supabase.buildAvatarUrl(comment.user_profiles.avatar)
-                    | tuiFallbackSrc: '@tui.user'
-                    | async
-                "
-                size="s"
-              />
+              <a
+                [routerLink]="['/profile', comment.user_id]"
+                (click)="context.completeWith()"
+                class="block hover:opacity-80 transition-opacity flex-none"
+              >
+                <tui-avatar
+                  [src]="
+                    supabase.buildAvatarUrl(comment.user_profiles.avatar)
+                      | tuiFallbackSrc: '@tui.user'
+                      | async
+                  "
+                  size="s"
+                />
+              </a>
               <div class="flex flex-col grow min-w-0">
                 <div class="flex justify-between items-start gap-2">
-                  <span class="font-bold text-sm truncate">{{
-                    comment.user_profiles.name
-                  }}</span>
+                  <a
+                    [routerLink]="['/profile', comment.user_id]"
+                    (click)="context.completeWith()"
+                    class="font-bold text-sm truncate hover:underline text-[var(--tui-text-primary)] cursor-pointer block min-w-0"
+                  >
+                    {{ comment.user_profiles.name }}
+                  </a>
                   <span class="text-[10px] opacity-50 whitespace-nowrap pt-0.5">
                     {{ comment.created_at | date: 'd/M/yy, HH:mm' }}
                   </span>
