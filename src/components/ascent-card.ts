@@ -147,10 +147,10 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
       </header>
 
       @if (ascentPhotoUrl(); as photoUrl) {
-        <div class="aspect-video w-full rounded-2xl overflow-hidden">
+        <div class="w-full rounded-2xl overflow-hidden">
           <img
             [src]="photoUrl"
-            class="w-full h-full object-cover"
+            class="w-full h-auto"
             [alt]="ascent.route?.name || 'Ascent photo'"
             loading="lazy"
           />
