@@ -27,7 +27,7 @@ import { BrowserNotificationService } from './browser-notification.service';
 import { LocalStorage } from './local-storage';
 import { MessagingService } from './messaging.service';
 import { SupabaseService } from './supabase.service';
-import { UserProfilesService } from './user-profiles.service';
+// import { UserProfilesService } from './user-profiles.service';
 
 import { mapCragToDetail } from '../utils';
 
@@ -75,7 +75,7 @@ export class GlobalData {
   private readonly notificationsService = inject(AppNotificationsService);
   private readonly messagingService = inject(MessagingService);
   private readonly browserNotifications = inject(BrowserNotificationService);
-  private readonly userProfilesService = inject(UserProfilesService);
+  // private readonly userProfilesService = inject(UserProfilesService);
   private breakpointService = inject(TuiBreakpointService);
 
   readonly isMobile = toSignal(
@@ -1519,43 +1519,41 @@ export class GlobalData {
 
           // Browser notification for general notifications
           if (notif.actor_id) {
-            void this.userProfilesService
-              .getUserProfile(notif.actor_id)
-              .then((actor) => {
-                const title = actor?.name || 'Topo';
-                let body = '';
-                switch (notif.type) {
-                  case 'like':
-                    body = this.translate.instant('notifications.likedAscent');
-                    break;
-                  case 'comment':
-                    body = this.translate.instant(
-                      'notifications.commentedAscent',
-                    );
-                    break;
-                }
-                if (body) {
-                  console.log(
-                    '[GlobalData] Showing browser notification:',
-                    title,
-                    body,
+            void this.supabase.getUserProfile(notif.actor_id).then((actor) => {
+              const title = actor?.name || 'Topo';
+              let body = '';
+              switch (notif.type) {
+                case 'like':
+                  body = this.translate.instant('notifications.likedAscent');
+                  break;
+                case 'comment':
+                  body = this.translate.instant(
+                    'notifications.commentedAscent',
                   );
-                  this.browserNotifications.show(title, { body });
+                  break;
+              }
+              if (body) {
+                console.log(
+                  '[GlobalData] Showing browser notification:',
+                  title,
+                  body,
+                );
+                this.browserNotifications.show(title, { body });
 
-                  if (typeof document !== 'undefined' && document.hidden) {
-                    this.browserNotifications.flashTitle(title);
+                if (typeof document !== 'undefined' && document.hidden) {
+                  this.browserNotifications.flashTitle(title);
 
-                    if (this.notificationSoundEnabled()) {
-                      this.browserNotifications.playSound();
-                    }
+                  if (this.notificationSoundEnabled()) {
+                    this.browserNotifications.playSound();
                   }
-                } else {
-                  console.warn(
-                    '[GlobalData] Unknown notification type or missing body:',
-                    notif.type,
-                  );
                 }
-              });
+              } else {
+                console.warn(
+                  '[GlobalData] Unknown notification type or missing body:',
+                  notif.type,
+                );
+              }
+            });
           }
         });
 
@@ -1565,29 +1563,27 @@ export class GlobalData {
 
           // Only show if not from me
           if (msg.sender_id !== userId) {
-            void this.userProfilesService
-              .getUserProfile(msg.sender_id!)
-              .then((sender) => {
-                const title = sender?.name || 'Chat';
-                console.log(
-                  '[GlobalData] Showing chat notification:',
-                  title,
-                  msg.text,
-                );
-                this.browserNotifications.show(title, {
-                  body: msg.text,
-                });
-
-                // Flash title if hidden
-                if (typeof document !== 'undefined' && document.hidden) {
-                  this.browserNotifications.flashTitle(title);
-                }
-
-                // Play sound if enabled
-                if (this.messageSoundEnabled()) {
-                  this.browserNotifications.playSound();
-                }
+            void this.supabase.getUserProfile(msg.sender_id!).then((sender) => {
+              const title = sender?.name || 'Chat';
+              console.log(
+                '[GlobalData] Showing chat notification:',
+                title,
+                msg.text,
+              );
+              this.browserNotifications.show(title, {
+                body: msg.text,
               });
+
+              // Flash title if hidden
+              if (typeof document !== 'undefined' && document.hidden) {
+                this.browserNotifications.flashTitle(title);
+              }
+
+              // Play sound if enabled
+              if (this.messageSoundEnabled()) {
+                this.browserNotifications.playSound();
+              }
+            });
           }
         });
 

@@ -207,9 +207,7 @@ export class NotificationsDialogComponent {
     // Mark all IDs in the group as read
     const unreadIds = group.ids.filter(
       (id) =>
-        !this.notificationsResource
-          .value()
-          ?.find((n) => n.id === id)?.read_at,
+        !this.notificationsResource.value()?.find((n) => n.id === id)?.read_at,
     );
 
     if (unreadIds.length > 0) {

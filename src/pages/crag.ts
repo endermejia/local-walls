@@ -55,18 +55,15 @@ import {
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
 
-import {
-  CragsService,
-  FiltersService,
-  GlobalData,
-  ParkingsService,
-  RoutesService,
-  SupabaseService,
-  ToastService,
-  ToposService,
-  TourService,
-  TourStep,
-} from '../services';
+import { CragsService } from '../services/crags.service';
+import { FiltersService } from '../services/filters.service';
+import { GlobalData } from '../services/global-data';
+import { ParkingsService } from '../services/parkings.service';
+import { RoutesService } from '../services/routes.service';
+import { SupabaseService } from '../services/supabase.service';
+import { ToastService } from '../services/toast.service';
+import { ToposService } from '../services/topos.service';
+import { TourService, TourStep } from '../services/tour.service';
 
 import { TopoImagePipe } from '../pipes';
 

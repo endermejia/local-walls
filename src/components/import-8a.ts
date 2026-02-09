@@ -58,14 +58,12 @@ import {
   RouteAscentInsertDto,
 } from '../models';
 
-import {
-  AscentsService,
-  EightAnuService,
-  NotificationService,
-  SupabaseService,
-  ToastService,
-  GlobalData,
-} from '../services';
+import { AscentsService } from '../services/ascents.service';
+import { EightAnuService } from '../services/eight-anu.service';
+import { NotificationService } from '../services/notification.service';
+import { SupabaseService } from '../services/supabase.service';
+import { ToastService } from '../services/toast.service';
+import { GlobalData } from '../services/global-data';
 
 import { slugify } from '../utils';
 

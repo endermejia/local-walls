@@ -15,7 +15,7 @@ import { Router } from '@angular/router';
 
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 
-import { AppRole } from '../models';
+import { AppRole, UserProfileDto } from '../models';
 import { Database } from '../models/supabase-generated';
 
 import { ENV_SUPABASE_URL } from '../environments/environment';
@@ -140,6 +140,21 @@ export class SupabaseService {
    * from a relative path (e.g.: "avatars/xyz.jpg").
    * Does not access browser APIs; is SSR-safe.
    */
+  async getUserProfile(userId: string): Promise<UserProfileDto | null> {
+    const { data, error } = await this.client
+      .from('user_profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[SupabaseService] getUserProfile error', error);
+      return null;
+    }
+
+    return data;
+  }
+
   buildAvatarUrl(path: string | null | undefined): string {
     return this.getPublicUrl('avatar', path);
   }

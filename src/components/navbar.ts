@@ -7,7 +7,7 @@ import {
 import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
-import { TuiIcon, TuiLabel, TuiTextfield, TuiTitle } from '@taiga-ui/core';
+import { TuiIcon, TuiTextfield, TuiTitle } from '@taiga-ui/core';
 import {
   TuiDialogService,
   TuiSearchHotkey,

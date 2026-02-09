@@ -24,7 +24,9 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { CragsService, MapService, ToastService } from '../services';
+import { CragsService } from '../services/crags.service';
+import { MapService } from '../services/map.service';
+import { ToastService } from '../services/toast.service';
 
 import { CounterComponent } from '../components/counter';
 import { handleErrorToast, slugify } from '../utils';

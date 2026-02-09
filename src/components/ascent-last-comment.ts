@@ -22,6 +22,9 @@ import { AscentsService, SupabaseService } from '../services';
       <div
         class="flex flex-col gap-1 bg-[var(--tui-background-neutral-1)] p-2 rounded-xl mt-1 animate-in fade-in slide-in-from-top-1 duration-300 cursor-pointer hover:bg-[var(--tui-background-neutral-1-hover)] transition-colors"
         (click)="showComments($event)"
+        (keydown.enter)="showComments($event)"
+        (keydown.space)="showComments($event)"
+        tabindex="0"
       >
         <div class="flex items-center gap-2">
           <tui-avatar

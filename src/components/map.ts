@@ -28,7 +28,7 @@ import type {
   ParkingDto,
 } from '../models';
 
-import { GlobalData } from '../services';
+import { GlobalData } from '../services/global-data';
 import { MapBuilder, MapBuilderCallbacks } from '../services/map-builder';
 
 @Component({

@@ -20,7 +20,7 @@ import {
 import { TuiSegmented } from '@taiga-ui/kit';
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ToastService } from '../services';
+import { ToastService } from '../services/toast.service';
 import {
   ImageCroppedEvent,
   ImageCropperComponent,

@@ -1,8 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { catchError, from, map, merge, Observable, of, scan } from 'rxjs';
+import { catchError, from, map, Observable, of } from 'rxjs';
 import {
-  SearchApiResponse,
   SearchData,
   SearchItem,
   VERTICAL_LIFE_GRADES,
