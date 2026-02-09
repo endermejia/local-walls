@@ -270,7 +270,10 @@
       "parkingDeleted": "Parking eliminado",
       "parkingLinked": "Parking vinculado",
       "parkingUnlinked": "Parking desvinculado"
-    }
+    },
+    "pendingRequest": "Solicitud de mensaje enviada",
+    "pendingPlaceholder": "Esperando respuesta...",
+    "charLimit": "Máximo 250 caracteres"
   },
   "seo": {
     "title": "ClimBeast | fanatic community",

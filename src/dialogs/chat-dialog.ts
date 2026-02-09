@@ -24,19 +24,35 @@ import {
   TuiScrollbar,
   TuiTextfield,
 } from '@taiga-ui/core';
-import { TuiDialogContext } from '@taiga-ui/experimental';
-import { TuiAvatar, TuiBadgeNotification, TuiMessage } from '@taiga-ui/kit';
+import { TuiDialogContext, TuiDialogService } from '@taiga-ui/experimental';
+import {
+  TuiAvatar,
+  TuiBadgeNotification,
+  TuiConfirmData,
+  TuiMessage,
+  TUI_CONFIRM,
+  TuiTextarea,
+} from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { RealtimeChannel } from '@supabase/supabase-js';
 
-import { TranslatePipe } from '@ngx-translate/core';
-import { debounceTime, distinctUntilChanged, switchMap, of, from } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+  of,
+  from,
+  firstValueFrom,
+} from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import {
+  BlockingService,
   MessagingService,
   SupabaseService,
+  ToastService,
   UserProfilesService,
 } from '../services';
 import {
@@ -73,6 +89,7 @@ export interface ChatDialogData {
     TuiDataList,
     TuiAppearance,
     TuiMessage,
+    TuiTextarea,
   ],
   template: `
     <div class="flex flex-col h-[70dvh] min-h-[500px] -m-4">
@@ -153,7 +170,7 @@ export interface ChatDialogData {
                   tuiMessage
                   class="max-w-[85%]"
                 >
-                  <p class="whitespace-pre-wrap break-words leading-tight">
+                  <p class="whitespace-pre-wrap break-all leading-tight">
                     {{ msg.text }}
                   </p>
                   <div
@@ -198,17 +215,24 @@ export interface ChatDialogData {
               [tuiTextfieldCleaner]="false"
             >
               <label tuiLabel for="new-message">{{
-                'labels.typeMessage' | translate
+                isRequestPending()
+                  ? ('messages.pendingRequest' | translate)
+                  : ('labels.typeMessage' | translate)
               }}</label>
-              <input
-                tuiTextfield
+              <textarea
+                tuiTextarea
                 id="new-message"
                 autocomplete="off"
-                placeholder="..."
+                [placeholder]="
+                  isRequestPending()
+                    ? ('messages.pendingPlaceholder' | translate)
+                    : '...'
+                "
                 [(ngModel)]="newMessage"
-                (keyup.enter)="onSendMessage()"
-                [disabled]="sending()"
-              />
+                (keydown.enter)="onEnter($event)"
+                [disabled]="sending() || isRequestPending()"
+                maxlength="250"
+              ></textarea>
               <button
                 tuiButton
                 type="button"
@@ -216,13 +240,19 @@ export interface ChatDialogData {
                 size="s"
                 iconStart="@tui.send"
                 (click)="onSendMessage()"
-                [disabled]="!newMessage().trim() || sending()"
+                [disabled]="
+                  !newMessage().trim() || sending() || isRequestPending()
+                "
+                class="mt-auto mb-1"
               >
                 <span class="hidden md:block">
                   {{ 'actions.send' | translate }}
                 </span>
               </button>
             </tui-textfield>
+            <div class="text-right text-xs opacity-50 mt-1">
+              {{ newMessage().length }}/250
+            </div>
           }
         </div>
       } @else {
@@ -294,7 +324,9 @@ export interface ChatDialogData {
                     }
                   </div>
                   <div class="flex justify-between items-center gap-2">
-                    <p class="text-sm opacity-70 truncate min-w-0 flex-1">
+                    <p
+                      class="text-sm opacity-70 line-clamp-1 min-w-0 flex-1 break-all"
+                    >
                       {{ room.last_message?.text || '...' }}
                     </p>
                     @if (room.unread_count > 0) {
@@ -329,6 +361,10 @@ export class ChatDialogComponent implements OnDestroy {
   protected readonly supabase = inject(SupabaseService);
   protected readonly messagingService = inject(MessagingService);
   protected readonly userProfilesService = inject(UserProfilesService);
+  protected readonly blockingService = inject(BlockingService);
+  protected readonly toast = inject(ToastService);
+  protected readonly translate = inject(TranslateService);
+  protected readonly dialogs = inject(TuiDialogService);
   protected readonly context =
     injectContext<TuiDialogContext<void, ChatDialogData>>();
 
@@ -382,6 +418,20 @@ export class ChatDialogComponent implements OnDestroy {
     this.messagesResource.isLoading(),
   );
   protected readonly hasMore = signal(true);
+
+  protected readonly isRequestPending = computed(() => {
+    if (this.hasMore()) return false;
+
+    const msgs = this.messages();
+    if (msgs.length === 0) return false;
+
+    const myId = this.supabase.authUserId();
+    const hasOtherUserMessages = msgs.some((m) => m.sender_id !== myId);
+
+    if (hasOtherUserMessages) return false;
+
+    return true;
+  });
 
   constructor() {
     const initialUserId = this.context.data?.userId;
@@ -486,17 +536,57 @@ export class ChatDialogComponent implements OnDestroy {
   }
 
   private async checkBlockStatus(userId: string) {
-    const blocked = await this.messagingService.isUserBlockedByMe(userId);
-    this.isBlockedByMe.set(blocked);
+    const { blockMessages } = await this.blockingService.getBlockState(userId);
+    this.isBlockedByMe.set(blockMessages);
   }
 
   protected async toggleBlock(userId: string) {
-    if (this.isBlockedByMe()) {
-      const success = await this.messagingService.unblockUserMessages(userId);
-      if (success) this.isBlockedByMe.set(false);
-    } else {
-      const success = await this.messagingService.blockUserMessages(userId);
-      if (success) this.isBlockedByMe.set(true);
+    const room = this.selectedRoom();
+    const isBlocking = !this.isBlockedByMe();
+
+    const data: TuiConfirmData = {
+      content: this.translate.instant(
+        isBlocking
+          ? 'actions.blockMessagesConfirm'
+          : 'actions.unblockMessagesConfirm',
+        { name: room?.participant.name || 'User' },
+      ),
+      yes: this.translate.instant(
+        isBlocking ? 'actions.block' : 'actions.unblock',
+      ),
+      no: this.translate.instant('actions.cancel'),
+      appearance: isBlocking ? 'negative' : 'primary',
+    };
+
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant(
+          isBlocking ? 'actions.blockMessages' : 'actions.unblockMessages',
+        ),
+        size: 's',
+        data,
+      }),
+      { defaultValue: false },
+    );
+
+    if (!confirmed) return;
+
+    // We assume ascents are not blocked here for simplicity as we only toggle messages from chat
+    // If we wanted to persist ascent blocking state, we'd need to fetch it first or pass it around
+    // For now let's just use what getBlockState returns
+    const { blockAscents } = await this.blockingService.getBlockState(userId);
+
+    const success = isBlocking
+      ? await this.blockingService.toggleBlockMessages(userId, blockAscents)
+      : await this.blockingService.toggleUnblockMessages(userId, blockAscents);
+
+    if (success) {
+      this.isBlockedByMe.set(isBlocking);
+      this.toast.success(
+        isBlocking
+          ? 'messages.toasts.messagesBlocked'
+          : 'messages.toasts.messagesUnblocked',
+      );
     }
   }
 
@@ -506,10 +596,25 @@ export class ChatDialogComponent implements OnDestroy {
     this.searchResults.set([]);
   }
 
+  protected onEnter(event: Event) {
+    const keyboardEvent = event as KeyboardEvent;
+    if (!keyboardEvent.shiftKey) {
+      event.preventDefault();
+      void this.onSendMessage();
+    }
+  }
+
   protected async onSendMessage() {
     const room = this.selectedRoom();
     const text = this.newMessage().trim();
-    if (!room || !text || this.sending()) return;
+    if (
+      !room ||
+      !text ||
+      text.length > 250 ||
+      this.sending() ||
+      this.isRequestPending()
+    )
+      return;
 
     this.sending.set(true);
     try {

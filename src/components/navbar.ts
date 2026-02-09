@@ -7,7 +7,7 @@ import {
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
-import { TuiAppearance, TuiIcon, TuiTextfield, TuiTitle } from '@taiga-ui/core';
+import { TuiIcon, TuiTextfield, TuiTitle } from '@taiga-ui/core';
 import { TuiSearchHotkey, TuiSearchResults } from '@taiga-ui/experimental';
 import { TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
 import { TuiCell, TuiInputSearch } from '@taiga-ui/layout';
@@ -22,12 +22,21 @@ import {
   switchMap,
 } from 'rxjs';
 
-import { GlobalData, ScrollService, SearchService } from '../services';
 import { TuiAutoFocus } from '@taiga-ui/cdk';
-import { TourService, TourStep } from '../services';
-import { TourHintComponent } from './tour-hint';
-import { TuiDropdown } from '@taiga-ui/core';
-import { TuiPulse } from '@taiga-ui/kit';
+import { TuiAppearance, TuiDataList, TuiDropdown } from '@taiga-ui/core';
+import { TuiPulse, TuiSegmented } from '@taiga-ui/kit';
+import { Themes } from '../models';
+import { TourHintComponent } from './tour-hint'; // Added this import
+import {
+  GlobalData,
+  ScrollService,
+  SearchService,
+  SupabaseService,
+  TourService,
+  TourStep,
+  UserProfilesService,
+} from '../services';
+import { NgOptimizedImage } from '@angular/common';
 
 @Component({
   selector: 'app-navbar',
@@ -54,196 +63,264 @@ import { TuiPulse } from '@taiga-ui/kit';
     TuiDropdown,
     TuiPulse,
     TourHintComponent,
+    TuiDataList,
+    TuiSegmented,
+    NgOptimizedImage,
   ],
   template: `
-    <nav
-      class="w-full md:w-20 md:hover:w-64 md:h-fit md:my-auto bg-[var(--tui-background-base)] transition-[width] duration-300 z-[100] group flex flex-col border-t md:border xl:border-none border-[var(--tui-border-normal)] md:absolute md:left-0 md:top-0 md:bottom-0 overflow-hidden sm:rounded-2xl"
+    <aside
+      class="w-full md:w-20 md:hover:w-64 md:h-full bg-[var(--tui-background-base)] transition-[width] duration-300 z-[100] group flex flex-col border-t md:border xl:border-none border-[var(--tui-border-normal)] md:absolute md:left-0 md:top-0 md:bottom-0 overflow-hidden sm:rounded-2xl"
       ngSkipHydration
     >
       <div
-        class="flex md:flex-col w-full h-full p-2 md:p-4 justify-around md:justify-start gap-2 md:gap-4"
+        class="flex md:flex-col justify-between w-full h-full p-2 md:p-4 gap-2 md:gap-4"
       >
-        <!-- Home -->
-        <!-- Home -->
-        <a
-          #home="routerLinkActive"
+        <!-- Desktop Logo -->
+        <button
+          class="hidden md:block shrink-0 rounded-xl transition-colors cursor-pointer w-fit"
+          type="button"
+          tuiAppearance="flat-grayscale"
           routerLink="/home"
-          routerLinkActive
-          [tuiAppearance]="
-            home.isActive ? 'flat-destructive' : 'flat-grayscale'
-          "
-          class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full relative"
-          (click)="scrollToTop($event)"
         >
-          <div
-            class="absolute inset-0 pointer-events-none"
-            [tuiDropdown]="tourHint"
-            [tuiDropdownOpen]="tourService.step() === TourStep.HOME"
-            tuiDropdownDirection="bottom"
-          ></div>
-          @if (tourService.step() === TourStep.HOME) {
-            <tui-pulse class="absolute to-0 right-0 -mt-1 -mr-1" />
-          }
-          <tui-icon icon="@tui.home" />
+          <img
+            ngSrc="/logo/climbeast.svg"
+            alt="ClimBeast"
+            [style.width.px]="46"
+            [style.height.px]="46"
+            height="46"
+            width="46"
+          />
+        </button>
 
-          <span
-            class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
-          >
-            {{ 'nav.home' | translate }}
-          </span>
-        </a>
-
-        <!-- Explore -->
-        <a
-          #explore="routerLinkActive"
-          routerLink="/explore"
-          routerLinkActive
-          [tuiAppearance]="
-            explore.isActive ? 'flat-destructive' : 'flat-grayscale'
-          "
-          class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
+        <!-- Navigation Links (Middle) -->
+        <nav
+          class="w-full flex md:flex-col gap-2 md:gap-4 justify-around md:justify-start overflow-y-auto overflow-x-hidden my-auto"
         >
-          <tui-icon icon="@tui.map" />
-          <span
-            class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
-          >
-            {{ 'nav.explore' | translate }}
-          </span>
-        </a>
-
-        <!-- Areas -->
-        <a
-          #areas="routerLinkActive"
-          routerLink="/area"
-          routerLinkActive
-          [tuiAppearance]="
-            areas.isActive ? 'flat-destructive' : 'flat-grayscale'
-          "
-          class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
-        >
-          <tui-icon icon="@tui.list" />
-          <span
-            class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
-          >
-            {{ 'nav.areas' | translate }}
-          </span>
-        </a>
-
-        @let showConfig =
-          global.isAdmin() ||
-          (global.isEquipper() && global.equipperAreas().length);
-        @if (showConfig) {
-          <!-- Configuration -->
+          <!-- Home -->
           <a
-            #config="routerLinkActive"
-            [routerLink]="global.isAdmin() ? '/admin' : '/my-areas'"
+            #home="routerLinkActive"
+            routerLink="/home"
             routerLinkActive
             [tuiAppearance]="
-              config.isActive ? 'flat-destructive' : 'flat-grayscale'
+              home.isActive ? 'flat-destructive' : 'flat-grayscale'
+            "
+            class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full relative"
+            (click)="scrollToTop($event)"
+          >
+            <div
+              class="absolute inset-0 pointer-events-none"
+              [tuiDropdown]="tourHint"
+              [tuiDropdownOpen]="tourService.step() === TourStep.HOME"
+              tuiDropdownDirection="bottom"
+            ></div>
+            @if (tourService.step() === TourStep.HOME) {
+              <tui-pulse class="absolute to-0 right-0 -mt-1 -mr-1" />
+            }
+            <tui-icon icon="@tui.home" />
+
+            <span
+              class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+            >
+              {{ 'nav.home' | translate }}
+            </span>
+          </a>
+
+          <!-- Explore -->
+          <a
+            #explore="routerLinkActive"
+            routerLink="/explore"
+            routerLinkActive
+            [tuiAppearance]="
+              explore.isActive ? 'flat-destructive' : 'flat-grayscale'
             "
             class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
           >
-            <tui-icon icon="@tui.cog" />
+            <tui-icon icon="@tui.map" />
             <span
               class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
             >
-              @if (global.isAdmin()) {
-                {{ 'config' | translate }}
-              } @else {
-                {{ 'nav.my-areas' | translate }}
-              }
+              {{ 'nav.explore' | translate }}
             </span>
           </a>
-        }
 
-        <!-- Search -->
-
-        <div class="flex flex-col gap-2 overflow-hidden flex-none">
-          <button
+          <!-- Areas -->
+          <a
+            #areas="routerLinkActive"
+            routerLink="/area"
+            routerLinkActive
             [tuiAppearance]="
-              searchExpanded() ? 'flat-destructive' : 'flat-grayscale'
+              areas.isActive ? 'flat-destructive' : 'flat-grayscale'
             "
-            class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer"
-            (click)="searchOpen = true"
+            class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
           >
-            <tui-icon icon="@tui.search" />
+            <tui-icon icon="@tui.list" />
             <span
               class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
             >
-              {{ 'labels.search' | translate }}
+              {{ 'nav.areas' | translate }}
+            </span>
+          </a>
+
+          @let showConfig =
+            global.isAdmin() ||
+            (global.isEquipper() && global.equipperAreas().length);
+          @if (showConfig) {
+            <!-- Configuration -->
+            <a
+              #config="routerLinkActive"
+              [routerLink]="global.isAdmin() ? '/admin' : '/my-areas'"
+              routerLinkActive
+              [tuiAppearance]="
+                config.isActive ? 'flat-destructive' : 'flat-grayscale'
+              "
+              class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
+            >
+              <tui-icon icon="@tui.cog" />
+              <span
+                class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+              >
+                @if (global.isAdmin()) {
+                  {{ 'config' | translate }}
+                } @else {
+                  {{ 'nav.my-areas' | translate }}
+                }
+              </span>
+            </a>
+          }
+
+          <!-- Search -->
+          <div class="flex flex-col gap-2 overflow-hidden flex-none">
+            <button
+              [tuiAppearance]="
+                searchExpanded() ? 'flat-destructive' : 'flat-grayscale'
+              "
+              class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer"
+              (click)="searchOpen = true"
+            >
+              <tui-icon icon="@tui.search" />
+              <span
+                class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+              >
+                {{ 'labels.search' | translate }}
+              </span>
+            </button>
+            <div class="hidden">
+              <tui-textfield>
+                <input
+                  #searchInput
+                  tuiSearchHotkey
+                  autocomplete="off"
+                  tuiAutoFocus
+                  [formControl]="control"
+                  [tuiInputSearch]="search"
+                  [(tuiInputSearchOpen)]="searchOpen"
+                  [placeholder]="'labels.searchPlaceholder' | translate"
+                />
+                <ng-template #search>
+                  <tui-search-results [results]="results()">
+                    <ng-template let-item>
+                      <a
+                        tuiCell
+                        [routerLink]="item.href"
+                        (click)="onResultClick()"
+                      >
+                        @if (item.type === 'user') {
+                          <tui-avatar
+                            [src]="item.icon || '@tui.user'"
+                            size="xs"
+                            class="mr-2"
+                          />
+                        } @else if (item.icon) {
+                          <tui-icon [icon]="item.icon" class="mr-2" />
+                        }
+                        <span tuiTitle>
+                          {{ item.title }}
+                          @if (item.subtitle) {
+                            <span tuiSubtitle>{{ item.subtitle }}</span>
+                          }
+                        </span>
+                      </a>
+                    </ng-template>
+                  </tui-search-results>
+                </ng-template>
+              </tui-textfield>
+            </div>
+          </div>
+
+          <!-- Profile -->
+          <a
+            #profile="routerLinkActive"
+            routerLink="/profile"
+            routerLinkActive
+            [tuiAppearance]="
+              profile.isActive ? 'flat-destructive' : 'flat-grayscale'
+            "
+            class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full lg:mt-auto"
+          >
+            <tui-avatar
+              [src]="global.userAvatar() || '@tui.user'"
+              [tuiSkeleton]="!global.userProfile()"
+              [class.ring-2]="profile.isActive"
+              [class.ring-offset-2]="profile.isActive"
+              [style.--tw-ring-color]="
+                profile.isActive ? 'var(--tui-text-negative)' : ''
+              "
+              size="xs"
+            />
+            <span
+              class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+            >
+              {{ 'nav.profile' | translate }}
+            </span>
+          </a>
+        </nav>
+
+        <!-- Desktop Bottom Options -->
+        <div class="hidden md:block w-full shrink-0">
+          <button
+            type="button"
+            [tuiAppearance]="'flat-grayscale'"
+            class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-full cursor-pointer"
+            [tuiDropdown]="optionsDropdown"
+            [(tuiDropdownOpen)]="configOpen"
+            tuiDropdownDirection="top"
+          >
+            <tui-icon icon="@tui.menu" />
+            <span
+              class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden text-sm"
+            >
+              {{ 'config' | translate }}
             </span>
           </button>
-          <div class="hidden">
-            <tui-textfield>
-              <input
-                #searchInput
-                tuiSearchHotkey
-                autocomplete="off"
-                tuiAutoFocus
-                [formControl]="control"
-                [tuiInputSearch]="search"
-                [(tuiInputSearchOpen)]="searchOpen"
-                [placeholder]="'labels.searchPlaceholder' | translate"
-              />
-              <ng-template #search>
-                <tui-search-results [results]="results()">
-                  <ng-template let-item>
-                    <a
-                      tuiCell
-                      [routerLink]="item.href"
-                      (click)="onResultClick()"
-                    >
-                      @if (item.type === 'user') {
-                        <tui-avatar
-                          [src]="item.icon || '@tui.user'"
-                          size="xs"
-                          class="mr-2"
-                        />
-                      } @else if (item.icon) {
-                        <tui-icon [icon]="item.icon" class="mr-2" />
-                      }
-                      <span tuiTitle>
-                        {{ item.title }}
-                        @if (item.subtitle) {
-                          <span tuiSubtitle>{{ item.subtitle }}</span>
-                        }
-                      </span>
-                    </a>
-                  </ng-template>
-                </tui-search-results>
-              </ng-template>
-            </tui-textfield>
-          </div>
+          <ng-template #optionsDropdown>
+            <tui-data-list (click)="configOpen = false">
+              <button tuiOption new (click)="openConfig()">
+                <tui-icon icon="@tui.settings" class="mr-2" />
+                {{ 'config' | translate }}
+              </button>
+              <div class="p-2 flex justify-center w-full">
+                <tui-segmented
+                  size="s"
+                  [activeItemIndex]="global.theme() === Themes.DARK ? 1 : 0"
+                  (activeItemIndexChange)="toggleTheme($event === 1)"
+                >
+                  <button title="light" type="button">
+                    <tui-icon icon="@tui.sun" />
+                  </button>
+                  <button title="dark" type="button">
+                    <tui-icon icon="@tui.moon" />
+                  </button>
+                </tui-segmented>
+              </div>
+              <button tuiOption new (click)="logout()">
+                <tui-icon icon="@tui.log-out" class="mr-2" />
+                {{ 'auth.logout' | translate }}
+              </button>
+            </tui-data-list>
+          </ng-template>
         </div>
-
-        <!-- Profile -->
-        <a
-          #profile="routerLinkActive"
-          routerLink="/profile"
-          routerLinkActive
-          [tuiAppearance]="
-            profile.isActive ? 'flat-destructive' : 'flat-grayscale'
-          "
-          class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full md:mt-auto"
-        >
-          <tui-avatar
-            [src]="global.userAvatar() || '@tui.user'"
-            [tuiSkeleton]="!global.userProfile()"
-            [class.ring-2]="profile.isActive"
-            [class.ring-offset-2]="profile.isActive"
-            [style.--tw-ring-color]="
-              profile.isActive ? 'var(--tui-text-negative)' : ''
-            "
-            size="xs"
-          />
-          <span
-            class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
-          >
-            {{ 'nav.profile' | translate }}
-          </span>
-        </a>
       </div>
-    </nav>
+    </aside>
 
     <ng-template #tourHint>
       <app-tour-hint
@@ -261,10 +338,15 @@ export class NavbarComponent {
   private readonly searchService = inject(SearchService);
   private readonly router = inject(Router);
   private readonly scrollService = inject(ScrollService);
+  private readonly supabase = inject(SupabaseService);
+  private readonly userProfilesService = inject(UserProfilesService);
+
+  protected readonly Themes = Themes;
 
   protected readonly searchExpanded = signal(false);
   protected readonly control = new FormControl('');
   protected searchOpen = false;
+  protected configOpen = false;
 
   protected readonly results = toSignal(
     this.control.valueChanges.pipe(
@@ -287,5 +369,18 @@ export class NavbarComponent {
       event.preventDefault();
       this.scrollService.scrollToTop();
     }
+  }
+
+  protected async logout(): Promise<void> {
+    await this.supabase.client.auth.signOut();
+    this.router.navigate(['/auth/login']);
+  }
+
+  protected openConfig(): void {
+    this.userProfilesService.openUserProfileConfigForm();
+  }
+
+  protected toggleTheme(isDark: boolean): void {
+    this.global.theme.set(isDark ? Themes.DARK : Themes.LIGHT);
   }
 }

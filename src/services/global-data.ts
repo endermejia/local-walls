@@ -103,11 +103,31 @@ export class GlobalData {
   );
 
   // ---- Theme ----
-  selectedTheme: Signal<Theme> = computed(
-    () => this.userProfile()?.theme || Themes.LIGHT,
+  readonly theme = signal<Theme>(Themes.LIGHT);
+  private readonly themeSync = effect(
+    () => {
+      const profile = this.userProfile();
+      if (profile?.theme) {
+        this.theme.set(profile.theme);
+      }
+    },
+    { allowSignalWrites: true },
   );
+
+  private readonly themePersist = effect(() => {
+    const currentTheme = this.theme();
+    const profile = this.userProfile();
+    if (profile && profile.theme !== currentTheme) {
+      // Avoid circular updates by checking if actually different
+      // and maybe relying on the service to handle optimistic updates or not
+      void this.userProfilesService.updateUserProfile({ theme: currentTheme });
+    }
+  });
+
+  readonly selectedTheme = this.theme.asReadonly();
+
   iconSrc: Signal<(name: IconName) => string> = computed(() => {
-    const theme = this.selectedTheme();
+    const theme = this.theme();
     // Return the icon URL based on the theme
     return (name: IconName) => `/image/${name}-${theme}.svg`;
   });

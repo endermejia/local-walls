@@ -269,6 +269,9 @@
       "parkingLinked": "Parking linked",
       "parkingUnlinked": "Parking unlinked"
     },
+    "pendingRequest": "Message request sent",
+    "pendingPlaceholder": "Waiting for response...",
+    "charLimit": "Maximum 250 characters",
     "noFollowers": "You don't have any followers yet",
     "noFollowing": "You are not following anyone yet"
   },
