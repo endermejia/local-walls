@@ -7,9 +7,9 @@ import {
   resource,
   signal,
   ElementRef,
-  ViewChild,
   effect,
   OnDestroy,
+  ViewChild,
 } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
@@ -170,7 +170,7 @@ export interface ChatDialogData {
                   tuiMessage
                   class="max-w-[85%]"
                 >
-                  <p class="whitespace-pre-wrap break-all leading-tight">
+                  <p class="whitespace-pre-wrap wrap-anywhere leading-tight">
                     {{ msg.text }}
                   </p>
                   <div
@@ -220,6 +220,7 @@ export interface ChatDialogData {
                   : ('labels.typeMessage' | translate)
               }}</label>
               <textarea
+                #messageTextarea
                 tuiTextarea
                 id="new-message"
                 autocomplete="off"
@@ -279,7 +280,12 @@ export interface ChatDialogData {
             >
               <tui-data-list>
                 @for (user of searchResults(); track user.id) {
-                  <button tuiOption type="button" (click)="onSelectUser(user)">
+                  <button
+                    tuiOption
+                    new
+                    type="button"
+                    (click)="onSelectUser(user)"
+                  >
                     <tui-avatar
                       [src]="
                         supabase.buildAvatarUrl(user.avatar)
@@ -325,7 +331,7 @@ export interface ChatDialogData {
                   </div>
                   <div class="flex justify-between items-center gap-2">
                     <p
-                      class="text-sm opacity-70 line-clamp-1 min-w-0 flex-1 break-all"
+                      class="text-sm opacity-70 line-clamp-1 min-w-0 flex-1 wrap-anywhere"
                     >
                       {{ room.last_message?.text || '...' }}
                     </p>
@@ -370,6 +376,9 @@ export class ChatDialogComponent implements OnDestroy {
 
   @ViewChild('scrollbar', { read: ElementRef })
   private scrollbar?: ElementRef<HTMLElement>;
+
+  @ViewChild('messageTextarea', { read: ElementRef })
+  private messageTextarea?: ElementRef<HTMLTextAreaElement>;
 
   private roomSubscription?: RealtimeChannel | null;
   private roomsSubscription?: RealtimeChannel | null;
@@ -531,6 +540,8 @@ export class ChatDialogComponent implements OnDestroy {
         }
       },
     );
+    this.scrollToBottom();
+    this.focusTextarea();
 
     this.checkBlockStatus(room.participant.id);
   }
@@ -626,7 +637,14 @@ export class ChatDialogComponent implements OnDestroy {
       }
     } finally {
       this.sending.set(false);
+      this.focusTextarea();
     }
+  }
+
+  private focusTextarea() {
+    setTimeout(() => {
+      this.messageTextarea?.nativeElement.focus();
+    }, 200);
   }
 
   protected loadMoreMessages() {
@@ -644,9 +662,9 @@ export class ChatDialogComponent implements OnDestroy {
 
   private scrollToBottom() {
     setTimeout(() => {
-      if (this.scrollbar) {
-        this.scrollbar.nativeElement.scrollTop =
-          this.scrollbar.nativeElement.scrollHeight;
+      const el = this.scrollbar?.nativeElement;
+      if (el) {
+        el.scrollTop = el.scrollHeight;
       }
     }, 100);
   }

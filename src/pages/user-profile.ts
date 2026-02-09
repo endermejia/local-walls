@@ -131,7 +131,7 @@ import {
           <div class="grow">
             <div class="flex flex-row gap-2 items-center">
               @let name = profile()?.name;
-              <div class="text-xl font-semibold break-all">
+              <div class="text-xl font-semibold wrap-anywhere">
                 <span [tuiSkeleton]="loading ? 'name lastName' : false">
                   {{ name }}
                 </span>
@@ -230,7 +230,7 @@ import {
             <div class="opacity-70">
               @let bio = profile()?.bio;
               <span
-                class="break-all"
+                class="wrap-anywhere"
                 [tuiSkeleton]="
                   loading
                     ? 'This text serves as the content behind the skeleton and adjusts the width.'
