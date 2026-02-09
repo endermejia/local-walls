@@ -4,19 +4,30 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
-import { TuiIcon, TuiTextfield, TuiTitle } from '@taiga-ui/core';
-import { TuiSearchHotkey, TuiSearchResults } from '@taiga-ui/experimental';
-import { TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
+import { TuiIcon, TuiLabel, TuiTextfield, TuiTitle } from '@taiga-ui/core';
+import {
+  TuiDialogService,
+  TuiSearchHotkey,
+  TuiSearchResults,
+} from '@taiga-ui/experimental';
+import {
+  TUI_CONFIRM,
+  TuiAvatar,
+  TuiConfirmData,
+  TuiSkeleton,
+  TuiSwitch,
+} from '@taiga-ui/kit';
 import { TuiCell, TuiInputSearch } from '@taiga-ui/layout';
 
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   debounceTime,
   distinctUntilChanged,
+  firstValueFrom,
   map,
   startWith,
   switchMap,
@@ -45,6 +56,7 @@ import { NgOptimizedImage } from '@angular/common';
       'z-[100] relative xl:absolute md:w-20 md:h-full md:flex md:items-center',
   },
   imports: [
+    FormsModule,
     ReactiveFormsModule,
     RouterLink,
     RouterLinkActive,
@@ -66,6 +78,7 @@ import { NgOptimizedImage } from '@angular/common';
     TuiDataList,
     TuiSegmented,
     NgOptimizedImage,
+    TuiSwitch,
   ],
   template: `
     <aside
@@ -302,12 +315,32 @@ import { NgOptimizedImage } from '@angular/common';
             </span>
           </button>
           <ng-template #optionsDropdown>
-            <tui-data-list (click)="configOpen = false">
-              <button tuiOption new (click)="openConfig()">
+            <tui-data-list>
+              <button tuiOption new (click)="openConfig(); configOpen = false">
                 <tui-icon icon="@tui.settings" class="mr-2" />
                 {{ 'config' | translate }}
               </button>
-              <div class="p-2 flex justify-center w-full">
+              <label
+                class="flex items-center justify-between gap-4 p-2 w-full cursor-pointer hover:bg-[var(--tui-background-neutral-hover)] rounded-lg"
+              >
+                <div class="flex items-center gap-2">
+                  <tui-icon icon="@tui.edit-2" />
+                  {{ 'labels.editingMode' | translate }}
+                </div>
+                <input
+                  tuiSwitch
+                  type="checkbox"
+                  [ngModel]="global.editingMode()"
+                  (ngModelChange)="toggleEditingMode($event)"
+                />
+              </label>
+              <div
+                class="flex items-center justify-between gap-4 p-2 w-full hover:bg-[var(--tui-background-neutral-hover)] rounded-lg"
+              >
+                <div class="flex items-center gap-2">
+                  <tui-icon icon="@tui.palette" />
+                  {{ 'labels.theme' | translate }}
+                </div>
                 <tui-segmented
                   size="s"
                   [activeItemIndex]="global.theme() === Themes.DARK ? 1 : 0"
@@ -349,6 +382,8 @@ export class NavbarComponent {
   private readonly scrollService = inject(ScrollService);
   private readonly supabase = inject(SupabaseService);
   private readonly userProfilesService = inject(UserProfilesService);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
 
   protected readonly Themes = Themes;
 
@@ -391,5 +426,39 @@ export class NavbarComponent {
 
   protected toggleTheme(isDark: boolean): void {
     this.global.theme.set(isDark ? Themes.DARK : Themes.LIGHT);
+  }
+
+  protected async toggleEditingMode(enabled: boolean): Promise<void> {
+    if (this.global.editingMode() === enabled) {
+      return;
+    }
+
+    if (enabled && !this.global.isActualAdmin()) {
+      const isEquipper = this.global.isActualEquipper();
+      const messageKey = isEquipper
+        ? 'profile.editing.confirmationEquipper'
+        : 'profile.editing.confirmationUser';
+
+      const confirmed = await firstValueFrom(
+        this.dialogs.open<boolean>(TUI_CONFIRM, {
+          label: this.translate.instant('profile.editing.confirmationTitle'),
+          size: 'm',
+          data: {
+            content: this.translate.instant(messageKey),
+            yes: this.translate.instant('actions.accept'),
+            no: this.translate.instant('actions.cancel'),
+          } as TuiConfirmData,
+        }),
+        { defaultValue: false },
+      );
+
+      if (!confirmed) {
+        // Force the switch to stay false
+        this.global.editingMode.set(false);
+        return;
+      }
+    }
+
+    this.global.editingMode.set(enabled);
   }
 }
