@@ -4,6 +4,7 @@ import {
   adminGuard,
   authGuard,
   equipperGuard,
+  noAuthGuard,
   rootRedirectGuard,
 } from '../services';
 
@@ -109,6 +110,7 @@ export const routes: Routes = [
   // Public landing page
   {
     path: 'info',
+    canMatch: [noAuthGuard],
     loadComponent: () =>
       import('../pages/landing').then((m) => m.LandingComponent),
   },

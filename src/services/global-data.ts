@@ -102,22 +102,6 @@ export class GlobalData {
 
   // ---- Theme ----
   readonly theme = signal<Theme>(Themes.LIGHT);
-  private readonly themeSync = effect(() => {
-    const profile = this.userProfile();
-    if (profile?.theme) {
-      this.theme.set(profile.theme);
-    }
-  });
-
-  private readonly themePersist = effect(() => {
-    const currentTheme = this.theme();
-    const profile = this.userProfile();
-    if (profile && profile.theme !== currentTheme) {
-      // Avoid circular updates by checking if actually different
-      // and maybe relying on the service to handle optimistic updates or not
-      void this.userProfilesService.updateUserProfile({ theme: currentTheme });
-    }
-  });
 
   readonly selectedTheme = this.theme.asReadonly();
 
