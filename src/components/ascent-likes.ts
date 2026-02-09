@@ -7,7 +7,7 @@ import {
   resource,
 } from '@angular/core';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -20,7 +20,7 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
 @Component({
   selector: 'app-ascent-likes',
   standalone: true,
-  imports: [TuiButton, TuiIcon],
+  imports: [TuiButton, TuiIcon, TranslatePipe],
   template: `
     <div class="flex items-center gap-1">
       <tui-icon
@@ -29,6 +29,7 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
         [icon]="item().user_liked ? '@tui.heart-filled' : '@tui.heart'"
         [style.color]="item().user_liked ? 'var(--tui-status-negative)' : ''"
         (click)="toggleLike($event)"
+        [attr.aria-label]="'actions.like' | translate"
       >
         ❤
       </tui-icon>
