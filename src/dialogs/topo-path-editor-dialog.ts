@@ -41,7 +41,7 @@ export interface TopoPathEditorConfig {
   template: `
     <div class="flex flex-col h-full overflow-hidden bg-neutral-900 text-white">
       <!-- Header -->
-      <div class="flex items-center justify-between p-4 shrink-0 border-b border-white/10 bg-black/40 backdrop-blur-md">
+      <div class="flex items-center justify-between p-4 shrink-0 border-b border-white/10 bg-black/40 backdrop-blur-md z-10">
         <div class="flex items-center gap-3">
           <button
             tuiIconButton
@@ -71,7 +71,7 @@ export interface TopoPathEditorConfig {
 
       <div class="flex flex-1 overflow-hidden">
         <!-- Sidebar: Route List -->
-        <div class="w-80 shrink-0 border-r border-white/10 bg-black/20 backdrop-blur-sm flex flex-col">
+        <div class="w-80 shrink-0 border-r border-white/10 bg-black/20 backdrop-blur-sm flex flex-col z-10">
           <div class="p-4 border-b border-white/5">
             <h3 class="text-xs font-bold uppercase tracking-widest opacity-50 px-2 mb-4">
               {{ 'labels.routes' | translate }}
@@ -116,27 +116,33 @@ export interface TopoPathEditorConfig {
             <div class="text-xs opacity-50 space-y-2">
               <p class="flex items-center gap-2">
                 <tui-icon icon="@tui.mouse-pointer-2" class="text-primary" />
-                {{ 'topos.editor.addPoint' | translate }}
+                {{ 'topos.editor.addPoint' | translate }} (Click)
               </p>
               <p class="flex items-center gap-2">
                 <tui-icon icon="@tui.move" class="text-primary" />
-                {{ 'topos.editor.movePoint' | translate }}
+                {{ 'topos.editor.movePoint' | translate }} (Drag)
               </p>
               <p class="flex items-center gap-2">
-                <tui-icon icon="@tui.trash" class="text-red-400" />
-                {{ 'topos.editor.deletePoint' | translate }}
+                <tui-icon icon="@tui.maximize" class="text-white" />
+                Zoom / Pan (Wheel / Right Click)
               </p>
             </div>
           </div>
         </div>
 
         <!-- Editor Area -->
-        <div class="flex-1 relative overflow-hidden bg-black flex items-center justify-center p-8">
+        <div
+          #viewport
+          class="flex-1 relative overflow-hidden bg-black flex items-center justify-center cursor-crosshair"
+          (wheel)="onWheel($event)"
+          (mousedown)="startPanning($event)"
+          (contextmenu)="$event.preventDefault()"
+        >
           <div
             #container
-            class="relative inline-block shadow-2xl rounded-lg overflow-hidden select-none"
+            class="relative inline-block shadow-2xl rounded-lg overflow-hidden select-none origin-top-left"
+            [style.transform]="transformStyle()"
             (mousedown)="onImageClick($event)"
-            (contextmenu)="$event.preventDefault()"
           >
             <img
               #image
@@ -148,7 +154,7 @@ export interface TopoPathEditorConfig {
 
             <!-- SVG Overlay for Paths -->
             <svg
-              class="absolute inset-0 w-full h-full cursor-crosshair"
+              class="absolute inset-0 w-full h-full"
               [attr.viewBox]="viewBox()"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -165,7 +171,8 @@ export interface TopoPathEditorConfig {
                     [attr.points]="getPointsString(entry.value)"
                     fill="none"
                     stroke="transparent"
-                    [attr.stroke-width]="isSelected ? 0.08 : 0.04"
+                    vector-effect="non-scaling-stroke"
+                    [attr.stroke-width]="20"
                     stroke-linejoin="round"
                     stroke-linecap="round"
                   />
@@ -177,7 +184,8 @@ export interface TopoPathEditorConfig {
                         ? entry.value.color || 'var(--tui-primary)'
                         : 'rgba(255,255,255,0.4)'
                     "
-                    [attr.stroke-width]="isSelected ? 4 : 2"
+                    vector-effect="non-scaling-stroke"
+                    [attr.stroke-width]="isSelected ? 3 : 2"
                     [attr.stroke-dasharray]="isSelected ? 'none' : '4 4'"
                     stroke-linejoin="round"
                     stroke-linecap="round"
@@ -194,34 +202,39 @@ export interface TopoPathEditorConfig {
                       (touchstart)="startDraggingTouch($event, entry.key, $index)"
                       (contextmenu)="removePoint($event, entry.key, $index)"
                     >
+                      <!-- Scaled-inverse radius to keep points constant size visually -->
+                      @let rOuter = 12 / transform().scale;
+                      @let rInner = 6 / transform().scale;
+
                       <circle
                         [attr.cx]="pt.x * width()"
                         [attr.cy]="pt.y * height()"
-                        r="12"
+                        [attr.r]="rOuter"
                         fill="rgba(0,0,0,0.4)"
                         class="hover:fill-black/60 transition-colors"
                       />
                       <circle
                         [attr.cx]="pt.x * width()"
                         [attr.cy]="pt.y * height()"
-                        r="6"
+                        [attr.r]="rInner"
                         [attr.fill]="entry.value.color || 'var(--tui-primary)'"
                         class="group-hover:scale-125 transition-transform"
                       />
                       <!-- Point Number Bubble -->
                       @if ($index === 0) {
+                        @let bubbleY = pt.y * height() - (20 / transform().scale);
                         <circle
                           [attr.cx]="pt.x * width()"
-                          [attr.cy]="pt.y * height() - 20"
-                          r="10"
+                          [attr.cy]="bubbleY"
+                          [attr.r]="10 / transform().scale"
                           fill="white"
                         />
                         <text
                           [attr.x]="pt.x * width()"
-                          [attr.y]="pt.y * height() - 16"
+                          [attr.y]="bubbleY + (4 / transform().scale)"
                           text-anchor="middle"
                           fill="black"
-                          font-size="10"
+                          [attr.font-size]="10 / transform().scale"
                           font-weight="bold"
                         >
                           {{ selectedRoute()?.number! + 1 }}
@@ -261,6 +274,7 @@ export class TopoPathEditorDialogComponent {
 
   @ViewChild('image') imageElement!: ElementRef<HTMLImageElement>;
   @ViewChild('container') containerElement!: ElementRef<HTMLDivElement>;
+  @ViewChild('viewport') viewportElement!: ElementRef<HTMLDivElement>;
 
   loading = signal(false);
   selectedRoute = signal<TopoRouteWithRoute | null>(null);
@@ -276,6 +290,13 @@ export class TopoPathEditorDialogComponent {
   width = signal(0);
   height = signal(0);
   viewBox = computed(() => `0 0 ${this.width()} ${this.height()}`);
+
+  // Zoom & Pan
+  transform = signal({ x: 0, y: 0, scale: 1 });
+  transformStyle = computed(
+    () =>
+      `translate(${this.transform().x}px, ${this.transform().y}px) scale(${this.transform().scale})`
+  );
 
   draggingPoint: { routeId: number; index: number } | null = null;
 
@@ -301,6 +322,19 @@ export class TopoPathEditorDialogComponent {
     const img = this.imageElement.nativeElement;
     this.width.set(img.clientWidth);
     this.height.set(img.clientHeight);
+
+    // Center image initially
+    setTimeout(() => {
+      if (this.viewportElement && this.containerElement) {
+        const vp = this.viewportElement.nativeElement.getBoundingClientRect();
+        const cnt = this.containerElement.nativeElement.getBoundingClientRect();
+        this.transform.set({
+          x: (vp.width - cnt.width) / 2,
+          y: (vp.height - cnt.height) / 2,
+          scale: 1
+        });
+      }
+    });
   }
 
   selectRoute(tr: TopoRouteWithRoute): void {
@@ -321,15 +355,76 @@ export class TopoPathEditorDialogComponent {
       .join(' ');
   }
 
+  // --- Zoom & Pan Logic ---
+
+  onWheel(e: WheelEvent): void {
+    e.preventDefault();
+    const scaleBy = 1.1;
+    const current = this.transform();
+    const direction = e.deltaY > 0 ? -1 : 1;
+    const newScale = direction > 0 ? current.scale * scaleBy : current.scale / scaleBy;
+
+    // Limit scale
+    if (newScale < 0.1 || newScale > 20) return;
+
+    const rect = this.viewportElement.nativeElement.getBoundingClientRect();
+    // Mouse position relative to viewport
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // Adjust position to zoom towards mouse
+    // Formula: newPos = mouse - (mouse - oldPos) * (newScale / oldScale)
+    const newX = mouseX - (mouseX - current.x) * (newScale / current.scale);
+    const newY = mouseY - (mouseY - current.y) * (newScale / current.scale);
+
+    this.transform.set({ x: newX, y: newY, scale: newScale });
+  }
+
+  startPanning(e: MouseEvent): void {
+    // Right click (2) or Middle click (1)
+    if (e.button === 2 || e.button === 1) {
+      e.preventDefault();
+      const startX = e.clientX - this.transform().x;
+      const startY = e.clientY - this.transform().y;
+
+      const onMove = (mv: MouseEvent) => {
+        this.transform.update((t) => ({
+          ...t,
+          x: mv.clientX - startX,
+          y: mv.clientY - startY,
+        }));
+      };
+
+      const onUp = () => {
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onUp);
+      };
+
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+    }
+  }
+
+  // --- Drawing Logic ---
+
   onImageClick(event: MouseEvent): void {
+    // Only Left Click (0)
     if (event.button !== 0 || this.draggingPoint) return;
 
     const route = this.selectedRoute();
     if (!route) return;
 
+    // Use getBoundingClientRect logic which naturally handles transform
+    // But we need to be careful: container rect includes scale.
+    // Normalized x/y (0..1) should be relative to the image content.
     const rect = this.containerElement.nativeElement.getBoundingClientRect();
+
+    // Normalized coordinates (0 to 1)
     const x = (event.clientX - rect.left) / rect.width;
     const y = (event.clientY - rect.top) / rect.height;
+
+    // Bounds check (sometimes slightly out due to rounding)
+    if (x < 0 || x > 1 || y < 0 || y > 1) return;
 
     const current = this.pathsMap.get(route.route_id) || {
       points: [],
@@ -352,10 +447,10 @@ export class TopoPathEditorDialogComponent {
       const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
       const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
 
-      const pathData = this.pathsMap.get(this.draggingPoint.routeId);
+      const pathData = this.pathsMap.get(this.draggingPoint!.routeId);
       if (pathData) {
-        pathData.points[this.draggingPoint.index] = { x, y };
-        this.pathsMap.set(this.draggingPoint.routeId, { ...pathData });
+        pathData.points[this.draggingPoint!.index] = { x, y };
+        this.pathsMap.set(this.draggingPoint!.routeId, { ...pathData });
       }
     };
 
@@ -365,6 +460,7 @@ export class TopoPathEditorDialogComponent {
       window.removeEventListener('mouseup', onMouseUp);
     };
 
+    window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
   }
 
@@ -411,10 +507,10 @@ export class TopoPathEditorDialogComponent {
         Math.min(1, (touch.clientY - rect.top) / rect.height),
       );
 
-      const pathData = this.pathsMap.get(this.draggingPoint.routeId);
+      const pathData = this.pathsMap.get(this.draggingPoint!.routeId);
       if (pathData) {
-        pathData.points[this.draggingPoint.index] = { x, y };
-        this.pathsMap.set(this.draggingPoint.routeId, { ...pathData });
+        pathData.points[this.draggingPoint!.index] = { x, y };
+        this.pathsMap.set(this.draggingPoint!.routeId, { ...pathData });
       }
     };
 
