@@ -73,6 +73,7 @@ import {
   RouteAscentWithExtras,
   RouteWithExtras,
 } from '../models';
+import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
 
 @Component({
   selector: 'app-user-profile',
@@ -127,6 +128,8 @@ import {
             [src]="avatar | tuiFallbackSrc: '@tui.user' | async"
             [tuiSkeleton]="loading"
             size="xxl"
+            class="cursor-pointer transition-transform hover:scale-105 active:scale-95"
+            (click)="showEnlargedPhoto()"
           />
           <div class="grow">
             <div class="flex flex-row gap-2 items-center">
@@ -1306,6 +1309,19 @@ export class UserProfileComponent {
       }),
       { defaultValue: undefined },
     );
+  }
+
+  protected showEnlargedPhoto(): void {
+    const avatar = this.profileAvatarSrc();
+    if (!avatar) return;
+
+    void this.dialogs
+      .open(new PolymorpheusComponent(PhotoViewerDialogComponent), {
+        data: { imageUrl: avatar },
+        size: 'l',
+        appearance: 'flat',
+      })
+      .subscribe();
   }
 }
 
