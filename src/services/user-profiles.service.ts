@@ -13,6 +13,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
 import { Import8aComponent } from '../components/import-8a';
 
 import { SupabaseService } from './supabase.service';
+import { normalizeName } from '../utils';
 
 @Injectable({
   providedIn: 'root',
@@ -96,14 +97,26 @@ export class UserProfilesService {
   }
 
   async searchUsers(query: string): Promise<UserProfileDto[]> {
-    if (!query.trim()) return [];
+    const q = `%${query.trim()}%`;
+    const qLoose = `%${query
+      .trim()
+      .split('')
+      .map((c) => (/[aeiouáéíóúü]/i.test(c) ? '%' : c))
+      .join('')}%`.replace(/%+/g, '%');
+
     const { data } = await this.supabase.client
       .from('user_profiles')
       .select('*')
-      .ilike('name', `%${query}%`)
+      .or(`name.ilike.${q},name.ilike.${qLoose}`)
       .neq('id', this.supabase.authUserId() || '')
-      .limit(10);
-    return data || [];
+      .limit(100);
+
+    const results = data || [];
+    const normalizedQuery = normalizeName(query);
+
+    return results
+      .filter((u) => normalizeName(u.name).includes(normalizedQuery))
+      .slice(0, 10);
   }
 
   async getUserProfile(userId: string): Promise<UserProfileDto | null> {

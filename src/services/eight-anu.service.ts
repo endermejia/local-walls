@@ -10,7 +10,7 @@ import {
   SearchCragItem,
   SearchRouteItem,
 } from '../models';
-import { slugify } from '../utils';
+import { normalizeName, slugify } from '../utils';
 
 @Injectable({
   providedIn: 'root',
@@ -65,8 +65,8 @@ export class EightAnuService {
           const match = response.items.find(
             (i) =>
               i.type === 1 &&
-              i.cragName?.toLowerCase() === cragName.toLowerCase() &&
-              i.areaName?.toLowerCase() === areaName.toLowerCase(),
+              normalizeName(i.cragName) === normalizeName(cragName) &&
+              normalizeName(i.areaName) === normalizeName(areaName),
           ) as SearchCragItem;
           if (match) return match;
         }
@@ -115,9 +115,9 @@ export class EightAnuService {
           const match = response.items.find(
             (i) =>
               i.type === 3 &&
-              i.zlaggableName?.toLowerCase() === routeName.toLowerCase() &&
-              i.cragName?.toLowerCase() === cragName.toLowerCase() &&
-              i.areaName?.toLowerCase() === areaName.toLowerCase(),
+              normalizeName(i.zlaggableName) === normalizeName(routeName) &&
+              normalizeName(i.cragName) === normalizeName(cragName) &&
+              normalizeName(i.areaName) === normalizeName(areaName),
           ) as SearchRouteItem;
           if (match) return match;
         }
@@ -126,8 +126,8 @@ export class EightAnuService {
         const matchCrag = response.items.find(
           (i) =>
             i.type === 3 &&
-            i.cragName?.toLowerCase() === cragName.toLowerCase() &&
-            i.areaName?.toLowerCase() === areaName.toLowerCase(),
+            normalizeName(i.cragName) === normalizeName(cragName) &&
+            normalizeName(i.areaName) === normalizeName(areaName),
         ) as SearchRouteItem;
 
         if (matchCrag) return matchCrag;

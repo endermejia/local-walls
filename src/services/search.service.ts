@@ -1,8 +1,15 @@
 import { inject, Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { catchError, from, map, merge, Observable, of, scan } from 'rxjs';
-import { SearchApiResponse, SearchData, SearchItem } from '../models';
+import {
+  SearchApiResponse,
+  SearchData,
+  SearchItem,
+  VERTICAL_LIFE_GRADES,
+  VERTICAL_LIFE_TO_LABEL,
+} from '../models';
 import { SupabaseService } from './supabase.service';
+import { normalizeName, slugify } from '../utils';
 
 interface DbArea {
   id: number;
@@ -24,6 +31,7 @@ interface DbRoute {
   id: number;
   name: string;
   slug: string;
+  grade: number;
   crag:
     | {
         name: string;
@@ -62,31 +70,36 @@ export class SearchService {
     if (trimmedQuery.length < 2) return from([null]);
 
     const q = `%${trimmedQuery}%`;
+    const qSlug = `%${slugify(trimmedQuery)}%`;
+    const qLoose = `%${trimmedQuery
+      .split('')
+      .map((c) => (/[aeiouáéíóúü]/i.test(c) ? '%' : c))
+      .join('')}%`.replace(/%+/g, '%');
 
     const dbQuery$: Observable<SearchData> = from(
       Promise.all([
         this.supabase.client
           .from('areas')
           .select('id, name, slug')
-          .ilike('name', q)
+          .or(`name.ilike.${q},slug.ilike.${qSlug}`)
           .limit(5),
         this.supabase.client
           .from('crags')
           .select('id, name, slug, area:areas(name, slug)')
-          .ilike('name', q)
+          .or(`name.ilike.${q},slug.ilike.${qSlug}`)
           .limit(5),
         this.supabase.client
           .from('routes')
           .select(
-            'id, name, slug, crag:crags!routes_crag_id_fkey(name, slug, area:areas!crags_area_id_fkey(name, slug))',
+            'id, name, slug, grade, crag:crags!routes_crag_id_fkey(name, slug, area:areas!crags_area_id_fkey(name, slug))',
           )
-          .ilike('name', q)
+          .or(`name.ilike.${q},slug.ilike.${qSlug}`)
           .limit(5),
         this.supabase.client
           .from('user_profiles')
           .select('id, name, avatar')
-          .ilike('name', q)
-          .limit(5),
+          .or(`name.ilike.${q},name.ilike.${qLoose}`)
+          .limit(50),
       ]),
     ).pipe(
       map((responses) => {
@@ -131,20 +144,27 @@ export class SearchService {
                 subtitle: `${area?.name || ''} > ${crag?.name || ''}`,
                 href: `/area/${area?.slug}/${crag?.slug}/${r.slug}`,
                 icon: '@tui.route',
+                difficulty:
+                  VERTICAL_LIFE_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES],
               } as SearchItem;
             },
           );
         }
         if (users?.length) {
-          results[this.translate.instant('labels.users')] = users.map(
-            (u: DbUser) =>
-              ({
-                title: u.name,
-                href: `/profile/${u.id}`,
-                icon: this.supabase.buildAvatarUrl(u.avatar) || u.name[0],
-                type: 'user',
-              }) as SearchItem,
-          );
+          results[this.translate.instant('labels.users')] = users
+            .filter((u) =>
+              normalizeName(u.name).includes(normalizeName(trimmedQuery)),
+            )
+            .slice(0, 5)
+            .map(
+              (u: DbUser) =>
+                ({
+                  title: u.name,
+                  href: `/profile/${u.id}`,
+                  icon: this.supabase.buildAvatarUrl(u.avatar) || u.name[0],
+                  type: 'user',
+                }) as SearchItem,
+            );
         }
         return results;
       }),
@@ -154,86 +174,6 @@ export class SearchService {
       }),
     );
 
-    const elasticQuery$: Observable<SearchData> = from(
-      this.supabase.client.functions.invoke<SearchApiResponse>('search', {
-        body: { query: trimmedQuery },
-      }),
-    ).pipe(
-      map(
-        ({
-          data,
-          error,
-        }: {
-          data: SearchApiResponse | null;
-          error: Error | null;
-        }) => {
-          if (error) throw error;
-          const results: SearchData = {};
-          if (data?.items?.length) {
-            const elasticAreas: SearchItem[] = [];
-            const elasticCrags: SearchItem[] = [];
-            const elasticRoutes: SearchItem[] = [];
-
-            data.items.forEach((item) => {
-              if (item.type === 0) {
-                elasticAreas.push({
-                  title: item.areaName || '',
-                  href: `/area/${item.areaSlug || ''}`,
-                  icon: '@tui.map-pin',
-                });
-              } else if (item.type === 1) {
-                elasticCrags.push({
-                  title: item.cragName || '',
-                  subtitle: item.areaName,
-                  href: `/area/${item.areaSlug || ''}/${item.cragSlug || ''}`,
-                  icon: '@tui.mountain',
-                });
-              } else if (item.type === 3) {
-                elasticRoutes.push({
-                  title: item.zlaggableName || '',
-                  subtitle: `${item.areaName || ''} > ${item.cragName || ''}`,
-                  href: `/area/${item.areaSlug || ''}/${item.cragSlug || ''}/${item.zlaggableSlug || ''}`,
-                  icon: '@tui.route',
-                  difficulty: item.difficulty,
-                } as SearchItem);
-              }
-            });
-
-            if (elasticAreas.length)
-              results[this.translate.instant('labels.areas')] = elasticAreas;
-            if (elasticCrags.length)
-              results[this.translate.instant('labels.crags')] = elasticCrags;
-            if (elasticRoutes.length)
-              results[this.translate.instant('labels.routes')] = elasticRoutes;
-          }
-          return results;
-        },
-      ),
-      catchError((err: Error) => {
-        console.error('[SearchService] Elastic search error', err);
-        return of({} as SearchData);
-      }),
-    );
-
-    return merge(dbQuery$, elasticQuery$).pipe(
-      scan((acc, curr) => this.mergeResults(acc, curr), {} as SearchData),
-    );
-  }
-
-  private mergeResults(
-    current: SearchData,
-    newResults: SearchData,
-  ): SearchData {
-    const merged = { ...current };
-    Object.keys(newResults).forEach((key) => {
-      const existing = (merged[key] as SearchItem[]) || [];
-      const incoming = (newResults[key] as SearchItem[]) || [];
-
-      const existingHrefs = new Set(existing.map((i) => i.href));
-      const uniqueIncoming = incoming.filter((i) => !existingHrefs.has(i.href));
-
-      merged[key] = [...existing, ...uniqueIncoming];
-    });
-    return merged;
+    return dbQuery$;
   }
 }

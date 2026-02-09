@@ -19,3 +19,12 @@ export function slugify(input: string | undefined | null): string {
   v = v.replace(/^-+|-+$/g, '');
   return v;
 }
+export function normalizeName(input: string | undefined | null): string {
+  const value = (input ?? '').toString();
+  if (!value) return '';
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
