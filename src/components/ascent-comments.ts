@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+import { TranslatePipe } from '@ngx-translate/core';
 import { TuiButton, TuiIcon } from '@taiga-ui/core';
 import { firstValueFrom } from 'rxjs';
 
@@ -15,7 +16,7 @@ import { AscentsService } from '../services';
 @Component({
   selector: 'app-ascent-comments',
   standalone: true,
-  imports: [TuiButton, TuiIcon],
+  imports: [TuiButton, TuiIcon, TranslatePipe],
   template: `
     <div class="flex items-center gap-1">
       <tui-icon
@@ -23,6 +24,7 @@ import { AscentsService } from '../services';
         size="m"
         icon="@tui.message-circle"
         (click)="showComments($event)"
+        [attr.aria-label]="'labels.comments' | translate"
       />
       @if (commentsCountResource.value(); as count) {
         <button

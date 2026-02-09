@@ -106,6 +106,7 @@ import { NgOptimizedImage } from '@angular/common';
             "
             class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full relative"
             (click)="scrollToTop($event)"
+            [attr.aria-label]="'nav.home' | translate"
           >
             <div
               class="absolute inset-0 pointer-events-none"
@@ -134,6 +135,7 @@ import { NgOptimizedImage } from '@angular/common';
               explore.isActive ? 'flat-destructive' : 'flat-grayscale'
             "
             class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
+            [attr.aria-label]="'nav.explore' | translate"
           >
             <tui-icon icon="@tui.map" />
             <span
@@ -152,6 +154,7 @@ import { NgOptimizedImage } from '@angular/common';
               areas.isActive ? 'flat-destructive' : 'flat-grayscale'
             "
             class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
+            [attr.aria-label]="'nav.areas' | translate"
           >
             <tui-icon icon="@tui.list" />
             <span
@@ -174,6 +177,9 @@ import { NgOptimizedImage } from '@angular/common';
                 config.isActive ? 'flat-destructive' : 'flat-grayscale'
               "
               class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
+              [attr.aria-label]="
+                (global.isAdmin() ? 'config' : 'nav.my-areas') | translate
+              "
             >
               <tui-icon icon="@tui.cog" />
               <span
@@ -196,6 +202,7 @@ import { NgOptimizedImage } from '@angular/common';
               "
               class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer"
               (click)="searchOpen = true"
+              [attr.aria-label]="'labels.search' | translate"
             >
               <tui-icon icon="@tui.search" />
               <span
@@ -256,6 +263,7 @@ import { NgOptimizedImage } from '@angular/common';
               profile.isActive ? 'flat-destructive' : 'flat-grayscale'
             "
             class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full lg:mt-auto"
+            [attr.aria-label]="'nav.profile' | translate"
           >
             <tui-avatar
               [src]="global.userAvatar() || '@tui.user'"
@@ -284,6 +292,7 @@ import { NgOptimizedImage } from '@angular/common';
             [tuiDropdown]="optionsDropdown"
             [(tuiDropdownOpen)]="configOpen"
             tuiDropdownDirection="top"
+            [attr.aria-label]="'config' | translate"
           >
             <tui-icon icon="@tui.menu" />
             <span

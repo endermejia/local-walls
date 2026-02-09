@@ -40,7 +40,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
           @if (showHeader()) {
             <app-navbar />
           }
-          <div class="flex-1 overflow-hidden relative flex flex-col">
+          <main class="flex-1 overflow-hidden relative flex flex-col">
             <router-outlet />
 
             @if (showHeader()) {
@@ -65,6 +65,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
                     class="!rounded-full aspect-square md:aspect-auto md:!px-4 flex items-center justify-center !bg-[var(--tui-background-base)] hover:!bg-[var(--tui-background-base-alt)] shadow-md"
                     iconStart="@tui.messages-square"
                     (click)="openChat()"
+                    [attr.aria-label]="'labels.messages' | translate"
                   >
                     <span class="hidden md:block">{{
                       'labels.messages' | translate
@@ -94,6 +95,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
                       class="!rounded-full aspect-square md:aspect-auto md:!px-4 flex items-center justify-center !bg-[var(--tui-background-base)] hover:!bg-[var(--tui-background-base-alt)] shadow-md"
                       iconStart="@tui.bell"
                       (click)="openNotifications()"
+                      [attr.aria-label]="'labels.notifications' | translate"
                     >
                       <span class="hidden md:block">{{
                         'labels.notifications' | translate
@@ -103,7 +105,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
                 }
               </div>
             }
-          </div>
+          </main>
         </div>
       } @else {
         <div class="h-[100dvh] flex items-center justify-center p-4">

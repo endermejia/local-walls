@@ -213,6 +213,7 @@ import { AscentLastCommentComponent } from './ascent-last-comment';
                 [readOnly]="true"
                 class="pointer-events-none"
                 [style.font-size.rem]="0.5"
+                [attr.aria-label]="'labels.rating' | translate"
               />
             }
           </div>
