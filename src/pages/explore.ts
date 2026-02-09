@@ -188,15 +188,9 @@ import { mapLocationUrl, remToPx } from '../utils';
                 </header>
                 <section class="grid grid-cols-[1fr_auto] gap-2 items-stretch">
                   <div class="flex flex-col justify-between">
-                    <a
-                      tuiSubtitle
-                      tuiLink
-                      appearance="action-grayscale"
-                      class="!text-xl w-fit"
-                      [routerLink]="['/area', c.area_slug]"
-                      (click.zoneless)="$event.stopPropagation()"
-                      >{{ c.area_name }}</a
-                    >
+                    <span tuiSubtitle class="!text-xl w-fit">{{
+                      c.area_name
+                    }}</span>
                     <div
                       class="text-xl h-full mb-7 content-center flex items-center gap-4"
                     >
