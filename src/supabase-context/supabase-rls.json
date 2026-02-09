@@ -469,7 +469,7 @@
     "schema_name": "public",
     "table_name": "route_ascents",
     "for_command": "r",
-    "using_expression": "((auth.uid() = user_id) OR (is_profile_public(user_id) AND NOT has_ascent_blocking(auth.uid(), user_id)))",
+    "using_expression": "((auth.uid() = user_id) OR (private_ascent = false AND is_profile_public(user_id) AND NOT has_ascent_blocking(auth.uid(), user_id)))",
     "with_check_expression": null
   },
   {

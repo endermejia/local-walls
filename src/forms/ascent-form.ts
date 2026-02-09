@@ -207,7 +207,7 @@ import { handleErrorToast } from '../utils';
             <input
               tuiCheckbox
               type="checkbox"
-              formControlName="private_comment"
+              formControlName="private_ascent"
             />
             <span class="text-sm">{{ 'ascent.private' | translate }}</span>
           </label>
@@ -635,7 +635,7 @@ export default class AscentFormComponent {
     comment: new FormControl<string>(''),
     date: new FormControl<TuiDay>(TuiDay.currentLocal(), { nonNullable: true }),
     attempts: new FormControl<number | null>(null),
-    private_comment: new FormControl<boolean>(false, { nonNullable: true }),
+    private_ascent: new FormControl<boolean>(false, { nonNullable: true }),
     recommended: new FormControl<boolean>(false, { nonNullable: true }),
     soft: new FormControl<boolean>(false, { nonNullable: true }),
     hard: new FormControl<boolean>(false, { nonNullable: true }),
@@ -827,7 +827,7 @@ export default class AscentFormComponent {
       rate: data.rate ?? 0,
       comment: data.comment ?? '',
       attempts: data.attempts ?? null,
-      private_comment: !!data.private_comment,
+      private_ascent: !!data.private_ascent,
       recommended: !!data.recommended,
       soft: !!data.soft,
       hard: !!data.hard,
