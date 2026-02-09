@@ -26,18 +26,13 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Next Steps
 
-- **En los boulders debe salir tambien la graducacion de boulder a parte de la frances (7a/V6)**
-- **Opcion para eliminar usuario, con advertencia de borrado de datos y confirmacion escribiendo su correo a mano sin copiar**
-  - Corregir errores
-- **Primeros pasos para nuevos usuarios. Añadir boolean first_steps en user-profile para ver primeros pasos.**
-  - Corregir errores
-
-## Future Features
-
 - **Apuntar pegues en una via (que no salgan en el feed para otros usuarios)**
 - **Calendario de volumen, para entrenamiento, etc**
 - **El admin debe poder hacer Sync del area con 8a.nu, actualizando los crags y routes**
 - **Tanto sync como import deben traer tambien los datos de boulders y no solo sportclimbing**
+
+## Future Features
+
 - **Sección para rocodromos. Para que se puedan hacer vias y croquis en los rocrodromos**
 - **8a.nu Integration**:
   - Copy 8a.nu ascents database.
