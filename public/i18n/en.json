@@ -69,13 +69,13 @@
       "message": "To continue using our application, you must accept our privacy policy and the use of cookies to improve your experience.",
       "accept": "Accept and continue",
       "readMore": "View privacy policy",
-      "fullPolicy": "Our privacy policy details how we collect, use, and protect your personal data.<br><br>By using <strong>CLIMBEAST</strong>, you agree to the storage of technical cookies necessary for the application's operation, as well as the processing of your profile data to offer you a personalized experience in managing your climbing areas and ascents.<br><br>We do not share your data with third parties for advertising purposes. You can withdraw your consent at any time by deleting your account from the profile settings."
+      "fullPolicy": "Our privacy policy details how we collect, use, and protect your personal data.<br><br>By using <strong>ClimBeast</strong>, you agree to the storage of technical cookies necessary for the application's operation, as well as the processing of your profile data to offer you a personalized experience in managing your climbing areas and ascents.<br><br>We do not share your data with third parties for advertising purposes. You can withdraw your consent at any time by deleting your account from the profile settings."
     },
     "actions": "Actions",
     "all": "All",
     "allTime": "All time",
     "anonymous": "Anonymous",
-    "appName": "CLIMBEAST",
+    "appName": "ClimBeast",
     "approach": "Approach",
     "area": "Area",
     "areas": "Areas",
@@ -272,7 +272,7 @@
     "noFollowing": "You are not following anyone yet"
   },
   "seo": {
-    "title": "CLIMBEAST | The Ultimate Climbing Companion",
+    "title": "ClimBeast | fanatic community",
     "description": "Climbing topos app made by local equippers. Find and share climbing areas, sectors and routes near you."
   },
   "weather": {

@@ -36,10 +36,7 @@ Deno.serve(async (req: Request) => {
    * Usa '*' solo si no envías cookies.
    * Para producción, reemplaza por tu dominio.
    */
-  const ALLOWED_ORIGINS = [
-    'http://localhost:4200',
-    'https://climbeast.vercel.app',
-  ];
+  const ALLOWED_ORIGINS = ['http://localhost:4200', 'https://climbeast.com'];
   const origin = req.headers.get('origin') ?? '';
   const corsHeaders: Record<string, string> = {};
 

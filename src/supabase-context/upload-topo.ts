@@ -27,10 +27,7 @@ const supabaseAdminClient = createClient(
 console.info('Upload-topo-photo function started');
 
 Deno.serve(async (req: Request) => {
-  const ALLOWED_ORIGINS = [
-    'http://localhost:4200',
-    'https://climbeast.vercel.app',
-  ];
+  const ALLOWED_ORIGINS = ['http://localhost:4200', 'https://climbeast.com'];
 
   const origin = req.headers.get('origin') ?? '';
   const corsHeaders: Record<string, string> = {};

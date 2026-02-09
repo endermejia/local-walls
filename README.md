@@ -1,4 +1,4 @@
-# CLIMBEAST
+# ClimBeast
 
 A modern climbing guide application built with Angular 20 that helps climbers discover and navigate climbing locations.
 The app features an interactive map interface for exploring climbing spots, detailed route information, and mobile-friendly design.
@@ -104,4 +104,4 @@ This repo runs Prettier automatically before each commit via Husky + lint-staged
 
 With love, by Gabri Mejía ❤
 
-[Live DEMO](https://climbeast.vercel.app) 🚀
+[Live DEMO](https://climbeast.com) 🚀
