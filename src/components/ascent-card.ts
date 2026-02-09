@@ -37,11 +37,13 @@ import { AscentCommentsComponent } from './ascent-comments';
 import { AscentLikesComponent } from './ascent-likes';
 import { AvatarGradeComponent } from './avatar-grade';
 import { AvatarAscentTypeComponent } from './avatar-ascent-type';
+import { AscentLastCommentComponent } from './ascent-last-comment';
 
 @Component({
   selector: 'app-ascent-card',
   imports: [
     AscentCommentsComponent,
+    AscentLastCommentComponent,
     AscentLikesComponent,
     AvatarAscentTypeComponent,
     AvatarGradeComponent,
@@ -225,9 +227,12 @@ import { AvatarAscentTypeComponent } from './avatar-ascent-type';
         </p>
       }
 
-      <footer class="flex items-center gap-4 mt-2">
-        <app-ascent-likes [ascentId]="ascent.id" />
-        <app-ascent-comments [ascentId]="ascent.id" />
+      <footer class="flex flex-col gap-2 mt-2">
+        <div class="flex items-center gap-4">
+          <app-ascent-likes [ascentId]="ascent.id" />
+          <app-ascent-comments [ascentId]="ascent.id" />
+        </div>
+        <app-ascent-last-comment [ascentId]="ascent.id" />
       </footer>
     </div>
   `,

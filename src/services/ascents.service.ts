@@ -487,6 +487,44 @@ export class AscentsService {
     return count ?? 0;
   }
 
+  async getLastComment(
+    ascentId: number,
+  ): Promise<
+    (RouteAscentCommentDto & { user_profiles: UserProfileDto }) | null
+  > {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    await this.supabase.whenReady();
+
+    const { data: comment, error: commentError } = await this.supabase.client
+      .from('route_ascent_comments')
+      .select('*')
+      .eq('route_ascent_id', ascentId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (commentError || !comment) {
+      if (commentError)
+        console.error('[AscentsService] getLastComment error', commentError);
+      return null;
+    }
+
+    const { data: user, error: userError } = await this.supabase.client
+      .from('user_profiles')
+      .select('*')
+      .eq('id', comment.user_id)
+      .maybeSingle();
+
+    if (userError || !user) {
+      return null;
+    }
+
+    return {
+      ...comment,
+      user_profiles: user as UserProfileDto,
+    };
+  }
+
   async getComments(
     ascentId: number,
   ): Promise<(RouteAscentCommentDto & { user_profiles: UserProfileDto })[]> {
