@@ -22,14 +22,12 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { map, merge, startWith } from 'rxjs';
 
-import {
-  AppNotificationsService,
-  BrowserNotificationService,
-  LocalStorage,
-  MessagingService,
-  SupabaseService,
-  UserProfilesService,
-} from '../services';
+import { AppNotificationsService } from './app-notifications.service';
+import { BrowserNotificationService } from './browser-notification.service';
+import { LocalStorage } from './local-storage';
+import { MessagingService } from './messaging.service';
+import { SupabaseService } from './supabase.service';
+import { UserProfilesService } from './user-profiles.service';
 
 import { mapCragToDetail } from '../utils';
 
