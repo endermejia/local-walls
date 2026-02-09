@@ -724,6 +724,9 @@ interface Country {
       <app-tour-hint
         [description]="'tour.config.description' | translate"
         (next)="tourService.next()"
+        [disabled]="
+          displayNameControl.invalid || displayNameControl.value === userEmail()
+        "
       />
     </ng-template>
   `,
