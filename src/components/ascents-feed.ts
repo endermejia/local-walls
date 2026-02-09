@@ -56,6 +56,7 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
             [showUser]="showUser()"
             [showRoute]="showRoute()"
             [isFollowed]="followedIds().has(ascent.user_id)"
+            [priority]="$index === 0"
             (followEvent)="follow.emit($event)"
             (unfollowEvent)="unfollow.emit($event)"
           />
