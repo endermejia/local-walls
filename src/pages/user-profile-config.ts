@@ -15,7 +15,12 @@ import {
   signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormControl,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { TuiDay, TuiStringMatcher } from '@taiga-ui/cdk';
@@ -30,6 +35,7 @@ import {
   TuiTextfield,
   TuiTitle,
   TuiDropdown,
+  TuiError,
 } from '@taiga-ui/core';
 import {
   TuiDialogService,
@@ -57,6 +63,7 @@ import {
   TuiTextarea,
   TuiPulse,
   type TuiConfirmData,
+  TuiFieldErrorPipe,
 } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
@@ -137,6 +144,8 @@ interface Country {
     TuiDropdown,
     TuiPulse,
     TuiTitle,
+    TuiError,
+    TuiFieldErrorPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
@@ -158,6 +167,11 @@ interface Country {
             type="button"
             class="!rounded-full"
             (click)="isFirstSteps() ? startTour() : close()"
+            [disabled]="
+              isFirstSteps() &&
+              (displayNameControl.invalid ||
+                displayNameControl.value === userEmail())
+            "
           >
             {{
               isFirstSteps()
@@ -219,15 +233,16 @@ interface Country {
                 tuiTextfield
                 type="text"
                 autocomplete="off"
-                required
-                minlength="3"
-                maxlength="50"
-                [(ngModel)]="displayName"
+                [formControl]="displayNameControl"
                 (blur)="saveName()"
                 (keydown.enter)="saveName()"
                 [tuiSkeleton]="!userEmail()"
               />
             </tui-textfield>
+            <tui-error
+              [error]="[] | tuiFieldError | async"
+              [formControl]="displayNameControl"
+            />
             @if (tourService.step() === TourStep.WELCOME) {
               <tui-pulse class="!absolute top-0 right-0 -mt-1 -mr-1 z-10" />
             }
@@ -274,11 +289,15 @@ interface Country {
               name="bioInput"
               tuiTextarea
               rows="4"
-              maxlength="50"
-              [(ngModel)]="bio"
+              maxlength="100"
+              [formControl]="bioControl"
               (blur)="saveBio()"
               [tuiSkeleton]="!userEmail()"
             ></textarea>
+            <tui-error
+              [error]="[] | tuiFieldError | async"
+              [formControl]="bioControl"
+            />
           </tui-textfield>
         </div>
         <!-- 8a.nu User -->
@@ -348,7 +367,7 @@ interface Country {
                 name="countrySelect"
                 tuiComboBox
                 autocomplete="off"
-                [(ngModel)]="country"
+                [formControl]="countryControl"
                 [matcher]="matcher"
                 [strict]="true"
                 (ngModelChange)="saveCountry()"
@@ -385,8 +404,10 @@ interface Country {
                 tuiTextfield
                 type="text"
                 autocomplete="off"
+                type="text"
+                autocomplete="off"
                 maxlength="100"
-                [(ngModel)]="city"
+                [formControl]="cityControl"
                 (blur)="saveCity()"
                 (keydown.enter)="saveCity()"
                 [tuiSkeleton]="!userEmail()"
@@ -407,8 +428,9 @@ interface Country {
                 name="birthDateInput"
                 tuiInputDate
                 [max]="today"
+                [max]="today"
                 [min]="minBirthDate"
-                [(ngModel)]="birthDate"
+                [formControl]="birthDateControl"
                 (ngModelChange)="saveBirthDate()"
                 [tuiSkeleton]="!userEmail()"
               />
@@ -427,7 +449,9 @@ interface Country {
                 tuiInputYear
                 [min]="minYear"
                 [max]="currentYear"
-                [(ngModel)]="startingClimbingYear"
+                [min]="minYear"
+                [max]="currentYear"
+                [formControl]="startingClimbingYearControl"
                 (ngModelChange)="saveStartingClimbingYear()"
                 [tuiSkeleton]="!userEmail()"
               />
@@ -449,7 +473,9 @@ interface Country {
                 tuiInputNumber
                 [min]="0"
                 [max]="300"
-                [(ngModel)]="size"
+                [min]="0"
+                [max]="300"
+                [formControl]="sizeControl"
                 (blur)="saveSize()"
                 (keydown.enter)="saveSize()"
                 [tuiSkeleton]="!userEmail()"
@@ -471,8 +497,10 @@ interface Country {
               <input
                 id="sexSelect"
                 name="sexSelect"
+                id="sexSelect"
+                name="sexSelect"
                 tuiSelect
-                [(ngModel)]="sex"
+                [formControl]="sexControl"
                 (ngModelChange)="saveSex()"
                 [tuiSkeleton]="!userEmail()"
               />
@@ -520,7 +548,7 @@ interface Country {
                 id="languageSelect"
                 name="languageSelect"
                 tuiSelect
-                [(ngModel)]="language"
+                [formControl]="languageControl"
                 (ngModelChange)="saveLanguage()"
                 [tuiSkeleton]="!userEmail()"
               />
@@ -535,7 +563,7 @@ interface Country {
             <tui-segmented
               size="l"
               class="w-fit"
-              [activeItemIndex]="theme === Themes.DARK ? 1 : 0"
+              [activeItemIndex]="themeControl.value === Themes.DARK ? 1 : 0"
               (activeItemIndexChange)="toggleTheme($event === 1)"
             >
               <button title="light" type="button">
@@ -776,16 +804,28 @@ export class UserProfileConfigComponent {
   });
 
   // Editable fields
-  displayName = '';
-  bio = '';
-  language: Language = Languages.ES;
-  theme: Theme = Themes.LIGHT;
-  country: string | null = null;
-  city: string | null = null;
-  birthDate: TuiDay | null = null;
-  startingClimbingYear: number | null = null;
-  size: number | null = null;
-  sex: Sex | null = null;
+  displayNameControl = new FormControl('', [
+    Validators.required,
+    Validators.minLength(3),
+    Validators.maxLength(50),
+  ]);
+  bioControl = new FormControl('', [Validators.maxLength(100)]);
+  languageControl = new FormControl<Language>(Languages.ES);
+  themeControl = new FormControl<Theme>(Themes.LIGHT);
+  countryControl = new FormControl<string | null>(null);
+  cityControl = new FormControl<string | null>(null, [
+    Validators.maxLength(100),
+  ]);
+  birthDateControl = new FormControl<TuiDay | null>(null);
+  startingClimbingYearControl = new FormControl<number | null>(null, [
+    Validators.min(1900),
+    Validators.max(new Date().getFullYear()),
+  ]);
+  sizeControl = new FormControl<number | null>(null, [
+    Validators.min(0),
+    Validators.max(300),
+  ]);
+  sexControl = new FormControl<Sex | null>(null);
   isPrivate = false;
 
   deleteEmailControl = new FormControl('');
@@ -870,15 +910,19 @@ export class UserProfileConfigComponent {
         this.hasOpenedWelcome = true;
 
         if (!this.isFirstSteps()) return;
-        this.dialogs
-          .open(new PolymorpheusComponent(FirstStepsDialogComponent), {
-            size: 'm',
-            dismissible: false,
-            closable: false,
-          })
-          .subscribe();
+        this.openWelcomeDialog();
       }
     });
+  }
+
+  private openWelcomeDialog(): void {
+    this.dialogs
+      .open(new PolymorpheusComponent(FirstStepsDialogComponent), {
+        size: 'm',
+        dismissible: false,
+        closable: false,
+      })
+      .subscribe();
   }
 
   async loadProfile(): Promise<void> {
@@ -887,23 +931,37 @@ export class UserProfileConfigComponent {
     const profile = this.profile();
     if (!profile) return;
 
-    this.displayName = profile.name || '';
-    this.bio = profile.bio || '';
-    this.language = (profile.language as Language) || Languages.ES;
-    this.theme = (profile.theme as Theme) || Themes.LIGHT;
-    this.country = profile.country || null;
-    this.city = profile.city || null;
-    this.sex = (profile.sex as Sex) || null;
-    this.size = profile.size || null;
-    this.startingClimbingYear = profile.starting_climbing_year || null;
+    const name = profile.name || '';
+    this.displayNameControl.setValue(name);
+
+    if (
+      this.displayNameControl.value === this.userEmail() &&
+      this.displayNameControl.value
+    ) {
+      this.displayNameControl.setValue('');
+      this.displayNameControl.markAsTouched();
+      this.displayNameControl.markAsDirty();
+    }
+    this.bioControl.setValue(profile.bio || '');
+    this.languageControl.setValue(
+      (profile.language as Language) || Languages.ES,
+    );
+    this.themeControl.setValue((profile.theme as Theme) || Themes.LIGHT);
+    this.countryControl.setValue(
+      profile.country || (this.isFirstSteps() ? 'ES' : null),
+    );
+    this.cityControl.setValue(profile.city || null);
+    this.sexControl.setValue((profile.sex as Sex) || null);
+    this.sizeControl.setValue(profile.size || null);
+    this.startingClimbingYearControl.setValue(
+      profile.starting_climbing_year || null,
+    );
     this.isPrivate = !!profile.private;
 
     if (profile.birth_date) {
       const date = new Date(profile.birth_date);
-      this.birthDate = new TuiDay(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
+      this.birthDateControl.setValue(
+        new TuiDay(date.getFullYear(), date.getMonth(), date.getDate()),
       );
     }
   }
@@ -938,17 +996,18 @@ export class UserProfileConfigComponent {
   }
 
   async saveName(): Promise<void> {
-    const trimmed = (this.displayName ?? '').trim();
+    const val = this.displayNameControl.value || '';
+    const trimmed = val.trim();
     if (!trimmed) {
       const current = this.profile();
-      this.displayName = current?.name ?? '';
+      this.displayNameControl.setValue(current?.name ?? '');
       this.toast.info('profile.name.required');
       return;
     }
     if (trimmed.length < 3 || trimmed.length > 50) {
       // Restore previous valid value for UX consistency
       const current = this.profile();
-      this.displayName = current?.name ?? '';
+      this.displayNameControl.setValue(current?.name ?? '');
       this.toast.info('profile.name.length');
       return;
     }
@@ -959,17 +1018,16 @@ export class UserProfileConfigComponent {
   }
 
   async saveBio(): Promise<void> {
-    const trimmed = (this.bio ?? '').trim();
-    const current = this.profile();
-
-    if (trimmed.length > 500) {
-      this.bio = current?.bio ?? '';
+    if (this.bioControl.invalid) {
       this.toast.info('profile.bio.tooLong');
       return;
     }
+    const val = this.bioControl.value || '';
+    const trimmed = val.trim();
+    const current = this.profile();
 
     if (trimmed === (current?.bio ?? '')) {
-      this.bio = current?.bio ?? '';
+      this.bioControl.setValue(current?.bio ?? '');
       return;
     }
     await this.updateProfile({ bio: trimmed });
@@ -977,47 +1035,48 @@ export class UserProfileConfigComponent {
 
   async toggleTheme(isDark: boolean): Promise<void> {
     const newTheme = isDark ? Themes.DARK : Themes.LIGHT;
-    if (this.theme === newTheme) {
+    if (this.themeControl.value === newTheme) {
       return;
     }
-    this.theme = newTheme;
-    await this.updateProfile({ theme: this.theme });
+    this.themeControl.setValue(newTheme);
+    await this.updateProfile({ theme: newTheme });
   }
 
   async saveLanguage(): Promise<void> {
     const current = this.profile();
-    if (this.language === (current?.language ?? null)) {
+    if (this.languageControl.value === (current?.language ?? null)) {
       return;
     }
-    await this.updateProfile({ language: this.language });
+    await this.updateProfile({ language: this.languageControl.value });
   }
 
   async saveCountry(): Promise<void> {
     const current = this.profile();
     // Ensure selected country is valid or null
     const validIds = new Set(this.countryIds());
-    if (this.country && !validIds.has(this.country)) {
-      this.country = current?.country ?? null;
+    const val = this.countryControl.value;
+    if (val && !validIds.has(val)) {
+      this.countryControl.setValue(current?.country ?? null);
       this.toast.error('profile.country.invalid');
       return;
     }
-    if (this.country === (current?.country ?? null)) {
+    if (val === (current?.country ?? null)) {
       return;
     }
-    await this.updateProfile({ country: this.country });
+    await this.updateProfile({ country: val });
   }
 
   async saveCity(): Promise<void> {
-    const current = this.profile();
-    if (this.city && this.city.length > 100) {
-      this.city = current?.city ?? null;
+    if (this.cityControl.invalid) {
       this.toast.info('profile.city.tooLong');
       return;
     }
-    if (this.city === (current?.city ?? null)) {
+    const val = this.cityControl.value;
+    const current = this.profile();
+    if (val === (current?.city ?? null)) {
       return;
     }
-    await this.updateProfile({ city: this.city });
+    await this.updateProfile({ city: val });
   }
 
   async saveBirthDate(): Promise<void> {
@@ -1025,22 +1084,22 @@ export class UserProfileConfigComponent {
     const currentDate = current?.birth_date
       ? new Date(current.birth_date).toISOString().split('T')[0]
       : null;
-    const newDate = this.birthDate
-      ? `${this.birthDate.year}-${String(this.birthDate.month + 1).padStart(2, '0')}-${String(this.birthDate.day).padStart(2, '0')}`
+    const bd = this.birthDateControl.value;
+    const newDate = bd
+      ? `${bd.year}-${String(bd.month + 1).padStart(2, '0')}-${String(bd.day).padStart(2, '0')}`
       : null;
-    if (this.birthDate) {
+    if (bd) {
       // Reject future dates or dates before minBirthDate
-      if (
-        this.birthDate.dayBefore(this.minBirthDate) ||
-        this.today.dayBefore(this.birthDate)
-      ) {
-        this.birthDate = current?.birth_date
-          ? new TuiDay(
-              new Date(current.birth_date).getFullYear(),
-              new Date(current.birth_date).getMonth(),
-              new Date(current.birth_date).getDate(),
-            )
-          : null;
+      if (bd.dayBefore(this.minBirthDate) || this.today.dayBefore(bd)) {
+        this.birthDateControl.setValue(
+          current?.birth_date
+            ? new TuiDay(
+                new Date(current.birth_date).getFullYear(),
+                new Date(current.birth_date).getMonth(),
+                new Date(current.birth_date).getDate(),
+              )
+            : null,
+        );
         this.toast.error('profile.birthDate.invalid');
         return;
       }
@@ -1053,14 +1112,14 @@ export class UserProfileConfigComponent {
 
   async saveStartingClimbingYear(): Promise<void> {
     const current = this.profile();
-    const newYear = this.startingClimbingYear ?? null;
-    if (newYear !== null) {
-      if (newYear < this.minYear || newYear > this.currentYear) {
-        this.startingClimbingYear = current?.starting_climbing_year ?? null;
-        this.toast.error('profile.startingYear.invalid');
-        return;
-      }
+    if (this.startingClimbingYearControl.invalid) {
+      this.startingClimbingYearControl.setValue(
+        current?.starting_climbing_year ?? null,
+      );
+      this.toast.error('profile.startingYear.invalid');
+      return;
     }
+    const newYear = this.startingClimbingYearControl.value;
     if (newYear === (current?.starting_climbing_year ?? null)) {
       return;
     }
@@ -1069,25 +1128,25 @@ export class UserProfileConfigComponent {
 
   async saveSize(): Promise<void> {
     const current = this.profile();
-    if (this.size !== null) {
-      if (this.size < 0 || this.size > 300) {
-        this.size = current?.size ?? null;
-        this.toast.error('profile.size.invalid');
-        return;
-      }
-    }
-    if (this.size === (current?.size ?? null)) {
+    if (this.sizeControl.invalid) {
+      this.sizeControl.setValue(current?.size ?? null);
+      this.toast.error('profile.size.invalid');
       return;
     }
-    await this.updateProfile({ size: this.size });
+    const val = this.sizeControl.value;
+    if (val === (current?.size ?? null)) {
+      return;
+    }
+    await this.updateProfile({ size: val });
   }
 
   async saveSex(): Promise<void> {
     const current = this.profile();
-    if (this.sex === (current?.sex ?? null)) {
+    const val = this.sexControl.value;
+    if (val === (current?.sex ?? null)) {
       return;
     }
-    await this.updateProfile({ sex: this.sex });
+    await this.updateProfile({ sex: val });
   }
 
   async saveEightAnuUser(user: unknown): Promise<void> {
@@ -1175,6 +1234,7 @@ export class UserProfileConfigComponent {
     if (confirmed) {
       this.hasOpenedWelcome = false;
       await this.updateProfile({ first_steps: true });
+      this.openWelcomeDialog();
     }
   }
 

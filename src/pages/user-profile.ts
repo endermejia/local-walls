@@ -230,6 +230,7 @@ import {
             <div class="opacity-70">
               @let bio = profile()?.bio;
               <span
+                class="break-all"
                 [tuiSkeleton]="
                   loading
                     ? 'This text serves as the content behind the skeleton and adjusts the width.'

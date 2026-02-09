@@ -596,6 +596,7 @@ export class GlobalData {
    * SSR-safe: on server returns [] and does not access browser APIs.
    */
   readonly areasListResource = resource({
+    params: () => ({ user: this.userProfile() }),
     loader: async () => {
       if (!isPlatformBrowser(this.platformId)) {
         return [] as AreaListItem[];
