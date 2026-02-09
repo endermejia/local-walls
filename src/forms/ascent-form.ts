@@ -33,6 +33,7 @@ import {
 } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
+  TuiConfirmData,
   TuiCheckbox,
   TuiChevron,
   TuiDataListWrapper,
@@ -208,6 +209,7 @@ import { handleErrorToast } from '../utils';
               tuiCheckbox
               type="checkbox"
               formControlName="private_ascent"
+              (click)="onPrivateClick($event)"
             />
             <span class="text-sm">{{ 'ascent.private' | translate }}</span>
           </label>
@@ -798,6 +800,32 @@ export default class AscentFormComponent {
         this.editPhoto(file, undefined);
       }
     });
+  }
+
+  protected async onPrivateClick(event: MouseEvent) {
+    const control = this.form.get('private_ascent');
+    if (!control || control.value) return;
+
+    event.preventDefault();
+
+    const data: TuiConfirmData = {
+      content: this.translate.instant('ascent.privateConfirmation'),
+      yes: this.translate.instant('actions.accept'),
+      no: this.translate.instant('actions.cancel'),
+    };
+
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('ascent.private'),
+        size: 's',
+        data,
+      }),
+      { defaultValue: false },
+    );
+
+    if (confirmed) {
+      control.setValue(true);
+    }
   }
 
   private updateTriesState(type: string | null | undefined): void {
