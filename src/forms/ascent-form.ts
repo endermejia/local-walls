@@ -743,21 +743,18 @@ export default class AscentFormComponent {
   protected readonly gradeOptions = this.gradeItems.map((i) => i.id);
 
   constructor() {
-    effect(
-      () => {
-        const file = this.photoValue();
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = () => {
-            this.previewUrl.set(reader.result as string);
-          };
-          reader.readAsDataURL(file);
-        } else {
-          this.previewUrl.set(null);
-        }
-      },
-      { allowSignalWrites: true },
-    );
+    effect(() => {
+      const file = this.photoValue();
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          this.previewUrl.set(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        this.previewUrl.set(null);
+      }
+    });
 
     effect(() => {
       const data = this.effectiveAscentData();

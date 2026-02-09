@@ -419,6 +419,7 @@ import {
                   [hasMore]="hasMore()"
                   [showUser]="false"
                   [followedIds]="followedIds()"
+                  [columns]="2"
                   [groupByGrade]="sortFilter() === 'grade'"
                   (loadMore)="loadMore()"
                   (follow)="onFollow($event)"

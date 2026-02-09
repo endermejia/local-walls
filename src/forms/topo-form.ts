@@ -458,21 +458,18 @@ export class TopoFormComponent {
   protected readonly strings = tuiIsString;
 
   constructor() {
-    effect(
-      () => {
-        const file = this.photoValue();
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = () => {
-            this.previewUrl.set(reader.result as string);
-          };
-          reader.readAsDataURL(file);
-        } else {
-          this.previewUrl.set(null);
-        }
-      },
-      { allowSignalWrites: true },
-    );
+    effect(() => {
+      const file = this.photoValue();
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          this.previewUrl.set(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        this.previewUrl.set(null);
+      }
+    });
 
     // Auto-open editor when a new file is selected from file input
     this.photoControl.valueChanges.subscribe((file) => {

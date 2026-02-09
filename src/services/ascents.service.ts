@@ -25,6 +25,7 @@ import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
 import { AppNotificationsService } from './app-notifications.service';
+import { AscentCommentsDialogComponent } from '../dialogs/ascent-comments-dialog';
 
 @Injectable({ providedIn: 'root' })
 export class AscentsService {
@@ -646,6 +647,17 @@ export class AscentsService {
 
   refreshComments(ascentId: number): void {
     this.ascentCommentsUpdate$.next(ascentId);
+  }
+
+  openCommentsDialog(ascentId: number): Observable<void> {
+    return this.dialogs.open<void>(
+      new PolymorpheusComponent(AscentCommentsDialogComponent),
+      {
+        data: { ascentId },
+        label: this.translate.instant('labels.comments'),
+        size: 'm',
+      },
+    );
   }
 
   refreshResources(

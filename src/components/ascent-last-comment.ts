@@ -9,6 +9,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TuiAvatar } from '@taiga-ui/kit';
+import { firstValueFrom } from 'rxjs';
 
 import { AscentsService, SupabaseService } from '../services';
 
@@ -19,7 +20,8 @@ import { AscentsService, SupabaseService } from '../services';
   template: `
     @if (lastCommentResource.value(); as comment) {
       <div
-        class="flex flex-col gap-1 bg-[var(--tui-background-neutral-1)] p-2 rounded-xl mt-1 animate-in fade-in slide-in-from-top-1 duration-300"
+        class="flex flex-col gap-1 bg-[var(--tui-background-neutral-1)] p-2 rounded-xl mt-1 animate-in fade-in slide-in-from-top-1 duration-300 cursor-pointer hover:bg-[var(--tui-background-neutral-1-hover)] transition-colors"
+        (click)="showComments($event)"
       >
         <div class="flex items-center gap-2">
           <tui-avatar
@@ -60,5 +62,12 @@ export class AscentLastCommentComponent {
           this.lastCommentResource.reload();
         }
       });
+  }
+
+  protected showComments(event: Event): void {
+    event.stopPropagation();
+    void firstValueFrom(
+      this.ascentsService.openCommentsDialog(this.ascentId()),
+    );
   }
 }

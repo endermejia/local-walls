@@ -26,7 +26,11 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
     TuiSkeleton,
   ],
   template: `
-    <div class="flex flex-col gap-6 mt-4">
+    <div
+      class="grid gap-6 mt-4"
+      [class.grid-cols-1]="true"
+      [class.xl:grid-cols-2]="columns() >= 2"
+    >
       @for (ascent of ascents(); track ascent.id) {
         @if (groupByGrade()) {
           @let grade = ascent.grade ?? ascent.route?.grade;
@@ -35,7 +39,10 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
             grade !== undefined &&
             showGradeHeader(ascent, $index)
           ) {
-            <div class="mt-10 mb-4 flex items-center gap-4">
+            <div
+              class="mt-10 mb-4 flex items-center gap-4"
+              [class.xl:col-span-2]="columns() >= 2"
+            >
               <span class="text-2xl font-black shrink-0">
                 {{ gradeLabelByNumber[asGrade(grade)] }}
               </span>
@@ -142,7 +149,12 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
       }
 
       @if (ascents().length > 0 && !isLoading() && hasMore()) {
-        <app-infinite-scroll-trigger (intersect)="loadMore.emit()" />
+        <div
+          class="flex justify-center py-4"
+          [class.xl:col-span-2]="columns() >= 2"
+        >
+          <app-infinite-scroll-trigger (intersect)="loadMore.emit()" />
+        </div>
       }
     </div>
   `,
@@ -156,6 +168,7 @@ export class AscentsFeedComponent {
   showUser = input(true);
   showRoute = input(true);
   followedIds = input<Set<string>>(new Set());
+  columns = input<number>(1);
 
   loadMore = output<void>();
   follow = output<string>();

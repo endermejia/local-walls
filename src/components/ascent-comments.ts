@@ -7,14 +7,10 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { TranslateService } from '@ngx-translate/core';
 import { TuiButton, TuiIcon } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/experimental';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { firstValueFrom } from 'rxjs';
 
 import { AscentsService } from '../services';
-import { AscentCommentsDialogComponent } from '../dialogs/ascent-comments-dialog';
 
 @Component({
   selector: 'app-ascent-comments',
@@ -45,8 +41,6 @@ import { AscentCommentsDialogComponent } from '../dialogs/ascent-comments-dialog
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AscentCommentsComponent {
-  private readonly dialogs = inject(TuiDialogService);
-  private readonly translate = inject(TranslateService);
   private readonly ascentsService = inject(AscentsService);
 
   ascentId = input.required<number>();
@@ -69,14 +63,7 @@ export class AscentCommentsComponent {
   protected showComments(event: Event): void {
     event.stopPropagation();
     void firstValueFrom(
-      this.dialogs.open<void>(
-        new PolymorpheusComponent(AscentCommentsDialogComponent),
-        {
-          data: { ascentId: this.ascentId() },
-          label: this.translate.instant('labels.comments'),
-          size: 'm',
-        },
-      ),
+      this.ascentsService.openCommentsDialog(this.ascentId()),
     );
   }
 }

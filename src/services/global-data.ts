@@ -104,15 +104,12 @@ export class GlobalData {
 
   // ---- Theme ----
   readonly theme = signal<Theme>(Themes.LIGHT);
-  private readonly themeSync = effect(
-    () => {
-      const profile = this.userProfile();
-      if (profile?.theme) {
-        this.theme.set(profile.theme);
-      }
-    },
-    { allowSignalWrites: true },
-  );
+  private readonly themeSync = effect(() => {
+    const profile = this.userProfile();
+    if (profile?.theme) {
+      this.theme.set(profile.theme);
+    }
+  });
 
   private readonly themePersist = effect(() => {
     const currentTheme = this.theme();
