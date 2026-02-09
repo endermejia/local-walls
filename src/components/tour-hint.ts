@@ -25,7 +25,13 @@ import { TranslatePipe } from '@ngx-translate/core';
         </p>
       </div>
       <div class="flex justify-end">
-        <button tuiButton size="s" appearance="primary" (click)="onNext()">
+        <button
+          tuiButton
+          size="s"
+          appearance="primary"
+          (click)="onNext()"
+          [disabled]="disabled()"
+        >
           {{ (isLast() ? 'tour.finish' : 'tour.next') | translate }}
         </button>
       </div>
@@ -36,6 +42,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 export class TourHintComponent {
   readonly description = input.required<string>();
   readonly isLast = input<boolean>(false);
+  readonly disabled = input<boolean>(false);
   readonly next = output<void>();
 
   onNext(): void {
