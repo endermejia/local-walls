@@ -17,9 +17,26 @@ import {
 } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TranslatePipe } from '@ngx-translate/core';
-import { TopoDetail, TopoRouteWithRoute } from '../models';
+import {
+  GRADE_COLORS,
+  VERTICAL_LIFE_GRADES,
+  VERTICAL_LIFE_TO_LABEL,
+  GradeLabel,
+  colorForGrade,
+  TopoDetail,
+  TopoRouteWithRoute,
+} from '../models';
 import { AvatarGradeComponent } from '../components/avatar-grade';
 import { ToastService, ToposService } from '../services';
+import {
+  getNormalizedPosition,
+  setupMouseDrag,
+  setupTouchDrag,
+} from '../utils/drawing.utils';
+import {
+  getRouteStyleProperties,
+  getRouteStrokeWidth,
+} from '../utils/topo-styles.utils';
 
 export interface TopoPathEditorConfig {
   topo: TopoDetail;
@@ -158,6 +175,7 @@ export interface TopoPathEditorConfig {
               <!-- Draw all paths -->
               @for (entry of pathsMap | keyvalue; track entry.key) {
                 @let isSelected = selectedRoute()?.route_id === +entry.key;
+                @let style = getRouteStyle(entry.value.color, $any(entry.value._ref.route.grade), +entry.key);
                 <g
                   class="pointer-events-auto cursor-pointer"
                   (click)="selectRoute(entry.value._ref || { route_id: +entry.key }); $event.stopPropagation()"
@@ -175,13 +193,10 @@ export interface TopoPathEditorConfig {
                   <polyline
                     [attr.points]="getPointsString(entry.value)"
                     fill="none"
-                    [attr.stroke]="
-                      isSelected
-                        ? entry.value.color || 'var(--tui-primary)'
-                        : 'rgba(255,255,255,0.4)'
-                    "
+                    [attr.stroke]="style.stroke"
+                    [style.opacity]="style.opacity"
                     [attr.stroke-width]="isSelected ? 4 : 2"
-                    [attr.stroke-dasharray]="isSelected ? 'none' : '4 4'"
+                    [attr.stroke-dasharray]="style.isDashed ? '4 4' : 'none'"
                     stroke-linejoin="round"
                     stroke-linecap="round"
                     class="transition-all duration-300"
@@ -208,7 +223,7 @@ export interface TopoPathEditorConfig {
                         [attr.cx]="pt.x * width()"
                         [attr.cy]="pt.y * height()"
                         r="6"
-                        [attr.fill]="entry.value.color || 'var(--tui-primary)'"
+                        [attr.fill]="style.stroke"
                         class="group-hover:scale-125 transition-transform"
                       />
                       <!-- Point Number Bubble -->
@@ -306,7 +321,7 @@ export class TopoPathEditorDialogComponent {
     this.height.set(img.clientHeight);
   }
 
-  selectRoute(tr: TopoRouteWithRoute, fromList: boolean = false): void {
+  selectRoute(tr: TopoRouteWithRoute, fromList = false): void {
     const selected = this.selectedRoute();
 
     if (fromList) {
@@ -336,15 +351,34 @@ export class TopoPathEditorDialogComponent {
       .join(' ');
   }
 
+  getRouteColor(routeId: number): string {
+    const entry = this.pathsMap.get(routeId);
+    if (entry && entry._ref) {
+      return colorForGrade(
+        VERTICAL_LIFE_TO_LABEL[
+          entry._ref.route.grade as VERTICAL_LIFE_GRADES
+        ] as GradeLabel,
+      );
+    }
+    return GRADE_COLORS[0];
+  }
+
+  getRouteStyle(color: string | undefined, grade: string, routeId: number) {
+    const isSelected = this.selectedRoute()?.route_id === routeId;
+    return getRouteStyleProperties(isSelected, false, color, grade);
+  }
+
   onImageClick(event: MouseEvent): void {
     if (event.button !== 0 || this.draggingPoint) return;
 
     const route = this.selectedRoute();
     if (!route) return;
 
-    const rect = this.containerElement.nativeElement.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width;
-    const y = (event.clientY - rect.top) / rect.height;
+    const coords = getNormalizedPosition(
+      event.clientX,
+      event.clientY,
+      this.containerElement.nativeElement.getBoundingClientRect(),
+    );
 
     const current = this.pathsMap.get(route.route_id) || {
       points: [],
@@ -352,103 +386,53 @@ export class TopoPathEditorDialogComponent {
     };
     this.pathsMap.set(route.route_id, {
       ...current,
-      points: [...current.points, { x, y }],
+      points: [...current.points, coords],
     });
   }
 
   startDragging(event: MouseEvent, routeId: number, index: number): void {
-    event.stopPropagation();
-    event.preventDefault();
-    this.draggingPoint = { routeId: +routeId, index };
+    const numericRouteId = +routeId;
+    this.draggingPoint = { routeId: numericRouteId, index };
 
-    const onMouseMove = (e: MouseEvent) => {
-      if (!this.draggingPoint) return;
-      const rect = this.containerElement.nativeElement.getBoundingClientRect();
-      const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-      const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-
-      const pathData = this.pathsMap.get(this.draggingPoint.routeId);
-      if (pathData) {
-        pathData.points[this.draggingPoint.index] = { x, y };
-        this.pathsMap.set(this.draggingPoint.routeId, { ...pathData });
-      }
-    };
-
-    const onMouseUp = () => {
-      this.draggingPoint = null;
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-    };
-
-    window.addEventListener('mouseup', onMouseUp);
+    setupMouseDrag(event, this.containerElement.nativeElement, {
+      onDrag: (coords) => {
+        const pathData = this.pathsMap.get(numericRouteId);
+        if (pathData) {
+          pathData.points[index] = coords;
+          this.pathsMap.set(numericRouteId, { ...pathData });
+        }
+      },
+      onEnd: () => {
+        this.draggingPoint = null;
+      },
+    });
   }
 
   startDraggingTouch(event: TouchEvent, routeId: number, index: number): void {
-    event.stopPropagation();
-    event.preventDefault();
-    this.draggingPoint = { routeId: +routeId, index };
+    const numericRouteId = +routeId;
+    this.draggingPoint = { routeId: numericRouteId, index };
 
-    const LONG_PRESS_DELAY = 600;
-    const MOVE_THRESHOLD = 10;
-    const startX = event.touches[0].clientX;
-    const startY = event.touches[0].clientY;
-    let isLongPress = false;
-
-    const longPressTimeout = setTimeout(() => {
-      isLongPress = true;
-      this.removePoint(event, routeId, index);
-      onTouchEnd();
-    }, LONG_PRESS_DELAY);
-
-    const onTouchMove = (e: TouchEvent) => {
-      if (!this.draggingPoint || e.touches.length === 0) return;
-
-      const touch = e.touches[0];
-      const dist = Math.sqrt(
-        Math.pow(touch.clientX - startX, 2) +
-          Math.pow(touch.clientY - startY, 2),
-      );
-
-      if (dist > MOVE_THRESHOLD) {
-        clearTimeout(longPressTimeout);
-      }
-
-      if (isLongPress) return;
-
-      e.preventDefault();
-      const rect = this.containerElement.nativeElement.getBoundingClientRect();
-      const x = Math.max(
-        0,
-        Math.min(1, (touch.clientX - rect.left) / rect.width),
-      );
-      const y = Math.max(
-        0,
-        Math.min(1, (touch.clientY - rect.top) / rect.height),
-      );
-
-      const pathData = this.pathsMap.get(this.draggingPoint.routeId);
-      if (pathData) {
-        pathData.points[this.draggingPoint.index] = { x, y };
-        this.pathsMap.set(this.draggingPoint.routeId, { ...pathData });
-      }
-    };
-
-    const onTouchEnd = () => {
-      clearTimeout(longPressTimeout);
-      this.draggingPoint = null;
-      window.removeEventListener(
-        'touchmove',
-        onTouchMove as EventListenerOrEventListenerObject,
-      );
-      window.removeEventListener('touchend', onTouchEnd);
-    };
-
-    window.addEventListener(
-      'touchmove',
-      onTouchMove as EventListenerOrEventListenerObject,
-      { passive: false },
+    setupTouchDrag(
+      event,
+      this.containerElement.nativeElement,
+      {
+        onDrag: (coords) => {
+          const pathData = this.pathsMap.get(numericRouteId);
+          if (pathData) {
+            pathData.points[index] = coords;
+            this.pathsMap.set(numericRouteId, { ...pathData });
+          }
+        },
+        onEnd: () => {
+          this.draggingPoint = null;
+        },
+        onLongPress: () => {
+          this.removePoint(event, numericRouteId, index);
+          this.draggingPoint = null;
+        },
+      },
+      { longPressDelay: 600, moveThreshold: 10 },
     );
-    window.addEventListener('touchend', onTouchEnd);
   }
 
   removePoint(event: Event, routeId: number, index: number): void {

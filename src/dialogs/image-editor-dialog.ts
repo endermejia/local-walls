@@ -39,8 +39,17 @@ import {
   ImageEditorResult,
   TopoRouteWithRoute,
 } from '../models';
+import {
+  getRouteStyleProperties,
+  getRouteStrokeWidth,
+} from '../utils/topo-styles.utils';
 import { AvatarGradeComponent } from '../components/avatar-grade';
 import { TuiScrollbar } from '@taiga-ui/core';
+import {
+  getNormalizedPosition,
+  setupMouseDrag,
+  setupTouchDrag,
+} from '../utils/drawing.utils';
 
 export interface ImageEditorConfig {
   file?: File;
@@ -181,7 +190,12 @@ export interface ImageEditorConfig {
                   @let entry = pathsMap.get(tr.route_id);
                   @if (entry) {
                     @let isSelected = selectedRoute()?.route_id === tr.route_id;
-                    @let rColor = getRouteColor(tr.route_id);
+                    @let style =
+                      getRouteStyle(
+                        tr.path?.color,
+                        $any(tr.route.grade),
+                        tr.route_id
+                      );
                     <g
                       class="pointer-events-auto cursor-pointer"
                       (click)="onPathInteraction($event, tr)"
@@ -192,26 +206,26 @@ export interface ImageEditorConfig {
                         [attr.points]="getPointsString(entry.points)"
                         fill="none"
                         stroke="transparent"
-                        [attr.stroke-width]="isSelected ? 80 : 50"
+                        [attr.stroke-width]="
+                          getRouteWidth(isSelected, isSelected)
+                        "
                         stroke-linejoin="round"
                         stroke-linecap="round"
                       />
                       <polyline
                         [attr.points]="getPointsString(entry.points)"
                         fill="none"
-                        [attr.stroke]="
-                          isSelected
-                            ? selectedColor() || entry.color || rColor
-                            : 'white'
-                        "
+                        [attr.stroke]="style.stroke"
+                        [style.opacity]="style.opacity"
                         [attr.stroke-width]="isSelected ? 4 : 2"
-                        [attr.stroke-dasharray]="isSelected ? 'none' : '4 4'"
+                        [attr.stroke-dasharray]="
+                          style.isDashed ? '4 4' : 'none'
+                        "
                         stroke-linejoin="round"
                         stroke-linecap="round"
                         class="transition-all duration-300"
                       />
                     </g>
-
                     @if (isSelected) {
                       @for (pt of entry.points; track $index) {
                         <g
@@ -237,9 +251,7 @@ export interface ImageEditorConfig {
                             [attr.cx]="pt.x * drawWidth()"
                             [attr.cy]="pt.y * drawHeight()"
                             r="6"
-                            [attr.fill]="
-                              selectedColor() || entry.color || rColor
-                            "
+                            [attr.fill]="style.stroke"
                           />
                         </g>
                       }
@@ -731,6 +743,19 @@ export class ImageEditorDialogComponent {
     return !!pathData && pathData.points.length > 0;
   }
 
+  getRouteStyle(color: string | undefined, grade: string, routeId: number) {
+    const isSelected = this.selectedRoute()?.route_id === routeId;
+    // In editor, hovered is handled by interactions usually, but here we can check selected
+    return getRouteStyleProperties(isSelected, false, color, grade);
+  }
+
+  getRouteWidth(isSelected: boolean, isHovered: boolean): number {
+    return getRouteStrokeWidth(isSelected, isHovered, 30, 'editor'); // Use larger base width for editor hit testing?
+    // Actually, hit detection stroke needs to be huge (e.g. 50-80).
+    // The visual stroke is 2 or 4.
+    // Let's rely on manual constants for hit detection in template, and visual stroke in visual polyline.
+  }
+
   getPointsString(path: { x: number; y: number }[]): string {
     return path
       .map((p) => `${p.x * this.drawWidth()},${p.y * this.drawHeight()}`)
@@ -742,24 +767,14 @@ export class ImageEditorDialogComponent {
     const route = this.selectedRoute();
     if (!route) return;
 
-    // Check if we clicked on an existing SVG element (like a path or point)
-    // We want to avoid adding a new point if we just clicked on a line to select it
-    // or if we are dragging a point.
-    // However, since the SVG overlay is on top, clicks on the image technically don't happen locally
-    // unless we use pointer-events.
-    // The container has the click listener.
-    // If the target is an SVG element that is part of a ANOTHER route, we should have stopped propagation already.
-    // But if we clicked on the background (the image/container), we add a point.
-
-    // Calculate normalized coordinates
-
-    const rect =
-      this.drawContainerElement.nativeElement.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width;
-    const y = (event.clientY - rect.top) / rect.height;
+    const coords = getNormalizedPosition(
+      event.clientX,
+      event.clientY,
+      this.drawContainerElement.nativeElement.getBoundingClientRect(),
+    );
 
     const current = this.pathsMap.get(route.route_id) || { points: [] };
-    const newPoints = [...current.points, { x, y }];
+    const newPoints = [...current.points, coords];
     this.pathsMap.set(route.route_id, {
       ...current,
       points: newPoints,
@@ -768,10 +783,7 @@ export class ImageEditorDialogComponent {
   }
 
   startDragging(event: MouseEvent, routeId: number, index: number): void {
-    event.stopPropagation();
-    event.preventDefault();
     this.draggingPoint = { routeId, index };
-
     const pathData = this.pathsMap.get(routeId);
     if (!pathData) return;
 
@@ -779,44 +791,31 @@ export class ImageEditorDialogComponent {
     let rafId: number | null = null;
     let pendingUpdate = false;
 
-    const onMouseMove = (e: MouseEvent) => {
-      if (!this.draggingPoint) return;
-      const rect =
-        this.drawContainerElement.nativeElement.getBoundingClientRect();
-      const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-      const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+    setupMouseDrag(event, this.drawContainerElement.nativeElement, {
+      onDrag: (coords) => {
+        point.x = coords.x;
+        point.y = coords.y;
 
-      // Update point directly
-      point.x = x;
-      point.y = y;
-
-      // Schedule visual update using requestAnimationFrame
-      if (!pendingUpdate) {
-        pendingUpdate = true;
-        rafId = requestAnimationFrame(() => {
-          this.cdr.detectChanges();
-          pendingUpdate = false;
-        });
-      }
-    };
-
-    const onMouseUp = () => {
-      // Cancel any pending animation frame
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId);
-      }
-      // Trigger final change detection
-      if (pathData) {
+        // Schedule visual update using requestAnimationFrame
+        if (!pendingUpdate) {
+          pendingUpdate = true;
+          rafId = requestAnimationFrame(() => {
+            this.cdr.detectChanges();
+            pendingUpdate = false;
+          });
+        }
+      },
+      onEnd: () => {
+        // Cancel any pending animation frame
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+        }
+        // Trigger final change detection
         this.pathsMap.set(routeId, { ...pathData });
         this.cdr.markForCheck();
-      }
-      this.draggingPoint = null;
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+        this.draggingPoint = null;
+      },
+    });
   }
 
   deletePath(route: TopoRouteWithRoute, event: Event): void {
@@ -885,10 +884,7 @@ export class ImageEditorDialogComponent {
   }
 
   startDraggingTouch(event: TouchEvent, routeId: number, index: number): void {
-    event.stopPropagation();
-    event.preventDefault();
     this.draggingPoint = { routeId, index };
-
     const pathData = this.pathsMap.get(routeId);
     if (!pathData) return;
 
@@ -896,86 +892,38 @@ export class ImageEditorDialogComponent {
     let rafId: number | null = null;
     let pendingUpdate = false;
 
-    const LONG_PRESS_DELAY = 600;
-    const MOVE_THRESHOLD = 10;
-    const startX = event.touches[0].clientX;
-    const startY = event.touches[0].clientY;
-    let isLongPress = false;
-
-    const longPressTimeout = setTimeout(() => {
-      isLongPress = true;
-      this.removePoint(event, routeId, index);
-      onTouchEnd();
-    }, LONG_PRESS_DELAY);
-
-    const onTouchMove = (e: TouchEvent) => {
-      if (!this.draggingPoint || e.touches.length === 0) return;
-
-      const touch = e.touches[0];
-      const dist = Math.sqrt(
-        Math.pow(touch.clientX - startX, 2) +
-          Math.pow(touch.clientY - startY, 2),
-      );
-
-      if (dist > MOVE_THRESHOLD) {
-        clearTimeout(longPressTimeout);
-      }
-
-      if (isLongPress) return;
-
-      e.preventDefault();
-      const rect =
-        this.drawContainerElement.nativeElement.getBoundingClientRect();
-      const x = Math.max(
-        0,
-        Math.min(1, (touch.clientX - rect.left) / rect.width),
-      );
-      const y = Math.max(
-        0,
-        Math.min(1, (touch.clientY - rect.top) / rect.height),
-      );
-
-      // Update point directly
-      point.x = x;
-      point.y = y;
-
-      // Schedule visual update using requestAnimationFrame
-      if (!pendingUpdate) {
-        pendingUpdate = true;
-        rafId = requestAnimationFrame(() => {
-          this.cdr.detectChanges();
-          pendingUpdate = false;
-        });
-      }
-    };
-
-    const onTouchEnd = () => {
-      clearTimeout(longPressTimeout);
-      // Cancel any pending animation frame
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId);
-      }
-      // Trigger change detection only once when dragging ends
-      if (pathData && !isLongPress) {
-        this.pathsMap.set(routeId, { ...pathData });
-        this.cdr.markForCheck();
-      }
-      this.draggingPoint = null;
-      window.removeEventListener(
-        'touchmove',
-        onTouchMove as EventListenerOrEventListenerObject,
-      );
-      window.removeEventListener('touchend', onTouchEnd);
-    };
-
-    window.addEventListener(
-      'touchmove',
-      onTouchMove as EventListenerOrEventListenerObject,
+    setupTouchDrag(
+      event,
+      this.drawContainerElement.nativeElement,
       {
-        passive: false,
+        onDrag: (coords) => {
+          point.x = coords.x;
+          point.y = coords.y;
+
+          if (!pendingUpdate) {
+            pendingUpdate = true;
+            rafId = requestAnimationFrame(() => {
+              this.cdr.detectChanges();
+              pendingUpdate = false;
+            });
+          }
+        },
+        onEnd: () => {
+          if (rafId !== null) {
+            cancelAnimationFrame(rafId);
+          }
+          this.pathsMap.set(routeId, { ...pathData });
+          this.cdr.markForCheck();
+          this.draggingPoint = null;
+        },
+        onLongPress: () => {
+          this.removePoint(event, routeId, index);
+          if (rafId !== null) cancelAnimationFrame(rafId);
+          this.draggingPoint = null;
+        },
       },
+      { longPressDelay: 600, moveThreshold: 10 },
     );
-    window.addEventListener('touchend', onTouchEnd);
   }
 
   removePoint(event: Event, routeId: number, index: number): void {

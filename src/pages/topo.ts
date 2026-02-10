@@ -60,6 +60,11 @@ import {
   ToposService,
 } from '../services';
 
+import {
+  getRouteStyleProperties,
+  getRouteStrokeWidth,
+} from '../utils/topo-styles.utils';
+
 import { AvatarGradeComponent } from '../components/avatar-grade';
 import { EmptyStateComponent } from '../components/empty-state';
 import { SectionHeaderComponent } from '../components/section-header';
@@ -199,27 +204,29 @@ export interface TopoRouteRow {
                     >
                       @for (tr of t.topo_routes; track tr.route_id) {
                         @if (tr.path && tr.path.points.length > 0) {
+                          @let style =
+                            getRouteStyle(
+                              tr.path.color,
+                              $any(tr.route.grade),
+                              tr.route_id
+                            );
                           <polyline
                             [attr.points]="getPointsString(tr.path)"
                             fill="none"
-                            [attr.stroke]="
-                              selectedRouteId() === tr.route_id
-                                ? tr.path.color || 'var(--tui-primary)'
-                                : hoveredRouteId() === tr.route_id
-                                  ? tr.path.color || 'var(--tui-primary)'
-                                  : 'rgba(255, 255, 255, 0.7)'
-                            "
+                            [attr.stroke]="style.stroke"
+                            [style.opacity]="style.opacity"
                             [attr.stroke-width]="
-                              selectedRouteId() === tr.route_id
-                                ? 0.012
-                                : hoveredRouteId() === tr.route_id
-                                  ? 0.01
-                                  : 0.006
+                              getRouteWidth(
+                                tr.route_id === selectedRouteId(),
+                                tr.route_id === hoveredRouteId()
+                              )
+                            "
+                            [attr.stroke-dasharray]="
+                              style.isDashed ? '0.02, 0.02' : 'none'
                             "
                             stroke-linejoin="round"
                             stroke-linecap="round"
-                            class="transition-all duration-300 shadow-xl"
-                            style="filter: drop-shadow(0 0 0.001px black)"
+                            class="transition-all duration-300"
                           />
                           <!-- Point Number at first point -->
                           @if (tr.path.points[0]; as first) {
@@ -326,27 +333,29 @@ export interface TopoRouteRow {
                               stroke-linejoin="round"
                               stroke-linecap="round"
                             />
+                            @let fsStyle =
+                              getRouteStyle(
+                                tr.path.color,
+                                $any(tr.route.grade),
+                                tr.route_id
+                              );
                             <polyline
                               [attr.points]="getPointsString(tr.path)"
                               fill="none"
-                              [attr.stroke]="
-                                selectedRouteId() === tr.route_id
-                                  ? tr.path.color || 'var(--tui-primary)'
-                                  : hoveredRouteId() === tr.route_id
-                                    ? tr.path.color || 'var(--tui-primary)'
-                                    : 'rgba(255, 255, 255, 0.7)'
-                              "
+                              [attr.stroke]="fsStyle.stroke"
+                              [style.opacity]="fsStyle.opacity"
                               [attr.stroke-width]="
-                                selectedRouteId() === tr.route_id
-                                  ? 0.012
-                                  : hoveredRouteId() === tr.route_id
-                                    ? 0.01
-                                    : 0.006
+                                getRouteWidth(
+                                  tr.route_id === selectedRouteId(),
+                                  tr.route_id === hoveredRouteId()
+                                )
+                              "
+                              [attr.stroke-dasharray]="
+                                fsStyle.isDashed ? '0.02, 0.02' : 'none'
                               "
                               stroke-linejoin="round"
                               stroke-linecap="round"
                               class="transition-all duration-300"
-                              style="filter: drop-shadow(0 0 0.001px black)"
                             />
                             <!-- Point Number at first point -->
                             @if (tr.path.points[0]; as first) {
@@ -708,6 +717,20 @@ export class TopoComponent {
     this.selectedRouteId.set(
       this.selectedRouteId() === route.route_id ? null : route.route_id,
     );
+  }
+
+  protected getRouteStyle(
+    color: string | undefined,
+    grade: string,
+    routeId: number,
+  ) {
+    const isSelected = this.selectedRouteId() === routeId;
+    const isHovered = this.hoveredRouteId() === routeId;
+    return getRouteStyleProperties(isSelected, isHovered, color, grade);
+  }
+
+  protected getRouteWidth(isSelected: boolean, isHovered: boolean): number {
+    return getRouteStrokeWidth(isSelected, isHovered, 2, 'viewer');
   }
 
   protected toggleFullscreen(value: boolean): void {
