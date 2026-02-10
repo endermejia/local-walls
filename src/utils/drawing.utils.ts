@@ -111,3 +111,20 @@ export function setupTouchDrag(
   );
   window.addEventListener('touchend', onTouchEnd);
 }
+
+export function removePoint(
+  event: Event,
+  routeId: number,
+  index: number,
+  pathsMap: Map<number, { points: NormalizedPoint[] }>,
+): void {
+  if (event instanceof MouseEvent || event.cancelable) {
+    event.preventDefault();
+  }
+  event.stopPropagation();
+  const pathData = pathsMap.get(routeId);
+  if (pathData) {
+    pathData.points.splice(index, 1);
+    pathsMap.set(routeId, { ...pathData });
+  }
+}

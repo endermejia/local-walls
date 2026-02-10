@@ -49,6 +49,7 @@ import {
   getNormalizedPosition,
   setupMouseDrag,
   setupTouchDrag,
+  removePoint,
 } from '../utils/drawing.utils';
 
 export interface ImageEditorConfig {
@@ -927,15 +928,7 @@ export class ImageEditorDialogComponent {
   }
 
   removePoint(event: Event, routeId: number, index: number): void {
-    if (event instanceof MouseEvent || event.cancelable) {
-      event.preventDefault();
-    }
-    event.stopPropagation();
-    const pathData = this.pathsMap.get(routeId);
-    if (pathData) {
-      pathData.points.splice(index, 1);
-      this.pathsMap.set(routeId, { ...pathData });
-    }
+    removePoint(event, routeId, index, this.pathsMap);
   }
 
   // EXISTING CROPPER METHODS

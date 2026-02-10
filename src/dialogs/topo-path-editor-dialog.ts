@@ -17,26 +17,16 @@ import {
 } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TranslatePipe } from '@ngx-translate/core';
-import {
-  GRADE_COLORS,
-  VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
-  GradeLabel,
-  colorForGrade,
-  TopoDetail,
-  TopoRouteWithRoute,
-} from '../models';
+import { TopoDetail, TopoRouteWithRoute } from '../models';
 import { AvatarGradeComponent } from '../components/avatar-grade';
 import { ToastService, ToposService } from '../services';
 import {
   getNormalizedPosition,
   setupMouseDrag,
   setupTouchDrag,
+  removePoint,
 } from '../utils/drawing.utils';
-import {
-  getRouteStyleProperties,
-  getRouteStrokeWidth,
-} from '../utils/topo-styles.utils';
+import { getRouteStyleProperties } from '../utils/topo-styles.utils';
 
 export interface TopoPathEditorConfig {
   topo: TopoDetail;
@@ -58,7 +48,9 @@ export interface TopoPathEditorConfig {
   template: `
     <div class="flex flex-col h-full overflow-hidden bg-neutral-900 text-white">
       <!-- Header -->
-      <div class="flex items-center justify-between p-4 shrink-0 border-b border-white/10 bg-black/40 backdrop-blur-md">
+      <div
+        class="flex items-center justify-between p-4 shrink-0 border-b border-white/10 bg-black/40 backdrop-blur-md"
+      >
         <div class="flex items-center gap-3">
           <button
             tuiIconButton
@@ -69,7 +61,9 @@ export interface TopoPathEditorConfig {
           >
             <tui-icon icon="@tui.x" />
           </button>
-          <span class="font-bold text-lg tracking-tight">{{ context.data.topo.name }}</span>
+          <span class="font-bold text-lg tracking-tight">{{
+            context.data.topo.name
+          }}</span>
         </div>
 
         <div class="flex items-center gap-2">
@@ -88,9 +82,13 @@ export interface TopoPathEditorConfig {
 
       <div class="flex flex-1 overflow-hidden">
         <!-- Sidebar: Route List -->
-        <div class="w-80 shrink-0 border-r border-white/10 bg-black/20 backdrop-blur-sm flex flex-col">
+        <div
+          class="w-80 shrink-0 border-r border-white/10 bg-black/20 backdrop-blur-sm flex flex-col"
+        >
           <div class="p-4 border-b border-white/5">
-            <h3 class="text-xs font-bold uppercase tracking-widest opacity-50 px-2 mb-4">
+            <h3
+              class="text-xs font-bold uppercase tracking-widest opacity-50 px-2 mb-4"
+            >
               {{ 'labels.routes' | translate }}
             </h3>
             <tui-scrollbar class="flex-1">
@@ -98,33 +96,44 @@ export interface TopoPathEditorConfig {
                 @for (tr of context.data.topo.topo_routes; track tr.route_id) {
                   <button
                     class="flex items-center gap-3 p-3 rounded-2xl transition-all duration-200 group text-left w-full"
-                    [class.bg-primary]="selectedRoute()?.route_id === tr.route_id"
-                    [class.text-white]="selectedRoute()?.route_id === tr.route_id"
-                    [class.ring-2]="selectedRoute()?.route_id === tr.route_id"
-                    [class.ring-inset]="selectedRoute()?.route_id === tr.route_id"
-                    [class.ring-white/50]="selectedRoute()?.route_id === tr.route_id"
-                    [class.hover:bg-white/10]="selectedRoute()?.route_id !== tr.route_id"
+                    [ngClass]="{
+                      'bg-primary text-white ring-2 ring-inset ring-white/50':
+                        selectedRoute()?.route_id === tr.route_id,
+                      'hover:bg-white/10':
+                        selectedRoute()?.route_id !== tr.route_id,
+                    }"
                     [attr.aria-label]="tr.route.name"
                     (click)="selectRoute(tr, true)"
                   >
                     <div
                       class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border"
-                      [class.border-white/20]="selectedRoute()?.route_id !== tr.route_id"
-                      [class.border-white/50]="selectedRoute()?.route_id === tr.route_id"
+                      [ngClass]="{
+                        'border-white/20':
+                          selectedRoute()?.route_id !== tr.route_id,
+                        'border-white/50':
+                          selectedRoute()?.route_id === tr.route_id,
+                      }"
                     >
                       {{ tr.number + 1 }}
                     </div>
                     <div class="flex-1 min-w-0">
-                      <div class="font-bold truncate group-hover:translate-x-1 transition-transform">
+                      <div
+                        class="font-bold truncate group-hover:translate-x-1 transition-transform"
+                      >
                         {{ tr.route.name }}
                       </div>
-                      <div class="text-[10px] opacity-60 uppercase font-medium flex gap-1">
+                      <div
+                        class="text-[10px] opacity-60 uppercase font-medium flex gap-1"
+                      >
                         {{ tr.route.grade }}
                       </div>
                     </div>
                     <app-avatar-grade [grade]="tr.route.grade" size="s" />
                     @if (hasPath(tr.route_id)) {
-                      <tui-icon icon="@tui.check" class="text-green-400 text-xs" />
+                      <tui-icon
+                        icon="@tui.check"
+                        class="text-green-400 text-xs"
+                      />
                     }
                   </button>
                 }
@@ -151,7 +160,9 @@ export interface TopoPathEditorConfig {
         </div>
 
         <!-- Editor Area -->
-        <div class="flex-1 relative overflow-hidden bg-black flex items-center justify-center p-8">
+        <div
+          class="flex-1 relative overflow-hidden bg-black flex items-center justify-center p-8"
+        >
           <div
             #container
             class="relative inline-block shadow-2xl rounded-lg overflow-hidden select-none"
@@ -175,11 +186,22 @@ export interface TopoPathEditorConfig {
               <!-- Draw all paths -->
               @for (entry of pathsMap | keyvalue; track entry.key) {
                 @let isSelected = selectedRoute()?.route_id === +entry.key;
-                @let style = getRouteStyle(entry.value.color, $any(entry.value._ref.route.grade), +entry.key);
+                @let style =
+                  getRouteStyle(
+                    entry.value.color,
+                    $any(entry.value._ref.route.grade),
+                    +entry.key
+                  );
                 <g
                   class="pointer-events-auto cursor-pointer"
-                  (click)="selectRoute(entry.value._ref || { route_id: +entry.key }); $event.stopPropagation()"
-                  (touchstart)="selectRoute(entry.value._ref || { route_id: +entry.key }); $event.stopPropagation()"
+                  (click)="
+                    selectRoute(entry.value._ref || { route_id: +entry.key });
+                    $event.stopPropagation()
+                  "
+                  (touchstart)="
+                    selectRoute(entry.value._ref || { route_id: +entry.key });
+                    $event.stopPropagation()
+                  "
                 >
                   <!-- Thicker transparent path for much easier hit detection -->
                   <polyline
@@ -209,7 +231,9 @@ export interface TopoPathEditorConfig {
                     <g
                       class="cursor-move group"
                       (mousedown)="startDragging($event, entry.key, $index)"
-                      (touchstart)="startDraggingTouch($event, entry.key, $index)"
+                      (touchstart)="
+                        startDraggingTouch($event, entry.key, $index)
+                      "
                       (contextmenu)="removePoint($event, entry.key, $index)"
                     >
                       <circle
@@ -253,7 +277,9 @@ export interface TopoPathEditorConfig {
           </div>
 
           @if (loading()) {
-            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div
+              class="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+            >
               <tui-loader size="xl"></tui-loader>
             </div>
           }
@@ -351,18 +377,6 @@ export class TopoPathEditorDialogComponent {
       .join(' ');
   }
 
-  getRouteColor(routeId: number): string {
-    const entry = this.pathsMap.get(routeId);
-    if (entry && entry._ref) {
-      return colorForGrade(
-        VERTICAL_LIFE_TO_LABEL[
-          entry._ref.route.grade as VERTICAL_LIFE_GRADES
-        ] as GradeLabel,
-      );
-    }
-    return GRADE_COLORS[0];
-  }
-
   getRouteStyle(color: string | undefined, grade: string, routeId: number) {
     const isSelected = this.selectedRoute()?.route_id === routeId;
     return getRouteStyleProperties(isSelected, false, color, grade);
@@ -436,15 +450,7 @@ export class TopoPathEditorDialogComponent {
   }
 
   removePoint(event: Event, routeId: number, index: number): void {
-    if (event instanceof MouseEvent || event.cancelable) {
-      event.preventDefault();
-    }
-    event.stopPropagation();
-    const pathData = this.pathsMap.get(routeId);
-    if (pathData) {
-      pathData.points.splice(index, 1);
-      this.pathsMap.set(routeId, { ...pathData });
-    }
+    removePoint(event, routeId, index, this.pathsMap);
   }
 
   close(): void {
@@ -458,11 +464,11 @@ export class TopoPathEditorDialogComponent {
       for (const [routeId, path] of this.pathsMap.entries()) {
         await this.topos.updateRoutePath(topo.id, routeId, path);
       }
-      this.toast.success('Croquis actualizado correctamente');
+      this.toast.success('messages.toasts.pathsSaved');
       this.context.completeWith(true);
     } catch (error) {
       console.error('[TopoEditor] Error saving paths', error);
-      this.toast.error('Error al guardar los caminos del croquis');
+      this.toast.error('messages.toasts.pathsSaveError');
     } finally {
       this.loading.set(false);
     }

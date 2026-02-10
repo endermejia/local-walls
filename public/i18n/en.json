@@ -264,6 +264,8 @@
       "topoCreated": "Topo created",
       "topoUpdated": "Topo updated",
       "topoDeleted": "Topo deleted",
+      "pathsSaved": "Topo paths saved successfully",
+      "pathsSaveError": "Error saving topo paths",
       "parkingCreated": "Parking created",
       "parkingUpdated": "Parking updated",
       "parkingDeleted": "Parking deleted",

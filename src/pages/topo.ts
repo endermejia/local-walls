@@ -222,7 +222,7 @@ export interface TopoRouteRow {
                               )
                             "
                             [attr.stroke-dasharray]="
-                              style.isDashed ? '0.02, 0.02' : 'none'
+                              style.isDashed ? '0.01, 0.01' : 'none'
                             "
                             stroke-linejoin="round"
                             stroke-linecap="round"
@@ -316,9 +316,6 @@ export interface TopoRouteRow {
                             (click)="
                               onPathClick($event, tr); $event.stopPropagation()
                             "
-                            (touchstart)="
-                              onPathClick($event, tr); $event.stopPropagation()
-                            "
                             (mouseenter)="hoveredRouteId.set(tr.route_id)"
                             (mouseleave)="hoveredRouteId.set(null)"
                           >
@@ -351,7 +348,7 @@ export interface TopoRouteRow {
                                 )
                               "
                               [attr.stroke-dasharray]="
-                                fsStyle.isDashed ? '0.02, 0.02' : 'none'
+                                fsStyle.isDashed ? '0.01, 0.01' : 'none'
                               "
                               stroke-linejoin="round"
                               stroke-linecap="round"
@@ -892,10 +889,10 @@ export class TopoComponent {
   protected readonly columns = computed(() => {
     const isMobile = this.global.isMobile();
     const base = isMobile
-      ? ['index', 'grade', 'name', 'actions']
+      ? ['index', 'grade', 'name']
       : ['index', 'grade', 'name', 'height', 'actions'];
     const crag = this.crag();
-    if (this.global.isAllowedEquipper(crag?.area_id)) {
+    if (!isMobile && this.global.isAllowedEquipper(crag?.area_id)) {
       base.push('admin_actions');
     }
     return base;
