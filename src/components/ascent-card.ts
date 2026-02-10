@@ -16,6 +16,7 @@ import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
   TuiAvatar,
+  TuiBadge,
   TuiConfirmData,
   TuiRating,
 } from '@taiga-ui/kit';
@@ -54,6 +55,7 @@ import { AscentLastCommentComponent } from './ascent-last-comment';
     TranslatePipe,
     TuiAppearance,
     TuiAvatar,
+    TuiBadge,
     TuiButton,
     TuiHeader,
     TuiIcon,
@@ -113,15 +115,22 @@ import { AscentLastCommentComponent } from './ascent-last-comment';
               </button>
             }
           } @else {
-            <button
-              tuiButton
-              size="s"
-              appearance="secondary-grayscale"
-              class="!rounded-full"
-              (click)="editAscent()"
-            >
-              {{ 'actions.edit' | translate }}
-            </button>
+            <div class="flex flex-col items-end gap-1">
+              <button
+                tuiButton
+                size="s"
+                appearance="secondary-grayscale"
+                class="!rounded-full"
+                (click)="editAscent()"
+              >
+                {{ 'actions.edit' | translate }}
+              </button>
+              @if (ascent.private_ascent) {
+                <tui-badge appearance="neutral" class="text-xs">
+                  {{ 'ascent.private' | translate }}
+                </tui-badge>
+              }
+            </div>
           }
         } @else {
           <div class="flex justify-between items-center w-full">
@@ -134,15 +143,22 @@ import { AscentLastCommentComponent } from './ascent-last-comment';
               </span>
             </div>
             @if (ascent.user_id === supabase.authUserId()) {
-              <button
-                tuiButton
-                size="s"
-                appearance="secondary-grayscale"
-                class="!rounded-full"
-                (click)="editAscent()"
-              >
-                {{ 'actions.edit' | translate }}
-              </button>
+              <div class="flex flex-col items-end gap-1">
+                <button
+                  tuiButton
+                  size="s"
+                  appearance="secondary-grayscale"
+                  class="!rounded-full"
+                  (click)="editAscent()"
+                >
+                  {{ 'actions.edit' | translate }}
+                </button>
+                @if (ascent.private_ascent) {
+                  <tui-badge appearance="neutral" class="text-xs">
+                    {{ 'ascent.private' | translate }}
+                  </tui-badge>
+                }
+              </div>
             }
           </div>
         }
