@@ -524,7 +524,11 @@
     "slugs": "8a.nu Slugs",
     "successTitle": "Import completed",
     "success": "Imported {{importedCount}} ascents{{skippedInfo}}{{createdInfo}}",
-    "skipped": "{{count}} skipped as duplicates"
+    "skipped": "{{count}} skipped as duplicates",
+    "syncButton": "Sync with 8a.nu",
+    "syncing": "Syncing sectors and routes...",
+    "syncSuccessTitle": "Sync completed",
+    "syncSuccess": "{{count}} routes synced from 8a.nu"
   },
   "imageEditor": {
     "name": "Image Editor",

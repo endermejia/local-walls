@@ -31,6 +31,7 @@ import { EightAnuService } from './eight-anu.service';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
+import { NotificationService } from './notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class AreasService {
@@ -42,6 +43,7 @@ export class AreasService {
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private readonly eightAnuService = inject(EightAnuService);
+  private readonly notification = inject(NotificationService);
 
   readonly loading = signal(false);
   readonly error: WritableSignal<string | null> = signal<string | null>(null);
@@ -307,17 +309,24 @@ export class AreasService {
 
     this.loading.set(true);
     let totalRoutes = 0;
+    const loaderClose$ = this.toast.showLoader('import8a.syncing');
 
     try {
+      // Pre-fetch all crags for this area to avoid duplicates
+      const { data: areaCrags } = await this.supabase.client
+        .from('crags')
+        .select('id, name, slug, eight_anu_sector_slugs')
+        .eq('area_id', areaId);
+
+      const existingCragsList = areaCrags || [];
+
       for (const cragSlug of area.eight_anu_crag_slugs) {
         // Determine country
         let countrySlug = 'spain'; // Default
         try {
           const searchResult = await this.eightAnuService.searchCrag(
-            countrySlug,
             area.name,
             cragSlug,
-            1,
           );
           if (searchResult?.countrySlug) {
             countrySlug = searchResult.countrySlug;
@@ -341,7 +350,9 @@ export class AreasService {
         ]);
 
         const allRoutes = [...sportRoutes, ...boulderRoutes];
-        if (allRoutes.length === 0) continue;
+        if (allRoutes.length === 0) {
+          continue;
+        }
 
         // Group by sector
         const routesBySector = new Map<string, EightAnuRoute[]>();
@@ -355,21 +366,39 @@ export class AreasService {
 
         // Process groups
         for (const [sectorSlug, routes] of routesBySector.entries()) {
+          const sectorName = routes[0].sectorName || sectorSlug;
+
           // Find or create Crag (Sector)
-          const { data: existingCrags } = await this.supabase.client
-            .from('crags')
-            .select('id, eight_anu_sector_slugs')
-            .eq('area_id', areaId)
-            .contains('eight_anu_sector_slugs', [sectorSlug])
-            .maybeSingle();
+          let match = existingCragsList.find((c) =>
+            c.eight_anu_sector_slugs?.includes(sectorSlug),
+          );
+
+          if (!match) {
+            // Try to find by slug match (if sector name matches existing crag name/slug)
+            const targetSlug = slugify(sectorName);
+            match = existingCragsList.find((c) => c.slug === targetSlug);
+          }
 
           let cragId: number;
 
-          if (existingCrags) {
-            cragId = existingCrags.id;
+          if (match) {
+            cragId = match.id;
+            // Update 8a slugs if needed
+            if (!match.eight_anu_sector_slugs?.includes(sectorSlug)) {
+              const newSlugs = [
+                ...(match.eight_anu_sector_slugs || []),
+                sectorSlug,
+              ];
+              await this.supabase.client
+                .from('crags')
+                .update({ eight_anu_sector_slugs: newSlugs })
+                .eq('id', cragId);
+
+              // Update in-memory list
+              match.eight_anu_sector_slugs = newSlugs;
+            }
           } else {
             // Create new crag
-            const sectorName = routes[0].sectorName || sectorSlug;
             const { data: newCrag, error: createError } =
               await this.supabase.client
                 .from('crags')
@@ -379,7 +408,7 @@ export class AreasService {
                   slug: slugify(sectorName),
                   eight_anu_sector_slugs: [sectorSlug],
                 })
-                .select('id')
+                .select('id, name, slug, eight_anu_sector_slugs')
                 .single();
 
             if (createError) {
@@ -387,15 +416,31 @@ export class AreasService {
               continue;
             }
             cragId = newCrag.id;
+            existingCragsList.push(newCrag);
           }
 
           // Optimization: Bulk upsert routes
-          const { data: existingRoutesData } = await this.supabase.client
-            .from('routes')
-            .select('id, eight_anu_route_slugs')
-            .eq('crag_id', cragId);
+          // Check global 8a slugs to avoid duplicates
+          const sectorRouteSlugs = routes.map((r) => r.zlaggableSlug);
+          const existingRoutes: {
+            id: number;
+            crag_id: number;
+            slug: string;
+            eight_anu_route_slugs: string[] | null;
+          }[] = [];
 
-          const existingRoutes = existingRoutesData || [];
+          if (sectorRouteSlugs.length > 0) {
+            const CHUNK_SIZE = 50;
+            for (let i = 0; i < sectorRouteSlugs.length; i += CHUNK_SIZE) {
+              const chunk = sectorRouteSlugs.slice(i, i + CHUNK_SIZE);
+              const { data } = await this.supabase.client
+                .from('routes')
+                .select('id, crag_id, slug, eight_anu_route_slugs')
+                .overlaps('eight_anu_route_slugs', chunk);
+
+              if (data) existingRoutes.push(...data);
+            }
+          }
           const upsertPayloads: RouteInsertDto[] = [];
 
           for (const route of routes) {
@@ -418,6 +463,8 @@ export class AreasService {
             if (match) {
               upsertPayloads.push({
                 id: match.id,
+                crag_id: cragId,
+                slug: match.slug,
                 name: route.zlaggableName,
                 grade: gradeId,
                 climbing_kind: climbingKind,
@@ -452,12 +499,21 @@ export class AreasService {
           }
         }
       }
-      this.toast.success(`Synced ${totalRoutes} routes from 8a.nu`);
+
+      this.notification.success(
+        this.translate.instant('import8a.syncSuccess', {
+          count: `<strong>${totalRoutes}</strong>`,
+        }) + '.',
+        'import8a.syncSuccessTitle',
+        false,
+      );
     } catch (e) {
       console.error('Sync error', e);
       this.toast.error('Error syncing with 8a.nu');
     } finally {
       this.loading.set(false);
+      loaderClose$.next();
+      loaderClose$.complete();
     }
   }
 }

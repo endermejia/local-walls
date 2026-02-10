@@ -41,10 +41,8 @@ export class EightAnuService {
    * Busca un crag en 8a.nu para obtener su información real (slugs, etc.)
    */
   async searchCrag(
-    countryCode: string,
     areaName: string,
     cragName?: string,
-    pageSize = 10,
   ): Promise<SearchCragItem | null> {
     try {
       const query = cragName ? `${cragName} ${areaName}` : areaName;
@@ -53,7 +51,7 @@ export class EightAnuService {
           params: {
             query,
             pageIndex: '0',
-            pageSize: pageSize.toString(),
+            // pageSize not sent, server default
             'entityTypes[]': '1', // Type 1 = crags
             showOnMap: 'false',
           },
@@ -86,11 +84,9 @@ export class EightAnuService {
    * Busca una ruta en 8a.nu para obtener su información real (slugs, etc.)
    */
   async searchRoute(
-    countryCode: string,
     areaName: string,
     cragName: string,
     routeName?: string,
-    pageSize = 10,
   ): Promise<SearchRouteItem | null> {
     try {
       let query = `${cragName} ${areaName}`;
@@ -103,7 +99,7 @@ export class EightAnuService {
           params: {
             query,
             pageIndex: '0',
-            pageSize: pageSize.toString(),
+            // pageSize not sent
             'entityTypes[]': '3', // Type 3 = routes
             showOnMap: 'false',
           },
@@ -145,13 +141,12 @@ export class EightAnuService {
   searchUsers(
     query: string,
     pageIndex = 0,
-    pageSize = 10,
   ): Observable<EightAnuSearchResponse> {
     return this.http.get<EightAnuSearchResponse>(this.searchUrl, {
       params: {
         query,
         pageIndex: pageIndex.toString(),
-        pageSize: pageSize.toString(),
+        // pageSize not sent
         'entityTypes[]': '4', // Type 4 seems to be users
         showOnMap: 'false',
       },
@@ -159,17 +154,13 @@ export class EightAnuService {
   }
 
   getUserBySlug(slug: string): Observable<EightAnuSearchResponse> {
-    // 8a.nu doesn't seem to have a direct "get by slug" that returns the same structure
-    // but we can search for the slug or the username.
-    // In this case, we search for the slug to find the user.
-    return this.searchUsers(slug, 0, 1);
+    return this.searchUsers(slug, 0);
   }
 
   getRoutes(
     category: 'sportclimbing' | 'bouldering',
     countrySlug: string,
     cragSlug: string,
-    sectorSlug?: string,
     pageIndex = 0,
   ): Observable<EightAnuRoutesResponse> {
     const url = `/api/8anu/api/unification/outdoor/v1/web/zlaggables/${category}/${countrySlug}`;
@@ -180,9 +171,6 @@ export class EightAnuService {
       sortField: 'totalascents',
       order: 'desc',
     };
-    if (sectorSlug) {
-      params['sectorSlug'] = sectorSlug;
-    }
 
     return this.http.get<EightAnuRoutesResponse>(url, { params });
   }
@@ -199,7 +187,7 @@ export class EightAnuService {
     while (hasNext) {
       try {
         const response = await firstValueFrom(
-          this.getRoutes(category, countrySlug, cragSlug, undefined, pageIndex),
+          this.getRoutes(category, countrySlug, cragSlug, pageIndex),
           { defaultValue: null },
         );
         if (response?.items) {
@@ -237,12 +225,7 @@ export class EightAnuService {
 
     // Intentar obtener el slug real del crag/area mediante búsqueda
     // Si tenemos cragName lo usamos para precisar, si no usamos solo areaName
-    const searchResult = await this.searchCrag(
-      countryCode,
-      areaName,
-      cragName,
-      1,
-    );
+    const searchResult = await this.searchCrag(areaName, cragName);
     let cragSlug = searchResult?.cragSlug;
 
     if (!cragSlug) {

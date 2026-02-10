@@ -185,7 +185,7 @@ import { handleErrorToast } from '../utils';
                   type="button"
                   (click.zoneless)="onSync8a()"
                   [iconStart]="'@tui.refresh-ccw'"
-                  [showLoader]="areas.loading()"
+                  [disabled]="areas.loading()"
                 >
                   {{ 'import8a.button' | translate }}
                 </button>
