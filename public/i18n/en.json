@@ -623,7 +623,9 @@
     "sepia": "Sepia",
     "invert": "Invert",
     "sharpen": "Sharpen",
-    "noFilter": "No filter"
+    "noFilter": "No filter",
+    "deletePathTitle": "Delete line",
+    "deletePathConfirm": "Are you sure you want to delete the line for route \"{{name}}\"?"
   },
   "landing": {
     "welcome": "Welcome to ClimBeast",

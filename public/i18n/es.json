@@ -623,7 +623,9 @@
     "sepia": "Sepia",
     "invert": "Invertir",
     "sharpen": "Nitidez",
-    "noFilter": "Sin filtro"
+    "noFilter": "Sin filtro",
+    "deletePathTitle": "Eliminar línea",
+    "deletePathConfirm": "¿Seguro que quieres eliminar la línea de la vía \"{{name}}\"?"
   },
   "landing": {
     "welcome": "Bienvenido a ClimBeast",

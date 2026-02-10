@@ -19,8 +19,11 @@ import {
 } from '@taiga-ui/core';
 import { TuiSegmented } from '@taiga-ui/kit';
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ToastService } from '../services/toast.service';
+import { firstValueFrom } from 'rxjs';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { TUI_CONFIRM, TuiConfirmData } from '@taiga-ui/kit';
 import {
   ImageCroppedEvent,
   ImageCropperComponent,
@@ -327,7 +330,8 @@ export interface ImageEditorConfig {
                     @if (hasPath(tr.route_id)) {
                       <tui-icon
                         icon="@tui.check"
-                        class="text-green-500 text-xs shrink-0"
+                        class="text-green-500 text-xs shrink-0 cursor-pointer hover:text-red-500 transition-colors"
+                        (click)="deletePath(tr, $event)"
                       />
                     }
                   </button>
@@ -529,6 +533,8 @@ export interface ImageEditorConfig {
 export class ImageEditorDialogComponent {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly toast = inject(ToastService);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
 
   @ViewChild('drawImage') drawImageElement!: ElementRef<HTMLImageElement>;
   @ViewChild('drawContainer') drawContainerElement!: ElementRef<HTMLDivElement>;
@@ -799,6 +805,31 @@ export class ImageEditorDialogComponent {
 
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
+  }
+
+  deletePath(route: TopoRouteWithRoute, event: Event): void {
+    event.stopPropagation();
+    event.preventDefault();
+
+    void firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('imageEditor.deletePathTitle'),
+        size: 's',
+        data: {
+          content: this.translate.instant('imageEditor.deletePathConfirm', {
+            name: route.route.name,
+          }),
+          yes: this.translate.instant('actions.delete'),
+          no: this.translate.instant('actions.cancel'),
+        } as TuiConfirmData,
+      }),
+      { defaultValue: false },
+    ).then((confirmed) => {
+      if (confirmed) {
+        this.pathsMap.delete(route.route_id);
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   startDraggingTouch(event: TouchEvent, routeId: number, index: number): void {
