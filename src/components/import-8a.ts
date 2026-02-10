@@ -36,7 +36,6 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   BehaviorSubject,
   finalize,
-  firstValueFrom,
   type Observable,
   of,
   startWith,
@@ -592,7 +591,7 @@ export class Import8aComponent {
         );
       };
 
-      for (const [areaName, countryCode] of uniqueAreas) {
+      for (const [areaName] of uniqueAreas) {
         const searchResult = await this.eightAnuService.searchCrag(
           areaName,
           undefined,

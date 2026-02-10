@@ -4,7 +4,6 @@ import {
   VERTICAL_LIFE_TO_LABEL,
   GradeLabel,
   colorForGrade,
-  TopoRouteWithRoute,
 } from '../models';
 
 export interface RouteStyleConfig {
