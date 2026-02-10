@@ -184,8 +184,8 @@ export interface ImageEditorConfig {
                     @let rColor = getRouteColor(tr.route_id);
                     <g
                       class="pointer-events-auto cursor-pointer"
-                      (click)="selectRoute(tr); $event.stopPropagation()"
-                      (touchstart)="selectRoute(tr); $event.stopPropagation()"
+                      (click)="onPathInteraction($event, tr)"
+                      (touchstart)="onPathInteraction($event, tr)"
                     >
                       <!-- Thicker transparent path for much easier hit detection -->
                       <polyline
@@ -222,6 +222,7 @@ export interface ImageEditorConfig {
                           (touchstart)="
                             startDraggingTouch($event, tr.route_id, $index)
                           "
+                          (click)="$event.stopPropagation()"
                           (contextmenu)="
                             removePoint($event, tr.route_id, $index)
                           "
@@ -741,6 +742,17 @@ export class ImageEditorDialogComponent {
     const route = this.selectedRoute();
     if (!route) return;
 
+    // Check if we clicked on an existing SVG element (like a path or point)
+    // We want to avoid adding a new point if we just clicked on a line to select it
+    // or if we are dragging a point.
+    // However, since the SVG overlay is on top, clicks on the image technically don't happen locally
+    // unless we use pointer-events.
+    // The container has the click listener.
+    // If the target is an SVG element that is part of a ANOTHER route, we should have stopped propagation already.
+    // But if we clicked on the background (the image/container), we add a point.
+
+    // Calculate normalized coordinates
+
     const rect =
       this.drawContainerElement.nativeElement.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width;
@@ -830,6 +842,46 @@ export class ImageEditorDialogComponent {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  onPathInteraction(event: Event, route: TopoRouteWithRoute): void {
+    const selected = this.selectedRoute();
+
+    // If a route is already selected
+    if (selected) {
+      // If we clicked on the CURRENTLY selected route
+      if (selected.route_id === route.route_id) {
+        // We do NOT stop propagation here initially because we might want to allow
+        // logic that detects where exactly on the line we clicked (future improvement).
+        // BUT for now, to prevent 'onImageClick' from adding a point when just clicking the line:
+        event.stopPropagation();
+        return;
+      }
+
+      // If we clicked on a DIFFERENT route while one is selected
+      // We want to IGNORE this click regarding selection change.
+      // We explicitly STOP propagation so it doesn't trigger onImageClick either
+      // (which would add a point to the CURRENTLY selected route at that position).
+      // This effectively "masks" the other route so we can draw "over" it or near it.
+      // However, if we want to "draw", we actually WANT the click to go through to the container
+      // OR we just handle the point addition here?
+      // The requirement is: "should not select that line. should ignore it and continue editing the line".
+      // If we stop propagation, onImageClick won't fire, so we can't add a point there.
+      // So we should actually NOT stop propagation if we want to add a point, but we SHOULD stop
+      // the "selectRoute" logic.
+
+      // Since this method IS the handler for the click on the Group <g>,
+      // simply doing nothing returns control to the browser bubbling.
+      // The event will bubble up to the container.
+      // The container's (mousedown)="onImageClick($event)" will trigger.
+      // Since we didn't change selection, onImageClick will add a point to the SELECTED route.
+      // This seems to be what is requested ("continue editing the line").
+      return;
+    }
+
+    // If no route is selected, we select this one.
+    this.selectRoute(route);
+    event.stopPropagation();
   }
 
   startDraggingTouch(event: TouchEvent, routeId: number, index: number): void {
