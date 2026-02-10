@@ -83,9 +83,12 @@ export interface TopoPathEditorConfig {
                     class="flex items-center gap-3 p-3 rounded-2xl transition-all duration-200 group text-left w-full"
                     [class.bg-primary]="selectedRoute()?.route_id === tr.route_id"
                     [class.text-white]="selectedRoute()?.route_id === tr.route_id"
+                    [class.ring-2]="selectedRoute()?.route_id === tr.route_id"
+                    [class.ring-inset]="selectedRoute()?.route_id === tr.route_id"
+                    [class.ring-white/50]="selectedRoute()?.route_id === tr.route_id"
                     [class.hover:bg-white/10]="selectedRoute()?.route_id !== tr.route_id"
                     [attr.aria-label]="tr.route.name"
-                    (click)="selectRoute(tr)"
+                    (click)="selectRoute(tr, true)"
                   >
                     <div
                       class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border"
@@ -303,8 +306,20 @@ export class TopoPathEditorDialogComponent {
     this.height.set(img.clientHeight);
   }
 
-  selectRoute(tr: TopoRouteWithRoute): void {
-    this.selectedRoute.set(tr);
+  selectRoute(tr: TopoRouteWithRoute, fromList: boolean = false): void {
+    const selected = this.selectedRoute();
+
+    if (fromList) {
+      if (selected?.route_id === tr.route_id) {
+        this.selectedRoute.set(null);
+      } else {
+        this.selectedRoute.set(tr);
+      }
+    } else {
+      if (!selected) {
+        this.selectedRoute.set(tr);
+      }
+    }
   }
 
   hasPath(routeId: number): boolean {
