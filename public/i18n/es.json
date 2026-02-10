@@ -266,6 +266,8 @@
       "topoCreated": "Croquis creado",
       "topoUpdated": "Croquis actualizado",
       "topoDeleted": "Croquis eliminado",
+      "pathsSaved": "Caminos guardados correctamente",
+      "pathsSaveError": "Error al guardar los caminos del croquis",
       "parkingCreated": "Parking creado",
       "parkingUpdated": "Parking actualizado",
       "parkingDeleted": "Parking eliminado",
@@ -623,7 +625,9 @@
     "sepia": "Sepia",
     "invert": "Invertir",
     "sharpen": "Nitidez",
-    "noFilter": "Sin filtro"
+    "noFilter": "Sin filtro",
+    "deletePathTitle": "Eliminar línea",
+    "deletePathConfirm": "¿Seguro que quieres eliminar la línea de la vía \"{{name}}\"?"
   },
   "landing": {
     "welcome": "Bienvenido a ClimBeast",
