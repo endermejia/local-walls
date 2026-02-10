@@ -1313,7 +1313,7 @@ export class Import8aComponent {
   private mapType(type: string): AscentType {
     const t = type.toLowerCase();
     if (t.includes('os') || t.includes('onsight')) return AscentTypes.OS;
-    if (t.includes('flash')) return AscentTypes.F;
+    if (t.includes('flash') || t === 'f') return AscentTypes.F;
     return AscentTypes.RP;
   }
 }
