@@ -177,6 +177,19 @@ import { handleErrorToast } from '../utils';
                   {{ 'actions.new' | translate }}
                 </button>
               }
+              @if (isAdmin) {
+                <button
+                  tuiButton
+                  appearance="textfield"
+                  size="s"
+                  type="button"
+                  (click.zoneless)="onSync8a()"
+                  [iconStart]="'@tui.refresh-ccw'"
+                  [disabled]="areas.loading()"
+                >
+                  {{ 'import8a.button' | translate }}
+                </button>
+              }
             </div>
           </div>
 
@@ -422,6 +435,12 @@ export class AreaComponent {
     const current = this.global.selectedArea();
     if (!current) return;
     this.cragsService.openCragForm({ areaId: current.id });
+  }
+
+  async onSync8a(): Promise<void> {
+    const area = this.global.selectedArea();
+    if (!area) return;
+    await this.areas.syncAreaWith8a(area.id);
   }
 
   async viewOnMap(): Promise<void> {

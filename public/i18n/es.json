@@ -526,7 +526,11 @@
     "slugs": "Slugs de 8a.nu",
     "successTitle": "Importación completada",
     "success": "Se han importado {{importedCount}} encadenes{{skippedInfo}}{{createdInfo}}",
-    "skipped": "{{count}} omitidos por duplicidad"
+    "skipped": "{{count}} omitidos por duplicidad",
+    "syncButton": "Sincronizar con 8a.nu",
+    "syncing": "Sincronizando sectores y vías...",
+    "syncSuccessTitle": "Sincronización completada",
+    "syncSuccess": "Se han sincronizado {{count}} vías de 8a.nu"
   },
   "imageEditor": {
     "name": "Editor de imágenes",

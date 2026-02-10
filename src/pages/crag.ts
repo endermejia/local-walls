@@ -163,6 +163,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                       tuiIconButton
                       type="button"
                       class="!rounded-full"
+                      (click.zoneless)="deleteCrag()"
                     >
                       {{ 'actions.delete' | translate }}
                     </button>
