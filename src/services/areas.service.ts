@@ -19,10 +19,15 @@ import type {
   AreaInsertDto,
   AreaListItem,
   AreaUpdateDto,
+  EightAnuRoute,
+  RouteInsertDto,
 } from '../models';
+import { ClimbingKinds, LABEL_TO_VERTICAL_LIFE } from '../models';
 
 import { AreaFormComponent } from '../forms/area-form';
 import { AreaUnifyComponent } from '../forms/area-unify';
+import { slugify } from '../utils';
+import { EightAnuService } from './eight-anu.service';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
@@ -36,6 +41,7 @@ export class AreasService {
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
+  private readonly eightAnuService = inject(EightAnuService);
 
   readonly loading = signal(false);
   readonly error: WritableSignal<string | null> = signal<string | null>(null);
@@ -281,6 +287,177 @@ export class AreasService {
     } catch (e) {
       console.error('[AreasService] toggleAreaLike error', e);
       throw e;
+    }
+  }
+
+  async syncAreaWith8a(areaId: number): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const { data: area, error } = await this.getById(areaId);
+
+    if (error || !area) {
+      this.toast.error('Error fetching area');
+      return;
+    }
+
+    if (!area.eight_anu_crag_slugs || area.eight_anu_crag_slugs.length === 0) {
+      this.toast.info('No 8a.nu slugs configured for this area');
+      return;
+    }
+
+    this.loading.set(true);
+    let totalRoutes = 0;
+
+    try {
+      for (const cragSlug of area.eight_anu_crag_slugs) {
+        // Determine country
+        let countrySlug = 'spain'; // Default
+        try {
+          const searchResult = await this.eightAnuService.searchCrag(
+            countrySlug,
+            area.name,
+            cragSlug,
+            1,
+          );
+          if (searchResult?.countrySlug) {
+            countrySlug = searchResult.countrySlug;
+          }
+        } catch (e) {
+          console.warn('Error searching crag for country, using spain', e);
+        }
+
+        // Fetch routes
+        const [sportRoutes, boulderRoutes] = await Promise.all([
+          this.eightAnuService.getAllRoutes(
+            'sportclimbing',
+            countrySlug,
+            cragSlug,
+          ),
+          this.eightAnuService.getAllRoutes(
+            'bouldering',
+            countrySlug,
+            cragSlug,
+          ),
+        ]);
+
+        const allRoutes = [...sportRoutes, ...boulderRoutes];
+        if (allRoutes.length === 0) continue;
+
+        // Group by sector
+        const routesBySector = new Map<string, EightAnuRoute[]>();
+        for (const route of allRoutes) {
+          const sectorSlug = route.sectorSlug || 'unknown-sector';
+          if (!routesBySector.has(sectorSlug)) {
+            routesBySector.set(sectorSlug, []);
+          }
+          routesBySector.get(sectorSlug)!.push(route);
+        }
+
+        // Process groups
+        for (const [sectorSlug, routes] of routesBySector.entries()) {
+          // Find or create Crag (Sector)
+          const { data: existingCrags } = await this.supabase.client
+            .from('crags')
+            .select('id, eight_anu_sector_slugs')
+            .eq('area_id', areaId)
+            .contains('eight_anu_sector_slugs', [sectorSlug])
+            .maybeSingle();
+
+          let cragId: number;
+
+          if (existingCrags) {
+            cragId = existingCrags.id;
+          } else {
+            // Create new crag
+            const sectorName = routes[0].sectorName || sectorSlug;
+            const { data: newCrag, error: createError } =
+              await this.supabase.client
+                .from('crags')
+                .insert({
+                  area_id: areaId,
+                  name: sectorName,
+                  slug: slugify(sectorName),
+                  eight_anu_sector_slugs: [sectorSlug],
+                })
+                .select('id')
+                .single();
+
+            if (createError) {
+              console.error('Error creating crag', sectorName, createError);
+              continue;
+            }
+            cragId = newCrag.id;
+          }
+
+          // Optimization: Bulk upsert routes
+          const { data: existingRoutesData } = await this.supabase.client
+            .from('routes')
+            .select('id, eight_anu_route_slugs')
+            .eq('crag_id', cragId);
+
+          const existingRoutes = existingRoutesData || [];
+          const upsertPayloads: RouteInsertDto[] = [];
+
+          for (const route of routes) {
+            const gradeLabel = this.eightAnuService.normalizeDifficulty(
+              route.difficulty,
+            );
+            const gradeId = LABEL_TO_VERTICAL_LIFE[gradeLabel] ?? 0;
+            const climbingKind =
+              route.category === 1
+                ? ClimbingKinds.BOULDER
+                : ClimbingKinds.SPORT;
+
+            // Find matching existing route
+            const match = existingRoutes.find(
+              (r) =>
+                r.eight_anu_route_slugs &&
+                r.eight_anu_route_slugs.includes(route.zlaggableSlug),
+            );
+
+            if (match) {
+              upsertPayloads.push({
+                id: match.id,
+                name: route.zlaggableName,
+                grade: gradeId,
+                climbing_kind: climbingKind,
+              });
+            } else {
+              upsertPayloads.push({
+                crag_id: cragId,
+                slug: slugify(route.zlaggableName),
+                eight_anu_route_slugs: [route.zlaggableSlug],
+                name: route.zlaggableName,
+                grade: gradeId,
+                climbing_kind: climbingKind,
+              });
+            }
+          }
+
+          if (upsertPayloads.length > 0) {
+            // Process in chunks of 100
+            const chunkSize = 100;
+            for (let i = 0; i < upsertPayloads.length; i += chunkSize) {
+              const chunk = upsertPayloads.slice(i, i + chunkSize);
+              const { error: upsertError } = await this.supabase.client
+                .from('routes')
+                .upsert(chunk);
+
+              if (upsertError) {
+                console.error('Error upserting routes chunk', upsertError);
+              } else {
+                totalRoutes += chunk.length;
+              }
+            }
+          }
+        }
+      }
+      this.toast.success(`Synced ${totalRoutes} routes from 8a.nu`);
+    } catch (e) {
+      console.error('Sync error', e);
+      this.toast.error('Error syncing with 8a.nu');
+    } finally {
+      this.loading.set(false);
     }
   }
 }

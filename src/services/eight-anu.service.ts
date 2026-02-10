@@ -4,8 +4,10 @@ import { inject, Injectable } from '@angular/core';
 import { firstValueFrom, Observable } from 'rxjs';
 
 import {
+  EightAnuRoute,
   EightAnuRoutesResponse,
   EightAnuSearchResponse,
+  GradeLabel,
   SearchApiResponse,
   SearchCragItem,
   SearchRouteItem,
@@ -167,22 +169,61 @@ export class EightAnuService {
     category: 'sportclimbing' | 'bouldering',
     countrySlug: string,
     cragSlug: string,
-    sectorSlug: string,
+    sectorSlug?: string,
     pageIndex = 0,
-    pageSize = 1000,
   ): Observable<EightAnuRoutesResponse> {
     const url = `/api/8anu/api/unification/outdoor/v1/web/zlaggables/${category}/${countrySlug}`;
 
-    return this.http.get<EightAnuRoutesResponse>(url, {
-      params: {
-        sectorSlug,
-        cragSlug,
-        pageIndex: pageIndex.toString(),
-        pageSize: pageSize.toString(),
-        sortField: 'totalascents',
-        order: 'desc',
-      },
-    });
+    const params: Record<string, string> = {
+      cragSlug,
+      pageIndex: pageIndex.toString(),
+      sortField: 'totalascents',
+      order: 'desc',
+    };
+    if (sectorSlug) {
+      params['sectorSlug'] = sectorSlug;
+    }
+
+    return this.http.get<EightAnuRoutesResponse>(url, { params });
+  }
+
+  async getAllRoutes(
+    category: 'sportclimbing' | 'bouldering',
+    countrySlug: string,
+    cragSlug: string,
+  ): Promise<EightAnuRoute[]> {
+    let pageIndex = 0;
+    let allRoutes: EightAnuRoute[] = [];
+    let hasNext = true;
+
+    while (hasNext) {
+      try {
+        const response = await firstValueFrom(
+          this.getRoutes(category, countrySlug, cragSlug, undefined, pageIndex),
+          { defaultValue: null },
+        );
+        if (response?.items) {
+          allRoutes = [...allRoutes, ...response.items];
+        }
+        hasNext = response?.pagination?.hasNext ?? false;
+        pageIndex++;
+        // Safety break
+        if (pageIndex > 200) break;
+      } catch (e) {
+        console.error('Error fetching page', pageIndex, e);
+        hasNext = false;
+      }
+    }
+    return allRoutes;
+  }
+
+  normalizeDifficulty(difficulty: string): GradeLabel {
+    const normalized = difficulty.toLowerCase();
+    // 8a uses "7A" for boulder 7a. And "7a" for sport 7a.
+    // We map both to "7a".
+    // 8a also has "+" e.g., "7a+".
+    // GradeLabel expects lowercase.
+    return normalized as GradeLabel;
   }
 
   async getCoordinates(
