@@ -14,11 +14,20 @@ import { GlobalData } from '../services';
   template: `
     <div class="flex h-full items-center justify-center">
       <tui-block-status class="w-full max-w-5xl mx-auto p-4">
-        <img
-          alt="{{ 'notFound.imageAlt' | translate }}"
-          [src]="global.iconSrc()('404')"
+        <div
+          class="w-full h-64 bg-current opacity-80"
           tuiSlot="top"
-        />
+          role="img"
+          [attr.aria-label]="'notFound.imageAlt' | translate"
+          [style.mask-image]="'url(' + global.iconSrc()('404') + ')'"
+          [style.mask-size]="'contain'"
+          [style.mask-position]="'center'"
+          [style.mask-repeat]="'no-repeat'"
+          [style.-webkit-mask-image]="'url(' + global.iconSrc()('404') + ')'"
+          [style.-webkit-mask-size]="'contain'"
+          [style.-webkit-mask-position]="'center'"
+          [style.-webkit-mask-repeat]="'no-repeat'"
+        ></div>
 
         <h4>{{ 'notFound.title' | translate }}</h4>
 

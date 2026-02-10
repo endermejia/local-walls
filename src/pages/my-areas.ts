@@ -45,7 +45,6 @@ import { EmptyStateComponent } from '../components/empty-state';
     LowerCasePipe,
     TranslatePipe,
     TuiAppearance,
-    TuiAvatar,
     TuiBadgeNotification,
     TuiBadgedContentComponent,
     TuiButton,
@@ -73,13 +72,21 @@ import { EmptyStateComponent } from '../components/empty-state';
                   {{ areasCount }}
                 </tui-badge-notification>
               }
-              <tui-avatar
-                tuiThumbnail
-                size="l"
-                [src]="global.iconSrc()('zone')"
-                class="self-center"
+              <div
+                class="w-12 h-12 self-center bg-current rounded-full"
                 [attr.aria-label]="'nav.my-areas' | translate"
-              />
+                role="img"
+                [style.mask-image]="'url(' + global.iconSrc()('zone') + ')'"
+                [style.mask-size]="'contain'"
+                [style.mask-position]="'center'"
+                [style.mask-repeat]="'no-repeat'"
+                [style.-webkit-mask-image]="
+                  'url(' + global.iconSrc()('zone') + ')'
+                "
+                [style.-webkit-mask-size]="'contain'"
+                [style.-webkit-mask-position]="'center'"
+                [style.-webkit-mask-repeat]="'no-repeat'"
+              ></div>
             </tui-badged-content>
             <span>{{ 'nav.my-areas' | translate }}</span>
           </h1>

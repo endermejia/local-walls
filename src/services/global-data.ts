@@ -106,9 +106,8 @@ export class GlobalData {
   readonly selectedTheme = this.theme.asReadonly();
 
   iconSrc: Signal<(name: IconName) => string> = computed(() => {
-    const theme = this.theme();
-    // Return the icon URL based on the theme
-    return (name: IconName) => `/image/${name}-${theme}.svg`;
+    // Return the icon URL
+    return (name: IconName) => `/image/${name}.svg`;
   });
 
   // ---- Breadcrumbs ----

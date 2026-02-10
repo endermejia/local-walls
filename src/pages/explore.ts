@@ -74,7 +74,6 @@ import { mapLocationUrl, remToPx } from '../utils';
     TourHintComponent,
     TranslatePipe,
     TuiAppearance,
-    TuiAvatar,
     TuiBadgeNotification,
     TuiBadgedContent,
     TuiBottomSheet,
@@ -338,12 +337,19 @@ import { mapLocationUrl, remToPx } from '../utils';
         @if (areas.length) {
           <h3 tuiHeader id="areas-title" class="justify-center sm:pt-4">
             <div class="flex flex-row align-items-center justify-center gap-2">
-              <tui-avatar
-                tuiThumbnail
-                size="l"
-                [src]="global.iconSrc()('zone')"
+              <div
+                class="w-12 h-12 self-center bg-current rounded-full"
                 [attr.aria-label]="'labels.area' | translate"
-              />
+                role="img"
+                [style.mask-image]="'url(' + global.iconSrc()('zone') + ')'"
+                [style.mask-size]="'contain'"
+                [style.mask-position]="'center'"
+                [style.mask-repeat]="'no-repeat'"
+                [style.-webkit-mask-image]="'url(' + global.iconSrc()('zone') + ')'"
+                [style.-webkit-mask-size]="'contain'"
+                [style.-webkit-mask-position]="'center'"
+                [style.-webkit-mask-repeat]="'no-repeat'"
+              ></div>
               <span tuiTitle class="justify-center">
                 {{ areas.length }}
                 {{
@@ -393,13 +399,19 @@ import { mapLocationUrl, remToPx } from '../utils';
         @if (crags.length) {
           <h3 tuiHeader id="crags-title" class="justify-center">
             <div class="flex flex-row align-items-center justify-center gap-2">
-              <tui-avatar
-                tuiThumbnail
-                size="l"
-                [src]="global.iconSrc()('crag')"
-                class="self-center"
+              <div
+                class="w-12 h-12 self-center bg-current rounded-full"
                 [attr.aria-label]="'labels.crag' | translate"
-              />
+                role="img"
+                [style.mask-image]="'url(' + global.iconSrc()('crag') + ')'"
+                [style.mask-size]="'contain'"
+                [style.mask-position]="'center'"
+                [style.mask-repeat]="'no-repeat'"
+                [style.-webkit-mask-image]="'url(' + global.iconSrc()('crag') + ')'"
+                [style.-webkit-mask-size]="'contain'"
+                [style.-webkit-mask-position]="'center'"
+                [style.-webkit-mask-repeat]="'no-repeat'"
+              ></div>
               <span tuiTitle class="justify-center">
                 {{ crags.length }}
                 {{

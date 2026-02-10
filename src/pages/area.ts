@@ -64,7 +64,6 @@ import { handleErrorToast } from '../utils';
     LowerCasePipe,
     SectionHeaderComponent,
     TranslatePipe,
-    TuiAvatar,
     TuiBadgeNotification,
     TuiBadgedContent,
     TuiButton,
@@ -136,13 +135,19 @@ import { handleErrorToast } from '../utils';
 
           <div class="flex items-center justify-between gap-2 mb-4">
             <div class="flex items-center w-full sm:w-auto gap-2">
-              <tui-avatar
-                tuiThumbnail
-                size="l"
-                [src]="global.iconSrc()('crag')"
-                class="self-center"
+              <div
+                class="w-12 h-12 self-center bg-current rounded-full"
                 [attr.aria-label]="'labels.crag' | translate"
-              />
+                role="img"
+                [style.mask-image]="'url(' + global.iconSrc()('crag') + ')'"
+                [style.mask-size]="'contain'"
+                [style.mask-position]="'center'"
+                [style.mask-repeat]="'no-repeat'"
+                [style.-webkit-mask-image]="'url(' + global.iconSrc()('crag') + ')'"
+                [style.-webkit-mask-size]="'contain'"
+                [style.-webkit-mask-position]="'center'"
+                [style.-webkit-mask-repeat]="'no-repeat'"
+              ></div>
               <h2 class="text-2xl font-semibold">
                 {{ cragsCount() }}
                 {{

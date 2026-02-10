@@ -23,7 +23,6 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
   selector: 'app-root',
   imports: [
     NavbarComponent,
-    NgOptimizedImage,
     RouterOutlet,
     TranslateModule,
     TuiBlockStatus,
@@ -110,13 +109,20 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
       } @else {
         <div class="h-[100dvh] flex items-center justify-center p-4">
           <tui-block-status class="w-full max-w-lg mx-auto p-4">
-            <img
-              [ngSrc]="global.iconSrc()('topo')"
-              alt="{{ 'labels.gdpr.title' | translate }}"
+            <div
+              class="w-[100px] h-[100px] bg-current"
               tuiSlot="top"
-              height="100"
-              width="100"
-            />
+              role="img"
+              [attr.aria-label]="'labels.gdpr.title' | translate"
+              [style.mask-image]="'url(' + global.iconSrc()('topo') + ')'"
+              [style.mask-size]="'contain'"
+              [style.mask-position]="'center'"
+              [style.mask-repeat]="'no-repeat'"
+              [style.-webkit-mask-image]="'url(' + global.iconSrc()('topo') + ')'"
+              [style.-webkit-mask-size]="'contain'"
+              [style.-webkit-mask-position]="'center'"
+              [style.-webkit-mask-repeat]="'no-repeat'"
+            ></div>
             <h4>{{ 'labels.gdpr.title' | translate }}</h4>
             <p
               class="description"

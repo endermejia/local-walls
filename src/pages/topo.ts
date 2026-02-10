@@ -181,15 +181,35 @@ export interface TopoRouteRow {
                 class="h-full w-max flex items-center justify-center min-w-full"
               >
                 <div class="relative h-full">
-                  <img
-                    [src]="topoImage || global.iconSrc()('topo')"
-                    [alt]="t.name"
-                    class="w-auto h-full max-w-none cursor-pointer block object-cover"
-                    decoding="async"
-                    tabindex="0"
-                    (click.zoneless)="toggleFullscreen(!!topoImage)"
-                    (keydown.enter)="toggleFullscreen(!!topoImage)"
-                  />
+                  @if (topoImage) {
+                    <img
+                      [src]="topoImage"
+                      [alt]="t.name"
+                      class="w-auto h-full max-w-none cursor-pointer block object-cover"
+                      decoding="async"
+                      tabindex="0"
+                      (click.zoneless)="toggleFullscreen(true)"
+                      (keydown.enter)="toggleFullscreen(true)"
+                    />
+                  } @else {
+                    <div
+                      class="w-full h-full min-w-64 min-h-64 bg-current opacity-20"
+                      role="img"
+                      [attr.aria-label]="t.name"
+                      [style.mask-image]="
+                        'url(' + global.iconSrc()('topo') + ')'
+                      "
+                      [style.mask-size]="'contain'"
+                      [style.mask-position]="'center'"
+                      [style.mask-repeat]="'no-repeat'"
+                      [style.-webkit-mask-image]="
+                        'url(' + global.iconSrc()('topo') + ')'
+                      "
+                      [style.-webkit-mask-size]="'contain'"
+                      [style.-webkit-mask-position]="'center'"
+                      [style.-webkit-mask-repeat]="'no-repeat'"
+                    ></div>
+                  }
                   <!-- SVG Paths Overlay -->
                   @if (topoImage) {
                     <svg
@@ -290,11 +310,13 @@ export interface TopoRouteRow {
                     ')'
                   "
                 >
-                  <img
-                    [src]="topoImage || global.iconSrc()('topo')"
-                    [alt]="t.name"
-                    class="max-w-[90vw] max-h-[90vh] object-contain select-none block"
-                  />
+                  @if (topoImage) {
+                    <img
+                      [src]="topoImage"
+                      [alt]="t.name"
+                      class="max-w-[90vw] max-h-[90vh] object-contain select-none block"
+                    />
+                  }
                   <!-- SVG Paths Overlay in Fullscreen -->
                   @if (topoImage) {
                     <svg

@@ -54,7 +54,6 @@ import { TuiDropdown } from '@taiga-ui/core';
     TourHintComponent,
     TranslatePipe,
     TuiAppearance,
-    TuiAvatar,
     TuiBadgeNotification,
     TuiBadgedContentComponent,
     TuiButton,
@@ -75,14 +74,20 @@ import { TuiDropdown } from '@taiga-ui/core';
           tuiDropdownDirection="bottom"
         >
           @let areasCount = filtered().length;
-          <h1 class="text-2xl font-bold w-full sm:w-auto">
-            <tui-avatar
-              tuiThumbnail
-              size="l"
-              [src]="global.iconSrc()('zone')"
-              class="self-center"
+          <h1 class="text-2xl font-bold w-full sm:w-auto flex items-center gap-2">
+            <div
+              class="w-12 h-12 self-center bg-current rounded-full"
               [attr.aria-label]="'labels.area' | translate"
-            />
+              role="img"
+              [style.mask-image]="'url(' + global.iconSrc()('zone') + ')'"
+              [style.mask-size]="'contain'"
+              [style.mask-position]="'center'"
+              [style.mask-repeat]="'no-repeat'"
+              [style.-webkit-mask-image]="'url(' + global.iconSrc()('zone') + ')'"
+              [style.-webkit-mask-size]="'contain'"
+              [style.-webkit-mask-position]="'center'"
+              [style.-webkit-mask-repeat]="'no-repeat'"
+            ></div>
             {{ areasCount }}
             {{
               'labels.' + (areasCount === 1 ? 'area' : 'areas')
