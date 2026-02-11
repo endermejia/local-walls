@@ -587,103 +587,114 @@ export class Import8aComponent {
         );
       };
 
-      for (const [areaName] of uniqueAreas) {
-        const searchResult = await this.eightAnuService.searchCrag(
-          areaName,
-          undefined,
+      // 1.1 Parallel fetching for unique areas (limit concurrency to 5)
+      const AREA_CONCURRENCY = 5;
+      for (let i = 0; i < uniqueAreas.length; i += AREA_CONCURRENCY) {
+        const batch = uniqueAreas.slice(i, i + AREA_CONCURRENCY);
+        await Promise.all(
+          batch.map(async ([areaName]) => {
+            try {
+              const searchResult = await this.eightAnuService.searchCrag(
+                areaName,
+                undefined,
+              );
+              if (searchResult) {
+                if (searchResult.coordinates) {
+                  areaToCoords.set(areaName, searchResult.coordinates);
+                }
+                if (searchResult.cragSlug) {
+                  areaToSlug.set(areaName, searchResult.cragSlug);
+                }
+              }
+            } catch (e) {
+              console.error(`[8a Import] Error searching area ${areaName}:`, e);
+            }
+            incrementProgress();
+          }),
         );
-        if (searchResult) {
-          if (searchResult.coordinates) {
-            areaToCoords.set(areaName, searchResult.coordinates);
-          }
-          if (searchResult.cragSlug) {
-            areaToSlug.set(areaName, searchResult.cragSlug);
-          }
-        }
-        incrementProgress();
       }
 
-      // 1.2 Fetch all routes for each unique sector mentioned in the import to get correct slugs
+      // 1.2 Fetch all routes for each unique sector
+      // OPTIMIZATION: Cache area routes so we only fetch them once per area, even if there are many sectors
+      const areaRoutesCache = new Map<string, EightAnuRoute[]>();
       const sectorTo8aRoutes = new Map<
         string,
         { routes: EightAnuRoute[]; climbingKind: ClimbingKind }
       >();
       const sectorToCragSlug = new Map<string, string>(); // areaSlug|sectorSlug -> 8anu.sectorSlug
 
-      for (const s of uniqueSectorsToFetch) {
-        try {
-          const countrySlug = this.eightAnuService.getCountrySlug(
-            s.countryCode,
-          );
-          const area8aSlug =
-            areaToSlug.get(s.locationName) || slugify(s.locationName);
-          const areaSlug = slugify(s.locationName);
-          const sectorSlug = slugify(s.sectorName);
-
-          // Get the real sectorSlug from 8a.nu (searching for routes in that sector)
-          // According to user:
-          // area.slug (our app) = 8anu.cragSlug
-          // crag.slug (our app) = 8anu.sectorSlug
-          const searchResult = await this.eightAnuService.searchRoute(
-            s.locationName,
-            s.sectorName,
-            undefined,
-          );
-
-          if (searchResult) {
-            const realSectorSlug = searchResult.sectorSlug;
-            const realAreaSlug = searchResult.cragSlug || area8aSlug;
-
-            console.log(
-              `[8a Import] Found real slugs for ${s.sectorName}: sectorSlug=${realSectorSlug}, areaSlug=${realAreaSlug}`,
-            );
-
-            sectorToCragSlug.set(`${areaSlug}|${sectorSlug}`, realSectorSlug);
-
-            console.log(
-              `[8a Import] Stored sectorSlug for ${areaSlug}|${sectorSlug}: ${realSectorSlug}`,
-            );
-
-            const category =
-              s.climbingKind === ClimbingKinds.BOULDER
-                ? 'bouldering'
-                : 'sportclimbing';
-
-            const allRoutes = await this.eightAnuService.getAllRoutes(
-              category,
-              countrySlug,
-              realAreaSlug,
-            );
-
-            const sectorRoutes = allRoutes.filter(
-              (r) => r.sectorSlug === realSectorSlug,
-            );
-
-            if (sectorRoutes.length > 0) {
-              console.log(
-                `[8a Import] Fetched ${allRoutes.length} routes from 8a.nu for area, filtered to ${sectorRoutes.length} for sector ${s.sectorName}`,
+      const SECTOR_CONCURRENCY = 3; // Lower concurrency for routes as it's heavier
+      for (
+        let i = 0;
+        i < uniqueSectorsToFetch.length;
+        i += SECTOR_CONCURRENCY
+      ) {
+        const batch = uniqueSectorsToFetch.slice(i, i + SECTOR_CONCURRENCY);
+        await Promise.all(
+          batch.map(async (s) => {
+            try {
+              const countrySlug = this.eightAnuService.getCountrySlug(
+                s.countryCode,
               );
-              sectorTo8aRoutes.set(`${areaSlug}|${sectorSlug}`, {
-                routes: sectorRoutes,
-                climbingKind: s.climbingKind,
-              });
-            } else {
-              console.warn(
-                `[8a Import] No routes found in 8a.nu response for ${s.sectorName} (slug: ${realSectorSlug})`,
+              const area8aSlug =
+                areaToSlug.get(s.locationName) || slugify(s.locationName);
+              const areaSlug = slugify(s.locationName);
+              const sectorSlug = slugify(s.sectorName);
+
+              // 1. Find the real sector slug
+              const searchResult = await this.eightAnuService.searchRoute(
+                s.locationName,
+                s.sectorName,
+                undefined,
+              );
+
+              if (searchResult) {
+                const realSectorSlug = searchResult.sectorSlug;
+                const realAreaSlug = searchResult.cragSlug || area8aSlug;
+
+                sectorToCragSlug.set(
+                  `${areaSlug}|${sectorSlug}`,
+                  realSectorSlug,
+                );
+
+                const category =
+                  s.climbingKind === ClimbingKinds.BOULDER
+                    ? 'bouldering'
+                    : 'sportclimbing';
+
+                // 2. Fetch routes (Check cache first to avoid redundant area fetches)
+                const cacheKey = `${category}|${countrySlug}|${realAreaSlug}`;
+                let allRoutes = areaRoutesCache.get(cacheKey);
+
+                if (!allRoutes) {
+                  allRoutes = await this.eightAnuService.getAllRoutes(
+                    category,
+                    countrySlug,
+                    realAreaSlug,
+                  );
+                  areaRoutesCache.set(cacheKey, allRoutes);
+                }
+
+                const sectorRoutes = allRoutes.filter(
+                  (r) => r.sectorSlug === realSectorSlug,
+                );
+
+                if (sectorRoutes.length > 0) {
+                  sectorTo8aRoutes.set(`${areaSlug}|${sectorSlug}`, {
+                    routes: sectorRoutes,
+                    climbingKind: s.climbingKind,
+                  });
+                }
+              }
+            } catch (e) {
+              console.error(
+                `[8a Import] Error processing sector ${s.sectorName}:`,
+                e,
               );
             }
-          } else {
-            console.warn(
-              `[8a Import] Search result not found for ${s.sectorName} in ${s.locationName}`,
-            );
-          }
-        } catch (e) {
-          console.error(
-            `[8a Import] Error fetching routes for sector ${s.sectorName}:`,
-            e,
-          );
-        }
-        incrementProgress();
+            incrementProgress();
+          }),
+        );
       }
 
       // 2. Prepare payload for SQL function
