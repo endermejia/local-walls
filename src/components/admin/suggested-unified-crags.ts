@@ -6,15 +6,15 @@ import {
   resource,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TuiButton, TuiLoader, TuiError } from '@taiga-ui/core';
+import { TuiButton, TuiLoader } from '@taiga-ui/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { CragsService } from '../../services';
+import { CragSimple, CragsService } from '../../services/crags.service';
 import { normalizeName } from '../../utils';
 import { CragDto } from '../../models';
 
 @Component({
   selector: 'app-suggested-unified-crags',
-  imports: [CommonModule, TuiButton, TuiLoader, TuiError, TranslatePipe],
+  imports: [CommonModule, TuiButton, TuiLoader, TranslatePipe],
   template: `
     <div class="flex flex-col gap-4">
       <h3 class="font-bold text-lg">
@@ -41,7 +41,7 @@ import { CragDto } from '../../models';
                   </span>
                 </div>
                 <div class="text-sm opacity-70">
-                  {{ group.length }} {{ 'labels.items' | translate }} ({{
+                  {{ group.length }} {{ 'labels.crags' | translate }} ({{
                     getNames(group)
                   }})
                 </div>
@@ -71,7 +71,7 @@ export class SuggestedUnifiedCragsComponent {
 
   protected readonly duplicates = computed(() => {
     const crags = this.cragsResource.value() ?? [];
-    const groups = new Map<string, any[]>();
+    const groups = new Map<string, CragSimple[]>();
 
     for (const crag of crags) {
       // Key includes area_id to avoid cross-area merging
@@ -85,16 +85,21 @@ export class SuggestedUnifiedCragsComponent {
     return Array.from(groups.values()).filter((g) => g.length > 1);
   });
 
-  protected getAreaName(crag: any): string {
+  protected getAreaName(crag: CragSimple): string {
     return crag.area?.name || '';
   }
 
-  protected getNames(group: any[]): string {
+  protected getNames(group: CragSimple[]): string {
     return group.map((a) => a.name).join(', ');
   }
 
-  protected onUnify(group: any[]) {
+  protected async onUnify(group: CragSimple[]) {
     // Cast to CragDto[] for the service call
-    this.cragsService.openUnifyCrags(group as unknown as CragDto[]);
+    const success = await this.cragsService.openUnifyCrags(
+      group as unknown as CragDto[],
+    );
+    if (success) {
+      this.cragsResource.reload();
+    }
   }
 }

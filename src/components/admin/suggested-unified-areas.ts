@@ -6,7 +6,7 @@ import {
   resource,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TuiButton, TuiLoader, TuiError } from '@taiga-ui/core';
+import { TuiButton, TuiLoader } from '@taiga-ui/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AreasService } from '../../services';
 import { normalizeName } from '../../utils';
@@ -14,7 +14,7 @@ import { AreaDto } from '../../models';
 
 @Component({
   selector: 'app-suggested-unified-areas',
-  imports: [CommonModule, TuiButton, TuiLoader, TuiError, TranslatePipe],
+  imports: [CommonModule, TuiButton, TuiLoader, TranslatePipe],
   template: `
     <div class="flex flex-col gap-4">
       <h3 class="font-bold text-lg">
@@ -36,7 +36,7 @@ import { AreaDto } from '../../models';
               <div>
                 <div class="font-bold">{{ group[0].name }}</div>
                 <div class="text-sm opacity-70">
-                  {{ group.length }} {{ 'labels.items' | translate }} ({{
+                  {{ group.length }} {{ 'labels.areas' | translate }} ({{
                     getNames(group)
                   }})
                 </div>
@@ -83,7 +83,10 @@ export class SuggestedUnifiedAreasComponent {
     return group.map((a) => a.name).join(', ');
   }
 
-  protected onUnify(group: AreaDto[]) {
-    this.areasService.openUnifyAreas(group);
+  protected async onUnify(group: AreaDto[]) {
+    const success = await this.areasService.openUnifyAreas(group);
+    if (success) {
+      this.areasResource.reload();
+    }
   }
 }

@@ -21,6 +21,13 @@ import type {
 
 import { GlobalData, SupabaseService, ToastService } from '../services';
 
+export interface RouteSimple {
+  id: number;
+  name: string;
+  crag_id: number;
+  crag: { name: string; area_id: number } | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class RoutesService {
   private readonly platformId = inject(PLATFORM_ID);
@@ -85,8 +92,8 @@ export class RoutesService {
     });
   }
 
-  openUnifyRoutes(routes?: RouteDto[]): void {
-    void firstValueFrom(
+  openUnifyRoutes(routes?: RouteDto[]): Promise<boolean> {
+    return firstValueFrom(
       this.dialogs.open<boolean>(
         new PolymorpheusComponent(RouteUnifyComponent),
         {
@@ -101,17 +108,11 @@ export class RoutesService {
       if (result) {
         this.global.cragRoutesResource.reload();
       }
+      return result;
     });
   }
 
-  async getRoutesByAreaSimple(areaId: number): Promise<
-    {
-      id: number;
-      name: string;
-      crag_id: number;
-      crag: { name: string } | null;
-    }[]
-  > {
+  async getRoutesByAreaSimple(areaId: number): Promise<RouteSimple[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
     // Use inner join on crags to filter by area_id
@@ -124,7 +125,7 @@ export class RoutesService {
       console.error('[RoutesService] getRoutesByAreaSimple error', error);
       return [];
     }
-    return (data as any[]) ?? [];
+    return (data as unknown as RouteSimple[]) ?? [];
   }
 
   async unify(

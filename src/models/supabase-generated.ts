@@ -1959,6 +1959,22 @@ export interface Database {
       };
       toggle_route_like: { Args: { p_route_id: number }; Returns: boolean };
       toggle_route_project: { Args: { p_route_id: number }; Returns: boolean };
+      unify_areas: {
+        Args: {
+          p_new_name: string;
+          p_source_area_ids: number[];
+          p_target_area_id: number;
+        };
+        Returns: undefined;
+      };
+      unify_crags: {
+        Args: {
+          p_new_name: string;
+          p_source_crag_ids: number[];
+          p_target_crag_id: number;
+        };
+        Returns: undefined;
+      };
       unify_routes: {
         Args: {
           p_new_name: string;

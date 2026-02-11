@@ -60,6 +60,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Prerender,
   },
   {
+    path: 'admin/unify',
+    renderMode: RenderMode.Prerender,
+  },
+  {
     path: 'my-areas',
     renderMode: RenderMode.Prerender,
   },

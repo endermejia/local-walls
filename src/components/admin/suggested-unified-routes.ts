@@ -12,12 +12,12 @@ import {
   TuiButton,
   TuiDataList,
   TuiLoader,
-  TuiError,
   TuiTextfield,
 } from '@taiga-ui/core';
 import { TuiComboBox, TuiFilterByInputPipe } from '@taiga-ui/kit';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AreasService, RoutesService } from '../../services';
+import { AreasService } from '../../services/areas.service';
+import { RouteSimple, RoutesService } from '../../services/routes.service';
 import { normalizeName } from '../../utils';
 import { RouteDto } from '../../models';
 
@@ -29,7 +29,6 @@ import { RouteDto } from '../../models';
     TuiButton,
     TuiComboBox,
     TuiDataList,
-    TuiError,
     TuiFilterByInputPipe,
     TuiLoader,
     TuiTextfield,
@@ -43,7 +42,7 @@ import { RouteDto } from '../../models';
 
       <tui-textfield tuiChevron class="block" [stringify]="stringifyArea">
         <label tuiLabel for="select-area">
-          {{ 'areas.title' | translate }}
+          {{ 'labels.areas' | translate }}
         </label>
         <input
           tuiComboBox
@@ -79,7 +78,7 @@ import { RouteDto } from '../../models';
                   {{ group[0].name }}
                 </div>
                 <div class="text-sm opacity-70">
-                  {{ group.length }} {{ 'labels.items' | translate }} ({{
+                  {{ group.length }} {{ 'labels.routes' | translate }} ({{
                     getCragNames(group)
                   }})
                 </div>
@@ -124,7 +123,7 @@ export class SuggestedUnifiedRoutesComponent {
 
   protected readonly duplicates = computed(() => {
     const routes = this.routesResource.value() ?? [];
-    const groups = new Map<string, any[]>();
+    const groups = new Map<string, RouteSimple[]>();
 
     for (const route of routes) {
       const key = normalizeName(route.name);
@@ -139,11 +138,16 @@ export class SuggestedUnifiedRoutesComponent {
 
   protected readonly stringifyArea = (item: { name: string }) => item.name;
 
-  protected getCragNames(group: any[]): string {
+  protected getCragNames(group: RouteSimple[]): string {
     return group.map((a) => a.crag?.name || 'Unknown').join(', ');
   }
 
-  protected onUnify(group: any[]) {
-    this.routesService.openUnifyRoutes(group as unknown as RouteDto[]);
+  protected async onUnify(group: RouteSimple[]) {
+    const success = await this.routesService.openUnifyRoutes(
+      group as unknown as RouteDto[],
+    );
+    if (success) {
+      this.routesResource.reload();
+    }
   }
 }

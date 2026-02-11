@@ -22,6 +22,13 @@ import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
 
+export interface CragSimple {
+  id: number;
+  name: string;
+  area_id: number;
+  area: { name: string } | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CragsService {
   private readonly platformId = inject(PLATFORM_ID);
@@ -86,8 +93,8 @@ export class CragsService {
     });
   }
 
-  openUnifyCrags(crags?: CragDto[]): void {
-    void firstValueFrom(
+  openUnifyCrags(crags?: CragDto[]): Promise<boolean> {
+    return firstValueFrom(
       this.dialogs.open<boolean>(
         new PolymorpheusComponent(CragUnifyComponent),
         {
@@ -102,17 +109,11 @@ export class CragsService {
       if (result) {
         this.global.cragsListResource.reload();
       }
+      return result;
     });
   }
 
-  async getAllCragsSimple(): Promise<
-    {
-      id: number;
-      name: string;
-      area_id: number;
-      area: { name: string } | null;
-    }[]
-  > {
+  async getAllCragsSimple(): Promise<CragSimple[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
     const { data, error } = await this.supabase.client
@@ -124,7 +125,7 @@ export class CragsService {
       return [];
     }
     // Need to cast the result because the nested area is returned as an object
-    return (data as any[]) ?? [];
+    return (data as unknown as CragSimple[]) ?? [];
   }
 
   async unify(
@@ -136,56 +137,13 @@ export class CragsService {
     await this.supabase.whenReady();
     this.loading.set(true);
     try {
-      // 1. Get all slugs from source crags and target crag
-      const { data: crags, error: fetchError } = await this.supabase.client
-        .from('crags')
-        .select('id, slug, eight_anu_sector_slugs')
-        .in('id', [targetCragId, ...sourceCragIds]);
+      const { error } = await this.supabase.client.rpc('unify_crags', {
+        p_target_crag_id: targetCragId,
+        p_source_crag_ids: sourceCragIds,
+        p_new_name: newName,
+      });
 
-      if (fetchError) throw fetchError;
-
-      const targetCrag = crags.find((a) => a.id === targetCragId);
-      if (!targetCrag) throw new Error('Target crag not found');
-
-      const allEightAnuSlugs = new Set<string>(
-        targetCrag.eight_anu_sector_slugs || [],
-      );
-      for (const crag of crags) {
-        if (crag.eight_anu_sector_slugs) {
-          crag.eight_anu_sector_slugs.forEach((s) => allEightAnuSlugs.add(s));
-        }
-        // Also add the current slug as an 8a.nu slug if it's not the target's slug
-        if (crag.id !== targetCragId) {
-          allEightAnuSlugs.add(crag.slug);
-        }
-      }
-
-      // 2. Update routes to point to the target crag
-      const { error: updateRoutesError } = await this.supabase.client
-        .from('routes')
-        .update({ crag_id: targetCragId })
-        .in('crag_id', sourceCragIds);
-
-      if (updateRoutesError) throw updateRoutesError;
-
-      // 3. Update target crag name and slugs
-      const { error: updateCragError } = await this.supabase.client
-        .from('crags')
-        .update({
-          name: newName,
-          eight_anu_sector_slugs: Array.from(allEightAnuSlugs),
-        })
-        .eq('id', targetCragId);
-
-      if (updateCragError) throw updateCragError;
-
-      // 4. Delete source crags
-      const { error: deleteError } = await this.supabase.client
-        .from('crags')
-        .delete()
-        .in('id', sourceCragIds);
-
-      if (deleteError) throw deleteError;
+      if (error) throw error;
 
       this.global.cragsListResource.reload();
       this.toast.success('messages.toasts.cragsUnified');
@@ -253,50 +211,37 @@ export class CragsService {
     return { data: data as CragDto, error };
   }
 
-  /** Delete a crag by id. Returns true if deleted. */
   async delete(id: number): Promise<boolean> {
     if (!isPlatformBrowser(this.platformId)) return false;
     await this.supabase.whenReady();
-    try {
-      const { error } = await this.supabase.client
-        .from('crags')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
-      // Update global crag list
-      this.global.cragsListResource.update((value) => {
-        if (!value) return value;
-        return value.filter((item) => item.id !== id);
-      });
-      this.toast.success('messages.toasts.cragDeleted');
-      return true;
-    } catch (e) {
-      console.error('[CragsService] delete error', e);
-      throw e;
+    const { error } = await this.supabase.client
+      .from('crags')
+      .delete()
+      .eq('id', id);
+    if (error) {
+      console.error('[CragsService] delete error', error);
+      throw error;
     }
+    // Reload the crags list
+    this.global.cragsListResource.reload();
+    this.toast.success('messages.toasts.cragDeleted');
+    return true;
   }
 
-  /** Toggle like for a crag using Supabase RPC toggle_crag_like */
-  async toggleCragLike(cragId: number): Promise<boolean | null> {
-    if (!isPlatformBrowser(this.platformId)) return null;
+  async toggleCragLike(cragId: number): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) return false;
     await this.supabase.whenReady();
     try {
-      if (!cragId) {
-        throw new Error(
-          `[CragsService] toggleCragLike invalid cragId: ${String(cragId)}`,
-        );
-      }
-      const params = { p_crag_id: cragId } as const;
-      const { data, error } = await this.supabase.client.rpc(
+      const { data: liked, error } = await this.supabase.client.rpc(
         'toggle_crag_like',
-        params,
+        { p_crag_id: cragId },
       );
+
       if (error) throw error;
-      const liked = data as boolean;
-      // Update global crag list
-      this.global.cragsListResource.update((value) => {
-        if (!value) return value;
-        return value
+
+      // Update local state
+      this.global.cragsListResource.update((curr) => {
+        return (curr || [])
           .map((item) => (item.id === cragId ? { ...item, liked } : item))
           .sort((a, b) => {
             // First sort by liked status (liked items first)

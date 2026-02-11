@@ -60,6 +60,8 @@ import {
   TourStep,
 } from '../services';
 
+import { normalizeName } from '../utils';
+
 import { AscentsFeedComponent } from '../components/ascents-feed';
 import { AscentCardSkeletonComponent } from '../components/ascent-card-skeleton';
 import { EmptyStateComponent } from '../components/empty-state';
@@ -1355,8 +1357,9 @@ export class UserProfileComponent {
   ): RouteAscentWithExtras[] {
     const seen = new Set<string>();
     return ascents.map((a) => {
-      // Key: date + route_name (if available) + crag_id (if available)
-      const key = `${a.date}|${a.route?.name || ''}|${a.route?.crag_id || ''}`;
+      // Key: date + normalized route_name
+      const normalizedNameStr = normalizeName(a.route?.name);
+      const key = `${a.date}|${normalizedNameStr}`;
       const isDuplicate = seen.has(key);
       if (!isDuplicate) {
         seen.add(key);

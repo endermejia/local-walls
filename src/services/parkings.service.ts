@@ -143,19 +143,6 @@ export class ParkingsService {
     return true;
   }
 
-  async getCragParkings(cragId: number): Promise<ParkingDto[]> {
-    await this.supabase.whenReady();
-    const { data, error } = await this.supabase.client
-      .from('crag_parkings')
-      .select('parking:parkings(*)')
-      .eq('crag_id', cragId);
-    if (error) {
-      console.error('[ParkingsService] getCragParkings error', error);
-      return [];
-    }
-    return (data || []).map((d) => d.parking as ParkingDto);
-  }
-
   async addParkingToCrag(cragId: number, parkingId: number): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     await this.supabase.whenReady();

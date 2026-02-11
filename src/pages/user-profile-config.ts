@@ -24,6 +24,7 @@ import {
 import { Router } from '@angular/router';
 
 import { TuiDay, TuiStringMatcher } from '@taiga-ui/cdk';
+import { TuiHeader } from '@taiga-ui/layout';
 import {
   TuiButton,
   tuiDateFormatProvider,
@@ -128,6 +129,7 @@ interface Country {
     TuiFallbackSrcPipe,
     TuiFilterByInputPipe,
     TuiFlagPipe,
+    TuiHeader,
     TuiIcon,
     TuiInputDate,
     TuiInputNumber,
@@ -156,35 +158,29 @@ interface Country {
         class="w-full max-w-5xl mx-auto p-4 grid grid-cols-1 gap-4 pb-32"
       >
         <!-- Sticky Header -->
-        <div
+        <header
+          tuiHeader
           class="sticky top-0 z-10 flex items-center gap-4 p-4 -mt-4 -mx-4 mb-4 bg-[var(--tui-background-base)] shadow-md sm:shadow-none"
         >
-          <button
-            size="s"
-            appearance="neutral"
-            iconStart="@tui.chevron-left"
-            tuiIconButton
-            type="button"
-            class="!rounded-full"
-            (click)="isFirstSteps() ? startTour() : close()"
-            [disabled]="
-              isFirstSteps() &&
-              (displayNameControl.invalid ||
-                displayNameControl.value === userEmail())
-            "
-          >
-            {{
-              isFirstSteps()
-                ? ('firstSteps.next' | translate)
-                : ('actions.back' | translate)
-            }}
-          </button>
-          <div class="flex items-center gap-2">
-            <h2 class="text-xl font-bold m-0">
-              {{ 'profile.title' | translate }}
-            </h2>
-          </div>
-        </div>
+          <h1 tuiTitle>
+            <button
+              appearance="neutral"
+              class="no-underline text-inherit flex items-center gap-2 bg-transparent border-none p-0 cursor-pointer text-left outline-none"
+              (click)="isFirstSteps() ? startTour() : close()"
+              [disabled]="
+                isFirstSteps() &&
+                (displayNameControl.invalid ||
+                  displayNameControl.value === userEmail())
+              "
+            >
+              <tui-icon icon="@tui.arrow-left" />
+              {{
+                (isFirstSteps() ? 'firstSteps.next' : 'profile.title')
+                  | translate
+              }}
+            </button>
+          </h1>
+        </header>
 
         <!-- Avatar y Nombre -->
         <div class="flex flex-col md:flex-row items-center gap-4">
@@ -521,13 +517,13 @@ interface Country {
             {{ 'labels.preferences' | translate }}
           </h2>
           <button
-            iconStart="@tui.download"
             size="s"
             tuiButton
             type="button"
             appearance="action-grayscale"
             (click)="openImport8aDialog()"
           >
+            <tui-icon icon="@tui.download" />
             {{ 'import8a.button' | translate }}
           </button>
         </div>

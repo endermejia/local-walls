@@ -87,8 +87,8 @@ export class AreasService {
     });
   }
 
-  openUnifyAreas(areas?: AreaDto[] | AreaListItem[]): void {
-    void firstValueFrom(
+  openUnifyAreas(areas?: AreaDto[] | AreaListItem[]): Promise<boolean> {
+    return firstValueFrom(
       this.dialogs.open<boolean>(
         new PolymorpheusComponent(AreaUnifyComponent),
         {
@@ -103,6 +103,7 @@ export class AreasService {
       if (result) {
         this.global.areasListResource.reload();
       }
+      return result;
     });
   }
 
@@ -182,56 +183,13 @@ export class AreasService {
     await this.supabase.whenReady();
     this.loading.set(true);
     try {
-      // 1. Get all slugs from source areas and target area
-      const { data: areas, error: fetchError } = await this.supabase.client
-        .from('areas')
-        .select('id, slug, eight_anu_crag_slugs')
-        .in('id', [targetAreaId, ...sourceAreaIds]);
+      const { error } = await this.supabase.client.rpc('unify_areas', {
+        p_target_area_id: targetAreaId,
+        p_source_area_ids: sourceAreaIds,
+        p_new_name: newName,
+      });
 
-      if (fetchError) throw fetchError;
-
-      const targetArea = areas.find((a) => a.id === targetAreaId);
-      if (!targetArea) throw new Error('Target area not found');
-
-      const allEightAnuSlugs = new Set<string>(
-        targetArea.eight_anu_crag_slugs || [],
-      );
-      for (const area of areas) {
-        if (area.eight_anu_crag_slugs) {
-          area.eight_anu_crag_slugs.forEach((s) => allEightAnuSlugs.add(s));
-        }
-        // Also add the current slug as an 8a.nu slug if it's not the target's slug
-        if (area.id !== targetAreaId) {
-          allEightAnuSlugs.add(area.slug);
-        }
-      }
-
-      // 2. Update crags to point to the target area
-      const { error: updateCragsError } = await this.supabase.client
-        .from('crags')
-        .update({ area_id: targetAreaId })
-        .in('area_id', sourceAreaIds);
-
-      if (updateCragsError) throw updateCragsError;
-
-      // 3. Update target area name and slugs
-      const { error: updateAreaError } = await this.supabase.client
-        .from('areas')
-        .update({
-          name: newName,
-          eight_anu_crag_slugs: Array.from(allEightAnuSlugs),
-        })
-        .eq('id', targetAreaId);
-
-      if (updateAreaError) throw updateAreaError;
-
-      // 4. Delete source areas
-      const { error: deleteError } = await this.supabase.client
-        .from('areas')
-        .delete()
-        .in('id', sourceAreaIds);
-
-      if (deleteError) throw deleteError;
+      if (error) throw error;
 
       this.global.areasListResource.reload();
       this.toast.success('messages.toasts.areasUnified');
