@@ -347,7 +347,9 @@
     "unifyDescription": "Select routes to unify into one. All 8a.nu slugs will be preserved and ascents/likes/projects will be merged into the target route.",
     "targetRoute": "Target route (will be kept)",
     "sourceRoutes": "Source routes (will be deleted)",
-    "newName": "New name (optional)"
+    "newName": "New name (optional)",
+    "suggestedDuplicates": "Suggested duplicate routes",
+    "duplicateGroups": "duplicate groups"
   },
   "admin": {
     "users": {

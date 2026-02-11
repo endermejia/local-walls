@@ -163,15 +163,36 @@ export class AreasService {
   > {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
-    const { data, error } = await this.supabase.client
-      .from('areas')
-      .select('id, name, slug');
 
-    if (error) {
-      console.error('[AreasService] getAllAreasSimple error', error);
-      return [];
+    let allAreas: { id: number; name: string; slug: string }[] = [];
+    let from = 0;
+    const step = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await this.supabase.client
+        .from('areas')
+        .select('id, name, slug')
+        .range(from, from + step - 1);
+
+      if (error) {
+        console.error('[AreasService] getAllAreasSimple error', error);
+        break;
+      }
+
+      if (data && data.length > 0) {
+        allAreas = [...allAreas, ...data];
+        if (data.length < step) {
+          hasMore = false;
+        } else {
+          from += step;
+        }
+      } else {
+        hasMore = false;
+      }
     }
-    return data ?? [];
+
+    return allAreas;
   }
 
   async unify(

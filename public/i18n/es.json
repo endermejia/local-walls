@@ -350,7 +350,8 @@
     "targetRoute": "Vía de destino (se mantendrá)",
     "sourceRoutes": "Vías de origen (se eliminarán)",
     "newName": "Nuevo nombre (opcional)",
-    "suggestedDuplicates": "Vías duplicadas sugeridas"
+    "suggestedDuplicates": "Vías duplicadas sugeridas",
+    "duplicateGroups": "grupos de duplicados"
   },
   "admin": {
     "unifyTitle": "Sugerencias de unificación",

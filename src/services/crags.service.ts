@@ -116,16 +116,36 @@ export class CragsService {
   async getAllCragsSimple(): Promise<CragSimple[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
-    const { data, error } = await this.supabase.client
-      .from('crags')
-      .select('id, name, area_id, area:areas(name)');
 
-    if (error) {
-      console.error('[CragsService] getAllCragsSimple error', error);
-      return [];
+    let allCrags: CragSimple[] = [];
+    let from = 0;
+    const step = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await this.supabase.client
+        .from('crags')
+        .select('id, name, area_id, area:areas(name)')
+        .range(from, from + step - 1);
+
+      if (error) {
+        console.error('[CragsService] getAllCragsSimple error', error);
+        break;
+      }
+
+      if (data && data.length > 0) {
+        allCrags = [...allCrags, ...(data as unknown as CragSimple[])];
+        if (data.length < step) {
+          hasMore = false;
+        } else {
+          from += step;
+        }
+      } else {
+        hasMore = false;
+      }
     }
-    // Need to cast the result because the nested area is returned as an object
-    return (data as unknown as CragSimple[]) ?? [];
+
+    return allCrags;
   }
 
   async unify(

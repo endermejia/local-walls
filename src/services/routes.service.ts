@@ -11,6 +11,8 @@ import { firstValueFrom } from 'rxjs';
 import { RouteFormComponent } from '../forms/route-form';
 import { RouteUnifyComponent } from '../forms/route-unify';
 
+import { normalizeName } from '../utils';
+
 import type {
   EquipperDto,
   RouteDto,
@@ -115,17 +117,189 @@ export class RoutesService {
   async getRoutesByAreaSimple(areaId: number): Promise<RouteSimple[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
-    // Use inner join on crags to filter by area_id
-    const { data, error } = await this.supabase.client
-      .from('routes')
-      .select('id, name, crag_id, crag:crags!inner(name, area_id)')
-      .eq('crag.area_id', areaId);
 
-    if (error) {
-      console.error('[RoutesService] getRoutesByAreaSimple error', error);
-      return [];
+    let allRoutes: RouteSimple[] = [];
+    let from = 0;
+    const step = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await this.supabase.client
+        .from('routes')
+        .select('id, name, crag_id, crag:crags!inner(name, area_id)')
+        .eq('crag.area_id', areaId)
+        .range(from, from + step - 1);
+
+      if (error) {
+        console.error('[RoutesService] getRoutesByAreaSimple error', error);
+        break;
+      }
+
+      if (data && data.length > 0) {
+        allRoutes = [...allRoutes, ...(data as unknown as RouteSimple[])];
+        if (data.length < step) {
+          hasMore = false;
+        } else {
+          from += step;
+        }
+      } else {
+        hasMore = false;
+      }
     }
-    return (data as unknown as RouteSimple[]) ?? [];
+
+    return allRoutes;
+  }
+
+  async getAreasWithDuplicateRoutes(): Promise<
+    { id: number; name: string; slug: string }[]
+  > {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+
+    const areasWithDupes = new Map<
+      number,
+      { id: number; name: string; slug: string }
+    >();
+    const groups = new Map<string, number>(); // key: areaId-normalizedName, value: count
+
+    let from = 0;
+    const step = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await this.supabase.client
+        .from('routes')
+        .select('name, crag:crags!inner(area:areas!inner(id, name, slug))')
+        .range(from, from + step - 1);
+
+      if (error) {
+        console.error(
+          '[RoutesService] getAreasWithDuplicateRoutes error',
+          error,
+        );
+        break;
+      }
+
+      if (!data || data.length === 0) {
+        break;
+      }
+
+      for (const item of data as any[]) {
+        const area = item.crag.area;
+        const name = item.name || '';
+        if (name.toUpperCase().trim() === 'N.N.') continue;
+
+        const key = `${area.id}-${normalizeName(name)}`;
+        const count = (groups.get(key) ?? 0) + 1;
+        groups.set(key, count);
+
+        if (count === 2) {
+          areasWithDupes.set(area.id, area);
+        }
+      }
+
+      if (data.length < step) {
+        hasMore = false;
+      } else {
+        from += step;
+      }
+    }
+
+    return Array.from(areasWithDupes.values()).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+  }
+
+  async getAllDuplicateRoutesGroupedByArea(): Promise<
+    {
+      id: number;
+      name: string;
+      slug: string;
+      duplicateGroups: RouteSimple[][];
+    }[]
+  > {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+
+    const areaMap = new Map<
+      number,
+      {
+        id: number;
+        name: string;
+        slug: string;
+        allRoutes: RouteSimple[];
+      }
+    >();
+
+    let from = 0;
+    const step = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await this.supabase.client
+        .from('routes')
+        .select(
+          'id, name, crag_id, crag:crags!inner(name, area_id, area:areas!inner(id, name, slug))',
+        )
+        .range(from, from + step - 1);
+
+      if (error) {
+        console.error(
+          '[RoutesService] getAllDuplicateRoutesGroupedByArea error',
+          error,
+        );
+        break;
+      }
+
+      if (!data || data.length === 0) break;
+
+      for (const item of data as any[]) {
+        const area = item.crag.area;
+        if (!areaMap.has(area.id)) {
+          areaMap.set(area.id, { ...area, allRoutes: [] });
+        }
+        areaMap.get(area.id)!.allRoutes.push({
+          id: item.id,
+          name: item.name,
+          crag_id: item.crag_id,
+          crag: { name: item.crag.name, area_id: area.id },
+        });
+      }
+
+      if (data.length < step) hasMore = false;
+      else from += step;
+    }
+
+    const result: {
+      id: number;
+      name: string;
+      slug: string;
+      duplicateGroups: RouteSimple[][];
+    }[] = [];
+
+    for (const areaData of areaMap.values()) {
+      const groups = new Map<string, RouteSimple[]>();
+      for (const route of areaData.allRoutes) {
+        if ((route.name || '').toUpperCase().trim() === 'N.N.') continue;
+        const key = normalizeName(route.name);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key)!.push(route);
+      }
+
+      const duplicateGroups = Array.from(groups.values()).filter(
+        (g) => g.length > 1,
+      );
+      if (duplicateGroups.length > 0) {
+        result.push({
+          id: areaData.id,
+          name: areaData.name,
+          slug: areaData.slug,
+          duplicateGroups,
+        });
+      }
+    }
+
+    return result.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async unify(
