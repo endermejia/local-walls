@@ -52,8 +52,7 @@ import { NgOptimizedImage } from '@angular/common';
 @Component({
   selector: 'app-navbar',
   host: {
-    class:
-      'z-[100] relative xl:absolute md:w-20 md:h-full md:flex md:items-center',
+    class: 'z-[100] relative md:w-20 md:h-full md:flex md:items-center',
   },
   imports: [
     FormsModule,
