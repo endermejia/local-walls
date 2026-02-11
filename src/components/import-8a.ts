@@ -755,11 +755,11 @@ export class Import8aComponent {
         }
 
         if (data) {
-          totalInserted += data.inserted_ascents;
-          totalSkipped += data.skipped_ascents;
-          totalCreatedAreas += data.created_areas;
-          totalCreatedCrags += data.created_crags;
-          totalCreatedRoutes += data.created_routes;
+          totalInserted += data.inserted_ascents ?? 0;
+          totalSkipped += data.skipped_ascents ?? 0;
+          totalCreatedAreas += data.created_areas ?? 0;
+          totalCreatedCrags += data.created_crags ?? 0;
+          totalCreatedRoutes += data.created_routes ?? 0;
         }
 
         completedUnits += chunk.length;

@@ -7,8 +7,6 @@ import {
   input,
   model,
   OnInit,
-  Optional,
-  Self,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';

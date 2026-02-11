@@ -10,8 +10,19 @@ Sigue estos pasos:
 4.  Copia y pega el siguiente código SQL:
 
 ```sql
+-- Primero, creamos un tipo compuesto para la respuesta
+-- Esto permite que Supabase genere tipos de TypeScript específicos en lugar de un tipo Json genérico.
+DROP TYPE IF EXISTS import_8a_ascents_result CASCADE;
+CREATE TYPE import_8a_ascents_result AS (
+  inserted_ascents integer,
+  skipped_ascents integer,
+  created_areas integer,
+  created_crags integer,
+  created_routes integer
+);
+
 create or replace function import_8a_ascents(ascents jsonb)
-returns jsonb
+returns import_8a_ascents_result
 language plpgsql
 security definer
 as $$
@@ -65,17 +76,34 @@ begin
     _area_slug := _ascent->>'area_slug';
     _area_8a_slug := _ascent->>'area_8a_slug';
 
+    -- Buscar área en base a slugs de 8a o slug local
     select id into _area_id from areas
     where slug = _area_slug
        or (_area_8a_slug is not null and eight_anu_crag_slugs @> array[_area_8a_slug])
     limit 1;
 
+    -- Si no se encuentra, intentar buscar globalmente por slug para evitar errores de unicidad
+    if _area_id is null then
+      select id into _area_id from areas where slug = _area_slug limit 1;
+    end if;
+
     if _area_id is null then
       if _is_admin then
         insert into areas (name, slug, eight_anu_crag_slugs, user_creator_id)
         values (_area_name, _area_slug, case when _area_8a_slug is not null then array[_area_8a_slug] else null end, _user_id)
+        on conflict (slug) do update set
+          eight_anu_crag_slugs = case
+            when _area_8a_slug is not null and not (areas.eight_anu_crag_slugs @> array[_area_8a_slug])
+            then array_append(areas.eight_anu_crag_slugs, _area_8a_slug)
+            else areas.eight_anu_crag_slugs
+          end
         returning id into _area_id;
-        _created_areas := _created_areas + 1;
+
+        if _area_id is null then
+           select id into _area_id from areas where slug = _area_slug;
+        else
+           _created_areas := _created_areas + 1;
+        end if;
       else
         _skipped_ascents := _skipped_ascents + 1;
         continue;
@@ -89,16 +117,33 @@ begin
     _lat := (_ascent->>'lat')::float;
     _lng := (_ascent->>'lng')::float;
 
+    -- Buscar sector en el área actual
     select id into _crag_id from crags
     where area_id = _area_id
       and (slug = _crag_slug or (_crag_8a_slug is not null and eight_anu_sector_slugs @> array[_crag_8a_slug]))
     limit 1;
 
+    -- Si no se encuentra, intentar buscar globalmente por slug
+    if _crag_id is null then
+      select id into _crag_id from crags where slug = _crag_slug limit 1;
+    end if;
+
     if _crag_id is null then
       insert into crags (name, slug, area_id, latitude, longitude, eight_anu_sector_slugs, user_creator_id)
       values (_crag_name, _crag_slug, _area_id, _lat, _lng, case when _crag_8a_slug is not null then array[_crag_8a_slug] else null end, _user_id)
+      on conflict (slug) do update set
+        eight_anu_sector_slugs = case
+          when _crag_8a_slug is not null and not (crags.eight_anu_sector_slugs @> array[_crag_8a_slug])
+          then array_append(crags.eight_anu_sector_slugs, _crag_8a_slug)
+          else crags.eight_anu_sector_slugs
+        end
       returning id into _crag_id;
-      _created_crags := _created_crags + 1;
+
+      if _crag_id is null then
+        select id into _crag_id from crags where slug = _crag_slug;
+      else
+        _created_crags := _created_crags + 1;
+      end if;
     end if;
 
     -- Extract Route
@@ -108,16 +153,33 @@ begin
     _grade := (_ascent->>'grade')::int;
     _climbing_kind := (_ascent->>'climbing_kind')::public.climbing_kind;
 
+    -- Intentamos encontrar la vía por slug o por el slug de 8a.nu
     select id into _route_id from routes
     where crag_id = _crag_id
       and (slug = _route_slug or (_route_8a_slug is not null and eight_anu_route_slugs @> array[_route_8a_slug]))
     limit 1;
 
+    -- Si no está en el sector, buscamos globalmente por slug
+    if _route_id is null then
+      select id into _route_id from routes where slug = _route_slug limit 1;
+    end if;
+
     if _route_id is null then
       insert into routes (name, slug, crag_id, grade, climbing_kind, eight_anu_route_slugs, user_creator_id)
       values (_route_name, _route_slug, _crag_id, _grade, _climbing_kind, case when _route_8a_slug is not null then array[_route_8a_slug] else null end, _user_id)
+      on conflict (slug) do update set
+        eight_anu_route_slugs = case
+          when _route_8a_slug is not null and not (routes.eight_anu_route_slugs @> array[_route_8a_slug])
+          then array_append(routes.eight_anu_route_slugs, _route_8a_slug)
+          else routes.eight_anu_route_slugs
+        end
       returning id into _route_id;
-      _created_routes := _created_routes + 1;
+
+      if _route_id is null then
+        select id into _route_id from routes where slug = _route_slug;
+      else
+        _created_routes := _created_routes + 1;
+      end if;
     end if;
 
     -- Extract Ascent Data
@@ -139,13 +201,13 @@ begin
 
   end loop;
 
-  return jsonb_build_object(
-    'inserted_ascents', _inserted_ascents,
-    'skipped_ascents', _skipped_ascents,
-    'created_areas', _created_areas,
-    'created_crags', _created_crags,
-    'created_routes', _created_routes
-  );
+  return (
+    _inserted_ascents,
+    _skipped_ascents,
+    _created_areas,
+    _created_crags,
+    _created_routes
+  )::import_8a_ascents_result;
 end;
 $$;
 ```

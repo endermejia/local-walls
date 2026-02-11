@@ -1884,16 +1884,6 @@ export interface Database {
     };
     Views: Record<never, never>;
     Functions: {
-      import_8a_ascents: {
-        Args: { ascents: Json };
-        Returns: {
-          inserted_ascents: number;
-          skipped_ascents: number;
-          created_areas: number;
-          created_crags: number;
-          created_routes: number;
-        };
-      };
       get_areas_list: {
         Args: never;
         Returns: {
@@ -1938,6 +1928,16 @@ export interface Database {
       has_message_blocking: {
         Args: { user_a: string; user_b: string };
         Returns: boolean;
+      };
+      import_8a_ascents: {
+        Args: { ascents: Json };
+        Returns: Database['public']['CompositeTypes']['import_8a_ascents_result'];
+        SetofOptions: {
+          from: '*';
+          to: 'import_8a_ascents_result';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       is_area_equipper: { Args: { p_area_id: number }; Returns: boolean };
       is_chat_participant: {
@@ -2010,6 +2010,13 @@ export interface Database {
         '37': number | null;
         '38': number | null;
         '39': number | null;
+      };
+      import_8a_ascents_result: {
+        inserted_ascents: number | null;
+        skipped_ascents: number | null;
+        created_areas: number | null;
+        created_crags: number | null;
+        created_routes: number | null;
       };
     };
   };
@@ -2621,7 +2628,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ['admin', 'equipper', 'climber'],
-      ascent_type: ['os', 'rp', 'f'],
+      ascent_type: ['os', 'rp', 'f', 'attempt'],
       climbing_kind: ['sport', 'boulder', 'trad', 'multipitch', 'mixed'],
       language: ['es', 'en'],
       sex: ['male', 'female', 'other'],
