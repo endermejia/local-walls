@@ -56,13 +56,9 @@ export function getRouteStrokeWidth(
   viewMode: 'editor' | 'viewer' = 'editor',
 ): number {
   if (viewMode === 'viewer') {
-    // Viewer usually uses normalized coordinates (0-1), so widths are tiny
-    // Default logic from topo.ts: Selected=0.004, Hovered=0.003, Default=0.002
-    if (isSelected) return 0.08;
+    if (isSelected) return 0.008;
     if (isHovered) return 0.007;
     return 0.005;
   }
-
-  // Editor mode (pixel based or larger coordination system)
   return isSelected ? baseWidth * 2 : baseWidth;
 }
