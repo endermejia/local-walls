@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -63,7 +64,7 @@ import { AreaDto, AreaListItem } from '../models';
           [placeholder]="'actions.select' | translate"
         />
         <tui-data-list *tuiTextfieldDropdown>
-          @for (area of global.areaList() | tuiFilterByInput; track area.id) {
+          @for (area of availableAreas() | tuiFilterByInput; track area.id) {
             <button tuiOption new [value]="area">
               {{ area.name }}
             </button>
@@ -173,14 +174,29 @@ export class AreaUnifyComponent {
     }
   }
 
+  protected readonly availableAreas = computed(() => {
+    const candidates = this.context.data;
+    const globalList = this.global.areaList();
+    const map = new Map();
+    // Prioritize candidates
+    if (candidates && candidates.length > 0) {
+      candidates.forEach((c) => map.set(c.id, c));
+    }
+    // Add global items if not present
+    globalList.forEach((c) => {
+      if (!map.has(c.id)) map.set(c.id, c);
+    });
+    return Array.from(map.values()) as AreaDto[];
+  });
+
   protected readonly isInvalidArea = (item: AreaDto): boolean =>
-    !this.global.areaList().some((a) => a.id === item.id);
+    !this.availableAreas().some((a) => a.id === item.id);
 
   protected readonly stringify = (area: AreaDto) => area.name;
 
   protected availableSources() {
     const targetId = this.targetArea.value?.id;
-    return this.global.areaList().filter((a) => a.id !== targetId);
+    return this.availableAreas().filter((a) => a.id !== targetId);
   }
 
   async onUnify() {

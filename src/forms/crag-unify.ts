@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -63,7 +64,7 @@ import { CragDto } from '../models';
           [placeholder]="'actions.select' | translate"
         />
         <tui-data-list *tuiTextfieldDropdown>
-          @for (crag of global.cragsList() | tuiFilterByInput; track crag.id) {
+          @for (crag of availableCrags() | tuiFilterByInput; track crag.id) {
             <button tuiOption new [value]="crag">
               {{ crag.name }}
             </button>
@@ -150,7 +151,8 @@ import { CragDto } from '../models';
 })
 export class CragUnifyComponent {
   protected readonly global = inject(GlobalData);
-  protected readonly context = injectContext<TuiDialogContext<boolean, void>>();
+  protected readonly context =
+    injectContext<TuiDialogContext<boolean, { candidates?: CragDto[] }>>();
   private readonly cragsService = inject(CragsService);
 
   protected readonly loading = signal(false);
@@ -159,14 +161,37 @@ export class CragUnifyComponent {
   sourceCrags = new FormControl<CragDto[]>([], Validators.required);
   newName = new FormControl<string>('');
 
+  constructor() {
+    const candidates = this.context.data?.candidates;
+    if (candidates && candidates.length > 0) {
+      this.targetCrag.setValue(candidates[0]);
+      if (candidates.length > 1) {
+        this.sourceCrags.setValue(candidates.slice(1));
+      }
+    }
+  }
+
+  protected readonly availableCrags = computed(() => {
+    const candidates = this.context.data?.candidates ?? [];
+    const globalList = this.global.cragsList();
+    const map = new Map();
+    // Prioritize candidates
+    candidates.forEach((c) => map.set(c.id, c));
+    // Add global items if not present
+    globalList.forEach((c) => {
+      if (!map.has(c.id)) map.set(c.id, c);
+    });
+    return Array.from(map.values()) as CragDto[];
+  });
+
   protected readonly isInvalidCrag = (item: CragDto): boolean =>
-    !this.global.cragsList().some((a) => a.id === item.id);
+    !this.availableCrags().some((a) => a.id === item.id);
 
   protected readonly stringify = (crag: CragDto) => crag.name;
 
   protected availableSources() {
     const targetId = this.targetCrag.value?.id;
-    return this.global.cragsList().filter((a) => a.id !== targetId);
+    return this.availableCrags().filter((a) => a.id !== targetId);
   }
 
   async onUnify() {

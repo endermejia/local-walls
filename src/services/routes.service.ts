@@ -86,13 +86,14 @@ export class RoutesService {
     });
   }
 
-  openUnifyRoutes(): void {
+  openUnifyRoutes(routes?: RouteDto[]): void {
     void firstValueFrom(
       this.dialogs.open<boolean>(
         new PolymorpheusComponent(RouteUnifyComponent),
         {
           label: this.translate.instant('routes.unifyTitle'),
           size: 'm',
+          data: { candidates: routes },
           dismissible: false,
         },
       ),
@@ -102,6 +103,29 @@ export class RoutesService {
         this.global.cragRoutesResource.reload();
       }
     });
+  }
+
+  async getRoutesByAreaSimple(areaId: number): Promise<
+    {
+      id: number;
+      name: string;
+      crag_id: number;
+      crag: { name: string } | null;
+    }[]
+  > {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+    // Use inner join on crags to filter by area_id
+    const { data, error } = await this.supabase.client
+      .from('routes')
+      .select('id, name, crag_id, crag:crags!inner(name, area_id)')
+      .eq('crag.area_id', areaId);
+
+    if (error) {
+      console.error('[RoutesService] getRoutesByAreaSimple error', error);
+      return [];
+    }
+    return (data as any[]) ?? [];
   }
 
   async unify(
