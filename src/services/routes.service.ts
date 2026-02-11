@@ -184,7 +184,7 @@ export class RoutesService {
         break;
       }
 
-      for (const item of data as any[]) {
+      for (const item of data) {
         const area = item.crag.area;
         const name = item.name || '';
         if (name.toUpperCase().trim() === 'N.N.') continue;
@@ -253,7 +253,7 @@ export class RoutesService {
 
       if (!data || data.length === 0) break;
 
-      for (const item of data as any[]) {
+      for (const item of data) {
         const area = item.crag.area;
         if (!areaMap.has(area.id)) {
           areaMap.set(area.id, { ...area, allRoutes: [] });
