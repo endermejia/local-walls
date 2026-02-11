@@ -630,7 +630,6 @@ export class Import8aComponent {
             crag.eight_anu_sector_slugs &&
             crag.eight_anu_sector_slugs.length > 0
           ) {
-            // @ts-ignore - Supabase type for inner join
             const areaSlug = crag.areas.slug;
             sectorToCragSlug.set(
               `${areaSlug}|${crag.slug}`,

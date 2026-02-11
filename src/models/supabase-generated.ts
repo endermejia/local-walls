@@ -1961,9 +1961,9 @@ export interface Database {
       toggle_route_project: { Args: { p_route_id: number }; Returns: boolean };
       unify_routes: {
         Args: {
-          p_target_route_id: number;
-          p_source_route_ids: number[];
           p_new_name: string;
+          p_source_route_ids: number[];
+          p_target_route_id: number;
         };
         Returns: undefined;
       };

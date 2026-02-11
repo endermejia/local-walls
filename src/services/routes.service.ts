@@ -12,7 +12,6 @@ import { RouteFormComponent } from '../forms/route-form';
 import { RouteUnifyComponent } from '../forms/route-unify';
 
 import type {
-  DatabaseTable,
   EquipperDto,
   RouteDto,
   RouteInsertDto,
