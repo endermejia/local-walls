@@ -180,29 +180,70 @@ export class EightAnuService {
     countrySlug: string,
     cragSlug: string,
   ): Promise<EightAnuRoute[]> {
-    let pageIndex = 0;
-    let allRoutes: EightAnuRoute[] = [];
-    let hasNext = true;
+    try {
+      // 1. Fetch first page to get total pagination info
+      const firstResponse = await firstValueFrom(
+        this.getRoutes(category, countrySlug, cragSlug, 0),
+        { defaultValue: null },
+      );
 
-    while (hasNext) {
-      try {
-        const response = await firstValueFrom(
-          this.getRoutes(category, countrySlug, cragSlug, pageIndex),
-          { defaultValue: null },
+      if (!firstResponse?.items) return [];
+
+      let allRoutes = [...firstResponse.items];
+      const hasNext = firstResponse.pagination?.hasNext ?? false;
+
+      if (!hasNext) return allRoutes;
+
+      // 2. Prepare remaining pages
+      // Based on 8a.nu API, we don't know the exact total pages easy, but we can guess or use the pagination.
+      // Usually pagination has a 'count' or 'total'? Let's check headers or response.
+      // If we don't have totalCount, we fetch in chunks or until we find an empty page.
+      // To keep it safe and parallel, we can fetch next 5 pages in parallel, if they have content, we continue.
+
+      let pageIndex = 1;
+      let shouldContinue = true;
+      const CHUNK_SIZE = 10; // Parallel degree
+
+      while (shouldContinue) {
+        const pageIndices = Array.from(
+          { length: CHUNK_SIZE },
+          (_, i) => pageIndex + i,
         );
-        if (response?.items) {
-          allRoutes = [...allRoutes, ...response.items];
+        const results = await Promise.all(
+          pageIndices.map((idx) =>
+            firstValueFrom(
+              this.getRoutes(category, countrySlug, cragSlug, idx),
+              { defaultValue: null },
+            ).catch(() => null),
+          ),
+        );
+
+        let addedInThisBatch = 0;
+        for (const res of results) {
+          if (res?.items && res.items.length > 0) {
+            allRoutes = [...allRoutes, ...res.items];
+            addedInThisBatch++;
+          }
         }
-        hasNext = response?.pagination?.hasNext ?? false;
-        pageIndex++;
-        // Safety break
-        if (pageIndex > 200) break;
-      } catch (e) {
-        console.error('Error fetching page', pageIndex, e);
-        hasNext = false;
+
+        // If a batch ended or some page was empty, we might be at the end
+        // However, 8a.nu pagination is a bit tricky. If one page is empty, the rest are likely too.
+        if (
+          addedInThisBatch < CHUNK_SIZE ||
+          results.some((r) => !r?.items?.length)
+        ) {
+          shouldContinue = false;
+        }
+
+        pageIndex += CHUNK_SIZE;
+        if (pageIndex > 200) break; // Safety
       }
+
+      return allRoutes;
+    } catch (e) {
+      console.error('[8a.nu] Error in getAllRoutes parallel:', e);
+      return [];
     }
-    return allRoutes;
   }
 
   normalizeDifficulty(difficulty: string): GradeLabel {

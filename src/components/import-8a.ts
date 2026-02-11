@@ -551,12 +551,19 @@ export class Import8aComponent {
       const uniqueAreaNames = [...new Set(ascents.map((a) => a.location_name))];
       console.log('[8a Import] Unique areas:', uniqueAreaNames);
 
-      // 1.1 Get coordinates from 8a.nu for the areas, and also collect cragSlugs (areas in our app)
+      // Maps for caching and lookups
       const areaToCoords = new Map<
         string,
         { latitude: number; longitude: number }
       >();
       const areaToSlug = new Map<string, string>(); // areaName (CSV) -> 8anu.cragSlug
+      const sectorToCragSlug = new Map<string, string>(); // areaSlug|sectorSlug -> 8anu.sectorSlug
+      const sectorTo8aRoutes = new Map<
+        string,
+        { routes: EightAnuRoute[]; climbingKind: ClimbingKind }
+      >();
+      const areaRoutesCache = new Map<string, EightAnuRoute[]>();
+
       const uniqueAreas = [
         ...new Map(
           ascents.map((a) => [a.location_name, a.country_code]),
@@ -577,6 +584,67 @@ export class Import8aComponent {
         ).values(),
       ];
 
+      // 1.0 NEW: Pre-check database to see if we already know these slugs
+      const knownAreaSlugs = new Set<string>();
+      const knownSectorSlugs = new Set<string>();
+
+      // Query areas
+      const allAreaSlugsInCSV = [
+        ...new Set(ascents.map((a) => slugify(a.location_name))),
+      ];
+      const { data: existingAreas } = await this.supabase.client
+        .from('areas')
+        .select('slug, eight_anu_crag_slugs')
+        .in('slug', allAreaSlugsInCSV);
+
+      if (existingAreas) {
+        for (const area of existingAreas) {
+          if (
+            area.eight_anu_crag_slugs &&
+            area.eight_anu_crag_slugs.length > 0
+          ) {
+            // Find the original area name that matches this slug
+            const originalName = ascents.find(
+              (a) => slugify(a.location_name) === area.slug,
+            )?.location_name;
+            if (originalName) {
+              areaToSlug.set(originalName, area.eight_anu_crag_slugs[0]);
+              knownAreaSlugs.add(area.slug);
+            }
+          }
+        }
+      }
+
+      // Query crags
+      const allSectorSlugsInCSV = [
+        ...new Set(ascents.map((a) => slugify(a.sector_name))),
+      ];
+      const { data: existingCrags } = await this.supabase.client
+        .from('crags')
+        .select('slug, eight_anu_sector_slugs, area_id, areas!inner(slug)')
+        .in('slug', allSectorSlugsInCSV);
+
+      if (existingCrags) {
+        for (const crag of existingCrags) {
+          if (
+            crag.eight_anu_sector_slugs &&
+            crag.eight_anu_sector_slugs.length > 0
+          ) {
+            // @ts-ignore - Supabase type for inner join
+            const areaSlug = crag.areas.slug;
+            sectorToCragSlug.set(
+              `${areaSlug}|${crag.slug}`,
+              crag.eight_anu_sector_slugs[0],
+            );
+            knownSectorSlugs.add(`${areaSlug}|${crag.slug}`);
+          }
+        }
+      }
+
+      console.log(
+        `[8a Import] Found ${knownAreaSlugs.size} areas and ${knownSectorSlugs.size} sectors already in DB`,
+      );
+
       const totalUnits = uniqueAreas.length + uniqueSectorsToFetch.length + 5;
       let completedUnits = 0;
 
@@ -593,6 +661,12 @@ export class Import8aComponent {
         const batch = uniqueAreas.slice(i, i + AREA_CONCURRENCY);
         await Promise.all(
           batch.map(async ([areaName]) => {
+            const areaSlug = slugify(areaName);
+            if (knownAreaSlugs.has(areaSlug)) {
+              incrementProgress();
+              return;
+            }
+
             try {
               const searchResult = await this.eightAnuService.searchCrag(
                 areaName,
@@ -613,15 +687,6 @@ export class Import8aComponent {
           }),
         );
       }
-
-      // 1.2 Fetch all routes for each unique sector
-      // OPTIMIZATION: Cache area routes so we only fetch them once per area, even if there are many sectors
-      const areaRoutesCache = new Map<string, EightAnuRoute[]>();
-      const sectorTo8aRoutes = new Map<
-        string,
-        { routes: EightAnuRoute[]; climbingKind: ClimbingKind }
-      >();
-      const sectorToCragSlug = new Map<string, string>(); // areaSlug|sectorSlug -> 8anu.sectorSlug
 
       const SECTOR_CONCURRENCY = 3; // Lower concurrency for routes as it's heavier
       for (
