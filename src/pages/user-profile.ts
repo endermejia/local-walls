@@ -23,7 +23,6 @@ import {
   TuiFallbackSrcPipe,
   TuiLabel,
   TuiLink,
-  TuiLoader,
   TuiScrollbar,
   TuiTextfield,
   TuiTitle,
@@ -62,6 +61,7 @@ import {
 } from '../services';
 
 import { AscentsFeedComponent } from '../components/ascents-feed';
+import { AscentCardSkeletonComponent } from '../components/ascent-card-skeleton';
 import { EmptyStateComponent } from '../components/empty-state';
 import { RoutesTableComponent } from '../components/routes-table';
 import { TourHintComponent } from '../components/tour-hint';
@@ -79,6 +79,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
   selector: 'app-user-profile',
   imports: [
     AscentsFeedComponent,
+    AscentCardSkeletonComponent,
     AsyncPipe,
     EmptyStateComponent,
     LowerCasePipe,
@@ -98,7 +99,6 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
     TuiHeader,
     TuiLabel,
     TuiLink,
-    TuiLoader,
     TuiScrollbar,
     TuiSelect,
     TuiSkeleton,
@@ -418,7 +418,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
 
                 <app-ascents-feed
                   [ascents]="accumulatedAscents()"
-                  [isLoading]="isLoading()"
+                  [isLoading]="isLoading() || ascentsResource.isLoading()"
                   [hasMore]="hasMore()"
                   [showUser]="false"
                   [followedIds]="followedIds()"
@@ -447,12 +447,20 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
           }
           @case (1) {
             <div class="min-w-0">
-              <app-routes-table
-                [data]="projects()"
-                [showAdminActions]="false"
-                [showLocation]="true"
-                [showRowColors]="false"
-              />
+              @if (projectsResource.isLoading()) {
+                <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
+                  @for (_ of [1, 2, 3, 4]; track $index) {
+                    <app-ascent-card-skeleton [showUser]="false" />
+                  }
+                </div>
+              } @else {
+                <app-routes-table
+                  [data]="projects()"
+                  [showAdminActions]="false"
+                  [showLocation]="true"
+                  [showRowColors]="false"
+                />
+              }
             </div>
           }
           @case (2) {
@@ -462,9 +470,14 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
                 <header tuiHeader>
                   <h3 tuiTitle>{{ 'labels.likedAreas' | translate }}</h3>
                 </header>
-                <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
+                <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
                   @if (likedAreasResource.isLoading()) {
-                    <tui-loader class="col-span-full m-4" />
+                    @for (_ of [1, 2, 3, 4]; track $index) {
+                      <app-ascent-card-skeleton
+                        [showUser]="false"
+                        [showRoute]="false"
+                      />
+                    }
                   } @else {
                     @for (area of likedAreas(); track area.id) {
                       <button
@@ -507,9 +520,14 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
                 <header tuiHeader>
                   <h3 tuiTitle>{{ 'labels.likedCrags' | translate }}</h3>
                 </header>
-                <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
+                <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
                   @if (likedCragsResource.isLoading()) {
-                    <tui-loader class="col-span-full m-4" />
+                    @for (_ of [1, 2, 3, 4]; track $index) {
+                      <app-ascent-card-skeleton
+                        [showUser]="false"
+                        [showRoute]="false"
+                      />
+                    }
                   } @else {
                     @for (crag of likedCrags(); track crag.id) {
                       <button
@@ -561,7 +579,11 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
                 </header>
                 <div class="min-w-0">
                   @if (likedRoutesResource.isLoading()) {
-                    <tui-loader class="m-4" />
+                    <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
+                      @for (_ of [1, 2, 3, 4]; track $index) {
+                        <app-ascent-card-skeleton [showUser]="false" />
+                      }
+                    </div>
                   } @else if (likedRoutes().length) {
                     <app-routes-table
                       [data]="likedRoutes()"
@@ -965,6 +987,7 @@ export class UserProfileComponent {
       this.selectedCategories();
 
       // Reset pagination when any filter changes
+      this.isLoading.set(true);
       this.global.ascentsPage.set(0);
 
       // Sync local filters with global signals

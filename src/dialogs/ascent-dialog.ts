@@ -1,10 +1,11 @@
 import { Component, computed, inject, resource } from '@angular/core';
-import { TuiLoader, TuiScrollbar } from '@taiga-ui/core';
+import { TuiScrollbar } from '@taiga-ui/core';
 import { TuiDialogContext } from '@taiga-ui/experimental';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { AscentsService } from '../services';
 import { AscentCardComponent } from '../components/ascent-card';
+import { AscentCardSkeletonComponent } from '../components/ascent-card-skeleton';
 import { EmptyStateComponent } from '../components/empty-state';
 
 export interface AscentDialogData {
@@ -14,7 +15,12 @@ export interface AscentDialogData {
 @Component({
   selector: 'app-ascent-dialog',
   standalone: true,
-  imports: [AscentCardComponent, EmptyStateComponent, TuiLoader, TuiScrollbar],
+  imports: [
+    AscentCardComponent,
+    AscentCardSkeletonComponent,
+    EmptyStateComponent,
+    TuiScrollbar,
+  ],
   template: `
     <div class="flex flex-col max-h-[80dvh] -m-4">
       <tui-scrollbar class="grow min-h-0">
@@ -22,9 +28,7 @@ export interface AscentDialogData {
           @if (ascent(); as data) {
             <app-ascent-card [data]="data" />
           } @else if (loading()) {
-            <div class="py-20 flex justify-center">
-              <tui-loader />
-            </div>
+            <app-ascent-card-skeleton />
           } @else {
             <div class="py-20">
               <app-empty-state />
