@@ -86,13 +86,14 @@ export class CragsService {
     });
   }
 
-  openUnifyCrags(): void {
+  openUnifyCrags(crags?: CragDto[]): void {
     void firstValueFrom(
       this.dialogs.open<boolean>(
         new PolymorpheusComponent(CragUnifyComponent),
         {
           label: this.translate.instant('crags.unifyTitle'),
           size: 'm',
+          data: { candidates: crags },
           dismissible: false,
         },
       ),
@@ -102,6 +103,28 @@ export class CragsService {
         this.global.cragsListResource.reload();
       }
     });
+  }
+
+  async getAllCragsSimple(): Promise<
+    {
+      id: number;
+      name: string;
+      area_id: number;
+      area: { name: string } | null;
+    }[]
+  > {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+    const { data, error } = await this.supabase.client
+      .from('crags')
+      .select('id, name, area_id, area:areas(name)');
+
+    if (error) {
+      console.error('[CragsService] getAllCragsSimple error', error);
+      return [];
+    }
+    // Need to cast the result because the nested area is returned as an object
+    return (data as any[]) ?? [];
   }
 
   async unify(

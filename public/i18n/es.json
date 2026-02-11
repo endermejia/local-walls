@@ -302,7 +302,8 @@
     "unifyDescription": "Selecciona las áreas que quieres unificar en una sola. Se conservarán todos los slugs de 8a.nu y los sectores se moverán al área seleccionada.",
     "targetArea": "Área de destino (se mantendrá)",
     "sourceAreas": "Áreas de origen (se eliminarán)",
-    "newName": "Nuevo nombre (opcional)"
+    "newName": "Nuevo nombre (opcional)",
+    "suggestedDuplicates": "Áreas duplicadas sugeridas"
   },
   "crags": {
     "newTitle": "Nuevo sector",
@@ -313,7 +314,8 @@
     "unifyDescription": "Selecciona los sectores que quieres unificar en uno solo. Se conservarán todos los slugs de 8a.nu y las vías se moverán al sector seleccionado.",
     "targetCrag": "Sector de destino (se mantendrá)",
     "sourceCrags": "Sectores de origen (se eliminarán)",
-    "newName": "Nuevo nombre (opcional)"
+    "newName": "Nuevo nombre (opcional)",
+    "suggestedDuplicates": "Sectores duplicados sugeridos"
   },
   "topos": {
     "newTitle": "Nuevo croquis",
@@ -347,9 +349,14 @@
     "unifyDescription": "Selecciona las vías que quieres unificar en una sola. Se conservarán todos los slugs de 8a.nu y los encadenes/likes/proyectos se combinarán en la vía de destino.",
     "targetRoute": "Vía de destino (se mantendrá)",
     "sourceRoutes": "Vías de origen (se eliminarán)",
-    "newName": "Nuevo nombre (opcional)"
+    "newName": "Nuevo nombre (opcional)",
+    "suggestedDuplicates": "Vías duplicadas sugeridas"
   },
   "admin": {
+    "unifyTitle": "Sugerencias de unificación",
+    "unifyDescription": "Revisa y unifica duplicados en áreas, sectores y vías.",
+    "noDuplicatesFound": "No se encontraron duplicados",
+    "selectAreaToScan": "Selecciona un área para escanear",
     "users": {
       "title": "Usuarios",
       "description": "Gestiona los usuarios registrados y sus perfiles."

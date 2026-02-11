@@ -78,6 +78,12 @@ export const routes: Routes = [
     loadComponent: () => import('../pages/admin').then((m) => m.AdminComponent),
   },
   {
+    path: 'admin/unify',
+    canMatch: [adminGuard],
+    loadComponent: () =>
+      import('../pages/admin-unify').then((m) => m.AdminUnifyComponent),
+  },
+  {
     path: 'my-areas',
     canMatch: [equipperGuard],
     loadComponent: () =>

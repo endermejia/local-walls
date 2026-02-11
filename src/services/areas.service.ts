@@ -157,6 +157,22 @@ export class AreasService {
     return { data: data as AreaDto, error };
   }
 
+  async getAllAreasSimple(): Promise<
+    { id: number; name: string; slug: string }[]
+  > {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+    const { data, error } = await this.supabase.client
+      .from('areas')
+      .select('id, name, slug');
+
+    if (error) {
+      console.error('[AreasService] getAllAreasSimple error', error);
+      return [];
+    }
+    return data ?? [];
+  }
+
   async unify(
     targetAreaId: number,
     sourceAreaIds: number[],

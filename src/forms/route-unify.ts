@@ -153,7 +153,8 @@ import { RouteDto } from '../models';
 })
 export class RouteUnifyComponent {
   protected readonly global = inject(GlobalData);
-  protected readonly context = injectContext<TuiDialogContext<boolean, void>>();
+  protected readonly context =
+    injectContext<TuiDialogContext<boolean, { candidates?: RouteDto[] }>>();
   private readonly routesService = inject(RoutesService);
 
   protected readonly loading = signal(false);
@@ -162,9 +163,23 @@ export class RouteUnifyComponent {
   sourceRoutes = new FormControl<RouteDto[]>([], Validators.required);
   newName = new FormControl<string>('');
 
-  protected readonly cragRoutes = computed(
-    () => this.global.cragRoutesResource.value() ?? [],
-  );
+  constructor() {
+    const candidates = this.context.data?.candidates;
+    if (candidates && candidates.length > 0) {
+      this.targetRoute.setValue(candidates[0]);
+      if (candidates.length > 1) {
+        this.sourceRoutes.setValue(candidates.slice(1));
+      }
+    }
+  }
+
+  protected readonly cragRoutes = computed(() => {
+    const candidates = this.context.data?.candidates;
+    if (candidates && candidates.length > 0) {
+      return candidates;
+    }
+    return this.global.cragRoutesResource.value() ?? [];
+  });
 
   protected readonly isInvalidRoute = (item: RouteDto): boolean =>
     !this.cragRoutes().some((a) => a.id === item.id);
