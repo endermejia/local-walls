@@ -6,6 +6,7 @@ export interface RouteAscentWithExtras extends RouteAscentDto {
   route?: RouteWithExtras;
   likes_count?: number;
   user_liked?: boolean;
+  is_duplicate?: boolean;
 }
 
 export interface PaginatedAscents {

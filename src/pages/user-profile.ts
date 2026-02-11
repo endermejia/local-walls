@@ -964,9 +964,12 @@ export class UserProfileComponent {
       const res = this.ascentsResource.value();
       if (res) {
         if (this.global.ascentsPage() === 0) {
-          this.accumulatedAscents.set(res.items);
+          const processed = this.markDuplicates(res.items);
+          this.accumulatedAscents.set(processed);
         } else {
-          this.accumulatedAscents.update((prev) => [...prev, ...res.items]);
+          this.accumulatedAscents.update((prev) =>
+            this.markDuplicates([...prev, ...res.items]),
+          );
         }
         this.isLoading.set(false);
       } else if (this.ascentsResource.error()) {
@@ -1345,6 +1348,21 @@ export class UserProfileComponent {
         appearance: 'flat',
       })
       .subscribe();
+  }
+
+  private markDuplicates(
+    ascents: RouteAscentWithExtras[],
+  ): RouteAscentWithExtras[] {
+    const seen = new Set<string>();
+    return ascents.map((a) => {
+      // Key: date + route_name (if available) + crag_id (if available)
+      const key = `${a.date}|${a.route?.name || ''}|${a.route?.crag_id || ''}`;
+      const isDuplicate = seen.has(key);
+      if (!isDuplicate) {
+        seen.add(key);
+      }
+      return { ...a, is_duplicate: isDuplicate };
+    });
   }
 }
 

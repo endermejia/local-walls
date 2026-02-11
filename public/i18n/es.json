@@ -467,6 +467,7 @@
     "hard": "Difícil",
     "moreInfo": "Comparte más info sobre esta vía",
     "typeOfClimbing": "Tipo de escalada",
+    "duplicateWarning": "Posible duplicado (misma fecha y nombre)",
     "climbing": {
       "cruxy": "Cruxy",
       "athletic": "Atlética",

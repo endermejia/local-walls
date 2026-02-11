@@ -113,65 +113,13 @@ export class RoutesService {
     await this.supabase.whenReady();
     this.loading.set(true);
     try {
-      // 1. Get all slugs from source routes and target route
-      const { data: routes, error: fetchError } = await this.supabase.client
-        .from('routes')
-        .select('id, slug, eight_anu_route_slugs')
-        .in('id', [targetRouteId, ...sourceRouteIds]);
+      const { error } = await this.supabase.client.rpc('unify_routes', {
+        p_target_route_id: targetRouteId,
+        p_source_route_ids: sourceRouteIds,
+        p_new_name: newName,
+      });
 
-      if (fetchError) throw fetchError;
-
-      const targetRoute = routes.find((a) => a.id === targetRouteId);
-      if (!targetRoute) throw new Error('Target route not found');
-
-      const allEightAnuSlugs = new Set<string>(
-        targetRoute.eight_anu_route_slugs || [],
-      );
-      for (const route of routes) {
-        if (route.eight_anu_route_slugs) {
-          route.eight_anu_route_slugs.forEach((s) => allEightAnuSlugs.add(s));
-        }
-        // Also add the current slug as an 8a.nu slug if it's not the target's slug
-        if (route.id !== targetRouteId) {
-          allEightAnuSlugs.add(route.slug);
-        }
-      }
-
-      // 2. Update related tables to point to the target route
-      const tablesToUpdate: DatabaseTable[] = [
-        'route_ascents',
-        'route_likes',
-        'route_projects',
-        'route_equippers',
-        'topo_routes',
-      ];
-
-      for (const table of tablesToUpdate) {
-        const { error } = await this.supabase.client
-          .from(table)
-          .update({ route_id: targetRouteId })
-          .in('route_id', sourceRouteIds);
-        if (error) throw error;
-      }
-
-      // 3. Update target route name and slugs
-      const { error: updateRouteError } = await this.supabase.client
-        .from('routes')
-        .update({
-          name: newName,
-          eight_anu_route_slugs: Array.from(allEightAnuSlugs),
-        })
-        .eq('id', targetRouteId);
-
-      if (updateRouteError) throw updateRouteError;
-
-      // 4. Delete source routes
-      const { error: deleteError } = await this.supabase.client
-        .from('routes')
-        .delete()
-        .in('id', sourceRouteIds);
-
-      if (deleteError) throw deleteError;
+      if (error) throw error;
 
       this.global.cragRoutesResource.reload();
       this.toast.success('messages.toasts.routesUnified');

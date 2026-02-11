@@ -1959,6 +1959,14 @@ export interface Database {
       };
       toggle_route_like: { Args: { p_route_id: number }; Returns: boolean };
       toggle_route_project: { Args: { p_route_id: number }; Returns: boolean };
+      unify_routes: {
+        Args: {
+          p_target_route_id: number;
+          p_source_route_ids: number[];
+          p_new_name: string;
+        };
+        Returns: undefined;
+      };
     };
     Enums: {
       app_role: 'admin' | 'equipper' | 'climber';

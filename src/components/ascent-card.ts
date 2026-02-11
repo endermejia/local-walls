@@ -64,7 +64,7 @@ import { AscentLastCommentComponent } from './ascent-last-comment';
   template: `
     @let ascent = data();
     <div
-      tuiAppearance="flat-grayscale"
+      [tuiAppearance]="ascent.is_duplicate ? 'negative' : 'flat-grayscale'"
       class="flex flex-col gap-4 p-4 rounded-3xl relative no-underline text-inherit hover:no-underline w-full text-left"
     >
       <header tuiHeader class="flex justify-between items-center">
@@ -245,6 +245,15 @@ import { AscentLastCommentComponent } from './ascent-last-comment';
         >
           "{{ ascentComment }}"
         </p>
+      }
+
+      @if (ascent.is_duplicate) {
+        <div
+          class="flex items-center gap-2 text-xs font-bold text-[var(--tui-text-negative)] uppercase tracking-wider mt-1"
+        >
+          <tui-icon icon="@tui.triangle-alert" class="!w-4 !h-4" />
+          {{ 'ascent.duplicateWarning' | translate }}
+        </div>
       }
 
       <footer class="flex flex-col gap-2 mt-2">

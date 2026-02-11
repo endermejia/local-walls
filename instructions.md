@@ -159,6 +159,13 @@ begin
       and (slug = _route_slug or (_route_8a_slug is not null and eight_anu_route_slugs @> array[_route_8a_slug]))
     limit 1;
 
+    -- Si no se encuentra por slug, buscar por nombre exacto en el mismo sector
+    if _route_id is null then
+      select id into _route_id from routes
+      where crag_id = _crag_id and lower(name) = lower(_route_name)
+      limit 1;
+    end if;
+
     -- Si no está en el sector, buscamos globalmente por slug
     if _route_id is null then
       select id into _route_id from routes where slug = _route_slug limit 1;
@@ -190,8 +197,16 @@ begin
     _comment := _ascent->>'comment';
     _recommended := (_ascent->>'recommended')::boolean;
 
-    -- Check if ascent exists
-    if not exists (select 1 from route_ascents where user_id = _user_id and route_id = _route_id and date = _date) then
+    -- Check if ascent exists (Robust check by route name/slug + crag + date)
+    if not exists (
+      select 1 from route_ascents ra
+      join routes r on ra.route_id = r.id
+      where ra.user_id = _user_id
+        and ra.date = _date
+        and r.crag_id = _crag_id
+        and (r.name = _route_name or r.slug = _route_slug or r.id = _route_id)
+      limit 1
+    ) then
        insert into route_ascents (user_id, route_id, date, type, attempts, rate, comment, recommended, grade)
        values (_user_id, _route_id, _date, _style, _tries, _rating, _comment, _recommended, _grade);
        _inserted_ascents := _inserted_ascents + 1;
@@ -215,3 +230,76 @@ $$;
 5.  Haz clic en **Run** para ejecutar la consulta y crear la función.
 
 Una vez creada la función, la aplicación comenzará a utilizarla automáticamente para importar los datos de 8a.nu de manera más eficiente.
+
+## Función para Unificar Vías (Admin)
+
+Para unificar vías correctamente saltándose las políticas RLS de otros usuarios y evitar errores de unicidad/FK:
+
+1. Crea un **New query** en el SQL Editor.
+2. Pega el siguiente código:
+
+```sql
+CREATE OR REPLACE FUNCTION public.unify_routes(
+    p_target_route_id bigint,
+    p_source_route_ids bigint[],
+    p_new_name text
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    _all_slugs text[];
+BEGIN
+    -- 1. Verificación: Solo administradores
+    IF NOT is_user_admin(auth.uid()) THEN
+        RAISE EXCEPTION 'Only admins can unify routes';
+    END IF;
+
+    -- 2. Recolectar slugs
+    SELECT array_agg(DISTINCT s)
+    INTO _all_slugs
+    FROM (
+        SELECT unnest(COALESCE(eight_anu_route_slugs, ARRAY[]::text[])) as s FROM public.routes
+        WHERE id = p_target_route_id OR id = ANY(p_source_route_ids)
+        UNION
+        SELECT slug FROM public.routes WHERE id = ANY(p_source_route_ids)
+    ) t;
+
+    -- 3. Limpiar duplicados en tablas con restricciones UNIQUE
+    DELETE FROM public.route_likes
+    WHERE route_id = ANY(p_source_route_ids)
+      AND user_id IN (SELECT user_id FROM public.route_likes WHERE route_id = p_target_route_id);
+
+    DELETE FROM public.route_projects
+    WHERE route_id = ANY(p_source_route_ids)
+      AND user_id IN (SELECT user_id FROM public.route_projects WHERE route_id = p_target_route_id);
+
+    DELETE FROM public.route_equippers
+    WHERE route_id = ANY(p_source_route_ids)
+      AND equipper_id IN (SELECT equipper_id FROM public.route_equippers WHERE route_id = p_target_route_id);
+
+    DELETE FROM public.topo_routes
+    WHERE route_id = ANY(p_source_route_ids)
+      AND topo_id IN (SELECT topo_id FROM public.topo_routes WHERE route_id = p_target_route_id);
+
+    -- 4. Reasignar registros a la vía destino
+    UPDATE public.route_ascents SET route_id = p_target_route_id WHERE route_id = ANY(p_source_route_ids);
+    UPDATE public.route_likes SET route_id = p_target_route_id WHERE route_id = ANY(p_source_route_ids);
+    UPDATE public.route_projects SET route_id = p_target_route_id WHERE route_id = ANY(p_source_route_ids);
+    UPDATE public.route_equippers SET route_id = p_target_route_id WHERE route_id = ANY(p_source_route_ids);
+    UPDATE public.topo_routes SET route_id = p_target_route_id WHERE route_id = ANY(p_source_route_ids);
+
+    -- 5. Actualizar vía destino
+    UPDATE public.routes
+    SET name = p_new_name,
+        eight_anu_route_slugs = _all_slugs
+    WHERE id = p_target_route_id;
+
+    -- 6. Borrar origen
+    DELETE FROM public.routes WHERE id = ANY(p_source_route_ids);
+END;
+$$;
+```
+
+3. Haz clic en **Run**.

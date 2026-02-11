@@ -467,6 +467,7 @@
     "hard": "Hard",
     "moreInfo": "Share more info about this route",
     "typeOfClimbing": "Type of climbing",
+    "duplicateWarning": "Possible duplicate (same date and name)",
     "climbing": {
       "cruxy": "Cruxy",
       "athletic": "Athletic",
