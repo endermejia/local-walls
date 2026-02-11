@@ -1884,6 +1884,16 @@ export interface Database {
     };
     Views: Record<never, never>;
     Functions: {
+      import_8a_ascents: {
+        Args: { ascents: Json };
+        Returns: {
+          inserted_ascents: number;
+          skipped_ascents: number;
+          created_areas: number;
+          created_crags: number;
+          created_routes: number;
+        };
+      };
       get_areas_list: {
         Args: never;
         Returns: {
