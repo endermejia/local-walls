@@ -903,7 +903,7 @@ export class TopoComponent {
     if (!topo) return [];
     return topo.topo_routes.map((tr) => {
       const r = tr.route;
-      const climbed = !!r.own_ascent;
+      const climbed = !!r.own_ascent && r.own_ascent.type !== 'attempt';
       const project = !!r.project;
 
       return {

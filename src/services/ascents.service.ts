@@ -62,6 +62,11 @@ export class AscentsService {
         background: 'var(--tui-status-negative)',
         backgroundSubtle: 'var(--tui-status-positive-pale)',
       },
+      attempt: {
+        icon: '@tui.circle-dashed',
+        background: 'var(--tui-status-neutral)',
+        backgroundSubtle: 'var(--tui-status-neutral-pale)',
+      },
       default: {
         icon: '@tui.circle',
         background: 'var(--tui-neutral-fill)',

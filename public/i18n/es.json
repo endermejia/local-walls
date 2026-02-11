@@ -437,13 +437,15 @@
   "ascentTypes": {
     "os": "A vista",
     "f": "Flash",
-    "rp": "Rotpunkt"
+    "rp": "Rotpunkt",
+    "attempt": "Intento"
   },
   "ascent": {
     "edit": "Editar encadene",
     "deleteTitle": "Eliminar encadene",
     "deleteConfirm": "¿Seguro que quieres eliminar el encadene de la vía \"{{routeName}}\" del {{date}}?",
     "new": "Encadenada!",
+    "attempted": "Probada!",
     "when": "¿Cuándo escalaste?",
     "yesterday": "Ayer",
     "lastSaturday": "Sábado pasado",
@@ -456,6 +458,7 @@
     "thoughtsPlaceholder": "Beta, recuerdos...",
     "private": "Encadene privado",
     "privateConfirmation": "Podrás verlo en tu perfil pero no saldrá en el feed de otros usuarios.",
+    "attemptPrivateConfirmation": "Los intentos son privados por defecto y no serán visibles para otros usuarios. Solo los verás en tu perfil.",
     "didYouLikeIt": "¿Te gustó?",
     "recommend": "Recomendada",
     "howWouldYouGrade": "¿Cómo graduarías la vía?",

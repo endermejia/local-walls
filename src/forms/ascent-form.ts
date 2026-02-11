@@ -23,6 +23,7 @@ import {
   TuiAppearance,
   TuiButton,
   tuiDateFormatProvider,
+  TuiError,
   TuiIcon,
   TuiLabel,
   TuiTextfield,
@@ -80,22 +81,23 @@ import { handleErrorToast } from '../utils';
     CommonModule,
     ReactiveFormsModule,
     TranslatePipe,
-    TuiButton,
-    TuiTextfield,
-    TuiIcon,
-    TuiRating,
-    TuiDataListWrapper,
-    TuiInputDate,
-    TuiCheckbox,
-    TuiSelect,
-    TuiChevron,
-    TuiLabel,
-    TuiTextarea,
     TuiAppearance,
-    CounterComponent,
+    TuiButton,
+    TuiCheckbox,
+    TuiChevron,
+    TuiDataListWrapper,
+    TuiError,
     TuiFiles,
-    TuiInputFiles,
     TuiFileRejectedPipe,
+    TuiIcon,
+    TuiInputDate,
+    TuiInputFiles,
+    TuiLabel,
+    TuiRating,
+    TuiSelect,
+    TuiTextarea,
+    TuiTextfield,
+    CounterComponent,
   ],
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
   template: `
@@ -111,8 +113,18 @@ import { handleErrorToast } from '../utils';
             'ascent.when' | translate
           }}</span>
           <tui-textfield [tuiTextfieldCleaner]="false">
-            <input tuiInputDate [max]="today" formControlName="date" />
+            <input
+              tuiInputDate
+              [max]="today"
+              formControlName="date"
+              [invalid]="
+                !!(form.get('date')?.invalid && form.get('date')?.touched)
+              "
+            />
             <tui-calendar *tuiTextfieldDropdown />
+            @if (form.get('date')?.invalid && form.get('date')?.touched) {
+              <tui-error [error]="'errors.required' | translate" />
+            }
           </tui-textfield>
           <div class="flex flex-wrap gap-2">
             <button
@@ -165,14 +177,22 @@ import { handleErrorToast } from '../utils';
                   [appearance]="
                     form.get('type')?.value === opt.id ? 'none' : 'neutral'
                   "
-                  (click)="form.get('type')?.setValue(opt.id)"
+                  (click)="
+                    opt.id === 'attempt'
+                      ? attemptSelected()
+                      : form.get('type')?.setValue(opt.id)
+                  "
                 >
                   <tui-icon [icon]="opt.icon" />
                 </button>
                 <button
                   type="button"
                   class="text-xs font-medium appearance-none bg-transparent border-none p-0"
-                  (click)="form.get('type')?.setValue(opt.id)"
+                  (click)="
+                    opt.id === 'attempt'
+                      ? attemptSelected()
+                      : form.get('type')?.setValue(opt.id)
+                  "
                 >
                   {{ opt.translate | translate }}
                 </button>
@@ -221,7 +241,7 @@ import { handleErrorToast } from '../utils';
               'ascent.photo' | translate
             }}</span>
             <div class="flex items-center gap-2">
-              @if (existingPhotoUrl(); as photoUrl) {
+              @if (existingPhotoUrl()) {
                 <button
                   tuiButton
                   type="button"
@@ -635,7 +655,10 @@ export default class AscentFormComponent {
     }),
     rate: new FormControl<number>(0, { nonNullable: true }),
     comment: new FormControl<string>(''),
-    date: new FormControl<TuiDay>(TuiDay.currentLocal(), { nonNullable: true }),
+    date: new FormControl<TuiDay>(TuiDay.currentLocal(), {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
     attempts: new FormControl<number | null>(null),
     private_ascent: new FormControl<boolean>(false, { nonNullable: true }),
     recommended: new FormControl<boolean>(false, { nonNullable: true }),
@@ -688,6 +711,12 @@ export default class AscentFormComponent {
       translate: 'ascentTypes.rp',
       icon: '@tui.circle',
       background: 'var(--tui-status-negative)',
+    },
+    {
+      id: AscentTypes.ATTEMPT,
+      translate: 'ascentTypes.attempt',
+      icon: '@tui.circle-dashed',
+      background: 'var(--tui-status-neutral)',
     },
   ];
 
@@ -905,6 +934,29 @@ export default class AscentFormComponent {
     }
   }
 
+  protected async attemptSelected(): Promise<void> {
+    const data: TuiConfirmData = {
+      content: this.translate.instant('ascent.attemptPrivateConfirmation'),
+      yes: this.translate.instant('actions.accept'),
+      no: this.translate.instant('actions.cancel'),
+    };
+
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('ascentTypes.attempt'),
+        size: 's',
+        data,
+      }),
+      { defaultValue: false },
+    );
+
+    if (confirmed) {
+      this.form.get('type')?.setValue(AscentTypes.ATTEMPT);
+      this.form.get('private_ascent')?.setValue(true);
+      this.form.get('attempts')?.markAsTouched();
+    }
+  }
+
   protected quickDate(mode: 'yesterday' | 'lastSaturday' | 'lastSunday'): void {
     const d = new Date();
     if (mode === 'yesterday') {
@@ -924,7 +976,10 @@ export default class AscentFormComponent {
 
   async onSubmit(event: Event): Promise<void> {
     event.preventDefault();
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
     const route_id = this.effectiveRouteId();
     const ascentData = this.effectiveAscentData();
@@ -937,7 +992,7 @@ export default class AscentFormComponent {
     const payload: Omit<RouteAscentInsertDto, 'user_id' | 'route_id'> = {
       ...values,
       date: `${values.date.year}-${String(values.date.month + 1).padStart(2, '0')}-${String(values.date.day).padStart(2, '0')}`,
-      type: values.type as AscentType,
+      type: (values.type ?? AscentTypes.RP) as AscentType,
       rate: values.rate === 0 ? null : values.rate,
     };
 

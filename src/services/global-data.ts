@@ -755,6 +755,18 @@ export class GlobalData {
           for (const tr of data.topo_routes) {
             if (!seenRouteIds.has(tr.route_id)) {
               seenRouteIds.add(tr.route_id);
+
+              // Sort ascents to prioritize real ascents over attempts
+              const ascents = tr.route.own_ascent || [];
+              const bestAscent =
+                ascents.sort((a, b) => {
+                  const isAttemptA = a.type === 'attempt';
+                  const isAttemptB = b.type === 'attempt';
+                  if (isAttemptA && !isAttemptB) return 1;
+                  if (!isAttemptA && isAttemptB) return -1;
+                  return 0; // Maintain order otherwise (or sort by date/type preference)
+                })[0] || null;
+
               topo_routes.push({
                 topo_id: tr.topo_id,
                 route_id: tr.route_id,
@@ -762,7 +774,7 @@ export class GlobalData {
                 path: tr.path as TopoPath,
                 route: {
                   ...tr.route,
-                  own_ascent: tr.route.own_ascent?.[0] || null,
+                  own_ascent: bestAscent,
                   project: !!tr.route.project?.[0],
                 },
               });
@@ -903,8 +915,16 @@ export class GlobalData {
                 area_name: r.crag?.area?.name,
                 rating,
                 ascent_count: r.ascents?.length ?? 0,
-                climbed: (r.own_ascent?.length ?? 0) > 0,
-                own_ascent: r.own_ascent?.[0],
+                climbed:
+                  (r.own_ascent?.filter((a) => a.type !== 'attempt').length ??
+                    0) > 0,
+                own_ascent: r.own_ascent?.sort((a, b) => {
+                  const isAttemptA = a.type === 'attempt';
+                  const isAttemptB = b.type === 'attempt';
+                  if (isAttemptA && !isAttemptB) return 1;
+                  if (!isAttemptA && isAttemptB) return -1;
+                  return 0;
+                })[0],
               } as RouteWithExtras;
             })(),
           ) ?? []
@@ -1227,8 +1247,15 @@ export class GlobalData {
           area_slug: r.crag?.area?.slug,
           rating,
           ascent_count: r.ascents?.length ?? 0,
-          climbed: (r.own_ascent?.length ?? 0) > 0,
-          own_ascent: r.own_ascent?.[0],
+          climbed:
+            (r.own_ascent?.filter((a) => a.type !== 'attempt').length ?? 0) > 0,
+          own_ascent: r.own_ascent?.sort((a, b) => {
+            const isAttemptA = a.type === 'attempt';
+            const isAttemptB = b.type === 'attempt';
+            if (isAttemptA && !isAttemptB) return 1;
+            if (!isAttemptA && isAttemptB) return -1;
+            return 0;
+          })[0],
           key: `${cragId}:${routeSlug}`,
         } as RouteWithExtras & { area_id?: number; key: string };
       } catch (e) {

@@ -437,13 +437,15 @@
   "ascentTypes": {
     "os": "Onsight",
     "f": "Flash",
-    "rp": "Rotpunkt"
+    "rp": "Rotpunkt",
+    "attempt": "Attempt"
   },
   "ascent": {
     "edit": "Edit ascent",
     "deleteTitle": "Delete ascent",
     "deleteConfirm": "Are you sure you want to delete the ascent of route \"{{routeName}}\" on {{date}}?",
     "new": "Sent!",
+    "attempted": "Attempted!",
     "when": "When did you climb it?",
     "yesterday": "Yesterday",
     "lastSaturday": "Last Saturday",
@@ -456,6 +458,7 @@
     "thoughtsPlaceholder": "Beta, personal memories, anything goes...",
     "private": "Private ascent",
     "privateConfirmation": "You will be able to see it in your profile but it will not appear in other users' feed.",
+    "attemptPrivateConfirmation": "Attempts are private by default and will not be visible to other users. You will only see them in your profile.",
     "didYouLikeIt": "Did you like it?",
     "recommend": "Recommend",
     "howWouldYouGrade": "How would you grade it?",

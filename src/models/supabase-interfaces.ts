@@ -15,6 +15,7 @@ export const AscentTypes: Record<Uppercase<AscentType>, AscentType> = {
   RP: 'rp',
   OS: 'os',
   F: 'f',
+  ATTEMPT: 'attempt',
 } as const;
 export type ClimbingKind = Database['public']['Enums']['climbing_kind'];
 export const ClimbingKinds: Record<Uppercase<ClimbingKind>, ClimbingKind> = {

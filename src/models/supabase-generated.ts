@@ -1952,7 +1952,7 @@ export interface Database {
     };
     Enums: {
       app_role: 'admin' | 'equipper' | 'climber';
-      ascent_type: 'os' | 'rp' | 'f';
+      ascent_type: 'os' | 'rp' | 'f' | 'attempt';
       climbing_kind: 'sport' | 'boulder' | 'trad' | 'multipitch' | 'mixed';
       language: 'es' | 'en';
       sex: 'male' | 'female' | 'other';
