@@ -338,6 +338,22 @@ import { handleErrorToast } from '../utils';
           </div>
         </section>
 
+        <!-- VIDEO URL -->
+        <section class="grid gap-3">
+          <tui-textfield
+            [tuiTextfieldCleaner]="true"
+            class="max-w-full overflow-hidden"
+          >
+            <label tuiLabel for="ascentVideo">Video URL (YouTube)</label>
+            <input
+              id="ascentVideo"
+              tuiTextfield
+              formControlName="video_url"
+              placeholder="https://youtube.com/..."
+            />
+          </tui-textfield>
+        </section>
+
         <!-- DID YOU LIKE IT? -->
         <section class="grid gap-3">
           <span class="text-sm font-semibold opacity-70 px-1">{{
@@ -691,6 +707,7 @@ export default class AscentFormComponent {
     no_score: new FormControl<boolean>(false, { nonNullable: true }),
     first_ascent: new FormControl<boolean>(false, { nonNullable: true }),
     traditional: new FormControl<boolean>(false, { nonNullable: true }),
+    video_url: new FormControl<string | null>(null),
   });
 
   protected readonly typeOptions = [
@@ -909,6 +926,7 @@ export default class AscentFormComponent {
       first_ascent: !!data.first_ascent,
       traditional: !!data.traditional,
       grade: data.grade ?? null,
+      video_url: (data as any).video_url ?? null,
     });
     if (data.date) {
       const d = new Date(data.date);
@@ -989,11 +1007,12 @@ export default class AscentFormComponent {
     if (!user_id) return;
 
     const values = this.form.getRawValue();
-    const payload: Omit<RouteAscentInsertDto, 'user_id' | 'route_id'> = {
+    const payload: any = {
       ...values,
       date: `${values.date.year}-${String(values.date.month + 1).padStart(2, '0')}-${String(values.date.day).padStart(2, '0')}`,
       type: (values.type ?? AscentTypes.RP) as AscentType,
       rate: values.rate === 0 ? null : values.rate,
+      video_url: values.video_url || null,
     };
 
     try {
