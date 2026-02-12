@@ -123,7 +123,7 @@ import { NgOptimizedImage } from '@angular/common';
             <div
               class="absolute inset-0 pointer-events-none"
               [tuiDropdown]="tourHint"
-              [tuiDropdownOpen]="
+              [tuiDropdownManual]="
                 tourService.isActive() && tourService.step() === TourStep.HOME
               "
               tuiDropdownDirection="bottom"
@@ -156,7 +156,7 @@ import { NgOptimizedImage } from '@angular/common';
             <div
               class="absolute inset-0 pointer-events-none"
               [tuiDropdown]="tourHint"
-              [tuiDropdownOpen]="
+              [tuiDropdownManual]="
                 tourService.isActive() &&
                 tourService.step() === TourStep.EXPLORE
               "
@@ -189,7 +189,7 @@ import { NgOptimizedImage } from '@angular/common';
             <div
               class="absolute inset-0 pointer-events-none"
               [tuiDropdown]="tourHint"
-              [tuiDropdownOpen]="
+              [tuiDropdownManual]="
                 tourService.isActive() && tourService.step() === TourStep.AREAS
               "
               tuiDropdownDirection="bottom"

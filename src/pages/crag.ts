@@ -124,6 +124,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
               @for (cragItem of sortedCrags(); track cragItem.id) {
                 <button
                   tuiOption
+                  new
                   (click)="
                     router.navigate(['/area', areaSlug(), cragItem.slug])
                   "
@@ -253,7 +254,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
               (activeItemIndexChange)="activeTabIndex.set($event)"
               class="mt-6"
               [tuiDropdown]="tourHint"
-              [tuiDropdownOpen]="
+              [tuiDropdownManual]="
                 tourService.isActive() &&
                 (tourService.step() === TourStep.CRAG ||
                   tourService.step() === TourStep.CRAG_TOPOS ||

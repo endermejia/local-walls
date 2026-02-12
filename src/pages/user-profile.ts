@@ -307,7 +307,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
           (activeItemIndexChange)="activeTab.set($event)"
           class="w-full mt-6"
           [tuiDropdown]="tourHint"
-          [tuiDropdownOpen]="
+          [tuiDropdownManual]="
             tourService.isActive() &&
             (tourService.step() === TourStep.PROFILE ||
               tourService.step() === TourStep.PROFILE_PROJECTS ||

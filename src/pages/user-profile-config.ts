@@ -212,7 +212,7 @@ interface Country {
           <div
             class="w-full relative"
             [tuiDropdown]="tourHint"
-            [tuiDropdownOpen]="
+            [tuiDropdownManual]="
               tourService.isActive() && tourService.step() === TourStep.WELCOME
             "
             tuiDropdownDirection="bottom"
