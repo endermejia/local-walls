@@ -15,7 +15,8 @@ export enum TourStep {
   ROUTE = 8,
   PROFILE = 9,
   PROFILE_PROJECTS = 10,
-  PROFILE_LIKES = 11,
+  PROFILE_STATISTICS = 11,
+  PROFILE_LIKES = 12,
   OFF = -1,
 }
 
@@ -36,6 +37,7 @@ export class TourService {
   }
 
   async next(): Promise<void> {
+    if (!this.isActive()) return;
     const current = this.step();
     if (current === TourStep.PROFILE_LIKES) {
       await this.finish();
@@ -50,8 +52,11 @@ export class TourService {
   }
 
   private async finish(): Promise<void> {
-    await this.userProfilesService.updateUserProfile({ first_steps: false });
-    await this.stop();
+    try {
+      await this.userProfilesService.updateUserProfile({ first_steps: false });
+    } finally {
+      await this.stop();
+    }
   }
 
   private async goToStep(step: TourStep): Promise<void> {
@@ -80,6 +85,7 @@ export class TourService {
         break;
       case TourStep.PROFILE:
       case TourStep.PROFILE_PROJECTS:
+      case TourStep.PROFILE_STATISTICS:
       case TourStep.PROFILE_LIKES:
         await this.router.navigate(['/profile']);
         break;

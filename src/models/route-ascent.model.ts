@@ -13,3 +13,14 @@ export interface PaginatedAscents {
   items: RouteAscentWithExtras[];
   total: number;
 }
+
+export interface UserAscentStatRecord {
+  ascent_date: string;
+  ascent_type: string;
+  ascent_grade: number | null;
+  route_grade: number;
+  route_name: string;
+  route_slug: string;
+  crag_slug: string;
+  area_slug: string;
+}

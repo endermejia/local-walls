@@ -37,6 +37,7 @@ import {
   TuiTitle,
   TuiDropdown,
   TuiError,
+  TuiAppearance,
 } from '@taiga-ui/core';
 import {
   TuiDialogService,
@@ -148,6 +149,7 @@ interface Country {
     TuiTitle,
     TuiError,
     TuiFieldErrorPipe,
+    TuiAppearance,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
@@ -160,11 +162,10 @@ interface Country {
         <!-- Sticky Header -->
         <header
           tuiHeader
-          class="sticky top-0 z-10 flex items-center gap-4 p-4 -mt-4 -mx-4 mb-4 bg-[var(--tui-background-base)] shadow-md sm:shadow-none"
+          class="sticky top-0 z-10 flex items-center gap-4 p-4 -mt-4 -mx-4 mb-4"
         >
           <h1 tuiTitle>
             <button
-              appearance="neutral"
               class="no-underline text-inherit flex items-center gap-2 bg-transparent border-none p-0 cursor-pointer text-left outline-none"
               (click)="isFirstSteps() ? startTour() : close()"
               [disabled]="
@@ -209,16 +210,24 @@ interface Country {
             </tui-badged-content>
           </div>
           <div
-            class="w-full"
+            class="w-full relative"
             [tuiDropdown]="tourHint"
-            [tuiDropdownOpen]="tourService.step() === TourStep.WELCOME"
+            [tuiDropdownOpen]="
+              tourService.isActive() && tourService.step() === TourStep.WELCOME
+            "
             tuiDropdownDirection="bottom"
           >
             <tui-textfield
               class="w-full"
               [tuiTextfieldCleaner]="false"
-              [class.ring-2]="tourService.step() === TourStep.WELCOME"
-              [class.ring-primary]="tourService.step() === TourStep.WELCOME"
+              [class.ring-2]="
+                tourService.isActive() &&
+                tourService.step() === TourStep.WELCOME
+              "
+              [class.ring-primary]="
+                tourService.isActive() &&
+                tourService.step() === TourStep.WELCOME
+              "
             >
               <label tuiLabel for="nameInput">{{
                 'labels.userName' | translate
@@ -239,8 +248,10 @@ interface Country {
               [error]="[] | tuiFieldError | async"
               [formControl]="displayNameControl"
             />
-            @if (tourService.step() === TourStep.WELCOME) {
-              <tui-pulse class="!absolute top-0 right-0 -mt-1 -mr-1 z-10" />
+            @if (
+              tourService.isActive() && tourService.step() === TourStep.WELCOME
+            ) {
+              <tui-pulse />
             }
             @if (nameEqualsEmail()) {
               <tui-notification appearance="warning" class="mt-2">

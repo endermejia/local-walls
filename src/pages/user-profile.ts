@@ -77,6 +77,8 @@ import {
 } from '../models';
 import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
 
+import { UserStatisticsComponent } from '../components/user-statistics';
+
 @Component({
   selector: 'app-user-profile',
   imports: [
@@ -109,6 +111,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
     TuiTextfield,
     TuiTitle,
     TuiPulse,
+    UserStatisticsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -119,12 +122,11 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
       >
         @let loading = !profile();
         <div class="flex items-center gap-4">
-          <div
-            class="absolute inset-0 pointer-events-none"
-            [tuiDropdown]="tourHint"
-            [tuiDropdownOpen]="tourService.step() === TourStep.PROFILE"
-            tuiDropdownDirection="bottom"
-          ></div>
+          @if (
+            tourService.isActive() && tourService.step() === TourStep.PROFILE
+          ) {
+            <tui-pulse />
+          }
           @let avatar = profileAvatarSrc();
           <tui-avatar
             [src]="avatar | tuiFallbackSrc: '@tui.user' | async"
@@ -306,28 +308,47 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
           class="w-full mt-6"
           [tuiDropdown]="tourHint"
           [tuiDropdownOpen]="
-            tourService.step() === TourStep.PROFILE ||
-            tourService.step() === TourStep.PROFILE_PROJECTS ||
-            tourService.step() === TourStep.PROFILE_LIKES
+            tourService.isActive() &&
+            (tourService.step() === TourStep.PROFILE ||
+              tourService.step() === TourStep.PROFILE_PROJECTS ||
+              tourService.step() === TourStep.PROFILE_STATISTICS ||
+              tourService.step() === TourStep.PROFILE_LIKES)
           "
           tuiDropdownDirection="top"
         >
           <button tuiTab class="relative">
-            @if (tourService.step() === TourStep.PROFILE) {
-              <tui-pulse class="absolute -top-1 -right-1" />
+            @if (
+              tourService.isActive() && tourService.step() === TourStep.PROFILE
+            ) {
+              <tui-pulse />
             }
             {{ 'labels.ascents' | translate }}
           </button>
           <button tuiTab class="relative">
-            @if (tourService.step() === TourStep.PROFILE_PROJECTS) {
-              <tui-pulse class="absolute -top-1 -right-1" />
+            @if (
+              tourService.isActive() &&
+              tourService.step() === TourStep.PROFILE_PROJECTS
+            ) {
+              <tui-pulse />
             }
             {{ 'labels.projects' | translate }}
           </button>
+          <button tuiTab class="relative">
+            @if (
+              tourService.isActive() &&
+              tourService.step() === TourStep.PROFILE_STATISTICS
+            ) {
+              <tui-pulse />
+            }
+            {{ 'labels.statistics' | translate }}
+          </button>
           @if (isOwnProfile()) {
             <button tuiTab class="relative">
-              @if (tourService.step() === TourStep.PROFILE_LIKES) {
-                <tui-pulse class="absolute -top-1 -right-1" />
+              @if (
+                tourService.isActive() &&
+                tourService.step() === TourStep.PROFILE_LIKES
+              ) {
+                <tui-pulse />
               }
               {{ 'labels.likes' | translate }}
             </button>
@@ -465,7 +486,13 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
               }
             </div>
           }
+
           @case (2) {
+            <app-user-statistics
+              [userId]="id() || supabase.authUserId() || ''"
+            />
+          }
+          @case (3) {
             <div class="flex flex-col gap-8">
               <!-- Liked Areas -->
               <section class="grid gap-2">
@@ -613,7 +640,9 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
             ? 'tour.profile.ascentsDescription'
             : tourService.step() === TourStep.PROFILE_PROJECTS
               ? 'tour.profile.projectsDescription'
-              : 'tour.profile.likesDescription'
+              : tourService.step() === TourStep.PROFILE_STATISTICS
+                ? 'tour.profile.statisticsDescription'
+                : 'tour.profile.likesDescription'
           ) | translate
         "
         [isLast]="tourService.step() === TourStep.PROFILE_LIKES"
@@ -651,7 +680,7 @@ export class UserProfileComponent {
   protected onSwipe(event: TuiSwipeEvent): void {
     const direction = event.direction;
     const currentIndex = this.activeTab();
-    const maxIndex = this.isOwnProfile() ? 2 : 1;
+    const maxIndex = this.isOwnProfile() ? 3 : 2;
     if (direction === 'left' && currentIndex < maxIndex) {
       this.activeTab.set(currentIndex + 1);
     } else if (direction === 'right' && currentIndex > 0) {
@@ -935,17 +964,21 @@ export class UserProfileComponent {
     }
 
     effect(() => {
+      if (!this.tourService.isActive()) return;
+
       const step = this.tourService.step();
       if (step === TourStep.PROFILE) {
         this.activeTab.set(0);
       } else if (step === TourStep.PROFILE_PROJECTS) {
         this.activeTab.set(1);
+      } else if (step === TourStep.PROFILE_STATISTICS) {
+        this.activeTab.set(2);
       } else if (step === TourStep.PROFILE_LIKES) {
         if (this.isOwnProfile()) {
-          this.activeTab.set(2);
+          this.activeTab.set(3);
         } else {
           // If not own profile, skip likes and finish
-          this.activeTab.set(1);
+          this.activeTab.set(0);
         }
       }
     });

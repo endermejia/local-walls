@@ -1921,6 +1921,16 @@ export interface Database {
           user_creator_id: string;
         }[];
       };
+      get_user_statistics: {
+        Args: { p_user_id: string };
+        Returns: Database['public']['CompositeTypes']['user_ascent_stat_record'][];
+        SetofOptions: {
+          from: '*';
+          to: 'user_ascent_stat_record';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
       has_ascent_blocking: {
         Args: { user_a: string; user_b: string };
         Returns: boolean;
@@ -2041,6 +2051,16 @@ export interface Database {
         created_areas: number | null;
         created_crags: number | null;
         created_routes: number | null;
+      };
+      user_ascent_stat_record: {
+        ascent_date: string | null;
+        ascent_type: string | null;
+        ascent_grade: number | null;
+        route_grade: number | null;
+        route_name: string | null;
+        route_slug: string | null;
+        crag_slug: string | null;
+        area_slug: string | null;
       };
     };
   };

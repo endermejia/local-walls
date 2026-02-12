@@ -112,6 +112,7 @@
     "height": "Height",
     "language": "Language",
     "last12Months": "Last 12 months",
+    "last6Months": "Last 6 months",
     "lat": "Lat",
     "messages": "Messages",
     "notifications": "Notifications",
@@ -166,7 +167,10 @@
     "you": "you",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
-    "following": "Following"
+    "following": "Following",
+    "statistics": "Statistics",
+    "today": "Today",
+    "showMore": "Show more"
   },
   "auth": {
     "login": "Sign in",
@@ -678,7 +682,13 @@
     "profile": {
       "ascentsDescription": "Here you will see your logbook and statistics.",
       "projectsDescription": "Manage your pending projects and goals.",
+      "statisticsDescription": "Analyze your progress with detailed grade and trend charts.",
       "likesDescription": "Quickly access your favorite areas, sectors, and routes."
     }
+  },
+  "statistics": {
+    "gradeDistribution": "Grade Pyramid",
+    "sportClimbingTrend": "Sport Climbing Trend",
+    "noData": "No data available"
   }
 }

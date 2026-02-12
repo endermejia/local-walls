@@ -113,6 +113,7 @@
     "height": "Altura",
     "language": "Idioma",
     "last12Months": "Últimos 12 meses",
+    "last6Months": "Últimos 6 meses",
     "lat": "Lat",
     "messages": "Mensajes",
     "notifications": "Notificaciones",
@@ -166,7 +167,10 @@
     "years": "Años",
     "you": "tú",
     "zoomIn": "Acercar",
-    "zoomOut": "Alejar"
+    "zoomOut": "Alejar",
+    "statistics": "Estadísticas",
+    "today": "Hoy",
+    "showMore": "Mostrar más"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -684,7 +688,13 @@
     "profile": {
       "ascentsDescription": "Aquí verás el registro de tus encadenes y estadísticas.",
       "projectsDescription": "Gestiona tus proyectos pendientes y objetivos.",
+      "statisticsDescription": "Analiza tu progresión con gráficos detallados de grado y evolución temporal.",
       "likesDescription": "Accede rápidamente a tus zonas, sectores y vías favoritas."
     }
+  },
+  "statistics": {
+    "gradeDistribution": "Pirámide de Grado",
+    "sportClimbingTrend": "Evolución Deportiva",
+    "noData": "No hay datos disponibles"
   }
 }

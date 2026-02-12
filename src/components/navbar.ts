@@ -123,11 +123,15 @@ import { NgOptimizedImage } from '@angular/common';
             <div
               class="absolute inset-0 pointer-events-none"
               [tuiDropdown]="tourHint"
-              [tuiDropdownOpen]="tourService.step() === TourStep.HOME"
+              [tuiDropdownOpen]="
+                tourService.isActive() && tourService.step() === TourStep.HOME
+              "
               tuiDropdownDirection="bottom"
             ></div>
-            @if (tourService.step() === TourStep.HOME) {
-              <tui-pulse class="absolute to-0 right-0 -mt-1 -mr-1" />
+            @if (
+              tourService.isActive() && tourService.step() === TourStep.HOME
+            ) {
+              <tui-pulse />
             }
             <tui-icon icon="@tui.home" />
 
@@ -146,9 +150,23 @@ import { NgOptimizedImage } from '@angular/common';
             [tuiAppearance]="
               explore.isActive ? 'flat-destructive' : 'flat-grayscale'
             "
-            class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
+            class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full relative"
             [attr.aria-label]="'nav.explore' | translate"
           >
+            <div
+              class="absolute inset-0 pointer-events-none"
+              [tuiDropdown]="tourHint"
+              [tuiDropdownOpen]="
+                tourService.isActive() &&
+                tourService.step() === TourStep.EXPLORE
+              "
+              tuiDropdownDirection="bottom"
+            ></div>
+            @if (
+              tourService.isActive() && tourService.step() === TourStep.EXPLORE
+            ) {
+              <tui-pulse />
+            }
             <tui-icon icon="@tui.map" />
             <span
               class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
@@ -165,9 +183,22 @@ import { NgOptimizedImage } from '@angular/common';
             [tuiAppearance]="
               areas.isActive ? 'flat-destructive' : 'flat-grayscale'
             "
-            class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
+            class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full relative"
             [attr.aria-label]="'nav.areas' | translate"
           >
+            <div
+              class="absolute inset-0 pointer-events-none"
+              [tuiDropdown]="tourHint"
+              [tuiDropdownOpen]="
+                tourService.isActive() && tourService.step() === TourStep.AREAS
+              "
+              tuiDropdownDirection="bottom"
+            ></div>
+            @if (
+              tourService.isActive() && tourService.step() === TourStep.AREAS
+            ) {
+              <tui-pulse />
+            }
             <tui-icon icon="@tui.list" />
             <span
               class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"

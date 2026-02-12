@@ -18,6 +18,7 @@ import {
   UserProfileDto,
   RouteAscentCommentDto,
   RouteAscentCommentInsertDto,
+  UserAscentStatRecord,
 } from '../models';
 
 import AscentFormComponent from '../forms/ascent-form';
@@ -143,6 +144,25 @@ export class AscentsService {
       user: (user as UserProfileDto) || undefined,
       route: mappedRoute,
     } as RouteAscentWithExtras;
+  }
+
+  async getUserStats(userId: string): Promise<UserAscentStatRecord[]> {
+    if (!userId || !isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+
+    const { data, error } = await this.supabase.client.rpc(
+      'get_user_statistics',
+      {
+        p_user_id: userId,
+      },
+    );
+
+    if (error) {
+      console.error('[AscentsService] getUserStats error', error);
+      return [];
+    }
+
+    return (data as UserAscentStatRecord[]) ?? [];
   }
 
   async uploadPhoto(ascentId: number, file: File): Promise<void> {
