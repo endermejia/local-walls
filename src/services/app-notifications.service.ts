@@ -52,7 +52,11 @@ export class AppNotificationsService {
     // Collect ascent IDs to fetch route names
     const ascentIds = notifications
       .filter(
-        (n) => (n.type === 'like' || n.type === 'comment') && n.resource_id,
+        (n) =>
+          (n.type === 'like' ||
+            n.type === 'comment' ||
+            n.type === 'mention') &&
+          n.resource_id,
       )
       .map((n) => Number(n.resource_id));
 
@@ -70,7 +74,12 @@ export class AppNotificationsService {
           ]),
         );
         notifications.forEach((n) => {
-          if ((n.type === 'like' || n.type === 'comment') && n.resource_id) {
+          if (
+            (n.type === 'like' ||
+              n.type === 'comment' ||
+              n.type === 'mention') &&
+            n.resource_id
+          ) {
             const routeName = ascentMap.get(Number(n.resource_id));
             if (routeName) {
               (
