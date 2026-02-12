@@ -163,7 +163,7 @@ export interface AscentCommentsDialogData {
 
         @if (showMentions() && mentionUsers().length > 0) {
           <div
-            class="absolute bottom-full mb-2 w-full max-h-48 overflow-y-auto shadow-lg bg-[var(--tui-base-01)] border border-[var(--tui-border-normal)] rounded-lg z-10 left-0"
+            class="absolute bottom-full mb-2 w-full max-h-48 overflow-y-auto shadow-lg bg-[var(--tui-background-base)] border border-[var(--tui-border-normal)] rounded-lg z-10 left-0"
           >
             @for (user of mentionUsers(); track user.id) {
               <button
