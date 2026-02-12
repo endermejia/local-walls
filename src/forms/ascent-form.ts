@@ -926,7 +926,7 @@ export default class AscentFormComponent {
       first_ascent: !!data.first_ascent,
       traditional: !!data.traditional,
       grade: data.grade ?? null,
-      video_url: (data as any).video_url ?? null,
+      video_url: data.video_url ?? null,
     });
     if (data.date) {
       const d = new Date(data.date);
@@ -1007,8 +1007,8 @@ export default class AscentFormComponent {
     if (!user_id) return;
 
     const values = this.form.getRawValue();
-    const payload: any = {
-      ...values,
+    const payload: Omit<RouteAscentInsertDto, 'created_at' | 'id'> = {
+      ...(values as unknown as Omit<RouteAscentInsertDto, 'created_at' | 'id'>),
       date: `${values.date.year}-${String(values.date.month + 1).padStart(2, '0')}-${String(values.date.day).padStart(2, '0')}`,
       type: (values.type ?? AscentTypes.RP) as AscentType,
       rate: values.rate === 0 ? null : values.rate,
@@ -1087,7 +1087,7 @@ export default class AscentFormComponent {
       };
       reader.readAsDataURL(result);
     } else {
-      // User cancelled, clear the photo
+      // User canceled, clear the photo
       this.photoControl.setValue(null);
     }
   }

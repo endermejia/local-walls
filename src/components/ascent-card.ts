@@ -7,7 +7,6 @@ import {
   input,
   output,
   resource,
-  signal,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -16,6 +15,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { TuiItem } from '@taiga-ui/cdk';
 import { TuiAppearance, TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
   TUI_CONFIRM,
   TuiAvatar,
@@ -45,6 +45,7 @@ import { AvatarGradeComponent } from './avatar-grade';
 import { AvatarAscentTypeComponent } from './avatar-ascent-type';
 import { AscentLastCommentComponent } from './ascent-last-comment';
 import { getEmbedUrl } from '../utils/video-helpers';
+import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
 
 @Component({
   selector: 'app-ascent-card',
@@ -74,7 +75,7 @@ import { getEmbedUrl } from '../utils/video-helpers';
     @let ascent = data();
     <div
       [tuiAppearance]="ascent.is_duplicate ? 'negative' : 'flat-grayscale'"
-      class="flex flex-col gap-4 p-4 rounded-3xl relative no-underline text-inherit hover:no-underline w-full text-left"
+      class="flex flex-col gap-4 p-4 sm:rounded-3xl rounded-none relative no-underline text-inherit hover:no-underline -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full text-left"
     >
       <header tuiHeader class="flex justify-between items-center">
         @if (showUser()) {
@@ -175,7 +176,7 @@ import { getEmbedUrl } from '../utils/video-helpers';
 
       @if (mediaItems(); as items) {
         @if (items.length > 1) {
-          <div class="w-full relative">
+          <div class="relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full">
             <tui-carousel
               [style.--tui-carousel-height]="'auto'"
               [(index)]="index"
@@ -184,15 +185,21 @@ import { getEmbedUrl } from '../utils/video-helpers';
               @for (item of items; track $index) {
                 <ng-container *tuiItem>
                   <div
-                    class="w-full rounded-2xl overflow-hidden aspect-square sm:aspect-video flex items-center justify-center bg-black"
+                    class="w-full overflow-hidden flex items-center justify-center bg-black rounded-none sm:rounded-2xl"
+                    [ngClass]="
+                      item.type === 'video'
+                        ? 'aspect-video'
+                        : 'aspect-square sm:aspect-video'
+                    "
                   >
                     @if (item.type === 'image') {
                       <img
                         [src]="item.url"
-                        class="w-full h-full object-cover"
+                        class="w-full h-full object-cover cursor-pointer"
                         [alt]="ascent.route?.name || 'Ascent photo'"
                         [loading]="priority() ? 'eager' : 'lazy'"
                         [attr.fetchpriority]="priority() ? 'high' : null"
+                        (click)="showEnlargedPhoto(item.url)"
                       />
                     } @else {
                       <iframe
@@ -207,25 +214,33 @@ import { getEmbedUrl } from '../utils/video-helpers';
                 </ng-container>
               }
             </tui-carousel>
-            <tui-pagination
-              size="s"
-              class="mt-2"
-              [length]="items.length"
-              [(index)]="index"
-            />
+            <div class="px-4 sm:px-0">
+              <tui-pagination
+                size="s"
+                class="mt-2"
+                [length]="items.length"
+                [(index)]="index"
+              />
+            </div>
           </div>
         } @else if (items.length === 1) {
+          @let item = items[0];
           <div
-            class="w-full rounded-2xl overflow-hidden aspect-square sm:aspect-video flex items-center justify-center bg-black"
+            class="overflow-hidden flex items-center justify-center bg-black -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl"
+            [ngClass]="
+              item.type === 'video'
+                ? 'aspect-video'
+                : 'aspect-square sm:aspect-video'
+            "
           >
-            @let item = items[0];
             @if (item.type === 'image') {
               <img
                 [src]="item.url"
-                class="w-full h-full object-cover"
+                class="w-full h-full object-cover cursor-pointer"
                 [alt]="ascent.route?.name || 'Ascent photo'"
                 [loading]="priority() ? 'eager' : 'lazy'"
                 [attr.fetchpriority]="priority() ? 'high' : null"
+                (click)="showEnlargedPhoto(item.url)"
               />
             } @else {
               <iframe
@@ -386,6 +401,18 @@ export class AscentCardComponent {
 
   editAscent() {
     this.ascentsService.openAscentForm({ ascentData: this.data() }).subscribe();
+  }
+
+  showEnlargedPhoto(url: string | SafeResourceUrl): void {
+    if (typeof url !== 'string') return;
+
+    void this.dialogs
+      .open(new PolymorpheusComponent(PhotoViewerDialogComponent), {
+        data: { imageUrl: url },
+        size: 'l',
+        appearance: 'flat',
+      })
+      .subscribe();
   }
 
   async follow(userId: string) {

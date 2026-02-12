@@ -7,7 +7,6 @@ export interface RouteAscentWithExtras extends RouteAscentDto {
   likes_count?: number;
   user_liked?: boolean;
   is_duplicate?: boolean;
-  video_url?: string | null;
 }
 
 export interface PaginatedAscents {

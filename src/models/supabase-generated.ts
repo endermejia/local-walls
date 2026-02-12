@@ -1439,6 +1439,7 @@ export interface Database {
           type: Database['public']['Enums']['ascent_type'] | null;
           user_id: string;
           vertical: boolean | null;
+          video_url: string | null;
           with_kneepad: boolean | null;
         };
         Insert: {
@@ -1479,6 +1480,7 @@ export interface Database {
           type?: Database['public']['Enums']['ascent_type'] | null;
           user_id: string;
           vertical?: boolean | null;
+          video_url?: string | null;
           with_kneepad?: boolean | null;
         };
         Update: {
@@ -1519,6 +1521,7 @@ export interface Database {
           type?: Database['public']['Enums']['ascent_type'] | null;
           user_id?: string;
           vertical?: boolean | null;
+          video_url?: string | null;
           with_kneepad?: boolean | null;
         };
         Relationships: [
