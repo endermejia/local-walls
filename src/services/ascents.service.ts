@@ -627,6 +627,7 @@ export class AscentsService {
 
     if (data) {
       void this.triggerCommentNotification(ascentId);
+      void this.triggerMentionNotification(ascentId, comment);
     }
 
     this.refreshComments(ascentId);
@@ -646,6 +647,30 @@ export class AscentsService {
         user_id: ascent.user_id,
         actor_id: this.supabase.authUserId()!,
         type: 'comment',
+        resource_id: ascentId.toString(),
+      });
+    }
+  }
+
+  private async triggerMentionNotification(ascentId: number, comment: string) {
+    const mentionPattern = /@\[([^\]]+)\]\(([^)]+)\)/g;
+    let match;
+    const mentionedUserIds = new Set<string>();
+
+    while ((match = mentionPattern.exec(comment)) !== null) {
+      // match[2] is the ID
+      mentionedUserIds.add(match[2]);
+    }
+
+    const currentUserId = this.supabase.authUserId();
+
+    for (const userId of mentionedUserIds) {
+      if (userId === currentUserId) continue;
+
+      await this.notificationsService.createNotification({
+        user_id: userId,
+        actor_id: currentUserId!,
+        type: 'mention',
         resource_id: ascentId.toString(),
       });
     }

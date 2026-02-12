@@ -216,6 +216,7 @@
     "commentedAscent": "commented on your ascent on '{{routeName}}'",
     "commentedAscentPlural": "commented on your ascent on '{{routeName}}'",
     "sentMessage": "sent you a message",
+    "mention": "mentioned you in a comment on '{{routeName}}'",
     "andOthers": "{{count}} others",
     "unknown": "new notification"
   },

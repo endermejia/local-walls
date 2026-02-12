@@ -216,6 +216,7 @@
     "commentedAscent": "ha comentado en tu encadene en '{{routeName}}'",
     "commentedAscentPlural": "han comentado en tu encadene en '{{routeName}}'",
     "sentMessage": "te ha enviado un mensaje",
+    "mention": "te ha mencionado en un comentario en '{{routeName}}'",
     "andOthers": "otros {{count}}",
     "unknown": "nueva notificación"
   },
