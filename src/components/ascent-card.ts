@@ -7,17 +7,22 @@ import {
   input,
   output,
   resource,
+  signal,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
+import { TuiItem } from '@taiga-ui/cdk';
 import { TuiAppearance, TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
   TuiAvatar,
   TuiBadge,
+  TuiCarousel,
   TuiConfirmData,
+  TuiPagination,
   TuiRating,
 } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
@@ -39,6 +44,7 @@ import { AscentLikesComponent } from './ascent-likes';
 import { AvatarGradeComponent } from './avatar-grade';
 import { AvatarAscentTypeComponent } from './avatar-ascent-type';
 import { AscentLastCommentComponent } from './ascent-last-comment';
+import { getEmbedUrl } from '../utils/video-helpers';
 
 @Component({
   selector: 'app-ascent-card',
@@ -57,8 +63,11 @@ import { AscentLastCommentComponent } from './ascent-last-comment';
     TuiAvatar,
     TuiBadge,
     TuiButton,
+    TuiCarousel,
     TuiHeader,
     TuiIcon,
+    TuiItem,
+    TuiPagination,
     TuiRating,
   ],
   template: `
@@ -164,18 +173,71 @@ import { AscentLastCommentComponent } from './ascent-last-comment';
         }
       </header>
 
-      @if (ascentPhotoUrl(); as photoUrl) {
-        <div class="w-full rounded-2xl overflow-hidden">
-          <img
-            [src]="photoUrl"
-            class="w-full h-auto"
-            [alt]="ascent.route?.name || 'Ascent photo'"
-            [loading]="priority() ? 'eager' : 'lazy'"
-            [attr.fetchpriority]="priority() ? 'high' : null"
-            width="600"
-            height="800"
-          />
-        </div>
+      @if (mediaItems(); as items) {
+        @if (items.length > 1) {
+          <div class="w-full relative">
+            <tui-carousel
+              [style.--tui-carousel-height]="'auto'"
+              [(index)]="index"
+              class="w-full"
+            >
+              @for (item of items; track $index) {
+                <ng-container *tuiItem>
+                  <div
+                    class="w-full rounded-2xl overflow-hidden aspect-square sm:aspect-video flex items-center justify-center bg-black"
+                  >
+                    @if (item.type === 'image') {
+                      <img
+                        [src]="item.url"
+                        class="w-full h-full object-cover"
+                        [alt]="ascent.route?.name || 'Ascent photo'"
+                        [loading]="priority() ? 'eager' : 'lazy'"
+                        [attr.fetchpriority]="priority() ? 'high' : null"
+                      />
+                    } @else {
+                      <iframe
+                        [src]="item.url"
+                        class="w-full h-full"
+                        frameborder="0"
+                        allowfullscreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      ></iframe>
+                    }
+                  </div>
+                </ng-container>
+              }
+            </tui-carousel>
+            <tui-pagination
+              size="s"
+              class="mt-2"
+              [length]="items.length"
+              [(index)]="index"
+            />
+          </div>
+        } @else if (items.length === 1) {
+          <div
+            class="w-full rounded-2xl overflow-hidden aspect-square sm:aspect-video flex items-center justify-center bg-black"
+          >
+            @let item = items[0];
+            @if (item.type === 'image') {
+              <img
+                [src]="item.url"
+                class="w-full h-full object-cover"
+                [alt]="ascent.route?.name || 'Ascent photo'"
+                [loading]="priority() ? 'eager' : 'lazy'"
+                [attr.fetchpriority]="priority() ? 'high' : null"
+              />
+            } @else {
+              <iframe
+                [src]="item.url"
+                class="w-full h-full"
+                frameborder="0"
+                allowfullscreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              ></iframe>
+            }
+          </div>
+        }
       }
 
       <div class="flex flex-col gap-1">
@@ -272,6 +334,7 @@ export class AscentCardComponent {
   protected readonly climbingIcons = CLIMBING_ICONS;
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
+  protected readonly sanitizer = inject(DomSanitizer);
   private readonly ascentsService = inject(AscentsService);
   private readonly followsService = inject(FollowsService);
   private readonly translate = inject(TranslateService);
@@ -286,6 +349,8 @@ export class AscentCardComponent {
   followEvent = output<string>();
   unfollowEvent = output<string>();
 
+  protected index = 0;
+
   protected readonly ascentPhotoResource = resource({
     params: () => this.data().photo_path,
     loader: async ({ params: path }) => {
@@ -296,6 +361,28 @@ export class AscentCardComponent {
   protected readonly ascentPhotoUrl = computed(() =>
     this.ascentPhotoResource.value(),
   );
+
+  protected readonly mediaItems = computed(() => {
+    const items: {
+      type: 'image' | 'video';
+      url: string | SafeResourceUrl;
+    }[] = [];
+    const photo = this.ascentPhotoUrl();
+    if (photo) {
+      items.push({ type: 'image', url: photo });
+    }
+    const video = this.data().video_url;
+    if (video) {
+      const embed = getEmbedUrl(video);
+      if (embed) {
+        items.push({
+          type: 'video',
+          url: this.sanitizer.bypassSecurityTrustResourceUrl(embed),
+        });
+      }
+    }
+    return items;
+  });
 
   editAscent() {
     this.ascentsService.openAscentForm({ ascentData: this.data() }).subscribe();
