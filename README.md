@@ -26,10 +26,9 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Next Steps
 
-- **Apuntar pegues en una via (que no salgan en el feed para otros usuarios)**
+- **Optimizar imagenes para mejor rendimiento. En avatar y fotos de los ascents**
+- **Corregir service worker**
 - **Calendario de volumen, para entrenamiento, etc**
-- **El admin debe poder hacer Sync del area con 8a.nu, actualizando los crags y routes**
-- **Tanto sync como import deben traer tambien los datos de boulders y no solo sportclimbing**
 
 ## Future Features
 
