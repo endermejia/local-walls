@@ -181,20 +181,36 @@ export class MessagingService {
     if (commonRoomId) return commonRoomId;
 
     // Create new room
-    const { data: newRoom, error: roomError } = await this.supabase.client
+    // Fix: Generate ID client-side to avoid RLS issue where we can't select the room
+    // immediately because we are not yet a participant.
+    const newRoomId = crypto.randomUUID();
+
+    const { error: roomError } = await this.supabase.client
       .from('chat_rooms')
-      .insert({})
-      .select()
-      .single();
+      .insert({ id: newRoomId });
 
-    if (roomError) return null;
+    if (roomError) {
+      console.error('[MessagingService] create room error', roomError);
+      return null;
+    }
 
-    await this.supabase.client.from('chat_participants').insert([
-      { room_id: newRoom.id, user_id: userId },
-      { room_id: newRoom.id, user_id: otherUserId },
-    ]);
+    const { error: participantError } = await this.supabase.client
+      .from('chat_participants')
+      .insert([
+        { room_id: newRoomId, user_id: userId },
+        { room_id: newRoomId, user_id: otherUserId },
+      ]);
 
-    return newRoom.id;
+    if (participantError) {
+      console.error(
+        '[MessagingService] create participants error',
+        participantError,
+      );
+      // Clean up room if participants failed?
+      return null;
+    }
+
+    return newRoomId;
   }
 
   async markAsRead(roomId: string): Promise<void> {
