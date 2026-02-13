@@ -180,33 +180,16 @@ export class MessagingService {
 
     if (commonRoomId) return commonRoomId;
 
-    // Create new room
-    // Fix: Generate ID client-side to avoid RLS issue where we can't select the room
-    // immediately because we are not yet a participant.
-    const newRoomId = crypto.randomUUID();
+    // Create new room using the secure RPC function
+    const { data: newRoomId, error } = await (this.supabase.client.rpc as any)(
+      'create_chat_room',
+      {
+        other_user_id: otherUserId,
+      },
+    );
 
-    const { error: roomError } = await this.supabase.client
-      .from('chat_rooms')
-      .insert({ id: newRoomId });
-
-    if (roomError) {
-      console.error('[MessagingService] create room error', roomError);
-      return null;
-    }
-
-    const { error: participantError } = await this.supabase.client
-      .from('chat_participants')
-      .insert([
-        { room_id: newRoomId, user_id: userId },
-        { room_id: newRoomId, user_id: otherUserId },
-      ]);
-
-    if (participantError) {
-      console.error(
-        '[MessagingService] create participants error',
-        participantError,
-      );
-      // Clean up room if participants failed?
+    if (error) {
+      console.error('[MessagingService] create room error', error);
       return null;
     }
 
