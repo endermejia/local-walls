@@ -69,6 +69,8 @@ export interface ImageEditorConfig {
   allowFree?: boolean;
   // If provided, the output image will be resized to this width
   resizeToWidth?: number;
+  // Output image quality (0-100), defaults to 92
+  imageQuality?: number;
   // Topo drawing specific
   allowDrawing?: boolean;
   topoRoutes?: TopoRouteWithRoute[];
@@ -157,7 +159,7 @@ export interface ImageEditorConfig {
               [canvasRotation]="canvasRotation"
               [transform]="transform"
               [alignImage]="'center'"
-              [imageQuality]="92"
+              [imageQuality]="imageQuality"
               format="webp"
               (imageCropped)="imageCropped($event)"
               (imageLoaded)="imageLoadedCallback($event)"
@@ -608,6 +610,7 @@ export class ImageEditorDialogComponent {
   forceAspectRatio = false;
   allowFree = true;
   resizeToWidth = 2048;
+  imageQuality = 92;
 
   constructor(
     @Inject(POLYMORPHEUS_CONTEXT)
@@ -622,6 +625,7 @@ export class ImageEditorDialogComponent {
     this.forceAspectRatio = !!data.forceAspectRatio;
     this.allowFree = data.allowFree !== undefined ? data.allowFree : true;
     this.resizeToWidth = data.resizeToWidth || 2048;
+    this.imageQuality = data.imageQuality || 92;
     this.maintainAspectRatio =
       data.maintainAspectRatio !== undefined ? data.maintainAspectRatio : true;
     this.allowDrawing = !!data.allowDrawing;

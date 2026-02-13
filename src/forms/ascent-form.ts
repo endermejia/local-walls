@@ -1055,6 +1055,8 @@ export default class AscentFormComponent {
         { titleKey: '16:9', descriptionKey: '16:9', ratio: 16 / 9 },
       ],
       allowFree: false,
+      resizeToWidth: 1600,
+      imageQuality: 80,
     };
 
     if (!data.file && !data.imageUrl) {
