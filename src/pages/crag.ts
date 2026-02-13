@@ -439,7 +439,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                               "
                               alt="topo"
                               class="w-full h-48 object-cover rounded shadow-sm"
-                              loading="lazy"
+                              [attr.loading]="'lazy'"
                               decoding="async"
                             />
                           }

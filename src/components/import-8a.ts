@@ -655,7 +655,7 @@ export class Import8aComponent {
       };
 
       // 1.1 Parallel fetching for unique areas (limit concurrency to 5)
-      const AREA_CONCURRENCY = 5;
+      const AREA_CONCURRENCY = 2;
       for (let i = 0; i < uniqueAreas.length; i += AREA_CONCURRENCY) {
         const batch = uniqueAreas.slice(i, i + AREA_CONCURRENCY);
         await Promise.all(
@@ -687,7 +687,7 @@ export class Import8aComponent {
         );
       }
 
-      const SECTOR_CONCURRENCY = 3; // Lower concurrency for routes as it's heavier
+      const SECTOR_CONCURRENCY = 1; // Lower concurrency for routes as it's heavier
       for (
         let i = 0;
         i < uniqueSectorsToFetch.length;

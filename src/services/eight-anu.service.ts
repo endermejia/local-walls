@@ -189,59 +189,60 @@ export class EightAnuService {
 
       if (!firstResponse?.items) return [];
 
-      let allRoutes = [...firstResponse.items];
-      const hasNext = firstResponse.pagination?.hasNext ?? false;
+      const allRoutes = [...firstResponse.items];
+      const pagination = firstResponse.pagination;
 
-      if (!hasNext) return allRoutes;
+      if (!pagination || !pagination.hasNext || pagination.pageCount <= 1) {
+        return allRoutes;
+      }
 
-      // 2. Prepare remaining pages
-      // Based on 8a.nu API, we don't know the exact total pages easy, but we can guess or use the pagination.
-      // Usually pagination has a 'count' or 'total'? Let's check headers or response.
-      // If we don't have totalCount, we fetch in chunks or until we find an empty page.
-      // To keep it safe and parallel, we can fetch next 5 pages in parallel, if they have content, we continue.
+      // 2. Fetch remaining pages
+      const totalPages = pagination.pageCount;
+      const CONCURRENCY = 3;
+      const DELAY_MS = 300;
 
-      let pageIndex = 1;
-      let shouldContinue = true;
-      const CHUNK_SIZE = 10; // Parallel degree
+      // Ensure we don't go overboard if pageCount is huge (e.g. > 50)
+      // Cap at 50 pages for safety? user reported pageIndex=36, so let's allow up to 100
+      const maxPages = Math.min(totalPages, 100);
 
-      while (shouldContinue) {
-        const pageIndices = Array.from(
-          { length: CHUNK_SIZE },
-          (_, i) => pageIndex + i,
-        );
+      const remainingPages = Array.from(
+        { length: maxPages - 1 },
+        (_, i) => i + 1,
+      );
+
+      for (let i = 0; i < remainingPages.length; i += CONCURRENCY) {
+        const chunk = remainingPages.slice(i, i + CONCURRENCY);
+
+        // Add delay between chunks to avoid 429s
+        if (i > 0) {
+          await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
+        }
+
         const results = await Promise.all(
-          pageIndices.map((idx) =>
+          chunk.map((idx) =>
             firstValueFrom(
               this.getRoutes(category, countrySlug, cragSlug, idx),
               { defaultValue: null },
-            ).catch(() => null),
+            ).catch((err) => {
+              console.warn(
+                `[8a.nu] Failed to fetch page ${idx} for ${cragSlug}:`,
+                err,
+              );
+              return null;
+            }),
           ),
         );
 
-        let addedInThisBatch = 0;
         for (const res of results) {
           if (res?.items && res.items.length > 0) {
-            allRoutes = [...allRoutes, ...res.items];
-            addedInThisBatch++;
+            allRoutes.push(...res.items);
           }
         }
-
-        // If a batch ended or some page was empty, we might be at the end
-        // However, 8a.nu pagination is a bit tricky. If one page is empty, the rest are likely too.
-        if (
-          addedInThisBatch < CHUNK_SIZE ||
-          results.some((r) => !r?.items?.length)
-        ) {
-          shouldContinue = false;
-        }
-
-        pageIndex += CHUNK_SIZE;
-        if (pageIndex > 200) break; // Safety
       }
 
       return allRoutes;
     } catch (e) {
-      console.error('[8a.nu] Error in getAllRoutes parallel:', e);
+      console.error('[8a.nu] Error in getAllRoutes:', e);
       return [];
     }
   }

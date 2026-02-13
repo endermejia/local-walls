@@ -17,10 +17,17 @@ export interface PhotoViewerData {
       (touchmove.zoneless)="onTouchMove($any($event))"
       (touchend.zoneless)="onTouchEnd()"
       (click)="context.completeWith()"
+      (keydown.enter)="context.completeWith()"
+      (keydown.space)="context.completeWith()"
+      tabindex="0"
+      role="button"
     >
       <div
-        class="relative transition-transform duration-75 ease-out"
+        class="relative transition-transform duration-75 ease-out outline-none"
+        tabindex="-1"
         (click)="$event.stopPropagation()"
+        (keydown.enter)="$event.stopPropagation()"
+        (keydown.space)="$event.stopPropagation()"
         [style.transform]="
           'translate(' +
           zoomPosition().x +
