@@ -186,12 +186,23 @@ export class SupabaseService {
   /**
    * Gets a signed URL for an ascent photo stored in the private "route-ascent-photos" bucket.
    */
-  async getAscentSignedUrl(path: string | null | undefined): Promise<string> {
+  async getAscentSignedUrl(
+    path: string | null | undefined,
+    options?: {
+      transform?: {
+        width?: number;
+        height?: number;
+        resize?: 'cover' | 'contain' | 'fill';
+        quality?: number;
+        format?: 'origin';
+      };
+    },
+  ): Promise<string> {
     if (!path) return '';
     if (path.startsWith('http')) return path;
     const { data, error } = await this.client.storage
       .from('route-ascent-photos')
-      .createSignedUrl(path, 3600); // 1 hour
+      .createSignedUrl(path, 3600, options); // 1 hour
     if (error) {
       console.error('[SupabaseService] getAscentSignedUrl error', error);
       return '';

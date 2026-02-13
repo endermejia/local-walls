@@ -655,7 +655,10 @@ export default class AscentFormComponent {
     },
     loader: async ({ params: path }) => {
       if (!path) return null;
-      return this.supabase.getAscentSignedUrl(path);
+      // Optimize for form preview: resize to 300px width
+      return this.supabase.getAscentSignedUrl(path, {
+        transform: { width: 300, quality: 60 },
+      });
     },
   });
   protected readonly existingPhotoUrl = computed(() =>
@@ -1046,17 +1049,30 @@ export default class AscentFormComponent {
   }
 
   async editPhoto(file?: File | null, imageUrl?: string): Promise<void> {
+    let urlToEdit = imageUrl;
+
+    // If editing existing photo, fetch full resolution
+    if (!file && imageUrl && this.existingPhotoUrl() === imageUrl) {
+      const data = this.effectiveAscentData();
+      if (data?.photo_path) {
+        const fullUrl = await this.supabase.getAscentSignedUrl(data.photo_path);
+        if (fullUrl) {
+          urlToEdit = fullUrl;
+        }
+      }
+    }
+
     const data = {
       file: file ?? undefined,
-      imageUrl: imageUrl ?? undefined,
+      imageUrl: urlToEdit ?? undefined,
       aspectRatios: [
         { titleKey: '1:1', descriptionKey: '1:1', ratio: 1 },
         { titleKey: '4:5', descriptionKey: '4:5', ratio: 4 / 5 },
         { titleKey: '16:9', descriptionKey: '16:9', ratio: 16 / 9 },
       ],
       allowFree: false,
-      resizeToWidth: 1600,
-      imageQuality: 80,
+      resizeToWidth: 1200,
+      imageQuality: 75,
     };
 
     if (!data.file && !data.imageUrl) {

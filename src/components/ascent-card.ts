@@ -377,7 +377,10 @@ export class AscentCardComponent {
     params: () => this.data().photo_path,
     loader: async ({ params: path }) => {
       if (!path) return null;
-      return this.supabase.getAscentSignedUrl(path);
+      // Optimize for feed: resize to 600px width (suitable for 360px rendered on retina), quality 60
+      return this.supabase.getAscentSignedUrl(path, {
+        transform: { width: 600, quality: 60 },
+      });
     },
   });
   protected readonly ascentPhotoUrl = computed(() =>
@@ -414,12 +417,24 @@ export class AscentCardComponent {
     this.ascentsService.openAscentForm({ ascentData: this.data() }).subscribe();
   }
 
-  showEnlargedPhoto(url: string | SafeResourceUrl): void {
+  async showEnlargedPhoto(url: string | SafeResourceUrl): Promise<void> {
     if (typeof url !== 'string') return;
+
+    let fullUrl = url;
+    const path = this.data().photo_path;
+
+    // effective URL for viewing might be different (full res)
+    if (path) {
+      // Fetch full resolution URL
+      const signed = await this.supabase.getAscentSignedUrl(path);
+      if (signed) {
+        fullUrl = signed;
+      }
+    }
 
     void this.dialogs
       .open(new PolymorpheusComponent(PhotoViewerDialogComponent), {
-        data: { imageUrl: url },
+        data: { imageUrl: fullUrl },
         size: 'l',
         appearance: 'flat',
       })
