@@ -1,4 +1,4 @@
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -56,7 +56,6 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
     AvatarAscentTypeComponent,
     AvatarGradeComponent,
     CommonModule,
-    NgOptimizedImage,
     FormsModule,
     ReactiveFormsModule,
     RouterLink,
@@ -187,24 +186,21 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
                 <ng-container *tuiItem>
                   <div
                     class="w-full overflow-hidden flex items-center justify-center bg-black rounded-none sm:rounded-2xl relative"
-                    [ngClass]="
-                      hasVideo()
-                        ? 'aspect-video'
-                        : 'aspect-square sm:aspect-video'
-                    "
+                    [ngClass]="{
+                      'aspect-video': item.type === 'video',
+                    }"
                   >
                     @if (item.type === 'image') {
                       <img
-                        [ngSrc]="item.url"
-                        class="w-full h-full object-cover cursor-pointer"
+                        [src]="item.url"
+                        class="w-full h-auto object-contain cursor-pointer"
                         [alt]="ascent.route?.name || 'Ascent photo'"
-                        [priority]="priority()"
+                        [attr.loading]="priority() ? 'eager' : 'lazy'"
                         (click)="showEnlargedPhoto(item.url)"
                         (keydown.enter)="showEnlargedPhoto(item.url)"
                         (keydown.space)="showEnlargedPhoto(item.url)"
                         tabindex="0"
                         role="button"
-                        fill
                       />
                     } @else {
                       <iframe
@@ -232,22 +228,21 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
           @let item = items[0];
           <div
             class="overflow-hidden flex items-center justify-center bg-black -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl relative"
-            [ngClass]="
-              hasVideo() ? 'aspect-video' : 'aspect-square sm:aspect-video'
-            "
+            [ngClass]="{
+              'aspect-video': item.type === 'video',
+            }"
           >
             @if (item.type === 'image') {
               <img
-                [ngSrc]="item.url"
-                class="w-full h-full object-cover cursor-pointer"
+                [src]="item.url"
+                class="w-full h-auto object-contain cursor-pointer"
                 [alt]="ascent.route?.name || 'Ascent photo'"
-                [priority]="priority()"
+                [attr.loading]="priority() ? 'eager' : 'lazy'"
                 (click)="showEnlargedPhoto(item.url)"
                 (keydown.enter)="showEnlargedPhoto(item.url)"
                 (keydown.space)="showEnlargedPhoto(item.url)"
                 tabindex="0"
                 role="button"
-                fill
               />
             } @else {
               <iframe
@@ -408,10 +403,6 @@ export class AscentCardComponent {
     }
     return items;
   });
-
-  protected readonly hasVideo = computed(() =>
-    this.mediaItems().some((item) => item.type === 'video'),
-  );
 
   editAscent() {
     this.ascentsService.openAscentForm({ ascentData: this.data() }).subscribe();

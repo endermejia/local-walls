@@ -12,11 +12,12 @@ import { TuiAvatar } from '@taiga-ui/kit';
 import { firstValueFrom } from 'rxjs';
 
 import { AscentsService, SupabaseService } from '../services';
+import { MentionLinkPipe } from '../pipes/mention-link.pipe';
 
 @Component({
   selector: 'app-ascent-last-comment',
   standalone: true,
-  imports: [CommonModule, TuiAvatar],
+  imports: [CommonModule, TuiAvatar, MentionLinkPipe],
   template: `
     @if (lastCommentResource.value(); as comment) {
       <div
@@ -38,9 +39,10 @@ import { AscentsService, SupabaseService } from '../services';
             {{ comment.user_profiles.name }}
           </span>
         </div>
-        <p class="text-xs line-clamp-2 break-words pl-1 opacity-90">
-          {{ comment.comment }}
-        </p>
+        <p
+          class="text-xs line-clamp-2 break-words pl-1 opacity-90"
+          [innerHTML]="comment.comment | mentionLink"
+        ></p>
       </div>
     }
   `,

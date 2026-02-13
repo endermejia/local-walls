@@ -3,10 +3,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  ElementRef,
   HostListener,
   inject,
   resource,
   signal,
+  ViewChild,
+  effect,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -14,10 +17,8 @@ import { Router, RouterLink } from '@angular/router';
 import {
   TuiButton,
   TuiFallbackSrcPipe,
-  TuiLabel,
   TuiLoader,
   TuiScrollbar,
-  TuiTextfield,
 } from '@taiga-ui/core';
 import { TuiDialogContext, TuiDialogService } from '@taiga-ui/experimental';
 import { TUI_CONFIRM, TuiAvatar, TuiConfirmData } from '@taiga-ui/kit';
@@ -47,8 +48,6 @@ export interface AscentCommentsDialogData {
     TranslatePipe,
     TuiButton,
     TuiScrollbar,
-    TuiTextfield,
-    TuiLabel,
     TuiLoader,
     TuiAvatar,
     TuiFallbackSrcPipe,
@@ -127,66 +126,106 @@ export interface AscentCommentsDialogData {
         </div>
       </tui-scrollbar>
 
-      <div class="p-4 border-t border-[var(--tui-border-normal)] relative">
-        <tui-textfield
-          class="w-full"
-          tuiTextfieldSize="m"
-          [tuiTextfieldCleaner]="false"
+      <div
+        #container
+        class="p-4 border-t border-[var(--tui-border-normal)] relative"
+      >
+        <label class="text-[13px] font-bold opacity-70 mb-2 block">
+          {{ 'labels.addComment' | translate }}
+        </label>
+
+        <div
+          class="relative bg-[var(--tui-background-base)] border border-[var(--tui-border-normal)] rounded-xl flex items-end p-2 gap-2 focus-within:ring-2 focus-within:ring-[var(--tui-text-action)] transition-shadow"
         >
-          <label tuiLabel for="new-comment">
-            {{ 'labels.addComment' | translate }}
-          </label>
-          <input
-            tuiTextfield
-            id="new-comment"
-            autocomplete="off"
-            placeholder="..."
-            [(ngModel)]="newComment"
-            (keyup.enter)="onAddComment()"
-            (input)="onInput($event)"
-            [disabled]="sending()"
-          />
+          <div
+            #editor
+            contenteditable="true"
+            class="outline-none grow max-h-32 overflow-y-auto whitespace-pre-wrap break-words text-sm py-2 px-1"
+            (input)="onEditorInput()"
+            (click)="onEditorInput()"
+            (keyup)="onEditorInput()"
+            (keydown)="onEditorKeydown($event)"
+            role="textbox"
+            aria-multiline="true"
+          ></div>
+
+          @if (isEditorEmpty()) {
+            <span
+              class="absolute top-4 left-3 pointer-events-none text-[var(--tui-text-tertiary)] text-sm"
+              >...</span
+            >
+          }
+
           <button
             tuiButton
             type="button"
             appearance="primary"
             size="s"
             iconStart="@tui.send"
+            class="flex-none mb-0.5"
             (click)="onAddComment()"
-            [disabled]="!newComment().trim() || sending()"
+            [disabled]="isEditorEmpty() || sending()"
           >
             <span class="hidden md:block">
               {{ 'actions.send' | translate }}
             </span>
           </button>
-        </tui-textfield>
+        </div>
 
         @if (showMentions() && mentionUsers().length > 0) {
           <div
-            class="absolute bottom-full mb-2 w-full max-h-48 overflow-y-auto shadow-lg bg-[var(--tui-background-base)] border border-[var(--tui-border-normal)] rounded-lg z-10 left-0"
+            class="absolute bottom-full mb-2 w-64 max-w-full shadow-lg bg-[var(--tui-background-base)] border border-[var(--tui-border-normal)] rounded-lg z-10 overflow-hidden"
+            [style.left.px]="mentionPopupLeft()"
           >
-            @for (user of mentionUsers(); track user.id) {
-              <button
-                type="button"
-                (click)="selectUser(user)"
-                class="flex items-center gap-2 p-2 w-full text-left hover:bg-[var(--tui-base-02)] transition-colors cursor-pointer"
-              >
-                <tui-avatar
-                  [src]="
-                    supabase.buildAvatarUrl(user.avatar)
-                      | tuiFallbackSrc: '@tui.user'
-                      | async
-                  "
-                  size="xs"
-                />
-                <span class="text-sm font-medium">{{ user.name }}</span>
-              </button>
-            }
+            <tui-scrollbar class="max-h-48">
+              <div #mentionList class="flex flex-col">
+                @for (user of mentionUsers(); track user.id; let i = $index) {
+                  <button
+                    type="button"
+                    (mousedown)="$event.preventDefault(); selectUser(user)"
+                    class="flex items-center gap-2 p-2 w-full text-left transition-colors cursor-pointer"
+                    [class.bg-gray-100]="i === selectedMentionIndex()"
+                    [class.dark:bg-gray-800]="i === chosenIdx()"
+                    [class.hover:bg-gray-50]="i !== selectedMentionIndex()"
+                    [class.dark:hover:bg-gray-700]="
+                      i !== selectedMentionIndex()
+                    "
+                  >
+                    <tui-avatar
+                      [src]="
+                        supabase.buildAvatarUrl(user.avatar)
+                          | tuiFallbackSrc: '@tui.user'
+                          | async
+                      "
+                      size="xs"
+                    />
+                    <span class="text-sm font-medium">{{ user.name }}</span>
+                  </button>
+                }
+              </div>
+            </tui-scrollbar>
           </div>
         }
       </div>
     </div>
   `,
+  styles: [
+    `
+      :host ::ng-deep .mention-pill {
+        color: var(--tui-text-primary-on-accent-1);
+        background-color: var(--tui-text-action);
+        border-radius: 12px;
+        padding: 0 6px;
+        margin: 0 1px;
+        display: inline-block;
+        font-weight: bold;
+        font-size: 0.9em;
+        line-height: 1.4;
+        user-select: none;
+        vertical-align: baseline;
+      }
+    `,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AscentCommentsDialogComponent {
@@ -199,13 +238,20 @@ export class AscentCommentsDialogComponent {
   protected readonly context =
     injectContext<TuiDialogContext<void, AscentCommentsDialogData>>();
 
+  @ViewChild('editor') editorRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('container') containerRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('mentionList') mentionListRef?: ElementRef<HTMLDivElement>;
+
   protected readonly ascentId = this.context.data.ascentId;
-  protected readonly newComment = signal('');
   protected readonly sending = signal(false);
+  protected readonly isEditorEmpty = signal(true);
 
   // Mention logic
   protected readonly showMentions = signal(false);
   protected readonly mentionQuery = signal('');
+  protected readonly selectedMentionIndex = signal(0);
+  protected readonly mentionPopupLeft = signal(0); // Offset in pixels
+
   protected readonly mentionUsersResource = resource({
     params: () => this.mentionQuery(),
     loader: async ({ params: query }) => {
@@ -216,6 +262,9 @@ export class AscentCommentsDialogComponent {
   protected readonly mentionUsers = computed(
     () => this.mentionUsersResource.value() ?? [],
   );
+
+  // Helper computed for cleaner template checks (though standard signal access is fine)
+  protected readonly chosenIdx = this.selectedMentionIndex;
 
   protected readonly commentsResource = resource({
     params: () => this.ascentId,
@@ -229,8 +278,215 @@ export class AscentCommentsDialogComponent {
     this.commentsResource.isLoading(),
   );
 
+  constructor() {
+    // Reset selection when users change
+    effect(() => {
+      this.mentionUsers();
+      this.selectedMentionIndex.set(0);
+      // Ensure we scroll to top when list updates
+      setTimeout(() => {
+        if (this.mentionListRef?.nativeElement) {
+          const first =
+            this.mentionListRef.nativeElement.querySelector('button');
+          first?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        }
+      });
+    });
+  }
+
+  protected onEditorInput() {
+    this.checkEmpty();
+    this.checkForMentions();
+  }
+
+  protected onEditorKeydown(event: KeyboardEvent) {
+    if (this.showMentions() && this.mentionUsers().length > 0) {
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        this.selectedMentionIndex.update(
+          (i) => (i + 1) % this.mentionUsers().length,
+        );
+        this.scrollToSelectedMention();
+        return;
+      }
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        this.selectedMentionIndex.update(
+          (i) =>
+            (i - 1 + this.mentionUsers().length) % this.mentionUsers().length,
+        );
+        this.scrollToSelectedMention();
+        return;
+      }
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        const users = this.mentionUsers();
+        if (users[this.selectedMentionIndex()]) {
+          this.selectUser(users[this.selectedMentionIndex()]);
+        }
+        return;
+      }
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        this.showMentions.set(false);
+        return;
+      }
+    }
+
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.onAddComment();
+    }
+  }
+
+  private scrollToSelectedMention() {
+    // Use setTimeout to allow DOM to update class styles first, though not strictly necessary if manual calc
+    setTimeout(() => {
+      if (!this.mentionListRef) return;
+      const container = this.mentionListRef.nativeElement;
+      const buttons = container.querySelectorAll('button');
+      const selectedButton = buttons[
+        this.selectedMentionIndex()
+      ] as HTMLElement;
+
+      if (selectedButton) {
+        selectedButton.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    });
+  }
+
+  private checkEmpty() {
+    if (!this.editorRef) return;
+    const text = this.editorRef.nativeElement.textContent?.trim();
+    this.isEditorEmpty.set(!text);
+  }
+
+  private checkForMentions() {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      this.showMentions.set(false);
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const node = range.startContainer;
+
+    if (node.nodeType === Node.TEXT_NODE && node.textContent) {
+      const textBeforeCursor = node.textContent.substring(0, range.startOffset);
+      const lastAt = textBeforeCursor.lastIndexOf('@');
+
+      if (lastAt !== -1) {
+        const query = textBeforeCursor.substring(lastAt + 1);
+        // Only allow simple names without spaces (or minimal spaces) to avoid false positives
+        if (query.length >= 0 && query.length < 20) {
+          this.mentionQuery.set(query);
+          this.showMentions.set(true);
+
+          try {
+            // Calculate Position
+            const rect = range.getBoundingClientRect();
+            const containerRect =
+              this.containerRef.nativeElement.getBoundingClientRect();
+
+            // Position relative to the container
+            let relativeLeft = rect.left - containerRect.left;
+
+            // Clamp so it doesn't go off screen (horizontally)
+            const dropdownWidth = 256; // w-64
+            const containerWidth = containerRect.width;
+
+            if (relativeLeft + dropdownWidth > containerWidth) {
+              relativeLeft = containerWidth - dropdownWidth;
+            }
+            if (relativeLeft < 0) {
+              relativeLeft = 0;
+            }
+
+            this.mentionPopupLeft.set(relativeLeft);
+          } catch (e) {
+            console.error('Error calculating caret position', e);
+          }
+          return;
+        }
+      }
+    }
+
+    this.showMentions.set(false);
+  }
+
+  protected selectUser(user: UserProfileDto) {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    // We need to restore range if lost (not likely with mousedown preventDefault, but good to check)
+    // Actually, simple input might have moved cursor if not careful, but usually okay.
+
+    const range = selection.getRangeAt(0);
+    const node = range.startContainer;
+
+    if (node.nodeType === Node.TEXT_NODE && node.textContent) {
+      const textBeforeCursor = node.textContent.substring(0, range.startOffset);
+      const lastAt = textBeforeCursor.lastIndexOf('@');
+
+      if (lastAt !== -1) {
+        // Create range for the query string including @
+        const mentionRange = document.createRange();
+        mentionRange.setStart(node, lastAt);
+        mentionRange.setEnd(node, range.startOffset);
+        mentionRange.deleteContents();
+
+        // Create the mention pill
+        const pill = document.createElement('span');
+        pill.className = 'mention-pill';
+        pill.contentEditable = 'false';
+        pill.setAttribute('data-id', user.id);
+        pill.innerText = `@${user.name}`;
+
+        // Insert pill
+        mentionRange.insertNode(pill);
+
+        // Insert a space after
+        const space = document.createTextNode('\u00A0');
+        mentionRange.setStartAfter(pill);
+        mentionRange.insertNode(space);
+
+        // Move cursor after space
+        mentionRange.setStartAfter(space);
+        mentionRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(mentionRange);
+
+        this.showMentions.set(false);
+        this.mentionQuery.set('');
+        this.checkEmpty();
+      }
+    }
+  }
+
+  private getCommentContent(): string {
+    if (!this.editorRef) return '';
+    const clone = this.editorRef.nativeElement.cloneNode(true) as HTMLElement;
+
+    // Convert pills to markdown syntax
+    const pills = clone.querySelectorAll('.mention-pill');
+    pills.forEach((pill) => {
+      const id = pill.getAttribute('data-id');
+      const name = pill.textContent?.replace('@', '').trim();
+      if (id && name) {
+        const textNode = document.createTextNode(`@[${name}](${id})`);
+        pill.replaceWith(textNode);
+      }
+    });
+
+    // Handle breaks and paragraphs if any
+    let text = clone.innerText || clone.textContent || '';
+
+    // Clean up
+    return text.trim();
+  }
+
   protected async onAddComment() {
-    const commentText = this.newComment().trim();
+    const commentText = this.getCommentContent();
     if (!commentText || this.sending()) return;
 
     this.sending.set(true);
@@ -240,7 +496,10 @@ export class AscentCommentsDialogComponent {
         commentText,
       );
       if (result) {
-        this.newComment.set('');
+        if (this.editorRef) {
+          this.editorRef.nativeElement.innerHTML = '';
+          this.checkEmpty();
+        }
         this.commentsResource.reload();
       }
     } finally {
@@ -248,54 +507,9 @@ export class AscentCommentsDialogComponent {
     }
   }
 
-  protected onInput(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const value = input.value;
-    const cursor = input.selectionStart || 0;
-
-    // Find the word being typed
-    const textBeforeCursor = value.slice(0, cursor);
-    const lastAt = textBeforeCursor.lastIndexOf('@');
-
-    if (lastAt !== -1) {
-      const query = textBeforeCursor.slice(lastAt + 1);
-      // Ensure no spaces in the query (simple mention logic)
-      if (!query.includes(' ') && query.length > 0) {
-        this.mentionQuery.set(query);
-        this.showMentions.set(true);
-        return;
-      }
-    }
-
-    this.showMentions.set(false);
-  }
-
-  protected selectUser(user: UserProfileDto) {
-    const currentComment = this.newComment();
-    const query = this.mentionQuery();
-    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-    // Replace the last occurrence of @query before cursor (or just last one)
-    // For simplicity, we assume the user is typing at the end or we replace the last matching pattern
-    // A more robust way would use selectionStart, but newComment signal might not be perfectly synced with DOM selection immediately
-    // Let's use a regex replacement for the last occurrence of `@query`
-    const regex = new RegExp(`@${escapedQuery}(?=[^@]*$)`);
-    const newValue = currentComment.replace(
-      regex,
-      `@[${user.name}](${user.id}) `,
-    );
-
-    this.newComment.set(newValue);
-    this.showMentions.set(false);
-    this.mentionQuery.set('');
-
-    // Refocus input (optional, might need ElementRef)
-  }
-
   @HostListener('click', ['$event'])
   onClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    // Check if the clicked element is a mention link
     const link = target.closest('.mention-link');
     if (link) {
       event.preventDefault();
