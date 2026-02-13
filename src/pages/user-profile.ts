@@ -1037,7 +1037,7 @@ export class UserProfileComponent {
     // Guard for activeTab index when switching between own profile and others
     effect(() => {
       const isOwn = this.isOwnProfile();
-      if (!isOwn && this.activeTab() > 1) {
+      if (!isOwn && this.activeTab() > 2) {
         this.activeTab.set(0);
       }
     });
