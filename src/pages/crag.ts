@@ -492,7 +492,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                       {{ 'labels.parkings' | translate }}
                     </h2>
                   </div>
-                  @if (global.userProfile()) {
+                  @if (global.editingMode()) {
                     <div
                       class="flex gap-2 flex-wrap sm:flex-nowrap justify-end"
                     >

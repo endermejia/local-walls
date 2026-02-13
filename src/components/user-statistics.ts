@@ -198,7 +198,6 @@ interface RouteScore {
         border-radius: var(--tui-radius-xs);
         overflow: hidden;
         max-width: 100%;
-        width: 100%;
       }
 
       .bar-seg {
@@ -400,12 +399,15 @@ interface RouteScore {
 
                   <!-- Bars Right -->
                   <div class="bars-col">
-                    <div class="stacked-bar">
+                    <div
+                      class="stacked-bar"
+                      [style.width.%]="(row.total / dist.maxCount) * 100"
+                    >
                       <!-- RP -->
                       @if (row.rp > 0) {
                         <div
                           class="bar-seg redpoint"
-                          [style.width.%]="(row.rp / dist.maxCount) * 100"
+                          [style.width.%]="(row.rp / row.total) * 100"
                           [tuiHint]="
                             ('ascentTypes.rp' | translate) + ': ' + row.rp
                           "
@@ -415,7 +417,7 @@ interface RouteScore {
                       @if (row.flash > 0) {
                         <div
                           class="bar-seg flash"
-                          [style.width.%]="(row.flash / dist.maxCount) * 100"
+                          [style.width.%]="(row.flash / row.total) * 100"
                           [tuiHint]="
                             ('ascentTypes.f' | translate) + ': ' + row.flash
                           "
@@ -425,7 +427,7 @@ interface RouteScore {
                       @if (row.os > 0) {
                         <div
                           class="bar-seg onsight"
-                          [style.width.%]="(row.os / dist.maxCount) * 100"
+                          [style.width.%]="(row.os / row.total) * 100"
                           [tuiHint]="
                             ('ascentTypes.os' | translate) + ': ' + row.os
                           "
