@@ -184,12 +184,12 @@ export interface AscentCommentsDialogData {
                     type="button"
                     (mousedown)="$event.preventDefault(); selectUser(user)"
                     class="flex items-center gap-2 p-2 w-full text-left transition-colors cursor-pointer"
-                    [class.bg-gray-100]="i === selectedMentionIndex()"
-                    [class.dark:bg-gray-800]="i === chosenIdx()"
-                    [class.hover:bg-gray-50]="i !== selectedMentionIndex()"
-                    [class.dark:hover:bg-gray-700]="
-                      i !== selectedMentionIndex()
-                    "
+                    [class]="{
+                      'bg-[var(--tui-background-neutral-1)]':
+                        i === selectedMentionIndex(),
+                      'hover:bg-[var(--tui-background-neutral-1)]':
+                        i !== selectedMentionIndex(),
+                    }"
                   >
                     <tui-avatar
                       [src]="
