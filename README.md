@@ -29,6 +29,10 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 - **Optimizar imagenes para mejor rendimiento. En avatar y fotos de los ascents**
 - **Corregir service worker**
 - **Calendario de volumen, para entrenamiento, etc**
+- **E2E Testing (Playwright)**: Implement comprehensive end-to-end tests for critical user flows like authentication, logging ascents, and map interaction.
+- **CI/CD Pipeline**: Setup GitHub Actions for automated linting, testing, and build verification on Pull Requests.
+- **Strict Mode Compliance**: Audit and enforce strict TypeScript checks to improve code reliability.
+- **Virtual Scrolling**: Optimize large lists (feeds, logbooks) using virtual scrolling techniques to improve mobile performance.
 
 ## Future Features
 
@@ -42,6 +46,11 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
   - Develop a data persistence strategy (e.g., IndexedDB) for offline route browsing and ascent logging.
   - Implement Background Sync for queued offline actions (likes, comments, ascents).
   - Enable map tile caching for offline navigation in climbing areas.
+- **Ticklist / Project System**: Allow users to mark routes as "Projects" (to-do) distinct from "Ascents" (done).
+- **Advanced Analytics Dashboard**: Visualizations for grade progression, style preference, and yearly volume.
+- **Social Sharing (SEO)**: Implement dynamic Open Graph tags for rich previews when sharing routes/ascents on social media.
+- **Community Moderation**: Tools for reporting inappropriate content and managing blocks effectively.
+- **Direct Video Upload**: Support for uploading beta videos directly (in addition to YouTube links).
 
 ## Navigation
 
