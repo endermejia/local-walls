@@ -42,7 +42,7 @@ import {
 import { AscentCommentsComponent } from './ascent-comments';
 import { AscentLikesComponent } from './ascent-likes';
 import { AvatarGradeComponent } from './avatar-grade';
-import { AvatarAscentTypeComponent } from './avatar-ascent-type';
+import { AscentTypeComponent } from './ascent-type';
 import { AscentLastCommentComponent } from './ascent-last-comment';
 import { getEmbedUrl } from '../utils/video-helpers';
 import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
@@ -53,7 +53,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
     AscentCommentsComponent,
     AscentLastCommentComponent,
     AscentLikesComponent,
-    AvatarAscentTypeComponent,
+    AscentTypeComponent,
     AvatarGradeComponent,
     CommonModule,
     FormsModule,
@@ -295,14 +295,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
               <app-avatar-grade [grade]="ascentGrade" size="s" />
             }
             @if (ascent.type; as ascentType) {
-              <div class="flex items-center gap-1">
-                <app-avatar-ascent-type [type]="ascentType" size="xs" />
-                <span
-                  class="px-2 py-0.5 bg-[var(--tui-background-neutral-1)] rounded text-[10px] uppercase font-bold"
-                >
-                  {{ 'ascentTypes.' + ascentType | translate }}
-                </span>
-              </div>
+              <app-ascent-type [type]="ascentType" size="xs" />
             }
             @if (ascent.rate) {
               <tui-rating

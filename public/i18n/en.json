@@ -173,7 +173,8 @@
     "showMore": "Show more",
     "score": "Score",
     "date": "Date",
-    "style": "Style"
+    "style": "Style",
+    "points": "Points"
   },
   "auth": {
     "login": "Sign in",

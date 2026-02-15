@@ -173,7 +173,8 @@
     "showMore": "Mostrar más",
     "score": "Puntos",
     "date": "Fecha",
-    "style": "Estilo"
+    "style": "Estilo",
+    "points": "Puntos"
   },
   "auth": {
     "login": "Iniciar sesión",

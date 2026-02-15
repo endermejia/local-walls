@@ -34,11 +34,15 @@ import {
   VERTICAL_LIFE_GRADES,
   UserAscentStatRecord,
 } from '../models';
-import { DecimalPipe, PercentPipe } from '@angular/common';
+import { DecimalPipe, PercentPipe, LowerCasePipe } from '@angular/common';
+
+import { AvatarGradeComponent } from './avatar-grade';
+import { AscentTypeComponent } from './ascent-type';
 
 interface RouteScore {
   name: string;
   gradeLabel: string;
+  gradeId?: number;
   score: number;
   type: AscentType;
   areaSlug: string;
@@ -65,8 +69,11 @@ interface RouteScore {
     TranslatePipe,
     DecimalPipe,
     PercentPipe,
+    LowerCasePipe,
     RouterLink,
     TuiButton,
+    AvatarGradeComponent,
+    AscentTypeComponent,
   ],
   styles: [
     `
@@ -187,190 +194,304 @@ interface RouteScore {
           <div
             class="bg-[var(--tui-background-base-alt)] rounded-2xl p-6 text-center border border-[var(--tui-border-normal)]"
           >
-            <div class="text-[var(--tui-text-tertiary)] uppercase text-sm font-bold tracking-wider mb-2">
+            <div
+              class="text-[var(--tui-text-tertiary)] uppercase text-sm font-bold tracking-wider mb-2"
+            >
               {{ 'statistics.totalScore' | translate }}
             </div>
             <div class="text-6xl font-black tabular-nums tracking-tight">
               {{ totalScore() | number }}
             </div>
             <div class="text-[var(--tui-text-tertiary)] mt-2 text-sm">
-               {{ 'statistics.top10Ascents' | translate }}
+              {{ 'statistics.top10Ascents' | translate }}
             </div>
           </div>
 
           <!-- Key Stats Grid -->
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-[var(--tui-background-base-alt)] p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1">
-               <div class="text-3xl font-bold">{{ gradeDistribution().total }}</div>
-               <div class="text-xs uppercase opacity-70 font-semibold">{{ 'labels.ascents' | translate }}</div>
+            <div
+              class="bg-[var(--tui-background-base-alt)] p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1"
+            >
+              <div class="text-3xl font-bold">
+                {{ gradeDistribution().total }}
+              </div>
+              <div class="text-xs uppercase opacity-70 font-semibold">
+                {{ 'labels.ascents' | translate }}
+              </div>
             </div>
-            <div class="bg-[var(--tui-background-base-alt)] p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1">
-               <div class="text-3xl font-bold text-[var(--tui-status-negative)]">{{ maxRedpoint() || '-' }}</div>
-               <div class="text-xs uppercase opacity-70 font-semibold">{{ 'ascentTypes.rp' | translate }}</div>
+            <div
+              class="bg-[var(--tui-background-base-alt)] p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1"
+            >
+              <div class="text-3xl font-bold text-[var(--tui-status-negative)]">
+                {{ maxRedpoint() || '-' }}
+              </div>
+              <div class="text-xs uppercase opacity-70 font-semibold">
+                {{ 'ascentTypes.rp' | translate }}
+              </div>
             </div>
-            <div class="bg-[var(--tui-background-base-alt)] p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1">
-               <div class="text-3xl font-bold text-[var(--tui-status-positive)]">{{ maxOnsight() || '-' }}</div>
-               <div class="text-xs uppercase opacity-70 font-semibold">{{ 'ascentTypes.os' | translate }}</div>
+            <div
+              class="bg-[var(--tui-background-base-alt)] p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1"
+            >
+              <div class="text-3xl font-bold text-[var(--tui-status-positive)]">
+                {{ maxOnsight() || '-' }}
+              </div>
+              <div class="text-xs uppercase opacity-70 font-semibold">
+                {{ 'ascentTypes.os' | translate }}
+              </div>
             </div>
-            <div class="bg-[var(--tui-background-base-alt)] p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1">
-               <div class="text-3xl font-bold text-[var(--tui-status-warning)]">{{ maxFlash() || '-' }}</div>
-               <div class="text-xs uppercase opacity-70 font-semibold">{{ 'ascentTypes.f' | translate }}</div>
+            <div
+              class="bg-[var(--tui-background-base-alt)] p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1"
+            >
+              <div class="text-3xl font-bold text-[var(--tui-status-warning)]">
+                {{ maxFlash() || '-' }}
+              </div>
+              <div class="text-xs uppercase opacity-70 font-semibold">
+                {{ 'ascentTypes.f' | translate }}
+              </div>
             </div>
           </div>
 
           <!-- Charts Row -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Grade Pyramid -->
-            <div class="lg:col-span-2 bg-[var(--tui-background-base-alt)] p-6 rounded-2xl border border-[var(--tui-border-normal)]">
-              <h3 class="font-bold text-lg mb-4">{{ 'statistics.gradePyramid' | translate }}</h3>
+            <div
+              class="lg:col-span-2 bg-[var(--tui-background-base-alt)] p-6 rounded-2xl border border-[var(--tui-border-normal)]"
+            >
+              <h3 class="font-bold text-lg mb-4">
+                {{ 'statistics.gradePyramid' | translate }}
+              </h3>
 
               @let dist = gradeDistribution();
               @if (dist.total > 0) {
                 <div class="flex flex-col gap-2">
                   @for (row of dist.rows; track row.gradeLabel) {
-                    <div class="grid grid-cols-[3rem_1fr_3rem] gap-3 items-center text-sm">
-                      <div class="font-bold text-right text-[var(--tui-text-secondary)]">{{ row.gradeLabel }}</div>
-                      <div class="h-6 flex rounded overflow-hidden bg-[var(--tui-background-neutral-1)] relative">
-                         <!-- Background bar for context -->
-                         <div class="absolute inset-0 opacity-10 bg-current"></div>
-
-                         <!-- Segments -->
-                         @if (row.rp > 0) {
-                           <div class="bg-[var(--tui-status-negative)] h-full transition-all duration-500"
-                                [style.width.%]="(row.rp / dist.maxCount) * 100"
-                                [tuiHint]="('ascentTypes.rp' | translate) + ': ' + row.rp">
-                           </div>
-                         }
-                         @if (row.flash > 0) {
-                           <div class="bg-[var(--tui-status-warning)] h-full transition-all duration-500"
-                                [style.width.%]="(row.flash / dist.maxCount) * 100"
-                                [tuiHint]="('ascentTypes.f' | translate) + ': ' + row.flash">
-                           </div>
-                         }
-                         @if (row.os > 0) {
-                           <div class="bg-[var(--tui-status-positive)] h-full transition-all duration-500"
-                                [style.width.%]="(row.os / dist.maxCount) * 100"
-                                [tuiHint]="('ascentTypes.os' | translate) + ': ' + row.os">
-                           </div>
-                         }
+                    <div
+                      class="grid grid-cols-[3rem_1fr_3rem] gap-3 items-center text-sm"
+                    >
+                      <div
+                        class="font-bold text-center text-[var(--tui-text-secondary)]"
+                      >
+                        {{ row.gradeLabel }}
                       </div>
-                      <div class="font-mono text-left opacity-70">{{ row.total }}</div>
+                      <div
+                        class="h-6 flex rounded overflow-hidden relative mx-auto"
+                        [style.width.%]="(row.total / dist.maxCount) * 100"
+                      >
+                        <!-- Background bar for context - Optional, maybe remove if pyramid shape is desired without track. 
+                             If we keep it, it should be 100% of this container. -->
+                        <div
+                          class="absolute inset-0 opacity-10 bg-[var(--tui-text-primary)]"
+                        ></div>
+
+                        <!-- Segments -->
+                        @if (row.rp > 0) {
+                          <div
+                            class="bg-[var(--tui-status-negative)] h-full transition-all duration-500"
+                            [style.width.%]="(row.rp / row.total) * 100"
+                            [tuiHint]="
+                              ('ascentTypes.rp' | translate) + ': ' + row.rp
+                            "
+                          ></div>
+                        }
+                        @if (row.flash > 0) {
+                          <div
+                            class="bg-[var(--tui-status-warning)] h-full transition-all duration-500"
+                            [style.width.%]="(row.flash / row.total) * 100"
+                            [tuiHint]="
+                              ('ascentTypes.f' | translate) + ': ' + row.flash
+                            "
+                          ></div>
+                        }
+                        @if (row.os > 0) {
+                          <div
+                            class="bg-[var(--tui-status-positive)] h-full transition-all duration-500"
+                            [style.width.%]="(row.os / row.total) * 100"
+                            [tuiHint]="
+                              ('ascentTypes.os' | translate) + ': ' + row.os
+                            "
+                          ></div>
+                        }
+                      </div>
+                      <div class="font-mono text-center opacity-70">
+                        {{ row.total }}
+                      </div>
                     </div>
                   }
 
                   @if (dist.hasMore && !showAllGrades()) {
                     <div class="flex justify-center mt-4">
-                       <button tuiButton appearance="secondary" size="s" (click)="showAllGrades.set(true)">
-                          {{ 'labels.showMore' | translate }}
-                       </button>
+                      <button
+                        tuiButton
+                        appearance="secondary"
+                        size="s"
+                        (click)="showAllGrades.set(true)"
+                      >
+                        {{ 'labels.showMore' | translate }}
+                      </button>
                     </div>
                   }
                 </div>
               } @else {
-                <div class="opacity-50 text-center py-10">{{ 'statistics.noData' | translate }}</div>
+                <div class="opacity-50 text-center py-10">
+                  {{ 'statistics.noData' | translate }}
+                </div>
               }
             </div>
 
             <!-- Style Distribution -->
-            <div class="bg-[var(--tui-background-base-alt)] p-6 rounded-2xl border border-[var(--tui-border-normal)] flex flex-col items-center">
-               <h3 class="font-bold text-lg mb-4 self-start">{{ 'statistics.styleDistribution' | translate }}</h3>
+            <div
+              class="bg-[var(--tui-background-base-alt)] p-6 rounded-2xl border border-[var(--tui-border-normal)] flex flex-col items-center"
+            >
+              <h3 class="font-bold text-lg mb-4 self-start">
+                {{ 'statistics.styleDistribution' | translate }}
+              </h3>
 
-               @let styleDist = ascentTypeDistribution();
-               @if (styleDist.total > 0) {
-                  <div class="relative w-48 h-48 my-4">
-                    <tui-ring-chart
-                      [value]="[styleDist.os, styleDist.flash, styleDist.rp]"
-                      size="l"
-                      class="w-full h-full"
-                    >
-                      <div class="text-center">
-                         <div class="text-2xl font-bold">{{ styleDist.total }}</div>
-                         <div class="text-xs uppercase opacity-70">{{ 'labels.ascents' | translate }}</div>
+              @let styleDist = ascentTypeDistribution();
+              @if (styleDist.total > 0) {
+                <div class="relative w-48 h-48 my-4">
+                  <tui-ring-chart
+                    [value]="[styleDist.os, styleDist.flash, styleDist.rp]"
+                    size="l"
+                    class="w-full h-full"
+                  >
+                    <div class="text-center">
+                      <div class="text-2xl font-bold">
+                        {{ styleDist.total }}
                       </div>
-                    </tui-ring-chart>
-                  </div>
+                      <div class="text-xs uppercase opacity-70">
+                        {{ 'labels.ascents' | translate }}
+                      </div>
+                    </div>
+                  </tui-ring-chart>
+                </div>
 
-                  <div class="flex flex-col gap-2 w-full mt-4">
-                     <tui-legend-item
-                       size="s"
-                       text="{{ 'ascentTypes.os' | translate }}"
-                       class="!text-[var(--tui-status-positive)]"
-                     >
-                       <span class="font-mono ml-auto">{{ styleDist.os }} ({{ styleDist.os / styleDist.total | percent:'1.0-1' }})</span>
-                     </tui-legend-item>
-                     <tui-legend-item
-                       size="s"
-                       text="{{ 'ascentTypes.f' | translate }}"
-                       class="!text-[var(--tui-status-warning)]"
-                     >
-                        <span class="font-mono ml-auto">{{ styleDist.flash }} ({{ styleDist.flash / styleDist.total | percent:'1.0-1' }})</span>
-                     </tui-legend-item>
-                     <tui-legend-item
-                       size="s"
-                       text="{{ 'ascentTypes.rp' | translate }}"
-                       class="!text-[var(--tui-status-negative)]"
-                     >
-                        <span class="font-mono ml-auto">{{ styleDist.rp }} ({{ styleDist.rp / styleDist.total | percent:'1.0-1' }})</span>
-                     </tui-legend-item>
-                  </div>
-               } @else {
-                  <div class="opacity-50 text-center py-10">{{ 'statistics.noData' | translate }}</div>
-               }
+                <div class="flex flex-col gap-2 w-full mt-4">
+                  <tui-legend-item
+                    size="s"
+                    text="{{ 'ascentTypes.os' | translate }}"
+                    class="!text-[var(--tui-status-positive)]"
+                  >
+                    <span class="font-mono ml-auto"
+                      >{{ styleDist.os }} ({{
+                        styleDist.os / styleDist.total | percent: '1.0-1'
+                      }})</span
+                    >
+                  </tui-legend-item>
+                  <tui-legend-item
+                    size="s"
+                    text="{{ 'ascentTypes.f' | translate }}"
+                    class="!text-[var(--tui-status-warning)]"
+                  >
+                    <span class="font-mono ml-auto"
+                      >{{ styleDist.flash }} ({{
+                        styleDist.flash / styleDist.total | percent: '1.0-1'
+                      }})</span
+                    >
+                  </tui-legend-item>
+                  <tui-legend-item
+                    size="s"
+                    text="{{ 'ascentTypes.rp' | translate }}"
+                    class="!text-[var(--tui-status-negative)]"
+                  >
+                    <span class="font-mono ml-auto"
+                      >{{ styleDist.rp }} ({{
+                        styleDist.rp / styleDist.total | percent: '1.0-1'
+                      }})</span
+                    >
+                  </tui-legend-item>
+                </div>
+              } @else {
+                <div class="opacity-50 text-center py-10">
+                  {{ 'statistics.noData' | translate }}
+                </div>
+              }
             </div>
           </div>
 
           <!-- Top 10 Routes Table -->
-          <div class="bg-[var(--tui-background-base-alt)] rounded-2xl border border-[var(--tui-border-normal)] overflow-hidden">
-             <div class="p-6 border-b border-[var(--tui-border-normal)]">
-                <h3 class="font-bold text-lg">{{ 'statistics.top10Ascents' | translate }}</h3>
-             </div>
+          <div
+            class="bg-[var(--tui-background-base-alt)] rounded-2xl border border-[var(--tui-border-normal)] overflow-hidden"
+          >
+            <div class="p-6 border-b border-[var(--tui-border-normal)]">
+              <h3 class="font-bold text-lg">
+                {{ 'statistics.top10Ascents' | translate }}
+              </h3>
+            </div>
 
-             @let topRoutesList = topRoutes();
-             @if (topRoutesList.length > 0) {
-                <div class="overflow-x-auto">
-                   <table class="w-full text-sm text-left">
-                      <thead class="text-xs uppercase bg-[var(--tui-background-neutral-1)] text-[var(--tui-text-secondary)]">
-                         <tr>
-                            <th class="px-6 py-3">#</th>
-                            <th class="px-6 py-3">{{ 'labels.route' | translate }}</th>
-                            <th class="px-6 py-3">{{ 'labels.grade' | translate }}</th>
-                            <th class="px-6 py-3">{{ 'labels.style' | translate }}</th>
-                            <th class="px-6 py-3 text-right">{{ 'labels.points' | translate }}</th>
-                         </tr>
-                      </thead>
-                      <tbody class="divide-y divide-[var(--tui-border-normal)]">
-                         @for (route of topRoutesList; track $index) {
-                            <tr class="hover:bg-[var(--tui-background-neutral-1)] transition-colors">
-                               <td class="px-6 py-4 opacity-50">{{ $index + 1 }}</td>
-                               <td class="px-6 py-4 font-medium">
-                                  <a [routerLink]="['/area', route.areaSlug, route.cragSlug, route.routeSlug]"
-                                     class="hover:underline hover:text-[var(--tui-primary)] transition-colors">
-                                     {{ route.name || ('labels.anonymous' | translate) }}
-                                  </a>
-                               </td>
-                               <td class="px-6 py-4 font-bold">{{ route.gradeLabel }}</td>
-                               <td class="px-6 py-4">
-                                  <span [class.text-[var(--tui-status-positive)]]="route.type === 'os'"
-                                        [class.text-[var(--tui-status-warning)]]="route.type === 'f'"
-                                        [class.text-[var(--tui-status-negative)]]="route.type === 'rp'">
-                                     {{ ('ascentTypes.' + (route.type || 'rp')) | translate }}
-                                  </span>
-                               </td>
-                               <td class="px-6 py-4 text-right font-mono">{{ route.score | number }}</td>
-                            </tr>
-                         }
-                      </tbody>
-                   </table>
-                </div>
-             } @else {
-                <div class="p-6 text-center opacity-50">{{ 'statistics.noData' | translate }}</div>
-             }
+            @let topRoutesList = topRoutes();
+            @if (topRoutesList.length > 0) {
+              <div
+                class="flex flex-col divide-y divide-[var(--tui-border-normal)]"
+              >
+                @for (route of topRoutesList; track $index) {
+                  <div
+                    class="flex items-center gap-4 p-4 hover:bg-[var(--tui-background-neutral-1)] transition-colors"
+                  >
+                    <!-- Rank -->
+                    <div
+                      class="text-xl font-black opacity-30 w-6 text-center flex-none"
+                    >
+                      {{ $index + 1 }}
+                    </div>
+
+                    <div class="flex flex-col grow min-w-0 gap-1">
+                      <!-- Top Row: Name + Score -->
+                      <div class="flex items-start justify-between gap-3">
+                        <a
+                          [routerLink]="[
+                            '/area',
+                            route.areaSlug,
+                            route.cragSlug,
+                            route.routeSlug,
+                          ]"
+                          class="font-bold truncate hover:underline hover:text-[var(--tui-primary)] text-[var(--tui-text-primary)] min-w-0"
+                        >
+                          {{ route.name || ('labels.anonymous' | translate) }}
+                        </a>
+                        <div
+                          class="font-mono font-bold text-[var(--tui-text-primary)] shrink-0 text-right"
+                        >
+                          {{ route.score | number }}
+                          <span
+                            class="text-[10px] opacity-60 font-sans font-normal block leading-none"
+                            >{{ 'labels.points' | translate | lowercase }}</span
+                          >
+                        </div>
+                      </div>
+
+                      <!-- Bottom Row: Grade + Style -->
+                      <div class="flex items-center gap-2 text-sm">
+                        @if (route.gradeId) {
+                          <app-avatar-grade [grade]="route.gradeId" size="xs" />
+                        } @else {
+                          <span
+                            class="font-bold bg-[var(--tui-text-primary)] text-[var(--tui-text-primary-on-accent-1)] px-1.5 rounded-md text-xs"
+                          >
+                            {{ route.gradeLabel }}
+                          </span>
+                        }
+
+                        <app-ascent-type [type]="route.type" size="xs" />
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="p-6 text-center opacity-50">
+                {{ 'statistics.noData' | translate }}
+              </div>
+            }
           </div>
 
           <!-- Yearly Trend -->
-          <div class="bg-[var(--tui-background-base-alt)] p-6 rounded-2xl border border-[var(--tui-border-normal)]">
+          <div
+            class="bg-[var(--tui-background-base-alt)] p-6 rounded-2xl border border-[var(--tui-border-normal)]"
+          >
             <header class="mb-4">
-              <h3 class="font-bold text-lg">{{ 'statistics.sportClimbingTrend' | translate }}</h3>
+              <h3 class="font-bold text-lg">
+                {{ 'statistics.sportClimbingTrend' | translate }}
+              </h3>
             </header>
 
             @if (trendData().years.length > 0) {
@@ -532,27 +653,31 @@ export class UserStatisticsComponent {
 
   // 2. Max Grades (RP, OS, Flash)
   maxRedpoint = computed(() => this.getMaxGrade(this.stats(), ['rp']));
-  maxOnsight = computed(() => this.getMaxGrade(this.stats(), ['os', 'onsight']));
+  maxOnsight = computed(() =>
+    this.getMaxGrade(this.stats(), ['os', 'onsight']),
+  );
   maxFlash = computed(() => this.getMaxGrade(this.stats(), ['f', 'flash']));
 
   // 3. Ascent Type Distribution
   ascentTypeDistribution = computed(() => {
-     const stats = this.stats();
-     let os = 0, flash = 0, rp = 0;
+    const stats = this.stats();
+    let os = 0,
+      flash = 0,
+      rp = 0;
 
-     stats.forEach(a => {
-        const type = (a.ascent_type || 'rp').toLowerCase();
-        if (type === 'os' || type === 'onsight') os++;
-        else if (type === 'f' || type === 'flash') flash++;
-        else rp++;
-     });
+    stats.forEach((a) => {
+      const type = (a.ascent_type || 'rp').toLowerCase();
+      if (type === 'os' || type === 'onsight') os++;
+      else if (type === 'f' || type === 'flash') flash++;
+      else rp++;
+    });
 
-     return {
-        os,
-        flash,
-        rp,
-        total: stats.length
-     };
+    return {
+      os,
+      flash,
+      rp,
+      total: stats.length,
+    };
   });
 
   constructor() {
@@ -562,22 +687,25 @@ export class UserStatisticsComponent {
     });
   }
 
-  private getMaxGrade(ascents: UserAscentStatRecord[], types: string[]): string | null {
-     let maxGradeId = -1;
-     ascents.forEach(a => {
-        const type = (a.ascent_type || 'rp').toLowerCase();
-        if (types.includes(type)) {
-           const gradeId = a.ascent_grade || a.route_grade;
-           if (gradeId && gradeId > maxGradeId) {
-              maxGradeId = gradeId;
-           }
+  private getMaxGrade(
+    ascents: UserAscentStatRecord[],
+    types: string[],
+  ): string | null {
+    let maxGradeId = -1;
+    ascents.forEach((a) => {
+      const type = (a.ascent_type || 'rp').toLowerCase();
+      if (types.includes(type)) {
+        const gradeId = a.ascent_grade || a.route_grade;
+        if (gradeId && gradeId > maxGradeId) {
+          maxGradeId = gradeId;
         }
-     });
+      }
+    });
 
-     if (maxGradeId !== -1) {
-        return VERTICAL_LIFE_TO_LABEL[maxGradeId as VERTICAL_LIFE_GRADES] || null;
-     }
-     return null;
+    if (maxGradeId !== -1) {
+      return VERTICAL_LIFE_TO_LABEL[maxGradeId as VERTICAL_LIFE_GRADES] || null;
+    }
+    return null;
   }
 
   private filterAscentsByDate(
@@ -780,6 +908,7 @@ export class UserStatisticsComponent {
           name,
           gradeLabel:
             VERTICAL_LIFE_TO_LABEL[gradeId as VERTICAL_LIFE_GRADES] || '?',
+          gradeId: gradeId as number,
           score: this.getScore(gradeId, (a.ascent_type || 'rp') as AscentType),
           type: (a.ascent_type || 'rp') as AscentType,
           areaSlug: a.area_slug || '',
