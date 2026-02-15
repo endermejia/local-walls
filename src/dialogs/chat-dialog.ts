@@ -231,7 +231,7 @@ export interface ChatDialogData {
                 "
                 [(ngModel)]="newMessage"
                 (keydown.enter)="onEnter($event)"
-                [disabled]="sending() || isRequestPending()"
+                [disabled]="isRequestPending()"
                 maxlength="250"
               ></textarea>
               <button
@@ -241,9 +241,7 @@ export interface ChatDialogData {
                 size="s"
                 iconStart="@tui.send"
                 (click)="onSendMessage()"
-                [disabled]="
-                  !newMessage().trim() || sending() || isRequestPending()
-                "
+                [disabled]="!newMessage().trim() || isRequestPending()"
                 class="mt-auto mb-1"
               >
                 <span class="hidden md:block">
@@ -622,22 +620,39 @@ export class ChatDialogComponent implements OnDestroy {
       !room ||
       !text ||
       text.length > 250 ||
-      this.sending() ||
       this.isRequestPending()
     )
       return;
 
-    this.sending.set(true);
+    const tempId = crypto.randomUUID();
+    const optimisticMsg: ChatMessageDto = {
+      id: tempId,
+      room_id: room.id,
+      sender_id: this.supabase.authUserId()!,
+      text,
+      created_at: new Date().toISOString(),
+      read_at: null,
+    };
+
+    this.newMessage.set('');
+    this.accumulatedMessages.update((prev) => [optimisticMsg, ...prev]);
+    this.scrollToBottom();
+    this.focusTextarea();
+
     try {
       const msg = await this.messagingService.sendMessage(room.id, text);
       if (msg) {
-        this.newMessage.set('');
-        this.accumulatedMessages.update((prev) => [msg, ...prev]);
-        this.scrollToBottom();
+        this.accumulatedMessages.update((prev) =>
+          prev.map((m) => (m.id === tempId ? msg : m)),
+        );
+      } else {
+        throw new Error('Failed to send');
       }
-    } finally {
-      this.sending.set(false);
-      this.focusTextarea();
+    } catch {
+      this.accumulatedMessages.update((prev) =>
+        prev.filter((m) => m.id !== tempId),
+      );
+      this.toast.error('errors.unexpected');
     }
   }
 
