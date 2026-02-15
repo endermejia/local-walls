@@ -170,7 +170,10 @@
     "zoomOut": "Alejar",
     "statistics": "Estadísticas",
     "today": "Hoy",
-    "showMore": "Mostrar más"
+    "showMore": "Mostrar más",
+    "score": "Puntos",
+    "date": "Fecha",
+    "style": "Estilo"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -696,6 +699,11 @@
   "statistics": {
     "gradeDistribution": "Pirámide de Grado",
     "sportClimbingTrend": "Evolución Deportiva",
-    "noData": "No hay datos disponibles"
+    "noData": "No hay datos disponibles",
+    "totalScore": "Puntuación total",
+    "top10Ascents": "Top 10 Encadenes",
+    "gradePyramid": "Pirámide de Grado",
+    "styleDistribution": "Distribución por Estilo",
+    "top10": "Top 10"
   }
 }
