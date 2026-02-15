@@ -130,9 +130,9 @@ export interface AscentCommentsDialogData {
         #container
         class="p-4 border-t border-[var(--tui-border-normal)] relative"
       >
-        <label class="text-[13px] font-bold opacity-70 mb-2 block">
+        <span class="text-[13px] font-bold opacity-70 mb-2 block">
           {{ 'labels.addComment' | translate }}
-        </label>
+        </span>
 
         <div
           class="relative bg-[var(--tui-background-base)] border border-[var(--tui-border-normal)] rounded-xl flex items-end p-2 gap-2 focus-within:ring-2 focus-within:ring-[var(--tui-text-action)] transition-shadow"
@@ -262,9 +262,6 @@ export class AscentCommentsDialogComponent {
   protected readonly mentionUsers = computed(
     () => this.mentionUsersResource.value() ?? [],
   );
-
-  // Helper computed for cleaner template checks (though standard signal access is fine)
-  protected readonly chosenIdx = this.selectedMentionIndex;
 
   protected readonly commentsResource = resource({
     params: () => this.ascentId,
@@ -479,7 +476,7 @@ export class AscentCommentsDialogComponent {
     });
 
     // Handle breaks and paragraphs if any
-    let text = clone.innerText || clone.textContent || '';
+    const text = clone.innerText || clone.textContent || '';
 
     // Clean up
     return text.trim();

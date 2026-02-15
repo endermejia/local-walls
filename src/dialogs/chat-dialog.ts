@@ -386,7 +386,6 @@ export class ChatDialogComponent implements OnDestroy {
   );
   protected newMessage = signal('');
   protected readonly isBlockedByMe = signal(false);
-  protected readonly sending = signal(false);
   protected readonly messagesOffset = signal(0);
   protected readonly limit = 20;
 
@@ -435,9 +434,7 @@ export class ChatDialogComponent implements OnDestroy {
     const myId = this.supabase.authUserId();
     const hasOtherUserMessages = msgs.some((m) => m.sender_id !== myId);
 
-    if (hasOtherUserMessages) return false;
-
-    return true;
+    return !hasOtherUserMessages;
   });
 
   constructor() {
@@ -616,13 +613,7 @@ export class ChatDialogComponent implements OnDestroy {
   protected async onSendMessage() {
     const room = this.selectedRoom();
     const text = this.newMessage().trim();
-    if (
-      !room ||
-      !text ||
-      text.length > 250 ||
-      this.isRequestPending()
-    )
-      return;
+    if (!room || !text || text.length > 250 || this.isRequestPending()) return;
 
     const tempId = crypto.randomUUID();
     const optimisticMsg: ChatMessageDto = {
