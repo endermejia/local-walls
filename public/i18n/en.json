@@ -170,7 +170,11 @@
     "following": "Following",
     "statistics": "Statistics",
     "today": "Today",
-    "showMore": "Show more"
+    "showMore": "Show more",
+    "score": "Score",
+    "date": "Date",
+    "style": "Style",
+    "points": "Points"
   },
   "auth": {
     "login": "Sign in",
@@ -690,6 +694,11 @@
   "statistics": {
     "gradeDistribution": "Grade Pyramid",
     "sportClimbingTrend": "Sport Climbing Trend",
-    "noData": "No data available"
+    "noData": "No data available",
+    "totalScore": "Total Score",
+    "top10Ascents": "Top 10 Ascents",
+    "gradePyramid": "Grade Pyramid",
+    "styleDistribution": "Style Distribution",
+    "top10": "Top 10"
   }
 }
