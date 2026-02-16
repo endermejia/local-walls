@@ -412,9 +412,9 @@ export class TopoFormComponent {
       if (!data?.photo || this.isExistingPhotoDeleted()) return null;
       return data.photo;
     },
-    loader: ({ params }) => {
+    loader: async ({ params }) => {
       if (!params) return null;
-      return this.supabase.getTopoUrl(params);
+      return await this.supabase.getTopoSignedUrl(params);
     },
   }).value;
 
