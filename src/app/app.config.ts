@@ -6,10 +6,12 @@ import {
 } from '@angular/common/http';
 import {
   ApplicationConfig,
+  isDevMode,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
+import { provideServiceWorker } from '@angular/service-worker';
 import {
   provideClientHydration,
   withEventReplay,
@@ -75,6 +77,10 @@ export const appConfig: ApplicationConfig = {
     provideSupabaseConfig({
       url: ENV_SUPABASE_URL,
       anonKey: ENV_SUPABASE_ANON_KEY,
+    }),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
     }),
   ],
 };

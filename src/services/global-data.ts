@@ -600,17 +600,30 @@ export class GlobalData {
       if (!isPlatformBrowser(this.platformId)) {
         return [] as AreaListItem[];
       }
+      const cacheKey = 'cached_areas_list_v1';
       try {
         await this.supabase.whenReady();
         const { data, error } =
           await this.supabase.client.rpc('get_areas_list');
         if (error) {
-          console.error('[GlobalData] areaListResource error', error);
           throw error;
         }
-        return (data as AreaListItem[]) ?? [];
+        const list = (data as AreaListItem[]) ?? [];
+        this.localStorage.setItem(cacheKey, JSON.stringify(list));
+        return list;
       } catch (e) {
-        console.error('[GlobalData] areaListResource exception', e);
+        console.warn(
+          '[GlobalData] areaListResource error/offline, trying cache',
+          e,
+        );
+        const cached = this.localStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            return JSON.parse(cached) as AreaListItem[];
+          } catch {
+            console.error('[GlobalData] Cache parse error');
+          }
+        }
         return [];
       }
     },
