@@ -287,6 +287,10 @@ export interface TopoRouteRow {
                 (touchstart.zoneless)="onTouchStart($any($event))"
                 (touchmove.zoneless)="onTouchMove($any($event))"
                 (touchend.zoneless)="onTouchEnd()"
+                (mousedown.zoneless)="onMouseDown($any($event))"
+                (mousemove.zoneless)="onMouseMove($any($event))"
+                (mouseup.zoneless)="onMouseUp()"
+                (mouseleave.zoneless)="onMouseUp()"
                 (window:keydown.arrowLeft)="selectPrevRoute()"
                 (window:keydown.arrowRight)="selectNextRoute()"
                 (window:keydown.escape)="toggleFullscreen(false)"
@@ -331,6 +335,29 @@ export interface TopoRouteRow {
                       viewBox="0 0 1 1"
                       preserveAspectRatio="none"
                     >
+                      <!-- Layer 1: Hit Areas (Bottom) -->
+                      @for (tr of renderedTopoRoutes(); track tr.route_id) {
+                        @if (tr.path && tr.path.points.length > 0) {
+                          <polyline
+                            class="pointer-events-auto cursor-pointer"
+                            (click)="
+                              onPathClick($event, tr); $event.stopPropagation()
+                            "
+                            (mouseenter)="hoveredRouteId.set(tr.route_id)"
+                            (mouseleave)="hoveredRouteId.set(null)"
+                            [attr.points]="getPointsString(tr.path)"
+                            fill="none"
+                            stroke="transparent"
+                            [attr.stroke-width]="
+                              selectedRouteId() === tr.route_id ? 0.06 : 0.025
+                            "
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                          />
+                        }
+                      }
+
+                      <!-- Layer 2: Visuals (Top) -->
                       @for (tr of renderedTopoRoutes(); track tr.route_id) {
                         @if (tr.path && tr.path.points.length > 0) {
                           <g
@@ -341,18 +368,6 @@ export interface TopoRouteRow {
                             (mouseenter)="hoveredRouteId.set(tr.route_id)"
                             (mouseleave)="hoveredRouteId.set(null)"
                           >
-                            <!-- Thicker transparent path for much easier hit detection -->
-                            <polyline
-                              [attr.points]="getPointsString(tr.path)"
-                              fill="none"
-                              stroke="transparent"
-                              [attr.stroke-width]="
-                                selectedRouteId() === tr.route_id ? 0.1 : 0.05
-                              "
-                              stroke-linejoin="round"
-                              stroke-linecap="round"
-                            />
-
                             @let fsStyle =
                               getRouteStyle(
                                 tr.path.color,
@@ -409,7 +424,7 @@ export interface TopoRouteRow {
                                 text-anchor="middle"
                                 fill="white"
                                 style="text-shadow: 0px 0px 2px rgba(0,0,0,0.8)"
-                                font-size="0.012"
+                                font-size="0.011"
                                 font-weight="bold"
                                 font-family="sans-serif"
                               >
@@ -865,6 +880,33 @@ export class TopoComponent {
     const dx = touches[0].clientX - touches[1].clientX;
     const dy = touches[0].clientY - touches[1].clientY;
     return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  protected onMouseDown(event: MouseEvent): void {
+    if (this.zoomScale() > 1) {
+      this.isPanning = true;
+      this.lastTouchPos = { x: event.clientX, y: event.clientY };
+      event.preventDefault(); // Prevent text selection/drag behavior
+    }
+  }
+
+  protected onMouseMove(event: MouseEvent): void {
+    if (this.isPanning) {
+      event.preventDefault();
+      const dx = event.clientX - this.lastTouchPos.x;
+      const dy = event.clientY - this.lastTouchPos.y;
+
+      this.zoomPosition.update((pos) => ({
+        x: pos.x + dx,
+        y: pos.y + dy,
+      }));
+
+      this.lastTouchPos = { x: event.clientX, y: event.clientY };
+    }
+  }
+
+  protected onMouseUp(): void {
+    this.isPanning = false;
   }
 
   // Route params
