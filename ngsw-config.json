@@ -24,6 +24,9 @@
       "resources": {
         "files": [
           "/assets/**",
+          "/image/**",
+          "/logo/**",
+          "/i18n/**",
           "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
         ]
       }
