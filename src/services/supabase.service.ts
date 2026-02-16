@@ -173,13 +173,39 @@ export class SupabaseService {
   async getTopoSignedUrl(path: string | null | undefined): Promise<string> {
     if (!path) return '';
     if (path.startsWith('http')) return path;
+
+    const cacheKey = `topo-url:${path}`;
+    try {
+      const cached = this.localStorage.getItem(cacheKey);
+      if (cached) {
+        const { url, expiresAt } = JSON.parse(cached);
+        if (Date.now() < expiresAt) {
+          return url;
+        }
+      }
+    } catch (e) {
+      console.warn('[SupabaseService] Error reading cached topo url', e);
+    }
+
     const { data, error } = await this.client.storage
       .from('topos')
-      .createSignedUrl(path, 3600); // 1 hour
+      .createSignedUrl(path, 31536000); // 1 year
+
     if (error) {
       console.error('[SupabaseService] getTopoSignedUrl error', error);
       return '';
     }
+
+    try {
+      const expiresAt = Date.now() + 31536000 * 1000 - 86400000; // 1 year - 1 day
+      this.localStorage.setItem(
+        cacheKey,
+        JSON.stringify({ url: data.signedUrl, expiresAt }),
+      );
+    } catch (e) {
+      console.warn('[SupabaseService] Error caching topo url', e);
+    }
+
     return data.signedUrl;
   }
 

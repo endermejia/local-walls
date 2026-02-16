@@ -43,7 +43,8 @@
     {
       "name": "supabase-storage",
       "urls": [
-        "https://eswbehepsagigvlytfxv.supabase.co/storage/v1/object/public/**"
+        "https://eswbehepsagigvlytfxv.supabase.co/storage/v1/object/public/**",
+        "https://eswbehepsagigvlytfxv.supabase.co/storage/v1/object/sign/**"
       ],
       "cacheConfig": {
         "maxSize": 1000,
