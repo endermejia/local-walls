@@ -19,6 +19,44 @@ export class FollowsService {
     this.followChange.update((v) => v + 1);
   }
 
+  private async getAllIds(
+    targetColumn: string,
+    filterColumn: string,
+    filterValue: string,
+  ): Promise<string[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+
+    let allIds: string[] = [];
+    let page = 0;
+    const pageSize = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await this.supabase.client
+        .from('user_follows')
+        .select(targetColumn)
+        .eq(filterColumn, filterValue)
+        .range(page * pageSize, (page + 1) * pageSize - 1);
+
+      if (error) {
+        console.error('[FollowsService] getAllIds error', error);
+        return [];
+      }
+
+      if (data && data.length > 0) {
+        allIds.push(...data.map((row: any) => row[targetColumn]));
+        if (data.length < pageSize) {
+          hasMore = false;
+        } else {
+          page++;
+        }
+      } else {
+        hasMore = false;
+      }
+    }
+    return allIds;
+  }
+
   async isFollowing(followedUserId: string): Promise<boolean> {
     if (!isPlatformBrowser(this.platformId)) return false;
     const userId = this.supabase.authUserId();
@@ -115,17 +153,7 @@ export class FollowsService {
     const userId = this.supabase.authUserId();
     if (!userId) return [];
 
-    const { data, error } = await this.supabase.client
-      .from('user_follows')
-      .select('followed_user_id')
-      .eq('user_id', userId);
-
-    if (error) {
-      console.error('[FollowsService] getFollowedIds error', error);
-      return [];
-    }
-
-    return data?.map((f) => f.followed_user_id) || [];
+    return this.getAllIds('followed_user_id', 'user_id', userId);
   }
 
   async getFollowersPaginated(
@@ -137,21 +165,15 @@ export class FollowsService {
     if (!isPlatformBrowser(this.platformId)) return { items: [], total: 0 };
 
     // 1. Get all follower IDs (no pagination here to allow filtering by name in next step)
-    const { data: follows, error: followsError } = await this.supabase.client
-      .from('user_follows')
-      .select('user_id')
-      .eq('followed_user_id', userId);
+    const followerIds = await this.getAllIds(
+      'user_id',
+      'followed_user_id',
+      userId,
+    );
 
-    if (followsError || !follows || follows.length === 0) {
-      if (followsError)
-        console.error(
-          '[FollowsService] getFollowersPaginated IDs error',
-          followsError,
-        );
+    if (followerIds.length === 0) {
       return { items: [], total: 0 };
     }
-
-    const followerIds = follows.map((f) => f.user_id);
 
     // 2. Fetch profiles with filtering and pagination
     let dbQuery = this.supabase.client
@@ -191,21 +213,15 @@ export class FollowsService {
     if (!isPlatformBrowser(this.platformId)) return { items: [], total: 0 };
 
     // 1. Get all followed user IDs
-    const { data: follows, error: followsError } = await this.supabase.client
-      .from('user_follows')
-      .select('followed_user_id')
-      .eq('user_id', userId);
+    const followedIds = await this.getAllIds(
+      'followed_user_id',
+      'user_id',
+      userId,
+    );
 
-    if (followsError || !follows || follows.length === 0) {
-      if (followsError)
-        console.error(
-          '[FollowsService] getFollowingPaginated IDs error',
-          followsError,
-        );
+    if (followedIds.length === 0) {
       return { items: [], total: 0 };
     }
-
-    const followedIds = follows.map((f) => f.followed_user_id);
 
     // 2. Fetch profiles with filtering and pagination
     let dbQuery = this.supabase.client

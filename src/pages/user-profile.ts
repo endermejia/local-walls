@@ -280,7 +280,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
               appearance="secondary"
               size="m"
               [iconStart]="following ? '@tui.bell-filled' : '@tui.bell'"
-              [tuiSkeleton]="loading"
+              [tuiSkeleton]="loading || followLoading()"
               (click)="toggleFollow()"
             >
               {{
@@ -672,6 +672,7 @@ export class UserProfileComponent {
   id = input<string | undefined>();
 
   protected dropdownOpen = signal(false);
+  protected readonly followLoading = signal(false);
 
   private readonly dialogs = inject(TuiDialogService);
 
@@ -1204,29 +1205,35 @@ export class UserProfileComponent {
   async toggleFollow(): Promise<void> {
     const profile = this.profile();
     const followedUserId = profile?.id;
-    if (!followedUserId || this.isOwnProfile()) return;
+    if (!followedUserId || this.isOwnProfile() || this.followLoading()) return;
 
-    if (this.isFollowing()) {
-      const data: TuiConfirmData = {
-        content: this.translate.instant('actions.unfollowConfirm', {
-          name: profile.name,
-        }),
-        yes: this.translate.instant('actions.unfollow'),
-        no: this.translate.instant('actions.cancel'),
-        appearance: 'negative',
-      };
-      const confirmed = await firstValueFrom(
-        this.dialogs.open<boolean>(TUI_CONFIRM, {
-          label: this.translate.instant('actions.unfollow'),
-          size: 's',
-          data,
-        }),
-        { defaultValue: false },
-      );
-      if (!confirmed) return;
-      await this.followsService.unfollow(followedUserId);
-    } else {
-      await this.followsService.follow(followedUserId);
+    this.followLoading.set(true);
+
+    try {
+      if (this.isFollowing()) {
+        const data: TuiConfirmData = {
+          content: this.translate.instant('actions.unfollowConfirm', {
+            name: profile.name,
+          }),
+          yes: this.translate.instant('actions.unfollow'),
+          no: this.translate.instant('actions.cancel'),
+          appearance: 'negative',
+        };
+        const confirmed = await firstValueFrom(
+          this.dialogs.open<boolean>(TUI_CONFIRM, {
+            label: this.translate.instant('actions.unfollow'),
+            size: 's',
+            data,
+          }),
+          { defaultValue: false },
+        );
+        if (!confirmed) return;
+        await this.followsService.unfollow(followedUserId);
+      } else {
+        await this.followsService.follow(followedUserId);
+      }
+    } finally {
+      this.followLoading.set(false);
     }
   }
 
