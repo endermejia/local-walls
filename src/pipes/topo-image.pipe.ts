@@ -8,18 +8,18 @@ import { SupabaseService } from '../services';
 export class TopoImagePipe implements PipeTransform {
   private readonly supabase = inject(SupabaseService);
 
-  async transform(
+  transform(
     input: string | null | undefined | { path: string | null; version: number },
-  ): Promise<string> {
+  ): string {
     // Extract path from input
     const path =
       typeof input === 'object' && input !== null ? input.path : input;
 
-    const signedUrl = await this.supabase.getTopoSignedUrl(path);
-    if (!signedUrl) return '';
+    const publicUrl = this.supabase.getTopoUrl(path);
+    if (!publicUrl) return '';
 
     // Add version parameter if provided
-    const url = new URL(signedUrl);
+    const url = new URL(publicUrl);
     if (typeof input === 'object' && input !== null && input.version) {
       url.searchParams.set('v', input.version.toString());
     }

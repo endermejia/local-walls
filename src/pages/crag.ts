@@ -1,4 +1,4 @@
-import { AsyncPipe, isPlatformBrowser, LowerCasePipe } from '@angular/common';
+import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -79,7 +79,6 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
 @Component({
   selector: 'app-crag',
   imports: [
-    AsyncPipe,
     ChartRoutesByGradeComponent,
     EmptyStateComponent,
     FormsModule,
@@ -434,7 +433,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                           @if (t.photo; as photo) {
                             <img
                               [src]="
-                                (photo | topoImage | async) ||
+                                (photo | topoImage) ||
                                 global.iconSrc()('topo')
                               "
                               alt="topo"
