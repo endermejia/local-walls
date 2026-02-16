@@ -1,8 +1,9 @@
-import { RouteAscentDto, UserProfileDto } from './supabase-interfaces';
+import { RouteAscentDto } from './supabase-interfaces';
 import { RouteWithExtras } from './route.model';
+import { UserProfileBasicDto } from './user.model';
 
 export interface RouteAscentWithExtras extends RouteAscentDto {
-  user?: UserProfileDto;
+  user?: UserProfileBasicDto;
   route?: RouteWithExtras;
   likes_count?: number;
   user_liked?: boolean;

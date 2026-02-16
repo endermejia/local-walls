@@ -537,7 +537,7 @@ export class RoutesService {
 
   async toggleRouteProject(
     routeId: number,
-    currentRoute?: RouteWithExtras,
+    currentRoute?: Partial<RouteWithExtras>,
   ): Promise<boolean | null> {
     if (!isPlatformBrowser(this.platformId)) return null;
     await this.supabase.whenReady();
@@ -570,7 +570,7 @@ export class RoutesService {
   private syncResources(
     routeId: number,
     changes: Partial<RouteWithExtras>,
-    currentRoute?: RouteWithExtras,
+    currentRoute?: Partial<RouteWithExtras>,
   ): void {
     const updateFn = (routes: RouteWithExtras[] | undefined) =>
       (routes ?? []).map((route) =>
@@ -587,16 +587,12 @@ export class RoutesService {
         if (isProject) {
           const exists = (current ?? []).find((route) => route.id === routeId);
           if (exists) return updateFn(current);
-          if (currentRoute) {
+          if (currentRoute && 'liked' in currentRoute) {
             return [
               ...(current ?? []),
               {
-                ...currentRoute,
+                ...(currentRoute as RouteWithExtras),
                 project: true,
-                crag_name: currentRoute.crag_name,
-                area_name: currentRoute.area_name,
-                crag_slug: currentRoute.crag_slug,
-                area_slug: currentRoute.area_slug,
               },
             ];
           }

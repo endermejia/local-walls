@@ -4,9 +4,10 @@ import {
   NotificationDto,
   UserProfileDto,
 } from './supabase-interfaces';
+import { UserProfileBasicDto } from './user.model';
 
 export interface ChatRoomWithParticipant extends ChatRoomDto {
-  participant: UserProfileDto;
+  participant: UserProfileBasicDto;
   last_message?: ChatMessageDto;
   unread_count: number;
 }

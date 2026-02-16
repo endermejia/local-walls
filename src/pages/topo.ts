@@ -983,10 +983,9 @@ export class TopoComponent {
   }
 
   protected async onToggleProject(item: TopoRouteRow): Promise<void> {
-    const routeToSync: RouteWithExtras = {
+    const routeToSync: Partial<RouteWithExtras> = {
       ...item._ref.route,
       project: !!item._ref.route.project,
-      liked: false,
     };
     await this.routesService.toggleRouteProject(
       item._ref.route_id,

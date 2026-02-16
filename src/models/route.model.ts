@@ -1,5 +1,15 @@
 import { RouteAscentDto, RouteDto } from './supabase-interfaces';
 
+export interface RouteBasicDto
+  extends Pick<RouteDto, 'id' | 'name' | 'slug' | 'grade' | 'climbing_kind'> {
+  height?: number | null;
+}
+
+export interface RouteBasicWithOwnData extends RouteBasicDto {
+  own_ascent?: RouteAscentDto | null;
+  project?: boolean;
+}
+
 export interface RouteWithExtras extends RouteDto {
   liked: boolean;
   project: boolean;

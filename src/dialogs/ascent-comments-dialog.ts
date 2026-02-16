@@ -34,7 +34,7 @@ import {
 } from '../services';
 import { EmptyStateComponent } from '../components/empty-state';
 import { MentionLinkPipe } from '../pipes/mention-link.pipe';
-import { UserProfileDto } from '../models';
+import { UserProfileBasicDto } from '../models';
 
 export interface AscentCommentsDialogData {
   ascentId: number;
@@ -411,7 +411,7 @@ export class AscentCommentsDialogComponent {
     this.showMentions.set(false);
   }
 
-  protected selectUser(user: UserProfileDto) {
+  protected selectUser(user: UserProfileBasicDto) {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
 

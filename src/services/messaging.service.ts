@@ -9,7 +9,7 @@ import {
   ChatMessageDto,
   ChatMessageInsertDto,
   ChatRoomWithParticipant,
-  UserProfileDto,
+  UserProfileBasicDto,
 } from '../models';
 
 @Injectable({
@@ -43,7 +43,7 @@ export class MessagingService {
       .select(
         `
         *,
-        participants:chat_participants(user:user_profiles(*)),
+        participants:chat_participants(user:user_profiles(id, name, avatar)),
         messages:chat_messages(text, created_at, sender_id, read_at)
       `,
       )
@@ -62,7 +62,7 @@ export class MessagingService {
       created_at: string;
       last_message_at: string;
       participants: {
-        user: UserProfileDto;
+        user: UserProfileBasicDto;
       }[];
       messages: {
         text: string;
@@ -181,7 +181,7 @@ export class MessagingService {
     if (commonRoomId) return commonRoomId;
 
     // Create new room using the secure RPC function
-    const { data: newRoomId, error } = await (this.supabase.client.rpc as any)(
+    const { data: newRoomId, error } = await this.supabase.client.rpc(
       'create_chat_room',
       {
         other_user_id: otherUserId,
