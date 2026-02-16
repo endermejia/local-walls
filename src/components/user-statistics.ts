@@ -7,7 +7,10 @@ import {
   resource,
   signal,
 } from '@angular/core';
+import { DecimalPipe, PercentPipe, LowerCasePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+
 import {
   TuiAxes,
   TuiLegendItem,
@@ -25,8 +28,9 @@ import {
 } from '@taiga-ui/core';
 import { TuiDataListWrapper, TuiSelect } from '@taiga-ui/kit';
 import { TuiPoint } from '@taiga-ui/core/types';
+
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { RouterLink } from '@angular/router';
+
 import { AscentsService } from '../services';
 import {
   AscentType,
@@ -34,10 +38,8 @@ import {
   VERTICAL_LIFE_GRADES,
   UserAscentStatRecord,
 } from '../models';
-import { DecimalPipe, PercentPipe, LowerCasePipe } from '@angular/common';
-
-import { AvatarGradeComponent } from './avatar-grade';
-import { AscentTypeComponent } from './ascent-type';
+import { CountUpDirective } from '../directives/count-up.directive';
+import { TuiHovered } from '@taiga-ui/cdk';
 
 interface RouteScore {
   name: string;
@@ -72,8 +74,8 @@ interface RouteScore {
     LowerCasePipe,
     RouterLink,
     TuiButton,
-    AvatarGradeComponent,
-    AscentTypeComponent,
+    CountUpDirective,
+    TuiHovered,
   ],
   styles: [
     `
@@ -192,15 +194,19 @@ interface RouteScore {
         <div class="grid gap-6">
           <!-- Score Card -->
           <div
-            class="bg-[var(--tui-background-base-alt)] rounded-2xl p-6 text-center border border-[var(--tui-border-normal)]"
+            class="bg-[var(--tui-background-base)] shadow-md rounded-2xl p-6 text-center border border-[var(--tui-border-normal)]"
           >
             <div
               class="text-[var(--tui-text-tertiary)] uppercase text-sm font-bold tracking-wider mb-2"
             >
               {{ 'statistics.totalScore' | translate }}
             </div>
-            <div class="text-6xl font-black tabular-nums tracking-tight">
-              {{ totalScore() | number }}
+            <div
+              class="text-6xl font-black tabular-nums tracking-tight"
+              [appCountUp]="totalScore()"
+              #totalScoreAnim="appCountUp"
+            >
+              {{ totalScoreAnim.currentValue() | number: '1.0-0' }}
             </div>
             <div class="text-[var(--tui-text-tertiary)] mt-2 text-sm">
               {{ 'statistics.top10Ascents' | translate }}
@@ -210,17 +216,21 @@ interface RouteScore {
           <!-- Key Stats Grid -->
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div
-              class="bg-[var(--tui-background-base-alt)] p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1"
+              class="bg-[var(--tui-background-base)] shadow-sm p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1"
             >
-              <div class="text-3xl font-bold">
-                {{ gradeDistribution().total }}
+              <div
+                class="text-3xl font-bold"
+                [appCountUp]="gradeDistribution().total"
+                #totalAscentsAnim="appCountUp"
+              >
+                {{ totalAscentsAnim.currentValue() | number: '1.0-0' }}
               </div>
               <div class="text-xs uppercase opacity-70 font-semibold">
                 {{ 'labels.ascents' | translate }}
               </div>
             </div>
             <div
-              class="bg-[var(--tui-background-base-alt)] p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1"
+              class="bg-[var(--tui-background-base)] shadow-sm p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1"
             >
               <div class="text-3xl font-bold text-[var(--tui-status-negative)]">
                 {{ maxRedpoint() || '-' }}
@@ -230,7 +240,7 @@ interface RouteScore {
               </div>
             </div>
             <div
-              class="bg-[var(--tui-background-base-alt)] p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1"
+              class="bg-[var(--tui-background-base)] shadow-sm p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1"
             >
               <div class="text-3xl font-bold text-[var(--tui-status-positive)]">
                 {{ maxOnsight() || '-' }}
@@ -240,7 +250,7 @@ interface RouteScore {
               </div>
             </div>
             <div
-              class="bg-[var(--tui-background-base-alt)] p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1"
+              class="bg-[var(--tui-background-base)] shadow-sm p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1"
             >
               <div class="text-3xl font-bold text-[var(--tui-status-warning)]">
                 {{ maxFlash() || '-' }}
@@ -255,7 +265,7 @@ interface RouteScore {
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Grade Pyramid -->
             <div
-              class="lg:col-span-2 bg-[var(--tui-background-base-alt)] p-6 rounded-2xl border border-[var(--tui-border-normal)]"
+              class="lg:col-span-2 bg-[var(--tui-background-base)] shadow-md p-6 rounded-2xl border border-[var(--tui-border-normal)]"
             >
               <h3 class="font-bold text-lg mb-4">
                 {{ 'statistics.gradePyramid' | translate }}
@@ -277,7 +287,7 @@ interface RouteScore {
                         class="h-6 flex rounded overflow-hidden relative mx-auto"
                         [style.width.%]="(row.total / dist.maxCount) * 100"
                       >
-                        <!-- Background bar for context - Optional, maybe remove if pyramid shape is desired without track. 
+                        <!-- Background bar for context - Optional, maybe remove if pyramid shape is desired without track.
                              If we keep it, it should be 100% of this container. -->
                         <div
                           class="absolute inset-0 opacity-10 bg-[var(--tui-text-primary)]"
@@ -288,27 +298,39 @@ interface RouteScore {
                           <div
                             class="bg-[var(--tui-status-negative)] h-full transition-all duration-500"
                             [style.width.%]="(row.rp / row.total) * 100"
-                            [tuiHint]="
-                              ('ascentTypes.rp' | translate) + ': ' + row.rp
-                            "
+                            [tuiHint]="pyramidHint"
+                            [tuiHintContext]="{
+                              label: row.gradeLabel,
+                              type: 'rp',
+                              count: row.rp,
+                              routes: row.rpRoutes,
+                            }"
                           ></div>
                         }
                         @if (row.flash > 0) {
                           <div
                             class="bg-[var(--tui-status-warning)] h-full transition-all duration-500"
                             [style.width.%]="(row.flash / row.total) * 100"
-                            [tuiHint]="
-                              ('ascentTypes.f' | translate) + ': ' + row.flash
-                            "
+                            [tuiHint]="pyramidHint"
+                            [tuiHintContext]="{
+                              label: row.gradeLabel,
+                              type: 'f',
+                              count: row.flash,
+                              routes: row.flashRoutes,
+                            }"
                           ></div>
                         }
                         @if (row.os > 0) {
                           <div
                             class="bg-[var(--tui-status-positive)] h-full transition-all duration-500"
                             [style.width.%]="(row.os / row.total) * 100"
-                            [tuiHint]="
-                              ('ascentTypes.os' | translate) + ': ' + row.os
-                            "
+                            [tuiHint]="pyramidHint"
+                            [tuiHintContext]="{
+                              label: row.gradeLabel,
+                              type: 'os',
+                              count: row.os,
+                              routes: row.osRoutes,
+                            }"
                           ></div>
                         }
                       </div>
@@ -340,7 +362,7 @@ interface RouteScore {
 
             <!-- Style Distribution -->
             <div
-              class="bg-[var(--tui-background-base-alt)] p-6 rounded-2xl border border-[var(--tui-border-normal)] flex flex-col items-center"
+              class="bg-[var(--tui-background-base)] shadow-md p-6 rounded-2xl border border-[var(--tui-border-normal)] flex flex-col items-center"
             >
               <h3 class="font-bold text-lg mb-4 self-start">
                 {{ 'statistics.styleDistribution' | translate }}
@@ -353,10 +375,15 @@ interface RouteScore {
                     [value]="[styleDist.os, styleDist.flash, styleDist.rp]"
                     size="l"
                     class="w-full h-full"
+                    [(activeItemIndex)]="activeItemIndex"
                   >
                     <div class="text-center">
-                      <div class="text-2xl font-bold">
-                        {{ styleDist.total }}
+                      <div
+                        class="text-2xl font-bold"
+                        [appCountUp]="styleDist.total"
+                        #styleTotalAnim="appCountUp"
+                      >
+                        {{ styleTotalAnim.currentValue() | number: '1.0-0' }}
                       </div>
                       <div class="text-xs uppercase opacity-70">
                         {{ 'labels.ascents' | translate }}
@@ -369,7 +396,10 @@ interface RouteScore {
                   <tui-legend-item
                     size="s"
                     text="{{ 'ascentTypes.os' | translate }}"
-                    class="!text-[var(--tui-status-positive)]"
+                    class="cursor-pointer transition-opacity"
+                    [color]="'var(--tui-status-positive)'"
+                    [active]="isItemActive(0)"
+                    (tuiHoveredChange)="onHover(0, $event)"
                   >
                     <span class="font-mono ml-auto"
                       >{{ styleDist.os }} ({{
@@ -380,7 +410,10 @@ interface RouteScore {
                   <tui-legend-item
                     size="s"
                     text="{{ 'ascentTypes.f' | translate }}"
-                    class="!text-[var(--tui-status-warning)]"
+                    class="cursor-pointer transition-opacity"
+                    [color]="'var(--tui-status-warning)'"
+                    [active]="isItemActive(1)"
+                    (tuiHoveredChange)="onHover(1, $event)"
                   >
                     <span class="font-mono ml-auto"
                       >{{ styleDist.flash }} ({{
@@ -391,7 +424,10 @@ interface RouteScore {
                   <tui-legend-item
                     size="s"
                     text="{{ 'ascentTypes.rp' | translate }}"
-                    class="!text-[var(--tui-status-negative)]"
+                    class="cursor-pointer transition-opacity"
+                    [color]="'var(--tui-status-negative)'"
+                    [active]="isItemActive(2)"
+                    (tuiHoveredChange)="onHover(2, $event)"
                   >
                     <span class="font-mono ml-auto"
                       >{{ styleDist.rp }} ({{
@@ -408,85 +444,9 @@ interface RouteScore {
             </div>
           </div>
 
-          <!-- Top 10 Routes Table -->
-          <div
-            class="bg-[var(--tui-background-base-alt)] rounded-2xl border border-[var(--tui-border-normal)] overflow-hidden"
-          >
-            <div class="p-6 border-b border-[var(--tui-border-normal)]">
-              <h3 class="font-bold text-lg">
-                {{ 'statistics.top10Ascents' | translate }}
-              </h3>
-            </div>
-
-            @let topRoutesList = topRoutes();
-            @if (topRoutesList.length > 0) {
-              <div
-                class="flex flex-col divide-y divide-[var(--tui-border-normal)]"
-              >
-                @for (route of topRoutesList; track $index) {
-                  <div
-                    class="flex items-center gap-4 p-4 hover:bg-[var(--tui-background-neutral-1)] transition-colors"
-                  >
-                    <!-- Rank -->
-                    <div
-                      class="text-xl font-black opacity-30 w-6 text-center flex-none"
-                    >
-                      {{ $index + 1 }}
-                    </div>
-
-                    <div class="flex flex-col grow min-w-0 gap-1">
-                      <!-- Top Row: Name + Score -->
-                      <div class="flex items-start justify-between gap-3">
-                        <a
-                          [routerLink]="[
-                            '/area',
-                            route.areaSlug,
-                            route.cragSlug,
-                            route.routeSlug,
-                          ]"
-                          class="font-bold truncate hover:underline hover:text-[var(--tui-primary)] text-[var(--tui-text-primary)] min-w-0"
-                        >
-                          {{ route.name || ('labels.anonymous' | translate) }}
-                        </a>
-                        <div
-                          class="font-mono font-bold text-[var(--tui-text-primary)] shrink-0 text-right"
-                        >
-                          {{ route.score | number }}
-                          <span
-                            class="text-[10px] opacity-60 font-sans font-normal block leading-none"
-                            >{{ 'labels.points' | translate | lowercase }}</span
-                          >
-                        </div>
-                      </div>
-
-                      <!-- Bottom Row: Grade + Style -->
-                      <div class="flex items-center gap-2 text-sm">
-                        @if (route.gradeId) {
-                          <app-avatar-grade [grade]="route.gradeId" size="xs" />
-                        } @else {
-                          <span
-                            class="font-bold bg-[var(--tui-text-primary)] text-[var(--tui-text-primary-on-accent-1)] px-1.5 rounded-md text-xs"
-                          >
-                            {{ route.gradeLabel }}
-                          </span>
-                        }
-
-                        <app-ascent-type [type]="route.type" size="xs" />
-                      </div>
-                    </div>
-                  </div>
-                }
-              </div>
-            } @else {
-              <div class="p-6 text-center opacity-50">
-                {{ 'statistics.noData' | translate }}
-              </div>
-            }
-          </div>
-
           <!-- Yearly Trend -->
           <div
-            class="bg-[var(--tui-background-base-alt)] p-6 rounded-2xl border border-[var(--tui-border-normal)]"
+            class="bg-[var(--tui-background-base)] shadow-md p-6 rounded-2xl border border-[var(--tui-border-normal)]"
           >
             <header class="mb-4">
               <h3 class="font-bold text-lg">
@@ -572,6 +532,52 @@ interface RouteScore {
         }
       </div>
     </ng-template>
+
+    <ng-template #pyramidHint let-context>
+      <div class="trend-hint">
+        <div class="trend-hint-header">
+          <span class="trend-hint-year">
+            {{ context.label }}
+            @if (context.type === 'os') {
+              ({{ 'ascentTypes.os' | translate }})
+            }
+            @if (context.type === 'f') {
+              ({{ 'ascentTypes.f' | translate }})
+            }
+            @if (context.type === 'rp') {
+              ({{ 'ascentTypes.rp' | translate }})
+            }
+          </span>
+          <span class="trend-hint-score">
+            {{ context.count }} {{ 'labels.ascents' | translate | lowercase }}
+          </span>
+        </div>
+
+        <div class="trend-routes">
+          @for (route of context.routes; track $index) {
+            <div class="trend-route-row">
+              <a
+                class="route-name"
+                [routerLink]="[
+                  '/area',
+                  route.areaSlug,
+                  route.cragSlug,
+                  route.routeSlug,
+                ]"
+                [class.onsight]="route.type === 'os'"
+                [class.flash]="route.type === 'f'"
+                [class.redpoint]="route.type === 'rp' || !route.type"
+              >
+                {{ route.name || ('labels.anonymous' | translate) }}
+              </a>
+              <span class="route-score">
+                <span class="route-score-val">{{ route.score }}</span>
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+    </ng-template>
   `,
 })
 export class UserStatisticsComponent {
@@ -580,8 +586,9 @@ export class UserStatisticsComponent {
   userId = input.required<string>();
 
   // --- Date Filter Support ---
-  readonly dateFilterControl = new FormControl('all_time');
+  readonly dateFilterControl = new FormControl('last_12_months');
   readonly showAllGrades = signal(false);
+  activeItemIndex = NaN;
 
   readonly dateFilterOptions = computed(() => {
     // Reusing standard options logic// Simplified for now, can be dynamic
@@ -629,9 +636,10 @@ export class UserStatisticsComponent {
   });
 
   // Create a filtered signal based on the control
-  private rawStats = computed(
-    () => (this.statsResource.value() as UserAscentStatRecord[]) ?? [],
-  );
+  private rawStats = computed(() => {
+    const data = (this.statsResource.value() as UserAscentStatRecord[]) ?? [];
+    return data.filter((a) => a.ascent_type !== 'attempt');
+  });
 
   // Filtered Stats
   stats = computed(() => {
@@ -639,7 +647,7 @@ export class UserStatisticsComponent {
     return this.filterAscentsByDate(all, this.dateFilterSignal());
   });
 
-  private dateFilterSignal = signal<string>('all_time');
+  private dateFilterSignal = signal<string>('last_12_months');
 
   // --- New Computed Signals for Dashboard ---
 
@@ -683,8 +691,16 @@ export class UserStatisticsComponent {
   constructor() {
     // Sync form control to signal
     this.dateFilterControl.valueChanges.subscribe((val) => {
-      this.dateFilterSignal.set(val || 'all_time');
+      this.dateFilterSignal.set(val || 'last_12_months');
     });
+  }
+
+  protected isItemActive(index: number): boolean {
+    return this.activeItemIndex === index;
+  }
+
+  protected onHover(index: number, hovered: boolean): void {
+    this.activeItemIndex = hovered ? index : NaN;
   }
 
   private getMaxGrade(
@@ -751,34 +767,44 @@ export class UserStatisticsComponent {
     // Map<GradeId, { os: 0, flash: 0, rp: 0, total: 0 }>
     const buckets = new Map<
       number,
-      { os: number; flash: number; rp: number; total: number; label: string }
+      {
+        os: number;
+        flash: number;
+        rp: number;
+        total: number;
+        label: string;
+        routes: RouteScore[];
+      }
     >();
 
     let totalAscents = 0;
 
     stats.forEach((ascent: UserAscentStatRecord) => {
-      let gradeId = ascent.ascent_grade;
-      if (!gradeId && ascent.route_grade) gradeId = ascent.route_grade;
-      if (!gradeId) return;
-
-      const label = VERTICAL_LIFE_TO_LABEL[gradeId as VERTICAL_LIFE_GRADES];
-      if (!label) return;
+      const routeScore = this.mapAscentToRouteScore(ascent);
+      if (!routeScore) return;
+      const gradeId = routeScore.gradeId!;
 
       if (!buckets.has(gradeId)) {
-        buckets.set(gradeId, { os: 0, flash: 0, rp: 0, total: 0, label });
+        buckets.set(gradeId, {
+          os: 0,
+          flash: 0,
+          rp: 0,
+          total: 0,
+          label: routeScore.gradeLabel,
+          routes: [],
+        });
       }
 
       const bucket = buckets.get(gradeId)!;
       bucket.total++;
       totalAscents++;
 
-      const type = (ascent.ascent_type || 'rp').toLowerCase(); // default to rp if missing
-      // 8a.nu often maps 'ticket'? Assuming straightforward mapping.
-      // Using AscentsService logic or types.
+      bucket.routes.push(routeScore);
+
+      const type = (ascent.ascent_type || 'rp').toLowerCase();
       if (type === 'os' || type === 'onsight') bucket.os++;
       else if (type === 'f' || type === 'flash') bucket.flash++;
-      else bucket.rp++; // Redpoint, Pinkpoint, Toprope(valid?)
-      // 8a pyramid usually groups Redpoint/Toprope together visually as 'Red' or 'Pink'.
+      else bucket.rp++;
     });
 
     if (buckets.size === 0) return { rows: [], total: 0, maxCount: 0 };
@@ -795,12 +821,27 @@ export class UserStatisticsComponent {
     const rows = topGrades.map((id) => {
       const b = buckets.get(id)!;
       if (b.total > maxBucketCount) maxBucketCount = b.total;
+
+      // Filter and sort routes for each category
+      const osRoutes = b.routes
+        .filter((r) => r.type === 'os')
+        .sort((x, y) => y.score - x.score);
+      const flashRoutes = b.routes
+        .filter((r) => r.type === 'f')
+        .sort((x, y) => y.score - x.score);
+      const rpRoutes = b.routes
+        .filter((r) => r.type !== 'os' && r.type !== 'f')
+        .sort((x, y) => y.score - x.score);
+
       return {
         gradeLabel: b.label,
         os: b.os,
         flash: b.flash,
         rp: b.rp,
         total: b.total,
+        osRoutes,
+        flashRoutes,
+        rpRoutes,
       };
     });
 
@@ -888,37 +929,10 @@ export class UserStatisticsComponent {
     topRoutes: RouteScore[];
   } {
     const validAscents = ascents
-      .map((a: UserAscentStatRecord) => {
-        let gradeId = a.ascent_grade;
-        if (!gradeId && a.route_grade) gradeId = a.route_grade;
-        const name = a.route_name || 'Unknown Route';
+      .map((a) => this.mapAscentToRouteScore(a))
+      .filter((a): a is RouteScore => a !== null && a.score > 0);
 
-        if (!gradeId)
-          return {
-            name,
-            gradeLabel: '?',
-            score: 0,
-            type: (a.ascent_type || 'rp') as AscentType,
-            areaSlug: '',
-            cragSlug: '',
-            routeSlug: '',
-          };
-
-        return {
-          name,
-          gradeLabel:
-            VERTICAL_LIFE_TO_LABEL[gradeId as VERTICAL_LIFE_GRADES] || '?',
-          gradeId: gradeId as number,
-          score: this.getScore(gradeId, (a.ascent_type || 'rp') as AscentType),
-          type: (a.ascent_type || 'rp') as AscentType,
-          areaSlug: a.area_slug || '',
-          cragSlug: a.crag_slug || '',
-          routeSlug: a.route_slug || '',
-        };
-      })
-      .filter((a: RouteScore) => a.score > 0);
-
-    validAscents.sort((a: RouteScore, b: RouteScore) => b.score - a.score);
+    validAscents.sort((a, b) => b.score - a.score);
     const top10 = validAscents.slice(0, 10);
     const totalScore = top10.reduce(
       (sum: number, a: RouteScore) => sum + a.score,
@@ -926,6 +940,26 @@ export class UserStatisticsComponent {
     );
 
     return { score: totalScore, topRoutes: top10 };
+  }
+
+  private mapAscentToRouteScore(a: UserAscentStatRecord): RouteScore | null {
+    let gradeId = a.ascent_grade;
+    if (!gradeId && a.route_grade) gradeId = a.route_grade;
+    const name = a.route_name || 'Unknown Route';
+
+    if (!gradeId) return null;
+
+    return {
+      name,
+      gradeLabel:
+        VERTICAL_LIFE_TO_LABEL[gradeId as VERTICAL_LIFE_GRADES] || '?',
+      gradeId: gradeId as number,
+      score: this.getScore(gradeId, (a.ascent_type || 'rp') as AscentType),
+      type: (a.ascent_type || 'rp') as AscentType,
+      areaSlug: a.area_slug || '',
+      cragSlug: a.crag_slug || '',
+      routeSlug: a.route_slug || '',
+    };
   }
 
   trendData = computed(() => {

@@ -317,19 +317,30 @@ export class AscentsService {
     }
 
     // Update resources by removing the ascent
+    // Update resources by removing the ascent
     const removeFn = (
       data: { items: RouteAscentWithExtras[]; total: number } | undefined,
     ) => {
       if (!data) return { items: [], total: 0 };
       const newItems = data.items.filter((item) => item.id !== id);
-      if (newItems.length === data.items.length) return data;
+      const wasRemoved = newItems.length !== data.items.length;
+      if (!wasRemoved) return data;
+
       return {
         items: newItems,
         total: Math.max(0, data.total - 1),
       };
     };
-    this.global.userAscentsResource.update(removeFn);
-    this.global.routeAscentsResource.update(removeFn);
+
+    // Specifically target the user ascents resource which powers the profile list
+    if (this.global.userAscentsResource.value()) {
+      this.global.userAscentsResource.update(removeFn);
+    }
+
+    // Also update route ascents if present
+    if (this.global.routeAscentsResource.value()) {
+      this.global.routeAscentsResource.update(removeFn);
+    }
 
     this.refreshResources();
     this.toast.success('messages.toasts.ascentDeleted');

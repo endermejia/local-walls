@@ -136,7 +136,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
                 {{ 'actions.edit' | translate }}
               </button>
               @if (ascent.private_ascent) {
-                <tui-badge appearance="neutral" class="text-xs">
+                <tui-badge appearance="accent" class="text-xs">
                   {{ 'ascent.private' | translate }}
                 </tui-badge>
               }
@@ -164,7 +164,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
                   {{ 'actions.edit' | translate }}
                 </button>
                 @if (ascent.private_ascent) {
-                  <tui-badge appearance="neutral" class="text-xs">
+                  <tui-badge appearance="accent" class="text-xs">
                     {{ 'ascent.private' | translate }}
                   </tui-badge>
                 }
