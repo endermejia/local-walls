@@ -836,12 +836,12 @@ export class TopoComponent {
       if (!t?.photo) return null;
       return { path: t.photo, version: this.global.topoPhotoVersion() };
     },
-    loader: async ({ params }) => {
+    loader: ({ params }) => {
       if (!params) return null;
-      const signedUrl = await this.supabase.getTopoSignedUrl(params.path);
-      if (!signedUrl) return '';
+      const publicUrl = this.supabase.getTopoUrl(params.path);
+      if (!publicUrl) return '';
 
-      const url = new URL(signedUrl);
+      const url = new URL(publicUrl);
       if (params.version) {
         url.searchParams.set('v', params.version.toString());
       }

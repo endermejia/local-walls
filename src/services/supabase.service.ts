@@ -168,19 +168,10 @@ export class SupabaseService {
   }
 
   /**
-   * Gets a signed URL for a topo photo stored in the private "topos" bucket.
+   * Gets a public URL for a topo photo stored in the "topos" bucket.
    */
-  async getTopoSignedUrl(path: string | null | undefined): Promise<string> {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    const { data, error } = await this.client.storage
-      .from('topos')
-      .createSignedUrl(path, 3600); // 1 hour
-    if (error) {
-      console.error('[SupabaseService] getTopoSignedUrl error', error);
-      return '';
-    }
-    return data.signedUrl;
+  getTopoUrl(path: string | null | undefined): string {
+    return this.getPublicUrl('topos', path);
   }
 
   /**
