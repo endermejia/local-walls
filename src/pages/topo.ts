@@ -65,6 +65,8 @@ import {
   getRouteStrokeWidth,
 } from '../utils/topo-styles.utils';
 
+import { VERTICAL_LIFE_GRADES, VERTICAL_LIFE_TO_LABEL } from '../models';
+
 import { AvatarGradeComponent } from '../components/avatar-grade';
 import { EmptyStateComponent } from '../components/empty-state';
 import { SectionHeaderComponent } from '../components/section-header';
@@ -108,11 +110,11 @@ export interface TopoRouteRow {
   ],
   template: `
     <div class="h-full w-full">
-      <section class="flex flex-col w-full h-full max-w-7xl mx-auto p-4">
+      <section class="flex flex-col w-full h-full max-w-7xl mx-auto md:p-4">
         @let isAdmin = global.isAdmin();
         @let isMobile = global.isMobile();
         @if (topo(); as t) {
-          <div class="mb-4">
+          <div class="mb-4 p-4 md:p-0">
             <app-section-header
               [title]="t.name"
               [showLike]="false"
@@ -180,7 +182,7 @@ export interface TopoRouteRow {
               (tuiSwipe)="onSwipe($event)"
               [style.height]="isMobile ? '50%' : '100%'"
               [style.width]="isMobile ? '100%' : '50%'"
-              class="relative w-full bg-[var(--tui-background-neutral-1)] rounded-xl border border-[var(--tui-border-normal)] overflow-x-auto"
+              class="relative w-full bg-[var(--tui-background-neutral-1)] md:rounded-xl md:border md:border-[var(--tui-border-normal)] overflow-x-auto"
             >
               <div
                 class="h-full w-max flex items-center justify-center min-w-full"
@@ -202,7 +204,7 @@ export interface TopoRouteRow {
                       viewBox="0 0 1 1"
                       preserveAspectRatio="none"
                     >
-                      @for (tr of t.topo_routes; track tr.route_id) {
+                      @for (tr of renderedTopoRoutes(); track tr.route_id) {
                         @if (tr.path && tr.path.points.length > 0) {
                           @let style =
                             getRouteStyle(
@@ -210,17 +212,31 @@ export interface TopoRouteRow {
                               $any(tr.route.grade),
                               tr.route_id
                             );
+                          @let width =
+                            getRouteWidth(
+                              tr.route_id === selectedRouteId(),
+                              tr.route_id === hoveredRouteId()
+                            );
+
+                          <!-- Halo Line (White) -->
+                          <polyline
+                            [attr.points]="getPointsString(tr.path)"
+                            fill="none"
+                            stroke="white"
+                            [style.opacity]="0.8"
+                            [attr.stroke-width]="width + 0.003"
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            class="transition-all duration-300"
+                          />
+
+                          <!-- Main Line -->
                           <polyline
                             [attr.points]="getPointsString(tr.path)"
                             fill="none"
                             [attr.stroke]="style.stroke"
                             [style.opacity]="style.opacity"
-                            [attr.stroke-width]="
-                              getRouteWidth(
-                                tr.route_id === selectedRouteId(),
-                                tr.route_id === hoveredRouteId()
-                              )
-                            "
+                            [attr.stroke-width]="width"
                             [attr.stroke-dasharray]="
                               style.isDashed ? '0.01, 0.01' : 'none'
                             "
@@ -228,26 +244,29 @@ export interface TopoRouteRow {
                             stroke-linecap="round"
                             class="transition-all duration-300"
                           />
-                          <!-- Point Number at first point -->
+
+                          <!-- Start Point: Colored Square with Grade -->
                           @if (tr.path.points[0]; as first) {
-                            <circle
-                              [attr.cx]="first.x"
-                              [attr.cy]="first.y"
-                              r="0.012"
-                              fill="white"
-                              stroke="black"
+                            <rect
+                              [attr.x]="first.x - 0.016"
+                              [attr.y]="first.y - 0.012"
+                              width="0.032"
+                              height="0.024"
+                              [attr.fill]="style.stroke"
+                              stroke="white"
                               stroke-width="0.001"
                             />
                             <text
                               [attr.x]="first.x"
                               [attr.y]="first.y + 0.004"
                               text-anchor="middle"
-                              fill="black"
-                              font-size="0.012"
+                              fill="white"
+                              style="text-shadow: 0px 0px 2px rgba(0,0,0,0.8)"
+                              font-size="0.011"
                               font-weight="bold"
                               font-family="sans-serif"
                             >
-                              {{ tr.number + 1 }}
+                              {{ getGradeLabel(tr.route.grade) }}
                             </text>
                           }
                         }
@@ -268,6 +287,9 @@ export interface TopoRouteRow {
                 (touchstart.zoneless)="onTouchStart($any($event))"
                 (touchmove.zoneless)="onTouchMove($any($event))"
                 (touchend.zoneless)="onTouchEnd()"
+                (window:keydown.arrowLeft)="selectPrevRoute()"
+                (window:keydown.arrowRight)="selectNextRoute()"
+                (window:keydown.escape)="toggleFullscreen(false)"
               >
                 <!-- Close button -->
                 <div class="absolute top-4 right-4 z-[1001]">
@@ -309,7 +331,7 @@ export interface TopoRouteRow {
                       viewBox="0 0 1 1"
                       preserveAspectRatio="none"
                     >
-                      @for (tr of t.topo_routes; track tr.route_id) {
+                      @for (tr of renderedTopoRoutes(); track tr.route_id) {
                         @if (tr.path && tr.path.points.length > 0) {
                           <g
                             class="pointer-events-auto cursor-pointer"
@@ -330,23 +352,38 @@ export interface TopoRouteRow {
                               stroke-linejoin="round"
                               stroke-linecap="round"
                             />
+
                             @let fsStyle =
                               getRouteStyle(
                                 tr.path.color,
                                 $any(tr.route.grade),
                                 tr.route_id
                               );
+                            @let width =
+                              getRouteWidth(
+                                tr.route_id === selectedRouteId(),
+                                tr.route_id === hoveredRouteId()
+                              );
+
+                            <!-- Halo Line (White) -->
+                            <polyline
+                              [attr.points]="getPointsString(tr.path)"
+                              fill="none"
+                              stroke="white"
+                              [style.opacity]="0.8"
+                              [attr.stroke-width]="width + 0.003"
+                              stroke-linejoin="round"
+                              stroke-linecap="round"
+                              class="transition-all duration-300"
+                            />
+
+                            <!-- Main Line -->
                             <polyline
                               [attr.points]="getPointsString(tr.path)"
                               fill="none"
                               [attr.stroke]="fsStyle.stroke"
                               [style.opacity]="fsStyle.opacity"
-                              [attr.stroke-width]="
-                                getRouteWidth(
-                                  tr.route_id === selectedRouteId(),
-                                  tr.route_id === hoveredRouteId()
-                                )
-                              "
+                              [attr.stroke-width]="width"
                               [attr.stroke-dasharray]="
                                 fsStyle.isDashed ? '0.01, 0.01' : 'none'
                               "
@@ -354,26 +391,29 @@ export interface TopoRouteRow {
                               stroke-linecap="round"
                               class="transition-all duration-300"
                             />
-                            <!-- Point Number at first point -->
+
+                            <!-- Start Point: Colored Square -->
                             @if (tr.path.points[0]; as first) {
-                              <circle
-                                [attr.cx]="first.x"
-                                [attr.cy]="first.y"
-                                r="0.012"
-                                fill="white"
-                                stroke="black"
+                              <rect
+                                [attr.x]="first.x - 0.016"
+                                [attr.y]="first.y - 0.012"
+                                width="0.032"
+                                height="0.024"
+                                [attr.fill]="fsStyle.stroke"
+                                stroke="white"
                                 stroke-width="0.001"
                               />
                               <text
                                 [attr.x]="first.x"
                                 [attr.y]="first.y + 0.004"
                                 text-anchor="middle"
-                                fill="black"
+                                fill="white"
+                                style="text-shadow: 0px 0px 2px rgba(0,0,0,0.8)"
                                 font-size="0.012"
                                 font-weight="bold"
                                 font-family="sans-serif"
                               >
-                                {{ tr.number + 1 }}
+                                {{ getGradeLabel(tr.route.grade) }}
                               </text>
                             }
                           </g>
@@ -386,35 +426,48 @@ export interface TopoRouteRow {
                 <!-- Route Info Tooltip -->
                 @if (selectedRouteInfo(); as selectedRoute) {
                   <div
-                    class="absolute top-4 left-1/2 -translate-x-1/2 bg-[var(--tui-background-base)] border border-[var(--tui-border-normal)] rounded-2xl shadow-2xl p-4 min-w-64 z-10"
+                    class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-[var(--tui-background-base)] border border-[var(--tui-border-normal)] rounded-2xl shadow-2xl p-4 w-[90vw] md:w-auto md:min-w-80 max-w-[95vw] z-10"
                     (click)="$event.stopPropagation()"
                     (keydown.enter)="$event.stopPropagation()"
                     tabindex="-1"
                   >
                     <div class="flex items-center gap-3">
-                      <span class="text-2xl font-bold opacity-60">
-                        {{ selectedRoute.number + 1 }}.
-                      </span>
-                      <div class="flex-1">
-                        <div class="font-bold text-lg">
-                          {{ selectedRoute.route.name }}
-                        </div>
-                        <div class="mt-2">
-                          <app-avatar-grade
-                            [grade]="selectedRoute.route.grade"
-                            size="m"
-                          />
-                        </div>
-                      </div>
                       <button
                         tuiIconButton
                         appearance="flat"
                         size="s"
-                        (click)="
-                          selectedRouteId.set(null); $event.stopPropagation()
-                        "
+                        iconStart="@tui.chevron-left"
+                        class="!rounded-full"
+                        (click)="selectPrevRoute(); $event.stopPropagation()"
                       >
-                        <tui-icon icon="@tui.x" />
+                        {{ 'actions.previous' | translate }}
+                      </button>
+
+                      <div class="flex flex-1 items-center gap-3 min-w-0">
+                        <div class="flex-1 min-w-0">
+                          <div
+                            class="font-bold text-lg break-words line-clamp-2 text-center"
+                          >
+                            {{ selectedRoute.route.name }}
+                          </div>
+                          <div class="mt-2 text-center">
+                            <app-avatar-grade
+                              [grade]="selectedRoute.route.grade"
+                              size="m"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        tuiIconButton
+                        appearance="flat"
+                        size="s"
+                        iconStart="@tui.chevron-right"
+                        class="!rounded-full mr-1"
+                        (click)="selectNextRoute(); $event.stopPropagation()"
+                      >
+                        {{ 'actions.next' | translate }}
                       </button>
                     </div>
                   </div>
@@ -426,7 +479,7 @@ export interface TopoRouteRow {
             <div
               [style.height]="isMobile ? '50%' : '100%'"
               [style.width]="isMobile ? '100%' : '50%'"
-              class="w-full overflow-hidden"
+              class="w-full overflow-hidden px-4 md:px-0"
             >
               <tui-scrollbar class="h-full">
                 <table
@@ -822,6 +875,25 @@ export class TopoComponent {
   sectorSlug: InputSignal<string | undefined> = input();
 
   protected readonly topo = this.global.topoDetailResource.value;
+
+  protected readonly renderedTopoRoutes = computed(() => {
+    const t = this.topo();
+    if (!t) return [];
+
+    // Sort routes so the selected one is rendered last (on top)
+    const routes = [...t.topo_routes];
+    const selectedId = this.selectedRouteId();
+
+    if (selectedId) {
+      routes.sort((a, b) => {
+        if (a.route_id === selectedId) return 1;
+        if (b.route_id === selectedId) return -1;
+        return 0;
+      });
+    }
+
+    return routes;
+  });
   protected readonly crag = this.global.cragDetailResource.value;
   protected readonly allAreaTopos = this.global.areaToposResource.value;
 
@@ -1085,5 +1157,88 @@ export class TopoComponent {
       const prev = this.prevTopo();
       if (prev) this.navigateToTopo(prev);
     }
+  }
+
+  protected getMidPoint(
+    points: { x: number; y: number }[],
+  ): { x: number; y: number } | null {
+    if (!points || points.length < 2) return null;
+
+    let totalLength = 0;
+    for (let i = 1; i < points.length; i++) {
+      const dx = points[i].x - points[i - 1].x;
+      const dy = points[i].y - points[i - 1].y;
+      totalLength += Math.sqrt(dx * dx + dy * dy);
+    }
+
+    const targetLength = totalLength / 2;
+    let currentLength = 0;
+
+    for (let i = 1; i < points.length; i++) {
+      const dx = points[i].x - points[i - 1].x;
+      const dy = points[i].y - points[i - 1].y;
+      const segmentLength = Math.sqrt(dx * dx + dy * dy);
+
+      if (currentLength + segmentLength >= targetLength) {
+        const remaining = targetLength - currentLength;
+        const ratio = remaining / segmentLength;
+        return {
+          x: points[i - 1].x + dx * ratio,
+          y: points[i - 1].y + dy * ratio,
+        };
+      }
+      currentLength += segmentLength;
+    }
+
+    // Fallback to approximate middle index if calculation fails slightly due to float precision
+    const midIdx = Math.floor(points.length / 2);
+    return points[midIdx];
+  }
+
+  protected getGradeLabel(grade: number): string {
+    return (
+      VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] ||
+      grade?.toString() ||
+      ''
+    );
+  }
+
+  protected selectNextRoute(): void {
+    const topo = this.topo();
+    const currentId = this.selectedRouteId();
+    if (!topo || !currentId) return;
+
+    // Filter only routes that have paths drawn
+    const drawnRoutes = topo.topo_routes
+      .filter((tr) => tr.path && tr.path.points.length > 0)
+      .sort((a, b) => a.number - b.number);
+
+    if (drawnRoutes.length === 0) return;
+
+    const currentIndex = drawnRoutes.findIndex((r) => r.route_id === currentId);
+    if (currentIndex === -1) return;
+
+    const nextIndex = (currentIndex + 1) % drawnRoutes.length;
+    this.selectedRouteId.set(drawnRoutes[nextIndex].route_id);
+  }
+
+  protected selectPrevRoute(): void {
+    const topo = this.topo();
+    const currentId = this.selectedRouteId();
+    if (!topo || !currentId) return;
+
+    // Filter only routes that have paths drawn
+    const drawnRoutes = topo.topo_routes
+      .filter((tr) => tr.path && tr.path.points.length > 0)
+      .sort((a, b) => a.number - b.number);
+
+    if (drawnRoutes.length === 0) return;
+
+    const currentIndex = drawnRoutes.findIndex((r) => r.route_id === currentId);
+    if (currentIndex === -1) return;
+
+    const prevIndex =
+      (currentIndex - 1 + drawnRoutes.length) % drawnRoutes.length;
+    this.selectedRouteId.set(drawnRoutes[prevIndex].route_id);
   }
 }
