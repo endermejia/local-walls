@@ -644,6 +644,7 @@ export class GlobalData {
       if (!isPlatformBrowser(this.platformId)) {
         return [] as CragListItem[];
       }
+      const cacheKey = `cached_crags_list_${areaSlug}_v1`;
       try {
         await this.supabase.whenReady();
         const { data, error } = await this.supabase.client.rpc(
@@ -654,9 +655,22 @@ export class GlobalData {
           console.error('[GlobalData] cragsListResource error', error);
           throw error;
         }
-        return (data as CragListItem[]) ?? [];
+        const list = (data as CragListItem[]) ?? [];
+        this.localStorage.setItem(cacheKey, JSON.stringify(list));
+        return list;
       } catch (e) {
-        console.error('[GlobalData] cragsListResource exception', e);
+        console.warn(
+          '[GlobalData] cragsListResource error/offline, trying cache',
+          e,
+        );
+        const cached = this.localStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            return JSON.parse(cached) as CragListItem[];
+          } catch {
+            console.error('[GlobalData] Cache parse error');
+          }
+        }
         return [];
       }
     },
@@ -684,6 +698,7 @@ export class GlobalData {
       params: areaSlug,
     }): Promise<(TopoListItem & { crag_slug: string })[]> => {
       if (!areaSlug || !isPlatformBrowser(this.platformId)) return [];
+      const cacheKey = `cached_area_topos_${areaSlug}_v1`;
       try {
         await this.supabase.whenReady();
         const { data, error } = await this.supabase.client
@@ -698,7 +713,7 @@ export class GlobalData {
           throw error;
         }
 
-        return (data || []).map((t) => {
+        const result = (data || []).map((t) => {
           const grades: AmountByEveryGrade = {};
           (t.topo_routes || []).forEach((tr) => {
             const g = tr.route?.grade;
@@ -720,8 +735,23 @@ export class GlobalData {
             crag_slug: t.crags.slug,
           };
         });
+        this.localStorage.setItem(cacheKey, JSON.stringify(result));
+        return result;
       } catch (e) {
-        console.error('[GlobalData] areaToposResource exception', e);
+        console.warn(
+          '[GlobalData] areaToposResource error/offline, trying cache',
+          e,
+        );
+        const cached = this.localStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            return JSON.parse(cached) as (TopoListItem & {
+              crag_slug: string;
+            })[];
+          } catch {
+            console.error('[GlobalData] Cache parse error');
+          }
+        }
         return [];
       }
     },
@@ -732,6 +762,7 @@ export class GlobalData {
     loader: async ({ params: id }): Promise<TopoDetail | null> => {
       if (!id) return null;
       if (!isPlatformBrowser(this.platformId)) return null;
+      const cacheKey = `cached_topo_detail_${id}_v1`;
       try {
         await this.supabase.whenReady();
         const userId = this.supabase.authUser()?.id;
@@ -795,12 +826,25 @@ export class GlobalData {
           }
         }
 
-        return {
+        const result = {
           ...data,
           topo_routes,
         };
+        this.localStorage.setItem(cacheKey, JSON.stringify(result));
+        return result;
       } catch (e) {
-        console.error('[GlobalData] topoDetailResource exception', e);
+        console.warn(
+          '[GlobalData] topoDetailResource error/offline, trying cache',
+          e,
+        );
+        const cached = this.localStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            return JSON.parse(cached) as TopoDetail;
+          } catch {
+            console.error('[GlobalData] Cache parse error');
+          }
+        }
         return null;
       }
     },
@@ -816,6 +860,7 @@ export class GlobalData {
     }): Promise<CragDetail | null> => {
       if (!cragSlug || !areaSlug) return null;
       if (!isPlatformBrowser(this.platformId)) return null;
+      const cacheKey = `cached_crag_detail_${areaSlug}_${cragSlug}_v1`;
       try {
         await this.supabase.whenReady();
         const userId = this.supabase.authUser()?.id;
@@ -853,9 +898,22 @@ export class GlobalData {
           throw error;
         }
 
-        return mapCragToDetail(data as CragWithJoins);
+        const result = mapCragToDetail(data as CragWithJoins);
+        this.localStorage.setItem(cacheKey, JSON.stringify(result));
+        return result;
       } catch (e) {
-        console.error('[GlobalData] cragDetailResource exception', e);
+        console.warn(
+          '[GlobalData] cragDetailResource error/offline, trying cache',
+          e,
+        );
+        const cached = this.localStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            return JSON.parse(cached) as CragDetail;
+          } catch {
+            console.error('[GlobalData] Cache parse error');
+          }
+        }
         return null;
       }
     },

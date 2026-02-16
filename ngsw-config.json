@@ -1,6 +1,7 @@
 {
   "$schema": "./node_modules/@angular/service-worker/config/schema.json",
   "index": "/index.html",
+  "navigationUrls": ["/**"],
   "assetGroups": [
     {
       "name": "app",
@@ -30,9 +31,7 @@
   "dataGroups": [
     {
       "name": "supabase-api",
-      "urls": [
-        "https://eswbehepsagigvlytfxv.supabase.co/rest/v1/**"
-      ],
+      "urls": ["https://eswbehepsagigvlytfxv.supabase.co/rest/v1/**"],
       "cacheConfig": {
         "maxSize": 100,
         "maxAge": "3d",
@@ -46,7 +45,7 @@
         "https://eswbehepsagigvlytfxv.supabase.co/storage/v1/object/public/**"
       ],
       "cacheConfig": {
-        "maxSize": 500,
+        "maxSize": 1000,
         "maxAge": "30d",
         "strategy": "performance"
       }
