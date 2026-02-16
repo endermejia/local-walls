@@ -58,7 +58,7 @@ import {
 import {
   ChatMessageDto,
   ChatRoomWithParticipant,
-  UserProfileDto,
+  UserProfileBasicDto,
 } from '../models';
 import { EmptyStateComponent } from '../components/empty-state';
 
@@ -393,7 +393,7 @@ export class ChatDialogComponent implements OnDestroy {
   protected readonly limit = 20;
 
   protected readonly userSearchControl = new FormControl('');
-  protected readonly searchResults = signal<UserProfileDto[]>([]);
+  protected readonly searchResults = signal<UserProfileBasicDto[]>([]);
 
   protected readonly roomsResource = resource({
     loader: () => this.messagingService.getRooms(),
@@ -601,7 +601,7 @@ export class ChatDialogComponent implements OnDestroy {
     }
   }
 
-  protected onSelectUser(user: UserProfileDto) {
+  protected onSelectUser(user: UserProfileBasicDto) {
     void this.openChatWithUser(user.id);
     this.userSearchControl.setValue('', { emitEvent: false });
     this.searchResults.set([]);

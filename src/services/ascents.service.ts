@@ -15,7 +15,7 @@ import {
   RouteAscentUpdateDto,
   RouteAscentWithExtras,
   RouteWithExtras,
-  UserProfileDto,
+  UserProfileBasicDto,
   RouteAscentCommentDto,
   RouteAscentCommentInsertDto,
   UserAscentStatRecord,
@@ -110,7 +110,7 @@ export class AscentsService {
     // Fetch user separately
     const { data: user } = await this.supabase.client
       .from('user_profiles')
-      .select('*')
+      .select('id, name, avatar')
       .eq('id', a.user_id)
       .maybeSingle();
 
@@ -141,7 +141,7 @@ export class AscentsService {
 
     return {
       ...a,
-      user: (user as UserProfileDto) || undefined,
+      user: (user as UserProfileBasicDto) || undefined,
       route: mappedRoute,
     } as RouteAscentWithExtras;
   }
@@ -439,7 +439,7 @@ export class AscentsService {
     page = 0,
     pageSize = 20,
     query = '',
-  ): Promise<{ items: UserProfileDto[]; total: number }> {
+  ): Promise<{ items: UserProfileBasicDto[]; total: number }> {
     if (!isPlatformBrowser(this.platformId)) return { items: [], total: 0 };
     await this.supabase.whenReady();
 
@@ -467,7 +467,7 @@ export class AscentsService {
     const userIds = likesData.map((d) => d.user_id);
     let profilesQuery = this.supabase.client
       .from('user_profiles')
-      .select('*')
+      .select('id, name, avatar')
       .in('id', userIds);
 
     if (query) {
@@ -488,7 +488,7 @@ export class AscentsService {
     const profileMap = new Map(profilesData?.map((p) => [p.id, p]));
     const sortedProfiles = userIds
       .map((id) => profileMap.get(id))
-      .filter((p): p is UserProfileDto => !!p);
+      .filter((p): p is UserProfileBasicDto => !!p);
 
     return {
       items: sortedProfiles,
@@ -516,7 +516,7 @@ export class AscentsService {
   async getLastComment(
     ascentId: number,
   ): Promise<
-    (RouteAscentCommentDto & { user_profiles: UserProfileDto }) | null
+    (RouteAscentCommentDto & { user_profiles: UserProfileBasicDto }) | null
   > {
     if (!isPlatformBrowser(this.platformId)) return null;
     await this.supabase.whenReady();
@@ -537,7 +537,7 @@ export class AscentsService {
 
     const { data: user, error: userError } = await this.supabase.client
       .from('user_profiles')
-      .select('*')
+      .select('id, name, avatar')
       .eq('id', comment.user_id)
       .maybeSingle();
 
@@ -547,13 +547,15 @@ export class AscentsService {
 
     return {
       ...comment,
-      user_profiles: user as UserProfileDto,
+      user_profiles: user as UserProfileBasicDto,
     };
   }
 
   async getComments(
     ascentId: number,
-  ): Promise<(RouteAscentCommentDto & { user_profiles: UserProfileDto })[]> {
+  ): Promise<
+    (RouteAscentCommentDto & { user_profiles: UserProfileBasicDto })[]
+  > {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
 
@@ -577,7 +579,7 @@ export class AscentsService {
     const { data: profilesData, error: profilesError } =
       await this.supabase.client
         .from('user_profiles')
-        .select('*')
+        .select('id, name, avatar')
         .in('id', userIds);
 
     if (profilesError) {

@@ -23,11 +23,13 @@ export interface TopoPath {
   [key: string]: unknown;
 }
 
+import { RouteBasicWithOwnData } from './route.model';
+
 export interface TopoRouteWithRoute {
   topo_id: number;
   route_id: number;
   number: number;
-  route: RouteWithOwnData;
+  route: RouteBasicWithOwnData;
   path?: TopoPath | null;
 }
 

@@ -730,7 +730,7 @@ export class GlobalData {
             topo_routes (
               *,
               route: routes (
-                *,
+                id, name, slug, grade, climbing_kind,
                 own_ascent: route_ascents!left (*),
                 project: route_projects!left (id)
               )
@@ -1049,7 +1049,7 @@ export class GlobalData {
             `
             *,
             route:routes!inner (
-              *,
+              id, name, slug, grade, climbing_kind,
               liked:route_likes(id),
               project:route_projects(id),
               crag:crags(
@@ -1308,7 +1308,7 @@ export class GlobalData {
         const { data: profiles, error: profilesError } =
           await this.supabase.client
             .from('user_profiles')
-            .select('*')
+            .select('id, name, avatar')
             .in('id', userIds);
 
         if (profilesError) {

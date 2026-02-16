@@ -7,7 +7,7 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, Observable } from 'rxjs';
 
-import { UserProfileDto } from '../models';
+import { UserProfileBasicDto, UserProfileDto } from '../models';
 
 import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
 import { Import8aComponent } from '../components/import-8a';
@@ -97,7 +97,7 @@ export class UserProfilesService {
     }
   }
 
-  async searchUsers(query: string): Promise<UserProfileDto[]> {
+  async searchUsers(query: string): Promise<UserProfileBasicDto[]> {
     const q = `%${query.trim()}%`;
     const qLoose = `%${query
       .trim()
@@ -107,7 +107,7 @@ export class UserProfilesService {
 
     const { data } = await this.supabase.client
       .from('user_profiles')
-      .select('*')
+      .select('id, name, avatar')
       .or(`name.ilike.${q},name.ilike.${qLoose}`)
       .neq('id', this.supabase.authUserId() || '')
       .limit(100);
@@ -120,10 +120,10 @@ export class UserProfilesService {
       .slice(0, 10);
   }
 
-  async getUserProfile(userId: string): Promise<UserProfileDto | null> {
+  async getUserProfile(userId: string): Promise<UserProfileBasicDto | null> {
     const { data, error } = await this.supabase.client
       .from('user_profiles')
-      .select('*')
+      .select('id, name, avatar')
       .eq('id', userId)
       .maybeSingle();
 

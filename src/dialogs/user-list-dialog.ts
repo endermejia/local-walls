@@ -26,7 +26,7 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 import { WaIntersectionObserver } from '@ng-web-apis/intersection-observer';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
-import { UserProfileDto } from '../models';
+import { UserProfileBasicDto, UserProfileDto } from '../models';
 
 import { FollowsService, SupabaseService, AscentsService } from '../services';
 import { EmptyStateComponent } from '../components/empty-state';
@@ -223,7 +223,9 @@ export class UserListDialogComponent {
     },
   });
 
-  protected readonly users = signal<UserProfileDto[]>([]);
+  protected readonly users = signal<
+    (UserProfileBasicDto & Partial<UserProfileDto>)[]
+  >([]);
   protected readonly total = computed(
     () => this.usersResource.value()?.total ?? 0,
   );
@@ -275,7 +277,10 @@ export class UserListDialogComponent {
     this.followedIds.set(new Set(ids));
   }
 
-  protected onFollow(user: UserProfileDto, event: Event) {
+  protected onFollow(
+    user: UserProfileBasicDto & Partial<UserProfileDto>,
+    event: Event,
+  ) {
     event.preventDefault();
     event.stopPropagation();
     void this.followsService.follow(user.id);
@@ -287,7 +292,10 @@ export class UserListDialogComponent {
     });
   }
 
-  protected async onUnfollow(user: UserProfileDto, event: Event) {
+  protected async onUnfollow(
+    user: UserProfileBasicDto & Partial<UserProfileDto>,
+    event: Event,
+  ) {
     event.preventDefault();
     event.stopPropagation();
 

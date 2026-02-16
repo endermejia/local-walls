@@ -34,7 +34,7 @@ import {
 } from '../services';
 import { EmptyStateComponent } from '../components/empty-state';
 import { MentionLinkPipe } from '../pipes/mention-link.pipe';
-import { UserProfileDto } from '../models';
+import { UserProfileBasicDto } from '../models';
 
 export interface AscentCommentsDialogData {
   ascentId: number;
@@ -130,9 +130,9 @@ export interface AscentCommentsDialogData {
         #container
         class="p-4 border-t border-[var(--tui-border-normal)] relative"
       >
-        <label class="text-[13px] font-bold opacity-70 mb-2 block">
+        <span class="text-[13px] font-bold opacity-70 mb-2 block">
           {{ 'labels.addComment' | translate }}
-        </label>
+        </span>
 
         <div
           class="relative bg-[var(--tui-background-base)] border border-[var(--tui-border-normal)] rounded-xl flex items-end p-2 gap-2 focus-within:ring-2 focus-within:ring-[var(--tui-text-action)] transition-shadow"
@@ -414,7 +414,7 @@ export class AscentCommentsDialogComponent {
     this.showMentions.set(false);
   }
 
-  protected selectUser(user: UserProfileDto) {
+  protected selectUser(user: UserProfileBasicDto) {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
 
@@ -479,7 +479,7 @@ export class AscentCommentsDialogComponent {
     });
 
     // Handle breaks and paragraphs if any
-    let text = clone.innerText || clone.textContent || '';
+    const text = clone.innerText || clone.textContent || '';
 
     // Clean up
     return text.trim();

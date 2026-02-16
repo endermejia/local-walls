@@ -1887,6 +1887,7 @@ export interface Database {
     };
     Views: Record<never, never>;
     Functions: {
+      create_chat_room: { Args: { other_user_id: string }; Returns: string };
       get_areas_list: {
         Args: never;
         Returns: {
