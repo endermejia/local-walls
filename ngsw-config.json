@@ -1,11 +1,12 @@
 {
   "$schema": "./node_modules/@angular/service-worker/config/schema.json",
   "index": "/index.html",
-  "navigationUrls": ["/**"],
+  "navigationUrls": ["/**", "!/**/*.*", "!/**/*__*", "!/**/*__*/**"],
   "assetGroups": [
     {
       "name": "app",
       "installMode": "prefetch",
+      "updateMode": "prefetch",
       "resources": {
         "files": [
           "/favicon.ico",
@@ -36,7 +37,7 @@
         "maxSize": 100,
         "maxAge": "3d",
         "timeout": "5s",
-        "strategy": "freshness"
+        "strategy": "performance"
       }
     },
     {
