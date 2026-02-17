@@ -2,6 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { CanMatchFn, Router, UrlTree } from '@angular/router';
 
+import { waitForResource } from '../utils';
 import { SupabaseService } from './supabase.service';
 
 /** Allows route matching only for admin users. On server, always allow. */
@@ -22,27 +23,17 @@ export const adminGuard: CanMatchFn = async (): Promise<boolean | UrlTree> => {
 
   // Wait for user role to be loaded
   // The userRoleResource will load automatically when session is available
-  const maxAttempts = 60; // 3 seconds total (60 * 50ms)
-  let attempts = 0;
+  const roleData = await waitForResource(supabase.userRoleResource);
 
-  while (attempts < maxAttempts) {
-    // Check if the resource has finished loading (is not undefined)
-    const roleData = supabase.userRoleResource.value();
-
-    if (roleData !== undefined) {
-      // Role data is loaded (could be the role object or null)
-      if (roleData?.role === 'admin') {
-        return true;
-      }
-
-      // User is logged in but not an admin
-      console.warn('[AdminGuard] User is not admin. Role:', roleData?.role);
-      return router.createUrlTree(['/page-not-found']);
+  if (roleData !== undefined) {
+    // Role data is loaded (could be the role object or null)
+    if (roleData?.role === 'admin') {
+      return true;
     }
 
-    // Wait a bit for the role to load
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    attempts++;
+    // User is logged in but not an admin
+    console.warn('[AdminGuard] User is not admin. Role:', roleData?.role);
+    return router.createUrlTree(['/page-not-found']);
   }
 
   // If role didn't load after waiting, redirect to page-not-found
@@ -67,36 +58,24 @@ export const equipperGuard: CanMatchFn = async (): Promise<
     return router.createUrlTree(['/login']);
   }
 
-  const maxAttempts = 60;
-  let attempts = 0;
+  const roleData = await waitForResource(supabase.userRoleResource);
 
-  while (attempts < maxAttempts) {
-    const roleData = supabase.userRoleResource.value();
-
-    if (roleData !== undefined) {
-      if (roleData?.role === 'admin') {
-        return true;
-      }
-      if (roleData?.role === 'equipper') {
-        // Wait for equipper areas to load
-        while (attempts < maxAttempts) {
-          const areas = supabase.equipperAreasResource.value();
-          if (areas !== undefined) {
-            if (areas.length > 0) {
-              return true;
-            }
-            console.warn('[EquipperGuard] Equipper has no assigned areas');
-            return router.createUrlTree(['/page-not-found']);
-          }
-          await new Promise((resolve) => setTimeout(resolve, 50));
-          attempts++;
-        }
-      }
-      return router.createUrlTree(['/page-not-found']);
+  if (roleData !== undefined) {
+    if (roleData?.role === 'admin') {
+      return true;
     }
-
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    attempts++;
+    if (roleData?.role === 'equipper') {
+      // Wait for equipper areas to load
+      const areas = await waitForResource(supabase.equipperAreasResource);
+      if (areas !== undefined) {
+        if (areas.length > 0) {
+          return true;
+        }
+        console.warn('[EquipperGuard] Equipper has no assigned areas');
+        return router.createUrlTree(['/page-not-found']);
+      }
+    }
+    return router.createUrlTree(['/page-not-found']);
   }
 
   return router.createUrlTree(['/page-not-found']);
