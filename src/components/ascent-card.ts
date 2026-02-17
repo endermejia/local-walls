@@ -7,6 +7,7 @@ import {
   input,
   output,
   resource,
+  signal,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -109,6 +110,8 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
                 size="s"
                 appearance="secondary-grayscale"
                 class="!rounded-full"
+                [disabled]="loading()"
+                [iconStart]="loading() ? '@tui.loader' : ''"
                 (click)="unfollow(ascent.user_id, ascent.user?.name || 'User')"
               >
                 {{ 'actions.following' | translate }}
@@ -119,6 +122,8 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
                 size="s"
                 appearance="action"
                 class="!rounded-full"
+                [disabled]="loading()"
+                [iconStart]="loading() ? '@tui.loader' : ''"
                 (click)="follow(ascent.user_id)"
               >
                 {{ 'actions.follow' | translate }}
@@ -359,6 +364,8 @@ export class AscentCardComponent {
   followEvent = output<string>();
   unfollowEvent = output<string>();
 
+  protected readonly loading = signal(false);
+
   protected index = 0;
 
   protected readonly ascentPhotoResource = resource({
@@ -426,13 +433,20 @@ export class AscentCardComponent {
   }
 
   async follow(userId: string) {
-    const success = await this.followsService.follow(userId);
-    if (success) {
-      this.followEvent.emit(userId);
+    if (this.loading()) return;
+    this.loading.set(true);
+    try {
+      const success = await this.followsService.follow(userId);
+      if (success) {
+        this.followEvent.emit(userId);
+      }
+    } finally {
+      this.loading.set(false);
     }
   }
 
   async unfollow(userId: string, name: string) {
+    if (this.loading()) return;
     const data: TuiConfirmData = {
       content: this.translate.instant('actions.unfollowConfirm', {
         name,
@@ -452,9 +466,14 @@ export class AscentCardComponent {
     );
 
     if (confirmed) {
-      const success = await this.followsService.unfollow(userId);
-      if (success) {
-        this.unfollowEvent.emit(userId);
+      this.loading.set(true);
+      try {
+        const success = await this.followsService.unfollow(userId);
+        if (success) {
+          this.unfollowEvent.emit(userId);
+        }
+      } finally {
+        this.loading.set(false);
       }
     }
   }

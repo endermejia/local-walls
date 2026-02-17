@@ -957,12 +957,16 @@ export class UserProfileComponent {
   }
 
   constructor() {
-    const isBrowser = isPlatformBrowser(this.platformId);
-    if (isBrowser) {
-      void this.followsService
-        .getFollowedIds()
-        .then((ids) => this.followedIds.set(new Set(ids)));
-    }
+    effect(() => {
+      // Re-fetch followed IDs whenever the global follow state changes
+      this.followsService.followChange();
+
+      if (isPlatformBrowser(this.platformId)) {
+        void this.followsService
+          .getFollowedIds()
+          .then((ids) => this.followedIds.set(new Set(ids)));
+      }
+    });
 
     effect(() => {
       if (!this.tourService.isActive()) return;
@@ -1229,8 +1233,10 @@ export class UserProfileComponent {
         );
         if (!confirmed) return;
         await this.followsService.unfollow(followedUserId);
+        this.onUnfollow(followedUserId);
       } else {
         await this.followsService.follow(followedUserId);
+        this.onFollow(followedUserId);
       }
     } finally {
       this.followLoading.set(false);
