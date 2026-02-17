@@ -26,7 +26,7 @@ export class FollowsService {
   ): Promise<string[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
 
-    let allIds: string[] = [];
+    const allIds: string[] = [];
     let page = 0;
     const pageSize = 1000;
     let hasMore = true;
@@ -44,7 +44,11 @@ export class FollowsService {
       }
 
       if (data && data.length > 0) {
-        allIds.push(...data.map((row: any) => row[targetColumn]));
+        allIds.push(
+          ...(data as unknown as Record<string, unknown>[]).map(
+            (row) => row[targetColumn] as string,
+          ),
+        );
         if (data.length < pageSize) {
           hasMore = false;
         } else {
@@ -55,26 +59,6 @@ export class FollowsService {
       }
     }
     return allIds;
-  }
-
-  async isFollowing(followedUserId: string): Promise<boolean> {
-    if (!isPlatformBrowser(this.platformId)) return false;
-    const userId = this.supabase.authUserId();
-    if (!userId) return false;
-
-    const { data, error } = await this.supabase.client
-      .from('user_follows')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('followed_user_id', followedUserId)
-      .maybeSingle();
-
-    if (error) {
-      console.error('[FollowsService] isFollowing error', error);
-      return false;
-    }
-
-    return !!data;
   }
 
   async follow(followedUserId: string): Promise<boolean> {
