@@ -1120,25 +1120,10 @@ export class UserProfileComponent {
     return !!currentId && !!viewedId && currentId === viewedId;
   });
 
-  readonly isFollowingResource = resource({
-    params: () => ({
-      userId: this.supabase.authUserId(),
-      followedUserId: this.profile()?.id,
-      change: this.followsService.followChange(),
-    }),
-    loader: async ({ params }) => {
-      if (
-        !params.userId ||
-        !params.followedUserId ||
-        params.userId === params.followedUserId ||
-        !isPlatformBrowser(this.platformId)
-      ) {
-        return false;
-      }
-      return this.followsService.isFollowing(params.followedUserId);
-    },
+  readonly isFollowing = computed(() => {
+    const profileId = this.profile()?.id;
+    return !!profileId && this.followedIds().has(profileId);
   });
-  readonly isFollowing = computed(() => !!this.isFollowingResource.value());
 
   readonly blockStateResource = resource({
     params: () => ({
