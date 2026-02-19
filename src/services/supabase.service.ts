@@ -267,13 +267,14 @@ export class SupabaseService {
           autoRefreshToken: true,
           persistSession: true,
           detectSessionInUrl: true,
+          lock: (_, __, fn) => fn(),
         },
-      });
+      }) as SupabaseClient<Database>;
       // Initial session fetch
-      const { data } = await this._client.auth.getSession();
+      const { data } = await this._client!.auth.getSession();
       this._session.set(data.session ?? null);
       // Subscribe to auth state changes
-      this._client.auth.onAuthStateChange((event, sess) => {
+      this._client!.auth.onAuthStateChange((event, sess) => {
         this._session.set(sess ?? null);
         this._lastEvent.set(event ?? null);
       });
