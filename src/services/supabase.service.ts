@@ -267,8 +267,12 @@ export class SupabaseService {
           autoRefreshToken: true,
           persistSession: true,
           detectSessionInUrl: true,
+          lock: {
+            // Bypass navigator.locks on Safari
+            request: (_: any, __: any, fn: any) => fn(),
+          } as any,
         },
-      });
+      }) as SupabaseClient<Database>;
       // Initial session fetch
       const { data } = await this._client.auth.getSession();
       this._session.set(data.session ?? null);
