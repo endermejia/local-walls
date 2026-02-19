@@ -114,6 +114,43 @@ export class RoutesService {
     });
   }
 
+  async getRoutesAdmin(
+    page: number,
+    pageSize: number,
+    query: string,
+  ): Promise<{
+    data: (RouteDto & { crag?: { name: string } })[];
+    count: number;
+  }> {
+    if (!isPlatformBrowser(this.platformId)) return { data: [], count: 0 };
+    await this.supabase.whenReady();
+
+    let queryBuilder = this.supabase.client
+      .from('routes')
+      .select('*, crag:crags(name)', { count: 'exact' });
+
+    if (query) {
+      queryBuilder = queryBuilder.ilike('name', `%${query}%`);
+    }
+
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error, count } = await queryBuilder
+      .range(from, to)
+      .order('name');
+
+    if (error) {
+      console.error('[RoutesService] getRoutesAdmin error', error);
+      return { data: [], count: 0 };
+    }
+
+    return {
+      data: data as (RouteDto & { crag?: { name: string } })[],
+      count: count || 0,
+    };
+  }
+
   async getRoutesByAreaSimple(areaId: number): Promise<RouteSimple[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();

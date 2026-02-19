@@ -111,6 +111,51 @@ import { SupabaseService } from '../services';
             </p>
           </div>
         </a>
+
+        <a
+          routerLink="/admin/areas"
+          class="flex items-center gap-4 p-4 bg-[var(--tui-background-base)] rounded-2xl border border-[var(--tui-border-normal)] no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
+        >
+          <tui-icon icon="@tui.map" class="text-[var(--tui-text-tertiary)]" />
+          <div class="flex-1">
+            <span class="font-bold block">Areas</span>
+            <p class="text-sm text-[var(--tui-text-secondary)]">
+              Manage areas
+            </p>
+          </div>
+        </a>
+
+        <a
+          routerLink="/admin/crags"
+          class="flex items-center gap-4 p-4 bg-[var(--tui-background-base)] rounded-2xl border border-[var(--tui-border-normal)] no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
+        >
+          <tui-icon
+            icon="@tui.mountain"
+            class="text-[var(--tui-text-tertiary)]"
+          />
+          <div class="flex-1">
+            <span class="font-bold block">Crags</span>
+            <p class="text-sm text-[var(--tui-text-secondary)]">
+              Manage crags
+            </p>
+          </div>
+        </a>
+
+        <a
+          routerLink="/admin/routes"
+          class="flex items-center gap-4 p-4 bg-[var(--tui-background-base)] rounded-2xl border border-[var(--tui-border-normal)] no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
+        >
+          <tui-icon
+            icon="@tui.git-commit"
+            class="text-[var(--tui-text-tertiary)]"
+          />
+          <div class="flex-1">
+            <span class="font-bold block">Routes</span>
+            <p class="text-sm text-[var(--tui-text-secondary)]">
+              Manage routes
+            </p>
+          </div>
+        </a>
       </div>
     </div>
   `,

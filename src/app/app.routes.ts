@@ -113,6 +113,30 @@ export const routes: Routes = [
         (m) => m.AdminParkingsListComponent,
       ),
   },
+  {
+    path: 'admin/areas',
+    canMatch: [adminGuard],
+    loadComponent: () =>
+      import('../pages/admin-areas-list').then(
+        (m) => m.AdminAreasListComponent,
+      ),
+  },
+  {
+    path: 'admin/crags',
+    canMatch: [adminGuard],
+    loadComponent: () =>
+      import('../pages/admin-crags-list').then(
+        (m) => m.AdminCragsListComponent,
+      ),
+  },
+  {
+    path: 'admin/routes',
+    canMatch: [adminGuard],
+    loadComponent: () =>
+      import('../pages/admin-routes-list').then(
+        (m) => m.AdminRoutesListComponent,
+      ),
+  },
   // Public landing page
   {
     path: 'info',

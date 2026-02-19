@@ -113,6 +113,40 @@ export class CragsService {
     });
   }
 
+  async getCragsAdmin(
+    page: number,
+    pageSize: number,
+    query: string,
+  ): Promise<{ data: (CragDto & { area?: { name: string } })[]; count: number }> {
+    if (!isPlatformBrowser(this.platformId)) return { data: [], count: 0 };
+    await this.supabase.whenReady();
+
+    let queryBuilder = this.supabase.client
+      .from('crags')
+      .select('*, area:areas(name)', { count: 'exact' });
+
+    if (query) {
+      queryBuilder = queryBuilder.ilike('name', `%${query}%`);
+    }
+
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error, count } = await queryBuilder
+      .range(from, to)
+      .order('name');
+
+    if (error) {
+      console.error('[CragsService] getCragsAdmin error', error);
+      return { data: [], count: 0 };
+    }
+
+    return {
+      data: data as (CragDto & { area?: { name: string } })[],
+      count: count || 0,
+    };
+  }
+
   async getAllCragsSimple(): Promise<CragSimple[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();

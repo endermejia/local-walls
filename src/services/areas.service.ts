@@ -214,6 +214,37 @@ export class AreasService {
     }
   }
 
+  async getAreasAdmin(
+    page: number,
+    pageSize: number,
+    query: string,
+  ): Promise<{ data: AreaDto[]; count: number }> {
+    if (!isPlatformBrowser(this.platformId)) return { data: [], count: 0 };
+    await this.supabase.whenReady();
+
+    let queryBuilder = this.supabase.client
+      .from('areas')
+      .select('*', { count: 'exact' });
+
+    if (query) {
+      queryBuilder = queryBuilder.ilike('name', `%${query}%`);
+    }
+
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error, count } = await queryBuilder
+      .range(from, to)
+      .order('name');
+
+    if (error) {
+      console.error('[AreasService] getAreasAdmin error', error);
+      return { data: [], count: 0 };
+    }
+
+    return { data: data as AreaDto[], count: count || 0 };
+  }
+
   async unify(
     targetAreaId: number,
     sourceAreaIds: number[],
