@@ -26,12 +26,13 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Next Steps
 
-- **Optimizar imagenes para mejor rendimiento. En avatar y fotos de los ascents**
 - **Corregir service worker**
-- **Calendario de volumen, para entrenamiento, etc**
+- **Corregir problema con Safari. Actualmente no funciona en Safari**
 
 ## Future Features
 
+- **Optimizar imagenes para mejor rendimiento. En avatar y fotos de los ascents**
+- **Calendario de volumen, para entrenamiento, etc**
 - **Sección para rocodromos. Para que se puedan hacer vias y croquis en los rocrodromos**
 - **8a.nu Integration**:
   - Copy 8a.nu ascents database.
