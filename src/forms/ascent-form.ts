@@ -769,7 +769,9 @@ export default class AscentFormComponent {
     .map(([k, v]) => ({ id: Number(k), label: v }));
 
   protected readonly gradeStringify = (grade: number): string =>
-    VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || '';
+    grade === 0
+      ? this.translate.instant('labels.project')
+      : VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || '';
 
   protected changeGrade(delta: number): void {
     const ctrl = this.form.get('grade');

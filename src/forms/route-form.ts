@@ -337,9 +337,13 @@ export class RouteFormComponent {
 
   protected readonly gradeOptions: readonly number[] = Object.keys(
     VERTICAL_LIFE_TO_LABEL,
-  ).map(Number);
+  )
+    .map(Number)
+    .sort((a, b) => a - b);
   protected readonly gradeStringify = (grade: number): string =>
-    VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || '';
+    grade === 0
+      ? this.translate.instant('labels.project')
+      : VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || '';
 
   protected readonly kindOptions: readonly ClimbingKind[] =
     Object.values(ClimbingKinds);

@@ -54,7 +54,8 @@ export type GradeSuffix = '' | '+';
 export type GradeLabel =
   | `${'3' | '4'}${GradeLetter}`
   | `${'5' | '6' | '7' | '8' | '9'}${GradeLetter}${GradeSuffix}`
-  | '5';
+  | '5'
+  | '?';
 
 // Ordered grade values must reflect exactly the enum VERTICAL_LIFE_GRADES.
 // We derive them from VERTICAL_LIFE_TO_LABEL in the numeric order of the enum
@@ -67,6 +68,7 @@ export type RoutesByGrade = Partial<Record<GradeLabel, number>>;
 export const VERTICAL_LIFE_TO_LABEL: Partial<
   Record<VERTICAL_LIFE_GRADES, GradeLabel>
 > = {
+  [VERTICAL_LIFE_GRADES.G0]: '?',
   [VERTICAL_LIFE_GRADES.G3a]: '3a',
   [VERTICAL_LIFE_GRADES.G3b]: '3b',
   [VERTICAL_LIFE_GRADES.G3c]: '3c',
@@ -121,6 +123,7 @@ export const ORDERED_GRADE_VALUES: readonly GradeLabel[] = Object.entries(
   ) as readonly GradeLabel[];
 
 export function bandForGradeLabel(g: GradeLabel): 0 | 1 | 2 | 3 | 4 {
+  if (g === '?') return 4;
   const base = parseInt(g.charAt(0), 10);
   if (!Number.isFinite(base)) return 0;
   if (base <= 5) return 0;
