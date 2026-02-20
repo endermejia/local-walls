@@ -282,16 +282,24 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
               </a>
               @if (ascent.route && showRoute()) {
                 <span>•</span>
-                <a
-                  class="hover:underline cursor-pointer flex items-center gap-1"
-                  [routerLink]="[
-                    '/area',
-                    ascent.route.area_slug,
-                    ascent.route.crag_slug,
-                  ]"
-                >
-                  <span>{{ ascent.route.crag_name }}</span>
-                </a>
+                <div class="inline-flex items-center gap-1 text-sm opacity-70">
+                  <a
+                    class="hover:underline cursor-pointer"
+                    [routerLink]="[
+                      '/area',
+                      ascent.route.area_slug,
+                      ascent.route.crag_slug,
+                    ]"
+                  >
+                    {{ ascent.route.crag_name }}
+                  </a>
+                  <a
+                    class="hover:underline cursor-pointer"
+                    [routerLink]="['/area', ascent.route.area_slug]"
+                  >
+                    ({{ ascent.route.area_name }})
+                  </a>
+                </div>
               }
             </div>
           }
