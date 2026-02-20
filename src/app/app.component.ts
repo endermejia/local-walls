@@ -34,13 +34,13 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
     TuiAppearance,
   ],
   template: `
-    <tui-root class="overflow-hidden" [attr.tuiTheme]="global.selectedTheme()">
+    <tui-root [attr.tuiTheme]="global.selectedTheme()">
       @if (gdprAccepted()) {
         <div class="h-[100dvh] flex flex-col-reverse md:flex-row">
           @if (showHeader()) {
             <app-navbar />
           }
-          <main class="flex-1 overflow-hidden relative flex flex-col">
+          <main class="flex-1 min-h-0 relative flex flex-col overflow-y-auto">
             <router-outlet />
 
             @if (showHeader()) {

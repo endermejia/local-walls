@@ -57,6 +57,7 @@ import {
 } from '../services';
 
 import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
+import { EmptyStateComponent } from '../components/empty-state';
 import { MapComponent } from '../components/map';
 import { TourHintComponent } from '../components/tour-hint';
 import { TuiDropdown } from '@taiga-ui/core';
@@ -67,6 +68,7 @@ import { mapLocationUrl, remToPx } from '../utils';
   selector: 'app-home',
   imports: [
     ChartRoutesByGradeComponent,
+    EmptyStateComponent,
     CommonModule,
     LowerCasePipe,
     MapComponent,
@@ -281,7 +283,7 @@ import { mapLocationUrl, remToPx } from '../utils';
           </div>
         }
 
-        <!-- BottomSheet (Mobile) / Sidebar (Desktop) -->
+        <!-- BottomSheet (Mobile) -->
         @let crags = mapCragItems();
         @let areas = mapAreaItems();
         @let loading =
@@ -296,30 +298,35 @@ import { mapLocationUrl, remToPx } from '../utils';
             >
               <tui-loader size="xxl" />
             </div>
-          } @else if (areas.length || crags.length) {
-            @if (isMobile) {
-              <tui-bottom-sheet
-                #sheet
-                [stops]="stops"
-                class="z-50"
-                role="dialog"
-                aria-labelledby="areas-title crags-title"
-                (scroll.zoneless)="onSheetScroll($event)"
-              >
-                <ng-container *ngTemplateOutlet="listContent" />
-              </tui-bottom-sheet>
-            } @else {
-              <div
-                class="flex flex-col absolute right-0 top-0 z-1 h-full w-80 sm:w-96"
-              >
-                <tui-scrollbar class="h-full bg-[var(--tui-background-base)]">
-                  <ng-container *ngTemplateOutlet="listContent" />
-                </tui-scrollbar>
-              </div>
-            }
+          } @else if (isMobile && (areas.length || crags.length)) {
+            <tui-bottom-sheet
+              #sheet
+              [stops]="stops"
+              class="z-50"
+              role="dialog"
+              aria-labelledby="areas-title crags-title"
+              (scroll.zoneless)="onSheetScroll($event)"
+            >
+              <ng-container *ngTemplateOutlet="listContent" />
+            </tui-bottom-sheet>
           }
         }
       </div>
+
+      <!-- Desktop Sidebar (always visible) -->
+      @if (!isMobile) {
+        <div
+          class="flex flex-col shrink-0 h-full w-80 sm:w-96 border-l border-[var(--tui-border-normal)]"
+        >
+          <tui-scrollbar class="h-full bg-[var(--tui-background-base)]">
+            @if (mapCragItems().length || mapAreaItems().length) {
+              <ng-container *ngTemplateOutlet="listContent" />
+            } @else {
+              <app-empty-state icon="@tui.map-pin" />
+            }
+          </tui-scrollbar>
+        </div>
+      }
 
       <ng-template #tourHint>
         <app-tour-hint
@@ -457,7 +464,7 @@ import { mapLocationUrl, remToPx } from '../utils';
     </div>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'flex grow min-h-0',
+    class: 'flex grow min-h-0 h-[100dvh] overflow-hidden',
   },
 })
 export class ExploreComponent {
