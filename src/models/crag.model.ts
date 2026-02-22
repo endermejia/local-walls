@@ -53,7 +53,7 @@ export type CragWithJoins = CragDto & {
   crag_parkings: { parking: ParkingDto }[] | null;
   topos:
     | (TopoDto & {
-        topo_routes: { route: { grade: number } | null }[];
+        topo_routes: { route_id: number; route: { grade: number } | null }[];
       })[]
     | null;
   liked: { id: number }[];

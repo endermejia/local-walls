@@ -290,6 +290,13 @@ import { handleErrorToast, slugify } from '../utils';
                     <app-avatar-grade [grade]="route.grade" />
                     <div tuiTitle>
                       {{ route.name }}
+                      @if (routeIdsInOtherTopos().has(route.id)) {
+                        <tui-icon
+                          icon="@tui.image"
+                          class="text-xs opacity-50"
+                          style="font-size: 0.85rem"
+                        />
+                      }
                     </div>
                   </div>
                 </button>
@@ -439,6 +446,21 @@ export class TopoFormComponent {
     () => this.global.cragRoutesResource.value() ?? [],
   );
 
+  /** Route IDs that already appear in other topos of the same crag */
+  protected readonly routeIdsInOtherTopos = computed(() => {
+    const crag = this.global.cragDetailResource.value();
+    const currentTopoId = this.effectiveTopoData()?.id;
+    if (!crag?.topos) return new Set<number>();
+    const ids = new Set<number>();
+    for (const topo of crag.topos) {
+      if (topo.id === currentTopoId) continue;
+      for (const rid of topo.route_ids ?? []) {
+        ids.add(rid);
+      }
+    }
+    return ids;
+  });
+
   protected readonly stringifyRoute = (route: RouteDto): string =>
     `${route.name} (${this.gradeStringify(route.grade)})`;
 
@@ -558,7 +580,10 @@ export class TopoFormComponent {
         shade_afternoon: this.shade_afternoon.value,
         shade_change_hour: this.shade_change_hour.value,
         crag_id: crag_id!,
-        slug: slugify(this.name.value),
+        slug:
+          (this.global.selectedCragSlug() || '') +
+          '-' +
+          slugify(this.name.value),
       };
 
       try {

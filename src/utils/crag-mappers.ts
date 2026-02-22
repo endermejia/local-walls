@@ -30,6 +30,7 @@ export function mapCragToDetail(rawData: CragWithJoins): CragDetail {
         shade_afternoon: t.shade_afternoon,
         shade_change_hour: t.shade_change_hour,
         shade_morning: t.shade_morning,
+        route_ids: t.topo_routes.map((tr) => tr.route_id),
       };
     }) ?? [];
 

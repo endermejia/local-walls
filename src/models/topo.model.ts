@@ -10,6 +10,7 @@ export interface TopoListItem {
   shade_afternoon: boolean;
   shade_change_hour: string | null;
   shade_morning: boolean;
+  route_ids?: number[];
 }
 
 export interface RouteWithOwnData extends RouteDto {

@@ -874,14 +874,15 @@ export class GlobalData {
             crag_parkings (
               parking: parkings (*)
             ),
-            topos (
-              *,
-              topo_routes (
-                route: routes (
-                  grade
-                )
-              )
-            )
+             topos (
+               *,
+               topo_routes (
+                 route_id,
+                 route: routes (
+                   grade
+                 )
+               )
+             )
           `,
           )
           .eq('slug', cragSlug)
