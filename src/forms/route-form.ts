@@ -59,6 +59,7 @@ interface MinimalRoute {
   grade: number;
   climbing_kind: ClimbingKind;
   height?: number | null;
+  eight_anu_route_slugs?: string[] | null;
 }
 
 @Component({
@@ -455,6 +456,7 @@ export class RouteFormComponent {
       this.grade.setValue(data.grade);
       this.climbing_kind.setValue(data.climbing_kind);
       this.height.setValue(data.height ?? null);
+      this.eight_anu_route_slugs.setValue(data.eight_anu_route_slugs || []);
       if (data.crag_id) {
         const selectedCrag = options.find((c) => c.id === data.crag_id);
         if (selectedCrag) {
@@ -511,6 +513,7 @@ export class RouteFormComponent {
           grade,
           climbing_kind,
           height,
+          eight_anu_route_slugs: this.eight_anu_route_slugs.value,
         });
       }
 

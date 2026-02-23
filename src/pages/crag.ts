@@ -8,6 +8,7 @@ import {
   input,
   InputSignal,
   PLATFORM_ID,
+  resource,
   signal,
   WritableSignal,
 } from '@angular/core';
@@ -47,13 +48,16 @@ import {
   AmountByEveryGrade,
   ClimbingKinds,
   type CragDetail,
+  LABEL_TO_VERTICAL_LIFE,
   ORDERED_GRADE_VALUES,
   ParkingDto,
   RouteWithExtras,
+  SearchRouteItem,
   type TopoListItem,
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
 } from '../models';
+import { EightAnuService } from '../services/eight-anu.service';
 
 import { CragsService } from '../services/crags.service';
 import { FiltersService } from '../services/filters.service';
@@ -69,12 +73,13 @@ import { TopoImagePipe } from '../pipes';
 
 import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
 import { EmptyStateComponent } from '../components/empty-state';
+import { GradeComponent } from '../components/avatar-grade';
 import { RoutesTableComponent } from '../components/routes-table';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TourHintComponent } from '../components/tour-hint';
 import { WeatherForecastComponent } from '../components/weather-forecast';
 
-import { handleErrorToast, mapLocationUrl } from '../utils';
+import { handleErrorToast, mapLocationUrl, slugify } from '../utils';
 
 @Component({
   selector: 'app-crag',
@@ -82,6 +87,7 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
     AsyncPipe,
     ChartRoutesByGradeComponent,
     EmptyStateComponent,
+    GradeComponent,
     FormsModule,
     LowerCasePipe,
     RoutesTableComponent,
@@ -375,7 +381,74 @@ import { handleErrorToast, mapLocationUrl } from '../utils';
                   </tui-badged-content>
                 </div>
 
-                <app-routes-table [data]="filteredRoutes()" />
+                @let routesList = filteredRoutes();
+                @let isSearchingAnu = eightAnuResource.isLoading();
+                @let anuResults = eightAnuResource.value() || [];
+
+                @if (routesList.length > 0) {
+                  <app-routes-table [data]="routesList" />
+                }
+
+                @if (global.editingMode() && query().length >= 2) {
+                  @if (isSearchingAnu) {
+                    <div
+                      class="flex flex-col items-center justify-center p-8 gap-4"
+                    >
+                      <tui-loader size="m" />
+                      <span class="text-sm opacity-60">
+                        {{ 'actions.loading' | translate }} 8a.nu...
+                      </span>
+                    </div>
+                  } @else if (anuResults.length > 0) {
+                    <div class="flex flex-col gap-3 mt-4">
+                      <div class="flex items-center gap-2 opacity-70 mb-2">
+                        <tui-icon [icon]="global.iconSrc()('8anu')" />
+                        <span class="font-medium">
+                          {{ 'labels.eightAnuResults' | translate }}
+                        </span>
+                      </div>
+                      @for (item of anuResults; track item.zlaggableId) {
+                        <div
+                          tuiAppearance="flat"
+                          class="p-4 rounded-3xl flex items-center justify-between gap-4"
+                        >
+                          <div class="flex flex-col gap-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                              <app-grade
+                                [grade]="mapEightAnuGrade(item.difficulty)"
+                              />
+                              <span class="font-bold truncate">
+                                {{ item.zlaggableName }}
+                              </span>
+                            </div>
+                            <span class="text-xs opacity-60 truncate">
+                              {{ item.cragName }} · {{ item.sectorName }}
+                            </span>
+                          </div>
+                          <button
+                            tuiButton
+                            appearance="textfield"
+                            size="s"
+                            type="button"
+                            iconStart="@tui.download"
+                            (click.zoneless)="importRoute(item)"
+                          >
+                            {{ 'actions.import' | translate }}
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+
+                @if (
+                  routesList.length === 0 &&
+                  (!global.editingMode() ||
+                    query().length < 2 ||
+                    (!isSearchingAnu && anuResults.length === 0))
+                ) {
+                  <app-empty-state icon="@tui.list" />
+                }
               }
               @case (1) {
                 <!-- Topos -->
@@ -658,6 +731,7 @@ export class CragComponent {
   protected readonly parkingsService = inject(ParkingsService);
   protected readonly cragsService = inject(CragsService);
   protected readonly toposService = inject(ToposService);
+  protected readonly eightAnuService = inject(EightAnuService);
   protected readonly filtersService = inject(FiltersService);
   protected readonly platformId = inject(PLATFORM_ID);
   protected readonly toast = inject(ToastService);
@@ -774,6 +848,96 @@ export class CragComponent {
       (r) => textMatches(r) && gradeMatches(r) && categoryMatches(r),
     );
   });
+
+  protected readonly eightAnuResource = resource({
+    params: () => {
+      const q = this.query().trim();
+      const crag = this.cragDetail();
+      const editing = this.global.editingMode();
+
+      if (editing && q.length >= 2 && crag) {
+        return { q, crag: crag.name };
+      }
+      return null;
+    },
+    loader: async ({ params }): Promise<SearchRouteItem[]> => {
+      if (!params) return [];
+      console.log('[8a.nu] Searching routes for:', params.q, 'in', params.crag);
+      const results = await this.eightAnuService.searchRoutes(
+        `${params.q} ${params.crag}`,
+      );
+      const localRoutes = this.global.cragRoutesResource.value() || [];
+      const updatedSlugs = new Set(
+        localRoutes.flatMap((r) => r.eight_anu_route_slugs || []),
+      );
+
+      for (const item of results) {
+        const itemSlug = slugify(item.zlaggableName);
+        if (updatedSlugs.has(itemSlug)) continue;
+
+        const matchingLocals = localRoutes.filter(
+          (r) => slugify(r.name) === itemSlug,
+        );
+
+        if (matchingLocals.length > 0) {
+          for (const local of matchingLocals) {
+            const currentSlugs = local.eight_anu_route_slugs || [];
+            if (!currentSlugs.includes(itemSlug)) {
+              console.log(
+                '[8a.nu] Auto-linking route:',
+                local.name,
+                'with slug:',
+                itemSlug,
+              );
+              await this.routesService.update(
+                local.id,
+                {
+                  eight_anu_route_slugs: [...currentSlugs, itemSlug],
+                },
+                true,
+              );
+            }
+          }
+          updatedSlugs.add(itemSlug);
+        }
+      }
+
+      return results.filter((item) => {
+        const itemSlug = slugify(item.zlaggableName);
+        return !updatedSlugs.has(itemSlug);
+      });
+    },
+  });
+
+  protected mapEightAnuGrade(
+    difficulty: string | undefined,
+  ): VERTICAL_LIFE_GRADES {
+    if (!difficulty) return VERTICAL_LIFE_GRADES.G0;
+    const label = difficulty.toLowerCase().replace(' ', '');
+    return (
+      LABEL_TO_VERTICAL_LIFE[label as keyof typeof LABEL_TO_VERTICAL_LIFE] ??
+      VERTICAL_LIFE_GRADES.G0
+    );
+  }
+
+  protected importRoute(item: SearchRouteItem): void {
+    const crag = this.cragDetail();
+    if (!crag) return;
+
+    this.routesService.openRouteForm({
+      cragId: crag.id,
+      routeData: {
+        id: 0,
+        crag_id: crag.id,
+        name: item.zlaggableName,
+        slug: '',
+        grade: this.mapEightAnuGrade(item.difficulty),
+        climbing_kind: ClimbingKinds.SPORT,
+        height: null,
+        eight_anu_route_slugs: [slugify(item.zlaggableName)],
+      },
+    });
+  }
 
   readonly loading = this.cragsService.loading;
   protected readonly sortedCrags = computed(() => {

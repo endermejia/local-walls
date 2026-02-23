@@ -138,6 +138,30 @@ export class EightAnuService {
     return null;
   }
 
+  async searchRoutes(query: string, pageIndex = 0): Promise<SearchRouteItem[]> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<SearchApiResponse>(this.searchUrl, {
+          params: {
+            query,
+            pageIndex: pageIndex.toString(),
+            'entityTypes[]': '3', // Type 3 = routes
+            showOnMap: 'false',
+          },
+        }),
+        { defaultValue: null },
+      );
+
+      return (
+        (response?.items?.filter((i) => i.type === 3) as SearchRouteItem[]) ||
+        []
+      );
+    } catch (e) {
+      console.error('[8a.nu] Error searching routes:', e);
+      return [];
+    }
+  }
+
   searchUsers(
     query: string,
     pageIndex = 0,

@@ -52,6 +52,7 @@ export class RoutesService {
       grade: number;
       climbing_kind: string;
       height?: number | null;
+      eight_anu_route_slugs?: string[] | null;
     };
   }): void {
     const isEdit = !!data.routeData;
@@ -433,6 +434,7 @@ export class RoutesService {
   async update(
     id: number,
     payload: Partial<Omit<RouteUpdateDto, 'id' | 'created_at'>>,
+    silent = false,
   ): Promise<RouteDto | null> {
     if (!isPlatformBrowser(this.platformId)) return null;
     await this.supabase.whenReady();
@@ -450,7 +452,7 @@ export class RoutesService {
     this.global.routeDetailResource.reload();
     this.global.topoDetailResource.reload();
     this.syncResources(id, payload);
-    this.toast.success('messages.toasts.routeUpdated');
+    if (!silent) this.toast.success('messages.toasts.routeUpdated');
     return data as RouteDto;
   }
 
