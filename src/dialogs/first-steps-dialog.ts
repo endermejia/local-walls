@@ -13,9 +13,9 @@ import { NgOptimizedImage } from '@angular/common';
       <img
         ngSrc="/logo/climbeast.svg"
         alt="Climbeast Logo"
-        class="w-32 h-32"
-        height="16"
-        width="16"
+        class="w-32 h-auto"
+        height="93"
+        width="128"
       />
 
       <div class="space-y-2">

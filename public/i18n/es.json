@@ -341,6 +341,7 @@
       "addPoint": "Click para añadir punto",
       "movePoint": "Arrastra para mover",
       "deletePoint": "Click derecho para borrar",
+      "zoom": "Pinch o rueda para zoom",
       "lines": "Líneas"
     },
     "deletePhotoTitle": "Eliminar foto del croquis",

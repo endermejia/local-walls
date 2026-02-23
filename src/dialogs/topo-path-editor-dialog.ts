@@ -7,6 +7,7 @@ import {
   inject,
   signal,
   ViewChild,
+  AfterViewInit,
 } from '@angular/core';
 import {
   TuiButton,
@@ -20,12 +21,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { TopoDetail, TopoRouteWithRoute } from '../models';
 import { AvatarGradeComponent } from '../components/avatar-grade';
 import { ToastService, ToposService } from '../services';
-import {
-  getNormalizedPosition,
-  setupMouseDrag,
-  setupTouchDrag,
-  removePoint,
-} from '../utils/drawing.utils';
+import { removePoint } from '../utils/drawing.utils';
 import { getRouteStyleProperties } from '../utils/topo-styles.utils';
 
 export interface TopoPathEditorConfig {
@@ -69,6 +65,18 @@ export interface TopoPathEditorConfig {
         </div>
 
         <div class="flex items-center gap-2">
+          @if (scale() > 1) {
+            <button
+              tuiIconButton
+              appearance="flat"
+              size="s"
+              class="!rounded-full !text-[var(--tui-text-01)] hover:bg-[var(--tui-background-neutral-1)]/10"
+              (click)="resetZoom()"
+              [attr.aria-label]="'actions.reset' | translate"
+            >
+              <tui-icon icon="@tui.refresh-ccw" />
+            </button>
+          }
           <button
             tuiButton
             appearance="primary"
@@ -183,13 +191,18 @@ export interface TopoPathEditorConfig {
 
         <!-- Editor Area -->
         <div
-          class="flex-1 relative overflow-hidden bg-black flex items-center justify-center p-8"
+          class="flex-1 relative overflow-hidden bg-[var(--tui-background-neutral-2)] flex items-center justify-center p-8 cursor-move"
+          #editorArea
+          (wheel.zoneless)="onWheel($event)"
         >
           <div
             #container
-            class="relative inline-block shadow-2xl rounded-lg overflow-hidden select-none"
-            (mousedown)="onImageClick($event)"
-            (contextmenu)="$event.preventDefault()"
+            class="relative inline-block shadow-2xl rounded-lg select-none transition-transform duration-75 ease-out"
+            [style.transform]="transform()"
+            [style.transform-origin]="'0 0'"
+            (mousedown.zoneless)="onImageClick($event)"
+            (contextmenu.zoneless)="$event.preventDefault()"
+            (touchstart.zoneless)="onTouchStart($event)"
           >
             <img
               #image
@@ -201,7 +214,7 @@ export interface TopoPathEditorConfig {
 
             <!-- SVG Overlay for Paths -->
             <svg
-              class="absolute inset-0 w-full h-full cursor-crosshair"
+              class="absolute inset-0 w-full h-full cursor-crosshair pointer-events-none"
               [attr.viewBox]="viewBox()"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -211,7 +224,7 @@ export interface TopoPathEditorConfig {
                 @let style =
                   getRouteStyle(
                     entry.value.color,
-                    $any(entry.value._ref.route.grade),
+                    entry.value._ref.route.grade.toString(),
                     +entry.key
                   );
                 <g
@@ -270,7 +283,8 @@ export interface TopoPathEditorConfig {
                         [attr.cy]="pt.y * height()"
                         r="6"
                         [attr.fill]="style.stroke"
-                        class="group-hover:scale-125 transition-transform"
+                        class="group-hover:scale-125 transition-transform origin-center"
+                        style="transform-box: fill-box"
                       />
                       <!-- Point Number Bubble -->
                       @if ($index === 0) {
@@ -319,7 +333,7 @@ export interface TopoPathEditorConfig {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TopoPathEditorDialogComponent {
+export class TopoPathEditorDialogComponent implements AfterViewInit {
   protected readonly context =
     injectContext<TuiDialogContext<boolean, TopoPathEditorConfig>>();
   private readonly topos = inject(ToposService);
@@ -327,6 +341,7 @@ export class TopoPathEditorDialogComponent {
 
   @ViewChild('image') imageElement!: ElementRef<HTMLImageElement>;
   @ViewChild('container') containerElement!: ElementRef<HTMLDivElement>;
+  @ViewChild('editorArea') editorAreaElement!: ElementRef<HTMLDivElement>;
 
   loading = signal(false);
   selectedRoute = signal<TopoRouteWithRoute | null>(null);
@@ -344,6 +359,15 @@ export class TopoPathEditorDialogComponent {
   viewBox = computed(() => `0 0 ${this.width()} ${this.height()}`);
 
   draggingPoint: { routeId: number; index: number } | null = null;
+  scale = signal(1);
+  translateX = signal(0);
+  translateY = signal(0);
+  isPanning = signal(false);
+
+  transform = computed(
+    () =>
+      `translate(${this.translateX()}px, ${this.translateY()}px) scale(${this.scale()})`,
+  );
 
   constructor() {
     // Initialize paths from existing data
@@ -363,10 +387,126 @@ export class TopoPathEditorDialogComponent {
     }
   }
 
+  ngAfterViewInit(): void {
+    this.attachWheelListener();
+  }
+
+  private attachWheelListener(): void {
+    const area = this.editorAreaElement?.nativeElement;
+    if (area && !('_wheelAttached' in area)) {
+      area.addEventListener('wheel', (e) => this.onWheel(e), {
+        passive: false,
+      });
+      (area as { _wheelAttached?: boolean })._wheelAttached = true;
+    }
+  }
+
   onImageLoad(): void {
     const img = this.imageElement.nativeElement;
     this.width.set(img.clientWidth);
     this.height.set(img.clientHeight);
+    this.resetZoom();
+
+    // Try attaching again if not attached yet
+    this.attachWheelListener();
+  }
+
+  resetZoom(): void {
+    this.scale.set(1);
+    this.translateX.set(0);
+    this.translateY.set(0);
+  }
+
+  onWheel(event: Event): void {
+    const wheelEvent = event as WheelEvent;
+
+    if (wheelEvent.cancelable) {
+      wheelEvent.preventDefault();
+    }
+
+    const zoomSpeed = 0.15;
+    const delta = wheelEvent.deltaY > 0 ? -zoomSpeed : zoomSpeed;
+    const newScale = Math.min(Math.max(1, this.scale() + delta), 5);
+
+    if (newScale === this.scale()) return;
+
+    const rect = this.containerElement.nativeElement.getBoundingClientRect();
+
+    // We need the mouse position relative to the container *before* the new scale is applied.
+    // event.clientX/Y are in viewport coordinates.
+    const x = wheelEvent.clientX - rect.left;
+    const y = wheelEvent.clientY - rect.top;
+
+    // Normalize mouse position relative to current scale/translation
+    const mouseX = x / this.scale();
+    const mouseY = y / this.scale();
+
+    this.scale.set(newScale);
+
+    // Update translations to keep the point under the mouse fixed.
+    // The new translation is the mouse position in viewport minus its position in the new scaled coordinates.
+    this.translateX.update(
+      (tx) => wheelEvent.clientX - rect.left + tx - mouseX * newScale,
+    );
+    this.translateY.update(
+      (ty) => wheelEvent.clientY - rect.top + ty - mouseY * newScale,
+    );
+
+    this.constrainTranslation();
+  }
+
+  private constrainTranslation(): void {
+    const scale = this.scale();
+    const container = this.containerElement.nativeElement;
+    const area = this.editorAreaElement.nativeElement;
+
+    if (scale <= 1) {
+      this.translateX.set(0);
+      this.translateY.set(0);
+      return;
+    }
+
+    const areaRect = area.getBoundingClientRect();
+    const width = this.width();
+    const height = this.height();
+
+    const scaledWidth = width * scale;
+    const scaledHeight = height * scale;
+
+    // Limit translations so the image doesn't leave the view if it's larger than the view.
+    // If it's smaller than the view, we center it or keep it at 0.
+    let minX = 0;
+    let maxX = 0;
+    if (scaledWidth > areaRect.width) {
+      minX = areaRect.width - scaledWidth;
+      maxX = 0;
+    } else {
+      // If smaller, we center it relative to the initial centered position.
+      // But since we use transform-origin 0 0, it's easier to just allow some movement or keep it centered.
+      // For now, let's just keep it at 0 if it fits.
+      minX = 0;
+      maxX = 0;
+    }
+
+    let minY = 0;
+    let maxY = 0;
+    if (scaledHeight > areaRect.height) {
+      minY = areaRect.height - scaledHeight;
+      maxY = 0;
+    } else {
+      minY = 0;
+      maxY = 0;
+    }
+
+    // Since we are in a flex center container, the initial position is already centered.
+    // BUT transform-origin is 0 0, which refers to the top-left of the image.
+    // If the image is 100x100 and area is 500x500, the top-left is at (200, 200).
+    // translateX(0) scale(1) means top-left at (200, 200).
+    // If we want to constrain, we should be careful about coordinates.
+    // Actually, let's just allow panning freely for now if the user wants, but limited to not losing the image.
+
+    this.translateX.update((x) => Math.min(maxX, Math.max(x, minX)));
+    this.translateY.update((y) => Math.min(maxY, Math.max(y, minY)));
   }
 
   selectRoute(tr: TopoRouteWithRoute, fromList = false): void {
@@ -404,17 +544,56 @@ export class TopoPathEditorDialogComponent {
     return getRouteStyleProperties(isSelected, false, color, grade);
   }
 
-  onImageClick(event: MouseEvent): void {
-    if (event.button !== 0 || this.draggingPoint) return;
+  onImageClick(event: Event): void {
+    const mouseEvent = event as MouseEvent;
+    if (mouseEvent.button !== 0 || this.draggingPoint) return;
 
+    const startX = mouseEvent.clientX;
+    const startY = mouseEvent.clientY;
+    const initialTx = this.translateX();
+    const initialTy = this.translateY();
+    let hasMoved = false;
+
+    const onMouseMove = (e: MouseEvent) => {
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+        hasMoved = true;
+      }
+
+      if (hasMoved) {
+        this.translateX.set(initialTx + dx);
+        this.translateY.set(initialTy + dy);
+        this.constrainTranslation();
+      }
+    };
+
+    const onMouseUp = (e: MouseEvent) => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+
+      if (!hasMoved) {
+        this.addPoint(e);
+      }
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  }
+
+  private addPoint(event: MouseEvent): void {
     const route = this.selectedRoute();
     if (!route) return;
 
-    const coords = getNormalizedPosition(
-      event.clientX,
-      event.clientY,
-      this.containerElement.nativeElement.getBoundingClientRect(),
-    );
+    const rect = this.containerElement.nativeElement.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / this.scale();
+    const y = (event.clientY - rect.top) / this.scale();
+
+    const coords = {
+      x: Math.max(0, Math.min(1, x / this.width())),
+      y: Math.max(0, Math.min(1, y / this.height())),
+    };
 
     const current = this.pathsMap.get(route.route_id) || {
       points: [],
@@ -430,45 +609,186 @@ export class TopoPathEditorDialogComponent {
     const numericRouteId = +routeId;
     this.draggingPoint = { routeId: numericRouteId, index };
 
-    setupMouseDrag(event, this.containerElement.nativeElement, {
-      onDrag: (coords) => {
-        const pathData = this.pathsMap.get(numericRouteId);
-        if (pathData) {
-          pathData.points[index] = coords;
-          this.pathsMap.set(numericRouteId, { ...pathData });
-        }
-      },
-      onEnd: () => {
-        this.draggingPoint = null;
-      },
-    });
+    const onMouseMove = (e: MouseEvent) => {
+      const rect = this.containerElement.nativeElement.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / this.scale();
+      const y = (e.clientY - rect.top) / this.scale();
+
+      const coords = {
+        x: Math.max(0, Math.min(1, x / this.width())),
+        y: Math.max(0, Math.min(1, y / this.height())),
+      };
+
+      const pathData = this.pathsMap.get(numericRouteId);
+      if (pathData) {
+        pathData.points[index] = coords;
+        this.pathsMap.set(numericRouteId, { ...pathData });
+      }
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      this.draggingPoint = null;
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    event.stopPropagation();
+    event.preventDefault();
   }
 
   startDraggingTouch(event: TouchEvent, routeId: number, index: number): void {
     const numericRouteId = +routeId;
     this.draggingPoint = { routeId: numericRouteId, index };
 
-    setupTouchDrag(
-      event,
-      this.containerElement.nativeElement,
-      {
-        onDrag: (coords) => {
-          const pathData = this.pathsMap.get(numericRouteId);
-          if (pathData) {
-            pathData.points[index] = coords;
-            this.pathsMap.set(numericRouteId, { ...pathData });
-          }
-        },
-        onEnd: () => {
-          this.draggingPoint = null;
-        },
-        onLongPress: () => {
-          this.removePoint(event, numericRouteId, index);
-          this.draggingPoint = null;
-        },
-      },
-      { longPressDelay: 600, moveThreshold: 10 },
-    );
+    const startX = event.touches[0].clientX;
+    const startY = event.touches[0].clientY;
+    let isLongPress = false;
+
+    const longPressTimeout = setTimeout(() => {
+      isLongPress = true;
+      this.removePoint(event, numericRouteId, index);
+      this.draggingPoint = null;
+      cleanup();
+    }, 600);
+
+    const onTouchMove = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      const dist = Math.sqrt(
+        Math.pow(touch.clientX - startX, 2) +
+          Math.pow(touch.clientY - startY, 2),
+      );
+
+      if (dist > 10) {
+        clearTimeout(longPressTimeout);
+      }
+
+      if (isLongPress) return;
+
+      e.preventDefault();
+      const rect = this.containerElement.nativeElement.getBoundingClientRect();
+      const x = (touch.clientX - rect.left) / this.scale();
+      const y = (touch.clientY - rect.top) / this.scale();
+
+      const coords = {
+        x: Math.max(0, Math.min(1, x / this.width())),
+        y: Math.max(0, Math.min(1, y / this.height())),
+      };
+
+      const pathData = this.pathsMap.get(numericRouteId);
+      if (pathData) {
+        pathData.points[index] = coords;
+        this.pathsMap.set(numericRouteId, { ...pathData });
+      }
+    };
+
+    const onTouchEnd = () => {
+      clearTimeout(longPressTimeout);
+      cleanup();
+      if (!isLongPress) {
+        this.draggingPoint = null;
+      }
+    };
+
+    const cleanup = () => {
+      window.removeEventListener(
+        'touchmove',
+        onTouchMove as EventListenerOrEventListenerObject,
+      );
+      window.removeEventListener('touchend', onTouchEnd);
+    };
+
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd);
+
+    event.stopPropagation();
+    event.preventDefault();
+  }
+
+  onTouchStart(event: Event): void {
+    const touchEvent = event as TouchEvent;
+    if (touchEvent.touches.length === 1 && !this.draggingPoint) {
+      // Single touch - potentially panning
+      const startX = touchEvent.touches[0].clientX;
+      const startY = touchEvent.touches[0].clientY;
+      const initialTX = this.translateX();
+      const initialTY = this.translateY();
+
+      const onTouchMove = (e: TouchEvent) => {
+        if (e.touches.length !== 1 || this.draggingPoint) return;
+        const deltaX = e.touches[0].clientX - startX;
+        const deltaY = e.touches[0].clientY - startY;
+
+        this.translateX.set(initialTX + deltaX);
+        this.translateY.set(initialTY + deltaY);
+        this.constrainTranslation();
+      };
+
+      const onTouchEnd = () => {
+        window.removeEventListener('touchmove', onTouchMove);
+        window.removeEventListener('touchend', onTouchEnd);
+      };
+
+      window.addEventListener('touchmove', onTouchMove);
+      window.addEventListener('touchend', onTouchEnd);
+    } else if (touchEvent.touches.length === 2) {
+      // Pinch to zoom
+      const getDistance = (t1: Touch, t2: Touch) =>
+        Math.sqrt(
+          Math.pow(t2.clientX - t1.clientX, 2) +
+            Math.pow(t2.clientY - t1.clientY, 2),
+        );
+
+      const getCenter = (t1: Touch, t2: Touch) => ({
+        x: (t1.clientX + t2.clientX) / 2,
+        y: (t1.clientY + t2.clientY) / 2,
+      });
+
+      const initialDist = getDistance(
+        touchEvent.touches[0],
+        touchEvent.touches[1],
+      );
+      const initialScale = this.scale();
+      const initialCenter = getCenter(
+        touchEvent.touches[0],
+        touchEvent.touches[1],
+      );
+      const rect = this.containerElement.nativeElement.getBoundingClientRect();
+      const centerRelX = initialCenter.x - rect.left;
+      const centerRelY = initialCenter.y - rect.top;
+      const mouseX = centerRelX / initialScale;
+      const mouseY = centerRelY / initialScale;
+
+      const onTouchMove = (e: TouchEvent) => {
+        if (e.touches.length !== 2) return;
+        const dist = getDistance(e.touches[0], e.touches[1]);
+        const newScale = Math.min(
+          Math.max(1, (dist / initialDist) * initialScale),
+          5,
+        );
+
+        this.scale.set(newScale);
+
+        // Keep the point under initial center fixed in viewport coordinates
+        this.translateX.update(
+          (tx) => initialCenter.x - rect.left + tx - mouseX * newScale,
+        );
+        this.translateY.update(
+          (ty) => initialCenter.y - rect.top + ty - mouseY * newScale,
+        );
+
+        this.constrainTranslation();
+      };
+
+      const onTouchEnd = () => {
+        window.removeEventListener('touchmove', onTouchMove);
+        window.removeEventListener('touchend', onTouchEnd);
+      };
+
+      window.addEventListener('touchmove', onTouchMove);
+      window.addEventListener('touchend', onTouchEnd);
+    }
   }
 
   removePoint(event: Event, routeId: number, index: number): void {

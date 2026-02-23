@@ -42,7 +42,7 @@ import { GlobalData } from '../services';
             [itemsLimit]="isMobile && breadcrumbs.length > 1 ? 2 : 1"
             ngSkipHydration
           >
-            @for (item of breadcrumbs; track item.caption) {
+            @for (item of breadcrumbs; track item.routerLink) {
               <a
                 *tuiItem
                 tuiLink

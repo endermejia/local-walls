@@ -98,8 +98,8 @@ import { NgOptimizedImage } from '@angular/common';
             ngSrc="/logo/climbeast.svg"
             alt="ClimBeast"
             [style.width.px]="46"
-            [style.height.px]="46"
-            height="46"
+            [style.height.px]="33"
+            height="33"
             width="46"
           />
         </button>

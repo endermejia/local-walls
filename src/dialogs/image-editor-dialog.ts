@@ -1,5 +1,6 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   Inject,
   PLATFORM_ID,
@@ -9,6 +10,7 @@ import {
   ElementRef,
   computed,
   ChangeDetectorRef,
+  AfterViewInit,
 } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import {
@@ -171,97 +173,108 @@ export interface ImageEditorConfig {
           <!-- DRAWING MODE -->
           @if (mode() === 'draw') {
             <div
-              #drawContainer
-              class="relative inline-block shadow-2xl rounded-lg overflow-hidden select-none"
-              (mousedown)="onImageClick($event)"
-              (contextmenu)="$event.preventDefault()"
+              class="flex-1 relative overflow-hidden flex items-center justify-center p-8 cursor-move"
+              #drawArea
+              (wheel.zoneless)="onWheel($event)"
             >
-              <img
-                #drawImage
-                [src]="croppedImage"
-                class="max-w-full max-h-[70dvh] block pointer-events-none"
-                (load)="onDrawImageLoad()"
-                alt="Source for annotation"
-              />
-
-              <!-- SVG Overlay -->
-              <svg
-                class="absolute inset-0 w-full h-full cursor-crosshair"
-                [attr.viewBox]="viewBox()"
+              <div
+                #drawContainer
+                class="relative inline-block shadow-2xl rounded-lg select-none transition-transform duration-75 ease-out"
+                [style.transform]="drawTransform()"
+                [style.transform-origin]="'0 0'"
+                (mousedown.zoneless)="onImageClick($event)"
+                (contextmenu.zoneless)="$event.preventDefault()"
+                (touchstart.zoneless)="onTouchStart($event)"
               >
-                @for (tr of topoRoutes; track tr.route_id) {
-                  @let entry = pathsMap.get(tr.route_id);
-                  @if (entry) {
-                    @let isSelected = selectedRoute()?.route_id === tr.route_id;
-                    @let style =
-                      getRouteStyle(
-                        tr.path?.color,
-                        $any(tr.route.grade),
-                        tr.route_id
-                      );
-                    <g
-                      class="pointer-events-auto cursor-pointer"
-                      (click)="onPathInteraction($event, tr)"
-                      (touchstart)="onPathInteraction($event, tr)"
-                    >
-                      <!-- Thicker transparent path for much easier hit detection -->
-                      <polyline
-                        [attr.points]="getPointsString(entry.points)"
-                        fill="none"
-                        stroke="transparent"
-                        [attr.stroke-width]="
-                          getRouteWidth(isSelected, isSelected)
-                        "
-                        stroke-linejoin="round"
-                        stroke-linecap="round"
-                      />
-                      <polyline
-                        [attr.points]="getPointsString(entry.points)"
-                        fill="none"
-                        [attr.stroke]="style.stroke"
-                        [style.opacity]="style.opacity"
-                        [attr.stroke-width]="isSelected ? 4 : 2"
-                        [attr.stroke-dasharray]="
-                          style.isDashed ? '4 4' : 'none'
-                        "
-                        stroke-linejoin="round"
-                        stroke-linecap="round"
-                        class="transition-all duration-300"
-                      />
-                    </g>
-                    @if (isSelected) {
-                      @for (pt of entry.points; track $index) {
-                        <g
-                          class="cursor-move"
-                          (mousedown)="
-                            startDragging($event, tr.route_id, $index)
+                <img
+                  #drawImage
+                  [src]="croppedImage"
+                  class="max-w-full max-h-[70dvh] block pointer-events-none"
+                  (load)="onDrawImageLoad()"
+                  alt="Source for annotation"
+                />
+
+                <!-- SVG Overlay -->
+                <svg
+                  class="absolute inset-0 w-full h-full cursor-crosshair pointer-events-none"
+                  [attr.viewBox]="viewBox()"
+                >
+                  @for (tr of topoRoutes; track tr.route_id) {
+                    @let entry = pathsMap.get(tr.route_id);
+                    @if (entry) {
+                      @let isSelected =
+                        selectedRoute()?.route_id === tr.route_id;
+                      @let style =
+                        getRouteStyle(
+                          tr.path?.color,
+                          tr.route.grade.toString(),
+                          tr.route_id
+                        );
+                      <g
+                        class="pointer-events-auto cursor-pointer"
+                        (click)="onPathInteraction($event, tr)"
+                        (touchstart)="onPathInteraction($event, tr)"
+                      >
+                        <!-- Thicker transparent path for much easier hit detection -->
+                        <polyline
+                          [attr.points]="getPointsString(entry.points)"
+                          fill="none"
+                          stroke="transparent"
+                          [attr.stroke-width]="isSelected ? 0.08 : 0.04"
+                          stroke-linejoin="round"
+                          stroke-linecap="round"
+                        />
+                        <polyline
+                          [attr.points]="getPointsString(entry.points)"
+                          fill="none"
+                          [attr.stroke]="style.stroke"
+                          [style.opacity]="style.opacity"
+                          [attr.stroke-width]="isSelected ? 4 : 2"
+                          [attr.stroke-dasharray]="
+                            style.isDashed ? '4 4' : 'none'
                           "
-                          (touchstart)="
-                            startDraggingTouch($event, tr.route_id, $index)
-                          "
-                          (click)="$event.stopPropagation()"
-                          (contextmenu)="
-                            removePoint($event, tr.route_id, $index)
-                          "
-                        >
-                          <circle
-                            [attr.cx]="pt.x * drawWidth()"
-                            [attr.cy]="pt.y * drawHeight()"
-                            r="12"
-                            fill="rgba(0,0,0,0.3)"
-                          />
-                          <circle
-                            [attr.cx]="pt.x * drawWidth()"
-                            [attr.cy]="pt.y * drawHeight()"
-                            r="6"
-                            [attr.fill]="style.stroke"
-                          />
-                        </g>
+                          stroke-linejoin="round"
+                          stroke-linecap="round"
+                          class="transition-all duration-300"
+                        />
+                      </g>
+                      @if (isSelected) {
+                        @for (pt of entry.points; track $index) {
+                          <g
+                            class="cursor-move pointer-events-auto group"
+                            (mousedown)="
+                              startDragging($event, tr.route_id, $index)
+                            "
+                            (touchstart)="
+                              startDraggingTouch($event, tr.route_id, $index)
+                            "
+                            (click)="$event.stopPropagation()"
+                            (contextmenu)="
+                              removePoint($event, tr.route_id, $index)
+                            "
+                          >
+                            <circle
+                              [attr.cx]="pt.x * drawWidth()"
+                              [attr.cy]="pt.y * drawHeight()"
+                              r="12"
+                              fill="rgba(0,0,0,0.4)"
+                              class="hover:fill-[var(--tui-background-neutral-2)]/60 transition-colors"
+                            />
+                            <circle
+                              [attr.cx]="pt.x * drawWidth()"
+                              [attr.cy]="pt.y * drawHeight()"
+                              r="6"
+                              [attr.fill]="style.stroke"
+                              class="group-hover:scale-125 transition-transform origin-center"
+                              style="transform-box: fill-box"
+                            />
+                          </g>
+                        }
                       }
                     }
                   }
-                }
-              </svg>
+                </svg>
+              </div>
             </div>
           }
 
@@ -515,8 +528,9 @@ export interface ImageEditorConfig {
       }
     `,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ImageEditorDialogComponent {
+export class ImageEditorDialogComponent implements AfterViewInit {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
@@ -524,6 +538,7 @@ export class ImageEditorDialogComponent {
 
   @ViewChild('drawImage') drawImageElement!: ElementRef<HTMLImageElement>;
   @ViewChild('drawContainer') drawContainerElement!: ElementRef<HTMLDivElement>;
+  @ViewChild('drawArea') drawAreaElement!: ElementRef<HTMLDivElement>;
 
   imageChangedEvent: Event | null = null;
   imageFile: File | undefined;
@@ -558,6 +573,15 @@ export class ImageEditorDialogComponent {
   viewBox = computed(() => `0 0 ${this.drawWidth()} ${this.drawHeight()}`);
   draggingPoint: { routeId: number; index: number } | null = null;
   sidebarOpen = signal(true);
+
+  scale = signal(1);
+  translateX = signal(0);
+  translateY = signal(0);
+
+  drawTransform = computed(
+    () =>
+      `translate(${this.translateX()}px, ${this.translateY()}px) scale(${this.scale()})`,
+  );
 
   // Cropper settings
   maintainAspectRatio = true;
@@ -663,12 +687,9 @@ export class ImageEditorDialogComponent {
       };
       reader.readAsDataURL(blob);
     } catch (error) {
-      console.error('[ImageEditor] Error loading image from URL', error);
       // If we are in draw mode, we can still continue as we set croppedImage at the start
       if (this.mode() === 'draw' && this.croppedImage) {
-        console.warn(
-          '[ImageEditor] Could not load blob for cropping, only drawing will be available',
-        );
+        // Continue quietly
       } else {
         this.toast.error('imageEditor.invalidImageError');
         this.context.completeWith(null);
@@ -677,10 +698,111 @@ export class ImageEditorDialogComponent {
   }
 
   // DRAWING METHODS
+  ngAfterViewInit(): void {
+    this.attachWheelListener();
+  }
+
+  private attachWheelListener(): void {
+    const area = this.drawAreaElement?.nativeElement;
+    if (area && !('_wheelAttached' in area)) {
+      area.addEventListener('wheel', (e) => this.onWheel(e), {
+        passive: false,
+      });
+      (area as { _wheelAttached?: boolean })._wheelAttached = true;
+    }
+  }
+
   onDrawImageLoad(): void {
     const img = this.drawImageElement.nativeElement;
     this.drawWidth.set(img.clientWidth);
     this.drawHeight.set(img.clientHeight);
+    this.resetZoom();
+
+    // Try attaching again if not attached yet (important if mode changed later)
+    this.attachWheelListener();
+  }
+
+  resetZoom(): void {
+    this.scale.set(1);
+    this.translateX.set(0);
+    this.translateY.set(0);
+  }
+
+  onWheel(event: Event): void {
+    const wheelEvent = event as WheelEvent;
+
+    if (wheelEvent.cancelable) {
+      wheelEvent.preventDefault();
+    }
+
+    const zoomSpeed = 0.15;
+    const delta = wheelEvent.deltaY > 0 ? -zoomSpeed : zoomSpeed;
+    const newScale = Math.min(Math.max(1, this.scale() + delta), 5);
+
+    if (newScale === this.scale()) return;
+
+    const rect =
+      this.drawContainerElement.nativeElement.getBoundingClientRect();
+
+    const x = wheelEvent.clientX - rect.left;
+    const y = wheelEvent.clientY - rect.top;
+
+    const mouseX = x / this.scale();
+    const mouseY = y / this.scale();
+
+    this.scale.set(newScale);
+
+    this.translateX.update(
+      (tx) => wheelEvent.clientX - rect.left + tx - mouseX * newScale,
+    );
+    this.translateY.update(
+      (ty) => wheelEvent.clientY - rect.top + ty - mouseY * newScale,
+    );
+
+    this.constrainTranslation();
+    this.cdr.detectChanges();
+  }
+
+  private constrainTranslation(): void {
+    const scale = this.scale();
+    const area = this.drawAreaElement?.nativeElement;
+    if (!area) return;
+
+    if (scale <= 1) {
+      this.translateX.set(0);
+      this.translateY.set(0);
+      return;
+    }
+
+    const areaRect = area.getBoundingClientRect();
+    const width = this.drawWidth();
+    const height = this.drawHeight();
+
+    const scaledWidth = width * scale;
+    const scaledHeight = height * scale;
+
+    let minX = 0;
+    let maxX = 0;
+    if (scaledWidth > areaRect.width) {
+      minX = areaRect.width - scaledWidth;
+      maxX = 0;
+    } else {
+      minX = 0;
+      maxX = 0;
+    }
+
+    let minY = 0;
+    let maxY = 0;
+    if (scaledHeight > areaRect.height) {
+      minY = areaRect.height - scaledHeight;
+      maxY = 0;
+    } else {
+      minY = 0;
+      maxY = 0;
+    }
+
+    this.translateX.update((x) => Math.min(maxX, Math.max(x, minX)));
+    this.translateY.update((y) => Math.min(maxY, Math.max(y, minY)));
   }
 
   selectRoute(tr: TopoRouteWithRoute): void {
@@ -729,16 +851,58 @@ export class ImageEditorDialogComponent {
       .join(' ');
   }
 
-  onImageClick(event: MouseEvent): void {
-    if (event.button !== 0 || this.draggingPoint) return;
+  onImageClick(event: Event): void {
+    const mouseEvent = event as MouseEvent;
+    if (mouseEvent.button !== 0 || this.draggingPoint) return;
+
+    const startX = mouseEvent.clientX;
+    const startY = mouseEvent.clientY;
+    const initialTx = this.translateX();
+    const initialTy = this.translateY();
+    let hasMoved = false;
+
+    const onMouseMove = (e: MouseEvent) => {
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+        hasMoved = true;
+      }
+
+      if (hasMoved) {
+        this.translateX.set(initialTx + dx);
+        this.translateY.set(initialTy + dy);
+        this.constrainTranslation();
+        this.cdr.detectChanges();
+      }
+    };
+
+    const onMouseUp = (e: MouseEvent) => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+
+      if (!hasMoved) {
+        this.addPoint(e);
+      }
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  }
+
+  private addPoint(event: MouseEvent): void {
     const route = this.selectedRoute();
     if (!route) return;
 
-    const coords = getNormalizedPosition(
-      event.clientX,
-      event.clientY,
-      this.drawContainerElement.nativeElement.getBoundingClientRect(),
-    );
+    const rect =
+      this.drawContainerElement.nativeElement.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / this.scale();
+    const y = (event.clientY - rect.top) / this.scale();
+
+    const coords = {
+      x: Math.max(0, Math.min(1, x / this.drawWidth())),
+      y: Math.max(0, Math.min(1, y / this.drawHeight())),
+    };
 
     const current = this.pathsMap.get(route.route_id) || { points: [] };
     const newPoints = [...current.points, coords];
@@ -747,6 +911,7 @@ export class ImageEditorDialogComponent {
       points: newPoints,
       color: current.color || this.getRouteColor(route.route_id),
     });
+    this.cdr.markForCheck();
   }
 
   startDragging(event: MouseEvent, routeId: number, index: number): void {
@@ -758,31 +923,38 @@ export class ImageEditorDialogComponent {
     let rafId: number | null = null;
     let pendingUpdate = false;
 
-    setupMouseDrag(event, this.drawContainerElement.nativeElement, {
-      onDrag: (coords) => {
-        point.x = coords.x;
-        point.y = coords.y;
+    const container = this.drawContainerElement.nativeElement;
 
-        // Schedule visual update using requestAnimationFrame
-        if (!pendingUpdate) {
-          pendingUpdate = true;
-          rafId = requestAnimationFrame(() => {
-            this.cdr.detectChanges();
-            pendingUpdate = false;
-          });
-        }
-      },
-      onEnd: () => {
-        // Cancel any pending animation frame
-        if (rafId !== null) {
-          cancelAnimationFrame(rafId);
-        }
-        // Trigger final change detection
-        this.pathsMap.set(routeId, { ...pathData });
-        this.cdr.markForCheck();
-        this.draggingPoint = null;
-      },
-    });
+    const onMouseMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / this.scale();
+      const y = (e.clientY - rect.top) / this.scale();
+
+      point.x = Math.max(0, Math.min(1, x / this.drawWidth()));
+      point.y = Math.max(0, Math.min(1, y / this.drawHeight()));
+
+      if (!pendingUpdate) {
+        pendingUpdate = true;
+        rafId = requestAnimationFrame(() => {
+          this.cdr.detectChanges();
+          pendingUpdate = false;
+        });
+      }
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      this.pathsMap.set(routeId, { ...pathData });
+      this.cdr.markForCheck();
+      this.draggingPoint = null;
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    event.stopPropagation();
+    event.preventDefault();
   }
 
   deletePath(route: TopoRouteWithRoute, event: Event): void {
@@ -851,6 +1023,8 @@ export class ImageEditorDialogComponent {
   }
 
   startDraggingTouch(event: TouchEvent, routeId: number, index: number): void {
+    if (event.touches.length > 1) return;
+
     this.draggingPoint = { routeId, index };
     const pathData = this.pathsMap.get(routeId);
     if (!pathData) return;
@@ -858,39 +1032,119 @@ export class ImageEditorDialogComponent {
     const point = pathData.points[index];
     let rafId: number | null = null;
     let pendingUpdate = false;
+    const container = this.drawContainerElement.nativeElement;
 
-    setupTouchDrag(
-      event,
-      this.drawContainerElement.nativeElement,
-      {
-        onDrag: (coords) => {
-          point.x = coords.x;
-          point.y = coords.y;
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 1) return;
+      e.preventDefault();
+      const rect = container.getBoundingClientRect();
+      const x = (e.touches[0].clientX - rect.left) / this.scale();
+      const y = (e.touches[0].clientY - rect.top) / this.scale();
 
-          if (!pendingUpdate) {
-            pendingUpdate = true;
-            rafId = requestAnimationFrame(() => {
-              this.cdr.detectChanges();
-              pendingUpdate = false;
-            });
-          }
-        },
-        onEnd: () => {
-          if (rafId !== null) {
-            cancelAnimationFrame(rafId);
-          }
-          this.pathsMap.set(routeId, { ...pathData });
-          this.cdr.markForCheck();
-          this.draggingPoint = null;
-        },
-        onLongPress: () => {
-          this.removePoint(event, routeId, index);
-          if (rafId !== null) cancelAnimationFrame(rafId);
-          this.draggingPoint = null;
-        },
-      },
-      { longPressDelay: 600, moveThreshold: 10 },
-    );
+      point.x = Math.max(0, Math.min(1, x / this.drawWidth()));
+      point.y = Math.max(0, Math.min(1, y / this.drawHeight()));
+
+      if (!pendingUpdate) {
+        pendingUpdate = true;
+        rafId = requestAnimationFrame(() => {
+          this.cdr.detectChanges();
+          pendingUpdate = false;
+        });
+      }
+    };
+
+    const onTouchEnd = () => {
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      this.pathsMap.set(routeId, { ...pathData });
+      this.cdr.markForCheck();
+      this.draggingPoint = null;
+    };
+
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd);
+    event.stopPropagation();
+  }
+
+  onTouchStart(event: Event): void {
+    const touchEvent = event as TouchEvent;
+    if (this.draggingPoint) return;
+
+    if (touchEvent.touches.length === 2) {
+      // Pinch zoom logic
+      const startDist = Math.hypot(
+        touchEvent.touches[0].clientX - touchEvent.touches[1].clientX,
+        touchEvent.touches[0].clientY - touchEvent.touches[1].clientY,
+      );
+      const startScale = this.scale();
+      const centerX =
+        (touchEvent.touches[0].clientX + touchEvent.touches[1].clientX) / 2;
+      const centerY =
+        (touchEvent.touches[0].clientY + touchEvent.touches[1].clientY) / 2;
+
+      const rect =
+        this.drawContainerElement.nativeElement.getBoundingClientRect();
+      const mouseX = (centerX - rect.left) / startScale;
+      const mouseY = (centerY - rect.top) / startScale;
+
+      const onTouchMove = (e: TouchEvent) => {
+        if (e.touches.length !== 2) return;
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY,
+        );
+        const newScale = Math.min(
+          Math.max(1, (dist / startDist) * startScale),
+          5,
+        );
+
+        this.scale.set(newScale);
+        this.translateX.update(
+          (tx) => centerX - rect.left + tx - mouseX * newScale,
+        );
+        this.translateY.update(
+          (ty) => centerY - rect.top + ty - mouseY * newScale,
+        );
+
+        this.constrainTranslation();
+        this.cdr.detectChanges();
+      };
+
+      const onTouchEnd = () => {
+        window.removeEventListener('touchmove', onTouchMove);
+        window.removeEventListener('touchend', onTouchEnd);
+      };
+
+      window.addEventListener('touchmove', onTouchMove, { passive: false });
+      window.addEventListener('touchend', onTouchEnd);
+    } else if (touchEvent.touches.length === 1) {
+      // Panning logic
+      const startX = touchEvent.touches[0].clientX;
+      const startY = touchEvent.touches[0].clientY;
+      const initialTx = this.translateX();
+      const initialTy = this.translateY();
+
+      const onTouchMove = (e: TouchEvent) => {
+        if (e.touches.length !== 1 || this.draggingPoint) return;
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+
+        this.translateX.set(initialTx + dx);
+        this.translateY.set(initialTy + dy);
+
+        this.constrainTranslation();
+        this.cdr.detectChanges();
+      };
+
+      const onTouchEnd = () => {
+        window.removeEventListener('touchmove', onTouchMove);
+        window.removeEventListener('touchend', onTouchEnd);
+      };
+
+      window.addEventListener('touchmove', onTouchMove, { passive: false });
+      window.addEventListener('touchend', onTouchEnd);
+    }
   }
 
   removePoint(event: Event, routeId: number, index: number): void {
@@ -907,7 +1161,7 @@ export class ImageEditorDialogComponent {
   }
 
   imageLoadedCallback(image: LoadedImage): void {
-    console.log('[ImageEditor] Image loaded', image);
+    // Logic after image loaded if needed
   }
 
   cropperReady(): void {
@@ -920,7 +1174,6 @@ export class ImageEditorDialogComponent {
       (this.imageFile || this.imageBase64()) &&
       !this.imageChangedEvent
     ) {
-      console.warn('[ImageEditor] Image loader failed');
       this.toast.error('imageEditor.invalidImageError');
       this.context.completeWith(null);
     } else {
@@ -1026,7 +1279,6 @@ export class ImageEditorDialogComponent {
         this.context.completeWith(file || null);
       }
     } catch (error) {
-      console.error('[ImageEditor] Error saving image', error);
       this.toast.error('imageEditor.uploadImageError');
     } finally {
       this.loading.set(false);

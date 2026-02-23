@@ -18,7 +18,7 @@ import { TuiAppearance, TuiButton, TuiTitle } from '@taiga-ui/core';
     <div
       class="min-h-screen flex flex-col items-center justify-center p-6 bg-[var(--tui-background-base)] text-center"
     >
-      <div class="mb-8 relative w-[150px] h-[150px]">
+      <div class="mb-8 relative w-[150px] h-[109px]">
         <img
           ngSrc="/logo/climbeast.svg"
           alt="ClimBeast Logo"
