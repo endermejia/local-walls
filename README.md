@@ -27,10 +27,11 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 ## Next Steps
 
 - **Corregir service worker**
-- **Corregir problema con Safari. Actualmente no funciona en Safari**
+- **Corregir problema con Safari. ¿Actualmente funciona en Safari?**
 
 ## Future Features
 
+- **Likes en comentarios. Notificaciones de likes en comentarios**
 - **Optimizar imagenes para mejor rendimiento. En avatar y fotos de los ascents**
 - **Calendario de volumen, para entrenamiento, etc**
 - **Sección para rocodromos. Para que se puedan hacer vias y croquis en los rocrodromos**

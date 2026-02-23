@@ -94,20 +94,28 @@ export interface AscentCommentsDialogData {
                   class="text-sm whitespace-pre-wrap break-words"
                   [innerHTML]="comment.comment | mentionLink"
                 ></p>
-                @if (comment.user_id === supabase.authUserId()) {
-                  <div class="flex justify-end mt-1">
+                <div class="flex justify-end mt-1 gap-2">
+                  <button
+                    tuiButton
+                    type="button"
+                    appearance="action"
+                    size="xs"
+                    (click)="onReply(comment.user_profiles)"
+                  >
+                    {{ 'actions.reply' | translate }}
+                  </button>
+                  @if (comment.user_id === supabase.authUserId()) {
                     <button
                       tuiButton
                       type="button"
-                      appearance="secondary-grayscale"
+                      appearance="action"
                       size="xs"
-                      class="!h-6 !px-2 !text-[10px]"
                       (click)="onDeleteComment(comment.id)"
                     >
                       {{ 'actions.delete' | translate }}
                     </button>
-                  </div>
-                }
+                  }
+                </div>
               </div>
             </div>
           } @empty {
@@ -411,12 +419,40 @@ export class AscentCommentsDialogComponent {
     this.showMentions.set(false);
   }
 
+  protected onReply(user: UserProfileBasicDto) {
+    if (!this.editorRef) return;
+    const editor = this.editorRef.nativeElement;
+    editor.focus();
+
+    // Move cursor to end before inserting
+    const selection = window.getSelection();
+    if (selection) {
+      const range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      // If not empty and doesn't end with space/newline, add space
+      const text = editor.innerText || '';
+      if (text.length > 0 && !/[\s\xA0]$/.test(text)) {
+        const space = document.createTextNode('\u00A0');
+        editor.appendChild(space);
+        range.setStartAfter(space);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+
+      this.insertMention(user, selection.getRangeAt(0));
+    } else {
+      this.insertMention(user);
+    }
+  }
+
   protected selectUser(user: UserProfileBasicDto) {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
-
-    // We need to restore range if lost (not likely with mousedown preventDefault, but good to check)
-    // Actually, simple input might have moved cursor if not careful, but usually okay.
 
     const range = selection.getRangeAt(0);
     const node = range.startContainer;
@@ -426,38 +462,47 @@ export class AscentCommentsDialogComponent {
       const lastAt = textBeforeCursor.lastIndexOf('@');
 
       if (lastAt !== -1) {
-        // Create range for the query string including @
         const mentionRange = document.createRange();
         mentionRange.setStart(node, lastAt);
         mentionRange.setEnd(node, range.startOffset);
-        mentionRange.deleteContents();
-
-        // Create the mention pill
-        const pill = document.createElement('span');
-        pill.className = 'mention-pill';
-        pill.contentEditable = 'false';
-        pill.setAttribute('data-id', user.id);
-        pill.innerText = `@${user.name}`;
-
-        // Insert pill
-        mentionRange.insertNode(pill);
-
-        // Insert a space after
-        const space = document.createTextNode('\u00A0');
-        mentionRange.setStartAfter(pill);
-        mentionRange.insertNode(space);
-
-        // Move cursor after space
-        mentionRange.setStartAfter(space);
-        mentionRange.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(mentionRange);
-
-        this.showMentions.set(false);
-        this.mentionQuery.set('');
-        this.checkEmpty();
+        this.insertMention(user, mentionRange);
       }
     }
+  }
+
+  private insertMention(user: UserProfileBasicDto, replaceRange?: Range) {
+    const pill = document.createElement('span');
+    pill.className = 'mention-pill';
+    pill.contentEditable = 'false';
+    pill.setAttribute('data-id', user.id);
+    pill.innerText = `@${user.name}`;
+
+    const space = document.createTextNode('\u00A0');
+
+    if (replaceRange) {
+      replaceRange.deleteContents();
+      replaceRange.insertNode(pill);
+      replaceRange.setStartAfter(pill);
+      replaceRange.insertNode(space);
+    } else {
+      const editor = this.editorRef.nativeElement;
+      editor.appendChild(pill);
+      editor.appendChild(space);
+    }
+
+    // Move cursor after space
+    const range = document.createRange();
+    const selection = window.getSelection();
+    if (selection) {
+      range.setStartAfter(space);
+      range.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+
+    this.showMentions.set(false);
+    this.mentionQuery.set('');
+    this.checkEmpty();
   }
 
   private getCommentContent(): string {
