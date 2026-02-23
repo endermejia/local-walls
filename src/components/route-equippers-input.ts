@@ -49,23 +49,30 @@ import { RoutesService, SupabaseService, ToastService } from '../services';
       [identityMatcher]="equipperIdentityMatcher"
     >
       <input
+        #chipInput
         tuiInputChip
         autocomplete="off"
         [ngModel]="equippers()"
         (ngModelChange)="onEquippersChange($event)"
+        (input)="searchQuery.set(chipInput.value)"
         [placeholder]="'actions.select' | translate"
       />
       <tui-input-chip *tuiItem />
       <tui-data-list *tuiTextfieldDropdown>
-        @for (
-          item of allEquippers.value() || []
-            | tuiHideSelected
-            | tuiFilterByInput;
-          track item.name
-        ) {
-          <button tuiOption new [value]="item">
-            {{ item.name }}
-          </button>
+        @let items = allEquippers.value() || [];
+        @if (searchQuery().length > 2) {
+          @for (
+            item of items | tuiHideSelected | tuiFilterByInput;
+            track item.name
+          ) {
+            <button tuiOption new [value]="item">
+              {{ item.name }}
+            </button>
+          }
+        } @else {
+          <div class="p-2 text-sm opacity-60 text-center">
+            {{ 'labels.search' | translate }}
+          </div>
         }
       </tui-data-list>
     </tui-textfield>
@@ -81,6 +88,7 @@ export class RouteEquippersInputComponent {
 
   route = input.required<RouteWithExtras>();
   equippers = signal<readonly (EquipperDto | string)[]>([]);
+  searchQuery = signal('');
 
   protected readonly equipperStringify = (
     item: EquipperDto | string,
@@ -94,24 +102,27 @@ export class RouteEquippersInputComponent {
     return a.id === b.id;
   };
 
-  protected readonly allEquippers = resource<EquipperDto[], undefined>({
-    loader: async () => {
+  protected readonly allEquippers = resource<EquipperDto[], { query: string }>({
+    params: () => ({ query: this.searchQuery() }),
+    loader: async ({ params: { query } }) => {
+      if (query.length <= 2 || !isPlatformBrowser(this.platformId)) return [];
       await this.supabase.whenReady();
-      if (!isPlatformBrowser(this.platformId)) return [];
       const { data } = await this.supabase.client
         .from('equippers')
         .select('*')
-        .order('name');
+        .ilike('name', `%${query}%`)
+        .order('name')
+        .limit(20);
       return (data as EquipperDto[]) || [];
     },
   });
 
   constructor() {
-    effect(async () => {
+    effect(() => {
       const route = this.route();
-      if (!route) return;
-      const eqs = await this.routes.getRouteEquippers(route.id);
-      this.equippers.set(eqs);
+      if (route) {
+        this.equippers.set((route.equippers as EquipperDto[]) || []);
+      }
     });
   }
 

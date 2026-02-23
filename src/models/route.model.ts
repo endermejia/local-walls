@@ -1,4 +1,4 @@
-import { RouteAscentDto, RouteDto } from './supabase-interfaces';
+import { EquipperDto, RouteAscentDto, RouteDto } from './supabase-interfaces';
 
 export interface RouteBasicDto
   extends Pick<RouteDto, 'id' | 'name' | 'slug' | 'grade' | 'climbing_kind'> {
@@ -23,4 +23,5 @@ export interface RouteWithExtras extends RouteDto {
   climbed?: boolean;
   own_ascent?: RouteAscentDto | null;
   topos?: { id: number; name: string; slug: string }[];
+  equippers?: EquipperDto[];
 }

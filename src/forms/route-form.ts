@@ -108,22 +108,19 @@ interface MinimalRoute {
         <input tuiTextfield id="name" [formControl]="name" autocomplete="off" />
       </tui-textfield>
 
-      @if (isEdit()) {
-        <tui-textfield [tuiTextfieldCleaner]="false">
-          <label tuiLabel for="slug">{{ 'labels.slug' | translate }}</label>
-          <input
-            tuiTextfield
-            id="slug"
-            [formControl]="slug"
-            type="text"
-            required
-            [invalid]="slug.invalid && slug.touched"
-          />
-          @if (slug.invalid && slug.touched) {
-            <tui-error [error]="'errors.required' | translate" />
-          }
-        </tui-textfield>
-      }
+      <tui-textfield [tuiTextfieldCleaner]="false">
+        <label tuiLabel for="slug">{{ 'labels.slug' | translate }}</label>
+        <input
+          tuiTextfield
+          id="slug"
+          [formControl]="slug"
+          type="text"
+          [invalid]="slug.invalid && slug.touched"
+        />
+        @if (slug.invalid && slug.touched) {
+          <tui-error [error]="'errors.required' | translate" />
+        }
+      </tui-textfield>
 
       <tui-textfield
         multi
@@ -318,7 +315,6 @@ export class RouteFormComponent {
   });
   slug = new FormControl<string>('', {
     nonNullable: true,
-    validators: [Validators.required],
   });
   grade = new FormControl<number>(23, {
     nonNullable: true,
@@ -509,7 +505,7 @@ export class RouteFormComponent {
         result = await this.routes.create({
           crag_id,
           name,
-          slug: slugify(name),
+          slug: this.slug.value || slugify(name),
           grade,
           climbing_kind,
           height,

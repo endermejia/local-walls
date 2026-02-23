@@ -53,9 +53,7 @@ export class AppNotificationsService {
     const ascentIds = notifications
       .filter(
         (n) =>
-          (n.type === 'like' ||
-            n.type === 'comment' ||
-            n.type === 'mention') &&
+          (n.type === 'like' || n.type === 'comment' || n.type === 'mention') &&
           n.resource_id,
       )
       .map((n) => Number(n.resource_id));

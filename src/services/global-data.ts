@@ -945,6 +945,7 @@ export class GlobalData {
             ascents:route_ascents(rate),
             own_ascent:route_ascents(*),
             topo_routes(topo:topos(id, name, slug)),
+            route_equippers(equipper:equippers(*)),
             crag:crags(
               slug,
               name,
@@ -1002,6 +1003,10 @@ export class GlobalData {
                   r.topo_routes
                     ?.map((tr: any) => tr.topo)
                     .filter((t: any) => !!t) || [],
+                equippers:
+                  r.route_equippers
+                    ?.map((re: any) => re.equipper)
+                    .filter(Boolean) || [],
               } as RouteWithExtras;
             })(),
           ) ?? []
