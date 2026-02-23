@@ -302,9 +302,10 @@ export class RouteFormComponent {
   private readonly effectiveRouteData: Signal<MinimalRoute | undefined> =
     computed(() => this.dialogRouteData ?? this.routeData());
 
-  readonly isEdit: Signal<boolean> = computed(
-    () => !!this.effectiveRouteData(),
-  );
+  readonly isEdit: Signal<boolean> = computed(() => {
+    const data = this.effectiveRouteData();
+    return !!data && data.id > 0;
+  });
 
   name = new FormControl<string>('', {
     nonNullable: true,

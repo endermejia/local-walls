@@ -451,7 +451,37 @@ import { handleErrorToast, mapLocationUrl, slugify } from '../utils';
                     query().length < 2 ||
                     (!isSearchingAnu && anuResults.length === 0))
                 ) {
-                  <app-empty-state icon="@tui.list" />
+                  @if (
+                    global.editingMode() &&
+                    query().length >= 2 &&
+                    !isSearchingAnu &&
+                    anuResults.length === 0
+                  ) {
+                    <div
+                      tuiAppearance="flat"
+                      class="flex flex-col items-center justify-center p-8 gap-4 rounded-3xl mt-4"
+                    >
+                      <tui-icon
+                        icon="@tui.search-x"
+                        class="text-4xl opacity-50"
+                      />
+                      <span class="text-sm opacity-60 text-center">
+                        La vía no se encuentra en 8a.nu
+                      </span>
+                      <button
+                        tuiButton
+                        appearance="primary"
+                        size="m"
+                        type="button"
+                        iconStart="@tui.plus"
+                        (click.zoneless)="openCreateRoute(query())"
+                      >
+                        Crear vía
+                      </button>
+                    </div>
+                  } @else {
+                    <app-empty-state icon="@tui.list" />
+                  }
                 }
               }
               @case (1) {
@@ -1023,10 +1053,22 @@ export class CragComponent {
     });
   }
 
-  openCreateRoute(): void {
+  openCreateRoute(prefillName?: string): void {
     const c = this.cragDetail();
     if (!c) return;
-    this.routesService.openRouteForm({ cragId: c.id });
+    this.routesService.openRouteForm({
+      cragId: c.id,
+      routeData: prefillName
+        ? {
+            id: 0,
+            crag_id: c.id,
+            name: prefillName,
+            slug: slugify(prefillName),
+            grade: 0,
+            climbing_kind: ClimbingKinds.SPORT,
+          }
+        : undefined,
+    });
   }
 
   openCreateParking(): void {
