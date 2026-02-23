@@ -5,32 +5,42 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { TuiAvatar } from '@taiga-ui/kit';
-import { TuiIcon, TuiSizeL, TuiSizeS, TuiSizeXS } from '@taiga-ui/core';
+import {
+  TuiButton,
+  TuiIcon,
+  TuiSizeL,
+  TuiSizeS,
+  TuiSizeXS,
+} from '@taiga-ui/core';
 import { AscentType } from '../models';
 import { AscentsService } from '../services';
 
 @Component({
-  selector: 'app-avatar-ascent-type',
-  imports: [TuiAvatar, TuiIcon],
+  selector: 'app-button-ascent-type',
+  standalone: true,
+  imports: [TuiButton, TuiIcon],
   template: `
     @let info = typeInfo();
-    <tui-avatar
+    <button
+      tuiIconButton
+      type="button"
       [size]="size()"
-      class="!text-[var(--tui-text-primary-on-accent-1)]"
-      [class.!text-[10px]]="size() === 'xs'"
-      [style.background]="info.background"
+      class="transition-transform active:scale-95 !rounded-full"
+      [style.background]="active() ? info.background : ''"
+      [class.!text-[var(--tui-text-primary-on-accent-1)]]="active()"
+      [appearance]="active() ? 'none' : 'neutral'"
     >
       <tui-icon [icon]="info.icon" />
-    </tui-avatar>
+    </button>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AvatarAscentTypeComponent {
+export class ButtonAscentTypeComponent {
   private readonly ascentsService = inject(AscentsService);
 
   type = input.required<AscentType | null | undefined>();
-  size = input<TuiSizeS | TuiSizeL | TuiSizeXS>('m');
+  size = input<TuiSizeS | TuiSizeL | TuiSizeXS | 'm'>('m');
+  active = input<boolean>(false);
 
   protected readonly typeInfo = computed(() => {
     const type = this.type() || 'default';

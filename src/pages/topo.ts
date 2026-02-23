@@ -20,7 +20,6 @@ import {
   TuiSortDirection,
   TuiTable,
   TuiTableSortChange,
-  TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort, TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
@@ -69,7 +68,7 @@ import {
 
 import { VERTICAL_LIFE_GRADES, VERTICAL_LIFE_TO_LABEL } from '../models';
 
-import { AvatarGradeComponent } from '../components/avatar-grade';
+import { GradeComponent } from '../components/avatar-grade';
 import { EmptyStateComponent } from '../components/empty-state';
 import { SectionHeaderComponent } from '../components/section-header';
 
@@ -90,7 +89,7 @@ export interface TopoRouteRow {
 @Component({
   selector: 'app-topo',
   imports: [
-    AvatarGradeComponent,
+    GradeComponent,
     EmptyStateComponent,
     FormsModule,
     RouterLink,
@@ -107,7 +106,6 @@ export interface TopoRouteRow {
     TuiScrollbar,
     TuiSwipe,
     TuiTable,
-    TuiTableSortPipe,
     TuiTextfield,
   ],
   template: `
@@ -512,7 +510,7 @@ export interface TopoRouteRow {
                             {{ selectedRoute.route.name }}
                           </div>
                           <div class="mt-2 text-center">
-                            <app-avatar-grade
+                            <app-grade
                               [grade]="selectedRoute.route.grade"
                               size="m"
                             />
@@ -538,7 +536,9 @@ export interface TopoRouteRow {
 
             <!-- Routes table container -->
             <div
-              class="w-full h-full overflow-hidden px-4 md:px-0 lg:col-span-1"
+              class="w-full h-full overflow-hidden px-4 md:px-0 lg:col-span-1 focus:outline-none"
+              tabindex="0"
+              (keydown)="onTableKeyDown($event)"
             >
               <tui-scrollbar class="h-full">
                 <table
@@ -592,7 +592,7 @@ export interface TopoRouteRow {
                       }
                     </tr>
                   </thead>
-                  @let sortedData = tableData() | tuiTableSort;
+                  @let sortedData = sortedTableData();
                   @for (
                     item of sortedData;
                     track item._ref.topo_id + '-' + item._ref.route_id
@@ -600,6 +600,15 @@ export interface TopoRouteRow {
                     <tbody tuiTbody>
                       <tr
                         tuiTr
+                        [id]="
+                          'route-row-' +
+                          item._ref.topo_id +
+                          '-' +
+                          item._ref.route_id
+                        "
+                        [class.!bg-[var(--tui-background-accent-1-hover)]]="
+                          item._ref.route_id === selectedRouteId()
+                        "
                         [style.background]="
                           item.climbed
                             ? ascentsService.ascentInfo()[
@@ -628,7 +637,11 @@ export interface TopoRouteRow {
                           >
                             @switch (col) {
                               @case ('index') {
-                                <div tuiCell size="m" class="justify-center">
+                                <div
+                                  tuiCell
+                                  size="m"
+                                  class="justify-center h-full"
+                                >
                                   @if (global.canEditCrag()) {
                                     <tui-textfield
                                       tuiTextfieldSize="s"
@@ -638,13 +651,20 @@ export interface TopoRouteRow {
                                     >
                                       <input
                                         tuiInputNumber
-                                        class="text-center !h-full !border-none !p-0"
+                                        class="text-center !h-full !border-none !p-0 route-index-input"
                                         [ngModel]="item.index + 1"
-                                        (change)="
+                                        (blur.zoneless)="
                                           onUpdateRouteNumber(
                                             item._ref,
                                             $any($event.target).value
                                           )
+                                        "
+                                        (keydown.enter)="
+                                          onUpdateRouteNumber(
+                                            item._ref,
+                                            $any($event.target).value
+                                          );
+                                          $event.stopPropagation()
                                         "
                                       />
                                     </tui-textfield>
@@ -654,7 +674,7 @@ export interface TopoRouteRow {
                                 </div>
                               }
                               @case ('name') {
-                                <div tuiCell size="m">
+                                <div tuiCell size="m" class="h-full">
                                   <a
                                     tuiLink
                                     [routerLink]="item.link"
@@ -665,17 +685,60 @@ export interface TopoRouteRow {
                                 </div>
                               }
                               @case ('grade') {
-                                <div tuiCell size="m" class="justify-center">
-                                  <app-avatar-grade [grade]="item.grade" />
+                                <div
+                                  tuiCell
+                                  size="m"
+                                  class="justify-center h-full"
+                                >
+                                  <app-grade [grade]="item.grade" />
                                 </div>
                               }
                               @case ('height') {
-                                <div tuiCell size="m">
-                                  {{ item.height ? item.height + 'm' : '-' }}
+                                <div
+                                  tuiCell
+                                  size="m"
+                                  class="justify-center h-full"
+                                >
+                                  @if (global.canEditCrag()) {
+                                    <tui-textfield
+                                      tuiTextfieldSize="s"
+                                      [class.!w-16]="!isMobile"
+                                      [class.!w-12]="isMobile"
+                                      class="!h-8"
+                                    >
+                                      <input
+                                        tuiInputNumber
+                                        class="text-center !h-full !border-none !p-0 route-height-input"
+                                        [ngModel]="item.height"
+                                        (blur.zoneless)="
+                                          onUpdateRouteHeight(
+                                            item._ref,
+                                            $any($event.target).value
+                                          )
+                                        "
+                                        (keydown.enter)="
+                                          onUpdateRouteHeight(
+                                            item._ref,
+                                            $any($event.target).value
+                                          );
+                                          $event.stopPropagation()
+                                        "
+                                      />
+                                      <span class="tui-textfield__suffix"
+                                        >m</span
+                                      >
+                                    </tui-textfield>
+                                  } @else {
+                                    {{ item.height ? item.height + 'm' : '-' }}
+                                  }
                                 </div>
                               }
                               @case ('actions') {
-                                <div tuiCell size="m" class="justify-center">
+                                <div
+                                  tuiCell
+                                  size="m"
+                                  class="justify-center h-full"
+                                >
                                   @if (!item.climbed) {
                                     <button
                                       tuiIconButton
@@ -740,7 +803,11 @@ export interface TopoRouteRow {
                                 </div>
                               }
                               @case ('admin_actions') {
-                                <div tuiCell size="m" class="justify-center">
+                                <div
+                                  tuiCell
+                                  size="m"
+                                  class="justify-center h-full"
+                                >
                                   @if (global.canEditCrag()) {
                                     <button
                                       tuiIconButton
@@ -1114,6 +1181,21 @@ export class TopoComponent {
     });
   });
 
+  protected readonly sortedTableData: Signal<TopoRouteRow[]> = computed(() => {
+    const data = this.tableData();
+    const sorter = this.sorter();
+    const direction = this.direction();
+
+    if (!sorter) {
+      return data;
+    }
+
+    return [...data].sort((a, b) => {
+      const result = sorter(a, b);
+      return direction === TuiSortDirection.Desc ? -result : result;
+    });
+  });
+
   protected readonly sorters: Record<string, TuiComparator<TopoRouteRow>> = {
     index: (a, b) => tuiDefaultSort(a.index, b.index),
     name: (a, b) => tuiDefaultSort(a.name, b.name),
@@ -1196,6 +1278,24 @@ export class TopoComponent {
     if (val === null || isNaN(val) || val === tr.number + 1) return;
     this.toposService
       .updateRouteOrder(tr.topo_id, tr.route_id, val - 1)
+      .catch((err) => handleErrorToast(err, this.toast));
+  }
+
+  protected onUpdateRouteHeight(
+    tr: TopoRouteWithRoute,
+    newHeight: number | string | null,
+  ): void {
+    const val =
+      newHeight === null || newHeight === ''
+        ? null
+        : typeof newHeight === 'string'
+          ? parseInt(newHeight, 10)
+          : newHeight;
+
+    if (val === tr.route.height) return;
+
+    this.routesService
+      .update(tr.route_id, { height: val })
       .catch((err) => handleErrorToast(err, this.toast));
   }
 
@@ -1342,6 +1442,98 @@ export class TopoComponent {
 
     const nextIndex = (currentIndex + 1) % drawnRoutes.length;
     this.selectedRouteId.set(drawnRoutes[nextIndex].route_id);
+  }
+
+  protected onTableKeyDown(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement;
+    const isInput = target.tagName === 'INPUT';
+
+    if (
+      (target.tagName === 'TEXTAREA' || target.isContentEditable) &&
+      isInput === false
+    ) {
+      return;
+    }
+
+    if (['ArrowUp', 'ArrowDown'].includes(event.key)) {
+      const data = this.sortedTableData();
+      if (data.length === 0) return;
+
+      const step = event.key === 'ArrowUp' ? -1 : 1;
+      let nextItem: TopoRouteRow | undefined;
+
+      if (isInput) {
+        // Find current row from input's ancestor tr
+        const tr = target.closest('tr');
+        if (!tr) return;
+
+        const rowIdAttr = tr.getAttribute('id') || '';
+        const match = rowIdAttr.match(/route-row-(\d+)-(\d+)/);
+        if (!match) return;
+
+        const routeId = parseInt(match[2], 10);
+        const currentIndex = data.findIndex(
+          (item) => item._ref.route_id === routeId,
+        );
+
+        if (currentIndex !== -1) {
+          const nextIdx = (currentIndex + step + data.length) % data.length;
+          nextItem = data[nextIdx];
+
+          if (nextItem) {
+            event.preventDefault(); // Stop TuiInputNumber from changing value
+            this.selectedRouteId.set(nextItem._ref.route_id);
+
+            const nextRowId = `route-row-${nextItem._ref.topo_id}-${nextItem._ref.route_id}`;
+            const inputClass = target.classList.contains('route-index-input')
+              ? '.route-index-input'
+              : '.route-height-input';
+
+            // Use requestAnimationFrame to wait for potential template updates
+            setTimeout(() => {
+              const nextRow = document.getElementById(nextRowId);
+              const nextInput = nextRow?.querySelector(
+                inputClass,
+              ) as HTMLInputElement;
+              if (nextInput) {
+                nextInput.focus();
+                nextInput.select();
+              }
+            });
+          }
+        }
+        return;
+      }
+
+      // Existing logic for row selection navigation
+      const currentId = this.selectedRouteId();
+      let nextIndex = 0;
+
+      if (currentId) {
+        const currentIndex = data.findIndex(
+          (item) => item._ref.route_id === currentId,
+        );
+        if (currentIndex !== -1) {
+          nextIndex = (currentIndex + step + data.length) % data.length;
+        }
+      }
+
+      nextItem = data[nextIndex];
+      if (nextItem) {
+        this.selectedRouteId.set(nextItem._ref.route_id);
+        event.preventDefault(); // Prevent page scroll
+
+        // Ensure the selected row is visible
+        const rowId = `route-row-${nextItem._ref.topo_id}-${nextItem._ref.route_id}`;
+        const row = document.getElementById(rowId);
+        if (row) {
+          row.scrollIntoView({
+            block: 'nearest',
+            behavior: 'smooth',
+          });
+        }
+      }
+    }
   }
 
   protected selectPrevRoute(): void {

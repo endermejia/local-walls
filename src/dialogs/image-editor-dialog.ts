@@ -44,7 +44,7 @@ import {
   getRouteStyleProperties,
   getRouteStrokeWidth,
 } from '../utils/topo-styles.utils';
-import { AvatarGradeComponent } from '../components/avatar-grade';
+import { GradeComponent } from '../components/avatar-grade';
 import { TuiScrollbar } from '@taiga-ui/core';
 import { removePoint } from '../utils/drawing.utils';
 
@@ -83,7 +83,7 @@ export interface ImageEditorConfig {
     TuiLoader,
     ImageCropperComponent,
     TranslatePipe,
-    AvatarGradeComponent,
+    GradeComponent,
     TuiScrollbar,
     TuiSegmented,
   ],
@@ -354,7 +354,7 @@ export interface ImageEditorConfig {
                         </span>
                       </div>
                       <div class="flex items-center gap-1 mt-1 ml-8">
-                        <app-avatar-grade [grade]="tr.route.grade" size="xs" />
+                        <app-grade [grade]="tr.route.grade" size="xs" />
                       </div>
                     </div>
                     @if (hasPath(tr.route_id)) {

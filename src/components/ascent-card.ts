@@ -42,7 +42,7 @@ import {
 
 import { AscentCommentsComponent } from './ascent-comments';
 import { AscentLikesComponent } from './ascent-likes';
-import { AvatarGradeComponent } from './avatar-grade';
+import { GradeComponent } from './avatar-grade';
 import { AscentTypeComponent } from './ascent-type';
 import { AscentLastCommentComponent } from './ascent-last-comment';
 import { getEmbedUrl } from '../utils/video-helpers';
@@ -55,7 +55,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
     AscentLastCommentComponent,
     AscentLikesComponent,
     AscentTypeComponent,
-    AvatarGradeComponent,
+    GradeComponent,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
@@ -304,11 +304,11 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
             </div>
           }
           <div class="flex items-center gap-2 text-sm">
-            @if (ascent.grade; as ascentGrade) {
-              <app-avatar-grade [grade]="ascentGrade" size="s" />
+            @if (ascent.grade) {
+              <app-grade [grade]="ascent.grade" />
             }
             @if (ascent.type; as ascentType) {
-              <app-ascent-type [type]="ascentType" size="xs" />
+              <app-ascent-type [type]="ascentType" />
             }
             @if (ascent.rate) {
               <tui-rating

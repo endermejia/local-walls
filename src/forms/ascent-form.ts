@@ -71,6 +71,7 @@ import {
 } from '../services';
 
 import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
+import { ButtonAscentTypeComponent } from '../components/button-ascent-type';
 import { CounterComponent } from '../components/counter';
 
 import { handleErrorToast } from '../utils';
@@ -98,6 +99,7 @@ import { handleErrorToast } from '../utils';
     TuiTextarea,
     TuiTextfield,
     CounterComponent,
+    ButtonAscentTypeComponent,
   ],
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
   template: `
@@ -165,28 +167,16 @@ import { handleErrorToast } from '../utils';
           <div class="flex flex-wrap gap-2 items-center justify-around">
             @for (opt of typeOptions; track opt.id) {
               <div class="flex flex-col items-center gap-2">
-                <button
-                  tuiIconButton
-                  type="button"
+                <app-button-ascent-type
+                  [type]="opt.id"
                   size="l"
-                  class="transition-transform active:scale-95 !rounded-full"
-                  [style.background]="
-                    form.get('type')?.value === opt.id ? opt.background : ''
-                  "
-                  [class.!text-[var(--tui-text-primary-on-accent-1)]]="
-                    form.get('type')?.value === opt.id
-                  "
-                  [appearance]="
-                    form.get('type')?.value === opt.id ? 'none' : 'neutral'
-                  "
+                  [active]="form.get('type')?.value === opt.id"
                   (click)="
                     opt.id === 'attempt'
                       ? attemptSelected()
                       : form.get('type')?.setValue(opt.id)
                   "
-                >
-                  <tui-icon [icon]="opt.icon" />
-                </button>
+                />
                 <button
                   type="button"
                   class="text-xs font-medium appearance-none bg-transparent border-none p-0"

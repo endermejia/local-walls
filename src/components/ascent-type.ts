@@ -1,27 +1,50 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+} from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { TuiSizeL, TuiSizeS, TuiSizeXS } from '@taiga-ui/core';
+import { TuiIcon, TuiSizeL, TuiSizeS, TuiSizeXS } from '@taiga-ui/core';
+import { TuiBadge } from '@taiga-ui/kit';
 
 import { AscentType } from '../models';
-import { AvatarAscentTypeComponent } from './avatar-ascent-type';
+import { AscentsService } from '../services';
 
 @Component({
   selector: 'app-ascent-type',
   standalone: true,
-  imports: [AvatarAscentTypeComponent, TranslatePipe],
+  imports: [TuiBadge, TuiIcon, TranslatePipe],
   template: `
-    <div class="flex items-center gap-1">
-      <app-avatar-ascent-type [type]="type()" [size]="size()" />
-      <span
-        class="px-2 py-0.5 bg-[var(--tui-background-neutral-1)] rounded text-[10px] uppercase font-bold"
-      >
+    @let info = typeInfo();
+    <tui-badge
+      [size]="badgeSize()"
+      [style.background]="info.background"
+      class="!text-[var(--tui-text-primary-on-accent-1)] !rounded-full"
+    >
+      <tui-icon [icon]="info.icon" />
+      <span class="ml-1 uppercase font-bold">
         {{ 'ascentTypes.' + (type() || 'rp') | translate }}
       </span>
-    </div>
+    </tui-badge>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AscentTypeComponent {
+  private readonly ascentsService = inject(AscentsService);
+
   type = input.required<AscentType | null | undefined>();
-  size = input<TuiSizeS | TuiSizeL | TuiSizeXS>('xs');
+  size = input<TuiSizeS | TuiSizeL | TuiSizeXS>('l');
+
+  protected readonly typeInfo = computed(() => {
+    const type = this.type() || 'default';
+    return this.ascentsService.ascentInfo()[type];
+  });
+
+  protected readonly badgeSize = computed<TuiSizeS | TuiSizeL>(() => {
+    const size = this.size();
+    if (size === 'xs') return 's';
+    return size as TuiSizeS | TuiSizeL;
+  });
 }

@@ -6,7 +6,7 @@ import {
 } from '@angular/core';
 
 import { TuiSizeL, TuiSizeS, TuiSizeXS } from '@taiga-ui/core';
-import { TuiAvatar } from '@taiga-ui/kit';
+import { TuiBadge } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -18,31 +18,35 @@ import {
 } from '../models';
 
 @Component({
-  selector: 'app-avatar-grade',
-  imports: [TuiAvatar, TranslatePipe],
+  selector: 'app-grade',
+  imports: [TuiBadge, TranslatePipe],
   template: `
-    <tui-avatar
-      tuiThumbnail
-      [size]="size()"
-      class="self-center font-semibold select-none !text-[var(--tui-text-primary-on-accent-1)]"
-      [class.!text-[10px]]="size() === 'xs'"
+    <tui-badge
+      [size]="badgeSize()"
+      class="self-center font-bold select-none !text-[var(--tui-text-primary-on-accent-1)] !rounded-full"
       [style.background]="getGradeColor()"
       [attr.aria-label]="'labels.grade' | translate"
     >
-      {{ gradeLabel() }}
-    </tui-avatar>
+      <strong>{{ gradeLabel() }}</strong>
+    </tui-badge>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AvatarGradeComponent {
+export class GradeComponent {
   grade = input.required<number>();
-  size = input<TuiSizeS | TuiSizeL | TuiSizeXS>('m');
+  size = input<TuiSizeS | TuiSizeL | TuiSizeXS>('l');
 
   protected readonly gradeLabel = computed(() => {
     const g = this.grade();
     return (
       VERTICAL_LIFE_TO_LABEL[g as VERTICAL_LIFE_GRADES] || g?.toString() || ''
     );
+  });
+
+  protected readonly badgeSize = computed<TuiSizeS | TuiSizeL>(() => {
+    const size = this.size();
+    if (size === 'xs') return 's';
+    return size as TuiSizeS | TuiSizeL;
   });
 
   protected getGradeColor(): string {

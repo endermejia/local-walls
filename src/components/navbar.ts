@@ -108,9 +108,9 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
             ngSrc="/logo/climbeast.svg"
             alt="ClimBeast"
             [style.width.px]="46"
-            [style.height.px]="33"
-            height="33"
+            [style.height.px]="35"
             width="46"
+            height="35"
           />
         </button>
 

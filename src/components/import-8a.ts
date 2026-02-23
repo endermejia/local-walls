@@ -64,7 +64,7 @@ import { GlobalData } from '../services/global-data';
 
 import { slugify } from '../utils';
 
-import { AvatarGradeComponent } from './avatar-grade';
+import { GradeComponent } from './avatar-grade';
 
 @Component({
   selector: 'app-import-8a',
@@ -85,7 +85,7 @@ import { AvatarGradeComponent } from './avatar-grade';
     AsyncPipe,
     TuiAvatar,
     TuiIcon,
-    AvatarGradeComponent,
+    GradeComponent,
   ],
   template: `
     <div class="flex justify-center">
@@ -176,7 +176,7 @@ import { AvatarGradeComponent } from './avatar-grade';
                       class="p-2 border-b last:border-0 flex justify-between items-center gap-4"
                     >
                       <div class="flex items-center gap-3">
-                        <app-avatar-grade
+                        <app-grade
                           [grade]="
                             LABEL_TO_VERTICAL_LIFE[ascent.difficulty] ?? 0
                           "

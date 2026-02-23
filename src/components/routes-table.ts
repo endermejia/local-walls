@@ -51,8 +51,8 @@ import {
 
 import { handleErrorToast } from '../utils';
 
-import { AvatarGradeComponent } from './avatar-grade';
-import { AvatarAscentTypeComponent } from './avatar-ascent-type';
+import { GradeComponent } from './avatar-grade';
+import { ButtonAscentTypeComponent } from './button-ascent-type';
 import { EmptyStateComponent } from './empty-state';
 
 export type RoutesTableKey =
@@ -84,8 +84,8 @@ export interface RoutesTableRow {
 @Component({
   selector: 'app-routes-table',
   imports: [
-    AvatarAscentTypeComponent,
-    AvatarGradeComponent,
+    ButtonAscentTypeComponent,
+    GradeComponent,
     DecimalPipe,
     EmptyStateComponent,
     FormsModule,
@@ -200,7 +200,7 @@ export interface RoutesTableRow {
                         }
                         @case ('grade') {
                           <div tuiCell size="m">
-                            <app-avatar-grade [grade]="item._ref.grade" />
+                            <app-grade [grade]="item._ref.grade" />
                           </div>
                         }
                         @case ('route') {
@@ -283,9 +283,9 @@ export interface RoutesTableRow {
                                 {{ 'ascent.new' | translate }}
                               </button>
                             } @else if (item._ref.own_ascent; as ascentToEdit) {
-                              <app-avatar-ascent-type
+                              <app-button-ascent-type
                                 [type]="ascentToEdit?.type"
-                                size="m"
+                                [active]="true"
                                 class="cursor-pointer"
                                 tabindex="0"
                                 (click.zoneless)="
@@ -421,9 +421,9 @@ export interface RoutesTableRow {
                                 {{ 'ascent.new' | translate }}
                               </button>
                             } @else if (item._ref.own_ascent; as ascentToEdit) {
-                              <app-avatar-ascent-type
+                              <app-button-ascent-type
                                 [type]="ascentToEdit?.type"
-                                size="m"
+                                [active]="true"
                                 class="cursor-pointer"
                                 tabindex="0"
                                 (click.zoneless)="

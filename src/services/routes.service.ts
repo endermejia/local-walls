@@ -448,6 +448,8 @@ export class RoutesService {
     }
     this.global.cragRoutesResource.reload();
     this.global.routeDetailResource.reload();
+    this.global.topoDetailResource.reload();
+    this.syncResources(id, payload);
     this.toast.success('messages.toasts.routeUpdated');
     return data as RouteDto;
   }

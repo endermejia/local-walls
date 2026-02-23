@@ -774,7 +774,7 @@ export class GlobalData {
             topo_routes (
               *,
               route: routes (
-                id, name, slug, grade, climbing_kind,
+                id, name, slug, grade, height, climbing_kind,
                 own_ascent: route_ascents!left (*),
                 project: route_projects!left (id)
               )

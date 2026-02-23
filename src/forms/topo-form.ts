@@ -68,14 +68,14 @@ import {
 } from '../services';
 
 import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
-import { AvatarGradeComponent } from '../components/avatar-grade';
+import { GradeComponent } from '../components/avatar-grade';
 
 import { handleErrorToast, slugify } from '../utils';
 
 @Component({
   selector: 'app-topo-form',
   imports: [
-    AvatarGradeComponent,
+    GradeComponent,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
@@ -287,7 +287,7 @@ import { handleErrorToast, slugify } from '../utils';
               ) {
                 <button type="button" new tuiOption [value]="route">
                   <div tuiCell size="s">
-                    <app-avatar-grade [grade]="route.grade" />
+                    <app-grade [grade]="route.grade" />
                     <div tuiTitle>
                       {{ route.name }}
                       @if (routeIdsInOtherTopos().has(route.id)) {

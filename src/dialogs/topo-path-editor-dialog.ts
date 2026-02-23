@@ -23,7 +23,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TUI_CONFIRM } from '@taiga-ui/kit';
 import { firstValueFrom } from 'rxjs';
 import { TopoDetail, TopoRouteWithRoute } from '../models';
-import { AvatarGradeComponent } from '../components/avatar-grade';
+import { GradeComponent } from '../components/avatar-grade';
 import { GlobalData, ToastService, ToposService } from '../services';
 import { removePoint } from '../utils/drawing.utils';
 import { getRouteStyleProperties } from '../utils/topo-styles.utils';
@@ -41,7 +41,7 @@ export interface TopoPathEditorConfig {
     TuiIcon,
     TuiButton,
     TuiLoader,
-    AvatarGradeComponent,
+    GradeComponent,
     TranslateModule,
     TuiScrollbar,
   ],
@@ -141,7 +141,7 @@ export interface TopoPathEditorConfig {
                         {{ tr.route.grade }}
                       </div>
                     </div>
-                    <app-avatar-grade [grade]="tr.route.grade" size="s" />
+                    <app-grade [grade]="tr.route.grade" size="s" />
                     @if (hasPath(tr.route_id)) {
                       <tui-icon
                         icon="@tui.check"
