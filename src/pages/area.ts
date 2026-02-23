@@ -54,7 +54,7 @@ import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade
 import { EmptyStateComponent } from '../components/empty-state';
 import { SectionHeaderComponent } from '../components/section-header';
 
-import { handleErrorToast } from '../utils';
+import { handleErrorToast, normalizeName } from '../utils';
 
 @Component({
   selector: 'app-area',
@@ -301,15 +301,15 @@ export class AreaComponent {
   });
 
   readonly filteredCrags = computed(() => {
-    const q = this.query().trim().toLowerCase();
+    const q = normalizeName(this.query());
     const [minIdx, maxIdx] = this.selectedGradeRange();
     const allowedLabels = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1);
     const list = this.global.cragsList();
 
     const textMatches = (c: (typeof list)[number]) =>
       !q ||
-      c.name.toLowerCase().includes(q) ||
-      c.slug.toLowerCase().includes(q);
+      normalizeName(c.name).includes(q) ||
+      normalizeName(c.slug).includes(q);
 
     const gradeMatches = (c: (typeof list)[number]) => {
       const grades = normalizeRoutesByGrade(c.grades);

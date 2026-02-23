@@ -79,7 +79,12 @@ import { SectionHeaderComponent } from '../components/section-header';
 import { TourHintComponent } from '../components/tour-hint';
 import { WeatherForecastComponent } from '../components/weather-forecast';
 
-import { handleErrorToast, mapLocationUrl, slugify } from '../utils';
+import {
+  handleErrorToast,
+  mapLocationUrl,
+  slugify,
+  normalizeName,
+} from '../utils';
 
 @Component({
   selector: 'app-crag',
@@ -847,7 +852,7 @@ export class CragComponent {
   });
 
   readonly filteredRoutes = computed(() => {
-    const q = this.query().trim().toLowerCase();
+    const q = normalizeName(this.query());
     const [minIdx, maxIdx] = this.selectedGradeRange();
     const allowedLabels = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1);
     const categories = this.selectedCategories();
@@ -855,10 +860,12 @@ export class CragComponent {
 
     const textMatches = (r: RouteWithExtras) => {
       if (!q) return true;
-      const nameMatch = r.name.toLowerCase().includes(q);
+      const nameMatch = normalizeName(r.name).includes(q);
       const gradeLabel =
         VERTICAL_LIFE_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES];
-      const gradeMatch = gradeLabel?.toLowerCase().includes(q);
+      const gradeMatch = gradeLabel
+        ? normalizeName(gradeLabel).includes(q)
+        : false;
       return nameMatch || gradeMatch;
     };
 

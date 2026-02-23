@@ -45,6 +45,8 @@ import { EmptyStateComponent } from '../components/empty-state';
 import { TourHintComponent } from '../components/tour-hint';
 import { TuiDropdown } from '@taiga-ui/core';
 
+import { normalizeName } from '../utils';
+
 @Component({
   selector: 'app-area-list',
   imports: [
@@ -232,14 +234,14 @@ export class AreaListComponent {
     );
   });
   readonly filtered = computed(() => {
-    const q = this.query().trim().toLowerCase();
+    const q = normalizeName(this.query());
     const [minIdx, maxIdx] = this.selectedGradeRange();
     const allowedLabels = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1);
     const list = this.areas();
     const textMatches = (a: (typeof list)[number]) =>
       !q ||
-      a.name.toLowerCase().includes(q) ||
-      a.slug.toLowerCase().includes(q);
+      normalizeName(a.name).includes(q) ||
+      normalizeName(a.slug).includes(q);
     const gradeMatches = (a: (typeof list)[number]) => {
       const grades = normalizeRoutesByGrade(a.grades);
       for (const label of allowedLabels) {
