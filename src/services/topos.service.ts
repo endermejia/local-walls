@@ -14,7 +14,6 @@ import type {
   TopoPath,
   TopoRouteInsertDto,
   TopoUpdateDto,
-  Json,
 } from '../models';
 import {
   TopoPathEditorConfig,
@@ -289,7 +288,7 @@ export class ToposService {
     await this.supabase.whenReady();
     const { error } = await this.supabase.client
       .from('topo_routes')
-      .update({ path: path as any })
+      .update({ path: path as unknown as string })
       .match({ topo_id: topoId, route_id: routeId });
 
     if (error) {

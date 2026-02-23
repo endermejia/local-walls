@@ -30,7 +30,6 @@ import {
   ImageCroppedEvent,
   ImageCropperComponent,
   ImageTransform,
-  LoadedImage,
 } from 'ngx-image-cropper';
 import {
   GRADE_COLORS,
@@ -47,12 +46,7 @@ import {
 } from '../utils/topo-styles.utils';
 import { AvatarGradeComponent } from '../components/avatar-grade';
 import { TuiScrollbar } from '@taiga-ui/core';
-import {
-  getNormalizedPosition,
-  setupMouseDrag,
-  setupTouchDrag,
-  removePoint,
-} from '../utils/drawing.utils';
+import { removePoint } from '../utils/drawing.utils';
 
 export interface ImageEditorConfig {
   file?: File;
@@ -178,7 +172,6 @@ export interface ImageEditorConfig {
               [imageQuality]="imageQuality"
               format="webp"
               (imageCropped)="imageCropped($event)"
-              (imageLoaded)="imageLoadedCallback($event)"
               (cropperReady)="cropperReady()"
               (loadImageFailed)="loadImageFailed()"
             ></image-cropper>
@@ -700,7 +693,7 @@ export class ImageEditorDialogComponent implements AfterViewInit {
         this.cdr.detectChanges();
       };
       reader.readAsDataURL(blob);
-    } catch (error) {
+    } catch {
       // If we are in draw mode, we can still continue as we set croppedImage at the start
       if (this.mode() === 'draw' && this.croppedImage) {
         // Continue quietly
@@ -1209,10 +1202,6 @@ export class ImageEditorDialogComponent implements AfterViewInit {
     this.croppedImageBlob = event.blob;
   }
 
-  imageLoadedCallback(image: LoadedImage): void {
-    // Logic after image loaded if needed
-  }
-
   cropperReady(): void {
     this.cropperVisible.set(true);
   }
@@ -1331,7 +1320,7 @@ export class ImageEditorDialogComponent implements AfterViewInit {
       } else {
         this.context.completeWith(file || null);
       }
-    } catch (error) {
+    } catch {
       this.toast.error('imageEditor.uploadImageError');
     } finally {
       this.loading.set(false);

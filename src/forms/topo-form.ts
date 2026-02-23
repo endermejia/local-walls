@@ -54,7 +54,6 @@ import {
   TopoDetail,
   TopoDto,
   TopoInsertDto,
-  TopoRouteWithRoute,
   TopoUpdateDto,
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,

@@ -517,7 +517,6 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
 
   private constrainTranslation(): void {
     const scale = this.scale();
-    const container = this.containerElement.nativeElement;
     const area = this.editorAreaElement.nativeElement;
 
     if (scale <= 1) {
