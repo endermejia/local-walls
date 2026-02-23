@@ -35,7 +35,12 @@ import {
 
 import { TuiAutoFocus } from '@taiga-ui/cdk';
 import { TuiAppearance, TuiDataList, TuiDropdown } from '@taiga-ui/core';
-import { TuiPulse, TuiSegmented } from '@taiga-ui/kit';
+import {
+  TuiPulse,
+  TuiSegmented,
+  TuiBadgedContent,
+  TuiBadgeNotification,
+} from '@taiga-ui/kit';
 import { Themes } from '../models';
 import { TourHintComponent } from './tour-hint'; // Added this import
 import {
@@ -48,6 +53,9 @@ import {
   UserProfilesService,
 } from '../services';
 import { NgOptimizedImage } from '@angular/common';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { ChatDialogComponent } from '../dialogs/chat-dialog';
+import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
 
 @Component({
   selector: 'app-navbar',
@@ -76,6 +84,8 @@ import { NgOptimizedImage } from '@angular/common';
     TourHintComponent,
     TuiDataList,
     TuiSegmented,
+    TuiBadgedContent,
+    TuiBadgeNotification,
     NgOptimizedImage,
     TuiSwitch,
   ],
@@ -297,6 +307,58 @@ import { NgOptimizedImage } from '@angular/common';
             </div>
           </div>
 
+          <!-- Messages -->
+          <button
+            type="button"
+            tuiAppearance="flat-grayscale"
+            class="hidden md:flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer relative"
+            (click)="openChat()"
+            [attr.aria-label]="'labels.messages' | translate"
+          >
+            @if (global.unreadMessagesCount(); as unreadMessages) {
+              <tui-badge-notification
+                tuiAppearance="accent"
+                size="s"
+                class="absolute top-2 left-7 z-10"
+              >
+                {{ unreadMessages }}
+              </tui-badge-notification>
+            }
+            <tui-icon icon="@tui.messages-square" />
+            <span
+              class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+            >
+              {{ 'labels.messages' | translate }}
+            </span>
+          </button>
+
+          <!-- Notifications -->
+          @if (!global.userProfile()?.private) {
+            <button
+              type="button"
+              tuiAppearance="flat-grayscale"
+              class="hidden md:flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer relative"
+              (click)="openNotifications()"
+              [attr.aria-label]="'labels.notifications' | translate"
+            >
+              @if (global.unreadNotificationsCount(); as unreadNotifications) {
+                <tui-badge-notification
+                  tuiAppearance="accent"
+                  size="s"
+                  class="absolute top-2 left-7 z-10"
+                >
+                  {{ unreadNotifications }}
+                </tui-badge-notification>
+              }
+              <tui-icon icon="@tui.bell" />
+              <span
+                class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+              >
+                {{ 'labels.notifications' | translate }}
+              </span>
+            </button>
+          }
+
           <!-- Profile -->
           <a
             #profile="routerLinkActive"
@@ -443,6 +505,29 @@ export class NavbarComponent {
       event.preventDefault();
       this.scrollService.scrollToTop();
     }
+  }
+
+  protected openChat(): void {
+    void firstValueFrom(
+      this.dialogs.open(new PolymorpheusComponent(ChatDialogComponent), {
+        label: this.translate.instant('labels.messages'),
+        size: 'm',
+      }),
+      { defaultValue: undefined },
+    );
+  }
+
+  protected openNotifications(): void {
+    void firstValueFrom(
+      this.dialogs.open(
+        new PolymorpheusComponent(NotificationsDialogComponent),
+        {
+          label: this.translate.instant('labels.notifications'),
+          size: 'm',
+        },
+      ),
+      { defaultValue: undefined },
+    );
   }
 
   protected async logout(): Promise<void> {

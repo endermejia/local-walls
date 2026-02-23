@@ -4,6 +4,7 @@ import {
   Component,
   computed,
   effect,
+  ElementRef,
   inject,
   input,
   InputSignal,
@@ -11,6 +12,7 @@ import {
   resource,
   signal,
   Signal,
+  ViewChild,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
@@ -110,7 +112,7 @@ export interface TopoRouteRow {
   ],
   template: `
     <div class="h-full w-full">
-      <section class="flex flex-col w-full h-full max-w-7xl mx-auto md:p-4">
+      <section class="flex flex-col w-full h-full md:p-4">
         @let isAdmin = global.isAdmin();
         @let isMobile = global.isMobile();
         @if (topo(); as t) {
@@ -174,15 +176,14 @@ export interface TopoRouteRow {
           </div>
 
           <div
-            class="flex flex-col md:flex-row w-full h-full gap-4 overflow-hidden"
+            class="grid grid-cols-1 grid-rows-2 lg:grid-cols-3 lg:grid-rows-1 w-full h-full gap-4 overflow-hidden"
           >
             <!-- Topo image container -->
             @let topoImage = topoImageResource.value();
             <div
               (tuiSwipe)="onSwipe($event)"
-              [style.height]="isMobile ? '50%' : '100%'"
-              [style.width]="isMobile ? '100%' : '50%'"
-              class="relative w-full bg-[var(--tui-background-neutral-1)] md:rounded-xl md:border md:border-[var(--tui-border-normal)] overflow-x-auto"
+              class="relative w-full h-full lg:col-span-2 bg-[var(--tui-background-neutral-1)] md:rounded-xl md:border md:border-[var(--tui-border-normal)] overflow-x-auto"
+              #scrollContainer
             >
               <div
                 class="h-full w-max flex items-center justify-center min-w-full"
@@ -537,9 +538,7 @@ export interface TopoRouteRow {
 
             <!-- Routes table container -->
             <div
-              [style.height]="isMobile ? '50%' : '100%'"
-              [style.width]="isMobile ? '100%' : '50%'"
-              class="w-full overflow-hidden px-4 md:px-0"
+              class="w-full h-full overflow-hidden px-4 md:px-0 lg:col-span-1"
             >
               <tui-scrollbar class="h-full">
                 <table
@@ -802,6 +801,7 @@ export class TopoComponent {
   private readonly translate = inject(TranslateService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly toast = inject(ToastService);
+  @ViewChild('scrollContainer') scrollContainer?: ElementRef<HTMLDivElement>;
   protected readonly isFullscreen = signal(false);
   protected readonly zoomScale = signal(1);
   protected readonly zoomPosition = signal({ x: 0, y: 0 });
@@ -821,6 +821,18 @@ export class TopoComponent {
     const img = event.target as HTMLImageElement;
     if (img.naturalWidth && img.naturalHeight) {
       this.imageRatio.set(img.naturalWidth / img.naturalHeight);
+
+      // Center horizontally after image loads and layout is stable
+      setTimeout(() => {
+        const container = this.scrollContainer?.nativeElement;
+        if (container) {
+          const scrollWidth = container.scrollWidth;
+          const clientWidth = container.clientWidth;
+          if (scrollWidth > clientWidth) {
+            container.scrollLeft = (scrollWidth - clientWidth) / 2;
+          }
+        }
+      }, 0);
     }
   }
 

@@ -65,18 +65,6 @@ export interface TopoPathEditorConfig {
         </div>
 
         <div class="flex items-center gap-2">
-          @if (scale() > 1) {
-            <button
-              tuiIconButton
-              appearance="flat"
-              size="s"
-              class="!rounded-full !text-[var(--tui-text-01)] hover:bg-[var(--tui-background-neutral-1)]/10"
-              (click)="resetZoom()"
-              [attr.aria-label]="'actions.reset' | translate"
-            >
-              <tui-icon icon="@tui.refresh-ccw" />
-            </button>
-          }
           <button
             tuiButton
             appearance="primary"

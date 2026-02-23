@@ -45,7 +45,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
 
             @if (showHeader()) {
               <div
-                class="absolute bottom-4 right-4 flex flex-col items-end gap-2 z-50"
+                class="absolute bottom-4 right-4 flex flex-col items-end gap-2 z-50 md:hidden"
               >
                 <tui-badged-content [style.--tui-radius.%]="50">
                   @if (global.unreadMessagesCount(); as unreadMessages) {
@@ -66,11 +66,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
                     iconStart="@tui.messages-square"
                     (click)="openChat()"
                     [attr.aria-label]="'labels.messages' | translate"
-                  >
-                    <span class="hidden md:block">{{
-                      'labels.messages' | translate
-                    }}</span>
-                  </button>
+                  ></button>
                 </tui-badged-content>
 
                 @if (!global.userProfile()?.private) {
@@ -96,11 +92,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
                       iconStart="@tui.bell"
                       (click)="openNotifications()"
                       [attr.aria-label]="'labels.notifications' | translate"
-                    >
-                      <span class="hidden md:block">{{
-                        'labels.notifications' | translate
-                      }}</span>
-                    </button>
+                    ></button>
                   </tui-badged-content>
                 }
               </div>
