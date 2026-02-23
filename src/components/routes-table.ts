@@ -150,13 +150,11 @@ export interface RoutesTableRow {
                       col === 'actions' || col === 'admin_actions'
                     "
                     [class.!w-12]="col === 'expand'"
+                    [class.!w-16]="col === 'height'"
                     [class.!w-20]="col === 'grade' || col === 'ascents'"
-                    [class.!w-24]="col === 'rating' || col === 'height'"
-                    [class.!w-32]="
-                      col === 'actions' ||
-                      col === 'admin_actions' ||
-                      col === 'equippers'
-                    "
+                    [class.!w-24]="col === 'rating'"
+                    [class.!w-32]="col === 'actions' || col === 'admin_actions'"
+                    [class.!w-64]="col === 'equippers'"
                   >
                     <div class="flex items-center gap-1">
                       {{
