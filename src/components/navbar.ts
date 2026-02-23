@@ -403,7 +403,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
             <span
               class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden text-sm"
             >
-              {{ 'config' | translate }}
+              {{ 'more' | translate }}
             </span>
           </button>
           <ng-template #optionsDropdown>

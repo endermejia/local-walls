@@ -435,7 +435,6 @@ interface Country {
                 name="birthDateInput"
                 tuiInputDate
                 [max]="today"
-                [max]="today"
                 [min]="minBirthDate"
                 [formControl]="birthDateControl"
                 (ngModelChange)="saveBirthDate()"
@@ -454,8 +453,6 @@ interface Country {
                 id="startingClimbingYearInput"
                 name="startingClimbingYearInput"
                 tuiInputYear
-                [min]="minYear"
-                [max]="currentYear"
                 [min]="minYear"
                 [max]="currentYear"
                 [formControl]="startingClimbingYearControl"
@@ -478,8 +475,6 @@ interface Country {
                 id="sizeInput"
                 name="sizeInput"
                 tuiInputNumber
-                [min]="0"
-                [max]="300"
                 [min]="0"
                 [max]="300"
                 [formControl]="sizeControl"

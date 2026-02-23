@@ -1,6 +1,7 @@
 {
   "navigation": "Navegación",
   "config": "Configuración",
+  "more": "Más",
   "actions": {
     "accept": "Aceptar",
     "apply": "Aplicar",

@@ -31,12 +31,14 @@ import {
   TuiIcon,
   TuiLink,
   TuiScrollbar,
+  TuiTextfield,
 } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
   TuiChevron,
   type TuiConfirmData,
+  TuiInputNumber,
   TuiRating,
 } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
@@ -64,6 +66,7 @@ import { handleErrorToast } from '../utils';
 import { GradeComponent } from './avatar-grade';
 import { ButtonAscentTypeComponent } from './button-ascent-type';
 import { EmptyStateComponent } from './empty-state';
+import { RouteEquippersInputComponent } from './route-equippers-input';
 
 export type RoutesTableKey =
   | 'grade'
@@ -102,6 +105,7 @@ export interface RoutesTableRow {
     EmptyStateComponent,
     FormsModule,
     LowerCasePipe,
+    RouteEquippersInputComponent,
     RouterLink,
     TranslatePipe,
     TuiButton,
@@ -111,12 +115,14 @@ export interface RoutesTableRow {
     TuiDropdown,
     TuiGroup,
     TuiIcon,
+    TuiInputNumber,
     TuiLink,
     TuiRating,
     TuiScrollbar,
     TuiTable,
     TuiTableExpand,
     TuiTableSortPipe,
+    TuiTextfield,
   ],
   template: `
     @if (tableData(); as data) {
@@ -144,11 +150,13 @@ export interface RoutesTableRow {
                       col === 'actions' || col === 'admin_actions'
                     "
                     [class.!w-12]="col === 'expand'"
-                    [class.!w-20]="
-                      col === 'grade' || col === 'height' || col === 'ascents'
+                    [class.!w-20]="col === 'grade' || col === 'ascents'"
+                    [class.!w-24]="col === 'rating' || col === 'height'"
+                    [class.!w-32]="
+                      col === 'actions' ||
+                      col === 'admin_actions' ||
+                      col === 'equippers'
                     "
-                    [class.!w-24]="col === 'rating'"
-                    [class.!w-32]="col === 'actions' || col === 'admin_actions'"
                   >
                     <div class="flex items-center gap-1">
                       {{
@@ -169,7 +177,6 @@ export interface RoutesTableRow {
               <tbody tuiTbody>
                 <tr
                   tuiTr
-                  class="cursor-pointer"
                   [style.background]="
                     showRowColors()
                       ? item.climbed
@@ -180,13 +187,6 @@ export interface RoutesTableRow {
                           ? 'var(--tui-status-info-pale)'
                           : ''
                       : ''
-                  "
-                  tabindex="0"
-                  (click.zoneless)="
-                    isMobile ? exp.toggle() : router.navigate(item.link)
-                  "
-                  (keydown.enter)="
-                    isMobile ? exp.toggle() : router.navigate(item.link)
                   "
                 >
                   @for (col of columns(); track col) {
@@ -206,9 +206,7 @@ export interface RoutesTableRow {
                             type="button"
                             class="!rounded-full"
                             [tuiChevron]="exp.expanded()"
-                            (click.zoneless)="
-                              exp.toggle(); $event.stopPropagation()
-                            "
+                            (click.zoneless)="exp.toggle()"
                           >
                             Toggle
                           </button>
@@ -228,7 +226,6 @@ export interface RoutesTableRow {
                                   item.liked ? 'var(--tui-status-negative)' : ''
                                 "
                                 class="align-self-start font-bold text-base truncate max-w-full block"
-                                (click.zoneless)="$event.stopPropagation()"
                               >
                                 {{ item.route || ('labels.route' | translate) }}
                               </a>
@@ -239,7 +236,6 @@ export interface RoutesTableRow {
                                   <a
                                     tuiLink
                                     [routerLink]="['/area', item.area_slug]"
-                                    (click)="$event.stopPropagation()"
                                   >
                                     {{ item.area_name }}
                                   </a>
@@ -251,7 +247,6 @@ export interface RoutesTableRow {
                                       item.area_slug,
                                       item.crag_slug,
                                     ]"
-                                    (click)="$event.stopPropagation()"
                                   >
                                     {{ item.crag_name }}
                                   </a>
@@ -261,8 +256,36 @@ export interface RoutesTableRow {
                           </div>
                         }
                         @case ('height') {
-                          <div tuiCell size="m">
-                            {{ item.height ? item.height + 'm' : '-' }}
+                          <div tuiCell size="m" class="justify-center h-full">
+                            @if (canEditRoute) {
+                              <tui-textfield
+                                tuiTextfieldSize="s"
+                                [class.!w-16]="!isMobile"
+                                [class.!w-12]="isMobile"
+                                class="!h-8"
+                              >
+                                <input
+                                  tuiInputNumber
+                                  class="text-center !h-full !border-none !p-0 route-height-input"
+                                  [ngModel]="item.height"
+                                  (blur.zoneless)="
+                                    onUpdateRouteHeight(
+                                      item._ref,
+                                      $any($event.target).value
+                                    )
+                                  "
+                                  (keydown.enter)="
+                                    onUpdateRouteHeight(
+                                      item._ref,
+                                      $any($event.target).value
+                                    )
+                                  "
+                                />
+                                <span class="tui-textfield__suffix">m</span>
+                              </tui-textfield>
+                            } @else {
+                              {{ item.height ? item.height + 'm' : '-' }}
+                            }
                           </div>
                         }
                         @case ('rating') {
@@ -299,8 +322,7 @@ export interface RoutesTableRow {
                                           item.crag_slug,
                                           'topo',
                                           t.id,
-                                        ]);
-                                        $event.stopPropagation()
+                                        ])
                                       "
                                     >
                                       {{ t.name }}
@@ -322,9 +344,6 @@ export interface RoutesTableRow {
                                           $event ? item.key : null
                                         )
                                       "
-                                      (click.zoneless)="
-                                        $event.stopPropagation()
-                                      "
                                     >
                                       {{ 'actions.addRouteToTopo' | translate }}
                                     </button>
@@ -345,7 +364,6 @@ export interface RoutesTableRow {
                                   (tuiDropdownOpenChange)="
                                     openDropdownId.set($event ? item.key : null)
                                   "
-                                  (click.zoneless)="$event.stopPropagation()"
                                 >
                                   {{ 'actions.addRouteToTopo' | translate }}
                                 </button>
@@ -372,8 +390,7 @@ export interface RoutesTableRow {
                                           item._ref.id,
                                           isAttached
                                         );
-                                        openDropdownId.set(null);
-                                        $event.stopPropagation()
+                                        openDropdownId.set(null)
                                       "
                                     >
                                       <tui-icon
@@ -392,6 +409,13 @@ export interface RoutesTableRow {
                             </div>
                           </div>
                         }
+                        @case ('equippers') {
+                          <div tuiCell size="m" class="h-full py-0">
+                            @if (canEditRoute) {
+                              <app-route-equippers-input [route]="item._ref" />
+                            }
+                          </div>
+                        }
                         @case ('actions') {
                           <div tuiCell size="m">
                             @if (!item.climbed) {
@@ -402,10 +426,7 @@ export interface RoutesTableRow {
                                 tuiIconButton
                                 type="button"
                                 class="!rounded-full"
-                                (click.zoneless)="
-                                  onLogAscent(item._ref);
-                                  $event.stopPropagation()
-                                "
+                                (click.zoneless)="onLogAscent(item._ref)"
                               >
                                 {{ 'ascent.new' | translate }}
                               </button>
@@ -416,12 +437,10 @@ export interface RoutesTableRow {
                                 class="cursor-pointer"
                                 tabindex="0"
                                 (click.zoneless)="
-                                  onEditAscent(ascentToEdit, item._ref.name);
-                                  $event.stopPropagation()
+                                  onEditAscent(ascentToEdit, item._ref.name)
                                 "
                                 (keydown.enter)="
-                                  onEditAscent(ascentToEdit, item._ref.name);
-                                  $event.stopPropagation()
+                                  onEditAscent(ascentToEdit, item._ref.name)
                                 "
                               />
                             }
@@ -440,8 +459,7 @@ export interface RoutesTableRow {
                                   routesService.toggleRouteProject(
                                     item._ref.id,
                                     item._ref
-                                  );
-                                  $event.stopPropagation()
+                                  )
                                 "
                               >
                                 {{ 'labels.project' | translate }}
@@ -459,10 +477,7 @@ export interface RoutesTableRow {
                                 tuiIconButton
                                 type="button"
                                 class="!rounded-full"
-                                (click.zoneless)="
-                                  openEditRoute(item._ref);
-                                  $event.stopPropagation()
-                                "
+                                (click.zoneless)="openEditRoute(item._ref)"
                               >
                                 {{ 'actions.edit' | translate }}
                               </button>
@@ -474,10 +489,7 @@ export interface RoutesTableRow {
                                   tuiIconButton
                                   type="button"
                                   class="!rounded-full"
-                                  (click.zoneless)="
-                                    deleteRoute(item._ref);
-                                    $event.stopPropagation()
-                                  "
+                                  (click.zoneless)="deleteRoute(item._ref)"
                                 >
                                   {{ 'actions.delete' | translate }}
                                 </button>
@@ -536,8 +548,7 @@ export interface RoutesTableRow {
                                           item.crag_slug,
                                           'topo',
                                           t.id,
-                                        ]);
-                                        $event.stopPropagation()
+                                        ])
                                       "
                                     >
                                       {{ t.name }}
@@ -611,8 +622,7 @@ export interface RoutesTableRow {
                                           item._ref.id,
                                           isAttached
                                         );
-                                        openDropdownId.set(null);
-                                        $event.stopPropagation()
+                                        openDropdownId.set(null)
                                       "
                                     >
                                       <tui-icon
@@ -847,6 +857,11 @@ export class RoutesTableComponent {
     ];
 
     if (this.global.editingMode() && this.showAdminActions()) {
+      cols.splice(cols.indexOf('rating'), 1);
+      cols.splice(cols.indexOf('ascents'), 1);
+      cols.splice(cols.indexOf('actions'), 1);
+
+      cols.push('equippers');
       cols.push('admin_actions');
     }
     return cols;
@@ -965,12 +980,45 @@ export class RoutesTableComponent {
     });
   }
 
+  protected openEquippersPanel(route: RouteItem): void {
+    this.routesService.openRouteForm({
+      cragId: route.crag_id,
+      routeData: {
+        id: route.id,
+        crag_id: route.crag_id,
+        name: route.name,
+        slug: route.slug,
+        grade: Number(route.grade),
+        climbing_kind: route.climbing_kind,
+        height: route.height || null,
+      },
+    });
+  }
+
   protected isRouteInTopo(
     routeId: number,
     topoId: number,
     routeTopos: { id: number }[],
   ): boolean {
     return routeTopos.some((t) => t.id === topoId);
+  }
+
+  protected onUpdateRouteHeight(
+    route: RouteItem,
+    newHeight: number | string | null,
+  ): void {
+    const val =
+      newHeight === null || newHeight === ''
+        ? null
+        : typeof newHeight === 'string'
+          ? parseInt(newHeight, 10)
+          : newHeight;
+
+    if (val === route.height) return;
+
+    this.routesService
+      .update(route.id, { height: val })
+      .catch((err) => handleErrorToast(err, this.toast));
   }
 
   protected async toggleRouteOnTopo(

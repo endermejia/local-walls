@@ -389,7 +389,11 @@ import { handleErrorToast, mapLocationUrl, slugify } from '../utils';
                   <app-routes-table [data]="routesList" />
                 }
 
-                @if (global.editingMode() && query().length >= 2) {
+                @if (
+                  global.editingMode() &&
+                  query().length >= 2 &&
+                  routesList.length === 0
+                ) {
                   @if (isSearchingAnu) {
                     <div
                       class="flex flex-col items-center justify-center p-8 gap-4"
@@ -854,8 +858,9 @@ export class CragComponent {
       const q = this.query().trim();
       const crag = this.cragDetail();
       const editing = this.global.editingMode();
+      const routesCount = this.filteredRoutes().length;
 
-      if (editing && q.length >= 2 && crag) {
+      if (editing && q.length >= 2 && crag && routesCount === 0) {
         return { q, crag: crag.name };
       }
       return null;
