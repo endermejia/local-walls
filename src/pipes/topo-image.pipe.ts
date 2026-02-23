@@ -14,15 +14,9 @@ export class TopoImagePipe implements PipeTransform {
     // Extract path from input
     const path =
       typeof input === 'object' && input !== null ? input.path : input;
+    const version =
+      typeof input === 'object' && input !== null ? input.version : undefined;
 
-    const signedUrl = await this.supabase.getTopoSignedUrl(path);
-    if (!signedUrl) return '';
-
-    // Add version parameter if provided
-    const url = new URL(signedUrl);
-    if (typeof input === 'object' && input !== null && input.version) {
-      url.searchParams.set('v', input.version.toString());
-    }
-    return url.toString();
+    return await this.supabase.getTopoSignedUrl(path, version);
   }
 }

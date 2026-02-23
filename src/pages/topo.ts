@@ -317,7 +317,7 @@ export interface TopoRouteRow {
                               [attr.y]="first.y * hScale + 3"
                               text-anchor="middle"
                               fill="white"
-                              style="text-shadow: 0px 0px 2px rgba(0,0,0,0.8)"
+                              style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
                               font-size="8"
                               font-weight="bold"
                               font-family="sans-serif"
@@ -1067,6 +1067,7 @@ export class TopoComponent {
       this.initialMouseX = centerRelX / this.initialPinchScale;
       this.initialMouseY = centerRelY / this.initialPinchScale;
       this.initialTx = this.zoomPosition().x;
+      this.initialTy = this.zoomPosition().y;
     }
   }
 
@@ -1105,18 +1106,18 @@ export class TopoComponent {
 
       this.zoomScale.set(newScale);
 
-      this.zoomPosition.update((pos) => ({
+      this.zoomPosition.set({
         x:
           this.initialPinchCenter.x -
           this.initialPinchRect.left +
-          pos.x -
+          this.initialTx -
           this.initialMouseX * newScale,
         y:
           this.initialPinchCenter.y -
           this.initialPinchRect.top +
-          pos.y -
+          this.initialTy -
           this.initialMouseY * newScale,
-      }));
+      });
     }
   }
 
@@ -1202,14 +1203,7 @@ export class TopoComponent {
     },
     loader: async ({ params }) => {
       if (!params) return null;
-      const signedUrl = await this.supabase.getTopoSignedUrl(params.path);
-      if (!signedUrl) return '';
-
-      const url = new URL(signedUrl);
-      if (params.version) {
-        url.searchParams.set('v', params.version.toString());
-      }
-      return url.toString();
+      return await this.supabase.getTopoSignedUrl(params.path, params.version);
     },
   });
 
@@ -1553,7 +1547,7 @@ export class TopoComponent {
 
     if (
       (target.tagName === 'TEXTAREA' || target.isContentEditable) &&
-      isInput === false
+      !isInput
     ) {
       return;
     }

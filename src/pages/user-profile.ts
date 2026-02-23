@@ -482,6 +482,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
                   [showAdminActions]="false"
                   [showLocation]="true"
                   [showRowColors]="false"
+                  [hiddenColumns]="['topo', 'height', 'rating', 'ascents']"
                 />
               }
             </div>

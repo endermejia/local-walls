@@ -546,8 +546,12 @@ import {
                           @if (t.photo; as photo) {
                             <img
                               [src]="
-                                (photo | topoImage | async) ||
-                                global.iconSrc()('topo')
+                                ({
+                                  path: photo,
+                                  version: global.topoPhotoVersion(),
+                                }
+                                  | topoImage
+                                  | async) || global.iconSrc()('topo')
                               "
                               alt="topo"
                               class="w-full h-48 object-cover rounded shadow-sm"

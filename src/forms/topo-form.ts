@@ -429,11 +429,11 @@ export class TopoFormComponent {
     params: () => {
       const data = this.effectiveTopoData();
       if (!data?.photo || this.isExistingPhotoDeleted()) return null;
-      return data.photo;
+      return { path: data.photo, version: this.global.topoPhotoVersion() };
     },
     loader: async ({ params }) => {
       if (!params) return null;
-      return await this.supabase.getTopoSignedUrl(params);
+      return await this.supabase.getTopoSignedUrl(params.path, params.version);
     },
   }).value;
 

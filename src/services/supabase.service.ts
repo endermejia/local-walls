@@ -170,11 +170,14 @@ export class SupabaseService {
   /**
    * Gets a signed URL for a topo photo stored in the private "topos" bucket.
    */
-  async getTopoSignedUrl(path: string | null | undefined): Promise<string> {
+  async getTopoSignedUrl(
+    path: string | null | undefined,
+    version?: number,
+  ): Promise<string> {
     if (!path) return '';
     if (path.startsWith('http')) return path;
 
-    const cacheKey = `topo-url:${path}`;
+    const cacheKey = `topo-url:${path}${version ? `:${version}` : ''}`;
     try {
       const cached = this.localStorage.getItem(cacheKey);
       if (cached) {
@@ -196,17 +199,26 @@ export class SupabaseService {
       return '';
     }
 
+    let finalUrl = data.signedUrl;
+    if (version) {
+      try {
+        const u = new URL(finalUrl);
+        u.searchParams.set('v', version.toString());
+        finalUrl = u.toString();
+      } catch {}
+    }
+
     try {
       const expiresAt = Date.now() + 31536000 * 1000 - 86400000; // 1 year - 1 day
       this.localStorage.setItem(
         cacheKey,
-        JSON.stringify({ url: data.signedUrl, expiresAt }),
+        JSON.stringify({ url: finalUrl, expiresAt }),
       );
     } catch (e) {
       console.warn('[SupabaseService] Error caching topo url', e);
     }
 
-    return data.signedUrl;
+    return finalUrl;
   }
 
   /**

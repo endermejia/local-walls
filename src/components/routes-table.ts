@@ -802,6 +802,7 @@ export class RoutesTableComponent {
   showAdminActions: InputSignal<boolean> = input(true);
   showRowColors: InputSignal<boolean> = input(true);
   showLocation: InputSignal<boolean> = input(false);
+  hiddenColumns: InputSignal<string[]> = input<string[]>([]);
 
   protected readonly sorters: Record<
     RoutesTableKey,
@@ -856,7 +857,7 @@ export class RoutesTableComponent {
       cols.push('equippers');
       cols.push('admin_actions');
     }
-    return cols;
+    return cols.filter((c) => !this.hiddenColumns().includes(c));
   });
 
   protected readonly tableData: Signal<RoutesTableRow[]> = computed(() =>
