@@ -308,12 +308,6 @@ export interface ImageEditorConfig {
             [class.shadow-2xl]="sidebarOpen()"
             [class.md:shadow-none]="true"
           >
-            <div class="p-4 border-b">
-              <h3 class="text-xs font-bold uppercase opacity-50 tracking-wider">
-                {{ 'topos.editor.lines' | translate }}
-              </h3>
-            </div>
-
             <tui-scrollbar class="flex-1">
               <div class="p-2 flex flex-col gap-1">
                 @for (tr of topoRoutes; track tr.route_id) {
@@ -354,30 +348,6 @@ export interface ImageEditorConfig {
                 }
               </div>
             </tui-scrollbar>
-
-            <!-- Color Palette -->
-            <div
-              class="p-4 border-t border-[var(--tui-border-normal)] bg-[var(--tui-background-base)]"
-            >
-              <div class="flex flex-wrap gap-2 justify-center">
-                @for (c of palette; track c) {
-                  @let selected = selectedRoute();
-                  @let isSelectedColor =
-                    (selectedColor() ||
-                      (selected && getRouteColor(selected.route_id))) === c;
-                  <button
-                    class="w-8 h-8 border-2"
-                    style="border-radius: 50%"
-                    [style.background]="c"
-                    [style.border-color]="
-                      isSelectedColor ? 'var(--tui-primary)' : 'transparent'
-                    "
-                    (click)="setPathColor(c)"
-                    [attr.aria-label]="'imageEditor.setColor' | translate"
-                  ></button>
-                }
-              </div>
-            </div>
           </div>
         }
       </div>
@@ -723,14 +693,6 @@ export class ImageEditorDialogComponent {
     }
   }
 
-  setPathColor(color: string): void {
-    const route = this.selectedRoute();
-    if (!route) return;
-    this.selectedColor.set(color);
-    const existing = this.pathsMap.get(route.route_id) || { points: [] };
-    this.pathsMap.set(route.route_id, { ...existing, color });
-  }
-
   getRouteColor(routeId: number): string {
     const route = this.topoRoutes?.find((r) => r.route_id === routeId);
     if (route) {
@@ -933,14 +895,6 @@ export class ImageEditorDialogComponent {
 
   removePoint(event: Event, routeId: number, index: number): void {
     removePoint(event, routeId, index, this.pathsMap);
-  }
-
-  // EXISTING CROPPER METHODS
-  fileChangeEvent(event: Event): void {
-    this.imageChangedEvent = event;
-    this.imageFile = undefined;
-    this.imageBase64.set(undefined);
-    this.cropperVisible.set(false);
   }
 
   imageCropped(event: ImageCroppedEvent): void {
