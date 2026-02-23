@@ -194,7 +194,7 @@ import { handleErrorToast, slugify } from '../utils';
                 <tui-file
                   [file]="file"
                   (remove)="removePhotoFile()"
-                  (click.zoneless)="editPhoto(file)"
+                  (click.zoneless)="editPhoto(file, undefined, $event)"
                 />
                 @if (previewUrl()) {
                   <div
@@ -225,7 +225,7 @@ import { handleErrorToast, slugify } from '../utils';
                     (remove)="onDeleteExistingPhoto()"
                     (click.zoneless)="
                       existingPhotoUrl()
-                        ? editPhoto(null, existingPhotoUrl()!)
+                        ? editPhoto(null, existingPhotoUrl()!, $event)
                         : null
                     "
                   />
@@ -684,7 +684,18 @@ export class TopoFormComponent {
     this.photoControl.setValue(null);
   }
 
-  async editPhoto(file?: File | null, imageUrl?: string): Promise<void> {
+  async editPhoto(
+    file?: File | null,
+    imageUrl?: string,
+    event?: Event,
+  ): Promise<void> {
+    if (event) {
+      const target = event.target as HTMLElement;
+      if (target.closest('button')) {
+        return;
+      }
+    }
+
     const data = {
       file: file ?? undefined,
       imageUrl: imageUrl ?? undefined,
