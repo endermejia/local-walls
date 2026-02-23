@@ -61,7 +61,7 @@ import {
   ToposService,
 } from '../services';
 
-import { handleErrorToast } from '../utils';
+import { handleErrorToast, normalizeName } from '../utils';
 
 import { GradeComponent } from './avatar-grade';
 import { ButtonAscentTypeComponent } from './button-ascent-type';
@@ -813,14 +813,8 @@ export class RoutesTableComponent {
     rating: (a, b) => tuiDefaultSort(a.rating, b.rating),
     ascents: (a, b) => tuiDefaultSort(a.ascents, b.ascents),
     topo: (a, b) => {
-      const aVal = a.topos
-        .map((t) => t.name)
-        .sort()
-        .join(', ');
-      const bVal = b.topos
-        .map((t) => t.name)
-        .sort()
-        .join(', ');
+      const aVal = a.topos.map((t) => normalizeName(t.name)).join(', ');
+      const bVal = b.topos.map((t) => normalizeName(t.name)).join(', ');
       return tuiDefaultSort(aVal, bVal) || tuiDefaultSort(a.route, b.route);
     },
   };
@@ -899,7 +893,9 @@ export class RoutesTableComponent {
           r.crag_slug || 'unknown',
           r.slug,
         ],
-        topos: r.topos || [],
+        topos: (r.topos || []).sort((a, b) =>
+          tuiDefaultSort(normalizeName(a.name), normalizeName(b.name)),
+        ),
         _ref: r,
       };
     }),
