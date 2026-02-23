@@ -62,7 +62,8 @@
     "ascentsHidden": "Encadenes ocultados",
     "showAscents": "Mostrar encadenes",
     "hideAscentsConfirm": "¿Estás seguro de que quieres ocultar los encadenes de {{name}}? No verá tus encadenes y tú no verás los suyos.",
-    "showAscentsConfirm": "¿Estás seguro de que quieres volver a mostrar los encadenes de {{name}}?"
+    "showAscentsConfirm": "¿Estás seguro de que quieres volver a mostrar los encadenes de {{name}}?",
+    "addRouteToTopo": "Añadir a croquis"
   },
   "labels": {
     "gdpr": {

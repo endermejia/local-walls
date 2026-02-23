@@ -62,7 +62,8 @@
     "ascentsHidden": "Ascents hidden",
     "showAscents": "Show ascents",
     "hideAscentsConfirm": "Are you sure you want to hide ascents from {{name}}? They will not see your ascents and you will not see theirs.",
-    "showAscentsConfirm": "Are you sure you want to show ascents from {{name}} again?"
+    "showAscentsConfirm": "Are you sure you want to show ascents from {{name}} again?",
+    "addRouteToTopo": "Add to topo"
   },
   "labels": {
     "gdpr": {

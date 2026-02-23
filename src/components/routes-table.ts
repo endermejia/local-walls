@@ -8,6 +8,7 @@ import {
   input,
   InputSignal,
   PLATFORM_ID,
+  signal,
   Signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -22,7 +23,15 @@ import {
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
-import { TuiButton, TuiIcon, TuiLink, TuiScrollbar } from '@taiga-ui/core';
+import {
+  TuiButton,
+  TuiDataList,
+  TuiDropdown,
+  TuiGroup,
+  TuiIcon,
+  TuiLink,
+  TuiScrollbar,
+} from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
@@ -47,6 +56,7 @@ import {
   GlobalData,
   RoutesService,
   ToastService,
+  ToposService,
 } from '../services';
 
 import { handleErrorToast } from '../utils';
@@ -60,7 +70,8 @@ export type RoutesTableKey =
   | 'route'
   | 'rating'
   | 'ascents'
-  | 'height';
+  | 'height'
+  | 'topo';
 export type RouteItem = RouteWithExtras;
 
 export interface RoutesTableRow {
@@ -78,6 +89,7 @@ export interface RoutesTableRow {
   crag_name?: string;
   area_slug?: string;
   crag_slug?: string;
+  topos: { id: number; name: string; slug: string }[];
   _ref: RouteItem;
 }
 
@@ -95,6 +107,9 @@ export interface RoutesTableRow {
     TuiButton,
     TuiCell,
     TuiChevron,
+    TuiDataList,
+    TuiDropdown,
+    TuiGroup,
     TuiIcon,
     TuiLink,
     TuiRating,
@@ -265,6 +280,118 @@ export interface RoutesTableRow {
                             <span>{{ item.ascents }}</span>
                           </div>
                         }
+                        @case ('topo') {
+                          <div tuiCell size="m">
+                            <div class="flex flex-wrap gap-1">
+                              @let toposCount = item.topos.length;
+                              @if (toposCount > 0) {
+                                <div tuiGroup [collapsed]="true">
+                                  @for (t of item.topos; track t.id) {
+                                    <button
+                                      tuiButton
+                                      appearance="secondary"
+                                      class="!min-w-fit"
+                                      size="xs"
+                                      (click.zoneless)="
+                                        router.navigate([
+                                          '/area',
+                                          item.area_slug,
+                                          item.crag_slug,
+                                          'topo',
+                                          t.id,
+                                        ]);
+                                        $event.stopPropagation()
+                                      "
+                                    >
+                                      {{ t.name }}
+                                    </button>
+                                  }
+                                  @if (global.editingMode()) {
+                                    <button
+                                      appearance="secondary"
+                                      size="xs"
+                                      tuiIconButton
+                                      type="button"
+                                      iconStart="@tui.chevron-down"
+                                      [tuiDropdown]="toposMenu"
+                                      [tuiDropdownOpen]="
+                                        openDropdownId() === item.key
+                                      "
+                                      (tuiDropdownOpenChange)="
+                                        openDropdownId.set(
+                                          $event ? item.key : null
+                                        )
+                                      "
+                                      (click.zoneless)="
+                                        $event.stopPropagation()
+                                      "
+                                    >
+                                      {{ 'actions.addRouteToTopo' | translate }}
+                                    </button>
+                                  }
+                                </div>
+                              } @else if (global.editingMode()) {
+                                <button
+                                  appearance="flat-grayscale"
+                                  size="xs"
+                                  tuiButton
+                                  type="button"
+                                  class="!rounded-full"
+                                  iconStart="@tui.plus"
+                                  [tuiDropdown]="toposMenu"
+                                  [tuiDropdownOpen]="
+                                    openDropdownId() === item.key
+                                  "
+                                  (tuiDropdownOpenChange)="
+                                    openDropdownId.set($event ? item.key : null)
+                                  "
+                                  (click.zoneless)="$event.stopPropagation()"
+                                >
+                                  {{ 'actions.addRouteToTopo' | translate }}
+                                </button>
+                              }
+                              <ng-template #toposMenu>
+                                <tui-data-list>
+                                  @for (
+                                    topo of global.cragDetailResource.value()
+                                      ?.topos || [];
+                                    track topo.id
+                                  ) {
+                                    @let isAttached =
+                                      isRouteInTopo(
+                                        item._ref.id,
+                                        topo.id,
+                                        item.topos
+                                      );
+                                    <button
+                                      tuiOption
+                                      new
+                                      (click)="
+                                        toggleRouteOnTopo(
+                                          topo.id,
+                                          item._ref.id,
+                                          isAttached
+                                        );
+                                        openDropdownId.set(null);
+                                        $event.stopPropagation()
+                                      "
+                                    >
+                                      <tui-icon
+                                        [icon]="
+                                          isAttached
+                                            ? '@tui.check'
+                                            : '@tui.image'
+                                        "
+                                        class="mr-2"
+                                      />
+                                      {{ topo.name }}
+                                    </button>
+                                  }
+                                </tui-data-list>
+                              </ng-template>
+                            </div>
+                          </div>
+                        }
                         @case ('actions') {
                           <div tuiCell size="m">
                             @if (!item.climbed) {
@@ -389,6 +516,120 @@ export interface RoutesTableRow {
                                 item.rating | number: '1.1-1'
                               }}</span>
                             </div>
+                          </div>
+
+                          <div class="flex flex-col gap-2">
+                            <div class="flex flex-wrap gap-1">
+                              @let toposCountExp = item.topos.length;
+                              @if (toposCountExp > 0) {
+                                <div tuiGroup [collapsed]="true">
+                                  @for (t of item.topos; track t.id) {
+                                    <button
+                                      tuiButton
+                                      appearance="secondary"
+                                      class="!min-w-fit"
+                                      size="xs"
+                                      (click.zoneless)="
+                                        router.navigate([
+                                          '/area',
+                                          item.area_slug,
+                                          item.crag_slug,
+                                          'topo',
+                                          t.id,
+                                        ]);
+                                        $event.stopPropagation()
+                                      "
+                                    >
+                                      {{ t.name }}
+                                    </button>
+                                  }
+                                  @if (global.editingMode()) {
+                                    <button
+                                      appearance="secondary"
+                                      size="xs"
+                                      tuiIconButton
+                                      type="button"
+                                      iconStart="@tui.chevron-down"
+                                      [tuiDropdown]="toposMenuExpanded"
+                                      [tuiDropdownOpen]="
+                                        openDropdownId() === item.key + '_exp'
+                                      "
+                                      (tuiDropdownOpenChange)="
+                                        openDropdownId.set(
+                                          $event ? item.key + '_exp' : null
+                                        )
+                                      "
+                                      (click.zoneless)="
+                                        $event.stopPropagation()
+                                      "
+                                    >
+                                      {{ 'actions.addRouteToTopo' | translate }}
+                                    </button>
+                                  }
+                                </div>
+                              } @else if (global.editingMode()) {
+                                <button
+                                  appearance="flat-grayscale"
+                                  size="xs"
+                                  tuiButton
+                                  type="button"
+                                  class="!rounded-full"
+                                  iconStart="@tui.plus"
+                                  [tuiDropdown]="toposMenuExpanded"
+                                  [tuiDropdownOpen]="
+                                    openDropdownId() === item.key + '_exp'
+                                  "
+                                  (tuiDropdownOpenChange)="
+                                    openDropdownId.set(
+                                      $event ? item.key + '_exp' : null
+                                    )
+                                  "
+                                  (click.zoneless)="$event.stopPropagation()"
+                                >
+                                  {{ 'actions.addRouteToTopo' | translate }}
+                                </button>
+                              }
+                              <ng-template #toposMenuExpanded>
+                                <tui-data-list>
+                                  @for (
+                                    topo of global.cragDetailResource.value()
+                                      ?.topos || [];
+                                    track topo.id
+                                  ) {
+                                    @let isAttached =
+                                      isRouteInTopo(
+                                        item._ref.id,
+                                        topo.id,
+                                        item.topos
+                                      );
+                                    <button
+                                      tuiOption
+                                      new
+                                      (click)="
+                                        toggleRouteOnTopo(
+                                          topo.id,
+                                          item._ref.id,
+                                          isAttached
+                                        );
+                                        openDropdownId.set(null);
+                                        $event.stopPropagation()
+                                      "
+                                    >
+                                      <tui-icon
+                                        [icon]="
+                                          isAttached
+                                            ? '@tui.check'
+                                            : '@tui.image'
+                                        "
+                                        class="mr-2"
+                                      />
+                                      {{ topo.name }}
+                                    </button>
+                                  }
+                                </tui-data-list>
+                              </ng-template>
+                            </div>
+
                             @if (item.ascents; as ascents) {
                               <div class="flex items-center gap-1 opacity-70">
                                 <span class="font-medium">{{
@@ -538,6 +779,7 @@ export class RoutesTableComponent {
   protected readonly global = inject(GlobalData);
   protected readonly router = inject(Router);
   protected readonly routesService = inject(RoutesService);
+  protected readonly toposService = inject(ToposService);
   protected readonly ascentsService = inject(AscentsService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly dialogs = inject(TuiDialogService);
@@ -559,15 +801,28 @@ export class RoutesTableComponent {
   > = {
     grade: (a, b) => tuiDefaultSort(a._ref.grade, b._ref.grade),
     route: (a, b) => tuiDefaultSort(a.route, b.route),
-    height: (a, b) => tuiDefaultSort(a.height ?? 0, b.height),
+    height: (a, b) => tuiDefaultSort(a.height ?? 0, b.height ?? 0),
     rating: (a, b) => tuiDefaultSort(a.rating, b.rating),
     ascents: (a, b) => tuiDefaultSort(a.ascents, b.ascents),
+    topo: (a, b) => {
+      const aVal = a.topos
+        .map((t) => t.name)
+        .sort()
+        .join(', ');
+      const bVal = b.topos
+        .map((t) => t.name)
+        .sort()
+        .join(', ');
+      return tuiDefaultSort(aVal, bVal) || tuiDefaultSort(a.route, b.route);
+    },
   };
 
   // Internal state for sorting
   protected currentSorter: TuiComparator<RoutesTableRow> =
     this.sorters['ascents'];
   protected currentDirection: TuiSortDirection = TuiSortDirection.Desc;
+
+  protected readonly openDropdownId = signal<string | null>(null);
 
   constructor() {
     effect(() => {
@@ -581,7 +836,16 @@ export class RoutesTableComponent {
       return ['expand', 'grade', 'route'];
     }
 
-    const cols = ['grade', 'route', 'height', 'rating', 'ascents', 'actions'];
+    const cols = [
+      'grade',
+      'route',
+      'topo',
+      'height',
+      'rating',
+      'ascents',
+      'actions',
+    ];
+
     if (this.global.editingMode() && this.showAdminActions()) {
       cols.push('admin_actions');
     }
@@ -622,6 +886,7 @@ export class RoutesTableComponent {
           r.crag_slug || 'unknown',
           r.slug,
         ],
+        topos: r.topos || [],
         _ref: r,
       };
     }),
@@ -698,5 +963,48 @@ export class RoutesTableComponent {
         height: route.height || null,
       },
     });
+  }
+
+  protected isRouteInTopo(
+    routeId: number,
+    topoId: number,
+    routeTopos: { id: number }[],
+  ): boolean {
+    return routeTopos.some((t) => t.id === topoId);
+  }
+
+  protected async toggleRouteOnTopo(
+    topoId: number,
+    routeId: number,
+    isPresent: boolean,
+  ): Promise<void> {
+    console.log(
+      '[RoutesTable] toggling route',
+      routeId,
+      'on topo',
+      topoId,
+      'isPresent:',
+      isPresent,
+    );
+    try {
+      if (isPresent) {
+        await this.toposService.removeRoute(topoId, routeId, false);
+      } else {
+        await this.toposService.addRoute(
+          {
+            topo_id: topoId,
+            route_id: routeId,
+            number: 0,
+          },
+          false,
+        );
+      }
+      console.log('[RoutesTable] operation success, reloading resources');
+      await this.global.cragRoutesResource.reload();
+      await this.global.cragDetailResource.reload();
+    } catch (e) {
+      console.error('[RoutesTable] error toggling route on topo', e);
+      handleErrorToast(e as Error, this.toast);
+    }
   }
 }

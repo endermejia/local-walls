@@ -22,4 +22,5 @@ export interface RouteWithExtras extends RouteDto {
   ascent_count?: number;
   climbed?: boolean;
   own_ascent?: RouteAscentDto | null;
+  topos?: { id: number; name: string; slug: string }[];
 }

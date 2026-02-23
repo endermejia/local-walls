@@ -944,6 +944,7 @@ export class GlobalData {
             project:route_projects(id),
             ascents:route_ascents(rate),
             own_ascent:route_ascents(*),
+            topo_routes(topo:topos(id, name, slug)),
             crag:crags(
               slug,
               name,
@@ -997,6 +998,10 @@ export class GlobalData {
                   if (!isAttemptA && isAttemptB) return -1;
                   return 0;
                 })[0],
+                topos:
+                  r.topo_routes
+                    ?.map((tr: any) => tr.topo)
+                    .filter((t: any) => !!t) || [],
               } as RouteWithExtras;
             })(),
           ) ?? []
