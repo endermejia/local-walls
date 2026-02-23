@@ -342,7 +342,9 @@
       "movePoint": "Arrastra para mover",
       "deletePoint": "Click derecho para borrar",
       "zoom": "Pinch o rueda para zoom",
-      "lines": "Líneas"
+      "lines": "Líneas",
+      "sort": "Ordenar",
+      "sortConfirm": "¿Estás seguro de que quieres ordenar las vías de izquierda a derecha según su posición en pantalla?"
     },
     "deletePhotoTitle": "Eliminar foto del croquis",
     "deletePhotoConfirm": "¿Estás seguro de que quieres eliminar la foto de este croquis?"

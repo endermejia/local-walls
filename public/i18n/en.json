@@ -340,7 +340,9 @@
       "movePoint": "Drag to move",
       "deletePoint": "Right click to delete",
       "zoom": "Pinch or wheel to zoom",
-      "lines": "Lines"
+      "lines": "Lines",
+      "sort": "Sort",
+      "sortConfirm": "Are you sure you want to sort routes from left to right based on their position on the screen?"
     },
     "deletePhotoTitle": "Delete topo photo",
     "deletePhotoConfirm": "Are you sure you want to delete the photo of this topo?"

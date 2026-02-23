@@ -158,7 +158,7 @@ export class ToposService {
     this.global.cragDetailResource.reload();
   }
 
-  async addRoute(payload: TopoRouteInsertDto): Promise<void> {
+  async addRoute(payload: TopoRouteInsertDto, reload = true): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     await this.supabase.whenReady();
     const { error } = await this.supabase.client
@@ -168,11 +168,17 @@ export class ToposService {
       console.error('[ToposService] addRoute error', error);
       throw error;
     }
-    this.global.topoDetailResource.reload();
-    this.toast.success('messages.toasts.routeUpdated');
+    if (reload) {
+      this.global.topoDetailResource.reload();
+      this.toast.success('messages.toasts.routeUpdated');
+    }
   }
 
-  async removeRoute(topoId: number, routeId: number): Promise<void> {
+  async removeRoute(
+    topoId: number,
+    routeId: number,
+    reload = true,
+  ): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     await this.supabase.whenReady();
     const { error } = await this.supabase.client
@@ -183,14 +189,17 @@ export class ToposService {
       console.error('[ToposService] removeRoute error', error);
       throw error;
     }
-    this.global.topoDetailResource.reload();
-    this.toast.success('messages.toasts.routeUpdated');
+    if (reload) {
+      this.global.topoDetailResource.reload();
+      this.toast.success('messages.toasts.routeUpdated');
+    }
   }
 
   async updateRouteOrder(
     topoId: number,
     routeId: number,
     number: number,
+    reload = true,
   ): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     await this.supabase.whenReady();
@@ -202,8 +211,10 @@ export class ToposService {
       console.error('[ToposService] updateRouteOrder error', error);
       throw error;
     }
-    this.global.topoDetailResource.reload();
-    this.toast.success('messages.toasts.routeUpdated');
+    if (reload) {
+      this.global.topoDetailResource.reload();
+      this.toast.success('messages.toasts.routeUpdated');
+    }
   }
 
   async uploadPhoto(topoId: number, file: File): Promise<void> {
@@ -272,17 +283,22 @@ export class ToposService {
     topoId: number,
     routeId: number,
     path: TopoPath,
+    reload = true,
   ): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     await this.supabase.whenReady();
     const { error } = await this.supabase.client
       .from('topo_routes')
-      .update({ path: path as unknown as Json })
+      .update({ path: path as any })
       .match({ topo_id: topoId, route_id: routeId });
 
     if (error) {
       console.error('[ToposService] updateRoutePath error', error);
       throw error;
+    }
+
+    if (reload) {
+      this.global.topoDetailResource.reload();
     }
   }
 }

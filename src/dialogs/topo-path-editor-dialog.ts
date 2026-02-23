@@ -8,19 +8,23 @@ import {
   signal,
   ViewChild,
   AfterViewInit,
+  ChangeDetectorRef,
 } from '@angular/core';
 import {
   TuiButton,
   TuiDialogContext,
+  TuiDialogService,
   TuiIcon,
   TuiLoader,
   TuiScrollbar,
 } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TUI_CONFIRM } from '@taiga-ui/kit';
+import { firstValueFrom } from 'rxjs';
 import { TopoDetail, TopoRouteWithRoute } from '../models';
 import { AvatarGradeComponent } from '../components/avatar-grade';
-import { ToastService, ToposService } from '../services';
+import { GlobalData, ToastService, ToposService } from '../services';
 import { removePoint } from '../utils/drawing.utils';
 import { getRouteStyleProperties } from '../utils/topo-styles.utils';
 
@@ -37,8 +41,8 @@ export interface TopoPathEditorConfig {
     TuiIcon,
     TuiButton,
     TuiLoader,
-    TranslatePipe,
     AvatarGradeComponent,
+    TranslateModule,
     TuiScrollbar,
   ],
   template: `
@@ -65,6 +69,17 @@ export interface TopoPathEditorConfig {
         </div>
 
         <div class="flex items-center gap-2">
+          <button
+            tuiButton
+            appearance="flat"
+            size="m"
+            class="!rounded-full !px-6"
+            [disabled]="loading()"
+            (click)="sortByPosition()"
+          >
+            <tui-icon icon="@tui.list-ordered" class="mr-2" />
+            {{ 'topos.editor.sort' | translate }}
+          </button>
           <button
             tuiButton
             appearance="primary"
@@ -326,6 +341,10 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     injectContext<TuiDialogContext<boolean, TopoPathEditorConfig>>();
   private readonly topos = inject(ToposService);
   private readonly toast = inject(ToastService);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly global = inject(GlobalData);
 
   @ViewChild('image') imageElement!: ElementRef<HTMLImageElement>;
   @ViewChild('container') containerElement!: ElementRef<HTMLDivElement>;
@@ -441,6 +460,59 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     );
 
     this.constrainTranslation();
+  }
+
+  async sortByPosition(): Promise<void> {
+    const topo = this.context.data.topo;
+    const routes = [...topo.topo_routes];
+
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('topos.editor.sort'),
+        size: 's',
+        data: {
+          content: this.translate.instant('topos.editor.sortConfirm'),
+          yes: this.translate.instant('actions.apply'),
+          no: this.translate.instant('actions.cancel'),
+        },
+      }),
+      { defaultValue: false },
+    );
+
+    if (!confirmed) return;
+
+    this.loading.set(true);
+
+    try {
+      // 1. Calculate minX for each route
+      const routesWithX = routes.map((tr) => {
+        const pathData = this.pathsMap.get(tr.route_id);
+        const points = pathData?.points || tr.path?.points || [];
+        const minX =
+          points.length > 0 ? Math.min(...points.map((p) => p.x)) : 999;
+        return { tr, minX };
+      });
+
+      // 2. Sort by minX
+      routesWithX.sort((a, b) => a.minX - b.minX);
+
+      // 3. Update numbers locally
+      for (let i = 0; i < routesWithX.length; i++) {
+        const tr = routesWithX[i].tr;
+        tr.number = i;
+      }
+
+      // 4. Sort the original array to reflect changes in sidebar
+      topo.topo_routes.sort((a, b) => a.number - b.number);
+
+      this.toast.success('messages.toasts.routeUpdated');
+      this.cdr.markForCheck();
+    } catch (error) {
+      console.error('[TopoEditor] Error sorting routes', error);
+      this.toast.error('messages.toasts.pathsSaveError');
+    } finally {
+      this.loading.set(false);
+    }
   }
 
   private constrainTranslation(): void {
@@ -791,9 +863,23 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     this.loading.set(true);
     try {
       const topo = this.context.data.topo;
+
+      // Save paths
       for (const [routeId, path] of this.pathsMap.entries()) {
-        await this.topos.updateRoutePath(topo.id, routeId, path);
+        await this.topos.updateRoutePath(topo.id, routeId, path, false);
       }
+
+      // Save order
+      for (const tr of topo.topo_routes) {
+        await this.topos.updateRouteOrder(
+          topo.id,
+          tr.route_id,
+          tr.number,
+          false,
+        );
+      }
+
+      this.global.topoDetailResource.reload();
       this.toast.success('messages.toasts.pathsSaved');
       this.context.completeWith(true);
     } catch (error) {

@@ -44,4 +44,5 @@ export interface ImageEditorResult {
     routeId: number;
     path: TopoPath;
   }[];
+  routeIds?: number[];
 }

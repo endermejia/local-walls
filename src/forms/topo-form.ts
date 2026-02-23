@@ -50,6 +50,7 @@ import { firstValueFrom, startWith } from 'rxjs';
 
 import {
   RouteDto,
+  RouteWithExtras,
   TopoDetail,
   TopoDto,
   TopoInsertDto,
@@ -315,6 +316,17 @@ import { handleErrorToast, slugify } from '../utils';
         >
           {{ 'actions.cancel' | translate }}
         </button>
+        @if (selectedRoutes.value.length > 0) {
+          <button
+            tuiButton
+            appearance="flat"
+            type="button"
+            (click)="sortRoutesByPosition()"
+          >
+            <tui-icon icon="@tui.list-ordered" class="mr-2" />
+            {{ 'topos.editor.sort' | translate }}
+          </button>
+        }
         <button
           [disabled]="name.invalid || shade_change_hour.invalid"
           tuiButton
@@ -412,6 +424,7 @@ export class TopoFormComponent {
       path: { points: { x: number; y: number }[]; color?: string };
     }[]
   >([]);
+  private isInitialized = false;
 
   protected readonly existingPhotoUrl = resource({
     params: () => {
@@ -504,25 +517,34 @@ export class TopoFormComponent {
     effect(() => {
       const data = this.effectiveTopoData();
       const available = this.availableRoutes();
-      if (!data) {
-        if (available.length && this.initialRouteIds.length) {
-          const selected = available.filter((r) =>
-            this.initialRouteIds.includes(r.id),
-          );
-          this.selectedRoutes.setValue(selected);
+      if (!available.length || this.isInitialized) return;
+
+      if (data) {
+        this.name.setValue(data.name);
+        this.photo.setValue(data.photo);
+        this.shade_morning.setValue(data.shade_morning);
+        this.shade_afternoon.setValue(data.shade_afternoon);
+        this.shade_change_hour.setValue(data.shade_change_hour);
+
+        const sortedIds = (data.topo_routes || [])
+          .sort((a, b) => a.number - b.number)
+          .map((tr) => tr.route_id);
+
+        if (sortedIds.length) {
+          const selected = sortedIds
+            .map((id) => available.find((r) => r.id === id))
+            .filter((r): r is RouteWithExtras => !!r);
+          this.selectedRoutes.setValue(selected, { emitEvent: false });
+          this.isInitialized = true;
         }
-        return;
       }
-      this.name.setValue(data.name);
-      this.photo.setValue(data.photo);
-      this.shade_morning.setValue(data.shade_morning);
-      this.shade_afternoon.setValue(data.shade_afternoon);
-      this.shade_change_hour.setValue(data.shade_change_hour);
-      if (available.length && this.initialRouteIds.length) {
-        const selected = available.filter((r) =>
-          this.initialRouteIds.includes(r.id),
-        );
-        this.selectedRoutes.setValue(selected);
+
+      if (!this.isInitialized && this.initialRouteIds.length) {
+        const selected = this.initialRouteIds
+          .map((id) => available.find((r) => r.id === id))
+          .filter((r): r is RouteWithExtras => !!r);
+        this.selectedRoutes.setValue(selected, { emitEvent: false });
+        this.isInitialized = true;
       }
     });
 
@@ -611,30 +633,35 @@ export class TopoFormComponent {
     if (!topo) return;
 
     const initial = new Set(this.initialRouteIds);
-    const selectedIds = new Set(this.selectedRoutes.value.map((r) => r.id));
+    const selectedRoutes = this.selectedRoutes.value;
 
+    // 1. Remove routes that are no longer selected
     for (const id of initial) {
-      if (!selectedIds.has(id)) {
-        await this.topos.removeRoute(topo.id, id);
+      if (!selectedRoutes.some((r) => r.id === id)) {
+        await this.topos.removeRoute(topo.id, id, false);
       }
     }
 
-    const existingRoutes = this.effectiveTopoData()?.topo_routes || [];
-    const maxNumber =
-      existingRoutes.length > 0
-        ? Math.max(...existingRoutes.map((tr: TopoRouteWithRoute) => tr.number))
-        : -1;
-    let nextNumber = maxNumber + 1;
-
-    for (const id of selectedIds) {
-      if (!initial.has(id)) {
-        await this.topos.addRoute({
-          topo_id: topo.id,
-          route_id: id,
-          number: nextNumber++,
-        });
+    // 2. Add or update routes with their current index as number
+    for (let i = 0; i < selectedRoutes.length; i++) {
+      const route = selectedRoutes[i];
+      if (!initial.has(route.id)) {
+        await this.topos.addRoute(
+          {
+            topo_id: topo.id,
+            route_id: route.id,
+            number: i,
+          },
+          false,
+        );
+      } else {
+        // Update existing route's number to reflect potential sorting
+        await this.topos.updateRouteOrder(topo.id, route.id, i, false);
       }
     }
+
+    // One final reload for all topo routes changes
+    this.global.topoDetailResource.reload();
   }
 
   private async handleTopoPaths(topo: TopoDto | null): Promise<void> {
@@ -713,8 +740,17 @@ export class TopoFormComponent {
 
       if (file) {
         this.photoControl.setValue(file, { emitEvent: false });
-        if (isEditorResult && result.paths) {
-          this.pendingPaths.set(result.paths);
+        if (isEditorResult) {
+          if (result.paths) {
+            this.pendingPaths.set(result.paths);
+          }
+          if (result.routeIds) {
+            const current = this.selectedRoutes.value;
+            const sorted = result.routeIds
+              .map((id) => current.find((r) => r.id === id))
+              .filter((r): r is RouteWithExtras => !!r);
+            this.selectedRoutes.setValue(sorted);
+          }
         }
 
         // Manually trigger preview update
@@ -758,6 +794,39 @@ export class TopoFormComponent {
         handleErrorToast(e as Error, this.toast);
       }
     }
+  }
+
+  protected async sortRoutesByPosition(): Promise<void> {
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('topos.editor.sort'),
+        size: 's',
+        data: {
+          content: this.translate.instant('topos.editor.sortConfirm'),
+          yes: this.translate.instant('actions.apply'),
+          no: this.translate.instant('actions.cancel'),
+        },
+      }),
+      { defaultValue: false },
+    );
+
+    if (!confirmed) return;
+
+    const routes = [...this.selectedRoutes.value];
+    const pending = this.pendingPaths();
+    const existing = this.effectiveTopoData()?.topo_routes || [];
+
+    const routesWithX = routes.map((r) => {
+      const p = pending.find((path) => path.routeId === r.id);
+      const e = existing.find((tr) => tr.route_id === r.id);
+      const points = p?.path?.points || e?.path?.points || [];
+      const minX =
+        points.length > 0 ? Math.min(...points.map((pt) => pt.x)) : 999;
+      return { r, minX };
+    });
+
+    routesWithX.sort((a, b) => a.minX - b.minX);
+    this.selectedRoutes.setValue(routesWithX.map((item) => item.r));
   }
 
   protected openPathEditor(): void {

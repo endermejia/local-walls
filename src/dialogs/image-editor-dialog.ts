@@ -124,15 +124,29 @@ export interface ImageEditorConfig {
           }
         </div>
 
-        <button
-          tuiButton
-          appearance="primary"
-          size="m"
-          [disabled]="loading()"
-          (click)="save()"
-        >
-          {{ 'imageEditor.save' | translate }}
-        </button>
+        <div class="flex items-center gap-2">
+          @if (mode() === 'draw') {
+            <button
+              tuiButton
+              appearance="flat"
+              size="m"
+              [disabled]="loading()"
+              (click)="sortByPosition()"
+            >
+              <tui-icon icon="@tui.list-ordered" class="mr-2" />
+              {{ 'topos.editor.sort' | translate }}
+            </button>
+          }
+          <button
+            tuiButton
+            appearance="primary"
+            size="m"
+            [disabled]="loading()"
+            (click)="save()"
+          >
+            {{ 'imageEditor.save' | translate }}
+          </button>
+        </div>
       </div>
 
       <div class="flex-1 flex overflow-hidden">
@@ -559,7 +573,7 @@ export class ImageEditorDialogComponent implements AfterViewInit {
   }
 
   allowDrawing = false;
-  topoRoutes: ImageEditorConfig['topoRoutes'] = [];
+  topoRoutes: TopoRouteWithRoute[] = [];
   selectedRoute = signal<TopoRouteWithRoute | null>(null);
   selectedColor = signal<string | null>(null);
   pathsMap = new Map<
@@ -695,6 +709,41 @@ export class ImageEditorDialogComponent implements AfterViewInit {
         this.context.completeWith(null);
       }
     }
+  }
+
+  async sortByPosition(): Promise<void> {
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('topos.editor.sort'),
+        size: 's',
+        data: {
+          content: this.translate.instant('topos.editor.sortConfirm'),
+          yes: this.translate.instant('actions.apply'),
+          no: this.translate.instant('actions.cancel'),
+        },
+      }),
+      { defaultValue: false },
+    );
+
+    if (!confirmed) return;
+
+    // Sort topoRoutes based on pathsMap
+    const routesWithX = this.topoRoutes.map((tr) => {
+      const entry = this.pathsMap.get(tr.route_id);
+      const minX =
+        entry && entry.points.length > 0
+          ? Math.min(...entry.points.map((p) => p.x))
+          : 999;
+      return { tr, minX };
+    });
+
+    routesWithX.sort((a, b) => a.minX - b.minX);
+
+    this.topoRoutes = routesWithX.map((item) => item.tr);
+    // Update their number property for display
+    this.topoRoutes.forEach((tr, i) => (tr.number = i + 1));
+
+    this.cdr.markForCheck();
   }
 
   // DRAWING METHODS
@@ -1274,7 +1323,11 @@ export class ImageEditorDialogComponent implements AfterViewInit {
             path,
           }),
         );
-        this.context.completeWith({ file, paths });
+        this.context.completeWith({
+          file,
+          paths,
+          routeIds: this.topoRoutes.map((tr) => tr.route_id),
+        });
       } else {
         this.context.completeWith(file || null);
       }
