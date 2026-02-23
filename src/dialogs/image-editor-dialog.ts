@@ -346,7 +346,7 @@ export interface ImageEditorConfig {
                     @if (hasPath(tr.route_id)) {
                       <tui-icon
                         icon="@tui.check"
-                        class="text-green-500 text-xs shrink-0 cursor-pointer hover:text-red-500 transition-colors"
+                        class="text-[var(--tui-text-positive)] text-xs shrink-0 cursor-pointer hover:text-[var(--tui-text-negative)] transition-colors"
                         (click)="deletePath(tr, $event)"
                       />
                     }

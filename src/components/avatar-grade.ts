@@ -24,7 +24,7 @@ import {
     <tui-avatar
       tuiThumbnail
       [size]="size()"
-      class="self-center font-semibold select-none !text-white"
+      class="self-center font-semibold select-none !text-[var(--tui-text-primary-on-accent-1)]"
       [class.!text-[10px]]="size() === 'xs'"
       [style.background]="getGradeColor()"
       [attr.aria-label]="'labels.grade' | translate"

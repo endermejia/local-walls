@@ -194,7 +194,7 @@ import { AvatarGradeComponent } from './avatar-grade';
                       <div class="flex items-center gap-2">
                         <tui-avatar
                           size="s"
-                          class="!text-white"
+                          class="!text-[var(--tui-text-primary-on-accent-1)]"
                           [style.background]="
                             ascentsService.ascentInfo()[
                               ascent.type || 'default'

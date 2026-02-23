@@ -46,17 +46,19 @@ export interface TopoPathEditorConfig {
     TuiScrollbar,
   ],
   template: `
-    <div class="flex flex-col h-full overflow-hidden bg-neutral-900 text-white">
+    <div
+      class="flex flex-col h-full overflow-hidden bg-[var(--tui-background-neutral-2)] text-[var(--tui-text-01)]"
+    >
       <!-- Header -->
       <div
-        class="flex items-center justify-between p-4 shrink-0 border-b border-white/10 bg-black/40 backdrop-blur-md"
+        class="flex items-center justify-between p-4 shrink-0 border-b border-[var(--tui-border-normal)] bg-[var(--tui-background-neutral-1)]/40 backdrop-blur-md"
       >
         <div class="flex items-center gap-3">
           <button
             tuiIconButton
             appearance="flat"
             size="s"
-            class="!rounded-full !text-white"
+            class="!rounded-full !text-[var(--tui-text-01)]"
             (click)="close()"
           >
             <tui-icon icon="@tui.x" />
@@ -71,7 +73,7 @@ export interface TopoPathEditorConfig {
             tuiButton
             appearance="primary"
             size="m"
-            class="!rounded-full !px-8 shadow-xl shadow-primary/20"
+            class="!rounded-full !px-8 shadow-xl shadow-[var(--tui-background-accent-1)]/20"
             [disabled]="loading()"
             (click)="saveAll()"
           >
@@ -83,9 +85,9 @@ export interface TopoPathEditorConfig {
       <div class="flex flex-1 overflow-hidden">
         <!-- Sidebar: Route List -->
         <div
-          class="w-80 shrink-0 border-r border-white/10 bg-black/20 backdrop-blur-sm flex flex-col"
+          class="w-80 shrink-0 border-r border-[var(--tui-border-normal)] bg-[var(--tui-background-neutral-1)]/20 backdrop-blur-sm flex flex-col"
         >
-          <div class="p-4 border-b border-white/5">
+          <div class="p-4 border-b border-[var(--tui-border-normal)]">
             <h3
               class="text-xs font-bold uppercase tracking-widest opacity-50 px-2 mb-4"
             >
@@ -97,9 +99,9 @@ export interface TopoPathEditorConfig {
                   <button
                     class="flex items-center gap-3 p-3 rounded-2xl transition-all duration-200 group text-left w-full"
                     [ngClass]="{
-                      'bg-primary text-white ring-2 ring-inset ring-white/50':
+                      'bg-[var(--tui-background-accent-1)] text-[var(--tui-text-primary-on-accent-1)] ring-2 ring-inset ring-[var(--tui-border-normal)]/50':
                         selectedRoute()?.route_id === tr.route_id,
-                      'hover:bg-white/10':
+                      'hover:bg-[var(--tui-background-neutral-1)]/10':
                         selectedRoute()?.route_id !== tr.route_id,
                     }"
                     [attr.aria-label]="tr.route.name"
@@ -108,9 +110,9 @@ export interface TopoPathEditorConfig {
                     <div
                       class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border"
                       [ngClass]="{
-                        'border-white/20':
+                        'border-[var(--tui-border-normal)]':
                           selectedRoute()?.route_id !== tr.route_id,
-                        'border-white/50':
+                        'border-[var(--tui-border-normal)]/50':
                           selectedRoute()?.route_id === tr.route_id,
                       }"
                     >
@@ -132,7 +134,7 @@ export interface TopoPathEditorConfig {
                     @if (hasPath(tr.route_id)) {
                       <tui-icon
                         icon="@tui.check"
-                        class="text-green-400 text-xs"
+                        class="text-[var(--tui-text-positive)] text-xs"
                       />
                     }
                   </button>
@@ -141,19 +143,39 @@ export interface TopoPathEditorConfig {
             </tui-scrollbar>
           </div>
 
-          <div class="mt-auto p-4 bg-black/40 border-t border-white/10">
+          <div
+            class="mt-auto p-4 bg-[var(--tui-background-neutral-1)]/40 border-t border-[var(--tui-border-normal)]"
+          >
             <div class="text-xs opacity-50 space-y-2">
               <p class="flex items-center gap-2">
-                <tui-icon icon="@tui.mouse-pointer-2" class="text-primary" />
+                <tui-icon
+                  icon="@tui.mouse-pointer-2"
+                  class="text-[var(--tui-text-accent-1)]"
+                />
                 {{ 'topos.editor.addPoint' | translate }}
               </p>
               <p class="flex items-center gap-2">
-                <tui-icon icon="@tui.move" class="text-primary" />
+                <tui-icon
+                  icon="@tui.move"
+                  class="text-[var(--tui-text-accent-1)]"
+                />
                 {{ 'topos.editor.movePoint' | translate }}
               </p>
               <p class="flex items-center gap-2">
-                <tui-icon icon="@tui.trash" class="text-red-400" />
+                <tui-icon
+                  icon="@tui.trash"
+                  class="text-[var(--tui-text-negative)]"
+                />
                 {{ 'topos.editor.deletePoint' | translate }}
+              </p>
+              <p
+                class="flex items-center gap-2 border-t border-[var(--tui-border-normal)] pt-2"
+              >
+                <tui-icon
+                  icon="@tui.mouse-pointer"
+                  class="text-[var(--tui-text-accent-1)]"
+                />
+                {{ 'topos.editor.zoom' | translate }}
               </p>
             </div>
           </div>
@@ -241,7 +263,7 @@ export interface TopoPathEditorConfig {
                         [attr.cy]="pt.y * height()"
                         r="12"
                         fill="rgba(0,0,0,0.4)"
-                        class="hover:fill-black/60 transition-colors"
+                        class="hover:fill-[var(--tui-background-neutral-2)]/60 transition-colors"
                       />
                       <circle
                         [attr.cx]="pt.x * width()"
@@ -256,13 +278,13 @@ export interface TopoPathEditorConfig {
                           [attr.cx]="pt.x * width()"
                           [attr.cy]="pt.y * height() - 20"
                           r="10"
-                          fill="white"
+                          fill="var(--tui-background-base)"
                         />
                         <text
                           [attr.x]="pt.x * width()"
                           [attr.y]="pt.y * height() - 16"
                           text-anchor="middle"
-                          fill="black"
+                          fill="var(--tui-text-01)"
                           font-size="10"
                           font-weight="bold"
                         >
@@ -278,7 +300,7 @@ export interface TopoPathEditorConfig {
 
           @if (loading()) {
             <div
-              class="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+              class="absolute inset-0 bg-[var(--tui-background-neutral-2)]/60 backdrop-blur-sm flex items-center justify-center z-50"
             >
               <tui-loader size="xl"></tui-loader>
             </div>

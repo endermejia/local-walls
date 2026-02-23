@@ -190,7 +190,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
               @for (item of items; track $index) {
                 <ng-container *tuiItem>
                   <div
-                    class="w-full overflow-hidden flex items-center justify-center bg-black rounded-none sm:rounded-2xl relative"
+                    class="w-full overflow-hidden flex items-center justify-center bg-[var(--tui-background-neutral-1)] rounded-none sm:rounded-2xl relative"
                     [ngClass]="{
                       'aspect-video': item.type === 'video',
                     }"
@@ -232,7 +232,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
         } @else if (items.length === 1) {
           @let item = items[0];
           <div
-            class="overflow-hidden flex items-center justify-center bg-black -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl relative"
+            class="overflow-hidden flex items-center justify-center bg-[var(--tui-background-neutral-1)] -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl relative"
             [ngClass]="{
               'aspect-video': item.type === 'video',
             }"

@@ -17,7 +17,7 @@ import { AscentsService } from '../services';
     @let info = typeInfo();
     <tui-avatar
       [size]="size()"
-      class="!text-white"
+      class="!text-[var(--tui-text-primary-on-accent-1)]"
       [class.!text-[10px]]="size() === 'xs'"
       [style.background]="info.background"
     >

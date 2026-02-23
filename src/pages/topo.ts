@@ -696,7 +696,7 @@ export interface TopoRouteRow {
                                     as ascentToEdit
                                   ) {
                                     <tui-avatar
-                                      class="cursor-pointer !text-white"
+                                      class="cursor-pointer !text-[var(--tui-text-primary-on-accent-1)]"
                                       [style.background]="
                                         ascentsService.ascentInfo()[
                                           ascentToEdit?.type || 'default'

@@ -688,7 +688,7 @@ interface Country {
     <ng-template #deleteDialog let-observer>
       <div class="flex flex-col gap-4">
         <h3 tuiTitle>{{ 'profile.deleteAccount.title' | translate }}</h3>
-        <p class="text-red-500 font-bold">
+        <p class="text-[var(--tui-text-negative)] font-bold">
           {{ 'profile.deleteAccount.warning' | translate }}
         </p>
         <p

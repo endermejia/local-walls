@@ -155,7 +155,7 @@ import { handleErrorToast } from '../utils';
                     ascentsService.ascentInfo()[r.own_ascent.type || 'default']
                       .background
                   "
-                  class="!text-white"
+                  class="!text-[var(--tui-text-primary-on-accent-1)]"
                   size="m"
                   (click)="onEditAscent(r.own_ascent, r.name)"
                 >

@@ -207,11 +207,11 @@ import { handleErrorToast, slugify } from '../utils';
                       alt="Preview"
                     />
                     <div
-                      class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      class="absolute inset-0 bg-[var(--tui-background-neutral-1)]/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <tui-icon
                         icon="@tui.edit-2"
-                        class="text-white text-3xl"
+                        class="text-[var(--tui-text-primary-on-accent-1)] text-3xl"
                       />
                     </div>
                   </div>
@@ -240,11 +240,11 @@ import { handleErrorToast, slugify } from '../utils';
                         alt="Existing photo"
                       />
                       <div
-                        class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        class="absolute inset-0 bg-[var(--tui-background-neutral-1)]/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <tui-icon
                           icon="@tui.edit-2"
-                          class="text-white text-3xl"
+                          class="text-[var(--tui-text-primary-on-accent-1)] text-3xl"
                         />
                       </div>
                     </div>
