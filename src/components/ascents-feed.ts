@@ -7,6 +7,8 @@ import {
 } from '@angular/core';
 
 import {
+  FeedItem,
+  NewsItem,
   RouteAscentWithExtras,
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
@@ -15,6 +17,7 @@ import {
 import { AscentCardComponent } from './ascent-card';
 import { AscentCardSkeletonComponent } from './ascent-card-skeleton';
 import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
+import { NewsCardComponent } from './news-card';
 
 @Component({
   selector: 'app-ascents-feed',
@@ -23,6 +26,7 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
     AscentCardSkeletonComponent,
     CommonModule,
     InfiniteScrollTriggerComponent,
+    NewsCardComponent,
   ],
   template: `
     <div
@@ -30,41 +34,49 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
       [class.grid-cols-1]="true"
       [class.xl:grid-cols-2]="columns() >= 2"
     >
-      @for (ascent of ascents(); track ascent.id) {
-        @if (groupByGrade()) {
-          @let grade = ascent.grade ?? ascent.route?.grade;
-          @if (
-            grade !== null &&
-            grade !== undefined &&
-            showGradeHeader(ascent, $index)
-          ) {
-            <div
-              class="mt-10 mb-4 flex items-center gap-4"
-              [class.xl:col-span-2]="columns() >= 2"
-            >
-              <span class="text-2xl font-black shrink-0">
-                {{ gradeLabelByNumber[asGrade(grade)] }}
-              </span>
-              <div class="h-px grow bg-[var(--tui-border-normal)]"></div>
-            </div>
+      @for (item of ascents(); track item.id) {
+        @if (item.kind === 'news') {
+          <app-news-card
+            [item]="asNews(item)"
+            [class.xl:col-span-2]="columns() >= 2"
+          />
+        } @else {
+          @let ascent = asAscent(item);
+          @if (groupByGrade()) {
+            @let grade = ascent.grade ?? ascent.route?.grade;
+            @if (
+              grade !== null &&
+              grade !== undefined &&
+              showGradeHeader(ascent, $index)
+            ) {
+              <div
+                class="mt-10 mb-4 flex items-center gap-4"
+                [class.xl:col-span-2]="columns() >= 2"
+              >
+                <span class="text-2xl font-black shrink-0">
+                  {{ gradeLabelByNumber[asGrade(grade)] }}
+                </span>
+                <div class="h-px grow bg-[var(--tui-border-normal)]"></div>
+              </div>
+            }
           }
-        }
-        @defer (on viewport) {
-          <app-ascent-card
-            [data]="ascent"
-            [showUser]="showUser()"
-            [showRoute]="showRoute()"
-            [isFollowed]="followedIds().has(ascent.user_id)"
-            [priority]="$index === 0"
-            (followEvent)="follow.emit($event)"
-            (unfollowEvent)="unfollow.emit($event)"
-          />
-        } @placeholder {
-          <app-ascent-card-skeleton
-            [showUser]="showUser()"
-            [showRoute]="showRoute()"
-            [hasPhoto]="!!ascent.photo_path"
-          />
+          @defer (on viewport) {
+            <app-ascent-card
+              [data]="ascent"
+              [showUser]="showUser()"
+              [showRoute]="showRoute()"
+              [isFollowed]="followedIds().has(ascent.user_id)"
+              [priority]="$index === 0"
+              (followEvent)="follow.emit($event)"
+              (unfollowEvent)="unfollow.emit($event)"
+            />
+          } @placeholder {
+            <app-ascent-card-skeleton
+              [showUser]="showUser()"
+              [showRoute]="showRoute()"
+              [hasPhoto]="!!ascent.photo_path"
+            />
+          }
         }
       }
 
@@ -90,7 +102,7 @@ import { InfiniteScrollTriggerComponent } from './infinite-scroll-trigger';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AscentsFeedComponent {
-  ascents = input.required<RouteAscentWithExtras[]>();
+  ascents = input.required<FeedItem[]>();
   groupByGrade = input(false);
   isLoading = input(false);
   hasMore = input(false);
@@ -109,12 +121,22 @@ export class AscentsFeedComponent {
     return grade as VERTICAL_LIFE_GRADES;
   }
 
+  protected asAscent(item: FeedItem): RouteAscentWithExtras {
+    return item as RouteAscentWithExtras;
+  }
+
+  protected asNews(item: FeedItem): NewsItem {
+    return item as NewsItem;
+  }
+
   protected showGradeHeader(
     ascent: RouteAscentWithExtras,
     index: number,
   ): boolean {
     if (index === 0) return true;
     const prev = this.ascents()[index - 1];
+    if (prev.kind === 'news') return true;
+
     const currentGrade = ascent.grade ?? ascent.route?.grade;
     const prevGrade = prev.grade ?? prev.route?.grade;
     return currentGrade !== prevGrade;

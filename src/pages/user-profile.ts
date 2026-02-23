@@ -71,6 +71,7 @@ import { ChatDialogComponent } from '../dialogs/chat-dialog';
 import { UserListDialogComponent } from '../dialogs/user-list-dialog';
 
 import {
+  FeedItem,
   ORDERED_GRADE_VALUES,
   RouteAscentWithExtras,
   RouteWithExtras,
@@ -945,7 +946,7 @@ export class UserProfileComponent {
     );
   };
 
-  protected readonly accumulatedAscents = signal<RouteAscentWithExtras[]>([]);
+  protected readonly accumulatedAscents = signal<FeedItem[]>([]);
   protected readonly isLoading = signal(false);
   protected readonly followedIds = signal<Set<string>>(new Set());
 
@@ -1004,12 +1005,27 @@ export class UserProfileComponent {
       const res = this.ascentsResource.value();
       if (res) {
         if (this.global.ascentsPage() === 0) {
-          const processed = this.markDuplicates(res.items);
+          const processed = this.markDuplicates(res.items).map((i) => ({
+            ...i,
+            kind: 'ascent' as const,
+          }));
           this.accumulatedAscents.set(processed);
         } else {
-          this.accumulatedAscents.update((prev) =>
-            this.markDuplicates([...prev, ...res.items]),
-          );
+          // Note: Logic for duplicates handles previous items which are ascents.
+          // But accumulatedAscents now has FeedItem[].
+          // We can cast prev back to RouteAscentWithExtras[] since user profile only has ascents.
+          // Or rewrite markDuplicates to handle FeedItem but ignore non-ascents (though user profile has only ascents).
+          this.accumulatedAscents.update((prev) => {
+            const prevAscents = prev as RouteAscentWithExtras[];
+            const processed = this.markDuplicates([
+              ...prevAscents,
+              ...res.items,
+            ]).map((i) => ({
+              ...i,
+              kind: 'ascent' as const,
+            }));
+            return processed;
+          });
         }
         this.isLoading.set(false);
       } else if (this.ascentsResource.error()) {

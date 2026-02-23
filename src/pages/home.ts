@@ -32,9 +32,10 @@ import {
   tap,
 } from 'rxjs';
 
-import { RouteAscentWithExtras } from '../models';
+import { FeedItem, RouteAscentWithExtras } from '../models';
 
 import {
+  DesnivelService,
   FollowsService,
   GlobalData,
   ScrollService,
@@ -147,6 +148,7 @@ export class HomeComponent implements OnDestroy {
   protected readonly router = inject(Router);
   protected readonly tourService = inject(TourService);
   protected readonly TourStep = TourStep;
+  private readonly desnivelService = inject(DesnivelService);
   private readonly followsService = inject(FollowsService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
@@ -199,7 +201,19 @@ export class HomeComponent implements OnDestroy {
           return this.loadMore$.pipe(
             startWith(void 0),
             scan((acc) => acc + 1, -1),
-            concatMap((page) => this.fetchAscents(page, filter)),
+            concatMap(async (page) => {
+              const ascents = await this.fetchAscents(page, filter);
+              if (page === 0 && filter === 'all') {
+                const news = await this.desnivelService.getLatestPosts(5);
+                const all = [...ascents, ...news].sort((a, b) => {
+                  const dateA = a.date ? new Date(a.date).getTime() : 0;
+                  const dateB = b.date ? new Date(b.date).getTime() : 0;
+                  return dateB - dateA;
+                });
+                return all;
+              }
+              return ascents;
+            }),
             tap(() => this.isLoading.set(false)),
           );
         }),
@@ -277,12 +291,12 @@ export class HomeComponent implements OnDestroy {
   private readonly loadMore$ = new Subject<void>();
   protected readonly isLoading = signal(false);
   protected readonly hasMore = signal(true);
-  protected readonly ascents = signal<RouteAscentWithExtras[]>([]);
+  protected readonly ascents = signal<FeedItem[]>([]);
 
   private async fetchAscents(
     page: number,
     filter: 'following' | 'all' = this.feedFilter(),
-  ): Promise<RouteAscentWithExtras[]> {
+  ): Promise<(RouteAscentWithExtras & { kind: 'ascent' })[]> {
     if (!this.isBrowser) return [];
     await this.supabase.whenReady();
     const userId = this.supabase.authUserId();
@@ -359,9 +373,10 @@ export class HomeComponent implements OnDestroy {
       }
       return {
         ...ascentRest,
+        kind: 'ascent',
         user: profileMap.get(a.user_id),
         route: mappedRoute,
-      } as RouteAscentWithExtras;
+      } as RouteAscentWithExtras & { kind: 'ascent' };
     });
   }
 

@@ -18,3 +18,4 @@ export * from './supabase-interfaces';
 export * from './topo.model';
 export * from './user.model';
 export * from './weather.model';
+export * from './news.model';

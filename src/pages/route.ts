@@ -32,6 +32,7 @@ import { firstValueFrom } from 'rxjs';
 
 import {
   CLIMBING_ICONS,
+  FeedItem,
   RouteAscentWithExtras,
   VERTICAL_LIFE_GRADES,
   VERTICAL_LIFE_TO_LABEL,
@@ -350,7 +351,7 @@ export class RouteComponent {
     () => this.global.routeAscentsResource.value()?.total ?? 0,
   );
 
-  protected readonly accumulatedAscents = signal<RouteAscentWithExtras[]>([]);
+  protected readonly accumulatedAscents = signal<FeedItem[]>([]);
   protected readonly isLoading = signal(false);
   protected readonly followedIds = signal<Set<string>>(new Set());
 
@@ -409,13 +410,11 @@ export class RouteComponent {
     effect(() => {
       const res = this.global.routeAscentsResource.value();
       if (res) {
+        const items = res.items.map((i) => ({ ...i, kind: 'ascent' as const }));
         if (this.global.ascentsPage() === 0) {
-          this.accumulatedAscents.set(res.items);
+          this.accumulatedAscents.set(items);
         } else {
-          this.accumulatedAscents.update((prev: RouteAscentWithExtras[]) => [
-            ...prev,
-            ...res.items,
-          ]);
+          this.accumulatedAscents.update((prev) => [...prev, ...items]);
         }
         this.isLoading.set(false);
       } else if (this.global.routeAscentsResource.error()) {
