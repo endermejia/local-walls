@@ -21,6 +21,8 @@ import { getPointsString } from '../utils/svg-path.utils';
       [attr.viewBox]="viewBox()"
       preserveAspectRatio="none"
     >
+      @let scale = getScale();
+
       <!-- Layer 1: Hit Areas (Bottom) -->
       @for (tr of sortedRoutes(); track tr.route_id) {
         @if (tr.path && tr.path.points.length > 0) {
@@ -51,8 +53,8 @@ import { getPointsString } from '../utils/svg-path.utils';
             fill="none"
             stroke="white"
             [style.opacity]="style.isDashed ? 1 : 0.7"
-            [attr.stroke-width]="strokeWidth + (style.isDashed ? 2.5 : 1.5)"
-            [attr.stroke-dasharray]="style.isDashed ? '10, 10' : 'none'"
+            [attr.stroke-width]="strokeWidth + ((style.isDashed ? 2.5 : 1.5) * scale)"
+            [attr.stroke-dasharray]="style.isDashed ? (10 * scale) + ', ' + (10 * scale) : 'none'"
             stroke-linejoin="round"
             stroke-linecap="round"
             class="transition-all duration-300"
@@ -65,7 +67,7 @@ import { getPointsString } from '../utils/svg-path.utils';
             [attr.stroke]="style.stroke"
             [style.opacity]="style.opacity"
             [attr.stroke-width]="strokeWidth"
-            [attr.stroke-dasharray]="style.isDashed ? '10, 10' : 'none'"
+            [attr.stroke-dasharray]="style.isDashed ? (10 * scale) + ', ' + (10 * scale) : 'none'"
             stroke-linejoin="round"
             stroke-linecap="round"
             class="transition-all duration-300"
@@ -80,7 +82,7 @@ import { getPointsString } from '../utils/svg-path.utils';
               fill="white"
               [style.opacity]="style.opacity"
               stroke="black"
-              [attr.stroke-width]="0.5"
+              [attr.stroke-width]="0.5 * scale"
             />
           }
         }
@@ -98,19 +100,19 @@ import { getPointsString } from '../utils/svg-path.utils';
               (mouseleave)="onRouteHover(null)"
               [attr.cx]="first.x * width()"
               [attr.cy]="first.y * height()"
-              [attr.r]="10"
+              [attr.r]="10 * scale"
               [attr.fill]="style.stroke"
               stroke="white"
-              stroke-width="1"
+              [attr.stroke-width]="1 * scale"
             />
             <text
               class="pointer-events-none"
               [attr.x]="first.x * width()"
-              [attr.y]="first.y * height() + 3"
+              [attr.y]="first.y * height() + (3 * scale)"
               text-anchor="middle"
               fill="white"
               style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
-              font-size="8"
+              [attr.font-size]="8 * scale"
               font-weight="bold"
               font-family="sans-serif"
             >
@@ -189,6 +191,10 @@ export class TopoViewerPathsComponent {
   getHitWidth(routeId: number): number {
       const isSelected = this.selectedRouteId() === routeId;
       return (isSelected ? 0.06 : 0.025) * this.width();
+  }
+
+  getScale(): number {
+      return this.width() / 1000;
   }
 
   getGradeLabel(grade: number): string {

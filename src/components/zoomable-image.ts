@@ -115,6 +115,7 @@ export class ZoomableImageComponent {
   }
 
   private constrain() {
+      if (!this.containerRef || !this.contentRef) return;
       const rect = this.containerRef.nativeElement.getBoundingClientRect();
       const contentWidth = this.contentRef.nativeElement.offsetWidth;
       const contentHeight = this.contentRef.nativeElement.offsetHeight;

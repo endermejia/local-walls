@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TopoRouteWithRoute } from '../models';
-import { getRouteStyleProperties } from '../utils/topo-styles.utils';
+import { getRouteStyleProperties, getRouteStrokeWidth } from '../utils/topo-styles.utils';
 import { getPointsString } from '../utils/svg-path.utils';
 
 @Component({
@@ -28,6 +28,8 @@ import { getPointsString } from '../utils/svg-path.utils';
         @if (entry && entry.points.length > 0) {
           @let isSelected = selectedRouteId() === tr.route_id;
           @let style = getStyle(tr, entry.color);
+          @let scale = getScale();
+          @let strokeWidth = getStrokeWidth(isSelected);
 
           <g
             class="pointer-events-auto cursor-pointer"
@@ -39,7 +41,7 @@ import { getPointsString } from '../utils/svg-path.utils';
               [attr.points]="getPoints(entry.points)"
               fill="none"
               stroke="transparent"
-              [attr.stroke-width]="isSelected ? 0.08 : 0.04"
+              [attr.stroke-width]="(isSelected ? 60 : 25) * scale"
               stroke-linejoin="round"
               stroke-linecap="round"
             />
@@ -49,8 +51,8 @@ import { getPointsString } from '../utils/svg-path.utils';
               fill="none"
               stroke="white"
               [style.opacity]="style.isDashed ? 1 : 0.7"
-              [attr.stroke-width]="(isSelected ? 4 : 2) + (style.isDashed ? 2 : 1)"
-              [attr.stroke-dasharray]="style.isDashed ? '4 4' : 'none'"
+              [attr.stroke-width]="strokeWidth + ((style.isDashed ? 2.5 : 1.5) * scale)"
+              [attr.stroke-dasharray]="style.isDashed ? (10 * scale) + ', ' + (10 * scale) : 'none'"
               stroke-linejoin="round"
               stroke-linecap="round"
               class="transition-all duration-300"
@@ -60,8 +62,8 @@ import { getPointsString } from '../utils/svg-path.utils';
               fill="none"
               [attr.stroke]="style.stroke"
               [style.opacity]="style.opacity"
-              [attr.stroke-width]="isSelected ? 4 : 2"
-              [attr.stroke-dasharray]="style.isDashed ? '4 4' : 'none'"
+              [attr.stroke-width]="strokeWidth"
+              [attr.stroke-dasharray]="style.isDashed ? (10 * scale) + ', ' + (10 * scale) : 'none'"
               stroke-linejoin="round"
               stroke-linecap="round"
               class="transition-all duration-300"
@@ -71,11 +73,11 @@ import { getPointsString } from '../utils/svg-path.utils';
               <circle
                 [attr.cx]="last.x * width()"
                 [attr.cy]="last.y * height()"
-                [attr.r]="isSelected ? 4 : 2"
+                [attr.r]="strokeWidth"
                 fill="white"
                 [style.opacity]="style.opacity"
                 stroke="black"
-                [attr.stroke-width]="0.5"
+                [attr.stroke-width]="0.5 * scale"
               />
             }
           </g>
@@ -92,14 +94,14 @@ import { getPointsString } from '../utils/svg-path.utils';
                 <circle
                   [attr.cx]="pt.x * width()"
                   [attr.cy]="pt.y * height()"
-                  r="12"
+                  [attr.r]="12 * scale"
                   fill="rgba(0,0,0,0.4)"
                   class="hover:fill-[var(--tui-background-neutral-2)]/60 transition-colors"
                 />
                 <circle
                   [attr.cx]="pt.x * width()"
                   [attr.cy]="pt.y * height()"
-                  r="6"
+                  [attr.r]="6 * scale"
                   [attr.fill]="style.stroke"
                   class="group-hover:scale-125 transition-transform origin-center"
                   style="transform-box: fill-box"
@@ -108,16 +110,16 @@ import { getPointsString } from '../utils/svg-path.utils';
                 @if ($index === 0) {
                   <circle
                     [attr.cx]="pt.x * width()"
-                    [attr.cy]="pt.y * height() - 20"
-                    r="10"
+                    [attr.cy]="pt.y * height() - (20 * scale)"
+                    [attr.r]="10 * scale"
                     fill="var(--tui-background-base)"
                   />
                   <text
                     [attr.x]="pt.x * width()"
-                    [attr.y]="pt.y * height() - 16"
+                    [attr.y]="pt.y * height() - (16 * scale)"
                     text-anchor="middle"
                     fill="var(--tui-text-01)"
-                    font-size="10"
+                    [attr.font-size]="10 * scale"
                     font-weight="bold"
                   >
                     {{ (tr.number || 0) + 1 }}
@@ -174,7 +176,18 @@ export class TopoEditorPathsComponent {
     return getRouteStyleProperties(isSelected, false, color, tr.route.grade);
   }
 
+  getScale(): number {
+      // Normalize to 1000 width as base
+      return this.width() / 1000;
+  }
+
+  getStrokeWidth(isSelected: boolean): number {
+      // Use standard utility logic, scaled to current width
+      return getRouteStrokeWidth(isSelected, false, 2, 'viewer') * this.width();
+  }
+
   onRouteClick(event: Event, route: TopoRouteWithRoute): void {
+      event.stopPropagation();
       this.routeClick.emit(route);
   }
 

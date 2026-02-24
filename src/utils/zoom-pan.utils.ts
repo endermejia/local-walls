@@ -16,9 +16,10 @@ export class ZoomPanHandler {
   private initialPinchDist = 0;
   private initialPinchScale = 1;
   private initialPinchCenter = { x: 0, y: 0 };
-  private initialPinchRect = { left: 0, top: 0 };
-  private initialMouseX = 0;
-  private initialMouseY = 0;
+
+  // We need initial translation/scale for pinch to calculate relative position correctly
+  // but we only need to know "where the center point is in content coordinates"
+  private initialContentPinchCenter = { x: 0, y: 0 };
 
   constructor(
     public minScale = 1,
@@ -44,23 +45,26 @@ export class ZoomPanHandler {
     if (newScale === this.scale()) return;
 
     // Calculate mouse position relative to container
-    const x = event.clientX - containerRect.left;
-    const y = event.clientY - containerRect.top;
+    const mouseX = event.clientX - containerRect.left;
+    const mouseY = event.clientY - containerRect.top;
 
-    // Normalize mouse position relative to current scale
-    const mouseX = x / this.scale();
-    const mouseY = y / this.scale();
+    // Calculate point on content (unscaled relative to top-left of content)
+    // ContentX = (MouseX - TranslateX) / Scale
+    const currentTx = this.translate().x;
+    const currentTy = this.translate().y;
+    const currentScale = this.scale();
+
+    const contentX = (mouseX - currentTx) / currentScale;
+    const contentY = (mouseY - currentTy) / currentScale;
 
     this.scale.set(newScale);
 
-    if (newScale === 1) {
-      this.translate.set({ x: 0, y: 0 });
-    } else {
-      this.translate.update((pos) => ({
-        x: event.clientX - containerRect.left + pos.x - mouseX * newScale,
-        y: event.clientY - containerRect.top + pos.y - mouseY * newScale,
-      }));
-    }
+    // Calculate new translation to keep content point at mouse position
+    // NewTx = MouseX - (ContentX * NewScale)
+    const newTx = mouseX - (contentX * newScale);
+    const newTy = mouseY - (contentY * newScale);
+
+    this.translate.set({ x: newTx, y: newTy });
   }
 
   handleTouchStart(event: TouchEvent, containerRect: DOMRect): void {
@@ -95,18 +99,25 @@ export class ZoomPanHandler {
         event.touches[1]
       );
 
-      this.initialPinchRect = { left: containerRect.left, top: containerRect.top };
-
+      // Calculate pinch center relative to container
       const centerRelX = this.initialPinchCenter.x - containerRect.left;
       const centerRelY = this.initialPinchCenter.y - containerRect.top;
-      this.initialMouseX = centerRelX / this.initialPinchScale;
-      this.initialMouseY = centerRelY / this.initialPinchScale;
-      this.initialTx = this.translate().x;
-      this.initialTy = this.translate().y;
+
+      const currentTx = this.translate().x;
+      const currentTy = this.translate().y;
+
+      // Calculate pinch center in content coordinates
+      this.initialContentPinchCenter = {
+          x: (centerRelX - currentTx) / this.initialPinchScale,
+          y: (centerRelY - currentTy) / this.initialPinchScale
+      };
+
+      this.initialTx = currentTx;
+      this.initialTy = currentTy;
     }
   }
 
-  handleTouchMove(event: TouchEvent, containerRect?: DOMRect): void {
+  handleTouchMove(event: TouchEvent, containerRect: DOMRect): void {
     if (event.touches.length === 1 && this.isDragging()) {
       const dx = event.touches[0].clientX - this.dragStartX;
       const dy = event.touches[0].clientY - this.dragStartY;
@@ -138,22 +149,21 @@ export class ZoomPanHandler {
 
       this.scale.set(newScale);
 
-      if (newScale === 1) {
-        this.translate.set({ x: 0, y: 0 });
-      } else {
-        this.translate.set({
-          x:
-            this.initialPinchCenter.x -
-            this.initialPinchRect.left +
-            this.initialTx -
-            this.initialMouseX * newScale,
-          y:
-            this.initialPinchCenter.y -
-            this.initialPinchRect.top +
-            this.initialTy -
-            this.initialMouseY * newScale,
-        });
-      }
+      // Calculate new center relative to container (if fingers moved)
+      const centerX = (event.touches[0].clientX + event.touches[1].clientX) / 2;
+      const centerY = (event.touches[0].clientY + event.touches[1].clientY) / 2;
+      const centerRelX = centerX - containerRect.left;
+      const centerRelY = centerY - containerRect.top;
+
+      // NewTx = CurrentCenter - (ContentCenter * NewScale)
+      // Note: We use the *initial* content center point, because we want that specific point
+      // on the image to stay under the center of the pinch.
+      // But if the fingers move (pan while pinch), calculating `centerRelX` dynamically handles it.
+
+      const newTx = centerRelX - (this.initialContentPinchCenter.x * newScale);
+      const newTy = centerRelY - (this.initialContentPinchCenter.y * newScale);
+
+      this.translate.set({ x: newTx, y: newTy });
     }
   }
 
@@ -195,33 +205,49 @@ export class ZoomPanHandler {
 
   constrainTranslation(containerRect: DOMRect, contentWidth: number, contentHeight: number): void {
     const scale = this.scale();
-    if (scale <= 1) {
-      this.translate.set({ x: 0, y: 0 });
-      return;
+    // If scale is 1, maybe we want to center it or allow some pan if content > container?
+    // Assuming content fits when scale 1 (object-contain).
+
+    // Calculate scaled dimensions
+    const scaledW = contentWidth * scale;
+    const scaledH = contentHeight * scale;
+
+    // Determine limits
+    // If content > container, we allow panning until edge hits edge.
+    // minX = container.width - scaledW (negative)
+    // maxX = 0
+
+    // If content < container, we can center it or stick to 0.
+    // Let's match typical behavior:
+
+    let minX = 0, maxX = 0;
+    if (scaledW > containerRect.width) {
+        minX = containerRect.width - scaledW;
+        maxX = 0;
+    } else {
+        // Centering or stick to left?
+        // Let's stick to center
+        const diff = containerRect.width - scaledW;
+        minX = diff / 2;
+        maxX = diff / 2;
     }
 
-    const scaledWidth = contentWidth * scale;
-    const scaledHeight = contentHeight * scale;
-
-    let minX = 0;
-    let maxX = 0;
-
-    if (scaledWidth > containerRect.width) {
-      minX = containerRect.width - scaledWidth;
-      maxX = 0;
+    let minY = 0, maxY = 0;
+    if (scaledH > containerRect.height) {
+        minY = containerRect.height - scaledH;
+        maxY = 0;
+    } else {
+        const diff = containerRect.height - scaledH;
+        minY = diff / 2;
+        maxY = diff / 2;
     }
 
-    let minY = 0;
-    let maxY = 0;
+    // But wait, if we are zooming, we might want to allow some "slop" or "overshoot" during interaction?
+    // For now, let's just clamp hard.
 
-    if (scaledHeight > containerRect.height) {
-      minY = containerRect.height - scaledHeight;
-      maxY = 0;
-    }
-
-    this.translate.update(pos => ({
-      x: Math.min(maxX, Math.max(pos.x, minX)),
-      y: Math.min(maxY, Math.max(pos.y, minY))
+    this.translate.update(t => ({
+        x: Math.min(Math.max(t.x, minX), maxX),
+        y: Math.min(Math.max(t.y, minY), maxY)
     }));
   }
 }
