@@ -1,32 +1,29 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   Inject,
-  PLATFORM_ID,
   inject,
+  PLATFORM_ID,
   signal,
   ViewChild,
-  ElementRef,
-  computed,
-  ChangeDetectorRef,
-  AfterViewInit,
 } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   TuiButton,
   TuiDialogContext,
   TuiIcon,
   TuiLoader,
+  TuiScrollbar,
 } from '@taiga-ui/core';
-import { TuiScrollbar } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { TuiSegmented } from '@taiga-ui/kit';
-import { TUI_CONFIRM, TuiConfirmData } from '@taiga-ui/kit';
+import { TUI_CONFIRM, TuiSegmented } from '@taiga-ui/kit';
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   ImageCroppedEvent,
   ImageCropperComponent,
@@ -34,34 +31,10 @@ import {
 } from 'ngx-image-cropper';
 import { firstValueFrom } from 'rxjs';
 
-import { ToastService } from '../services/toast.service';
-
 import { GradeComponent } from '../components/avatar-grade';
-
-import { GRADE_COLORS, ImageEditorResult, TopoRouteWithRoute } from '../models';
-
-import {
-  removePoint,
-  addPointToPath,
-  startDragPointMouse,
-  startDragPointTouch,
-} from '../utils/drawing.utils';
-import {
-  getRouteColor,
-  getRouteStyleProperties,
-  getRouteStrokeWidth,
-  getPointsString as getPointsStringUtil,
-  hasPath as hasPathUtil,
-} from '../utils/topo-styles.utils';
-import {
-  ZoomPanState,
-  handleWheelZoom,
-  constrainTranslation,
-  setupEditorMousePan,
-  setupEditorTouchPanPinch,
-  resetZoomState,
-  attachWheelListener,
-} from '../utils/zoom-pan.utils';
+import { TopoDrawerComponent } from '../components/topo-drawer';
+import { ImageEditorResult, TopoRouteWithRoute } from '../models';
+import { ToastService } from '../services/toast.service';
 
 export interface ImageEditorConfig {
   file?: File;
@@ -101,15 +74,14 @@ export interface ImageEditorConfig {
     GradeComponent,
     TuiScrollbar,
     TuiSegmented,
+    TopoDrawerComponent,
   ],
   template: `
     <div
       class="flex flex-col h-full overflow-hidden bg-[var(--tui-background-base)] text-[var(--tui-text-primary)]"
     >
       <!-- Top Header -->
-      <div
-        class="flex items-center justify-between p-4 shrink-0 border-b relative z-50 border-[var(--tui-border-normal)] bg-[var(--tui-background-base)]"
-      >
+      <div class="header">
         <div class="flex items-center gap-4">
           <button
             tuiIconButton
@@ -160,16 +132,12 @@ export interface ImageEditorConfig {
 
       <div class="flex-1 flex overflow-hidden">
         <!-- Main Area -->
-        <div
-          class="relative flex-1 overflow-hidden flex items-center justify-center p-4 md:p-8 bg-[var(--tui-background-neutral-1)]"
-        >
+        <div class="main-area">
           <!-- CROPPER MODE -->
           <div
-            class="w-full h-full flex items-center justify-center transition-opacity duration-300"
-            [style.visibility]="mode() === 'transform' ? 'visible' : 'hidden'"
-            [style.position]="mode() === 'transform' ? 'relative' : 'absolute'"
-            [style.opacity]="mode() === 'transform' ? '1' : '0'"
-            [style.pointer-events]="mode() === 'transform' ? 'all' : 'none'"
+            class="cropper-container"
+            [class.visible]="mode() === 'transform'"
+            [class.hidden-mode]="mode() !== 'transform'"
           >
             <image-cropper
               class="max-h-full max-w-full"
@@ -193,259 +161,25 @@ export interface ImageEditorConfig {
           </div>
 
           <!-- DRAWING MODE -->
-          @if (mode() === 'draw') {
-            <div
-              class="flex-1 relative overflow-hidden flex items-center justify-center p-2 cursor-grab active:cursor-grabbing"
-              #drawArea
-              (wheel.zoneless)="onWheel($event)"
-            >
-              <div
-                #drawContainer
-                class="relative inline-block shadow-2xl rounded-lg select-none transition-transform duration-75 ease-out"
-                [style.transform]="drawTransform()"
-                [style.transform-origin]="'0 0'"
-                (mousedown.zoneless)="onImageClick($event)"
-                (contextmenu.zoneless)="$event.preventDefault()"
-                (touchstart.zoneless)="onTouchStart($event)"
-              >
-                <img
-                  #drawImage
-                  [src]="croppedImage"
-                  class="max-w-full max-h-[calc(100dvh-5rem)] block pointer-events-none"
-                  (load)="onDrawImageLoad()"
-                  alt="Source for annotation"
-                />
-
-                <!-- SVG Overlay -->
-                <svg
-                  class="absolute inset-0 w-full h-full pointer-events-none"
-                  [attr.viewBox]="viewBox()"
-                >
-                  @for (tr of topoRoutes; track tr.route_id) {
-                    @let entry = pathsMap.get(tr.route_id);
-                    @if (entry) {
-                      @let isSelected =
-                        selectedRoute()?.route_id === tr.route_id;
-                      @let style =
-                        getRouteStyle(
-                          tr.path?.color,
-                          $any(tr.route.grade),
-                          tr.route_id
-                        );
-                      <g
-                        class="pointer-events-auto cursor-pointer"
-                        (click)="onPathInteraction($event, tr)"
-                        (touchstart)="onPathInteraction($event, tr)"
-                      >
-                        <!-- Thicker transparent path for much easier hit detection -->
-                        <polyline
-                          [attr.points]="getPointsString(entry.points)"
-                          fill="none"
-                          stroke="transparent"
-                          [attr.stroke-width]="
-                            isSelected
-                              ? drawWidth() * 0.06
-                              : drawWidth() * 0.025
-                          "
-                          stroke-linejoin="round"
-                          stroke-linecap="round"
-                        />
-                        <!-- Border/Shadow Line -->
-                        <polyline
-                          [attr.points]="getPointsString(entry.points)"
-                          fill="none"
-                          stroke="white"
-                          [style.opacity]="style.isDashed ? 1 : 0.7"
-                          [attr.stroke-width]="
-                            (isSelected
-                              ? drawWidth() * 0.008
-                              : drawWidth() * 0.005) +
-                            (style.isDashed ? 2.5 : 1.5)
-                          "
-                          [attr.stroke-dasharray]="
-                            style.isDashed
-                              ? '' +
-                                drawWidth() * 0.01 +
-                                ' ' +
-                                drawWidth() * 0.01
-                              : 'none'
-                          "
-                          stroke-linejoin="round"
-                          stroke-linecap="round"
-                          class="transition-all duration-300"
-                        />
-                        <polyline
-                          [attr.points]="getPointsString(entry.points)"
-                          fill="none"
-                          [attr.stroke]="style.stroke"
-                          [style.opacity]="style.opacity"
-                          [attr.stroke-width]="
-                            isSelected
-                              ? drawWidth() * 0.008
-                              : drawWidth() * 0.005
-                          "
-                          [attr.stroke-dasharray]="
-                            style.isDashed
-                              ? '' +
-                                drawWidth() * 0.01 +
-                                ' ' +
-                                drawWidth() * 0.01
-                              : 'none'
-                          "
-                          stroke-linejoin="round"
-                          stroke-linecap="round"
-                          class="transition-all duration-300"
-                        />
-                        <!-- End Circle (Small White) -->
-                        @if (entry.points[entry.points.length - 1]; as last) {
-                          <circle
-                            [attr.cx]="last.x * drawWidth()"
-                            [attr.cy]="last.y * drawHeight()"
-                            [attr.r]="
-                              isSelected
-                                ? drawWidth() * 0.008
-                                : drawWidth() * 0.005
-                            "
-                            fill="white"
-                            [style.opacity]="style.opacity"
-                            stroke="black"
-                            [attr.stroke-width]="0.5"
-                          />
-                        }
-                      </g>
-                      @if (isSelected) {
-                        @for (pt of entry.points; track $index) {
-                          <g
-                            class="cursor-move pointer-events-auto group"
-                            (mousedown)="
-                              startDragging($event, tr.route_id, $index)
-                            "
-                            (touchstart)="
-                              startDraggingTouch($event, tr.route_id, $index)
-                            "
-                            (click)="$event.stopPropagation()"
-                            (contextmenu)="
-                              removePoint($event, tr.route_id, $index)
-                            "
-                          >
-                            <circle
-                              [attr.cx]="pt.x * drawWidth()"
-                              [attr.cy]="pt.y * drawHeight()"
-                              [attr.r]="drawWidth() * 0.012"
-                              fill="rgba(0,0,0,0.4)"
-                              class="hover:fill-[var(--tui-background-neutral-2)]/60 transition-colors"
-                            />
-                            <circle
-                              [attr.cx]="pt.x * drawWidth()"
-                              [attr.cy]="pt.y * drawHeight()"
-                              [attr.r]="drawWidth() * 0.006"
-                              [attr.fill]="style.stroke"
-                              class="group-hover:scale-125 transition-transform origin-center"
-                              style="transform-box: fill-box"
-                            />
-                          </g>
-                        }
-                      }
-                    }
-                  }
-                </svg>
-              </div>
-            </div>
-          }
+          <!-- We use style.display to preserve state (paths) when switching tabs -->
+          <app-topo-drawer
+            [style.display]="mode() === 'draw' ? 'block' : 'none'"
+            style="width: 100%; height: 100%;"
+            [imageSrc]="croppedImage"
+            [topoRoutes]="topoRoutes"
+          />
 
           @if (!cropperVisible() && mode() === 'transform') {
-            <div
-              class="absolute inset-0 flex items-center justify-center backdrop-blur-sm z-10 bg-[var(--tui-background-base-alt)]"
-            >
+            <div class="loader-overlay">
               <tui-loader size="xl"></tui-loader>
             </div>
           }
         </div>
-
-        <!-- Mobile backdrop for sidebar -->
-        @if (mode() === 'draw' && sidebarOpen()) {
-          <div
-            class="md:hidden fixed inset-0 z-30 bg-[var(--tui-background-backdrop)]"
-            (click)="sidebarOpen.set(false)"
-            (keydown.escape)="sidebarOpen.set(false)"
-            role="presentation"
-          ></div>
-        }
-
-        <!-- Mobile FAB toggle button -->
-        @if (mode() === 'draw') {
-          <div class="md:hidden absolute bottom-6 left-6 z-50">
-            <button
-              tuiIconButton
-              appearance="primary"
-              size="l"
-              class="shadow-2xl rounded-full"
-              (click)="sidebarOpen.set(!sidebarOpen())"
-            >
-              <tui-icon [icon]="sidebarOpen() ? '@tui.x' : '@tui.list'" />
-            </button>
-          </div>
-        }
-
-        <!-- Sidebar (only in Drawing mode) -->
-        @if (mode() === 'draw') {
-          <div
-            class="w-72 shrink-0 border-l flex flex-col overflow-hidden transition-all duration-300 md:relative absolute top-0 bottom-0 right-0 z-100 border-[var(--tui-border-normal)] bg-[var(--tui-background-base)]"
-            [class.translate-x-full]="!sidebarOpen()"
-            [class.md:translate-x-0]="true"
-            [class.shadow-2xl]="sidebarOpen()"
-            [class.md:shadow-none]="true"
-          >
-            <tui-scrollbar class="flex-1">
-              <div class="p-2 flex flex-col gap-1">
-                @for (tr of topoRoutes; track tr.route_id) {
-                  <button
-                    class="flex items-center gap-2 p-3 text-left transition-all duration-200"
-                    [style.background]="
-                      selectedRoute()?.route_id === tr.route_id
-                        ? 'var(--tui-background-neutral-1)'
-                        : 'transparent'
-                    "
-                    [style.border-radius.px]="12"
-                    (click)="selectRoute(tr)"
-                  >
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2">
-                        <span
-                          class="text-xs font-bold opacity-60 shrink-0"
-                          style="min-width: 1.5rem"
-                        >
-                          {{ tr.number }}.
-                        </span>
-                        <span class="font-bold text-sm truncate flex-1">
-                          {{ tr.route.name }}
-                        </span>
-                      </div>
-                      <div class="flex items-center gap-1 mt-1 ml-8">
-                        <app-grade [grade]="tr.route.grade" size="xs" />
-                      </div>
-                    </div>
-                    @if (hasPath(tr.route_id)) {
-                      <tui-icon
-                        icon="@tui.check"
-                        class="text-[var(--tui-text-positive)] text-xs shrink-0 cursor-pointer hover:text-[var(--tui-text-negative)] transition-colors"
-                        (click)="deletePath(tr, $event)"
-                      />
-                    }
-                  </button>
-                }
-              </div>
-            </tui-scrollbar>
-          </div>
-        }
       </div>
 
       <!-- Bottom Toolbar -->
       @if (mode() === 'transform') {
-        <div
-          class="p-6 shrink-0 border-t backdrop-blur-xl"
-          style="background: var(--tui-background-base-alt); border-color: var(--tui-border-normal)"
-        >
+        <div class="toolbar">
           <div class="max-w-4xl mx-auto flex flex-col gap-6">
             @if (!forceAspectRatio) {
               <div
@@ -482,10 +216,7 @@ export interface ImageEditorConfig {
             <div
               class="flex flex-wrap items-center justify-center gap-3 md:gap-6"
             >
-              <div
-                class="flex items-center gap-1 p-1 rounded-2xl"
-                style="background: var(--tui-background-neutral-1)"
-              >
+              <div class="control-group">
                 <button
                   tuiIconButton
                   appearance="flat"
@@ -506,10 +237,7 @@ export interface ImageEditorConfig {
                 </button>
               </div>
 
-              <div
-                class="flex items-center gap-1 p-1 rounded-2xl"
-                style="background: var(--tui-background-neutral-1)"
-              >
+              <div class="control-group">
                 <button
                   tuiIconButton
                   appearance="flat"
@@ -530,10 +258,7 @@ export interface ImageEditorConfig {
                 </button>
               </div>
 
-              <div
-                class="flex items-center gap-1 p-1 rounded-2xl"
-                style="background: var(--tui-background-neutral-1)"
-              >
+              <div class="control-group">
                 <button
                   tuiIconButton
                   appearance="flat"
@@ -558,8 +283,8 @@ export interface ImageEditorConfig {
                 tuiIconButton
                 appearance="flat"
                 size="m"
+                class="reset-btn"
                 (click)="resetImage()"
-                style="background: var(--tui-background-neutral-1)"
                 [title]="'imageEditor.reset' | translate"
               >
                 <tui-icon icon="@tui.refresh-cw" />
@@ -601,19 +326,100 @@ export interface ImageEditorConfig {
       ::ng-deep .ngx-ic-source-image {
         max-height: calc(100dvh - 300px) !important;
       }
+
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        flex-shrink: 0;
+        border-bottom: 1px solid var(--tui-border-normal);
+        background-color: var(--tui-background-base);
+        position: relative;
+        z-index: 50;
+      }
+
+      .main-area {
+        position: relative;
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background-color: var(--tui-background-neutral-1);
+      }
+      @media (min-width: 768px) {
+        .main-area {
+          padding: 2rem;
+        }
+      }
+
+      .cropper-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 300ms;
+      }
+      .cropper-container.visible {
+        visibility: visible;
+        position: relative;
+        opacity: 1;
+        pointer-events: all;
+      }
+      .cropper-container.hidden-mode {
+        visibility: hidden;
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .loader-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+        z-index: 10;
+        background-color: var(--tui-background-base-alt);
+      }
+
+      .toolbar {
+        padding: 1.5rem;
+        flex-shrink: 0;
+        border-top: 1px solid var(--tui-border-normal);
+        backdrop-filter: blur(24px);
+        background: var(--tui-background-base-alt);
+        border-color: var(--tui-border-normal);
+      }
+
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem;
+        border-radius: 1rem;
+        background: var(--tui-background-neutral-1);
+      }
+
+      .reset-btn {
+        background: var(--tui-background-neutral-1);
+      }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ImageEditorDialogComponent implements AfterViewInit {
+export class ImageEditorDialogComponent {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
-  @ViewChild('drawImage') drawImageElement!: ElementRef<HTMLImageElement>;
-  @ViewChild('drawContainer') drawContainerElement!: ElementRef<HTMLDivElement>;
-  @ViewChild('drawArea') drawAreaElement!: ElementRef<HTMLDivElement>;
+  @ViewChild(TopoDrawerComponent) drawer!: TopoDrawerComponent;
 
   imageChangedEvent: Event | null = null;
   imageFile: File | undefined;
@@ -622,7 +428,7 @@ export class ImageEditorDialogComponent implements AfterViewInit {
   cropperVisible = signal(false);
   loading = signal(false);
 
-  // New Drawing Mode state
+  // Mode state
   mode = signal<'transform' | 'draw'>('transform');
 
   get modeIndex(): number {
@@ -635,35 +441,6 @@ export class ImageEditorDialogComponent implements AfterViewInit {
 
   allowDrawing = false;
   topoRoutes: TopoRouteWithRoute[] = [];
-  selectedRoute = signal<TopoRouteWithRoute | null>(null);
-  selectedColor = signal<string | null>(null);
-  pathsMap = new Map<
-    number,
-    { points: { x: number; y: number }[]; color?: string }
-  >();
-  palette = GRADE_COLORS;
-
-  drawWidth = signal(0);
-  drawHeight = signal(0);
-  viewBox = computed(() => `0 0 ${this.drawWidth()} ${this.drawHeight()}`);
-  draggingPoint: { routeId: number; index: number } | null = null;
-  sidebarOpen = signal(true);
-
-  scale = signal(1);
-  translateX = signal(0);
-  translateY = signal(0);
-
-  drawTransform = computed(
-    () =>
-      `translate(${this.translateX()}px, ${this.translateY()}px) scale(${this.scale()})`,
-  );
-
-  // Zoom/Pan state adapter
-  private readonly zoomPanState: ZoomPanState = {
-    scale: this.scale,
-    translateX: this.translateX,
-    translateY: this.translateY,
-  };
 
   // Cropper settings
   maintainAspectRatio = true;
@@ -695,7 +472,6 @@ export class ImageEditorDialogComponent implements AfterViewInit {
       ImageEditorConfig
     >,
     @Inject(PLATFORM_ID) private readonly platformId: object,
-    private readonly cdr: ChangeDetectorRef,
   ) {
     const data = this.context.data;
     this.forceAspectRatio = !!data.forceAspectRatio;
@@ -711,19 +487,6 @@ export class ImageEditorDialogComponent implements AfterViewInit {
     this.topoRoutes = (data.topoRoutes || []).sort(
       (a, b) => a.number - b.number,
     );
-
-    // Initialize paths from routes
-    this.topoRoutes.forEach((tr) => {
-      if (tr.path) {
-        this.pathsMap.set(tr.route_id, {
-          points: [...tr.path.points],
-          color: tr.path.color || this.resolveRouteColor(tr.route_id),
-        });
-      }
-    });
-    if (this.topoRoutes.length > 0) {
-      this.selectedRoute.set(this.topoRoutes[0]);
-    }
 
     if (data.aspectRatios && data.aspectRatios.length > 0) {
       this.availableRatios = data.aspectRatios.map((r) => ({
@@ -795,9 +558,13 @@ export class ImageEditorDialogComponent implements AfterViewInit {
 
     if (!confirmed) return;
 
+    if (!this.drawer) return;
+
+    const pathsMap = this.drawer.pathsMap;
+
     // Sort topoRoutes based on pathsMap
     const routesWithX = this.topoRoutes.map((tr) => {
-      const entry = this.pathsMap.get(tr.route_id);
+      const entry = pathsMap.get(tr.route_id);
       const minX =
         entry && entry.points.length > 0
           ? Math.min(...entry.points.map((p) => p.x))
@@ -812,258 +579,6 @@ export class ImageEditorDialogComponent implements AfterViewInit {
     this.topoRoutes.forEach((tr, i) => (tr.number = i + 1));
 
     this.cdr.markForCheck();
-  }
-
-  // DRAWING METHODS
-  ngAfterViewInit(): void {
-    this.doAttachWheelListener();
-  }
-
-  private doAttachWheelListener(): void {
-    attachWheelListener(this.drawAreaElement?.nativeElement, (e) =>
-      this.onWheel(e),
-    );
-  }
-
-  onDrawImageLoad(): void {
-    const img = this.drawImageElement.nativeElement;
-    this.drawWidth.set(img.clientWidth);
-    this.drawHeight.set(img.clientHeight);
-    this.resetZoom();
-
-    // Try attaching again if not attached yet (important if mode changed later)
-    this.doAttachWheelListener();
-  }
-
-  resetZoom(): void {
-    resetZoomState(this.zoomPanState);
-  }
-
-  onWheel(event: Event): void {
-    handleWheelZoom(
-      event,
-      this.zoomPanState,
-      this.drawContainerElement.nativeElement,
-      {},
-      {
-        afterZoom: () => {
-          this.doConstrainTranslation();
-          this.cdr.detectChanges();
-        },
-      },
-    );
-  }
-
-  private doConstrainTranslation(): void {
-    constrainTranslation(
-      this.zoomPanState,
-      this.drawAreaElement?.nativeElement,
-      this.drawWidth(),
-      this.drawHeight(),
-    );
-  }
-
-  selectRoute(tr: TopoRouteWithRoute): void {
-    this.selectedRoute.set(tr);
-    const existing = this.pathsMap.get(tr.route_id);
-    if (existing?.color) {
-      this.selectedColor.set(existing.color);
-    } else {
-      this.selectedColor.set(this.resolveRouteColor(tr.route_id));
-    }
-  }
-
-  resolveRouteColor(routeId: number): string {
-    const route = this.topoRoutes?.find((r) => r.route_id === routeId);
-    if (route) {
-      return getRouteColor(undefined, route.route.grade);
-    }
-    return GRADE_COLORS[5];
-  }
-
-  hasPath(routeId: number): boolean {
-    return hasPathUtil(routeId, this.pathsMap);
-  }
-
-  getRouteStyle(
-    color: string | undefined,
-    grade: string | number,
-    routeId: number,
-  ) {
-    const isSelected = this.selectedRoute()?.route_id === routeId;
-    return getRouteStyleProperties(isSelected, false, color, grade);
-  }
-
-  getRouteWidth(isSelected: boolean, isHovered: boolean): number {
-    return getRouteStrokeWidth(isSelected, isHovered, 30, 'editor');
-  }
-
-  getPointsString(path: { x: number; y: number }[]): string {
-    return getPointsStringUtil(path, this.drawWidth(), this.drawHeight());
-  }
-
-  onImageClick(event: Event): void {
-    const mouseEvent = event as MouseEvent;
-    if (mouseEvent.button !== 0 || this.draggingPoint) return;
-
-    setupEditorMousePan(
-      mouseEvent,
-      this.zoomPanState,
-      {},
-      {
-        onNoMove: (e) => this.addPoint(e),
-        afterMove: () => {
-          this.doConstrainTranslation();
-          this.cdr.detectChanges();
-        },
-      },
-    );
-  }
-
-  private addPoint(event: MouseEvent): void {
-    const route = this.selectedRoute();
-    if (!route) return;
-
-    addPointToPath(
-      event,
-      route.route_id,
-      this.drawContainerElement.nativeElement,
-      this.scale(),
-      this.drawWidth(),
-      this.drawHeight(),
-      this.pathsMap,
-      { color: this.resolveRouteColor(route.route_id) },
-    );
-    this.cdr.markForCheck();
-  }
-
-  startDragging(event: MouseEvent, routeId: number, index: number): void {
-    this.draggingPoint = { routeId, index };
-
-    startDragPointMouse(
-      event,
-      routeId,
-      index,
-      this.drawContainerElement.nativeElement,
-      this.scale(),
-      this.drawWidth(),
-      this.drawHeight(),
-      this.pathsMap,
-      {
-        onUpdate: () => this.cdr.detectChanges(),
-        onEnd: () => {
-          this.cdr.markForCheck();
-          this.draggingPoint = null;
-        },
-      },
-    );
-  }
-
-  deletePath(route: TopoRouteWithRoute, event: Event): void {
-    event.stopPropagation();
-    event.preventDefault();
-
-    void firstValueFrom(
-      this.dialogs.open<boolean>(TUI_CONFIRM, {
-        label: this.translate.instant('imageEditor.deletePathTitle'),
-        size: 's',
-        data: {
-          content: this.translate.instant('imageEditor.deletePathConfirm', {
-            name: route.route.name,
-          }),
-          yes: this.translate.instant('delete'),
-          no: this.translate.instant('cancel'),
-        } as TuiConfirmData,
-      }),
-      { defaultValue: false },
-    ).then((confirmed) => {
-      if (confirmed) {
-        this.pathsMap.delete(route.route_id);
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  onPathInteraction(event: Event, route: TopoRouteWithRoute): void {
-    const selected = this.selectedRoute();
-
-    // If a route is already selected
-    if (selected) {
-      // If we clicked on the CURRENTLY selected route
-      if (selected.route_id === route.route_id) {
-        // We do NOT stop propagation here initially because we might want to allow
-        // logic that detects where exactly on the line we clicked (future improvement).
-        // BUT for now, to prevent 'onImageClick' from adding a point when just clicking the line:
-        event.stopPropagation();
-        return;
-      }
-
-      // If we clicked on a DIFFERENT route while one is selected
-      // We want to IGNORE this click regarding selection change.
-      // We explicitly STOP propagation so it doesn't trigger onImageClick either
-      // (which would add a point to the CURRENTLY selected route at that position).
-      // This effectively "masks" the other route so we can draw "over" it or near it.
-      // However, if we want to "draw", we actually WANT the click to go through to the container
-      // OR we just handle the point addition here?
-      // The requirement is: "should not select that line. should ignore it and continue editing the line".
-      // If we stop propagation, onImageClick won't fire, so we can't add a point there.
-      // So we should actually NOT stop propagation if we want to add a point, but we SHOULD stop
-      // the "selectRoute" logic.
-
-      // Since this method IS the handler for the click on the Group <g>,
-      // simply doing nothing returns control to the browser bubbling.
-      // The event will bubble up to the container.
-      // The container's (mousedown)="onImageClick($event)" will trigger.
-      // Since we didn't change selection, onImageClick will add a point to the SELECTED route.
-      // This seems to be what is requested ("continue editing the line").
-      return;
-    }
-
-    // If no route is selected, we select this one.
-    this.selectRoute(route);
-    event.stopPropagation();
-  }
-
-  startDraggingTouch(event: TouchEvent, routeId: number, index: number): void {
-    this.draggingPoint = { routeId, index };
-
-    startDragPointTouch(
-      event,
-      routeId,
-      index,
-      this.drawContainerElement.nativeElement,
-      this.scale(),
-      this.drawWidth(),
-      this.drawHeight(),
-      this.pathsMap,
-      {
-        onUpdate: () => this.cdr.detectChanges(),
-        onEnd: () => {
-          this.cdr.markForCheck();
-          this.draggingPoint = null;
-        },
-      },
-    );
-  }
-
-  onTouchStart(event: Event): void {
-    setupEditorTouchPanPinch(
-      event,
-      this.zoomPanState,
-      this.drawContainerElement.nativeElement,
-      {},
-      {
-        afterMove: () => {
-          this.doConstrainTranslation();
-          this.cdr.detectChanges();
-        },
-        isDraggingPoint: () => !!this.draggingPoint,
-      },
-    );
-  }
-
-  removePoint(event: Event, routeId: number, index: number): void {
-    removePoint(event, routeId, index, this.pathsMap);
   }
 
   imageCropped(event: ImageCroppedEvent): void {
@@ -1145,7 +660,9 @@ export class ImageEditorDialogComponent implements AfterViewInit {
   }
 
   async save(): Promise<void> {
-    if (!this.croppedImageBlob && this.pathsMap.size === 0) return;
+    const pathsMap = this.drawer ? this.drawer.pathsMap : new Map();
+
+    if (!this.croppedImageBlob && pathsMap.size === 0) return;
 
     if (this.croppedImageBlob && this.croppedImageBlob.size > 5 * 1024 * 1024) {
       this.toast.error('profile.avatar.upload.tooLarge');
@@ -1179,15 +696,14 @@ export class ImageEditorDialogComponent implements AfterViewInit {
       }
 
       if (this.allowDrawing) {
-        const paths = Array.from(this.pathsMap.entries()).map(
-          ([routeId, path]) => ({
-            routeId,
-            path,
-          }),
-        );
+        const paths = Array.from(pathsMap.entries()).map(([routeId, path]) => ({
+          routeId,
+          path,
+        }));
         this.context.completeWith({
           file,
           paths,
+          // Use this.topoRoutes (potentially sorted)
           routeIds: this.topoRoutes.map((tr) => tr.route_id),
         });
       } else {
