@@ -425,7 +425,7 @@ export interface TopoRouteRow {
                   <img
                     [src]="topoImage || global.iconSrc()('topo')"
                     [alt]="t.name"
-                    class="max-w-[90vw] max-h-[90vh] object-contain block"
+                    class="max-w-[100dvw] max-h-[100dvh] object-contain block"
                     draggable="false"
                     (load)="onImageLoad($event)"
                   />

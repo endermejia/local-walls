@@ -479,7 +479,7 @@ export function handleViewerTouchMove(
     if (newScale <= minScale) {
       state.zoomPosition.set({ x: 0, y: 0 });
     } else {
-      state.zoomPosition.set({
+      const newPos = {
         x:
           drag.initialPinchCenter.x -
           drag.initialPinchRect.left +
@@ -490,7 +490,11 @@ export function handleViewerTouchMove(
           drag.initialPinchRect.top +
           drag.initialTy -
           drag.initialMouseY * newScale,
-      });
+      };
+
+      const area = touchEvent.currentTarget as HTMLElement;
+      const constrained = calculateConstrainedPosition(newPos, newScale, area);
+      state.zoomPosition.set(constrained);
     }
   }
 }
@@ -570,24 +574,27 @@ function calculateConstrainedPosition(
   let newX = pos.x;
   let newY = pos.y;
 
+  const restingLeft = zoomContainerEl.offsetLeft;
+  const restingTop = zoomContainerEl.offsetTop;
+
   // Horizontal constraint
   if (scaledW > containerRect.width) {
-    const restingLeft = zoomContainerEl.offsetLeft;
     const minX = -restingLeft - (scaledW - containerRect.width);
     const maxX = -restingLeft;
     newX = Math.max(minX, Math.min(newX, maxX));
   } else {
-    newX = 0; // Center via flexbox
+    // Center it relative to the container, accounting for its resting position
+    newX = (containerRect.width - scaledW) / 2 - restingLeft;
   }
 
   // Vertical constraint
   if (scaledH > containerRect.height) {
-    const restingTop = zoomContainerEl.offsetTop;
     const minY = -restingTop - (scaledH - containerRect.height);
     const maxY = -restingTop;
     newY = Math.max(minY, Math.min(newY, maxY));
   } else {
-    newY = 0; // Center via flexbox
+    // Center it relative to the container, accounting for its resting position
+    newY = (containerRect.height - scaledH) / 2 - restingTop;
   }
 
   return { x: newX, y: newY };

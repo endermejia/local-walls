@@ -1,7 +1,26 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
 
+import { TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TuiDialogContext } from '@taiga-ui/experimental';
 import { injectContext } from '@taiga-ui/polymorpheus';
+
+import {
+  createViewerDragState,
+  handleViewerMouseDown,
+  handleViewerMouseMove,
+  handleViewerTouchMove,
+  handleViewerTouchStart,
+  resetViewerZoomState,
+  handleViewerWheelZoom,
+  ViewerDragState,
+  ViewerZoomPanState,
+} from '../utils/zoom-pan.utils';
 
 export interface PhotoViewerData {
   imageUrl: string;
@@ -10,21 +29,27 @@ export interface PhotoViewerData {
 @Component({
   selector: 'app-photo-viewer-dialog',
   standalone: true,
+  imports: [CommonModule, TuiButton, TuiIcon],
   template: `
     <div
-      class="fixed inset-0 flex items-center justify-center overflow-hidden touch-none p-0 bg-transparent"
-      (wheel.zoneless)="onWheel($any($event))"
+      class="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden touch-none p-0 bg-black/80 backdrop-blur-xl cursor-grab active:cursor-grabbing"
+      (wheel.zoneless)="onWheel($event)"
       (touchstart.zoneless)="onTouchStart($any($event))"
       (touchmove.zoneless)="onTouchMove($any($event))"
       (touchend.zoneless)="onTouchEnd()"
-      (click)="context.completeWith()"
-      (keydown.enter)="context.completeWith()"
-      (keydown.space)="context.completeWith()"
+      (mousedown.zoneless)="onMouseDown($any($event))"
+      (mousemove.zoneless)="onMouseMove($any($event))"
+      (mouseup.zoneless)="onMouseUp()"
+      (mouseleave.zoneless)="onMouseUp()"
+      (click)="onBackgroundClick()"
+      (keydown.enter)="onBackgroundClick()"
+      (keydown.space)="onBackgroundClick()"
       tabindex="0"
       role="button"
     >
       <div
-        class="relative transition-transform duration-75 ease-out outline-none"
+        class="relative transition-transform duration-75 ease-out outline-none zoom-container origin-top-left"
+        [class.!duration-0]="dragState.isDragging"
         tabindex="-1"
         (click)="$event.stopPropagation()"
         (keydown.enter)="$event.stopPropagation()"
@@ -41,9 +66,24 @@ export interface PhotoViewerData {
       >
         <img
           [src]="context.data.imageUrl"
-          class="max-w-[90vw] max-h-[85vh] block object-contain shadow-2xl rounded-2xl "
+          class="max-w-[100dvw] max-h-[100dvh] block object-contain shadow-2xl rounded-2xl"
           alt="Photo preview"
+          draggable="false"
+          (load)="onImageLoad($event)"
         />
+      </div>
+
+      <!-- Close button -->
+      <div class="absolute top-4 right-4 z-[1001]">
+        <button
+          tuiIconButton
+          appearance="floating"
+          size="l"
+          class="bg-[var(--tui-background-base)] rounded-full"
+          (click)="context.completeWith(); $event.stopPropagation()"
+        >
+          <tui-icon icon="@tui.x" />
+        </button>
       </div>
     </div>
   `,
@@ -63,139 +103,56 @@ export class PhotoViewerDialogComponent {
   protected readonly zoomScale = signal(1);
   protected readonly zoomPosition = signal({ x: 0, y: 0 });
 
+  protected readonly viewerState: ViewerZoomPanState = {
+    zoomScale: this.zoomScale,
+    zoomPosition: this.zoomPosition,
+  };
+
+  protected readonly dragState: ViewerDragState = createViewerDragState();
+
+  protected onImageLoad(event: Event): void {
+    // We just need to trigger a change so calculations refresh with new offsetWidth/Height
+    this.resetZoom();
+  }
+
   protected resetZoom(): void {
-    this.zoomScale.set(1);
-    this.zoomPosition.set({ x: 0, y: 0 });
+    resetViewerZoomState(this.viewerState);
+    this.dragState.initialTx = 0;
+    this.dragState.initialTy = 0;
   }
 
-  protected onWheel(event: WheelEvent): void {
-    event.preventDefault();
-    const zoomSpeed = 0.15;
-    const delta = event.deltaY > 0 ? -zoomSpeed : zoomSpeed;
-    const newScale = Math.min(Math.max(1, this.zoomScale() + delta), 5);
-
-    if (newScale === this.zoomScale()) return;
-
-    const area = event.currentTarget as HTMLElement;
-    const container = area.querySelector('div') as HTMLElement; // First div inside
-    if (!container) return;
-
-    const rect = container.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    const mouseX = x / this.zoomScale();
-    const mouseY = y / this.zoomScale();
-
-    this.zoomScale.set(newScale);
-
-    if (newScale === 1) {
-      this.resetZoom();
-    } else {
-      this.zoomPosition.update((pos) => ({
-        x: event.clientX - rect.left + pos.x - mouseX * newScale,
-        y: event.clientY - rect.top + pos.y - mouseY * newScale,
-      }));
-    }
+  protected onWheel(event: Event): void {
+    handleViewerWheelZoom(event, this.viewerState);
   }
 
-  private initialPinchDist = 0;
-  private initialPinchScale = 1;
-  private initialPinchCenter = { x: 0, y: 0 };
-  private initialPinchRect = { left: 0, top: 0 };
-  private initialMouseX = 0;
-  private initialMouseY = 0;
-  private initialTx = 0;
-  private initialTy = 0;
-
-  private isPanning = false;
-  private lastTouchPos = { x: 0, y: 0 };
-
-  protected onTouchStart(event: TouchEvent): void {
-    if (event.touches.length === 2) {
-      this.isPanning = false;
-      const getDistance = (t1: Touch, t2: Touch) =>
-        Math.sqrt(
-          Math.pow(t2.clientX - t1.clientX, 2) +
-            Math.pow(t2.clientY - t1.clientY, 2),
-        );
-
-      const getCenter = (t1: Touch, t2: Touch) => ({
-        x: (t1.clientX + t2.clientX) / 2,
-        y: (t1.clientY + t2.clientY) / 2,
-      });
-
-      this.initialPinchDist = getDistance(event.touches[0], event.touches[1]);
-      this.initialPinchScale = this.zoomScale();
-      this.initialPinchCenter = getCenter(event.touches[0], event.touches[1]);
-
-      const area = event.currentTarget as HTMLElement;
-      const container = area.querySelector('div') as HTMLElement;
-      if (!container) return;
-
-      const rect = container.getBoundingClientRect();
-      this.initialPinchRect = { left: rect.left, top: rect.top };
-
-      const centerRelX = this.initialPinchCenter.x - rect.left;
-      const centerRelY = this.initialPinchCenter.y - rect.top;
-      this.initialMouseX = centerRelX / this.initialPinchScale;
-      this.initialMouseY = centerRelY / this.initialPinchScale;
-      this.initialTx = this.zoomPosition().x;
-      this.initialTy = this.zoomPosition().y;
-    } else if (event.touches.length === 1 && this.zoomScale() > 1) {
-      this.isPanning = true;
-      this.lastTouchPos = {
-        x: event.touches[0].clientX,
-        y: event.touches[0].clientY,
-      };
-    }
+  protected onTouchStart(event: Event): void {
+    handleViewerTouchStart(event, this.viewerState, this.dragState);
   }
 
-  protected onTouchMove(event: TouchEvent): void {
-    if (event.touches.length === 2) {
-      event.preventDefault();
-      const getDistance = (t1: Touch, t2: Touch) =>
-        Math.sqrt(
-          Math.pow(t2.clientX - t1.clientX, 2) +
-            Math.pow(t2.clientY - t1.clientY, 2),
-        );
-
-      const dist = getDistance(event.touches[0], event.touches[1]);
-      const newScale = Math.min(
-        Math.max(1, (dist / this.initialPinchDist) * this.initialPinchScale),
-        5,
-      );
-
-      this.zoomScale.set(newScale);
-
-      this.zoomPosition.set({
-        x:
-          this.initialPinchCenter.x -
-          this.initialPinchRect.left +
-          this.initialTx -
-          this.initialMouseX * newScale,
-        y:
-          this.initialPinchCenter.y -
-          this.initialPinchRect.top +
-          this.initialTy -
-          this.initialMouseY * newScale,
-      });
-    } else if (event.touches.length === 1 && this.isPanning) {
-      event.preventDefault();
-      const touch = event.touches[0];
-      const dx = touch.clientX - this.lastTouchPos.x;
-      const dy = touch.clientY - this.lastTouchPos.y;
-
-      this.zoomPosition.update((pos) => ({
-        x: pos.x + dx,
-        y: pos.y + dy,
-      }));
-      this.lastTouchPos = { x: touch.clientX, y: touch.clientY };
-    }
+  protected onTouchMove(event: Event): void {
+    handleViewerTouchMove(event, this.viewerState, this.dragState);
   }
 
   protected onTouchEnd(): void {
-    this.isPanning = false;
+    this.dragState.isDragging = false;
+  }
+
+  protected onMouseDown(event: MouseEvent): void {
+    handleViewerMouseDown(event, this.viewerState, this.dragState);
+  }
+
+  protected onMouseMove(event: MouseEvent): void {
+    handleViewerMouseMove(event, this.viewerState, this.dragState);
+  }
+
+  protected onMouseUp(): void {
+    this.dragState.isDragging = false;
+  }
+
+  protected onBackgroundClick(): void {
+    if (!this.dragState.hasMoved) {
+      this.context.completeWith();
+    }
   }
 }
 
