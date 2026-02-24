@@ -3,11 +3,8 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  ElementRef,
   inject,
   signal,
-  ViewChild,
-  AfterViewInit,
   ChangeDetectorRef,
 } from '@angular/core';
 
@@ -34,25 +31,9 @@ import { GradeComponent } from '../components/avatar-grade';
 import { TopoDetail, TopoRouteWithRoute } from '../models';
 
 import {
-  removePoint,
-  addPointToPath,
-  startDragPointMouse,
-  startDragPointTouch,
-} from '../utils/drawing.utils';
-import {
-  getRouteStyleProperties,
-  getPointsString as getPointsStringUtil,
-  hasPath as hasPathUtil,
 } from '../utils/topo-styles.utils';
-import {
-  ZoomPanState,
-  handleWheelZoom,
-  constrainTranslation,
-  setupEditorMousePan,
-  setupEditorTouchPanPinch,
-  resetZoomState,
-  attachWheelListener,
-} from '../utils/zoom-pan.utils';
+import { TopoCanvasComponent } from '../components/topo-canvas';
+import { TopoCanvasRoute } from '../models/topo-canvas.models';
 
 export interface TopoPathEditorConfig {
   topo: TopoDetail;
@@ -70,6 +51,7 @@ export interface TopoPathEditorConfig {
     GradeComponent,
     TranslateModule,
     TuiScrollbar,
+    TopoCanvasComponent,
   ],
   template: `
     <div
@@ -220,168 +202,17 @@ export interface TopoPathEditorConfig {
 
         <!-- Editor Area -->
         <div
-          class="flex-1 relative overflow-hidden bg-[var(--tui-background-neutral-2)] flex items-center justify-center p-2 cursor-grab active:cursor-grabbing"
-          #editorArea
-          (wheel.zoneless)="onWheel($event)"
+          class="flex-1 relative overflow-hidden bg-[var(--tui-background-neutral-2)] flex items-center justify-center p-2"
         >
-          <div
-            #container
-            class="relative inline-block shadow-2xl rounded-lg transition-transform duration-75 ease-out"
-            [style.transform]="transform()"
-            [style.transform-origin]="'0 0'"
-            (mousedown.zoneless)="onImageClick($event)"
-            (contextmenu.zoneless)="$event.preventDefault()"
-            (touchstart.zoneless)="onTouchStart($event)"
-          >
-            <img
-              #image
-              [src]="context.data.imageUrl"
-              class="max-w-[calc(100dvw-22rem)] max-h-[calc(100dvh-5rem)] block pointer-events-none"
-              (load)="onImageLoad()"
-              alt="Editor Background"
-            />
-
-            <!-- SVG Overlay for Paths -->
-            <svg
-              class="absolute inset-0 w-full h-full pointer-events-none"
-              [attr.viewBox]="viewBox()"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <!-- Draw all paths -->
-              @for (entry of pathsMap | keyvalue; track entry.key) {
-                @let isSelected = selectedRoute()?.route_id === +entry.key;
-                @let style =
-                  getRouteStyle(
-                    entry.value.color,
-                    entry.value._ref.route.grade.toString(),
-                    +entry.key
-                  );
-                <g
-                  class="pointer-events-auto cursor-pointer"
-                  (click)="
-                    selectRoute(entry.value._ref || { route_id: +entry.key });
-                    $event.stopPropagation()
-                  "
-                  (touchstart)="
-                    selectRoute(entry.value._ref || { route_id: +entry.key });
-                    $event.stopPropagation()
-                  "
-                >
-                  <!-- Thicker transparent path for much easier hit detection -->
-                  <polyline
-                    [attr.points]="getPointsString(entry.value)"
-                    fill="none"
-                    stroke="transparent"
-                    [attr.stroke-width]="
-                      isSelected ? width() * 0.06 : width() * 0.025
-                    "
-                    stroke-linejoin="round"
-                    stroke-linecap="round"
-                  />
-                  <!-- Border/Shadow Line -->
-                  <polyline
-                    [attr.points]="getPointsString(entry.value)"
-                    fill="none"
-                    stroke="white"
-                    [style.opacity]="style.isDashed ? 1 : 0.7"
-                    [attr.stroke-width]="
-                      (isSelected ? width() * 0.008 : width() * 0.005) +
-                      (style.isDashed ? 2.5 : 1.5)
-                    "
-                    [attr.stroke-dasharray]="
-                      style.isDashed
-                        ? '' + width() * 0.01 + ' ' + width() * 0.01
-                        : 'none'
-                    "
-                    stroke-linejoin="round"
-                    stroke-linecap="round"
-                    class="transition-all duration-300"
-                  />
-                  <polyline
-                    [attr.points]="getPointsString(entry.value)"
-                    fill="none"
-                    [attr.stroke]="style.stroke"
-                    [style.opacity]="style.opacity"
-                    [attr.stroke-width]="
-                      isSelected ? width() * 0.008 : width() * 0.005
-                    "
-                    [attr.stroke-dasharray]="
-                      style.isDashed
-                        ? '' + width() * 0.01 + ' ' + width() * 0.01
-                        : 'none'
-                    "
-                    stroke-linejoin="round"
-                    stroke-linecap="round"
-                    class="transition-all duration-300"
-                  />
-                  <!-- End Circle (Small White) -->
-                  @if (
-                    entry.value.points[entry.value.points.length - 1];
-                    as last
-                  ) {
-                    <circle
-                      [attr.cx]="last.x * width()"
-                      [attr.cy]="last.y * height()"
-                      [attr.r]="isSelected ? width() * 0.008 : width() * 0.005"
-                      fill="white"
-                      [style.opacity]="style.opacity"
-                      stroke="black"
-                      [attr.stroke-width]="0.5"
-                    />
-                  }
-                </g>
-
-                <!-- Control Points -->
-                @if (isSelected) {
-                  @for (pt of entry.value.points; track $index) {
-                    <g
-                      class="cursor-move group"
-                      (mousedown)="startDragging($event, entry.key, $index)"
-                      (touchstart)="
-                        startDraggingTouch($event, entry.key, $index)
-                      "
-                      (contextmenu)="removePoint($event, entry.key, $index)"
-                    >
-                      <circle
-                        [attr.cx]="pt.x * width()"
-                        [attr.cy]="pt.y * height()"
-                        [attr.r]="width() * 0.012"
-                        fill="rgba(0,0,0,0.4)"
-                        class="hover:fill-[var(--tui-background-neutral-2)]/60 transition-colors"
-                      />
-                      <circle
-                        [attr.cx]="pt.x * width()"
-                        [attr.cy]="pt.y * height()"
-                        [attr.r]="width() * 0.006"
-                        [attr.fill]="style.stroke"
-                        class="group-hover:scale-125 transition-transform origin-center"
-                        style="transform-box: fill-box"
-                      />
-                      <!-- Point Number Bubble -->
-                      @if ($index === 0) {
-                        <circle
-                          [attr.cx]="pt.x * width()"
-                          [attr.cy]="pt.y * height() - width() * 0.02"
-                          [attr.r]="width() * 0.01"
-                          fill="var(--tui-background-base)"
-                        />
-                        <text
-                          [attr.x]="pt.x * width()"
-                          [attr.y]="pt.y * height() - width() * 0.016"
-                          text-anchor="middle"
-                          fill="var(--tui-text-01)"
-                          [attr.font-size]="width() * 0.01"
-                          font-weight="bold"
-                        >
-                          {{ selectedRoute()?.number! + 1 }}
-                        </text>
-                      }
-                    </g>
-                  }
-                }
-              }
-            </svg>
-          </div>
+          <app-topo-canvas
+            [imageUrl]="context.data.imageUrl"
+            [routes]="canvasRoutes()"
+            [selectedRouteId]="selectedRoute()?.route_id || null"
+            [editable]="true"
+            viewMode="editor"
+            (routeClick)="selectRouteById($event.id)"
+            (pathChange)="onPathChange()"
+          />
 
           @if (loading()) {
             <div
@@ -404,7 +235,7 @@ export interface TopoPathEditorConfig {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TopoPathEditorDialogComponent implements AfterViewInit {
+export class TopoPathEditorDialogComponent {
   protected readonly context =
     injectContext<TuiDialogContext<boolean, TopoPathEditorConfig>>();
   private readonly topos = inject(ToposService);
@@ -413,10 +244,6 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
   private readonly translate = inject(TranslateService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly global = inject(GlobalData);
-
-  @ViewChild('image') imageElement!: ElementRef<HTMLImageElement>;
-  @ViewChild('container') containerElement!: ElementRef<HTMLDivElement>;
-  @ViewChild('editorArea') editorAreaElement!: ElementRef<HTMLDivElement>;
 
   loading = signal(false);
   selectedRoute = signal<TopoRouteWithRoute | null>(null);
@@ -429,78 +256,31 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     }
   >();
 
-  width = signal(0);
-  height = signal(0);
-  viewBox = computed(() => `0 0 ${this.width()} ${this.height()}`);
-
-  draggingPoint: { routeId: number; index: number } | null = null;
-  scale = signal(1);
-  translateX = signal(0);
-  translateY = signal(0);
-  isPanning = signal(false);
-
-  // Zoom/Pan state adapter
-  private readonly zoomPanState: ZoomPanState = {
-    scale: this.scale,
-    translateX: this.translateX,
-    translateY: this.translateY,
-  };
-
-  transform = computed(
-    () =>
-      `translate(${this.translateX()}px, ${this.translateY()}px) scale(${this.scale()})`,
-  );
+  protected readonly canvasRoutes = computed<TopoCanvasRoute[]>(() => {
+    // We want to return ALL routes so they are selectable, even if they have no points
+    return Array.from(this.pathsMap.values()).map((entry) => ({
+      id: entry._ref.route_id,
+      points: entry.points,
+      color: entry.color || entry._ref.path?.color || '',
+      grade: entry._ref.route.grade.toString(),
+      name: entry._ref.route.name,
+    }));
+  });
 
   constructor() {
-    // Initialize paths from existing data
+    // Initialize paths from existing data - ALL routes
     this.context.data.topo.topo_routes.forEach((tr) => {
-      if (tr.path) {
-        this.pathsMap.set(tr.route_id, {
-          points: [...tr.path.points],
-          color: tr.path.color,
-          _ref: tr,
-        });
-      }
+      this.pathsMap.set(tr.route_id, {
+        points: tr.path ? [...tr.path.points] : [],
+        color: tr.path?.color,
+        _ref: tr,
+      });
     });
 
     // Select first route by default
     if (this.context.data.topo.topo_routes.length > 0) {
       this.selectedRoute.set(this.context.data.topo.topo_routes[0]);
     }
-  }
-
-  ngAfterViewInit(): void {
-    this.doAttachWheelListener();
-  }
-
-  private doAttachWheelListener(): void {
-    attachWheelListener(this.editorAreaElement?.nativeElement, (e) =>
-      this.onWheel(e),
-    );
-  }
-
-  onImageLoad(): void {
-    const img = this.imageElement.nativeElement;
-    this.width.set(img.clientWidth);
-    this.height.set(img.clientHeight);
-    this.resetZoom();
-
-    // Try attaching again if not attached yet
-    this.doAttachWheelListener();
-  }
-
-  resetZoom(): void {
-    resetZoomState(this.zoomPanState);
-  }
-
-  onWheel(event: Event): void {
-    handleWheelZoom(
-      event,
-      this.zoomPanState,
-      this.containerElement.nativeElement,
-      {},
-      { afterZoom: () => this.doConstrainTranslation() },
-    );
   }
 
   async sortByPosition(): Promise<void> {
@@ -556,15 +336,6 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     }
   }
 
-  private doConstrainTranslation(): void {
-    constrainTranslation(
-      this.zoomPanState,
-      this.editorAreaElement?.nativeElement,
-      this.width(),
-      this.height(),
-    );
-  }
-
   selectRoute(tr: TopoRouteWithRoute, fromList = false): void {
     const selected = this.selectedRoute();
 
@@ -581,112 +352,18 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     }
   }
 
+  selectRouteById(id: number): void {
+    const tr = this.context.data.topo.topo_routes.find(r => r.route_id === id);
+    if (tr) this.selectRoute(tr);
+  }
+
   hasPath(routeId: number): boolean {
-    return hasPathUtil(routeId, this.pathsMap);
+    const entry = this.pathsMap.get(routeId);
+    return !!entry && entry.points.length > 0;
   }
 
-  getPointsString(pathData: {
-    points: { x: number; y: number }[];
-    color?: string;
-  }): string {
-    return getPointsStringUtil(pathData.points, this.width(), this.height());
-  }
-
-  getRouteStyle(
-    color: string | undefined,
-    grade: string | number,
-    routeId: number,
-  ) {
-    const isSelected = this.selectedRoute()?.route_id === routeId;
-    return getRouteStyleProperties(isSelected, false, color, grade);
-  }
-
-  onImageClick(event: Event): void {
-    const mouseEvent = event as MouseEvent;
-    if (mouseEvent.button !== 0 || this.draggingPoint) return;
-
-    setupEditorMousePan(
-      mouseEvent,
-      this.zoomPanState,
-      {},
-      {
-        onNoMove: (e) => this.addPoint(e),
-        afterMove: () => this.doConstrainTranslation(),
-      },
-    );
-  }
-
-  private addPoint(event: MouseEvent): void {
-    const route = this.selectedRoute();
-    if (!route) return;
-
-    addPointToPath(
-      event,
-      route.route_id,
-      this.containerElement.nativeElement,
-      this.scale(),
-      this.width(),
-      this.height(),
-      this.pathsMap,
-      { _ref: route },
-    );
-  }
-
-  startDragging(event: MouseEvent, routeId: number, index: number): void {
-    const numericRouteId = +routeId;
-    this.draggingPoint = { routeId: numericRouteId, index };
-
-    startDragPointMouse(
-      event,
-      numericRouteId,
-      index,
-      this.containerElement.nativeElement,
-      this.scale(),
-      this.width(),
-      this.height(),
-      this.pathsMap,
-      { onEnd: () => (this.draggingPoint = null) },
-    );
-  }
-
-  startDraggingTouch(event: TouchEvent, routeId: number, index: number): void {
-    const numericRouteId = +routeId;
-    this.draggingPoint = { routeId: numericRouteId, index };
-
-    startDragPointTouch(
-      event,
-      numericRouteId,
-      index,
-      this.containerElement.nativeElement,
-      this.scale(),
-      this.width(),
-      this.height(),
-      this.pathsMap,
-      {
-        onLongPress: () => {
-          this.removePoint(event, numericRouteId, index);
-          this.draggingPoint = null;
-        },
-        onEnd: () => (this.draggingPoint = null),
-      },
-    );
-  }
-
-  onTouchStart(event: Event): void {
-    setupEditorTouchPanPinch(
-      event,
-      this.zoomPanState,
-      this.containerElement.nativeElement,
-      {},
-      {
-        afterMove: () => this.doConstrainTranslation(),
-        isDraggingPoint: () => !!this.draggingPoint,
-      },
-    );
-  }
-
-  removePoint(event: Event, routeId: number, index: number): void {
-    removePoint(event, routeId, index, this.pathsMap);
+  onPathChange(): void {
+    this.cdr.markForCheck();
   }
 
   close(): void {
@@ -700,6 +377,9 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
 
       // Save paths
       for (const [routeId, path] of this.pathsMap.entries()) {
+        // Only save if there are points (or if original had points and now doesn't, we update with empty?)
+        // updateRoutePath implementation handles empty path usually.
+        // Assuming we always update.
         await this.topos.updateRoutePath(topo.id, routeId, path, false);
       }
 
