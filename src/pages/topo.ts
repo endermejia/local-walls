@@ -265,6 +265,23 @@ export interface TopoRouteRow {
                               tr.route_id === hoveredRouteId()
                             );
 
+                          <!-- Border/Shadow Line -->
+                          <polyline
+                            [attr.points]="
+                              getPointsString(tr.path, 1000, hScale)
+                            "
+                            fill="none"
+                            stroke="white"
+                            [style.opacity]="style.opacity * 0.4"
+                            [attr.stroke-width]="width * 1000 + 1.2"
+                            [attr.stroke-dasharray]="
+                              style.isDashed ? '10, 10' : 'none'
+                            "
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            class="transition-all duration-300"
+                          />
+
                           <!-- Main Line -->
                           <polyline
                             [attr.points]="
@@ -281,6 +298,22 @@ export interface TopoRouteRow {
                             stroke-linecap="round"
                             class="transition-all duration-300"
                           />
+
+                          <!-- End Circle (Small White) -->
+                          @if (
+                            tr.path.points[tr.path.points.length - 1];
+                            as last
+                          ) {
+                            <circle
+                              [attr.cx]="last.x * 1000"
+                              [attr.cy]="last.y * hScale"
+                              [attr.r]="width * 1000"
+                              fill="white"
+                              [style.opacity]="style.opacity"
+                              stroke="black"
+                              [attr.stroke-width]="0.5"
+                            />
+                          }
                         }
                       }
 
@@ -434,6 +467,23 @@ export interface TopoRouteRow {
                               tr.route_id === hoveredRouteId()
                             );
 
+                          <!-- Border/Shadow Line -->
+                          <polyline
+                            [attr.points]="
+                              getPointsString(tr.path, 1000, hScale)
+                            "
+                            fill="none"
+                            stroke="white"
+                            [style.opacity]="fsStyle.opacity * 0.4"
+                            [attr.stroke-width]="width * 1000 + 1.2"
+                            [attr.stroke-dasharray]="
+                              fsStyle.isDashed ? '10, 10' : 'none'
+                            "
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            class="transition-all duration-300"
+                          />
+
                           <!-- Main Line -->
                           <polyline
                             [attr.points]="
@@ -450,6 +500,22 @@ export interface TopoRouteRow {
                             stroke-linecap="round"
                             class="transition-all duration-300"
                           />
+
+                          <!-- End Circle (Small White) -->
+                          @if (
+                            tr.path.points[tr.path.points.length - 1];
+                            as last
+                          ) {
+                            <circle
+                              [attr.cx]="last.x * 1000"
+                              [attr.cy]="last.y * hScale"
+                              [attr.r]="width * 1000"
+                              fill="white"
+                              [style.opacity]="fsStyle.opacity"
+                              stroke="black"
+                              [attr.stroke-width]="0.5"
+                            />
+                          }
                         }
                       }
 
@@ -486,7 +552,7 @@ export interface TopoRouteRow {
                                 [attr.y]="first.y * hScale + 3"
                                 text-anchor="middle"
                                 fill="white"
-                                style="text-shadow: 0px 0px 2px rgba(0,0,0,0.8)"
+                                style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
                                 font-size="8"
                                 font-weight="bold"
                                 font-family="sans-serif"
@@ -907,18 +973,6 @@ export class TopoComponent {
     const img = event.target as HTMLImageElement;
     if (img.naturalWidth && img.naturalHeight) {
       this.imageRatio.set(img.naturalWidth / img.naturalHeight);
-
-      // Center horizontally after image loads and layout is stable
-      setTimeout(() => {
-        const container = this.scrollContainer?.nativeElement;
-        if (container) {
-          const scrollWidth = container.scrollWidth;
-          const clientWidth = container.clientWidth;
-          if (scrollWidth > clientWidth) {
-            container.scrollLeft = (scrollWidth - clientWidth) / 2;
-          }
-        }
-      }, 0);
     }
   }
 
@@ -941,7 +995,7 @@ export class TopoComponent {
 
   protected getRouteStyle(
     color: string | undefined,
-    grade: string,
+    grade: string | number,
     routeId: number,
   ) {
     const isSelected = this.selectedRouteId() === routeId;
@@ -1000,10 +1054,14 @@ export class TopoComponent {
 
     this.zoomScale.set(newScale);
 
-    this.zoomPosition.update((pos) => ({
-      x: wheelEvent.clientX - rect.left + pos.x - mouseX * newScale,
-      y: wheelEvent.clientY - rect.top + pos.y - mouseY * newScale,
-    }));
+    if (newScale === 1) {
+      this.zoomPosition.set({ x: 0, y: 0 });
+    } else {
+      this.zoomPosition.update((pos) => ({
+        x: wheelEvent.clientX - rect.left + pos.x - mouseX * newScale,
+        y: wheelEvent.clientY - rect.top + pos.y - mouseY * newScale,
+      }));
+    }
   }
 
   private isDragging = false;
@@ -1104,18 +1162,22 @@ export class TopoComponent {
 
       this.zoomScale.set(newScale);
 
-      this.zoomPosition.set({
-        x:
-          this.initialPinchCenter.x -
-          this.initialPinchRect.left +
-          this.initialTx -
-          this.initialMouseX * newScale,
-        y:
-          this.initialPinchCenter.y -
-          this.initialPinchRect.top +
-          this.initialTy -
-          this.initialMouseY * newScale,
-      });
+      if (newScale === 1) {
+        this.zoomPosition.set({ x: 0, y: 0 });
+      } else {
+        this.zoomPosition.set({
+          x:
+            this.initialPinchCenter.x -
+            this.initialPinchRect.left +
+            this.initialTx -
+            this.initialMouseX * newScale,
+          y:
+            this.initialPinchCenter.y -
+            this.initialPinchRect.top +
+            this.initialTy -
+            this.initialMouseY * newScale,
+        });
+      }
     }
   }
 
@@ -1301,6 +1363,7 @@ export class TopoComponent {
       this.global.selectedAreaSlug.set(aSlug);
       this.global.selectedCragSlug.set(cSlug);
       if (topoId) {
+        this.resetZoom();
         this.global.selectedTopoId.set(topoId);
       }
     });
@@ -1444,41 +1507,6 @@ export class TopoComponent {
       topo.id,
     ]);
   }
-  protected getMidPoint(
-    points: { x: number; y: number }[],
-  ): { x: number; y: number } | null {
-    if (!points || points.length < 2) return null;
-
-    let totalLength = 0;
-    for (let i = 1; i < points.length; i++) {
-      const dx = points[i].x - points[i - 1].x;
-      const dy = points[i].y - points[i - 1].y;
-      totalLength += Math.sqrt(dx * dx + dy * dy);
-    }
-
-    const targetLength = totalLength / 2;
-    let currentLength = 0;
-
-    for (let i = 1; i < points.length; i++) {
-      const dx = points[i].x - points[i - 1].x;
-      const dy = points[i].y - points[i - 1].y;
-      const segmentLength = Math.sqrt(dx * dx + dy * dy);
-
-      if (currentLength + segmentLength >= targetLength) {
-        const remaining = targetLength - currentLength;
-        const ratio = remaining / segmentLength;
-        return {
-          x: points[i - 1].x + dx * ratio,
-          y: points[i - 1].y + dy * ratio,
-        };
-      }
-      currentLength += segmentLength;
-    }
-
-    // Fallback to approximate middle index if calculation fails slightly due to float precision
-    const midIdx = Math.floor(points.length / 2);
-    return points[midIdx];
-  }
 
   protected getGradeLabel(grade: number): string {
     return (
@@ -1489,6 +1517,14 @@ export class TopoComponent {
   }
 
   protected selectNextRoute(): void {
+    this.navigateDrawnRoute(1);
+  }
+
+  protected selectPrevRoute(): void {
+    this.navigateDrawnRoute(-1);
+  }
+
+  private navigateDrawnRoute(step: number): void {
     const topo = this.topo();
     const currentId = this.selectedRouteId();
     if (!topo || !currentId) return;
@@ -1503,7 +1539,8 @@ export class TopoComponent {
     const currentIndex = drawnRoutes.findIndex((r) => r.route_id === currentId);
     if (currentIndex === -1) return;
 
-    const nextIndex = (currentIndex + 1) % drawnRoutes.length;
+    const nextIndex =
+      (currentIndex + step + drawnRoutes.length) % drawnRoutes.length;
     this.selectedRouteId.set(drawnRoutes[nextIndex].route_id);
   }
 
@@ -1597,25 +1634,5 @@ export class TopoComponent {
         }
       }
     }
-  }
-
-  protected selectPrevRoute(): void {
-    const topo = this.topo();
-    const currentId = this.selectedRouteId();
-    if (!topo || !currentId) return;
-
-    // Filter only routes that have paths drawn
-    const drawnRoutes = topo.topo_routes
-      .filter((tr) => tr.path && tr.path.points.length > 0)
-      .sort((a, b) => a.number - b.number);
-
-    if (drawnRoutes.length === 0) return;
-
-    const currentIndex = drawnRoutes.findIndex((r) => r.route_id === currentId);
-    if (currentIndex === -1) return;
-
-    const prevIndex =
-      (currentIndex - 1 + drawnRoutes.length) % drawnRoutes.length;
-    this.selectedRouteId.set(drawnRoutes[prevIndex].route_id);
   }
 }

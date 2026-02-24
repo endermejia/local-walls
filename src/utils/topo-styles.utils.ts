@@ -16,23 +16,23 @@ export interface RouteStyleConfig {
 
 export function getRouteColor(
   color: string | undefined,
-  grade: string,
+  grade: string | number,
 ): string {
   if (color) return color;
-  return (
-    colorForGrade(
-      VERTICAL_LIFE_TO_LABEL[
-        grade as unknown as VERTICAL_LIFE_GRADES
-      ] as GradeLabel,
-    ) || GRADE_COLORS[0]
-  );
+
+  // Resolve the label from the grade (which might be an enum value/number or a string label)
+  const label =
+    VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] ||
+    (grade as GradeLabel);
+
+  return colorForGrade(label) || GRADE_COLORS[0];
 }
 
 export function getRouteStyleProperties(
   isSelected: boolean,
   isHovered: boolean,
   color: string | undefined,
-  grade: string,
+  grade: string | number,
 ): { stroke: string; opacity: number; isDashed: boolean } {
   const finalColor = getRouteColor(color, grade);
 

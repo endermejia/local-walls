@@ -122,9 +122,12 @@ export const ORDERED_GRADE_VALUES: readonly GradeLabel[] = Object.entries(
     (v): v is GradeLabel => typeof v === 'string',
   ) as readonly GradeLabel[];
 
-export function bandForGradeLabel(g: GradeLabel): 0 | 1 | 2 | 3 | 4 {
-  if (g === '?') return 4;
-  const base = parseInt(g.charAt(0), 10);
+export function bandForGradeLabel(
+  g: GradeLabel | number | string,
+): 0 | 1 | 2 | 3 | 4 | 5 {
+  if (g === '?' || g === 0 || g === '0') return 5;
+  const s = String(g);
+  const base = parseInt(s.charAt(0), 10);
   if (!Number.isFinite(base)) return 0;
   if (base <= 5) return 0;
   if (base === 6) return 1;
@@ -139,6 +142,7 @@ export const GRADE_COLORS = [
   'var(--tui-status-warning)', // difficult/orange
   'var(--tui-status-negative)', // hard/red
   'var(--tui-background-accent-opposite)', // extreme/black
+  '#cda4de', // lila (projects)
 ];
 
 export function colorForGrade(g: GradeLabel): string {

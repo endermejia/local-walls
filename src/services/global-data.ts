@@ -1001,11 +1001,11 @@ export class GlobalData {
                 })[0],
                 topos:
                   r.topo_routes
-                    ?.map((tr: any) => tr.topo)
-                    .filter((t: any) => !!t) || [],
+                    ?.map((tr: { topo: unknown }) => tr.topo)
+                    .filter((t: unknown) => !!t) || [],
                 equippers:
                   r.route_equippers
-                    ?.map((re: any) => re.equipper)
+                    ?.map((re: { equipper: unknown }) => re.equipper)
                     .filter(Boolean) || [],
               } as RouteWithExtras;
             })(),

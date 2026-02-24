@@ -40,7 +40,8 @@ import { computeGradeChartData } from '../utils';
         --tui-chart-categorical-03: var(--tui-status-negative); /* 8a–8c+ */
         --tui-chart-categorical-04: var(
           --tui-background-accent-opposite
-        ); /* 9a–9c | Project (?) */
+        ); /* 9a–9c */
+        --tui-chart-categorical-05: #cda4de; /* Project (?) */
       }
 
       .legend .item {

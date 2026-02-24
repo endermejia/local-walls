@@ -31,16 +31,9 @@ import {
   ImageCropperComponent,
   ImageTransform,
 } from 'ngx-image-cropper';
+import { GRADE_COLORS, ImageEditorResult, TopoRouteWithRoute } from '../models';
 import {
-  GRADE_COLORS,
-  VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
-  GradeLabel,
-  colorForGrade,
-  ImageEditorResult,
-  TopoRouteWithRoute,
-} from '../models';
-import {
+  getRouteColor,
   getRouteStyleProperties,
   getRouteStrokeWidth,
 } from '../utils/topo-styles.utils';
@@ -214,7 +207,7 @@ export interface ImageEditorConfig {
                       @let style =
                         getRouteStyle(
                           tr.path?.color,
-                          tr.route.grade.toString(),
+                          $any(tr.route.grade),
                           tr.route_id
                         );
                       <g
@@ -231,6 +224,20 @@ export interface ImageEditorConfig {
                           stroke-linejoin="round"
                           stroke-linecap="round"
                         />
+                        <!-- Border/Shadow Line -->
+                        <polyline
+                          [attr.points]="getPointsString(entry.points)"
+                          fill="none"
+                          stroke="white"
+                          [style.opacity]="style.opacity * 0.4"
+                          [attr.stroke-width]="(isSelected ? 4 : 2) + 1.2"
+                          [attr.stroke-dasharray]="
+                            style.isDashed ? '4 4' : 'none'
+                          "
+                          stroke-linejoin="round"
+                          stroke-linecap="round"
+                          class="transition-all duration-300"
+                        />
                         <polyline
                           [attr.points]="getPointsString(entry.points)"
                           fill="none"
@@ -244,6 +251,18 @@ export interface ImageEditorConfig {
                           stroke-linecap="round"
                           class="transition-all duration-300"
                         />
+                        <!-- End Circle (Small White) -->
+                        @if (entry.points[entry.points.length - 1]; as last) {
+                          <circle
+                            [attr.cx]="last.x * drawWidth()"
+                            [attr.cy]="last.y * drawHeight()"
+                            [attr.r]="isSelected ? 4 : 2"
+                            fill="white"
+                            [style.opacity]="style.opacity"
+                            stroke="black"
+                            [attr.stroke-width]="0.5"
+                          />
+                        }
                       </g>
                       @if (isSelected) {
                         @for (pt of entry.points; track $index) {
@@ -642,7 +661,7 @@ export class ImageEditorDialogComponent implements AfterViewInit {
       if (tr.path) {
         this.pathsMap.set(tr.route_id, {
           points: [...tr.path.points],
-          color: tr.path.color || this.getRouteColor(tr.route_id),
+          color: tr.path.color || this.resolveRouteColor(tr.route_id),
         });
       }
     });
@@ -853,18 +872,14 @@ export class ImageEditorDialogComponent implements AfterViewInit {
     if (existing?.color) {
       this.selectedColor.set(existing.color);
     } else {
-      this.selectedColor.set(this.getRouteColor(tr.route_id));
+      this.selectedColor.set(this.resolveRouteColor(tr.route_id));
     }
   }
 
-  getRouteColor(routeId: number): string {
+  resolveRouteColor(routeId: number): string {
     const route = this.topoRoutes?.find((r) => r.route_id === routeId);
     if (route) {
-      return colorForGrade(
-        VERTICAL_LIFE_TO_LABEL[
-          route.route.grade as VERTICAL_LIFE_GRADES
-        ] as GradeLabel,
-      );
+      return getRouteColor(undefined, route.route.grade);
     }
     return GRADE_COLORS[0];
   }
@@ -874,7 +889,11 @@ export class ImageEditorDialogComponent implements AfterViewInit {
     return !!pathData && pathData.points.length > 0;
   }
 
-  getRouteStyle(color: string | undefined, grade: string, routeId: number) {
+  getRouteStyle(
+    color: string | undefined,
+    grade: string | number,
+    routeId: number,
+  ) {
     const isSelected = this.selectedRoute()?.route_id === routeId;
     // In editor, hovered is handled by interactions usually, but here we can check selected
     return getRouteStyleProperties(isSelected, false, color, grade);
@@ -951,7 +970,7 @@ export class ImageEditorDialogComponent implements AfterViewInit {
     this.pathsMap.set(route.route_id, {
       ...current,
       points: newPoints,
-      color: current.color || this.getRouteColor(route.route_id),
+      color: current.color || this.resolveRouteColor(route.route_id),
     });
     this.cdr.markForCheck();
   }

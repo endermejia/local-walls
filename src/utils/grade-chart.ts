@@ -21,12 +21,14 @@ export function computeGradeChartData(
 ): GradeChartData {
   const allGrades = ORDERED_GRADE_VALUES;
 
-  const bands = [0, 0, 0, 0, 0];
+  const bands = [0, 0, 0, 0, 0, 0];
   for (const g of allGrades) {
     const v = counts[g] ?? 0;
     if (!v) continue;
     const b = bandForGradeLabel(g);
-    bands[b] += v;
+    if (b < bands.length) {
+      bands[b] += v;
+    }
   }
   const values = bands.map((v) =>
     Number.isFinite(v) ? v : 0,

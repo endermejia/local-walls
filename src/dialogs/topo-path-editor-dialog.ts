@@ -250,6 +250,18 @@ export interface TopoPathEditorConfig {
                     stroke-linejoin="round"
                     stroke-linecap="round"
                   />
+                  <!-- Border/Shadow Line -->
+                  <polyline
+                    [attr.points]="getPointsString(entry.value)"
+                    fill="none"
+                    stroke="white"
+                    [style.opacity]="style.opacity * 0.4"
+                    [attr.stroke-width]="(isSelected ? 4 : 2) + 1.2"
+                    [attr.stroke-dasharray]="style.isDashed ? '4 4' : 'none'"
+                    stroke-linejoin="round"
+                    stroke-linecap="round"
+                    class="transition-all duration-300"
+                  />
                   <polyline
                     [attr.points]="getPointsString(entry.value)"
                     fill="none"
@@ -261,6 +273,21 @@ export interface TopoPathEditorConfig {
                     stroke-linecap="round"
                     class="transition-all duration-300"
                   />
+                  <!-- End Circle (Small White) -->
+                  @if (
+                    entry.value.points[entry.value.points.length - 1];
+                    as last
+                  ) {
+                    <circle
+                      [attr.cx]="last.x * width()"
+                      [attr.cy]="last.y * height()"
+                      [attr.r]="isSelected ? 4 : 2"
+                      fill="white"
+                      [style.opacity]="style.opacity"
+                      stroke="black"
+                      [attr.stroke-width]="0.5"
+                    />
+                  }
                 </g>
 
                 <!-- Control Points -->
@@ -598,7 +625,11 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
       .join(' ');
   }
 
-  getRouteStyle(color: string | undefined, grade: string, routeId: number) {
+  getRouteStyle(
+    color: string | undefined,
+    grade: string | number,
+    routeId: number,
+  ) {
     const isSelected = this.selectedRoute()?.route_id === routeId;
     return getRouteStyleProperties(isSelected, false, color, grade);
   }

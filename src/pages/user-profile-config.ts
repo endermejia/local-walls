@@ -1000,11 +1000,11 @@ export class UserProfileConfigComponent {
     await this.updateProfile({ private: this.isPrivate });
   }
 
-  private async saveField<K extends keyof UserProfileDto>(
+  private async saveField<K extends keyof UserProfileDto, V>(
     field: K,
-    control: FormControl,
+    control: FormControl<V>,
     options: {
-      transform?: (val: any) => UserProfileDto[K];
+      transform?: (val: V) => UserProfileDto[K];
       validate?: (val: UserProfileDto[K]) => string | null;
       errorMessage?: string;
       errorType?: 'info' | 'error';
@@ -1012,10 +1012,9 @@ export class UserProfileConfigComponent {
   ): Promise<void> {
     const current = this.profile();
 
-    let value = control.value;
-    if (options.transform) {
-      value = options.transform(value);
-    }
+    const value = options.transform
+      ? options.transform(control.value as V)
+      : (control.value as unknown as UserProfileDto[K]);
 
     const validationError = options.validate ? options.validate(value) : null;
     if (control.invalid || validationError) {
@@ -1033,7 +1032,7 @@ export class UserProfileConfigComponent {
 
     if (value === (current?.[field] ?? null)) {
       if (typeof value === 'string' && control.value !== value) {
-        control.setValue(value, { emitEvent: false });
+        control.setValue(value as unknown as V, { emitEvent: false });
       }
       return;
     }

@@ -205,7 +205,9 @@ export class SupabaseService {
         const u = new URL(finalUrl);
         u.searchParams.set('v', version.toString());
         finalUrl = u.toString();
-      } catch {}
+      } catch {
+        // ignore invalid URL
+      }
     }
 
     try {
