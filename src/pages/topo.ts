@@ -272,8 +272,10 @@ export interface TopoRouteRow {
                             "
                             fill="none"
                             stroke="white"
-                            [style.opacity]="style.opacity * 0.4"
-                            [attr.stroke-width]="width * 1000 + 1.2"
+                            [style.opacity]="style.isDashed ? 1 : 0.7"
+                            [attr.stroke-width]="
+                              width * 1000 + (style.isDashed ? 2.5 : 1.5)
+                            "
                             [attr.stroke-dasharray]="
                               style.isDashed ? '10, 10' : 'none'
                             "
@@ -474,8 +476,10 @@ export interface TopoRouteRow {
                             "
                             fill="none"
                             stroke="white"
-                            [style.opacity]="fsStyle.opacity * 0.4"
-                            [attr.stroke-width]="width * 1000 + 1.2"
+                            [style.opacity]="fsStyle.isDashed ? 1 : 0.7"
+                            [attr.stroke-width]="
+                              width * 1000 + (fsStyle.isDashed ? 2.5 : 1.5)
+                            "
                             [attr.stroke-dasharray]="
                               fsStyle.isDashed ? '10, 10' : 'none'
                             "

@@ -255,8 +255,10 @@ export interface TopoPathEditorConfig {
                     [attr.points]="getPointsString(entry.value)"
                     fill="none"
                     stroke="white"
-                    [style.opacity]="style.opacity * 0.4"
-                    [attr.stroke-width]="(isSelected ? 4 : 2) + 1.2"
+                    [style.opacity]="style.isDashed ? 1 : 0.7"
+                    [attr.stroke-width]="
+                      (isSelected ? 4 : 2) + (style.isDashed ? 2 : 1)
+                    "
                     [attr.stroke-dasharray]="style.isDashed ? '4 4' : 'none'"
                     stroke-linejoin="round"
                     stroke-linecap="round"
