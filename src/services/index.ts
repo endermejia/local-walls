@@ -28,3 +28,4 @@ export * from './topos.service';
 export * from './tour.service';
 export * from './user-profiles.service';
 export * from './weather.service';
+export * from './desnivel.service';
