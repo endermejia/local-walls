@@ -54,7 +54,6 @@ export type GradeSuffix = '' | '+';
 export type GradeLabel =
   | `${'3' | '4'}${GradeLetter}`
   | `${'5' | '6' | '7' | '8' | '9'}${GradeLetter}${GradeSuffix}`
-  | '5'
   | '?';
 
 // Ordered grade values must reflect exactly the enum VERTICAL_LIFE_GRADES.
@@ -65,7 +64,7 @@ export type GradeLabel =
 export type RoutesByGrade = Partial<Record<GradeLabel, number>>;
 
 // Centralized mappings between Vertical Life enum and GradeLabel
-export const VERTICAL_LIFE_TO_LABEL: Partial<
+export const GRADE_NUMBER_TO_LABEL: Partial<
   Record<VERTICAL_LIFE_GRADES, GradeLabel>
 > = {
   [VERTICAL_LIFE_GRADES.G0]: '?',
@@ -109,12 +108,12 @@ export const VERTICAL_LIFE_TO_LABEL: Partial<
 export const LABEL_TO_VERTICAL_LIFE: Partial<
   Record<GradeLabel, VERTICAL_LIFE_GRADES>
 > = Object.fromEntries(
-  Object.entries(VERTICAL_LIFE_TO_LABEL).map(([k, v]) => [v, Number(k)]),
+  Object.entries(GRADE_NUMBER_TO_LABEL).map(([k, v]) => [v, Number(k)]),
 );
 
 // Ordered grade values derived strictly from the enum mapping above
 export const ORDERED_GRADE_VALUES: readonly GradeLabel[] = Object.entries(
-  VERTICAL_LIFE_TO_LABEL,
+  GRADE_NUMBER_TO_LABEL,
 )
   .sort((a, b) => Number(a[0]) - Number(b[0]))
   .map(([, v]) => v)
@@ -125,10 +124,10 @@ export const ORDERED_GRADE_VALUES: readonly GradeLabel[] = Object.entries(
 export function bandForGradeLabel(
   g: GradeLabel | number | string,
 ): 0 | 1 | 2 | 3 | 4 | 5 {
-  if (g === '?' || g === 0 || g === '0') return 5;
+  if (!g) return 5;
   const s = String(g);
   const base = parseInt(s.charAt(0), 10);
-  if (!Number.isFinite(base)) return 0;
+  if (!base) return 5;
   if (base <= 5) return 0;
   if (base === 6) return 1;
   if (base === 7) return 2;
@@ -161,7 +160,7 @@ export function normalizeRoutesByGrade(
   if (isEnumLike) {
     for (const [k, v] of Object.entries(input as AmountByEveryGrade)) {
       const num = Number(k) as VERTICAL_LIFE_GRADES;
-      const label = VERTICAL_LIFE_TO_LABEL[num];
+      const label = GRADE_NUMBER_TO_LABEL[num];
       if (label && v) out[label] = v;
     }
     return out;

@@ -5,7 +5,7 @@ import {
   SearchData,
   SearchItem,
   VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
+  GRADE_NUMBER_TO_LABEL,
 } from '../models';
 import { SupabaseService } from './supabase.service';
 import { normalizeName, slugify } from '../utils';
@@ -144,7 +144,7 @@ export class SearchService {
                 href: `/area/${area?.slug}/${crag?.slug}/${r.slug}`,
                 icon: '@tui.route',
                 difficulty:
-                  VERTICAL_LIFE_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES],
+                  GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES],
               } as SearchItem;
             },
           );

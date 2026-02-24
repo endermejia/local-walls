@@ -881,7 +881,7 @@ export class ImageEditorDialogComponent implements AfterViewInit {
     if (route) {
       return getRouteColor(undefined, route.route.grade);
     }
-    return GRADE_COLORS[0];
+    return GRADE_COLORS[5];
   }
 
   hasPath(routeId: number): boolean {

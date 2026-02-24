@@ -56,7 +56,7 @@ import {
   TopoInsertDto,
   TopoUpdateDto,
   VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
+  GRADE_NUMBER_TO_LABEL,
   ImageEditorResult,
 } from '../models';
 
@@ -483,7 +483,7 @@ export class TopoFormComponent {
 
   protected gradeStringify(grade: number): string {
     return (
-      VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] ||
+      GRADE_NUMBER_TO_LABEL[grade as VERTICAL_LIFE_GRADES] ||
       grade?.toString() ||
       ''
     );

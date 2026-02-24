@@ -50,7 +50,7 @@ import {
   RouteAscentWithExtras,
   RouteWithExtras,
   VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
+  GRADE_NUMBER_TO_LABEL,
 } from '../models';
 
 import {
@@ -864,7 +864,7 @@ export class RoutesTableComponent {
     this.data().map((r: RouteItem) => {
       // Map numeric grade from Supabase using label mapping
       const grade =
-        VERTICAL_LIFE_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES] ?? '?';
+        GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES] ?? '?';
 
       const rating = r.rating || 0;
       const ascents = r.ascent_count || 0;

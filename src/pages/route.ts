@@ -35,7 +35,7 @@ import {
   FeedItem,
   RouteAscentWithExtras,
   VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
+  GRADE_NUMBER_TO_LABEL,
 } from '../models';
 
 import {
@@ -426,7 +426,7 @@ export class RouteComponent {
   readonly gradeLabel = computed(() => {
     const grade = this.route()?.grade;
     return grade !== undefined
-      ? (VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] ?? '?')
+      ? (GRADE_NUMBER_TO_LABEL[grade as VERTICAL_LIFE_GRADES] ?? '?')
       : '?';
   });
 

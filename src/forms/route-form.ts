@@ -43,7 +43,7 @@ import {
   EquipperDto,
   RouteDto,
   VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
+  GRADE_NUMBER_TO_LABEL,
 } from '../models';
 
 import { RoutesService, SupabaseService, ToastService } from '../services';
@@ -334,14 +334,14 @@ export class RouteFormComponent {
   private editingId: number | null = null;
 
   protected readonly gradeOptions: readonly number[] = Object.keys(
-    VERTICAL_LIFE_TO_LABEL,
+    GRADE_NUMBER_TO_LABEL,
   )
     .map(Number)
     .sort((a, b) => a - b);
   protected readonly gradeStringify = (grade: number): string =>
     grade === 0
       ? this.translate.instant('labels.project')
-      : VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || '';
+      : GRADE_NUMBER_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || '';
 
   protected readonly kindOptions: readonly ClimbingKind[] =
     Object.values(ClimbingKinds);

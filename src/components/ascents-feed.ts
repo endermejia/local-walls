@@ -11,7 +11,7 @@ import {
   NewsItem,
   RouteAscentWithExtras,
   VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
+  GRADE_NUMBER_TO_LABEL,
 } from '../models';
 
 import { AscentCardComponent } from './ascent-card';
@@ -115,7 +115,7 @@ export class AscentsFeedComponent {
   follow = output<string>();
   unfollow = output<string>();
 
-  protected readonly gradeLabelByNumber = VERTICAL_LIFE_TO_LABEL;
+  protected readonly gradeLabelByNumber = GRADE_NUMBER_TO_LABEL;
 
   protected asGrade(grade: number): VERTICAL_LIFE_GRADES {
     return grade as VERTICAL_LIFE_GRADES;

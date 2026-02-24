@@ -34,7 +34,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AscentsService } from '../services';
 import {
   AscentType,
-  VERTICAL_LIFE_TO_LABEL,
+  GRADE_NUMBER_TO_LABEL,
   VERTICAL_LIFE_GRADES,
   UserAscentStatRecord,
 } from '../models';
@@ -719,7 +719,7 @@ export class UserStatisticsComponent {
     });
 
     if (maxGradeId !== -1) {
-      return VERTICAL_LIFE_TO_LABEL[maxGradeId as VERTICAL_LIFE_GRADES] || null;
+      return GRADE_NUMBER_TO_LABEL[maxGradeId as VERTICAL_LIFE_GRADES] || null;
     }
     return null;
   }
@@ -951,8 +951,7 @@ export class UserStatisticsComponent {
 
     return {
       name,
-      gradeLabel:
-        VERTICAL_LIFE_TO_LABEL[gradeId as VERTICAL_LIFE_GRADES] || '?',
+      gradeLabel: GRADE_NUMBER_TO_LABEL[gradeId as VERTICAL_LIFE_GRADES] || '?',
       gradeId: gradeId as number,
       score: this.getScore(gradeId, (a.ascent_type || 'rp') as AscentType),
       type: (a.ascent_type || 'rp') as AscentType,

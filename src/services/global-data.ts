@@ -61,7 +61,7 @@ import {
   TopoPath,
   TopoRouteWithRoute,
   VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
+  GRADE_NUMBER_TO_LABEL,
 } from '../models';
 
 @Injectable({
@@ -1166,7 +1166,7 @@ export class GlobalData {
         // Grade range filter
         const [minIdx, maxIdx] = grades;
         if (minIdx > 0 || maxIdx < ORDERED_GRADE_VALUES.length - 1) {
-          const allGradeIds = Object.keys(VERTICAL_LIFE_TO_LABEL)
+          const allGradeIds = Object.keys(GRADE_NUMBER_TO_LABEL)
             .map(Number)
             .sort((a, b) => a - b);
           const allowedGrades = allGradeIds.slice(minIdx, maxIdx + 1);

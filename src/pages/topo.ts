@@ -66,7 +66,7 @@ import {
   getRouteStrokeWidth,
 } from '../utils/topo-styles.utils';
 
-import { VERTICAL_LIFE_GRADES, VERTICAL_LIFE_TO_LABEL } from '../models';
+import { VERTICAL_LIFE_GRADES, GRADE_NUMBER_TO_LABEL } from '../models';
 
 import { GradeComponent } from '../components/avatar-grade';
 import { EmptyStateComponent } from '../components/empty-state';
@@ -1510,7 +1510,7 @@ export class TopoComponent {
 
   protected getGradeLabel(grade: number): string {
     return (
-      VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] ||
+      GRADE_NUMBER_TO_LABEL[grade as VERTICAL_LIFE_GRADES] ||
       grade?.toString() ||
       ''
     );

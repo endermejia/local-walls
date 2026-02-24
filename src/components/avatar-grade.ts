@@ -14,7 +14,7 @@ import {
   colorForGrade,
   GradeLabel,
   VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
+  GRADE_NUMBER_TO_LABEL,
 } from '../models';
 
 @Component({
@@ -24,7 +24,7 @@ import {
     <tui-badge
       [size]="badgeSize()"
       class="self-center font-bold select-none !text-[var(--tui-text-primary-on-accent-1)] !rounded-full"
-      [style.background]="getGradeColor()"
+      [style.background]="gradeColor()"
       [attr.aria-label]="'labels.grade' | translate"
     >
       <strong>{{ gradeLabel() }}</strong>
@@ -36,11 +36,11 @@ export class GradeComponent {
   grade = input.required<number>();
   size = input<TuiSizeS | TuiSizeL | TuiSizeXS>('l');
 
-  protected readonly gradeLabel = computed(() => {
-    const g = this.grade();
-    return (
-      VERTICAL_LIFE_TO_LABEL[g as VERTICAL_LIFE_GRADES] || g?.toString() || ''
-    );
+  protected readonly gradeLabel = computed(
+    () => GRADE_NUMBER_TO_LABEL[this.grade() as VERTICAL_LIFE_GRADES],
+  );
+  protected readonly gradeColor = computed(() => {
+    return colorForGrade(this.gradeLabel() as GradeLabel);
   });
 
   protected readonly badgeSize = computed<TuiSizeS | TuiSizeL>(() => {
@@ -48,15 +48,4 @@ export class GradeComponent {
     if (size === 'xs') return 's';
     return size as TuiSizeS | TuiSizeL;
   });
-
-  protected getGradeColor(): string {
-    const label = this.gradeLabel();
-    // Use '5' as fallback for color computation if label is not a standard one
-    const colorLabel = VERTICAL_LIFE_TO_LABEL[
-      this.grade() as VERTICAL_LIFE_GRADES
-    ]
-      ? label
-      : '5';
-    return colorForGrade(colorLabel as GradeLabel);
-  }
 }

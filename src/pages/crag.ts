@@ -55,7 +55,7 @@ import {
   SearchRouteItem,
   type TopoListItem,
   VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
+  GRADE_NUMBER_TO_LABEL,
 } from '../models';
 import { EightAnuService } from '../services/eight-anu.service';
 
@@ -865,8 +865,7 @@ export class CragComponent {
     const textMatches = (r: RouteWithExtras) => {
       if (!q) return true;
       const nameMatch = normalizeName(r.name).includes(q);
-      const gradeLabel =
-        VERTICAL_LIFE_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES];
+      const gradeLabel = GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES];
       const gradeMatch = gradeLabel
         ? normalizeName(gradeLabel).includes(q)
         : false;
@@ -874,7 +873,7 @@ export class CragComponent {
     };
 
     const gradeMatches = (r: RouteWithExtras) => {
-      const label = VERTICAL_LIFE_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES];
+      const label = GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES];
       if (!label) return true;
       return (allowedLabels as readonly string[]).includes(label);
     };

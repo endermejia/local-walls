@@ -59,7 +59,7 @@ import {
   RouteAscentInsertDto,
   RouteAscentWithExtras,
   VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
+  GRADE_NUMBER_TO_LABEL,
 } from '../models';
 
 import {
@@ -756,14 +756,14 @@ export default class AscentFormComponent {
     'traditional',
   ];
 
-  protected readonly gradeItems = Object.entries(VERTICAL_LIFE_TO_LABEL)
+  protected readonly gradeItems = Object.entries(GRADE_NUMBER_TO_LABEL)
     .sort((a, b) => Number(a[0]) - Number(b[0]))
     .map(([k, v]) => ({ id: Number(k), label: v }));
 
   protected readonly gradeStringify = (grade: number): string =>
     grade === 0
       ? this.translate.instant('labels.project')
-      : VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || '';
+      : GRADE_NUMBER_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || '';
 
   protected changeGrade(delta: number): void {
     const ctrl = this.form.get('grade');

@@ -1,7 +1,7 @@
 import {
   GRADE_COLORS,
   VERTICAL_LIFE_GRADES,
-  VERTICAL_LIFE_TO_LABEL,
+  GRADE_NUMBER_TO_LABEL,
   GradeLabel,
   colorForGrade,
 } from '../models';
@@ -18,14 +18,9 @@ export function getRouteColor(
   color: string | undefined,
   grade: string | number,
 ): string {
-  if (color) return color;
+  const label = GRADE_NUMBER_TO_LABEL[grade as VERTICAL_LIFE_GRADES];
 
-  // Resolve the label from the grade (which might be an enum value/number or a string label)
-  const label =
-    VERTICAL_LIFE_TO_LABEL[grade as VERTICAL_LIFE_GRADES] ||
-    (grade as GradeLabel);
-
-  return colorForGrade(label) || GRADE_COLORS[0];
+  return colorForGrade(label as GradeLabel) || GRADE_COLORS[5];
 }
 
 export function getRouteStyleProperties(
