@@ -18,8 +18,11 @@ interface WpPost {
 export class DesnivelService {
   private readonly baseUrl = 'https://www.desnivel.com/wp-json/wp/v2/posts';
 
-  async getLatestPosts(limit: number): Promise<NewsItem[]> {
-    const url = `${this.baseUrl}?categories=4&per_page=${limit}&_embed`;
+  async getLatestPosts(limit: number, before?: string): Promise<NewsItem[]> {
+    let url = `${this.baseUrl}?categories=4&per_page=${limit}&_embed`;
+    if (before) {
+      url += `&before=${before}`;
+    }
     try {
       const response = await fetch(url);
       if (!response.ok) {

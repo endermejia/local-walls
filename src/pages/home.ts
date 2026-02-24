@@ -203,8 +203,15 @@ export class HomeComponent implements OnDestroy {
             scan((acc) => acc + 1, -1),
             concatMap(async (page) => {
               const ascents = await this.fetchAscents(page, filter);
-              if (page === 0 && filter === 'all') {
-                const news = await this.desnivelService.getLatestPosts(5);
+              if (filter === 'all') {
+                const lastItem = this.ascents().slice(-1)[0];
+                const beforeDate = lastItem
+                  ? new Date(lastItem.date).toISOString()
+                  : undefined;
+                const news = await this.desnivelService.getLatestPosts(
+                  5,
+                  beforeDate,
+                );
                 const all = [...ascents, ...news].sort((a, b) => {
                   const dateA = a.date ? new Date(a.date).getTime() : 0;
                   const dateB = b.date ? new Date(b.date).getTime() : 0;
