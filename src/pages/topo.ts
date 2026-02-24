@@ -80,7 +80,6 @@ import {
   handleViewerMouseDown,
   handleViewerMouseMove,
   resetViewerZoomState,
-  applyViewerConstraints,
 } from '../utils/zoom-pan.utils';
 
 export interface TopoRouteRow {
