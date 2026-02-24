@@ -41,7 +41,7 @@ import { CragDto } from '../../models';
                   </span>
                 </div>
                 <div class="text-sm opacity-70">
-                  {{ group.length }} {{ 'labels.crags' | translate }} ({{
+                  {{ group.length }} {{ 'crags' | translate }} ({{
                     getNames(group)
                   }})
                 </div>
@@ -52,7 +52,7 @@ import { CragDto } from '../../models';
                 appearance="primary"
                 (click)="onUnify(group)"
               >
-                {{ 'actions.unify' | translate }}
+                {{ 'unify' | translate }}
               </button>
             </div>
           }

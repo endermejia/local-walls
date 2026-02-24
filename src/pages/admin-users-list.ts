@@ -120,9 +120,7 @@ interface UserWithRole {
 
       <div class="mb-6 flex flex-col md:flex-row gap-4">
         <tui-textfield class="grow" [tuiTextfieldCleaner]="true">
-          <label tuiLabel for="user-search">{{
-            'labels.search' | translate
-          }}</label>
+          <label tuiLabel for="user-search">{{ 'search' | translate }}</label>
           <input
             id="user-search"
             tuiTextfield
@@ -130,7 +128,7 @@ interface UserWithRole {
             autocomplete="off"
             [ngModel]="searchQuery()"
             (ngModelChange)="searchQuery.set($event)"
-            [placeholder]="'labels.user' | translate"
+            [placeholder]="'user' | translate"
           />
         </tui-textfield>
 
@@ -140,9 +138,7 @@ interface UserWithRole {
           [tuiTextfieldCleaner]="false"
           [stringify]="stringifyRoleFilter"
         >
-          <label tuiLabel for="role-filter">{{
-            'labels.role' | translate
-          }}</label>
+          <label tuiLabel for="role-filter">{{ 'role' | translate }}</label>
           <input
             id="role-filter"
             tuiSelect
@@ -176,7 +172,7 @@ interface UserWithRole {
                 [sorter]="userSorter"
                 [sticky]="true"
               >
-                {{ 'labels.user' | translate }}
+                {{ 'user' | translate }}
               </th>
               <th
                 *tuiHead="'role'"
@@ -185,7 +181,7 @@ interface UserWithRole {
                 [sorter]="roleSorter"
                 [sticky]="true"
               >
-                {{ 'labels.role' | translate }}
+                {{ 'role' | translate }}
               </th>
               <th
                 *tuiHead="'areas'"
@@ -193,7 +189,7 @@ interface UserWithRole {
                 class="areas-column !w-80"
                 [sorter]="null"
               >
-                {{ 'labels.areas' | translate }}
+                {{ 'areas' | translate }}
               </th>
             </tr>
           </thead>
@@ -234,11 +230,11 @@ interface UserWithRole {
                           [routerLink]="['/profile', user.id]"
                           class="font-medium"
                         >
-                          {{ user.name || ('labels.anonymous' | translate) }}
+                          {{ user.name || ('anonymous' | translate) }}
                         </a>
                         @if (user.id === currentUserId()) {
                           <span class="text-xs opacity-60">
-                            ({{ 'labels.you' | translate }})
+                            ({{ 'you' | translate }})
                           </span>
                         }
                       </div>
@@ -279,12 +275,12 @@ interface UserWithRole {
                           tuiInputChip
                           id="areas-select-{{ user.id }}"
                           [formControl]="user.areasControl"
-                          [placeholder]="'actions.select' | translate"
+                          [placeholder]="'select' | translate"
                         />
                         <tui-input-chip *tuiItem />
                         <tui-data-list *tuiTextfieldDropdown>
                           <tui-opt-group
-                            [label]="'labels.areas' | translate"
+                            [label]="'areas' | translate"
                             tuiMultiSelectGroup
                           >
                             @for (
@@ -387,7 +383,7 @@ export class AdminUsersListComponent {
   });
 
   protected readonly stringifyRoleFilter = (x: unknown): string => {
-    if (x === 'ALL') return this.translate.instant('labels.all');
+    if (x === 'ALL') return this.translate.instant('all');
     return this.stringifyRole()(x);
   };
 

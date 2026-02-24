@@ -92,7 +92,7 @@ interface MinimalRoute {
           [identityMatcher]="cragIdentityMatcher"
         >
           <label tuiLabel for="crag">
-            {{ 'labels.crag' | translate }}
+            {{ 'crag' | translate }}
           </label>
           <input tuiSelect id="crag" [formControl]="crag_id" />
           <tui-data-list-wrapper
@@ -109,7 +109,7 @@ interface MinimalRoute {
       </tui-textfield>
 
       <tui-textfield [tuiTextfieldCleaner]="false">
-        <label tuiLabel for="slug">{{ 'labels.slug' | translate }}</label>
+        <label tuiLabel for="slug">{{ 'slug' | translate }}</label>
         <input
           tuiTextfield
           id="slug"
@@ -130,13 +130,13 @@ interface MinimalRoute {
         [identityMatcher]="equipperIdentityMatcher"
       >
         <label tuiLabel for="equippers">
-          {{ 'labels.equippers' | translate }}
+          {{ 'equippers' | translate }}
         </label>
         <input
           tuiInputChip
           id="equippers"
           [formControl]="equippers"
-          [placeholder]="'actions.select' | translate"
+          [placeholder]="'select' | translate"
         />
         <tui-input-chip *tuiItem />
         <tui-data-list *tuiTextfieldDropdown>
@@ -159,7 +159,7 @@ interface MinimalRoute {
         [stringify]="kindStringify"
       >
         <label tuiLabel for="kind">
-          {{ 'labels.climbing_kind' | translate }}
+          {{ 'climbing_kind' | translate }}
         </label>
         <input tuiSelect id="kind" [formControl]="climbing_kind" />
         <tui-data-list-wrapper
@@ -188,7 +188,7 @@ interface MinimalRoute {
             [stringify]="gradeStringify"
             class="grow min-w-0"
           >
-            <label tuiLabel for="grade">{{ 'labels.grade' | translate }}</label>
+            <label tuiLabel for="grade">{{ 'grade' | translate }}</label>
             <input tuiSelect id="grade" [formControl]="grade" />
             <tui-data-list-wrapper
               *tuiTextfieldDropdown
@@ -238,7 +238,7 @@ interface MinimalRoute {
           type="button"
           (click.zoneless)="goBack()"
         >
-          {{ 'actions.cancel' | translate }}
+          {{ 'cancel' | translate }}
         </button>
         <button
           [disabled]="
@@ -254,7 +254,7 @@ interface MinimalRoute {
           appearance="primary"
           type="submit"
         >
-          {{ (isEdit() ? 'actions.save' : 'actions.create') | translate }}
+          {{ (isEdit() ? 'save' : 'create') | translate }}
         </button>
       </div>
     </form>
@@ -340,7 +340,7 @@ export class RouteFormComponent {
     .sort((a, b) => a - b);
   protected readonly gradeStringify = (grade: number): string =>
     grade === 0
-      ? this.translate.instant('labels.project')
+      ? this.translate.instant('project')
       : GRADE_NUMBER_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || '';
 
   protected readonly kindOptions: readonly ClimbingKind[] =

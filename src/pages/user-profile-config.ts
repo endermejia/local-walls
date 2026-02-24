@@ -230,7 +230,7 @@ interface Country {
               "
             >
               <label tuiLabel for="nameInput">{{
-                'labels.userName' | translate
+                'userName' | translate
               }}</label>
               <input
                 id="nameInput"
@@ -265,9 +265,7 @@ interface Country {
         <!-- Email (readonly) -->
         <div>
           <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-            <label tuiLabel for="emailInput">{{
-              'labels.email' | translate
-            }}</label>
+            <label tuiLabel for="emailInput">{{ 'email' | translate }}</label>
             <input
               id="emailInput"
               tuiTextfield
@@ -288,9 +286,7 @@ interface Country {
             [class.ring-2]="isFirstSteps()"
             [class.ring-primary]="isFirstSteps()"
           >
-            <label tuiLabel for="bioInput">{{
-              'labels.bio' | translate
-            }}</label>
+            <label tuiLabel for="bioInput">{{ 'bio' | translate }}</label>
             <textarea
               id="bioInput"
               name="bioInput"
@@ -321,7 +317,7 @@ interface Country {
             [stringify]="stringifyEightAnuUser"
           >
             <label tuiLabel for="eightAnuSearch">{{
-              'labels.eightAnuUser' | translate
+              'eightAnuUser' | translate
             }}</label>
             <input
               #eightAnuInput
@@ -367,7 +363,7 @@ interface Country {
               [stringify]="stringifyCountryId"
             >
               <label tuiLabel for="countrySelect">{{
-                'labels.country' | translate
+                'country' | translate
               }}</label>
               <input
                 id="countrySelect"
@@ -402,9 +398,7 @@ interface Country {
           <!-- City -->
           <div>
             <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-              <label tuiLabel for="cityInput">{{
-                'labels.city' | translate
-              }}</label>
+              <label tuiLabel for="cityInput">{{ 'city' | translate }}</label>
               <input
                 id="cityInput"
                 name="cityInput"
@@ -428,7 +422,7 @@ interface Country {
           <div>
             <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
               <label tuiLabel for="birthDateInput">{{
-                'labels.birthDate' | translate
+                'birthDate' | translate
               }}</label>
               <input
                 id="birthDateInput"
@@ -447,7 +441,7 @@ interface Country {
           <div>
             <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
               <label tuiLabel for="startingClimbingYearInput">{{
-                'labels.startingClimbingYear' | translate
+                'startingClimbingYear' | translate
               }}</label>
               <input
                 id="startingClimbingYearInput"
@@ -468,9 +462,7 @@ interface Country {
           <!-- Size -->
           <div>
             <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
-              <label tuiLabel for="sizeInput">{{
-                'labels.size' | translate
-              }}</label>
+              <label tuiLabel for="sizeInput">{{ 'size' | translate }}</label>
               <input
                 id="sizeInput"
                 name="sizeInput"
@@ -493,9 +485,7 @@ interface Country {
               [tuiTextfieldCleaner]="true"
               [stringify]="stringifySex()"
             >
-              <label tuiLabel for="sexSelect">{{
-                'labels.sex' | translate
-              }}</label>
+              <label tuiLabel for="sexSelect">{{ 'sex' | translate }}</label>
               <input
                 id="sexSelect"
                 name="sexSelect"
@@ -520,7 +510,7 @@ interface Country {
         <!-- PREFERENCES -->
         <div class="flex items-center justify-between gap-4">
           <h2 class="text-lg font-bold m-0">
-            {{ 'labels.preferences' | translate }}
+            {{ 'preferences' | translate }}
           </h2>
           <button
             size="s"
@@ -544,7 +534,7 @@ interface Country {
               [stringify]="stringifyLanguage()"
             >
               <label tuiLabel for="languageSelect">{{
-                'labels.language' | translate
+                'language' | translate
               }}</label>
               <input
                 id="languageSelect"
@@ -582,7 +572,7 @@ interface Country {
             <!-- Switches -->
             <div class="flex items-center gap-4">
               <label tuiLabel for="firstStepsSwitch">{{
-                'labels.firstSteps' | translate
+                'firstSteps' | translate
               }}</label>
               <input
                 id="firstStepsSwitch"
@@ -595,7 +585,7 @@ interface Country {
 
             <div class="flex items-center gap-4">
               <label tuiLabel for="msgSoundUtil">{{
-                'labels.messageSound' | translate
+                'messageSound' | translate
               }}</label>
               <input
                 id="msgSoundUtil"
@@ -608,7 +598,7 @@ interface Country {
 
             <div class="flex items-center gap-4">
               <label tuiLabel for="notifSoundUtil">{{
-                'labels.notificationSound' | translate
+                'notificationSound' | translate
               }}</label>
               <input
                 id="notifSoundUtil"
@@ -621,7 +611,7 @@ interface Country {
 
             <div class="flex items-center gap-4">
               <label tuiLabel for="editingSwitch">{{
-                'labels.editingMode' | translate
+                'editingMode' | translate
               }}</label>
               <input
                 id="editingSwitch"
@@ -635,7 +625,7 @@ interface Country {
 
             <div class="flex items-center gap-4">
               <label tuiLabel for="privateSwitch">{{
-                'labels.privateProfile' | translate
+                'privateProfile' | translate
               }}</label>
               <input
                 id="privateSwitch"
@@ -709,7 +699,7 @@ interface Country {
             appearance="secondary"
             (click)="observer.complete()"
           >
-            {{ 'actions.cancel' | translate }}
+            {{ 'cancel' | translate }}
           </button>
           <button
             tuiButton
@@ -979,12 +969,12 @@ export class UserProfileConfigComponent {
     if (isPrivate) {
       const confirmed = await firstValueFrom(
         this.dialogs.open<boolean>(TUI_CONFIRM, {
-          label: this.translate.instant('labels.privateProfile'),
+          label: this.translate.instant('privateProfile'),
           size: 'm',
           data: {
             content: this.translate.instant('profile.private.confirmation'),
-            yes: this.translate.instant('actions.accept'),
-            no: this.translate.instant('actions.cancel'),
+            yes: this.translate.instant('accept'),
+            no: this.translate.instant('cancel'),
           },
         }),
         { defaultValue: false },
@@ -1203,8 +1193,8 @@ export class UserProfileConfigComponent {
         size: 'm',
         data: {
           content: this.translate.instant('firstSteps.restartConfirm'),
-          yes: this.translate.instant('actions.accept'),
-          no: this.translate.instant('actions.cancel'),
+          yes: this.translate.instant('accept'),
+          no: this.translate.instant('cancel'),
         },
       }),
       { defaultValue: false },
@@ -1243,8 +1233,8 @@ export class UserProfileConfigComponent {
           size: 'm',
           data: {
             content: this.translate.instant(messageKey),
-            yes: this.translate.instant('actions.accept'),
-            no: this.translate.instant('actions.cancel'),
+            yes: this.translate.instant('accept'),
+            no: this.translate.instant('cancel'),
           } as TuiConfirmData,
         }),
         { defaultValue: false },

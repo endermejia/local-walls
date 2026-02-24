@@ -36,7 +36,7 @@ import { AreaDto } from '../../models';
               <div>
                 <div class="font-bold">{{ group[0].name }}</div>
                 <div class="text-sm opacity-70">
-                  {{ group.length }} {{ 'labels.areas' | translate }} ({{
+                  {{ group.length }} {{ 'areas' | translate }} ({{
                     getNames(group)
                   }})
                 </div>
@@ -47,7 +47,7 @@ import { AreaDto } from '../../models';
                 appearance="primary"
                 (click)="onUnify(group)"
               >
-                {{ 'actions.unify' | translate }}
+                {{ 'unify' | translate }}
               </button>
             </div>
           }

@@ -413,7 +413,7 @@ import { handleErrorToast } from '../utils';
                 class="grow min-w-0"
               >
                 <label tuiLabel for="ascentGrade">{{
-                  'labels.grade' | translate
+                  'grade' | translate
                 }}</label>
                 <input tuiSelect id="ascentGrade" formControlName="grade" />
                 <tui-data-list-wrapper
@@ -543,7 +543,7 @@ import { handleErrorToast } from '../utils';
             type="button"
             (click)="showMore.set(true)"
           >
-            {{ 'labels.userInfo' | translate }} +
+            {{ 'userInfo' | translate }} +
           </button>
         }
       </div>
@@ -557,7 +557,7 @@ import { handleErrorToast } from '../utils';
             type="button"
             (click.zoneless)="onDelete()"
           >
-            {{ 'actions.delete' | translate }}
+            {{ 'delete' | translate }}
           </button>
         }
         <div class="grow"></div>
@@ -567,7 +567,7 @@ import { handleErrorToast } from '../utils';
           type="button"
           (click.zoneless)="cancel()"
         >
-          {{ 'actions.cancel' | translate }}
+          {{ 'cancel' | translate }}
         </button>
         <button
           [disabled]="form.invalid"
@@ -575,7 +575,7 @@ import { handleErrorToast } from '../utils';
           appearance="primary"
           type="submit"
         >
-          {{ (isEdit() ? 'actions.save' : 'actions.create') | translate }}
+          {{ (isEdit() ? 'save' : 'create') | translate }}
         </button>
       </div>
     </form>
@@ -762,7 +762,7 @@ export default class AscentFormComponent {
 
   protected readonly gradeStringify = (grade: number): string =>
     grade === 0
-      ? this.translate.instant('labels.project')
+      ? this.translate.instant('project')
       : GRADE_NUMBER_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || '';
 
   protected changeGrade(delta: number): void {
@@ -853,8 +853,8 @@ export default class AscentFormComponent {
 
     const data: TuiConfirmData = {
       content: this.translate.instant('ascent.privateConfirmation'),
-      yes: this.translate.instant('actions.accept'),
-      no: this.translate.instant('actions.cancel'),
+      yes: this.translate.instant('accept'),
+      no: this.translate.instant('cancel'),
     };
 
     const confirmed = await firstValueFrom(
@@ -952,8 +952,8 @@ export default class AscentFormComponent {
   protected async attemptSelected(): Promise<void> {
     const data: TuiConfirmData = {
       content: this.translate.instant('ascent.attemptPrivateConfirmation'),
-      yes: this.translate.instant('actions.accept'),
-      no: this.translate.instant('actions.cancel'),
+      yes: this.translate.instant('accept'),
+      no: this.translate.instant('cancel'),
     };
 
     const confirmed = await firstValueFrom(
@@ -1114,8 +1114,8 @@ export default class AscentFormComponent {
         size: 's',
         data: {
           content: this.translate.instant('ascent.deletePhotoConfirm'),
-          yes: this.translate.instant('actions.delete'),
-          no: this.translate.instant('actions.cancel'),
+          yes: this.translate.instant('delete'),
+          no: this.translate.instant('cancel'),
         },
       }),
       { defaultValue: false },
@@ -1144,8 +1144,8 @@ export default class AscentFormComponent {
             routeName: this.routeName(),
             date: data.date,
           }),
-          yes: this.translate.instant('actions.delete'),
-          no: this.translate.instant('actions.cancel'),
+          yes: this.translate.instant('delete'),
+          no: this.translate.instant('cancel'),
         },
       }),
       { defaultValue: false },

@@ -56,9 +56,7 @@ interface MinimalParking {
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
       <tui-textfield [tuiTextfieldCleaner]="false">
-        <label tuiLabel for="parking-name">{{
-          'labels.name' | translate
-        }}</label>
+        <label tuiLabel for="parking-name">{{ 'name' | translate }}</label>
         <input
           tuiTextfield
           id="parking-name"
@@ -73,7 +71,7 @@ interface MinimalParking {
       </tui-textfield>
 
       <div class="flex flex-wrap items-center gap-4">
-        <h3 class="font-bold text-lg">{{ 'labels.location' | translate }}</h3>
+        <h3 class="font-bold text-lg">{{ 'location' | translate }}</h3>
         <button
           tuiButton
           appearance="secondary-grayscale"
@@ -82,14 +80,14 @@ interface MinimalParking {
           iconStart="@tui.map-pin"
           (click.zoneless)="pickLocation()"
         >
-          {{ 'actions.pickOnMap' | translate }}
+          {{ 'pickOnMap' | translate }}
         </button>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
         <div class="grid grid-cols-2 gap-4">
           <tui-textfield [tuiTextfieldCleaner]="false">
-            <label tuiLabel for="lat">{{ 'labels.lat' | translate }}</label>
+            <label tuiLabel for="lat">{{ 'lat' | translate }}</label>
             <input
               tuiInputNumber
               id="lat"
@@ -104,7 +102,7 @@ interface MinimalParking {
             />
           </tui-textfield>
           <tui-textfield [tuiTextfieldCleaner]="false">
-            <label tuiLabel for="lng">{{ 'labels.lng' | translate }}</label>
+            <label tuiLabel for="lng">{{ 'lng' | translate }}</label>
             <input
               tuiInputNumber
               id="lng"
@@ -119,7 +117,7 @@ interface MinimalParking {
           </tui-textfield>
         </div>
 
-        <app-counter [formControl]="size" label="labels.capacity" [min]="0" />
+        <app-counter [formControl]="size" label="capacity" [min]="0" />
       </div>
 
       <div class="flex flex-wrap gap-2 justify-end">
@@ -129,7 +127,7 @@ interface MinimalParking {
           type="button"
           (click.zoneless)="goBack()"
         >
-          {{ 'actions.cancel' | translate }}
+          {{ 'cancel' | translate }}
         </button>
         <button
           [disabled]="
@@ -146,7 +144,7 @@ interface MinimalParking {
           appearance="primary"
           type="submit"
         >
-          {{ (isEdit() ? 'actions.save' : 'actions.create') | translate }}
+          {{ (isEdit() ? 'save' : 'create') | translate }}
         </button>
       </div>
     </form>

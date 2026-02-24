@@ -73,7 +73,7 @@ import { TuiDropdown } from '@taiga-ui/core';
             @if (crags.length > 0) {
               <div class="flex flex-col gap-2 mt-2">
                 <span class="text-xs font-bold opacity-60 uppercase px-1">
-                  {{ 'labels.crags' | translate }}
+                  {{ 'crags' | translate }}
                 </span>
                 <div
                   class="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar"
@@ -99,10 +99,10 @@ import { TuiDropdown } from '@taiga-ui/core';
             <div class="flex justify-center">
               <tui-segmented [(activeItemIndex)]="filterIndex">
                 <button type="button">
-                  {{ 'actions.following' | translate }}
+                  {{ 'following' | translate }}
                 </button>
                 <button type="button">
-                  {{ 'labels.all' | translate }}
+                  {{ 'all' | translate }}
                 </button>
               </tui-segmented>
             </div>

@@ -166,7 +166,7 @@ export interface TopoRouteRow {
                     class="!rounded-full"
                     (click.zoneless)="openEditTopo(t)"
                   >
-                    {{ 'actions.edit' | translate }}
+                    {{ 'edit' | translate }}
                   </button>
                   @if (isAdmin) {
                     <button
@@ -177,7 +177,7 @@ export interface TopoRouteRow {
                       class="!rounded-full"
                       (click.zoneless)="deleteTopo(t)"
                     >
-                      {{ 'actions.delete' | translate }}
+                      {{ 'delete' | translate }}
                     </button>
                   }
                 }
@@ -601,7 +601,7 @@ export interface TopoRouteRow {
                         class="!rounded-full"
                         (click)="selectPrevRoute(); $event.stopPropagation()"
                       >
-                        {{ 'actions.previous' | translate }}
+                        {{ 'previous' | translate }}
                       </button>
 
                       <div class="flex flex-1 items-center gap-3 min-w-0">
@@ -628,7 +628,7 @@ export interface TopoRouteRow {
                         class="!rounded-full mr-1"
                         (click)="selectNextRoute(); $event.stopPropagation()"
                       >
-                        {{ 'actions.next' | translate }}
+                        {{ 'next' | translate }}
                       </button>
                     </div>
                   </div>
@@ -683,7 +683,7 @@ export interface TopoRouteRow {
                                 {{ 'routes.name' | translate }}
                               }
                               @case ('grade') {
-                                {{ 'labels.grade' | translate }}
+                                {{ 'grade' | translate }}
                               }
                               @case ('height') {
                                 {{ 'routes.height' | translate }}
@@ -899,7 +899,7 @@ export interface TopoRouteRow {
                                         $event.stopPropagation()
                                       "
                                     >
-                                      {{ 'labels.project' | translate }}
+                                      {{ 'project' | translate }}
                                     </button>
                                   }
                                 </div>
@@ -922,7 +922,7 @@ export interface TopoRouteRow {
                                         $event.stopPropagation()
                                       "
                                     >
-                                      {{ 'actions.unlink' | translate }}
+                                      {{ 'unlink' | translate }}
                                     </button>
                                   }
                                 </div>
@@ -1319,8 +1319,8 @@ export class TopoComponent {
           content: this.translate.instant('topos.deleteConfirm', {
             name: topo.name,
           }),
-          yes: this.translate.instant('actions.delete'),
-          no: this.translate.instant('actions.cancel'),
+          yes: this.translate.instant('delete'),
+          no: this.translate.instant('cancel'),
         } as TuiConfirmData,
       }),
       { defaultValue: false },
@@ -1346,8 +1346,8 @@ export class TopoComponent {
           content: this.translate.instant('topos.removeRouteConfirm', {
             name: topoRoute.route.name,
           }),
-          yes: this.translate.instant('actions.delete'),
-          no: this.translate.instant('actions.cancel'),
+          yes: this.translate.instant('delete'),
+          no: this.translate.instant('cancel'),
         } as TuiConfirmData,
       }),
       { defaultValue: false },

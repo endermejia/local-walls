@@ -61,7 +61,7 @@ import { CragDto } from '../models';
           id="target-crag"
           autocomplete="off"
           [formControl]="targetCrag"
-          [placeholder]="'actions.select' | translate"
+          [placeholder]="'select' | translate"
         />
         <tui-data-list *tuiTextfieldDropdown>
           @for (crag of availableCrags() | tuiFilterByInput; track crag.id) {
@@ -90,7 +90,7 @@ import { CragDto } from '../models';
           id="source-crags"
           autocomplete="off"
           [formControl]="sourceCrags"
-          [placeholder]="'actions.select' | translate"
+          [placeholder]="'select' | translate"
         />
         <tui-input-chip *tuiItem />
         <tui-data-list *tuiTextfieldDropdown>
@@ -129,7 +129,7 @@ import { CragDto } from '../models';
           type="button"
           (click)="context.completeWith(false)"
         >
-          {{ 'actions.cancel' | translate }}
+          {{ 'cancel' | translate }}
         </button>
         <button
           tuiButton
@@ -141,7 +141,7 @@ import { CragDto } from '../models';
           "
           (click)="onUnify()"
         >
-          {{ 'actions.unify' | translate }}
+          {{ 'unify' | translate }}
         </button>
       </div>
     </div>

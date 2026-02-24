@@ -25,7 +25,7 @@ import {
       [size]="badgeSize()"
       class="self-center font-bold select-none !text-[var(--tui-text-primary-on-accent-1)] !rounded-full"
       [style.background]="gradeColor()"
-      [attr.aria-label]="'labels.grade' | translate"
+      [attr.aria-label]="'grade' | translate"
     >
       <strong>{{ gradeLabel() }}</strong>
     </tui-badge>

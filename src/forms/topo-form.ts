@@ -157,7 +157,7 @@ import { handleErrorToast, slugify } from '../utils';
                   iconStart="@tui.edit-2"
                   (click)="editPhoto(null, url)"
                 >
-                  {{ 'actions.edit' | translate }}
+                  {{ 'edit' | translate }}
                 </button>
               }
               <button
@@ -168,7 +168,7 @@ import { handleErrorToast, slugify } from '../utils';
                 iconStart="@tui.pencil"
                 (click)="openPathEditor()"
               >
-                {{ 'actions.draw' | translate }}
+                {{ 'draw' | translate }}
               </button>
             }
           </div>
@@ -268,15 +268,13 @@ import { handleErrorToast, slugify } from '../utils';
           [identityMatcher]="routeIdentityMatcher"
           [tuiTextfieldCleaner]="true"
         >
-          <label tuiLabel for="routes-select">{{
-            'labels.routes' | translate
-          }}</label>
+          <label tuiLabel for="routes-select">{{ 'routes' | translate }}</label>
           <input
             tuiInputChip
             id="routes-select"
             autocomplete="off"
             [formControl]="selectedRoutes"
-            [placeholder]="'actions.select' | translate"
+            [placeholder]="'select' | translate"
           />
           <tui-input-chip *tuiItem />
           <tui-data-list *tuiTextfieldDropdown>
@@ -313,7 +311,7 @@ import { handleErrorToast, slugify } from '../utils';
           type="button"
           (click.zoneless)="goBack()"
         >
-          {{ 'actions.cancel' | translate }}
+          {{ 'cancel' | translate }}
         </button>
         @if (selectedRoutes.value.length > 0) {
           <button
@@ -332,7 +330,7 @@ import { handleErrorToast, slugify } from '../utils';
           appearance="primary"
           type="submit"
         >
-          {{ (isEdit() ? 'actions.save' : 'actions.create') | translate }}
+          {{ (isEdit() ? 'save' : 'create') | translate }}
         </button>
       </div>
     </form>
@@ -786,8 +784,8 @@ export class TopoFormComponent {
         size: 's',
         data: {
           content: this.translate.instant('topos.deletePhotoConfirm'),
-          yes: this.translate.instant('actions.delete'),
-          no: this.translate.instant('actions.cancel'),
+          yes: this.translate.instant('delete'),
+          no: this.translate.instant('cancel'),
         },
       }),
       { defaultValue: false },
@@ -813,8 +811,8 @@ export class TopoFormComponent {
         size: 's',
         data: {
           content: this.translate.instant('topos.editor.sortConfirm'),
-          yes: this.translate.instant('actions.apply'),
-          no: this.translate.instant('actions.cancel'),
+          yes: this.translate.instant('apply'),
+          no: this.translate.instant('cancel'),
         },
       }),
       { defaultValue: false },

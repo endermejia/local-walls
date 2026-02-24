@@ -100,7 +100,7 @@ import { handleErrorToast, normalizeName } from '../utils';
                     class="!rounded-full"
                     (click.zoneless)="openEditArea()"
                   >
-                    {{ 'actions.edit' | translate }}
+                    {{ 'edit' | translate }}
                   </button>
                   @if (isAdmin) {
                     <button
@@ -112,7 +112,7 @@ import { handleErrorToast, normalizeName } from '../utils';
                       class="!rounded-full"
                       (click.zoneless)="deleteArea()"
                     >
-                      {{ 'actions.delete' | translate }}
+                      {{ 'delete' | translate }}
                     </button>
                   }
                 </div>
@@ -129,7 +129,7 @@ import { handleErrorToast, normalizeName } from '../utils';
               (click.zoneless)="viewOnMap()"
               [iconStart]="'@tui.map-pin'"
             >
-              {{ 'actions.viewOnMap' | translate }}
+              {{ 'viewOnMap' | translate }}
             </button>
             <app-chart-routes-by-grade [grades]="area.grades" />
           </div>
@@ -141,7 +141,7 @@ import { handleErrorToast, normalizeName } from '../utils';
                 size="l"
                 [src]="global.iconSrc()('crag')"
                 class="self-center"
-                [attr.aria-label]="'labels.crag' | translate"
+                [attr.aria-label]="'crag' | translate"
               />
               <h2 class="text-2xl font-semibold">
                 {{ cragsCount() }}
@@ -162,7 +162,7 @@ import { handleErrorToast, normalizeName } from '../utils';
                   (click.zoneless)="cragsService.openUnifyCrags()"
                   [iconStart]="'@tui.blend'"
                 >
-                  {{ 'actions.unify' | translate }}
+                  {{ 'unify' | translate }}
                 </button>
               }
               @if (global.editingMode()) {
@@ -174,7 +174,7 @@ import { handleErrorToast, normalizeName } from '../utils';
                   (click.zoneless)="openCreateCrag()"
                   [iconStart]="'@tui.plus'"
                 >
-                  {{ 'actions.new' | translate }}
+                  {{ 'new' | translate }}
                 </button>
               }
               @if (isAdmin) {
@@ -199,7 +199,7 @@ import { handleErrorToast, normalizeName } from '../utils';
               tuiTextfieldSize="l"
             >
               <label tuiLabel for="crags-search">{{
-                'labels.searchPlaceholder' | translate
+                'searchPlaceholder' | translate
               }}</label>
               <input
                 tuiTextfield
@@ -226,7 +226,7 @@ import { handleErrorToast, normalizeName } from '../utils';
                 size="l"
                 type="button"
                 iconStart="@tui.sliders-horizontal"
-                [attr.aria-label]="'labels.filters' | translate"
+                [attr.aria-label]="'filters' | translate"
                 (click.zoneless)="openFilters()"
               ></button>
             </tui-badged-content>
@@ -248,7 +248,7 @@ import { handleErrorToast, normalizeName } from '../utils';
                   <section class="flex items-center justify-between gap-2">
                     <div class="text-xl">
                       {{ crag.topos_count }}
-                      {{ 'labels.topos' | translate | lowercase }}
+                      {{ 'topos' | translate | lowercase }}
                     </div>
                     <app-chart-routes-by-grade
                       (click)="$event.stopPropagation()"
@@ -399,8 +399,8 @@ export class AreaComponent {
 
     const data: TuiConfirmData = {
       content: message,
-      yes: this.translate.instant('actions.delete'),
-      no: this.translate.instant('actions.cancel'),
+      yes: this.translate.instant('delete'),
+      no: this.translate.instant('cancel'),
       appearance: 'accent',
     };
 

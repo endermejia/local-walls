@@ -103,7 +103,7 @@ import { handleErrorToast } from '../utils';
                   class="!rounded-full"
                   (click.zoneless)="openEditRoute()"
                 >
-                  {{ 'actions.edit' | translate }}
+                  {{ 'edit' | translate }}
                 </button>
                 @if (isAdmin) {
                   <button
@@ -115,7 +115,7 @@ import { handleErrorToast } from '../utils';
                     class="!rounded-full"
                     (click.zoneless)="deleteRoute()"
                   >
-                    {{ 'actions.delete' | translate }}
+                    {{ 'delete' | translate }}
                   </button>
                 }
               </div>
@@ -178,7 +178,7 @@ import { handleErrorToast } from '../utils';
                   iconStart="@tui.bookmark"
                   (click)="routesService.toggleRouteProject(r.id, r)"
                 >
-                  {{ 'labels.project' | translate }}
+                  {{ 'project' | translate }}
                 </button>
               }
             </div>
@@ -192,7 +192,7 @@ import { handleErrorToast } from '../utils';
                   <span
                     class="text-xs uppercase opacity-60 font-semibold tracking-wider mb-2"
                   >
-                    {{ 'labels.height' | translate }}
+                    {{ 'height' | translate }}
                   </span>
                   <div class="flex items-center gap-2">
                     <tui-avatar
@@ -211,7 +211,7 @@ import { handleErrorToast } from '../utils';
                 <span
                   class="text-xs uppercase opacity-60 font-semibold tracking-wider mb-2"
                 >
-                  {{ 'labels.climbing_kind' | translate }}
+                  {{ 'climbing_kind' | translate }}
                 </span>
                 <div class="flex items-center gap-2">
                   <tui-avatar
@@ -229,7 +229,7 @@ import { handleErrorToast } from '../utils';
                 <span
                   class="text-xs uppercase opacity-60 font-semibold tracking-wider mb-2"
                 >
-                  {{ 'labels.rating' | translate }}
+                  {{ 'rating' | translate }}
                 </span>
                 <div class="flex items-center gap-2">
                   <tui-rating
@@ -252,7 +252,7 @@ import { handleErrorToast } from '../utils';
                 <span
                   class="text-xs uppercase opacity-60 font-semibold tracking-wider mb-1"
                 >
-                  {{ 'labels.equippers' | translate }}
+                  {{ 'equippers' | translate }}
                 </span>
                 <div class="flex items-center gap-2">
                   <tui-avatar
@@ -483,8 +483,8 @@ export class RouteComponent {
           content: this.translate.instant('routes.deleteConfirm', {
             name: r.name,
           }),
-          yes: this.translate.instant('actions.delete'),
-          no: this.translate.instant('actions.cancel'),
+          yes: this.translate.instant('delete'),
+          no: this.translate.instant('cancel'),
         } as TuiConfirmData,
       }),
     ).then((confirmed) => {

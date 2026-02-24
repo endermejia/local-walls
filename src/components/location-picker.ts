@@ -37,7 +37,7 @@ import { MapComponent } from './map';
           class="pointer-events-auto"
           (click.zoneless)="cancel()"
         >
-          {{ 'actions.cancel' | translate }}
+          {{ 'cancel' | translate }}
         </button>
         <button
           tuiButton
@@ -47,7 +47,7 @@ import { MapComponent } from './map';
           [disabled]="!selection()"
           (click.zoneless)="confirm()"
         >
-          {{ 'actions.select' | translate }}
+          {{ 'select' | translate }}
         </button>
       </div>
     </div>

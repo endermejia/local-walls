@@ -97,14 +97,14 @@ import { handleErrorToast } from '../utils';
           iconStart="@tui.plus"
           (click.zoneless)="addNewEquipper()"
         >
-          {{ 'actions.new' | translate }}
+          {{ 'new' | translate }}
         </button>
       </header>
 
       <div class="mb-6">
         <tui-textfield class="grow" [tuiTextfieldCleaner]="true">
           <label tuiLabel for="equipper-search">{{
-            'labels.search' | translate
+            'search' | translate
           }}</label>
           <input
             id="equipper-search"
@@ -112,7 +112,7 @@ import { handleErrorToast } from '../utils';
             type="text"
             [ngModel]="searchQuery()"
             (ngModelChange)="searchQuery.set($event)"
-            [placeholder]="'labels.name' | translate"
+            [placeholder]="'name' | translate"
           />
         </tui-textfield>
       </div>
@@ -130,7 +130,7 @@ import { handleErrorToast } from '../utils';
           <thead tuiThead>
             <tr tuiThGroup>
               <th *tuiHead="'name'" tuiTh [sorter]="nameSorter">
-                {{ 'labels.name' | translate }}
+                {{ 'name' | translate }}
               </th>
               <th
                 *tuiHead="'description'"
@@ -138,7 +138,7 @@ import { handleErrorToast } from '../utils';
                 [sorter]="descriptionSorter"
                 class="!w-96"
               >
-                {{ 'labels.description' | translate }}
+                {{ 'description' | translate }}
               </th>
               <th
                 *tuiHead="'actions'"
@@ -201,7 +201,7 @@ import { handleErrorToast } from '../utils';
                       class="!rounded-full"
                       (click.zoneless)="deleteEquipper(item)"
                     >
-                      {{ 'actions.delete' | translate }}
+                      {{ 'delete' | translate }}
                     </button>
                   </td>
                 </tr>
@@ -350,8 +350,8 @@ export class AdminEquippersListComponent {
           content: this.translate.instant('admin.equippers.deleteConfirm', {
             name: equipper.name,
           }),
-          yes: this.translate.instant('actions.delete'),
-          no: this.translate.instant('actions.cancel'),
+          yes: this.translate.instant('delete'),
+          no: this.translate.instant('cancel'),
         } as TuiConfirmData,
       }),
       { defaultValue: false },

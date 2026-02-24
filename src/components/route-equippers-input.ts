@@ -55,7 +55,7 @@ import { RoutesService, SupabaseService, ToastService } from '../services';
         [ngModel]="equippers()"
         (ngModelChange)="onEquippersChange($event)"
         (input)="searchQuery.set(chipInput.value)"
-        [placeholder]="'actions.select' | translate"
+        [placeholder]="'select' | translate"
       />
       <tui-input-chip *tuiItem />
       <tui-data-list *tuiTextfieldDropdown>
@@ -71,7 +71,7 @@ import { RoutesService, SupabaseService, ToastService } from '../services';
           }
         } @else {
           <div class="p-2 text-sm opacity-60 text-center">
-            {{ 'labels.search' | translate }}
+            {{ 'search' | translate }}
           </div>
         }
       </tui-data-list>

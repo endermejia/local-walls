@@ -225,7 +225,7 @@ export interface RoutesTableRow {
                                 "
                                 class="align-self-start font-bold text-base truncate max-w-full block"
                               >
-                                {{ item.route || ('labels.route' | translate) }}
+                                {{ item.route || ('route' | translate) }}
                               </a>
                               @if (showLocation() && !isMobile) {
                                 <div
@@ -343,7 +343,7 @@ export interface RoutesTableRow {
                                         )
                                       "
                                     >
-                                      {{ 'actions.addRouteToTopo' | translate }}
+                                      {{ 'addRouteToTopo' | translate }}
                                     </button>
                                   }
                                 </div>
@@ -363,7 +363,7 @@ export interface RoutesTableRow {
                                     openDropdownId.set($event ? item.key : null)
                                   "
                                 >
-                                  {{ 'actions.addRouteToTopo' | translate }}
+                                  {{ 'addRouteToTopo' | translate }}
                                 </button>
                               }
                               <ng-template #toposMenu>
@@ -460,7 +460,7 @@ export interface RoutesTableRow {
                                   )
                                 "
                               >
-                                {{ 'labels.project' | translate }}
+                                {{ 'project' | translate }}
                               </button>
                             }
                           </div>
@@ -477,7 +477,7 @@ export interface RoutesTableRow {
                                 class="!rounded-full"
                                 (click.zoneless)="openEditRoute(item._ref)"
                               >
-                                {{ 'actions.edit' | translate }}
+                                {{ 'edit' | translate }}
                               </button>
                               @if (isAdmin) {
                                 <button
@@ -489,7 +489,7 @@ export interface RoutesTableRow {
                                   class="!rounded-full"
                                   (click.zoneless)="deleteRoute(item._ref)"
                                 >
-                                  {{ 'actions.delete' | translate }}
+                                  {{ 'delete' | translate }}
                                 </button>
                               }
                             }
@@ -572,7 +572,7 @@ export interface RoutesTableRow {
                                         $event.stopPropagation()
                                       "
                                     >
-                                      {{ 'actions.addRouteToTopo' | translate }}
+                                      {{ 'addRouteToTopo' | translate }}
                                     </button>
                                   }
                                 </div>
@@ -595,7 +595,7 @@ export interface RoutesTableRow {
                                   "
                                   (click.zoneless)="$event.stopPropagation()"
                                 >
-                                  {{ 'actions.addRouteToTopo' | translate }}
+                                  {{ 'addRouteToTopo' | translate }}
                                 </button>
                               }
                               <ng-template #toposMenuExpanded>
@@ -704,7 +704,7 @@ export interface RoutesTableRow {
                                   $event.stopPropagation()
                                 "
                               >
-                                {{ 'labels.project' | translate }}
+                                {{ 'project' | translate }}
                               </button>
                             }
 
@@ -721,7 +721,7 @@ export interface RoutesTableRow {
                                   $event.stopPropagation()
                                 "
                               >
-                                {{ 'actions.edit' | translate }}
+                                {{ 'edit' | translate }}
                               </button>
                               <button
                                 size="s"
@@ -735,7 +735,7 @@ export interface RoutesTableRow {
                                   $event.stopPropagation()
                                 "
                               >
-                                {{ 'actions.delete' | translate }}
+                                {{ 'delete' | translate }}
                               </button>
                             }
                           </div>
@@ -947,8 +947,8 @@ export class RoutesTableComponent {
           content: this.translate.instant('routes.deleteConfirm', {
             name: route.name,
           }),
-          yes: this.translate.instant('actions.delete'),
-          no: this.translate.instant('actions.cancel'),
+          yes: this.translate.instant('delete'),
+          no: this.translate.instant('cancel'),
         } as TuiConfirmData,
       }),
       { defaultValue: false },

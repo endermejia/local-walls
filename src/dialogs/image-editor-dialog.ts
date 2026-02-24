@@ -780,8 +780,8 @@ export class ImageEditorDialogComponent implements AfterViewInit {
         size: 's',
         data: {
           content: this.translate.instant('topos.editor.sortConfirm'),
-          yes: this.translate.instant('actions.apply'),
-          no: this.translate.instant('actions.cancel'),
+          yes: this.translate.instant('apply'),
+          no: this.translate.instant('cancel'),
         },
       }),
       { defaultValue: false },
@@ -965,8 +965,8 @@ export class ImageEditorDialogComponent implements AfterViewInit {
           content: this.translate.instant('imageEditor.deletePathConfirm', {
             name: route.route.name,
           }),
-          yes: this.translate.instant('actions.delete'),
-          no: this.translate.instant('actions.cancel'),
+          yes: this.translate.instant('delete'),
+          no: this.translate.instant('cancel'),
         } as TuiConfirmData,
       }),
       { defaultValue: false },

@@ -26,7 +26,7 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
       <button
         type="button"
         class="appearance-none p-0 bg-transparent border-none cursor-pointer flex items-center"
-        [attr.aria-label]="'actions.like' | translate"
+        [attr.aria-label]="'like' | translate"
         (click)="toggleLike($event)"
       >
         <tui-icon
@@ -107,7 +107,7 @@ export class AscentLikesComponent {
         new PolymorpheusComponent(UserListDialogComponent),
         {
           data: { ascentId: this.ascentId(), type: 'ascent-likes' },
-          label: this.translate.instant('labels.likes'),
+          label: this.translate.instant('likes'),
           size: 'm',
         },
       ),

@@ -114,7 +114,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
                 [iconStart]="loading() ? '@tui.loader' : ''"
                 (click)="unfollow(ascent.user_id, ascent.user?.name || 'User')"
               >
-                {{ 'actions.following' | translate }}
+                {{ 'following' | translate }}
               </button>
             } @else {
               <button
@@ -126,7 +126,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
                 [iconStart]="loading() ? '@tui.loader' : ''"
                 (click)="follow(ascent.user_id)"
               >
-                {{ 'actions.follow' | translate }}
+                {{ 'follow' | translate }}
               </button>
             }
           } @else {
@@ -138,7 +138,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
                 class="!rounded-full"
                 (click)="editAscent()"
               >
-                {{ 'actions.edit' | translate }}
+                {{ 'edit' | translate }}
               </button>
               @if (ascent.private_ascent) {
                 <tui-badge appearance="accent" class="text-xs">
@@ -166,7 +166,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
                   class="!rounded-full"
                   (click)="editAscent()"
                 >
-                  {{ 'actions.edit' | translate }}
+                  {{ 'edit' | translate }}
                 </button>
                 @if (ascent.private_ascent) {
                   <tui-badge appearance="accent" class="text-xs">
@@ -317,7 +317,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
                 [readOnly]="true"
                 class="pointer-events-none"
                 [style.font-size.rem]="0.5"
-                [attr.aria-label]="'labels.rating' | translate"
+                [attr.aria-label]="'rating' | translate"
               />
             }
           </div>
@@ -456,17 +456,17 @@ export class AscentCardComponent {
   async unfollow(userId: string, name: string) {
     if (this.loading()) return;
     const data: TuiConfirmData = {
-      content: this.translate.instant('actions.unfollowConfirm', {
+      content: this.translate.instant('unfollowConfirm', {
         name,
       }),
-      yes: this.translate.instant('actions.unfollow'),
-      no: this.translate.instant('actions.cancel'),
+      yes: this.translate.instant('unfollow'),
+      no: this.translate.instant('cancel'),
       appearance: 'negative',
     };
 
     const confirmed = await firstValueFrom(
       this.dialogs.open<boolean>(TUI_CONFIRM, {
-        label: this.translate.instant('actions.unfollow'),
+        label: this.translate.instant('unfollow'),
         size: 's',
         data,
       }),

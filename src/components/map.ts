@@ -55,7 +55,7 @@ import { MapBuilder, MapBuilderCallbacks } from '../services/map-builder';
           (click.zoneless)="onZoomInClick()"
           [iconStart]="'@tui.plus'"
         >
-          {{ 'labels.zoomIn' | translate }}
+          {{ 'zoomIn' | translate }}
         </button>
 
         <!-- Zoom out button -->
@@ -67,7 +67,7 @@ import { MapBuilder, MapBuilderCallbacks } from '../services/map-builder';
           (click.zoneless)="onZoomOutClick()"
           [iconStart]="'@tui.minus'"
         >
-          {{ 'labels.zoomOut' | translate }}
+          {{ 'zoomOut' | translate }}
         </button>
 
         <!-- Locate button -->
@@ -79,7 +79,7 @@ import { MapBuilder, MapBuilderCallbacks } from '../services/map-builder';
           (click.zoneless)="onLocateClick()"
           [iconStart]="'@tui.locate'"
         >
-          {{ 'labels.myLocation' | translate }}
+          {{ 'myLocation' | translate }}
         </button>
       </div>
     </div>

@@ -165,7 +165,7 @@ import {
                     class="!rounded-full"
                     (click.zoneless)="openEditCrag()"
                   >
-                    {{ 'actions.edit' | translate }}
+                    {{ 'edit' | translate }}
                   </button>
                   @if (isAdmin) {
                     <button
@@ -177,7 +177,7 @@ import {
                       class="!rounded-full"
                       (click.zoneless)="deleteCrag()"
                     >
-                      {{ 'actions.delete' | translate }}
+                      {{ 'delete' | translate }}
                     </button>
                   }
                 </div>
@@ -224,7 +224,7 @@ import {
                       (click.zoneless)="viewOnMap(c.latitude, c.longitude)"
                       [iconStart]="'@tui.map-pin'"
                     >
-                      {{ 'actions.viewOnMap' | translate }}
+                      {{ 'viewOnMap' | translate }}
                     </button>
                     <button
                       appearance="flat"
@@ -241,9 +241,9 @@ import {
                           })
                         )
                       "
-                      [attr.aria-label]="'actions.openGoogleMaps' | translate"
+                      [attr.aria-label]="'openGoogleMaps' | translate"
                     >
-                      {{ 'actions.openGoogleMaps' | translate }}
+                      {{ 'openGoogleMaps' | translate }}
                     </button>
                   </div>
                 }
@@ -290,11 +290,11 @@ import {
                   }
                   {{
                     (tabIdx === 0
-                      ? 'labels.routes'
+                      ? 'routes'
                       : tabIdx === 1
-                        ? 'labels.topos'
+                        ? 'topos'
                         : tabIdx === 2
-                          ? 'labels.parkings'
+                          ? 'parkings'
                           : 'weather.title'
                     ) | translate
                   }}
@@ -315,11 +315,11 @@ import {
                       size="l"
                       src="@tui.route"
                       class="self-center"
-                      [attr.aria-label]="'labels.routes' | translate"
+                      [attr.aria-label]="'routes' | translate"
                     />
                     <h2 class="text-2xl font-semibold">
                       {{ routesCount() }}
-                      {{ 'labels.routes' | translate | lowercase }}
+                      {{ 'routes' | translate | lowercase }}
                     </h2>
                   </div>
                   @if (global.editingMode()) {
@@ -335,7 +335,7 @@ import {
                           (click.zoneless)="routesService.openUnifyRoutes()"
                           [iconStart]="'@tui.blend'"
                         >
-                          {{ 'actions.unify' | translate }}
+                          {{ 'unify' | translate }}
                         </button>
                       }
                       <button
@@ -346,7 +346,7 @@ import {
                         (click.zoneless)="openCreateRoute()"
                         [iconStart]="'@tui.plus'"
                       >
-                        {{ 'actions.new' | translate }}
+                        {{ 'new' | translate }}
                       </button>
                     </div>
                   }
@@ -355,7 +355,7 @@ import {
                 <div class="mb-4 flex items-end gap-2">
                   <tui-textfield class="grow block" tuiTextfieldSize="l">
                     <label tuiLabel for="routes-search">{{
-                      'labels.searchPlaceholder' | translate
+                      'searchPlaceholder' | translate
                     }}</label>
                     <input
                       tuiTextfield
@@ -380,7 +380,7 @@ import {
                       size="l"
                       type="button"
                       iconStart="@tui.sliders-horizontal"
-                      [attr.aria-label]="'labels.filters' | translate"
+                      [attr.aria-label]="'filters' | translate"
                       (click.zoneless)="openFilters()"
                     ></button>
                   </tui-badged-content>
@@ -405,7 +405,7 @@ import {
                     >
                       <tui-loader size="m" />
                       <span class="text-sm opacity-60">
-                        {{ 'actions.loading' | translate }} 8a.nu...
+                        {{ 'loading' | translate }} 8a.nu...
                       </span>
                     </div>
                   } @else if (anuResults.length > 0) {
@@ -413,7 +413,7 @@ import {
                       <div class="flex items-center gap-2 opacity-70 mb-2">
                         <tui-icon [icon]="global.iconSrc()('8anu')" />
                         <span class="font-medium">
-                          {{ 'labels.eightAnuResults' | translate }}
+                          {{ 'eightAnuResults' | translate }}
                         </span>
                       </div>
                       @for (item of anuResults; track item.zlaggableId) {
@@ -442,7 +442,7 @@ import {
                             iconStart="@tui.download"
                             (click.zoneless)="importRoute(item)"
                           >
-                            {{ 'actions.import' | translate }}
+                            {{ 'import' | translate }}
                           </button>
                         </div>
                       }
@@ -499,7 +499,7 @@ import {
                       size="l"
                       [src]="global.iconSrc()('topo')"
                       class="self-center"
-                      [attr.aria-label]="'labels.topo' | translate"
+                      [attr.aria-label]="'topo' | translate"
                     />
                     <h2 class="text-2xl font-semibold">
                       {{ toposCount }}
@@ -519,7 +519,7 @@ import {
                       (click.zoneless)="openCreateTopo()"
                       [iconStart]="'@tui.plus'"
                     >
-                      {{ 'actions.new' | translate }}
+                      {{ 'new' | translate }}
                     </button>
                   }
                 </div>
@@ -602,10 +602,10 @@ import {
                       size="l"
                       src="@tui.parking-square"
                       class="self-center"
-                      [attr.aria-label]="'labels.parkings' | translate"
+                      [attr.aria-label]="'parkings' | translate"
                     />
                     <h2 class="text-2xl font-semibold">
-                      {{ 'labels.parkings' | translate }}
+                      {{ 'parkings' | translate }}
                     </h2>
                   </div>
                   @if (global.editingMode()) {
@@ -620,7 +620,7 @@ import {
                         (click.zoneless)="openLinkParking()"
                         [iconStart]="'@tui.link'"
                       >
-                        {{ 'actions.link' | translate }}
+                        {{ 'link' | translate }}
                       </button>
                       <button
                         tuiButton
@@ -630,7 +630,7 @@ import {
                         (click.zoneless)="openCreateParking()"
                         [iconStart]="'@tui.plus'"
                       >
-                        {{ 'actions.new' | translate }}
+                        {{ 'new' | translate }}
                       </button>
                     </div>
                   }
@@ -667,7 +667,7 @@ import {
                                 class="!rounded-full"
                                 (click.zoneless)="openEditParking(p)"
                               >
-                                {{ 'actions.edit' | translate }}
+                                {{ 'edit' | translate }}
                               </button>
                               <button
                                 size="s"
@@ -678,7 +678,7 @@ import {
                                 class="!rounded-full"
                                 (click.zoneless)="removeParking(p)"
                               >
-                                {{ 'actions.unlink' | translate }}
+                                {{ 'unlink' | translate }}
                               </button>
                             </div>
                           }
@@ -697,7 +697,7 @@ import {
                               "
                               [iconStart]="'@tui.map-pin'"
                             >
-                              {{ 'actions.viewOnMap' | translate }}
+                              {{ 'viewOnMap' | translate }}
                             </button>
                             <button
                               appearance="secondary"
@@ -714,11 +714,9 @@ import {
                                   })
                                 )
                               "
-                              [attr.aria-label]="
-                                'actions.openGoogleMaps' | translate
-                              "
+                              [attr.aria-label]="'openGoogleMaps' | translate"
                             >
-                              {{ 'actions.openGoogleMaps' | translate }}
+                              {{ 'openGoogleMaps' | translate }}
                             </button>
                           </div>
                         }
@@ -1122,8 +1120,8 @@ export class CragComponent {
           content: this.translate.instant('admin.parkings.unlinkConfirm', {
             name: parking.name,
           }),
-          yes: this.translate.instant('actions.unlink'),
-          no: this.translate.instant('actions.cancel'),
+          yes: this.translate.instant('unlink'),
+          no: this.translate.instant('cancel'),
           appearance: 'accent',
         } as TuiConfirmData,
       }),
@@ -1197,8 +1195,8 @@ export class CragComponent {
     const message = t['crags.deleteConfirm'];
     const data: TuiConfirmData = {
       content: message,
-      yes: this.translate.instant('actions.delete'),
-      no: this.translate.instant('actions.cancel'),
+      yes: this.translate.instant('delete'),
+      no: this.translate.instant('cancel'),
       appearance: 'accent',
     };
     const confirmed = await firstValueFrom(

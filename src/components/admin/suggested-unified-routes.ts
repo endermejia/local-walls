@@ -48,7 +48,7 @@ import { RouteDto } from '../../models';
                         {{ group[0].name }}
                       </div>
                       <div class="text-sm opacity-70">
-                        {{ group.length }} {{ 'labels.routes' | translate }} ({{
+                        {{ group.length }} {{ 'routes' | translate }} ({{
                           getCragNames(group)
                         }})
                       </div>
@@ -59,7 +59,7 @@ import { RouteDto } from '../../models';
                       appearance="primary"
                       (click)="onUnify(group)"
                     >
-                      {{ 'actions.unify' | translate }}
+                      {{ 'unify' | translate }}
                     </button>
                   </div>
                 }

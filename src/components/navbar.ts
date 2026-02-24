@@ -255,13 +255,13 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
               "
               class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer"
               (click)="searchOpen = true"
-              [attr.aria-label]="'labels.search' | translate"
+              [attr.aria-label]="'search' | translate"
             >
               <tui-icon icon="@tui.search" />
               <span
                 class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
               >
-                {{ 'labels.search' | translate }}
+                {{ 'search' | translate }}
               </span>
             </button>
             <div class="hidden">
@@ -274,7 +274,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
                   [formControl]="control"
                   [tuiInputSearch]="search"
                   [(tuiInputSearchOpen)]="searchOpen"
-                  [placeholder]="'labels.searchPlaceholder' | translate"
+                  [placeholder]="'searchPlaceholder' | translate"
                 />
                 <ng-template #search>
                   <tui-search-results [results]="results()">
@@ -313,7 +313,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
             tuiAppearance="flat-grayscale"
             class="hidden md:flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer relative"
             (click)="openChat()"
-            [attr.aria-label]="'labels.messages' | translate"
+            [attr.aria-label]="'messages' | translate"
           >
             @if (global.unreadMessagesCount(); as unreadMessages) {
               <tui-badge-notification
@@ -328,7 +328,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
             <span
               class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
             >
-              {{ 'labels.messages' | translate }}
+              {{ 'messages' | translate }}
             </span>
           </button>
 
@@ -339,7 +339,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
               tuiAppearance="flat-grayscale"
               class="hidden md:flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer relative"
               (click)="openNotifications()"
-              [attr.aria-label]="'labels.notifications' | translate"
+              [attr.aria-label]="'notifications' | translate"
             >
               @if (global.unreadNotificationsCount(); as unreadNotifications) {
                 <tui-badge-notification
@@ -354,7 +354,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
               <span
                 class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
               >
-                {{ 'labels.notifications' | translate }}
+                {{ 'notifications' | translate }}
               </span>
             </button>
           }
@@ -417,7 +417,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
               >
                 <div class="flex items-center gap-2">
                   <tui-icon icon="@tui.edit-2" />
-                  {{ 'labels.editingMode' | translate }}
+                  {{ 'editingMode' | translate }}
                 </div>
                 <input
                   tuiSwitch
@@ -431,7 +431,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
               >
                 <div class="flex items-center gap-2">
                   <tui-icon icon="@tui.palette" />
-                  {{ 'labels.theme' | translate }}
+                  {{ 'theme' | translate }}
                 </div>
                 <tui-segmented
                   size="s"
@@ -510,7 +510,7 @@ export class NavbarComponent {
   protected openChat(): void {
     void firstValueFrom(
       this.dialogs.open(new PolymorpheusComponent(ChatDialogComponent), {
-        label: this.translate.instant('labels.messages'),
+        label: this.translate.instant('messages'),
         size: 'm',
       }),
       { defaultValue: undefined },
@@ -522,7 +522,7 @@ export class NavbarComponent {
       this.dialogs.open(
         new PolymorpheusComponent(NotificationsDialogComponent),
         {
-          label: this.translate.instant('labels.notifications'),
+          label: this.translate.instant('notifications'),
           size: 'm',
         },
       ),
@@ -560,8 +560,8 @@ export class NavbarComponent {
           size: 'm',
           data: {
             content: this.translate.instant(messageKey),
-            yes: this.translate.instant('actions.accept'),
-            no: this.translate.instant('actions.cancel'),
+            yes: this.translate.instant('accept'),
+            no: this.translate.instant('cancel'),
           } as TuiConfirmData,
         }),
         { defaultValue: false },

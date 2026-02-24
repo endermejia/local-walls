@@ -65,7 +65,7 @@ export interface UserListDialogData {
           class="w-full bg-[var(--tui-background-base)]"
         >
           <label tuiLabel for="user-search">
-            {{ 'labels.search' | translate }}
+            {{ 'search' | translate }}
           </label>
           <input
             tuiTextfield
@@ -114,7 +114,7 @@ export interface UserListDialogData {
                     type="button"
                     (click)="onUnfollow(user, $event)"
                   >
-                    {{ 'actions.following' | translate }}
+                    {{ 'following' | translate }}
                   </button>
                 } @else {
                   <button
@@ -124,7 +124,7 @@ export interface UserListDialogData {
                     type="button"
                     (click)="onFollow(user, $event)"
                   >
-                    {{ 'actions.follow' | translate }}
+                    {{ 'follow' | translate }}
                   </button>
                 }
               }
@@ -141,7 +141,7 @@ export interface UserListDialogData {
             <div class="p-8 flex justify-center items-center gap-3">
               <tui-loader />
               <span class="text-sm opacity-50">{{
-                'actions.loading' | translate
+                'loading' | translate
               }}</span>
             </div>
           }
@@ -300,17 +300,17 @@ export class UserListDialogComponent {
     event.stopPropagation();
 
     const data: TuiConfirmData = {
-      content: this.translate.instant('actions.unfollowConfirm', {
+      content: this.translate.instant('unfollowConfirm', {
         name: user.name,
       }),
-      yes: this.translate.instant('actions.unfollow'),
-      no: this.translate.instant('actions.cancel'),
+      yes: this.translate.instant('unfollow'),
+      no: this.translate.instant('cancel'),
       appearance: 'negative',
     };
 
     const confirmed = await firstValueFrom(
       this.dialogs.open<boolean>(TUI_CONFIRM, {
-        label: this.translate.instant('actions.unfollow'),
+        label: this.translate.instant('unfollow'),
         size: 's',
         data,
       }),

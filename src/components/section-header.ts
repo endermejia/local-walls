@@ -67,10 +67,7 @@ import { GlobalData } from '../services';
               class="!rounded-full"
               (click.zoneless)="toggleLike.emit()"
             >
-              {{
-                (liked() ? 'actions.favorite.remove' : 'actions.favorite.add')
-                  | translate
-              }}
+              {{ (liked() ? 'favorite.remove' : 'favorite.add') | translate }}
             </button>
           }
           <!-- Custom action buttons slot -->

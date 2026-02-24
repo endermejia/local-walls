@@ -153,7 +153,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
                   appearance="action-grayscale"
                   (click)="openEditDialog()"
                 >
-                  {{ 'actions.edit' | translate }}
+                  {{ 'edit' | translate }}
                 </button>
               } @else {
                 @let blockMessages = blockState().blockMessages;
@@ -172,7 +172,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
                   [tuiDropdown]="dropdownContent"
                   [(tuiDropdownOpen)]="dropdownOpen"
                 >
-                  {{ 'labels.options' | translate }}
+                  {{ 'options' | translate }}
                 </button>
                 <ng-template #dropdownContent>
                   <tui-data-list>
@@ -184,10 +184,8 @@ import { UserStatisticsComponent } from '../components/user-statistics';
                       (click)="toggleBlockMessages(); dropdownOpen.set(false)"
                     >
                       {{
-                        (blockMessages
-                          ? 'actions.messagesBlocked'
-                          : 'actions.blockMessages'
-                        ) | translate
+                        (blockMessages ? 'messagesBlocked' : 'blockMessages')
+                          | translate
                       }}
                     </button>
                     <button
@@ -198,10 +196,8 @@ import { UserStatisticsComponent } from '../components/user-statistics';
                       (click)="toggleHideAscents(); dropdownOpen.set(false)"
                     >
                       {{
-                        (blockAscents
-                          ? 'actions.ascentsHidden'
-                          : 'actions.hideAscents'
-                        ) | translate
+                        (blockAscents ? 'ascentsHidden' : 'hideAscents')
+                          | translate
                       }}
                     </button>
                   </tui-data-list>
@@ -222,14 +218,14 @@ import { UserStatisticsComponent } from '../components/user-statistics';
                 |
                 <span>
                   {{ age }}
-                  {{ 'labels.years' | translate | lowercase }}
+                  {{ 'years' | translate | lowercase }}
                 </span>
               }
 
               @if (profile()?.starting_climbing_year; as year) {
                 <span class="opacity-70">
                   (
-                  {{ 'labels.startingClimbingYear' | translate | lowercase }}
+                  {{ 'startingClimbingYear' | translate | lowercase }}
                   {{ year }}
                   )
                 </span>
@@ -257,7 +253,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
                 (click)="openFollowsDialog('followers')"
               >
                 <strong>{{ followersCount() }}</strong>
-                {{ 'labels.followers' | translate | lowercase }}
+                {{ 'followers' | translate | lowercase }}
               </button>
               <button
                 tuiLink
@@ -266,7 +262,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
                 (click)="openFollowsDialog('following')"
               >
                 <strong>{{ followingCount() }}</strong>
-                {{ 'labels.following' | translate | lowercase }}
+                {{ 'following' | translate | lowercase }}
               </button>
             </div>
           </div>
@@ -284,9 +280,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
               [tuiSkeleton]="loading || followLoading()"
               (click)="toggleFollow()"
             >
-              {{
-                (following ? 'actions.following' : 'actions.follow') | translate
-              }}
+              {{ (following ? 'following' : 'follow') | translate }}
             </button>
 
             <button
@@ -298,7 +292,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
               [tuiSkeleton]="loading"
               (click)="openChat()"
             >
-              {{ 'actions.sendMessage' | translate }}
+              {{ 'sendMessage' | translate }}
             </button>
           </div>
         }
@@ -323,7 +317,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
             ) {
               <tui-pulse />
             }
-            {{ 'labels.ascents' | translate }}
+            {{ 'ascents' | translate }}
           </button>
           <button tuiTab class="relative">
             @if (
@@ -332,7 +326,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
             ) {
               <tui-pulse />
             }
-            {{ 'labels.projects' | translate }}
+            {{ 'projects' | translate }}
           </button>
           <button tuiTab class="relative">
             @if (
@@ -341,7 +335,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
             ) {
               <tui-pulse />
             }
-            {{ 'labels.statistics' | translate }}
+            {{ 'statistics' | translate }}
           </button>
           @if (isOwnProfile()) {
             <button tuiTab class="relative">
@@ -351,7 +345,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
               ) {
                 <tui-pulse />
               }
-              {{ 'labels.likes' | translate }}
+              {{ 'likes' | translate }}
             </button>
           }
         </tui-tabs>
@@ -367,7 +361,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
                     tuiTextfieldSize="l"
                   >
                     <label tuiLabel for="route-search">{{
-                      'labels.searchPlaceholder' | translate
+                      'searchPlaceholder' | translate
                     }}</label>
                     <input
                       tuiTextfield
@@ -393,7 +387,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
                       size="l"
                       type="button"
                       iconStart="@tui.sliders-horizontal"
-                      [attr.aria-label]="'labels.filters' | translate"
+                      [attr.aria-label]="'filters' | translate"
                       (click.zoneless)="openFilters()"
                     ></button>
                   </tui-badged-content>
@@ -405,7 +399,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
                     tuiTextfieldSize="l"
                   >
                     <label tuiLabel for="date-filter">
-                      {{ 'labels.filterByDate' | translate }}
+                      {{ 'filterByDate' | translate }}
                     </label>
                     <input
                       tuiSelect
@@ -427,7 +421,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
                     tuiTextfieldSize="l"
                   >
                     <label tuiLabel for="sort-filter">
-                      {{ 'labels.sortBy' | translate }}
+                      {{ 'sortBy' | translate }}
                     </label>
                     <input
                       tuiSelect
@@ -462,7 +456,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
                   iconStart="@tui.download"
                   (click.zoneless)="openImport8aDialog()"
                 >
-                  {{ 'actions.import' | translate }} 8a.nu
+                  {{ 'import' | translate }} 8a.nu
                 </button>
               </div>
             } @else {
@@ -499,7 +493,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
               <!-- Liked Areas -->
               <section class="grid gap-2">
                 <header tuiHeader>
-                  <h3 tuiTitle>{{ 'labels.likedAreas' | translate }}</h3>
+                  <h3 tuiTitle>{{ 'likedAreas' | translate }}</h3>
                 </header>
                 <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
                   @if (likedAreasResource.isLoading()) {
@@ -549,7 +543,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
               <!-- Liked Crags -->
               <section class="grid gap-2">
                 <header tuiHeader>
-                  <h3 tuiTitle>{{ 'labels.likedCrags' | translate }}</h3>
+                  <h3 tuiTitle>{{ 'likedCrags' | translate }}</h3>
                 </header>
                 <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
                   @if (likedCragsResource.isLoading()) {
@@ -606,7 +600,7 @@ import { UserStatisticsComponent } from '../components/user-statistics';
               <!-- Liked Routes -->
               <section class="grid gap-2">
                 <header tuiHeader>
-                  <h3 tuiTitle>{{ 'labels.likedRoutes' | translate }}</h3>
+                  <h3 tuiTitle>{{ 'likedRoutes' | translate }}</h3>
                 </header>
                 <div class="min-w-0">
                   @if (likedRoutesResource.isLoading()) {
@@ -933,17 +927,17 @@ export class UserProfileComponent {
 
   protected readonly dateValueContent = (option: string): string => {
     if (option === 'last12') {
-      return this.translate.instant('labels.last12Months');
+      return this.translate.instant('last12Months');
     }
     if (option === 'all') {
-      return this.translate.instant('labels.allTime');
+      return this.translate.instant('allTime');
     }
     return option;
   };
 
   protected readonly sortValueContent = (option: 'grade' | 'date'): string => {
     return this.translate.instant(
-      option === 'grade' ? 'labels.orderByGrade' : 'labels.orderByDate',
+      option === 'grade' ? 'orderByGrade' : 'orderByDate',
     );
   };
 
@@ -1218,16 +1212,16 @@ export class UserProfileComponent {
     try {
       if (this.isFollowing()) {
         const data: TuiConfirmData = {
-          content: this.translate.instant('actions.unfollowConfirm', {
+          content: this.translate.instant('unfollowConfirm', {
             name: profile.name,
           }),
-          yes: this.translate.instant('actions.unfollow'),
-          no: this.translate.instant('actions.cancel'),
+          yes: this.translate.instant('unfollow'),
+          no: this.translate.instant('cancel'),
           appearance: 'negative',
         };
         const confirmed = await firstValueFrom(
           this.dialogs.open<boolean>(TUI_CONFIRM, {
-            label: this.translate.instant('actions.unfollow'),
+            label: this.translate.instant('unfollow'),
             size: 's',
             data,
           }),
@@ -1255,22 +1249,18 @@ export class UserProfileComponent {
 
     const data: TuiConfirmData = {
       content: this.translate.instant(
-        isBlocking
-          ? 'actions.blockMessagesConfirm'
-          : 'actions.unblockMessagesConfirm',
+        isBlocking ? 'blockMessagesConfirm' : 'unblockMessagesConfirm',
         { name: profile.name },
       ),
-      yes: this.translate.instant(
-        isBlocking ? 'actions.block' : 'actions.unblock',
-      ),
-      no: this.translate.instant('actions.cancel'),
+      yes: this.translate.instant(isBlocking ? 'block' : 'unblock'),
+      no: this.translate.instant('cancel'),
       appearance: isBlocking ? 'negative' : 'primary',
     };
 
     const confirmed = await firstValueFrom(
       this.dialogs.open<boolean>(TUI_CONFIRM, {
         label: this.translate.instant(
-          isBlocking ? 'actions.blockMessages' : 'actions.unblockMessages',
+          isBlocking ? 'blockMessages' : 'unblockMessages',
         ),
         size: 's',
         data,
@@ -1309,21 +1299,17 @@ export class UserProfileComponent {
 
     const data: TuiConfirmData = {
       content: this.translate.instant(
-        isHiding ? 'actions.hideAscentsConfirm' : 'actions.showAscentsConfirm',
+        isHiding ? 'hideAscentsConfirm' : 'showAscentsConfirm',
         { name: profile.name },
       ),
-      yes: this.translate.instant(
-        isHiding ? 'actions.hide' : 'actions.showAscents',
-      ),
-      no: this.translate.instant('actions.cancel'),
+      yes: this.translate.instant(isHiding ? 'hide' : 'showAscents'),
+      no: this.translate.instant('cancel'),
       appearance: isHiding ? 'negative' : 'primary',
     };
 
     const confirmed = await firstValueFrom(
       this.dialogs.open<boolean>(TUI_CONFIRM, {
-        label: this.translate.instant(
-          isHiding ? 'actions.hideAscents' : 'actions.showAscents',
-        ),
+        label: this.translate.instant(isHiding ? 'hideAscents' : 'showAscents'),
         size: 's',
         data,
       }),
@@ -1380,7 +1366,7 @@ export class UserProfileComponent {
     void firstValueFrom(
       this.dialogs.open(new PolymorpheusComponent(ChatDialogComponent), {
         data: { userId },
-        label: this.translate.instant('labels.messages'),
+        label: this.translate.instant('messages'),
         size: 'm',
       }),
       { defaultValue: undefined },

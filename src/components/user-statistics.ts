@@ -175,7 +175,7 @@ interface RouteScore {
       <!-- Header / Filter -->
       <div class="flex justify-between items-center flex-wrap gap-4">
         <h2 class="text-2xl font-bold hidden sm:block">
-          {{ 'labels.statistics' | translate }}
+          {{ 'statistics' | translate }}
         </h2>
         <tui-textfield
           class="w-full sm:w-48"
@@ -226,7 +226,7 @@ interface RouteScore {
                 {{ totalAscentsAnim.currentValue() | number: '1.0-0' }}
               </div>
               <div class="text-xs uppercase opacity-70 font-semibold">
-                {{ 'labels.ascents' | translate }}
+                {{ 'ascents' | translate }}
               </div>
             </div>
             <div
@@ -348,7 +348,7 @@ interface RouteScore {
                         size="s"
                         (click)="showAllGrades.set(true)"
                       >
-                        {{ 'labels.showMore' | translate }}
+                        {{ 'showMore' | translate }}
                       </button>
                     </div>
                   }
@@ -386,7 +386,7 @@ interface RouteScore {
                         {{ styleTotalAnim.currentValue() | number: '1.0-0' }}
                       </div>
                       <div class="text-xs uppercase opacity-70">
-                        {{ 'labels.ascents' | translate }}
+                        {{ 'ascents' | translate }}
                       </div>
                     </div>
                   </tui-ring-chart>
@@ -518,7 +518,7 @@ interface RouteScore {
                   [class.flash]="route.type === 'f'"
                   [class.redpoint]="route.type === 'rp' || !route.type"
                 >
-                  {{ route.name || ('labels.anonymous' | translate) }}
+                  {{ route.name || ('anonymous' | translate) }}
                 </a>
                 <span class="route-score">
                   <span class="route-score-grade">
@@ -549,7 +549,7 @@ interface RouteScore {
             }
           </span>
           <span class="trend-hint-score">
-            {{ context.count }} {{ 'labels.ascents' | translate | lowercase }}
+            {{ context.count }} {{ 'ascents' | translate | lowercase }}
           </span>
         </div>
 
@@ -568,7 +568,7 @@ interface RouteScore {
                 [class.flash]="route.type === 'f'"
                 [class.redpoint]="route.type === 'rp' || !route.type"
               >
-                {{ route.name || ('labels.anonymous' | translate) }}
+                {{ route.name || ('anonymous' | translate) }}
               </a>
               <span class="route-score">
                 <span class="route-score-val">{{ route.score }}</span>
@@ -607,15 +607,13 @@ export class UserStatisticsComponent {
   });
 
   readonly dateValueContent = (option: string): string => {
-    if (option === 'all_time') return this.translate.instant('labels.allTime');
+    if (option === 'all_time') return this.translate.instant('allTime');
     if (option === 'last_12_months')
-      return this.translate.instant('labels.last12Months');
+      return this.translate.instant('last12Months');
     if (option === 'last_6_months')
-      return this.translate.instant('labels.last6Months');
+      return this.translate.instant('last6Months');
     if (option === 'this_year')
-      return (
-        this.translate.instant('labels.year') + ' ' + new Date().getFullYear()
-      );
+      return this.translate.instant('year') + ' ' + new Date().getFullYear();
     return option;
   };
 
@@ -917,7 +915,7 @@ export class UserStatisticsComponent {
     });
 
     dataPoints.push({
-      label: this.translate.instant('labels.today'),
+      label: this.translate.instant('today'),
       ...this.calculatePeriodScore(last12MonthsAscents),
     });
 

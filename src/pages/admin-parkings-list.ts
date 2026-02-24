@@ -82,10 +82,10 @@ import { handleErrorToast } from '../utils';
               size="l"
               src="@tui.map-pin"
               class="self-center"
-              [attr.aria-label]="'labels.parkings' | translate"
+              [attr.aria-label]="'parkings' | translate"
             />
           </tui-badged-content>
-          {{ 'labels.parkings' | translate }}
+          {{ 'parkings' | translate }}
         </h1>
 
         <button
@@ -95,14 +95,14 @@ import { handleErrorToast } from '../utils';
           iconStart="@tui.plus"
           (click.zoneless)="addNewParking()"
         >
-          {{ 'actions.new' | translate }}
+          {{ 'new' | translate }}
         </button>
       </header>
 
       <div class="mb-6">
         <tui-textfield class="grow" [tuiTextfieldCleaner]="true">
           <label tuiLabel for="parking-search">{{
-            'labels.search' | translate
+            'search' | translate
           }}</label>
           <input
             id="parking-search"
@@ -110,7 +110,7 @@ import { handleErrorToast } from '../utils';
             type="text"
             [ngModel]="searchQuery()"
             (ngModelChange)="searchQuery.set($event)"
-            [placeholder]="'labels.name' | translate"
+            [placeholder]="'name' | translate"
           />
         </tui-textfield>
       </div>
@@ -128,16 +128,16 @@ import { handleErrorToast } from '../utils';
           <thead tuiThead>
             <tr tuiThGroup>
               <th *tuiHead="'name'" tuiTh [sorter]="nameSorter">
-                {{ 'labels.name' | translate }}
+                {{ 'name' | translate }}
               </th>
               <th *tuiHead="'lat'" tuiTh [sorter]="latSorter" class="!w-24">
-                {{ 'labels.lat' | translate }}
+                {{ 'lat' | translate }}
               </th>
               <th *tuiHead="'lng'" tuiTh [sorter]="lngSorter" class="!w-24">
-                {{ 'labels.lng' | translate }}
+                {{ 'lng' | translate }}
               </th>
               <th *tuiHead="'size'" tuiTh [sorter]="sizeSorter" class="!w-24">
-                {{ 'labels.capacity' | translate }}
+                {{ 'capacity' | translate }}
               </th>
               <th
                 *tuiHead="'actions'"
@@ -185,7 +185,7 @@ import { handleErrorToast } from '../utils';
                         class="!rounded-full"
                         (click.zoneless)="editParking(item)"
                       >
-                        {{ 'actions.edit' | translate }}
+                        {{ 'edit' | translate }}
                       </button>
                       <button
                         tuiIconButton
@@ -195,7 +195,7 @@ import { handleErrorToast } from '../utils';
                         class="!rounded-full"
                         (click.zoneless)="deleteParking(item)"
                       >
-                        {{ 'actions.delete' | translate }}
+                        {{ 'delete' | translate }}
                       </button>
                     </div>
                   </td>
@@ -288,8 +288,8 @@ export class AdminParkingsListComponent {
           content: this.translate.instant('admin.parkings.deleteConfirm', {
             name: parking.name,
           }),
-          yes: this.translate.instant('actions.delete'),
-          no: this.translate.instant('actions.cancel'),
+          yes: this.translate.instant('delete'),
+          no: this.translate.instant('cancel'),
           appearance: 'negative',
         } as TuiConfirmData,
       }),

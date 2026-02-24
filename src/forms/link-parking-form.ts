@@ -65,13 +65,13 @@ import { ParkingsService, SupabaseService } from '../services';
         [identityMatcher]="parkingIdentityMatcher"
       >
         <label tuiLabel for="parkings">
-          {{ 'labels.parkings' | translate }}
+          {{ 'parkings' | translate }}
         </label>
         <input
           tuiInputChip
           id="parkings"
           [formControl]="selectedParkings"
-          [placeholder]="'actions.select' | translate"
+          [placeholder]="'select' | translate"
         />
         <tui-input-chip *tuiItem />
         <tui-data-list *tuiTextfieldDropdown>
@@ -100,7 +100,7 @@ import { ParkingsService, SupabaseService } from '../services';
           type="button"
           (click.zoneless)="close()"
         >
-          {{ 'actions.cancel' | translate }}
+          {{ 'cancel' | translate }}
         </button>
         <button
           [disabled]="selectedParkings.value.length === 0"
@@ -108,7 +108,7 @@ import { ParkingsService, SupabaseService } from '../services';
           appearance="primary"
           type="submit"
         >
-          {{ 'actions.apply' | translate }}
+          {{ 'apply' | translate }}
         </button>
       </div>
     </form>

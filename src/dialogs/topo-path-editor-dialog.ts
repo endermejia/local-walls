@@ -106,7 +106,7 @@ export interface TopoPathEditorConfig {
             [disabled]="loading()"
             (click)="saveAll()"
           >
-            {{ 'actions.save' | translate }}
+            {{ 'save' | translate }}
           </button>
         </div>
       </div>
@@ -120,7 +120,7 @@ export interface TopoPathEditorConfig {
             <h3
               class="text-xs font-bold uppercase tracking-widest opacity-50 px-2 mb-4"
             >
-              {{ 'labels.routes' | translate }}
+              {{ 'routes' | translate }}
             </h3>
             <tui-scrollbar class="flex-1">
               <div class="flex flex-col gap-1 p-1">
@@ -505,8 +505,8 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
         size: 's',
         data: {
           content: this.translate.instant('topos.editor.sortConfirm'),
-          yes: this.translate.instant('actions.apply'),
-          no: this.translate.instant('actions.cancel'),
+          yes: this.translate.instant('apply'),
+          no: this.translate.instant('cancel'),
         },
       }),
       { defaultValue: false },

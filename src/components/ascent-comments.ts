@@ -24,7 +24,7 @@ import { AscentsService } from '../services';
         size="m"
         icon="@tui.message-circle"
         (click)="showComments($event)"
-        [attr.aria-label]="'labels.comments' | translate"
+        [attr.aria-label]="'comments' | translate"
       />
       @if (commentsCountResource.value(); as count) {
         <button

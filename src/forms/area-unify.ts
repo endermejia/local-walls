@@ -61,7 +61,7 @@ import { AreaDto, AreaListItem } from '../models';
           id="target-area"
           autocomplete="off"
           [formControl]="targetArea"
-          [placeholder]="'actions.select' | translate"
+          [placeholder]="'select' | translate"
         />
         <tui-data-list *tuiTextfieldDropdown>
           @for (area of availableAreas() | tuiFilterByInput; track area.id) {
@@ -90,7 +90,7 @@ import { AreaDto, AreaListItem } from '../models';
           id="source-areas"
           autocomplete="off"
           [formControl]="sourceAreas"
-          [placeholder]="'actions.select' | translate"
+          [placeholder]="'select' | translate"
         />
         <tui-input-chip *tuiItem />
         <tui-data-list *tuiTextfieldDropdown>
@@ -129,7 +129,7 @@ import { AreaDto, AreaListItem } from '../models';
           type="button"
           (click)="context.completeWith(false)"
         >
-          {{ 'actions.cancel' | translate }}
+          {{ 'cancel' | translate }}
         </button>
         <button
           tuiButton
@@ -141,7 +141,7 @@ import { AreaDto, AreaListItem } from '../models';
           "
           (click)="onUnify()"
         >
-          {{ 'actions.unify' | translate }}
+          {{ 'unify' | translate }}
         </button>
       </div>
     </div>

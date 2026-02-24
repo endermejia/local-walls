@@ -43,7 +43,7 @@ import { handleErrorToast, slugify } from '../utils';
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
       <tui-textfield class="block">
-        <label tuiLabel for="area-name">{{ 'labels.name' | translate }}</label>
+        <label tuiLabel for="area-name">{{ 'name' | translate }}</label>
         <input
           tuiTextfield
           id="area-name"
@@ -59,9 +59,7 @@ import { handleErrorToast, slugify } from '../utils';
 
       @if (isEdit()) {
         <tui-textfield class="block">
-          <label tuiLabel for="area-slug">{{
-            'labels.slug' | translate
-          }}</label>
+          <label tuiLabel for="area-slug">{{ 'slug' | translate }}</label>
           <input
             tuiTextfield
             id="area-slug"
@@ -95,7 +93,7 @@ import { handleErrorToast, slugify } from '../utils';
           type="button"
           (click.zoneless)="goBack()"
         >
-          {{ 'actions.cancel' | translate }}
+          {{ 'cancel' | translate }}
         </button>
         <button
           [disabled]="
@@ -110,7 +108,7 @@ import { handleErrorToast, slugify } from '../utils';
           appearance="primary"
           type="submit"
         >
-          {{ (isEdit() ? 'actions.save' : 'actions.create') | translate }}
+          {{ (isEdit() ? 'save' : 'create') | translate }}
         </button>
       </div>
     </form>

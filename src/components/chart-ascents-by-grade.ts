@@ -60,7 +60,7 @@ import { computeGradeChartData } from '../utils';
         @if (c.hasActive) {
           <span>
             {{ c.activeBandTotal }}
-            {{ 'labels.ascents' | translate | lowercase }}
+            {{ 'ascents' | translate | lowercase }}
           </span>
           <div [innerHtml]="c.breakdownText"></div>
         } @else {

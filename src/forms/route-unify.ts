@@ -61,7 +61,7 @@ import { RouteDto } from '../models';
           id="target-route"
           autocomplete="off"
           [formControl]="targetRoute"
-          [placeholder]="'actions.select' | translate"
+          [placeholder]="'select' | translate"
         />
         <tui-data-list *tuiTextfieldDropdown>
           @for (route of cragRoutes() | tuiFilterByInput; track route.id) {
@@ -90,7 +90,7 @@ import { RouteDto } from '../models';
           id="source-routes"
           autocomplete="off"
           [formControl]="sourceRoutes"
-          [placeholder]="'actions.select' | translate"
+          [placeholder]="'select' | translate"
         />
         <tui-input-chip *tuiItem />
         <tui-data-list *tuiTextfieldDropdown>
@@ -131,7 +131,7 @@ import { RouteDto } from '../models';
           type="button"
           (click)="context.completeWith(false)"
         >
-          {{ 'actions.cancel' | translate }}
+          {{ 'cancel' | translate }}
         </button>
         <button
           tuiButton
@@ -143,7 +143,7 @@ import { RouteDto } from '../models';
           "
           (click)="onUnify()"
         >
-          {{ 'actions.unify' | translate }}
+          {{ 'unify' | translate }}
         </button>
       </div>
     </div>

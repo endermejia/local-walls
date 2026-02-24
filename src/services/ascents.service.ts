@@ -717,7 +717,7 @@ export class AscentsService {
       new PolymorpheusComponent(AscentCommentsDialogComponent),
       {
         data: { ascentId },
-        label: this.translate.instant('labels.comments'),
+        label: this.translate.instant('comments'),
         size: 'm',
       },
     );

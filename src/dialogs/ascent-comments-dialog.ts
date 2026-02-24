@@ -102,7 +102,7 @@ export interface AscentCommentsDialogData {
                     size="xs"
                     (click)="onReply(comment.user_profiles)"
                   >
-                    {{ 'actions.reply' | translate }}
+                    {{ 'reply' | translate }}
                   </button>
                   @if (comment.user_id === supabase.authUserId()) {
                     <button
@@ -112,7 +112,7 @@ export interface AscentCommentsDialogData {
                       size="xs"
                       (click)="onDeleteComment(comment.id)"
                     >
-                      {{ 'actions.delete' | translate }}
+                      {{ 'delete' | translate }}
                     </button>
                   }
                 </div>
@@ -139,7 +139,7 @@ export interface AscentCommentsDialogData {
         class="p-4 border-t border-[var(--tui-border-normal)] relative"
       >
         <span class="text-[13px] font-bold opacity-70 mb-2 block">
-          {{ 'labels.addComment' | translate }}
+          {{ 'addComment' | translate }}
         </span>
 
         <div
@@ -175,7 +175,7 @@ export interface AscentCommentsDialogData {
             [disabled]="isEditorEmpty() || sending()"
           >
             <span class="hidden md:block">
-              {{ 'actions.send' | translate }}
+              {{ 'send' | translate }}
             </span>
           </button>
         </div>
@@ -565,15 +565,15 @@ export class AscentCommentsDialogComponent {
 
   protected async onDeleteComment(commentId: number) {
     const data: TuiConfirmData = {
-      content: this.translate.instant('actions.deleteCommentConfirm'),
-      yes: this.translate.instant('actions.delete'),
-      no: this.translate.instant('actions.cancel'),
+      content: this.translate.instant('deleteCommentConfirm'),
+      yes: this.translate.instant('delete'),
+      no: this.translate.instant('cancel'),
       appearance: 'negative',
     };
 
     const confirmed = await firstValueFrom(
       this.dialogs.open<boolean>(TUI_CONFIRM, {
-        label: this.translate.instant('actions.deleteComment'),
+        label: this.translate.instant('deleteComment'),
         size: 's',
         data,
       }),

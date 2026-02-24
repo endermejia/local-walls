@@ -233,7 +233,7 @@ import { GradeComponent } from './avatar-grade';
                   [disabled]="importing()"
                   (click)="onImport()"
                 >
-                  {{ 'actions.import' | translate }}
+                  {{ 'import' | translate }}
                 </button>
               </div>
             </div>
@@ -248,7 +248,7 @@ import { GradeComponent } from './avatar-grade';
               type="button"
               (click)="onStep(index - 1)"
             >
-              {{ 'actions.back' | translate }}
+              {{ 'back' | translate }}
             </button>
           }
           @if (index === 0) {
@@ -258,7 +258,7 @@ import { GradeComponent } from './avatar-grade';
               [disabled]="!control.value || searching()"
               (click)="onStep(1)"
             >
-              {{ 'actions.next' | translate }}
+              {{ 'next' | translate }}
             </button>
           }
         </footer>
@@ -868,13 +868,13 @@ export class Import8aComponent {
       ) {
         createdInfo = '<br>';
         if (totalCreatedAreas > 0) {
-          createdInfo += ` <strong>+${totalCreatedAreas}</strong> ${this.translate.instant(totalCreatedAreas === 1 ? 'labels.area' : 'labels.areas').toLowerCase()}`;
+          createdInfo += ` <strong>+${totalCreatedAreas}</strong> ${this.translate.instant(totalCreatedAreas === 1 ? 'area' : 'areas').toLowerCase()}`;
         }
         if (totalCreatedCrags > 0) {
-          createdInfo += ` <strong>+${totalCreatedCrags}</strong> ${this.translate.instant(totalCreatedCrags === 1 ? 'labels.crag' : 'labels.crags').toLowerCase()}`;
+          createdInfo += ` <strong>+${totalCreatedCrags}</strong> ${this.translate.instant(totalCreatedCrags === 1 ? 'crag' : 'crags').toLowerCase()}`;
         }
         if (totalCreatedRoutes > 0) {
-          createdInfo += ` <strong>+${totalCreatedRoutes}</strong> ${this.translate.instant(totalCreatedRoutes === 1 ? 'labels.route' : 'labels.routes').toLowerCase()}`;
+          createdInfo += ` <strong>+${totalCreatedRoutes}</strong> ${this.translate.instant(totalCreatedRoutes === 1 ? 'route' : 'routes').toLowerCase()}`;
         }
       }
 

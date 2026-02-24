@@ -42,13 +42,13 @@ import { SuggestedUnifiedRoutesComponent } from '../components/admin/suggested-u
         (activeItemIndexChange)="activeTab.set($event)"
       >
         <button tuiTab>
-          {{ 'labels.areas' | translate }}
+          {{ 'areas' | translate }}
         </button>
         <button tuiTab>
-          {{ 'labels.crags' | translate }}
+          {{ 'crags' | translate }}
         </button>
         <button tuiTab>
-          {{ 'labels.routes' | translate }}
+          {{ 'routes' | translate }}
         </button>
       </tui-tabs>
 

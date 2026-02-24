@@ -65,7 +65,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
                     class="!rounded-full aspect-square md:aspect-auto md:!px-4 flex items-center justify-center !bg-[var(--tui-background-base)] hover:!bg-[var(--tui-background-base-alt)] shadow-md"
                     iconStart="@tui.messages-square"
                     (click)="openChat()"
-                    [attr.aria-label]="'labels.messages' | translate"
+                    [attr.aria-label]="'messages' | translate"
                   ></button>
                 </tui-badged-content>
 
@@ -91,7 +91,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
                       class="!rounded-full aspect-square md:aspect-auto md:!px-4 flex items-center justify-center !bg-[var(--tui-background-base)] hover:!bg-[var(--tui-background-base-alt)] shadow-md"
                       iconStart="@tui.bell"
                       (click)="openNotifications()"
-                      [attr.aria-label]="'labels.notifications' | translate"
+                      [attr.aria-label]="'notifications' | translate"
                     ></button>
                   </tui-badged-content>
                 }
@@ -104,19 +104,17 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
           <tui-block-status class="w-full max-w-lg mx-auto p-4">
             <img
               [ngSrc]="global.iconSrc()('topo')"
-              alt="{{ 'labels.gdpr.title' | translate }}"
+              alt="{{ 'gdpr.title' | translate }}"
               tuiSlot="top"
               height="100"
               width="100"
             />
-            <h4>{{ 'labels.gdpr.title' | translate }}</h4>
+            <h4>{{ 'gdpr.title' | translate }}</h4>
             <p
               class="description"
               [innerHTML]="
-                (showFullPrivacy()
-                  ? 'labels.gdpr.fullPolicy'
-                  : 'labels.gdpr.message'
-                ) | translate
+                (showFullPrivacy() ? 'gdpr.fullPolicy' : 'gdpr.message')
+                  | translate
               "
             ></p>
             <div class="flex flex-col gap-2 w-full mt-6">
@@ -127,7 +125,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
                   appearance="primary"
                   (click)="acceptGdpr()"
                 >
-                  {{ 'labels.gdpr.accept' | translate }}
+                  {{ 'gdpr.accept' | translate }}
                 </button>
               } @else {
                 <button
@@ -136,7 +134,7 @@ import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
                   appearance="primary"
                   (click)="showFullPrivacy.set(true)"
                 >
-                  {{ 'labels.gdpr.readMore' | translate }}
+                  {{ 'gdpr.readMore' | translate }}
                 </button>
               }
             </div>
@@ -203,7 +201,7 @@ export class AppComponent {
   openChat() {
     void firstValueFrom(
       this.dialogs.open(new PolymorpheusComponent(ChatDialogComponent), {
-        label: this.translate.instant('labels.messages'),
+        label: this.translate.instant('messages'),
         size: 'm',
       }),
       { defaultValue: undefined },
@@ -215,7 +213,7 @@ export class AppComponent {
       this.dialogs.open(
         new PolymorpheusComponent(NotificationsDialogComponent),
         {
-          label: this.translate.instant('labels.notifications'),
+          label: this.translate.instant('notifications'),
           size: 'm',
         },
       ),

@@ -37,7 +37,7 @@ export class FiltersService {
       this.dialogs.open<FilterDialog>(
         new PolymorpheusComponent(FilterDialogComponent),
         {
-          label: this.translate.instant('labels.filters'),
+          label: this.translate.instant('filters'),
           size: 'l',
           data,
           dismissible: false,

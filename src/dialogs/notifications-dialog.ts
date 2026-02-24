@@ -71,7 +71,7 @@ interface GroupedNotification {
           (click)="onMarkAllRead()"
           [disabled]="unreadCount() === 0"
         >
-          {{ 'actions.markAllRead' | translate }}
+          {{ 'markAllRead' | translate }}
         </button>
       </div>
 
@@ -239,7 +239,7 @@ export class NotificationsDialogComponent {
   private openAscentDialog(ascentId: number) {
     void firstValueFrom(
       this.dialogs.open(new PolymorpheusComponent(AscentDialogComponent), {
-        label: this.translate.instant('labels.ascent'),
+        label: this.translate.instant('ascent'),
         size: 'm',
         data: { ascentId },
       }),

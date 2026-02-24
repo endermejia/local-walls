@@ -115,7 +115,7 @@ export class GlobalData {
   breadcrumbs: Signal<BreadcrumbItem[]> = computed<BreadcrumbItem[]>(() => {
     this.i18nTick();
     const items: BreadcrumbItem[] = [
-      { caption: 'labels.areas', routerLink: ['/area'] },
+      { caption: 'areas', routerLink: ['/area'] },
     ];
 
     const area = this.selectedArea();

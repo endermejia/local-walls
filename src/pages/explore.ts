@@ -113,7 +113,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                 class="pointer-events-auto"
                 (click.zoneless)="openFilters()"
               >
-                {{ 'labels.filters' | translate }}
+                {{ 'filters' | translate }}
               </button>
             </tui-badged-content>
           </div>
@@ -144,7 +144,7 @@ import { mapLocationUrl, remToPx } from '../utils';
               iconStart="@tui.map"
               (click.zoneless)="setBottomSheet('close')"
             >
-              {{ 'labels.map' | translate }}
+              {{ 'map' | translate }}
             </button>
           </div>
         }
@@ -253,7 +253,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                       class="!rounded-full"
                       (click.zoneless)="openEditParking(p)"
                     >
-                      {{ 'actions.edit' | translate }}
+                      {{ 'edit' | translate }}
                     </button>
                   }
                 </header>
@@ -273,9 +273,9 @@ import { mapLocationUrl, remToPx } from '../utils';
                         })
                       )
                     "
-                    [attr.aria-label]="'actions.openGoogleMaps' | translate"
+                    [attr.aria-label]="'openGoogleMaps' | translate"
                   >
-                    {{ 'actions.openGoogleMaps' | translate }}
+                    {{ 'openGoogleMaps' | translate }}
                   </button>
                 }
               </div>
@@ -343,7 +343,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                 tuiThumbnail
                 size="l"
                 [src]="global.iconSrc()('zone')"
-                [attr.aria-label]="'labels.area' | translate"
+                [attr.aria-label]="'area' | translate"
               />
               <span tuiTitle class="justify-center">
                 {{ areas.length }}
@@ -399,7 +399,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                 size="l"
                 [src]="global.iconSrc()('crag')"
                 class="self-center"
-                [attr.aria-label]="'labels.crag' | translate"
+                [attr.aria-label]="'crag' | translate"
               />
               <span tuiTitle class="justify-center">
                 {{ crags.length }}

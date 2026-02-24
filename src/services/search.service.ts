@@ -109,7 +109,7 @@ export class SearchService {
 
         const results: SearchData = {};
         if (areas?.length) {
-          results[this.translate.instant('labels.areas')] = areas.map(
+          results[this.translate.instant('areas')] = areas.map(
             (a: DbArea) =>
               ({
                 title: a.name,
@@ -119,20 +119,18 @@ export class SearchService {
           );
         }
         if (crags?.length) {
-          results[this.translate.instant('labels.crags')] = crags.map(
-            (c: DbCrag) => {
-              const area = Array.isArray(c.area) ? c.area[0] : c.area;
-              return {
-                title: c.name,
-                subtitle: area?.name,
-                href: `/area/${area?.slug}/${c.slug}`,
-                icon: '@tui.mountain',
-              } as SearchItem;
-            },
-          );
+          results[this.translate.instant('crags')] = crags.map((c: DbCrag) => {
+            const area = Array.isArray(c.area) ? c.area[0] : c.area;
+            return {
+              title: c.name,
+              subtitle: area?.name,
+              href: `/area/${area?.slug}/${c.slug}`,
+              icon: '@tui.mountain',
+            } as SearchItem;
+          });
         }
         if (routes?.length) {
-          results[this.translate.instant('labels.routes')] = routes.map(
+          results[this.translate.instant('routes')] = routes.map(
             (r: DbRoute) => {
               const crag = Array.isArray(r.crag) ? r.crag[0] : r.crag;
               const area = Array.isArray(crag?.area)
@@ -150,7 +148,7 @@ export class SearchService {
           );
         }
         if (users?.length) {
-          results[this.translate.instant('labels.users')] = users
+          results[this.translate.instant('users')] = users
             .filter((u) =>
               normalizeName(u.name).includes(normalizeName(trimmedQuery)),
             )

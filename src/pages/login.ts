@@ -65,7 +65,7 @@ import { SupabaseService } from '../services';
               } @else {
                 {{ 'auth.setNewPassword' | translate }}
               }
-              <span tuiSubtitle>{{ 'labels.appName' | translate }}</span>
+              <span tuiSubtitle>{{ 'appName' | translate }}</span>
             </h2>
           </header>
 
@@ -80,9 +80,7 @@ import { SupabaseService } from '../services';
 
           @if (!isRecovery()) {
             <tui-textfield>
-              <label tuiLabel for="emailInput">{{
-                'labels.email' | translate
-              }}</label>
+              <label tuiLabel for="emailInput">{{ 'email' | translate }}</label>
               <input
                 id="emailInput"
                 #emailInput
@@ -105,7 +103,7 @@ import { SupabaseService } from '../services';
 
             <tui-textfield>
               <label tuiLabel for="passwordInput">{{
-                'labels.password' | translate
+                'password' | translate
               }}</label>
               <input
                 id="passwordInput"
@@ -142,7 +140,7 @@ import { SupabaseService } from '../services';
             @if (isRegister()) {
               <tui-textfield>
                 <label tuiLabel for="confirmRegPasswordInput">{{
-                  'labels.confirmPassword' | translate
+                  'confirmPassword' | translate
                 }}</label>
                 <input
                   id="confirmRegPasswordInput"
@@ -191,7 +189,7 @@ import { SupabaseService } from '../services';
                   class="w-full"
                   [disabled]="loading()"
                 >
-                  {{ 'actions.signIn' | translate }}
+                  {{ 'signIn' | translate }}
                 </button>
                 <div class="text-center text-[var(--tui-text-02)]">
                   {{ 'auth.noAccount' | translate }}
@@ -201,7 +199,7 @@ import { SupabaseService } from '../services';
                     appearance="flat"
                     (click.zoneless)="toggleRegister()"
                   >
-                    {{ 'actions.register' | translate }}
+                    {{ 'register' | translate }}
                   </button>
                 </div>
               } @else {
@@ -212,7 +210,7 @@ import { SupabaseService } from '../services';
                   [disabled]="loading()"
                   (click.zoneless)="submitRegister()"
                 >
-                  {{ 'actions.register' | translate }}
+                  {{ 'register' | translate }}
                 </button>
                 <div class="text-center text-[var(--tui-text-02)]">
                   {{ 'auth.alreadyAccount' | translate }}
@@ -222,7 +220,7 @@ import { SupabaseService } from '../services';
                     appearance="flat"
                     (click.zoneless)="toggleRegister(false)"
                   >
-                    {{ 'actions.signIn' | translate }}
+                    {{ 'signIn' | translate }}
                   </button>
                 </div>
               }
@@ -234,7 +232,7 @@ import { SupabaseService } from '../services';
             </tui-notification>
             <tui-textfield>
               <label tuiLabel for="newPasswordInput">{{
-                'labels.newPassword' | translate
+                'newPassword' | translate
               }}</label>
               <input
                 id="newPasswordInput"
@@ -261,7 +259,7 @@ import { SupabaseService } from '../services';
 
             <tui-textfield>
               <label tuiLabel for="confirmPasswordInput">{{
-                'labels.confirmPassword' | translate
+                'confirmPassword' | translate
               }}</label>
               <input
                 id="confirmPasswordInput"

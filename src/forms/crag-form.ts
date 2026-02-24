@@ -64,7 +64,7 @@ interface MinimalCrag {
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
       <tui-textfield [tuiTextfieldCleaner]="false">
-        <label tuiLabel for="crag-name">{{ 'labels.name' | translate }}</label>
+        <label tuiLabel for="crag-name">{{ 'name' | translate }}</label>
         <input
           tuiTextfield
           id="crag-name"
@@ -80,9 +80,7 @@ interface MinimalCrag {
 
       @if (isEdit()) {
         <tui-textfield [tuiTextfieldCleaner]="false">
-          <label tuiLabel for="crag-slug">{{
-            'labels.slug' | translate
-          }}</label>
+          <label tuiLabel for="crag-slug">{{ 'slug' | translate }}</label>
           <input
             tuiTextfield
             id="crag-slug"
@@ -98,7 +96,7 @@ interface MinimalCrag {
       }
 
       <div class="flex flex-wrap items-center gap-4">
-        <h3 class="font-bold text-lg">{{ 'labels.location' | translate }}</h3>
+        <h3 class="font-bold text-lg">{{ 'location' | translate }}</h3>
         <button
           tuiButton
           appearance="secondary-grayscale"
@@ -107,14 +105,14 @@ interface MinimalCrag {
           iconStart="@tui.map-pin"
           (click.zoneless)="pickLocation()"
         >
-          {{ 'actions.pickOnMap' | translate }}
+          {{ 'pickOnMap' | translate }}
         </button>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="grid grid-cols-2 gap-4">
           <tui-textfield [tuiTextfieldCleaner]="false">
-            <label tuiLabel for="lat">{{ 'labels.lat' | translate }}</label>
+            <label tuiLabel for="lat">{{ 'lat' | translate }}</label>
             <input
               tuiInputNumber
               id="lat"
@@ -129,7 +127,7 @@ interface MinimalCrag {
             />
           </tui-textfield>
           <tui-textfield [tuiTextfieldCleaner]="false">
-            <label tuiLabel for="lng">{{ 'labels.lng' | translate }}</label>
+            <label tuiLabel for="lng">{{ 'lng' | translate }}</label>
             <input
               tuiInputNumber
               id="lng"
@@ -145,16 +143,14 @@ interface MinimalCrag {
         </div>
         <app-counter
           [formControl]="approach"
-          label="labels.approach"
+          label="approach"
           suffix="min."
           [min]="0"
         />
       </div>
 
       <tui-textfield [tuiTextfieldCleaner]="false">
-        <label tuiLabel for="desc-es">{{
-          'labels.description_es' | translate
-        }}</label>
+        <label tuiLabel for="desc-es">{{ 'description_es' | translate }}</label>
         <textarea
           tuiTextarea
           id="desc-es"
@@ -164,9 +160,7 @@ interface MinimalCrag {
       </tui-textfield>
 
       <tui-textfield [tuiTextfieldCleaner]="false">
-        <label tuiLabel for="desc-en">{{
-          'labels.description_en' | translate
-        }}</label>
+        <label tuiLabel for="desc-en">{{ 'description_en' | translate }}</label>
         <textarea
           tuiTextarea
           id="desc-en"
@@ -176,9 +170,7 @@ interface MinimalCrag {
       </tui-textfield>
 
       <tui-textfield [tuiTextfieldCleaner]="false">
-        <label tuiLabel for="warn-es">{{
-          'labels.warning_es' | translate
-        }}</label>
+        <label tuiLabel for="warn-es">{{ 'warning_es' | translate }}</label>
         <textarea
           tuiTextarea
           id="warn-es"
@@ -188,9 +180,7 @@ interface MinimalCrag {
       </tui-textfield>
 
       <tui-textfield [tuiTextfieldCleaner]="false">
-        <label tuiLabel for="warn-en">{{
-          'labels.warning_en' | translate
-        }}</label>
+        <label tuiLabel for="warn-en">{{ 'warning_en' | translate }}</label>
         <textarea
           tuiTextarea
           id="warn-en"
@@ -220,7 +210,7 @@ interface MinimalCrag {
           type="button"
           (click.zoneless)="goBack()"
         >
-          {{ 'actions.cancel' | translate }}
+          {{ 'cancel' | translate }}
         </button>
         <button
           [disabled]="
@@ -232,7 +222,7 @@ interface MinimalCrag {
           appearance="primary"
           type="submit"
         >
-          {{ (isEdit() ? 'actions.save' : 'actions.create') | translate }}
+          {{ (isEdit() ? 'save' : 'create') | translate }}
         </button>
       </div>
     </form>

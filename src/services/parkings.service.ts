@@ -36,9 +36,7 @@ export class ParkingsService {
       this.dialogs.open<boolean>(
         new PolymorpheusComponent(ParkingFormComponent),
         {
-          label: this.translate.instant(
-            isEdit ? 'actions.edit' : 'actions.new',
-          ),
+          label: this.translate.instant(isEdit ? 'edit' : 'new'),
           size: 'l',
           data,
           dismissible: false,
@@ -62,7 +60,7 @@ export class ParkingsService {
       this.dialogs.open<boolean>(
         new PolymorpheusComponent(LinkParkingFormComponent),
         {
-          label: this.translate.instant('actions.link'),
+          label: this.translate.instant('link'),
           size: 'm',
           data,
           dismissible: false,

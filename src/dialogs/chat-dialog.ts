@@ -106,7 +106,7 @@ export interface ChatDialogData {
             iconStart="@tui.chevron-left"
             (click)="selectedRoom.set(null)"
           >
-            {{ 'actions.back' | translate }}
+            {{ 'back' | translate }}
           </button>
           <tui-avatar
             [src]="
@@ -130,10 +130,7 @@ export interface ChatDialogData {
             (click)="toggleBlock(room.participant.id)"
             class="ml-auto"
           >
-            {{
-              (isBlockedByMe() ? 'actions.unblock' : 'actions.block')
-                | translate
-            }}
+            {{ (isBlockedByMe() ? 'unblock' : 'block') | translate }}
           </button>
         </div>
 
@@ -151,7 +148,7 @@ export interface ChatDialogData {
                   size="xs"
                   (click)="loadMoreMessages()"
                 >
-                  {{ 'actions.loadMore' | translate }}
+                  {{ 'loadMore' | translate }}
                 </button>
               </div>
             }
@@ -205,7 +202,7 @@ export interface ChatDialogData {
                 size="s"
                 (click)="toggleBlock(room.participant.id)"
               >
-                {{ 'actions.unblock' | translate }}
+                {{ 'unblock' | translate }}
               </button>
             </div>
           } @else {
@@ -217,7 +214,7 @@ export interface ChatDialogData {
               <label tuiLabel for="new-message">{{
                 isRequestPending()
                   ? ('messages.pendingRequest' | translate)
-                  : ('labels.typeMessage' | translate)
+                  : ('typeMessage' | translate)
               }}</label>
               <textarea
                 #messageTextarea
@@ -245,7 +242,7 @@ export interface ChatDialogData {
                 class="mt-auto mb-1"
               >
                 <span class="hidden md:block">
-                  {{ 'actions.send' | translate }}
+                  {{ 'send' | translate }}
                 </span>
               </button>
             </tui-textfield>
@@ -261,7 +258,7 @@ export interface ChatDialogData {
         >
           <tui-textfield class="w-full" tuiTextfieldSize="m">
             <label tuiLabel for="user-search">{{
-              'labels.searchUser' | translate
+              'searchUser' | translate
             }}</label>
             <input
               tuiTextfield
@@ -552,22 +549,18 @@ export class ChatDialogComponent implements OnDestroy {
 
     const data: TuiConfirmData = {
       content: this.translate.instant(
-        isBlocking
-          ? 'actions.blockMessagesConfirm'
-          : 'actions.unblockMessagesConfirm',
+        isBlocking ? 'blockMessagesConfirm' : 'unblockMessagesConfirm',
         { name: room?.participant.name || 'User' },
       ),
-      yes: this.translate.instant(
-        isBlocking ? 'actions.block' : 'actions.unblock',
-      ),
-      no: this.translate.instant('actions.cancel'),
+      yes: this.translate.instant(isBlocking ? 'block' : 'unblock'),
+      no: this.translate.instant('cancel'),
       appearance: isBlocking ? 'negative' : 'primary',
     };
 
     const confirmed = await firstValueFrom(
       this.dialogs.open<boolean>(TUI_CONFIRM, {
         label: this.translate.instant(
-          isBlocking ? 'actions.blockMessages' : 'actions.unblockMessages',
+          isBlocking ? 'blockMessages' : 'unblockMessages',
         ),
         size: 's',
         data,

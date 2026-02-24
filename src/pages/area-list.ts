@@ -78,7 +78,7 @@ import { normalizeName } from '../utils';
               size="l"
               [src]="global.iconSrc()('zone')"
               class="self-center"
-              [attr.aria-label]="'labels.area' | translate"
+              [attr.aria-label]="'area' | translate"
             />
             {{ areasCount }}
             {{
@@ -98,7 +98,7 @@ import { normalizeName } from '../utils';
                 (click.zoneless)="areasService.openUnifyAreas()"
                 [iconStart]="'@tui.blend'"
               >
-                {{ 'actions.unify' | translate }}
+                {{ 'unify' | translate }}
               </button>
             }
             @if (global.editingMode()) {
@@ -110,7 +110,7 @@ import { normalizeName } from '../utils';
                 (click.zoneless)="openCreateArea()"
                 [iconStart]="'@tui.plus'"
               >
-                {{ 'actions.new' | translate }}
+                {{ 'new' | translate }}
               </button>
             }
           </div>
@@ -122,7 +122,7 @@ import { normalizeName } from '../utils';
             tuiTextfieldSize="l"
           >
             <label tuiLabel for="areas-search">
-              {{ 'labels.searchPlaceholder' | translate }}
+              {{ 'searchPlaceholder' | translate }}
             </label>
             <input
               tuiTextfield
@@ -149,7 +149,7 @@ import { normalizeName } from '../utils';
               size="l"
               type="button"
               iconStart="@tui.sliders-horizontal"
-              [attr.aria-label]="'labels.filters' | translate"
+              [attr.aria-label]="'filters' | translate"
               (click.zoneless)="openFilters()"
             ></button>
           </tui-badged-content>

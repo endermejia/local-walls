@@ -18,6 +18,6 @@ import { TranslatePipe } from '@ngx-translate/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EmptyStateComponent {
-  message = input<string>('labels.empty');
+  message = input<string>('empty');
   icon = input<string>('@tui.package-open');
 }

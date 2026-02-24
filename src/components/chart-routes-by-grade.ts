@@ -61,13 +61,13 @@ import { computeGradeChartData } from '../utils';
         @if (c.hasActive) {
           <span>
             {{ c.activeBandTotal }}
-            {{ 'labels.routes' | translate | lowercase }}
+            {{ 'routes' | translate | lowercase }}
           </span>
           <div [innerHtml]="c.breakdownText"></div>
         } @else {
           <span class="text-xl font-semibold">
             {{ c.total }}
-            {{ 'labels.routes' | translate | lowercase }}
+            {{ 'routes' | translate | lowercase }}
           </span>
           @if (c.gradeRange; as gradeRange) {
             <div class="text-sm">{{ gradeRange }}</div>

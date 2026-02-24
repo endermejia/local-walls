@@ -91,7 +91,7 @@ import { EmptyStateComponent } from '../components/empty-state';
             tuiTextfieldSize="l"
           >
             <label tuiLabel for="areas-search">
-              {{ 'labels.searchPlaceholder' | translate }}
+              {{ 'searchPlaceholder' | translate }}
             </label>
             <input
               tuiTextfield
@@ -118,7 +118,7 @@ import { EmptyStateComponent } from '../components/empty-state';
               size="l"
               type="button"
               iconStart="@tui.sliders-horizontal"
-              [attr.aria-label]="'labels.filters' | translate"
+              [attr.aria-label]="'filters' | translate"
               (click.zoneless)="openFilters()"
             ></button>
           </tui-badged-content>

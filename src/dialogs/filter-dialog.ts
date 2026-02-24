@@ -113,10 +113,10 @@ export interface FilterDialog {
           type="button"
           (click.zoneless)="clear()"
         >
-          {{ 'actions.clear' | translate }}
+          {{ 'clear' | translate }}
         </button>
         <button tuiButton type="submit">
-          {{ 'actions.apply' | translate }}
+          {{ 'apply' | translate }}
         </button>
       </footer>
     </form>
