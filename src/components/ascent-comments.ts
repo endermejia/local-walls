@@ -7,11 +7,12 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { TranslatePipe } from '@ngx-translate/core';
 import { TuiButton, TuiIcon } from '@taiga-ui/core';
+
+import { TranslatePipe } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
-import { AscentsService } from '../services';
+import { AscentsService } from '../services/ascents.service';
 
 @Component({
   selector: 'app-ascent-comments',

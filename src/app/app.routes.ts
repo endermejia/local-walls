@@ -1,12 +1,10 @@
 import { Routes } from '@angular/router';
 
-import {
-  adminGuard,
-  authGuard,
-  equipperGuard,
-  noAuthGuard,
-  rootRedirectGuard,
-} from '../services';
+import { adminGuard } from '../services/admin.guard';
+import { equipperGuard } from '../services/admin.guard';
+import { authGuard } from '../services/auth.guard';
+import { noAuthGuard } from '../services/no-auth.guard';
+import { rootRedirectGuard } from '../services/root-redirect.guard';
 
 export const routes: Routes = [
   {

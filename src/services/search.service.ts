@@ -1,14 +1,18 @@
 import { inject, Injectable } from '@angular/core';
+
 import { TranslateService } from '@ngx-translate/core';
 import { catchError, from, map, Observable, of } from 'rxjs';
+
 import {
   SearchData,
   SearchItem,
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
 } from '../models';
-import { SupabaseService } from './supabase.service';
+
 import { normalizeName, slugify } from '../utils';
+
+import { SupabaseService } from './supabase.service';
 
 interface DbArea {
   id: number;

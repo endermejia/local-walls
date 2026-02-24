@@ -1,9 +1,12 @@
+import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+
 import { TuiButton, TuiDialogContext, TuiTitle } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
+
 import { TranslatePipe } from '@ngx-translate/core';
-import { TourService } from '../services';
-import { NgOptimizedImage } from '@angular/common';
+
+import { TourService } from '../services/tour.service';
 
 @Component({
   selector: 'app-first-steps-dialog',

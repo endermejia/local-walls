@@ -27,6 +27,7 @@ import {
   TuiScrollbar,
   TuiTitle,
 } from '@taiga-ui/core';
+import { TuiDropdown } from '@taiga-ui/core';
 import {
   TuiAvatar,
   TuiBadgedContent,
@@ -35,6 +36,18 @@ import {
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe } from '@ngx-translate/core';
+
+import { AreasService } from '../services/areas.service';
+import { FiltersService } from '../services/filters.service';
+import { GlobalData } from '../services/global-data';
+import { ParkingsService } from '../services/parkings.service';
+import { TourService } from '../services/tour.service';
+import { TourStep } from '../services/tour.service';
+
+import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
+import { EmptyStateComponent } from '../components/empty-state';
+import { MapComponent } from '../components/map';
+import { TourHintComponent } from '../components/tour-hint';
 
 import {
   ClimbingKinds,
@@ -46,21 +59,6 @@ import {
   ORDERED_GRADE_VALUES,
   ParkingDto,
 } from '../models';
-
-import {
-  FiltersService,
-  GlobalData,
-  ParkingsService,
-  AreasService,
-  TourService,
-  TourStep,
-} from '../services';
-
-import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
-import { EmptyStateComponent } from '../components/empty-state';
-import { MapComponent } from '../components/map';
-import { TourHintComponent } from '../components/tour-hint';
-import { TuiDropdown } from '@taiga-ui/core';
 
 import { mapLocationUrl, remToPx } from '../utils';
 

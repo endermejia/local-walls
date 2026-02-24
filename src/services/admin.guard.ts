@@ -3,6 +3,7 @@ import { inject, PLATFORM_ID } from '@angular/core';
 import { CanMatchFn, Router, UrlTree } from '@angular/router';
 
 import { waitForResource } from '../utils';
+
 import { SupabaseService } from './supabase.service';
 
 /** Allows route matching only for admin users. On server, always allow. */

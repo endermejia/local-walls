@@ -35,24 +35,22 @@ import { TuiHeader } from '@taiga-ui/layout';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
+import { AreasService } from '../services/areas.service';
+import { CragsService } from '../services/crags.service';
+import { FiltersService } from '../services/filters.service';
+import { GlobalData } from '../services/global-data';
+import { SupabaseService } from '../services/supabase.service';
+import { ToastService } from '../services/toast.service';
+
+import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
+import { EmptyStateComponent } from '../components/empty-state';
+import { SectionHeaderComponent } from '../components/section-header';
+
 import {
   ClimbingKinds,
   normalizeRoutesByGrade,
   ORDERED_GRADE_VALUES,
 } from '../models';
-
-import {
-  AreasService,
-  CragsService,
-  FiltersService,
-  GlobalData,
-  SupabaseService,
-  ToastService,
-} from '../services';
-
-import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
-import { EmptyStateComponent } from '../components/empty-state';
-import { SectionHeaderComponent } from '../components/section-header';
 
 import { handleErrorToast, normalizeName } from '../utils';
 

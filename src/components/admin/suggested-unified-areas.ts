@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -5,12 +6,16 @@ import {
   inject,
   resource,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TuiButton, TuiLoader } from '@taiga-ui/core';
+
 import { TranslatePipe } from '@ngx-translate/core';
-import { AreasService } from '../../services';
-import { normalizeName } from '../../utils';
+
+import { AreasService } from '../../services/areas.service';
+
 import { AreaDto } from '../../models';
+
+import { normalizeName } from '../../utils';
 
 @Component({
   selector: 'app-suggested-unified-areas',

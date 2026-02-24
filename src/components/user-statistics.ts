@@ -1,3 +1,4 @@
+import { DecimalPipe, PercentPipe, LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -7,9 +8,8 @@ import {
   resource,
   signal,
 } from '@angular/core';
-import { DecimalPipe, PercentPipe, LowerCasePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 import {
   TuiAxes,
@@ -18,6 +18,7 @@ import {
   TuiLineChartHint,
   TuiRingChart,
 } from '@taiga-ui/addon-charts';
+import { TuiHovered } from '@taiga-ui/cdk';
 import {
   TuiDataList,
   TuiHint,
@@ -26,20 +27,21 @@ import {
   tuiHintOptionsProvider,
   TuiButton,
 } from '@taiga-ui/core';
-import { TuiDataListWrapper, TuiSelect } from '@taiga-ui/kit';
 import { TuiPoint } from '@taiga-ui/core/types';
+import { TuiDataListWrapper, TuiSelect } from '@taiga-ui/kit';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-import { AscentsService } from '../services';
+import { AscentsService } from '../services/ascents.service';
+
 import {
   AscentType,
   GRADE_NUMBER_TO_LABEL,
   VERTICAL_LIFE_GRADES,
   UserAscentStatRecord,
 } from '../models';
+
 import { CountUpDirective } from '../directives/count-up.directive';
-import { TuiHovered } from '@taiga-ui/cdk';
 
 interface RouteScore {
   name: string;

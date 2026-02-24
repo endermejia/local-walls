@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -8,9 +9,7 @@ import {
   model,
   OnInit,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { startWith } from 'rxjs';
 import {
   ControlValueAccessor,
   FormControl,
@@ -22,6 +21,7 @@ import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
 import { TuiInputNumber } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
+import { startWith } from 'rxjs';
 
 @Component({
   selector: 'app-counter',

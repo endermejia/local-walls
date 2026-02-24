@@ -30,6 +30,19 @@ import {
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
+import { AscentsService } from '../services/ascents.service';
+import { FollowsService } from '../services/follows.service';
+import { GlobalData } from '../services/global-data';
+import { RoutesService } from '../services/routes.service';
+import { ToastService } from '../services/toast.service';
+import { TourService } from '../services/tour.service';
+import { TourStep } from '../services/tour.service';
+
+import { AscentsFeedComponent } from '../components/ascents-feed';
+import { ChartAscentsByGradeComponent } from '../components/chart-ascents-by-grade';
+import { SectionHeaderComponent } from '../components/section-header';
+import { TourHintComponent } from '../components/tour-hint';
+
 import {
   CLIMBING_ICONS,
   FeedItem,
@@ -37,21 +50,6 @@ import {
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
 } from '../models';
-
-import {
-  AscentsService,
-  FollowsService,
-  GlobalData,
-  RoutesService,
-  ToastService,
-  TourService,
-  TourStep,
-} from '../services';
-
-import { AscentsFeedComponent } from '../components/ascents-feed';
-import { ChartAscentsByGradeComponent } from '../components/chart-ascents-by-grade';
-import { SectionHeaderComponent } from '../components/section-header';
-import { TourHintComponent } from '../components/tour-hint';
 
 import { handleErrorToast } from '../utils';
 

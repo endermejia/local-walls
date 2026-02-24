@@ -1,9 +1,11 @@
 import { Component, computed, inject, resource } from '@angular/core';
+
 import { TuiScrollbar } from '@taiga-ui/core';
 import { TuiDialogContext } from '@taiga-ui/experimental';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
-import { AscentsService } from '../services';
+import { AscentsService } from '../services/ascents.service';
+
 import { AscentCardComponent } from '../components/ascent-card';
 import { AscentCardSkeletonComponent } from '../components/ascent-card-skeleton';
 import { EmptyStateComponent } from '../components/empty-state';

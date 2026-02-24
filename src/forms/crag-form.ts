@@ -29,6 +29,7 @@ import { MapService } from '../services/map.service';
 import { ToastService } from '../services/toast.service';
 
 import { CounterComponent } from '../components/counter';
+
 import { handleErrorToast, slugify } from '../utils';
 
 interface MinimalCrag {

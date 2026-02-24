@@ -5,6 +5,7 @@ import {
   inject,
   input,
 } from '@angular/core';
+
 import {
   TuiButton,
   TuiIcon,
@@ -12,8 +13,10 @@ import {
   TuiSizeS,
   TuiSizeXS,
 } from '@taiga-ui/core';
+
+import { AscentsService } from '../services/ascents.service';
+
 import { AscentType } from '../models';
-import { AscentsService } from '../services';
 
 @Component({
   selector: 'app-button-ascent-type',

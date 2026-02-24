@@ -10,6 +10,7 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
 } from '@angular/core';
+
 import {
   TuiButton,
   TuiDialogContext,
@@ -18,13 +19,20 @@ import {
   TuiLoader,
   TuiScrollbar,
 } from '@taiga-ui/core';
-import { injectContext } from '@taiga-ui/polymorpheus';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TUI_CONFIRM } from '@taiga-ui/kit';
+import { injectContext } from '@taiga-ui/polymorpheus';
+
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
-import { TopoDetail, TopoRouteWithRoute } from '../models';
+
+import { GlobalData } from '../services/global-data';
+import { ToastService } from '../services/toast.service';
+import { ToposService } from '../services/topos.service';
+
 import { GradeComponent } from '../components/avatar-grade';
-import { GlobalData, ToastService, ToposService } from '../services';
+
+import { TopoDetail, TopoRouteWithRoute } from '../models';
+
 import {
   removePoint,
   addPointToPath,

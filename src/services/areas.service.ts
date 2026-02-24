@@ -24,15 +24,16 @@ import type {
 } from '../models';
 import { ClimbingKinds, LABEL_TO_VERTICAL_LIFE } from '../models';
 
+import { slugify } from '../utils';
+
 import { AreaFormComponent } from '../forms/area-form';
 import { AreaUnifyComponent } from '../forms/area-unify';
-import { slugify } from '../utils';
 import { EightAnuService } from './eight-anu.service';
 import { GlobalData } from './global-data';
-import { SupabaseService } from './supabase.service';
 import { LocalStorage } from './local-storage';
-import { ToastService } from './toast.service';
 import { NotificationService } from './notification.service';
+import { SupabaseService } from './supabase.service';
+import { ToastService } from './toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class AreasService {

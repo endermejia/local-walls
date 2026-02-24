@@ -9,9 +9,12 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TuiAvatar } from '@taiga-ui/kit';
+
 import { firstValueFrom } from 'rxjs';
 
-import { AscentsService, SupabaseService } from '../services';
+import { AscentsService } from '../services/ascents.service';
+import { SupabaseService } from '../services/supabase.service';
+
 import { MentionLinkPipe } from '../pipes/mention-link.pipe';
 
 @Component({

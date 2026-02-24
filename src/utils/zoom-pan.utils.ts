@@ -98,14 +98,14 @@ export function constrainTranslation(
   const scaledWidth = contentWidth * scale;
   const scaledHeight = contentHeight * scale;
 
-  let minX = 0,
-    maxX = 0;
+  let minX = 0;
+  const maxX = 0;
   if (scaledWidth > areaRect.width) {
     minX = areaRect.width - scaledWidth;
   }
 
-  let minY = 0,
-    maxY = 0;
+  let minY = 0;
+  const maxY = 0;
   if (scaledHeight > areaRect.height) {
     minY = areaRect.height - scaledHeight;
   }

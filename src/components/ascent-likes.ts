@@ -7,13 +7,14 @@ import {
   resource,
 } from '@angular/core';
 
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
-import { AscentsService } from '../services';
+import { AscentsService } from '../services/ascents.service';
 
 import { UserListDialogComponent } from '../dialogs/user-list-dialog';
 

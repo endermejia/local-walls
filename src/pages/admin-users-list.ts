@@ -46,11 +46,12 @@ import { TuiCell } from '@taiga-ui/layout';
 import { WaIntersectionObserver } from '@ng-web-apis/intersection-observer';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-import { AppRole, AppRoles, AreaListItem } from '../models';
-
-import { GlobalData, SupabaseService } from '../services';
+import { GlobalData } from '../services/global-data';
+import { SupabaseService } from '../services/supabase.service';
 
 import { EmptyStateComponent } from '../components/empty-state';
+
+import { AppRole, AppRoles, AreaListItem } from '../models';
 
 interface UserWithRole {
   id: string;

@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -5,12 +6,16 @@ import {
   inject,
   resource,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TuiButton, TuiLoader } from '@taiga-ui/core';
+
 import { TranslatePipe } from '@ngx-translate/core';
+
 import { CragSimple, CragsService } from '../../services/crags.service';
-import { normalizeName } from '../../utils';
+
 import { CragDto } from '../../models';
+
+import { normalizeName } from '../../utils';
 
 @Component({
   selector: 'app-suggested-unified-crags',

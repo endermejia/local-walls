@@ -31,9 +31,10 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { ParkingDto } from '../models';
+import { ParkingsService } from '../services/parkings.service';
+import { SupabaseService } from '../services/supabase.service';
 
-import { ParkingsService, SupabaseService } from '../services';
+import { ParkingDto } from '../models';
 
 @Component({
   selector: 'app-link-parking-form',

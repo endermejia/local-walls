@@ -5,11 +5,14 @@ import {
   inject,
   input,
 } from '@angular/core';
+
 import { TuiAppearance, TuiButton } from '@taiga-ui/core';
 import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
+
+import { GlobalData } from '../services/global-data';
+
 import { NewsItem } from '../models';
-import { GlobalData } from '../services';
 
 @Component({
   selector: 'app-news-card',

@@ -20,6 +20,9 @@ import { TuiButton } from '@taiga-ui/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { GlobalData } from '../services/global-data';
+import { MapBuilder, MapBuilderCallbacks } from '../services/map-builder';
+
 import type {
   MapAreaItem,
   MapBounds,
@@ -27,9 +30,6 @@ import type {
   MapOptions,
   ParkingDto,
 } from '../models';
-
-import { GlobalData } from '../services/global-data';
-import { MapBuilder, MapBuilderCallbacks } from '../services/map-builder';
 
 @Component({
   selector: 'app-map',

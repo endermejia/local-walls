@@ -16,6 +16,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { TuiAppearance, TuiLoader, TuiScrollbar } from '@taiga-ui/core';
+import { TuiDropdown } from '@taiga-ui/core';
 import { TuiSegmented } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -32,21 +33,18 @@ import {
   tap,
 } from 'rxjs';
 
-import { FeedItem, RouteAscentWithExtras } from '../models';
-
-import {
-  DesnivelService,
-  FollowsService,
-  GlobalData,
-  ScrollService,
-  SupabaseService,
-  TourService,
-  TourStep,
-} from '../services';
+import { DesnivelService } from '../services/desnivel.service';
+import { FollowsService } from '../services/follows.service';
+import { GlobalData } from '../services/global-data';
+import { ScrollService } from '../services/scroll.service';
+import { SupabaseService } from '../services/supabase.service';
+import { TourService } from '../services/tour.service';
+import { TourStep } from '../services/tour.service';
 
 import { AscentsFeedComponent } from '../components/ascents-feed';
 import { TourHintComponent } from '../components/tour-hint';
-import { TuiDropdown } from '@taiga-ui/core';
+
+import { FeedItem, RouteAscentWithExtras } from '../models';
 
 @Component({
   selector: 'app-home',

@@ -1,15 +1,16 @@
-import { inject, Injectable, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { inject, Injectable, signal } from '@angular/core';
 import { PLATFORM_ID } from '@angular/core';
 
 import { RealtimeChannel } from '@supabase/supabase-js';
 
-import { SupabaseService } from './supabase.service';
 import {
   NotificationInsertDto,
   NotificationWithActor,
   UserProfileDto,
 } from '../models';
+
+import { SupabaseService } from './supabase.service';
 
 @Injectable({
   providedIn: 'root',

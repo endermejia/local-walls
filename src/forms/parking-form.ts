@@ -24,11 +24,14 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { ParkingDto } from '../models';
-
-import { MapService, ParkingsService, ToastService } from '../services';
+import { MapService } from '../services/map.service';
+import { ParkingsService } from '../services/parkings.service';
+import { ToastService } from '../services/toast.service';
 
 import { CounterComponent } from '../components/counter';
+
+import { ParkingDto } from '../models';
+
 import { handleErrorToast } from '../utils';
 
 interface MinimalParking {

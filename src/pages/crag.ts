@@ -44,6 +44,25 @@ import { TuiHeader } from '@taiga-ui/layout';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
+import { CragsService } from '../services/crags.service';
+import { EightAnuService } from '../services/eight-anu.service';
+import { FiltersService } from '../services/filters.service';
+import { GlobalData } from '../services/global-data';
+import { ParkingsService } from '../services/parkings.service';
+import { RoutesService } from '../services/routes.service';
+import { SupabaseService } from '../services/supabase.service';
+import { ToastService } from '../services/toast.service';
+import { ToposService } from '../services/topos.service';
+import { TourService, TourStep } from '../services/tour.service';
+
+import { GradeComponent } from '../components/avatar-grade';
+import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
+import { EmptyStateComponent } from '../components/empty-state';
+import { RoutesTableComponent } from '../components/routes-table';
+import { SectionHeaderComponent } from '../components/section-header';
+import { TourHintComponent } from '../components/tour-hint';
+import { WeatherForecastComponent } from '../components/weather-forecast';
+
 import {
   AmountByEveryGrade,
   ClimbingKinds,
@@ -57,27 +76,6 @@ import {
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
 } from '../models';
-import { EightAnuService } from '../services/eight-anu.service';
-
-import { CragsService } from '../services/crags.service';
-import { FiltersService } from '../services/filters.service';
-import { GlobalData } from '../services/global-data';
-import { ParkingsService } from '../services/parkings.service';
-import { RoutesService } from '../services/routes.service';
-import { SupabaseService } from '../services/supabase.service';
-import { ToastService } from '../services/toast.service';
-import { ToposService } from '../services/topos.service';
-import { TourService, TourStep } from '../services/tour.service';
-
-import { TopoImagePipe } from '../pipes';
-
-import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
-import { EmptyStateComponent } from '../components/empty-state';
-import { GradeComponent } from '../components/avatar-grade';
-import { RoutesTableComponent } from '../components/routes-table';
-import { SectionHeaderComponent } from '../components/section-header';
-import { TourHintComponent } from '../components/tour-hint';
-import { WeatherForecastComponent } from '../components/weather-forecast';
 
 import {
   handleErrorToast,
@@ -85,6 +83,8 @@ import {
   slugify,
   normalizeName,
 } from '../utils';
+
+import { TopoImagePipe } from '../pipes';
 
 @Component({
   selector: 'app-crag',

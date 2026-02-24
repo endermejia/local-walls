@@ -36,6 +36,12 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
+import { RoutesService } from '../services/routes.service';
+import { SupabaseService } from '../services/supabase.service';
+import { ToastService } from '../services/toast.service';
+
+import { CounterComponent } from '../components/counter';
+
 import {
   ClimbingKind,
   ClimbingKinds,
@@ -46,9 +52,6 @@ import {
   GRADE_NUMBER_TO_LABEL,
 } from '../models';
 
-import { RoutesService, SupabaseService, ToastService } from '../services';
-
-import { CounterComponent } from '../components/counter';
 import { handleErrorToast, slugify } from '../utils';
 
 interface MinimalRoute {

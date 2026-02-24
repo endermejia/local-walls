@@ -27,6 +27,7 @@ import {
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
+import { TuiDialogService } from '@taiga-ui/experimental';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
 import {
   TUI_COUNTRIES,
@@ -40,35 +41,29 @@ import {
   TuiTabs,
   TuiPulse,
 } from '@taiga-ui/kit';
-import { TuiHeader } from '@taiga-ui/layout';
-import { TuiDialogService } from '@taiga-ui/experimental';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TUI_CONFIRM } from '@taiga-ui/kit';
+import { TuiHeader } from '@taiga-ui/layout';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, startWith } from 'rxjs';
 
-import {
-  BlockingService,
-  FiltersService,
-  FollowsService,
-  GlobalData,
-  SupabaseService,
-  ToastService,
-  UserProfilesService,
-  TourService,
-  TourStep,
-} from '../services';
+import { BlockingService } from '../services/blocking.service';
+import { FiltersService } from '../services/filters.service';
+import { FollowsService } from '../services/follows.service';
+import { GlobalData } from '../services/global-data';
+import { SupabaseService } from '../services/supabase.service';
+import { ToastService } from '../services/toast.service';
+import { TourService } from '../services/tour.service';
+import { TourStep } from '../services/tour.service';
+import { UserProfilesService } from '../services/user-profiles.service';
 
-import { normalizeName } from '../utils';
-
-import { AscentsFeedComponent } from '../components/ascents-feed';
 import { AscentCardSkeletonComponent } from '../components/ascent-card-skeleton';
+import { AscentsFeedComponent } from '../components/ascents-feed';
 import { EmptyStateComponent } from '../components/empty-state';
 import { RoutesTableComponent } from '../components/routes-table';
 import { TourHintComponent } from '../components/tour-hint';
-import { ChatDialogComponent } from '../dialogs/chat-dialog';
-import { UserListDialogComponent } from '../dialogs/user-list-dialog';
+import { UserStatisticsComponent } from '../components/user-statistics';
 
 import {
   FeedItem,
@@ -76,9 +71,12 @@ import {
   RouteAscentWithExtras,
   RouteWithExtras,
 } from '../models';
-import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
 
-import { UserStatisticsComponent } from '../components/user-statistics';
+import { normalizeName } from '../utils';
+
+import { ChatDialogComponent } from '../dialogs/chat-dialog';
+import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
+import { UserListDialogComponent } from '../dialogs/user-list-dialog';
 
 @Component({
   selector: 'app-user-profile',

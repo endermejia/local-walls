@@ -5,12 +5,15 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+
 import { TuiIcon, TuiSizeL, TuiSizeS, TuiSizeXS } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
 
+import { TranslatePipe } from '@ngx-translate/core';
+
+import { AscentsService } from '../services/ascents.service';
+
 import { AscentType } from '../models';
-import { AscentsService } from '../services';
 
 @Component({
   selector: 'app-ascent-type',

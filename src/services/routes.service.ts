@@ -8,10 +8,9 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
-import { RouteFormComponent } from '../forms/route-form';
-import { RouteUnifyComponent } from '../forms/route-unify';
-
-import { normalizeName } from '../utils';
+import { GlobalData } from '../services/global-data';
+import { SupabaseService } from '../services/supabase.service';
+import { ToastService } from '../services/toast.service';
 
 import type {
   EquipperDto,
@@ -21,7 +20,10 @@ import type {
   RouteWithExtras,
 } from '../models';
 
-import { GlobalData, SupabaseService, ToastService } from '../services';
+import { normalizeName } from '../utils';
+
+import { RouteFormComponent } from '../forms/route-form';
+import { RouteUnifyComponent } from '../forms/route-unify';
 
 export interface RouteSimple {
   id: number;

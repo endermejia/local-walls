@@ -15,11 +15,11 @@ import type {
   TopoRouteInsertDto,
   TopoUpdateDto,
 } from '../models';
+
 import {
   TopoPathEditorConfig,
   TopoPathEditorDialogComponent,
 } from '../dialogs/topo-path-editor-dialog';
-
 import TopoFormComponent from '../forms/topo-form';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';

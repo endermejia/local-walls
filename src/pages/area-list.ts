@@ -17,6 +17,7 @@ import {
   TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
+import { TuiDropdown } from '@taiga-ui/core';
 import {
   TuiAvatar,
   TuiBadgedContentComponent,
@@ -26,24 +27,21 @@ import { TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { AreasService } from '../services/areas.service';
+import { FiltersService } from '../services/filters.service';
+import { GlobalData } from '../services/global-data';
+import { TourService } from '../services/tour.service';
+import { TourStep } from '../services/tour.service';
+
+import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
+import { EmptyStateComponent } from '../components/empty-state';
+import { TourHintComponent } from '../components/tour-hint';
+
 import {
   ClimbingKinds,
   normalizeRoutesByGrade,
   ORDERED_GRADE_VALUES,
 } from '../models';
-
-import {
-  AreasService,
-  FiltersService,
-  GlobalData,
-  TourService,
-  TourStep,
-} from '../services';
-
-import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
-import { EmptyStateComponent } from '../components/empty-state';
-import { TourHintComponent } from '../components/tour-hint';
-import { TuiDropdown } from '@taiga-ui/core';
 
 import { normalizeName } from '../utils';
 

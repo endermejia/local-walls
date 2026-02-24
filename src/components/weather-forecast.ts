@@ -17,7 +17,8 @@ import { TuiIcon, TuiScrollbar } from '@taiga-ui/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { filter, switchMap } from 'rxjs';
 
-import { GlobalData, WeatherService } from '../services';
+import { GlobalData } from '../services/global-data';
+import { WeatherService } from '../services/weather.service';
 
 @Component({
   selector: 'app-weather-forecast',

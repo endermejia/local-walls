@@ -44,6 +44,13 @@ import {
   tap,
 } from 'rxjs';
 
+import { AscentsService } from '../services/ascents.service';
+import { EightAnuService } from '../services/eight-anu.service';
+import { GlobalData } from '../services/global-data';
+import { NotificationService } from '../services/notification.service';
+import { SupabaseService } from '../services/supabase.service';
+import { ToastService } from '../services/toast.service';
+
 import {
   AscentType,
   AscentTypes,
@@ -54,13 +61,6 @@ import {
   GradeLabel,
   LABEL_TO_VERTICAL_LIFE,
 } from '../models';
-
-import { AscentsService } from '../services/ascents.service';
-import { EightAnuService } from '../services/eight-anu.service';
-import { NotificationService } from '../services/notification.service';
-import { SupabaseService } from '../services/supabase.service';
-import { ToastService } from '../services/toast.service';
-import { GlobalData } from '../services/global-data';
 
 import { slugify } from '../utils';
 

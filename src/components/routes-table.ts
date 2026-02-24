@@ -46,20 +46,18 @@ import { TuiCell } from '@taiga-ui/layout';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
+import { AscentsService } from '../services/ascents.service';
+import { GlobalData } from '../services/global-data';
+import { RoutesService } from '../services/routes.service';
+import { ToastService } from '../services/toast.service';
+import { ToposService } from '../services/topos.service';
+
 import {
   RouteAscentWithExtras,
   RouteWithExtras,
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
 } from '../models';
-
-import {
-  AscentsService,
-  GlobalData,
-  RoutesService,
-  ToastService,
-  ToposService,
-} from '../services';
 
 import { handleErrorToast, normalizeName } from '../utils';
 

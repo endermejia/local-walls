@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+
 import {
   TuiButton,
   TuiDataList,
@@ -15,6 +16,7 @@ import {
   TuiOptGroup,
   TuiTextfield,
 } from '@taiga-ui/core';
+import { type TuiDialogContext } from '@taiga-ui/experimental';
 import {
   TuiChevron,
   TuiFilterByInputPipe,
@@ -22,10 +24,13 @@ import {
   TuiComboBox,
   TuiMultiSelect,
 } from '@taiga-ui/kit';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { injectContext } from '@taiga-ui/polymorpheus';
+
 import { TranslatePipe } from '@ngx-translate/core';
-import { AreasService, GlobalData } from '../services';
+
+import { AreasService } from '../services/areas.service';
+import { GlobalData } from '../services/global-data';
+
 import { AreaDto, AreaListItem } from '../models';
 
 @Component({

@@ -7,13 +7,14 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, Observable } from 'rxjs';
 
-import { UserProfileBasicDto, UserProfileDto } from '../models';
-
-import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
 import { Import8aComponent } from '../components/import-8a';
 
-import { SupabaseService } from './supabase.service';
+import { UserProfileBasicDto, UserProfileDto } from '../models';
+
 import { normalizeName } from '../utils';
+
+import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
+import { SupabaseService } from './supabase.service';
 
 @Injectable({
   providedIn: 'root',

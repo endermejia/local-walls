@@ -1,5 +1,5 @@
-import { RouteAscentDto } from './supabase-interfaces';
 import { RouteWithExtras } from './route.model';
+import { RouteAscentDto } from './supabase-interfaces';
 import { UserProfileBasicDto } from './user.model';
 
 export interface RouteAscentWithExtras extends RouteAscentDto {

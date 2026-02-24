@@ -1,5 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+
 import { UserProfileDto } from '../models';
 
 import { SupabaseService } from './supabase.service';

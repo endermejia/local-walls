@@ -10,13 +10,12 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { Router, RouterLink } from '@angular/router';
 
 import { TuiItem } from '@taiga-ui/cdk';
 import { TuiAppearance, TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
   TUI_CONFIRM,
   TuiAvatar,
@@ -27,26 +26,26 @@ import {
   TuiRating,
 } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
+import { AscentsService } from '../services/ascents.service';
+import { FollowsService } from '../services/follows.service';
+import { GlobalData } from '../services/global-data';
+import { SupabaseService } from '../services/supabase.service';
+
 import { CLIMBING_ICONS, RouteAscentWithExtras } from '../models';
 
-import {
-  AscentsService,
-  FollowsService,
-  GlobalData,
-  SupabaseService,
-} from '../services';
-
-import { AscentCommentsComponent } from './ascent-comments';
-import { AscentLikesComponent } from './ascent-likes';
-import { GradeComponent } from './avatar-grade';
-import { AscentTypeComponent } from './ascent-type';
-import { AscentLastCommentComponent } from './ascent-last-comment';
 import { getEmbedUrl } from '../utils/video-helpers';
+
 import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
+import { AscentCommentsComponent } from './ascent-comments';
+import { AscentLastCommentComponent } from './ascent-last-comment';
+import { AscentLikesComponent } from './ascent-likes';
+import { AscentTypeComponent } from './ascent-type';
+import { GradeComponent } from './avatar-grade';
 
 @Component({
   selector: 'app-ascent-card',

@@ -23,7 +23,8 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { AreasService, ToastService } from '../services';
+import { AreasService } from '../services/areas.service';
+import { ToastService } from '../services/toast.service';
 
 import { handleErrorToast, slugify } from '../utils';
 

@@ -37,11 +37,13 @@ import {
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
-import { ParkingDto } from '../models';
-
-import { GlobalData, ParkingsService, ToastService } from '../services';
+import { GlobalData } from '../services/global-data';
+import { ParkingsService } from '../services/parkings.service';
+import { ToastService } from '../services/toast.service';
 
 import { EmptyStateComponent } from '../components/empty-state';
+
+import { ParkingDto } from '../models';
 
 import { handleErrorToast } from '../utils';
 

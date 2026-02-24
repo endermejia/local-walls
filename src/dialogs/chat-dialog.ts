@@ -11,6 +11,7 @@ import {
   OnDestroy,
   ViewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import {
@@ -35,9 +36,8 @@ import {
 } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
-import { RealtimeChannel } from '@supabase/supabase-js';
-
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import {
   debounceTime,
   distinctUntilChanged,
@@ -46,21 +46,20 @@ import {
   from,
   firstValueFrom,
 } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import {
-  BlockingService,
-  MessagingService,
-  SupabaseService,
-  ToastService,
-  UserProfilesService,
-} from '../services';
+import { BlockingService } from '../services/blocking.service';
+import { MessagingService } from '../services/messaging.service';
+import { SupabaseService } from '../services/supabase.service';
+import { ToastService } from '../services/toast.service';
+import { UserProfilesService } from '../services/user-profiles.service';
+
+import { EmptyStateComponent } from '../components/empty-state';
+
 import {
   ChatMessageDto,
   ChatRoomWithParticipant,
   UserProfileBasicDto,
 } from '../models';
-import { EmptyStateComponent } from '../components/empty-state';
 
 export interface ChatDialogData {
   userId?: string;

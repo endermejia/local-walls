@@ -21,9 +21,13 @@ import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
-import { AppNotificationsService, SupabaseService } from '../services';
-import { NotificationWithActor } from '../models';
+import { AppNotificationsService } from '../services/app-notifications.service';
+import { SupabaseService } from '../services/supabase.service';
+
 import { EmptyStateComponent } from '../components/empty-state';
+
+import { NotificationWithActor } from '../models';
+
 import { AscentDialogComponent } from './ascent-dialog';
 import { ChatDialogComponent } from './chat-dialog';
 

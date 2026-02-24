@@ -1,5 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
+
 import { SupabaseService } from './supabase.service';
 import { UserProfilesService } from './user-profiles.service';
 

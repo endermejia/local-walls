@@ -1,3 +1,4 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -5,16 +6,15 @@ import {
   PLATFORM_ID,
   resource,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 import { TuiIcon, TuiTitle } from '@taiga-ui/core';
-import { TuiHeader } from '@taiga-ui/layout';
 import { TuiAvatar, TuiAvatarStack } from '@taiga-ui/kit';
+import { TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { SupabaseService } from '../services';
+import { SupabaseService } from '../services/supabase.service';
 
 @Component({
   selector: 'app-admin',

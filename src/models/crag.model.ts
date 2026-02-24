@@ -1,5 +1,5 @@
-import { Database } from './supabase-generated';
 import { AmountByEveryGrade } from './grade.model';
+import { Database } from './supabase-generated';
 import { ParkingDto } from './supabase-interfaces';
 import { TableInsert, TableRow, TableUpdate } from './supabase-interfaces';
 import { TopoDto } from './supabase-interfaces';

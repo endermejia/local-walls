@@ -24,7 +24,6 @@ import {
 import { Router } from '@angular/router';
 
 import { TuiDay, TuiStringMatcher } from '@taiga-ui/cdk';
-import { TuiHeader } from '@taiga-ui/layout';
 import {
   TuiButton,
   tuiDateFormatProvider,
@@ -43,7 +42,6 @@ import {
   TuiDialogService,
   type TuiDialogContext,
 } from '@taiga-ui/experimental';
-import { PolymorpheusContent } from '@taiga-ui/polymorpheus';
 import {
   TUI_CONFIRM,
   TUI_COUNTRIES,
@@ -67,7 +65,10 @@ import {
   type TuiConfirmData,
   TuiFieldErrorPipe,
 } from '@taiga-ui/kit';
+import { TuiHeader } from '@taiga-ui/layout';
+import { PolymorpheusContent } from '@taiga-ui/polymorpheus';
 import { injectContext } from '@taiga-ui/polymorpheus';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
@@ -82,6 +83,16 @@ import {
   Observer,
 } from 'rxjs';
 
+import { EightAnuService } from '../services/eight-anu.service';
+import { GlobalData } from '../services/global-data';
+import { SupabaseService } from '../services/supabase.service';
+import { ToastService } from '../services/toast.service';
+import { TourService } from '../services/tour.service';
+import { TourStep } from '../services/tour.service';
+import { UserProfilesService } from '../services/user-profiles.service';
+
+import { TourHintComponent } from '../components/tour-hint';
+
 import {
   EightAnuUser,
   Language,
@@ -93,18 +104,7 @@ import {
   UserProfileDto,
 } from '../models';
 
-import {
-  GlobalData,
-  SupabaseService,
-  ToastService,
-  UserProfilesService,
-  EightAnuService,
-  TourService,
-  TourStep,
-} from '../services';
 import { FirstStepsDialogComponent } from '../dialogs/first-steps-dialog';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { TourHintComponent } from '../components/tour-hint';
 
 interface Country {
   id: string;

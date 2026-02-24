@@ -14,6 +14,7 @@ import {
   Signal,
   ViewChild,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import {
@@ -41,9 +42,19 @@ import {
 } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
 
-import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
+
+import { AscentsService } from '../services/ascents.service';
+import { GlobalData } from '../services/global-data';
+import { RoutesService } from '../services/routes.service';
+import { SupabaseService } from '../services/supabase.service';
+import { ToastService } from '../services/toast.service';
+import { ToposService } from '../services/topos.service';
+
+import { GradeComponent } from '../components/avatar-grade';
+import { EmptyStateComponent } from '../components/empty-state';
+import { SectionHeaderComponent } from '../components/section-header';
 
 import {
   RouteAscentWithExtras,
@@ -51,22 +62,14 @@ import {
   TopoDetail,
   TopoRouteWithRoute,
 } from '../models';
+import { VERTICAL_LIFE_GRADES, GRADE_NUMBER_TO_LABEL } from '../models';
 
-import {
-  AscentsService,
-  GlobalData,
-  RoutesService,
-  SupabaseService,
-  ToastService,
-  ToposService,
-} from '../services';
-
+import { handleErrorToast } from '../utils';
 import {
   getRouteStyleProperties,
   getRouteStrokeWidth,
   getPointsString as getPointsStringUtil,
 } from '../utils/topo-styles.utils';
-
 import {
   ViewerZoomPanState,
   ViewerDragState,
@@ -78,14 +81,6 @@ import {
   handleViewerMouseMove,
   resetViewerZoomState,
 } from '../utils/zoom-pan.utils';
-
-import { VERTICAL_LIFE_GRADES, GRADE_NUMBER_TO_LABEL } from '../models';
-
-import { GradeComponent } from '../components/avatar-grade';
-import { EmptyStateComponent } from '../components/empty-state';
-import { SectionHeaderComponent } from '../components/section-header';
-
-import { handleErrorToast } from '../utils';
 
 export interface TopoRouteRow {
   index: number;

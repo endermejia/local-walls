@@ -5,17 +5,19 @@ import { Meta, Title } from '@angular/platform-browser';
 import { Router, RouterOutlet } from '@angular/router';
 
 import { TuiAppearance, TuiButton, TuiRoot } from '@taiga-ui/core';
-import { TuiBlockStatus } from '@taiga-ui/layout';
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TuiBadgedContent, TuiBadgeNotification } from '@taiga-ui/kit';
+import { TuiBlockStatus } from '@taiga-ui/layout';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, map, merge, startWith } from 'rxjs';
 
-import { GlobalData, LocalStorage } from '../services';
+import { GlobalData } from '../services/global-data';
+import { LocalStorage } from '../services/local-storage';
 
 import { NavbarComponent } from '../components/navbar';
+
 import { ChatDialogComponent } from '../dialogs/chat-dialog';
 import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
 

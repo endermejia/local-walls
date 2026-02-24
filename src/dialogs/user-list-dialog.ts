@@ -11,7 +11,6 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { TuiDialogContext, TuiDialogService } from '@taiga-ui/experimental';
 import {
   TuiTextfield,
   TuiButton,
@@ -20,16 +19,21 @@ import {
   TuiLoader,
   TuiScrollbar,
 } from '@taiga-ui/core';
+import { TuiDialogContext, TuiDialogService } from '@taiga-ui/experimental';
 import { TuiAvatar, TuiConfirmData, TUI_CONFIRM } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { WaIntersectionObserver } from '@ng-web-apis/intersection-observer';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
-import { UserProfileBasicDto, UserProfileDto } from '../models';
 
-import { FollowsService, SupabaseService, AscentsService } from '../services';
+import { AscentsService } from '../services/ascents.service';
+import { FollowsService } from '../services/follows.service';
+import { SupabaseService } from '../services/supabase.service';
+
 import { EmptyStateComponent } from '../components/empty-state';
+
+import { UserProfileBasicDto, UserProfileDto } from '../models';
 
 export type UserListType = 'followers' | 'following' | 'ascent-likes';
 

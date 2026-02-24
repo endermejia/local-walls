@@ -13,25 +13,39 @@ import {
   AfterViewInit,
 } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+
 import {
   TuiButton,
   TuiDialogContext,
   TuiIcon,
   TuiLoader,
 } from '@taiga-ui/core';
-import { TuiSegmented } from '@taiga-ui/kit';
-import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { ToastService } from '../services/toast.service';
-import { firstValueFrom } from 'rxjs';
+import { TuiScrollbar } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiSegmented } from '@taiga-ui/kit';
 import { TUI_CONFIRM, TuiConfirmData } from '@taiga-ui/kit';
+import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   ImageCroppedEvent,
   ImageCropperComponent,
   ImageTransform,
 } from 'ngx-image-cropper';
+import { firstValueFrom } from 'rxjs';
+
+import { ToastService } from '../services/toast.service';
+
+import { GradeComponent } from '../components/avatar-grade';
+
 import { GRADE_COLORS, ImageEditorResult, TopoRouteWithRoute } from '../models';
+
+import {
+  removePoint,
+  addPointToPath,
+  startDragPointMouse,
+  startDragPointTouch,
+} from '../utils/drawing.utils';
 import {
   getRouteColor,
   getRouteStyleProperties,
@@ -39,14 +53,6 @@ import {
   getPointsString as getPointsStringUtil,
   hasPath as hasPathUtil,
 } from '../utils/topo-styles.utils';
-import { GradeComponent } from '../components/avatar-grade';
-import { TuiScrollbar } from '@taiga-ui/core';
-import {
-  removePoint,
-  addPointToPath,
-  startDragPointMouse,
-  startDragPointTouch,
-} from '../utils/drawing.utils';
 import {
   ZoomPanState,
   handleWheelZoom,

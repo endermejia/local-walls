@@ -27,6 +27,7 @@ import { BrowserNotificationService } from './browser-notification.service';
 import { LocalStorage } from './local-storage';
 import { MessagingService } from './messaging.service';
 import { SupabaseService } from './supabase.service';
+
 // import { UserProfilesService } from './user-profiles.service';
 
 import { mapCragToDetail } from '../utils';

@@ -11,7 +11,6 @@ import {
   provideZonelessChangeDetection,
 } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { provideServiceWorker } from '@angular/service-worker';
 import {
   provideClientHydration,
   withEventReplay,
@@ -20,6 +19,7 @@ import {
 } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideServiceWorker } from '@angular/service-worker';
 
 import { provideEventPlugins } from '@taiga-ui/event-plugins';
 import { TUI_LANGUAGE } from '@taiga-ui/i18n';
@@ -27,17 +27,14 @@ import { TUI_LANGUAGE } from '@taiga-ui/i18n';
 import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
-import {
-  errorInterceptor,
-  GlobalData,
-  provideSupabaseConfig,
-} from '../services';
+import { errorInterceptor } from '../services/error.interceptor';
+import { GlobalData } from '../services/global-data';
+import { provideSupabaseConfig } from '../services/supabase.service';
 
 import {
   ENV_SUPABASE_ANON_KEY,
   ENV_SUPABASE_URL,
 } from '../environments/environment';
-
 import { routes } from './app.routes';
 
 const httpLoaderFactory: (http: HttpClient) => TranslateHttpLoader = (

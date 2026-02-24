@@ -21,12 +21,12 @@ import {
   UserAscentStatRecord,
 } from '../models';
 
+import { AscentCommentsDialogComponent } from '../dialogs/ascent-comments-dialog';
 import AscentFormComponent from '../forms/ascent-form';
+import { AppNotificationsService } from './app-notifications.service';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
-import { AppNotificationsService } from './app-notifications.service';
-import { AscentCommentsDialogComponent } from '../dialogs/ascent-comments-dialog';
 
 @Injectable({ providedIn: 'root' })
 export class AscentsService {

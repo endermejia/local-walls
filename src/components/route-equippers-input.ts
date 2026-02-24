@@ -11,8 +11,6 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { TranslatePipe } from '@ngx-translate/core';
-
 import { TuiIdentityMatcher } from '@taiga-ui/cdk';
 import { TuiDataList, TuiTextfield } from '@taiga-ui/core';
 import {
@@ -22,8 +20,13 @@ import {
   TuiInputChip,
 } from '@taiga-ui/kit';
 
+import { TranslatePipe } from '@ngx-translate/core';
+
+import { RoutesService } from '../services/routes.service';
+import { SupabaseService } from '../services/supabase.service';
+import { ToastService } from '../services/toast.service';
+
 import { EquipperDto, RouteWithExtras } from '../models';
-import { RoutesService, SupabaseService, ToastService } from '../services';
 
 @Component({
   selector: 'app-route-equippers-input',

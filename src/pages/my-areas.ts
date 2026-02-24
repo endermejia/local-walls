@@ -26,16 +26,18 @@ import { TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { AreasService } from '../services/areas.service';
+import { FiltersService } from '../services/filters.service';
+import { GlobalData } from '../services/global-data';
+
+import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
+import { EmptyStateComponent } from '../components/empty-state';
+
 import {
   ClimbingKinds,
   normalizeRoutesByGrade,
   ORDERED_GRADE_VALUES,
 } from '../models';
-
-import { AreasService, FiltersService, GlobalData } from '../services';
-
-import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
-import { EmptyStateComponent } from '../components/empty-state';
 
 @Component({
   selector: 'app-my-areas',

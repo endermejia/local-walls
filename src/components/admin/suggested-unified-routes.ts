@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -5,11 +6,14 @@ import {
   inject,
   resource,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TuiButton, TuiLoader } from '@taiga-ui/core';
 import { TuiAccordion } from '@taiga-ui/experimental';
+
 import { TranslatePipe } from '@ngx-translate/core';
+
 import { RouteSimple, RoutesService } from '../../services/routes.service';
+
 import { RouteDto } from '../../models';
 
 @Component({

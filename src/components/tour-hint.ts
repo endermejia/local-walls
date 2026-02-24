@@ -4,7 +4,9 @@ import {
   input,
   output,
 } from '@angular/core';
+
 import { TuiButton, TuiIcon } from '@taiga-ui/core';
+
 import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({

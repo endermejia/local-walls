@@ -7,15 +7,15 @@ import {
   signal,
   TemplateRef,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { TuiItem } from '@taiga-ui/cdk';
 import { TuiButton, TuiDropdown, TuiLink } from '@taiga-ui/core';
 import { TuiBreadcrumbs, TuiChevron } from '@taiga-ui/kit';
-import { RouterLink } from '@angular/router';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { GlobalData } from '../services';
+import { GlobalData } from '../services/global-data';
 
 @Component({
   selector: 'app-section-header',

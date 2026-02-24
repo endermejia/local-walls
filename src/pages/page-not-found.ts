@@ -6,7 +6,7 @@ import { TuiBlockStatus } from '@taiga-ui/layout';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { GlobalData } from '../services';
+import { GlobalData } from '../services/global-data';
 
 @Component({
   selector: 'app-page-not-found',

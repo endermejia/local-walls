@@ -51,6 +51,15 @@ import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, startWith } from 'rxjs';
 
+import { AscentsService } from '../services/ascents.service';
+import { GlobalData } from '../services/global-data';
+import { RoutesService } from '../services/routes.service';
+import { SupabaseService } from '../services/supabase.service';
+import { ToastService } from '../services/toast.service';
+
+import { ButtonAscentTypeComponent } from '../components/button-ascent-type';
+import { CounterComponent } from '../components/counter';
+
 import {
   AscentDialogData,
   AscentType,
@@ -62,19 +71,9 @@ import {
   GRADE_NUMBER_TO_LABEL,
 } from '../models';
 
-import {
-  AscentsService,
-  GlobalData,
-  RoutesService,
-  SupabaseService,
-  ToastService,
-} from '../services';
+import { handleErrorToast } from '../utils';
 
 import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
-import { ButtonAscentTypeComponent } from '../components/button-ascent-type';
-import { CounterComponent } from '../components/counter';
-
-import { handleErrorToast } from '../utils';
 
 @Component({
   selector: 'app-ascent-form',

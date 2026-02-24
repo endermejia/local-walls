@@ -45,8 +45,16 @@ import {
 } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
 import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, startWith } from 'rxjs';
+
+import { GlobalData } from '../services/global-data';
+import { SupabaseService } from '../services/supabase.service';
+import { ToastService } from '../services/toast.service';
+import { ToposService } from '../services/topos.service';
+
+import { GradeComponent } from '../components/avatar-grade';
 
 import {
   RouteDto,
@@ -60,17 +68,9 @@ import {
   ImageEditorResult,
 } from '../models';
 
-import {
-  GlobalData,
-  SupabaseService,
-  ToastService,
-  ToposService,
-} from '../services';
+import { handleErrorToast, slugify } from '../utils';
 
 import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
-import { GradeComponent } from '../components/avatar-grade';
-
-import { handleErrorToast, slugify } from '../utils';
 
 @Component({
   selector: 'app-topo-form',

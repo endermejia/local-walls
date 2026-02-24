@@ -27,14 +27,15 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
-import {
-  AscentsService,
-  SupabaseService,
-  UserProfilesService,
-} from '../services';
+import { AscentsService } from '../services/ascents.service';
+import { SupabaseService } from '../services/supabase.service';
+import { UserProfilesService } from '../services/user-profiles.service';
+
 import { EmptyStateComponent } from '../components/empty-state';
-import { MentionLinkPipe } from '../pipes/mention-link.pipe';
+
 import { UserProfileBasicDto } from '../models';
+
+import { MentionLinkPipe } from '../pipes/mention-link.pipe';
 
 export interface AscentCommentsDialogData {
   ascentId: number;

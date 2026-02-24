@@ -10,7 +10,6 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { take } from 'rxjs';
 
 import {
   TuiAppearance,
@@ -24,8 +23,9 @@ import { TuiPassword } from '@taiga-ui/kit';
 import { TuiCardLarge, TuiForm, TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe } from '@ngx-translate/core';
+import { take } from 'rxjs';
 
-import { SupabaseService } from '../services';
+import { SupabaseService } from '../services/supabase.service';
 
 @Component({
   selector: 'app-login',

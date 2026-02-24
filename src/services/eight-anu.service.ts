@@ -12,6 +12,7 @@ import {
   SearchCragItem,
   SearchRouteItem,
 } from '../models';
+
 import { normalizeName, slugify } from '../utils';
 
 @Injectable({

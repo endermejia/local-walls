@@ -1,13 +1,17 @@
+import { NgOptimizedImage } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   inject,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
+import { TuiAutoFocus } from '@taiga-ui/cdk';
 import { TuiIcon, TuiTextfield, TuiTitle } from '@taiga-ui/core';
+import { TuiAppearance, TuiDataList, TuiDropdown } from '@taiga-ui/core';
 import {
   TuiDialogService,
   TuiSearchHotkey,
@@ -20,10 +24,16 @@ import {
   TuiSkeleton,
   TuiSwitch,
 } from '@taiga-ui/kit';
+import {
+  TuiPulse,
+  TuiSegmented,
+  TuiBadgedContent,
+  TuiBadgeNotification,
+} from '@taiga-ui/kit';
 import { TuiCell, TuiInputSearch } from '@taiga-ui/layout';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import {
   debounceTime,
   distinctUntilChanged,
@@ -33,29 +43,19 @@ import {
   switchMap,
 } from 'rxjs';
 
-import { TuiAutoFocus } from '@taiga-ui/cdk';
-import { TuiAppearance, TuiDataList, TuiDropdown } from '@taiga-ui/core';
-import {
-  TuiPulse,
-  TuiSegmented,
-  TuiBadgedContent,
-  TuiBadgeNotification,
-} from '@taiga-ui/kit';
+import { GlobalData } from '../services/global-data';
+import { ScrollService } from '../services/scroll.service';
+import { SearchService } from '../services/search.service';
+import { SupabaseService } from '../services/supabase.service';
+import { TourService } from '../services/tour.service';
+import { TourStep } from '../services/tour.service';
+import { UserProfilesService } from '../services/user-profiles.service';
+
 import { Themes } from '../models';
-import { TourHintComponent } from './tour-hint'; // Added this import
-import {
-  GlobalData,
-  ScrollService,
-  SearchService,
-  SupabaseService,
-  TourService,
-  TourStep,
-  UserProfilesService,
-} from '../services';
-import { NgOptimizedImage } from '@angular/common';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+
 import { ChatDialogComponent } from '../dialogs/chat-dialog';
 import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
+import { TourHintComponent } from './tour-hint';
 
 @Component({
   selector: 'app-navbar',
