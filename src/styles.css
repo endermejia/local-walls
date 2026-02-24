@@ -1,4 +1,21 @@
 @import "tailwindcss";
+
+html,
+body {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;

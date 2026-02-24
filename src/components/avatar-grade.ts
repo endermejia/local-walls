@@ -23,7 +23,7 @@ import {
   template: `
     <tui-badge
       [size]="badgeSize()"
-      class="self-center font-bold select-none !text-[var(--tui-text-primary-on-accent-1)] !rounded-full"
+      class="self-center font-bold !text-[var(--tui-text-primary-on-accent-1)] !rounded-full"
       [style.background]="gradeColor()"
       [attr.aria-label]="'grade' | translate"
     >

@@ -226,7 +226,7 @@ export interface TopoPathEditorConfig {
         >
           <div
             #container
-            class="relative inline-block shadow-2xl rounded-lg select-none transition-transform duration-75 ease-out"
+            class="relative inline-block shadow-2xl rounded-lg transition-transform duration-75 ease-out"
             [style.transform]="transform()"
             [style.transform-origin]="'0 0'"
             (mousedown.zoneless)="onImageClick($event)"

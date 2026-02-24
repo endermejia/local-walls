@@ -41,7 +41,7 @@ export interface PhotoViewerData {
       >
         <img
           [src]="context.data.imageUrl"
-          class="max-w-[90vw] max-h-[85vh] block object-contain shadow-2xl rounded-2xl select-none"
+          class="max-w-[90vw] max-h-[85vh] block object-contain shadow-2xl rounded-2xl "
           alt="Photo preview"
         />
       </div>

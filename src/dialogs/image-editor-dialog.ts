@@ -201,7 +201,7 @@ export interface ImageEditorConfig {
             >
               <div
                 #drawContainer
-                class="relative inline-block shadow-2xl rounded-lg select-none transition-transform duration-75 ease-out"
+                class="relative inline-block shadow-2xl rounded-lg transition-transform duration-75 ease-out"
                 [style.transform]="drawTransform()"
                 [style.transform-origin]="'0 0'"
                 (mousedown.zoneless)="onImageClick($event)"
