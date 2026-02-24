@@ -7,7 +7,6 @@ import {
   inject,
   signal,
   ViewChild,
-  AfterViewInit,
   ChangeDetectorRef,
 } from '@angular/core';
 import {
@@ -25,8 +24,8 @@ import { firstValueFrom } from 'rxjs';
 import { TopoDetail, TopoRouteWithRoute } from '../models';
 import { GradeComponent } from '../components/avatar-grade';
 import { GlobalData, ToastService, ToposService } from '../services';
-import { removePoint } from '../utils/drawing.utils';
-import { getRouteStyleProperties } from '../utils/topo-styles.utils';
+import { ZoomableImageComponent } from '../components/zoomable-image';
+import { TopoEditorPathsComponent } from '../components/topo-editor-paths';
 
 export interface TopoPathEditorConfig {
   topo: TopoDetail;
@@ -44,6 +43,8 @@ export interface TopoPathEditorConfig {
     GradeComponent,
     TranslateModule,
     TuiScrollbar,
+    ZoomableImageComponent,
+    TopoEditorPathsComponent
   ],
   template: `
     <div
@@ -194,155 +195,28 @@ export interface TopoPathEditorConfig {
 
         <!-- Editor Area -->
         <div
-          class="flex-1 relative overflow-hidden bg-[var(--tui-background-neutral-2)] flex items-center justify-center p-8 cursor-move"
-          #editorArea
-          (wheel.zoneless)="onWheel($event)"
+          class="flex-1 relative overflow-hidden bg-[var(--tui-background-neutral-2)] flex items-center justify-center p-8"
         >
-          <div
-            #container
-            class="relative inline-block shadow-2xl rounded-lg select-none transition-transform duration-75 ease-out"
-            [style.transform]="transform()"
-            [style.transform-origin]="'0 0'"
-            (mousedown.zoneless)="onImageClick($event)"
-            (contextmenu.zoneless)="$event.preventDefault()"
-            (touchstart.zoneless)="onTouchStart($event)"
+          <app-zoomable-image
+             [src]="context.data.imageUrl"
+             alt="Editor Background"
+             imageClass="max-w-[70dvw] max-h-[80dvh] block pointer-events-none"
+             (imageLoad)="onImageLoad($event)"
+             (imageClick)="onImageClick($event)"
           >
-            <img
-              #image
-              [src]="context.data.imageUrl"
-              class="max-w-[70dvw] max-h-[80dvh] block pointer-events-none"
-              (load)="onImageLoad()"
-              alt="Editor Background"
-            />
-
-            <!-- SVG Overlay for Paths -->
-            <svg
-              class="absolute inset-0 w-full h-full cursor-crosshair pointer-events-none"
-              [attr.viewBox]="viewBox()"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <!-- Draw all paths -->
-              @for (entry of pathsMap | keyvalue; track entry.key) {
-                @let isSelected = selectedRoute()?.route_id === +entry.key;
-                @let style =
-                  getRouteStyle(
-                    entry.value.color,
-                    entry.value._ref.route.grade.toString(),
-                    +entry.key
-                  );
-                <g
-                  class="pointer-events-auto cursor-pointer"
-                  (click)="
-                    selectRoute(entry.value._ref || { route_id: +entry.key });
-                    $event.stopPropagation()
-                  "
-                  (touchstart)="
-                    selectRoute(entry.value._ref || { route_id: +entry.key });
-                    $event.stopPropagation()
-                  "
-                >
-                  <!-- Thicker transparent path for much easier hit detection -->
-                  <polyline
-                    [attr.points]="getPointsString(entry.value)"
-                    fill="none"
-                    stroke="transparent"
-                    [attr.stroke-width]="isSelected ? 0.08 : 0.04"
-                    stroke-linejoin="round"
-                    stroke-linecap="round"
-                  />
-                  <!-- Border/Shadow Line -->
-                  <polyline
-                    [attr.points]="getPointsString(entry.value)"
-                    fill="none"
-                    stroke="white"
-                    [style.opacity]="style.isDashed ? 1 : 0.7"
-                    [attr.stroke-width]="
-                      (isSelected ? 4 : 2) + (style.isDashed ? 2 : 1)
-                    "
-                    [attr.stroke-dasharray]="style.isDashed ? '4 4' : 'none'"
-                    stroke-linejoin="round"
-                    stroke-linecap="round"
-                    class="transition-all duration-300"
-                  />
-                  <polyline
-                    [attr.points]="getPointsString(entry.value)"
-                    fill="none"
-                    [attr.stroke]="style.stroke"
-                    [style.opacity]="style.opacity"
-                    [attr.stroke-width]="isSelected ? 4 : 2"
-                    [attr.stroke-dasharray]="style.isDashed ? '4 4' : 'none'"
-                    stroke-linejoin="round"
-                    stroke-linecap="round"
-                    class="transition-all duration-300"
-                  />
-                  <!-- End Circle (Small White) -->
-                  @if (
-                    entry.value.points[entry.value.points.length - 1];
-                    as last
-                  ) {
-                    <circle
-                      [attr.cx]="last.x * width()"
-                      [attr.cy]="last.y * height()"
-                      [attr.r]="isSelected ? 4 : 2"
-                      fill="white"
-                      [style.opacity]="style.opacity"
-                      stroke="black"
-                      [attr.stroke-width]="0.5"
-                    />
-                  }
-                </g>
-
-                <!-- Control Points -->
-                @if (isSelected) {
-                  @for (pt of entry.value.points; track $index) {
-                    <g
-                      class="cursor-move group"
-                      (mousedown)="startDragging($event, entry.key, $index)"
-                      (touchstart)="
-                        startDraggingTouch($event, entry.key, $index)
-                      "
-                      (contextmenu)="removePoint($event, entry.key, $index)"
-                    >
-                      <circle
-                        [attr.cx]="pt.x * width()"
-                        [attr.cy]="pt.y * height()"
-                        r="12"
-                        fill="rgba(0,0,0,0.4)"
-                        class="hover:fill-[var(--tui-background-neutral-2)]/60 transition-colors"
-                      />
-                      <circle
-                        [attr.cx]="pt.x * width()"
-                        [attr.cy]="pt.y * height()"
-                        r="6"
-                        [attr.fill]="style.stroke"
-                        class="group-hover:scale-125 transition-transform origin-center"
-                        style="transform-box: fill-box"
-                      />
-                      <!-- Point Number Bubble -->
-                      @if ($index === 0) {
-                        <circle
-                          [attr.cx]="pt.x * width()"
-                          [attr.cy]="pt.y * height() - 20"
-                          r="10"
-                          fill="var(--tui-background-base)"
-                        />
-                        <text
-                          [attr.x]="pt.x * width()"
-                          [attr.y]="pt.y * height() - 16"
-                          text-anchor="middle"
-                          fill="var(--tui-text-01)"
-                          font-size="10"
-                          font-weight="bold"
-                        >
-                          {{ selectedRoute()?.number! + 1 }}
-                        </text>
-                      }
-                    </g>
-                  }
-                }
-              }
-            </svg>
-          </div>
+             <app-topo-editor-paths
+               #editorPaths
+               [routes]="context.data.topo.topo_routes"
+               [pathsMap]="pathsMap"
+               [width]="imageWidth()"
+               [height]="imageHeight()"
+               [selectedRouteId]="selectedRoute()?.route_id || null"
+               (routeClick)="selectRoute($event)"
+               (pointDragStart)="onPointDragStart($event)"
+               (pointTouchStart)="onPointTouchStart($event)"
+               (pointRemove)="onPointRemove($event)"
+             />
+          </app-zoomable-image>
 
           @if (loading()) {
             <div
@@ -365,7 +239,7 @@ export interface TopoPathEditorConfig {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TopoPathEditorDialogComponent implements AfterViewInit {
+export class TopoPathEditorDialogComponent {
   protected readonly context =
     injectContext<TuiDialogContext<boolean, TopoPathEditorConfig>>();
   private readonly topos = inject(ToposService);
@@ -375,9 +249,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly global = inject(GlobalData);
 
-  @ViewChild('image') imageElement!: ElementRef<HTMLImageElement>;
-  @ViewChild('container') containerElement!: ElementRef<HTMLDivElement>;
-  @ViewChild('editorArea') editorAreaElement!: ElementRef<HTMLDivElement>;
+  @ViewChild('editorPaths') editorPaths?: TopoEditorPathsComponent;
 
   loading = signal(false);
   selectedRoute = signal<TopoRouteWithRoute | null>(null);
@@ -390,20 +262,9 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     }
   >();
 
-  width = signal(0);
-  height = signal(0);
-  viewBox = computed(() => `0 0 ${this.width()} ${this.height()}`);
-
-  draggingPoint: { routeId: number; index: number } | null = null;
-  scale = signal(1);
-  translateX = signal(0);
-  translateY = signal(0);
-  isPanning = signal(false);
-
-  transform = computed(
-    () =>
-      `translate(${this.translateX()}px, ${this.translateY()}px) scale(${this.scale()})`,
-  );
+  imageWidth = signal(0);
+  imageHeight = signal(0);
+  private imageElement?: HTMLImageElement;
 
   constructor() {
     // Initialize paths from existing data
@@ -423,72 +284,79 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     }
   }
 
-  ngAfterViewInit(): void {
-    this.attachWheelListener();
+  onImageLoad(event: { width: number; height: number; element: HTMLImageElement }): void {
+    this.imageElement = event.element;
+    // We use clientWidth/clientHeight because the component renders the image with max-w/max-h
+    // and we want SVG to match the rendered size.
+    // Wait, onImageLoad from component gives natural dimensions, but also the element reference.
+    // We should read the actual rendered dimensions?
+    // In the template, ZoomableImageComponent sets imageClass="max-w...".
+    // The image will be rendered with some size.
+    // However, ZoomableImageComponent emits `imageLoad` when `img.onload` fires.
+    // At that point, the layout might not be final if CSS hasn't applied or if it's display:none?
+    // But it's in the DOM.
+    // Let's use `requestAnimationFrame` to be safe and read clientWidth/Height.
+
+    // Actually, ZoomableImageComponent emits `element`.
+    // The SVG viewBox must match the coordinate system we use.
+    // If we use natural dimensions for SVG viewBox, then we must map 0-1 coords to natural dimensions.
+    // And SVG will scale automatically to fit the image if `absolute inset-0 w-full h-full` is used.
+
+    // In the original code:
+    // width.set(img.clientWidth); height.set(img.clientHeight);
+    // viewBox = `0 0 width height`.
+    // And points were mapped: `p.x * width`, `p.y * height`.
+
+    // If we use `img.clientWidth` which changes on window resize?
+    // The original code reset zoom on window resize/load.
+
+    // If we use `naturalWidth`, then coordinate space is consistent.
+    // SVG `viewBox="0 0 natW natH"`
+    // Image `width="natW" height="natH"` (rendered via CSS to fit).
+    // SVG scales with CSS too.
+
+    // This seems more robust than using clientWidth which depends on layout.
+    // Let's try using clientWidth to match previous behavior exactly if possible,
+    // but clientWidth changes if window resizes. The original code didn't listen to window resize explicitly for width update?
+    // It did `onImageLoad` -> `width.set(img.clientWidth)`.
+
+    // If I use clientWidth:
+    this.updateImageDimensions();
   }
 
-  private attachWheelListener(): void {
-    const area = this.editorAreaElement?.nativeElement;
-    if (area && !('_wheelAttached' in area)) {
-      area.addEventListener('wheel', (e) => this.onWheel(e), {
-        passive: false,
-      });
-      (area as { _wheelAttached?: boolean })._wheelAttached = true;
-    }
-  }
+  private updateImageDimensions() {
+      if (!this.imageElement) return;
+      this.imageWidth.set(this.imageElement.clientWidth);
+      this.imageHeight.set(this.imageElement.clientHeight);
 
-  onImageLoad(): void {
-    const img = this.imageElement.nativeElement;
-    this.width.set(img.clientWidth);
-    this.height.set(img.clientHeight);
-    this.resetZoom();
+      // If we rely on clientWidth, we might need to listen to resize?
+      // But `ZoomableImageComponent` handles layout.
+      // If the image resizes (due to max-w/h and window resize), clientWidth changes.
+      // But SVG viewBox remains old clientWidth? That would be wrong.
+      // The points would be drawn at old scale.
 
-    // Try attaching again if not attached yet
-    this.attachWheelListener();
-  }
+      // Better approach: Use Natural Width/Height for the internal coordinate system of the editor.
+      // SVG viewBox = `0 0 naturalWidth naturalHeight`.
+      // Points = `x * naturalWidth`.
+      // Since SVG overlays the image with `w-full h-full`, it stretches exactly as the image stretches.
+      // So they will always align!
 
-  resetZoom(): void {
-    this.scale.set(1);
-    this.translateX.set(0);
-    this.translateY.set(0);
-  }
+      // Let's switch to natural dimensions.
+      // TopoPathEditorDialogComponent:
+      // this.imageWidth.set(this.imageElement.naturalWidth);
+      // ...
 
-  onWheel(event: Event): void {
-    const wheelEvent = event as WheelEvent;
+      // In onImageLoad:
+      // this.imageWidth.set(event.width);
+      // this.imageHeight.set(event.height);
 
-    if (wheelEvent.cancelable) {
-      wheelEvent.preventDefault();
-    }
-
-    const zoomSpeed = 0.15;
-    const delta = wheelEvent.deltaY > 0 ? -zoomSpeed : zoomSpeed;
-    const newScale = Math.min(Math.max(1, this.scale() + delta), 5);
-
-    if (newScale === this.scale()) return;
-
-    const rect = this.containerElement.nativeElement.getBoundingClientRect();
-
-    // We need the mouse position relative to the container *before* the new scale is applied.
-    // event.clientX/Y are in viewport coordinates.
-    const x = wheelEvent.clientX - rect.left;
-    const y = wheelEvent.clientY - rect.top;
-
-    // Normalize mouse position relative to current scale/translation
-    const mouseX = x / this.scale();
-    const mouseY = y / this.scale();
-
-    this.scale.set(newScale);
-
-    // Update translations to keep the point under the mouse fixed.
-    // The new translation is the mouse position in viewport minus its position in the new scaled coordinates.
-    this.translateX.update(
-      (tx) => wheelEvent.clientX - rect.left + tx - mouseX * newScale,
-    );
-    this.translateY.update(
-      (ty) => wheelEvent.clientY - rect.top + ty - mouseY * newScale,
-    );
-
-    this.constrainTranslation();
+      // Then `TopoEditorPathsComponent` uses `viewBox="0 0 natW natH"`.
+      // And renders points at `p.x * natW`.
+      // This is perfect.
+      if (this.imageElement) {
+          this.imageWidth.set(this.imageElement.naturalWidth);
+          this.imageHeight.set(this.imageElement.naturalHeight);
+      }
   }
 
   async sortByPosition(): Promise<void> {
@@ -544,59 +412,6 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     }
   }
 
-  private constrainTranslation(): void {
-    const scale = this.scale();
-    const area = this.editorAreaElement.nativeElement;
-
-    if (scale <= 1) {
-      this.translateX.set(0);
-      this.translateY.set(0);
-      return;
-    }
-
-    const areaRect = area.getBoundingClientRect();
-    const width = this.width();
-    const height = this.height();
-
-    const scaledWidth = width * scale;
-    const scaledHeight = height * scale;
-
-    // Limit translations so the image doesn't leave the view if it's larger than the view.
-    // If it's smaller than the view, we center it or keep it at 0.
-    let minX = 0;
-    let maxX = 0;
-    if (scaledWidth > areaRect.width) {
-      minX = areaRect.width - scaledWidth;
-      maxX = 0;
-    } else {
-      // If smaller, we center it relative to the initial centered position.
-      // But since we use transform-origin 0 0, it's easier to just allow some movement or keep it centered.
-      // For now, let's just keep it at 0 if it fits.
-      minX = 0;
-      maxX = 0;
-    }
-
-    let minY = 0;
-    let maxY = 0;
-    if (scaledHeight > areaRect.height) {
-      minY = areaRect.height - scaledHeight;
-      maxY = 0;
-    } else {
-      minY = 0;
-      maxY = 0;
-    }
-
-    // Since we are in a flex center container, the initial position is already centered.
-    // BUT transform-origin is 0 0, which refers to the top-left of the image.
-    // If the image is 100x100 and area is 500x500, the top-left is at (200, 200).
-    // translateX(0) scale(1) means top-left at (200, 200).
-    // If we want to constrain, we should be careful about coordinates.
-    // Actually, let's just allow panning freely for now if the user wants, but limited to not losing the image.
-
-    this.translateX.update((x) => Math.min(maxX, Math.max(x, minX)));
-    this.translateY.update((y) => Math.min(maxY, Math.max(y, minY)));
-  }
-
   selectRoute(tr: TopoRouteWithRoute, fromList = false): void {
     const selected = this.selectedRoute();
 
@@ -618,74 +433,18 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     return !!pathData && pathData.points.length > 0;
   }
 
-  getPointsString(pathData: {
-    points: { x: number; y: number }[];
-    color?: string;
-  }): string {
-    return pathData.points
-      .map((p) => `${p.x * this.width()},${p.y * this.height()}`)
-      .join(' ');
-  }
-
-  getRouteStyle(
-    color: string | undefined,
-    grade: string | number,
-    routeId: number,
-  ) {
-    const isSelected = this.selectedRoute()?.route_id === routeId;
-    return getRouteStyleProperties(isSelected, false, color, grade);
-  }
-
-  onImageClick(event: Event): void {
-    const mouseEvent = event as MouseEvent;
-    if (mouseEvent.button !== 0 || this.draggingPoint) return;
-
-    const startX = mouseEvent.clientX;
-    const startY = mouseEvent.clientY;
-    const initialTx = this.translateX();
-    const initialTy = this.translateY();
-    let hasMoved = false;
-
-    const onMouseMove = (e: MouseEvent) => {
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-
-      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
-        hasMoved = true;
-      }
-
-      if (hasMoved) {
-        this.translateX.set(initialTx + dx);
-        this.translateY.set(initialTy + dy);
-        this.constrainTranslation();
-      }
-    };
-
-    const onMouseUp = (e: MouseEvent) => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-
-      if (!hasMoved) {
-        this.addPoint(e);
-      }
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+  onImageClick(event: MouseEvent): void {
+    if (event.button !== 0) return;
+    this.addPoint(event);
   }
 
   private addPoint(event: MouseEvent): void {
     const route = this.selectedRoute();
-    if (!route) return;
+    if (!route || !this.imageElement) return;
 
-    const rect = this.containerElement.nativeElement.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / this.scale();
-    const y = (event.clientY - rect.top) / this.scale();
-
-    const coords = {
-      x: Math.max(0, Math.min(1, x / this.width())),
-      y: Math.max(0, Math.min(1, y / this.height())),
-    };
+    const rect = this.imageElement.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
 
     const current = this.pathsMap.get(route.route_id) || {
       points: [],
@@ -693,198 +452,87 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     };
     this.pathsMap.set(route.route_id, {
       ...current,
-      points: [...current.points, coords],
+      points: [...current.points, { x, y }],
     });
+    this.editorPaths?.markForCheck();
   }
 
-  startDragging(event: MouseEvent, routeId: number, index: number): void {
-    const numericRouteId = +routeId;
-    this.draggingPoint = { routeId: numericRouteId, index };
+  onPointDragStart(data: { event: MouseEvent; routeId: number; index: number }): void {
+      const { event, routeId, index } = data;
+      const pathData = this.pathsMap.get(routeId);
+      if (!pathData || !this.imageElement) return;
 
-    const onMouseMove = (e: MouseEvent) => {
-      const rect = this.containerElement.nativeElement.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / this.scale();
-      const y = (e.clientY - rect.top) / this.scale();
+      event.preventDefault();
+      event.stopPropagation();
 
-      const coords = {
-        x: Math.max(0, Math.min(1, x / this.width())),
-        y: Math.max(0, Math.min(1, y / this.height())),
+      const point = pathData.points[index];
+
+      const onMouseMove = (e: MouseEvent) => {
+          if (!this.imageElement) return;
+          const rect = this.imageElement.getBoundingClientRect();
+          point.x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+          point.y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+
+          // Trigger update manually efficiently?
+          // Since we modify 'point' in place, we just need to tell Angular to check.
+          // But `pathsMap` structure is unchanged.
+          this.editorPaths?.markForCheck();
       };
 
-      const pathData = this.pathsMap.get(numericRouteId);
-      if (pathData) {
-        pathData.points[index] = coords;
-        this.pathsMap.set(numericRouteId, { ...pathData });
-      }
-    };
+      const onMouseUp = () => {
+          window.removeEventListener('mousemove', onMouseMove);
+          window.removeEventListener('mouseup', onMouseUp);
 
-    const onMouseUp = () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-      this.draggingPoint = null;
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-    event.stopPropagation();
-    event.preventDefault();
-  }
-
-  startDraggingTouch(event: TouchEvent, routeId: number, index: number): void {
-    const numericRouteId = +routeId;
-    this.draggingPoint = { routeId: numericRouteId, index };
-
-    const startX = event.touches[0].clientX;
-    const startY = event.touches[0].clientY;
-    let isLongPress = false;
-
-    const longPressTimeout = setTimeout(() => {
-      isLongPress = true;
-      this.removePoint(event, numericRouteId, index);
-      this.draggingPoint = null;
-      cleanup();
-    }, 600);
-
-    const onTouchMove = (e: TouchEvent) => {
-      const touch = e.touches[0];
-      const dist = Math.sqrt(
-        Math.pow(touch.clientX - startX, 2) +
-          Math.pow(touch.clientY - startY, 2),
-      );
-
-      if (dist > 10) {
-        clearTimeout(longPressTimeout);
-      }
-
-      if (isLongPress) return;
-
-      e.preventDefault();
-      const rect = this.containerElement.nativeElement.getBoundingClientRect();
-      const x = (touch.clientX - rect.left) / this.scale();
-      const y = (touch.clientY - rect.top) / this.scale();
-
-      const coords = {
-        x: Math.max(0, Math.min(1, x / this.width())),
-        y: Math.max(0, Math.min(1, y / this.height())),
+          // Finalize
+          this.pathsMap.set(routeId, { ...pathData }); // Trigger reference update for binding?
+          this.editorPaths?.markForCheck();
       };
 
-      const pathData = this.pathsMap.get(numericRouteId);
-      if (pathData) {
-        pathData.points[index] = coords;
-        this.pathsMap.set(numericRouteId, { ...pathData });
-      }
-    };
-
-    const onTouchEnd = () => {
-      clearTimeout(longPressTimeout);
-      cleanup();
-      if (!isLongPress) {
-        this.draggingPoint = null;
-      }
-    };
-
-    const cleanup = () => {
-      window.removeEventListener(
-        'touchmove',
-        onTouchMove as EventListenerOrEventListenerObject,
-      );
-      window.removeEventListener('touchend', onTouchEnd);
-    };
-
-    window.addEventListener('touchmove', onTouchMove, { passive: false });
-    window.addEventListener('touchend', onTouchEnd);
-
-    event.stopPropagation();
-    event.preventDefault();
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
   }
 
-  onTouchStart(event: Event): void {
-    const touchEvent = event as TouchEvent;
-    if (touchEvent.touches.length === 1 && !this.draggingPoint) {
-      // Single touch - potentially panning
-      const startX = touchEvent.touches[0].clientX;
-      const startY = touchEvent.touches[0].clientY;
-      const initialTX = this.translateX();
-      const initialTY = this.translateY();
+  onPointTouchStart(data: { event: TouchEvent; routeId: number; index: number }): void {
+      const { event, routeId, index } = data;
+      const pathData = this.pathsMap.get(routeId);
+      if (!pathData || !this.imageElement) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const point = pathData.points[index];
 
       const onTouchMove = (e: TouchEvent) => {
-        if (e.touches.length !== 1 || this.draggingPoint) return;
-        const deltaX = e.touches[0].clientX - startX;
-        const deltaY = e.touches[0].clientY - startY;
-
-        this.translateX.set(initialTX + deltaX);
-        this.translateY.set(initialTY + deltaY);
-        this.constrainTranslation();
+          if (!this.imageElement) return;
+          const touch = e.touches[0];
+          const rect = this.imageElement.getBoundingClientRect();
+          point.x = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+          point.y = Math.max(0, Math.min(1, (touch.clientY - rect.top) / rect.height));
+          this.editorPaths?.markForCheck();
       };
 
       const onTouchEnd = () => {
-        window.removeEventListener('touchmove', onTouchMove);
-        window.removeEventListener('touchend', onTouchEnd);
+          window.removeEventListener('touchmove', onTouchMove);
+          window.removeEventListener('touchend', onTouchEnd);
+          this.pathsMap.set(routeId, { ...pathData });
+          this.editorPaths?.markForCheck();
       };
 
-      window.addEventListener('touchmove', onTouchMove);
+      window.addEventListener('touchmove', onTouchMove, { passive: false });
       window.addEventListener('touchend', onTouchEnd);
-    } else if (touchEvent.touches.length === 2) {
-      // Pinch to zoom
-      const getDistance = (t1: Touch, t2: Touch) =>
-        Math.sqrt(
-          Math.pow(t2.clientX - t1.clientX, 2) +
-            Math.pow(t2.clientY - t1.clientY, 2),
-        );
-
-      const getCenter = (t1: Touch, t2: Touch) => ({
-        x: (t1.clientX + t2.clientX) / 2,
-        y: (t1.clientY + t2.clientY) / 2,
-      });
-
-      const initialDist = getDistance(
-        touchEvent.touches[0],
-        touchEvent.touches[1],
-      );
-      const initialScale = this.scale();
-      const initialCenter = getCenter(
-        touchEvent.touches[0],
-        touchEvent.touches[1],
-      );
-      const rect = this.containerElement.nativeElement.getBoundingClientRect();
-      const centerRelX = initialCenter.x - rect.left;
-      const centerRelY = initialCenter.y - rect.top;
-      const mouseX = centerRelX / initialScale;
-      const mouseY = centerRelY / initialScale;
-
-      const onTouchMove = (e: TouchEvent) => {
-        if (e.touches.length !== 2) return;
-        const dist = getDistance(e.touches[0], e.touches[1]);
-        const newScale = Math.min(
-          Math.max(1, (dist / initialDist) * initialScale),
-          5,
-        );
-
-        this.scale.set(newScale);
-
-        // Keep the point under initial center fixed in viewport coordinates
-        this.translateX.update(
-          (tx) => initialCenter.x - rect.left + tx - mouseX * newScale,
-        );
-        this.translateY.update(
-          (ty) => initialCenter.y - rect.top + ty - mouseY * newScale,
-        );
-
-        this.constrainTranslation();
-      };
-
-      const onTouchEnd = () => {
-        window.removeEventListener('touchmove', onTouchMove);
-        window.removeEventListener('touchend', onTouchEnd);
-      };
-
-      window.addEventListener('touchmove', onTouchMove);
-      window.addEventListener('touchend', onTouchEnd);
-    }
   }
 
-  removePoint(event: Event, routeId: number, index: number): void {
-    removePoint(event, routeId, index, this.pathsMap);
+  onPointRemove(data: { event: Event; routeId: number; index: number }): void {
+      data.event.preventDefault();
+      data.event.stopPropagation();
+
+      const { routeId, index } = data;
+      const pathData = this.pathsMap.get(routeId);
+      if (pathData) {
+        pathData.points.splice(index, 1);
+        this.pathsMap.set(routeId, { ...pathData });
+        this.editorPaths?.markForCheck();
+      }
   }
 
   close(): void {

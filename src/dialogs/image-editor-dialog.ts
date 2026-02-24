@@ -8,7 +8,6 @@ import {
   signal,
   ViewChild,
   ElementRef,
-  computed,
   ChangeDetectorRef,
   AfterViewInit,
 } from '@angular/core';
@@ -32,35 +31,25 @@ import {
   ImageTransform,
 } from 'ngx-image-cropper';
 import { GRADE_COLORS, ImageEditorResult, TopoRouteWithRoute } from '../models';
-import {
-  getRouteColor,
-  getRouteStyleProperties,
-  getRouteStrokeWidth,
-} from '../utils/topo-styles.utils';
+import { getRouteColor } from '../utils/topo-styles.utils';
 import { GradeComponent } from '../components/avatar-grade';
 import { TuiScrollbar } from '@taiga-ui/core';
-import { removePoint } from '../utils/drawing.utils';
+import { ZoomableImageComponent } from '../components/zoomable-image';
+import { TopoEditorPathsComponent } from '../components/topo-editor-paths';
 
 export interface ImageEditorConfig {
   file?: File;
   imageUrl?: string;
-  // Allowed aspect ratios for crop presets
   aspectRatios?: {
     titleKey: string;
     descriptionKey: string;
     ratio: number;
   }[];
-  // If true, forces the first aspect ratio and might restrict UI
   forceAspectRatio?: boolean;
-  // If false, allow free resizing by default
   maintainAspectRatio?: boolean;
-  // If true, shows the 'Free' option in the UI
   allowFree?: boolean;
-  // If provided, the output image will be resized to this width
   resizeToWidth?: number;
-  // Output image quality (0-100), defaults to 92
   imageQuality?: number;
-  // Topo drawing specific
   allowDrawing?: boolean;
   topoRoutes?: TopoRouteWithRoute[];
   initialMode?: 'transform' | 'draw';
@@ -79,6 +68,8 @@ export interface ImageEditorConfig {
     GradeComponent,
     TuiScrollbar,
     TuiSegmented,
+    ZoomableImageComponent,
+    TopoEditorPathsComponent
   ],
   template: `
     <div
@@ -172,138 +163,26 @@ export interface ImageEditorConfig {
 
           <!-- DRAWING MODE -->
           @if (mode() === 'draw') {
-            <div
-              class="flex-1 relative overflow-hidden flex items-center justify-center p-8 cursor-move"
-              #drawArea
-              (wheel.zoneless)="onWheel($event)"
-            >
-              <div
-                #drawContainer
-                class="relative inline-block shadow-2xl rounded-lg select-none transition-transform duration-75 ease-out"
-                [style.transform]="drawTransform()"
-                [style.transform-origin]="'0 0'"
-                (mousedown.zoneless)="onImageClick($event)"
-                (contextmenu.zoneless)="$event.preventDefault()"
-                (touchstart.zoneless)="onTouchStart($event)"
-              >
-                <img
-                  #drawImage
-                  [src]="croppedImage"
-                  class="max-w-full max-h-[70dvh] block pointer-events-none"
-                  (load)="onDrawImageLoad()"
-                  alt="Source for annotation"
-                />
-
-                <!-- SVG Overlay -->
-                <svg
-                  class="absolute inset-0 w-full h-full cursor-crosshair pointer-events-none"
-                  [attr.viewBox]="viewBox()"
-                >
-                  @for (tr of topoRoutes; track tr.route_id) {
-                    @let entry = pathsMap.get(tr.route_id);
-                    @if (entry) {
-                      @let isSelected =
-                        selectedRoute()?.route_id === tr.route_id;
-                      @let style =
-                        getRouteStyle(
-                          tr.path?.color,
-                          $any(tr.route.grade),
-                          tr.route_id
-                        );
-                      <g
-                        class="pointer-events-auto cursor-pointer"
-                        (click)="onPathInteraction($event, tr)"
-                        (touchstart)="onPathInteraction($event, tr)"
-                      >
-                        <!-- Thicker transparent path for much easier hit detection -->
-                        <polyline
-                          [attr.points]="getPointsString(entry.points)"
-                          fill="none"
-                          stroke="transparent"
-                          [attr.stroke-width]="isSelected ? 0.08 : 0.04"
-                          stroke-linejoin="round"
-                          stroke-linecap="round"
-                        />
-                        <!-- Border/Shadow Line -->
-                        <polyline
-                          [attr.points]="getPointsString(entry.points)"
-                          fill="none"
-                          stroke="white"
-                          [style.opacity]="style.isDashed ? 1 : 0.7"
-                          [attr.stroke-width]="
-                            (isSelected ? 4 : 2) + (style.isDashed ? 2 : 1)
-                          "
-                          [attr.stroke-dasharray]="
-                            style.isDashed ? '4 4' : 'none'
-                          "
-                          stroke-linejoin="round"
-                          stroke-linecap="round"
-                          class="transition-all duration-300"
-                        />
-                        <polyline
-                          [attr.points]="getPointsString(entry.points)"
-                          fill="none"
-                          [attr.stroke]="style.stroke"
-                          [style.opacity]="style.opacity"
-                          [attr.stroke-width]="isSelected ? 4 : 2"
-                          [attr.stroke-dasharray]="
-                            style.isDashed ? '4 4' : 'none'
-                          "
-                          stroke-linejoin="round"
-                          stroke-linecap="round"
-                          class="transition-all duration-300"
-                        />
-                        <!-- End Circle (Small White) -->
-                        @if (entry.points[entry.points.length - 1]; as last) {
-                          <circle
-                            [attr.cx]="last.x * drawWidth()"
-                            [attr.cy]="last.y * drawHeight()"
-                            [attr.r]="isSelected ? 4 : 2"
-                            fill="white"
-                            [style.opacity]="style.opacity"
-                            stroke="black"
-                            [attr.stroke-width]="0.5"
-                          />
-                        }
-                      </g>
-                      @if (isSelected) {
-                        @for (pt of entry.points; track $index) {
-                          <g
-                            class="cursor-move pointer-events-auto group"
-                            (mousedown)="
-                              startDragging($event, tr.route_id, $index)
-                            "
-                            (touchstart)="
-                              startDraggingTouch($event, tr.route_id, $index)
-                            "
-                            (click)="$event.stopPropagation()"
-                            (contextmenu)="
-                              removePoint($event, tr.route_id, $index)
-                            "
-                          >
-                            <circle
-                              [attr.cx]="pt.x * drawWidth()"
-                              [attr.cy]="pt.y * drawHeight()"
-                              r="12"
-                              fill="rgba(0,0,0,0.4)"
-                              class="hover:fill-[var(--tui-background-neutral-2)]/60 transition-colors"
-                            />
-                            <circle
-                              [attr.cx]="pt.x * drawWidth()"
-                              [attr.cy]="pt.y * drawHeight()"
-                              r="6"
-                              [attr.fill]="style.stroke"
-                              class="group-hover:scale-125 transition-transform origin-center"
-                              style="transform-box: fill-box"
-                            />
-                          </g>
-                        }
-                      }
-                    }
-                  }
-                </svg>
-              </div>
-            </div>
+             <app-zoomable-image
+               [src]="croppedImage"
+               alt="Source for annotation"
+               imageClass="max-w-full max-h-[70dvh] block pointer-events-none"
+               (imageLoad)="onDrawImageLoad($event)"
+               (imageClick)="onImageClick($event)"
+             >
+                <app-topo-editor-paths
+                   #editorPaths
+                   [routes]="topoRoutes"
+                   [pathsMap]="pathsMap"
+                   [width]="drawWidth()"
+                   [height]="drawHeight()"
+                   [selectedRouteId]="selectedRoute()?.route_id || null"
+                   (routeClick)="selectRoute($event)"
+                   (pointDragStart)="onPointDragStart($event)"
+                   (pointTouchStart)="onPointTouchStart($event)"
+                   (pointRemove)="onPointRemove($event)"
+                 />
+             </app-zoomable-image>
           }
 
           @if (!cropperVisible() && mode() === 'transform') {
@@ -558,15 +437,13 @@ export interface ImageEditorConfig {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ImageEditorDialogComponent implements AfterViewInit {
+export class ImageEditorDialogComponent {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
 
-  @ViewChild('drawImage') drawImageElement!: ElementRef<HTMLImageElement>;
-  @ViewChild('drawContainer') drawContainerElement!: ElementRef<HTMLDivElement>;
-  @ViewChild('drawArea') drawAreaElement!: ElementRef<HTMLDivElement>;
+  @ViewChild('editorPaths') editorPaths?: TopoEditorPathsComponent;
 
   imageChangedEvent: Event | null = null;
   imageFile: File | undefined;
@@ -598,18 +475,10 @@ export class ImageEditorDialogComponent implements AfterViewInit {
 
   drawWidth = signal(0);
   drawHeight = signal(0);
-  viewBox = computed(() => `0 0 ${this.drawWidth()} ${this.drawHeight()}`);
+  private imageElement?: HTMLImageElement;
+
   draggingPoint: { routeId: number; index: number } | null = null;
   sidebarOpen = signal(true);
-
-  scale = signal(1);
-  translateX = signal(0);
-  translateY = signal(0);
-
-  drawTransform = computed(
-    () =>
-      `translate(${this.translateX()}px, ${this.translateY()}px) scale(${this.scale()})`,
-  );
 
   // Cropper settings
   maintainAspectRatio = true;
@@ -761,111 +630,13 @@ export class ImageEditorDialogComponent implements AfterViewInit {
   }
 
   // DRAWING METHODS
-  ngAfterViewInit(): void {
-    this.attachWheelListener();
-  }
 
-  private attachWheelListener(): void {
-    const area = this.drawAreaElement?.nativeElement;
-    if (area && !('_wheelAttached' in area)) {
-      area.addEventListener('wheel', (e) => this.onWheel(e), {
-        passive: false,
-      });
-      (area as { _wheelAttached?: boolean })._wheelAttached = true;
-    }
-  }
-
-  onDrawImageLoad(): void {
-    const img = this.drawImageElement.nativeElement;
-    this.drawWidth.set(img.clientWidth);
-    this.drawHeight.set(img.clientHeight);
-    this.resetZoom();
-
-    // Try attaching again if not attached yet (important if mode changed later)
-    this.attachWheelListener();
-  }
-
-  resetZoom(): void {
-    this.scale.set(1);
-    this.translateX.set(0);
-    this.translateY.set(0);
-  }
-
-  onWheel(event: Event): void {
-    const wheelEvent = event as WheelEvent;
-
-    if (wheelEvent.cancelable) {
-      wheelEvent.preventDefault();
-    }
-
-    const zoomSpeed = 0.15;
-    const delta = wheelEvent.deltaY > 0 ? -zoomSpeed : zoomSpeed;
-    const newScale = Math.min(Math.max(1, this.scale() + delta), 5);
-
-    if (newScale === this.scale()) return;
-
-    const rect =
-      this.drawContainerElement.nativeElement.getBoundingClientRect();
-
-    const x = wheelEvent.clientX - rect.left;
-    const y = wheelEvent.clientY - rect.top;
-
-    const mouseX = x / this.scale();
-    const mouseY = y / this.scale();
-
-    this.scale.set(newScale);
-
-    this.translateX.update(
-      (tx) => wheelEvent.clientX - rect.left + tx - mouseX * newScale,
-    );
-    this.translateY.update(
-      (ty) => wheelEvent.clientY - rect.top + ty - mouseY * newScale,
-    );
-
-    this.constrainTranslation();
-    this.cdr.detectChanges();
-  }
-
-  private constrainTranslation(): void {
-    const scale = this.scale();
-    const area = this.drawAreaElement?.nativeElement;
-    if (!area) return;
-
-    if (scale <= 1) {
-      this.translateX.set(0);
-      this.translateY.set(0);
-      return;
-    }
-
-    const areaRect = area.getBoundingClientRect();
-    const width = this.drawWidth();
-    const height = this.drawHeight();
-
-    const scaledWidth = width * scale;
-    const scaledHeight = height * scale;
-
-    let minX = 0;
-    let maxX = 0;
-    if (scaledWidth > areaRect.width) {
-      minX = areaRect.width - scaledWidth;
-      maxX = 0;
-    } else {
-      minX = 0;
-      maxX = 0;
-    }
-
-    let minY = 0;
-    let maxY = 0;
-    if (scaledHeight > areaRect.height) {
-      minY = areaRect.height - scaledHeight;
-      maxY = 0;
-    } else {
-      minY = 0;
-      maxY = 0;
-    }
-
-    this.translateX.update((x) => Math.min(maxX, Math.max(x, minX)));
-    this.translateY.update((y) => Math.min(maxY, Math.max(y, minY)));
+  onDrawImageLoad(event: { width: number; height: number; element: HTMLImageElement }): void {
+      this.imageElement = event.element;
+      if (this.imageElement) {
+          this.drawWidth.set(this.imageElement.naturalWidth);
+          this.drawHeight.set(this.imageElement.naturalHeight);
+      }
   }
 
   selectRoute(tr: TopoRouteWithRoute): void {
@@ -891,133 +662,100 @@ export class ImageEditorDialogComponent implements AfterViewInit {
     return !!pathData && pathData.points.length > 0;
   }
 
-  getRouteStyle(
-    color: string | undefined,
-    grade: string | number,
-    routeId: number,
-  ) {
-    const isSelected = this.selectedRoute()?.route_id === routeId;
-    // In editor, hovered is handled by interactions usually, but here we can check selected
-    return getRouteStyleProperties(isSelected, false, color, grade);
-  }
-
-  getRouteWidth(isSelected: boolean, isHovered: boolean): number {
-    return getRouteStrokeWidth(isSelected, isHovered, 30, 'editor'); // Use larger base width for editor hit testing?
-    // Actually, hit detection stroke needs to be huge (e.g. 50-80).
-    // The visual stroke is 2 or 4.
-    // Let's rely on manual constants for hit detection in template, and visual stroke in visual polyline.
-  }
-
-  getPointsString(path: { x: number; y: number }[]): string {
-    return path
-      .map((p) => `${p.x * this.drawWidth()},${p.y * this.drawHeight()}`)
-      .join(' ');
-  }
-
-  onImageClick(event: Event): void {
-    const mouseEvent = event as MouseEvent;
-    if (mouseEvent.button !== 0 || this.draggingPoint) return;
-
-    const startX = mouseEvent.clientX;
-    const startY = mouseEvent.clientY;
-    const initialTx = this.translateX();
-    const initialTy = this.translateY();
-    let hasMoved = false;
-
-    const onMouseMove = (e: MouseEvent) => {
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-
-      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
-        hasMoved = true;
-      }
-
-      if (hasMoved) {
-        this.translateX.set(initialTx + dx);
-        this.translateY.set(initialTy + dy);
-        this.constrainTranslation();
-        this.cdr.detectChanges();
-      }
-    };
-
-    const onMouseUp = (e: MouseEvent) => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-
-      if (!hasMoved) {
-        this.addPoint(e);
-      }
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+  onImageClick(event: MouseEvent): void {
+    if (event.button !== 0) return;
+    this.addPoint(event);
   }
 
   private addPoint(event: MouseEvent): void {
     const route = this.selectedRoute();
-    if (!route) return;
+    if (!route || !this.imageElement) return;
 
-    const rect =
-      this.drawContainerElement.nativeElement.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / this.scale();
-    const y = (event.clientY - rect.top) / this.scale();
-
-    const coords = {
-      x: Math.max(0, Math.min(1, x / this.drawWidth())),
-      y: Math.max(0, Math.min(1, y / this.drawHeight())),
-    };
+    const rect = this.imageElement.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
 
     const current = this.pathsMap.get(route.route_id) || { points: [] };
-    const newPoints = [...current.points, coords];
+    const newPoints = [...current.points, { x, y }];
     this.pathsMap.set(route.route_id, {
       ...current,
       points: newPoints,
       color: current.color || this.resolveRouteColor(route.route_id),
     });
-    this.cdr.markForCheck();
+    this.editorPaths?.markForCheck();
   }
 
-  startDragging(event: MouseEvent, routeId: number, index: number): void {
-    this.draggingPoint = { routeId, index };
-    const pathData = this.pathsMap.get(routeId);
-    if (!pathData) return;
+  onPointDragStart(data: { event: MouseEvent; routeId: number; index: number }): void {
+      const { event, routeId, index } = data;
+      const pathData = this.pathsMap.get(routeId);
+      if (!pathData || !this.imageElement) return;
 
-    const point = pathData.points[index];
-    let rafId: number | null = null;
-    let pendingUpdate = false;
+      event.preventDefault();
+      event.stopPropagation();
 
-    const container = this.drawContainerElement.nativeElement;
+      const point = pathData.points[index];
 
-    const onMouseMove = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / this.scale();
-      const y = (e.clientY - rect.top) / this.scale();
+      const onMouseMove = (e: MouseEvent) => {
+          if (!this.imageElement) return;
+          const rect = this.imageElement.getBoundingClientRect();
+          point.x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+          point.y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
 
-      point.x = Math.max(0, Math.min(1, x / this.drawWidth()));
-      point.y = Math.max(0, Math.min(1, y / this.drawHeight()));
+          this.editorPaths?.markForCheck();
+      };
 
-      if (!pendingUpdate) {
-        pendingUpdate = true;
-        rafId = requestAnimationFrame(() => {
-          this.cdr.detectChanges();
-          pendingUpdate = false;
-        });
+      const onMouseUp = () => {
+          window.removeEventListener('mousemove', onMouseMove);
+          window.removeEventListener('mouseup', onMouseUp);
+          this.pathsMap.set(routeId, { ...pathData });
+          this.editorPaths?.markForCheck();
+      };
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+  }
+
+  onPointTouchStart(data: { event: TouchEvent; routeId: number; index: number }): void {
+      const { event, routeId, index } = data;
+      const pathData = this.pathsMap.get(routeId);
+      if (!pathData || !this.imageElement) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const point = pathData.points[index];
+
+      const onTouchMove = (e: TouchEvent) => {
+          if (!this.imageElement) return;
+          const touch = e.touches[0];
+          const rect = this.imageElement.getBoundingClientRect();
+          point.x = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+          point.y = Math.max(0, Math.min(1, (touch.clientY - rect.top) / rect.height));
+          this.editorPaths?.markForCheck();
+      };
+
+      const onTouchEnd = () => {
+          window.removeEventListener('touchmove', onTouchMove);
+          window.removeEventListener('touchend', onTouchEnd);
+          this.pathsMap.set(routeId, { ...pathData });
+          this.editorPaths?.markForCheck();
+      };
+
+      window.addEventListener('touchmove', onTouchMove, { passive: false });
+      window.addEventListener('touchend', onTouchEnd);
+  }
+
+  onPointRemove(data: { event: Event; routeId: number; index: number }): void {
+      data.event.preventDefault();
+      data.event.stopPropagation();
+
+      const { routeId, index } = data;
+      const pathData = this.pathsMap.get(routeId);
+      if (pathData) {
+        pathData.points.splice(index, 1);
+        this.pathsMap.set(routeId, { ...pathData });
+        this.editorPaths?.markForCheck();
       }
-    };
-
-    const onMouseUp = () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      this.pathsMap.set(routeId, { ...pathData });
-      this.cdr.markForCheck();
-      this.draggingPoint = null;
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-    event.stopPropagation();
-    event.preventDefault();
   }
 
   deletePath(route: TopoRouteWithRoute, event: Event): void {
@@ -1043,175 +781,6 @@ export class ImageEditorDialogComponent implements AfterViewInit {
         this.cdr.markForCheck();
       }
     });
-  }
-
-  onPathInteraction(event: Event, route: TopoRouteWithRoute): void {
-    const selected = this.selectedRoute();
-
-    // If a route is already selected
-    if (selected) {
-      // If we clicked on the CURRENTLY selected route
-      if (selected.route_id === route.route_id) {
-        // We do NOT stop propagation here initially because we might want to allow
-        // logic that detects where exactly on the line we clicked (future improvement).
-        // BUT for now, to prevent 'onImageClick' from adding a point when just clicking the line:
-        event.stopPropagation();
-        return;
-      }
-
-      // If we clicked on a DIFFERENT route while one is selected
-      // We want to IGNORE this click regarding selection change.
-      // We explicitly STOP propagation so it doesn't trigger onImageClick either
-      // (which would add a point to the CURRENTLY selected route at that position).
-      // This effectively "masks" the other route so we can draw "over" it or near it.
-      // However, if we want to "draw", we actually WANT the click to go through to the container
-      // OR we just handle the point addition here?
-      // The requirement is: "should not select that line. should ignore it and continue editing the line".
-      // If we stop propagation, onImageClick won't fire, so we can't add a point there.
-      // So we should actually NOT stop propagation if we want to add a point, but we SHOULD stop
-      // the "selectRoute" logic.
-
-      // Since this method IS the handler for the click on the Group <g>,
-      // simply doing nothing returns control to the browser bubbling.
-      // The event will bubble up to the container.
-      // The container's (mousedown)="onImageClick($event)" will trigger.
-      // Since we didn't change selection, onImageClick will add a point to the SELECTED route.
-      // This seems to be what is requested ("continue editing the line").
-      return;
-    }
-
-    // If no route is selected, we select this one.
-    this.selectRoute(route);
-    event.stopPropagation();
-  }
-
-  startDraggingTouch(event: TouchEvent, routeId: number, index: number): void {
-    if (event.touches.length > 1) return;
-
-    this.draggingPoint = { routeId, index };
-    const pathData = this.pathsMap.get(routeId);
-    if (!pathData) return;
-
-    const point = pathData.points[index];
-    let rafId: number | null = null;
-    let pendingUpdate = false;
-    const container = this.drawContainerElement.nativeElement;
-
-    const onTouchMove = (e: TouchEvent) => {
-      if (e.touches.length > 1) return;
-      e.preventDefault();
-      const rect = container.getBoundingClientRect();
-      const x = (e.touches[0].clientX - rect.left) / this.scale();
-      const y = (e.touches[0].clientY - rect.top) / this.scale();
-
-      point.x = Math.max(0, Math.min(1, x / this.drawWidth()));
-      point.y = Math.max(0, Math.min(1, y / this.drawHeight()));
-
-      if (!pendingUpdate) {
-        pendingUpdate = true;
-        rafId = requestAnimationFrame(() => {
-          this.cdr.detectChanges();
-          pendingUpdate = false;
-        });
-      }
-    };
-
-    const onTouchEnd = () => {
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('touchend', onTouchEnd);
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      this.pathsMap.set(routeId, { ...pathData });
-      this.cdr.markForCheck();
-      this.draggingPoint = null;
-    };
-
-    window.addEventListener('touchmove', onTouchMove, { passive: false });
-    window.addEventListener('touchend', onTouchEnd);
-    event.stopPropagation();
-  }
-
-  onTouchStart(event: Event): void {
-    const touchEvent = event as TouchEvent;
-    if (this.draggingPoint) return;
-
-    if (touchEvent.touches.length === 2) {
-      // Pinch zoom logic
-      const startDist = Math.hypot(
-        touchEvent.touches[0].clientX - touchEvent.touches[1].clientX,
-        touchEvent.touches[0].clientY - touchEvent.touches[1].clientY,
-      );
-      const startScale = this.scale();
-      const centerX =
-        (touchEvent.touches[0].clientX + touchEvent.touches[1].clientX) / 2;
-      const centerY =
-        (touchEvent.touches[0].clientY + touchEvent.touches[1].clientY) / 2;
-
-      const rect =
-        this.drawContainerElement.nativeElement.getBoundingClientRect();
-      const mouseX = (centerX - rect.left) / startScale;
-      const mouseY = (centerY - rect.top) / startScale;
-
-      const onTouchMove = (e: TouchEvent) => {
-        if (e.touches.length !== 2) return;
-        const dist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY,
-        );
-        const newScale = Math.min(
-          Math.max(1, (dist / startDist) * startScale),
-          5,
-        );
-
-        this.scale.set(newScale);
-        this.translateX.update(
-          (tx) => centerX - rect.left + tx - mouseX * newScale,
-        );
-        this.translateY.update(
-          (ty) => centerY - rect.top + ty - mouseY * newScale,
-        );
-
-        this.constrainTranslation();
-        this.cdr.detectChanges();
-      };
-
-      const onTouchEnd = () => {
-        window.removeEventListener('touchmove', onTouchMove);
-        window.removeEventListener('touchend', onTouchEnd);
-      };
-
-      window.addEventListener('touchmove', onTouchMove, { passive: false });
-      window.addEventListener('touchend', onTouchEnd);
-    } else if (touchEvent.touches.length === 1) {
-      // Panning logic
-      const startX = touchEvent.touches[0].clientX;
-      const startY = touchEvent.touches[0].clientY;
-      const initialTx = this.translateX();
-      const initialTy = this.translateY();
-
-      const onTouchMove = (e: TouchEvent) => {
-        if (e.touches.length !== 1 || this.draggingPoint) return;
-        const dx = e.touches[0].clientX - startX;
-        const dy = e.touches[0].clientY - startY;
-
-        this.translateX.set(initialTx + dx);
-        this.translateY.set(initialTy + dy);
-
-        this.constrainTranslation();
-        this.cdr.detectChanges();
-      };
-
-      const onTouchEnd = () => {
-        window.removeEventListener('touchmove', onTouchMove);
-        window.removeEventListener('touchend', onTouchEnd);
-      };
-
-      window.addEventListener('touchmove', onTouchMove, { passive: false });
-      window.addEventListener('touchend', onTouchEnd);
-    }
-  }
-
-  removePoint(event: Event, routeId: number, index: number): void {
-    removePoint(event, routeId, index, this.pathsMap);
   }
 
   imageCropped(event: ImageCroppedEvent): void {
