@@ -33,8 +33,8 @@ import { GlobalData } from '../services';
       </header>
 
       @if (item().image; as img) {
-         <a [href]="item().link" target="_blank" class="block -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full bg-[var(--tui-background-neutral-1)] sm:rounded-2xl overflow-hidden relative aspect-video flex items-center justify-center">
-           <img [src]="img" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105" [alt]="item().title" />
+         <a [href]="item().link" target="_blank" class="block -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full bg-[var(--tui-background-neutral-1)] sm:rounded-2xl overflow-hidden relative flex items-center justify-center">
+           <img [src]="img" class="w-full h-auto object-contain transition-transform duration-500 hover:scale-105" [alt]="item().title" />
          </a>
       }
 
