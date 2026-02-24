@@ -226,13 +226,41 @@ export class SupabaseService {
   ): Promise<string> {
     if (!path) return '';
     if (path.startsWith('http')) return path;
+
+    const cacheKey = `ascent-url:${path}${
+      options ? ':' + JSON.stringify(options) : ''
+    }`;
+    try {
+      const cached = this.localStorage.getItem(cacheKey);
+      if (cached) {
+        const { url, expiresAt } = JSON.parse(cached);
+        if (Date.now() < expiresAt) {
+          return url;
+        }
+      }
+    } catch (e) {
+      console.warn('[SupabaseService] Error reading cached ascent url', e);
+    }
+
     const { data, error } = await this.client.storage
       .from('route-ascent-photos')
       .createSignedUrl(path, 3600, options); // 1 hour
+
     if (error) {
       console.error('[SupabaseService] getAscentSignedUrl error', error);
       return '';
     }
+
+    try {
+      const expiresAt = Date.now() + 3600 * 1000 - 300000; // 1 hour - 5 minutes
+      this.localStorage.setItem(
+        cacheKey,
+        JSON.stringify({ url: data.signedUrl, expiresAt }),
+      );
+    } catch (e) {
+      console.warn('[SupabaseService] Error caching ascent url', e);
+    }
+
     return data.signedUrl;
   }
 
