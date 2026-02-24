@@ -22,7 +22,7 @@ import {
   TuiTableSortChange,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
-import { tuiDefaultSort, TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
+import { tuiDefaultSort } from '@taiga-ui/cdk';
 import {
   TuiButton,
   TuiDataList,
@@ -104,7 +104,6 @@ export interface TopoRouteRow {
     TuiLink,
     TuiLoader,
     TuiScrollbar,
-    TuiSwipe,
     TuiTable,
     TuiTextfield,
   ],
@@ -189,7 +188,6 @@ export interface TopoRouteRow {
               (mousemove.zoneless)="onMouseMove($any($event))"
               (mouseup.zoneless)="onMouseUp()"
               (mouseleave.zoneless)="onMouseUp()"
-              (tuiSwipe)="onSwipe($event)"
             >
               <div
                 class="h-full w-full flex items-center justify-center min-w-full"
@@ -1207,27 +1205,6 @@ export class TopoComponent {
     },
   });
 
-  protected readonly currentTopoIndex = computed(() => {
-    const topo = this.topo();
-    const topos = this.allAreaTopos() || [];
-    if (!topo || !topos.length) return -1;
-    return topos.findIndex((t) => t.id === topo.id);
-  });
-
-  protected readonly prevTopo = computed(() => {
-    const i = this.currentTopoIndex();
-    const topos = this.allAreaTopos() || [];
-    if (!topos.length) return null;
-    return topos[(i - 1 + topos.length) % topos.length];
-  });
-
-  protected readonly nextTopo = computed(() => {
-    const i = this.currentTopoIndex();
-    const topos = this.allAreaTopos() || [];
-    if (!topos.length) return null;
-    return topos[(i + 1) % topos.length];
-  });
-
   protected readonly shadeInfo = computed(() => {
     const t = this.topo();
     if (!t) return null;
@@ -1467,17 +1444,6 @@ export class TopoComponent {
       topo.id,
     ]);
   }
-
-  protected onSwipe(event: TuiSwipeEvent): void {
-    if (event.direction === 'left') {
-      const next = this.nextTopo();
-      if (next) this.navigateToTopo(next);
-    } else if (event.direction === 'right') {
-      const prev = this.prevTopo();
-      if (prev) this.navigateToTopo(prev);
-    }
-  }
-
   protected getMidPoint(
     points: { x: number; y: number }[],
   ): { x: number; y: number } | null {
