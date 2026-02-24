@@ -18,6 +18,7 @@ export function getRouteColor(
   color: string | undefined,
   grade: string | number,
 ): string {
+  if (color) return color;
   const label = GRADE_NUMBER_TO_LABEL[grade as VERTICAL_LIFE_GRADES];
 
   return colorForGrade(label as GradeLabel) || GRADE_COLORS[5];
