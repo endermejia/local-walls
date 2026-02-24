@@ -1000,42 +1000,65 @@ export class UserProfileConfigComponent {
     await this.updateProfile({ private: this.isPrivate });
   }
 
+  private async saveField<K extends keyof UserProfileDto>(
+    field: K,
+    control: FormControl,
+    options: {
+      transform?: (val: any) => UserProfileDto[K];
+      validate?: (val: UserProfileDto[K]) => string | null;
+      errorMessage?: string;
+      errorType?: 'info' | 'error';
+    } = {},
+  ): Promise<void> {
+    const current = this.profile();
+
+    let value = control.value;
+    if (options.transform) {
+      value = options.transform(value);
+    }
+
+    const validationError = options.validate ? options.validate(value) : null;
+    if (control.invalid || validationError) {
+      const errorKey = validationError || options.errorMessage;
+      if (errorKey) {
+        if (options.errorType === 'info') {
+          this.toast.info(errorKey);
+        } else {
+          this.toast.error(errorKey);
+        }
+      }
+      await this.loadProfile();
+      return;
+    }
+
+    if (value === (current?.[field] ?? null)) {
+      if (typeof value === 'string' && control.value !== value) {
+        control.setValue(value, { emitEvent: false });
+      }
+      return;
+    }
+
+    await this.updateProfile({ [field]: value });
+  }
+
   async saveName(): Promise<void> {
-    const val = this.displayNameControl.value || '';
-    const trimmed = val.trim();
-    if (!trimmed) {
-      const current = this.profile();
-      this.displayNameControl.setValue(current?.name ?? '');
-      this.toast.info('profile.name.required');
-      return;
-    }
-    if (trimmed.length < 3 || trimmed.length > 50) {
-      // Restore previous valid value for UX consistency
-      const current = this.profile();
-      this.displayNameControl.setValue(current?.name ?? '');
-      this.toast.info('profile.name.length');
-      return;
-    }
-    if (trimmed === (this.profile()?.name ?? '')) {
-      return;
-    }
-    await this.updateProfile({ name: trimmed });
+    await this.saveField('name', this.displayNameControl, {
+      transform: (v) => (v || '').trim(),
+      validate: (v) => {
+        if (!v) return 'profile.name.required';
+        if (v.length < 3 || v.length > 50) return 'profile.name.length';
+        return null;
+      },
+      errorType: 'info',
+    });
   }
 
   async saveBio(): Promise<void> {
-    if (this.bioControl.invalid) {
-      this.toast.info('profile.bio.tooLong');
-      return;
-    }
-    const val = this.bioControl.value || '';
-    const trimmed = val.trim();
-    const current = this.profile();
-
-    if (trimmed === (current?.bio ?? '')) {
-      this.bioControl.setValue(current?.bio ?? '');
-      return;
-    }
-    await this.updateProfile({ bio: trimmed });
+    await this.saveField('bio', this.bioControl, {
+      transform: (v) => (v || '').trim(),
+      errorMessage: 'profile.bio.tooLong',
+      errorType: 'info',
+    });
   }
 
   async toggleTheme(isDark: boolean): Promise<void> {
@@ -1048,110 +1071,62 @@ export class UserProfileConfigComponent {
   }
 
   async saveLanguage(): Promise<void> {
-    const current = this.profile();
-    if (this.languageControl.value === (current?.language ?? null)) {
-      return;
-    }
-    await this.updateProfile({ language: this.languageControl.value });
+    await this.saveField('language', this.languageControl);
   }
 
   async saveCountry(): Promise<void> {
-    const current = this.profile();
-    // Ensure selected country is valid or null
-    const validIds = new Set(this.countryIds());
-    const val = this.countryControl.value;
-    if (val && !validIds.has(val)) {
-      this.countryControl.setValue(current?.country ?? null);
-      this.toast.error('profile.country.invalid');
-      return;
-    }
-    if (val === (current?.country ?? null)) {
-      return;
-    }
-    await this.updateProfile({ country: val });
+    await this.saveField('country', this.countryControl, {
+      validate: (v) => {
+        const validIds = new Set(this.countryIds());
+        return v && !validIds.has(v) ? 'profile.country.invalid' : null;
+      },
+    });
   }
 
   async saveCity(): Promise<void> {
-    if (this.cityControl.invalid) {
-      this.toast.info('profile.city.tooLong');
-      return;
-    }
-    const val = this.cityControl.value;
-    const current = this.profile();
-    if (val === (current?.city ?? null)) {
-      return;
-    }
-    await this.updateProfile({ city: val });
+    await this.saveField('city', this.cityControl, {
+      errorMessage: 'profile.city.tooLong',
+      errorType: 'info',
+    });
   }
 
   async saveBirthDate(): Promise<void> {
-    const current = this.profile();
-    const currentDate = current?.birth_date
-      ? new Date(current.birth_date).toISOString().split('T')[0]
-      : null;
-    const bd = this.birthDateControl.value;
-    const newDate = bd
-      ? `${bd.year}-${String(bd.month + 1).padStart(2, '0')}-${String(bd.day).padStart(2, '0')}`
-      : null;
-    if (bd) {
-      // Reject future dates or dates before minBirthDate
-      if (bd.dayBefore(this.minBirthDate) || this.today.dayBefore(bd)) {
-        this.birthDateControl.setValue(
-          current?.birth_date
-            ? new TuiDay(
-                new Date(current.birth_date).getFullYear(),
-                new Date(current.birth_date).getMonth(),
-                new Date(current.birth_date).getDate(),
-              )
-            : null,
-        );
-        this.toast.error('profile.birthDate.invalid');
-        return;
-      }
-    }
-    if (newDate === currentDate) {
-      return;
-    }
-    await this.updateProfile({ birth_date: newDate });
+    await this.saveField('birth_date', this.birthDateControl, {
+      transform: (bd: TuiDay | null) =>
+        bd
+          ? `${bd.year}-${String(bd.month + 1).padStart(2, '0')}-${String(bd.day).padStart(2, '0')}`
+          : null,
+      validate: () => {
+        const bd = this.birthDateControl.value;
+        if (
+          bd &&
+          (bd.dayBefore(this.minBirthDate) || this.today.dayBefore(bd))
+        ) {
+          return 'profile.birthDate.invalid';
+        }
+        return null;
+      },
+    });
   }
 
   async saveStartingClimbingYear(): Promise<void> {
-    const current = this.profile();
-    if (this.startingClimbingYearControl.invalid) {
-      this.startingClimbingYearControl.setValue(
-        current?.starting_climbing_year ?? null,
-      );
-      this.toast.error('profile.startingYear.invalid');
-      return;
-    }
-    const newYear = this.startingClimbingYearControl.value;
-    if (newYear === (current?.starting_climbing_year ?? null)) {
-      return;
-    }
-    await this.updateProfile({ starting_climbing_year: newYear });
+    await this.saveField(
+      'starting_climbing_year',
+      this.startingClimbingYearControl,
+      {
+        errorMessage: 'profile.startingYear.invalid',
+      },
+    );
   }
 
   async saveSize(): Promise<void> {
-    const current = this.profile();
-    if (this.sizeControl.invalid) {
-      this.sizeControl.setValue(current?.size ?? null);
-      this.toast.error('profile.size.invalid');
-      return;
-    }
-    const val = this.sizeControl.value;
-    if (val === (current?.size ?? null)) {
-      return;
-    }
-    await this.updateProfile({ size: val });
+    await this.saveField('size', this.sizeControl, {
+      errorMessage: 'profile.size.invalid',
+    });
   }
 
   async saveSex(): Promise<void> {
-    const current = this.profile();
-    const val = this.sexControl.value;
-    if (val === (current?.sex ?? null)) {
-      return;
-    }
-    await this.updateProfile({ sex: val });
+    await this.saveField('sex', this.sexControl);
   }
 
   async saveEightAnuUser(user: unknown): Promise<void> {
