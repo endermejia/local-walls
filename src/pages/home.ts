@@ -205,9 +205,10 @@ export class HomeComponent implements OnDestroy {
               const ascents = await this.fetchAscents(page, filter);
               if (filter === 'all') {
                 const lastItem = this.ascents().slice(-1)[0];
-                const beforeDate = lastItem
-                  ? new Date(lastItem.date).toISOString()
-                  : undefined;
+                const beforeDate =
+                  lastItem && lastItem.date
+                    ? new Date(lastItem.date).toISOString()
+                    : undefined;
                 const news = await this.desnivelService.getLatestPosts(
                   5,
                   beforeDate,
