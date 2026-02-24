@@ -294,26 +294,45 @@ export function handleViewerWheelZoom(
   if (newScale === state.zoomScale()) return;
 
   const area = wheelEvent.currentTarget as HTMLElement;
-  const container = area.querySelector('.zoom-container') as HTMLElement;
-  if (!container) return;
+  const zoomContainer = area.querySelector('.zoom-container') as HTMLElement;
+  if (!zoomContainer) return;
 
-  const rect = container.getBoundingClientRect();
-  const x = wheelEvent.clientX - rect.left;
-  const y = wheelEvent.clientY - rect.top;
+  // Key fix: Use the transform's current logical position,
+  // and the mouse position RELATIVE to the top-left of the image at scale 1.
+  const containerRect = area.getBoundingClientRect();
+  const currentPos = state.zoomPosition();
 
-  const mouseX = x / state.zoomScale();
-  const mouseY = y / state.zoomScale();
+  // The 'zoom-container' is centered in 'area' via flexbox.
+  // Its logical (0,0) offset relative to the container is:
+  const restingLeft = zoomContainer.offsetLeft;
+  const restingTop = zoomContainer.offsetTop;
+
+  // Mouse position relative to the element's top-left at scale 1:
+  const mouseRelX =
+    (wheelEvent.clientX - containerRect.left - restingLeft - currentPos.x) /
+    state.zoomScale();
+  const mouseRelY =
+    (wheelEvent.clientY - containerRect.top - restingTop - currentPos.y) /
+    state.zoomScale();
 
   state.zoomScale.set(newScale);
 
-  if (newScale <= minScale) {
-    state.zoomPosition.set({ x: 0, y: 0 });
-  } else {
-    state.zoomPosition.update((pos) => ({
-      x: wheelEvent.clientX - rect.left + pos.x - mouseX * newScale,
-      y: wheelEvent.clientY - rect.top + pos.y - mouseY * newScale,
-    }));
-  }
+  // New logical position to keep the same point under the mouse:
+  const newPos = {
+    x:
+      wheelEvent.clientX -
+      containerRect.left -
+      restingLeft -
+      mouseRelX * newScale,
+    y:
+      wheelEvent.clientY -
+      containerRect.top -
+      restingTop -
+      mouseRelY * newScale,
+  };
+
+  const constrained = calculateConstrainedPosition(newPos, newScale, area);
+  state.zoomPosition.set(constrained);
 }
 
 export interface ViewerDragState {
@@ -423,10 +442,20 @@ export function handleViewerTouchMove(
 
     if (drag.hasMoved) {
       touchEvent.preventDefault();
-      state.zoomPosition.set({
+      const newPos = {
         x: drag.initialTx + dx,
         y: drag.initialTy + dy,
-      });
+      };
+
+      // Apply constraints before setting state to prevent bounce
+      const area = touchEvent.currentTarget as HTMLElement;
+      const constrained = calculateConstrainedPosition(
+        newPos,
+        state.zoomScale(),
+        area,
+      );
+
+      state.zoomPosition.set(constrained);
     }
   } else if (touchEvent.touches.length === 2) {
     touchEvent.preventDefault();
@@ -498,10 +527,133 @@ export function handleViewerMouseMove(
 
   if (drag.hasMoved) {
     event.preventDefault();
-    state.zoomPosition.set({
+    const newPos = {
       x: drag.initialTx + dx,
       y: drag.initialTy + dy,
-    });
+    };
+
+    // Apply constraints before setting state to prevent bounce
+    const area = event.currentTarget as HTMLElement;
+    const constrained = calculateConstrainedPosition(
+      newPos,
+      state.zoomScale(),
+      area,
+    );
+
+    state.zoomPosition.set(constrained);
+  }
+}
+
+/**
+ * Internal helper to calculate constrained position without updating state.
+ */
+function calculateConstrainedPosition(
+  pos: { x: number; y: number },
+  scale: number,
+  containerEl: HTMLElement,
+): { x: number; y: number } {
+  const zoomContainerEl = containerEl.querySelector(
+    '.zoom-container',
+  ) as HTMLElement;
+  const imgEl = zoomContainerEl?.querySelector('img') as HTMLImageElement;
+  if (!zoomContainerEl || !imgEl) return pos;
+
+  const containerRect = containerEl.getBoundingClientRect();
+
+  // Dimensions at scale 1
+  const baseW = imgEl.offsetWidth;
+  const baseH = imgEl.offsetHeight;
+
+  const scaledW = baseW * scale;
+  const scaledH = baseH * scale;
+
+  let newX = pos.x;
+  let newY = pos.y;
+
+  // Horizontal constraint
+  if (scaledW > containerRect.width) {
+    const restingLeft = zoomContainerEl.offsetLeft;
+    const minX = -restingLeft - (scaledW - containerRect.width);
+    const maxX = -restingLeft;
+    newX = Math.max(minX, Math.min(newX, maxX));
+  } else {
+    newX = 0; // Center via flexbox
+  }
+
+  // Vertical constraint
+  if (scaledH > containerRect.height) {
+    const restingTop = zoomContainerEl.offsetTop;
+    const minY = -restingTop - (scaledH - containerRect.height);
+    const maxY = -restingTop;
+    newY = Math.max(minY, Math.min(newY, maxY));
+  } else {
+    newY = 0; // Center via flexbox
+  }
+
+  return { x: newX, y: newY };
+}
+
+/**
+ * Constrains the zoomPosition to keep the image within container bounds.
+ * If image is smaller than container, it centers it.
+ * If image is larger, it prevents showing empty space.
+ */
+export function applyViewerConstraints(
+  state: ViewerZoomPanState,
+  containerEl: HTMLElement,
+): void {
+  const zoomContainerEl = containerEl.querySelector(
+    '.zoom-container',
+  ) as HTMLElement;
+  if (!zoomContainerEl) return;
+
+  const scale = state.zoomScale();
+  const containerRect = containerEl.getBoundingClientRect();
+  const zoomRect = zoomContainerEl.getBoundingClientRect();
+
+  // Relative top-left of the zoom container to the container
+  const currentL = zoomRect.left - containerRect.left;
+  const currentT = zoomRect.top - containerRect.top;
+  const currentR = zoomRect.right - containerRect.left;
+  const currentB = zoomRect.bottom - containerRect.top;
+
+  const currentW = zoomRect.width;
+  const currentH = zoomRect.height;
+
+  const pos = state.zoomPosition();
+  let newX = pos.x;
+  let newY = pos.y;
+
+  // Horizontal constraint
+  if (currentW > containerRect.width + 1) {
+    // +1 to avoid rounding issues
+    if (currentL > 0) {
+      newX -= currentL;
+    } else if (currentR < containerRect.width) {
+      newX += containerRect.width - currentR;
+    }
+  } else {
+    // Center it
+    const targetL = (containerRect.width - currentW) / 2;
+    newX += targetL - currentL;
+  }
+
+  // Vertical constraint
+  if (currentH > containerRect.height + 1) {
+    // +1 to avoid rounding issues
+    if (currentT > 0) {
+      newY -= currentT;
+    } else if (currentB < containerRect.height) {
+      newY += containerRect.height - currentB;
+    }
+  } else {
+    // Center it
+    const targetT = (containerRect.height - currentH) / 2;
+    newY += targetT - currentT;
+  }
+
+  if (Math.abs(newX - pos.x) > 0.1 || Math.abs(newY - pos.y) > 0.1) {
+    state.zoomPosition.set({ x: newX, y: newY });
   }
 }
 

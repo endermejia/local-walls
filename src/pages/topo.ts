@@ -80,6 +80,7 @@ import {
   handleViewerMouseDown,
   handleViewerMouseMove,
   resetViewerZoomState,
+  applyViewerConstraints,
 } from '../utils/zoom-pan.utils';
 
 export interface TopoRouteRow {
@@ -202,6 +203,7 @@ export interface TopoRouteRow {
               >
                 <div
                   class="relative h-full transition-transform duration-75 ease-out zoom-container origin-top-left"
+                  [class.!duration-0]="dragState.isDragging"
                   [style.transform]="
                     'translate(' +
                     zoomPosition().x +
@@ -407,6 +409,7 @@ export interface TopoRouteRow {
 
                 <div
                   class="relative transition-transform duration-75 ease-out zoom-container origin-top-left"
+                  [class.!duration-0]="dragState.isDragging"
                   (click)="onImageClick(); $event.stopPropagation()"
                   (keydown.enter)="$event.stopPropagation()"
                   tabindex="-1"
@@ -977,7 +980,7 @@ export class TopoComponent {
     zoomScale: this.zoomScale,
     zoomPosition: this.zoomPosition,
   };
-  private readonly dragState: ViewerDragState = createViewerDragState();
+  protected readonly dragState: ViewerDragState = createViewerDragState();
 
   protected readonly selectedRouteInfo = computed(() => {
     const routeId = this.selectedRouteId();
