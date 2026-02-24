@@ -36,10 +36,26 @@ import {
   getRouteColor,
   getRouteStyleProperties,
   getRouteStrokeWidth,
+  getPointsString as getPointsStringUtil,
+  hasPath as hasPathUtil,
 } from '../utils/topo-styles.utils';
 import { GradeComponent } from '../components/avatar-grade';
 import { TuiScrollbar } from '@taiga-ui/core';
-import { removePoint } from '../utils/drawing.utils';
+import {
+  removePoint,
+  addPointToPath,
+  startDragPointMouse,
+  startDragPointTouch,
+} from '../utils/drawing.utils';
+import {
+  ZoomPanState,
+  handleWheelZoom,
+  constrainTranslation,
+  setupEditorMousePan,
+  setupEditorTouchPanPinch,
+  resetZoomState,
+  attachWheelListener,
+} from '../utils/zoom-pan.utils';
 
 export interface ImageEditorConfig {
   file?: File;
@@ -173,7 +189,7 @@ export interface ImageEditorConfig {
           <!-- DRAWING MODE -->
           @if (mode() === 'draw') {
             <div
-              class="flex-1 relative overflow-hidden flex items-center justify-center p-8 cursor-move"
+              class="flex-1 relative overflow-hidden flex items-center justify-center p-2 cursor-grab active:cursor-grabbing"
               #drawArea
               (wheel.zoneless)="onWheel($event)"
             >
@@ -189,14 +205,14 @@ export interface ImageEditorConfig {
                 <img
                   #drawImage
                   [src]="croppedImage"
-                  class="max-w-full max-h-[70dvh] block pointer-events-none"
+                  class="max-w-full max-h-[calc(100dvh-5rem)] block pointer-events-none"
                   (load)="onDrawImageLoad()"
                   alt="Source for annotation"
                 />
 
                 <!-- SVG Overlay -->
                 <svg
-                  class="absolute inset-0 w-full h-full cursor-crosshair pointer-events-none"
+                  class="absolute inset-0 w-full h-full pointer-events-none"
                   [attr.viewBox]="viewBox()"
                 >
                   @for (tr of topoRoutes; track tr.route_id) {
@@ -220,7 +236,11 @@ export interface ImageEditorConfig {
                           [attr.points]="getPointsString(entry.points)"
                           fill="none"
                           stroke="transparent"
-                          [attr.stroke-width]="isSelected ? 0.08 : 0.04"
+                          [attr.stroke-width]="
+                            isSelected
+                              ? drawWidth() * 0.06
+                              : drawWidth() * 0.025
+                          "
                           stroke-linejoin="round"
                           stroke-linecap="round"
                         />
@@ -231,10 +251,18 @@ export interface ImageEditorConfig {
                           stroke="white"
                           [style.opacity]="style.isDashed ? 1 : 0.7"
                           [attr.stroke-width]="
-                            (isSelected ? 4 : 2) + (style.isDashed ? 2 : 1)
+                            (isSelected
+                              ? drawWidth() * 0.008
+                              : drawWidth() * 0.005) +
+                            (style.isDashed ? 2.5 : 1.5)
                           "
                           [attr.stroke-dasharray]="
-                            style.isDashed ? '4 4' : 'none'
+                            style.isDashed
+                              ? '' +
+                                drawWidth() * 0.01 +
+                                ' ' +
+                                drawWidth() * 0.01
+                              : 'none'
                           "
                           stroke-linejoin="round"
                           stroke-linecap="round"
@@ -245,9 +273,18 @@ export interface ImageEditorConfig {
                           fill="none"
                           [attr.stroke]="style.stroke"
                           [style.opacity]="style.opacity"
-                          [attr.stroke-width]="isSelected ? 4 : 2"
+                          [attr.stroke-width]="
+                            isSelected
+                              ? drawWidth() * 0.008
+                              : drawWidth() * 0.005
+                          "
                           [attr.stroke-dasharray]="
-                            style.isDashed ? '4 4' : 'none'
+                            style.isDashed
+                              ? '' +
+                                drawWidth() * 0.01 +
+                                ' ' +
+                                drawWidth() * 0.01
+                              : 'none'
                           "
                           stroke-linejoin="round"
                           stroke-linecap="round"
@@ -258,7 +295,11 @@ export interface ImageEditorConfig {
                           <circle
                             [attr.cx]="last.x * drawWidth()"
                             [attr.cy]="last.y * drawHeight()"
-                            [attr.r]="isSelected ? 4 : 2"
+                            [attr.r]="
+                              isSelected
+                                ? drawWidth() * 0.008
+                                : drawWidth() * 0.005
+                            "
                             fill="white"
                             [style.opacity]="style.opacity"
                             stroke="black"
@@ -284,14 +325,14 @@ export interface ImageEditorConfig {
                             <circle
                               [attr.cx]="pt.x * drawWidth()"
                               [attr.cy]="pt.y * drawHeight()"
-                              r="12"
+                              [attr.r]="drawWidth() * 0.012"
                               fill="rgba(0,0,0,0.4)"
                               class="hover:fill-[var(--tui-background-neutral-2)]/60 transition-colors"
                             />
                             <circle
                               [attr.cx]="pt.x * drawWidth()"
                               [attr.cy]="pt.y * drawHeight()"
-                              r="6"
+                              [attr.r]="drawWidth() * 0.006"
                               [attr.fill]="style.stroke"
                               class="group-hover:scale-125 transition-transform origin-center"
                               style="transform-box: fill-box"
@@ -611,6 +652,13 @@ export class ImageEditorDialogComponent implements AfterViewInit {
       `translate(${this.translateX()}px, ${this.translateY()}px) scale(${this.scale()})`,
   );
 
+  // Zoom/Pan state adapter
+  private readonly zoomPanState: ZoomPanState = {
+    scale: this.scale,
+    translateX: this.translateX,
+    translateY: this.translateY,
+  };
+
   // Cropper settings
   maintainAspectRatio = true;
   aspectRatio = 4 / 5;
@@ -762,17 +810,13 @@ export class ImageEditorDialogComponent implements AfterViewInit {
 
   // DRAWING METHODS
   ngAfterViewInit(): void {
-    this.attachWheelListener();
+    this.doAttachWheelListener();
   }
 
-  private attachWheelListener(): void {
-    const area = this.drawAreaElement?.nativeElement;
-    if (area && !('_wheelAttached' in area)) {
-      area.addEventListener('wheel', (e) => this.onWheel(e), {
-        passive: false,
-      });
-      (area as { _wheelAttached?: boolean })._wheelAttached = true;
-    }
+  private doAttachWheelListener(): void {
+    attachWheelListener(this.drawAreaElement?.nativeElement, (e) =>
+      this.onWheel(e),
+    );
   }
 
   onDrawImageLoad(): void {
@@ -782,90 +826,35 @@ export class ImageEditorDialogComponent implements AfterViewInit {
     this.resetZoom();
 
     // Try attaching again if not attached yet (important if mode changed later)
-    this.attachWheelListener();
+    this.doAttachWheelListener();
   }
 
   resetZoom(): void {
-    this.scale.set(1);
-    this.translateX.set(0);
-    this.translateY.set(0);
+    resetZoomState(this.zoomPanState);
   }
 
   onWheel(event: Event): void {
-    const wheelEvent = event as WheelEvent;
-
-    if (wheelEvent.cancelable) {
-      wheelEvent.preventDefault();
-    }
-
-    const zoomSpeed = 0.15;
-    const delta = wheelEvent.deltaY > 0 ? -zoomSpeed : zoomSpeed;
-    const newScale = Math.min(Math.max(1, this.scale() + delta), 5);
-
-    if (newScale === this.scale()) return;
-
-    const rect =
-      this.drawContainerElement.nativeElement.getBoundingClientRect();
-
-    const x = wheelEvent.clientX - rect.left;
-    const y = wheelEvent.clientY - rect.top;
-
-    const mouseX = x / this.scale();
-    const mouseY = y / this.scale();
-
-    this.scale.set(newScale);
-
-    this.translateX.update(
-      (tx) => wheelEvent.clientX - rect.left + tx - mouseX * newScale,
+    handleWheelZoom(
+      event,
+      this.zoomPanState,
+      this.drawContainerElement.nativeElement,
+      {},
+      {
+        afterZoom: () => {
+          this.doConstrainTranslation();
+          this.cdr.detectChanges();
+        },
+      },
     );
-    this.translateY.update(
-      (ty) => wheelEvent.clientY - rect.top + ty - mouseY * newScale,
-    );
-
-    this.constrainTranslation();
-    this.cdr.detectChanges();
   }
 
-  private constrainTranslation(): void {
-    const scale = this.scale();
-    const area = this.drawAreaElement?.nativeElement;
-    if (!area) return;
-
-    if (scale <= 1) {
-      this.translateX.set(0);
-      this.translateY.set(0);
-      return;
-    }
-
-    const areaRect = area.getBoundingClientRect();
-    const width = this.drawWidth();
-    const height = this.drawHeight();
-
-    const scaledWidth = width * scale;
-    const scaledHeight = height * scale;
-
-    let minX = 0;
-    let maxX = 0;
-    if (scaledWidth > areaRect.width) {
-      minX = areaRect.width - scaledWidth;
-      maxX = 0;
-    } else {
-      minX = 0;
-      maxX = 0;
-    }
-
-    let minY = 0;
-    let maxY = 0;
-    if (scaledHeight > areaRect.height) {
-      minY = areaRect.height - scaledHeight;
-      maxY = 0;
-    } else {
-      minY = 0;
-      maxY = 0;
-    }
-
-    this.translateX.update((x) => Math.min(maxX, Math.max(x, minX)));
-    this.translateY.update((y) => Math.min(maxY, Math.max(y, minY)));
+  private doConstrainTranslation(): void {
+    constrainTranslation(
+      this.zoomPanState,
+      this.drawAreaElement?.nativeElement,
+      this.drawWidth(),
+      this.drawHeight(),
+    );
   }
 
   selectRoute(tr: TopoRouteWithRoute): void {
@@ -887,8 +876,7 @@ export class ImageEditorDialogComponent implements AfterViewInit {
   }
 
   hasPath(routeId: number): boolean {
-    const pathData = this.pathsMap.get(routeId);
-    return !!pathData && pathData.points.length > 0;
+    return hasPathUtil(routeId, this.pathsMap);
   }
 
   getRouteStyle(
@@ -897,127 +885,72 @@ export class ImageEditorDialogComponent implements AfterViewInit {
     routeId: number,
   ) {
     const isSelected = this.selectedRoute()?.route_id === routeId;
-    // In editor, hovered is handled by interactions usually, but here we can check selected
     return getRouteStyleProperties(isSelected, false, color, grade);
   }
 
   getRouteWidth(isSelected: boolean, isHovered: boolean): number {
-    return getRouteStrokeWidth(isSelected, isHovered, 30, 'editor'); // Use larger base width for editor hit testing?
-    // Actually, hit detection stroke needs to be huge (e.g. 50-80).
-    // The visual stroke is 2 or 4.
-    // Let's rely on manual constants for hit detection in template, and visual stroke in visual polyline.
+    return getRouteStrokeWidth(isSelected, isHovered, 30, 'editor');
   }
 
   getPointsString(path: { x: number; y: number }[]): string {
-    return path
-      .map((p) => `${p.x * this.drawWidth()},${p.y * this.drawHeight()}`)
-      .join(' ');
+    return getPointsStringUtil(path, this.drawWidth(), this.drawHeight());
   }
 
   onImageClick(event: Event): void {
     const mouseEvent = event as MouseEvent;
     if (mouseEvent.button !== 0 || this.draggingPoint) return;
 
-    const startX = mouseEvent.clientX;
-    const startY = mouseEvent.clientY;
-    const initialTx = this.translateX();
-    const initialTy = this.translateY();
-    let hasMoved = false;
-
-    const onMouseMove = (e: MouseEvent) => {
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-
-      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
-        hasMoved = true;
-      }
-
-      if (hasMoved) {
-        this.translateX.set(initialTx + dx);
-        this.translateY.set(initialTy + dy);
-        this.constrainTranslation();
-        this.cdr.detectChanges();
-      }
-    };
-
-    const onMouseUp = (e: MouseEvent) => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-
-      if (!hasMoved) {
-        this.addPoint(e);
-      }
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    setupEditorMousePan(
+      mouseEvent,
+      this.zoomPanState,
+      {},
+      {
+        onNoMove: (e) => this.addPoint(e),
+        afterMove: () => {
+          this.doConstrainTranslation();
+          this.cdr.detectChanges();
+        },
+      },
+    );
   }
 
   private addPoint(event: MouseEvent): void {
     const route = this.selectedRoute();
     if (!route) return;
 
-    const rect =
-      this.drawContainerElement.nativeElement.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / this.scale();
-    const y = (event.clientY - rect.top) / this.scale();
-
-    const coords = {
-      x: Math.max(0, Math.min(1, x / this.drawWidth())),
-      y: Math.max(0, Math.min(1, y / this.drawHeight())),
-    };
-
-    const current = this.pathsMap.get(route.route_id) || { points: [] };
-    const newPoints = [...current.points, coords];
-    this.pathsMap.set(route.route_id, {
-      ...current,
-      points: newPoints,
-      color: current.color || this.resolveRouteColor(route.route_id),
-    });
+    addPointToPath(
+      event,
+      route.route_id,
+      this.drawContainerElement.nativeElement,
+      this.scale(),
+      this.drawWidth(),
+      this.drawHeight(),
+      this.pathsMap,
+      { color: this.resolveRouteColor(route.route_id) },
+    );
     this.cdr.markForCheck();
   }
 
   startDragging(event: MouseEvent, routeId: number, index: number): void {
     this.draggingPoint = { routeId, index };
-    const pathData = this.pathsMap.get(routeId);
-    if (!pathData) return;
 
-    const point = pathData.points[index];
-    let rafId: number | null = null;
-    let pendingUpdate = false;
-
-    const container = this.drawContainerElement.nativeElement;
-
-    const onMouseMove = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / this.scale();
-      const y = (e.clientY - rect.top) / this.scale();
-
-      point.x = Math.max(0, Math.min(1, x / this.drawWidth()));
-      point.y = Math.max(0, Math.min(1, y / this.drawHeight()));
-
-      if (!pendingUpdate) {
-        pendingUpdate = true;
-        rafId = requestAnimationFrame(() => {
-          this.cdr.detectChanges();
-          pendingUpdate = false;
-        });
-      }
-    };
-
-    const onMouseUp = () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      this.pathsMap.set(routeId, { ...pathData });
-      this.cdr.markForCheck();
-      this.draggingPoint = null;
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-    event.stopPropagation();
-    event.preventDefault();
+    startDragPointMouse(
+      event,
+      routeId,
+      index,
+      this.drawContainerElement.nativeElement,
+      this.scale(),
+      this.drawWidth(),
+      this.drawHeight(),
+      this.pathsMap,
+      {
+        onUpdate: () => this.cdr.detectChanges(),
+        onEnd: () => {
+          this.cdr.markForCheck();
+          this.draggingPoint = null;
+        },
+      },
+    );
   }
 
   deletePath(route: TopoRouteWithRoute, event: Event): void {
@@ -1086,128 +1019,41 @@ export class ImageEditorDialogComponent implements AfterViewInit {
   }
 
   startDraggingTouch(event: TouchEvent, routeId: number, index: number): void {
-    if (event.touches.length > 1) return;
-
     this.draggingPoint = { routeId, index };
-    const pathData = this.pathsMap.get(routeId);
-    if (!pathData) return;
 
-    const point = pathData.points[index];
-    let rafId: number | null = null;
-    let pendingUpdate = false;
-    const container = this.drawContainerElement.nativeElement;
-
-    const onTouchMove = (e: TouchEvent) => {
-      if (e.touches.length > 1) return;
-      e.preventDefault();
-      const rect = container.getBoundingClientRect();
-      const x = (e.touches[0].clientX - rect.left) / this.scale();
-      const y = (e.touches[0].clientY - rect.top) / this.scale();
-
-      point.x = Math.max(0, Math.min(1, x / this.drawWidth()));
-      point.y = Math.max(0, Math.min(1, y / this.drawHeight()));
-
-      if (!pendingUpdate) {
-        pendingUpdate = true;
-        rafId = requestAnimationFrame(() => {
-          this.cdr.detectChanges();
-          pendingUpdate = false;
-        });
-      }
-    };
-
-    const onTouchEnd = () => {
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('touchend', onTouchEnd);
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      this.pathsMap.set(routeId, { ...pathData });
-      this.cdr.markForCheck();
-      this.draggingPoint = null;
-    };
-
-    window.addEventListener('touchmove', onTouchMove, { passive: false });
-    window.addEventListener('touchend', onTouchEnd);
-    event.stopPropagation();
+    startDragPointTouch(
+      event,
+      routeId,
+      index,
+      this.drawContainerElement.nativeElement,
+      this.scale(),
+      this.drawWidth(),
+      this.drawHeight(),
+      this.pathsMap,
+      {
+        onUpdate: () => this.cdr.detectChanges(),
+        onEnd: () => {
+          this.cdr.markForCheck();
+          this.draggingPoint = null;
+        },
+      },
+    );
   }
 
   onTouchStart(event: Event): void {
-    const touchEvent = event as TouchEvent;
-    if (this.draggingPoint) return;
-
-    if (touchEvent.touches.length === 2) {
-      // Pinch zoom logic
-      const startDist = Math.hypot(
-        touchEvent.touches[0].clientX - touchEvent.touches[1].clientX,
-        touchEvent.touches[0].clientY - touchEvent.touches[1].clientY,
-      );
-      const startScale = this.scale();
-      const centerX =
-        (touchEvent.touches[0].clientX + touchEvent.touches[1].clientX) / 2;
-      const centerY =
-        (touchEvent.touches[0].clientY + touchEvent.touches[1].clientY) / 2;
-
-      const rect =
-        this.drawContainerElement.nativeElement.getBoundingClientRect();
-      const mouseX = (centerX - rect.left) / startScale;
-      const mouseY = (centerY - rect.top) / startScale;
-
-      const onTouchMove = (e: TouchEvent) => {
-        if (e.touches.length !== 2) return;
-        const dist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY,
-        );
-        const newScale = Math.min(
-          Math.max(1, (dist / startDist) * startScale),
-          5,
-        );
-
-        this.scale.set(newScale);
-        this.translateX.update(
-          (tx) => centerX - rect.left + tx - mouseX * newScale,
-        );
-        this.translateY.update(
-          (ty) => centerY - rect.top + ty - mouseY * newScale,
-        );
-
-        this.constrainTranslation();
-        this.cdr.detectChanges();
-      };
-
-      const onTouchEnd = () => {
-        window.removeEventListener('touchmove', onTouchMove);
-        window.removeEventListener('touchend', onTouchEnd);
-      };
-
-      window.addEventListener('touchmove', onTouchMove, { passive: false });
-      window.addEventListener('touchend', onTouchEnd);
-    } else if (touchEvent.touches.length === 1) {
-      // Panning logic
-      const startX = touchEvent.touches[0].clientX;
-      const startY = touchEvent.touches[0].clientY;
-      const initialTx = this.translateX();
-      const initialTy = this.translateY();
-
-      const onTouchMove = (e: TouchEvent) => {
-        if (e.touches.length !== 1 || this.draggingPoint) return;
-        const dx = e.touches[0].clientX - startX;
-        const dy = e.touches[0].clientY - startY;
-
-        this.translateX.set(initialTx + dx);
-        this.translateY.set(initialTy + dy);
-
-        this.constrainTranslation();
-        this.cdr.detectChanges();
-      };
-
-      const onTouchEnd = () => {
-        window.removeEventListener('touchmove', onTouchMove);
-        window.removeEventListener('touchend', onTouchEnd);
-      };
-
-      window.addEventListener('touchmove', onTouchMove, { passive: false });
-      window.addEventListener('touchend', onTouchEnd);
-    }
+    setupEditorTouchPanPinch(
+      event,
+      this.zoomPanState,
+      this.drawContainerElement.nativeElement,
+      {},
+      {
+        afterMove: () => {
+          this.doConstrainTranslation();
+          this.cdr.detectChanges();
+        },
+        isDraggingPoint: () => !!this.draggingPoint,
+      },
+    );
   }
 
   removePoint(event: Event, routeId: number, index: number): void {

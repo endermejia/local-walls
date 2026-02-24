@@ -64,7 +64,20 @@ import {
 import {
   getRouteStyleProperties,
   getRouteStrokeWidth,
+  getPointsString as getPointsStringUtil,
 } from '../utils/topo-styles.utils';
+
+import {
+  ViewerZoomPanState,
+  ViewerDragState,
+  createViewerDragState,
+  handleViewerWheelZoom,
+  handleViewerTouchStart,
+  handleViewerTouchMove,
+  handleViewerMouseDown,
+  handleViewerMouseMove,
+  resetViewerZoomState,
+} from '../utils/zoom-pan.utils';
 
 import { VERTICAL_LIFE_GRADES, GRADE_NUMBER_TO_LABEL } from '../models';
 
@@ -178,7 +191,7 @@ export interface TopoRouteRow {
             <!-- Topo image container -->
             @let topoImage = topoImageResource.value();
             <div
-              class="relative w-full h-full lg:col-span-2 bg-[var(--tui-background-neutral-1)] md:rounded-xl md:border md:border-[var(--tui-border-normal)] overflow-hidden cursor-move touch-none"
+              class="relative w-full h-full lg:col-span-2 bg-[var(--tui-background-neutral-1)] md:rounded-xl md:border md:border-[var(--tui-border-normal)] overflow-hidden cursor-grab active:cursor-grabbing touch-none"
               #scrollContainer
               (wheel.zoneless)="onWheel($event)"
               (touchstart.zoneless)="onTouchStart($any($event))"
@@ -208,7 +221,7 @@ export interface TopoRouteRow {
                   <img
                     [src]="topoImage || global.iconSrc()('topo')"
                     [alt]="t.name"
-                    class="w-auto h-full max-w-none block object-cover cursor-pointer"
+                    class="w-auto h-full max-w-none block object-cover"
                     draggable="false"
                     decoding="async"
                     tabindex="0"
@@ -368,7 +381,7 @@ export interface TopoRouteRow {
             <!-- Topo fullscreen -->
             @if (isFullscreen()) {
               <div
-                class="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden touch-none backdrop-blur-xl"
+                class="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden touch-none backdrop-blur-xl cursor-grab active:cursor-grabbing"
                 tabindex="0"
                 (keydown.enter)="toggleFullscreen(false)"
                 (click)="toggleFullscreen(false)"
@@ -964,6 +977,13 @@ export class TopoComponent {
   protected readonly hoveredRouteId = signal<number | null>(null);
   protected readonly selectedRouteId = signal<number | null>(null);
 
+  // Viewer zoom/pan state adapter
+  private readonly viewerState: ViewerZoomPanState = {
+    zoomScale: this.zoomScale,
+    zoomPosition: this.zoomPosition,
+  };
+  private readonly dragState: ViewerDragState = createViewerDragState();
+
   protected readonly selectedRouteInfo = computed(() => {
     const routeId = this.selectedRouteId();
     const topo = this.topo();
@@ -985,9 +1005,7 @@ export class TopoComponent {
     scaleX = 1,
     scaleY = 1,
   ): string {
-    return pathData.points
-      .map((p) => `${p.x * scaleX},${p.y * scaleY}`)
-      .join(' ');
+    return getPointsStringUtil(pathData.points, scaleX, scaleY);
   }
 
   protected onPathClick(event: Event, route: TopoRouteWithRoute): void {
@@ -1012,7 +1030,7 @@ export class TopoComponent {
   }
 
   protected onImageClick(): void {
-    if (this.hasMoved) return;
+    if (this.dragState.hasMoved) return;
     if (this.selectedRouteId()) {
       this.selectedRouteId.set(null);
     } else if (!this.isFullscreen()) {
@@ -1028,197 +1046,37 @@ export class TopoComponent {
   }
 
   protected resetZoom(): void {
-    this.zoomScale.set(1);
-    this.zoomPosition.set({ x: 0, y: 0 });
-    this.initialTx = 0;
-    this.initialTy = 0;
+    resetViewerZoomState(this.viewerState);
+    this.dragState.initialTx = 0;
+    this.dragState.initialTy = 0;
   }
 
   protected onWheel(event: Event): void {
-    const wheelEvent = event as WheelEvent;
-    if (wheelEvent.cancelable) {
-      wheelEvent.preventDefault();
-    }
-    const zoomSpeed = 0.15;
-    const delta = wheelEvent.deltaY > 0 ? -zoomSpeed : zoomSpeed;
-    const newScale = Math.min(Math.max(1, this.zoomScale() + delta), 5);
-
-    if (newScale === this.zoomScale()) return;
-
-    const area = wheelEvent.currentTarget as HTMLElement;
-    const container = area.querySelector('.zoom-container') as HTMLElement;
-    if (!container) return;
-
-    const rect = container.getBoundingClientRect();
-    const x = wheelEvent.clientX - rect.left;
-    const y = wheelEvent.clientY - rect.top;
-
-    const mouseX = x / this.zoomScale();
-    const mouseY = y / this.zoomScale();
-
-    this.zoomScale.set(newScale);
-
-    if (newScale === 1) {
-      this.zoomPosition.set({ x: 0, y: 0 });
-    } else {
-      this.zoomPosition.update((pos) => ({
-        x: wheelEvent.clientX - rect.left + pos.x - mouseX * newScale,
-        y: wheelEvent.clientY - rect.top + pos.y - mouseY * newScale,
-      }));
-    }
+    handleViewerWheelZoom(event, this.viewerState);
   }
 
-  private isDragging = false;
-  private hasMoved = false;
-  private dragStartX = 0;
-  private dragStartY = 0;
-  private initialTx = 0;
-  private initialTy = 0;
-
-  private initialPinchDist = 0;
-  private initialPinchScale = 1;
-  private initialPinchCenter = { x: 0, y: 0 };
-  private initialPinchRect = { left: 0, top: 0 };
-  private initialMouseX = 0;
-  private initialMouseY = 0;
-
   protected onTouchStart(event: Event): void {
-    const touchEvent = event as TouchEvent;
-
-    if (touchEvent.touches.length === 1) {
-      this.isDragging = true;
-      this.hasMoved = false;
-      this.dragStartX = touchEvent.touches[0].clientX;
-      this.dragStartY = touchEvent.touches[0].clientY;
-      this.initialTx = this.zoomPosition().x;
-      this.initialTy = this.zoomPosition().y;
-    } else if (touchEvent.touches.length === 2) {
-      this.isDragging = false;
-      const getDistance = (t1: Touch, t2: Touch) =>
-        Math.sqrt(
-          Math.pow(t2.clientX - t1.clientX, 2) +
-            Math.pow(t2.clientY - t1.clientY, 2),
-        );
-
-      const getCenter = (t1: Touch, t2: Touch) => ({
-        x: (t1.clientX + t2.clientX) / 2,
-        y: (t1.clientY + t2.clientY) / 2,
-      });
-
-      this.initialPinchDist = getDistance(
-        touchEvent.touches[0],
-        touchEvent.touches[1],
-      );
-      this.initialPinchScale = this.zoomScale();
-      this.initialPinchCenter = getCenter(
-        touchEvent.touches[0],
-        touchEvent.touches[1],
-      );
-
-      const area = touchEvent.currentTarget as HTMLElement;
-      const container = area.querySelector('.zoom-container') as HTMLElement;
-      if (!container) return;
-
-      const rect = container.getBoundingClientRect();
-      this.initialPinchRect = { left: rect.left, top: rect.top };
-
-      const centerRelX = this.initialPinchCenter.x - rect.left;
-      const centerRelY = this.initialPinchCenter.y - rect.top;
-      this.initialMouseX = centerRelX / this.initialPinchScale;
-      this.initialMouseY = centerRelY / this.initialPinchScale;
-      this.initialTx = this.zoomPosition().x;
-      this.initialTy = this.zoomPosition().y;
-    }
+    handleViewerTouchStart(event, this.viewerState, this.dragState);
   }
 
   protected onTouchMove(event: Event): void {
-    const touchEvent = event as TouchEvent;
-
-    if (touchEvent.touches.length === 1 && this.isDragging) {
-      const dx = touchEvent.touches[0].clientX - this.dragStartX;
-      const dy = touchEvent.touches[0].clientY - this.dragStartY;
-
-      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
-        this.hasMoved = true;
-      }
-
-      if (this.hasMoved) {
-        // Only prevent default if we've actually moved significantly, allowing normal scrolling to start if vertical swipe on something else
-        touchEvent.preventDefault();
-        this.zoomPosition.set({
-          x: this.initialTx + dx,
-          y: this.initialTy + dy,
-        });
-      }
-    } else if (touchEvent.touches.length === 2) {
-      touchEvent.preventDefault();
-      const getDistance = (t1: Touch, t2: Touch) =>
-        Math.sqrt(
-          Math.pow(t2.clientX - t1.clientX, 2) +
-            Math.pow(t2.clientY - t1.clientY, 2),
-        );
-
-      const dist = getDistance(touchEvent.touches[0], touchEvent.touches[1]);
-      const newScale = Math.min(
-        Math.max(1, (dist / this.initialPinchDist) * this.initialPinchScale),
-        5,
-      );
-
-      this.zoomScale.set(newScale);
-
-      if (newScale === 1) {
-        this.zoomPosition.set({ x: 0, y: 0 });
-      } else {
-        this.zoomPosition.set({
-          x:
-            this.initialPinchCenter.x -
-            this.initialPinchRect.left +
-            this.initialTx -
-            this.initialMouseX * newScale,
-          y:
-            this.initialPinchCenter.y -
-            this.initialPinchRect.top +
-            this.initialTy -
-            this.initialMouseY * newScale,
-        });
-      }
-    }
+    handleViewerTouchMove(event, this.viewerState, this.dragState);
   }
 
   protected onTouchEnd(): void {
-    this.isDragging = false;
+    this.dragState.isDragging = false;
   }
 
   protected onMouseDown(event: MouseEvent): void {
-    if (event.button !== 0) return;
-    this.isDragging = true;
-    this.hasMoved = false;
-    this.dragStartX = event.clientX;
-    this.dragStartY = event.clientY;
-    this.initialTx = this.zoomPosition().x;
-    this.initialTy = this.zoomPosition().y;
+    handleViewerMouseDown(event, this.viewerState, this.dragState);
   }
 
   protected onMouseMove(event: MouseEvent): void {
-    if (!this.isDragging) return;
-    const dx = event.clientX - this.dragStartX;
-    const dy = event.clientY - this.dragStartY;
-
-    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
-      this.hasMoved = true;
-    }
-
-    if (this.hasMoved) {
-      event.preventDefault();
-      this.zoomPosition.set({
-        x: this.initialTx + dx,
-        y: this.initialTy + dy,
-      });
-    }
+    handleViewerMouseMove(event, this.viewerState, this.dragState);
   }
 
   protected onMouseUp(): void {
-    this.isDragging = false;
+    this.dragState.isDragging = false;
   }
 
   // Route params

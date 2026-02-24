@@ -57,3 +57,42 @@ export function getRouteStrokeWidth(
   }
   return isSelected ? baseWidth * 2 : baseWidth;
 }
+
+/**
+ * Convert a list of normalized points (0-1) to an SVG points string
+ * with optional scale factors.
+ */
+export function getPointsString(
+  points: { x: number; y: number }[],
+  scaleX = 1,
+  scaleY = 1,
+): string {
+  return points.map((p) => `${p.x * scaleX},${p.y * scaleY}`).join(' ');
+}
+
+/**
+ * Check whether a route has a non-empty path in the given paths map.
+ */
+export function hasPath(
+  routeId: number,
+  pathsMap: Map<number, { points: { x: number; y: number }[] }>,
+): boolean {
+  const pathData = pathsMap.get(routeId);
+  return !!pathData && pathData.points.length > 0;
+}
+
+/**
+ * Get the route style properties based on selected/hovered state.
+ * Wraps `getRouteStyleProperties` with ID-based lookup.
+ */
+export function getRouteStyleForId(
+  color: string | undefined,
+  grade: string | number,
+  routeId: number,
+  selectedRouteId: number | null,
+  hoveredRouteId: number | null = null,
+): { stroke: string; opacity: number; isDashed: boolean } {
+  const isSelected = selectedRouteId === routeId;
+  const isHovered = hoveredRouteId === routeId;
+  return getRouteStyleProperties(isSelected, isHovered, color, grade);
+}
