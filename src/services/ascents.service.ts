@@ -306,6 +306,42 @@ export class AscentsService {
       );
     }
 
+    // Delete related notifications first (best effort)
+    try {
+      await this.supabase.client
+        .from('notifications')
+        .delete()
+        .eq('resource_id', id.toString())
+        .in('type', ['like', 'comment', 'mention']);
+    } catch (e) {
+      console.warn(
+        '[AscentsService] Could not delete notifications during ascent deletion',
+        e,
+      );
+    }
+
+    // Delete related likes
+    const { error: likesError } = await this.supabase.client
+      .from('route_ascent_likes')
+      .delete()
+      .eq('route_ascent_id', id);
+
+    if (likesError) {
+      console.error('[AscentsService] delete likes error', likesError);
+      throw likesError;
+    }
+
+    // Delete related comments
+    const { error: commentsError } = await this.supabase.client
+      .from('route_ascent_comments')
+      .delete()
+      .eq('route_ascent_id', id);
+
+    if (commentsError) {
+      console.error('[AscentsService] delete comments error', commentsError);
+      throw commentsError;
+    }
+
     const { error } = await this.supabase.client
       .from('route_ascents')
       .delete()
