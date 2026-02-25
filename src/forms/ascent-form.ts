@@ -616,16 +616,20 @@ export default class AscentFormComponent {
   private readonly dialogAscentData = this._dialogCtx?.data?.ascentData;
   private readonly dialogGrade = this._dialogCtx?.data?.grade;
 
+  private readonly effectiveAscentData = computed(
+    () => this.dialogAscentData ?? this.ascentData(),
+  );
+
   private readonly routeName = computed(() => {
     const data = this.effectiveAscentData();
     return this.dialogRouteName || data?.route?.name || '?';
   });
 
   private readonly effectiveRouteId = computed(
-    () => this.dialogRouteId ?? this.routeId(),
-  );
-  private readonly effectiveAscentData = computed(
-    () => this.dialogAscentData ?? this.ascentData(),
+    () =>
+      this.dialogRouteId ??
+      this.routeId() ??
+      this.effectiveAscentData()?.route_id,
   );
 
   readonly isEdit = computed(() => !!this.effectiveAscentData());
@@ -995,7 +999,7 @@ export default class AscentFormComponent {
         type: otherValues.type,
         rate: otherValues.rate === 0 ? null : otherValues.rate,
         video_url: otherValues.video_url || null,
-        route_id: route_id ?? 0,
+        route_id: route_id as number,
         user_id: user_id,
       };
 
