@@ -9,6 +9,7 @@ import {
   InputSignal,
   Signal,
   signal,
+  untracked,
 } from '@angular/core';
 import { form, FormField, required, min, max } from '@angular/forms/signals';
 import { FormsModule } from '@angular/forms';
@@ -323,6 +324,8 @@ export class CragFormComponent {
       this.editingId = data.id;
       this.editingAreaId = data.area_id;
 
+      const currentSlugs = untracked(() => this.model().eight_anu_sector_slugs);
+
       this.model.set({
         name: data.name ?? '',
         slug: data.slug ?? '',
@@ -333,7 +336,7 @@ export class CragFormComponent {
         description_en: data.description_en ?? null,
         warning_es: data.warning_es ?? null,
         warning_en: data.warning_en ?? null,
-        eight_anu_sector_slugs: this.model().eight_anu_sector_slugs, // Preserve array from fetch
+        eight_anu_sector_slugs: currentSlugs, // Preserve array from fetch
       });
 
       this.fetchFullCragData(data.id);

@@ -1,6 +1,6 @@
 # ClimBeast
 
-A modern climbing guide application built with Angular 20 that helps climbers discover and navigate climbing locations.
+A modern climbing guide application built with Angular 21 that helps climbers discover and navigate climbing locations.
 The app features an interactive map interface for exploring climbing spots, detailed route information, and mobile-friendly design.
 It uses server-side rendering (SSR) for improved performance and SEO, and implements a fully reactive architecture with Angular Signals for state management.
 
@@ -16,7 +16,7 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Tech Stack
 
-- [Angular 20](https://github.com/angular/angular-cli)
+- [Angular 21](https://github.com/angular/angular-cli)
   - SSR (Server-Side Rendering)
   - Zoneless change detection
   - Signals for state management
@@ -26,7 +26,6 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Next Steps
 
-- **Corregir errores en formularios al editar registros**
 - **Corregir service worker**
 - **Corregir problema con Safari. ¿Actualmente funciona en Safari?**
 

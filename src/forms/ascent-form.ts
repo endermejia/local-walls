@@ -9,6 +9,7 @@ import {
   InputSignal,
   resource,
   signal,
+  untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { form, FormField, min, required, submit } from '@angular/forms/signals';
@@ -801,19 +802,27 @@ export default class AscentFormComponent {
     effect(() => {
       const data = this.effectiveAscentData();
       if (!data) return;
-      this.populateForm(data);
+      untracked(() => {
+        this.populateForm(data);
+      });
     });
 
     // Handle tries auto-disable for OS/Flash
     effect(() => {
-      this.updateTriesState(this.model().type);
+      const type = this.model().type;
+      untracked(() => {
+        this.updateTriesState(type);
+      });
     });
 
     // Handle recommended -> rating
     effect(() => {
-      if (this.model().recommended) {
-        this.model.update((m) => ({ ...m, rate: 5 }));
-      }
+      const recommended = this.model().recommended;
+      untracked(() => {
+        if (recommended && this.model().rate !== 5) {
+          this.model.update((m) => ({ ...m, rate: 5 }));
+        }
+      });
     });
 
     // Default grade if provided and not editing
@@ -824,10 +833,12 @@ export default class AscentFormComponent {
     // Auto-open editor when a new file is selected from file input
     effect(() => {
       const file = this.model().photoControl;
-      if (file && !this.isProcessingPhoto()) {
-        this.isProcessingPhoto.set(true);
-        this.editPhoto(file, undefined);
-      }
+      untracked(() => {
+        if (file && !this.isProcessingPhoto()) {
+          this.isProcessingPhoto.set(true);
+          this.editPhoto(file, undefined);
+        }
+      });
     });
   }
 
@@ -858,7 +869,9 @@ export default class AscentFormComponent {
 
   private updateTriesState(type: string | null | undefined): void {
     if (type === AscentTypes.OS || type === AscentTypes.F) {
-      this.model.update((m) => ({ ...m, attempts: 1 }));
+      if (this.model().attempts !== 1) {
+        this.model.update((m) => ({ ...m, attempts: 1 }));
+      }
     } else if (type === AscentTypes.RP) {
       if (this.model().attempts === 1) {
         this.model.update((m) => ({ ...m, attempts: null }));

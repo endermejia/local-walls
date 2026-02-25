@@ -1,6 +1,6 @@
 # Guía del Proyecto (Angular 20, SSR, Zoneless)
 
-Este proyecto está construido con Angular 20, renderizado del lado del servidor (SSR) y sin Zone.js (zoneless). Sigue estas pautas para mantener la coherencia, el rendimiento y la compatibilidad SSR.
+Este proyecto está construido con Angular 21, renderizado del lado del servidor (SSR) y sin Zone.js (zoneless). Sigue estas pautas para mantener la coherencia, el rendimiento y la compatibilidad SSR.
 
 ## 1) SSR (Server-Side Rendering)
 
@@ -130,7 +130,7 @@ Este proyecto está construido con Angular 20, renderizado del lado del servidor
 - Cambio de detección manual: cuando actualices estado desde callbacks externos, usa señales o `effect()` para notificar a la vista.
 - Evita patrones que dependan de Zone.js (p.ej., no confíes en que la vista se actualiza sola tras promesas/tiempos). Usa señales para estado reactivo.
 
-## 3) Sintaxis moderna Angular 20
+## 3) Sintaxis moderna Angular 21
 
 - Control flow:
   - `@if ... { } @else { }`

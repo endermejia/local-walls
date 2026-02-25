@@ -9,6 +9,7 @@ import {
   InputSignal,
   Signal,
   signal,
+  untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
@@ -249,21 +250,25 @@ export class ParkingFormComponent {
     effect(() => {
       const data = this.effectiveParkingData();
       if (data) {
-        this.editingId = data.id;
-        this.model.set({
-          name: data.name ?? '',
-          latitude: data.latitude ?? null,
-          longitude: data.longitude ?? null,
-          size: data.size ?? 0,
+        untracked(() => {
+          this.editingId = data.id;
+          this.model.set({
+            name: data.name ?? '',
+            latitude: data.latitude ?? null,
+            longitude: data.longitude ?? null,
+            size: data.size ?? 0,
+          });
         });
       } else {
         const def = this.effectiveDefaultLocation();
         if (def) {
-          this.model.update((m) => ({
-            ...m,
-            latitude: def.lat,
-            longitude: def.lng,
-          }));
+          untracked(() => {
+            this.model.update((m) => ({
+              ...m,
+              latitude: def.lat,
+              longitude: def.lng,
+            }));
+          });
         }
       }
     });

@@ -10,6 +10,7 @@ import {
   resource,
   signal,
   Signal,
+  untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { form, FormField, required, submit } from '@angular/forms/signals';
@@ -541,10 +542,12 @@ export class TopoFormComponent {
     // Auto-open editor when a new file is selected from file input
     effect(() => {
       const file = this.model().photoControl;
-      if (file && !this.isProcessingPhoto()) {
-        this.isProcessingPhoto.set(true);
-        this.editPhoto(file, undefined);
-      }
+      untracked(() => {
+        if (file && !this.isProcessingPhoto()) {
+          this.isProcessingPhoto.set(true);
+          this.editPhoto(file, undefined);
+        }
+      });
     });
 
     effect(() => {
@@ -588,9 +591,11 @@ export class TopoFormComponent {
     // Handle shade_change_hour reset
     effect(() => {
       const show = this.showShadeChangeHour();
-      if (!show) {
-        this.model.update((m) => ({ ...m, shade_change_hour: null }));
-      }
+      untracked(() => {
+        if (!show && this.model().shade_change_hour !== null) {
+          this.model.update((m) => ({ ...m, shade_change_hour: null }));
+        }
+      });
     });
   }
 

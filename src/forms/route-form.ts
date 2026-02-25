@@ -11,6 +11,7 @@ import {
   resource,
   signal,
   Signal,
+  untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { form, FormField, required, submit } from '@angular/forms/signals';
@@ -476,38 +477,48 @@ export class RouteFormComponent {
       const options = this.cragOptions.value();
       if (!options?.length) return;
 
-      if (!this.model().crag) {
-        if (initialCragId) {
-          const selectedCrag = options.find((c) => c.id === initialCragId);
-          if (selectedCrag) {
-            this.model.update((m) => ({ ...m, crag: selectedCrag }));
+      untracked(() => {
+        if (!this.model().crag) {
+          if (initialCragId) {
+            const selectedCrag = options.find((c) => c.id === initialCragId);
+            if (selectedCrag) {
+              this.model.update((m) => ({ ...m, crag: selectedCrag }));
+            }
           }
         }
-      }
+      });
 
       if (!data) return;
       this.editingId = data.id;
 
-      this.model.update((m) => ({
-        ...m,
-        name: data.name,
-        slug: data.slug,
-        grade: data.grade,
-        climbing_kind: data.climbing_kind,
-        height: data.height ?? null,
-        eight_anu_route_slugs: data.eight_anu_route_slugs || [],
-      }));
+      untracked(() => {
+        this.model.update((m) => ({
+          ...m,
+          name: data.name,
+          slug: data.slug,
+          grade: data.grade,
+          climbing_kind: data.climbing_kind,
+          height: data.height ?? null,
+          eight_anu_route_slugs: this.model().eight_anu_route_slugs.length
+            ? this.model().eight_anu_route_slugs
+            : data.eight_anu_route_slugs || [],
+        }));
+      });
 
       if (data.crag_id) {
         const selectedCrag = options.find((c) => c.id === data.crag_id);
         if (selectedCrag) {
-          this.model.update((m) => ({ ...m, crag: selectedCrag }));
+          untracked(() => {
+            this.model.update((m) => ({ ...m, crag: selectedCrag }));
+          });
         }
       }
 
       // Load equippers
       const equippers = await this.routes.getRouteEquippers(data.id);
-      this.model.update((m) => ({ ...m, equippers }));
+      untracked(() => {
+        this.model.update((m) => ({ ...m, equippers }));
+      });
 
       this.fetchFullRouteData(data.id);
     });
