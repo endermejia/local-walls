@@ -31,7 +31,7 @@ import { AscentType } from '../models';
       [size]="badgeSize()"
       [style.background]="info.background"
       class="!text-[var(--tui-text-primary-on-accent-1)] !rounded-full"
-      [tuiHint]="attempts() ? hintTemplate : null"
+      [tuiHint]="hasAttempts() ? hintTemplate : null"
     >
       <tui-icon [icon]="info.icon" />
       <span class="ml-1 uppercase font-bold">
@@ -65,5 +65,10 @@ export class AscentTypeComponent {
     const size = this.size();
     if (size === 'xs') return 's';
     return size as TuiSizeS | TuiSizeL;
+  });
+
+  protected readonly hasAttempts = computed(() => {
+    const attempts = this.attempts();
+    return (attempts ?? 0) > 0;
   });
 }
