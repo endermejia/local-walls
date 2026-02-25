@@ -431,15 +431,11 @@ interface Country {
         <!-- Birth Date & Starting Climbing Year -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Birth Date -->
-          <div>
-            <tui-textfield
-              tuiChevron
-              class="w-full"
-              [tuiTextfieldCleaner]="false"
-            >
-              <label tuiLabel for="birthDateInput">{{
-                'birthDate' | translate
-              }}</label>
+          <div class="grid gap-2">
+            <span class="text-sm font-semibold opacity-70 px-1">{{
+              'birthDate' | translate
+            }}</span>
+            <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
               <input
                 id="birthDateInput"
                 tuiInputDate
@@ -463,15 +459,11 @@ interface Country {
             <tui-error [error]="getFieldError('birth_date')" />
           </div>
           <!-- Starting Climbing Year -->
-          <div>
-            <tui-textfield
-              tuiChevron
-              class="w-full"
-              [tuiTextfieldCleaner]="false"
-            >
-              <label tuiLabel for="startingClimbingYearInput">{{
-                'startingClimbingYear' | translate
-              }}</label>
+          <div class="grid gap-2">
+            <span class="text-sm font-semibold opacity-70 px-1">{{
+              'startingClimbingYear' | translate
+            }}</span>
+            <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
               <input
                 id="startingClimbingYearInput"
                 tuiInputYear
