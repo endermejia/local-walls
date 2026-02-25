@@ -10,7 +10,6 @@ import {
   resource,
   signal,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { form, FormField, min, required, submit } from '@angular/forms/signals';
 
@@ -45,7 +44,7 @@ import {
 import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { firstValueFrom, startWith } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 import { AscentsService } from '../services/ascents.service';
 import { GlobalData } from '../services/global-data';
@@ -724,7 +723,7 @@ export default class AscentFormComponent {
     },
   ];
 
-  protected readonly climbingTypes = [
+  protected readonly climbingTypes: (keyof ReturnType<typeof this.model>)[] = [
     'cruxy',
     'athletic',
     'sloper',
@@ -732,15 +731,20 @@ export default class AscentFormComponent {
     'technical',
     'crimpy',
   ];
-  protected readonly steepnessTypes = ['slab', 'vertical', 'overhang', 'roof'];
-  protected readonly safetyIssues = [
+  protected readonly steepnessTypes: (keyof ReturnType<typeof this.model>)[] = [
+    'slab',
+    'vertical',
+    'overhang',
+    'roof',
+  ];
+  protected readonly safetyIssues: (keyof ReturnType<typeof this.model>)[] = [
     'bad_anchor',
     'bad_bolts',
     'high_first_bolt',
     'lose_rock',
     'bad_clipping_position',
   ];
-  protected readonly otherInfo = [
+  protected readonly otherInfo: (keyof ReturnType<typeof this.model>)[] = [
     'chipped',
     'with_kneepad',
     'no_score',
@@ -905,8 +909,9 @@ export default class AscentFormComponent {
     });
   }
 
-  protected toggleBool(key: string): void {
-    const currentVal = (this.model() as any)[key];
+  protected toggleBool(key: keyof ReturnType<typeof this.model>): void {
+    const currentVal = this.model()[key];
+    if (typeof currentVal !== 'boolean') return;
     const newVal = !currentVal;
 
     this.model.update((m) => {
@@ -971,13 +976,15 @@ export default class AscentFormComponent {
       if (!user_id) return;
 
       const { photoControl, ...otherValues } = this.model();
-      const payload: Omit<RouteAscentInsertDto, 'created_at' | 'id'> = {
+      const payload: RouteAscentInsertDto = {
         ...otherValues,
         date: `${otherValues.date.year}-${String(otherValues.date.month + 1).padStart(2, '0')}-${String(otherValues.date.day).padStart(2, '0')}`,
-        type: otherValues.type as AscentType,
+        type: otherValues.type,
         rate: otherValues.rate === 0 ? null : otherValues.rate,
         video_url: otherValues.video_url || null,
-      } as any;
+        route_id: route_id ?? 0,
+        user_id: user_id,
+      };
 
       try {
         let savedAscent: RouteAscentDto | null = null;

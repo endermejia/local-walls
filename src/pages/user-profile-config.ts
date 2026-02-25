@@ -18,14 +18,12 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import {
   form,
   required,
-  validate,
   minLength,
   maxLength,
   min,
   max,
 } from '@angular/forms/signals';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 
 import { TuiDay, TuiStringMatcher } from '@taiga-ui/cdk';
 import {
@@ -40,7 +38,6 @@ import {
   TuiTitle,
   TuiDropdown,
   TuiError,
-  TuiAppearance,
   TuiCalendar,
   TuiCalendarYear,
 } from '@taiga-ui/core';
@@ -152,7 +149,6 @@ interface Country {
     TuiPulse,
     TuiTitle,
     TuiError,
-    TuiAppearance,
     TuiCalendar,
     TuiCalendarYear,
   ],
@@ -244,7 +240,11 @@ interface Country {
                 autocomplete="off"
                 [ngModel]="model().name"
                 (ngModelChange)="updateModel('name', $event)"
-                [invalid]="isProfileLoaded() && profileForm.name().invalid()"
+                [invalid]="
+                  !!profile() &&
+                  profileForm.name().invalid() &&
+                  profileForm.name().touched()
+                "
                 [disabled]="profileForm.name().disabled()"
                 (blur)="saveName()"
                 (keydown.enter)="saveName()"
@@ -295,7 +295,9 @@ interface Country {
               [rows]="4"
               [ngModel]="model().bio"
               (ngModelChange)="updateModel('bio', $event)"
-              [invalid]="profileForm.bio().invalid()"
+              [invalid]="
+                profileForm.bio().invalid() && profileForm.bio().touched()
+              "
               [disabled]="profileForm.bio().disabled()"
               (blur)="saveBio()"
               [tuiSkeleton]="!userEmail()"
@@ -373,7 +375,10 @@ interface Country {
                 autocomplete="off"
                 [ngModel]="model().country"
                 (ngModelChange)="updateModel('country', $event)"
-                [invalid]="profileForm.country().invalid()"
+                [invalid]="
+                  profileForm.country().invalid() &&
+                  profileForm.country().touched()
+                "
                 [disabled]="profileForm.country().disabled()"
                 [matcher]="matcher"
                 [strict]="true"
@@ -411,7 +416,9 @@ interface Country {
                 autocomplete="off"
                 [ngModel]="model().city"
                 (ngModelChange)="updateModel('city', $event)"
-                [invalid]="profileForm.city().invalid()"
+                [invalid]="
+                  profileForm.city().invalid() && profileForm.city().touched()
+                "
                 [disabled]="profileForm.city().disabled()"
                 (blur)="saveCity()"
                 (keydown.enter)="saveCity()"
@@ -443,7 +450,10 @@ interface Country {
                 (ngModelChange)="updateModel('birth_date', $event)"
                 (blur)="saveBirthDate()"
                 (keydown.enter)="saveBirthDate()"
-                [invalid]="profileForm.birth_date().invalid()"
+                [invalid]="
+                  profileForm.birth_date().invalid() &&
+                  profileForm.birth_date().touched()
+                "
                 [disabled]="profileForm.birth_date().disabled()"
                 [tuiSkeleton]="!userEmail()"
                 autocomplete="off"
@@ -472,7 +482,10 @@ interface Country {
                 (ngModelChange)="updateModel('starting_climbing_year', $event)"
                 (blur)="saveStartingClimbingYear()"
                 (keydown.enter)="saveStartingClimbingYear()"
-                [invalid]="profileForm.starting_climbing_year().invalid()"
+                [invalid]="
+                  profileForm.starting_climbing_year().invalid() &&
+                  profileForm.starting_climbing_year().touched()
+                "
                 [disabled]="profileForm.starting_climbing_year().disabled()"
                 [tuiSkeleton]="!userEmail()"
                 autocomplete="off"
@@ -502,7 +515,9 @@ interface Country {
                 [max]="300"
                 [ngModel]="model().size"
                 (ngModelChange)="updateModel('size', $event)"
-                [invalid]="profileForm.size().invalid()"
+                [invalid]="
+                  profileForm.size().invalid() && profileForm.size().touched()
+                "
                 [disabled]="profileForm.size().disabled()"
                 (blur)="saveSize()"
                 (keydown.enter)="saveSize()"
@@ -527,7 +542,9 @@ interface Country {
                 tuiSelect
                 [ngModel]="model().sex"
                 (ngModelChange)="updateModel('sex', $event)"
-                [invalid]="profileForm.sex().invalid()"
+                [invalid]="
+                  profileForm.sex().invalid() && profileForm.sex().touched()
+                "
                 [disabled]="profileForm.sex().disabled()"
                 (change)="saveSex()"
                 [tuiSkeleton]="!userEmail()"
@@ -736,7 +753,10 @@ interface Country {
             tuiTextfield
             [ngModel]="model().deleteEmail"
             (ngModelChange)="updateModel('deleteEmail', $event)"
-            [invalid]="profileForm.deleteEmail().invalid()"
+            [invalid]="
+              profileForm.deleteEmail().invalid() &&
+              profileForm.deleteEmail().touched()
+            "
             [disabled]="profileForm.deleteEmail().disabled()"
             (paste)="$event.preventDefault()"
             autocomplete="off"
@@ -787,7 +807,6 @@ export class UserProfileConfigComponent {
   protected readonly TourStep = TourStep;
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
-  private readonly router = inject(Router);
   private readonly location = inject(Location);
   private readonly dialogs = inject(TuiDialogService);
   private readonly dialogContext: TuiDialogContext<unknown, unknown> | null =
@@ -1061,11 +1080,11 @@ export class UserProfileConfigComponent {
     await this.updateProfile({ private: isPrivate });
   }
 
-  private async saveField<K extends keyof UserProfileDto>(
+  private async saveField<K extends keyof UserProfileDto, V = unknown>(
     field: K,
-    control: any,
+    control: { value: () => V; invalid: () => boolean },
     options: {
-      transform?: (val: any) => UserProfileDto[K];
+      transform?: (val: V) => UserProfileDto[K];
       validate?: (val: UserProfileDto[K]) => string | null;
       errorMessage?: string;
       errorType?: 'info' | 'error';
@@ -1188,7 +1207,7 @@ export class UserProfileConfigComponent {
 
   updateModel<K extends keyof ReturnType<typeof this.model>>(
     key: K,
-    value: any,
+    value: ReturnType<typeof this.model>[K],
   ): void {
     this.model.update((m) => ({ ...m, [key]: value }));
   }
@@ -1199,10 +1218,17 @@ export class UserProfileConfigComponent {
   }
 
   protected getFieldError(fieldName: string): string | null {
-    const field = (this.profileForm as any)[fieldName];
-    if (!field || !field().invalid() || !this.profile()) return null;
+    const formKey = fieldName as Extract<
+      keyof typeof this.profileForm,
+      keyof ReturnType<typeof this.model>
+    >;
+    const fieldFn = this.profileForm[formKey];
+    if (!fieldFn || typeof fieldFn !== 'function') return null;
+    const field = fieldFn();
+    if (!field || !field.invalid() || !field.touched() || !this.profile())
+      return null;
 
-    const errors = field().errors();
+    const errors = field.errors();
     if (!errors || errors.length === 0) return null;
 
     const firstError = errors[0];

@@ -42,7 +42,7 @@ import { TuiCell } from '@taiga-ui/layout';
 import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { firstValueFrom, startWith } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 import { GlobalData } from '../services/global-data';
 import { SupabaseService } from '../services/supabase.service';
