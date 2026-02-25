@@ -34,7 +34,6 @@ import {
   TuiFilterByInputPipe,
   TuiInputChip,
   TuiInputTime,
-  tuiInputTimeOptionsProvider,
   TuiMultiSelect,
   TuiFiles,
   TuiInputFiles,
@@ -353,18 +352,6 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex grow min-h-0' },
-  providers: [
-    tuiInputTimeOptionsProvider({
-      valueTransformer: {
-        fromControlValue(controlValue: string): TuiTime | null {
-          return controlValue ? TuiTime.fromString(controlValue) : null;
-        },
-        toControlValue(time: TuiTime | null): string {
-          return time ? time.toString().slice(0, 5) : '';
-        },
-      },
-    }),
-  ],
 })
 export class TopoFormComponent {
   private readonly topos = inject(ToposService);
