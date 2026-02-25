@@ -6,7 +6,13 @@ import {
   input,
 } from '@angular/core';
 
-import { TuiIcon, TuiSizeL, TuiSizeS, TuiSizeXS } from '@taiga-ui/core';
+import {
+  TuiHint,
+  TuiIcon,
+  TuiSizeL,
+  TuiSizeS,
+  TuiSizeXS,
+} from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -18,19 +24,28 @@ import { AscentType } from '../models';
 @Component({
   selector: 'app-ascent-type',
   standalone: true,
-  imports: [TuiBadge, TuiIcon, TranslatePipe],
+  imports: [TuiBadge, TuiIcon, TuiHint, TranslatePipe],
   template: `
     @let info = typeInfo();
     <tui-badge
       [size]="badgeSize()"
       [style.background]="info.background"
       class="!text-[var(--tui-text-primary-on-accent-1)] !rounded-full"
+      [tuiHint]="attempts() ? hintTemplate : null"
     >
       <tui-icon [icon]="info.icon" />
       <span class="ml-1 uppercase font-bold">
         {{ 'ascentTypes.' + (type() || 'rp') | translate }}
       </span>
     </tui-badge>
+
+    <ng-template #hintTemplate>
+      {{ attempts() }}
+      {{
+        (attempts() === 1 ? 'ascentTypes.attempt' : 'ascentTypes.attempts')
+          | translate
+      }}
+    </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -39,6 +54,7 @@ export class AscentTypeComponent {
 
   type = input.required<AscentType | null | undefined>();
   size = input<TuiSizeS | TuiSizeL | TuiSizeXS>('l');
+  attempts = input<number | null | undefined>(null);
 
   protected readonly typeInfo = computed(() => {
     const type = this.type() || 'default';
