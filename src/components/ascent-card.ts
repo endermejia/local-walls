@@ -307,7 +307,10 @@ import { GradeComponent } from './avatar-grade';
               <app-grade [grade]="ascent.grade" />
             }
             @if (ascent.type; as ascentType) {
-              <app-ascent-type [type]="ascentType" />
+              <app-ascent-type
+                [type]="ascentType"
+                [attempts]="ascent.attempts"
+              />
             }
             @if (ascent.rate) {
               <tui-rating
@@ -318,11 +321,6 @@ import { GradeComponent } from './avatar-grade';
                 [style.font-size.rem]="0.5"
                 [attr.aria-label]="'rating' | translate"
               />
-            }
-            @if (ascent.attempts) {
-              <span class="opacity-70">
-                {{ ascent.attempts }} {{ 'ascent.tries' | translate }}
-              </span>
             }
           </div>
         </div>
