@@ -50,6 +50,7 @@ import { GlobalData } from '../services/global-data';
 import { ScrollService } from '../services/scroll.service';
 import { SearchService } from '../services/search.service';
 import { SupabaseService } from '../services/supabase.service';
+import { ToastService } from '../services/toast.service';
 import { TourService } from '../services/tour.service';
 import { TourStep } from '../services/tour.service';
 import { UserProfilesService } from '../services/user-profiles.service';
@@ -331,16 +332,21 @@ import { TourHintComponent } from './tour-hint';
             (click)="openChat()"
             [attr.aria-label]="'messages' | translate"
           >
-            @if (global.unreadMessagesCount(); as unreadMessages) {
-              <tui-badge-notification
-                tuiAppearance="accent"
-                size="s"
-                class="absolute top-2 left-7 z-10"
-              >
-                {{ unreadMessages }}
-              </tui-badge-notification>
-            }
-            <tui-icon icon="@tui.messages-square" />
+            <tui-badged-content>
+              @if (global.unreadMessagesCount(); as unreadMessages) {
+                <tui-badge-notification
+                  tuiAppearance="accent"
+                  size="s"
+                  class="absolute top-2 left-7 z-10"
+                >
+                  {{ unreadMessages }}
+                </tui-badge-notification>
+              }
+              <tui-icon
+                icon="@tui.messages-square"
+                [style.color]="'var(--tui-text-primary)'"
+              />
+            </tui-badged-content>
             <span
               class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
             >
@@ -349,14 +355,14 @@ import { TourHintComponent } from './tour-hint';
           </button>
 
           <!-- Notifications -->
-          @if (!global.userProfile()?.private) {
-            <button
-              type="button"
-              tuiAppearance="flat-grayscale"
-              class="hidden md:flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer relative"
-              (click)="openNotifications()"
-              [attr.aria-label]="'notifications' | translate"
-            >
+          <button
+            type="button"
+            tuiAppearance="flat-grayscale"
+            class="hidden md:flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer relative"
+            (click)="openNotifications()"
+            [attr.aria-label]="'notifications' | translate"
+          >
+            <tui-badged-content>
               @if (global.unreadNotificationsCount(); as unreadNotifications) {
                 <tui-badge-notification
                   tuiAppearance="accent"
@@ -366,14 +372,17 @@ import { TourHintComponent } from './tour-hint';
                   {{ unreadNotifications }}
                 </tui-badge-notification>
               }
-              <tui-icon icon="@tui.bell" />
-              <span
-                class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
-              >
-                {{ 'notifications' | translate }}
-              </span>
-            </button>
-          }
+              <tui-icon
+                icon="@tui.bell"
+                [style.color]="'var(--tui-text-primary)'"
+              />
+            </tui-badged-content>
+            <span
+              class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+            >
+              {{ 'notifications' | translate }}
+            </span>
+          </button>
 
           <!-- Profile -->
           <a
@@ -501,6 +510,7 @@ export class NavbarComponent {
         return 'tour.home.description';
     }
   });
+  private readonly toast = inject(ToastService);
   private readonly searchService = inject(SearchService);
   private readonly router = inject(Router);
   private readonly scrollService = inject(ScrollService);
@@ -597,7 +607,15 @@ export class NavbarComponent {
   }
 
   protected toggleTheme(isDark: boolean): void {
-    this.global.theme.set(isDark ? Themes.DARK : Themes.LIGHT);
+    const newTheme = isDark ? Themes.DARK : Themes.LIGHT;
+    this.global.theme.set(newTheme);
+    this.userProfilesService
+      .updateUserProfile({ theme: newTheme })
+      .then((res) => {
+        if (res.success) {
+          this.toast.success('profile.saveSuccess');
+        }
+      });
   }
 
   protected async toggleEditingMode(enabled: boolean): Promise<void> {
