@@ -103,7 +103,9 @@ interface MinimalParking {
             <input
               tuiInputNumber
               id="lat"
-              [formField]="$any(parkingForm.latitude)"
+              [ngModel]="model().latitude"
+              (ngModelChange)="onLatChange($event)"
+              name="latitude"
               [tuiNumberFormat]="{ precision: 6 }"
               (paste)="onPasteLocation($event)"
               (change.zoneless)="sanitizeCoordinates()"
@@ -116,14 +118,21 @@ interface MinimalParking {
               tuiInputNumber
               id="lng"
               [tuiNumberFormat]="{ precision: 6 }"
-              [formField]="$any(parkingForm.longitude)"
+              [ngModel]="model().longitude"
+              (ngModelChange)="onLngChange($event)"
+              name="longitude"
               (change.zoneless)="sanitizeCoordinates()"
               autocomplete="off"
             />
           </tui-textfield>
         </div>
 
-        <app-counter [formField]="$any(parkingForm.size)" label="capacity" />
+        <app-counter
+          [ngModel]="model().size"
+          (ngModelChange)="onSizeChange($event)"
+          name="size"
+          label="capacity"
+        />
       </div>
 
       <div class="flex flex-wrap gap-2 justify-end">
@@ -138,13 +147,9 @@ interface MinimalParking {
         <button
           [disabled]="
             parkingForm.name().invalid() ||
-            parkingForm.latitude().invalid() ||
-            parkingForm.longitude().invalid() ||
-            (!parkingForm.name().dirty() &&
-              !parkingForm.latitude().dirty() &&
-              !parkingForm.longitude().dirty() &&
-              !parkingForm.size().dirty() &&
-              !isEdit())
+            !model().latitude ||
+            !model().longitude ||
+            (!parkingForm.name().dirty() && !isEdit())
           "
           tuiButton
           appearance="primary"
@@ -354,6 +359,18 @@ export class ParkingFormComponent {
       latitude: lat != null ? parseFloat(lat.toFixed(6)) : null,
       longitude: lng != null ? parseFloat(lng.toFixed(6)) : null,
     }));
+  }
+
+  onLatChange(value: number | null): void {
+    this.model.update((m) => ({ ...m, latitude: value }));
+  }
+
+  onLngChange(value: number | null): void {
+    this.model.update((m) => ({ ...m, longitude: value }));
+  }
+
+  onSizeChange(value: number | null): void {
+    this.model.update((m) => ({ ...m, size: value ?? 0 }));
   }
 }
 

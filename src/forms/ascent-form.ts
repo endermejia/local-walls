@@ -110,7 +110,9 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             <input
               tuiInputDate
               [max]="today"
-              [formField]="$any(ascentForm.date)"
+              [ngModel]="model().date"
+              (ngModelChange)="onDateChange($event)"
+              name="date"
               autocomplete="off"
             />
             <tui-calendar *tuiTextfieldDropdown />
@@ -175,7 +177,9 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
           </div>
 
           <app-counter
-            [formField]="$any(ascentForm.attempts)"
+            [ngModel]="model().attempts"
+            (ngModelChange)="onAttemptsChange($event)"
+            name="attempts"
             label="ascent.tries"
           />
         </section>
@@ -236,7 +240,9 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                 <input
                   accept="image/*"
                   tuiInputFiles
-                  [formField]="$any(ascentForm.photoControl)"
+                  [ngModel]="model().photoControl"
+                  (ngModelChange)="onPhotoFileChange($event)"
+                  name="photoControl"
                   autocomplete="off"
                 />
               </label>
@@ -338,7 +344,9 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
           <div class="flex flex-wrap items-center gap-4">
             <tui-rating
               [max]="5"
-              [formField]="$any(ascentForm.rate)"
+              [ngModel]="model().rate"
+              (ngModelChange)="onRateChange($event)"
+              name="rate"
               class="text-primary"
             />
             <button
@@ -402,7 +410,9 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                 <input
                   tuiSelect
                   id="ascentGrade"
-                  [formField]="$any(ascentForm.grade)"
+                  [ngModel]="model().grade"
+                  (ngModelChange)="onGradeChange($event)"
+                  name="grade"
                   autocomplete="off"
                 />
                 <tui-data-list-wrapper
@@ -1131,5 +1141,27 @@ export default class AscentFormComponent {
     } else {
       this.model.update((m) => ({ ...m, type: id }));
     }
+  }
+
+  onDateChange(date: TuiDay | null): void {
+    if (date) {
+      this.model.update((m) => ({ ...m, date }));
+    }
+  }
+
+  onAttemptsChange(attempts: number | null): void {
+    this.model.update((m) => ({ ...m, attempts }));
+  }
+
+  onPhotoFileChange(file: File | null): void {
+    this.model.update((m) => ({ ...m, photoControl: file }));
+  }
+
+  onRateChange(rate: number): void {
+    this.model.update((m) => ({ ...m, rate }));
+  }
+
+  onGradeChange(grade: number | null): void {
+    this.model.update((m) => ({ ...m, grade }));
   }
 }

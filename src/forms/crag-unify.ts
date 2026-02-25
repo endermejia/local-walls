@@ -6,6 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { form, FormField, required } from '@angular/forms/signals';
 
 import {
@@ -38,6 +39,7 @@ import { CragDto } from '../models';
   imports: [
     CommonModule,
     FormField,
+    FormsModule,
     TranslatePipe,
     TuiButton,
     TuiChevron,
@@ -65,7 +67,9 @@ import { CragDto } from '../models';
           tuiComboBox
           id="target-crag"
           autocomplete="off"
-          [formField]="$any(unifyForm.targetCrag)"
+          [ngModel]="model().targetCrag"
+          (ngModelChange)="onTargetCragChange($event)"
+          name="targetCrag"
           [placeholder]="'select' | translate"
         />
         <tui-data-list *tuiTextfieldDropdown>
@@ -96,7 +100,9 @@ import { CragDto } from '../models';
           tuiInputChip
           id="source-crags"
           autocomplete="off"
-          [formField]="$any(unifyForm.sourceCrags)"
+          [ngModel]="model().sourceCrags"
+          (ngModelChange)="onSourceCragsChange($event)"
+          name="sourceCrags"
           [placeholder]="'select' | translate"
         />
         <tui-data-list *tuiTextfieldDropdown>
@@ -126,7 +132,7 @@ import { CragDto } from '../models';
           autocomplete="off"
           [formField]="$any(unifyForm.newName)"
           type="text"
-          [placeholder]="unifyForm.targetCrag().value()?.name || ''"
+          [placeholder]="model().targetCrag?.name || ''"
         />
       </tui-textfield>
 
@@ -144,7 +150,7 @@ import { CragDto } from '../models';
           appearance="primary"
           [disabled]="
             unifyForm.targetCrag().invalid() ||
-            unifyForm.sourceCrags().value().length === 0 ||
+            model().sourceCrags.length === 0 ||
             loading()
           "
           (click)="onUnify()"
@@ -212,6 +218,14 @@ export class CragUnifyComponent {
   protected availableSources() {
     const targetId = this.model().targetCrag?.id;
     return this.availableCrags().filter((a) => a.id !== targetId);
+  }
+
+  onTargetCragChange(crag: CragDto | null): void {
+    this.model.update((m) => ({ ...m, targetCrag: crag }));
+  }
+
+  onSourceCragsChange(crags: CragDto[]): void {
+    this.model.update((m) => ({ ...m, sourceCrags: crags }));
   }
 
   async onUnify() {

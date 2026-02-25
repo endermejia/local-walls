@@ -76,7 +76,9 @@ import { handleErrorToast, slugify } from '../utils';
           <input
             tuiInputChip
             id="eight-anu-slugs"
-            [formField]="$any(areaForm.eight_anu_crag_slugs)"
+            [ngModel]="model().eight_anu_crag_slugs"
+            (ngModelChange)="onSlugsChange($event)"
+            name="eight_anu_crag_slugs"
             autocomplete="off"
           />
           <tui-input-chip *tuiItem />
@@ -96,10 +98,7 @@ import { handleErrorToast, slugify } from '../utils';
           [disabled]="
             areaForm.name().invalid() ||
             (isEdit() && areaForm.slug().invalid()) ||
-            (!areaForm.name().dirty() &&
-              isEdit() &&
-              !areaForm.slug().dirty() &&
-              !areaForm.eight_anu_crag_slugs().dirty())
+            (!areaForm.name().dirty() && isEdit() && !areaForm.slug().dirty())
           "
           tuiButton
           appearance="primary"
@@ -233,5 +232,9 @@ export class AreaFormComponent {
     } else {
       this.location.back();
     }
+  }
+
+  onSlugsChange(slugs: string[]): void {
+    this.model.update((m) => ({ ...m, eight_anu_crag_slugs: slugs }));
   }
 }

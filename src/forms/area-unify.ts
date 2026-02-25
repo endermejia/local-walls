@@ -6,6 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { form, FormField, required } from '@angular/forms/signals';
 
 import {
@@ -38,6 +39,7 @@ import { AreaDto, AreaListItem } from '../models';
   imports: [
     CommonModule,
     FormField,
+    FormsModule,
     TranslatePipe,
     TuiButton,
     TuiChevron,
@@ -65,7 +67,9 @@ import { AreaDto, AreaListItem } from '../models';
           tuiComboBox
           id="target-area"
           autocomplete="off"
-          [formField]="$any(unifyForm.targetArea)"
+          [ngModel]="model().targetArea"
+          (ngModelChange)="onTargetAreaChange($event)"
+          name="targetArea"
           [placeholder]="'select' | translate"
         />
         <tui-data-list *tuiTextfieldDropdown>
@@ -96,7 +100,9 @@ import { AreaDto, AreaListItem } from '../models';
           tuiInputChip
           id="source-areas"
           autocomplete="off"
-          [formField]="$any(unifyForm.sourceAreas)"
+          [ngModel]="model().sourceAreas"
+          (ngModelChange)="onSourceAreasChange($event)"
+          name="sourceAreas"
           [placeholder]="'select' | translate"
         />
         <tui-input-chip *tuiItem />
@@ -127,7 +133,7 @@ import { AreaDto, AreaListItem } from '../models';
           autocomplete="off"
           [formField]="$any(unifyForm.newName)"
           type="text"
-          [placeholder]="unifyForm.targetArea().value()?.name || ''"
+          [placeholder]="model().targetArea?.name || ''"
         />
       </tui-textfield>
 
@@ -145,7 +151,7 @@ import { AreaDto, AreaListItem } from '../models';
           appearance="primary"
           [disabled]="
             unifyForm.targetArea().invalid() ||
-            unifyForm.sourceAreas().value().length === 0 ||
+            model().sourceAreas.length === 0 ||
             loading()
           "
           (click)="onUnify()"
@@ -219,6 +225,14 @@ export class AreaUnifyComponent {
   protected availableSources() {
     const targetId = this.model().targetArea?.id;
     return this.availableAreas().filter((a) => a.id !== targetId);
+  }
+
+  onTargetAreaChange(area: AreaDto | null): void {
+    this.model.update((m) => ({ ...m, targetArea: area }));
+  }
+
+  onSourceAreasChange(areas: AreaDto[]): void {
+    this.model.update((m) => ({ ...m, sourceAreas: areas }));
   }
 
   async onUnify() {

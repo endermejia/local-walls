@@ -1568,6 +1568,14 @@ export class GlobalData {
       }
     });
 
+    // Sync theme from user profile
+    effect(() => {
+      const profileTheme = this.userProfile()?.theme as Theme | undefined;
+      if (profileTheme) {
+        this.theme.set(profileTheme);
+      }
+    });
+
     if (isPlatformBrowser(this.platformId)) {
       this.browserNotifications.bindUserGesture();
 

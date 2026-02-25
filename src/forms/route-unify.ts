@@ -6,6 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { form, FormField, required } from '@angular/forms/signals';
 
 import {
@@ -38,6 +39,7 @@ import { RouteDto } from '../models';
   imports: [
     CommonModule,
     FormField,
+    FormsModule,
     TranslatePipe,
     TuiButton,
     TuiChevron,
@@ -65,7 +67,9 @@ import { RouteDto } from '../models';
           tuiComboBox
           id="target-route"
           autocomplete="off"
-          [formField]="$any(unifyForm.targetRoute)"
+          [ngModel]="model().targetRoute"
+          (ngModelChange)="onTargetRouteChange($event)"
+          name="targetRoute"
           [placeholder]="'select' | translate"
         />
         <tui-data-list *tuiTextfieldDropdown>
@@ -96,7 +100,9 @@ import { RouteDto } from '../models';
           tuiInputChip
           id="source-routes"
           autocomplete="off"
-          [formField]="$any(unifyForm.sourceRoutes)"
+          [ngModel]="model().sourceRoutes"
+          (ngModelChange)="onSourceRoutesChange($event)"
+          name="sourceRoutes"
           [placeholder]="'select' | translate"
         />
         <tui-input-chip *tuiItem />
@@ -129,7 +135,7 @@ import { RouteDto } from '../models';
           autocomplete="off"
           [formField]="$any(unifyForm.newName)"
           type="text"
-          [placeholder]="unifyForm.targetRoute().value()?.name || ''"
+          [placeholder]="model().targetRoute?.name || ''"
         />
       </tui-textfield>
 
@@ -147,7 +153,7 @@ import { RouteDto } from '../models';
           appearance="primary"
           [disabled]="
             unifyForm.targetRoute().invalid() ||
-            unifyForm.sourceRoutes().value().length === 0 ||
+            model().sourceRoutes.length === 0 ||
             loading()
           "
           (click)="onUnify()"
@@ -210,6 +216,14 @@ export class RouteUnifyComponent {
   protected availableSources() {
     const targetId = this.model().targetRoute?.id;
     return this.cragRoutes().filter((a) => a.id !== targetId);
+  }
+
+  onTargetRouteChange(route: RouteDto | null): void {
+    this.model.update((m) => ({ ...m, targetRoute: route }));
+  }
+
+  onSourceRoutesChange(routes: RouteDto[]): void {
+    this.model.update((m) => ({ ...m, sourceRoutes: routes }));
   }
 
   async onUnify() {

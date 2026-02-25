@@ -11,8 +11,7 @@ import {
   signal,
 } from '@angular/core';
 import { form, FormField, required, min, max } from '@angular/forms/signals';
-import { ReactiveFormsModule } from '@angular/forms'; // KEEP for backwards compat if needed, or remove if not. Let's remove if possible. No, keep it just in case some TUI component needs it. Actually, `FormField` replaces it.
-// Actually Taiga might need ReactiveFormsModule for some inner things, let's remove it and see.
+import { FormsModule } from '@angular/forms';
 
 import {
   TuiButton,
@@ -67,7 +66,7 @@ interface CragFormModel {
   imports: [
     CommonModule,
     FormField,
-    ReactiveFormsModule, // Counter currently might still expect FormControl depending on how it's built
+    FormsModule,
     TuiButton,
     TuiError,
     TuiLabel,
@@ -132,7 +131,9 @@ interface CragFormModel {
             <input
               tuiInputNumber
               id="lat"
-              [formField]="$any(cragForm.latitude)"
+              [ngModel]="model().latitude"
+              (ngModelChange)="onLatChange($event)"
+              name="latitude"
               [tuiNumberFormat]="{ precision: 6 }"
               (paste)="onPasteLocation($event)"
               (change.zoneless)="sanitizeCoordinates()"
@@ -145,14 +146,18 @@ interface CragFormModel {
               tuiInputNumber
               id="lng"
               [tuiNumberFormat]="{ precision: 6 }"
-              [formField]="$any(cragForm.longitude)"
+              [ngModel]="model().longitude"
+              (ngModelChange)="onLngChange($event)"
+              name="longitude"
               (change.zoneless)="sanitizeCoordinates()"
               autocomplete="off"
             />
           </tui-textfield>
         </div>
         <app-counter
-          [formField]="$any(cragForm.approach)"
+          [ngModel]="model().approach"
+          (ngModelChange)="onApproachChange($event)"
+          name="approach"
           label="approach"
           suffix="min."
         />
@@ -206,7 +211,9 @@ interface CragFormModel {
           <input
             tuiInputChip
             id="eight-anu-slugs"
-            [formField]="cragForm.eight_anu_sector_slugs"
+            [ngModel]="model().eight_anu_sector_slugs"
+            (ngModelChange)="onSlugsChange($event)"
+            name="eight_anu_sector_slugs"
             autocomplete="off"
           />
           <tui-input-chip *tuiItem />
@@ -400,6 +407,22 @@ export class CragFormComponent {
     } else {
       this.location.back();
     }
+  }
+
+  onSlugsChange(slugs: string[] | null): void {
+    this.model.update((m) => ({ ...m, eight_anu_sector_slugs: slugs }));
+  }
+
+  onLatChange(value: number | null): void {
+    this.model.update((m) => ({ ...m, latitude: value }));
+  }
+
+  onLngChange(value: number | null): void {
+    this.model.update((m) => ({ ...m, longitude: value }));
+  }
+
+  onApproachChange(value: number | null): void {
+    this.model.update((m) => ({ ...m, approach: value }));
   }
 
   async pickLocation(): Promise<void> {

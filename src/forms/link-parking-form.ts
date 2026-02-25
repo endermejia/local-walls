@@ -8,7 +8,8 @@ import {
   resource,
   signal,
 } from '@angular/core';
-import { form, FormField, required, submit } from '@angular/forms/signals';
+import { form, required, submit } from '@angular/forms/signals';
+import { FormsModule } from '@angular/forms';
 
 import { TuiIdentityMatcher, tuiIsString } from '@taiga-ui/cdk';
 import {
@@ -41,7 +42,7 @@ import { ParkingDto } from '../models';
   selector: 'app-link-parking-form',
   imports: [
     CommonModule,
-    FormField,
+    FormsModule,
     TuiButton,
     TuiLabel,
     TuiTextfield,
@@ -72,7 +73,9 @@ import { ParkingDto } from '../models';
         <input
           tuiInputChip
           id="parkings"
-          [formField]="$any(linkForm.selectedParkings)"
+          [ngModel]="model().selectedParkings"
+          (ngModelChange)="onParkingsChange($event)"
+          name="selectedParkings"
           [placeholder]="'select' | translate"
           autocomplete="off"
         />
@@ -106,7 +109,7 @@ import { ParkingDto } from '../models';
           {{ 'cancel' | translate }}
         </button>
         <button
-          [disabled]="linkForm.selectedParkings().value().length === 0"
+          [disabled]="model().selectedParkings.length === 0"
           tuiButton
           appearance="primary"
           type="submit"
@@ -181,6 +184,10 @@ export class LinkParkingFormComponent {
 
   close(): void {
     this.context.completeWith(false);
+  }
+
+  onParkingsChange(parkings: ParkingDto[]): void {
+    this.model.update((m) => ({ ...m, selectedParkings: parkings }));
   }
 }
 

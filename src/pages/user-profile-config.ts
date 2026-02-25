@@ -244,7 +244,7 @@ interface Country {
                 autocomplete="off"
                 [ngModel]="model().name"
                 (ngModelChange)="updateModel('name', $event)"
-                [invalid]="profileForm.name().invalid()"
+                [invalid]="isProfileLoaded() && profileForm.name().invalid()"
                 [disabled]="profileForm.name().disabled()"
                 (blur)="saveName()"
                 (keydown.enter)="saveName()"
@@ -578,10 +578,11 @@ interface Country {
                 id="languageSelect"
                 tuiSelect
                 [ngModel]="model().language"
-                (ngModelChange)="updateModel('language', $event)"
+                (ngModelChange)="
+                  updateModel('language', $event); saveLanguage()
+                "
                 [invalid]="profileForm.language().invalid()"
                 [disabled]="profileForm.language().disabled()"
-                (change)="saveLanguage()"
                 [tuiSkeleton]="!userEmail()"
                 autocomplete="off"
               />
@@ -877,7 +878,7 @@ export class UserProfileConfigComponent {
     minLength(schemaPath.name, 3, { message: 'profile.name.length' });
     maxLength(schemaPath.name, 50, { message: 'profile.name.length' });
 
-    maxLength(schemaPath.bio, 100, { message: 'profile.bio.tooLong' });
+    maxLength(schemaPath.bio, 50, { message: 'profile.bio.tooLong' });
     maxLength(schemaPath.city, 100, { message: 'profile.city.tooLong' });
 
     min(schemaPath.starting_climbing_year, 1900, {
@@ -890,7 +891,7 @@ export class UserProfileConfigComponent {
     min(schemaPath.size, 0, { message: 'profile.size.invalid' });
     max(schemaPath.size, 300, { message: 'profile.size.invalid' });
 
-    required(schemaPath.deleteEmail, { message: 'profile.email.required' });
+    required(schemaPath.deleteEmail, { message: 'errors.required' });
   });
 
   // Validation helpers and bounds
@@ -1122,6 +1123,7 @@ export class UserProfileConfigComponent {
       return;
     }
     this.model.update((m) => ({ ...m, theme: newTheme }));
+    this.global.theme.set(newTheme);
     await this.updateProfile({ theme: newTheme });
   }
 
@@ -1198,7 +1200,7 @@ export class UserProfileConfigComponent {
 
   protected getFieldError(fieldName: string): string | null {
     const field = (this.profileForm as any)[fieldName];
-    if (!field || !field().invalid()) return null;
+    if (!field || !field().invalid() || !this.profile()) return null;
 
     const errors = field().errors();
     if (!errors || errors.length === 0) return null;
@@ -1250,7 +1252,7 @@ export class UserProfileConfigComponent {
     }
 
     if (fieldName === 'deleteEmail' && key === 'required') {
-      return this.translate.instant('profile.email.required');
+      return this.translate.instant('errors.required');
     }
 
     return null;
@@ -1376,7 +1378,7 @@ export class UserProfileConfigComponent {
 
     if (!result.success) {
       console.error('Error saving profile:', result.error);
-      this.toast.error('Error: ' + result.error);
+      this.toast.error('profile.saveError');
     } else {
       this.toast.success('profile.saveSuccess');
     }
@@ -1443,7 +1445,7 @@ export class UserProfileConfigComponent {
       this.close();
     } catch (e) {
       console.error('Error deleting account:', e);
-      this.toast.error('Error deleting account');
+      this.toast.error('errors.unexpected');
     }
   }
 

@@ -11,7 +11,6 @@ import {
   signal,
   Signal,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { form, FormField, required, submit } from '@angular/forms/signals';
 
@@ -141,7 +140,9 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             tuiInputTime
             id="shade_change_hour"
             autocomplete="off"
-            [formField]="topoForm.shade_change_hour"
+            [ngModel]="shadeChangeHourTime()"
+            (ngModelChange)="onShadeChangeHourChange($event)"
+            name="shade_change_hour"
           />
         </tui-textfield>
       </div>
@@ -190,7 +191,9 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               <input
                 accept="image/*"
                 tuiInputFiles
-                [formField]="$any(topoForm.photoControl)"
+                [ngModel]="model().photoControl"
+                (ngModelChange)="onPhotoControlChange($event)"
+                name="photoControl"
                 autocomplete="off"
               />
             </label>
@@ -281,7 +284,9 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             tuiInputChip
             id="routes-select"
             autocomplete="off"
-            [formField]="$any(topoForm.selectedRoutes)"
+            [ngModel]="model().selectedRoutes"
+            (ngModelChange)="onSelectedRoutesChange($event)"
+            name="selectedRoutes"
             [placeholder]="'select' | translate"
           />
           <tui-input-chip *tuiItem />
@@ -499,6 +504,25 @@ export class TopoFormComponent {
   }
 
   protected readonly strings = tuiIsString;
+
+  /** Converts the stored string (HH:MM) to TuiTime for TuiInputTime compatibility */
+  protected readonly shadeChangeHourTime = computed(() => {
+    const val = this.model().shade_change_hour;
+    return val ? TuiTime.fromString(val) : null;
+  });
+
+  onShadeChangeHourChange(time: TuiTime | null): void {
+    const val = time ? time.toString().slice(0, 5) : null;
+    this.model.update((m) => ({ ...m, shade_change_hour: val }));
+  }
+
+  onPhotoControlChange(file: File | null): void {
+    this.model.update((m) => ({ ...m, photoControl: file }));
+  }
+
+  onSelectedRoutesChange(routes: RouteDto[]): void {
+    this.model.update((m) => ({ ...m, selectedRoutes: routes }));
+  }
 
   constructor() {
     effect(() => {

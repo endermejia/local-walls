@@ -102,7 +102,9 @@ interface MinimalRoute {
           <input
             tuiSelect
             id="crag"
-            [formField]="$any(routeForm.crag)"
+            [ngModel]="model().crag"
+            (ngModelChange)="onCragChange($event)"
+            name="crag"
             autocomplete="off"
           />
           <tui-data-list-wrapper
@@ -150,7 +152,9 @@ interface MinimalRoute {
         <input
           tuiInputChip
           id="equippers"
-          [formField]="$any(routeForm.equippers)"
+          [ngModel]="model().equippers"
+          (ngModelChange)="onEquippersChange($event)"
+          name="equippers"
           [placeholder]="'select' | translate"
           autocomplete="off"
         />
@@ -180,7 +184,9 @@ interface MinimalRoute {
         <input
           tuiSelect
           id="kind"
-          [formField]="$any(routeForm.climbing_kind)"
+          [ngModel]="model().climbing_kind"
+          (ngModelChange)="onKindChange($event)"
+          name="climbing_kind"
           autocomplete="off"
         />
         <tui-data-list-wrapper
@@ -213,7 +219,9 @@ interface MinimalRoute {
             <input
               tuiSelect
               id="grade"
-              [formField]="$any(routeForm.grade)"
+              [ngModel]="model().grade"
+              (ngModelChange)="onGradeChange($event)"
+              name="grade"
               autocomplete="off"
             />
             <tui-data-list-wrapper
@@ -236,7 +244,9 @@ interface MinimalRoute {
         </div>
 
         <app-counter
-          [formField]="$any(routeForm.height)"
+          [ngModel]="model().height"
+          (ngModelChange)="onHeightChange($event)"
+          name="height"
           label="routes.height"
           suffix="m"
         />
@@ -250,7 +260,9 @@ interface MinimalRoute {
           <input
             tuiInputChip
             id="eight-anu-slugs"
-            [formField]="$any(routeForm.eight_anu_route_slugs)"
+            [ngModel]="model().eight_anu_route_slugs"
+            (ngModelChange)="onRouteSlugsChange($event)"
+            name="eight_anu_route_slugs"
             autocomplete="off"
           />
           <tui-input-chip *tuiItem />
@@ -269,11 +281,9 @@ interface MinimalRoute {
         <button
           [disabled]="
             routeForm.name().invalid() ||
-            routeForm.crag().invalid() ||
+            !model().crag ||
             (!routeForm.name().dirty() &&
               !routeForm.height().dirty() &&
-              !routeForm.grade().dirty() &&
-              !routeForm.crag().dirty() &&
               !isEdit())
           "
           tuiButton
@@ -574,5 +584,29 @@ export class RouteFormComponent {
     } else {
       this.location.back();
     }
+  }
+
+  onHeightChange(height: number | null): void {
+    this.model.update((m) => ({ ...m, height }));
+  }
+
+  onCragChange(crag: CragDto | null): void {
+    this.model.update((m) => ({ ...m, crag }));
+  }
+
+  onEquippersChange(equippers: (EquipperDto | string)[]): void {
+    this.model.update((m) => ({ ...m, equippers }));
+  }
+
+  onKindChange(climbing_kind: ClimbingKind): void {
+    this.model.update((m) => ({ ...m, climbing_kind }));
+  }
+
+  onGradeChange(grade: number): void {
+    this.model.update((m) => ({ ...m, grade }));
+  }
+
+  onRouteSlugsChange(eight_anu_route_slugs: string[]): void {
+    this.model.update((m) => ({ ...m, eight_anu_route_slugs }));
   }
 }
