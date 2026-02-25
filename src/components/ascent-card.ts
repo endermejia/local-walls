@@ -319,6 +319,11 @@ import { GradeComponent } from './avatar-grade';
                 [attr.aria-label]="'rating' | translate"
               />
             }
+            @if (ascent.attempts) {
+              <span class="opacity-70">
+                {{ ascent.attempts }} {{ 'ascent.tries' | translate }}
+              </span>
+            }
           </div>
         </div>
       </div>
