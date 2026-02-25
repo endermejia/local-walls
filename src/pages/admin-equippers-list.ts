@@ -115,6 +115,7 @@ import { handleErrorToast } from '../utils';
             [ngModel]="searchQuery()"
             (ngModelChange)="searchQuery.set($event)"
             [placeholder]="'name' | translate"
+            autocomplete="off"
           />
         </tui-textfield>
       </div>
@@ -179,6 +180,7 @@ import { handleErrorToast } from '../utils';
                         (ngModelChange)="
                           updateEquipper(item.id, { name: $event })
                         "
+                        autocomplete="off"
                       />
                     </tui-textfield>
                   </td>
@@ -191,6 +193,7 @@ import { handleErrorToast } from '../utils';
                         (ngModelChange)="
                           updateEquipper(item.id, { description: $event })
                         "
+                        autocomplete="off"
                       />
                     </tui-textfield>
                   </td>

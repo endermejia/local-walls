@@ -65,14 +65,15 @@ import { startWith } from 'rxjs';
             [formControl]="control"
             [invalid]="!!invalid"
             class="!w-full"
+            autocomplete="off"
           />
           @if (suffix()) {
             <span class="tui-textfield__suffix">{{ suffix() }}</span>
           }
-          @if (invalid && hasError('required')) {
-            <tui-error [error]="requiredLabel() | translate" />
-          }
         </tui-textfield>
+        @if (invalid && hasError('required')) {
+          <tui-error [error]="requiredLabel() | translate" />
+        }
         <button
           tuiIconButton
           type="button"

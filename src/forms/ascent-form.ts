@@ -11,12 +11,8 @@ import {
   signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import {
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { form, FormField, min, required, submit } from '@angular/forms/signals';
 
 import { TuiDay } from '@taiga-ui/cdk';
 import {
@@ -79,7 +75,8 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
   selector: 'app-ascent-form',
   imports: [
     CommonModule,
-    ReactiveFormsModule,
+    FormsModule,
+    FormField,
     TranslatePipe,
     TuiAppearance,
     TuiButton,
@@ -102,11 +99,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
   ],
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
   template: `
-    <form
-      [formGroup]="form"
-      class="flex flex-col h-full"
-      (submit.zoneless)="onSubmit($event)"
-    >
+    <form class="flex flex-col h-full" (submit.zoneless)="onSubmit($event)">
       <div class="flex-1 flex flex-col gap-6">
         <!-- WHEN DID YOU CLIMB IT? -->
         <section class="grid gap-3">
@@ -117,16 +110,14 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             <input
               tuiInputDate
               [max]="today"
-              formControlName="date"
-              [invalid]="
-                !!(form.get('date')?.invalid && form.get('date')?.touched)
-              "
+              [formField]="$any(ascentForm.date)"
+              autocomplete="off"
             />
             <tui-calendar *tuiTextfieldDropdown />
-            @if (form.get('date')?.invalid && form.get('date')?.touched) {
-              <tui-error [error]="'errors.required' | translate" />
-            }
           </tui-textfield>
+          @if (ascentForm.date().invalid() && ascentForm.date().touched()) {
+            <tui-error [error]="'errors.required' | translate" />
+          }
           <div class="flex flex-wrap gap-2">
             <button
               tuiButton
@@ -169,21 +160,13 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                 <app-button-ascent-type
                   [type]="opt.id"
                   size="l"
-                  [active]="form.get('type')?.value === opt.id"
-                  (click)="
-                    opt.id === 'attempt'
-                      ? attemptSelected()
-                      : form.get('type')?.setValue(opt.id)
-                  "
+                  [active]="ascentForm.type().value() === opt.id"
+                  (click)="setType(opt.id)"
                 />
                 <button
                   type="button"
                   class="text-xs font-medium appearance-none bg-transparent border-none p-0"
-                  (click)="
-                    opt.id === 'attempt'
-                      ? attemptSelected()
-                      : form.get('type')?.setValue(opt.id)
-                  "
+                  (click)="setType(opt.id)"
                 >
                   {{ opt.translate | translate }}
                 </button>
@@ -192,9 +175,8 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
           </div>
 
           <app-counter
-            formControlName="attempts"
+            [formField]="$any(ascentForm.attempts)"
             label="ascent.tries"
-            [min]="form.get('type')?.value === 'rp' ? 2 : 1"
           />
         </section>
 
@@ -210,7 +192,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             <textarea
               id="ascentComment"
               tuiTextarea
-              formControlName="comment"
+              [formField]="$any(ascentForm.comment)"
               [placeholder]="'ascent.thoughtsPlaceholder' | translate"
               rows="5"
             ></textarea>
@@ -219,8 +201,9 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             <input
               tuiCheckbox
               type="checkbox"
-              formControlName="private_ascent"
+              [formField]="$any(ascentForm.private_ascent)"
               (click)="onPrivateClick($event)"
+              autocomplete="off"
             />
             <span class="text-sm">{{ 'ascent.private' | translate }}</span>
           </label>
@@ -253,7 +236,8 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                 <input
                   accept="image/*"
                   tuiInputFiles
-                  [formControl]="photoControl"
+                  [formField]="$any(ascentForm.photoControl)"
+                  autocomplete="off"
                 />
               </label>
             }
@@ -339,8 +323,9 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             <input
               id="ascentVideo"
               tuiTextfield
-              formControlName="video_url"
+              [formField]="$any(ascentForm.video_url)"
               placeholder="https://youtube.com/..."
+              autocomplete="off"
             />
           </tui-textfield>
         </section>
@@ -351,21 +336,21 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             'ascent.didYouLikeIt' | translate
           }}</span>
           <div class="flex flex-wrap items-center gap-4">
-            <tui-rating [max]="5" formControlName="rate" class="text-primary" />
+            <tui-rating
+              [max]="5"
+              [formField]="$any(ascentForm.rate)"
+              class="text-primary"
+            />
             <button
               tuiIconButton
               type="button"
-              [appearance]="
-                form.get('recommended')?.value ? 'primary' : 'secondary'
-              "
+              [appearance]="model().recommended ? 'primary' : 'secondary'"
               size="m"
               (click)="toggleBool('recommended')"
             >
               <tui-icon
                 [icon]="
-                  form.get('recommended')?.value
-                    ? '@tui.thumbs-up'
-                    : '@tui.thumbs-up'
+                  model().recommended ? '@tui.thumbs-up' : '@tui.thumbs-up'
                 "
               />
             </button>
@@ -384,7 +369,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               tuiButton
               type="button"
               size="m"
-              [appearance]="form.get('soft')?.value ? 'primary' : 'neutral'"
+              [appearance]="model().soft ? 'primary' : 'neutral'"
               (click)="toggleBool('soft')"
               class="!rounded-xl grow sm:grow-0"
             >
@@ -414,7 +399,12 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                 <label tuiLabel for="ascentGrade">{{
                   'grade' | translate
                 }}</label>
-                <input tuiSelect id="ascentGrade" formControlName="grade" />
+                <input
+                  tuiSelect
+                  id="ascentGrade"
+                  [formField]="$any(ascentForm.grade)"
+                  autocomplete="off"
+                />
                 <tui-data-list-wrapper
                   *tuiTextfieldDropdown
                   new
@@ -439,7 +429,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               tuiButton
               type="button"
               size="m"
-              [appearance]="form.get('hard')?.value ? 'primary' : 'neutral'"
+              [appearance]="model().hard ? 'primary' : 'neutral'"
               (click)="toggleBool('hard')"
               class="!rounded-xl grow sm:grow-0"
             >
@@ -465,7 +455,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                     tuiButton
                     type="button"
                     size="s"
-                    [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
+                    [appearance]="$any(model())[key] ? 'primary' : 'neutral'"
                     (click)="toggleBool(key)"
                   >
                     {{ 'ascent.climbing.' + key | translate }}
@@ -485,7 +475,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                     tuiButton
                     type="button"
                     size="s"
-                    [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
+                    [appearance]="$any(model())[key] ? 'primary' : 'neutral'"
                     (click)="toggleBool(key)"
                   >
                     {{ 'ascent.steepness.' + key | translate }}
@@ -505,7 +495,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                     tuiButton
                     type="button"
                     size="s"
-                    [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
+                    [appearance]="$any(model())[key] ? 'primary' : 'neutral'"
                     (click)="toggleBool(key)"
                   >
                     {{ 'ascent.safety.' + key | translate }}
@@ -525,7 +515,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                     tuiButton
                     type="button"
                     size="s"
-                    [appearance]="form.get(key)?.value ? 'primary' : 'neutral'"
+                    [appearance]="$any(model())[key] ? 'primary' : 'neutral'"
                     (click)="toggleBool(key)"
                   >
                     {{ 'ascent.other.' + key | translate }}
@@ -569,7 +559,9 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
           {{ 'cancel' | translate }}
         </button>
         <button
-          [disabled]="form.invalid"
+          [disabled]="
+            ascentForm.date().invalid() || ascentForm.type().invalid()
+          "
           tuiButton
           appearance="primary"
           type="submit"
@@ -629,11 +621,7 @@ export default class AscentFormComponent {
   readonly isEdit = computed(() => !!this.effectiveAscentData());
   readonly showMore = signal(false);
 
-  protected readonly photoControl = new FormControl<File | null>(null);
-  protected readonly photoValue = toSignal(
-    this.photoControl.valueChanges.pipe(startWith(this.photoControl.value)),
-    { initialValue: null },
-  );
+  protected readonly photoValue = computed(() => this.model().photoControl);
   protected readonly previewUrl = signal<string | null>(null);
 
   protected readonly isExistingPhotoDeleted = signal(false);
@@ -658,50 +646,45 @@ export default class AscentFormComponent {
 
   readonly today = TuiDay.currentLocal();
 
-  readonly form = new FormGroup({
-    type: new FormControl<string>(AscentTypes.RP, {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    rate: new FormControl<number>(0, { nonNullable: true }),
-    comment: new FormControl<string>(''),
-    date: new FormControl<TuiDay>(TuiDay.currentLocal(), {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    attempts: new FormControl<number | null>(null),
-    private_ascent: new FormControl<boolean>(false, { nonNullable: true }),
-    recommended: new FormControl<boolean>(false, { nonNullable: true }),
-    soft: new FormControl<boolean>(false, { nonNullable: true }),
-    hard: new FormControl<boolean>(false, { nonNullable: true }),
-    grade: new FormControl<number | null>(null),
-    // Technical details
-    cruxy: new FormControl<boolean>(false, { nonNullable: true }),
-    athletic: new FormControl<boolean>(false, { nonNullable: true }),
-    sloper: new FormControl<boolean>(false, { nonNullable: true }),
-    endurance: new FormControl<boolean>(false, { nonNullable: true }),
-    technical: new FormControl<boolean>(false, { nonNullable: true }),
-    crimpy: new FormControl<boolean>(false, { nonNullable: true }),
-    // Steepness
-    slab: new FormControl<boolean>(false, { nonNullable: true }),
-    vertical: new FormControl<boolean>(false, { nonNullable: true }),
-    overhang: new FormControl<boolean>(false, { nonNullable: true }),
-    roof: new FormControl<boolean>(false, { nonNullable: true }),
-    // Safety
-    bad_anchor: new FormControl<boolean>(false, { nonNullable: true }),
-    bad_bolts: new FormControl<boolean>(false, { nonNullable: true }),
-    high_first_bolt: new FormControl<boolean>(false, { nonNullable: true }),
-    lose_rock: new FormControl<boolean>(false, { nonNullable: true }),
-    bad_clipping_position: new FormControl<boolean>(false, {
-      nonNullable: true,
-    }),
-    // Other
-    chipped: new FormControl<boolean>(false, { nonNullable: true }),
-    with_kneepad: new FormControl<boolean>(false, { nonNullable: true }),
-    no_score: new FormControl<boolean>(false, { nonNullable: true }),
-    first_ascent: new FormControl<boolean>(false, { nonNullable: true }),
-    traditional: new FormControl<boolean>(false, { nonNullable: true }),
-    video_url: new FormControl<string | null>(null),
+  model = signal({
+    type: AscentTypes.RP as AscentType,
+    rate: 0,
+    comment: '',
+    date: TuiDay.currentLocal(),
+    attempts: null as number | null,
+    private_ascent: false,
+    recommended: false,
+    soft: false,
+    hard: false,
+    grade: null as number | null,
+    cruxy: false,
+    athletic: false,
+    sloper: false,
+    endurance: false,
+    technical: false,
+    crimpy: false,
+    slab: false,
+    vertical: false,
+    overhang: false,
+    roof: false,
+    bad_anchor: false,
+    bad_bolts: false,
+    high_first_bolt: false,
+    lose_rock: false,
+    bad_clipping_position: false,
+    chipped: false,
+    with_kneepad: false,
+    no_score: false,
+    first_ascent: false,
+    traditional: false,
+    video_url: null as string | null,
+    photoControl: null as File | null,
+  });
+
+  ascentForm = form(this.model, (path) => {
+    required(path.type);
+    required(path.date);
+    min(path.attempts, () => (this.model().type === AscentTypes.RP ? 2 : 1));
   });
 
   protected readonly typeOptions = [
@@ -765,12 +748,10 @@ export default class AscentFormComponent {
       : GRADE_NUMBER_TO_LABEL[grade as VERTICAL_LIFE_GRADES] || '';
 
   protected changeGrade(delta: number): void {
-    const ctrl = this.form.get('grade');
-    if (!ctrl) return;
-    const current = ctrl.value;
+    const current = this.model().grade;
     if (current === null) {
       if (this.gradeItems.length > 0) {
-        ctrl.setValue(this.gradeItems[0].id);
+        this.model.update((m) => ({ ...m, grade: this.gradeItems[0].id }));
       }
       return;
     }
@@ -780,7 +761,10 @@ export default class AscentFormComponent {
 
     const nextIndex = currentIndex + delta;
     if (nextIndex >= 0 && nextIndex < this.gradeItems.length) {
-      ctrl.setValue(this.gradeItems[nextIndex].id);
+      this.model.update((m) => ({
+        ...m,
+        grade: this.gradeItems[nextIndex].id,
+      }));
     }
   }
 
@@ -807,36 +791,25 @@ export default class AscentFormComponent {
     });
 
     // Handle tries auto-disable for OS/Flash
-    const typeValue = toSignal(
-      this.form
-        .get('type')!
-        .valueChanges.pipe(startWith(this.form.get('type')!.value)),
-    );
-
     effect(() => {
-      this.updateTriesState(typeValue());
+      this.updateTriesState(this.model().type);
     });
 
     // Handle recommended -> rating
-    const recommended = toSignal(
-      this.form
-        .get('recommended')!
-        .valueChanges.pipe(startWith(this.form.get('recommended')!.value)),
-    );
-
     effect(() => {
-      if (recommended()) {
-        this.form.get('rate')?.setValue(5);
+      if (this.model().recommended) {
+        this.model.update((m) => ({ ...m, rate: 5 }));
       }
     });
 
     // Default grade if provided and not editing
     if (!this.effectiveAscentData() && this.dialogGrade !== undefined) {
-      this.form.patchValue({ grade: this.dialogGrade });
+      this.model.update((m) => ({ ...m, grade: this.dialogGrade! }));
     }
 
     // Auto-open editor when a new file is selected from file input
-    this.photoControl.valueChanges.subscribe((file) => {
+    effect(() => {
+      const file = this.model().photoControl;
       if (file && !this.isProcessingPhoto()) {
         this.isProcessingPhoto.set(true);
         this.editPhoto(file, undefined);
@@ -845,8 +818,7 @@ export default class AscentFormComponent {
   }
 
   protected async onPrivateClick(event: MouseEvent) {
-    const control = this.form.get('private_ascent');
-    if (!control || control.value) return;
+    if (this.model().private_ascent) return;
 
     event.preventDefault();
 
@@ -866,34 +838,29 @@ export default class AscentFormComponent {
     );
 
     if (confirmed) {
-      control.setValue(true);
+      this.model.update((m) => ({ ...m, private_ascent: true }));
     }
   }
 
   private updateTriesState(type: string | null | undefined): void {
-    const attemptsCtrl = this.form.get('attempts');
-    if (!attemptsCtrl) return;
-
     if (type === AscentTypes.OS || type === AscentTypes.F) {
-      attemptsCtrl.setValue(1, { emitEvent: false });
-      attemptsCtrl.disable({ emitEvent: false });
-      attemptsCtrl.setValidators([Validators.required, Validators.min(1)]);
+      this.model.update((m) => ({ ...m, attempts: 1 }));
     } else if (type === AscentTypes.RP) {
-      if (attemptsCtrl.value === 1) {
-        attemptsCtrl.setValue(null, { emitEvent: false });
+      if (this.model().attempts === 1) {
+        this.model.update((m) => ({ ...m, attempts: null }));
       }
-      attemptsCtrl.enable({ emitEvent: false });
-      attemptsCtrl.setValidators([Validators.min(2)]);
-    } else {
-      attemptsCtrl.enable({ emitEvent: false });
-      attemptsCtrl.setValidators([Validators.required, Validators.min(1)]);
     }
-    attemptsCtrl.updateValueAndValidity({ emitEvent: false });
   }
 
   private populateForm(data: RouteAscentDto): void {
-    this.form.patchValue({
-      type: data.type ?? AscentTypes.RP,
+    let dateObj = TuiDay.currentLocal();
+    if (data.date) {
+      const d = new Date(data.date);
+      dateObj = new TuiDay(d.getFullYear(), d.getMonth(), d.getDate());
+    }
+
+    this.model.set({
+      type: (data.type ?? AscentTypes.RP) as AscentType,
       rate: data.rate ?? 0,
       comment: data.comment ?? '',
       attempts: data.attempts ?? null,
@@ -923,29 +890,21 @@ export default class AscentFormComponent {
       traditional: !!data.traditional,
       grade: data.grade ?? null,
       video_url: data.video_url ?? null,
+      date: dateObj,
+      photoControl: null,
     });
-    if (data.date) {
-      const d = new Date(data.date);
-      this.form.patchValue({
-        date: new TuiDay(d.getFullYear(), d.getMonth(), d.getDate()),
-      });
-    }
   }
 
   protected toggleBool(key: string): void {
-    const ctrl = this.form.get(key);
-    if (!ctrl) return;
-    const newVal = !ctrl.value;
-    ctrl.setValue(newVal);
+    const currentVal = (this.model() as any)[key];
+    const newVal = !currentVal;
 
-    // If setting soft to true, set hard to false
-    if (key === 'soft' && newVal) {
-      this.form.get('hard')?.setValue(false);
-    }
-    // If setting hard to true, set soft to false
-    if (key === 'hard' && newVal) {
-      this.form.get('soft')?.setValue(false);
-    }
+    this.model.update((m) => {
+      const updated = { ...m, [key]: newVal };
+      if (key === 'soft' && newVal) updated.hard = false;
+      if (key === 'hard' && newVal) updated.soft = false;
+      return updated;
+    });
   }
 
   protected async attemptSelected(): Promise<void> {
@@ -965,9 +924,11 @@ export default class AscentFormComponent {
     );
 
     if (confirmed) {
-      this.form.get('type')?.setValue(AscentTypes.ATTEMPT);
-      this.form.get('private_ascent')?.setValue(true);
-      this.form.get('attempts')?.markAsTouched();
+      this.model.update((m) => ({
+        ...m,
+        type: AscentTypes.ATTEMPT,
+        private_ascent: true,
+      }));
     }
   }
 
@@ -983,62 +944,60 @@ export default class AscentFormComponent {
       const day = d.getDay();
       d.setDate(d.getDate() - day);
     }
-    this.form.patchValue({
+    this.model.update((m) => ({
+      ...m,
       date: new TuiDay(d.getFullYear(), d.getMonth(), d.getDate()),
-    });
+    }));
   }
 
   async onSubmit(event: Event): Promise<void> {
     event.preventDefault();
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    submit(this.ascentForm, async () => {
+      const route_id = this.effectiveRouteId();
+      const ascentData = this.effectiveAscentData();
+      const user_id = ascentData
+        ? ascentData.user_id
+        : this.supabase.authUser()?.id;
+      if (!user_id) return;
 
-    const route_id = this.effectiveRouteId();
-    const ascentData = this.effectiveAscentData();
-    const user_id = ascentData
-      ? ascentData.user_id
-      : this.supabase.authUser()?.id;
-    if (!user_id) return;
+      const { photoControl, ...otherValues } = this.model();
+      const payload: Omit<RouteAscentInsertDto, 'created_at' | 'id'> = {
+        ...otherValues,
+        date: `${otherValues.date.year}-${String(otherValues.date.month + 1).padStart(2, '0')}-${String(otherValues.date.day).padStart(2, '0')}`,
+        type: otherValues.type as AscentType,
+        rate: otherValues.rate === 0 ? null : otherValues.rate,
+        video_url: otherValues.video_url || null,
+      } as any;
 
-    const values = this.form.getRawValue();
-    const payload: Omit<RouteAscentInsertDto, 'created_at' | 'id'> = {
-      ...(values as unknown as Omit<RouteAscentInsertDto, 'created_at' | 'id'>),
-      date: `${values.date.year}-${String(values.date.month + 1).padStart(2, '0')}-${String(values.date.day).padStart(2, '0')}`,
-      type: (values.type ?? AscentTypes.RP) as AscentType,
-      rate: values.rate === 0 ? null : values.rate,
-      video_url: values.video_url || null,
-    };
+      try {
+        let savedAscent: RouteAscentDto | null = null;
+        if (ascentData) {
+          savedAscent = await this.ascents.update(ascentData.id, payload);
+        } else if (route_id && user_id) {
+          savedAscent = await this.ascents.create({
+            ...payload,
+            route_id,
+            user_id,
+          });
+          await this.routesService.removeRouteProject(route_id);
+        }
 
-    try {
-      let savedAscent: RouteAscentDto | null = null;
-      if (ascentData) {
-        savedAscent = await this.ascents.update(ascentData.id, payload);
-      } else if (route_id && user_id) {
-        savedAscent = await this.ascents.create({
-          ...payload,
-          route_id,
-          user_id,
-        });
-        await this.routesService.removeRouteProject(route_id);
+        // Handle photo upload if a new file was selected
+        const photoFile = photoControl;
+        if (savedAscent && photoFile) {
+          await this.ascents.uploadPhoto(savedAscent.id, photoFile);
+        }
+      } catch (e) {
+        const error = e as Error;
+        handleErrorToast(error, this.toast);
+      } finally {
+        this._dialogCtx?.completeWith(true);
       }
-
-      // Handle photo upload if a new file was selected
-      const photoFile = this.photoControl.value;
-      if (savedAscent && photoFile) {
-        await this.ascents.uploadPhoto(savedAscent.id, photoFile);
-      }
-    } catch (e) {
-      const error = e as Error;
-      handleErrorToast(error, this.toast);
-    } finally {
-      this._dialogCtx?.completeWith(true);
-    }
+    });
   }
 
   protected removePhotoFile(): void {
-    this.photoControl.setValue(null);
+    this.model.update((m) => ({ ...m, photoControl: null }));
   }
 
   async editPhoto(file?: File | null, imageUrl?: string): Promise<void> {
@@ -1090,7 +1049,7 @@ export default class AscentFormComponent {
 
     if (result) {
       // If we got a result, set it without triggering the effect again
-      this.photoControl.setValue(result, { emitEvent: false });
+      this.model.update((m) => ({ ...m, photoControl: result }));
       // Manually trigger preview update
       const reader = new FileReader();
       reader.onload = () => {
@@ -1099,7 +1058,7 @@ export default class AscentFormComponent {
       reader.readAsDataURL(result);
     } else {
       // User canceled, clear the photo
-      this.photoControl.setValue(null);
+      this.model.update((m) => ({ ...m, photoControl: null }));
     }
   }
 
@@ -1164,5 +1123,13 @@ export default class AscentFormComponent {
 
   cancel(): void {
     this._dialogCtx?.completeWith(false);
+  }
+
+  setType(id: AscentType): void {
+    if (id === 'attempt') {
+      this.attemptSelected();
+    } else {
+      this.model.update((m) => ({ ...m, type: id }));
+    }
   }
 }

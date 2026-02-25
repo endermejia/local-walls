@@ -403,6 +403,7 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
                       tuiSelect
                       id="date-filter"
                       [formControl]="dateFilterControl"
+                      autocomplete="off"
                     />
                     <tui-data-list *tuiTextfieldDropdown>
                       <tui-data-list-wrapper
@@ -425,6 +426,7 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
                       tuiSelect
                       id="sort-filter"
                       [formControl]="sortFilterControl"
+                      autocomplete="off"
                     />
                     <tui-data-list *tuiTextfieldDropdown>
                       <tui-data-list-wrapper new [items]="['grade', 'date']" />

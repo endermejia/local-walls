@@ -116,6 +116,7 @@ import { GradeComponent } from './avatar-grade';
                       accept=".csv"
                       tuiInputFiles
                       [formControl]="control"
+                      autocomplete="off"
                     />
                   </label>
                 }

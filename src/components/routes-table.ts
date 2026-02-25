@@ -277,6 +277,7 @@ export interface RoutesTableRow {
                                       $any($event.target).value
                                     )
                                   "
+                                  autocomplete="off"
                                 />
                                 <span class="tui-textfield__suffix">m</span>
                               </tui-textfield>

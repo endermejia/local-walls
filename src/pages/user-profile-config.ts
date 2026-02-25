@@ -16,11 +16,15 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
-  FormControl,
-  FormsModule,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+  form,
+  required,
+  validate,
+  minLength,
+  maxLength,
+  min,
+  max,
+} from '@angular/forms/signals';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { TuiDay, TuiStringMatcher } from '@taiga-ui/cdk';
@@ -37,6 +41,8 @@ import {
   TuiDropdown,
   TuiError,
   TuiAppearance,
+  TuiCalendar,
+  TuiCalendarYear,
 } from '@taiga-ui/core';
 import {
   TuiDialogService,
@@ -63,7 +69,6 @@ import {
   TuiTextarea,
   TuiPulse,
   type TuiConfirmData,
-  TuiFieldErrorPipe,
 } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
 import { PolymorpheusContent } from '@taiga-ui/polymorpheus';
@@ -117,7 +122,6 @@ interface Country {
     AsyncPipe,
     FormsModule,
     NgOptimizedImage,
-    ReactiveFormsModule,
     TourHintComponent,
     TranslatePipe,
     TuiAvatar,
@@ -148,8 +152,9 @@ interface Country {
     TuiPulse,
     TuiTitle,
     TuiError,
-    TuiFieldErrorPipe,
     TuiAppearance,
+    TuiCalendar,
+    TuiCalendarYear,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
@@ -170,8 +175,8 @@ interface Country {
               (click)="isFirstSteps() ? startTour() : close()"
               [disabled]="
                 isFirstSteps() &&
-                (displayNameControl.invalid ||
-                  displayNameControl.value === userEmail())
+                (profileForm.name().invalid() ||
+                  profileForm.name().value() === userEmail())
               "
             >
               <tui-icon icon="@tui.arrow-left" />
@@ -234,20 +239,19 @@ interface Country {
               }}</label>
               <input
                 id="nameInput"
-                name="nameInput"
                 tuiTextfield
                 type="text"
                 autocomplete="off"
-                [formControl]="displayNameControl"
+                [ngModel]="model().name"
+                (ngModelChange)="updateModel('name', $event)"
+                [invalid]="profileForm.name().invalid()"
+                [disabled]="profileForm.name().disabled()"
                 (blur)="saveName()"
                 (keydown.enter)="saveName()"
                 [tuiSkeleton]="!userEmail()"
               />
             </tui-textfield>
-            <tui-error
-              [error]="[] | tuiFieldError | async"
-              [formControl]="displayNameControl"
-            />
+            <tui-error [error]="getFieldError('name')" />
             @if (
               tourService.isActive() && tourService.step() === TourStep.WELCOME
             ) {
@@ -267,12 +271,10 @@ interface Country {
           <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
             <label tuiLabel for="emailInput">{{ 'email' | translate }}</label>
             <input
-              id="emailInput"
               tuiTextfield
               type="email"
               autocomplete="off"
-              [value]="userEmail()"
-              readonly
+              [ngModel]="userEmail()"
               disabled
               [tuiSkeleton]="!userEmail()"
             />
@@ -289,19 +291,17 @@ interface Country {
             <label tuiLabel for="bioInput">{{ 'bio' | translate }}</label>
             <textarea
               id="bioInput"
-              name="bioInput"
               tuiTextarea
-              rows="4"
-              maxlength="100"
-              [formControl]="bioControl"
+              [rows]="4"
+              [ngModel]="model().bio"
+              (ngModelChange)="updateModel('bio', $event)"
+              [invalid]="profileForm.bio().invalid()"
+              [disabled]="profileForm.bio().disabled()"
               (blur)="saveBio()"
               [tuiSkeleton]="!userEmail()"
             ></textarea>
-            <tui-error
-              [error]="[] | tuiFieldError | async"
-              [formControl]="bioControl"
-            />
           </tui-textfield>
+          <tui-error [error]="getFieldError('bio')" />
         </div>
         <!-- 8a.nu User -->
         <!-- Temporarily hidden
@@ -322,12 +322,14 @@ interface Country {
             <input
               #eightAnuInput
               id="eightAnuSearch"
-              name="eightAnuSearch"
               tuiComboBox
               autocomplete="off"
-              [ngModel]="selectedEightAnuUser.value()"
-              (ngModelChange)="saveEightAnuUser($event)"
-              (input)="eightAnuSearch$.next($any($event.target).value)"
+              [ngModel]="model().eightAnuUser"
+              (ngModelChange)="updateModel('eightAnuUser', $event)"
+              [invalid]="profileForm.eightAnuUser().invalid()"
+              [disabled]="profileForm.eightAnuUser().disabled()"
+              (change)="saveEightAnuUser(model().eightAnuUser)"
+              (input)="onEightAnuInput($event)"
               [tuiSkeleton]="!userEmail()"
             />
             <tui-data-list-wrapper
@@ -367,13 +369,15 @@ interface Country {
               }}</label>
               <input
                 id="countrySelect"
-                name="countrySelect"
                 tuiComboBox
                 autocomplete="off"
-                [formControl]="countryControl"
+                [ngModel]="model().country"
+                (ngModelChange)="updateModel('country', $event)"
+                [invalid]="profileForm.country().invalid()"
+                [disabled]="profileForm.country().disabled()"
                 [matcher]="matcher"
                 [strict]="true"
-                (ngModelChange)="saveCountry()"
+                (change)="saveCountry()"
                 [tuiSkeleton]="!userEmail()"
               />
               <tui-data-list-wrapper
@@ -394,6 +398,7 @@ interface Country {
                 {{ idToName(item) }}
               </ng-template>
             </tui-textfield>
+            <tui-error [error]="getFieldError('country')" />
           </div>
           <!-- City -->
           <div>
@@ -401,60 +406,87 @@ interface Country {
               <label tuiLabel for="cityInput">{{ 'city' | translate }}</label>
               <input
                 id="cityInput"
-                name="cityInput"
                 tuiTextfield
                 type="text"
                 autocomplete="off"
-                type="text"
-                autocomplete="off"
-                maxlength="100"
-                [formControl]="cityControl"
+                [ngModel]="model().city"
+                (ngModelChange)="updateModel('city', $event)"
+                [invalid]="profileForm.city().invalid()"
+                [disabled]="profileForm.city().disabled()"
                 (blur)="saveCity()"
                 (keydown.enter)="saveCity()"
                 [tuiSkeleton]="!userEmail()"
               />
             </tui-textfield>
+            <tui-error [error]="getFieldError('city')" />
           </div>
         </div>
         <!-- Birth Date & Starting Climbing Year -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Birth Date -->
           <div>
-            <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+            <tui-textfield
+              tuiChevron
+              class="w-full"
+              [tuiTextfieldCleaner]="false"
+            >
               <label tuiLabel for="birthDateInput">{{
                 'birthDate' | translate
               }}</label>
               <input
                 id="birthDateInput"
-                name="birthDateInput"
                 tuiInputDate
+                class="w-full"
                 [max]="today"
                 [min]="minBirthDate"
-                [formControl]="birthDateControl"
-                (ngModelChange)="saveBirthDate()"
+                [ngModel]="model().birth_date"
+                (ngModelChange)="updateModel('birth_date', $event)"
+                (blur)="saveBirthDate()"
+                (keydown.enter)="saveBirthDate()"
+                [invalid]="profileForm.birth_date().invalid()"
+                [disabled]="profileForm.birth_date().disabled()"
                 [tuiSkeleton]="!userEmail()"
+                autocomplete="off"
               />
               <tui-calendar *tuiTextfieldDropdown />
             </tui-textfield>
+            <tui-error [error]="getFieldError('birth_date')" />
           </div>
           <!-- Starting Climbing Year -->
           <div>
-            <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
+            <tui-textfield
+              tuiChevron
+              class="w-full"
+              [tuiTextfieldCleaner]="false"
+            >
               <label tuiLabel for="startingClimbingYearInput">{{
                 'startingClimbingYear' | translate
               }}</label>
               <input
                 id="startingClimbingYearInput"
-                name="startingClimbingYearInput"
                 tuiInputYear
+                class="w-full"
                 [min]="minYear"
                 [max]="currentYear"
-                [formControl]="startingClimbingYearControl"
-                (ngModelChange)="saveStartingClimbingYear()"
+                [ngModel]="model().starting_climbing_year"
+                (ngModelChange)="updateModel('starting_climbing_year', $event)"
+                (blur)="saveStartingClimbingYear()"
+                (keydown.enter)="saveStartingClimbingYear()"
+                [invalid]="profileForm.starting_climbing_year().invalid()"
+                [disabled]="profileForm.starting_climbing_year().disabled()"
                 [tuiSkeleton]="!userEmail()"
+                autocomplete="off"
               />
-              <tui-calendar-year *tuiTextfieldDropdown />
+              <tui-calendar-year
+                *tuiTextfieldDropdown
+                [value]="model().starting_climbing_year || currentYear"
+                (yearClick)="
+                  updateModel('starting_climbing_year', $event);
+                  saveStartingClimbingYear()
+                "
+              />
             </tui-textfield>
+            <tui-error [error]="getFieldError('starting_climbing_year')" />
           </div>
         </div>
         <!-- Size & Sex -->
@@ -465,17 +497,21 @@ interface Country {
               <label tuiLabel for="sizeInput">{{ 'size' | translate }}</label>
               <input
                 id="sizeInput"
-                name="sizeInput"
                 tuiInputNumber
                 [min]="0"
                 [max]="300"
-                [formControl]="sizeControl"
+                [ngModel]="model().size"
+                (ngModelChange)="updateModel('size', $event)"
+                [invalid]="profileForm.size().invalid()"
+                [disabled]="profileForm.size().disabled()"
                 (blur)="saveSize()"
                 (keydown.enter)="saveSize()"
                 [tuiSkeleton]="!userEmail()"
+                autocomplete="off"
               />
               <span class="tui-textfield__suffix">cm</span>
             </tui-textfield>
+            <tui-error [error]="getFieldError('size')" />
           </div>
           <!-- Sex -->
           <div>
@@ -488,13 +524,14 @@ interface Country {
               <label tuiLabel for="sexSelect">{{ 'sex' | translate }}</label>
               <input
                 id="sexSelect"
-                name="sexSelect"
-                id="sexSelect"
-                name="sexSelect"
                 tuiSelect
-                [formControl]="sexControl"
-                (ngModelChange)="saveSex()"
+                [ngModel]="model().sex"
+                (ngModelChange)="updateModel('sex', $event)"
+                [invalid]="profileForm.sex().invalid()"
+                [disabled]="profileForm.sex().disabled()"
+                (change)="saveSex()"
                 [tuiSkeleton]="!userEmail()"
+                autocomplete="off"
               />
               <tui-data-list-wrapper
                 *tuiTextfieldDropdown
@@ -502,6 +539,7 @@ interface Country {
                 [items]="sexes"
               />
             </tui-textfield>
+            <tui-error [error]="getFieldError('sex')" />
           </div>
         </div>
 
@@ -538,11 +576,14 @@ interface Country {
               }}</label>
               <input
                 id="languageSelect"
-                name="languageSelect"
                 tuiSelect
-                [formControl]="languageControl"
-                (ngModelChange)="saveLanguage()"
+                [ngModel]="model().language"
+                (ngModelChange)="updateModel('language', $event)"
+                [invalid]="profileForm.language().invalid()"
+                [disabled]="profileForm.language().disabled()"
+                (change)="saveLanguage()"
                 [tuiSkeleton]="!userEmail()"
+                autocomplete="off"
               />
               <tui-data-list-wrapper
                 *tuiTextfieldDropdown
@@ -550,12 +591,15 @@ interface Country {
                 [items]="languages"
               />
             </tui-textfield>
+            <tui-error [error]="getFieldError('language')" />
 
             <!-- Theme -->
             <tui-segmented
               size="l"
               class="w-fit"
-              [activeItemIndex]="themeControl.value === Themes.DARK ? 1 : 0"
+              [activeItemIndex]="
+                profileForm.theme().value() === Themes.DARK ? 1 : 0
+              "
               (activeItemIndexChange)="toggleTheme($event === 1)"
             >
               <button title="light" type="button">
@@ -578,8 +622,9 @@ interface Country {
                 id="firstStepsSwitch"
                 tuiSwitch
                 type="checkbox"
-                [ngModel]="false"
+                [ngModel]="model().restartFirstSteps"
                 (ngModelChange)="onRestartFirstStepsChange($event)"
+                autocomplete="off"
               />
             </div>
 
@@ -591,8 +636,9 @@ interface Country {
                 id="msgSoundUtil"
                 tuiSwitch
                 type="checkbox"
-                [ngModel]="global.messageSoundEnabled()"
-                (ngModelChange)="global.messageSoundEnabled.set($event)"
+                [ngModel]="model().messageSound"
+                (ngModelChange)="onMessageSoundChange($event)"
+                autocomplete="off"
               />
             </div>
 
@@ -604,8 +650,9 @@ interface Country {
                 id="notifSoundUtil"
                 tuiSwitch
                 type="checkbox"
-                [ngModel]="global.notificationSoundEnabled()"
-                (ngModelChange)="global.notificationSoundEnabled.set($event)"
+                [ngModel]="model().notificationSound"
+                (ngModelChange)="onNotificationSoundChange($event)"
+                autocomplete="off"
               />
             </div>
 
@@ -615,11 +662,11 @@ interface Country {
               }}</label>
               <input
                 id="editingSwitch"
-                name="editingSwitch"
                 tuiSwitch
                 type="checkbox"
-                [ngModel]="global.editingMode()"
-                (ngModelChange)="toggleEditingMode($event)"
+                [ngModel]="model().editingMode"
+                (ngModelChange)="onEditingModeChange($event)"
+                autocomplete="off"
               />
             </div>
 
@@ -629,11 +676,11 @@ interface Country {
               }}</label>
               <input
                 id="privateSwitch"
-                name="privateSwitch"
                 tuiSwitch
                 type="checkbox"
-                [ngModel]="isPrivate"
-                (ngModelChange)="togglePrivateProfile($event)"
+                [ngModel]="model().isPrivate"
+                (ngModelChange)="onPrivateProfileChange($event)"
+                autocomplete="off"
               />
             </div>
           </div>
@@ -643,19 +690,8 @@ interface Country {
 
         <!-- Account Actions -->
         <div
-          class="flex flex-col sm:flex-row items-center sm:justify-center gap-4 mt-8 border-t border-[var(--tui-border-normal)] pt-8"
+          class="flex flex-col sm:flex-row items-center sm:justify-between gap-4 mt-8 border-t border-[var(--tui-border-normal)] pt-8"
         >
-          <button
-            tuiButton
-            appearance="secondary"
-            type="button"
-            size="m"
-            class="w-full sm:w-auto"
-            (click)="logout()"
-          >
-            {{ 'auth.logout' | translate }}
-          </button>
-
           <button
             tuiButton
             appearance="flat-destructive"
@@ -665,6 +701,17 @@ interface Country {
             (click)="deleteAccount(deleteDialog)"
           >
             {{ 'profile.deleteAccount.button' | translate }}
+          </button>
+
+          <button
+            tuiButton
+            appearance="secondary"
+            type="button"
+            size="m"
+            class="w-full sm:w-auto"
+            (click)="logout()"
+          >
+            {{ 'auth.logout' | translate }}
           </button>
         </div>
       </section>
@@ -686,12 +733,16 @@ interface Country {
         <tui-textfield>
           <input
             tuiTextfield
-            [formControl]="deleteEmailControl"
+            [ngModel]="model().deleteEmail"
+            (ngModelChange)="updateModel('deleteEmail', $event)"
+            [invalid]="profileForm.deleteEmail().invalid()"
+            [disabled]="profileForm.deleteEmail().disabled()"
             (paste)="$event.preventDefault()"
             autocomplete="off"
             placeholder="email@example.com"
           />
         </tui-textfield>
+        <tui-error [error]="getFieldError('deleteEmail')" />
 
         <div class="flex justify-end gap-2">
           <button
@@ -704,7 +755,7 @@ interface Country {
           <button
             tuiButton
             appearance="primary"
-            [disabled]="deleteEmailControl.value !== userEmail()"
+            [disabled]="profileForm.deleteEmail().value() !== userEmail()"
             (click)="confirmDeleteAccount(observer)"
           >
             {{ 'profile.deleteAccount.button' | translate }}
@@ -718,7 +769,8 @@ interface Country {
         (next)="tourService.next()"
         (skip)="tourService.finish()"
         [disabled]="
-          displayNameControl.invalid || displayNameControl.value === userEmail()
+          profileForm.name().invalid() ||
+          profileForm.name().value() === userEmail()
         "
         [showSkip]="false"
       />
@@ -800,32 +852,46 @@ export class UserProfileConfigComponent {
     return '@tui.user';
   });
 
-  // Editable fields
-  displayNameControl = new FormControl('', [
-    Validators.required,
-    Validators.minLength(3),
-    Validators.maxLength(50),
-  ]);
-  bioControl = new FormControl('', [Validators.maxLength(100)]);
-  languageControl = new FormControl<Language>(Languages.ES);
-  themeControl = new FormControl<Theme>(Themes.LIGHT);
-  countryControl = new FormControl<string | null>(null);
-  cityControl = new FormControl<string | null>(null, [
-    Validators.maxLength(100),
-  ]);
-  birthDateControl = new FormControl<TuiDay | null>(null);
-  startingClimbingYearControl = new FormControl<number | null>(null, [
-    Validators.min(1900),
-    Validators.max(new Date().getFullYear()),
-  ]);
-  sizeControl = new FormControl<number | null>(null, [
-    Validators.min(0),
-    Validators.max(300),
-  ]);
-  sexControl = new FormControl<Sex | null>(null);
-  isPrivate = false;
+  protected readonly model = signal({
+    name: '',
+    bio: '',
+    language: Languages.ES as Language,
+    theme: Themes.LIGHT as Theme,
+    country: null as string | null,
+    city: '',
+    birth_date: null as TuiDay | null,
+    starting_climbing_year: null as number | null,
+    size: null as number | null,
+    sex: null as Sex | null,
+    isPrivate: false,
+    eightAnuUser: null as EightAnuUser | null,
+    deleteEmail: '',
+    messageSound: true,
+    notificationSound: true,
+    editingMode: false,
+    restartFirstSteps: false,
+  });
 
-  deleteEmailControl = new FormControl('');
+  protected readonly profileForm = form(this.model, (schemaPath) => {
+    required(schemaPath.name, { message: 'profile.name.required' });
+    minLength(schemaPath.name, 3, { message: 'profile.name.length' });
+    maxLength(schemaPath.name, 50, { message: 'profile.name.length' });
+
+    maxLength(schemaPath.bio, 100, { message: 'profile.bio.tooLong' });
+    maxLength(schemaPath.city, 100, { message: 'profile.city.tooLong' });
+
+    min(schemaPath.starting_climbing_year, 1900, {
+      message: 'profile.startingYear.invalid',
+    });
+    max(schemaPath.starting_climbing_year, new Date().getFullYear(), {
+      message: 'profile.startingYear.invalid',
+    });
+
+    min(schemaPath.size, 0, { message: 'profile.size.invalid' });
+    max(schemaPath.size, 300, { message: 'profile.size.invalid' });
+
+    required(schemaPath.deleteEmail, { message: 'profile.email.required' });
+  });
 
   // Validation helpers and bounds
   readonly today: TuiDay = TuiDay.currentLocal();
@@ -871,8 +937,14 @@ export class UserProfileConfigComponent {
     ),
     { initialValue: [] as Country[] },
   );
-  readonly countryIds = computed(() => this.countries().map((c) => c.id));
-  readonly countryNameMap = computed(() => {
+  protected readonly countryIds = computed(() =>
+    this.countries().map((c) => c.id),
+  );
+  protected readonly years = Array.from(
+    { length: new Date().getFullYear() - 1900 + 1 },
+    (_, i) => new Date().getFullYear() - i,
+  );
+  protected readonly countryNameMap = computed(() => {
     const map = new Map<string, string>();
     this.countries().forEach((c) => map.set(c.id, c.name));
     return map;
@@ -933,45 +1005,38 @@ export class UserProfileConfigComponent {
     if (!profile) return;
 
     const name = profile.name || '';
-    this.displayNameControl.setValue(name);
-
-    if (
-      this.displayNameControl.value === this.userEmail() &&
-      this.displayNameControl.value
-    ) {
-      this.displayNameControl.setValue('');
-      this.displayNameControl.markAsTouched();
-      this.displayNameControl.markAsDirty();
-    }
-    this.bioControl.setValue(profile.bio || '');
-    this.languageControl.setValue(
-      (profile.language as Language) || Languages.ES,
-    );
-    this.themeControl.setValue((profile.theme as Theme) || Themes.LIGHT);
-    this.countryControl.setValue(
-      profile.country || (this.isFirstSteps() ? 'ES' : null),
-    );
-    this.cityControl.setValue(profile.city || null);
-    this.sexControl.setValue((profile.sex as Sex) || null);
-    this.sizeControl.setValue(profile.size || null);
-    this.startingClimbingYearControl.setValue(
-      profile.starting_climbing_year || null,
-    );
-    this.isPrivate = !!profile.private;
-
+    let birth_date: TuiDay | null = null;
     if (profile.birth_date) {
       const date = new Date(profile.birth_date);
-      this.birthDateControl.setValue(
-        new TuiDay(date.getFullYear(), date.getMonth(), date.getDate()),
+      birth_date = new TuiDay(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
       );
     }
+
+    this.model.set({
+      name: name === this.userEmail() && profile.first_steps ? '' : name,
+      bio: profile.bio || '',
+      language: (profile.language as Language) || Languages.ES,
+      theme: (profile.theme as Theme) || Themes.LIGHT,
+      country: profile.country || (this.isFirstSteps() ? 'ES' : null),
+      city: profile.city || '',
+      sex: (profile.sex as Sex) || null,
+      size: profile.size || null,
+      starting_climbing_year: profile.starting_climbing_year || null,
+      isPrivate: !!profile.private,
+      birth_date,
+      eightAnuUser: this.selectedEightAnuUser.value() || null,
+      deleteEmail: '',
+      messageSound: this.global.messageSoundEnabled(),
+      notificationSound: this.global.notificationSoundEnabled(),
+      editingMode: this.global.editingMode(),
+      restartFirstSteps: false,
+    });
   }
 
   async togglePrivateProfile(isPrivate: boolean): Promise<void> {
-    if (this.isPrivate === isPrivate) {
-      return;
-    }
-
     if (isPrivate) {
       const confirmed = await firstValueFrom(
         this.dialogs.open<boolean>(TUI_CONFIRM, {
@@ -987,33 +1052,31 @@ export class UserProfileConfigComponent {
       );
 
       if (!confirmed) {
-        this.isPrivate = false;
+        this.updateModel('isPrivate', false);
         return;
       }
     }
 
-    this.isPrivate = isPrivate;
-    await this.updateProfile({ private: this.isPrivate });
+    await this.updateProfile({ private: isPrivate });
   }
 
-  private async saveField<K extends keyof UserProfileDto, V>(
+  private async saveField<K extends keyof UserProfileDto>(
     field: K,
-    control: FormControl<V>,
+    control: any,
     options: {
-      transform?: (val: V) => UserProfileDto[K];
+      transform?: (val: any) => UserProfileDto[K];
       validate?: (val: UserProfileDto[K]) => string | null;
       errorMessage?: string;
       errorType?: 'info' | 'error';
     } = {},
   ): Promise<void> {
     const current = this.profile();
-
     const value = options.transform
-      ? options.transform(control.value as V)
-      : (control.value as unknown as UserProfileDto[K]);
+      ? options.transform(control.value())
+      : (control.value() as unknown as UserProfileDto[K]);
 
     const validationError = options.validate ? options.validate(value) : null;
-    if (control.invalid || validationError) {
+    if (control.invalid() || validationError) {
       const errorKey = validationError || options.errorMessage;
       if (errorKey) {
         if (options.errorType === 'info') {
@@ -1027,9 +1090,6 @@ export class UserProfileConfigComponent {
     }
 
     if (value === (current?.[field] ?? null)) {
-      if (typeof value === 'string' && control.value !== value) {
-        control.setValue(value as unknown as V, { emitEvent: false });
-      }
       return;
     }
 
@@ -1037,7 +1097,7 @@ export class UserProfileConfigComponent {
   }
 
   async saveName(): Promise<void> {
-    await this.saveField('name', this.displayNameControl, {
+    await this.saveField('name', this.profileForm.name(), {
       transform: (v) => (v || '').trim(),
       validate: (v) => {
         if (!v) return 'profile.name.required';
@@ -1049,7 +1109,7 @@ export class UserProfileConfigComponent {
   }
 
   async saveBio(): Promise<void> {
-    await this.saveField('bio', this.bioControl, {
+    await this.saveField('bio', this.profileForm.bio(), {
       transform: (v) => (v || '').trim(),
       errorMessage: 'profile.bio.tooLong',
       errorType: 'info',
@@ -1058,19 +1118,19 @@ export class UserProfileConfigComponent {
 
   async toggleTheme(isDark: boolean): Promise<void> {
     const newTheme = isDark ? Themes.DARK : Themes.LIGHT;
-    if (this.themeControl.value === newTheme) {
+    if (this.model().theme === newTheme) {
       return;
     }
-    this.themeControl.setValue(newTheme);
+    this.model.update((m) => ({ ...m, theme: newTheme }));
     await this.updateProfile({ theme: newTheme });
   }
 
   async saveLanguage(): Promise<void> {
-    await this.saveField('language', this.languageControl);
+    await this.saveField('language', this.profileForm.language());
   }
 
   async saveCountry(): Promise<void> {
-    await this.saveField('country', this.countryControl, {
+    await this.saveField('country', this.profileForm.country(), {
       validate: (v) => {
         const validIds = new Set(this.countryIds());
         return v && !validIds.has(v) ? 'profile.country.invalid' : null;
@@ -1079,20 +1139,20 @@ export class UserProfileConfigComponent {
   }
 
   async saveCity(): Promise<void> {
-    await this.saveField('city', this.cityControl, {
+    await this.saveField('city', this.profileForm.city(), {
       errorMessage: 'profile.city.tooLong',
       errorType: 'info',
     });
   }
 
   async saveBirthDate(): Promise<void> {
-    await this.saveField('birth_date', this.birthDateControl, {
+    await this.saveField('birth_date', this.profileForm.birth_date(), {
       transform: (bd: TuiDay | null) =>
         bd
           ? `${bd.year}-${String(bd.month + 1).padStart(2, '0')}-${String(bd.day).padStart(2, '0')}`
           : null,
       validate: () => {
-        const bd = this.birthDateControl.value;
+        const bd = this.profileForm.birth_date().value();
         if (
           bd &&
           (bd.dayBefore(this.minBirthDate) || this.today.dayBefore(bd))
@@ -1107,7 +1167,7 @@ export class UserProfileConfigComponent {
   async saveStartingClimbingYear(): Promise<void> {
     await this.saveField(
       'starting_climbing_year',
-      this.startingClimbingYearControl,
+      this.profileForm.starting_climbing_year(),
       {
         errorMessage: 'profile.startingYear.invalid',
       },
@@ -1115,13 +1175,85 @@ export class UserProfileConfigComponent {
   }
 
   async saveSize(): Promise<void> {
-    await this.saveField('size', this.sizeControl, {
+    await this.saveField('size', this.profileForm.size(), {
       errorMessage: 'profile.size.invalid',
     });
   }
 
   async saveSex(): Promise<void> {
-    await this.saveField('sex', this.sexControl);
+    await this.saveField('sex', this.profileForm.sex());
+  }
+
+  updateModel<K extends keyof ReturnType<typeof this.model>>(
+    key: K,
+    value: any,
+  ): void {
+    this.model.update((m) => ({ ...m, [key]: value }));
+  }
+
+  onEightAnuInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.eightAnuSearch$.next(value);
+  }
+
+  protected getFieldError(fieldName: string): string | null {
+    const field = (this.profileForm as any)[fieldName];
+    if (!field || !field().invalid()) return null;
+
+    const errors = field().errors();
+    if (!errors || errors.length === 0) return null;
+
+    const firstError = errors[0];
+
+    // Priority 1: Explicit message from schema
+    if (firstError?.message) {
+      return this.translate.instant(firstError.message);
+    }
+
+    // Priority 2: Extract key (kind or first non-brand key)
+    const key =
+      firstError?.kind ||
+      (typeof firstError === 'object'
+        ? Object.keys(firstError).find((k) => k !== '__brand')
+        : firstError) ||
+      'error';
+
+    // Map Signal Forms error keys to our translation keys
+    if (fieldName === 'name') {
+      if (key === 'required')
+        return this.translate.instant('profile.name.required');
+      if (key === 'minLength' || key === 'maxLength')
+        return this.translate.instant('profile.name.length');
+    }
+
+    if (fieldName === 'bio' && key === 'maxLength') {
+      return this.translate.instant('profile.bio.tooLong');
+    }
+
+    if (fieldName === 'city' && key === 'maxLength') {
+      return this.translate.instant('profile.city.tooLong');
+    }
+
+    if (
+      fieldName === 'starting_climbing_year' &&
+      (key === 'min' || key === 'max')
+    ) {
+      return this.translate.instant('profile.startingYear.invalid');
+    }
+
+    if (fieldName === 'size' && (key === 'min' || key === 'max')) {
+      return this.translate.instant('profile.size.invalid');
+    }
+
+    if (fieldName === 'birth_date' && (key === 'min' || key === 'max')) {
+      return this.translate.instant('profile.birthDate.invalid');
+    }
+
+    if (fieldName === 'deleteEmail' && key === 'required') {
+      return this.translate.instant('profile.email.required');
+    }
+
+    return null;
   }
 
   async saveEightAnuUser(user: unknown): Promise<void> {
@@ -1191,7 +1323,12 @@ export class UserProfileConfigComponent {
   }
 
   async onRestartFirstStepsChange(enabled: boolean): Promise<void> {
-    if (!enabled) return;
+    if (!enabled) {
+      this.updateModel('restartFirstSteps', false);
+      return;
+    }
+
+    this.updateModel('restartFirstSteps', true);
 
     const confirmed = await firstValueFrom(
       this.dialogs.open<boolean>(TUI_CONFIRM, {
@@ -1210,6 +1347,28 @@ export class UserProfileConfigComponent {
       this.hasOpenedWelcome = false;
       await this.updateProfile({ first_steps: true });
     }
+
+    this.updateModel('restartFirstSteps', false);
+  }
+
+  onMessageSoundChange(enabled: boolean): void {
+    this.updateModel('messageSound', enabled);
+    this.global.messageSoundEnabled.set(enabled);
+  }
+
+  onNotificationSoundChange(enabled: boolean): void {
+    this.updateModel('notificationSound', enabled);
+    this.global.notificationSoundEnabled.set(enabled);
+  }
+
+  onEditingModeChange(enabled: boolean): void {
+    this.updateModel('editingMode', enabled);
+    void this.toggleEditingMode(enabled);
+  }
+
+  onPrivateProfileChange(enabled: boolean): void {
+    this.updateModel('isPrivate', enabled);
+    void this.togglePrivateProfile(enabled);
   }
 
   private async updateProfile(updates: Partial<UserProfileDto>): Promise<void> {
@@ -1218,6 +1377,8 @@ export class UserProfileConfigComponent {
     if (!result.success) {
       console.error('Error saving profile:', result.error);
       this.toast.error('Error: ' + result.error);
+    } else {
+      this.toast.success('profile.saveSuccess');
     }
   }
 
@@ -1247,6 +1408,7 @@ export class UserProfileConfigComponent {
 
       if (!confirmed) {
         // Force the switch to stay false
+        this.updateModel('editingMode', false);
         this.global.editingMode.set(false);
         return;
       }
@@ -1262,7 +1424,7 @@ export class UserProfileConfigComponent {
   }
 
   deleteAccount(template: PolymorpheusContent<TuiDialogContext<void>>): void {
-    this.deleteEmailControl.reset();
+    this.model.update((m) => ({ ...m, deleteEmail: '' }));
     this.dialogs
       .open(template, {
         size: 'm',
@@ -1271,7 +1433,7 @@ export class UserProfileConfigComponent {
   }
 
   async confirmDeleteAccount(observer: Observer<void>): Promise<void> {
-    if (this.deleteEmailControl.value !== this.userEmail()) {
+    if (this.profileForm.deleteEmail().value() !== this.userEmail()) {
       return;
     }
     observer.complete();

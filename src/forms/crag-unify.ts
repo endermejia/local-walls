@@ -6,7 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { form, FormField, required } from '@angular/forms/signals';
 
 import {
   TuiButton,
@@ -37,7 +37,7 @@ import { CragDto } from '../models';
   selector: 'app-crag-unify',
   imports: [
     CommonModule,
-    ReactiveFormsModule,
+    FormField,
     TranslatePipe,
     TuiButton,
     TuiChevron,
@@ -65,7 +65,7 @@ import { CragDto } from '../models';
           tuiComboBox
           id="target-crag"
           autocomplete="off"
-          [formControl]="targetCrag"
+          [formField]="$any(unifyForm.targetCrag)"
           [placeholder]="'select' | translate"
         />
         <tui-data-list *tuiTextfieldDropdown>
@@ -75,10 +75,12 @@ import { CragDto } from '../models';
             </button>
           }
         </tui-data-list>
-        @if (targetCrag.invalid && targetCrag.touched) {
-          <tui-error [error]="'errors.required' | translate" />
-        }
       </tui-textfield>
+      @if (
+        unifyForm.targetCrag().invalid() && unifyForm.targetCrag().touched()
+      ) {
+        <tui-error [error]="'errors.required' | translate" />
+      }
 
       <tui-textfield
         tuiChevron
@@ -94,10 +96,9 @@ import { CragDto } from '../models';
           tuiInputChip
           id="source-crags"
           autocomplete="off"
-          [formControl]="sourceCrags"
+          [formField]="$any(unifyForm.sourceCrags)"
           [placeholder]="'select' | translate"
         />
-        <tui-input-chip *tuiItem />
         <tui-data-list *tuiTextfieldDropdown>
           <tui-opt-group tuiMultiSelectGroup>
             @for (
@@ -110,10 +111,12 @@ import { CragDto } from '../models';
             }
           </tui-opt-group>
         </tui-data-list>
-        @if (sourceCrags.invalid && sourceCrags.touched) {
-          <tui-error [error]="'errors.required' | translate" />
-        }
       </tui-textfield>
+      @if (
+        unifyForm.sourceCrags().invalid() && unifyForm.sourceCrags().touched()
+      ) {
+        <tui-error [error]="'errors.required' | translate" />
+      }
 
       <tui-textfield class="block">
         <label tuiLabel for="new-name">{{ 'crags.newName' | translate }}</label>
@@ -121,9 +124,9 @@ import { CragDto } from '../models';
           tuiTextfield
           id="new-name"
           autocomplete="off"
-          [formControl]="newName"
+          [formField]="$any(unifyForm.newName)"
           type="text"
-          [placeholder]="targetCrag.value?.name || ''"
+          [placeholder]="unifyForm.targetCrag().value()?.name || ''"
         />
       </tui-textfield>
 
@@ -140,8 +143,8 @@ import { CragDto } from '../models';
           tuiButton
           appearance="primary"
           [disabled]="
-            targetCrag.invalid ||
-            (sourceCrags.value?.length || 0) === 0 ||
+            unifyForm.targetCrag().invalid() ||
+            unifyForm.sourceCrags().value().length === 0 ||
             loading()
           "
           (click)="onUnify()"
@@ -162,17 +165,29 @@ export class CragUnifyComponent {
 
   protected readonly loading = signal(false);
 
-  targetCrag = new FormControl<CragDto | null>(null, Validators.required);
-  sourceCrags = new FormControl<CragDto[]>([], Validators.required);
-  newName = new FormControl<string>('');
+  model = signal<{
+    targetCrag: CragDto | null;
+    sourceCrags: CragDto[];
+    newName: string | null;
+  }>({
+    targetCrag: null,
+    sourceCrags: [],
+    newName: null,
+  });
+
+  unifyForm = form(this.model, (schemaPath) => {
+    required(schemaPath.targetCrag);
+    required(schemaPath.sourceCrags);
+  });
 
   constructor() {
     const candidates = this.context.data?.candidates;
     if (candidates && candidates.length > 0) {
-      this.targetCrag.setValue(candidates[0]);
-      if (candidates.length > 1) {
-        this.sourceCrags.setValue(candidates.slice(1));
-      }
+      this.model.update((m) => ({
+        ...m,
+        targetCrag: candidates[0],
+        sourceCrags: candidates.length > 1 ? candidates.slice(1) : [],
+      }));
     }
   }
 
@@ -195,20 +210,20 @@ export class CragUnifyComponent {
   protected readonly stringify = (crag: CragDto) => crag.name;
 
   protected availableSources() {
-    const targetId = this.targetCrag.value?.id;
+    const targetId = this.model().targetCrag?.id;
     return this.availableCrags().filter((a) => a.id !== targetId);
   }
 
   async onUnify() {
-    const target = this.targetCrag.value;
-    const sources = this.sourceCrags.value;
+    const target = this.model().targetCrag;
+    const sources = this.model().sourceCrags;
     if (!target || !sources || sources.length === 0) return;
 
     this.loading.set(true);
     const success = await this.cragsService.unify(
       target.id,
       sources.map((s) => s.id),
-      this.newName.value || target.name,
+      this.model().newName || target.name,
     );
     this.loading.set(false);
 

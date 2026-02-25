@@ -766,6 +766,7 @@ export interface TopoRouteRow {
                                           );
                                           $event.stopPropagation()
                                         "
+                                        autocomplete="off"
                                       />
                                     </tui-textfield>
                                   } @else {
@@ -823,6 +824,7 @@ export interface TopoRouteRow {
                                           );
                                           $event.stopPropagation()
                                         "
+                                        autocomplete="off"
                                       />
                                       <span class="tui-textfield__suffix"
                                         >m</span

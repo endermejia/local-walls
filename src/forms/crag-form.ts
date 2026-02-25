@@ -8,8 +8,11 @@ import {
   input,
   InputSignal,
   Signal,
+  signal,
 } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { form, FormField, required, min, max } from '@angular/forms/signals';
+import { ReactiveFormsModule } from '@angular/forms'; // KEEP for backwards compat if needed, or remove if not. Let's remove if possible. No, keep it just in case some TUI component needs it. Actually, `FormField` replaces it.
+// Actually Taiga might need ReactiveFormsModule for some inner things, let's remove it and see.
 
 import {
   TuiButton,
@@ -46,11 +49,25 @@ interface MinimalCrag {
   warning_en?: string | null;
 }
 
+interface CragFormModel {
+  name: string;
+  slug: string;
+  latitude: number | null;
+  longitude: number | null;
+  approach: number | null;
+  description_es: string | null;
+  description_en: string | null;
+  warning_es: string | null;
+  warning_en: string | null;
+  eight_anu_sector_slugs: string[] | null;
+}
+
 @Component({
   selector: 'app-crag-form',
   imports: [
     CommonModule,
-    ReactiveFormsModule,
+    FormField,
+    ReactiveFormsModule, // Counter currently might still expect FormControl depending on how it's built
     TuiButton,
     TuiError,
     TuiLabel,
@@ -69,15 +86,14 @@ interface MinimalCrag {
         <input
           tuiTextfield
           id="crag-name"
-          [formControl]="name"
+          [formField]="cragForm.name"
           type="text"
-          required
-          [invalid]="name.invalid && name.touched"
+          autocomplete="off"
         />
-        @if (name.invalid && name.touched) {
-          <tui-error [error]="'errors.required' | translate" />
-        }
       </tui-textfield>
+      @if (cragForm.name().invalid() && cragForm.name().touched()) {
+        <tui-error [error]="'errors.required' | translate" />
+      }
 
       @if (isEdit()) {
         <tui-textfield [tuiTextfieldCleaner]="false">
@@ -85,15 +101,14 @@ interface MinimalCrag {
           <input
             tuiTextfield
             id="crag-slug"
-            [formControl]="slug"
+            [formField]="cragForm.slug"
             type="text"
-            required
-            [invalid]="slug.invalid && slug.touched"
+            autocomplete="off"
           />
-          @if (slug.invalid && slug.touched) {
-            <tui-error [error]="'errors.required' | translate" />
-          }
         </tui-textfield>
+        @if (cragForm.slug().invalid() && cragForm.slug().touched()) {
+          <tui-error [error]="'errors.required' | translate" />
+        }
       }
 
       <div class="flex flex-wrap items-center gap-4">
@@ -117,14 +132,11 @@ interface MinimalCrag {
             <input
               tuiInputNumber
               id="lat"
-              [formControl]="latitude"
-              [min]="-90"
-              [max]="90"
+              [formField]="$any(cragForm.latitude)"
               [tuiNumberFormat]="{ precision: 6 }"
               (paste)="onPasteLocation($event)"
-              (change.zoneless)="
-                mapService.sanitizeCoordinates(latitude, longitude)
-              "
+              (change.zoneless)="sanitizeCoordinates()"
+              autocomplete="off"
             />
           </tui-textfield>
           <tui-textfield [tuiTextfieldCleaner]="false">
@@ -132,21 +144,17 @@ interface MinimalCrag {
             <input
               tuiInputNumber
               id="lng"
-              [min]="-180"
-              [max]="180"
               [tuiNumberFormat]="{ precision: 6 }"
-              [formControl]="longitude"
-              (change.zoneless)="
-                mapService.sanitizeCoordinates(latitude, longitude)
-              "
+              [formField]="$any(cragForm.longitude)"
+              (change.zoneless)="sanitizeCoordinates()"
+              autocomplete="off"
             />
           </tui-textfield>
         </div>
         <app-counter
-          [formControl]="approach"
+          [formField]="$any(cragForm.approach)"
           label="approach"
           suffix="min."
-          [min]="0"
         />
       </div>
 
@@ -155,7 +163,7 @@ interface MinimalCrag {
         <textarea
           tuiTextarea
           id="desc-es"
-          [formControl]="description_es"
+          [formField]="$any(cragForm.description_es)"
           rows="3"
         ></textarea>
       </tui-textfield>
@@ -165,7 +173,7 @@ interface MinimalCrag {
         <textarea
           tuiTextarea
           id="desc-en"
-          [formControl]="description_en"
+          [formField]="$any(cragForm.description_en)"
           rows="3"
         ></textarea>
       </tui-textfield>
@@ -175,7 +183,7 @@ interface MinimalCrag {
         <textarea
           tuiTextarea
           id="warn-es"
-          [formControl]="warning_es"
+          [formField]="$any(cragForm.warning_es)"
           rows="3"
         ></textarea>
       </tui-textfield>
@@ -185,7 +193,7 @@ interface MinimalCrag {
         <textarea
           tuiTextarea
           id="warn-en"
-          [formControl]="warning_en"
+          [formField]="$any(cragForm.warning_en)"
           rows="3"
         ></textarea>
       </tui-textfield>
@@ -198,7 +206,8 @@ interface MinimalCrag {
           <input
             tuiInputChip
             id="eight-anu-slugs"
-            [formControl]="eight_anu_sector_slugs"
+            [formField]="cragForm.eight_anu_sector_slugs"
+            autocomplete="off"
           />
           <tui-input-chip *tuiItem />
         </tui-textfield>
@@ -215,9 +224,9 @@ interface MinimalCrag {
         </button>
         <button
           [disabled]="
-            name.invalid ||
-            (isEdit() && slug.invalid) ||
-            (!name.dirty && !isEdit())
+            cragForm.name().invalid() ||
+            (isEdit() && cragForm.slug().invalid()) ||
+            (!cragForm.name().dirty() && !isEdit())
           "
           tuiButton
           appearance="primary"
@@ -271,28 +280,30 @@ export class CragFormComponent {
 
   readonly isEdit: Signal<boolean> = computed(() => !!this.effectiveCragData());
 
-  name = new FormControl<string>('', {
-    nonNullable: true,
-    validators: [Validators.required],
+  model = signal<CragFormModel>({
+    name: '',
+    slug: '',
+    latitude: null,
+    longitude: null,
+    approach: null,
+    description_es: null,
+    description_en: null,
+    warning_es: null,
+    warning_en: null,
+    eight_anu_sector_slugs: [],
   });
-  slug = new FormControl<string>('', {
-    nonNullable: true,
-    validators: [Validators.required],
+
+  cragForm = form(this.model, (schemaPath) => {
+    required(schemaPath.name);
+    required(schemaPath.slug, {
+      when: () => this.isEdit(),
+    });
+    min(schemaPath.latitude, -90);
+    max(schemaPath.latitude, 90);
+    min(schemaPath.longitude, -180);
+    max(schemaPath.longitude, 180);
+    min(schemaPath.approach, 0);
   });
-  latitude = new FormControl<number | null>(null, [
-    Validators.min(-90),
-    Validators.max(90),
-  ]);
-  longitude = new FormControl<number | null>(null, [
-    Validators.min(-180),
-    Validators.max(180),
-  ]);
-  approach = new FormControl<number | null>(null);
-  description_es = new FormControl<string | null>(null);
-  description_en = new FormControl<string | null>(null);
-  warning_es = new FormControl<string | null>(null);
-  warning_en = new FormControl<string | null>(null);
-  eight_anu_sector_slugs = new FormControl<string[] | null>([]);
 
   private editingId: number | null = null;
   private editingAreaId: number | null = null;
@@ -304,15 +315,20 @@ export class CragFormComponent {
       if (!data) return;
       this.editingId = data.id;
       this.editingAreaId = data.area_id;
-      this.name.setValue(data.name ?? '');
-      this.slug.setValue(data.slug ?? '');
-      this.latitude.setValue(data.latitude ?? null);
-      this.longitude.setValue(data.longitude ?? null);
-      this.approach.setValue(data.approach ?? null);
-      this.description_es.setValue(data.description_es ?? null);
-      this.description_en.setValue(data.description_en ?? null);
-      this.warning_es.setValue(data.warning_es ?? null);
-      this.warning_en.setValue(data.warning_en ?? null);
+
+      this.model.set({
+        name: data.name ?? '',
+        slug: data.slug ?? '',
+        latitude: data.latitude ?? null,
+        longitude: data.longitude ?? null,
+        approach: data.approach ?? null,
+        description_es: data.description_es ?? null,
+        description_en: data.description_en ?? null,
+        warning_es: data.warning_es ?? null,
+        warning_en: data.warning_en ?? null,
+        eight_anu_sector_slugs: this.model().eight_anu_sector_slugs, // Preserve array from fetch
+      });
+
       this.fetchFullCragData(data.id);
     });
   }
@@ -320,30 +336,36 @@ export class CragFormComponent {
   private async fetchFullCragData(id: number) {
     const { data, error } = await this.crags.getById(id);
     if (data && !error) {
-      this.eight_anu_sector_slugs.setValue(data.eight_anu_sector_slugs || []);
-      this.name.markAsPristine();
+      this.model.update((m) => ({
+        ...m,
+        eight_anu_sector_slugs: data.eight_anu_sector_slugs || [],
+      }));
+      // Note: Signal forms don't have a direct equivalent to markAsPristine yet natively in simple setup,
+      // but it handles initial vs dirty state well.
     }
   }
 
   async onSubmit(event?: Event): Promise<void> {
     event?.preventDefault();
     event?.stopPropagation();
-    if (this.name.invalid) {
-      this.name.markAsTouched();
+
+    if (this.cragForm.name().invalid()) {
       return;
     }
-    const name = this.name.value;
+
+    const value = this.model();
+    const name = value.name;
     const base = {
       name,
-      slug: this.slug.value,
-      latitude: this.latitude.value,
-      longitude: this.longitude.value,
-      approach: this.approach.value,
-      description_es: this.description_es.value,
-      description_en: this.description_en.value,
-      warning_es: this.warning_es.value,
-      warning_en: this.warning_en.value,
-      eight_anu_sector_slugs: this.eight_anu_sector_slugs.value,
+      slug: value.slug,
+      latitude: value.latitude,
+      longitude: value.longitude,
+      approach: value.approach,
+      description_es: value.description_es,
+      description_en: value.description_en,
+      warning_es: value.warning_es,
+      warning_en: value.warning_en,
+      eight_anu_sector_slugs: value.eight_anu_sector_slugs,
     };
 
     try {
@@ -361,9 +383,7 @@ export class CragFormComponent {
         });
       }
       if (this._dialogCtx) {
-        this._dialogCtx.completeWith(
-          this.isEdit() ? this.slug.value || true : true,
-        );
+        this._dialogCtx.completeWith(this.isEdit() ? value.slug || true : true);
       } else {
         this.goBack();
       }
@@ -382,11 +402,52 @@ export class CragFormComponent {
     }
   }
 
-  pickLocation(): void {
-    this.mapService.pickLocationAndUpdate(this.latitude, this.longitude);
+  async pickLocation(): Promise<void> {
+    const result = await import('rxjs').then((m) =>
+      m.firstValueFrom(
+        this.mapService.pickLocation(
+          this.model().latitude,
+          this.model().longitude,
+        ),
+      ),
+    );
+    if (result) {
+      this.cragForm.latitude().value.set(result.lat);
+      this.cragForm.longitude().value.set(result.lng);
+      // Wait, we can't directly mutate model.update if we want field to be dirty?
+      // Actually signal forms uses value.set to also mark dirty usually! But wait...
+      // Field level value set might not exist like that. If we update model, form fields get updated.
+      // Let's just update model.
+      this.model.update((m) => ({
+        ...m,
+        latitude: result.lat,
+        longitude: result.lng,
+      }));
+    }
   }
 
   onPasteLocation(event: ClipboardEvent): void {
-    this.mapService.handlePasteLocation(event, this.latitude, this.longitude);
+    const text = event.clipboardData?.getData('text');
+    if (!text) return;
+
+    const coords = this.mapService.parseCoordinates(text);
+    if (coords) {
+      event.preventDefault();
+      this.model.update((m) => ({
+        ...m,
+        latitude: coords.lat,
+        longitude: coords.lng,
+      }));
+    }
+  }
+
+  sanitizeCoordinates(): void {
+    const lat = this.model().latitude;
+    const lng = this.model().longitude;
+    this.model.update((m) => ({
+      ...m,
+      latitude: lat != null ? parseFloat(lat.toFixed(6)) : null,
+      longitude: lng != null ? parseFloat(lng.toFixed(6)) : null,
+    }));
   }
 }

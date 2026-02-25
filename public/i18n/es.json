@@ -462,6 +462,7 @@
   "profile.name.required": "El nombre es obligatorio.",
   "profile.private.confirmation": "No se verán sus encadenes, pero seguirá siendo visible para el resto de usuarios y podrá recibir mensajes.",
   "profile.saveError": "Ha ocurrido un error al guardar tu perfil.",
+  "profile.saveSuccess": "Perfil actualizado correctamente.",
   "profile.size.invalid": "La altura debe estar entre 0 y 300 cm.",
   "profile.startingYear.invalid": "Año inválido. Selecciona un año entre 1900 y el año actual.",
   "profile.title": "Mi perfil",

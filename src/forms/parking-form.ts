@@ -8,8 +8,17 @@ import {
   input,
   InputSignal,
   Signal,
+  signal,
 } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import {
+  form,
+  FormField,
+  max,
+  min,
+  required,
+  submit,
+} from '@angular/forms/signals';
 
 import {
   TuiButton,
@@ -46,7 +55,8 @@ interface MinimalParking {
   selector: 'app-parking-form',
   imports: [
     CommonModule,
-    ReactiveFormsModule,
+    FormField,
+    FormsModule,
     TuiButton,
     TuiError,
     TuiLabel,
@@ -63,15 +73,14 @@ interface MinimalParking {
         <input
           tuiTextfield
           id="parking-name"
-          [formControl]="name"
+          [formField]="parkingForm.name"
           type="text"
-          required
-          [invalid]="name.invalid && name.touched"
+          autocomplete="off"
         />
-        @if (name.invalid && name.touched) {
-          <tui-error [error]="'errors.required' | translate" />
-        }
       </tui-textfield>
+      @if (parkingForm.name().invalid() && parkingForm.name().touched()) {
+        <tui-error [error]="'errors.required' | translate" />
+      }
 
       <div class="flex flex-wrap items-center gap-4">
         <h3 class="font-bold text-lg">{{ 'location' | translate }}</h3>
@@ -94,14 +103,11 @@ interface MinimalParking {
             <input
               tuiInputNumber
               id="lat"
-              [formControl]="latitude"
-              [min]="-90"
-              [max]="90"
+              [formField]="$any(parkingForm.latitude)"
               [tuiNumberFormat]="{ precision: 6 }"
               (paste)="onPasteLocation($event)"
-              (change.zoneless)="
-                mapService.sanitizeCoordinates(latitude, longitude)
-              "
+              (change.zoneless)="sanitizeCoordinates()"
+              autocomplete="off"
             />
           </tui-textfield>
           <tui-textfield [tuiTextfieldCleaner]="false">
@@ -109,18 +115,15 @@ interface MinimalParking {
             <input
               tuiInputNumber
               id="lng"
-              [min]="-180"
-              [max]="180"
               [tuiNumberFormat]="{ precision: 6 }"
-              [formControl]="longitude"
-              (change.zoneless)="
-                mapService.sanitizeCoordinates(latitude, longitude)
-              "
+              [formField]="$any(parkingForm.longitude)"
+              (change.zoneless)="sanitizeCoordinates()"
+              autocomplete="off"
             />
           </tui-textfield>
         </div>
 
-        <app-counter [formControl]="size" label="capacity" [min]="0" />
+        <app-counter [formField]="$any(parkingForm.size)" label="capacity" />
       </div>
 
       <div class="flex flex-wrap gap-2 justify-end">
@@ -134,13 +137,13 @@ interface MinimalParking {
         </button>
         <button
           [disabled]="
-            name.invalid ||
-            latitude.invalid ||
-            longitude.invalid ||
-            (!name.dirty &&
-              !latitude.dirty &&
-              !longitude.dirty &&
-              !size.dirty &&
+            parkingForm.name().invalid() ||
+            parkingForm.latitude().invalid() ||
+            parkingForm.longitude().invalid() ||
+            (!parkingForm.name().dirty() &&
+              !parkingForm.latitude().dirty() &&
+              !parkingForm.longitude().dirty() &&
+              !parkingForm.size().dirty() &&
               !isEdit())
           "
           tuiButton
@@ -212,21 +215,28 @@ export class ParkingFormComponent {
     () => !!this.effectiveParkingData(),
   );
 
-  name = new FormControl<string>('', {
-    nonNullable: true,
-    validators: [Validators.required],
+  model = signal<{
+    name: string;
+    latitude: number | null;
+    longitude: number | null;
+    size: number;
+  }>({
+    name: '',
+    latitude: null,
+    longitude: null,
+    size: 0,
   });
-  latitude = new FormControl<number | null>(null, [
-    Validators.required,
-    Validators.min(-90),
-    Validators.max(90),
-  ]);
-  longitude = new FormControl<number | null>(null, [
-    Validators.required,
-    Validators.min(-180),
-    Validators.max(180),
-  ]);
-  size = new FormControl<number>(0, { nonNullable: true });
+
+  parkingForm = form(this.model, (path) => {
+    required(path.name);
+    required(path.latitude);
+    min(path.latitude, -90);
+    max(path.latitude, 90);
+    required(path.longitude);
+    min(path.longitude, -180);
+    max(path.longitude, 180);
+    min(path.size, 0);
+  });
 
   private editingId: number | null = null;
 
@@ -235,15 +245,20 @@ export class ParkingFormComponent {
       const data = this.effectiveParkingData();
       if (data) {
         this.editingId = data.id;
-        this.name.setValue(data.name ?? '');
-        this.latitude.setValue(data.latitude ?? null);
-        this.longitude.setValue(data.longitude ?? null);
-        this.size.setValue(data.size ?? 0);
+        this.model.set({
+          name: data.name ?? '',
+          latitude: data.latitude ?? null,
+          longitude: data.longitude ?? null,
+          size: data.size ?? 0,
+        });
       } else {
         const def = this.effectiveDefaultLocation();
         if (def) {
-          this.latitude.setValue(def.lat);
-          this.longitude.setValue(def.lng);
+          this.model.update((m) => ({
+            ...m,
+            latitude: def.lat,
+            longitude: def.lng,
+          }));
         }
       }
     });
@@ -252,42 +267,42 @@ export class ParkingFormComponent {
   async onSubmit(event?: Event): Promise<void> {
     event?.preventDefault();
     event?.stopPropagation();
-    if (this.name.invalid || this.latitude.invalid || this.longitude.invalid) {
-      this.name.markAsTouched();
-      this.latitude.markAsTouched();
-      this.longitude.markAsTouched();
-      return;
-    }
 
-    const payload = {
-      name: this.name.value,
-      latitude: this.latitude.value!,
-      longitude: this.longitude.value!,
-      size: this.size.value,
-    };
+    submit(this.parkingForm, async () => {
+      const { name, latitude, longitude, size } = this.model();
+      const payload = {
+        name,
+        latitude: latitude!,
+        longitude: longitude!,
+        size,
+      };
 
-    try {
-      let result: ParkingDto | null;
-      if (this.isEdit() && this.editingId != null) {
-        result = await this.parkings.update(this.editingId, payload);
-      } else {
-        result = await this.parkings.create(payload);
-        const cragId = this.effectiveCragId();
-        if (result && cragId) {
-          await this.parkings.addParkingToCrag(cragId, result.id);
+      try {
+        let result: ParkingDto | null;
+        if (this.isEdit() && this.editingId != null) {
+          result = await this.parkings.update(this.editingId, payload);
+        } else {
+          result = await this.parkings.create(payload);
+          const cragId = this.effectiveCragId();
+          if (result && cragId) {
+            await this.parkings.addParkingToCrag(cragId, result.id);
+          }
         }
-      }
 
-      if (this._dialogCtx) {
-        this._dialogCtx.completeWith(result || true);
-      } else {
-        this.goBack();
+        if (this._dialogCtx) {
+          this._dialogCtx.completeWith(result || true);
+        } else {
+          this.goBack();
+        }
+      } catch (e) {
+        const error = e as Error;
+        console.error(
+          '[ParkingFormComponent] Error submitting parking:',
+          error,
+        );
+        handleErrorToast(error, this.toast);
       }
-    } catch (e) {
-      const error = e as Error;
-      console.error('[ParkingFormComponent] Error submitting parking:', error);
-      handleErrorToast(error, this.toast);
-    }
+    });
   }
 
   goBack(): void {
@@ -298,12 +313,47 @@ export class ParkingFormComponent {
     }
   }
 
-  pickLocation(): void {
-    this.mapService.pickLocationAndUpdate(this.latitude, this.longitude);
+  async pickLocation(): Promise<void> {
+    const result = await import('rxjs').then((m) =>
+      m.firstValueFrom(
+        this.mapService.pickLocation(
+          this.model().latitude,
+          this.model().longitude,
+        ),
+      ),
+    );
+    if (result) {
+      this.model.update((m) => ({
+        ...m,
+        latitude: result.lat,
+        longitude: result.lng,
+      }));
+    }
   }
 
   onPasteLocation(event: ClipboardEvent): void {
-    this.mapService.handlePasteLocation(event, this.latitude, this.longitude);
+    const text = event.clipboardData?.getData('text');
+    if (!text) return;
+
+    const coords = this.mapService.parseCoordinates(text);
+    if (coords) {
+      event.preventDefault();
+      this.model.update((m) => ({
+        ...m,
+        latitude: coords.lat,
+        longitude: coords.lng,
+      }));
+    }
+  }
+
+  sanitizeCoordinates(): void {
+    const lat = this.model().latitude;
+    const lng = this.model().longitude;
+    this.model.update((m) => ({
+      ...m,
+      latitude: lat != null ? parseFloat(lat.toFixed(6)) : null,
+      longitude: lng != null ? parseFloat(lng.toFixed(6)) : null,
+    }));
   }
 }
 

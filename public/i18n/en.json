@@ -456,6 +456,7 @@
   "profile.name.required": "Name is required.",
   "profile.private.confirmation": "Your ascents will not be visible, but you will still be visible to other users and can receive messages.",
   "profile.saveError": "An error occurred while saving your profile.",
+  "profile.saveSuccess": "Profile updated successfully.",
   "profile.size.invalid": "Height must be between 0 and 300 cm.",
   "profile.startingYear.invalid": "Invalid year. Please select a year between 1900 and current year.",
   "profile.title": "My profile",

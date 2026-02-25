@@ -6,8 +6,9 @@ import {
   inject,
   PLATFORM_ID,
   resource,
+  signal,
 } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { form, FormField, required, submit } from '@angular/forms/signals';
 
 import { TuiIdentityMatcher, tuiIsString } from '@taiga-ui/cdk';
 import {
@@ -40,7 +41,7 @@ import { ParkingDto } from '../models';
   selector: 'app-link-parking-form',
   imports: [
     CommonModule,
-    ReactiveFormsModule,
+    FormField,
     TuiButton,
     TuiLabel,
     TuiTextfield,
@@ -71,8 +72,9 @@ import { ParkingDto } from '../models';
         <input
           tuiInputChip
           id="parkings"
-          [formControl]="selectedParkings"
+          [formField]="$any(linkForm.selectedParkings)"
           [placeholder]="'select' | translate"
+          autocomplete="off"
         />
         <tui-input-chip *tuiItem />
         <tui-data-list *tuiTextfieldDropdown>
@@ -104,7 +106,7 @@ import { ParkingDto } from '../models';
           {{ 'cancel' | translate }}
         </button>
         <button
-          [disabled]="selectedParkings.value.length === 0"
+          [disabled]="linkForm.selectedParkings().value().length === 0"
           tuiButton
           appearance="primary"
           type="submit"
@@ -129,13 +131,13 @@ export class LinkParkingFormComponent {
       >
     >();
 
-  protected readonly selectedParkings = new FormControl<readonly ParkingDto[]>(
-    [],
-    {
-      nonNullable: true,
-      validators: [Validators.required],
-    },
-  );
+  protected readonly model = signal({
+    selectedParkings: [] as ParkingDto[],
+  });
+
+  protected readonly linkForm = form(this.model, (path) => {
+    required(path.selectedParkings);
+  });
 
   protected readonly allParkings = resource({
     loader: async () => {
@@ -162,17 +164,19 @@ export class LinkParkingFormComponent {
 
   async onSubmit(event: Event): Promise<void> {
     event.preventDefault();
-    const cragId = this.context.data.cragId;
-    const selected = this.selectedParkings.value;
+    submit(this.linkForm, async () => {
+      const cragId = this.context.data.cragId;
+      const selected = this.model().selectedParkings;
 
-    try {
-      for (const p of selected) {
-        await this.parkingsService.addParkingToCrag(cragId, p.id);
+      try {
+        for (const p of selected) {
+          await this.parkingsService.addParkingToCrag(cragId, p.id);
+        }
+        this.context.completeWith(true);
+      } catch (e) {
+        console.error('[LinkParkingFormComponent] Error linking parkings:', e);
       }
-      this.context.completeWith(true);
-    } catch (e) {
-      console.error('[LinkParkingFormComponent] Error linking parkings:', e);
-    }
+    });
   }
 
   close(): void {

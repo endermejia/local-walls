@@ -145,6 +145,7 @@ interface UserWithRole {
             tuiSelect
             [ngModel]="roleFilter()"
             (ngModelChange)="roleFilter.set($event)"
+            autocomplete="off"
           />
           <tui-data-list-wrapper
             *tuiTextfieldDropdown
@@ -254,6 +255,7 @@ interface UserWithRole {
                         [ngModel]="user.role"
                         [ngModelOptions]="options"
                         (ngModelChange)="onRoleChange($event, user)"
+                        autocomplete="off"
                       />
                       <tui-data-list-wrapper
                         *tuiTextfieldDropdown
@@ -277,6 +279,7 @@ interface UserWithRole {
                           id="areas-select-{{ user.id }}"
                           [formControl]="user.areasControl"
                           [placeholder]="'select' | translate"
+                          autocomplete="off"
                         />
                         <tui-input-chip *tuiItem />
                         <tui-data-list *tuiTextfieldDropdown>

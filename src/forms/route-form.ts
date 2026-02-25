@@ -12,7 +12,8 @@ import {
   signal,
   Signal,
 } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { form, FormField, required, submit } from '@angular/forms/signals';
 
 import { TuiIdentityMatcher } from '@taiga-ui/cdk';
 import {
@@ -69,7 +70,8 @@ interface MinimalRoute {
   selector: 'app-route-form',
   imports: [
     CommonModule,
-    ReactiveFormsModule,
+    FormField,
+    FormsModule,
     TuiButton,
     TuiError,
     TuiLabel,
@@ -97,7 +99,12 @@ interface MinimalRoute {
           <label tuiLabel for="crag">
             {{ 'crag' | translate }}
           </label>
-          <input tuiSelect id="crag" [formControl]="crag_id" />
+          <input
+            tuiSelect
+            id="crag"
+            [formField]="$any(routeForm.crag)"
+            autocomplete="off"
+          />
           <tui-data-list-wrapper
             *tuiTextfieldDropdown
             new
@@ -108,7 +115,12 @@ interface MinimalRoute {
 
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="name">{{ 'routes.name' | translate }}</label>
-        <input tuiTextfield id="name" [formControl]="name" autocomplete="off" />
+        <input
+          tuiTextfield
+          id="name"
+          [formField]="routeForm.name"
+          autocomplete="off"
+        />
       </tui-textfield>
 
       <tui-textfield [tuiTextfieldCleaner]="false">
@@ -116,14 +128,14 @@ interface MinimalRoute {
         <input
           tuiTextfield
           id="slug"
-          [formControl]="slug"
+          [formField]="routeForm.slug"
           type="text"
-          [invalid]="slug.invalid && slug.touched"
+          autocomplete="off"
         />
-        @if (slug.invalid && slug.touched) {
-          <tui-error [error]="'errors.required' | translate" />
-        }
       </tui-textfield>
+      @if (routeForm.slug().invalid() && routeForm.slug().touched()) {
+        <tui-error [error]="'errors.required' | translate" />
+      }
 
       <tui-textfield
         multi
@@ -138,8 +150,9 @@ interface MinimalRoute {
         <input
           tuiInputChip
           id="equippers"
-          [formControl]="equippers"
+          [formField]="$any(routeForm.equippers)"
           [placeholder]="'select' | translate"
+          autocomplete="off"
         />
         <tui-input-chip *tuiItem />
         <tui-data-list *tuiTextfieldDropdown>
@@ -164,7 +177,12 @@ interface MinimalRoute {
         <label tuiLabel for="kind">
           {{ 'climbing_kind' | translate }}
         </label>
-        <input tuiSelect id="kind" [formControl]="climbing_kind" />
+        <input
+          tuiSelect
+          id="kind"
+          [formField]="$any(routeForm.climbing_kind)"
+          autocomplete="off"
+        />
         <tui-data-list-wrapper
           *tuiTextfieldDropdown
           new
@@ -192,7 +210,12 @@ interface MinimalRoute {
             class="grow min-w-0"
           >
             <label tuiLabel for="grade">{{ 'grade' | translate }}</label>
-            <input tuiSelect id="grade" [formControl]="grade" />
+            <input
+              tuiSelect
+              id="grade"
+              [formField]="$any(routeForm.grade)"
+              autocomplete="off"
+            />
             <tui-data-list-wrapper
               *tuiTextfieldDropdown
               new
@@ -213,10 +236,9 @@ interface MinimalRoute {
         </div>
 
         <app-counter
-          [formControl]="height"
+          [formField]="$any(routeForm.height)"
           label="routes.height"
           suffix="m"
-          [min]="0"
         />
       </div>
 
@@ -228,7 +250,8 @@ interface MinimalRoute {
           <input
             tuiInputChip
             id="eight-anu-slugs"
-            [formControl]="eight_anu_route_slugs"
+            [formField]="$any(routeForm.eight_anu_route_slugs)"
+            autocomplete="off"
           />
           <tui-input-chip *tuiItem />
         </tui-textfield>
@@ -245,12 +268,12 @@ interface MinimalRoute {
         </button>
         <button
           [disabled]="
-            name.invalid ||
-            crag_id.invalid ||
-            (!name.dirty &&
-              !height.dirty &&
-              !grade.dirty &&
-              !crag_id.dirty &&
+            routeForm.name().invalid() ||
+            routeForm.crag().invalid() ||
+            (!routeForm.name().dirty() &&
+              !routeForm.height().dirty() &&
+              !routeForm.grade().dirty() &&
+              !routeForm.crag().dirty() &&
               !isEdit())
           "
           tuiButton
@@ -310,29 +333,33 @@ export class RouteFormComponent {
     return !!data && data.id > 0;
   });
 
-  name = new FormControl<string>('', {
-    nonNullable: true,
-    validators: [Validators.required],
+  model = signal<{
+    name: string;
+    crag: CragDto | null;
+    slug: string;
+    grade: number;
+    climbing_kind: ClimbingKind;
+    height: number | null;
+    equippers: (EquipperDto | string)[];
+    eight_anu_route_slugs: string[];
+  }>({
+    name: '',
+    crag: null,
+    slug: '',
+    grade: 23,
+    climbing_kind: ClimbingKinds.SPORT,
+    height: 25,
+    equippers: [],
+    eight_anu_route_slugs: [],
   });
-  crag_id = new FormControl<CragDto | null>(null, {
-    validators: [Validators.required],
+
+  routeForm = form(this.model, (path) => {
+    required(path.name);
+    required(path.crag);
+    required(path.grade);
+    required(path.climbing_kind);
+    // Add additional validation if needed
   });
-  slug = new FormControl<string>('', {
-    nonNullable: true,
-  });
-  grade = new FormControl<number>(23, {
-    nonNullable: true,
-    validators: [Validators.required],
-  });
-  climbing_kind = new FormControl<ClimbingKind>(ClimbingKinds.SPORT, {
-    nonNullable: true,
-    validators: [Validators.required],
-  });
-  height = new FormControl<number | null>(25);
-  equippers = new FormControl<readonly (EquipperDto | string)[]>([], {
-    nonNullable: true,
-  });
-  eight_anu_route_slugs = new FormControl<string[] | null>([]);
 
   private editingId: number | null = null;
 
@@ -420,14 +447,13 @@ export class RouteFormComponent {
   });
 
   changeGrade(delta: number): void {
-    const current = this.grade.value;
+    const current = this.model().grade;
     const currentIndex = this.gradeOptions.indexOf(current);
     if (currentIndex === -1) return;
 
     const nextIndex = currentIndex + delta;
     if (nextIndex >= 0 && nextIndex < this.gradeOptions.length) {
-      this.grade.setValue(this.gradeOptions[nextIndex]);
-      this.grade.markAsDirty();
+      this.model.update((m) => ({ ...m, grade: this.gradeOptions[nextIndex] }));
     }
   }
 
@@ -440,33 +466,38 @@ export class RouteFormComponent {
       const options = this.cragOptions.value();
       if (!options?.length) return;
 
-      if (!this.crag_id.value) {
+      if (!this.model().crag) {
         if (initialCragId) {
           const selectedCrag = options.find((c) => c.id === initialCragId);
           if (selectedCrag) {
-            this.crag_id.setValue(selectedCrag);
+            this.model.update((m) => ({ ...m, crag: selectedCrag }));
           }
         }
       }
 
       if (!data) return;
       this.editingId = data.id;
-      this.name.setValue(data.name);
-      this.slug.setValue(data.slug);
-      this.grade.setValue(data.grade);
-      this.climbing_kind.setValue(data.climbing_kind);
-      this.height.setValue(data.height ?? null);
-      this.eight_anu_route_slugs.setValue(data.eight_anu_route_slugs || []);
+
+      this.model.update((m) => ({
+        ...m,
+        name: data.name,
+        slug: data.slug,
+        grade: data.grade,
+        climbing_kind: data.climbing_kind,
+        height: data.height ?? null,
+        eight_anu_route_slugs: data.eight_anu_route_slugs || [],
+      }));
+
       if (data.crag_id) {
         const selectedCrag = options.find((c) => c.id === data.crag_id);
         if (selectedCrag) {
-          this.crag_id.setValue(selectedCrag);
+          this.model.update((m) => ({ ...m, crag: selectedCrag }));
         }
       }
 
       // Load equippers
       const equippers = await this.routes.getRouteEquippers(data.id);
-      this.equippers.setValue(equippers);
+      this.model.update((m) => ({ ...m, equippers }));
 
       this.fetchFullRouteData(data.id);
     });
@@ -475,59 +506,66 @@ export class RouteFormComponent {
   private async fetchFullRouteData(id: number) {
     const { data, error } = await this.routes.getById(id);
     if (data && !error) {
-      this.eight_anu_route_slugs.setValue(data.eight_anu_route_slugs || []);
-      this.name.markAsPristine();
+      this.model.update((m) => ({
+        ...m,
+        eight_anu_route_slugs: data.eight_anu_route_slugs || [],
+      }));
+      this.routeForm().reset();
     }
   }
 
   async onSubmit(event: Event): Promise<void> {
     event.preventDefault();
-    if (this.name.invalid || this.crag_id.invalid) return;
+    submit(this.routeForm, async () => {
+      const {
+        crag,
+        name,
+        slug,
+        grade,
+        climbing_kind,
+        height,
+        equippers,
+        eight_anu_route_slugs,
+      } = this.model();
+      const crag_id = crag?.id;
+      if (!crag_id) return;
 
-    const crag_id = this.crag_id.value?.id;
-    if (!crag_id) return;
-
-    const name = this.name.value;
-    const grade = this.grade.value;
-    const climbing_kind = this.climbing_kind.value;
-    const height = this.height.value;
-    const equippers = this.equippers.value;
-
-    try {
-      let result: RouteDto | null = null;
-      if (this.isEdit() && this.editingId) {
-        result = await this.routes.update(this.editingId, {
-          crag_id,
-          name,
-          slug: this.slug.value,
-          grade,
-          climbing_kind,
-          height,
-          eight_anu_route_slugs: this.eight_anu_route_slugs.value,
-        });
-      } else if (crag_id) {
-        result = await this.routes.create({
-          crag_id,
-          name,
-          slug: this.slug.value || slugify(name),
-          grade,
-          climbing_kind,
-          height,
-          eight_anu_route_slugs: this.eight_anu_route_slugs.value,
-        });
-      }
-
-      if (result) {
-        await this.routes.setRouteEquippers(result.id, equippers);
-        if (this._dialogCtx) {
-          this._dialogCtx.completeWith(result.slug || true);
+      try {
+        let result: RouteDto | null = null;
+        if (this.isEdit() && this.editingId) {
+          result = await this.routes.update(this.editingId, {
+            crag_id,
+            name,
+            slug,
+            grade,
+            climbing_kind,
+            height,
+            eight_anu_route_slugs,
+          });
+        } else {
+          result = await this.routes.create({
+            crag_id,
+            name,
+            slug: slug || slugify(name),
+            grade,
+            climbing_kind,
+            height,
+            eight_anu_route_slugs,
+          });
         }
+
+        if (result) {
+          await this.routes.setRouteEquippers(result.id, equippers);
+          if (this._dialogCtx) {
+            this._dialogCtx.completeWith(result.slug || true);
+          }
+        }
+      } catch (e) {
+        const error = e as Error;
+        console.error('[RouteFormComponent] Error submitting route:', error);
+        handleErrorToast(error, this.toast);
       }
-    } catch (e) {
-      const error = e as Error;
-      console.error('[RouteFormComponent] Error submitting route:', error);
-      handleErrorToast(error, this.toast);
-    }
+    });
   }
 
   goBack(): void {

@@ -6,7 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { form, FormField, required } from '@angular/forms/signals';
 
 import {
   TuiButton,
@@ -37,7 +37,7 @@ import { AreaDto, AreaListItem } from '../models';
   selector: 'app-area-unify',
   imports: [
     CommonModule,
-    ReactiveFormsModule,
+    FormField,
     TranslatePipe,
     TuiButton,
     TuiChevron,
@@ -65,7 +65,7 @@ import { AreaDto, AreaListItem } from '../models';
           tuiComboBox
           id="target-area"
           autocomplete="off"
-          [formControl]="targetArea"
+          [formField]="$any(unifyForm.targetArea)"
           [placeholder]="'select' | translate"
         />
         <tui-data-list *tuiTextfieldDropdown>
@@ -75,10 +75,12 @@ import { AreaDto, AreaListItem } from '../models';
             </button>
           }
         </tui-data-list>
-        @if (targetArea.invalid && targetArea.touched) {
-          <tui-error [error]="'errors.required' | translate" />
-        }
       </tui-textfield>
+      @if (
+        unifyForm.targetArea().invalid() && unifyForm.targetArea().touched()
+      ) {
+        <tui-error [error]="'errors.required' | translate" />
+      }
 
       <tui-textfield
         tuiChevron
@@ -94,7 +96,7 @@ import { AreaDto, AreaListItem } from '../models';
           tuiInputChip
           id="source-areas"
           autocomplete="off"
-          [formControl]="sourceAreas"
+          [formField]="$any(unifyForm.sourceAreas)"
           [placeholder]="'select' | translate"
         />
         <tui-input-chip *tuiItem />
@@ -110,10 +112,12 @@ import { AreaDto, AreaListItem } from '../models';
             }
           </tui-opt-group>
         </tui-data-list>
-        @if (sourceAreas.invalid && sourceAreas.touched) {
-          <tui-error [error]="'errors.required' | translate" />
-        }
       </tui-textfield>
+      @if (
+        unifyForm.sourceAreas().invalid() && unifyForm.sourceAreas().touched()
+      ) {
+        <tui-error [error]="'errors.required' | translate" />
+      }
 
       <tui-textfield class="block">
         <label tuiLabel for="new-name">{{ 'areas.newName' | translate }}</label>
@@ -121,9 +125,9 @@ import { AreaDto, AreaListItem } from '../models';
           tuiTextfield
           id="new-name"
           autocomplete="off"
-          [formControl]="newName"
+          [formField]="$any(unifyForm.newName)"
           type="text"
-          [placeholder]="targetArea.value?.name || ''"
+          [placeholder]="unifyForm.targetArea().value()?.name || ''"
         />
       </tui-textfield>
 
@@ -140,8 +144,8 @@ import { AreaDto, AreaListItem } from '../models';
           tuiButton
           appearance="primary"
           [disabled]="
-            targetArea.invalid ||
-            (sourceAreas.value?.length || 0) === 0 ||
+            unifyForm.targetArea().invalid() ||
+            unifyForm.sourceAreas().value().length === 0 ||
             loading()
           "
           (click)="onUnify()"
@@ -164,18 +168,31 @@ export class AreaUnifyComponent {
 
   protected readonly loading = signal(false);
 
-  targetArea = new FormControl<AreaDto | null>(null, Validators.required);
-  sourceAreas = new FormControl<AreaDto[]>([], Validators.required);
-  newName = new FormControl<string>('');
+  model = signal<{
+    targetArea: AreaDto | null;
+    sourceAreas: AreaDto[];
+    newName: string | null;
+  }>({
+    targetArea: null,
+    sourceAreas: [],
+    newName: null,
+  });
+
+  unifyForm = form(this.model, (schemaPath) => {
+    required(schemaPath.targetArea);
+    required(schemaPath.sourceAreas);
+  });
 
   constructor() {
     const initialAreas = this.context.data;
     if (initialAreas && initialAreas.length > 0) {
       // Set the first area as target and the rest as sources
-      this.targetArea.setValue(initialAreas[0] as AreaDto);
-      if (initialAreas.length > 1) {
-        this.sourceAreas.setValue(initialAreas.slice(1) as AreaDto[]);
-      }
+      this.model.update((m) => ({
+        ...m,
+        targetArea: initialAreas[0] as AreaDto,
+        sourceAreas:
+          initialAreas.length > 1 ? (initialAreas.slice(1) as AreaDto[]) : [],
+      }));
     }
   }
 
@@ -200,20 +217,20 @@ export class AreaUnifyComponent {
   protected readonly stringify = (area: AreaDto) => area.name;
 
   protected availableSources() {
-    const targetId = this.targetArea.value?.id;
+    const targetId = this.model().targetArea?.id;
     return this.availableAreas().filter((a) => a.id !== targetId);
   }
 
   async onUnify() {
-    const target = this.targetArea.value;
-    const sources = this.sourceAreas.value;
+    const target = this.model().targetArea;
+    const sources = this.model().sourceAreas;
     if (!target || !sources || sources.length === 0) return;
 
     this.loading.set(true);
     const success = await this.areasService.unify(
       target.id,
       sources.map((s) => s.id),
-      this.newName.value || target.name,
+      this.model().newName || target.name,
     );
     this.loading.set(false);
 

@@ -8,13 +8,10 @@ import {
   input,
   InputSignal,
   Signal,
+  signal,
 } from '@angular/core';
-import {
-  FormControl,
-  FormsModule,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { form, FormField, required, submit } from '@angular/forms/signals';
 
 import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
@@ -32,7 +29,7 @@ import { handleErrorToast, slugify } from '../utils';
   selector: 'app-area-form',
   imports: [
     CommonModule,
-    ReactiveFormsModule,
+    FormField,
     FormsModule,
     TuiButton,
     TuiError,
@@ -48,15 +45,14 @@ import { handleErrorToast, slugify } from '../utils';
         <input
           tuiTextfield
           id="area-name"
-          [formControl]="name"
+          [formField]="areaForm.name"
           type="text"
-          required
-          [invalid]="name.invalid && name.touched"
+          autocomplete="off"
         />
-        @if (name.invalid && name.touched) {
-          <tui-error [error]="'errors.required' | translate" />
-        }
       </tui-textfield>
+      @if (areaForm.name().invalid() && areaForm.name().touched()) {
+        <tui-error [error]="'errors.required' | translate" />
+      }
 
       @if (isEdit()) {
         <tui-textfield class="block">
@@ -64,15 +60,14 @@ import { handleErrorToast, slugify } from '../utils';
           <input
             tuiTextfield
             id="area-slug"
-            [formControl]="slug"
+            [formField]="areaForm.slug"
             type="text"
-            required
-            [invalid]="slug.invalid && slug.touched"
+            autocomplete="off"
           />
-          @if (slug.invalid && slug.touched) {
-            <tui-error [error]="'errors.required' | translate" />
-          }
         </tui-textfield>
+        @if (areaForm.slug().invalid() && areaForm.slug().touched()) {
+          <tui-error [error]="'errors.required' | translate" />
+        }
 
         <tui-textfield multi class="block">
           <label tuiLabel for="eight-anu-slugs">
@@ -81,7 +76,8 @@ import { handleErrorToast, slugify } from '../utils';
           <input
             tuiInputChip
             id="eight-anu-slugs"
-            [formControl]="eight_anu_crag_slugs"
+            [formField]="$any(areaForm.eight_anu_crag_slugs)"
+            autocomplete="off"
           />
           <tui-input-chip *tuiItem />
         </tui-textfield>
@@ -98,12 +94,12 @@ import { handleErrorToast, slugify } from '../utils';
         </button>
         <button
           [disabled]="
-            name.invalid ||
-            (isEdit() && slug.invalid) ||
-            (!name.dirty &&
+            areaForm.name().invalid() ||
+            (isEdit() && areaForm.slug().invalid()) ||
+            (!areaForm.name().dirty() &&
               isEdit() &&
-              !slug.dirty &&
-              !eight_anu_crag_slugs.dirty)
+              !areaForm.slug().dirty() &&
+              !areaForm.eight_anu_crag_slugs().dirty())
           "
           tuiButton
           appearance="primary"
@@ -153,17 +149,22 @@ export class AreaFormComponent {
 
   readonly isEdit: Signal<boolean> = computed(() => !!this.effectiveAreaData());
 
-  name = new FormControl<string>('', {
-    nonNullable: true,
-    validators: [Validators.required],
+  model = signal<{
+    name: string;
+    slug: string;
+    eight_anu_crag_slugs: string[];
+  }>({
+    name: '',
+    slug: '',
+    eight_anu_crag_slugs: [],
   });
 
-  slug = new FormControl<string>('', {
-    nonNullable: true,
-    validators: [Validators.required],
+  areaForm = form(this.model, (schemaPath) => {
+    required(schemaPath.name);
+    required(schemaPath.slug, {
+      when: () => this.isEdit(),
+    });
   });
-
-  eight_anu_crag_slugs = new FormControl<string[] | null>([]);
 
   // Internal id used for updates when editing
   private editingId: number | null = null;
@@ -174,15 +175,9 @@ export class AreaFormComponent {
       const data = this.effectiveAreaData();
       if (!data) return;
       this.editingId = data.id;
-      this.name.setValue(data.name);
-      this.slug.setValue(data.slug);
+      this.model.update((m) => ({ ...m, name: data.name, slug: data.slug }));
 
       // Fetch full data to get eight_anu_crag_slugs if not provided in dialog data
-      // Actually, we should probably update AreaDto in the input if we want it here.
-      // But the issue says: "añade un input en area-form (cuando se esté editando) para poder modificar el slug."
-      // "añade un tui-input-chip en area-form con los Slugs de 8a.nu"
-      // Let's assume the dialog data might not have it, so we might need to fetch it or ensure it's passed.
-      // If we look at AreasService.openAreaForm, it only passes id, name, slug.
       this.fetchFullAreaData(data.id);
     });
   }
@@ -190,9 +185,11 @@ export class AreaFormComponent {
   private async fetchFullAreaData(id: number) {
     const { data, error } = await this.areas.getById(id);
     if (data && !error) {
-      this.eight_anu_crag_slugs.setValue(data.eight_anu_crag_slugs || []);
-      this.slug.markAsPristine();
-      this.name.markAsPristine();
+      this.model.update((m) => ({
+        ...m,
+        eight_anu_crag_slugs: data.eight_anu_crag_slugs || [],
+      }));
+      this.areaForm().reset();
     }
   }
 
@@ -200,38 +197,34 @@ export class AreaFormComponent {
     // Prevent native form submission when using (submit) instead of (ngSubmit)
     event?.preventDefault();
     event?.stopPropagation();
-    if (this.name.invalid || (this.isEdit() && this.slug.invalid)) {
-      this.name.markAsTouched();
-      this.slug.markAsTouched();
-      return;
-    }
-    const name = this.name.value;
-    const payload = this.isEdit()
-      ? {
-          name,
-          slug: this.slug.value,
-          eight_anu_crag_slugs: this.eight_anu_crag_slugs.value,
+
+    submit(this.areaForm, async () => {
+      const { name, slug, eight_anu_crag_slugs } = this.model();
+      const payload = this.isEdit()
+        ? {
+            name,
+            slug,
+            eight_anu_crag_slugs,
+          }
+        : { name, slug: slugify(name) };
+      try {
+        if (this.isEdit()) {
+          if (this.editingId == null) return;
+          await this.areas.update(this.editingId, payload);
+        } else {
+          await this.areas.create(payload as { name: string; slug: string });
         }
-      : { name, slug: slugify(name) };
-    try {
-      if (this.isEdit()) {
-        if (this.editingId == null) return;
-        await this.areas.update(this.editingId, payload);
-      } else {
-        await this.areas.create(payload as { name: string; slug: string });
+        if (this._dialogCtx) {
+          this._dialogCtx.completeWith(this.isEdit() ? (slug ?? true) : true);
+        } else {
+          this.goBack();
+        }
+      } catch (e) {
+        const error = e as Error;
+        console.error('[AreaFormComponent] Error submitting area:', e);
+        handleErrorToast(error, this.toast);
       }
-      if (this._dialogCtx) {
-        this._dialogCtx.completeWith(
-          this.isEdit() ? (this.slug.value ?? true) : true,
-        );
-      } else {
-        this.goBack();
-      }
-    } catch (e) {
-      const error = e as Error;
-      console.error('[AreaFormComponent] Error submitting area:', e);
-      handleErrorToast(error, this.toast);
-    }
+    });
   }
 
   goBack(): void {

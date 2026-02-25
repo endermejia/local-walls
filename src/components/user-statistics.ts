@@ -185,7 +185,11 @@ interface RouteScore {
           [stringify]="dateValueContent"
           tuiTextfieldSize="l"
         >
-          <input tuiSelect [formControl]="dateFilterControl" />
+          <input
+            tuiSelect
+            [formControl]="dateFilterControl"
+            autocomplete="off"
+          />
           <tui-data-list *tuiTextfieldDropdown>
             <tui-data-list-wrapper new [items]="dateFilterOptions()" />
           </tui-data-list>

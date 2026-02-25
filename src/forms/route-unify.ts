@@ -6,7 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { form, FormField, required } from '@angular/forms/signals';
 
 import {
   TuiButton,
@@ -37,7 +37,7 @@ import { RouteDto } from '../models';
   selector: 'app-route-unify',
   imports: [
     CommonModule,
-    ReactiveFormsModule,
+    FormField,
     TranslatePipe,
     TuiButton,
     TuiChevron,
@@ -65,7 +65,7 @@ import { RouteDto } from '../models';
           tuiComboBox
           id="target-route"
           autocomplete="off"
-          [formControl]="targetRoute"
+          [formField]="$any(unifyForm.targetRoute)"
           [placeholder]="'select' | translate"
         />
         <tui-data-list *tuiTextfieldDropdown>
@@ -75,10 +75,12 @@ import { RouteDto } from '../models';
             </button>
           }
         </tui-data-list>
-        @if (targetRoute.invalid && targetRoute.touched) {
-          <tui-error [error]="'errors.required' | translate" />
-        }
       </tui-textfield>
+      @if (
+        unifyForm.targetRoute().invalid() && unifyForm.targetRoute().touched()
+      ) {
+        <tui-error [error]="'errors.required' | translate" />
+      }
 
       <tui-textfield
         tuiChevron
@@ -94,7 +96,7 @@ import { RouteDto } from '../models';
           tuiInputChip
           id="source-routes"
           autocomplete="off"
-          [formControl]="sourceRoutes"
+          [formField]="$any(unifyForm.sourceRoutes)"
           [placeholder]="'select' | translate"
         />
         <tui-input-chip *tuiItem />
@@ -110,10 +112,12 @@ import { RouteDto } from '../models';
             }
           </tui-opt-group>
         </tui-data-list>
-        @if (sourceRoutes.invalid && sourceRoutes.touched) {
-          <tui-error [error]="'errors.required' | translate" />
-        }
       </tui-textfield>
+      @if (
+        unifyForm.sourceRoutes().invalid() && unifyForm.sourceRoutes().touched()
+      ) {
+        <tui-error [error]="'errors.required' | translate" />
+      }
 
       <tui-textfield class="block">
         <label tuiLabel for="new-name">{{
@@ -123,9 +127,9 @@ import { RouteDto } from '../models';
           tuiTextfield
           id="new-name"
           autocomplete="off"
-          [formControl]="newName"
+          [formField]="$any(unifyForm.newName)"
           type="text"
-          [placeholder]="targetRoute.value?.name || ''"
+          [placeholder]="unifyForm.targetRoute().value()?.name || ''"
         />
       </tui-textfield>
 
@@ -142,8 +146,8 @@ import { RouteDto } from '../models';
           tuiButton
           appearance="primary"
           [disabled]="
-            targetRoute.invalid ||
-            (sourceRoutes.value?.length || 0) === 0 ||
+            unifyForm.targetRoute().invalid() ||
+            unifyForm.sourceRoutes().value().length === 0 ||
             loading()
           "
           (click)="onUnify()"
@@ -164,17 +168,29 @@ export class RouteUnifyComponent {
 
   protected readonly loading = signal(false);
 
-  targetRoute = new FormControl<RouteDto | null>(null, Validators.required);
-  sourceRoutes = new FormControl<RouteDto[]>([], Validators.required);
-  newName = new FormControl<string>('');
+  model = signal<{
+    targetRoute: RouteDto | null;
+    sourceRoutes: RouteDto[];
+    newName: string | null;
+  }>({
+    targetRoute: null,
+    sourceRoutes: [],
+    newName: null,
+  });
+
+  unifyForm = form(this.model, (schemaPath) => {
+    required(schemaPath.targetRoute);
+    required(schemaPath.sourceRoutes);
+  });
 
   constructor() {
     const candidates = this.context.data?.candidates;
     if (candidates && candidates.length > 0) {
-      this.targetRoute.setValue(candidates[0]);
-      if (candidates.length > 1) {
-        this.sourceRoutes.setValue(candidates.slice(1));
-      }
+      this.model.update((m) => ({
+        ...m,
+        targetRoute: candidates[0],
+        sourceRoutes: candidates.length > 1 ? candidates.slice(1) : [],
+      }));
     }
   }
 
@@ -192,20 +208,20 @@ export class RouteUnifyComponent {
   protected readonly stringify = (route: RouteDto) => route.name;
 
   protected availableSources() {
-    const targetId = this.targetRoute.value?.id;
+    const targetId = this.model().targetRoute?.id;
     return this.cragRoutes().filter((a) => a.id !== targetId);
   }
 
   async onUnify() {
-    const target = this.targetRoute.value;
-    const sources = this.sourceRoutes.value;
+    const target = this.model().targetRoute;
+    const sources = this.model().sourceRoutes;
     if (!target || !sources || sources.length === 0) return;
 
     this.loading.set(true);
     const success = await this.routesService.unify(
       target.id,
       sources.map((s) => s.id),
-      this.newName.value || target.name,
+      this.model().newName || target.name,
     );
     this.loading.set(false);
 

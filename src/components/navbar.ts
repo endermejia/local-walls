@@ -440,6 +440,7 @@ import { TourHintComponent } from './tour-hint';
                   type="checkbox"
                   [ngModel]="global.editingMode()"
                   (ngModelChange)="toggleEditingMode($event)"
+                  autocomplete="off"
                 />
               </label>
               <div

@@ -113,6 +113,7 @@ import { handleErrorToast } from '../utils';
             [ngModel]="searchQuery()"
             (ngModelChange)="searchQuery.set($event)"
             [placeholder]="'name' | translate"
+            autocomplete="off"
           />
         </tui-textfield>
       </div>

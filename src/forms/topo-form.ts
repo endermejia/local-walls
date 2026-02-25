@@ -12,12 +12,8 @@ import {
   Signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import {
-  FormControl,
-  FormsModule,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { form, FormField, required, submit } from '@angular/forms/signals';
 
 import { TuiIdentityMatcher, tuiIsString, TuiTime } from '@taiga-ui/cdk';
 import {
@@ -78,7 +74,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
     GradeComponent,
     CommonModule,
     FormsModule,
-    ReactiveFormsModule,
+    FormField,
     TranslatePipe,
     TuiButton,
     TuiCell,
@@ -104,13 +100,23 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
     >
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="name">{{ 'topos.name' | translate }}</label>
-        <input tuiTextfield id="name" [formControl]="name" autocomplete="off" />
+        <input
+          tuiTextfield
+          id="name"
+          [formField]="topoForm.name"
+          autocomplete="off"
+        />
       </tui-textfield>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label class="flex items-center gap-2 cursor-pointer">
-            <input tuiCheckbox type="checkbox" [formControl]="shade_morning" />
+            <input
+              tuiCheckbox
+              type="checkbox"
+              [formField]="topoForm.shade_morning"
+              autocomplete="off"
+            />
             <tui-icon icon="@tui.sunset" />
             {{ 'filters.shade.morning' | translate }}
           </label>
@@ -119,7 +125,8 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             <input
               tuiCheckbox
               type="checkbox"
-              [formControl]="shade_afternoon"
+              [formField]="topoForm.shade_afternoon"
+              autocomplete="off"
             />
             <tui-icon icon="@tui.sunrise" />
             {{ 'filters.shade.afternoon' | translate }}
@@ -134,7 +141,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             tuiInputTime
             id="shade_change_hour"
             autocomplete="off"
-            [formControl]="shade_change_hour"
+            [formField]="topoForm.shade_change_hour"
           />
         </tui-textfield>
       </div>
@@ -183,7 +190,8 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               <input
                 accept="image/*"
                 tuiInputFiles
-                [formControl]="photoControl"
+                [formField]="$any(topoForm.photoControl)"
+                autocomplete="off"
               />
             </label>
           }
@@ -273,7 +281,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             tuiInputChip
             id="routes-select"
             autocomplete="off"
-            [formControl]="selectedRoutes"
+            [formField]="$any(topoForm.selectedRoutes)"
             [placeholder]="'select' | translate"
           />
           <tui-input-chip *tuiItem />
@@ -313,7 +321,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
         >
           {{ 'cancel' | translate }}
         </button>
-        @if (selectedRoutes.value.length > 0) {
+        @if (model().selectedRoutes.length > 0) {
           <button
             tuiButton
             appearance="flat"
@@ -325,7 +333,9 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
           </button>
         }
         <button
-          [disabled]="name.invalid || shade_change_hour.invalid"
+          [disabled]="
+            topoForm.name().invalid() || topoForm.shade_change_hour().invalid()
+          "
           tuiButton
           appearance="primary"
           type="submit"
@@ -395,23 +405,35 @@ export class TopoFormComponent {
 
   readonly isEdit: Signal<boolean> = computed(() => !!this.effectiveTopoData());
 
-  name = new FormControl<string>('', {
-    nonNullable: true,
-    validators: [Validators.required],
-  });
-  photo = new FormControl<string | null>(null);
-  shade_morning = new FormControl<boolean>(false, { nonNullable: true });
-  shade_afternoon = new FormControl<boolean>(false, { nonNullable: true });
-  shade_change_hour = new FormControl<string | null>(null);
-  selectedRoutes = new FormControl<readonly RouteDto[]>([], {
-    nonNullable: true,
+  model = signal<{
+    name: string;
+    photo: string | null;
+    shade_morning: boolean;
+    shade_afternoon: boolean;
+    shade_change_hour: string | null;
+    selectedRoutes: RouteDto[];
+    photoControl: File | null;
+  }>({
+    name: '',
+    photo: null,
+    shade_morning: false,
+    shade_afternoon: false,
+    shade_change_hour: null,
+    selectedRoutes: [],
+    photoControl: null,
   });
 
-  protected readonly photoControl = new FormControl<File | null>(null);
-  protected readonly photoValue = toSignal(
-    this.photoControl.valueChanges.pipe(startWith(this.photoControl.value)),
-    { initialValue: null },
-  );
+  topoForm = form(this.model, (path) => {
+    required(path.name);
+    // Dynamic validation for shade_change_hour will be handled by schema or conditional logic
+    // but the original code used setValidators.
+    // In Signal Forms, we can use validation with 'when'.
+    required(path.shade_change_hour, {
+      when: () => this.showShadeChangeHour(),
+    });
+  });
+
+  protected readonly photoValue = computed(() => this.model().photoControl);
   protected readonly previewUrl = signal<string | null>(null);
   protected readonly isProcessingPhoto = signal(false);
   protected readonly isExistingPhotoDeleted = signal(false);
@@ -435,20 +457,9 @@ export class TopoFormComponent {
     },
   }).value;
 
-  private readonly shadeMorningSignal = toSignal(
-    this.shade_morning.valueChanges.pipe(startWith(this.shade_morning.value)),
-    { initialValue: this.shade_morning.value },
-  );
-  private readonly shadeAfternoonSignal = toSignal(
-    this.shade_afternoon.valueChanges.pipe(
-      startWith(this.shade_afternoon.value),
-    ),
-    { initialValue: this.shade_afternoon.value },
-  );
-
   protected readonly showShadeChangeHour = computed(() => {
-    const morning = this.shadeMorningSignal();
-    const afternoon = this.shadeAfternoonSignal();
+    const morning = this.model().shade_morning;
+    const afternoon = this.model().shade_afternoon;
     return morning !== afternoon;
   });
 
@@ -504,7 +515,8 @@ export class TopoFormComponent {
     });
 
     // Auto-open editor when a new file is selected from file input
-    this.photoControl.valueChanges.subscribe((file) => {
+    effect(() => {
+      const file = this.model().photoControl;
       if (file && !this.isProcessingPhoto()) {
         this.isProcessingPhoto.set(true);
         this.editPhoto(file, undefined);
@@ -517,110 +529,108 @@ export class TopoFormComponent {
       if (!available.length || this.isInitialized) return;
 
       if (data) {
-        this.name.setValue(data.name);
-        this.photo.setValue(data.photo);
-        this.shade_morning.setValue(data.shade_morning);
-        this.shade_afternoon.setValue(data.shade_afternoon);
-        this.shade_change_hour.setValue(data.shade_change_hour);
-
         const sortedIds = (data.topo_routes || [])
           .sort((a, b) => a.number - b.number)
           .map((tr) => tr.route_id);
 
+        let selected: RouteWithExtras[] = [];
         if (sortedIds.length) {
-          const selected = sortedIds
+          selected = sortedIds
             .map((id) => available.find((r) => r.id === id))
             .filter((r): r is RouteWithExtras => !!r);
-          this.selectedRoutes.setValue(selected, { emitEvent: false });
-          this.isInitialized = true;
         }
+
+        this.model.set({
+          name: data.name,
+          photo: data.photo,
+          shade_morning: data.shade_morning,
+          shade_afternoon: data.shade_afternoon,
+          shade_change_hour: data.shade_change_hour,
+          selectedRoutes: selected,
+          photoControl: null,
+        });
+        this.isInitialized = true;
       }
 
       if (!this.isInitialized && this.initialRouteIds.length) {
         const selected = this.initialRouteIds
           .map((id) => available.find((r) => r.id === id))
           .filter((r): r is RouteWithExtras => !!r);
-        this.selectedRoutes.setValue(selected, { emitEvent: false });
+        this.model.update((m) => ({ ...m, selectedRoutes: selected }));
         this.isInitialized = true;
       }
     });
 
-    // Reset shade_change_hour if both are the same and enable/disable
+    // Handle shade_change_hour reset
     effect(() => {
       const show = this.showShadeChangeHour();
       if (!show) {
-        this.shade_change_hour.setValue(null);
-        this.shade_change_hour.disable();
-        this.shade_change_hour.setValidators(null);
-      } else {
-        this.shade_change_hour.enable();
-        this.shade_change_hour.setValidators([Validators.required]);
+        this.model.update((m) => ({ ...m, shade_change_hour: null }));
       }
-      this.shade_change_hour.updateValueAndValidity();
     });
   }
 
   async onSubmit(event: Event): Promise<void> {
     event.preventDefault();
-    if (this.name.invalid) return;
+    submit(this.topoForm, async () => {
+      const crag_id = this.effectiveCragId();
+      if (!crag_id && !this.isEdit()) return;
 
-    const crag_id = this.effectiveCragId();
-    if (!crag_id && !this.isEdit()) return;
+      const { name, photo, shade_morning, shade_afternoon, shade_change_hour } =
+        this.model();
 
-    if (this.isEdit()) {
-      const payload: TopoUpdateDto = {
-        name: this.name.value,
-        photo: this.photo.value,
-        shade_morning: this.shade_morning.value,
-        shade_afternoon: this.shade_afternoon.value,
-        shade_change_hour: this.shade_change_hour.value,
-        crag_id: crag_id!,
-      };
+      if (this.isEdit()) {
+        const payload: TopoUpdateDto = {
+          name,
+          photo,
+          shade_morning,
+          shade_afternoon,
+          shade_change_hour,
+          crag_id: crag_id!,
+        };
 
-      try {
-        const topo = await this.topos.update(
-          this.effectiveTopoData()!.id,
-          payload,
-        );
-        await this.handlePhotoUpload(topo);
-        await this.handleTopoRoutes(topo);
-        await this.handleTopoPaths(topo);
-        if (this._dialogCtx) {
-          this._dialogCtx.completeWith(topo?.slug || true);
+        try {
+          const topo = await this.topos.update(
+            this.effectiveTopoData()!.id,
+            payload,
+          );
+          await this.handlePhotoUpload(topo);
+          await this.handleTopoRoutes(topo);
+          await this.handleTopoPaths(topo);
+          if (this._dialogCtx) {
+            this._dialogCtx.completeWith(topo?.slug || true);
+          }
+        } catch (e) {
+          this.handleSubmitError(e);
         }
-      } catch (e) {
-        this.handleSubmitError(e);
-      }
-    } else {
-      const payload: TopoInsertDto = {
-        name: this.name.value,
-        photo: this.photo.value,
-        shade_morning: this.shade_morning.value,
-        shade_afternoon: this.shade_afternoon.value,
-        shade_change_hour: this.shade_change_hour.value,
-        crag_id: crag_id!,
-        slug:
-          (this.global.selectedCragSlug() || '') +
-          '-' +
-          slugify(this.name.value),
-      };
+      } else {
+        const payload: TopoInsertDto = {
+          name,
+          photo,
+          shade_morning,
+          shade_afternoon,
+          shade_change_hour,
+          crag_id: crag_id!,
+          slug: (this.global.selectedCragSlug() || '') + '-' + slugify(name),
+        };
 
-      try {
-        const topo = await this.topos.create(payload);
-        await this.handlePhotoUpload(topo);
-        await this.handleTopoRoutes(topo);
-        await this.handleTopoPaths(topo);
-        if (this._dialogCtx) {
-          this._dialogCtx.completeWith(topo?.slug || true);
+        try {
+          const topo = await this.topos.create(payload);
+          await this.handlePhotoUpload(topo);
+          await this.handleTopoRoutes(topo);
+          await this.handleTopoPaths(topo);
+          if (this._dialogCtx) {
+            this._dialogCtx.completeWith(topo?.slug || true);
+          }
+        } catch (e) {
+          this.handleSubmitError(e);
         }
-      } catch (e) {
-        this.handleSubmitError(e);
       }
-    }
+    });
   }
 
   private async handlePhotoUpload(topo: TopoDto | null): Promise<void> {
-    const photoFile = this.photoControl.value;
+    const photoFile = this.model().photoControl;
     if (topo && photoFile) {
       await this.topos.uploadPhoto(topo.id, photoFile);
     }
@@ -630,7 +640,7 @@ export class TopoFormComponent {
     if (!topo) return;
 
     const initial = new Set(this.initialRouteIds);
-    const selectedRoutes = this.selectedRoutes.value;
+    const selectedRoutes = this.model().selectedRoutes;
 
     // 1. Remove routes that are no longer selected
     for (const id of initial) {
@@ -679,7 +689,7 @@ export class TopoFormComponent {
   }
 
   protected removePhotoFile(): void {
-    this.photoControl.setValue(null);
+    this.model.update((m) => ({ ...m, photoControl: null }));
   }
 
   async editPhoto(
@@ -700,7 +710,7 @@ export class TopoFormComponent {
       maintainAspectRatio: false,
       allowFree: true,
       allowDrawing: true,
-      topoRoutes: (this.selectedRoutes.value || []).map((r, i) => {
+      topoRoutes: (this.model().selectedRoutes || []).map((r, i) => {
         const existing = this.effectiveTopoData()?.topo_routes?.find(
           (tr) => tr.route_id === r.id,
         );
@@ -747,17 +757,17 @@ export class TopoFormComponent {
           : null;
 
       if (file) {
-        this.photoControl.setValue(file, { emitEvent: false });
+        this.model.update((m) => ({ ...m, photoControl: file }));
         if (isEditorResult) {
           if (result.paths) {
             this.pendingPaths.set(result.paths);
           }
           if (result.routeIds) {
-            const current = this.selectedRoutes.value;
+            const current = this.model().selectedRoutes;
             const sorted = result.routeIds
               .map((id) => current.find((r) => r.id === id))
               .filter((r): r is RouteWithExtras => !!r);
-            this.selectedRoutes.setValue(sorted);
+            this.model.update((m) => ({ ...m, selectedRoutes: sorted }));
           }
         }
 
@@ -770,7 +780,7 @@ export class TopoFormComponent {
       }
     } else {
       // User cancelled, clear the photo
-      this.photoControl.setValue(null);
+      this.model.update((m) => ({ ...m, photoControl: null }));
     }
   }
 
@@ -820,7 +830,7 @@ export class TopoFormComponent {
 
     if (!confirmed) return;
 
-    const routes = [...this.selectedRoutes.value];
+    const routes = [...this.model().selectedRoutes];
     const pending = this.pendingPaths();
     const existing = this.effectiveTopoData()?.topo_routes || [];
 
@@ -834,7 +844,10 @@ export class TopoFormComponent {
     });
 
     routesWithX.sort((a, b) => a.minX - b.minX);
-    this.selectedRoutes.setValue(routesWithX.map((item) => item.r));
+    this.model.update((m) => ({
+      ...m,
+      selectedRoutes: routesWithX.map((item) => item.r),
+    }));
   }
 
   protected openPathEditor(): void {
