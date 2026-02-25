@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { TuiAppearance, TuiButton, TuiTitle } from '@taiga-ui/core';
+import { TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -14,6 +15,7 @@ import { TranslatePipe } from '@ngx-translate/core';
     TuiAppearance,
     TuiButton,
     TuiTitle,
+    TuiHeader,
     NgOptimizedImage,
   ],
   template: `
@@ -30,9 +32,11 @@ import { TranslatePipe } from '@ngx-translate/core';
         />
       </div>
 
-      <h1 tuiTitle class="!mb-4 !text-3xl font-bold">
-        {{ 'landing.welcome' | translate }}
-      </h1>
+      <header tuiHeader class="text-center">
+        <h1 tuiTitle>
+          {{ 'landing.welcome' | translate }}
+        </h1>
+      </header>
 
       <p class="text-[var(--tui-text-02)] text-lg max-w-md mb-12">
         {{ 'landing.description' | translate }}
