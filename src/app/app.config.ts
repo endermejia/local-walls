@@ -17,7 +17,12 @@ import {
   withIncrementalHydration,
   withHttpTransferCacheOptions,
 } from '@angular/platform-browser';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import {
+  PreloadAllModules,
+  provideRouter,
+  withComponentInputBinding,
+  withPreloading,
+} from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 
 import { provideEventPlugins } from '@taiga-ui/event-plugins';
@@ -44,7 +49,11 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideRouter(routes, withComponentInputBinding()),
+    provideRouter(
+      routes,
+      withComponentInputBinding(),
+      withPreloading(PreloadAllModules),
+    ),
     provideHttpClient(withFetch(), withInterceptors([errorInterceptor])),
     provideClientHydration(
       withEventReplay(),

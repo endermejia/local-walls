@@ -180,6 +180,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    this.global.mapActive.set(true);
     this.tryInit();
   }
 
@@ -199,6 +200,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.global.mapActive.set(false);
     try {
       this.mapBuilder.destroy();
     } catch {

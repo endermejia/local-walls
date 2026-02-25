@@ -5,6 +5,7 @@ import { equipperGuard } from '../services/admin.guard';
 import { authGuard } from '../services/auth.guard';
 import { noAuthGuard } from '../services/no-auth.guard';
 import { rootRedirectGuard } from '../services/root-redirect.guard';
+import { LandingComponent } from '../pages/landing';
 
 export const routes: Routes = [
   {
@@ -115,8 +116,7 @@ export const routes: Routes = [
   {
     path: 'info',
     canMatch: [noAuthGuard],
-    loadComponent: () =>
-      import('../pages/landing').then((m) => m.LandingComponent),
+    component: LandingComponent,
   },
   // SSR fallback routes
   {

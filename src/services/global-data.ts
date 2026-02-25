@@ -312,6 +312,7 @@ export class GlobalData {
   readonly notificationSoundEnabled: WritableSignal<boolean> = signal(false);
 
   // ---- Map ----
+  readonly mapActive: WritableSignal<boolean> = signal(false);
   mapBounds: WritableSignal<MapBounds | null> = signal(null);
   private readonly mapBoundsStorageKey = 'map_bounds_v1';
 
@@ -319,9 +320,11 @@ export class GlobalData {
    * Resource for fetching map items based on bounds.
    */
   readonly mapResource = resource({
-    params: () => this.mapBounds(),
-    loader: async ({ params: bounds }) => {
+    params: () => ({ bounds: this.mapBounds(), active: this.mapActive() }),
+    loader: async ({ params: { bounds, active } }) => {
       if (
+        !bounds ||
+        !active ||
         !isPlatformBrowser(this.platformId) ||
         typeof window === 'undefined' ||
         !bounds
@@ -453,9 +456,9 @@ export class GlobalData {
    * Resource for fetching parkings in the map based on bounds.
    */
   readonly parkingsMapResource = resource({
-    params: () => this.mapBounds(),
-    loader: async ({ params: bounds }) => {
-      if (!bounds) return [];
+    params: () => ({ bounds: this.mapBounds(), active: this.mapActive() }),
+    loader: async ({ params: { bounds, active } }) => {
+      if (!bounds || !active) return [];
 
       await this.supabase.whenReady();
       const { data, error } = await this.supabase.client
