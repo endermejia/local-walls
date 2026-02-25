@@ -21,6 +21,7 @@ export class NotificationService {
       this.alerts.open(translatedMessage, {
         ...options,
       }),
+      { defaultValue: undefined },
     );
   }
 

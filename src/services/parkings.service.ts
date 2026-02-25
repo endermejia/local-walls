@@ -42,6 +42,7 @@ export class ParkingsService {
           dismissible: false,
         },
       ),
+      { defaultValue: false },
     ).then((result) => {
       if (result) {
         if (data.cragId) {
@@ -66,6 +67,7 @@ export class ParkingsService {
           dismissible: false,
         },
       ),
+      { defaultValue: false },
     ).then((result) => {
       if (result) {
         this.global.cragDetailResource.reload();

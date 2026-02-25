@@ -112,6 +112,7 @@ export class AscentLikesComponent {
           size: 'm',
         },
       ),
+      { defaultValue: false },
     );
   }
 }

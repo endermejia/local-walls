@@ -1072,6 +1072,7 @@ export default class AscentFormComponent {
           dismissible: false,
         },
       ),
+      { defaultValue: null },
     );
 
     // Reset processing flag

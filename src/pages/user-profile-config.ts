@@ -1324,6 +1324,7 @@ export class UserProfileConfigComponent {
       // Open the cropper dialog and wait for confirmation
       const result = await firstValueFrom(
         this.userProfilesService.openAvatarCropper(file, 512),
+        { defaultValue: null },
       );
 
       if (!result) return; // canceled

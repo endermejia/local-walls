@@ -772,6 +772,7 @@ export class TopoFormComponent {
           dismissible: false,
         },
       ),
+      { defaultValue: null },
     );
 
     // Reset processing flag

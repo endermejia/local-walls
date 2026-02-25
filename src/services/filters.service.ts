@@ -43,6 +43,7 @@ export class FiltersService {
           dismissible: false,
         },
       ),
+      { defaultValue: null },
     ).then((result) => {
       if (!result) return;
 

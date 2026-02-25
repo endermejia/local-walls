@@ -440,6 +440,7 @@ export class RouteComponent {
         routeName: r.name,
         grade: r.grade,
       }),
+      { defaultValue: undefined },
     );
   }
 
@@ -450,6 +451,7 @@ export class RouteComponent {
         routeName,
         ascentData: ascent,
       }),
+      { defaultValue: undefined },
     );
   }
 
@@ -486,6 +488,7 @@ export class RouteComponent {
           no: this.translate.instant('cancel'),
         } as TuiConfirmData,
       }),
+      { defaultValue: false },
     ).then((confirmed) => {
       if (!confirmed) return;
       this.routesService

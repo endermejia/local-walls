@@ -1129,6 +1129,7 @@ export class CragComponent {
           appearance: 'accent',
         } as TuiConfirmData,
       }),
+      { defaultValue: false },
     ).then((confirmed) => {
       if (confirmed) {
         this.parkingsService

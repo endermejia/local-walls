@@ -940,6 +940,7 @@ export class RoutesTableComponent {
         routeName: item.name,
         grade: item.grade,
       }),
+      { defaultValue: undefined },
     );
   }
 
@@ -953,6 +954,7 @@ export class RoutesTableComponent {
         routeName: routeName,
         ascentData: ascent,
       }),
+      { defaultValue: undefined },
     );
   }
 
