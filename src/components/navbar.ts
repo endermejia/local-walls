@@ -337,7 +337,7 @@ import { TourHintComponent } from './tour-hint';
                 <tui-badge-notification
                   tuiAppearance="accent"
                   size="s"
-                  class="absolute top-2 left-7 z-10"
+                  tuiSlot="top"
                 >
                   {{ unreadMessages }}
                 </tui-badge-notification>
@@ -367,7 +367,7 @@ import { TourHintComponent } from './tour-hint';
                 <tui-badge-notification
                   tuiAppearance="accent"
                   size="s"
-                  class="absolute top-2 left-7 z-10"
+                  tuiSlot="top"
                 >
                   {{ unreadNotifications }}
                 </tui-badge-notification>

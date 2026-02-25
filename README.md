@@ -26,6 +26,7 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Next Steps
 
+- **Corregir errores en formularios al editar registros**
 - **Corregir service worker**
 - **Corregir problema con Safari. ¿Actualmente funciona en Safari?**
 
