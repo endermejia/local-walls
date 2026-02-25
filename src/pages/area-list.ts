@@ -79,11 +79,7 @@ import { normalizeName } from '../utils';
               [attr.aria-label]="'area' | translate"
             />
             {{ areasCount }}
-            {{
-              'labels.' + (areasCount === 1 ? 'area' : 'areas')
-                | translate
-                | lowercase
-            }}
+            {{ (areasCount === 1 ? 'area' : 'areas') | translate | lowercase }}
           </h1>
 
           <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
@@ -170,7 +166,7 @@ import { normalizeName } from '../utils';
                     <div class="text-xl">
                       {{ a.crags_count }}
                       {{
-                        'labels.' + (a.crags_count === 1 ? 'crag' : 'crags')
+                        (a.crags_count === 1 ? 'crag' : 'crags')
                           | translate
                           | lowercase
                       }}

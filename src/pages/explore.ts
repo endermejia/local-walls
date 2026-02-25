@@ -191,7 +191,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                       <div>
                         {{ c.topos_count }}
                         {{
-                          'labels.' + (c.topos_count === 1 ? 'topo' : 'topos')
+                          (c.topos_count === 1 ? 'topo' : 'topos')
                             | translate
                             | lowercase
                         }}
@@ -346,7 +346,7 @@ import { mapLocationUrl, remToPx } from '../utils';
               <span tuiTitle class="justify-center">
                 {{ areas.length }}
                 {{
-                  'labels.' + (areas.length === 1 ? 'area' : 'areas')
+                  (areas.length === 1 ? 'area' : 'areas')
                     | translate
                     | lowercase
                 }}
@@ -370,7 +370,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                         <div class="text-xl">
                           {{ count }}
                           {{
-                            'labels.' + (count === 1 ? 'crag' : 'crags')
+                            (count === 1 ? 'crag' : 'crags')
                               | translate
                               | lowercase
                           }}
@@ -402,7 +402,7 @@ import { mapLocationUrl, remToPx } from '../utils';
               <span tuiTitle class="justify-center">
                 {{ crags.length }}
                 {{
-                  'labels.' + (crags.length === 1 ? 'crag' : 'crags')
+                  (crags.length === 1 ? 'crag' : 'crags')
                     | translate
                     | lowercase
                 }}
@@ -439,7 +439,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                         <div class="text-xl h-full mb-7 content-center">
                           {{ c.topos_count }}
                           {{
-                            'labels.' + (c.topos_count === 1 ? 'topo' : 'topos')
+                            (c.topos_count === 1 ? 'topo' : 'topos')
                               | translate
                               | lowercase
                           }}

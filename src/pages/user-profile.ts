@@ -520,8 +520,7 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
                             <div class="text-xl">
                               {{ area.crags_count }}
                               {{
-                                'labels.' +
-                                  (area.crags_count === 1 ? 'crag' : 'crags')
+                                (area.crags_count === 1 ? 'crag' : 'crags')
                                   | translate
                                   | lowercase
                               }}
@@ -573,8 +572,7 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
                               <div class="text-xl">
                                 {{ crag.topos_count }}
                                 {{
-                                  'labels.' +
-                                    (crag.topos_count === 1 ? 'topo' : 'topos')
+                                  (crag.topos_count === 1 ? 'topo' : 'topos')
                                     | translate
                                     | lowercase
                                 }}
@@ -1349,7 +1347,7 @@ export class UserProfileComponent {
         new PolymorpheusComponent(UserListDialogComponent),
         {
           data: { userId, type },
-          label: this.translate.instant(`labels.${type}`),
+          label: this.translate.instant(type),
           size: 'm',
         },
       ),

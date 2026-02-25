@@ -1,10 +1,5 @@
 import { CommonModule } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 
 import { TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TuiDialogContext } from '@taiga-ui/experimental';
@@ -69,7 +64,7 @@ export interface PhotoViewerData {
           class="max-w-[100dvw] max-h-[100dvh] block object-contain shadow-2xl rounded-2xl"
           alt="Photo preview"
           draggable="false"
-          (load)="onImageLoad($event)"
+          (load)="resetZoom()"
         />
       </div>
 
@@ -109,11 +104,6 @@ export class PhotoViewerDialogComponent {
   };
 
   protected readonly dragState: ViewerDragState = createViewerDragState();
-
-  protected onImageLoad(event: Event): void {
-    // We just need to trigger a change so calculations refresh with new offsetWidth/Height
-    this.resetZoom();
-  }
 
   protected resetZoom(): void {
     resetViewerZoomState(this.viewerState);

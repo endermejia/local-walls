@@ -143,7 +143,7 @@ import {
                     <div class="text-xl">
                       {{ a.crags_count }}
                       {{
-                        'labels.' + (a.crags_count === 1 ? 'crag' : 'crags')
+                        (a.crags_count === 1 ? 'crag' : 'crags')
                           | translate
                           | lowercase
                       }}

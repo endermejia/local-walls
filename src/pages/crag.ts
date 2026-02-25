@@ -504,7 +504,7 @@ import { TopoImagePipe } from '../pipes';
                     <h2 class="text-2xl font-semibold">
                       {{ toposCount }}
                       {{
-                        'labels.' + (toposCount === 1 ? 'topo' : 'topos')
+                        (toposCount === 1 ? 'topo' : 'topos')
                           | translate
                           | lowercase
                       }}

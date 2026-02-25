@@ -144,7 +144,7 @@ import { handleErrorToast, normalizeName } from '../utils';
               <h2 class="text-2xl font-semibold">
                 {{ cragsCount() }}
                 {{
-                  'labels.' + (cragsCount() === 1 ? 'crag' : 'crags')
+                  (cragsCount() === 1 ? 'crag' : 'crags')
                     | translate
                     | lowercase
                 }}

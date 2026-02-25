@@ -160,7 +160,7 @@ export interface RoutesTableRow {
                         col === 'admin_actions' ||
                         col === 'expand'
                           ? ''
-                          : ('labels.' + col | translate)
+                          : (col | translate)
                       }}
                     </div>
                   </th>
@@ -642,8 +642,7 @@ export interface RoutesTableRow {
                                   item.ascents
                                 }}</span>
                                 {{
-                                  'labels.' +
-                                    (ascents > 1 ? 'ascents' : 'ascent')
+                                  (ascents > 1 ? 'ascents' : 'ascent')
                                     | translate
                                     | lowercase
                                 }}

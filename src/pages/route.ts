@@ -272,7 +272,7 @@ import { handleErrorToast } from '../utils';
           <h2 class="text-2xl font-bold mb-4">
             {{ totalAscents() }}
             {{
-              'labels.' + (totalAscents() === 1 ? 'ascent' : 'ascents')
+              (totalAscents() === 1 ? 'ascent' : 'ascents')
                 | translate
                 | lowercase
             }}
