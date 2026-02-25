@@ -639,6 +639,7 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
         "
         [isLast]="tourService.step() === TourStep.PROFILE_LIKES"
         (next)="tourService.next()"
+        (skip)="tourService.finish()"
       />
     </ng-template>
   `,

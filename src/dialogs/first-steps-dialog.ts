@@ -1,16 +1,15 @@
 import { NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
-import { TuiButton, TuiDialogContext, TuiTitle } from '@taiga-ui/core';
+import { TuiButton } from '@taiga-ui/core';
+import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { TourService } from '../services/tour.service';
-
 @Component({
   selector: 'app-first-steps-dialog',
-  imports: [TuiButton, TuiTitle, TranslatePipe, NgOptimizedImage],
+  imports: [TuiButton, TranslatePipe, NgOptimizedImage],
   template: `
     <div class="flex flex-col items-center gap-6 text-center p-4">
       <img
@@ -21,11 +20,11 @@ import { TourService } from '../services/tour.service';
         width="128"
       />
 
-      <div class="space-y-2">
-        <h2 tuiTitle class="text-2xl font-bold">
+      <div class="space-y-2 w-full">
+        <h2 class="text-3xl font-bold">
           {{ 'firstSteps.welcomeTitle' | translate }}
         </h2>
-        <p class="text-lg text-[var(--tui-text-secondary)]">
+        <p class="text-xl text-[var(--tui-text-secondary)]">
           {{ 'firstSteps.welcomeDescription' | translate }}
         </p>
       </div>
@@ -45,10 +44,7 @@ import { TourService } from '../services/tour.service';
 })
 export class FirstStepsDialogComponent {
   private readonly context = injectContext<TuiDialogContext<void>>();
-  private readonly tourService = inject(TourService);
-
   close(): void {
-    void this.tourService.start();
     this.context.completeWith();
   }
 }

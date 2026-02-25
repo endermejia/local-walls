@@ -151,6 +151,14 @@ import { normalizeName } from '../utils';
 
         <!-- Areas list -->
         @if (!loading()) {
+          <div
+            class="absolute inset-0 pointer-events-none"
+            [tuiDropdown]="tourHint"
+            [tuiDropdownManual]="
+              tourService.isActive() && tourService.step() === TourStep.AREAS
+            "
+            tuiDropdownDirection="bottom"
+          ></div>
           <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
             @for (a of filtered(); track a.id) {
               <button
@@ -196,6 +204,7 @@ import { normalizeName } from '../utils';
       <app-tour-hint
         [description]="'tour.areas.description' | translate"
         (next)="tourService.next()"
+        (skip)="tourService.finish()"
       />
     </ng-template>
   `,

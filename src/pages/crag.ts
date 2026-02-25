@@ -391,7 +391,10 @@ import { TopoImagePipe } from '../pipes';
                 @let anuResults = eightAnuResource.value() || [];
 
                 @if (routesList.length > 0) {
-                  <app-routes-table [data]="routesList" />
+                  <app-routes-table
+                    [data]="routesList"
+                    [showAddRouteToTopo]="true"
+                  />
                 }
 
                 @if (
@@ -757,6 +760,7 @@ import { TopoImagePipe } from '../pipes';
           ) | translate
         "
         (next)="tourService.next()"
+        (skip)="tourService.finish()"
       />
     </ng-template>
   `,

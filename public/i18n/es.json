@@ -557,6 +557,8 @@
   "tour.profile.projectsDescription": "Gestiona tus proyectos pendientes y objetivos.",
   "tour.profile.statisticsDescription": "Analiza tu progresión con gráficos detallados de grado y evolución temporal.",
   "tour.route.description": "Información detallada de la vía, encadenes y estadísticas.",
+  "tour.search.description": "Utiliza el buscador para encontrar rápidamente áreas, sectores, vías y perfiles de otros usuarios.",
+  "tour.skip": "Saltar tour",
   "type": "Tipo",
   "typeMessage": "Escribe un mensaje",
   "unblock": "Desbloquear",

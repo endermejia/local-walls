@@ -16,7 +16,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { TuiAppearance, TuiLoader, TuiScrollbar } from '@taiga-ui/core';
-import { TuiDropdown } from '@taiga-ui/core';
 import { TuiSegmented } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -38,11 +37,8 @@ import { FollowsService } from '../services/follows.service';
 import { GlobalData } from '../services/global-data';
 import { ScrollService } from '../services/scroll.service';
 import { SupabaseService } from '../services/supabase.service';
-import { TourService } from '../services/tour.service';
-import { TourStep } from '../services/tour.service';
 
 import { AscentsFeedComponent } from '../components/ascents-feed';
-import { TourHintComponent } from '../components/tour-hint';
 
 import { FeedItem, RouteAscentWithExtras } from '../models';
 
@@ -54,13 +50,11 @@ import { FeedItem, RouteAscentWithExtras } from '../models';
     FormsModule,
     ReactiveFormsModule,
     RouterLink,
-    TourHintComponent,
     TranslatePipe,
     TuiAppearance,
     TuiLoader,
     TuiScrollbar,
     TuiSegmented,
-    TuiDropdown,
   ],
   template: `
     <tui-scrollbar class="h-full">
@@ -127,13 +121,6 @@ import { FeedItem, RouteAscentWithExtras } from '../models';
         </div>
       </div>
     </tui-scrollbar>
-
-    <ng-template #tourHint>
-      <app-tour-hint
-        [description]="'tour.home.description' | translate"
-        (next)="tourService.next()"
-      />
-    </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -144,8 +131,6 @@ export class HomeComponent implements OnDestroy {
   protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
-  protected readonly tourService = inject(TourService);
-  protected readonly TourStep = TourStep;
   private readonly desnivelService = inject(DesnivelService);
   private readonly followsService = inject(FollowsService);
   private readonly platformId = inject(PLATFORM_ID);

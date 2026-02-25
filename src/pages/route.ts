@@ -299,6 +299,7 @@ import { handleErrorToast } from '../utils';
       <app-tour-hint
         [description]="'tour.route.description' | translate"
         (next)="tourService.next()"
+        (skip)="tourService.finish()"
       />
     </ng-template>
   `,

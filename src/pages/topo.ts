@@ -642,6 +642,7 @@ export interface TopoRouteRow {
               <tui-scrollbar class="h-full">
                 <table
                   tuiTable
+                  [size]="isMobile ? 's' : 'm'"
                   class="w-full"
                   [class.table-fixed]="isMobile"
                   [columns]="columns()"

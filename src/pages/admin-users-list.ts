@@ -156,7 +156,7 @@ interface UserWithRole {
 
       <tui-scrollbar waIntersectionRoot class="flex grow">
         <table
-          size="l"
+          [size]="global.isMobile() ? 's' : 'l'"
           tuiTable
           class="w-full"
           [columns]="columns()"

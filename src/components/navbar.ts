@@ -2,8 +2,11 @@ import { NgOptimizedImage } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
+  effect,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -248,15 +251,28 @@ import { TourHintComponent } from './tour-hint';
           }
 
           <!-- Search -->
-          <div class="flex flex-col gap-2 overflow-hidden flex-none">
+          <div class="flex flex-col gap-2 overflow-hidden flex-none relative">
+            <div
+              class="absolute inset-0 pointer-events-none"
+              [tuiDropdown]="tourHint"
+              [tuiDropdownManual]="
+                tourService.isActive() && tourService.step() === TourStep.SEARCH
+              "
+              tuiDropdownDirection="bottom"
+            ></div>
             <button
               [tuiAppearance]="
                 searchExpanded() ? 'flat-destructive' : 'flat-grayscale'
               "
-              class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer"
+              class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer relative"
               (click)="searchOpen = true"
               [attr.aria-label]="'search' | translate"
             >
+              @if (
+                tourService.isActive() && tourService.step() === TourStep.SEARCH
+              ) {
+                <tui-pulse />
+              }
               <tui-icon icon="@tui.search" />
               <span
                 class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
@@ -458,8 +474,9 @@ import { TourHintComponent } from './tour-hint';
 
     <ng-template #tourHint>
       <app-tour-hint
-        [description]="'tour.home.description' | translate"
-        (next)="tourService.next()"
+        [description]="tourDescription() | translate"
+        (next)="onTourNext()"
+        (skip)="tourService.finish()"
       />
     </ng-template>
   `,
@@ -469,6 +486,20 @@ export class NavbarComponent {
   protected global = inject(GlobalData);
   protected readonly tourService = inject(TourService);
   protected readonly TourStep = TourStep;
+  protected readonly tourDescription = computed(() => {
+    const step = this.tourService.step();
+    switch (step) {
+      case TourStep.EXPLORE:
+        return 'tour.explore.description';
+      case TourStep.AREAS:
+        return 'tour.areas.description';
+      case TourStep.SEARCH:
+        return 'tour.search.description';
+      case TourStep.HOME:
+      default:
+        return 'tour.home.description';
+    }
+  });
   private readonly searchService = inject(SearchService);
   private readonly router = inject(Router);
   private readonly scrollService = inject(ScrollService);
@@ -483,6 +514,22 @@ export class NavbarComponent {
   protected readonly control = new FormControl('');
   protected searchOpen = false;
   protected configOpen = false;
+
+  constructor() {
+    const cdr = inject(ChangeDetectorRef);
+    effect(() => {
+      const step = this.tourService.step();
+      if (step === TourStep.SEARCH) {
+        // Wait a bit to let the dropdown initialize, then programmatically open and type "Millena"
+        setTimeout(() => {
+          this.searchOpen = true;
+          this.searchExpanded.set(true);
+          this.control.setValue('Millena');
+          cdr.markForCheck();
+        }, 500);
+      }
+    });
+  }
 
   protected readonly results = toSignal(
     this.control.valueChanges.pipe(
@@ -505,6 +552,15 @@ export class NavbarComponent {
       event.preventDefault();
       this.scrollService.scrollToTop();
     }
+  }
+
+  protected onTourNext(): void {
+    if (this.tourService.step() === TourStep.SEARCH) {
+      this.searchOpen = false;
+      this.searchExpanded.set(false);
+      this.control.setValue('', { emitEvent: false });
+    }
+    this.tourService.next();
   }
 
   protected openChat(): void {

@@ -9,15 +9,16 @@ export enum TourStep {
   HOME = 1,
   EXPLORE = 2,
   AREAS = 3,
-  CRAG = 4,
-  CRAG_TOPOS = 5,
-  CRAG_PARKINGS = 6,
-  CRAG_WEATHER = 7,
-  ROUTE = 8,
-  PROFILE = 9,
-  PROFILE_PROJECTS = 10,
-  PROFILE_STATISTICS = 11,
-  PROFILE_LIKES = 12,
+  SEARCH = 4,
+  CRAG = 5,
+  CRAG_TOPOS = 6,
+  CRAG_PARKINGS = 7,
+  CRAG_WEATHER = 8,
+  ROUTE = 9,
+  PROFILE = 10,
+  PROFILE_PROJECTS = 11,
+  PROFILE_STATISTICS = 12,
+  PROFILE_LIKES = 13,
   OFF = -1,
 }
 
@@ -52,7 +53,7 @@ export class TourService {
     this.step.set(TourStep.OFF);
   }
 
-  private async finish(): Promise<void> {
+  async finish(): Promise<void> {
     try {
       await this.userProfilesService.updateUserProfile({ first_steps: false });
     } finally {
@@ -75,11 +76,14 @@ export class TourService {
       case TourStep.AREAS:
         await this.router.navigate(['/area']);
         break;
+      case TourStep.SEARCH:
+        // Already shown in navbar
+        break;
       case TourStep.CRAG:
       case TourStep.CRAG_TOPOS:
       case TourStep.CRAG_PARKINGS:
       case TourStep.CRAG_WEATHER:
-        await this.navigateToAnyCrag();
+        await this.navigateToCrag('Millena');
         break;
       case TourStep.ROUTE:
         await this.navigateToAnyRoute();
@@ -95,16 +99,22 @@ export class TourService {
     this.step.set(step);
   }
 
-  private async navigateToAnyCrag(): Promise<void> {
-    // Find a crag that has an area
-    const { data } = await this.supabase.client
+  private async navigateToCrag(name: string): Promise<void> {
+    // Find a specific crag by name or fallback
+    let query = this.supabase.client
       .from('crags')
       .select('slug, area:areas!inner(slug)')
-      .limit(1)
-      .maybeSingle();
+      .limit(1);
+
+    if (name) {
+      query = query.ilike('name', `%${name}%`);
+    }
+
+    const { data } = await query.maybeSingle();
 
     if (data && data.area) {
-      await this.router.navigate(['/area', data.area.slug, data.slug]);
+      const area = Array.isArray(data.area) ? data.area[0] : data.area;
+      await this.router.navigate(['/area', area.slug, data.slug]);
     } else {
       // Fallback if no data, skip to next step
       await this.next();

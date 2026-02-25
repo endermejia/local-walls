@@ -716,9 +716,11 @@ interface Country {
       <app-tour-hint
         [description]="'tour.config.description' | translate"
         (next)="tourService.next()"
+        (skip)="tourService.finish()"
         [disabled]="
           displayNameControl.invalid || displayNameControl.value === userEmail()
         "
+        [showSkip]="false"
       />
     </ng-template>
   `,
@@ -917,7 +919,11 @@ export class UserProfileConfigComponent {
         dismissible: false,
         closable: false,
       })
-      .subscribe();
+      .subscribe({
+        complete: () => {
+          void this.tourService.start();
+        },
+      });
   }
 
   async loadProfile(): Promise<void> {
@@ -1203,7 +1209,6 @@ export class UserProfileConfigComponent {
     if (confirmed) {
       this.hasOpenedWelcome = false;
       await this.updateProfile({ first_steps: true });
-      this.openWelcomeDialog();
     }
   }
 

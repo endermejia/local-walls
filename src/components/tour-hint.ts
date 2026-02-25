@@ -14,9 +14,7 @@ import { TranslatePipe } from '@ngx-translate/core';
   standalone: true,
   imports: [TuiButton, TuiIcon, TranslatePipe],
   template: `
-    <div
-      class="flex flex-col gap-4 p-4 max-w-sm bg-[var(--tui-background-base)] rounded-xl shadow-lg border border-[var(--tui-border-normal)]"
-    >
+    <div class="flex flex-col gap-4 p-4 max-w-sm">
       <div class="flex items-start gap-3">
         <tui-icon
           icon="@tui.info"
@@ -26,7 +24,16 @@ import { TranslatePipe } from '@ngx-translate/core';
           {{ description() }}
         </p>
       </div>
-      <div class="flex justify-end">
+      <div
+        class="flex items-center w-full"
+        [class.justify-between]="showSkip()"
+        [class.justify-end]="!showSkip()"
+      >
+        @if (showSkip()) {
+          <button tuiButton size="s" appearance="flat" (click)="onSkip()">
+            {{ 'tour.skip' | translate }}
+          </button>
+        }
         <button
           tuiButton
           size="s"
@@ -44,10 +51,16 @@ import { TranslatePipe } from '@ngx-translate/core';
 export class TourHintComponent {
   readonly description = input.required<string>();
   readonly isLast = input<boolean>(false);
+  readonly showSkip = input<boolean>(true);
   readonly disabled = input<boolean>(false);
   readonly next = output<void>();
+  readonly skip = output<void>();
 
   onNext(): void {
     this.next.emit();
+  }
+
+  onSkip(): void {
+    this.skip.emit();
   }
 }

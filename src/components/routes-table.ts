@@ -130,6 +130,7 @@ export interface RoutesTableRow {
         <tui-scrollbar class="grow min-h-0 no-scrollbar">
           <table
             tuiTable
+            [size]="isMobile ? 's' : 'm'"
             class="w-full"
             [class.table-fixed]="isMobile"
             [columns]="columns()"
@@ -324,7 +325,11 @@ export interface RoutesTableRow {
                                       {{ t.name }}
                                     </button>
                                   }
-                                  @if (global.editingMode()) {
+                                  @if (
+                                    global.editingMode() &&
+                                    canEditRoute &&
+                                    showAddRouteToTopo()
+                                  ) {
                                     <button
                                       appearance="secondary"
                                       size="xs"
@@ -345,7 +350,11 @@ export interface RoutesTableRow {
                                     </button>
                                   }
                                 </div>
-                              } @else if (global.editingMode()) {
+                              } @else if (
+                                global.editingMode() &&
+                                canEditRoute &&
+                                showAddRouteToTopo()
+                              ) {
                                 <button
                                   appearance="flat-grayscale"
                                   size="xs"
@@ -550,7 +559,9 @@ export interface RoutesTableRow {
                                       {{ t.name }}
                                     </button>
                                   }
-                                  @if (global.editingMode()) {
+                                  @if (
+                                    global.editingMode() && showAddRouteToTopo()
+                                  ) {
                                     <button
                                       appearance="secondary"
                                       size="xs"
@@ -574,7 +585,9 @@ export interface RoutesTableRow {
                                     </button>
                                   }
                                 </div>
-                              } @else if (global.editingMode()) {
+                              } @else if (
+                                global.editingMode() && showAddRouteToTopo()
+                              ) {
                                 <button
                                   appearance="flat-grayscale"
                                   size="xs"
@@ -799,6 +812,7 @@ export class RoutesTableComponent {
   showAdminActions: InputSignal<boolean> = input(true);
   showRowColors: InputSignal<boolean> = input(true);
   showLocation: InputSignal<boolean> = input(false);
+  showAddRouteToTopo: InputSignal<boolean> = input(false);
   hiddenColumns: InputSignal<string[]> = input<string[]>([]);
 
   protected readonly sorters: Record<
@@ -846,7 +860,15 @@ export class RoutesTableComponent {
       'actions',
     ];
 
-    if (this.global.editingMode() && this.showAdminActions()) {
+    const canEditAny = this.data().some(
+      (r) => this.global.permissions.routeEdit()[r.id],
+    );
+
+    if (
+      this.global.editingMode() &&
+      this.showAdminActions() &&
+      (this.global.isAdmin() || canEditAny)
+    ) {
       cols.splice(cols.indexOf('rating'), 1);
       cols.splice(cols.indexOf('ascents'), 1);
       cols.splice(cols.indexOf('actions'), 1);

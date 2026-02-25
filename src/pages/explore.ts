@@ -149,6 +149,14 @@ import { mapLocationUrl, remToPx } from '../utils';
 
         <!-- Map -->
         @defer (on viewport) {
+          <div
+            class="absolute inset-0 pointer-events-none"
+            [tuiDropdown]="tourHint"
+            [tuiDropdownManual]="
+              tourService.isActive() && tourService.step() === TourStep.EXPLORE
+            "
+            tuiDropdownDirection="bottom"
+          ></div>
           <app-map
             class="w-full h-full"
             [mapCragItems]="mapCragItems()"
@@ -330,6 +338,7 @@ import { mapLocationUrl, remToPx } from '../utils';
         <app-tour-hint
           [description]="'tour.explore.description' | translate"
           (next)="tourService.next()"
+          (skip)="tourService.finish()"
         />
       </ng-template>
 
