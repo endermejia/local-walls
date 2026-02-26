@@ -722,7 +722,7 @@ export default class AscentFormComponent {
     },
     {
       id: AscentTypes.ATTEMPT,
-      translate: 'attempt',
+      translate: 'ascentTypes.attempt',
       icon: '@tui.circle-dashed',
       background: 'var(--tui-status-neutral)',
     },
