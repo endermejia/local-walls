@@ -81,6 +81,7 @@ export class AscentCommentsComponent {
     event.stopPropagation();
     void firstValueFrom(
       this.ascentsService.openCommentsDialog(this.ascentId()),
+      { defaultValue: undefined },
     );
   }
 }
