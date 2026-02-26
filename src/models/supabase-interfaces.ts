@@ -123,6 +123,13 @@ export type ChatMessageDto = TableRow<'chat_messages'>;
 export type ChatMessageInsertDto = TableInsert<'chat_messages'>;
 export type ChatMessageUpdateDto = TableUpdate<'chat_messages'>;
 
+// Route Ascent Comment Likes
+export type RouteAscentCommentLikeDto = TableRow<'route_ascent_comment_likes'>;
+export type RouteAscentCommentLikeInsertDto =
+  TableInsert<'route_ascent_comment_likes'>;
+export type RouteAscentCommentLikeUpdateDto =
+  TableUpdate<'route_ascent_comment_likes'>;
+
 // Notifications
 export type NotificationDto = TableRow<'notifications'>;
 export type NotificationInsertDto = TableInsert<'notifications'>;

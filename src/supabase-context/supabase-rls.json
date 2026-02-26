@@ -839,5 +839,29 @@
     "for_command": "d",
     "using_expression": "(auth.uid() = blocker_id)",
     "with_check_expression": null
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "route_ascent_comment_likes",
+    "for_command": "r",
+    "using_expression": "(auth.uid() IS NOT NULL)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_can_insert",
+    "schema_name": "public",
+    "table_name": "route_ascent_comment_likes",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+  },
+  {
+    "policy_name": "own_can_delete",
+    "schema_name": "public",
+    "table_name": "route_ascent_comment_likes",
+    "for_command": "d",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
   }
 ]

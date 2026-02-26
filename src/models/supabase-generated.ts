@@ -38,6 +38,87 @@ export interface Database {
         };
         Relationships: [];
       };
+      custom_oauth_providers: {
+        Row: {
+          acceptable_client_ids: string[];
+          attribute_mapping: Json;
+          authorization_params: Json;
+          authorization_url: string | null;
+          cached_discovery: Json | null;
+          client_id: string;
+          client_secret: string;
+          created_at: string;
+          discovery_cached_at: string | null;
+          discovery_url: string | null;
+          email_optional: boolean;
+          enabled: boolean;
+          id: string;
+          identifier: string;
+          issuer: string | null;
+          jwks_uri: string | null;
+          name: string;
+          pkce_enabled: boolean;
+          provider_type: string;
+          scopes: string[];
+          skip_nonce_check: boolean;
+          token_url: string | null;
+          updated_at: string;
+          userinfo_url: string | null;
+        };
+        Insert: {
+          acceptable_client_ids?: string[];
+          attribute_mapping?: Json;
+          authorization_params?: Json;
+          authorization_url?: string | null;
+          cached_discovery?: Json | null;
+          client_id: string;
+          client_secret: string;
+          created_at?: string;
+          discovery_cached_at?: string | null;
+          discovery_url?: string | null;
+          email_optional?: boolean;
+          enabled?: boolean;
+          id?: string;
+          identifier: string;
+          issuer?: string | null;
+          jwks_uri?: string | null;
+          name: string;
+          pkce_enabled?: boolean;
+          provider_type: string;
+          scopes?: string[];
+          skip_nonce_check?: boolean;
+          token_url?: string | null;
+          updated_at?: string;
+          userinfo_url?: string | null;
+        };
+        Update: {
+          acceptable_client_ids?: string[];
+          attribute_mapping?: Json;
+          authorization_params?: Json;
+          authorization_url?: string | null;
+          cached_discovery?: Json | null;
+          client_id?: string;
+          client_secret?: string;
+          created_at?: string;
+          discovery_cached_at?: string | null;
+          discovery_url?: string | null;
+          email_optional?: boolean;
+          enabled?: boolean;
+          id?: string;
+          identifier?: string;
+          issuer?: string | null;
+          jwks_uri?: string | null;
+          name?: string;
+          pkce_enabled?: boolean;
+          provider_type?: string;
+          scopes?: string[];
+          skip_nonce_check?: boolean;
+          token_url?: string | null;
+          updated_at?: string;
+          userinfo_url?: string | null;
+        };
+        Relationships: [];
+      };
       flow_state: {
         Row: {
           auth_code: string | null;
@@ -1339,6 +1420,32 @@ export interface Database {
         };
         Relationships: [];
       };
+      route_ascent_comment_likes: {
+        Row: {
+          comment_id: number;
+          created_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          comment_id: number;
+          created_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          comment_id?: number;
+          created_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'route_ascent_comment_likes_comment_id_fkey';
+            columns: ['comment_id'];
+            isOneToOne: false;
+            referencedRelation: 'route_ascent_comments';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       route_ascent_comments: {
         Row: {
           comment: string;
@@ -1966,6 +2073,7 @@ export interface Database {
       };
       is_user_admin: { Args: { p_uid: string }; Returns: boolean };
       toggle_area_like: { Args: { p_area_id: number }; Returns: boolean };
+      toggle_comment_like: { Args: { p_comment_id: number }; Returns: boolean };
       toggle_crag_like: { Args: { p_crag_id: number }; Returns: boolean };
       toggle_route_ascent_like: {
         Args: { p_route_ascent_id: number };

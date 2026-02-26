@@ -1,4 +1,4 @@
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe, DatePipe, CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -19,23 +19,21 @@ import {
   TuiFallbackSrcPipe,
   TuiLoader,
   TuiScrollbar,
-  TuiIcon,
 } from '@taiga-ui/core';
 import { TuiDialogContext, TuiDialogService } from '@taiga-ui/experimental';
-import { TUI_CONFIRM, TuiAvatar, TuiConfirmData } from '@taiga-ui/kit';
-import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { firstValueFrom } from 'rxjs';
+import { TuiAvatar, TUI_CONFIRM, TuiConfirmData } from '@taiga-ui/kit';
+import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { AscentsService } from '../services/ascents.service';
 import { SupabaseService } from '../services/supabase.service';
 import { UserProfilesService } from '../services/user-profiles.service';
 
 import { EmptyStateComponent } from '../components/empty-state';
-import { UserListDialogComponent } from './user-list-dialog';
+import { CommentLikesComponent } from '../components/comment-likes';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 
-import { RouteAscentCommentWithExtras, UserProfileBasicDto } from '../models';
+import { UserProfileBasicDto } from '../models';
 
 import { MentionLinkPipe } from '../pipes/mention-link.pipe';
 
@@ -54,12 +52,13 @@ export interface AscentCommentsDialogData {
     TuiLoader,
     TuiAvatar,
     TuiFallbackSrcPipe,
-    TuiIcon,
     AsyncPipe,
     DatePipe,
     FormsModule,
     RouterLink,
     MentionLinkPipe,
+    CommentLikesComponent,
+    CommonModule,
   ],
   template: `
     <div class="flex flex-col h-[60dvh] min-h-[400px] -m-4">
@@ -98,60 +97,37 @@ export interface AscentCommentsDialogData {
                   class="text-sm whitespace-pre-wrap break-words"
                   [innerHTML]="comment.comment | mentionLink"
                 ></p>
-                <div class="flex items-center justify-between mt-1">
-                  <div class="flex items-center gap-1">
-                    <button
-                      type="button"
-                      class="appearance-none p-0 bg-transparent border-none cursor-pointer flex items-center"
-                      [attr.aria-label]="'like' | translate"
-                      (click)="toggleLike(comment, $event)"
-                    >
-                      <tui-icon
-                        size="s"
-                        [icon]="
-                          comment.user_liked ? '@tui.heart-filled' : '@tui.heart'
-                        "
-                        [style.color]="
-                          comment.user_liked ? 'var(--tui-status-negative)' : ''
-                        "
-                      ></tui-icon>
-                    </button>
-                    @if (comment.likes_count > 0) {
-                      <button
-                        tuiButton
-                        type="button"
-                        size="xs"
-                        appearance="action-grayscale"
-                        class="!pr-1 !pl-1 !h-auto"
-                        (click)="showLikes(comment, $event)"
-                      >
-                        {{ comment.likes_count }}
-                      </button>
-                    }
-                  </div>
-                  <div class="flex gap-2">
+                <div class="flex items-center justify-end mt-1">
+                  <button
+                    tuiButton
+                    type="button"
+                    appearance="action-destructive"
+                    size="xs"
+                    (click)="onReply(comment.user_profiles)"
+                  >
+                    {{ 'reply' | translate }}
+                  </button>
+                  @if (comment.user_id === supabase.authUserId()) {
                     <button
                       tuiButton
                       type="button"
-                      appearance="action-destructive"
+                      appearance="action"
                       size="xs"
-                      (click)="onReply(comment.user_profiles)"
+                      class="ml-2"
+                      (click)="onDeleteComment(comment.id)"
                     >
-                      {{ 'reply' | translate }}
+                      {{ 'delete' | translate }}
                     </button>
-                    @if (comment.user_id === supabase.authUserId()) {
-                      <button
-                        tuiButton
-                        type="button"
-                        appearance="action"
-                        size="xs"
-                        (click)="onDeleteComment(comment.id)"
-                      >
-                        {{ 'delete' | translate }}
-                      </button>
-                    }
-                  </div>
+                  }
                 </div>
+              </div>
+
+              <div class="flex flex-col items-center self-start pt-1">
+                <app-comment-likes
+                  [commentId]="comment.id"
+                  [(likesCount)]="comment.likes_count"
+                  [(userLiked)]="comment.user_liked"
+                />
               </div>
             </div>
           } @empty {
@@ -625,43 +601,5 @@ export class AscentCommentsDialogComponent {
         this.commentsResource.reload();
       }
     }
-  }
-
-  protected async toggleLike(
-    comment: RouteAscentCommentWithExtras,
-    event: Event,
-  ) {
-    event.stopPropagation();
-    const success = await this.ascentsService.toggleCommentLike(comment.id);
-    if (success !== null) {
-      this.commentsResource.update((current) => {
-        if (!current) return current;
-        return current.map((c) => {
-          if (c.id === comment.id) {
-            const newLiked = success;
-            const newCount = newLiked
-              ? c.likes_count + 1
-              : Math.max(0, c.likes_count - 1);
-            return { ...c, user_liked: newLiked, likes_count: newCount };
-          }
-          return c;
-        });
-      });
-    }
-  }
-
-  protected showLikes(comment: RouteAscentCommentWithExtras, event: Event) {
-    event.stopPropagation();
-    void firstValueFrom(
-      this.dialogs.open<boolean>(
-        new PolymorpheusComponent(UserListDialogComponent),
-        {
-          data: { commentId: comment.id, type: 'comment-likes' },
-          label: this.translate.instant('likes'),
-          size: 'm',
-        },
-      ),
-      { defaultValue: false },
-    );
   }
 }

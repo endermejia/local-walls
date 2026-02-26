@@ -553,10 +553,7 @@ export class AscentsService {
     const from = page * pageSize;
     const to = from + pageSize - 1;
 
-    // Cast to any because table doesn't exist in generated types yet
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const client = this.supabase.client as any;
-    const likesQuery = client
+    const likesQuery = this.supabase.client
       .from('route_ascent_comment_likes')
       .select('user_id', { count: 'exact' })
       .eq('comment_id', commentId)
@@ -577,8 +574,7 @@ export class AscentsService {
       return { items: [], total: 0 };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const userIds = likesData.map((d: any) => d.user_id);
+    const userIds = likesData.map((d) => d.user_id);
     let profilesQuery = this.supabase.client
       .from('user_profiles')
       .select('id, name, avatar')
@@ -600,9 +596,8 @@ export class AscentsService {
 
     const profileMap = new Map(profilesData?.map((p) => [p.id, p]));
     const sortedProfiles = userIds
-      .map((id: string) => profileMap.get(id))
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .filter((p: any): p is UserProfileBasicDto => !!p);
+      .map((id) => profileMap.get(id))
+      .filter((p): p is UserProfileBasicDto => !!p);
 
     return {
       items: sortedProfiles,
@@ -612,15 +607,18 @@ export class AscentsService {
 
   async getLastComment(
     ascentId: number,
-  ): Promise<
-    (RouteAscentCommentDto & { user_profiles: UserProfileBasicDto }) | null
-  > {
+  ): Promise<RouteAscentCommentWithExtras | null> {
     if (!isPlatformBrowser(this.platformId)) return null;
     await this.supabase.whenReady();
 
+    // Reuse the logic from getComments but for one item
+    type CommentWithLikes = RouteAscentCommentDto & {
+      likes: { count: number }[];
+    };
+
     const { data: comment, error: commentError } = await this.supabase.client
       .from('route_ascent_comments')
-      .select('*')
+      .select('*, likes:route_ascent_comment_likes(count)')
       .eq('route_ascent_id', ascentId)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -635,39 +633,52 @@ export class AscentsService {
     const { data: user, error: userError } = await this.supabase.client
       .from('user_profiles')
       .select('id, name, avatar')
-      .eq('id', comment.user_id)
+      .eq('id', (comment as RouteAscentCommentDto).user_id)
       .maybeSingle();
 
-    if (userError || !user) {
-      return null;
+    if (userError || !user) return null;
+
+    const currentUserId = this.supabase.authUserId();
+    let userLiked = false;
+    if (currentUserId) {
+      const { data: like } = await this.supabase.client
+        .from('route_ascent_comment_likes')
+        .select('comment_id')
+        .eq('user_id', currentUserId)
+        .eq('comment_id', (comment as RouteAscentCommentDto).id)
+        .maybeSingle();
+      userLiked = !!like;
     }
 
+    const c = comment as unknown as CommentWithLikes;
     return {
-      ...comment,
+      ...c,
       user_profiles: user as UserProfileBasicDto,
-    };
+      likes_count: c.likes?.[0]?.count ?? 0,
+      user_liked: userLiked,
+    } as RouteAscentCommentWithExtras;
   }
 
-  async getComments(
-    ascentId: number,
-  ): Promise<RouteAscentCommentWithExtras[]> {
+  async getComments(ascentId: number): Promise<RouteAscentCommentWithExtras[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
 
+    type CommentWithLikes = RouteAscentCommentDto & {
+      likes: { count: number }[];
+    };
+
     // 1. Fetch comments with likes count
-    // explicit cast to any to allow joining with new table
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const client = this.supabase.client as any;
-    const { data: commentsData, error: commentsError } = await client
-      .from('route_ascent_comments')
-      .select(
-        `
+    const { data: commentsData, error: commentsError } =
+      await this.supabase.client
+        .from('route_ascent_comments')
+        .select(
+          `
         *,
         likes:route_ascent_comment_likes(count)
       `,
-      )
-      .eq('route_ascent_id', ascentId)
-      .order('created_at', { ascending: true });
+        )
+        .eq('route_ascent_id', ascentId)
+        .order('created_at', { ascending: true });
 
     if (commentsError) {
       console.error('[AscentsService] getComments error', commentsError);
@@ -679,8 +690,9 @@ export class AscentsService {
     }
 
     // 2. Fetch profiles
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const userIds = [...new Set(commentsData.map((c: any) => c.user_id))];
+    const userIds: string[] = Array.from(
+      new Set(commentsData.map((c) => c.user_id)),
+    );
     const { data: profilesData, error: profilesError } =
       await this.supabase.client
         .from('user_profiles')
@@ -701,28 +713,27 @@ export class AscentsService {
     const likedCommentIds = new Set<number>();
     const currentUserId = this.supabase.authUserId();
     if (currentUserId) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const commentIds = commentsData.map((c: any) => c.id);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: myLikes } = await (this.supabase.client as any)
+      const commentIds: number[] = commentsData.map((c) => c.id);
+      const { data: myLikes } = await this.supabase.client
         .from('route_ascent_comment_likes')
         .select('comment_id')
         .eq('user_id', currentUserId)
         .in('comment_id', commentIds);
 
       if (myLikes) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        myLikes.forEach((l: any) => likedCommentIds.add(l.comment_id));
+        myLikes.forEach((l) => likedCommentIds.add(l.comment_id));
       }
     }
 
-    return commentsData
-      .map((comment) => ({
-        ...comment,
-        user_profiles: profileMap.get(comment.user_id)!,
-        likes_count: comment.likes?.[0]?.count ?? 0,
-        user_liked: likedCommentIds.has(comment.id),
-      }))
+    return (commentsData as unknown as CommentWithLikes[])
+      .map((comment) => {
+        return {
+          ...comment,
+          user_profiles: profileMap.get(comment.user_id)!,
+          likes_count: comment.likes?.[0]?.count ?? 0,
+          user_liked: likedCommentIds.has(comment.id),
+        };
+      })
       .filter((c) => !!c.user_profiles) as RouteAscentCommentWithExtras[];
   }
 

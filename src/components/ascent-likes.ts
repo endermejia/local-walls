@@ -27,7 +27,9 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
       <div class="flex items-center gap-1">
         <button
           type="button"
-          class="appearance-none p-0 bg-transparent border-none cursor-pointer flex items-center"
+          tuiIconButton
+          size="m"
+          appearance="transparent"
           [attr.aria-label]="'like' | translate"
           (click)="toggleLike($event)"
         >

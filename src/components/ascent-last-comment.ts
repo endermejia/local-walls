@@ -15,37 +15,48 @@ import { firstValueFrom } from 'rxjs';
 import { AscentsService } from '../services/ascents.service';
 import { SupabaseService } from '../services/supabase.service';
 
+import { CommentLikesComponent } from './comment-likes';
 import { MentionLinkPipe } from '../pipes/mention-link.pipe';
 
 @Component({
   selector: 'app-ascent-last-comment',
   standalone: true,
-  imports: [CommonModule, TuiAvatar, MentionLinkPipe],
+  imports: [CommonModule, TuiAvatar, MentionLinkPipe, CommentLikesComponent],
   template: `
     @if (lastCommentResource.value(); as comment) {
       <div
-        class="flex flex-col gap-1 bg-[var(--tui-background-neutral-1)] p-2 rounded-xl mt-1 animate-in fade-in slide-in-from-top-1 duration-300 cursor-pointer hover:bg-[var(--tui-background-neutral-1-hover)] transition-colors"
+        class="flex items-start gap-2 bg-[var(--tui-background-neutral-1)] p-2 rounded-xl mt-1 animate-in fade-in slide-in-from-top-1 duration-300 cursor-pointer hover:bg-[var(--tui-background-neutral-1-hover)] transition-colors"
         (click)="showComments($event)"
         (keydown.enter)="showComments($event)"
         (keydown.space)="showComments($event)"
         tabindex="0"
       >
-        <div class="flex items-center gap-2">
-          <tui-avatar
-            [src]="
-              supabase.buildAvatarUrl(comment.user_profiles.avatar) ||
-              '@tui.user'
-            "
-            size="xs"
-          />
-          <span class="text-[10px] font-bold opacity-70">
-            {{ comment.user_profiles.name }}
-          </span>
+        <div class="flex flex-col gap-1 grow min-w-0">
+          <div class="flex items-center gap-2">
+            <tui-avatar
+              [src]="
+                supabase.buildAvatarUrl(comment.user_profiles.avatar) ||
+                '@tui.user'
+              "
+              size="xs"
+            />
+            <span class="text-[10px] font-bold opacity-70 truncate">
+              {{ comment.user_profiles.name }}
+            </span>
+          </div>
+          <p
+            class="text-xs line-clamp-2 break-words pl-1 opacity-90"
+            [innerHTML]="comment.comment | mentionLink"
+          ></p>
         </div>
-        <p
-          class="text-xs line-clamp-2 break-words pl-1 opacity-90"
-          [innerHTML]="comment.comment | mentionLink"
-        ></p>
+
+        <div class="flex flex-col items-center self-start">
+          <app-comment-likes
+            [commentId]="comment.id"
+            [(likesCount)]="comment.likes_count"
+            [(userLiked)]="comment.user_liked"
+          />
+        </div>
       </div>
     }
   `,
