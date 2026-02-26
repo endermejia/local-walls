@@ -23,36 +23,43 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
   standalone: true,
   imports: [TuiButton, TuiIcon, TranslatePipe],
   template: `
-    <div class="flex items-center gap-1">
-      <button
-        type="button"
-        class="appearance-none p-0 bg-transparent border-none cursor-pointer flex items-center"
-        [attr.aria-label]="'like' | translate"
-        (click)="toggleLike($event)"
-      >
-        <tui-icon
-          size="m"
-          [icon]="item().user_liked ? '@tui.heart-filled' : '@tui.heart'"
-          [style.color]="item().user_liked ? 'var(--tui-status-negative)' : ''"
-        >
-          ❤
-        </tui-icon>
-      </button>
-      @if (item().likes_count) {
+    @if (!isHidden()) {
+      <div class="flex items-center gap-1">
         <button
-          tuiButton
           type="button"
-          size="m"
-          appearance="action-grayscale"
-          class="!pr-1 !pl-1 !h-auto"
-          (click)="showLikes($event)"
+          class="appearance-none p-0 bg-transparent border-none cursor-pointer flex items-center"
+          [attr.aria-label]="'like' | translate"
+          (click)="toggleLike($event)"
         >
-          {{ item().likes_count }}
+          <tui-icon
+            size="m"
+            [icon]="item().user_liked ? '@tui.heart-filled' : '@tui.heart'"
+            [style.color]="
+              item().user_liked ? 'var(--tui-status-negative)' : ''
+            "
+          >
+            ❤
+          </tui-icon>
         </button>
-      }
-    </div>
+        @if (item().likes_count) {
+          <button
+            tuiButton
+            type="button"
+            size="m"
+            appearance="action-grayscale"
+            class="!pr-1 !pl-1 !h-auto"
+            (click)="showLikes($event)"
+          >
+            {{ item().likes_count }}
+          </button>
+        }
+      </div>
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[style.display]': 'isHidden() ? "none" : null',
+  },
 })
 export class AscentLikesComponent {
   private readonly ascentsService = inject(AscentsService);
@@ -60,6 +67,11 @@ export class AscentLikesComponent {
   private readonly translate = inject(TranslateService);
 
   ascentId = input.required<number>();
+  isPrivate = input(false);
+
+  protected readonly isHidden = computed(() => {
+    return this.isPrivate() && this.item().likes_count === 0;
+  });
 
   private readonly likesResource = resource({
     params: () => this.ascentId(),
