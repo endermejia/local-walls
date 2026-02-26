@@ -20,6 +20,7 @@ export interface UserAscentStatRecord {
   ascent_date: string;
   ascent_type: string;
   ascent_grade: number | null;
+  attempts: number | null;
   route_grade: number;
   route_name: string;
   route_slug: string;

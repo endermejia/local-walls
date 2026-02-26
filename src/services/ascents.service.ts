@@ -157,6 +157,7 @@ export class AscentsService {
         date,
         type,
         grade,
+        attempts,
         route:routes (
           grade,
           name,
@@ -185,6 +186,7 @@ export class AscentsService {
       date: string | null;
       type: string | null;
       grade: number | null;
+      attempts: number | null;
       route: {
         grade: number;
         name: string;
@@ -211,6 +213,7 @@ export class AscentsService {
           ascent_date: a.date || '',
           ascent_type: a.type || 'rp',
           ascent_grade: a.grade,
+          attempts: a.attempts,
           route_grade: route?.grade || 0,
           route_name: route?.name || '',
           route_slug: route?.slug || '',
@@ -269,6 +272,7 @@ export class AscentsService {
         date,
         type,
         grade,
+        attempts,
         route:routes (
           grade,
           name,
@@ -299,6 +303,7 @@ export class AscentsService {
       date: string | null;
       type: string | null;
       grade: number | null;
+      attempts: number | null;
       route: {
         grade: number;
         name: string;
@@ -320,6 +325,7 @@ export class AscentsService {
         ascent_date: a.date ?? '',
         ascent_type: a.type ?? 'rp',
         ascent_grade: a.grade,
+        attempts: a.attempts,
         route_grade: route?.grade ?? 0,
         route_name: route?.name ?? '',
         route_slug: route?.slug ?? '',

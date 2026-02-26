@@ -197,13 +197,21 @@ export class AscentCalendarDialogComponent {
   private buildCardItem(a: UserAscentStatRecord): RouteAscentWithExtras {
     const item: Pick<
       RouteAscentWithExtras,
-      'id' | 'date' | 'type' | 'grade' | 'user_id' | 'user' | 'route'
+      | 'id'
+      | 'date'
+      | 'type'
+      | 'grade'
+      | 'attempts'
+      | 'user_id'
+      | 'user'
+      | 'route'
     > &
       Partial<RouteAscentWithExtras> = {
       id: a.id,
       date: a.ascent_date,
       type: a.ascent_type as AscentType,
       grade: a.ascent_grade,
+      attempts: a.attempts,
       user_id: this.user?.id ?? '',
       user: this.user ?? undefined,
       route: {
