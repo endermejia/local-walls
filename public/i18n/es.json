@@ -418,6 +418,8 @@
   "notifications.commentedAscentPlural": "han comentado en tu encadene en '{{routeName}}'",
   "notifications.likedAscent": "le ha dado a me gusta a tu encadene en '{{routeName}}'",
   "notifications.likedAscentPlural": "le han dado a me gusta a tu encadene en '{{routeName}}'",
+  "notifications.likedComment": "le ha dado a me gusta a tu comentario en '{{routeName}}'",
+  "notifications.likedCommentPlural": "le han dado a me gusta a tu comentario en '{{routeName}}'",
   "notifications.mention": "te ha mencionado en un comentario en '{{routeName}}'",
   "notifications.sentMessage": "te ha enviado un mensaje",
   "notifications.unknown": "nueva notificación",
