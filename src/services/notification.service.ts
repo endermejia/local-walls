@@ -15,9 +15,9 @@ export class NotificationService {
   private show(
     message: string,
     options?: Partial<TuiAlertOptions<unknown>>,
-  ): void {
+  ): Promise<void> {
     const translatedMessage = this.translate.instant(message);
-    void firstValueFrom(
+    return firstValueFrom(
       this.alerts.open(translatedMessage, {
         ...options,
       }),
@@ -29,8 +29,8 @@ export class NotificationService {
     message: string,
     label?: string,
     autoClose: number | boolean | undefined = 3000,
-  ): void {
-    this.show(message, {
+  ): Promise<void> {
+    return this.show(message, {
       appearance: 'positive',
       label: label ? this.translate.instant(label) : undefined,
       autoClose: autoClose === false ? 0 : (autoClose as number | undefined),
@@ -41,8 +41,8 @@ export class NotificationService {
     message: string,
     label?: string,
     autoClose: number | boolean | undefined = 3000,
-  ): void {
-    this.show(message, {
+  ): Promise<void> {
+    return this.show(message, {
       appearance: 'negative',
       label: label ? this.translate.instant(label) : undefined,
       autoClose: autoClose === false ? 0 : (autoClose as number | undefined),
@@ -53,8 +53,8 @@ export class NotificationService {
     message: string,
     label?: string,
     autoClose: number | boolean | undefined = 3000,
-  ): void {
-    this.show(message, {
+  ): Promise<void> {
+    return this.show(message, {
       appearance: 'info',
       label: label ? this.translate.instant(label) : undefined,
       autoClose: autoClose === false ? 0 : (autoClose as number | undefined),
@@ -65,8 +65,8 @@ export class NotificationService {
     message: string,
     label?: string,
     autoClose: number | boolean | undefined = 3000,
-  ): void {
-    this.show(message, {
+  ): Promise<void> {
+    return this.show(message, {
       appearance: 'warning',
       label: label ? this.translate.instant(label) : undefined,
       autoClose: autoClose === false ? 0 : (autoClose as number | undefined),

@@ -879,7 +879,7 @@ export class Import8aComponent {
         }
       }
 
-      this.notification.success(
+      void this.notification.success(
         this.translate.instant('import8a.success', {
           importedCount: `<strong>${totalInserted}</strong>`,
           skippedInfo,

@@ -515,7 +515,7 @@ export class AreasService {
         }
       }
 
-      this.notification.success(
+      void this.notification.success(
         this.translate.instant('import8a.syncSuccess', {
           count: `<strong>${totalRoutes}</strong>`,
         }) + '.',
