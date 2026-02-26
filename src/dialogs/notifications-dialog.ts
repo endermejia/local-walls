@@ -22,13 +22,13 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 import { AppNotificationsService } from '../services/app-notifications.service';
+import { AscentsService } from '../services/ascents.service';
 import { SupabaseService } from '../services/supabase.service';
 
 import { EmptyStateComponent } from '../components/empty-state';
 
 import { NotificationWithActor } from '../models';
 
-import { AscentDialogComponent } from './ascent-dialog';
 import { ChatDialogComponent } from './chat-dialog';
 
 interface GroupedNotification {
@@ -143,8 +143,12 @@ export class NotificationsDialogComponent {
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   protected readonly context = injectContext<TuiDialogContext<void, void>>();
+  private readonly ascentsService = inject(AscentsService);
 
-  protected readonly notificationsResource = resource({
+  protected readonly notificationsResource = resource<
+    NotificationWithActor[],
+    undefined
+  >({
     loader: () => this.notificationsService.getNotifications(),
   });
 
@@ -226,7 +230,9 @@ export class NotificationsDialogComponent {
     if (group.type === 'like' || group.type === 'comment') {
       const ascentId = Number(group.resource_id);
       if (!isNaN(ascentId) && ascentId > 0) {
-        this.openAscentDialog(ascentId);
+        void firstValueFrom(this.ascentsService.openAscentDialog(ascentId), {
+          defaultValue: undefined,
+        });
       }
     } else if (group.type === 'message') {
       void firstValueFrom(
@@ -238,17 +244,6 @@ export class NotificationsDialogComponent {
         { defaultValue: undefined },
       );
     }
-  }
-
-  private openAscentDialog(ascentId: number) {
-    void firstValueFrom(
-      this.dialogs.open(new PolymorpheusComponent(AscentDialogComponent), {
-        label: this.translate.instant('ascent'),
-        size: 'm',
-        data: { ascentId },
-      }),
-      { defaultValue: undefined },
-    );
   }
 
   private groupNotifications(

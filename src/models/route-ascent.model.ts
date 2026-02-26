@@ -1,8 +1,5 @@
 import { RouteWithExtras } from './route.model';
-import {
-  RouteAscentCommentDto,
-  RouteAscentDto,
-} from './supabase-interfaces';
+import { RouteAscentCommentDto, RouteAscentDto } from './supabase-interfaces';
 import { UserProfileBasicDto } from './user.model';
 
 export interface RouteAscentWithExtras extends RouteAscentDto {
@@ -19,13 +16,16 @@ export interface PaginatedAscents {
 }
 
 export interface UserAscentStatRecord {
+  id: number;
   ascent_date: string;
   ascent_type: string;
   ascent_grade: number | null;
   route_grade: number;
   route_name: string;
   route_slug: string;
+  crag_name: string;
   crag_slug: string;
+  area_name: string;
   area_slug: string;
 }
 

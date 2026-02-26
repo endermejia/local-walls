@@ -5,7 +5,7 @@ import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslateService } from '@ngx-translate/core';
-import { Observable, Subject, tap } from 'rxjs';
+import { defer, from, Observable, Subject, switchMap, tap } from 'rxjs';
 
 import {
   AscentDialogData,
@@ -22,8 +22,6 @@ import {
   RouteAscentCommentWithExtras,
 } from '../models';
 
-import { AscentCommentsDialogComponent } from '../dialogs/ascent-comments-dialog';
-import AscentFormComponent from '../forms/ascent-form';
 import { AppNotificationsService } from './app-notifications.service';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
@@ -151,19 +149,186 @@ export class AscentsService {
     if (!userId || !isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
 
-    const { data, error } = await this.supabase.client.rpc(
-      'get_user_statistics',
-      {
-        p_user_id: userId,
-      },
-    );
+    const { data, error } = await this.supabase.client
+      .from('route_ascents')
+      .select(
+        `
+        id,
+        date,
+        type,
+        grade,
+        route:routes (
+          grade,
+          name,
+          slug,
+          crag:crags (
+            name,
+            slug,
+            area:areas (
+              name,
+              slug
+            )
+          )
+        )
+      `,
+      )
+      .eq('user_id', userId)
+      .order('date', { ascending: false });
 
     if (error) {
       console.error('[AscentsService] getUserStats error', error);
       return [];
     }
 
-    return (data as UserAscentStatRecord[]) ?? [];
+    interface QueryResult {
+      id: number;
+      date: string | null;
+      type: string | null;
+      grade: number | null;
+      route: {
+        grade: number;
+        name: string;
+        slug: string;
+        crag: {
+          name: string;
+          slug: string;
+          area: {
+            name: string;
+            slug: string;
+          } | null;
+        } | null;
+      } | null;
+    }
+
+    return (
+      (data as unknown as QueryResult[])?.map((a) => {
+        const route = a.route;
+        const crag = route?.crag;
+        const area = crag?.area;
+
+        return {
+          id: a.id,
+          ascent_date: a.date || '',
+          ascent_type: a.type || 'rp',
+          ascent_grade: a.grade,
+          route_grade: route?.grade || 0,
+          route_name: route?.name || '',
+          route_slug: route?.slug || '',
+          crag_name: crag?.name || '',
+          crag_slug: crag?.slug || '',
+          area_name: area?.name || '',
+          area_slug: area?.slug || '',
+        } satisfies UserAscentStatRecord;
+      }) ?? []
+    );
+  }
+
+  /** Lightweight: fetch only date+type for all ascents of a user, to power calendar markers. */
+  async getUserAscentDates(
+    userId: string,
+  ): Promise<{ date: string; type: string }[]> {
+    if (!userId || !isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+
+    const { data, error } = await this.supabase.client
+      .from('route_ascents')
+      .select('date, type')
+      .eq('user_id', userId)
+      .not('date', 'is', null)
+      .order('date', { ascending: false });
+
+    if (error) {
+      console.error('[AscentsService] getUserAscentDates error', error);
+      return [];
+    }
+
+    return (data ?? []).map((r) => ({
+      date: r.date ?? '',
+      type: r.type ?? 'rp',
+    }));
+  }
+
+  /** Fetch full stat records for a specific month (year + 1-based month). */
+  async getUserAscentsByMonth(
+    userId: string,
+    year: number,
+    month: number,
+  ): Promise<UserAscentStatRecord[]> {
+    if (!userId || !isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+
+    const from_ = `${year}-${String(month).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const to = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+    const { data, error } = await this.supabase.client
+      .from('route_ascents')
+      .select(
+        `
+        id,
+        date,
+        type,
+        grade,
+        route:routes (
+          grade,
+          name,
+          slug,
+          crag:crags (
+            name,
+            slug,
+            area:areas (
+              name,
+              slug
+            )
+          )
+        )
+      `,
+      )
+      .eq('user_id', userId)
+      .gte('date', from_)
+      .lte('date', to)
+      .order('date', { ascending: false });
+
+    if (error) {
+      console.error('[AscentsService] getUserAscentsByMonth error', error);
+      return [];
+    }
+
+    interface MonthQueryResult {
+      id: number;
+      date: string | null;
+      type: string | null;
+      grade: number | null;
+      route: {
+        grade: number;
+        name: string;
+        slug: string;
+        crag: {
+          name: string;
+          slug: string;
+          area: { name: string; slug: string } | null;
+        } | null;
+      } | null;
+    }
+
+    return ((data ?? []) as unknown as MonthQueryResult[]).map((a) => {
+      const route = a.route;
+      const crag = route?.crag;
+      const area = crag?.area;
+      return {
+        id: a.id,
+        ascent_date: a.date ?? '',
+        ascent_type: a.type ?? 'rp',
+        ascent_grade: a.grade,
+        route_grade: route?.grade ?? 0,
+        route_name: route?.name ?? '',
+        route_slug: route?.slug ?? '',
+        crag_name: crag?.name ?? '',
+        crag_slug: crag?.slug ?? '',
+        area_name: area?.name ?? '',
+        area_slug: area?.slug ?? '',
+      } satisfies UserAscentStatRecord;
+    });
   }
 
   async uploadPhoto(ascentId: number, file: File): Promise<void> {
@@ -225,23 +390,42 @@ export class AscentsService {
     this.refreshResources(ascentId);
   }
 
-  openAscentForm(data: AscentDialogData): Observable<boolean> {
-    return this.dialogs
-      .open<boolean>(new PolymorpheusComponent(AscentFormComponent), {
-        label: this.translate.instant(
-          data.ascentData ? 'ascent.edit' : 'ascent.new',
+  openAscentDialog(ascentId: number): Observable<void> {
+    return defer(() => from(import('../dialogs/ascent-dialog'))).pipe(
+      switchMap(({ AscentDialogComponent }) =>
+        this.dialogs.open<void>(
+          new PolymorpheusComponent(AscentDialogComponent),
+          {
+            data: { ascentId },
+            label: this.translate.instant('ascent'),
+            size: 'm',
+          },
         ),
-        size: 'm',
-        data,
-        dismissible: false,
-      })
-      .pipe(
-        tap((res) => {
-          if (res === null || res) {
-            void this.refreshResources();
-          }
-        }),
-      );
+      ),
+    );
+  }
+
+  openAscentForm(data: AscentDialogData): Observable<boolean> {
+    return defer(() => from(import('../forms/ascent-form'))).pipe(
+      switchMap(({ default: AscentFormComponent }) =>
+        this.dialogs.open<boolean>(
+          new PolymorpheusComponent(AscentFormComponent),
+          {
+            label: this.translate.instant(
+              data.ascentData ? 'ascent.edit' : 'ascent.new',
+            ),
+            size: 'm',
+            data,
+            dismissible: false,
+          },
+        ),
+      ),
+      tap((res) => {
+        if (res === null || res) {
+          void this.refreshResources();
+        }
+      }),
+    );
   }
 
   async create(
@@ -839,13 +1023,17 @@ export class AscentsService {
   }
 
   openCommentsDialog(ascentId: number): Observable<void> {
-    return this.dialogs.open<void>(
-      new PolymorpheusComponent(AscentCommentsDialogComponent),
-      {
-        data: { ascentId },
-        label: this.translate.instant('comments'),
-        size: 'm',
-      },
+    return defer(() => from(import('../dialogs/ascent-comments-dialog'))).pipe(
+      switchMap(({ AscentCommentsDialogComponent }) =>
+        this.dialogs.open<void>(
+          new PolymorpheusComponent(AscentCommentsDialogComponent),
+          {
+            data: { ascentId },
+            label: this.translate.instant('comments'),
+            size: 'm',
+          },
+        ),
+      ),
     );
   }
 

@@ -45,6 +45,8 @@ import { TUI_CONFIRM } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
+import { AscentsService } from '../services/ascents.service';
+import { AscentCalendarDialogComponent } from '../dialogs/ascent-calendar-dialog';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, startWith } from 'rxjs';
 
@@ -432,6 +434,16 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
                       <tui-data-list-wrapper new [items]="['grade', 'date']" />
                     </tui-data-list>
                   </tui-textfield>
+
+                  <button
+                    tuiButton
+                    appearance="secondary"
+                    iconStart="@tui.calendar"
+                    class="w-full sm:w-auto sm:ml-auto"
+                    (click)="openCalendar()"
+                  >
+                    {{ 'statistics.openCalendar' | translate }}
+                  </button>
                 </div>
 
                 <app-ascents-feed
@@ -448,7 +460,7 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
                 />
               </div>
             } @else if (isOwnProfile()) {
-              <div class="mt-8 flex justify-center">
+              <div class="mt-8 flex flex-col items-center gap-4">
                 <button
                   tuiButton
                   type="button"
@@ -458,11 +470,30 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
                 >
                   {{ 'import' | translate }} 8a.nu
                 </button>
+                <button
+                  tuiButton
+                  appearance="secondary"
+                  iconStart="@tui.calendar"
+                  (click)="openCalendar()"
+                >
+                  {{ 'statistics.openCalendar' | translate }}
+                </button>
               </div>
             } @else {
-              <app-empty-state icon="@tui.list" />
+              <div class="flex flex-col items-center gap-3">
+                <app-empty-state icon="@tui.list" />
+                <button
+                  tuiButton
+                  appearance="secondary"
+                  iconStart="@tui.calendar"
+                  (click)="openCalendar()"
+                >
+                  {{ 'statistics.openCalendar' | translate }}
+                </button>
+              </div>
             }
           }
+
           @case (1) {
             <div class="min-w-0">
               @if (projectsResource.isLoading()) {
@@ -662,14 +693,14 @@ export class UserProfileComponent {
   private readonly toast = inject(ToastService);
   private readonly userProfilesService = inject(UserProfilesService);
   private readonly filtersService = inject(FiltersService);
+  private readonly ascentsService = inject(AscentsService);
+  private readonly dialogs = inject(TuiDialogService);
 
   // Route param (optional)
   id = input<string | undefined>();
 
   protected dropdownOpen = signal(false);
   protected readonly followLoading = signal(false);
-
-  private readonly dialogs = inject(TuiDialogService);
 
   protected readonly activeTab = this.global.profileActiveTab;
 
@@ -1381,6 +1412,21 @@ export class UserProfileComponent {
         data: { imageUrl: avatar },
         size: 'l',
         appearance: 'flat',
+      })
+      .subscribe();
+  }
+
+  openCalendar(): void {
+    const userId = this.id() || this.supabase.authUserId() || '';
+    if (!userId) return;
+    this.dialogs
+      .open(new PolymorpheusComponent(AscentCalendarDialogComponent), {
+        label: this.translate.instant('ascents'),
+        size: 'm',
+        data: {
+          userId,
+          user: this.profile(),
+        },
       })
       .subscribe();
   }
