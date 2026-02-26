@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   input,
   resource,
@@ -19,34 +20,44 @@ import { AscentsService } from '../services/ascents.service';
   standalone: true,
   imports: [TuiButton, TuiIcon, TranslatePipe],
   template: `
-    <div class="flex items-center gap-1">
-      <tui-icon
-        type="button"
-        size="m"
-        icon="@tui.message-circle"
-        (click)="showComments($event)"
-        [attr.aria-label]="'comments' | translate"
-      />
-      @if (commentsCountResource.value(); as count) {
-        <button
-          tuiButton
+    @if (!isHidden()) {
+      <div class="flex items-center gap-1">
+        <tui-icon
           type="button"
           size="m"
-          appearance="action-grayscale"
-          class="!pr-1 !pl-1 !h-auto"
+          icon="@tui.message-circle"
           (click)="showComments($event)"
-        >
-          {{ count }}
-        </button>
-      }
-    </div>
+          [attr.aria-label]="'comments' | translate"
+        />
+        @if (commentsCountResource.value(); as count) {
+          <button
+            tuiButton
+            type="button"
+            size="m"
+            appearance="action-grayscale"
+            class="!pr-1 !pl-1 !h-auto"
+            (click)="showComments($event)"
+          >
+            {{ count }}
+          </button>
+        }
+      </div>
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[style.display]': 'isHidden() ? "none" : null',
+  },
 })
 export class AscentCommentsComponent {
   private readonly ascentsService = inject(AscentsService);
 
   ascentId = input.required<number>();
+  isPrivate = input(false);
+
+  protected readonly isHidden = computed(() => {
+    return this.isPrivate() && (this.commentsCountResource.value() || 0) === 0;
+  });
 
   protected readonly commentsCountResource = resource({
     params: () => this.ascentId(),

@@ -345,8 +345,14 @@ import { GradeComponent } from './avatar-grade';
 
       <footer class="flex flex-col gap-2 mt-2">
         <div class="flex items-center gap-4">
-          <app-ascent-likes [ascentId]="ascent.id" />
-          <app-ascent-comments [ascentId]="ascent.id" />
+          <app-ascent-likes
+            [ascentId]="ascent.id"
+            [isPrivate]="!!ascent.private_ascent"
+          />
+          <app-ascent-comments
+            [ascentId]="ascent.id"
+            [isPrivate]="!!ascent.private_ascent"
+          />
         </div>
         <app-ascent-last-comment [ascentId]="ascent.id" />
       </footer>
