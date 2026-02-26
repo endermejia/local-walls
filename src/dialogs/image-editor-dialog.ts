@@ -124,10 +124,10 @@ export interface ImageEditorConfig {
           @if (allowDrawing) {
             <tui-segmented [(activeItemIndex)]="modeIndex">
               <button type="button">
-                {{ 'imageEditor.adjust' | translate }}
+                {{ 'adjust' | translate }}
               </button>
               <button type="button">
-                {{ 'imageEditor.annotate' | translate }}
+                {{ 'annotate' | translate }}
               </button>
             </tui-segmented>
           }
@@ -153,7 +153,7 @@ export interface ImageEditorConfig {
             [disabled]="loading()"
             (click)="save()"
           >
-            {{ 'imageEditor.save' | translate }}
+            {{ 'save' | translate }}
           </button>
         </div>
       </div>
@@ -472,7 +472,7 @@ export interface ImageEditorConfig {
                     [appearance]="!maintainAspectRatio ? 'primary' : 'flat'"
                     (click)="toggleMaintainAspectRatio()"
                   >
-                    {{ 'imageEditor.free' | translate }}
+                    {{ 'free' | translate }}
                   </button>
                 }
               </div>
@@ -491,7 +491,7 @@ export interface ImageEditorConfig {
                   appearance="flat"
                   size="s"
                   (click)="rotateLeft()"
-                  [title]="'imageEditor.rotate' | translate"
+                  [title]="'rotate' | translate"
                 >
                   <tui-icon icon="@tui.rotate-ccw" />
                 </button>
@@ -500,7 +500,7 @@ export interface ImageEditorConfig {
                   appearance="flat"
                   size="s"
                   (click)="rotateRight()"
-                  [title]="'imageEditor.rotate' | translate"
+                  [title]="'rotate' | translate"
                 >
                   <tui-icon icon="@tui.rotate-cw" />
                 </button>
@@ -515,7 +515,7 @@ export interface ImageEditorConfig {
                   appearance="flat"
                   size="s"
                   (click)="flipHorizontal()"
-                  [title]="'imageEditor.flipX' | translate"
+                  [title]="'flipX' | translate"
                 >
                   <tui-icon icon="@tui.flip-horizontal" />
                 </button>
@@ -524,7 +524,7 @@ export interface ImageEditorConfig {
                   appearance="flat"
                   size="s"
                   (click)="flipVertical()"
-                  [title]="'imageEditor.flipY' | translate"
+                  [title]="'flipY' | translate"
                 >
                   <tui-icon icon="@tui.flip-vertical" />
                 </button>
@@ -539,7 +539,7 @@ export interface ImageEditorConfig {
                   appearance="flat"
                   size="s"
                   (click)="zoomOut()"
-                  [title]="'imageEditor.zoomOutTitle' | translate"
+                  [title]="'zoomOut' | translate"
                 >
                   <tui-icon icon="@tui.minus" />
                 </button>
@@ -548,7 +548,7 @@ export interface ImageEditorConfig {
                   appearance="flat"
                   size="s"
                   (click)="zoomIn()"
-                  [title]="'imageEditor.zoomInTitle' | translate"
+                  [title]="'zoomIn' | translate"
                 >
                   <tui-icon icon="@tui.plus" />
                 </button>
@@ -560,7 +560,7 @@ export interface ImageEditorConfig {
                 size="m"
                 (click)="resetImage()"
                 style="background: var(--tui-background-neutral-1)"
-                [title]="'imageEditor.reset' | translate"
+                [title]="'reset' | translate"
               >
                 <tui-icon icon="@tui.refresh-cw" />
               </button>

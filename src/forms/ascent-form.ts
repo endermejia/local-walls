@@ -180,7 +180,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             [ngModel]="model().attempts"
             (ngModelChange)="onAttemptsChange($event)"
             name="attempts"
-            label="ascent.tries"
+            label="attempts"
           />
         </section>
 
@@ -722,7 +722,7 @@ export default class AscentFormComponent {
     },
     {
       id: AscentTypes.ATTEMPT,
-      translate: 'ascentTypes.attempt',
+      translate: 'attempt',
       icon: '@tui.circle-dashed',
       background: 'var(--tui-status-neutral)',
     },

@@ -41,10 +41,7 @@ import { AscentType } from '../models';
 
     <ng-template #hintTemplate>
       {{ attempts() }}
-      {{
-        (attempts() === 1 ? 'ascentTypes.attempt' : 'ascentTypes.attempts')
-          | translate
-      }}
+      {{ (attempts() === 1 ? 'attempt' : 'attempts') | translate }}
     </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

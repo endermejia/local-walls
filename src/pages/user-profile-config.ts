@@ -176,10 +176,7 @@ interface Country {
               "
             >
               <tui-icon icon="@tui.arrow-left" />
-              {{
-                (isFirstSteps() ? 'firstSteps.next' : 'profile.title')
-                  | translate
-              }}
+              {{ (isFirstSteps() ? 'next' : 'profile.title') | translate }}
             </button>
           </h1>
         </header>

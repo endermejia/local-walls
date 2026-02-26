@@ -40,7 +40,7 @@ import { LocalStorage } from '../services/local-storage';
           class="min-w-24"
           (click)="accept()"
         >
-          {{ 'gdpr.accept' | translate }}
+          {{ 'accept' | translate }}
         </button>
       </div>
     </div>

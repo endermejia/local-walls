@@ -41,7 +41,7 @@ import { TranslatePipe } from '@ngx-translate/core';
           (click)="onNext()"
           [disabled]="disabled()"
         >
-          {{ (isLast() ? 'tour.finish' : 'tour.next') | translate }}
+          {{ (isLast() ? 'tour.finish' : 'next') | translate }}
         </button>
       </div>
     </div>
