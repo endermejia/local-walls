@@ -180,7 +180,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             [ngModel]="model().attempts"
             (ngModelChange)="onAttemptsChange($event)"
             name="attempts"
-            label="attempts"
+            label="ascentTypes.attempts"
           />
         </section>
 
