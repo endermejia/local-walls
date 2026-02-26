@@ -400,6 +400,8 @@
   "notifications.commentedAscentPlural": "commented on your ascent on '{{routeName}}'",
   "notifications.likedAscent": "liked your ascent on '{{routeName}}'",
   "notifications.likedAscentPlural": "liked your ascent on '{{routeName}}'",
+  "notifications.likedComment": "liked your comment on '{{routeName}}'",
+  "notifications.likedCommentPlural": "liked your comment on '{{routeName}}'",
   "notifications.mention": "mentioned you in a comment on '{{routeName}}'",
   "notifications.sentMessage": "sent you a message",
   "notifications.unknown": "new notification",

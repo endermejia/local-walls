@@ -1,5 +1,8 @@
 import { RouteWithExtras } from './route.model';
-import { RouteAscentDto } from './supabase-interfaces';
+import {
+  RouteAscentCommentDto,
+  RouteAscentDto,
+} from './supabase-interfaces';
 import { UserProfileBasicDto } from './user.model';
 
 export interface RouteAscentWithExtras extends RouteAscentDto {
@@ -24,4 +27,10 @@ export interface UserAscentStatRecord {
   route_slug: string;
   crag_slug: string;
   area_slug: string;
+}
+
+export interface RouteAscentCommentWithExtras extends RouteAscentCommentDto {
+  user_profiles: UserProfileBasicDto;
+  likes_count: number;
+  user_liked: boolean;
 }

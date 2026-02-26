@@ -35,11 +35,16 @@ import { EmptyStateComponent } from '../components/empty-state';
 
 import { UserProfileBasicDto, UserProfileDto } from '../models';
 
-export type UserListType = 'followers' | 'following' | 'ascent-likes';
+export type UserListType =
+  | 'followers'
+  | 'following'
+  | 'ascent-likes'
+  | 'comment-likes';
 
 export interface UserListDialogData {
   userId?: string;
   ascentId?: number;
+  commentId?: number;
   type: UserListType;
 }
 
@@ -177,6 +182,7 @@ export class UserListDialogComponent {
 
   protected readonly userId = this.context.data.userId;
   protected readonly ascentId = this.context.data.ascentId;
+  protected readonly commentId = this.context.data.commentId;
   protected readonly type = this.context.data.type;
 
   protected readonly query = signal('');
@@ -189,6 +195,7 @@ export class UserListDialogComponent {
     params: () => ({
       userId: this.userId,
       ascentId: this.ascentId,
+      commentId: this.commentId,
       type: this.type,
       query: this.query(),
       page: this.page(),
@@ -221,6 +228,14 @@ export class UserListDialogComponent {
             this.pageSize,
             params.query,
           );
+        case 'comment-likes':
+          if (!params.commentId) return { items: [], total: 0 };
+          return await this.ascentsService.getCommentLikesPaginated(
+            params.commentId,
+            params.page,
+            this.pageSize,
+            params.query,
+          );
         default:
           return { items: [], total: 0 };
       }
@@ -240,6 +255,7 @@ export class UserListDialogComponent {
   protected readonly emptyIcon = computed(() => {
     switch (this.type) {
       case 'ascent-likes':
+      case 'comment-likes':
         return '@tui.heart';
       default:
         return '@tui.users';

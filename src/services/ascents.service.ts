@@ -19,6 +19,7 @@ import {
   RouteAscentCommentDto,
   RouteAscentCommentInsertDto,
   UserAscentStatRecord,
+  RouteAscentCommentWithExtras,
 } from '../models';
 
 import { AscentCommentsDialogComponent } from '../dialogs/ascent-comments-dialog';
@@ -524,6 +525,91 @@ export class AscentsService {
     return count ?? 0;
   }
 
+  async toggleCommentLike(commentId: number): Promise<boolean | null> {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    await this.supabase.whenReady();
+    const { data, error } = await this.supabase.client.rpc(
+      'toggle_comment_like',
+      {
+        p_comment_id: commentId,
+      },
+    );
+    if (error) {
+      console.error('[AscentsService] toggleCommentLike error', error);
+      throw error;
+    }
+    return data;
+  }
+
+  async getCommentLikesPaginated(
+    commentId: number,
+    page = 0,
+    pageSize = 20,
+    query = '',
+  ): Promise<{ items: UserProfileBasicDto[]; total: number }> {
+    if (!isPlatformBrowser(this.platformId)) return { items: [], total: 0 };
+    await this.supabase.whenReady();
+
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
+
+    // Cast to any because table doesn't exist in generated types yet
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const client = this.supabase.client as any;
+    const likesQuery = client
+      .from('route_ascent_comment_likes')
+      .select('user_id', { count: 'exact' })
+      .eq('comment_id', commentId)
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    const { data: likesData, error: likesError, count } = await likesQuery;
+
+    if (likesError) {
+      console.error(
+        '[AscentsService] getCommentLikesPaginated error',
+        likesError,
+      );
+      throw likesError;
+    }
+
+    if (!likesData || likesData.length === 0) {
+      return { items: [], total: 0 };
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userIds = likesData.map((d: any) => d.user_id);
+    let profilesQuery = this.supabase.client
+      .from('user_profiles')
+      .select('id, name, avatar')
+      .in('id', userIds);
+
+    if (query) {
+      profilesQuery = profilesQuery.ilike('name', `%${query}%`);
+    }
+
+    const { data: profilesData, error: profilesError } = await profilesQuery;
+
+    if (profilesError) {
+      console.error(
+        '[AscentsService] getCommentLikesPaginated profiles error',
+        profilesError,
+      );
+      throw profilesError;
+    }
+
+    const profileMap = new Map(profilesData?.map((p) => [p.id, p]));
+    const sortedProfiles = userIds
+      .map((id: string) => profileMap.get(id))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .filter((p: any): p is UserProfileBasicDto => !!p);
+
+    return {
+      items: sortedProfiles,
+      total: count || 0,
+    };
+  }
+
   async getLastComment(
     ascentId: number,
   ): Promise<
@@ -564,18 +650,24 @@ export class AscentsService {
 
   async getComments(
     ascentId: number,
-  ): Promise<
-    (RouteAscentCommentDto & { user_profiles: UserProfileBasicDto })[]
-  > {
+  ): Promise<RouteAscentCommentWithExtras[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
 
-    const { data: commentsData, error: commentsError } =
-      await this.supabase.client
-        .from('route_ascent_comments')
-        .select('*')
-        .eq('route_ascent_id', ascentId)
-        .order('created_at', { ascending: true });
+    // 1. Fetch comments with likes count
+    // explicit cast to any to allow joining with new table
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const client = this.supabase.client as any;
+    const { data: commentsData, error: commentsError } = await client
+      .from('route_ascent_comments')
+      .select(
+        `
+        *,
+        likes:route_ascent_comment_likes(count)
+      `,
+      )
+      .eq('route_ascent_id', ascentId)
+      .order('created_at', { ascending: true });
 
     if (commentsError) {
       console.error('[AscentsService] getComments error', commentsError);
@@ -586,7 +678,9 @@ export class AscentsService {
       return [];
     }
 
-    const userIds = [...new Set(commentsData.map((c) => c.user_id))];
+    // 2. Fetch profiles
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userIds = [...new Set(commentsData.map((c: any) => c.user_id))];
     const { data: profilesData, error: profilesError } =
       await this.supabase.client
         .from('user_profiles')
@@ -603,12 +697,33 @@ export class AscentsService {
 
     const profileMap = new Map(profilesData?.map((p) => [p.id, p]));
 
+    // 3. Fetch user likes for these comments
+    const likedCommentIds = new Set<number>();
+    const currentUserId = this.supabase.authUserId();
+    if (currentUserId) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const commentIds = commentsData.map((c: any) => c.id);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: myLikes } = await (this.supabase.client as any)
+        .from('route_ascent_comment_likes')
+        .select('comment_id')
+        .eq('user_id', currentUserId)
+        .in('comment_id', commentIds);
+
+      if (myLikes) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        myLikes.forEach((l: any) => likedCommentIds.add(l.comment_id));
+      }
+    }
+
     return commentsData
       .map((comment) => ({
         ...comment,
         user_profiles: profileMap.get(comment.user_id)!,
+        likes_count: comment.likes?.[0]?.count ?? 0,
+        user_liked: likedCommentIds.has(comment.id),
       }))
-      .filter((c) => !!c.user_profiles);
+      .filter((c) => !!c.user_profiles) as RouteAscentCommentWithExtras[];
   }
 
   async addComment(
