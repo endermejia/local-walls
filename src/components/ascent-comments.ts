@@ -24,16 +24,18 @@ import { AscentsService } from '../services/ascents.service';
       <div class="flex items-center gap-1">
         <tui-icon
           type="button"
-          size="m"
+          [style.width.rem]="size() === 's' ? 1.2 : 1.5"
+          [style.height.rem]="size() === 's' ? 1.2 : 1.5"
           icon="@tui.message-circle"
           (click)="showComments($event)"
           [attr.aria-label]="'comments' | translate"
+          class="cursor-pointer"
         />
         @if (commentsCountResource.value(); as count) {
           <button
             tuiButton
             type="button"
-            size="m"
+            [size]="size()"
             appearance="action-grayscale"
             class="!pr-1 !pl-1 !h-auto"
             (click)="showComments($event)"
@@ -54,6 +56,7 @@ export class AscentCommentsComponent {
 
   ascentId = input.required<number>();
   isPrivate = input(false);
+  size = input<'s' | 'm'>('m');
 
   protected readonly isHidden = computed(() => {
     return this.isPrivate() && (this.commentsCountResource.value() || 0) === 0;

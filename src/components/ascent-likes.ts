@@ -7,55 +7,29 @@ import {
   resource,
 } from '@angular/core';
 
-import { TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 import { AscentsService } from '../services/ascents.service';
 
 import { UserListDialogComponent } from '../dialogs/user-list-dialog';
+import { LikesComponent } from './likes';
 
 @Component({
   selector: 'app-ascent-likes',
   standalone: true,
-  imports: [TuiButton, TuiIcon, TranslatePipe],
+  imports: [LikesComponent],
   template: `
     @if (!isHidden()) {
-      <div class="flex items-center gap-1">
-        <button
-          type="button"
-          tuiIconButton
-          size="m"
-          appearance="transparent"
-          [attr.aria-label]="'like' | translate"
-          (click)="toggleLike($event)"
-        >
-          <tui-icon
-            size="m"
-            [icon]="item().user_liked ? '@tui.heart-filled' : '@tui.heart'"
-            [style.color]="
-              item().user_liked ? 'var(--tui-status-negative)' : ''
-            "
-          >
-            ❤
-          </tui-icon>
-        </button>
-        @if (item().likes_count) {
-          <button
-            tuiButton
-            type="button"
-            size="m"
-            appearance="action-grayscale"
-            class="!pr-1 !pl-1 !h-auto"
-            (click)="showLikes($event)"
-          >
-            {{ item().likes_count }}
-          </button>
-        }
-      </div>
+      <app-likes
+        [userLiked]="item().user_liked"
+        [likesCount]="item().likes_count"
+        (toggleLike)="toggleLike($event)"
+        (showLikes)="showLikes($event)"
+      />
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

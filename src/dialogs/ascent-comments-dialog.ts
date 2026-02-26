@@ -101,7 +101,7 @@ export interface AscentCommentsDialogData {
                   <button
                     tuiButton
                     type="button"
-                    appearance="action-destructive"
+                    appearance="action-grayscale"
                     size="xs"
                     (click)="onReply(comment.user_profiles)"
                   >
@@ -111,7 +111,7 @@ export interface AscentCommentsDialogData {
                     <button
                       tuiButton
                       type="button"
-                      appearance="action"
+                      appearance="action-destructive"
                       size="xs"
                       class="ml-2"
                       (click)="onDeleteComment(comment.id)"
