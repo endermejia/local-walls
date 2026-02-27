@@ -15,7 +15,7 @@ export interface SeoPageData {
 
 const APP_NAME = 'ClimBeast';
 const BASE_URL = 'https://climbeast.com';
-const DEFAULT_IMAGE = `${BASE_URL}/logo/climbeast-black.jpg`;
+const DEFAULT_IMAGE = `${BASE_URL}/logo/climbeast.png`;
 
 @Injectable({ providedIn: 'root' })
 export class SeoService {
