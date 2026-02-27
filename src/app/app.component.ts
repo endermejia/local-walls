@@ -1,4 +1,4 @@
-import { isPlatformBrowser } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import {
   Component,
   computed,
@@ -9,6 +9,8 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Meta, Title } from '@angular/platform-browser';
 import { Router, RouterOutlet } from '@angular/router';
+
+import { SeoService } from '../services/seo.service';
 
 import { TuiAppearance, TuiButton, TuiRoot } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
@@ -117,6 +119,8 @@ export class AppComponent {
   private readonly dialogs = inject(TuiDialogService);
   private readonly notifications = inject(NotificationService);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly doc = inject(DOCUMENT);
+  private readonly seo = inject(SeoService);
 
   private readonly gdprKey = 'lw_gdpr_accepted';
 
@@ -193,14 +197,15 @@ export class AppComponent {
 
     if (appTitle === 'seo.title' || !appTitle) return;
 
-    this.title.setTitle(appTitle);
+    // Update <html lang> attribute to reflect active language
+    const lang = this.translate.currentLang || this.translate.defaultLang;
+    if (this.doc?.documentElement) {
+      this.doc.documentElement.lang = lang ?? 'es';
+    }
 
-    this.meta.updateTag({ name: 'description', content: description });
-    this.meta.updateTag({ property: 'og:title', content: appTitle });
-    this.meta.updateTag({ property: 'og:description', content: description });
-    this.meta.updateTag({ property: 'og:type', content: 'website' });
-    this.meta.updateTag({ name: 'twitter:card', content: 'summary' });
-    this.meta.updateTag({ name: 'twitter:title', content: appTitle });
-    this.meta.updateTag({ name: 'twitter:description', content: description });
+    this.seo.setPage({
+      title: appTitle,
+      description,
+    });
   }
 }

@@ -1,25 +1,28 @@
 {
   "name": "ClimBeast | fanatic community",
   "short_name": "ClimBeast",
-  "start_url": "/",
+  "id": "com.climbeast.app",
+  "start_url": "/info",
   "scope": "/",
   "display": "standalone",
+  "orientation": "any",
   "theme_color": "#0ea5e9",
   "background_color": "#0b1220",
-  "description": "Busca escuelas de escalada y vías por grado cerca de ti, incluso sin conexión.",
+  "description": "App de croquis de escalada hecha por equipadores locales. Encuentra y comparte zonas de escalada, sectores y vías cerca de ti.",
   "lang": "es",
   "dir": "ltr",
+  "categories": ["sports", "social", "navigation"],
   "icons": [
     {
       "src": "/logo/android-chrome-192x192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
       "src": "/logo/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {

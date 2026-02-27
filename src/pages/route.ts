@@ -53,6 +53,8 @@ import {
 
 import { handleErrorToast } from '../utils';
 
+import { SeoService } from '../services/seo.service';
+
 @Component({
   selector: 'app-route',
   imports: [
@@ -318,6 +320,7 @@ export class RouteComponent {
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly toast = inject(ToastService);
+  private readonly seo = inject(SeoService);
 
   areaSlug: InputSignal<string> = input.required<string>();
   cragSlug: InputSignal<string> = input.required<string>();
@@ -404,6 +407,28 @@ export class RouteComponent {
       this.global.selectedAreaSlug.set(aSlug);
       this.global.selectedCragSlug.set(cSlug);
       this.global.selectedRouteSlug.set(rSlug);
+    });
+
+    // Update SEO tags when route data is available
+    effect(() => {
+      const r = this.route();
+      const area = this.global.selectedArea();
+      const crag = this.global.selectedCrag();
+      const aSlug = this.areaSlug();
+      const cSlug = this.cragSlug();
+      const rSlug = this.routeSlug();
+      if (!r) return;
+      const grade = this.gradeLabel();
+      const cragName = crag?.name ?? cSlug;
+      const areaName = area?.name ?? aSlug;
+      const appDescription = this.translate.instant('seo.description');
+      const totalAscents = this.totalAscents();
+      const description = `${r.name} (${grade}) – ${cragName}, ${areaName}. ${totalAscents} ${this.translate.instant(totalAscents === 1 ? 'ascent' : 'ascents').toLowerCase()}. ${appDescription}`;
+      this.seo.setPage({
+        title: `${r.name} (${grade}) – ${cragName}`,
+        description,
+        canonicalUrl: `https://climbeast.com/area/${aSlug}/${cSlug}/${rSlug}`,
+      });
     });
 
     effect(() => {

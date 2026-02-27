@@ -1,11 +1,18 @@
 import { NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { TuiAppearance, TuiButton, TuiTitle } from '@taiga-ui/core';
 import { TuiHeader } from '@taiga-ui/layout';
 
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
+import { SeoService } from '../services/seo.service';
 
 @Component({
   selector: 'app-landing',
@@ -67,4 +74,17 @@ import { TranslatePipe } from '@ngx-translate/core';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LandingComponent {}
+export class LandingComponent implements OnInit {
+  private readonly seo = inject(SeoService);
+  private readonly translate = inject(TranslateService);
+
+  ngOnInit(): void {
+    this.seo.setPage({
+      title: this.translate.instant('seo.title'),
+      description:
+        this.translate.instant('landing.description') ||
+        this.translate.instant('seo.description'),
+      canonicalUrl: 'https://climbeast.com/info',
+    });
+  }
+}

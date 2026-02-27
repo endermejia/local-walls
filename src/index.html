@@ -1,17 +1,18 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="utf-8" />
     <title>ClimBeast | fanatic community</title>
     <meta
       name="description"
-      content="ClimBeast - The fanatic climbing community. Log ascents, find crags, and follow friends."
+      content="App de croquis de escalada hecha por equipadores locales. Encuentra y comparte zonas de escalada, sectores y vías cerca de ti."
     />
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#0ea5e9" />
+    <meta name="robots" content="index, follow" />
     <meta
       http-equiv="permissions-policy"
       content="geolocation=(self), interest-cohort=()"
@@ -19,6 +20,84 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/logo/apple-touch-icon.png" />
+
+    <!-- Canonical URL (updated dynamically by SeoService per page) -->
+    <link rel="canonical" href="https://climbeast.com/" />
+
+    <!-- hreflang for multilingual content -->
+    <link rel="alternate" hreflang="es" href="https://climbeast.com/" />
+    <link rel="alternate" hreflang="en" href="https://climbeast.com/" />
+    <link rel="alternate" hreflang="x-default" href="https://climbeast.com/" />
+
+    <!-- Open Graph / Social sharing -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ClimBeast" />
+    <meta property="og:url" content="https://climbeast.com/" />
+    <meta property="og:title" content="ClimBeast | fanatic community" />
+    <meta
+      property="og:description"
+      content="App de croquis de escalada hecha por equipadores locales. Encuentra y comparte zonas de escalada, sectores y vías cerca de ti."
+    />
+    <meta
+      property="og:image"
+      content="https://climbeast.com/logo/climbeast-black.jpg"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="ClimBeast logo" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:locale:alternate" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ClimBeast | fanatic community" />
+    <meta
+      name="twitter:description"
+      content="App de croquis de escalada hecha por equipadores locales. Encuentra y comparte zonas de escalada, sectores y vías cerca de ti."
+    />
+    <meta
+      name="twitter:image"
+      content="https://climbeast.com/logo/climbeast-black.jpg"
+    />
+
+    <!-- JSON-LD Structured Data: WebSite -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "ClimBeast",
+        "url": "https://climbeast.com",
+        "description": "App de croquis de escalada hecha por equipadores locales. Encuentra y comparte zonas de escalada, sectores y vías cerca de ti.",
+        "inLanguage": ["es", "en"],
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://climbeast.com/area?q={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+
+    <!-- JSON-LD Structured Data: MobileApplication -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "MobileApplication",
+        "name": "ClimBeast",
+        "url": "https://climbeast.com",
+        "description": "Climbing topos app made by local equippers. Find and share climbing areas, crags and routes near you.",
+        "applicationCategory": "SportsApplication",
+        "operatingSystem": "Any",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR"
+        },
+        "screenshot": "https://climbeast.com/logo/climbeast-black.jpg"
+      }
+    </script>
   </head>
   <body>
     <app-root></app-root>

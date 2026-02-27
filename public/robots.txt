@@ -1,2 +1,16 @@
 User-agent: *
 Allow: /
+Allow: /info
+Allow: /area
+Allow: /area/
+
+# Private / authenticated sections – no public SEO value
+Disallow: /home
+Disallow: /profile
+Disallow: /profile/
+Disallow: /explore
+Disallow: /admin
+Disallow: /admin/
+Disallow: /my-areas
+
+Sitemap: https://climbeast.com/sitemap.xml

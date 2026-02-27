@@ -86,6 +86,8 @@ import {
 
 import { TopoImagePipe } from '../pipes';
 
+import { SeoService } from '../services/seo.service';
+
 @Component({
   selector: 'app-crag',
   imports: [
@@ -784,6 +786,7 @@ export class CragComponent {
   protected readonly dialogs = inject(TuiDialogService);
   protected readonly tourService = inject(TourService);
   protected readonly TourStep = TourStep;
+  private readonly seo = inject(SeoService);
 
   protected readonly mapLocationUrl = mapLocationUrl;
 
@@ -1045,6 +1048,27 @@ export class CragComponent {
       this.global.resetDataByPage('crag');
       this.global.selectedAreaSlug.set(aSlug);
       this.global.selectedCragSlug.set(cSlug);
+    });
+
+    // Update SEO tags when crag data is available
+    effect(() => {
+      const crag = this.cragDetail();
+      const area = this.global.selectedArea();
+      const aSlug = this.areaSlug();
+      const cSlug = this.cragSlug();
+      if (!crag || !area) return;
+      const routesCount = this.routesCount();
+      const lang = this.global.selectedLanguage();
+      const desc = lang === 'es' ? crag.description_es : crag.description_en;
+      const appDescription = this.translate.instant('seo.description');
+      const description = desc
+        ? `${desc} – ${routesCount} ${this.translate.instant('routes').toLowerCase()}.`
+        : `${crag.name} – ${area.name}. ${routesCount} ${this.translate.instant('routes').toLowerCase()}. ${appDescription}`;
+      this.seo.setPage({
+        title: `${crag.name} – ${area.name}`,
+        description,
+        canonicalUrl: `https://climbeast.com/area/${aSlug}/${cSlug}`,
+      });
     });
 
     effect(() => {

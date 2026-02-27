@@ -54,6 +54,8 @@ import {
 
 import { handleErrorToast, normalizeName } from '../utils';
 
+import { SeoService } from '../services/seo.service';
+
 @Component({
   selector: 'app-area',
   imports: [
@@ -281,6 +283,7 @@ export class AreaComponent {
   protected readonly dialogs = inject(TuiDialogService);
   protected readonly translate = inject(TranslateService);
   protected readonly filtersService = inject(FiltersService);
+  private readonly seo = inject(SeoService);
 
   areaSlug: InputSignal<string> = input.required<string>();
   readonly query: WritableSignal<string> = signal('');
@@ -364,6 +367,20 @@ export class AreaComponent {
       const slug = this.areaSlug();
       this.global.resetDataByPage('area');
       this.global.selectedAreaSlug.set(slug);
+    });
+
+    // Update SEO tags when the area data is available
+    effect(() => {
+      const area = this.global.selectedArea();
+      const slug = this.areaSlug();
+      if (!area) return;
+      const cragsCount = this.filteredCrags().length;
+      const description = this.translate.instant('seo.description');
+      this.seo.setPage({
+        title: area.name,
+        description: `${area.name} – ${cragsCount} ${this.translate.instant('crags').toLowerCase()}. ${description}`,
+        canonicalUrl: `https://climbeast.com/area/${slug}`,
+      });
     });
   }
 

@@ -598,8 +598,7 @@ export class NavbarComponent {
   }
 
   protected async logout(): Promise<void> {
-    await this.supabase.client.auth.signOut();
-    this.router.navigate(['/auth/login']);
+    await this.supabase.logout();
   }
 
   protected openConfig(): void {
