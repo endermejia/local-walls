@@ -303,14 +303,15 @@ export class SupabaseService {
     }
     try {
       const { createClient } = await import('@supabase/supabase-js');
-      this._client = createClient<Database>(this.url, this.anonKey, {
+      this._client = createClient(this.url, this.anonKey, {
         auth: {
           storage: this.localStorage,
           autoRefreshToken: true,
           persistSession: true,
           detectSessionInUrl: true,
+          lock: (_, __, fn) => fn(),
         },
-      });
+      }) as SupabaseClient<Database>;
       // Initial session fetch
       const { data } = await this._client.auth.getSession();
       this._session.set(data.session ?? null);
