@@ -3,6 +3,7 @@ import {
   GradeLabel,
   ORDERED_GRADE_VALUES,
   RoutesByGrade,
+  PROJECT_GRADE_LABEL,
 } from '../models';
 
 export interface GradeChartData {
@@ -64,7 +65,9 @@ export function computeGradeChartData(
   })();
 
   const gradeRange = (() => {
-    const present = allGrades.filter((g) => g !== '?' && (counts[g] ?? 0) > 0);
+    const present = allGrades.filter(
+      (g) => g !== PROJECT_GRADE_LABEL && (counts[g] ?? 0) > 0,
+    );
     if (present.length === 0) return '';
     const first = present[0];
     const last = present[present.length - 1];

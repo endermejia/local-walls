@@ -177,7 +177,7 @@ export class FilterDialogComponent {
 
   // Bounds for indices
   protected readonly minIndex = 0;
-  protected readonly maxIndex = ORDERED_GRADE_VALUES.length - 1;
+  protected readonly maxIndex = ORDERED_GRADE_VALUES.length - 2; // exclude last item ('?') from range filter
 
   // Grades range state as signal (mirror of form control)
   protected readonly gradeRange: Signal<[number, number]>;
@@ -188,12 +188,10 @@ export class FilterDialogComponent {
     [0, 0],
     ...Array.from({ length: this.segments - 1 }, (_, i) => {
       const percent = (100 / this.segments) * (i + 1);
-      const idx = Math.round(
-        (ORDERED_GRADE_VALUES.length - 1) * (percent / 100),
-      );
+      const idx = Math.round(this.maxIndex * (percent / 100));
       return [percent, idx] satisfies [number, number];
     }),
-    [100, ORDERED_GRADE_VALUES.length - 1],
+    [100, this.maxIndex],
   ];
   protected readonly tickLabels: string[] = this.keySteps.map(
     ([, idx]) => ORDERED_GRADE_VALUES[idx] ?? '',

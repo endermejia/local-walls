@@ -51,10 +51,12 @@ export type AmountByEveryGrade = Partial<
 export type GradeLetter = 'a' | 'b' | 'c';
 export type GradeSuffix = '' | '+';
 
+export const PROJECT_GRADE_LABEL = '?' as const;
+
 export type GradeLabel =
   | `${'3' | '4'}${GradeLetter}`
   | `${'5' | '6' | '7' | '8' | '9'}${GradeLetter}${GradeSuffix}`
-  | '?';
+  | typeof PROJECT_GRADE_LABEL;
 
 // Ordered grade values must reflect exactly the enum VERTICAL_LIFE_GRADES.
 // We derive them from VERTICAL_LIFE_TO_LABEL in the numeric order of the enum
@@ -67,7 +69,7 @@ export type RoutesByGrade = Partial<Record<GradeLabel, number>>;
 export const GRADE_NUMBER_TO_LABEL: Partial<
   Record<VERTICAL_LIFE_GRADES, GradeLabel>
 > = {
-  [VERTICAL_LIFE_GRADES.G0]: '?',
+  [VERTICAL_LIFE_GRADES.G0]: PROJECT_GRADE_LABEL,
   [VERTICAL_LIFE_GRADES.G3a]: '3a',
   [VERTICAL_LIFE_GRADES.G3b]: '3b',
   [VERTICAL_LIFE_GRADES.G3c]: '3c',
@@ -115,7 +117,13 @@ export const LABEL_TO_VERTICAL_LIFE: Partial<
 export const ORDERED_GRADE_VALUES: readonly GradeLabel[] = Object.entries(
   GRADE_NUMBER_TO_LABEL,
 )
-  .sort((a, b) => Number(a[0]) - Number(b[0]))
+  .sort((a, b) => {
+    const na = Number(a[0]);
+    const nb = Number(b[0]);
+    if (na === 0) return 1;
+    if (nb === 0) return -1;
+    return na - nb;
+  })
   .map(([, v]) => v)
   .filter(
     (v): v is GradeLabel => typeof v === 'string',
@@ -186,6 +194,9 @@ export function isGradeRangeOverlap(
 ): boolean {
   const labels = Object.keys(byLabel);
   if (!labels.length) return true; // no data, don't filter out
+
+  // Special case: projects are excluded from range filter and always visible
+  if (byLabel[PROJECT_GRADE_LABEL]) return true;
 
   let minIdx = Number.POSITIVE_INFINITY;
   let maxIdx = Number.NEGATIVE_INFINITY;

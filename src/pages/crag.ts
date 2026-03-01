@@ -73,6 +73,7 @@ import {
   RouteWithExtras,
   SearchRouteItem,
   type TopoListItem,
+  PROJECT_GRADE_LABEL,
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
 } from '../models';
@@ -879,7 +880,7 @@ export class CragComponent {
 
     const gradeMatches = (r: RouteWithExtras) => {
       const label = GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES];
-      if (!label) return true;
+      if (!label || label === PROJECT_GRADE_LABEL) return true;
       return (allowedLabels as readonly string[]).includes(label);
     };
 

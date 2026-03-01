@@ -14,7 +14,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
 
 import { TuiItem } from '@taiga-ui/cdk';
-import { TuiAppearance, TuiButton, TuiIcon } from '@taiga-ui/core';
+import { TuiAppearance, TuiButton, TuiHint, TuiIcon } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
@@ -66,6 +66,7 @@ import { GradeComponent } from './avatar-grade';
     TuiButton,
     TuiCarousel,
     TuiHeader,
+    TuiHint,
     TuiIcon,
     TuiItem,
     TuiPagination,
@@ -266,7 +267,10 @@ import { GradeComponent } from './avatar-grade';
           @if (ascent.route && showRoute()) {
             <div class="flex flex-wrap items-center gap-2">
               @if (ascent.route.climbing_kind; as kind) {
-                <tui-icon [icon]="climbingIcons[kind] || '@tui.mountain'" />
+                <tui-icon
+                  [icon]="climbingIcons[kind] || '@tui.mountain'"
+                  [tuiHint]="'climbingKinds.' + kind | translate"
+                />
               }
               <a
                 class="font-bold text-lg hover:underline cursor-pointer"
@@ -322,6 +326,13 @@ import { GradeComponent } from './avatar-grade';
                 [attr.aria-label]="'rating' | translate"
               />
             }
+            @if (ascent.recommended) {
+              <tui-icon
+                icon="@tui.thumbs-up"
+                class="!w-4 !h-4 text-[var(--tui-text-action)]"
+                [tuiHint]="'ascent.recommend' | translate"
+              />
+            }
           </div>
         </div>
       </div>
@@ -332,6 +343,16 @@ import { GradeComponent } from './avatar-grade';
         >
           "{{ ascentComment }}"
         </p>
+      }
+
+      @if (moreInfoBadges().length > 0) {
+        <div class="flex flex-wrap gap-1">
+          @for (badge of moreInfoBadges(); track badge.key) {
+            <tui-badge size="s" appearance="neutral">
+              {{ badge.label | translate }}
+            </tui-badge>
+          }
+        </div>
       }
 
       @if (ascent.is_duplicate) {
@@ -397,6 +418,39 @@ export class AscentCardComponent {
   protected readonly ascentPhotoUrl = computed(() =>
     this.ascentPhotoResource.value(),
   );
+
+  private static readonly MORE_INFO_FIELDS: {
+    key: keyof RouteAscentWithExtras;
+    label: string;
+  }[] = [
+    { key: 'cruxy', label: 'ascent.climbing.cruxy' },
+    { key: 'athletic', label: 'ascent.climbing.athletic' },
+    { key: 'sloper', label: 'ascent.climbing.sloper' },
+    { key: 'endurance', label: 'ascent.climbing.endurance' },
+    { key: 'technical', label: 'ascent.climbing.technical' },
+    { key: 'crimpy', label: 'ascent.climbing.crimpy' },
+    { key: 'slab', label: 'ascent.steepness.slab' },
+    { key: 'vertical', label: 'ascent.steepness.vertical' },
+    { key: 'overhang', label: 'ascent.steepness.overhang' },
+    { key: 'roof', label: 'ascent.steepness.roof' },
+    { key: 'bad_anchor', label: 'ascent.safety.bad_anchor' },
+    { key: 'bad_bolts', label: 'ascent.safety.bad_bolts' },
+    { key: 'high_first_bolt', label: 'ascent.safety.high_first_bolt' },
+    { key: 'lose_rock', label: 'ascent.safety.lose_rock' },
+    {
+      key: 'bad_clipping_position',
+      label: 'ascent.safety.bad_clipping_position',
+    },
+    { key: 'chipped', label: 'ascent.other.chipped' },
+    { key: 'with_kneepad', label: 'ascent.other.with_kneepad' },
+    { key: 'first_ascent', label: 'ascent.other.first_ascent' },
+    { key: 'traditional', label: 'ascent.other.traditional' },
+  ];
+
+  protected readonly moreInfoBadges = computed(() => {
+    const a = this.data();
+    return AscentCardComponent.MORE_INFO_FIELDS.filter((f) => !!a[f.key]);
+  });
 
   protected readonly mediaItems = computed(() => {
     const items: {

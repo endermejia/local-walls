@@ -752,13 +752,18 @@ export default class AscentFormComponent {
   protected readonly otherInfo: (keyof ReturnType<typeof this.model>)[] = [
     'chipped',
     'with_kneepad',
-    'no_score',
     'first_ascent',
     'traditional',
   ];
 
   protected readonly gradeItems = Object.entries(GRADE_NUMBER_TO_LABEL)
-    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .sort((a, b) => {
+      const na = Number(a[0]);
+      const nb = Number(b[0]);
+      if (na === 0) return 1;
+      if (nb === 0) return -1;
+      return na - nb;
+    })
     .map(([k, v]) => ({ id: Number(k), label: v }));
 
   protected readonly gradeStringify = (grade: number): string =>

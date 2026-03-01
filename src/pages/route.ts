@@ -49,6 +49,7 @@ import {
   RouteAscentWithExtras,
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
+  PROJECT_GRADE_LABEL,
 } from '../models';
 
 import { handleErrorToast } from '../utils';
@@ -450,8 +451,9 @@ export class RouteComponent {
   readonly gradeLabel = computed(() => {
     const grade = this.route()?.grade;
     return grade !== undefined
-      ? (GRADE_NUMBER_TO_LABEL[grade as VERTICAL_LIFE_GRADES] ?? '?')
-      : '?';
+      ? (GRADE_NUMBER_TO_LABEL[grade as VERTICAL_LIFE_GRADES] ??
+          PROJECT_GRADE_LABEL)
+      : PROJECT_GRADE_LABEL;
   });
 
   readonly climbingIcons = CLIMBING_ICONS;

@@ -39,6 +39,7 @@ import {
   GRADE_NUMBER_TO_LABEL,
   VERTICAL_LIFE_GRADES,
   UserAscentStatRecord,
+  PROJECT_GRADE_LABEL,
 } from '../models';
 
 import { CountUpDirective } from '../directives/count-up.directive';
@@ -955,7 +956,9 @@ export class UserStatisticsComponent {
 
     return {
       name,
-      gradeLabel: GRADE_NUMBER_TO_LABEL[gradeId as VERTICAL_LIFE_GRADES] || '?',
+      gradeLabel:
+        GRADE_NUMBER_TO_LABEL[gradeId as VERTICAL_LIFE_GRADES] ||
+        PROJECT_GRADE_LABEL,
       gradeId: gradeId as number,
       score: this.getScore(gradeId, (a.ascent_type || 'rp') as AscentType),
       type: (a.ascent_type || 'rp') as AscentType,

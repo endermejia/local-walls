@@ -48,6 +48,7 @@ import { SectionHeaderComponent } from '../components/section-header';
 
 import {
   ClimbingKinds,
+  isGradeRangeOverlap,
   normalizeRoutesByGrade,
   ORDERED_GRADE_VALUES,
 } from '../models';
@@ -304,7 +305,6 @@ export class AreaComponent {
   readonly filteredCrags = computed(() => {
     const q = normalizeName(this.query());
     const [minIdx, maxIdx] = this.selectedGradeRange();
-    const allowedLabels = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1);
     const list = this.global.cragsList();
 
     const textMatches = (c: (typeof list)[number]) =>
@@ -314,12 +314,7 @@ export class AreaComponent {
 
     const gradeMatches = (c: (typeof list)[number]) => {
       const grades = normalizeRoutesByGrade(c.grades);
-      for (const label of allowedLabels) {
-        if (grades[label] && Number(grades[label]) > 0) {
-          return true;
-        }
-      }
-      return allowedLabels.length === ORDERED_GRADE_VALUES.length;
+      return isGradeRangeOverlap(grades, minIdx, maxIdx);
     };
 
     const categories = this.selectedCategories();

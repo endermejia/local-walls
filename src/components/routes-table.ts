@@ -57,6 +57,7 @@ import {
   RouteWithExtras,
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
+  PROJECT_GRADE_LABEL,
 } from '../models';
 
 import { handleErrorToast, normalizeName } from '../utils';
@@ -884,7 +885,8 @@ export class RoutesTableComponent {
     this.data().map((r: RouteItem) => {
       // Map numeric grade from Supabase using label mapping
       const grade =
-        GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES] ?? '?';
+        GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES] ??
+        PROJECT_GRADE_LABEL;
 
       const rating = r.rating || 0;
       const ascents = r.ascent_count || 0;
