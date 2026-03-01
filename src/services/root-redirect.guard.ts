@@ -20,9 +20,15 @@ export const rootRedirectGuard: CanActivateFn = async (): Promise<
     return router.createUrlTree(['/info']);
   }
 
-  // On the client, check if user is authenticated
-  await supabase.whenReady();
-  const session = await supabase.getSession();
+  // On the client, check if user is authenticated with a safety timeout
+  // to avoid infinite blank screen if Supabase hangs (Safari/ITP bugs)
+  const session = await Promise.race([
+    (async () => {
+      await supabase.whenReady();
+      return await supabase.getSession();
+    })(),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+  ]);
 
   if (session) {
     // Authenticated user -> redirect to /home

@@ -309,6 +309,8 @@ export class SupabaseService {
           autoRefreshToken: true,
           persistSession: true,
           detectSessionInUrl: true,
+          // Safari/iOS Lock API bypass to prevent hangs during initialization
+          lock: (name, acquireTimeout, fn) => fn(),
         },
       });
       // Initial session fetch

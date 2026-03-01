@@ -17,8 +17,15 @@ export const authGuard: CanMatchFn = async (
   }
 
   // Ensure the client is initialized and try to get the session
-  await supabase.whenReady();
-  const session = await supabase.getSession();
+  // with a safety timeout to fix blank screen issues in Safari/ITP
+  const session = await Promise.race([
+    (async () => {
+      await supabase.whenReady();
+      return await supabase.getSession();
+    })(),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+  ]);
+
   if (!session) {
     return router.createUrlTree(['/login']);
   }
