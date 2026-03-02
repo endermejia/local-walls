@@ -2,7 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { CanActivateFn, Router, UrlTree } from '@angular/router';
 
-import { SupabaseService } from './supabase.service';
+import { SupabaseService } from '../services/supabase.service';
 
 /**
  * Guard that redirects authenticated users to /home and non-authenticated users to /info.

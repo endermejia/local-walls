@@ -4,7 +4,7 @@ import { CanMatchFn, Router, UrlTree } from '@angular/router';
 
 import { waitForResource } from '../utils';
 
-import { SupabaseService } from './supabase.service';
+import { SupabaseService } from '../services/supabase.service';
 
 /** Allows route matching only for admin users. On server, always allow. */
 export const adminGuard: CanMatchFn = async (): Promise<boolean | UrlTree> => {

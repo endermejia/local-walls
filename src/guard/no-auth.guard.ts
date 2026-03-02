@@ -2,7 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { CanMatchFn, Router, UrlTree } from '@angular/router';
 
-import { SupabaseService } from './supabase.service';
+import { SupabaseService } from '../services/supabase.service';
 
 export const noAuthGuard: CanMatchFn = async (): Promise<boolean | UrlTree> => {
   const router = inject(Router);
