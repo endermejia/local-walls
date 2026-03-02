@@ -1018,7 +1018,10 @@ export default class AscentFormComponent {
             route_id,
             user_id,
           });
-          await this.routesService.removeRouteProject(route_id);
+
+          if (payload.type !== AscentTypes.ATTEMPT) {
+            await this.routesService.removeRouteProject(route_id);
+          }
         }
 
         // Handle photo upload if a new file was selected

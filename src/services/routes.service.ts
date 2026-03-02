@@ -588,18 +588,21 @@ export class RoutesService {
     if (!isPlatformBrowser(this.platformId)) return;
     await this.supabase.whenReady();
     try {
-      const { error } = await this.supabase.client
+      const { data, error } = await this.supabase.client
         .from('route_projects')
         .delete()
         .match({
           user_id: this.supabase.authUserId(),
           route_id: routeId,
-        });
+        })
+        .select('route_id');
 
       if (error) throw error;
 
-      this.toast.success('messages.toasts.projectRemoved');
-      this.syncResources(routeId, { project: false });
+      if (data && data.length > 0) {
+        this.toast.success('messages.toasts.projectRemoved');
+        this.syncResources(routeId, { project: false });
+      }
     } catch (e) {
       console.error('[RoutesService] removeRouteProject error', e);
     }
