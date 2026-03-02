@@ -114,7 +114,7 @@ import { GradeComponent } from './avatar-grade';
                 [iconStart]="loading() ? '@tui.loader' : ''"
                 (click)="unfollow(ascent.user_id, ascent.user?.name || 'User')"
               >
-                {{ 'following' | translate }}
+                {{ 'followingStatus' | translate }}
               </button>
             } @else {
               <button

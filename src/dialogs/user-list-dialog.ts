@@ -123,7 +123,7 @@ export interface UserListDialogData {
                     type="button"
                     (click)="onUnfollow(user, $event)"
                   >
-                    {{ 'following' | translate }}
+                    {{ 'followingStatus' | translate }}
                   </button>
                 } @else {
                   <button

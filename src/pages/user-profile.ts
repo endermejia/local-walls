@@ -280,7 +280,7 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
               [tuiSkeleton]="loading || followLoading()"
               (click)="toggleFollow()"
             >
-              {{ (following ? 'following' : 'follow') | translate }}
+              {{ (following ? 'followingStatus' : 'follow') | translate }}
             </button>
 
             <button
