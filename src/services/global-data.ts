@@ -174,11 +174,18 @@ export class GlobalData {
 
   readonly equipperAreas = computed(() => this.supabase.equipperAreas());
 
-  readonly isAllowedEquipper = (areaId: number | undefined) => {
-    if (this.canEditAsAdmin()) return true;
-    if (!areaId) return false;
-    return this.canEditAsEquipper() && this.equipperAreas().includes(areaId);
-  };
+  readonly isAllowedEquipper = computed(() => {
+    const isAdmin = this.canEditAsAdmin();
+    const canEditEquipper = this.canEditAsEquipper();
+    const areas = this.equipperAreas();
+
+    const res: Record<number, boolean> = {};
+    if (canEditEquipper) {
+      areas.forEach((id) => (res[id] = true));
+    }
+
+    return isAdmin ? new Proxy(res, { get: () => true }) : res;
+  });
 
   // Notifications and messages
   readonly unreadNotificationsCount = this.notificationsService.unreadCount;
@@ -244,7 +251,7 @@ export class GlobalData {
     if (!userId) return false;
 
     const isCreator = route.user_creator_id === userId;
-    const isEquipper = this.isAllowedEquipper(route.area_id);
+    const isEquipper = this.isAllowedEquipper()[route.area_id ?? -1];
 
     if (isCreator && !isEquipper) {
       return this.isWithinOneWeek(route.created_at);
@@ -294,13 +301,7 @@ export class GlobalData {
       return res;
     }),
     /** Map of area ID -> isEquipper */
-    areaEquipper: computed(() => {
-      const res: Record<number, boolean> = {};
-      const isAdmin = this.canEditAsAdmin();
-      this.equipperAreas().forEach((id: number) => (res[id] = true));
-      // If admin, any ID access should return true via Proxy
-      return isAdmin ? new Proxy(res, { get: () => true }) : res;
-    }),
+    areaEquipper: this.isAllowedEquipper,
   };
 
   readonly userAvatar = computed(() =>

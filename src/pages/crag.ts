@@ -800,16 +800,14 @@ export class CragComponent {
 
   readonly showToposTab = computed(() => {
     const isAdmin = this.global.isAdmin();
-    const isEquipper = this.global.isAllowedEquipper(
-      this.cragDetail()?.area_id,
-    );
+    const isEquipper =
+      this.global.isAllowedEquipper()[this.cragDetail()?.area_id ?? -1];
     return (this.cragDetail()?.topos?.length ?? 0) > 0 || isAdmin || isEquipper;
   });
   readonly showParkingsTab = computed(() => {
     const isAdmin = this.global.isAdmin();
-    const isEquipper = this.global.isAllowedEquipper(
-      this.cragDetail()?.area_id,
-    );
+    const isEquipper =
+      this.global.isAllowedEquipper()[this.cragDetail()?.area_id ?? -1];
     return (
       (this.cragDetail()?.parkings?.length ?? 0) > 0 || isAdmin || isEquipper
     );
