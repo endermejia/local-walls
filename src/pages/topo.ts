@@ -1229,6 +1229,23 @@ export class TopoComponent {
         this.global.selectedTopoId.set(topoId);
       }
     });
+
+    effect(() => {
+      const topoId = this.topo()?.id;
+      const routeId = this.selectedRouteId();
+      if (topoId && routeId && isPlatformBrowser(this.platformId)) {
+        setTimeout(() => {
+          const rowId = `route-row-${topoId}-${routeId}`;
+          const row = document.getElementById(rowId);
+          if (row) {
+            row.scrollIntoView({
+              block: 'center',
+              behavior: 'smooth',
+            });
+          }
+        });
+      }
+    });
   }
 
   protected onLogAscent(tr: TopoRouteWithRoute): void {
@@ -1484,16 +1501,6 @@ export class TopoComponent {
       if (nextItem) {
         this.selectedRouteId.set(nextItem._ref.route_id);
         event.preventDefault(); // Prevent page scroll
-
-        // Ensure the selected row is visible
-        const rowId = `route-row-${nextItem._ref.topo_id}-${nextItem._ref.route_id}`;
-        const row = document.getElementById(rowId);
-        if (row) {
-          row.scrollIntoView({
-            block: 'nearest',
-            behavior: 'smooth',
-          });
-        }
       }
     }
   }
