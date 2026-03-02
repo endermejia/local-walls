@@ -33,7 +33,7 @@ import {
   TuiBadgedContent,
   TuiBadgeNotification,
 } from '@taiga-ui/kit';
-import { TuiCell, TuiInputSearch } from '@taiga-ui/layout';
+import { TuiCell, TuiInputSearch, TUI_INPUT_SEARCH } from '@taiga-ui/layout';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -66,6 +66,24 @@ import { TourHintComponent } from './tour-hint';
   host: {
     class: 'z-[100] relative md:w-20 md:h-full md:flex md:items-center',
   },
+  providers: [
+    {
+      provide: TUI_INPUT_SEARCH,
+      useFactory: () => {
+        const translate = inject(TranslateService);
+        return translate.stream('searchPlaceholder').pipe(
+          map((placeholder: string) => ({
+            popular: '',
+            history: '',
+            placeholder,
+            hotkey: '',
+            all: '',
+            empty: '',
+          })),
+        );
+      },
+    },
+  ],
   imports: [
     FormsModule,
     ReactiveFormsModule,
