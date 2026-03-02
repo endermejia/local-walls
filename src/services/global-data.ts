@@ -1582,14 +1582,17 @@ export class GlobalData {
     if (isPlatformBrowser(this.platformId)) {
       this.browserNotifications.bindUserGesture();
 
-      if (Notification.permission === 'default') {
-        const requestPermission = () => {
+      const NotificationRef = (window as any).Notification;
+      if (NotificationRef) {
+        if (NotificationRef.permission === 'default') {
+          const requestPermission = () => {
+            void this.browserNotifications.requestPermission();
+            window.removeEventListener('click', requestPermission);
+          };
+          window.addEventListener('click', requestPermission);
+        } else {
           void this.browserNotifications.requestPermission();
-          window.removeEventListener('click', requestPermission);
-        };
-        window.addEventListener('click', requestPermission);
-      } else {
-        void this.browserNotifications.requestPermission();
+        }
       }
     }
 

@@ -17,14 +17,15 @@ export class BrowserNotificationService {
     // Initialize audio context on user interaction (this method is called on click)
     this.initAudioContext();
 
-    if (!('Notification' in window)) return;
+    const NotificationRef = (window as any).Notification;
+    if (!NotificationRef) return;
 
     if (
-      Notification.permission === 'default' ||
-      Notification.permission === 'denied'
+      NotificationRef.permission === 'default' ||
+      NotificationRef.permission === 'denied'
     ) {
       try {
-        const permission = await Notification.requestPermission();
+        const permission = await NotificationRef.requestPermission();
         console.log(
           '[BrowserNotificationService] Permission result:',
           permission,
@@ -40,20 +41,21 @@ export class BrowserNotificationService {
 
   show(title: string, options?: NotificationOptions): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    if (!('Notification' in window)) {
+    const NotificationRef = (window as any).Notification;
+
+    if (!NotificationRef) {
       console.warn('[BrowserNotificationService] Notifications not supported');
       return;
     }
 
     // Try to recover/resume audio context if it exists
-    // Try to recover/resume audio context if it exists
     if (this.audioContext && this.audioContext.state === 'suspended') {
       void this.audioContext.resume();
     }
 
-    if (Notification.permission === 'granted') {
+    if (NotificationRef.permission === 'granted') {
       try {
-        const n = new Notification(title, options);
+        const n = new NotificationRef(title, options);
         n.onclick = () => {
           window.focus();
           n.close();
@@ -65,7 +67,7 @@ export class BrowserNotificationService {
     } else {
       console.warn(
         '[BrowserNotificationService] Permission not granted:',
-        Notification.permission,
+        NotificationRef.permission,
       );
     }
   }
