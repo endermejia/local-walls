@@ -2,6 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
+import { APP_NAME, APP_TITLE, BASE_URL, DEFAULT_IMAGE } from '../models';
 
 export interface SeoPageData {
   title: string;
@@ -13,10 +14,6 @@ export interface SeoPageData {
   type?: 'website' | 'article';
 }
 
-const APP_NAME = 'ClimBeast';
-const BASE_URL = 'https://climbeast.com';
-const DEFAULT_IMAGE = `${BASE_URL}/logo/climbeast.png`;
-
 @Injectable({ providedIn: 'root' })
 export class SeoService {
   private readonly title = inject(Title);
@@ -26,38 +23,39 @@ export class SeoService {
 
   /**
    * Update all SEO-related tags for the current page.
-   * Call this from page components whenever the key data is available.
+   * Tab title remains static while social tags are branded with the page title.
    */
   setPage(data: SeoPageData): void {
-    const fullTitle = data.title.includes(APP_NAME)
-      ? data.title
-      : `${data.title} | ${APP_NAME}`;
-    const description = data.description ?? '';
-    const canonicalUrl = data.canonicalUrl ?? this.getCurrentUrl();
-    const imageUrl = data.imageUrl ?? DEFAULT_IMAGE;
-    const type = data.type ?? 'website';
+    const {
+      title,
+      description = '',
+      canonicalUrl = this.getCurrentUrl(),
+      imageUrl = DEFAULT_IMAGE,
+      type = 'website',
+    } = data;
 
-    // --- <title> ---
-    this.title.setTitle(fullTitle);
+    const brandedTitle = title.includes(APP_NAME)
+      ? title
+      : `${title} | ${APP_NAME}`;
 
-    // --- Basic meta ---
+    // --- Tab Title (Static) ---
+    this.title.setTitle(APP_TITLE);
+
+    // --- Basic & Twitter ---
     this.updateTag('description', description);
+    this.updateTag('twitter:card', 'summary_large_image');
+    this.updateTag('twitter:title', brandedTitle);
+    this.updateTag('twitter:description', description);
+    this.updateTag('twitter:image', imageUrl);
 
     // --- Open Graph ---
-    this.updateOgTag('og:title', fullTitle);
+    this.updateOgTag('og:title', brandedTitle);
     this.updateOgTag('og:description', description);
     this.updateOgTag('og:url', canonicalUrl);
     this.updateOgTag('og:image', imageUrl);
     this.updateOgTag('og:type', type);
     this.updateOgTag('og:site_name', APP_NAME);
 
-    // --- Twitter Card ---
-    this.updateTag('twitter:card', 'summary_large_image');
-    this.updateTag('twitter:title', fullTitle);
-    this.updateTag('twitter:description', description);
-    this.updateTag('twitter:image', imageUrl);
-
-    // --- Canonical link ---
     this.setCanonical(canonicalUrl);
   }
 

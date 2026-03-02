@@ -1,5 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { APP_TITLE } from '../models';
 
 @Injectable({
   providedIn: 'root',
@@ -168,9 +169,7 @@ export class BrowserNotificationService {
     let showMessage = true;
 
     this.titleInterval = setInterval(() => {
-      document.title = showMessage
-        ? message
-        : this.originalTitle || 'ClimBeast';
+      document.title = showMessage ? message : this.originalTitle || APP_TITLE;
       showMessage = !showMessage;
     }, 1000);
 
