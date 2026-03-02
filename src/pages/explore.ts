@@ -115,7 +115,7 @@ import { mapLocationUrl, remToPx } from '../utils';
               </button>
             </tui-badged-content>
           </div>
-          @if (global.isAdmin() && !isMobile) {
+          @if (global.canEditAsAdmin() && !isMobile) {
             <div class="z-10">
               <button
                 tuiIconButton
@@ -249,7 +249,7 @@ import { mapLocationUrl, remToPx } from '../utils';
                       </div>
                     }
                   </section>
-                  @if (global.isAdmin()) {
+                  @if (global.canEditAsAdmin()) {
                     <button
                       size="s"
                       appearance="neutral"

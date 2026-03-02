@@ -1405,8 +1405,8 @@ export class UserProfileConfigComponent {
       return;
     }
 
-    if (enabled && !this.global.isActualAdmin()) {
-      const isEquipper = this.global.isActualEquipper();
+    if (enabled && !this.global.isAdmin()) {
+      const isEquipper = this.global.isEquipper();
       const messageKey = isEquipper
         ? 'profile.editing.confirmationEquipper'
         : 'profile.editing.confirmationUser';

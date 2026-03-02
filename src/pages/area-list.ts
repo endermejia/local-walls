@@ -83,7 +83,7 @@ import { normalizeName } from '../utils';
           </h1>
 
           <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
-            @if (global.isAdmin()) {
+            @if (global.canEditAsAdmin()) {
               <button
                 tuiButton
                 appearance="textfield"

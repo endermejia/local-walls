@@ -127,7 +127,7 @@ export interface RoutesTableRow {
     @if (tableData(); as data) {
       @if (data.length > 0) {
         @let isMobile = global.isMobile();
-        @let isAdmin = global.isAdmin();
+        @let isAdmin = global.canEditAsAdmin();
         <tui-scrollbar class="grow min-h-0 no-scrollbar">
           <table
             tuiTable
@@ -869,7 +869,7 @@ export class RoutesTableComponent {
     if (
       this.global.editingMode() &&
       this.showAdminActions() &&
-      (this.global.isAdmin() || canEditAny)
+      (this.global.canEditAsAdmin() || canEditAny)
     ) {
       cols.splice(cols.indexOf('rating'), 1);
       cols.splice(cols.indexOf('ascents'), 1);

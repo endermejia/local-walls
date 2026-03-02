@@ -240,27 +240,28 @@ import { TourHintComponent } from './tour-hint';
           </a>
 
           @let showConfig =
-            global.isAdmin() ||
-            (global.isEquipper() && global.equipperAreas().length);
+            global.canEditAsAdmin() ||
+            (global.canEditAsEquipper() && global.equipperAreas().length);
           @if (showConfig) {
             <!-- Configuration -->
             <a
               #config="routerLinkActive"
-              [routerLink]="global.isAdmin() ? '/admin' : '/my-areas'"
+              [routerLink]="global.canEditAsAdmin() ? '/admin' : '/my-areas'"
               routerLinkActive
               [tuiAppearance]="
                 config.isActive ? 'flat-destructive' : 'flat-grayscale'
               "
               class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full"
               [attr.aria-label]="
-                (global.isAdmin() ? 'config' : 'nav.my-areas') | translate
+                (global.canEditAsAdmin() ? 'config' : 'nav.my-areas')
+                  | translate
               "
             >
               <tui-icon icon="@tui.cog" />
               <span
                 class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
               >
-                @if (global.isAdmin()) {
+                @if (global.canEditAsAdmin()) {
                   {{ 'config' | translate }}
                 } @else {
                   {{ 'nav.my-areas' | translate }}
@@ -640,8 +641,8 @@ export class NavbarComponent {
       return;
     }
 
-    if (enabled && !this.global.isActualAdmin()) {
-      const isEquipper = this.global.isActualEquipper();
+    if (enabled && !this.global.isAdmin()) {
+      const isEquipper = this.global.isEquipper();
       const messageKey = isEquipper
         ? 'profile.editing.confirmationEquipper'
         : 'profile.editing.confirmationUser';

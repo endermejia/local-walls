@@ -512,7 +512,7 @@ import { SeoService } from '../services/seo.service';
                       }}
                     </h2>
                   </div>
-                  @if (global.editingMode()) {
+                  @if (isEquipper) {
                     <button
                       tuiButton
                       appearance="textfield"
@@ -610,7 +610,7 @@ import { SeoService } from '../services/seo.service';
                       {{ 'parkings' | translate }}
                     </h2>
                   </div>
-                  @if (global.editingMode()) {
+                  @if (isEquipper) {
                     <div
                       class="flex gap-2 flex-wrap sm:flex-nowrap justify-end"
                     >
