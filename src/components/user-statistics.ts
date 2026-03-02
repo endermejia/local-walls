@@ -26,6 +26,7 @@ import {
   TuiTextfield,
   tuiHintOptionsProvider,
   TuiButton,
+  TuiScrollbar,
 } from '@taiga-ui/core';
 import { TuiPoint } from '@taiga-ui/core/types';
 import { TuiDataListWrapper, TuiSelect } from '@taiga-ui/kit';
@@ -79,6 +80,7 @@ interface RouteScore {
     TuiButton,
     CountUpDirective,
     TuiHovered,
+    TuiScrollbar,
   ],
   styles: [
     `
@@ -164,6 +166,9 @@ interface RouteScore {
       }
       .route-score-val {
         opacity: 0.6;
+      }
+      .trend-scroll {
+        max-height: 250px;
       }
     `,
   ],
@@ -293,9 +298,14 @@ interface RouteScore {
                       <div
                         class="h-6 flex rounded overflow-hidden relative mx-auto"
                         [style.width.%]="(row.total / dist.maxCount) * 100"
+                        [tuiHint]="pyramidHint"
+                        [tuiHintContext]="{
+                          label: row.gradeLabel,
+                          total: row.total,
+                          routes: row.allRoutes,
+                        }"
                       >
-                        <!-- Background bar for context - Optional, maybe remove if pyramid shape is desired without track.
-                             If we keep it, it should be 100% of this container. -->
+                        <!-- Background bar for context -->
                         <div
                           class="absolute inset-0 opacity-10 bg-[var(--tui-text-primary)]"
                         ></div>
@@ -305,39 +315,18 @@ interface RouteScore {
                           <div
                             class="bg-[var(--tui-status-negative)] h-full transition-all duration-500"
                             [style.width.%]="(row.rp / row.total) * 100"
-                            [tuiHint]="pyramidHint"
-                            [tuiHintContext]="{
-                              label: row.gradeLabel,
-                              type: 'rp',
-                              count: row.rp,
-                              routes: row.rpRoutes,
-                            }"
                           ></div>
                         }
                         @if (row.flash > 0) {
                           <div
                             class="bg-[var(--tui-status-warning)] h-full transition-all duration-500"
                             [style.width.%]="(row.flash / row.total) * 100"
-                            [tuiHint]="pyramidHint"
-                            [tuiHintContext]="{
-                              label: row.gradeLabel,
-                              type: 'f',
-                              count: row.flash,
-                              routes: row.flashRoutes,
-                            }"
                           ></div>
                         }
                         @if (row.os > 0) {
                           <div
                             class="bg-[var(--tui-status-positive)] h-full transition-all duration-500"
                             [style.width.%]="(row.os / row.total) * 100"
-                            [tuiHint]="pyramidHint"
-                            [tuiHintContext]="{
-                              label: row.gradeLabel,
-                              type: 'os',
-                              count: row.os,
-                              routes: row.osRoutes,
-                            }"
                           ></div>
                         }
                       </div>
@@ -510,8 +499,57 @@ interface RouteScore {
         </div>
 
         @if (details) {
+          <tui-scrollbar class="trend-scroll">
+            <div class="trend-routes">
+              @for (route of details.topRoutes; track $index) {
+                <div class="trend-route-row">
+                  <a
+                    class="route-name"
+                    [routerLink]="[
+                      '/area',
+                      route.areaSlug,
+                      route.cragSlug,
+                      route.routeSlug,
+                    ]"
+                    [class.onsight]="route.type === 'os'"
+                    [class.flash]="route.type === 'f'"
+                    [class.redpoint]="route.type === 'rp' || !route.type"
+                  >
+                    {{ route.name || ('anonymous' | translate) }}
+                  </a>
+                  <span class="route-score">
+                    <span class="route-score-grade">
+                      {{ route.gradeLabel }}
+                    </span>
+                    <span class="route-score-val">{{ route.score }}</span>
+                  </span>
+                </div>
+              }
+            </div>
+          </tui-scrollbar>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template
+      #pyramidHint
+      let-label="label"
+      let-total="total"
+      let-routes="routes"
+    >
+      <div class="trend-hint">
+        <div class="trend-hint-header">
+          <span class="trend-hint-year">
+            {{ total }} {{ 'ascents' | translate | lowercase }}
+          </span>
+          <span class="trend-hint-score">
+            {{ label }}
+          </span>
+        </div>
+
+        <tui-scrollbar class="trend-scroll">
           <div class="trend-routes">
-            @for (route of details.topRoutes; track $index) {
+            @for (route of routes; track $index) {
               <div class="trend-route-row">
                 <a
                   class="route-name"
@@ -536,53 +574,7 @@ interface RouteScore {
               </div>
             }
           </div>
-        }
-      </div>
-    </ng-template>
-
-    <ng-template #pyramidHint let-context>
-      <div class="trend-hint">
-        <div class="trend-hint-header">
-          <span class="trend-hint-year">
-            {{ context.label }}
-            @if (context.type === 'os') {
-              ({{ 'ascentTypes.os' | translate }})
-            }
-            @if (context.type === 'f') {
-              ({{ 'ascentTypes.f' | translate }})
-            }
-            @if (context.type === 'rp') {
-              ({{ 'ascentTypes.rp' | translate }})
-            }
-          </span>
-          <span class="trend-hint-score">
-            {{ context.count }} {{ 'ascents' | translate | lowercase }}
-          </span>
-        </div>
-
-        <div class="trend-routes">
-          @for (route of context.routes; track $index) {
-            <div class="trend-route-row">
-              <a
-                class="route-name"
-                [routerLink]="[
-                  '/area',
-                  route.areaSlug,
-                  route.cragSlug,
-                  route.routeSlug,
-                ]"
-                [class.onsight]="route.type === 'os'"
-                [class.flash]="route.type === 'f'"
-                [class.redpoint]="route.type === 'rp' || !route.type"
-              >
-                {{ route.name || ('anonymous' | translate) }}
-              </a>
-              <span class="route-score">
-                <span class="route-score-val">{{ route.score }}</span>
-              </span>
-            </div>
-          }
-        </div>
+        </tui-scrollbar>
       </div>
     </ng-template>
   `,
@@ -838,6 +830,11 @@ export class UserStatisticsComponent {
         .filter((r) => r.type !== 'os' && r.type !== 'f')
         .sort((x, y) => y.score - x.score);
 
+      // Combined routes for the whole bar hint
+      const allRoutes = [...osRoutes, ...flashRoutes, ...rpRoutes].sort(
+        (x, y) => y.score - x.score,
+      );
+
       return {
         gradeLabel: b.label,
         os: b.os,
@@ -847,6 +844,7 @@ export class UserStatisticsComponent {
         osRoutes,
         flashRoutes,
         rpRoutes,
+        allRoutes,
       };
     });
 
