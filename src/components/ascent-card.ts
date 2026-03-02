@@ -317,14 +317,16 @@ import { GradeComponent } from './avatar-grade';
               />
             }
             @if (ascent.rate) {
-              <tui-rating
-                [ngModel]="ascent.rate"
-                [max]="5"
-                [readOnly]="true"
-                class="pointer-events-none"
-                [style.font-size.rem]="0.5"
-                [attr.aria-label]="'rating' | translate"
-              />
+              <div [tuiHint]="ascent.rate">
+                <tui-rating
+                  [ngModel]="ascent.rate"
+                  [max]="5"
+                  [readOnly]="true"
+                  class="pointer-events-none"
+                  [style.font-size.rem]="0.5"
+                  [attr.aria-label]="'rating' | translate"
+                />
+              </div>
             }
             @if (ascent.recommended) {
               <tui-icon
