@@ -75,29 +75,31 @@ export class MessagingService {
 
     const typedRooms = rooms as unknown as RoomQueryResult[];
 
-    return typedRooms.map((r) => {
-      const otherParticipant = r.participants.find(
-        (p) => p.user.id !== userId,
-      )?.user;
+    return typedRooms
+      .map((r) => {
+        const otherParticipant = r.participants.find(
+          (p) => p.user?.id && p.user.id !== userId,
+        )?.user;
 
-      const lastMessage = [...r.messages].sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      )[0];
+        const lastMessage = [...r.messages].sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        )[0];
 
-      const unreadCount = r.messages.filter(
-        (m) => m.sender_id !== userId && !m.read_at,
-      ).length;
+        const unreadCount = r.messages.filter(
+          (m) => m.sender_id !== userId && !m.read_at,
+        ).length;
 
-      return {
-        id: r.id,
-        created_at: r.created_at,
-        last_message_at: r.last_message_at,
-        participant: otherParticipant,
-        last_message: lastMessage,
-        unread_count: unreadCount,
-      } as ChatRoomWithParticipant;
-    });
+        return {
+          id: r.id,
+          created_at: r.created_at,
+          last_message_at: r.last_message_at,
+          participant: otherParticipant,
+          last_message: lastMessage,
+          unread_count: unreadCount,
+        } as ChatRoomWithParticipant;
+      })
+      .filter((r) => !!r.participant);
   }
 
   async getMessages(

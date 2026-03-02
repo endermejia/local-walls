@@ -109,14 +109,14 @@ export interface ChatDialogData {
           </button>
           <tui-avatar
             [src]="
-              supabase.buildAvatarUrl(room.participant.avatar)
+              supabase.buildAvatarUrl(room.participant?.avatar)
                 | tuiFallbackSrc: '@tui.user'
                 | async
             "
             size="s"
           />
           <span class="font-bold truncate text-sm">{{
-            room.participant.name
+            room.participant?.name
           }}</span>
           <button
             tuiIconButton
@@ -126,7 +126,7 @@ export interface ChatDialogData {
             "
             size="s"
             [iconStart]="isBlockedByMe() ? '@tui.lock' : '@tui.lock-open'"
-            (click)="toggleBlock(room.participant.id)"
+            (click)="room.participant && toggleBlock(room.participant.id)"
             class="ml-auto"
           >
             {{ (isBlockedByMe() ? 'unblock' : 'block') | translate }}
@@ -199,7 +199,7 @@ export interface ChatDialogData {
                 type="button"
                 appearance="flat"
                 size="s"
-                (click)="toggleBlock(room.participant.id)"
+                (click)="room.participant && toggleBlock(room.participant.id)"
               >
                 {{ 'unblock' | translate }}
               </button>
@@ -306,7 +306,7 @@ export interface ChatDialogData {
               >
                 <tui-avatar
                   [src]="
-                    supabase.buildAvatarUrl(room.participant.avatar)
+                    supabase.buildAvatarUrl(room.participant?.avatar)
                       | tuiFallbackSrc: '@tui.user'
                       | async
                   "
@@ -315,7 +315,7 @@ export interface ChatDialogData {
                 <div class="flex-1 min-w-0">
                   <div class="flex justify-between items-center gap-2">
                     <span class="font-bold truncate">{{
-                      room.participant.name
+                      room.participant?.name
                     }}</span>
                     @if (room.last_message) {
                       <span class="text-[10px] opacity-50 whitespace-nowrap">
@@ -533,8 +533,9 @@ export class ChatDialogComponent implements OnDestroy {
     );
     this.scrollToBottom();
     this.focusTextarea();
-
-    this.checkBlockStatus(room.participant.id);
+    if (room.participant) {
+      this.checkBlockStatus(room.participant.id);
+    }
   }
 
   private async checkBlockStatus(userId: string) {
@@ -549,7 +550,7 @@ export class ChatDialogComponent implements OnDestroy {
     const data: TuiConfirmData = {
       content: this.translate.instant(
         isBlocking ? 'blockMessagesConfirm' : 'unblockMessagesConfirm',
-        { name: room?.participant.name || 'User' },
+        { name: room?.participant?.name || 'User' },
       ),
       yes: this.translate.instant(isBlocking ? 'block' : 'unblock'),
       no: this.translate.instant('cancel'),

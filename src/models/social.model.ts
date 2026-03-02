@@ -7,7 +7,7 @@ import {
 import { UserProfileBasicDto } from './user.model';
 
 export interface ChatRoomWithParticipant extends ChatRoomDto {
-  participant: UserProfileBasicDto;
+  participant?: UserProfileBasicDto;
   last_message?: ChatMessageDto;
   unread_count: number;
 }
