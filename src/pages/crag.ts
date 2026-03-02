@@ -798,18 +798,6 @@ export class CragComponent {
     }
   }
 
-  readonly showRoutesTab = computed(() => {
-    const isAdmin = this.global.isAdmin();
-    const isEquipper = this.global.isAllowedEquipper(
-      this.cragDetail()?.area_id,
-    );
-    return (
-      (this.global.cragRoutesResource.value()?.length ?? 0) > 0 ||
-      isAdmin ||
-      isEquipper
-    );
-  });
-
   readonly showToposTab = computed(() => {
     const isAdmin = this.global.isAdmin();
     const isEquipper = this.global.isAllowedEquipper(
@@ -833,8 +821,7 @@ export class CragComponent {
   });
 
   readonly visibleTabs = computed(() => {
-    const tabs = [];
-    if (this.showRoutesTab()) tabs.push(0);
+    const tabs = [0]; // Routes tab is always visible
     if (this.showToposTab()) tabs.push(1);
     if (this.showParkingsTab()) tabs.push(2);
     if (this.showWeatherTab()) tabs.push(3);
