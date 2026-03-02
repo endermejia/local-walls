@@ -51,6 +51,7 @@ import {
   MapItem,
   MapResponse,
   ORDERED_GRADE_VALUES,
+  NotificationTypes,
   PaginatedAscents,
   ParkingDto,
   RouteAscentWithExtras,
@@ -1650,13 +1651,19 @@ export class GlobalData {
               const title = actor?.name || 'Topo';
               let body = '';
               switch (notif.type) {
-                case 'like':
+                case NotificationTypes.LIKE:
                   body = this.translate.instant('notifications.likedAscent');
                   break;
-                case 'comment':
+                case NotificationTypes.COMMENT:
                   body = this.translate.instant(
                     'notifications.commentedAscent',
                   );
+                  break;
+                case NotificationTypes.MENTION:
+                  body = this.translate.instant('notifications.mention');
+                  break;
+                case NotificationTypes.LIKED_COMMENT:
+                  body = this.translate.instant('notifications.likedComment');
                   break;
               }
               if (body) {

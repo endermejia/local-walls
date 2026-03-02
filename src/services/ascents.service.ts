@@ -16,6 +16,7 @@ import {
   RouteAscentWithExtras,
   RouteWithExtras,
   UserProfileBasicDto,
+  NotificationTypes,
   RouteAscentCommentDto,
   RouteAscentCommentInsertDto,
   UserAscentStatRecord,
@@ -586,7 +587,7 @@ export class AscentsService {
       await this.notificationsService.createNotification({
         user_id: ascent.user_id,
         actor_id: this.supabase.authUserId()!,
-        type: 'like',
+        type: NotificationTypes.LIKE,
         resource_id: ascentId.toString(),
       });
     }
@@ -975,7 +976,7 @@ export class AscentsService {
       await this.notificationsService.createNotification({
         user_id: ascent.user_id,
         actor_id: this.supabase.authUserId()!,
-        type: 'comment',
+        type: NotificationTypes.COMMENT,
         resource_id: ascentId.toString(),
       });
     }
@@ -999,7 +1000,7 @@ export class AscentsService {
       await this.notificationsService.createNotification({
         user_id: userId,
         actor_id: currentUserId!,
-        type: 'mention',
+        type: NotificationTypes.MENTION,
         resource_id: ascentId.toString(),
       });
     }

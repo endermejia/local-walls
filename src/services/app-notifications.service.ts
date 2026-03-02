@@ -6,6 +6,7 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 
 import {
   NotificationInsertDto,
+  NotificationTypes,
   NotificationWithActor,
   UserProfileDto,
 } from '../models';
@@ -54,7 +55,9 @@ export class AppNotificationsService {
     const ascentIds = notifications
       .filter(
         (n) =>
-          (n.type === 'like' || n.type === 'comment' || n.type === 'mention') &&
+          (n.type === NotificationTypes.LIKE ||
+            n.type === NotificationTypes.COMMENT ||
+            n.type === NotificationTypes.MENTION) &&
           n.resource_id,
       )
       .map((n) => Number(n.resource_id));
@@ -74,9 +77,9 @@ export class AppNotificationsService {
         );
         notifications.forEach((n) => {
           if (
-            (n.type === 'like' ||
-              n.type === 'comment' ||
-              n.type === 'mention') &&
+            (n.type === NotificationTypes.LIKE ||
+              n.type === NotificationTypes.COMMENT ||
+              n.type === NotificationTypes.MENTION) &&
             n.resource_id
           ) {
             const routeName = ascentMap.get(Number(n.resource_id));

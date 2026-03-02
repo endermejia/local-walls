@@ -408,6 +408,7 @@
   "notifications.likedComment": "liked your comment on '{{routeName}}'",
   "notifications.likedCommentPlural": "liked your comment on '{{routeName}}'",
   "notifications.mention": "mentioned you in a comment on '{{routeName}}'",
+  "notifications.mentionPlural": "mentioned you in comments on '{{routeName}}'",
   "notifications.sentMessage": "sent you a message",
   "notifications.unknown": "new notification",
   "notificationSound": "Notification sound",

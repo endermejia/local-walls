@@ -27,13 +27,17 @@ import { SupabaseService } from '../services/supabase.service';
 
 import { EmptyStateComponent } from '../components/empty-state';
 
-import { NotificationWithActor } from '../models';
+import {
+  NotificationWithActor,
+  NotificationTypes,
+  NotificationType,
+} from '../models';
 
 import { ChatDialogComponent } from './chat-dialog';
 
 interface GroupedNotification {
   id: string;
-  type: string;
+  type: NotificationType | string;
   resource_id?: string | number;
   resource_name?: string;
   actors: { name: string; avatar?: string | null }[];
@@ -169,15 +173,23 @@ export class NotificationsDialogComponent {
 
   protected getNotificationText(group: GroupedNotification): string {
     switch (group.type) {
-      case 'like':
+      case NotificationTypes.LIKE:
         return group.count > 1
           ? 'notifications.likedAscentPlural'
           : 'notifications.likedAscent';
-      case 'comment':
+      case NotificationTypes.COMMENT:
         return group.count > 1
           ? 'notifications.commentedAscentPlural'
           : 'notifications.commentedAscent';
-      case 'message':
+      case NotificationTypes.MENTION:
+        return group.count > 1
+          ? 'notifications.mentionPlural'
+          : 'notifications.mention';
+      case NotificationTypes.LIKED_COMMENT:
+        return group.count > 1
+          ? 'notifications.likedCommentPlural'
+          : 'notifications.likedComment';
+      case NotificationTypes.MESSAGE:
         return 'notifications.sentMessage';
       default:
         return 'notifications.unknown';
@@ -227,14 +239,19 @@ export class NotificationsDialogComponent {
       });
     }
 
-    if (group.type === 'like' || group.type === 'comment') {
+    if (
+      group.type === NotificationTypes.LIKE ||
+      group.type === NotificationTypes.COMMENT ||
+      group.type === NotificationTypes.MENTION ||
+      group.type === NotificationTypes.LIKED_COMMENT
+    ) {
       const ascentId = Number(group.resource_id);
       if (!isNaN(ascentId) && ascentId > 0) {
         void firstValueFrom(this.ascentsService.openAscentDialog(ascentId), {
           defaultValue: undefined,
         });
       }
-    } else if (group.type === 'message') {
+    } else if (group.type === NotificationTypes.MESSAGE) {
       void firstValueFrom(
         this.dialogs.open(new PolymorpheusComponent(ChatDialogComponent), {
           label: this.translate.instant('nav.chat'),
@@ -256,7 +273,10 @@ export class NotificationsDialogComponent {
       if (processedIds.has(notif.id)) continue;
 
       if (
-        (notif.type === 'like' || notif.type === 'comment') &&
+        (notif.type === NotificationTypes.LIKE ||
+          notif.type === NotificationTypes.COMMENT ||
+          notif.type === NotificationTypes.MENTION ||
+          notif.type === NotificationTypes.LIKED_COMMENT) &&
         notif.resource_id
       ) {
         // Group by type and resource_id

@@ -414,6 +414,7 @@
   "notifications.likedComment": "le ha dado a me gusta a tu comentario en '{{routeName}}'",
   "notifications.likedCommentPlural": "le han dado a me gusta a tu comentario en '{{routeName}}'",
   "notifications.mention": "te ha mencionado en un comentario en '{{routeName}}'",
+  "notifications.mentionPlural": "te han mencionado en comentarios en '{{routeName}}'",
   "notifications.sentMessage": "te ha enviado un mensaje",
   "notifications.unknown": "nueva notificación",
   "notificationSound": "Sonido de notificaciones",
