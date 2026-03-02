@@ -17,7 +17,9 @@ export class BrowserNotificationService {
     // Initialize audio context on user interaction (this method is called on click)
     this.initAudioContext();
 
-    const NotificationRef = (window as any).Notification;
+    const NotificationRef = (
+      window as unknown as { Notification: typeof Notification }
+    ).Notification;
     if (!NotificationRef) return;
 
     if (
@@ -41,7 +43,9 @@ export class BrowserNotificationService {
 
   show(title: string, options?: NotificationOptions): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    const NotificationRef = (window as any).Notification;
+    const NotificationRef = (
+      window as unknown as { Notification: typeof Notification }
+    ).Notification;
 
     if (!NotificationRef) {
       console.warn('[BrowserNotificationService] Notifications not supported');

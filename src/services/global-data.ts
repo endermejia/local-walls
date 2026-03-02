@@ -1582,7 +1582,9 @@ export class GlobalData {
     if (isPlatformBrowser(this.platformId)) {
       this.browserNotifications.bindUserGesture();
 
-      const NotificationRef = (window as any).Notification;
+      const NotificationRef = (
+        window as unknown as { Notification: typeof Notification }
+      ).Notification;
       if (NotificationRef) {
         if (NotificationRef.permission === 'default') {
           const requestPermission = () => {
