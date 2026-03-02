@@ -873,8 +873,9 @@ export class GlobalData {
           .select(
             `
             *,
+            eight_anu_sector_slugs,
             liked:crag_likes(id),
-            area: areas!inner ( id, name, slug ),
+            area: areas!inner ( id, name, slug, eight_anu_crag_slugs ),
             crag_parkings (
               parking: parkings (*)
             ),

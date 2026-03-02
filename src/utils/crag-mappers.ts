@@ -59,6 +59,8 @@ export function mapCragToDetail(rawData: CragWithJoins): CragDetail {
     liked: (rawData.liked?.length ?? 0) > 0,
     parkings,
     topos,
+    eight_anu_crag_slugs: rawData.area?.eight_anu_crag_slugs,
+    eight_anu_sector_slugs: rawData.eight_anu_sector_slugs,
 
     user_creator_id: rawData.user_creator_id ?? '',
     created_at: rawData.created_at,

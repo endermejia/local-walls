@@ -8,6 +8,7 @@ import {
   input,
   InputSignal,
   PLATFORM_ID,
+  resource,
   signal,
   WritableSignal,
 } from '@angular/core';
@@ -16,6 +17,7 @@ import { Router } from '@angular/router';
 import {
   TuiAppearance,
   TuiButton,
+  TuiIcon,
   TuiLabel,
   TuiLoader,
   TuiScrollbar,
@@ -55,6 +57,7 @@ import {
 
 import { handleErrorToast, normalizeName } from '../utils';
 
+import { GradeComponent } from '../components/avatar-grade';
 import { SeoService } from '../services/seo.service';
 
 @Component({
@@ -62,6 +65,7 @@ import { SeoService } from '../services/seo.service';
   imports: [
     ChartRoutesByGradeComponent,
     EmptyStateComponent,
+    GradeComponent,
     LowerCasePipe,
     SectionHeaderComponent,
     TranslatePipe,
@@ -70,6 +74,7 @@ import { SeoService } from '../services/seo.service';
     TuiBadgedContent,
     TuiButton,
     TuiHeader,
+    TuiIcon,
     TuiLabel,
     TuiLoader,
     TuiScrollbar,
@@ -233,6 +238,78 @@ import { SeoService } from '../services/seo.service';
             </tui-badged-content>
           </div>
 
+          @let routesList = routes();
+          @if (routesList.length > 0) {
+            <div class="flex items-center w-full sm:w-auto gap-2 mt-4 mb-4">
+              <tui-avatar
+                tuiThumbnail
+                size="l"
+                src="@tui.route"
+                class="self-center"
+                [attr.aria-label]="'routes' | translate"
+              />
+              <h2 class="text-2xl font-semibold">
+                {{ routesList.length }}
+                {{ 'routes' | translate | lowercase }}
+              </h2>
+            </div>
+
+            <div class="grid gap-2 grid-cols-1 md:grid-cols-2 mb-8">
+              @for (route of routesList; track route.id) {
+                <button
+                  class="p-4 rounded-3xl"
+                  tuiAppearance="flat"
+                  (click.zoneless)="
+                    router.navigate([
+                      '/area',
+                      area.slug,
+                      route.crag.slug,
+                      route.slug,
+                    ])
+                  "
+                >
+                  <div class="flex items-center gap-3 w-full">
+                    <app-grade [grade]="route.grade" size="s" />
+                    <div class="flex flex-col min-w-0 items-start">
+                      <span class="font-bold truncate w-full text-left">
+                        {{ route.name }}
+                      </span>
+                      <span
+                        class="text-xs opacity-60 truncate w-full text-left"
+                      >
+                        {{ route.crag.name }}
+                      </span>
+                    </div>
+                    <tui-icon
+                      icon="@tui.chevron-right"
+                      class="ml-auto opacity-30"
+                    />
+                  </div>
+                </button>
+              }
+            </div>
+          }
+
+          @if (cragsCount() > 0) {
+            <div class="flex items-center w-full sm:w-auto gap-2 mt-4 mb-4">
+              <tui-avatar
+                tuiThumbnail
+                size="l"
+                [src]="global.iconSrc()('crag')"
+                class="self-center"
+                [attr.aria-label]="'crag' | translate"
+              />
+              <h2 class="text-2xl font-semibold">
+                {{ cragsCount() }}
+                {{
+                  (cragsCount() === 1 ? 'crag' : 'crags')
+                    | translate
+                    | lowercase
+                }}
+              </h2>
+            </div>
+          }
+
           <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
             @for (crag of crags(); track crag.slug) {
               <button
@@ -259,7 +336,12 @@ import { SeoService } from '../services/seo.service';
                 </div>
               </button>
             } @empty {
-              <app-empty-state class="col-span-full" icon="@tui.layout-grid" />
+              @if (routesList.length === 0) {
+                <app-empty-state
+                  class="col-span-full"
+                  icon="@tui.layout-grid"
+                />
+              }
             }
           </div>
         } @else {
@@ -301,6 +383,49 @@ export class AreaComponent {
       this.selectedShade().length > 0
     );
   });
+
+  protected readonly routesResource = resource({
+    params: () => {
+      const q = this.query().trim();
+      const area = this.global.selectedArea();
+      if (q.length >= 3 && area) {
+        return { q, areaId: area.id };
+      }
+      return null;
+    },
+    loader: async ({ params }) => {
+      if (!params) return [];
+      await this.supabase.whenReady();
+      const { data, error } = await this.supabase.client
+        .from('routes')
+        .select(
+          `
+          id, 
+          name, 
+          slug, 
+          grade, 
+          crag:crags!inner(id, name, slug)
+        `,
+        )
+        .eq('crags.area_id', params.areaId)
+        .ilike('name', `%${params.q}%`)
+        .limit(20);
+
+      if (error) {
+        console.error('[AreaComponent] Error searching routes:', error);
+        return [];
+      }
+      return data as unknown as {
+        id: number;
+        name: string;
+        slug: string;
+        grade: number;
+        crag: { id: number; name: string; slug: string };
+      }[];
+    },
+  });
+
+  protected readonly routes = computed(() => this.routesResource.value() ?? []);
 
   readonly filteredCrags = computed(() => {
     const q = normalizeName(this.query());

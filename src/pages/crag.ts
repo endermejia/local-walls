@@ -397,14 +397,11 @@ import { SeoService } from '../services/seo.service';
                   <app-routes-table
                     [data]="routesList"
                     [showAddRouteToTopo]="true"
+                    [showLocation]="query().trim().length >= 2"
                   />
                 }
 
-                @if (
-                  global.editingMode() &&
-                  query().length >= 2 &&
-                  routesList.length === 0
-                ) {
+                @if (query().length >= 2 && routesList.length === 0) {
                   @if (isSearchingAnu) {
                     <div
                       class="flex flex-col items-center justify-center p-8 gap-4"
@@ -414,71 +411,68 @@ import { SeoService } from '../services/seo.service';
                         {{ 'loading' | translate }} 8a.nu...
                       </span>
                     </div>
-                  } @else if (anuResults.length > 0) {
-                    <div class="flex flex-col gap-3 mt-4">
-                      <div class="flex items-center gap-2 opacity-70 mb-2">
-                        <tui-icon [icon]="global.iconSrc()('8anu')" />
-                        <span class="font-medium">
-                          {{ 'eightAnuResults' | translate }}
-                        </span>
-                      </div>
-                      @for (item of anuResults; track item.zlaggableId) {
-                        <div
-                          tuiAppearance="flat"
-                          class="p-4 rounded-3xl flex items-center justify-between gap-4"
-                        >
-                          <div class="flex flex-col gap-1 min-w-0">
-                            <div class="flex items-center gap-2">
-                              <app-grade
-                                [grade]="mapEightAnuGrade(item.difficulty)"
-                              />
-                              <span class="font-bold truncate">
-                                {{ item.zlaggableName }}
+                  } @else {
+                    @if (anuResults.length > 0) {
+                      <div class="flex flex-col gap-3 mt-4">
+                        <div class="flex items-center gap-2 opacity-70 mb-2">
+                          <tui-icon [icon]="global.iconSrc()('8anu')" />
+                          <span class="font-medium">
+                            {{ 'eightAnuResults' | translate }}
+                          </span>
+                        </div>
+                        @for (
+                          item of anuResults.slice(0, 3);
+                          track item.zlaggableId
+                        ) {
+                          <div
+                            tuiAppearance="flat"
+                            class="p-4 rounded-3xl flex items-center justify-between gap-4"
+                          >
+                            <div class="flex flex-col gap-1 min-w-0">
+                              <div class="flex items-center gap-2">
+                                <app-grade
+                                  [grade]="mapEightAnuGrade(item.difficulty)"
+                                />
+                                <span class="font-bold truncate">
+                                  {{ item.zlaggableName }}
+                                </span>
+                              </div>
+                              <span class="text-xs opacity-60 truncate">
+                                {{ item.cragName }} · {{ item.sectorName }}
                               </span>
                             </div>
-                            <span class="text-xs opacity-60 truncate">
-                              {{ item.cragName }} · {{ item.sectorName }}
-                            </span>
+                            <button
+                              tuiButton
+                              appearance="textfield"
+                              size="s"
+                              type="button"
+                              iconStart="@tui.download"
+                              (click.zoneless)="importRoute(item)"
+                            >
+                              {{ 'import' | translate }}
+                            </button>
                           </div>
-                          <button
-                            tuiButton
-                            appearance="textfield"
-                            size="s"
-                            type="button"
-                            iconStart="@tui.download"
-                            (click.zoneless)="importRoute(item)"
-                          >
-                            {{ 'import' | translate }}
-                          </button>
-                        </div>
-                      }
-                    </div>
-                  }
-                }
+                        }
+                      </div>
+                    }
 
-                @if (
-                  routesList.length === 0 &&
-                  (!global.editingMode() ||
-                    query().length < 2 ||
-                    (!isSearchingAnu && anuResults.length === 0))
-                ) {
-                  @if (
-                    global.editingMode() &&
-                    query().length >= 2 &&
-                    !isSearchingAnu &&
-                    anuResults.length === 0
-                  ) {
                     <div
                       tuiAppearance="flat"
                       class="flex flex-col items-center justify-center p-8 gap-4 rounded-3xl mt-4"
                     >
-                      <tui-icon
-                        icon="@tui.search-x"
-                        class="text-4xl opacity-50"
-                      />
-                      <span class="text-sm opacity-60 text-center">
-                        La vía no se encuentra en 8a.nu
-                      </span>
+                      @if (anuResults.length === 0) {
+                        <tui-icon
+                          icon="@tui.search-x"
+                          class="text-4xl opacity-50"
+                        />
+                        <span class="text-sm opacity-60 text-center">
+                          {{ 'crags.8anuNotFound' | translate }}
+                        </span>
+                      } @else {
+                        <span class="text-sm opacity-60 text-center">
+                          {{ 'crags.createLocalInstead' | translate }}
+                        </span>
+                      }
                       <button
                         tuiButton
                         appearance="primary"
@@ -487,12 +481,14 @@ import { SeoService } from '../services/seo.service';
                         iconStart="@tui.plus"
                         (click.zoneless)="openCreateRoute(query())"
                       >
-                        Crear vía
+                        {{ 'crags.createRouteAction' | translate }}
                       </button>
                     </div>
-                  } @else {
-                    <app-empty-state icon="@tui.list" />
                   }
+                }
+
+                @if (routesList.length === 0 && query().length < 2) {
+                  <app-empty-state icon="@tui.list" />
                 }
               }
               @case (1) {
@@ -861,16 +857,28 @@ export class CragComponent {
     );
   });
 
+  protected readonly areaRoutesResource = resource({
+    params: () => {
+      const crag = this.cragDetail();
+      return crag?.area_id;
+    },
+    loader: async ({ params: areaId }) => {
+      if (!areaId) return [];
+      return this.routesService.getRoutesByAreaWithDetails(areaId);
+    },
+  });
+
   readonly filteredRoutes = computed(() => {
     const q = normalizeName(this.query());
     const [minIdx, maxIdx] = this.selectedGradeRange();
     const allowedLabels = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1);
     const categories = this.selectedCategories();
-    const list = this.global.cragRoutesResource.value() ?? [];
+    const crag = this.cragDetail();
+    const localList = this.global.cragRoutesResource.value() ?? [];
 
-    const textMatches = (r: RouteWithExtras) => {
+    const textMatches = (r: Partial<RouteWithExtras>) => {
       if (!q) return true;
-      const nameMatch = normalizeName(r.name).includes(q);
+      const nameMatch = normalizeName(r.name || '').includes(q);
       const gradeLabel = GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES];
       const gradeMatch = gradeLabel
         ? normalizeName(gradeLabel).includes(q)
@@ -878,13 +886,13 @@ export class CragComponent {
       return nameMatch || gradeMatch;
     };
 
-    const gradeMatches = (r: RouteWithExtras) => {
+    const gradeMatches = (r: Partial<RouteWithExtras>) => {
       const label = GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES];
       if (!label || label === PROJECT_GRADE_LABEL) return true;
       return (allowedLabels as readonly string[]).includes(label);
     };
 
-    const categoryMatches = (r: RouteWithExtras) => {
+    const categoryMatches = (r: Partial<RouteWithExtras>) => {
       if (categories.length === 0) return true;
       const kind = r.climbing_kind;
       if (!kind) return true;
@@ -894,39 +902,73 @@ export class CragComponent {
       return categories.includes(2) && kind === ClimbingKinds.MULTIPITCH;
     };
 
-    return list.filter(
+    const filteredLocals = localList.filter(
       (r) => textMatches(r) && gradeMatches(r) && categoryMatches(r),
     );
+
+    // If searching, also include matches from other crags in the area
+    if (q.trim().length >= 2 && crag) {
+      const otherCragsRoutes = this.areaRoutesResource.value() ?? [];
+      const filteredOthers = otherCragsRoutes
+        .filter(
+          (r) =>
+            r.crag_id !== crag.id &&
+            textMatches(r) &&
+            gradeMatches(r) &&
+            categoryMatches(r),
+        )
+        .map(
+          (r) =>
+            ({
+              ...r,
+              // Add a property to help identify foreign routes if needed
+            }) as RouteWithExtras,
+        );
+
+      // Merge and avoid duplicates by slug if somehow they exist
+      const seenSlugs = new Set(filteredLocals.map((r) => r.slug));
+      const othersToAdd = filteredOthers.filter((r) => !seenSlugs.has(r.slug));
+
+      return [...filteredLocals, ...othersToAdd];
+    }
+
+    return filteredLocals;
   });
 
   protected readonly eightAnuResource = resource({
     params: () => {
       const q = this.query().trim();
       const crag = this.cragDetail();
-      const editing = this.global.editingMode();
-      const routesCount = this.filteredRoutes().length;
+      const allMatchesCount = this.filteredRoutes().length;
 
-      if (editing && q.length >= 2 && crag && routesCount === 0) {
-        return { q, crag: crag.name };
+      if (q.length >= 2 && crag && allMatchesCount === 0) {
+        // Prefer eight_anu_crag_slugs (area) or eight_anu_sector_slugs (crag) if available
+        const slug =
+          crag.eight_anu_crag_slugs?.[0] || crag.eight_anu_sector_slugs?.[0];
+        return { q, slug };
       }
       return null;
     },
     loader: async ({ params }): Promise<SearchRouteItem[]> => {
       if (!params) return [];
-      console.log('[8a.nu] Searching routes for:', params.q, 'in', params.crag);
-      const results = await this.eightAnuService.searchRoutes(
-        `${params.q} ${params.crag}`,
-      );
-      const localRoutes = this.global.cragRoutesResource.value() || [];
-      const updatedSlugs = new Set(
-        localRoutes.flatMap((r) => r.eight_anu_route_slugs || []),
+      const searchQuery = params.slug ? `${params.q} ${params.slug}` : params.q;
+      console.log('[8a.nu] Searching routes for:', searchQuery);
+      const results = await this.eightAnuService.searchRoutes(searchQuery);
+
+      const areaRoutes = this.areaRoutesResource.value() || [];
+      const existingSlugs = new Set(areaRoutes.map((r) => r.slug));
+      const existingEightAnuSlugs = new Set(
+        areaRoutes.flatMap((r) => r.eight_anu_route_slugs || []),
       );
 
       for (const item of results) {
         const itemSlug = slugify(item.zlaggableName);
-        if (updatedSlugs.has(itemSlug)) continue;
+        if (existingSlugs.has(itemSlug) || existingEightAnuSlugs.has(itemSlug))
+          continue;
 
-        const matchingLocals = localRoutes.filter(
+        // Auto-linking logic only for the CURRENT crag to avoid confusion
+        const currentCragRoutes = this.global.cragRoutesResource.value() || [];
+        const matchingLocals = currentCragRoutes.filter(
           (r) => slugify(r.name) === itemSlug,
         );
 
@@ -940,22 +982,26 @@ export class CragComponent {
                 'with slug:',
                 itemSlug,
               );
-              await this.routesService.update(
-                local.id,
-                {
-                  eight_anu_route_slugs: [...currentSlugs, itemSlug],
-                },
-                true,
-              );
+              if (this.global.editingMode()) {
+                await this.routesService.update(
+                  local.id,
+                  {
+                    eight_anu_route_slugs: [...currentSlugs, itemSlug],
+                  },
+                  true,
+                );
+              }
             }
           }
-          updatedSlugs.add(itemSlug);
+          existingEightAnuSlugs.add(itemSlug);
         }
       }
 
       return results.filter((item) => {
         const itemSlug = slugify(item.zlaggableName);
-        return !updatedSlugs.has(itemSlug);
+        return (
+          !existingSlugs.has(itemSlug) && !existingEightAnuSlugs.has(itemSlug)
+        );
       });
     },
   });

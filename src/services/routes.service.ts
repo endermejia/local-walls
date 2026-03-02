@@ -153,6 +153,70 @@ export class RoutesService {
     return allRoutes;
   }
 
+  async getRoutesByAreaWithDetails(
+    areaId: number,
+  ): Promise<Partial<RouteWithExtras>[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+
+    let allRoutes: Partial<RouteWithExtras>[] = [];
+    let from = 0;
+    const step = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await this.supabase.client
+        .from('routes')
+        .select(
+          `
+          id, name, slug, grade, climbing_kind, height, eight_anu_route_slugs,
+          crag:crags!inner(id, name, slug, area:areas(id, name, slug))
+        `,
+        )
+        .eq('crag.area_id', areaId)
+        .range(from, from + step - 1);
+
+      if (error) {
+        console.error(
+          '[RoutesService] getRoutesByAreaWithDetails error',
+          error,
+        );
+        break;
+      }
+
+      if (data && data.length > 0) {
+        const mapped = data.map(
+          (r) =>
+            ({
+              id: r.id,
+              name: r.name,
+              slug: r.slug,
+              grade: r.grade,
+              climbing_kind: r.climbing_kind,
+              height: r.height,
+              eight_anu_route_slugs: r.eight_anu_route_slugs,
+              crag_id: r.crag.id,
+              crag_name: r.crag.name,
+              crag_slug: r.crag.slug,
+              area_id: r.crag.area.id,
+              area_name: r.crag.area.name,
+              area_slug: r.crag.area.slug,
+            }) as Partial<RouteWithExtras>,
+        );
+        allRoutes = [...allRoutes, ...mapped];
+        if (data.length < step) {
+          hasMore = false;
+        } else {
+          from += step;
+        }
+      } else {
+        hasMore = false;
+      }
+    }
+
+    return allRoutes;
+  }
+
   async getAreasWithDuplicateRoutes(): Promise<
     { id: number; name: string; slug: string }[]
   > {
