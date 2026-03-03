@@ -171,7 +171,7 @@ export interface RoutesTableRow {
             </thead>
             @let sortedData = data | tuiTableSort;
             @for (item of sortedData; track item.key) {
-              @let canEditRoute = global.permissions.routeEdit()[item._ref.id];
+              @let canEditRoute = global.canEditCragRoutes()[item._ref.id];
               <tbody tuiTbody>
                 <tr
                   tuiTr
@@ -863,7 +863,7 @@ export class RoutesTableComponent {
     ];
 
     const canEditAny = this.data().some(
-      (r) => this.global.permissions.routeEdit()[r.id],
+      (r) => this.global.canEditCragRoutes()[r.id],
     );
 
     if (

@@ -235,25 +235,30 @@ export class GlobalData {
   readonly checkRouteEditPermission = (
     route: RouteWithExtras | null | undefined,
   ) => {
-    if (this.canEditAsAdmin()) return true;
-    if (!route || !this.editingMode()) return false;
+    if (
+      this.canEditAsAdmin() ||
+      this.canEditAsAllowedEquipper()[route?.area_id ?? -1]
+    )
+      return true;
     const userId = this.userProfile()?.id;
-    if (!userId) return false;
-
+    if (!route || !userId || !this.editingMode()) return false;
     const isCreator = route.user_creator_id === userId;
-    const isEquipper = this.canEditAsAllowedEquipper()[route.area_id ?? -1];
-
-    if (isCreator && !isEquipper) {
-      return this.isWithinOneWeek(route.created_at);
-    }
-
-    return isCreator || isEquipper;
+    return isCreator && this.isWithinOneWeek(route.created_at);
   };
 
   /** Computed for the currently selected route */
   readonly canEditRoute = computed(() =>
     this.checkRouteEditPermission(this.routeDetailResource.value()),
   );
+
+  readonly canEditCragRoutes = computed(() => {
+    const res: Record<number, boolean> = {};
+    const routes = this.cragRoutesResource.value() ?? [];
+    routes.forEach((r: RouteWithExtras) => {
+      res[r.id] = this.checkRouteEditPermission(r);
+    });
+    return res;
+  });
 
   private isWithinOneWeek(createdAt: string | null | undefined): boolean {
     if (!createdAt) return true; // If no date, allow for now (legacy or unsaved)
@@ -262,35 +267,6 @@ export class GlobalData {
     const oneWeekInMs = 7 * 24 * 60 * 60 * 1000;
     return now.getTime() - date.getTime() < oneWeekInMs;
   }
-
-  /** Dictionary of permissions as maps for direct ID access in templates */
-  readonly permissions = {
-    /** Map of area ID -> canEdit */
-    areaEdit: computed(() => {
-      const res: Record<number, boolean> = {};
-      this.areaList()?.forEach(
-        (a: AreaListItem) => (res[a.id] = this.checkAreaEditPermission(a)),
-      );
-      return res;
-    }),
-    /** Map of crag ID -> canEdit */
-    cragEdit: computed(() => {
-      const res: Record<number, boolean> = {};
-      this.cragsList()?.forEach(
-        (c: CragListItem) => (res[c.id] = this.checkCragEditPermission(c)),
-      );
-      return res;
-    }),
-    /** Map of route ID -> canEdit */
-    routeEdit: computed(() => {
-      const res: Record<number, boolean> = {};
-      const routes = this.cragRoutesResource.value() ?? [];
-      routes.forEach(
-        (r: RouteWithExtras) => (res[r.id] = this.checkRouteEditPermission(r)),
-      );
-      return res;
-    }),
-  };
 
   readonly userAvatar = computed(() =>
     this.supabase.buildAvatarUrl(this.userProfile()?.avatar),
