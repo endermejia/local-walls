@@ -76,9 +76,9 @@ import { NotificationService } from '../services/notification.service';
                 <button
                   tuiButton
                   type="button"
-                  appearance="secondary-grayscale"
+                  appearance="primary-grayscale"
                   size="m"
-                  class="!rounded-full shadow-xl border border-[var(--tui-border-normal)] aspect-square md:aspect-auto md:!px-4 flex items-center justify-center !bg-[var(--tui-background-base)] hover:!bg-[var(--tui-background-base-alt)]"
+                  class="!rounded-full aspect-square md:aspect-auto md:!px-4 flex items-center justify-center"
                   iconStart="@tui.messages-square"
                   (click)="openChat()"
                   [attr.aria-label]="'messages' | translate"
@@ -102,9 +102,9 @@ import { NotificationService } from '../services/notification.service';
                   <button
                     tuiButton
                     type="button"
-                    appearance="secondary-grayscale"
+                    appearance="primary-grayscale"
                     size="m"
-                    class="!rounded-full shadow-xl border border-[var(--tui-border-normal)] aspect-square md:aspect-auto md:!px-4 flex items-center justify-center !bg-[var(--tui-background-base)] hover:!bg-[var(--tui-background-base-alt)]"
+                    class="!rounded-full aspect-square md:aspect-auto md:!px-4 flex items-center justify-center"
                     iconStart="@tui.bell"
                     (click)="openNotifications()"
                     [attr.aria-label]="'notifications' | translate"
