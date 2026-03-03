@@ -11,6 +11,7 @@ import { Meta, Title } from '@angular/platform-browser';
 import { Router, RouterOutlet } from '@angular/router';
 
 import { SeoService } from '../services/seo.service';
+import { Themes } from '../models';
 
 import { TuiAppearance, TuiButton, TuiRoot } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
@@ -164,6 +165,14 @@ export class AppComponent {
     effect(() => {
       if (this.langChange()) {
         this.updateSeoTags();
+      }
+    });
+
+    effect(() => {
+      const theme = this.global.selectedTheme();
+      if (isPlatformBrowser(this.platformId)) {
+        const color = theme === Themes.DARK ? '#0b1220' : '#ffffff';
+        this.meta.updateTag({ name: 'theme-color', content: color });
       }
     });
   }
