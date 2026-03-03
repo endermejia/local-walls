@@ -39,6 +39,7 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { RoutesService } from '../services/routes.service';
+import { GlobalData } from "../services/global-data";
 import { SupabaseService } from '../services/supabase.service';
 import { ToastService } from '../services/toast.service';
 
@@ -126,18 +127,20 @@ interface MinimalRoute {
         />
       </tui-textfield>
 
-      <tui-textfield [tuiTextfieldCleaner]="false">
-        <label tuiLabel for="slug">{{ 'slug' | translate }}</label>
-        <input
-          tuiTextfield
-          id="slug"
-          [formField]="routeForm.slug"
-          type="text"
-          autocomplete="off"
-        />
-      </tui-textfield>
-      @if (routeForm.slug().invalid() && routeForm.slug().touched()) {
-        <tui-error [error]="'errors.required' | translate" />
+      @if (global.isAdmin()) {
+        <tui-textfield [tuiTextfieldCleaner]="false">
+          <label tuiLabel for="slug">{{ 'slug' | translate }}</label>
+          <input
+            tuiTextfield
+            id="slug"
+            [formField]="routeForm.slug"
+            type="text"
+            autocomplete="off"
+          />
+        </tui-textfield>
+        @if (routeForm.slug().invalid() && routeForm.slug().touched()) {
+          <tui-error [error]="'errors.required' | translate" />
+        }
       }
 
       <tui-textfield
@@ -282,10 +285,7 @@ interface MinimalRoute {
         <button
           [disabled]="
             routeForm.name().invalid() ||
-            !model().crag ||
-            (!routeForm.name().dirty() &&
-              !routeForm.height().dirty() &&
-              !isEdit())
+            !model().crag
           "
           tuiButton
           appearance="primary"
@@ -302,6 +302,7 @@ interface MinimalRoute {
 export class RouteFormComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly routes = inject(RoutesService);
+  protected readonly global = inject(GlobalData);
   private readonly supabase = inject(SupabaseService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
