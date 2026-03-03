@@ -127,7 +127,7 @@ export interface RoutesTableRow {
     @if (tableData(); as data) {
       @if (data.length > 0) {
         @let isMobile = global.isMobile();
-        @let isAdmin = global.canEditAsAdmin();
+        @let canEditAsAdmin = global.canEditAsAdmin();
         <tui-scrollbar class="grow min-h-0 no-scrollbar">
           <table
             tuiTable
@@ -488,7 +488,7 @@ export interface RoutesTableRow {
                               >
                                 {{ 'edit' | translate }}
                               </button>
-                              @if (isAdmin) {
+                              @if (canEditAsAdmin) {
                                 <button
                                   size="s"
                                   appearance="negative"

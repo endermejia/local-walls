@@ -157,6 +157,10 @@ export class GlobalData {
     this.breadcrumbs().slice(0, -1),
   );
 
+  // Notifications and messages
+  readonly unreadNotificationsCount = this.notificationsService.unreadCount;
+  readonly unreadMessagesCount = this.messagingService.unreadMessagesCount;
+
   // ---- Auth (roles) ----
   readonly userProfile = computed(() => this.supabase.userProfile());
   readonly userRole = computed(() => this.supabase.userRole());
@@ -174,41 +178,32 @@ export class GlobalData {
 
   readonly equipperAreas = computed(() => this.supabase.equipperAreas());
 
-  readonly isAllowedEquipper = computed(() => {
-    const isAdmin = this.canEditAsAdmin();
-    const canEditEquipper = this.canEditAsEquipper();
+  readonly canEditAsAllowedEquipper = computed(() => {
+    const canEditAsAdmin = this.canEditAsAdmin();
+    const canEditAsEquipper = this.canEditAsEquipper();
     const areas = this.equipperAreas();
 
     const res: Record<number, boolean> = {};
-    if (canEditEquipper) {
+    if (canEditAsEquipper) {
       areas.forEach((id) => (res[id] = true));
     }
 
-    return isAdmin ? new Proxy(res, { get: () => true }) : res;
+    return canEditAsAdmin ? new Proxy(res, { get: () => true }) : res;
   });
-
-  // Notifications and messages
-  readonly unreadNotificationsCount = this.notificationsService.unreadCount;
-  readonly unreadMessagesCount = this.messagingService.unreadMessagesCount;
 
   /** Helper to check if any area can be edited by current user */
   readonly checkAreaEditPermission = (
     area: AreaListItem | AreaDto | null | undefined,
   ) => {
-    if (this.canEditAsAdmin()) return true;
-    if (!area || !this.editingMode()) return false;
+    if (
+      this.canEditAsAdmin() ||
+      this.canEditAsAllowedEquipper()[area?.id ?? -1]
+    )
+      return true;
     const userId = this.userProfile()?.id;
-    if (!userId) return false;
-
+    if (!area || !userId || !this.editingMode()) return false;
     const isCreator = area.user_creator_id === userId;
-    const isEquipper =
-      this.canEditAsEquipper() && this.equipperAreas().includes(area.id);
-
-    if (isCreator && !isEquipper) {
-      return this.isWithinOneWeek(area.created_at);
-    }
-
-    return isCreator || isEquipper;
+    return isCreator && this.isWithinOneWeek(area.created_at);
   };
 
   /** Computed for the currently selected area */
@@ -220,20 +215,15 @@ export class GlobalData {
   readonly checkCragEditPermission = (
     crag: CragListItem | CragDetail | null | undefined,
   ) => {
-    if (this.canEditAsAdmin()) return true;
-    if (!crag || !this.editingMode()) return false;
+    if (
+      this.canEditAsAdmin() ||
+      this.canEditAsAllowedEquipper()[crag?.area_id ?? -1]
+    )
+      return true;
     const userId = this.userProfile()?.id;
-    if (!userId) return false;
-
+    if (!crag || !userId || !this.editingMode()) return false;
     const isCreator = crag.user_creator_id === userId;
-    const isEquipper =
-      this.canEditAsEquipper() && this.equipperAreas().includes(crag.area_id);
-
-    if (isCreator && !isEquipper) {
-      return this.isWithinOneWeek(crag.created_at);
-    }
-
-    return isCreator || isEquipper;
+    return isCreator && this.isWithinOneWeek(crag.created_at);
   };
 
   /** Computed for the currently selected crag */
@@ -251,7 +241,7 @@ export class GlobalData {
     if (!userId) return false;
 
     const isCreator = route.user_creator_id === userId;
-    const isEquipper = this.isAllowedEquipper()[route.area_id ?? -1];
+    const isEquipper = this.canEditAsAllowedEquipper()[route.area_id ?? -1];
 
     if (isCreator && !isEquipper) {
       return this.isWithinOneWeek(route.created_at);
@@ -300,8 +290,6 @@ export class GlobalData {
       );
       return res;
     }),
-    /** Map of area ID -> isEquipper */
-    areaEquipper: this.isAllowedEquipper,
   };
 
   readonly userAvatar = computed(() =>

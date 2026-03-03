@@ -129,9 +129,10 @@ import { SeoService } from '../services/seo.service';
         (tuiSwipe)="onSwipe($event)"
         class="w-full max-w-5xl mx-auto p-4 flex flex-col min-h-full"
       >
-        @let isAdmin = global.isAdmin();
+        @let canEditAsAdmin = global.canEditAsAdmin();
         @if (cragDetail(); as c) {
-          @let isEquipper = global.permissions.areaEquipper()[c.area_id];
+          @let canEditAsAllowedEquipper =
+            global.canEditAsAllowedEquipper()[c.area_id];
 
           <ng-template #cragSwitcher>
             <tui-data-list>
@@ -170,7 +171,7 @@ import { SeoService } from '../services/seo.service';
                   >
                     {{ 'edit' | translate }}
                   </button>
-                  @if (isAdmin) {
+                  @if (canEditAsAdmin) {
                     <button
                       size="s"
                       appearance="negative"
@@ -329,7 +330,7 @@ import { SeoService } from '../services/seo.service';
                     <div
                       class="flex gap-2 flex-wrap sm:flex-nowrap justify-end"
                     >
-                      @if (isAdmin || isEquipper) {
+                      @if (canEditAsAdmin || canEditAsAllowedEquipper) {
                         <button
                           tuiButton
                           appearance="textfield"
@@ -512,7 +513,7 @@ import { SeoService } from '../services/seo.service';
                       }}
                     </h2>
                   </div>
-                  @if (isEquipper) {
+                  @if (canEditAsAllowedEquipper) {
                     <button
                       tuiButton
                       appearance="textfield"
@@ -610,7 +611,7 @@ import { SeoService } from '../services/seo.service';
                       {{ 'parkings' | translate }}
                     </h2>
                   </div>
-                  @if (isEquipper) {
+                  @if (canEditAsAllowedEquipper) {
                     <div
                       class="flex gap-2 flex-wrap sm:flex-nowrap justify-end"
                     >
@@ -658,7 +659,7 @@ import { SeoService } from '../services/seo.service';
                             </div>
                           }
 
-                          @if (isAdmin || isEquipper) {
+                          @if (canEditAsAdmin || canEditAsAllowedEquipper) {
                             <div class="flex gap-1">
                               <button
                                 size="s"
@@ -799,17 +800,23 @@ export class CragComponent {
   }
 
   readonly showToposTab = computed(() => {
-    const isAdmin = this.global.isAdmin();
-    const isEquipper =
-      this.global.isAllowedEquipper()[this.cragDetail()?.area_id ?? -1];
-    return (this.cragDetail()?.topos?.length ?? 0) > 0 || isAdmin || isEquipper;
+    const canEditAsAdmin = this.global.canEditAsAdmin();
+    const canEditAsAllowedEquipper =
+      this.global.canEditAsAllowedEquipper()[this.cragDetail()?.area_id ?? -1];
+    return (
+      (this.cragDetail()?.topos?.length ?? 0) > 0 ||
+      canEditAsAdmin ||
+      canEditAsAllowedEquipper
+    );
   });
   readonly showParkingsTab = computed(() => {
-    const isAdmin = this.global.isAdmin();
-    const isEquipper =
-      this.global.isAllowedEquipper()[this.cragDetail()?.area_id ?? -1];
+    const canEditAsAdmin = this.global.canEditAsAdmin();
+    const canEditAsAllowedEquipper =
+      this.global.canEditAsAllowedEquipper()[this.cragDetail()?.area_id ?? -1];
     return (
-      (this.cragDetail()?.parkings?.length ?? 0) > 0 || isAdmin || isEquipper
+      (this.cragDetail()?.parkings?.length ?? 0) > 0 ||
+      canEditAsAdmin ||
+      canEditAsAllowedEquipper
     );
   });
 

@@ -77,7 +77,7 @@ import { SeoService } from '../services/seo.service';
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
-      @let isAdmin = global.canEditAsAdmin();
+      @let canEditAsAdmin = global.canEditAsAdmin();
       @if (route(); as r) {
         <div
           class="mb-4 flex items-center justify-between gap-2"
@@ -106,7 +106,7 @@ import { SeoService } from '../services/seo.service';
                 >
                   {{ 'edit' | translate }}
                 </button>
-                @if (isAdmin) {
+                @if (canEditAsAdmin) {
                   <button
                     size="s"
                     appearance="negative"

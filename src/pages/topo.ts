@@ -118,8 +118,8 @@ export interface TopoRouteRow {
   template: `
     <div class="h-full w-full">
       <section class="flex flex-col w-full h-full md:p-4">
-        @let isAdmin = global.isAdmin();
         @let isMobile = global.isMobile();
+        @let canEditAsAdmin = global.canEditAsAdmin();
         @if (topo(); as t) {
           <div class="mb-4 p-4 md:p-0">
             <app-section-header
@@ -163,7 +163,7 @@ export interface TopoRouteRow {
                   >
                     {{ 'edit' | translate }}
                   </button>
-                  @if (isAdmin) {
+                  @if (canEditAsAdmin) {
                     <button
                       tuiIconButton
                       size="s"
@@ -1151,7 +1151,10 @@ export class TopoComponent {
       ? ['index', 'grade', 'name']
       : ['index', 'grade', 'name', 'height', 'actions'];
     const crag = this.crag();
-    if (!isMobile && this.global.isAllowedEquipper()[crag?.area_id ?? -1]) {
+    if (
+      !isMobile &&
+      this.global.canEditAsAllowedEquipper()[crag?.area_id ?? -1]
+    ) {
       base.push('admin_actions');
     }
     return base;

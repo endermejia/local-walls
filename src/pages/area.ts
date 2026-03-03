@@ -85,9 +85,10 @@ import { SeoService } from '../services/seo.service';
   template: `
     <tui-scrollbar class="flex grow">
       <section class="w-full max-w-5xl mx-auto p-4">
-        @let isAdmin = global.isAdmin();
+        @let canEditAsAdmin = global.canEditAsAdmin();
         @if (global.selectedArea(); as area) {
-          @let isEquipper = global.permissions.areaEquipper()[area.id];
+          @let canEditAsAllowedEquipper =
+            global.canEditAsAllowedEquipper()[area.id];
           <div class="mb-4">
             <app-section-header
               class="w-full"
@@ -108,7 +109,7 @@ import { SeoService } from '../services/seo.service';
                   >
                     {{ 'edit' | translate }}
                   </button>
-                  @if (isAdmin) {
+                  @if (canEditAsAdmin) {
                     <button
                       size="s"
                       appearance="negative"
@@ -159,7 +160,7 @@ import { SeoService } from '../services/seo.service';
               </h2>
             </div>
             <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
-              @if (isAdmin || isEquipper) {
+              @if (canEditAsAdmin || canEditAsAllowedEquipper) {
                 <button
                   tuiButton
                   appearance="textfield"
@@ -183,7 +184,7 @@ import { SeoService } from '../services/seo.service';
                   {{ 'new' | translate }}
                 </button>
               }
-              @if (isAdmin) {
+              @if (canEditAsAdmin) {
                 <button
                   tuiButton
                   appearance="textfield"
