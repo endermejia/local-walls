@@ -34,6 +34,7 @@ import { TuiDataListWrapper, TuiSelect } from '@taiga-ui/kit';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { AscentsService } from '../services/ascents.service';
+import { GlobalData } from '../services/global-data';
 
 import {
   AscentType,
@@ -454,9 +455,9 @@ interface RouteScore {
               <div class="chart-container">
                 <tui-axes
                   class="chart-container"
-                  [axisXLabels]="trendData().years"
+                  [axisXLabels]="trendXLabels()"
                   [axisYLabels]="trendYLabels()"
-                  [verticalLines]="trendData().years.length"
+                  [verticalLines]="trendXLabels().length"
                   [horizontalLines]="5"
                   [tuiLineChartHint]="trendHintContent"
                 >
@@ -582,6 +583,7 @@ interface RouteScore {
 export class UserStatisticsComponent {
   private readonly ascentsService = inject(AscentsService);
   private readonly translate = inject(TranslateService);
+  protected readonly global = inject(GlobalData);
   userId = input.required<string>();
 
   // --- Date Filter Support ---
@@ -1032,6 +1034,26 @@ export class UserStatisticsComponent {
       labels.push(Math.round(minY + i * step).toString());
     }
     return labels;
+  });
+
+  trendXLabels = computed(() => {
+    const years = this.trendData().years;
+    if (years.length === 0) return [];
+
+    const isMobile = this.global.isMobile();
+    const maxLabels = isMobile ? 5 : 10;
+
+    if (years.length <= maxLabels) return years;
+
+    const skip = Math.ceil(years.length / maxLabels);
+
+    return years.map((year, i) => {
+      // Always show first and last, and every 'skip' years
+      if (i === 0 || i === years.length - 1 || i % skip === 0) {
+        return year;
+      }
+      return '';
+    });
   });
 
   getIndex(context: readonly TuiPoint[]): number {
