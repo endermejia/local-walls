@@ -297,363 +297,369 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
           </div>
         }
 
-        <tui-tabs
-          [activeItemIndex]="activeTab()"
-          (activeItemIndexChange)="activeTab.set($event)"
-          class="w-full mt-6"
-          [tuiDropdown]="tourHint"
-          [tuiDropdownManual]="
-            tourService.isActive() &&
-            (tourService.step() === TourStep.PROFILE ||
-              tourService.step() === TourStep.PROFILE_PROJECTS ||
-              tourService.step() === TourStep.PROFILE_STATISTICS ||
-              tourService.step() === TourStep.PROFILE_LIKES)
-          "
-          tuiDropdownDirection="top"
-        >
-          <button tuiTab class="relative">
-            @if (
-              tourService.isActive() && tourService.step() === TourStep.PROFILE
-            ) {
-              <tui-pulse />
-            }
-            {{ 'ascents' | translate }}
-          </button>
-          <button tuiTab class="relative">
-            @if (
+        @if (isOwnProfile() || !profile()?.private) {
+          <tui-tabs
+            [activeItemIndex]="activeTab()"
+            (activeItemIndexChange)="activeTab.set($event)"
+            class="w-full mt-6"
+            [tuiDropdown]="tourHint"
+            [tuiDropdownManual]="
               tourService.isActive() &&
-              tourService.step() === TourStep.PROFILE_PROJECTS
-            ) {
-              <tui-pulse />
-            }
-            {{ 'projects' | translate }}
-          </button>
-          <button tuiTab class="relative">
-            @if (
-              tourService.isActive() &&
-              tourService.step() === TourStep.PROFILE_STATISTICS
-            ) {
-              <tui-pulse />
-            }
-            {{ 'statistics' | translate }}
-          </button>
-          @if (isOwnProfile()) {
+              (tourService.step() === TourStep.PROFILE ||
+                tourService.step() === TourStep.PROFILE_PROJECTS ||
+                tourService.step() === TourStep.PROFILE_STATISTICS ||
+                tourService.step() === TourStep.PROFILE_LIKES)
+            "
+            tuiDropdownDirection="top"
+          >
             <button tuiTab class="relative">
               @if (
-                tourService.isActive() &&
-                tourService.step() === TourStep.PROFILE_LIKES
+                tourService.isActive() && tourService.step() === TourStep.PROFILE
               ) {
                 <tui-pulse />
               }
-              {{ 'likes' | translate }}
+              {{ 'ascents' | translate }}
             </button>
-          }
-        </tui-tabs>
+            <button tuiTab class="relative">
+              @if (
+                tourService.isActive() &&
+                tourService.step() === TourStep.PROFILE_PROJECTS
+              ) {
+                <tui-pulse />
+              }
+              {{ 'projects' | translate }}
+            </button>
+            <button tuiTab class="relative">
+              @if (
+                tourService.isActive() &&
+                tourService.step() === TourStep.PROFILE_STATISTICS
+              ) {
+                <tui-pulse />
+              }
+              {{ 'statistics' | translate }}
+            </button>
+            @if (isOwnProfile()) {
+              <button tuiTab class="relative">
+                @if (
+                  tourService.isActive() &&
+                  tourService.step() === TourStep.PROFILE_LIKES
+                ) {
+                  <tui-pulse />
+                }
+                {{ 'likes' | translate }}
+              </button>
+            }
+          </tui-tabs>
 
-        @switch (activeTab()) {
-          @case (0) {
-            @if (hasAscents() || query() || hasActiveFilters()) {
-              <div class="min-w-0">
-                <div class="flex flex-wrap items-center gap-2 mb-4">
-                  <tui-textfield
-                    class="grow min-w-48"
-                    [tuiTextfieldCleaner]="true"
-                    tuiTextfieldSize="l"
-                  >
-                    <label tuiLabel for="route-search">{{
-                      'searchPlaceholder' | translate
-                    }}</label>
-                    <input
-                      tuiTextfield
-                      #routeSearch
-                      id="route-search"
-                      autocomplete="off"
-                      [value]="query()"
-                      (input.zoneless)="onQuery(routeSearch.value)"
-                    />
-                  </tui-textfield>
-
-                  <tui-badged-content>
-                    @if (hasActiveFilters()) {
-                      <tui-badge-notification
-                        tuiAppearance="accent"
-                        size="s"
-                        tuiSlot="top"
+          @switch (activeTab()) {
+            @case (0) {
+              @if (hasAscents() || query() || hasActiveFilters()) {
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2 mb-4">
+                    <tui-textfield
+                      class="grow min-w-48"
+                      [tuiTextfieldCleaner]="true"
+                      tuiTextfieldSize="l"
+                    >
+                      <label tuiLabel for="route-search">{{
+                        'searchPlaceholder' | translate
+                      }}</label>
+                      <input
+                        tuiTextfield
+                        #routeSearch
+                        id="route-search"
+                        autocomplete="off"
+                        [value]="query()"
+                        (input.zoneless)="onQuery(routeSearch.value)"
                       />
-                    }
+                    </tui-textfield>
+
+                    <tui-badged-content>
+                      @if (hasActiveFilters()) {
+                        <tui-badge-notification
+                          tuiAppearance="accent"
+                          size="s"
+                          tuiSlot="top"
+                        />
+                      }
+                      <button
+                        tuiButton
+                        appearance="textfield"
+                        size="l"
+                        type="button"
+                        iconStart="@tui.sliders-horizontal"
+                        [attr.aria-label]="'filters' | translate"
+                        (click.zoneless)="openFilters()"
+                      ></button>
+                    </tui-badged-content>
+
+                    <tui-textfield
+                      class="w-full sm:w-48"
+                      [tuiTextfieldCleaner]="false"
+                      [stringify]="dateValueContent"
+                      tuiTextfieldSize="l"
+                    >
+                      <label tuiLabel for="date-filter">
+                        {{ 'filterByDate' | translate }}
+                      </label>
+                      <input
+                        tuiSelect
+                        id="date-filter"
+                        [formControl]="dateFilterControl"
+                        autocomplete="off"
+                      />
+                      <tui-data-list *tuiTextfieldDropdown>
+                        <tui-data-list-wrapper
+                          new
+                          [items]="dateFilterOptions()"
+                        />
+                      </tui-data-list>
+                    </tui-textfield>
+
+                    <tui-textfield
+                      class="w-full sm:w-48"
+                      [tuiTextfieldCleaner]="false"
+                      [stringify]="sortValueContent"
+                      tuiTextfieldSize="l"
+                    >
+                      <label tuiLabel for="sort-filter">
+                        {{ 'sortBy' | translate }}
+                      </label>
+                      <input
+                        tuiSelect
+                        id="sort-filter"
+                        [formControl]="sortFilterControl"
+                        autocomplete="off"
+                      />
+                      <tui-data-list *tuiTextfieldDropdown>
+                        <tui-data-list-wrapper new [items]="['grade', 'date']" />
+                      </tui-data-list>
+                    </tui-textfield>
+
                     <button
                       tuiButton
-                      appearance="textfield"
-                      size="l"
-                      type="button"
-                      iconStart="@tui.sliders-horizontal"
-                      [attr.aria-label]="'filters' | translate"
-                      (click.zoneless)="openFilters()"
-                    ></button>
-                  </tui-badged-content>
+                      appearance="secondary"
+                      iconStart="@tui.calendar"
+                      class="w-full sm:w-auto sm:ml-auto"
+                      (click)="openCalendar()"
+                    >
+                      {{ 'statistics.openCalendar' | translate }}
+                    </button>
+                  </div>
 
-                  <tui-textfield
-                    class="w-full sm:w-48"
-                    [tuiTextfieldCleaner]="false"
-                    [stringify]="dateValueContent"
-                    tuiTextfieldSize="l"
+                  <app-ascents-feed
+                    [ascents]="accumulatedAscents()"
+                    [isLoading]="isLoading() || ascentsResource.isLoading()"
+                    [hasMore]="hasMore()"
+                    [showUser]="false"
+                    [followedIds]="followedIds()"
+                    [columns]="2"
+                    [groupByGrade]="sortFilter() === 'grade'"
+                    (loadMore)="loadMore()"
+                    (follow)="onFollow($event)"
+                    (unfollow)="onUnfollow($event)"
+                  />
+                </div>
+              } @else if (isOwnProfile()) {
+                <div class="mt-8 flex flex-col items-center gap-4">
+                  <button
+                    tuiButton
+                    type="button"
+                    appearance="secondary"
+                    iconStart="@tui.download"
+                    (click.zoneless)="openImport8aDialog()"
                   >
-                    <label tuiLabel for="date-filter">
-                      {{ 'filterByDate' | translate }}
-                    </label>
-                    <input
-                      tuiSelect
-                      id="date-filter"
-                      [formControl]="dateFilterControl"
-                      autocomplete="off"
-                    />
-                    <tui-data-list *tuiTextfieldDropdown>
-                      <tui-data-list-wrapper
-                        new
-                        [items]="dateFilterOptions()"
-                      />
-                    </tui-data-list>
-                  </tui-textfield>
-
-                  <tui-textfield
-                    class="w-full sm:w-48"
-                    [tuiTextfieldCleaner]="false"
-                    [stringify]="sortValueContent"
-                    tuiTextfieldSize="l"
-                  >
-                    <label tuiLabel for="sort-filter">
-                      {{ 'sortBy' | translate }}
-                    </label>
-                    <input
-                      tuiSelect
-                      id="sort-filter"
-                      [formControl]="sortFilterControl"
-                      autocomplete="off"
-                    />
-                    <tui-data-list *tuiTextfieldDropdown>
-                      <tui-data-list-wrapper new [items]="['grade', 'date']" />
-                    </tui-data-list>
-                  </tui-textfield>
-
+                    {{ 'import' | translate }} 8a.nu
+                  </button>
                   <button
                     tuiButton
                     appearance="secondary"
                     iconStart="@tui.calendar"
-                    class="w-full sm:w-auto sm:ml-auto"
                     (click)="openCalendar()"
                   >
                     {{ 'statistics.openCalendar' | translate }}
                   </button>
                 </div>
+              } @else {
+                <div class="flex flex-col items-center gap-3">
+                  <app-empty-state icon="@tui.list" />
+                  <button
+                    tuiButton
+                    appearance="secondary"
+                    iconStart="@tui.calendar"
+                    (click)="openCalendar()"
+                  >
+                    {{ 'statistics.openCalendar' | translate }}
+                  </button>
+                </div>
+              }
+            }
 
-                <app-ascents-feed
-                  [ascents]="accumulatedAscents()"
-                  [isLoading]="isLoading() || ascentsResource.isLoading()"
-                  [hasMore]="hasMore()"
-                  [showUser]="false"
-                  [followedIds]="followedIds()"
-                  [columns]="2"
-                  [groupByGrade]="sortFilter() === 'grade'"
-                  (loadMore)="loadMore()"
-                  (follow)="onFollow($event)"
-                  (unfollow)="onUnfollow($event)"
-                />
-              </div>
-            } @else if (isOwnProfile()) {
-              <div class="mt-8 flex flex-col items-center gap-4">
-                <button
-                  tuiButton
-                  type="button"
-                  appearance="secondary"
-                  iconStart="@tui.download"
-                  (click.zoneless)="openImport8aDialog()"
-                >
-                  {{ 'import' | translate }} 8a.nu
-                </button>
-                <button
-                  tuiButton
-                  appearance="secondary"
-                  iconStart="@tui.calendar"
-                  (click)="openCalendar()"
-                >
-                  {{ 'statistics.openCalendar' | translate }}
-                </button>
-              </div>
-            } @else {
-              <div class="flex flex-col items-center gap-3">
-                <app-empty-state icon="@tui.list" />
-                <button
-                  tuiButton
-                  appearance="secondary"
-                  iconStart="@tui.calendar"
-                  (click)="openCalendar()"
-                >
-                  {{ 'statistics.openCalendar' | translate }}
-                </button>
+            @case (1) {
+              <div class="min-w-0">
+                @if (projectsResource.isLoading()) {
+                  <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
+                    @for (_ of [1, 2, 3, 4]; track $index) {
+                      <app-ascent-card-skeleton [showUser]="false" />
+                    }
+                  </div>
+                } @else {
+                  <app-routes-table
+                    [data]="projects()"
+                    [showAdminActions]="false"
+                    [showLocation]="true"
+                    [showRowColors]="false"
+                    [hiddenColumns]="['topo', 'height', 'rating', 'ascents']"
+                  />
+                }
               </div>
             }
-          }
 
-          @case (1) {
-            <div class="min-w-0">
-              @if (projectsResource.isLoading()) {
-                <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
-                  @for (_ of [1, 2, 3, 4]; track $index) {
-                    <app-ascent-card-skeleton [showUser]="false" />
-                  }
-                </div>
-              } @else {
-                <app-routes-table
-                  [data]="projects()"
-                  [showAdminActions]="false"
-                  [showLocation]="true"
-                  [showRowColors]="false"
-                  [hiddenColumns]="['topo', 'height', 'rating', 'ascents']"
-                />
-              }
-            </div>
-          }
-
-          @case (2) {
-            <app-user-statistics
-              [userId]="id() || supabase.authUserId() || ''"
-            />
-          }
-          @case (3) {
-            <div class="flex flex-col gap-8">
-              <!-- Liked Areas -->
-              <section class="grid gap-2">
-                <header tuiHeader>
-                  <h3 tuiTitle>{{ 'likedAreas' | translate }}</h3>
-                </header>
-                <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
-                  @if (likedAreasResource.isLoading()) {
-                    @for (_ of [1, 2, 3, 4]; track $index) {
-                      <app-ascent-card-skeleton
-                        [showUser]="false"
-                        [showRoute]="false"
-                      />
-                    }
-                  } @else {
-                    @for (area of likedAreas(); track area.id) {
-                      <button
-                        class="p-6 rounded-3xl text-left"
-                        [tuiAppearance]="
-                          area.liked ? 'outline-destructive' : 'outline'
-                        "
-                        (click.zoneless)="router.navigate(['/area', area.slug])"
-                      >
-                        <div class="flex flex-col min-w-0 grow">
-                          <header tuiHeader>
-                            <h2 tuiTitle>{{ area.name }}</h2>
-                          </header>
-                          <section
-                            class="flex items-center justify-between gap-2"
-                          >
-                            <div class="text-xl">
-                              {{ area.crags_count }}
-                              {{
-                                (area.crags_count === 1 ? 'crag' : 'crags')
-                                  | translate
-                                  | lowercase
-                              }}
-                            </div>
-                          </section>
-                        </div>
-                      </button>
-                    } @empty {
-                      <div class="col-span-full opacity-50">
-                        <app-empty-state icon="@tui.heart" />
-                      </div>
-                    }
-                  }
-                </div>
-              </section>
-
-              <!-- Liked Crags -->
-              <section class="grid gap-2">
-                <header tuiHeader>
-                  <h3 tuiTitle>{{ 'likedCrags' | translate }}</h3>
-                </header>
-                <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
-                  @if (likedCragsResource.isLoading()) {
-                    @for (_ of [1, 2, 3, 4]; track $index) {
-                      <app-ascent-card-skeleton
-                        [showUser]="false"
-                        [showRoute]="false"
-                      />
-                    }
-                  } @else {
-                    @for (crag of likedCrags(); track crag.id) {
-                      <button
-                        class="p-6 rounded-3xl text-left"
-                        [tuiAppearance]="
-                          crag.liked ? 'outline-destructive' : 'outline'
-                        "
-                        (click.zoneless)="
-                          router.navigate(['/area', crag.area_slug, crag.slug])
-                        "
-                      >
-                        <div class="flex flex-col min-w-0 grow">
-                          <header tuiHeader>
-                            <h2 tuiTitle>{{ crag.name }}</h2>
-                          </header>
-                          <section
-                            class="flex items-center justify-between gap-2"
-                          >
-                            <div class="flex flex-col items-start">
+            @case (2) {
+              <app-user-statistics
+                [userId]="id() || supabase.authUserId() || ''"
+              />
+            }
+            @case (3) {
+              <div class="flex flex-col gap-8">
+                <!-- Liked Areas -->
+                <section class="grid gap-2">
+                  <header tuiHeader>
+                    <h3 tuiTitle>{{ 'likedAreas' | translate }}</h3>
+                  </header>
+                  <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
+                    @if (likedAreasResource.isLoading()) {
+                      @for (_ of [1, 2, 3, 4]; track $index) {
+                        <app-ascent-card-skeleton
+                          [showUser]="false"
+                          [showRoute]="false"
+                        />
+                      }
+                    } @else {
+                      @for (area of likedAreas(); track area.id) {
+                        <button
+                          class="p-6 rounded-3xl text-left"
+                          [tuiAppearance]="
+                            area.liked ? 'outline-destructive' : 'outline'
+                          "
+                          (click.zoneless)="router.navigate(['/area', area.slug])"
+                        >
+                          <div class="flex flex-col min-w-0 grow">
+                            <header tuiHeader>
+                              <h2 tuiTitle>{{ area.name }}</h2>
+                            </header>
+                            <section
+                              class="flex items-center justify-between gap-2"
+                            >
                               <div class="text-xl">
-                                {{ crag.topos_count }}
+                                {{ area.crags_count }}
                                 {{
-                                  (crag.topos_count === 1 ? 'topo' : 'topos')
+                                  (area.crags_count === 1 ? 'crag' : 'crags')
                                     | translate
                                     | lowercase
                                 }}
                               </div>
-                              <div class="text-sm opacity-70">
-                                {{ crag.area_name }}
-                              </div>
-                            </div>
-                          </section>
+                            </section>
+                          </div>
+                        </button>
+                      } @empty {
+                        <div class="col-span-full opacity-50">
+                          <app-empty-state icon="@tui.heart" />
                         </div>
-                      </button>
-                    } @empty {
-                      <div class="col-span-full opacity-50">
+                      }
+                    }
+                  </div>
+                </section>
+
+                <!-- Liked Crags -->
+                <section class="grid gap-2">
+                  <header tuiHeader>
+                    <h3 tuiTitle>{{ 'likedCrags' | translate }}</h3>
+                  </header>
+                  <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
+                    @if (likedCragsResource.isLoading()) {
+                      @for (_ of [1, 2, 3, 4]; track $index) {
+                        <app-ascent-card-skeleton
+                          [showUser]="false"
+                          [showRoute]="false"
+                        />
+                      }
+                    } @else {
+                      @for (crag of likedCrags(); track crag.id) {
+                        <button
+                          class="p-6 rounded-3xl text-left"
+                          [tuiAppearance]="
+                            crag.liked ? 'outline-destructive' : 'outline'
+                          "
+                          (click.zoneless)="
+                            router.navigate(['/area', crag.area_slug, crag.slug])
+                          "
+                        >
+                          <div class="flex flex-col min-w-0 grow">
+                            <header tuiHeader>
+                              <h2 tuiTitle>{{ crag.name }}</h2>
+                            </header>
+                            <section
+                              class="flex items-center justify-between gap-2"
+                            >
+                              <div class="flex flex-col items-start">
+                                <div class="text-xl">
+                                  {{ crag.topos_count }}
+                                  {{
+                                    (crag.topos_count === 1 ? 'topo' : 'topos')
+                                      | translate
+                                      | lowercase
+                                  }}
+                                </div>
+                                <div class="text-sm opacity-70">
+                                  {{ crag.area_name }}
+                                </div>
+                              </div>
+                            </section>
+                          </div>
+                        </button>
+                      } @empty {
+                        <div class="col-span-full opacity-50">
+                          <app-empty-state icon="@tui.heart" />
+                        </div>
+                      }
+                    }
+                  </div>
+                </section>
+
+                <!-- Liked Routes -->
+                <section class="grid gap-2">
+                  <header tuiHeader>
+                    <h3 tuiTitle>{{ 'likedRoutes' | translate }}</h3>
+                  </header>
+                  <div class="min-w-0">
+                    @if (likedRoutesResource.isLoading()) {
+                      <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
+                        @for (_ of [1, 2, 3, 4]; track $index) {
+                          <app-ascent-card-skeleton [showUser]="false" />
+                        }
+                      </div>
+                    } @else if (likedRoutes().length) {
+                      <app-routes-table
+                        [data]="likedRoutes()"
+                        [showAdminActions]="false"
+                        [showLocation]="true"
+                        [showRowColors]="false"
+                      />
+                    } @else {
+                      <div class="opacity-50">
                         <app-empty-state icon="@tui.heart" />
                       </div>
                     }
-                  }
-                </div>
-              </section>
-
-              <!-- Liked Routes -->
-              <section class="grid gap-2">
-                <header tuiHeader>
-                  <h3 tuiTitle>{{ 'likedRoutes' | translate }}</h3>
-                </header>
-                <div class="min-w-0">
-                  @if (likedRoutesResource.isLoading()) {
-                    <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
-                      @for (_ of [1, 2, 3, 4]; track $index) {
-                        <app-ascent-card-skeleton [showUser]="false" />
-                      }
-                    </div>
-                  } @else if (likedRoutes().length) {
-                    <app-routes-table
-                      [data]="likedRoutes()"
-                      [showAdminActions]="false"
-                      [showLocation]="true"
-                      [showRowColors]="false"
-                    />
-                  } @else {
-                    <div class="opacity-50">
-                      <app-empty-state icon="@tui.heart" />
-                    </div>
-                  }
-                </div>
-              </section>
-            </div>
+                  </div>
+                </section>
+              </div>
+            }
           }
+        } @else {
+          <div class="mt-8">
+            <app-empty-state icon="@tui.lock" message="privateProfile" />
+          </div>
         }
       </section>
     </tui-scrollbar>
