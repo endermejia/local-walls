@@ -314,7 +314,8 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
           >
             <button tuiTab class="relative">
               @if (
-                tourService.isActive() && tourService.step() === TourStep.PROFILE
+                tourService.isActive() &&
+                tourService.step() === TourStep.PROFILE
               ) {
                 <tui-pulse />
               }
@@ -432,19 +433,24 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
                         autocomplete="off"
                       />
                       <tui-data-list *tuiTextfieldDropdown>
-                        <tui-data-list-wrapper new [items]="['grade', 'date']" />
+                        <tui-data-list-wrapper
+                          new
+                          [items]="['grade', 'date']"
+                        />
                       </tui-data-list>
                     </tui-textfield>
 
-                    <button
-                      tuiButton
-                      appearance="secondary"
-                      iconStart="@tui.calendar"
-                      class="w-full sm:w-auto sm:ml-auto"
-                      (click)="openCalendar()"
-                    >
-                      {{ 'statistics.openCalendar' | translate }}
-                    </button>
+                    @if (hasAscents()) {
+                      <button
+                        tuiButton
+                        appearance="secondary"
+                        iconStart="@tui.calendar"
+                        class="w-full sm:w-auto sm:ml-auto"
+                        (click)="openCalendar()"
+                      >
+                        {{ 'statistics.openCalendar' | translate }}
+                      </button>
+                    }
                   </div>
 
                   <app-ascents-feed
@@ -471,26 +477,10 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
                   >
                     {{ 'import' | translate }} 8a.nu
                   </button>
-                  <button
-                    tuiButton
-                    appearance="secondary"
-                    iconStart="@tui.calendar"
-                    (click)="openCalendar()"
-                  >
-                    {{ 'statistics.openCalendar' | translate }}
-                  </button>
                 </div>
               } @else {
                 <div class="flex flex-col items-center gap-3">
                   <app-empty-state icon="@tui.list" />
-                  <button
-                    tuiButton
-                    appearance="secondary"
-                    iconStart="@tui.calendar"
-                    (click)="openCalendar()"
-                  >
-                    {{ 'statistics.openCalendar' | translate }}
-                  </button>
                 </div>
               }
             }
@@ -542,7 +532,9 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
                           [tuiAppearance]="
                             area.liked ? 'outline-destructive' : 'outline'
                           "
-                          (click.zoneless)="router.navigate(['/area', area.slug])"
+                          (click.zoneless)="
+                            router.navigate(['/area', area.slug])
+                          "
                         >
                           <div class="flex flex-col min-w-0 grow">
                             <header tuiHeader>
@@ -592,7 +584,11 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
                             crag.liked ? 'outline-destructive' : 'outline'
                           "
                           (click.zoneless)="
-                            router.navigate(['/area', crag.area_slug, crag.slug])
+                            router.navigate([
+                              '/area',
+                              crag.area_slug,
+                              crag.slug,
+                            ])
                           "
                         >
                           <div class="flex flex-col min-w-0 grow">
