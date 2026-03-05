@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform, inject } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { MENTION_PATTERN } from '../utils';
 
 @Pipe({
   name: 'mentionLink',
@@ -15,10 +16,10 @@ export class MentionLinkPipe implements PipeTransform {
     const escaped = this.escapeHtml(value);
 
     // 2. Replace mentions with anchor tags
-    // Pattern: @[Name](UUID)
-    const mentionPattern = /@\[([^\]]+)\]\(([^)]+)\)/g;
+    // Reset lastIndex since MENTION_PATTERN is a global regex
+    MENTION_PATTERN.lastIndex = 0;
 
-    const linked = escaped.replace(mentionPattern, (match, name, id) => {
+    const linked = escaped.replace(MENTION_PATTERN, (match, name, id) => {
       // We use a specific class 'mention-link' to target click events if needed
       // and data-id attribute.
       // We also use href for standard behavior/SEO, but the app should intercept it.
