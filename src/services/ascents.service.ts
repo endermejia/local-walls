@@ -27,6 +27,7 @@ import { AppNotificationsService } from './app-notifications.service';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
+import { extractMentionIds } from '../utils';
 
 @Injectable({ providedIn: 'root' })
 export class AscentsService {
@@ -983,15 +984,7 @@ export class AscentsService {
   }
 
   private async triggerMentionNotification(ascentId: number, comment: string) {
-    const mentionPattern = /@\[([^\]]+)\]\(([^)]+)\)/g;
-    let match;
-    const mentionedUserIds = new Set<string>();
-
-    while ((match = mentionPattern.exec(comment)) !== null) {
-      // match[2] is the ID
-      mentionedUserIds.add(match[2]);
-    }
-
+    const mentionedUserIds = extractMentionIds(comment);
     const currentUserId = this.supabase.authUserId();
 
     for (const userId of mentionedUserIds) {
