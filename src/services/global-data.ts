@@ -28,8 +28,6 @@ import { LocalStorage } from './local-storage';
 import { MessagingService } from './messaging.service';
 import { SupabaseService } from './supabase.service';
 
-// import { UserProfilesService } from './user-profiles.service';
-
 import { mapCragToDetail } from '../utils';
 
 import {
@@ -77,7 +75,6 @@ export class GlobalData {
   private readonly notificationsService = inject(AppNotificationsService);
   private readonly messagingService = inject(MessagingService);
   private readonly browserNotifications = inject(BrowserNotificationService);
-  // private readonly userProfilesService = inject(UserProfilesService);
   private breakpointService = inject(TuiBreakpointService);
 
   readonly isMobile = toSignal(
