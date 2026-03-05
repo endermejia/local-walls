@@ -944,7 +944,6 @@ export class CragComponent {
     loader: async ({ params }): Promise<SearchRouteItem[]> => {
       if (!params) return [];
       const searchQuery = params.slug ? `${params.q} ${params.slug}` : params.q;
-      console.log('[8a.nu] Searching routes for:', searchQuery);
       const results = await this.eightAnuService.searchRoutes(searchQuery);
 
       const areaRoutes = this.areaRoutesResource.value() || [];
@@ -968,12 +967,6 @@ export class CragComponent {
           for (const local of matchingLocals) {
             const currentSlugs = local.eight_anu_route_slugs || [];
             if (!currentSlugs.includes(itemSlug)) {
-              console.log(
-                '[8a.nu] Auto-linking route:',
-                local.name,
-                'with slug:',
-                itemSlug,
-              );
               if (this.global.editingMode()) {
                 await this.routesService.update(
                   local.id,
