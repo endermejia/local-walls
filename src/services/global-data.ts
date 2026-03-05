@@ -845,7 +845,7 @@ export class GlobalData {
               parking: parkings (*)
             ),
              topos (
-               *,
+               id, name, slug, photo, shade_morning, shade_afternoon, shade_change_hour,
                topo_routes (
                  route_id,
                  route: routes (

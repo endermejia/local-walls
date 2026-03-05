@@ -37,8 +37,8 @@ A continuación se detallan las áreas identificadas donde las consultas a la ba
 - **Cambio Propuesto:** `route:routes(id, name, slug, grade, climbing_kind)`
 
 ### `cragDetailResource`
-- **Consulta Actual:** `area:areas!inner(id, name, slug)` (Correcto), pero `topos(*)` selecciona todo de topos.
-- **Observación:** `topos` es una tabla pequeña, pero vale la pena revisar si `photo` (path) es lo único pesado.
+- **Consulta Actual:** `area:areas!inner(id, name, slug)` (Correcto), se corrigió `topos(*)` para seleccionar explícitamente `topos (id, name, slug, photo, shade_morning, shade_afternoon, shade_change_hour)`.
+- **Observación:** Se verificó que `photo` es un string y la carga era mínima, pero se dejó optimizada seleccionando solo los campos requeridos.
 
 ## 3. MessagingService (`src/services/messaging.service.ts`)
 
