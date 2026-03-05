@@ -300,4 +300,32 @@ export class ToposService {
       this.global.topoDetailResource.reload();
     }
   }
+
+  async bulkUpdateRoutePaths(
+    topoId: number,
+    paths: { routeId: number; path: TopoPath }[],
+    reload = true,
+  ): Promise<void> {
+    if (!isPlatformBrowser(this.platformId) || !paths.length) return;
+    await this.supabase.whenReady();
+
+    const payloads = paths.map((p) => ({
+      topo_id: topoId,
+      route_id: p.routeId,
+      path: p.path as unknown as string,
+    }));
+
+    const { error } = await (this.supabase.client as any)
+      .from('topo_routes')
+      .upsert(payloads, { onConflict: 'topo_id,route_id' });
+
+    if (error) {
+      console.error('[ToposService] bulkUpdateRoutePaths error', error);
+      throw error;
+    }
+
+    if (reload) {
+      this.global.topoDetailResource.reload();
+    }
+  }
 }
