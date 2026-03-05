@@ -40,6 +40,14 @@ interface ClusterGroup {
   count: number;
 }
 
+const CLUSTER_CONFIG = [
+  { minCount: 200, size: 72, sizeClass: 'xl' },
+  { minCount: 100, size: 58, sizeClass: 'lg' },
+  { minCount: 50, size: 46, sizeClass: 'md' },
+  { minCount: 10, size: 36, sizeClass: 'sm' },
+  { minCount: 0, size: 28, sizeClass: 'xs' },
+];
+
 @Injectable({ providedIn: 'root' })
 export class MapBuilder {
   private readonly platformId = inject(PLATFORM_ID);
@@ -558,16 +566,8 @@ export class MapBuilder {
         } else {
           const latLng = group.center;
           // Dynamic cluster size based on count
-          const size =
-            group.count >= 200
-              ? 72
-              : group.count >= 100
-                ? 58
-                : group.count >= 50
-                  ? 46
-                  : group.count >= 10
-                    ? 36
-                    : 28;
+          const config = CLUSTER_CONFIG.find((c) => group.count >= c.minCount) || CLUSTER_CONFIG[CLUSTER_CONFIG.length - 1];
+          const size = config.size;
 
           const commonAreaName =
             group.markers.length > 0 &&
@@ -699,16 +699,9 @@ export class MapBuilder {
     areaName?: string,
     isLiked = false,
   ): string {
-    const sizeClass =
-      count >= 200
-        ? 'xl'
-        : count >= 100
-          ? 'lg'
-          : count >= 50
-            ? 'md'
-            : count >= 10
-              ? 'sm'
-              : 'xs';
+    const config = CLUSTER_CONFIG.find((c) => count >= c.minCount) || CLUSTER_CONFIG[CLUSTER_CONFIG.length - 1];
+    const sizeClass = config.sizeClass;
+
     const spawnClass = this.animateClustersOnNextBuild
       ? ' lw-cluster--spawn'
       : '';
