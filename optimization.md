@@ -9,7 +9,7 @@ A continuación se detallan las áreas identificadas donde las consultas a la ba
 - **Optimización:** Seleccionar solo los campos necesarios para mostrar al autor.
 - **Cambio Propuesto:** `.select('..., user:user_profiles(id, name, avatar)')`
 
-### `getLikesPaginated`
+### `getLikesPaginated` (Completado)
 - **Consulta Actual:** Se obtienen todos los campos de los perfiles que dieron like (`user_profiles(*)`).
 - **Optimización:** Solo se necesita información básica para listar usuarios.
 - **Cambio Propuesto:** `.select('id, name, avatar')`

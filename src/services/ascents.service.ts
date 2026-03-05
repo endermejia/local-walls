@@ -649,16 +649,12 @@ export class AscentsService {
     const from = page * pageSize;
     const to = from + pageSize - 1;
 
-    let likesQuery = this.supabase.client
+    const likesQuery = this.supabase.client
       .from('route_ascent_likes')
-      .select('user_profiles!inner(id, name, avatar)', { count: 'exact' })
+      .select('user_id', { count: 'exact' })
       .eq('route_ascent_id', ascentId)
       .order('created_at', { ascending: false })
       .range(from, to);
-
-    if (query) {
-      likesQuery = likesQuery.ilike('user_profiles.name', `%${query}%`);
-    }
 
     const { data: likesData, error: likesError, count } = await likesQuery;
 
@@ -671,12 +667,34 @@ export class AscentsService {
       return { items: [], total: 0 };
     }
 
-    const items = likesData.map(
-      (d) => d.user_profiles as unknown as UserProfileBasicDto,
-    );
+    const userIds = likesData.map((d) => d.user_id);
+    let profilesQuery = this.supabase.client
+      .from('user_profiles')
+      .select('id, name, avatar')
+      .in('id', userIds);
+
+    if (query) {
+      profilesQuery = profilesQuery.ilike('name', `%${query}%`);
+    }
+
+    const { data: profilesData, error: profilesError } = await profilesQuery;
+
+    if (profilesError) {
+      console.error(
+        '[AscentsService] getLikesPaginated profiles error',
+        profilesError,
+      );
+      throw profilesError;
+    }
+
+    // Sort profiles back to match the order of likes (created_at desc)
+    const profileMap = new Map(profilesData?.map((p) => [p.id, p]));
+    const sortedProfiles = userIds
+      .map((id) => profileMap.get(id))
+      .filter((p): p is UserProfileBasicDto => !!p);
 
     return {
-      items,
+      items: sortedProfiles,
       total: count || 0,
     };
   }
