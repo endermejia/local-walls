@@ -476,8 +476,11 @@ export class AscentCardComponent {
     return items;
   });
 
-  editAscent() {
-    this.ascentsService.openAscentForm({ ascentData: this.data() }).subscribe();
+  async editAscent() {
+    await firstValueFrom(
+      this.ascentsService.openAscentForm({ ascentData: this.data() }),
+      { defaultValue: false }
+    );
   }
 
   async showEnlargedPhoto(url: string | SafeResourceUrl): Promise<void> {
@@ -495,13 +498,14 @@ export class AscentCardComponent {
       }
     }
 
-    void this.dialogs
-      .open(new PolymorpheusComponent(PhotoViewerDialogComponent), {
+    await firstValueFrom(
+      this.dialogs.open(new PolymorpheusComponent(PhotoViewerDialogComponent), {
         data: { imageUrl: fullUrl },
         size: 'l',
         appearance: 'flat',
-      })
-      .subscribe();
+      }),
+      { defaultValue: undefined }
+    );
   }
 
   async follow(userId: string) {
