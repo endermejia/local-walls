@@ -27,6 +27,7 @@ import { AppNotificationsService } from './app-notifications.service';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
+import { getPaginatedProfilesFromJunction } from '../utils/pagination.utils';
 
 @Injectable({ providedIn: 'root' })
 export class AscentsService {
@@ -637,80 +638,17 @@ export class AscentsService {
     };
   }
 
-  private async getGenericLikesPaginated(
-    tableName: 'route_ascent_likes' | 'route_ascent_comment_likes',
-    foreignKeyColumn: string,
-    idValue: number,
-    page: number,
-    pageSize: number,
-    query: string,
-    methodName: string,
-  ): Promise<{ items: UserProfileBasicDto[]; total: number }> {
-    if (!isPlatformBrowser(this.platformId)) return { items: [], total: 0 };
-    await this.supabase.whenReady();
-
-    const from = page * pageSize;
-    const to = from + pageSize - 1;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const likesQuery = (this.supabase.client as any)
-      .from(tableName)
-      .select('user_id', { count: 'exact' })
-      .eq(foreignKeyColumn, idValue)
-      .order('created_at', { ascending: false })
-      .range(from, to);
-
-    const { data: likesData, error: likesError, count } = await likesQuery;
-
-    if (likesError) {
-      console.error(`[AscentsService] ${methodName} error`, likesError);
-      throw likesError;
-    }
-
-    if (!likesData || likesData.length === 0) {
-      return { items: [], total: 0 };
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const userIds = likesData.map((d: any) => d.user_id);
-    let profilesQuery = this.supabase.client
-      .from('user_profiles')
-      .select('id, name, avatar')
-      .in('id', userIds);
-
-    if (query) {
-      profilesQuery = profilesQuery.ilike('name', `%${query}%`);
-    }
-
-    const { data: profilesData, error: profilesError } = await profilesQuery;
-
-    if (profilesError) {
-      console.error(
-        `[AscentsService] ${methodName} profiles error`,
-        profilesError,
-      );
-      throw profilesError;
-    }
-
-    // Sort profiles back to match the order of likes (created_at desc)
-    const profileMap = new Map(profilesData?.map((p) => [p.id, p]));
-    const sortedProfiles = userIds
-      .map((id: string) => profileMap.get(id))
-      .filter((p: UserProfileBasicDto | undefined): p is UserProfileBasicDto => !!p);
-
-    return {
-      items: sortedProfiles,
-      total: count || 0,
-    };
-  }
-
   async getLikesPaginated(
     ascentId: number,
     page = 0,
     pageSize = 20,
     query = '',
   ): Promise<{ items: UserProfileBasicDto[]; total: number }> {
-    return this.getGenericLikesPaginated(
+    if (!isPlatformBrowser(this.platformId)) return { items: [], total: 0 };
+    await this.supabase.whenReady();
+
+    return getPaginatedProfilesFromJunction(
+      this.supabase.client,
       'route_ascent_likes',
       'route_ascent_id',
       ascentId,
@@ -760,7 +698,11 @@ export class AscentsService {
     pageSize = 20,
     query = '',
   ): Promise<{ items: UserProfileBasicDto[]; total: number }> {
-    return this.getGenericLikesPaginated(
+    if (!isPlatformBrowser(this.platformId)) return { items: [], total: 0 };
+    await this.supabase.whenReady();
+
+    return getPaginatedProfilesFromJunction(
+      this.supabase.client,
       'route_ascent_comment_likes',
       'comment_id',
       commentId,
