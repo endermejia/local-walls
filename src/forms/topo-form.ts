@@ -692,9 +692,7 @@ export class TopoFormComponent {
     const paths = this.pendingPaths();
     if (!paths.length) return;
 
-    for (const p of paths) {
-      await this.topos.updateRoutePath(topo.id, p.routeId, p.path);
-    }
+    await this.topos.bulkUpdateRoutePaths(topo.id, paths);
     this.pendingPaths.set([]);
   }
 
