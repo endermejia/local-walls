@@ -1,4 +1,4 @@
-import { LowerCasePipe } from '@angular/common';
+import { resource, LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -28,6 +28,7 @@ import { TuiHeader } from '@taiga-ui/layout';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { AreasService } from '../services/areas.service';
+import { WeatherService } from '../services/weather.service';
 import { FiltersService } from '../services/filters.service';
 import { GlobalData } from '../services/global-data';
 import { TourService } from '../services/tour.service';

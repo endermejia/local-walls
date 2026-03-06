@@ -19,7 +19,12 @@ import {
 
 import { TuiButton, TuiLink } from '@taiga-ui/core';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { TuiFilter, type TuiKeySteps, TuiRange } from '@taiga-ui/kit';
+import {
+  TuiFilter,
+  TuiRadioList,
+  type TuiKeySteps,
+  TuiRange,
+} from '@taiga-ui/kit';
 import { TuiForm } from '@taiga-ui/layout';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
@@ -42,6 +47,8 @@ export interface FilterDialog {
   showCategories?: boolean;
   showShade?: boolean;
   showGradeRange?: boolean;
+  showWeather?: boolean;
+  noRainDays?: number;
 }
 
 @Component({
@@ -54,6 +61,7 @@ export interface FilterDialog {
     TuiForm,
     TuiRange,
     TuiFilter,
+    TuiRadioList,
     TranslatePipe,
   ],
   template: `
@@ -106,6 +114,23 @@ export interface FilterDialog {
         </section>
       }
 
+      @if (showWeather) {
+        <section class="tui-space_top-3">
+          <h3 class="tui-text_h6 mb-2 mt-4">
+            {{ 'filters.weather' | translate }}
+          </h3>
+          <tui-radio-list
+            formControlName="noRainDays"
+            [items]="weatherOptions"
+            [itemContent]="weatherItemContent"
+            class="mb-4"
+          >
+            <ng-template #weatherItemContent let-data>
+              {{ data.name | translate }}
+            </ng-template>
+          </tui-radio-list>
+        </section>
+      }
       <footer class="flex flex-wrap gap-2 justify-end items-center">
         <button
           appearance="secondary"
@@ -140,6 +165,16 @@ export class FilterDialogComponent {
     return this.context.data?.showShade ?? true;
   }
 
+  protected get showWeather(): boolean {
+    return this.context.data?.showWeather ?? true;
+  }
+
+  readonly weatherOptions = [
+    { id: 0, name: 'filters.noRainAny' },
+    { id: 1, name: 'filters.noRainToday' },
+    { id: 2, name: 'filters.noRainTomorrow' },
+    { id: 3, name: 'filters.noRainDayAfter' },
+  ];
   protected get showGradeRange(): boolean {
     return this.context.data?.showGradeRange ?? true;
   }
@@ -170,6 +205,7 @@ export class FilterDialogComponent {
   protected readonly form = new FormGroup({
     filters: new FormControl<string[]>([]),
     shade: new FormControl<string[]>([]),
+    noRainDays: new FormControl<number>(0),
     gradeRange: new FormControl<[number, number]>([0, 0], {
       nonNullable: true,
     }),
@@ -233,6 +269,14 @@ export class FilterDialogComponent {
           .filter(Boolean);
         this.form.patchValue({ shade: selectedLabels });
       }
+
+      if (typeof d.noRainDays === 'number') {
+        const option =
+          this.weatherOptions.find((o) => o.id === d.noRainDays) ||
+          this.weatherOptions[0];
+        this.form.patchValue({ noRainDays: option.id });
+      }
+
       if (Array.isArray(d.gradeRange) && d.gradeRange.length === 2) {
         const sanitized = this.sanitizeRange(d.gradeRange as [number, number]);
         this.form.patchValue({ gradeRange: sanitized });
@@ -339,6 +383,9 @@ export class FilterDialogComponent {
       showCategories: this.context.data?.showCategories,
       showShade: this.context.data?.showShade,
       showGradeRange: this.context.data?.showGradeRange,
+
+      showWeather: this.context.data?.showWeather,
+      noRainDays: this.form.value.noRainDays ?? 0,
     };
     this.context.completeWith(payload);
   }
@@ -346,14 +393,22 @@ export class FilterDialogComponent {
   protected clear(): void {
     this.form.reset({
       gradeRange: [this.minIndex, this.maxIndex],
+
+      noRainDays: 0,
     });
     this.context.completeWith({
       categories: [],
       gradeRange: [this.minIndex, this.maxIndex],
+
+      noRainDays: 0,
+
       selectedShade: [],
       showCategories: this.context.data?.showCategories,
       showShade: this.context.data?.showShade,
       showGradeRange: this.context.data?.showGradeRange,
+
+      showWeather: this.context.data?.showWeather,
+      noRainDays: this.form.value.noRainDays ?? 0,
     });
   }
 }

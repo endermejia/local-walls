@@ -43,6 +43,7 @@ import { FiltersService } from '../services/filters.service';
 import { GlobalData } from '../services/global-data';
 import { SupabaseService } from '../services/supabase.service';
 import { ToastService } from '../services/toast.service';
+import { WeatherService } from '../services/weather.service';
 
 import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
 import { EmptyStateComponent } from '../components/empty-state';

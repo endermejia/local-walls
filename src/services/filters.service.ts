@@ -20,17 +20,21 @@ export class FiltersService {
   openFilters(
     options: {
       showShade?: boolean;
+
       showCategories?: boolean;
       showGradeRange?: boolean;
+      showWeather?: boolean;
     } = {},
   ): void {
     const data: FilterDialog = {
       categories: this.global.areaListCategories(),
       gradeRange: this.global.areaListGradeRange(),
       selectedShade: this.global.areaListShade(),
+      noRainDays: this.global.areaListWeather(),
       showCategories: options.showCategories ?? true,
       showShade: options.showShade ?? true,
       showGradeRange: options.showGradeRange ?? true,
+      showWeather: options.showWeather ?? true,
     };
 
     void firstValueFrom(
@@ -59,6 +63,7 @@ export class FiltersService {
 
       this.global.areaListCategories.set(result.categories ?? []);
       this.global.areaListShade.set(result.selectedShade ?? []);
+      this.global.areaListWeather.set(result.noRainDays ?? 0);
     });
   }
 }

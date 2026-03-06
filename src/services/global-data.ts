@@ -537,18 +537,22 @@ export class GlobalData {
   });
 
   // ---- Area List Filters (Persisted) ----
+
   private readonly areaListGradeRangeKey = 'area_list_grade_range_v1';
   private readonly areaListCategoriesKey = 'area_list_categories_v1';
   private readonly areaListShadeKey = 'area_list_shade_v1';
+  private readonly areaListWeatherKey = 'area_list_weather_v1';
 
   areaListGradeRange: WritableSignal<[number, number]> = signal([
     0,
     ORDERED_GRADE_VALUES.length - 1,
   ]);
+
   areaListCategories: WritableSignal<number[]> = signal([]);
   areaListShade: WritableSignal<
     ('shade_morning' | 'shade_afternoon' | 'shade_all_day' | 'sun_all_day')[]
   > = signal([]);
+  areaListWeather: WritableSignal<number> = signal(0);
 
   // ---- Areas ----
   selectedAreaSlug: WritableSignal<string | null> = signal(null);
@@ -1479,6 +1483,11 @@ export class GlobalData {
       if (rawShade) {
         this.areaListShade.set(JSON.parse(rawShade));
       }
+
+      const rawWeather = this.localStorage.getItem(this.areaListWeatherKey);
+      if (rawWeather) {
+        this.areaListWeather.set(JSON.parse(rawWeather));
+      }
     } catch {
       // ignore corrupted viewport state
     }
@@ -1520,10 +1529,17 @@ export class GlobalData {
         JSON.stringify(this.areaListCategories()),
       );
     });
+
     effect(() => {
       this.localStorage.setItem(
         this.areaListShadeKey,
         JSON.stringify(this.areaListShade()),
+      );
+    });
+    effect(() => {
+      this.localStorage.setItem(
+        this.areaListWeatherKey,
+        JSON.stringify(this.areaListWeather()),
       );
     });
 
