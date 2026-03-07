@@ -1,4 +1,4 @@
-import { resource, LowerCasePipe } from '@angular/common';
+import { LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,

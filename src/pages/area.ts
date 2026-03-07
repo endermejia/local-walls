@@ -395,7 +395,7 @@ export class AreaComponent {
       }
       return null;
     },
-    loader: async ({ params }) => {
+    loader: async ({ params }: any) => {
       if (!params) return [];
       await this.supabase.whenReady();
       const { data, error } = await this.supabase.client

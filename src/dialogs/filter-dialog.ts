@@ -393,22 +393,17 @@ export class FilterDialogComponent {
   protected clear(): void {
     this.form.reset({
       gradeRange: [this.minIndex, this.maxIndex],
-
       noRainDays: 0,
     });
     this.context.completeWith({
       categories: [],
       gradeRange: [this.minIndex, this.maxIndex],
-
       noRainDays: 0,
-
       selectedShade: [],
       showCategories: this.context.data?.showCategories,
       showShade: this.context.data?.showShade,
       showGradeRange: this.context.data?.showGradeRange,
-
       showWeather: this.context.data?.showWeather,
-      noRainDays: this.form.value.noRainDays ?? 0,
     });
   }
 }

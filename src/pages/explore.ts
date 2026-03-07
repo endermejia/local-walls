@@ -1,10 +1,9 @@
-import {
-  resource,
-  CommonModule,
+import { CommonModule,
   isPlatformBrowser,
   LowerCasePipe,
 } from '@angular/common';
 import {
+  resource,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -39,6 +38,7 @@ import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { AreasService } from '../services/areas.service';
+import { WeatherService } from '../services/weather.service';
 import { FiltersService } from '../services/filters.service';
 import { GlobalData } from '../services/global-data';
 import { ParkingsService } from '../services/parkings.service';
@@ -501,29 +501,29 @@ export class ExploreComponent {
   private readonly weatherService = inject(WeatherService);
 
   private readonly weatherMapResource = resource({
-    request: () => {
+    params: () => {
       // depend on map items on viewport and weather filter
       const items = this.global.mapItemsOnViewport();
       const noRainDays = this.global.areaListWeather();
       return { items, noRainDays };
     },
-    loader: async ({ request }) => {
-      const { items, noRainDays } = request;
+    loader: async ({ params }: any) => {
+      const { items, noRainDays } = params;
       if (!noRainDays || noRainDays === 0 || items.length === 0) {
-        return new Map<string, boolean>();
+        return new Map<number, boolean>();
       }
 
       const crags = items.filter(
-        (i) => (i as any).area_type !== 0,
+        (i: any) => (i as any).area_type !== 0,
       ) as MapCragItem[];
-      if (crags.length === 0) return new Map<string, boolean>();
+      if (crags.length === 0) return new Map<number, boolean>();
 
       const coords = crags.map((c) => ({
         latitude: c.latitude,
         longitude: c.longitude,
       }));
 
-      const results = new Map<string, boolean>();
+      const results = new Map<number, boolean>();
       const batchSize = 50;
       for (let i = 0; i < coords.length; i += batchSize) {
         const batchCoords = coords.slice(i, i + batchSize);
@@ -532,7 +532,7 @@ export class ExploreComponent {
         const weatherData =
           await this.weatherService.getBulkForecast(batchCoords);
         if (weatherData) {
-          weatherData.forEach((forecast, index) => {
+          weatherData.forEach((forecast: any, index: number) => {
             let hasRain = false;
             if (noRainDays >= 1 && forecast.length > 0)
               hasRain = hasRain || forecast[0].precipitationSum > 0;
