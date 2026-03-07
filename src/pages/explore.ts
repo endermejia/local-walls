@@ -1,9 +1,9 @@
-import {
-  CommonModule,
+import { CommonModule,
   isPlatformBrowser,
   LowerCasePipe,
 } from '@angular/common';
 import {
+  resource,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -38,6 +38,7 @@ import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { AreasService } from '../services/areas.service';
+import { WeatherService } from '../services/weather.service';
 import { FiltersService } from '../services/filters.service';
 import { GlobalData } from '../services/global-data';
 import { ParkingsService } from '../services/parkings.service';
@@ -497,6 +498,57 @@ export class ExploreComponent {
   private readonly _sheetClientHeight: WritableSignal<number> = signal(0);
   private readonly _sheetScrollTop: WritableSignal<number> = signal(0);
 
+  private readonly weatherService = inject(WeatherService);
+
+  private readonly weatherMapResource = resource({
+    params: () => {
+      // depend on map items on viewport and weather filter
+      const items = this.global.mapItemsOnViewport();
+      const noRainDays = this.global.areaListWeather();
+      return { items, noRainDays };
+    },
+    loader: async ({ params }: any) => {
+      const { items, noRainDays } = params;
+      if (!noRainDays || noRainDays === 0 || items.length === 0) {
+        return new Map<number, boolean>();
+      }
+
+      const crags = items.filter(
+        (i: any) => (i as any).area_type !== 0,
+      ) as MapCragItem[];
+      if (crags.length === 0) return new Map<number, boolean>();
+
+      const coords = crags.map((c) => ({
+        latitude: c.latitude,
+        longitude: c.longitude,
+      }));
+
+      const results = new Map<number, boolean>();
+      const batchSize = 50;
+      for (let i = 0; i < coords.length; i += batchSize) {
+        const batchCoords = coords.slice(i, i + batchSize);
+        const batchCrags = crags.slice(i, i + batchSize);
+
+        const weatherData =
+          await this.weatherService.getBulkForecast(batchCoords);
+        if (weatherData) {
+          weatherData.forEach((forecast: any, index: number) => {
+            let hasRain = false;
+            if (noRainDays >= 1 && forecast.length > 0)
+              hasRain = hasRain || forecast[0].precipitationSum > 0;
+            if (noRainDays >= 2 && forecast.length > 1)
+              hasRain = hasRain || forecast[1].precipitationSum > 0;
+            if (noRainDays >= 3 && forecast.length > 2)
+              hasRain = hasRain || forecast[2].precipitationSum > 0;
+
+            results.set(batchCrags[index].id, hasRain);
+          });
+        }
+      }
+      return results;
+    },
+  });
+
   protected mapCragItems: Signal<MapCragItem[]> = computed(() => {
     const items = this.global.mapItemsOnViewport();
     const categories = this.global.areaListCategories();
@@ -517,6 +569,14 @@ export class ExploreComponent {
       return matchesShadeFilter(c, shade);
     };
 
+    const matchesWeather = (c: MapCragItem): boolean => {
+      const noRainDays = this.global.areaListWeather();
+      if (noRainDays === 0) return true;
+      const weatherMap = this.weatherMapResource.value();
+      if (!weatherMap) return true; // not loaded yet
+      return weatherMap.get(c.id) === false; // false means no rain
+    };
+
     return items.filter((item): item is MapCragItem => {
       const isCrag = (item as MapAreaItem).area_type !== 0;
       if (!isCrag) return false;
@@ -524,7 +584,8 @@ export class ExploreComponent {
       return (
         withinSelectedCategories(c) &&
         overlapsSelectedGrades(c) &&
-        matchesShade(c)
+        matchesShade(c) &&
+        matchesWeather(c)
       );
     });
   });

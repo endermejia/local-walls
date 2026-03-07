@@ -43,6 +43,7 @@ import { FiltersService } from '../services/filters.service';
 import { GlobalData } from '../services/global-data';
 import { SupabaseService } from '../services/supabase.service';
 import { ToastService } from '../services/toast.service';
+import { WeatherService } from '../services/weather.service';
 
 import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
 import { EmptyStateComponent } from '../components/empty-state';
@@ -394,7 +395,7 @@ export class AreaComponent {
       }
       return null;
     },
-    loader: async ({ params }) => {
+    loader: async ({ params }: any) => {
       if (!params) return [];
       await this.supabase.whenReady();
       const { data, error } = await this.supabase.client

@@ -12,7 +12,64 @@ export class WeatherService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = 'https://api.open-meteo.com/v1/forecast';
 
+
+  async getBulkForecast(
+    coordinates: { latitude: number; longitude: number }[],
+  ): Promise<any[][] | null> {
+    if (!coordinates || coordinates.length === 0) return [];
+
+    const latitudes = coordinates.map((c) => c.latitude).join(',');
+    const longitudes = coordinates.map((c) => c.longitude).join(',');
+
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitudes}&longitude=${longitudes}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&timezone=auto`;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.error('Failed to fetch bulk weather data', response);
+        return null;
+      }
+      const data = await response.json();
+
+      // If only one coordinate, Open-Meteo returns a single object instead of an array of results
+      if (coordinates.length === 1) {
+         if (!data.daily || !data.daily.time) return [];
+         return [data.daily.time.map((timeStr: string, index: number) => ({
+            date: new Date(timeStr),
+            maxTemp: data.daily.temperature_2m_max[index],
+            minTemp: data.daily.temperature_2m_min[index],
+            weatherCode: data.daily.weather_code[index],
+            precipitationSum: data.daily.precipitation_sum[index],
+            precipitationProb: data.daily.precipitation_probability_max[index],
+          }))];
+      }
+
+      const results: any[][] = [];
+      for (const locData of data) {
+         if (!locData.daily || !locData.daily.time) {
+           results.push([]);
+           continue;
+         }
+         const locForecast = locData.daily.time.map((timeStr: string, index: number) => ({
+            date: new Date(timeStr),
+            maxTemp: locData.daily.temperature_2m_max[index],
+            minTemp: locData.daily.temperature_2m_min[index],
+            weatherCode: locData.daily.weather_code[index],
+            precipitationSum: locData.daily.precipitation_sum[index],
+            precipitationProb: locData.daily.precipitation_probability_max[index],
+          }));
+          results.push(locForecast);
+      }
+
+      return results;
+    } catch (error) {
+      console.error('Error fetching bulk weather data:', error);
+      return null;
+    }
+  }
+
   getForecast(lat: number, lng: number): Observable<WeatherDay[]> {
+
     const params = {
       latitude: lat.toString(),
       longitude: lng.toString(),
