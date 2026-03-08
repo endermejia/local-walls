@@ -534,12 +534,10 @@ export class ExploreComponent {
         if (weatherData) {
           weatherData.forEach((forecast: any, index: number) => {
             let hasRain = false;
-            if (noRainDays >= 1 && forecast.length > 0)
-              hasRain = hasRain || forecast[0].precipitationSum > 0;
-            if (noRainDays >= 2 && forecast.length > 1)
-              hasRain = hasRain || forecast[1].precipitationSum > 0;
-            if (noRainDays >= 3 && forecast.length > 2)
-              hasRain = hasRain || forecast[2].precipitationSum > 0;
+            const targetIndex = noRainDays - 1;
+            if (targetIndex >= 0 && targetIndex < forecast.length) {
+              hasRain = forecast[targetIndex].precipitationSum > 0;
+            }
 
             results.set(batchCrags[index].id, hasRain);
           });
