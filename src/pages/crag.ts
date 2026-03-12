@@ -1236,10 +1236,7 @@ export class CragComponent {
     if (!c) return;
     // Optimistic update not possible easily with computed resource without invalidation
     // We just call the API
-    this.cragsService.toggleCragLike(c.id).then(() => {
-      // Option: reload resource
-      // this.global.cragDetailResource.reload();
-    });
+    this.cragsService.toggleCragLike(c.id);
   }
 
   async deleteCrag(): Promise<void> {
