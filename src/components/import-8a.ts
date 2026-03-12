@@ -665,6 +665,9 @@ export class Import8aComponent {
               }
             } catch (e) {
               console.error(`[8a Import] Error searching area ${areaName}:`, e);
+              this.toast.error(
+                `${this.translate.instant('import8a.errors.fetchAscents')}: ${areaName}`,
+              );
             }
             incrementProgress();
           }),
@@ -738,6 +741,9 @@ export class Import8aComponent {
               console.error(
                 `[8a Import] Error processing sector ${s.sectorName}:`,
                 e,
+              );
+              this.toast.error(
+                `${this.translate.instant('import8a.errors.fetchAscents')}: ${s.sectorName}`,
               );
             }
             incrementProgress();
