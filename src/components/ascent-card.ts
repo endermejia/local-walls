@@ -142,7 +142,7 @@ import { GradeComponent } from './avatar-grade';
               </button>
               @if (ascent.private_ascent) {
                 <tui-badge appearance="accent" class="text-xs">
-                  {{ 'ascent.private' | translate }}
+                  {{ 'private' | translate }}
                 </tui-badge>
               }
             </div>
@@ -170,7 +170,7 @@ import { GradeComponent } from './avatar-grade';
                 </button>
                 @if (ascent.private_ascent) {
                   <tui-badge appearance="accent" class="text-xs">
-                    {{ 'ascent.private' | translate }}
+                    {{ 'private' | translate }}
                   </tui-badge>
                 }
               </div>
