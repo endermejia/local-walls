@@ -553,10 +553,6 @@ export class AdminUsersListComponent {
         u.id === user.id ? { ...u, role: newRole } : u,
       );
       this.users.set(updatedUsers);
-
-      console.log(
-        `[UsersListAdmin] Role updated for user ${user.name}: ${newRole}`,
-      );
     } catch (e) {
       console.error('[UsersListAdmin] Exception updating role:', e);
       // Revert the change in the UI
@@ -601,8 +597,6 @@ export class AdminUsersListComponent {
 
       // 4. Update the local user object (so that next change is compared correctly)
       user.assignedAreas = newAreas;
-
-      console.log(`[UsersListAdmin] Mappings updated for user ${userId}`);
     } catch (e) {
       console.error('[UsersListAdmin] Exception updating areas:', e);
       // We should probably reload to be safe, but it might create an infinite loop with control.valueChanges
