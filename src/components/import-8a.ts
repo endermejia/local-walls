@@ -423,9 +423,6 @@ export class Import8aComponent {
     const headerLine = lines[0].replace(/"/g, '').trim();
     const headers = headerLine.split(',');
 
-    console.log('[8a Import] CSV Headers:', headers);
-    console.log('[8a Import] Total lines to process:', lines.length - 1);
-
     return lines
       .slice(1)
       .filter((line) => line.trim().length > 0)
@@ -511,10 +508,6 @@ export class Import8aComponent {
           sectorName = `Unknown Sector ${locationName}`;
         }
 
-        console.log(
-          `[8a Import] Line ${lineIndex + 2}: Parsed "${name}" (${difficulty}/${gradeValue}) in ${sectorName}, ${locationName}`,
-        );
-
         return {
           route_boulder: routeBoulder as 'ROUTE' | 'BOULDER',
           name: name,
@@ -546,12 +539,6 @@ export class Import8aComponent {
     this.loaderClose$ = this.toast.showLoader('import8a.importing', progress$);
 
     try {
-      console.log('[8a Import] Starting import for', ascents.length, 'ascents');
-
-      // 1. Get all unique names of routes, areas, and crags
-      const uniqueAreaNames = [...new Set(ascents.map((a) => a.location_name))];
-      console.log('[8a Import] Unique areas:', uniqueAreaNames);
-
       // Maps for caching and lookups
       const areaToCoords = new Map<
         string,
@@ -640,10 +627,6 @@ export class Import8aComponent {
           }
         }
       }
-
-      console.log(
-        `[8a Import] Found ${knownAreaSlugs.size} areas and ${knownSectorSlugs.size} sectors already in DB`,
-      );
 
       const totalUnits = uniqueAreas.length + uniqueSectorsToFetch.length + 5;
       let completedUnits = 0;
@@ -803,10 +786,6 @@ export class Import8aComponent {
           recommended: a.recommended,
         };
       });
-
-      console.log(
-        `[8a Import] Prepared ${payload.length} items for import. Sending to Supabase...`,
-      );
 
       // 3. Call RPC in batches
       const CHUNK_SIZE = 50;
