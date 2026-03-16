@@ -795,26 +795,41 @@ export class Import8aComponent {
 
       // 3. Call RPC in batches
       const CHUNK_SIZE = 50;
+      const chunks = [];
+      for (let i = 0; i < payload.length; i += CHUNK_SIZE) {
+        chunks.push(payload.slice(i, i + CHUNK_SIZE));
+      }
+
+      const results = await Promise.all(
+        chunks.map(async (chunk) => {
+          const { data, error } = await this.supabase.client.rpc(
+            'import_8a_ascents',
+            {
+              ascents: chunk,
+            },
+          );
+
+          if (error) {
+            console.error('[8a Import] RPC Error:', error);
+            throw error;
+          }
+
+          completedUnits += chunk.length;
+          progress$.next(
+            Math.min(100, Math.floor((completedUnits / totalUnits) * 100)),
+          );
+
+          return data;
+        }),
+      );
+
       let totalInserted = 0;
       let totalSkipped = 0;
       let totalCreatedAreas = 0;
       let totalCreatedCrags = 0;
       let totalCreatedRoutes = 0;
 
-      for (let i = 0; i < payload.length; i += CHUNK_SIZE) {
-        const chunk = payload.slice(i, i + CHUNK_SIZE);
-        const { data, error } = await this.supabase.client.rpc(
-          'import_8a_ascents',
-          {
-            ascents: chunk,
-          },
-        );
-
-        if (error) {
-          console.error('[8a Import] RPC Error:', error);
-          throw error;
-        }
-
+      for (const data of results) {
         if (data) {
           totalInserted += data.inserted_ascents ?? 0;
           totalSkipped += data.skipped_ascents ?? 0;
@@ -822,11 +837,6 @@ export class Import8aComponent {
           totalCreatedCrags += data.created_crags ?? 0;
           totalCreatedRoutes += data.created_routes ?? 0;
         }
-
-        completedUnits += chunk.length;
-        progress$.next(
-          Math.min(100, Math.floor((completedUnits / totalUnits) * 100)),
-        );
       }
 
       // 4. Reload resources
