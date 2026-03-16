@@ -1066,7 +1066,6 @@ export class RoutesTableComponent {
           false,
         );
       }
-      console.log('[RoutesTable] operation success, reloading resources');
       await this.global.cragRoutesResource.reload();
       await this.global.cragDetailResource.reload();
     } catch (e) {
