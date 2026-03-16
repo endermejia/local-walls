@@ -952,6 +952,9 @@ export class CragComponent {
         areaRoutes.flatMap((r) => r.eight_anu_route_slugs || []),
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const updatePromises: Promise<any>[] = [];
+
       for (const item of results) {
         const itemSlug = slugify(item.zlaggableName);
         if (existingSlugs.has(itemSlug) || existingEightAnuSlugs.has(itemSlug))
@@ -968,18 +971,24 @@ export class CragComponent {
             const currentSlugs = local.eight_anu_route_slugs || [];
             if (!currentSlugs.includes(itemSlug)) {
               if (this.global.editingMode()) {
-                await this.routesService.update(
-                  local.id,
-                  {
-                    eight_anu_route_slugs: [...currentSlugs, itemSlug],
-                  },
-                  true,
+                updatePromises.push(
+                  this.routesService.update(
+                    local.id,
+                    {
+                      eight_anu_route_slugs: [...currentSlugs, itemSlug],
+                    },
+                    true,
+                  )
                 );
               }
             }
           }
           existingEightAnuSlugs.add(itemSlug);
         }
+      }
+
+      if (updatePromises.length > 0) {
+        await Promise.all(updatePromises);
       }
 
       return results.filter((item) => {
