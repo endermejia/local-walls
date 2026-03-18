@@ -115,7 +115,7 @@ import { WeatherService } from '../services/weather.service';
                   <div class="flex flex-col items-center gap-0.5 mt-auto" [attr.aria-label]="hour.windSpeed + ' km/h, ' + hour.windDir + '°'">
                     <tui-icon [icon]="hour.windDirIcon" class="!size-4 opacity-70" />
                     <span class="text-[9px] opacity-70">
-                      {{ hour.windSpeed | number: '1.0-0' }}
+                      {{ hour.windSpeed | number: '1.0-0' }} km/h
                     </span>
                   </div>
                 </div>
