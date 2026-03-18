@@ -11,6 +11,8 @@ export interface WeatherForecast {
     temperature_2m: number[];
     weather_code: number[];
     precipitation_probability: number[];
+    wind_speed_10m: number[];
+    wind_direction_10m: number[];
   };
 }
 
@@ -30,4 +32,7 @@ export interface WeatherHour {
   code: number;
   icon: string;
   precipProb: number;
+  windSpeed: number;
+  windDir: number;
+  windDirIcon: string;
 }

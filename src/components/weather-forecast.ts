@@ -105,10 +105,19 @@ import { WeatherService } from '../services/weather.service';
                     {{ hour.temp | number: '1.0-0' }}°
                   </span>
                   @if (hour.precipProb > 0) {
-                    <span class="text-[9px] text-blue-500 font-bold">
+                    <span class="text-[9px] text-blue-500 font-bold mb-1">
                       {{ hour.precipProb }}%
                     </span>
+                  } @else {
+                    <span class="h-[14px] mb-1"></span>
                   }
+
+                  <div class="flex flex-col items-center gap-0.5 mt-auto" [attr.aria-label]="hour.windSpeed + ' km/h, ' + hour.windDir + '°'">
+                    <tui-icon [icon]="hour.windDirIcon" class="!size-4 opacity-70" />
+                    <span class="text-[9px] opacity-70">
+                      {{ hour.windSpeed | number: '1.0-0' }} km/h
+                    </span>
+                  </div>
                 </div>
               }
             </div>
