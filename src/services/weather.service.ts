@@ -18,7 +18,8 @@ export class WeatherService {
       longitude: lng.toString(),
       daily:
         'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum',
-      hourly: 'temperature_2m,weather_code,precipitation_probability',
+      hourly:
+        'temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m',
       timezone: 'auto',
       forecast_days: '7',
     };
@@ -45,6 +46,11 @@ export class WeatherService {
                 code: response.hourly.weather_code[hIdx],
                 icon: this.getWeatherIcon(response.hourly.weather_code[hIdx]),
                 precipProb: response.hourly.precipitation_probability[hIdx],
+                windSpeed: response.hourly.wind_speed_10m[hIdx],
+                windDir: response.hourly.wind_direction_10m[hIdx],
+                windDirIcon: this.getWindDirectionIcon(
+                  response.hourly.wind_direction_10m[hIdx],
+                ),
               });
             }
           });
@@ -61,6 +67,26 @@ export class WeatherService {
         });
       }),
     );
+  }
+
+  private getWindDirectionIcon(degrees: number): string {
+    // Wind direction is where the wind is coming from.
+    // 0 = North (blowing South), 90 = East (blowing West), etc.
+    // We want the arrow to point in the direction the wind is blowing.
+    const normalized = (degrees + 180) % 360;
+
+    // Divide into 8 sectors of 45 degrees each
+    // 337.5 to 22.5 is North (0)
+    if (normalized >= 337.5 || normalized < 22.5) return '@tui.arrow-up';
+    if (normalized >= 22.5 && normalized < 67.5) return '@tui.arrow-up-right';
+    if (normalized >= 67.5 && normalized < 112.5) return '@tui.arrow-right';
+    if (normalized >= 112.5 && normalized < 157.5) return '@tui.arrow-down-right';
+    if (normalized >= 157.5 && normalized < 202.5) return '@tui.arrow-down';
+    if (normalized >= 202.5 && normalized < 247.5) return '@tui.arrow-down-left';
+    if (normalized >= 247.5 && normalized < 292.5) return '@tui.arrow-left';
+    if (normalized >= 292.5 && normalized < 337.5) return '@tui.arrow-up-left';
+
+    return '@tui.arrow-up';
   }
 
   private getWeatherIcon(code: number): string {
