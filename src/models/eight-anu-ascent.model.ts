@@ -9,7 +9,7 @@ export interface EightAnuAscent {
   date: string;
   type: AscentType;
   rating: number;
-  tries: number;
+  tries: number | null;
   difficulty: GradeLabel;
   comment: string;
   recommended: boolean;

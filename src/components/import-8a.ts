@@ -508,6 +508,8 @@ export class Import8aComponent {
           sectorName = `Unknown Sector ${locationName}`;
         }
 
+        const triesStr = getVal('tries');
+
         return {
           route_boulder: routeBoulder as 'ROUTE' | 'BOULDER',
           name: name,
@@ -517,7 +519,7 @@ export class Import8aComponent {
           date: getVal('date'),
           type: this.mapType(getVal('type')),
           rating: Math.max(0, Math.min(5, ratingValue)),
-          tries: parseInt(getVal('tries'), 10) || 1,
+          tries: triesStr ? parseInt(triesStr, 10) || null : null,
           difficulty: difficulty,
           comment: getVal('comment'),
           recommended: getVal('recommended') === '1',
