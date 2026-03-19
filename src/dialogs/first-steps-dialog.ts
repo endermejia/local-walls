@@ -16,7 +16,7 @@ import { TranslatePipe } from '@ngx-translate/core';
         ngSrc="/logo/climbeast.svg"
         alt="Climbeast Logo"
         class="w-32 h-auto"
-        height="93"
+        height="128"
         width="128"
       />
 

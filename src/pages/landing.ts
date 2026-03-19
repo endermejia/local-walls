@@ -29,7 +29,7 @@ import { SeoService } from '../services/seo.service';
     <div
       class="min-h-screen flex flex-col items-center justify-center p-6 bg-[var(--tui-background-base)] text-center"
     >
-      <div class="mb-8 relative w-[150px] h-[109px]">
+      <div class="mb-8 relative w-[150px] h-[150px]">
         <img
           ngSrc="/logo/climbeast.svg"
           alt="ClimBeast Logo"
