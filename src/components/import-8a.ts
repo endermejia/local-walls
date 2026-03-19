@@ -788,7 +788,7 @@ export class Import8aComponent {
           climbing_kind: a.climbing_kind,
           date: a.date.split('T')[0],
           style: a.type,
-          tries: a.tries,
+          attempts: a.tries,
           rating: a.rating === 0 ? null : a.rating,
           comment: a.comment,
           recommended: a.recommended,
