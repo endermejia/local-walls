@@ -447,6 +447,8 @@ export class AscentCardComponent {
     { key: 'with_kneepad', label: 'ascent.other.with_kneepad' },
     { key: 'first_ascent', label: 'ascent.other.first_ascent' },
     { key: 'traditional', label: 'ascent.other.traditional' },
+    { key: 'soft', label: 'ascent.soft' },
+    { key: 'hard', label: 'ascent.hard' },
   ];
 
   protected readonly moreInfoBadges = computed(() => {
