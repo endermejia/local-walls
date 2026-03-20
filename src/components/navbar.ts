@@ -127,12 +127,12 @@ import { TourHintComponent } from './tour-hint';
           routerLink="/home"
         >
           <img
-            ngSrc="/logo/climbeast.svg"
+            ngSrc="/logo/climbeast-small.svg"
             alt="ClimBeast"
-            [style.width.px]="46"
-            [style.height.px]="35"
-            width="46"
-            height="35"
+            [style.width.px]="40"
+            [style.height.px]="40"
+            width="40"
+            height="40"
           />
         </button>
 
