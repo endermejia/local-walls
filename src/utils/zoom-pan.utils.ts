@@ -499,6 +499,44 @@ export function handleViewerTouchMove(
   }
 }
 
+/**
+ * Pans the viewer to center on a specific normalized point (0-1).
+ */
+export function centerViewerOnPoint(
+  state: ViewerZoomPanState,
+  point: { x: number; y: number },
+  containerEl: HTMLElement,
+): void {
+  const zoomContainerEl = containerEl.querySelector(
+    '.zoom-container',
+  ) as HTMLElement;
+  const imgEl = zoomContainerEl?.querySelector('img') as HTMLImageElement;
+  if (!zoomContainerEl || !imgEl) return;
+
+  const containerRect = containerEl.getBoundingClientRect();
+  const scale = state.zoomScale();
+
+  // Dimensions at scale 1
+  const baseW = imgEl.offsetWidth;
+  const baseH = imgEl.offsetHeight;
+
+  const restingLeft = zoomContainerEl.offsetLeft;
+  const restingTop = zoomContainerEl.offsetTop;
+
+  // New logical position to put 'point' at the center of 'containerEl'
+  const targetX =
+    containerRect.width / 2 - restingLeft - point.x * baseW * scale;
+  const targetY =
+    containerRect.height / 2 - restingTop - point.y * baseH * scale;
+
+  const constrained = calculateConstrainedPosition(
+    { x: targetX, y: targetY },
+    scale,
+    containerEl,
+  );
+  state.zoomPosition.set(constrained);
+}
+
 export function handleViewerMouseDown(
   event: MouseEvent,
   state: ViewerZoomPanState,
@@ -549,9 +587,9 @@ export function handleViewerMouseMove(
 }
 
 /**
- * Internal helper to calculate constrained position without updating state.
+ * Helper to calculate constrained position without updating state.
  */
-function calculateConstrainedPosition(
+export function calculateConstrainedPosition(
   pos: { x: number; y: number },
   scale: number,
   containerEl: HTMLElement,

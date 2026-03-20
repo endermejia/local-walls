@@ -80,6 +80,7 @@ import {
   handleViewerMouseDown,
   handleViewerMouseMove,
   resetViewerZoomState,
+  centerViewerOnPoint,
 } from '../utils/zoom-pan.utils';
 
 export interface TopoRouteRow {
@@ -1246,9 +1247,52 @@ export class TopoComponent {
               behavior: 'smooth',
             });
           }
+
+          // Center the route in the image viewer
+          this.centerOnRoute(routeId);
         });
       }
     });
+  }
+
+  private centerOnRoute(routeId: number): void {
+    const topo = this.topo();
+    if (!topo || !isPlatformBrowser(this.platformId)) return;
+
+    const tr = topo.topo_routes.find((r) => r.route_id === routeId);
+    if (!tr || !tr.path || tr.path.points.length === 0) return;
+
+    // Use the appropriate container based on current view mode
+    const containerEl = this.isFullscreen()
+      ? (document.querySelector('.fixed.inset-0.z-\\[1000\\]') as HTMLElement)
+      : this.scrollContainer?.nativeElement;
+
+    if (!containerEl) return;
+
+    const imgEl = containerEl.querySelector('img');
+    if (!imgEl) return;
+
+    const pts = tr.path.points;
+
+    // Helper to perform the actual centering
+    const performCenter = (el: HTMLElement) => {
+      const minX = Math.min(...pts.map((p) => p.x));
+      const maxX = Math.max(...pts.map((p) => p.x));
+      const minY = Math.min(...pts.map((p) => p.y));
+      const maxY = Math.max(...pts.map((p) => p.y));
+      const center = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
+
+      centerViewerOnPoint(this.viewerState, center, el);
+    };
+
+    // If image is not yet fully loaded or rendered, wait for it
+    if (!imgEl.complete || imgEl.offsetWidth === 0) {
+      imgEl.addEventListener('load', () => performCenter(containerEl), {
+        once: true,
+      });
+    } else {
+      performCenter(containerEl);
+    }
   }
 
   protected onLogAscent(tr: TopoRouteWithRoute): void {
