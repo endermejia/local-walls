@@ -55,7 +55,7 @@ export async function getPaginatedProfilesFromJunction(
   }
 
   const userIds = junctionData
-    .map((d: { user_id: string | null }) => d.user_id)
+    .map((d) => (d as Record<string, unknown>)['user_id'] as string | null)
     .filter((id): id is string => !!id);
 
   // 2. Fetch user profiles using those IDs
