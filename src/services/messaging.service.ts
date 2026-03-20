@@ -81,14 +81,15 @@ export class MessagingService {
           (p) => p.user?.id && p.user.id !== userId,
         )?.user;
 
-        const lastMessage = [...r.messages].sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-        )[0];
+        // Messages are already sorted by the query (DESC)
+        const lastMessage = r.messages[0];
 
-        const unreadCount = r.messages.filter(
-          (m) => m.sender_id !== userId && !m.read_at,
-        ).length;
+        let unreadCount = 0;
+        for (const m of r.messages) {
+          if (m.sender_id !== userId && !m.read_at) {
+            unreadCount++;
+          }
+        }
 
         return {
           id: r.id,
