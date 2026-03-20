@@ -21,8 +21,34 @@
       content="geolocation=(self), interest-cohort=()"
     />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" type="image/svg+xml" href="/logo/climbeast-small.svg" />
+    <link id="dynamic-favicon" rel="icon" type="image/svg+xml" href="/logo/climbeast-small-light.svg" />
     <link rel="apple-touch-icon" href="/logo/apple-touch-icon.png" />
+
+    <script>
+      function updateFavicon(e) {
+        const favicon = document.getElementById('dynamic-favicon');
+        if (favicon) {
+          favicon.href = e.matches ? '/logo/climbeast-small-dark.svg' : '/logo/climbeast-small-light.svg';
+        }
+      }
+
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+      // Initial set
+      if (mediaQuery.matches) {
+        const favicon = document.getElementById('dynamic-favicon');
+        if (favicon) {
+          favicon.href = '/logo/climbeast-small-dark.svg';
+        }
+      }
+
+      // Listen for changes
+      if (typeof mediaQuery.addEventListener === 'function') {
+        mediaQuery.addEventListener('change', updateFavicon);
+      } else if (typeof mediaQuery.addListener === 'function') {
+        mediaQuery.addListener(updateFavicon);
+      }
+    </script>
 
     <!-- Canonical URL (updated dynamically by SeoService per page) -->
     <link rel="canonical" href="https://climbeast.com/" />

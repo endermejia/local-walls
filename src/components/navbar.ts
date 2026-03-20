@@ -126,14 +126,25 @@ import { TourHintComponent } from './tour-hint';
           tuiAppearance="flat-grayscale"
           routerLink="/home"
         >
-          <img
-            ngSrc="/logo/climbeast-small.svg"
-            alt="ClimBeast"
-            [style.width.px]="40"
-            [style.height.px]="40"
-            width="40"
-            height="40"
-          />
+          @if (global.theme() === Themes.DARK) {
+            <img
+              ngSrc="/logo/climbeast-small-dark.svg"
+              alt="ClimBeast"
+              [style.width.px]="40"
+              [style.height.px]="40"
+              width="40"
+              height="40"
+            />
+          } @else {
+            <img
+              ngSrc="/logo/climbeast-small-light.svg"
+              alt="ClimBeast"
+              [style.width.px]="40"
+              [style.height.px]="40"
+              width="40"
+              height="40"
+            />
+          }
         </button>
 
         <!-- Navigation Links (Middle) -->

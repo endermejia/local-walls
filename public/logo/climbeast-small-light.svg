@@ -6,9 +6,6 @@
  preserveAspectRatio="xMidYMid meet">
  <style>
    path { fill: #000000; }
-   @media (prefers-color-scheme: dark) {
-     path { fill: #ffffff; }
-   }
  </style>
 <g transform="translate(0.000000,600.000000) scale(0.050000,-0.050000)"
  stroke="none">
