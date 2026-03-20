@@ -1,5 +1,10 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { UserProfileBasicDto, PaginatedProfilesResult } from '../models';
+import {
+  UserProfileBasicDto,
+  PaginatedProfilesResult,
+  Database,
+  DatabaseTable,
+} from '../models';
 
 /**
  * Fetches a paginated list of user profiles based on a many-to-many relationship
@@ -18,9 +23,8 @@ import { UserProfileBasicDto, PaginatedProfilesResult } from '../models';
  * @param methodName Optional string for logging purposes
  */
 export async function getPaginatedProfilesFromJunction(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabaseClient: SupabaseClient<any, 'public', any>,
-  tableName: string,
+  supabaseClient: SupabaseClient<Database>,
+  tableName: DatabaseTable,
   foreignKeyColumn: string,
   idValue: number | string,
   page: number,
@@ -50,8 +54,12 @@ export async function getPaginatedProfilesFromJunction(
     return { items: [], total: 0 };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const userIds = junctionData.map((d: any) => d.user_id);
+  const userIds = junctionData
+    .map(
+      (d) =>
+        (d as unknown as Record<string, unknown>)['user_id'] as string | null,
+    )
+    .filter((id): id is string => !!id);
 
   // 2. Fetch user profiles using those IDs
   let profilesQuery = supabaseClient
