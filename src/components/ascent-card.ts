@@ -78,7 +78,10 @@ import { GradeComponent } from './avatar-grade';
       [tuiAppearance]="ascent.is_duplicate ? 'negative' : 'flat-grayscale'"
       class="flex flex-col gap-4 p-4 sm:rounded-3xl rounded-none relative no-underline text-inherit hover:no-underline -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full text-left"
     >
-      <header tuiHeader class="flex justify-between items-center">
+      <header
+        tuiHeader
+        class="flex flex-wrap justify-between items-center gap-2"
+      >
         @if (showUser()) {
           <a
             [routerLink]="['/profile', ascent.user_id]"
@@ -306,9 +309,19 @@ import { GradeComponent } from './avatar-grade';
               }
             </div>
           }
-          <div class="flex items-center gap-2 text-sm">
+          <div class="flex flex-wrap items-center gap-2 text-sm">
             @if (ascent.grade) {
               <app-grade [grade]="ascent.grade" />
+            }
+            @if (ascent.soft) {
+              <tui-badge size="s" appearance="neutral">
+                {{ 'ascent.soft' | translate }}
+              </tui-badge>
+            }
+            @if (ascent.hard) {
+              <tui-badge size="s" appearance="neutral">
+                {{ 'ascent.hard' | translate }}
+              </tui-badge>
             }
             @if (ascent.type; as ascentType) {
               <app-ascent-type
@@ -367,7 +380,7 @@ import { GradeComponent } from './avatar-grade';
       }
 
       <footer class="flex flex-col gap-2 mt-2">
-        <div class="flex items-center gap-4">
+        <div class="flex flex-wrap items-center gap-4">
           <app-ascent-likes
             [ascentId]="ascent.id"
             [isPrivate]="!!ascent.private_ascent"
@@ -447,8 +460,6 @@ export class AscentCardComponent {
     { key: 'with_kneepad', label: 'ascent.other.with_kneepad' },
     { key: 'first_ascent', label: 'ascent.other.first_ascent' },
     { key: 'traditional', label: 'ascent.other.traditional' },
-    { key: 'soft', label: 'ascent.soft' },
-    { key: 'hard', label: 'ascent.hard' },
   ];
 
   protected readonly moreInfoBadges = computed(() => {
@@ -481,7 +492,7 @@ export class AscentCardComponent {
   async editAscent() {
     await firstValueFrom(
       this.ascentsService.openAscentForm({ ascentData: this.data() }),
-      { defaultValue: false }
+      { defaultValue: false },
     );
   }
 
@@ -506,7 +517,7 @@ export class AscentCardComponent {
         size: 'l',
         appearance: 'flat',
       }),
-      { defaultValue: undefined }
+      { defaultValue: undefined },
     );
   }
 
