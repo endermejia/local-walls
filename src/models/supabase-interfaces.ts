@@ -27,8 +27,8 @@ export const ClimbingKinds: Record<Uppercase<ClimbingKind>, ClimbingKind> = {
 } as const;
 
 export const CLIMBING_ICONS: Record<ClimbingKind, string> = {
-  sport: '@tui.line-squiggle',
-  boulder: '@tui.box',
+  sport: '/image/sport.svg',
+  boulder: '/image/boulder.svg',
   mixed: '@tui.mountain',
   multipitch: '@tui.mountain',
   trad: '@tui.mountain',
