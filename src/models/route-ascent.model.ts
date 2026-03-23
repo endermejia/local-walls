@@ -28,6 +28,7 @@ export interface UserAscentStatRecord {
   crag_slug: string;
   area_name: string;
   area_slug: string;
+  private_ascent: boolean | null;
 }
 
 export interface RouteAscentCommentWithExtras extends RouteAscentCommentDto {

@@ -86,8 +86,8 @@ interface AscentDateMarker {
           </tui-badge>
         </header>
 
-        <tui-scrollbar class="flex-1">
-          <div class="flex flex-col gap-2 p-3">
+        <tui-scrollbar class="flex-1 !overflow-x-hidden">
+          <div class="flex flex-col gap-2 px-4 py-2">
             @if (monthResource.isLoading()) {
               <div class="py-12 flex justify-center">
                 <tui-loader />
@@ -202,6 +202,7 @@ export class AscentCalendarDialogComponent {
       | 'type'
       | 'grade'
       | 'attempts'
+      | 'private_ascent'
       | 'user_id'
       | 'user'
       | 'route'
@@ -212,6 +213,7 @@ export class AscentCalendarDialogComponent {
       type: a.ascent_type as AscentType,
       grade: a.ascent_grade,
       attempts: a.attempts,
+      private_ascent: a.private_ascent,
       user_id: this.user?.id ?? '',
       user: this.user ?? undefined,
       route: {

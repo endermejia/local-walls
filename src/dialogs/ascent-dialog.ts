@@ -25,7 +25,7 @@ export interface AscentDialogData {
   ],
   template: `
     <div class="flex flex-col max-h-[80dvh] -m-4">
-      <tui-scrollbar class="grow min-h-0">
+      <tui-scrollbar class="grow min-h-0 !overflow-x-hidden">
         <div class="p-4">
           @if (ascent(); as data) {
             <app-ascent-card [data]="data" />

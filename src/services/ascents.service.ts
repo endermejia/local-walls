@@ -160,6 +160,7 @@ export class AscentsService {
         type,
         grade,
         attempts,
+        private_ascent,
         route:routes (
           grade,
           name,
@@ -189,6 +190,7 @@ export class AscentsService {
       type: string | null;
       grade: number | null;
       attempts: number | null;
+      private_ascent: boolean | null;
       route: {
         grade: number;
         name: string;
@@ -216,6 +218,7 @@ export class AscentsService {
           ascent_type: a.type || 'rp',
           ascent_grade: a.grade,
           attempts: a.attempts,
+          private_ascent: a.private_ascent ?? false,
           route_grade: route?.grade || 0,
           route_name: route?.name || '',
           route_slug: route?.slug || '',
@@ -275,6 +278,7 @@ export class AscentsService {
         type,
         grade,
         attempts,
+        private_ascent,
         route:routes (
           grade,
           name,
@@ -306,6 +310,7 @@ export class AscentsService {
       type: string | null;
       grade: number | null;
       attempts: number | null;
+      private_ascent: boolean | null;
       route: {
         grade: number;
         name: string;
@@ -328,6 +333,7 @@ export class AscentsService {
         ascent_type: a.type ?? 'rp',
         ascent_grade: a.grade,
         attempts: a.attempts,
+        private_ascent: a.private_ascent ?? false,
         route_grade: route?.grade ?? 0,
         route_name: route?.name ?? '',
         route_slug: route?.slug ?? '',
