@@ -27,6 +27,7 @@ import {
   tuiHintOptionsProvider,
   TuiButton,
   TuiScrollbar,
+  TuiIcon,
 } from '@taiga-ui/core';
 import { TuiPoint } from '@taiga-ui/core/types';
 import { TuiDataListWrapper, TuiSelect } from '@taiga-ui/kit';
@@ -82,6 +83,7 @@ interface RouteScore {
     CountUpDirective,
     TuiHovered,
     TuiScrollbar,
+    TuiIcon,
   ],
   styles: [
     `
@@ -183,7 +185,8 @@ interface RouteScore {
     <div class="grid gap-4 max-w-7xl mx-auto">
       <!-- Header / Filter -->
       <div class="flex justify-between items-center flex-wrap gap-4">
-        <h2 class="text-2xl font-bold hidden sm:block">
+        <h2 class="text-2xl font-bold hidden sm:flex items-center gap-2">
+          <tui-icon icon="@tui.chart-bar" />
           {{ 'statistics' | translate }}
         </h2>
         <tui-textfield
@@ -280,7 +283,8 @@ interface RouteScore {
             <div
               class="lg:col-span-2 bg-[var(--tui-background-base)] shadow-md p-6 rounded-2xl border border-[var(--tui-border-normal)]"
             >
-              <h3 class="font-bold text-lg mb-4">
+              <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                <tui-icon icon="@tui.pyramid" />
                 {{ 'statistics.gradePyramid' | translate }}
               </h3>
 
@@ -361,7 +365,10 @@ interface RouteScore {
             <div
               class="bg-[var(--tui-background-base)] shadow-md p-6 rounded-2xl border border-[var(--tui-border-normal)] flex flex-col items-center"
             >
-              <h3 class="font-bold text-lg mb-4 self-start">
+              <h3
+                class="font-bold text-lg mb-4 self-start flex items-center gap-2"
+              >
+                <tui-icon icon="@tui.chart-pie" />
                 {{ 'statistics.styleDistribution' | translate }}
               </h3>
 
@@ -446,7 +453,8 @@ interface RouteScore {
             class="bg-[var(--tui-background-base)] shadow-md p-6 rounded-2xl border border-[var(--tui-border-normal)]"
           >
             <header class="mb-4">
-              <h3 class="font-bold text-lg">
+              <h3 class="font-bold text-lg flex items-center gap-2">
+                <tui-icon icon="@tui.chart-line" />
                 {{ 'statistics.sportClimbingTrend' | translate }}
               </h3>
             </header>
