@@ -15,18 +15,14 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
-import {
-  TuiAppearance,
-  TuiButton,
-  TuiLoader,
-  TuiScrollbar,
-} from '@taiga-ui/core';
+import { TuiAppearance, TuiButton, TuiScrollbar } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
   TuiBadgeNotification,
   TuiBadgedContent,
   TuiSegmented,
+  TuiSkeleton,
 } from '@taiga-ui/kit';
 
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
@@ -76,16 +72,32 @@ import {
     TuiButton,
     TuiBadgeNotification,
     TuiBadgedContent,
-    TuiLoader,
     TuiScrollbar,
     TuiSegmented,
+    TuiSkeleton,
   ],
   template: `
     <tui-scrollbar class="h-full">
       <div class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32 pt-4">
         <div class="px-4 flex flex-col gap-4 relative">
-          <!-- Active Crags -->
-          @if (activeCrags(); as crags) {
+          @if (activeCragsResource.isLoading()) {
+            <div class="flex flex-col gap-2 mt-2">
+              <div
+                [tuiSkeleton]="true"
+                class="w-20 h-3 rounded-full opacity-60 ml-1"
+              ></div>
+              <div
+                class="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar"
+              >
+                @for (_ of [1, 2, 3, 4, 5]; track $index) {
+                  <div
+                    [tuiSkeleton]="true"
+                    class="flex-none w-24 h-10 rounded-2xl"
+                  ></div>
+                }
+              </div>
+            </div>
+          } @else if (activeCrags(); as crags) {
             @if (crags.length > 0) {
               <div class="flex flex-col gap-2 mt-2">
                 <span class="text-xs font-bold opacity-60 uppercase px-1">
@@ -112,8 +124,17 @@ import {
 
           <!-- Filter Segmented -->
           <div class="flex justify-center items-center gap-2">
-            @if (followsLoaded() && followedIds().size > 0) {
-              <tui-segmented [(activeItemIndex)]="filterIndex">
+            @if (!followsLoaded()) {
+              <div
+                [tuiSkeleton]="true"
+                class="w-40 h-8 rounded-full opacity-60 ml-1"
+              ></div>
+              <div
+                [tuiSkeleton]="true"
+                class="w-8 h-8 rounded-full opacity-60"
+              ></div>
+            } @else if (followedIds().size > 0) {
+              <tui-segmented [(activeItemIndex)]="filterIndex" size="s">
                 <button type="button">
                   {{ 'following' | translate }}
                 </button>
@@ -121,48 +142,39 @@ import {
                   {{ 'all' | translate }}
                 </button>
               </tui-segmented>
-            }
-
-            <tui-badged-content>
-              @if (hasActiveFilters()) {
-                <tui-badge-notification
-                  tuiAppearance="accent"
+              <tui-badged-content>
+                @if (hasActiveFilters()) {
+                  <tui-badge-notification
+                    tuiAppearance="accent"
+                    size="s"
+                    tuiSlot="top"
+                  />
+                }
+                <button
+                  tuiIconButton
                   size="s"
-                  tuiSlot="top"
-                />
-              }
-              <button
-                tuiIconButton
-                size="s"
-                appearance="primary-grayscale"
-                iconStart="@tui.sliders-horizontal"
-                (click.zoneless)="openFilters()"
-                [attr.aria-label]="'filters' | translate"
-                title="Filters"
-              >
-                <span class="tui-sr-only">{{ 'filters' | translate }}</span>
-              </button>
-            </tui-badged-content>
+                  appearance="primary-grayscale"
+                  iconStart="@tui.sliders-horizontal"
+                  (click.zoneless)="openFilters()"
+                  [attr.aria-label]="'filters' | translate"
+                  title="Filters"
+                >
+                  <span class="tui-sr-only">{{ 'filters' | translate }}</span>
+                </button>
+              </tui-badged-content>
+            }
           </div>
 
           <!-- Ascents Feed -->
-          @if (ascents(); as ascents) {
-            <app-ascents-feed
-              [ascents]="ascents"
-              [isLoading]="isLoading()"
-              [hasMore]="hasMore()"
-              [followedIds]="followedIds()"
-              (loadMore)="loadMore()"
-              (follow)="onFollow($event)"
-              (unfollow)="onUnfollow($event)"
-            />
-          } @else {
-            @if (isLoading()) {
-              <div class="flex justify-center p-20">
-                <tui-loader size="xl" />
-              </div>
-            }
-          }
+          <app-ascents-feed
+            [ascents]="ascents()"
+            [isLoading]="isLoading()"
+            [hasMore]="hasMore()"
+            [followedIds]="followedIds()"
+            (loadMore)="loadMore()"
+            (follow)="onFollow($event)"
+            (unfollow)="onUnfollow($event)"
+          />
         </div>
       </div>
     </tui-scrollbar>
@@ -339,7 +351,7 @@ export class HomeComponent implements OnDestroy {
 
   // Infinite Scroll & Async Pipe for Ascents
   private readonly loadMore$ = new Subject<void>();
-  protected readonly isLoading = signal(false);
+  protected readonly isLoading = signal(true);
   protected readonly hasMore = signal(true);
   protected readonly ascents = signal<FeedItem[]>([]);
 

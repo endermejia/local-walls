@@ -187,7 +187,11 @@ import { SeoService } from '../services/seo.service';
                     class="!rounded-full shrink-0"
                     [tuiHint]="'ascent.new' | translate"
                     (click)="onLogAscent()"
-                  ></button>
+                  >
+                    <span class="tui-sr-only">{{
+                      'ascent.new' | translate
+                    }}</span>
+                  </button>
                 </div>
               }
               @if (!r.climbed) {
@@ -374,7 +378,7 @@ export class RouteComponent {
   );
 
   protected readonly accumulatedAscents = signal<FeedItem[]>([]);
-  protected readonly isLoading = signal(false);
+  protected readonly isLoading = signal(true);
   protected readonly followedIds = signal<Set<string>>(new Set());
 
   protected readonly hasMore = computed(() => {

@@ -975,7 +975,7 @@ export class UserProfileComponent {
   };
 
   protected readonly accumulatedAscents = signal<FeedItem[]>([]);
-  protected readonly isLoading = signal(false);
+  protected readonly isLoading = signal(true);
   protected readonly followedIds = signal<Set<string>>(new Set());
 
   loadMore() {
