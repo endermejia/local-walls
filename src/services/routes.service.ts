@@ -569,11 +569,13 @@ export class RoutesService {
 
       const isLiked = data as boolean;
 
-      this.toast.success(
-        isLiked
-          ? 'messages.toasts.favoriteAdded'
-          : 'messages.toasts.favoriteRemoved',
-      );
+      if (!isLiked) {
+        this.toast.showWithUndo('messages.toasts.favoriteRemoved', () => {
+          void this.toggleRouteLike(routeId, currentRoute);
+        });
+      } else {
+        this.toast.success('messages.toasts.favoriteAdded');
+      }
 
       this.syncResources(routeId, { liked: isLiked }, currentRoute);
 
@@ -625,11 +627,13 @@ export class RoutesService {
 
       const isProject = data as boolean;
 
-      this.toast.success(
-        isProject
-          ? 'messages.toasts.projectAdded'
-          : 'messages.toasts.projectRemoved',
-      );
+      if (!isProject) {
+        this.toast.showWithUndo('messages.toasts.projectRemoved', () => {
+          void this.toggleRouteProject(routeId, currentRoute);
+        });
+      } else {
+        this.toast.success('messages.toasts.projectAdded');
+      }
 
       this.syncResources(routeId, { project: isProject }, currentRoute);
 

@@ -8,6 +8,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, type Observable, Subject, takeUntil } from 'rxjs';
 
 import { LoaderDialogComponent } from '../dialogs/loader-dialog';
+import { UndoToastComponent } from '../components/undo-toast';
 
 @Injectable({
   providedIn: 'root',
@@ -49,6 +50,22 @@ export class ToastService {
 
   warning(message: string): void {
     this.show(message, { appearance: 'warning', data: '@tui.circle-alert' });
+  }
+
+  showWithUndo(
+    message: string,
+    undoCallback: () => void,
+    autoClose = 5000,
+  ): void {
+    this.toast
+      .open(new PolymorpheusComponent(UndoToastComponent), {
+        appearance: 'floating',
+        data: { message, undoCallback },
+        autoClose,
+      })
+      .subscribe(() => {
+        // No-op - interaction handled inside component
+      });
   }
 
   showLoader(message: string, progress$?: Observable<number>): Subject<void> {

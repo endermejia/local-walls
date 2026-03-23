@@ -280,11 +280,13 @@ export class CragsService {
         return curr;
       });
 
-      this.toast.success(
-        liked
-          ? 'messages.toasts.favoriteAdded'
-          : 'messages.toasts.favoriteRemoved',
-      );
+      if (!liked) {
+        this.toast.showWithUndo('messages.toasts.favoriteRemoved', () => {
+          void this.toggleCragLike(cragId);
+        });
+      } else {
+        this.toast.success('messages.toasts.favoriteAdded');
+      }
 
       return liked;
     } catch (e) {

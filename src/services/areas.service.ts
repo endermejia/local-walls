@@ -295,11 +295,13 @@ export class AreasService {
             return a.name.localeCompare(b.name);
           });
       });
-      this.toast.success(
-        liked
-          ? 'messages.toasts.favoriteAdded'
-          : 'messages.toasts.favoriteRemoved',
-      );
+      if (!liked) {
+        this.toast.showWithUndo('messages.toasts.favoriteRemoved', () => {
+          void this.toggleAreaLike(areaId);
+        });
+      } else {
+        this.toast.success('messages.toasts.favoriteAdded');
+      }
       return liked;
     } catch (e) {
       console.error('[AreasService] toggleAreaLike error', e);
