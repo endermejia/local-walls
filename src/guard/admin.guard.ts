@@ -42,8 +42,8 @@ export const adminGuard: CanMatchFn = async (): Promise<boolean | UrlTree> => {
   return router.createUrlTree(['/page-not-found']);
 };
 
-/** Allows route matching for admin or equipper users. On server, always allow. */
-export const equipperGuard: CanMatchFn = async (): Promise<
+/** Allows route matching for admin or area admin users. On server, always allow. */
+export const areaAdminGuard: CanMatchFn = async (): Promise<
   boolean | UrlTree
 > => {
   const router = inject(Router);
@@ -65,17 +65,14 @@ export const equipperGuard: CanMatchFn = async (): Promise<
     if (roleData?.role === 'admin') {
       return true;
     }
-    if (roleData?.role === 'equipper') {
-      // Wait for equipper areas to load
-      const areas = await waitForResource(supabase.equipperAreasResource);
-      if (areas !== undefined) {
-        if (areas.length > 0) {
-          return true;
-        }
-        console.warn('[EquipperGuard] Equipper has no assigned areas');
-        return router.createUrlTree(['/page-not-found']);
-      }
+
+    // Check if user has area admin permissions
+    const areas = await waitForResource(supabase.adminAreasResource);
+    if (areas !== undefined && areas.length > 0) {
+      return true;
     }
+
+    console.warn('[AreaAdminGuard] User has no admin permissions');
     return router.createUrlTree(['/page-not-found']);
   }
 

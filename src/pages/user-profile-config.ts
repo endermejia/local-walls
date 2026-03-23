@@ -1406,8 +1406,8 @@ export class UserProfileConfigComponent {
     }
 
     if (enabled && !this.global.isAdmin()) {
-      const isEquipper = this.global.isEquipper();
-      const messageKey = isEquipper
+      const hasPermissions = this.global.isAreaAdmin();
+      const messageKey = hasPermissions
         ? 'profile.editing.confirmationEquipper'
         : 'profile.editing.confirmationUser';
 

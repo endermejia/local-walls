@@ -239,9 +239,7 @@ import { TourHintComponent } from './tour-hint';
             </span>
           </a>
 
-          @let showConfig =
-            global.canEditAsAdmin() ||
-            (global.canEditAsEquipper() && global.equipperAreas().length);
+          @let showConfig = global.canEditAsAdmin() || global.isAreaAdmin();
           @if (showConfig) {
             <!-- Configuration -->
             <a
@@ -642,8 +640,8 @@ export class NavbarComponent {
     }
 
     if (enabled && !this.global.isAdmin()) {
-      const isEquipper = this.global.isEquipper();
-      const messageKey = isEquipper
+      const hasPermissions = this.global.isAreaAdmin();
+      const messageKey = hasPermissions
         ? 'profile.editing.confirmationEquipper'
         : 'profile.editing.confirmationUser';
 

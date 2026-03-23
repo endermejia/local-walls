@@ -87,8 +87,7 @@ import { SeoService } from '../services/seo.service';
       <section class="w-full max-w-5xl mx-auto p-4">
         @let canEditAsAdmin = global.canEditAsAdmin();
         @if (global.selectedArea(); as area) {
-          @let canEditAsAllowedEquipper =
-            global.canEditAsAllowedEquipper()[area.id];
+          @let canAreaAdmin = global.canEditAsAreaAdmin()[area.id];
           <div class="mb-4">
             <app-section-header
               class="w-full"
@@ -160,7 +159,7 @@ import { SeoService } from '../services/seo.service';
               </h2>
             </div>
             <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
-              @if (canEditAsAdmin || canEditAsAllowedEquipper) {
+              @if (canEditAsAdmin || canAreaAdmin) {
                 <button
                   tuiButton
                   appearance="textfield"

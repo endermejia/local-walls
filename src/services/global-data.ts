@@ -168,34 +168,28 @@ export class GlobalData {
   readonly canEditAsAdmin = computed(
     () => this.editingMode() && this.isAdmin(),
   );
-  readonly isEquipper = computed(() => this.userRole() === AppRoles.EQUIPPER);
-  readonly canEditAsEquipper = computed(
-    () => this.editingMode() && this.isEquipper(),
-  );
+  readonly isAreaAdmin = computed(() => this.adminAreas().length > 0);
 
-  readonly equipperAreas = computed(() => this.supabase.equipperAreas());
+  readonly adminAreas = computed(() => this.supabase.adminAreas());
 
-  readonly canEditAsAllowedEquipper = computed(() => {
-    const canEditAsAdmin = this.canEditAsAdmin();
-    const canEditAsEquipper = this.canEditAsEquipper();
-    const areas = this.equipperAreas();
+  readonly canEditAsAreaAdmin = computed(() => {
+    const isAdmin = this.canEditAsAdmin();
+    const isEditing = this.editingMode();
+    const areas = this.adminAreas();
 
     const res: Record<number, boolean> = {};
-    if (canEditAsEquipper) {
+    if (isEditing) {
       areas.forEach((id) => (res[id] = true));
     }
 
-    return canEditAsAdmin ? new Proxy(res, { get: () => true }) : res;
+    return isAdmin ? new Proxy(res, { get: () => true }) : res;
   });
 
   /** Helper to check if any area can be edited by current user */
   readonly checkAreaEditPermission = (
     area: AreaListItem | AreaDto | null | undefined,
   ) => {
-    if (
-      this.canEditAsAdmin() ||
-      this.canEditAsAllowedEquipper()[area?.id ?? -1]
-    )
+    if (this.canEditAsAdmin() || this.canEditAsAreaAdmin()[area?.id ?? -1])
       return true;
     const userId = this.userProfile()?.id;
     if (!area || !userId || !this.editingMode()) return false;
@@ -212,10 +206,7 @@ export class GlobalData {
   readonly checkCragEditPermission = (
     crag: CragListItem | CragDetail | null | undefined,
   ) => {
-    if (
-      this.canEditAsAdmin() ||
-      this.canEditAsAllowedEquipper()[crag?.area_id ?? -1]
-    )
+    if (this.canEditAsAdmin() || this.canEditAsAreaAdmin()[crag?.area_id ?? -1])
       return true;
     const userId = this.userProfile()?.id;
     if (!crag || !userId || !this.editingMode()) return false;
@@ -234,7 +225,7 @@ export class GlobalData {
   ) => {
     if (
       this.canEditAsAdmin() ||
-      this.canEditAsAllowedEquipper()[route?.area_id ?? -1]
+      this.canEditAsAreaAdmin()[route?.area_id ?? -1]
     )
       return true;
     const userId = this.userProfile()?.id;

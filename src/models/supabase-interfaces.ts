@@ -7,7 +7,6 @@ export type DatabaseTable = keyof Tables;
 export type AppRole = Database['public']['Enums']['app_role'];
 export const AppRoles: Record<Uppercase<AppRole>, AppRole> = {
   ADMIN: 'admin',
-  EQUIPPER: 'equipper',
   CLIMBER: 'climber',
 } as const;
 export type AscentType = Database['public']['Enums']['ascent_type'];

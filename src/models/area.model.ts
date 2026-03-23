@@ -17,7 +17,7 @@ export type AreaLikeDto = TableRow<'area_likes'>;
 export type AreaLikeInsertDto = TableInsert<'area_likes'>;
 export type AreaLikeUpdateDto = TableUpdate<'area_likes'>;
 
-// Area Equippers
-export type AreaEquipperDto = TableRow<'area_equippers'>;
-export type AreaEquipperInsertDto = TableInsert<'area_equippers'>;
-export type AreaEquipperUpdateDto = TableUpdate<'area_equippers'>;
+// Area Admins
+export type AreaAdminDto = TableRow<'area_admins'>;
+export type AreaAdminInsertDto = TableInsert<'area_admins'>;
+export type AreaAdminUpdateDto = TableUpdate<'area_admins'>;

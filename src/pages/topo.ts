@@ -1152,10 +1152,7 @@ export class TopoComponent {
       ? ['index', 'grade', 'name']
       : ['index', 'grade', 'name', 'height', 'actions'];
     const crag = this.crag();
-    if (
-      !isMobile &&
-      this.global.canEditAsAllowedEquipper()[crag?.area_id ?? -1]
-    ) {
+    if (!isMobile && this.global.canEditAsAreaAdmin()[crag?.area_id ?? -1]) {
       base.push('admin_actions');
     }
     return base;

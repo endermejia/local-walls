@@ -265,7 +265,7 @@ interface UserWithRole {
                     </tui-textfield>
                   </td>
                   <td *tuiCell="'areas'" tuiTd class="areas-column">
-                    @if (user.role === 'equipper') {
+                    @if (user.role !== 'admin') {
                       <tui-textfield
                         multi
                         tuiChevron
@@ -370,11 +370,7 @@ export class AdminUsersListComponent {
     return this.global.isMobile() ? cols.filter((c) => c !== 'areas') : cols;
   });
 
-  protected readonly roleOptions = [
-    AppRoles.CLIMBER,
-    AppRoles.EQUIPPER,
-    AppRoles.ADMIN,
-  ];
+  protected readonly roleOptions = [AppRoles.CLIMBER, AppRoles.ADMIN];
 
   protected readonly stringifyRole = computed(() => {
     this.global.i18nTick();
@@ -485,9 +481,9 @@ export class AdminUsersListComponent {
 
       if (rolesError) throw rolesError;
 
-      // 4. Fetch all area-equipper mappings
+      // 4. Fetch all area-admin mappings
       const { data: mappings, error: mappingsError } =
-        await this.supabase.client.from('area_equippers').select('*');
+        await this.supabase.client.from('area_admins').select('*');
 
       if (mappingsError) throw mappingsError;
 
@@ -581,14 +577,14 @@ export class AdminUsersListComponent {
       // 3. Update the database
       if (toAdd.length > 0) {
         const { error: addError } = await this.supabase.client
-          .from('area_equippers')
+          .from('area_admins')
           .insert(toAdd.map((area_id) => ({ user_id: userId, area_id })));
         if (addError) throw addError;
       }
 
       if (toRemove.length > 0) {
         const { error: removeError } = await this.supabase.client
-          .from('area_equippers')
+          .from('area_admins')
           .delete()
           .eq('user_id', userId)
           .in('area_id', toRemove);

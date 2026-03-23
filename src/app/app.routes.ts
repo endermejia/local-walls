@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { adminGuard } from '../guard/admin.guard';
-import { equipperGuard } from '../guard/admin.guard';
+import { adminGuard, areaAdminGuard } from '../guard/admin.guard';
 import { authGuard } from '../guard/auth.guard';
 import { noAuthGuard } from '../guard/no-auth.guard';
 import { rootRedirectGuard } from '../guard/root-redirect.guard';
@@ -84,7 +83,7 @@ export const routes: Routes = [
   },
   {
     path: 'my-areas',
-    canMatch: [equipperGuard],
+    canMatch: [areaAdminGuard],
     loadComponent: () =>
       import('../pages/my-areas').then((m) => m.MyAreasComponent),
   },

@@ -1025,7 +1025,7 @@ export interface Database {
   };
   public: {
     Tables: {
-      area_equippers: {
+      area_admins: {
         Row: {
           area_id: number;
           created_at: string | null;
@@ -1046,7 +1046,7 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: 'area_equippers_area_id_fkey';
+            foreignKeyName: 'area_admins_area_id_fkey';
             columns: ['area_id'];
             isOneToOne: false;
             referencedRelation: 'areas';
@@ -2107,7 +2107,7 @@ export interface Database {
       };
     };
     Enums: {
-      app_role: 'admin' | 'equipper' | 'climber';
+      app_role: 'admin' | 'climber';
       ascent_type: 'os' | 'rp' | 'f' | 'attempt';
       climbing_kind: 'sport' | 'boulder' | 'trad' | 'multipitch' | 'mixed';
       language: 'es' | 'en';
@@ -2783,7 +2783,7 @@ export const Constants = {
   },
   public: {
     Enums: {
-      app_role: ['admin', 'equipper', 'climber'],
+      app_role: ['admin', 'climber'],
       ascent_type: ['os', 'rp', 'f', 'attempt'],
       climbing_kind: ['sport', 'boulder', 'trad', 'multipitch', 'mixed'],
       language: ['es', 'en'],

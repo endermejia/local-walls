@@ -179,7 +179,7 @@ export class MyAreasComponent {
   private readonly filtersService = inject(FiltersService);
 
   readonly loading = computed(() => this.areasService.loading());
-  readonly myAreaIds = this.global.equipperAreas;
+  readonly myAreaIds = this.global.adminAreas;
   readonly areas = computed(() => {
     const ids = this.myAreaIds();
     return this.global.areaList().filter((a) => ids.includes(a.id));

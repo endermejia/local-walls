@@ -2,7 +2,7 @@
   {
     "policy_name": "admin_can_delete",
     "schema_name": "public",
-    "table_name": "area_equippers",
+    "table_name": "area_admins",
     "for_command": "d",
     "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
     "with_check_expression": null
@@ -10,7 +10,7 @@
   {
     "policy_name": "admin_can_insert",
     "schema_name": "public",
-    "table_name": "area_equippers",
+    "table_name": "area_admins",
     "for_command": "a",
     "using_expression": null,
     "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
@@ -18,7 +18,7 @@
   {
     "policy_name": "admin_can_update",
     "schema_name": "public",
-    "table_name": "area_equippers",
+    "table_name": "area_admins",
     "for_command": "w",
     "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
     "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
@@ -26,7 +26,7 @@
   {
     "policy_name": "auth_can_read",
     "schema_name": "public",
-    "table_name": "area_equippers",
+    "table_name": "area_admins",
     "for_command": "r",
     "using_expression": "true",
     "with_check_expression": null

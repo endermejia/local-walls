@@ -131,8 +131,7 @@ import { SeoService } from '../services/seo.service';
       >
         @let canEditAsAdmin = global.canEditAsAdmin();
         @if (cragDetail(); as c) {
-          @let canEditAsAllowedEquipper =
-            global.canEditAsAllowedEquipper()[c.area_id];
+          @let canAreaAdmin = global.canEditAsAreaAdmin()[c.area_id];
 
           <ng-template #cragSwitcher>
             <tui-data-list>
@@ -330,7 +329,7 @@ import { SeoService } from '../services/seo.service';
                     <div
                       class="flex gap-2 flex-wrap sm:flex-nowrap justify-end"
                     >
-                      @if (canEditAsAdmin || canEditAsAllowedEquipper) {
+                      @if (canEditAsAdmin || canAreaAdmin) {
                         <button
                           tuiButton
                           appearance="textfield"
@@ -513,7 +512,7 @@ import { SeoService } from '../services/seo.service';
                       }}
                     </h2>
                   </div>
-                  @if (canEditAsAllowedEquipper) {
+                  @if (canAreaAdmin) {
                     <button
                       tuiButton
                       appearance="textfield"
@@ -611,7 +610,7 @@ import { SeoService } from '../services/seo.service';
                       {{ 'parkings' | translate }}
                     </h2>
                   </div>
-                  @if (canEditAsAllowedEquipper) {
+                  @if (canAreaAdmin) {
                     <div
                       class="flex gap-2 flex-wrap sm:flex-nowrap justify-end"
                     >
@@ -659,7 +658,7 @@ import { SeoService } from '../services/seo.service';
                             </div>
                           }
 
-                          @if (canEditAsAdmin || canEditAsAllowedEquipper) {
+                          @if (canEditAsAdmin || canAreaAdmin) {
                             <div class="flex gap-1">
                               <button
                                 size="s"
@@ -802,7 +801,7 @@ export class CragComponent {
   readonly showToposTab = computed(() => {
     const canEditAsAdmin = this.global.canEditAsAdmin();
     const canEditAsAllowedEquipper =
-      this.global.canEditAsAllowedEquipper()[this.cragDetail()?.area_id ?? -1];
+      this.global.canEditAsAreaAdmin()[this.cragDetail()?.area_id ?? -1];
     return (
       (this.cragDetail()?.topos?.length ?? 0) > 0 ||
       canEditAsAdmin ||
@@ -812,7 +811,7 @@ export class CragComponent {
   readonly showParkingsTab = computed(() => {
     const canEditAsAdmin = this.global.canEditAsAdmin();
     const canEditAsAllowedEquipper =
-      this.global.canEditAsAllowedEquipper()[this.cragDetail()?.area_id ?? -1];
+      this.global.canEditAsAreaAdmin()[this.cragDetail()?.area_id ?? -1];
     return (
       (this.cragDetail()?.parkings?.length ?? 0) > 0 ||
       canEditAsAdmin ||
@@ -978,7 +977,7 @@ export class CragComponent {
                       eight_anu_route_slugs: [...currentSlugs, itemSlug],
                     },
                     true,
-                  )
+                  ),
                 );
               }
             }

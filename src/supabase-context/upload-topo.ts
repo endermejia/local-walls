@@ -146,9 +146,8 @@ Deno.serve(async (req: Request) => {
     }
 
     // ─────────────────────────────
-    // Crag equipper check (only if not admin)
-    // ─────────────────────────────
-    let isCragEquipper = false;
+    // Crag admin check (only if not admin)
+    let isCragAdmin = false;
 
     if (!isAdmin) {
       const { data, error } = await supabaseAdminClient.rpc(
@@ -159,21 +158,20 @@ Deno.serve(async (req: Request) => {
       if (error) {
         console.error('[upload-topo-photo] is_crag_equipper error', error);
         return new Response(
-          JSON.stringify({ error: 'Permission check failed' }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          },
+          JSON.stringify({
+            error: 'Internal Server Error: failed to check permissions',
+          }),
+          { status: 500 },
         );
       }
 
-      isCragEquipper = Boolean(data);
+      isCragAdmin = Boolean(data);
     }
 
-    if (!isAdmin && !isCragEquipper) {
+    if (!isAdmin && !isCragAdmin) {
       return new Response(
         JSON.stringify({
-          error: 'Forbidden: admin or crag equipper only',
+          error: 'Forbidden: admin or crag admin only',
         }),
         {
           status: 403,

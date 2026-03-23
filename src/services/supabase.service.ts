@@ -112,28 +112,25 @@ export class SupabaseService {
     () => this.userRoleResource.value()?.role,
   );
 
-  readonly equipperAreasResource = resource({
+  readonly adminAreasResource = resource({
     params: () => ({
       userId: this.authUserId(),
-      role: this.userRole(),
     }),
-    loader: async ({ params: { userId, role } }) => {
-      if (!userId || role !== 'equipper') return [];
+    loader: async ({ params: { userId } }) => {
+      if (!userId) return [];
       const { data, error } = await this.client
-        .from('area_equippers')
+        .from('area_admins')
         .select('area_id')
         .eq('user_id', userId);
       if (error) {
-        console.error('[SupabaseService] equipperAreasResource error', error);
+        console.error('[SupabaseService] adminAreasResource error', error);
         return [];
       }
       return data.map((d) => d.area_id);
     },
   });
 
-  readonly equipperAreas = computed(
-    () => this.equipperAreasResource.value() ?? [],
-  );
+  readonly adminAreas = computed(() => this.adminAreasResource.value() ?? []);
 
   /**
    * Builds a complete public URL for an avatar stored in the Supabase "avatar" bucket

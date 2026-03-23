@@ -118,10 +118,8 @@ Deno.serve(async (req: Request) => {
     }
 
     // ─────────────────────────────
-    // Crag equipper check (only if not admin)
-    // ─────────────────────────────
-    let isCragEquipper = false;
-
+    // Crag admin check (only if not admin)
+    let isCragAdmin = false;
     if (!isAdmin) {
       const { data, error } = await supabaseAdminClient.rpc(
         'is_crag_equipper',
@@ -139,13 +137,13 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      isCragEquipper = Boolean(data);
+      isCragAdmin = Boolean(data);
     }
 
-    if (!isAdmin && !isCragEquipper) {
+    if (!isAdmin && !isCragAdmin) {
       return new Response(
         JSON.stringify({
-          error: 'Forbidden: admin or crag equipper only',
+          error: 'Forbidden: admin or crag admin only',
         }),
         {
           status: 403,
