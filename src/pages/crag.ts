@@ -131,7 +131,7 @@ import { SeoService } from '../services/seo.service';
       >
         @let canEditAsAdmin = global.canEditAsAdmin();
         @if (cragDetail(); as c) {
-          @let canAreaAdmin = global.canEditAsAreaAdmin()[c.area_id];
+          @let canAreaAdmin = global.areaAdminPermissions()[c.area_id];
 
           <ng-template #cragSwitcher>
             <tui-data-list>
@@ -801,7 +801,7 @@ export class CragComponent {
   readonly showToposTab = computed(() => {
     const canEditAsAdmin = this.global.canEditAsAdmin();
     const canEditAsAllowedEquipper =
-      this.global.canEditAsAreaAdmin()[this.cragDetail()?.area_id ?? -1];
+      this.global.areaAdminPermissions()[this.cragDetail()?.area_id ?? -1];
     return (
       (this.cragDetail()?.topos?.length ?? 0) > 0 ||
       canEditAsAdmin ||
@@ -811,7 +811,7 @@ export class CragComponent {
   readonly showParkingsTab = computed(() => {
     const canEditAsAdmin = this.global.canEditAsAdmin();
     const canEditAsAllowedEquipper =
-      this.global.canEditAsAreaAdmin()[this.cragDetail()?.area_id ?? -1];
+      this.global.areaAdminPermissions()[this.cragDetail()?.area_id ?? -1];
     return (
       (this.cragDetail()?.parkings?.length ?? 0) > 0 ||
       canEditAsAdmin ||

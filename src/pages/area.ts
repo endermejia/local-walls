@@ -87,7 +87,7 @@ import { SeoService } from '../services/seo.service';
       <section class="w-full max-w-5xl mx-auto p-4">
         @let canEditAsAdmin = global.canEditAsAdmin();
         @if (global.selectedArea(); as area) {
-          @let canAreaAdmin = global.canEditAsAreaAdmin()[area.id];
+          @let canAreaAdmin = global.areaAdminPermissions()[area.id];
           <div class="mb-4">
             <app-section-header
               class="w-full"

@@ -172,7 +172,11 @@ export class GlobalData {
 
   readonly adminAreas = computed(() => this.supabase.adminAreas());
 
-  readonly canEditAsAreaAdmin = computed(() => {
+  readonly canEditAsAreaAdmin = computed(
+    () => this.editingMode() && this.isAreaAdmin(),
+  );
+
+  readonly areaAdminPermissions = computed(() => {
     const isAdmin = this.canEditAsAdmin();
     const isEditing = this.editingMode();
     const areas = this.adminAreas();
@@ -189,7 +193,7 @@ export class GlobalData {
   readonly checkAreaEditPermission = (
     area: AreaListItem | AreaDto | null | undefined,
   ) => {
-    if (this.canEditAsAdmin() || this.canEditAsAreaAdmin()[area?.id ?? -1])
+    if (this.canEditAsAdmin() || this.areaAdminPermissions()[area?.id ?? -1])
       return true;
     const userId = this.userProfile()?.id;
     if (!area || !userId || !this.editingMode()) return false;
@@ -206,7 +210,10 @@ export class GlobalData {
   readonly checkCragEditPermission = (
     crag: CragListItem | CragDetail | null | undefined,
   ) => {
-    if (this.canEditAsAdmin() || this.canEditAsAreaAdmin()[crag?.area_id ?? -1])
+    if (
+      this.canEditAsAdmin() ||
+      this.areaAdminPermissions()[crag?.area_id ?? -1]
+    )
       return true;
     const userId = this.userProfile()?.id;
     if (!crag || !userId || !this.editingMode()) return false;
@@ -225,7 +232,7 @@ export class GlobalData {
   ) => {
     if (
       this.canEditAsAdmin() ||
-      this.canEditAsAreaAdmin()[route?.area_id ?? -1]
+      this.areaAdminPermissions()[route?.area_id ?? -1]
     )
       return true;
     const userId = this.userProfile()?.id;

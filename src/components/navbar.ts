@@ -239,7 +239,8 @@ import { TourHintComponent } from './tour-hint';
             </span>
           </a>
 
-          @let showConfig = global.canEditAsAdmin() || global.isAreaAdmin();
+          @let showConfig =
+            global.canEditAsAdmin() || global.canEditAsAreaAdmin();
           @if (showConfig) {
             <!-- Configuration -->
             <a
