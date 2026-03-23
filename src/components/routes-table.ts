@@ -460,7 +460,7 @@ export interface RoutesTableRow {
                               <button
                                 size="m"
                                 [appearance]="
-                                  item.project ? 'accent' : 'neutral'
+                                  item.project ? 'glass' : 'neutral'
                                 "
                                 iconStart="@tui.bookmark"
                                 tuiIconButton
@@ -709,7 +709,7 @@ export interface RoutesTableRow {
                               <button
                                 size="m"
                                 [appearance]="
-                                  item.project ? 'accent' : 'neutral'
+                                  item.project ? 'glass' : 'neutral'
                                 "
                                 iconStart="@tui.bookmark"
                                 tuiIconButton

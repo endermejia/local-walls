@@ -197,7 +197,7 @@ import { SeoService } from '../services/seo.service';
               @if (!r.climbed) {
                 <button
                   tuiButton
-                  [appearance]="r.project ? 'accent' : 'secondary'"
+                  [appearance]="r.project ? 'glass' : 'secondary'"
                   size="m"
                   iconStart="@tui.bookmark"
                   (click)="routesService.toggleRouteProject(r.id, r)"
