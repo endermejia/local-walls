@@ -18,7 +18,13 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { TuiButton, TuiIcon, TuiLoader, TuiDropdown } from '@taiga-ui/core';
+import {
+  TuiButton,
+  TuiIcon,
+  TuiLoader,
+  TuiDropdown,
+  TuiHint,
+} from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
@@ -70,10 +76,11 @@ import { SeoService } from '../services/seo.service';
     FormsModule,
     AscentsFeedComponent,
     TourHintComponent,
-    TuiIcon,
     ChartAscentsByGradeComponent,
     LowerCasePipe,
     TuiDropdown,
+    TuiHint,
+    TuiIcon,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -151,30 +158,42 @@ import { SeoService } from '../services/seo.service';
                   {{ 'ascent.new' | translate }}
                 </button>
               } @else if (r.own_ascent) {
-                <button
-                  tuiButton
-                  [style.background]="
-                    ascentsService.ascentInfo()[r.own_ascent.type || 'default']
-                      .background
-                  "
-                  class="!text-[var(--tui-text-primary-on-accent-1)]"
-                  size="m"
-                  (click)="onEditAscent(r.own_ascent, r.name)"
-                >
-                  <tui-icon
-                    [icon]="
+                <div class="flex gap-2 w-full">
+                  <button
+                    tuiButton
+                    [style.background]="
                       ascentsService.ascentInfo()[
                         r.own_ascent.type || 'default'
-                      ].icon
+                      ].background
                     "
-                  />
-                  {{ 'ascentTypes.' + r.own_ascent.type | translate }}
-                </button>
+                    class="!text-[var(--tui-text-primary-on-accent-1)] grow"
+                    size="m"
+                    (click)="onEditAscent(r.own_ascent, r.name)"
+                  >
+                    <tui-icon
+                      [icon]="
+                        ascentsService.ascentInfo()[
+                          r.own_ascent.type || 'default'
+                        ].icon
+                      "
+                    />
+                    {{ 'ascentTypes.' + r.own_ascent.type | translate }}
+                  </button>
+                  <button
+                    tuiIconButton
+                    appearance="secondary"
+                    size="m"
+                    iconStart="@tui.circle-plus"
+                    class="!rounded-full shrink-0"
+                    [tuiHint]="'ascent.new' | translate"
+                    (click)="onLogAscent()"
+                  ></button>
+                </div>
               }
               @if (!r.climbed) {
                 <button
                   tuiButton
-                  [appearance]="r.project ? 'primary' : 'secondary'"
+                  [appearance]="r.project ? 'accent' : 'secondary'"
                   size="m"
                   iconStart="@tui.bookmark"
                   (click)="routesService.toggleRouteProject(r.id, r)"

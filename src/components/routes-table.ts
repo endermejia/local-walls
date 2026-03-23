@@ -28,6 +28,7 @@ import {
   TuiDataList,
   TuiDropdown,
   TuiGroup,
+  TuiHint,
   TuiIcon,
   TuiLink,
   TuiScrollbar,
@@ -113,6 +114,7 @@ export interface RoutesTableRow {
     TuiDataList,
     TuiDropdown,
     TuiGroup,
+    TuiHint,
     TuiIcon,
     TuiInputNumber,
     TuiLink,
@@ -433,6 +435,7 @@ export interface RoutesTableRow {
                                 tuiIconButton
                                 type="button"
                                 class="!rounded-full"
+                                [tuiHint]="'ascent.new' | translate"
                                 (click.zoneless)="onLogAscent(item._ref)"
                               >
                                 {{ 'ascent.new' | translate }}
@@ -443,6 +446,7 @@ export interface RoutesTableRow {
                                 [active]="true"
                                 class="cursor-pointer"
                                 tabindex="0"
+                                [tuiHint]="'ascent.edit' | translate"
                                 (click.zoneless)="
                                   onEditAscent(ascentToEdit, item._ref.name)
                                 "
@@ -456,12 +460,13 @@ export interface RoutesTableRow {
                               <button
                                 size="m"
                                 [appearance]="
-                                  item.project ? 'primary' : 'neutral'
+                                  item.project ? 'accent' : 'neutral'
                                 "
                                 iconStart="@tui.bookmark"
                                 tuiIconButton
                                 type="button"
                                 class="!rounded-full"
+                                [tuiHint]="'project' | translate"
                                 (click.zoneless)="
                                   routesService.toggleRouteProject(
                                     item._ref.id,
@@ -674,6 +679,7 @@ export interface RoutesTableRow {
                                 tuiIconButton
                                 type="button"
                                 class="!rounded-full"
+                                [tuiHint]="'ascent.new' | translate"
                                 (click.zoneless)="
                                   onLogAscent(item._ref);
                                   $event.stopPropagation()
@@ -687,6 +693,7 @@ export interface RoutesTableRow {
                                 [active]="true"
                                 class="cursor-pointer"
                                 tabindex="0"
+                                [tuiHint]="'ascent.edit' | translate"
                                 (click.zoneless)="
                                   onEditAscent(ascentToEdit, item._ref.name);
                                   $event.stopPropagation()
@@ -702,12 +709,13 @@ export interface RoutesTableRow {
                               <button
                                 size="m"
                                 [appearance]="
-                                  item.project ? 'primary' : 'neutral'
+                                  item.project ? 'accent' : 'neutral'
                                 "
                                 iconStart="@tui.bookmark"
                                 tuiIconButton
                                 type="button"
                                 class="!rounded-full"
+                                [tuiHint]="'project' | translate"
                                 (click.zoneless)="
                                   routesService.toggleRouteProject(
                                     item._ref.id,
@@ -816,6 +824,7 @@ export class RoutesTableComponent {
   showLocation: InputSignal<boolean> = input(false);
   showAddRouteToTopo: InputSignal<boolean> = input(false);
   hiddenColumns: InputSignal<string[]> = input<string[]>([]);
+  expandableMobile: InputSignal<boolean> = input(true);
 
   protected readonly sorters: Record<
     RoutesTableKey,
@@ -847,7 +856,7 @@ export class RoutesTableComponent {
   }
 
   protected readonly columns = computed(() => {
-    const isMobile = this.global.isMobile();
+    const isMobile = this.global.isMobile() && this.expandableMobile();
     if (isMobile) {
       return ['expand', 'grade', 'route'];
     }

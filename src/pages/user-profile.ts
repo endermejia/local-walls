@@ -499,6 +499,7 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
                     [showAdminActions]="false"
                     [showLocation]="true"
                     [showRowColors]="false"
+                    [expandableMobile]="false"
                     [hiddenColumns]="['topo', 'height', 'rating', 'ascents']"
                   />
                 }

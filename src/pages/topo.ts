@@ -891,7 +891,7 @@ export interface TopoRouteRow {
                                       tuiIconButton
                                       size="m"
                                       [appearance]="
-                                        item.project ? 'primary' : 'neutral'
+                                        item.project ? 'accent' : 'neutral'
                                       "
                                       iconStart="@tui.bookmark"
                                       class="!rounded-full"

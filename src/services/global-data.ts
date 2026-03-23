@@ -1329,7 +1329,6 @@ export class GlobalData {
         const from = page * size;
         const to = from + size - 1;
 
-        // 1. Fetch ascents for the route with count
         const {
           data: ascents,
           error: ascentsError,
@@ -1338,6 +1337,7 @@ export class GlobalData {
           .from('route_ascents')
           .select('*', { count: 'exact' })
           .eq('route_id', routeId)
+          .neq('type', 'attempt')
           .order('date', { ascending: false })
           .order('id', { ascending: false })
           .range(from, to);
