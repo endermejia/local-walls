@@ -15,6 +15,7 @@ import type {
   TopoRouteInsertDto,
   TopoUpdateDto,
 } from '../models';
+import type { Json } from '../models/supabase-generated';
 
 import {
   TopoPathEditorConfig,
@@ -288,7 +289,7 @@ export class ToposService {
     await this.supabase.whenReady();
     const { error } = await this.supabase.client
       .from('topo_routes')
-      .update({ path: path as unknown as string })
+      .update({ path: path as unknown as Json })
       .match({ topo_id: topoId, route_id: routeId });
 
     if (error) {
@@ -309,19 +310,19 @@ export class ToposService {
     if (!isPlatformBrowser(this.platformId) || !paths.length) return;
     await this.supabase.whenReady();
 
-    const payloads = paths.map((p) => ({
-      topo_id: topoId,
-      route_id: p.routeId,
-      path: p.path as unknown as string,
-    }));
+    const results = await Promise.all(
+      paths.map(({ routeId, path }) =>
+        this.supabase.client
+          .from('topo_routes')
+          .update({ path: path as unknown as Json })
+          .match({ topo_id: topoId, route_id: routeId }),
+      ),
+    );
 
-    const { error } = await (this.supabase.client as any)
-      .from('topo_routes')
-      .upsert(payloads, { onConflict: 'topo_id,route_id' });
-
-    if (error) {
-      console.error('[ToposService] bulkUpdateRoutePaths error', error);
-      throw error;
+    const failed = results.find((r) => r.error);
+    if (failed?.error) {
+      console.error('[ToposService] bulkUpdateRoutePaths error', failed.error);
+      throw failed.error;
     }
 
     if (reload) {

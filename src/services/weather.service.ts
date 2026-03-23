@@ -80,9 +80,11 @@ export class WeatherService {
     if (normalized >= 337.5 || normalized < 22.5) return '@tui.arrow-up';
     if (normalized >= 22.5 && normalized < 67.5) return '@tui.arrow-up-right';
     if (normalized >= 67.5 && normalized < 112.5) return '@tui.arrow-right';
-    if (normalized >= 112.5 && normalized < 157.5) return '@tui.arrow-down-right';
+    if (normalized >= 112.5 && normalized < 157.5)
+      return '@tui.arrow-down-right';
     if (normalized >= 157.5 && normalized < 202.5) return '@tui.arrow-down';
-    if (normalized >= 202.5 && normalized < 247.5) return '@tui.arrow-down-left';
+    if (normalized >= 202.5 && normalized < 247.5)
+      return '@tui.arrow-down-left';
     if (normalized >= 247.5 && normalized < 292.5) return '@tui.arrow-left';
     if (normalized >= 292.5 && normalized < 337.5) return '@tui.arrow-up-left';
 

@@ -39,7 +39,7 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { RoutesService } from '../services/routes.service';
-import { GlobalData } from "../services/global-data";
+import { GlobalData } from '../services/global-data';
 import { SupabaseService } from '../services/supabase.service';
 import { ToastService } from '../services/toast.service';
 
@@ -283,10 +283,7 @@ interface MinimalRoute {
           {{ 'cancel' | translate }}
         </button>
         <button
-          [disabled]="
-            routeForm.name().invalid() ||
-            !model().crag
-          "
+          [disabled]="routeForm.name().invalid() || !model().crag"
           tuiButton
           appearance="primary"
           type="submit"

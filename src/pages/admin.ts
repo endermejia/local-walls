@@ -77,6 +77,24 @@ import { SupabaseService } from '../services/supabase.service';
         </a>
 
         <a
+          routerLink="/admin/requests"
+          class="flex items-center gap-4 p-4 bg-[var(--tui-background-base)] rounded-2xl border border-[var(--tui-border-normal)] no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
+        >
+          <tui-icon
+            icon="@tui.shield"
+            class="text-[var(--tui-text-tertiary)]"
+          />
+          <div class="flex-1">
+            <span class="font-bold block">
+              {{ 'adminRequests.manageTitle' | translate }}
+            </span>
+            <p class="text-sm text-[var(--tui-text-secondary)]">
+              {{ 'adminRequests.manageDescription' | translate }}
+            </p>
+          </div>
+        </a>
+
+        <a
           routerLink="/admin/parkings"
           class="flex items-center gap-4 p-4 bg-[var(--tui-background-base)] rounded-2xl border border-[var(--tui-border-normal)] no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
         >

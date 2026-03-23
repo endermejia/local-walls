@@ -533,4 +533,124 @@ export class AreasService {
       loaderClose$.complete();
     }
   }
+
+  // --- Area Admin Requests ---
+  async requestAreaAdmin(areaId: number): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    await this.supabase.whenReady();
+    const userId = this.global.userProfile()?.id;
+    if (!userId) return false;
+
+    this.loading.set(true);
+    try {
+      const { error } = await this.supabase.client
+        .from('area_admin_requests')
+        .insert({ area_id: areaId, user_id: userId });
+
+      if (error) {
+        if (error.code === '23505') {
+          // unique violation
+          this.toast.info('adminRequests.alreadyRequested');
+          return true; // Already requested
+        }
+        throw error;
+      }
+
+      this.toast.success('adminRequests.requestSent');
+      return true;
+    } catch (e) {
+      console.error('[AreasService] requestAreaAdmin error', e);
+      this.toast.error('errors.unexpected');
+      return false;
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async getAreaAdminRequests(): Promise<
+    {
+      id: number;
+      created_at: string;
+      area: { id: number; name: string; slug: string };
+      user: { id: string; name: string | null };
+    }[]
+  > {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+    const { data, error } = await this.supabase.client
+      .from('area_admin_requests')
+      .select(
+        'id, created_at, area:areas(id, name, slug), user:user_profiles(id, name)',
+      )
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('[AreasService] getAreaAdminRequests error', error);
+      return [];
+    }
+    return (data || []) as unknown as {
+      id: number;
+      created_at: string;
+      area: { id: number; name: string; slug: string };
+      user: { id: string; name: string | null };
+    }[];
+  }
+
+  async approveAreaAdminRequest(
+    requestId: number,
+    areaId: number,
+    userId: string,
+  ): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    await this.supabase.whenReady();
+    this.loading.set(true);
+    try {
+      const { error: insertError } = await this.supabase.client
+        .from('area_admins')
+        .insert({ area_id: areaId, user_id: userId });
+
+      if (insertError) {
+        if (insertError.code !== '23505') throw insertError; // Ignore if already admin
+      }
+
+      const { error: deleteError } = await this.supabase.client
+        .from('area_admin_requests')
+        .delete()
+        .eq('id', requestId);
+
+      if (deleteError) throw deleteError;
+
+      this.toast.success('adminRequests.requestApproved');
+      return true;
+    } catch (e) {
+      console.error('[AreasService] approveAreaAdminRequest error', e);
+      this.toast.error('errors.unexpected');
+      return false;
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async rejectAreaAdminRequest(requestId: number): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    await this.supabase.whenReady();
+    this.loading.set(true);
+    try {
+      const { error } = await this.supabase.client
+        .from('area_admin_requests')
+        .delete()
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      this.toast.success('adminRequests.requestRejected');
+      return true;
+    } catch (e) {
+      console.error('[AreasService] rejectAreaAdminRequest error', e);
+      this.toast.error('errors.unexpected');
+      return false;
+    } finally {
+      this.loading.set(false);
+    }
+  }
 }

@@ -70,6 +70,7 @@ import {
   LABEL_TO_VERTICAL_LIFE,
   ORDERED_GRADE_VALUES,
   ParkingDto,
+  RouteDto,
   RouteWithExtras,
   SearchRouteItem,
   type TopoListItem,
@@ -951,8 +952,7 @@ export class CragComponent {
         areaRoutes.flatMap((r) => r.eight_anu_route_slugs || []),
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const updatePromises: Promise<any>[] = [];
+      const updatePromises: Promise<RouteDto | null>[] = [];
 
       for (const item of results) {
         const itemSlug = slugify(item.zlaggableName);

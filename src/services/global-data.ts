@@ -172,6 +172,29 @@ export class GlobalData {
 
   readonly adminAreas = computed(() => this.supabase.adminAreas());
 
+  /** Resource that fetches the area IDs for which the current user has a pending admin request */
+  readonly pendingAdminRequestsResource = resource({
+    params: () => this.supabase.authUserId(),
+    loader: async ({ params: userId }) => {
+      if (!userId || !isPlatformBrowser(this.platformId)) return [] as number[];
+      await this.supabase.whenReady();
+      const { data, error } = await this.supabase.client
+        .from('area_admin_requests')
+        .select('area_id')
+        .eq('user_id', userId);
+      if (error) {
+        console.error('[GlobalData] pendingAdminRequestsResource error', error);
+        return [] as number[];
+      }
+      return (data ?? []).map((r) => r.area_id);
+    },
+  });
+
+  /** Set of area IDs for which the current user already has a pending admin request */
+  readonly pendingAdminRequestAreaIds = computed(
+    () => new Set(this.pendingAdminRequestsResource.value() ?? []),
+  );
+
   readonly canEditAsAreaAdmin = computed(
     () => this.editingMode() && this.isAreaAdmin(),
   );

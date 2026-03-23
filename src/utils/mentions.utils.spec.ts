@@ -24,8 +24,8 @@ describe('Mentions Utils', () => {
   describe('extractMentionIds', () => {
     it('should return empty array for empty or null text', () => {
       expect(extractMentionIds('')).toEqual([]);
-      expect(extractMentionIds(null as any)).toEqual([]);
-      expect(extractMentionIds(undefined as any)).toEqual([]);
+      expect(extractMentionIds(null as unknown as string)).toEqual([]);
+      expect(extractMentionIds(undefined as unknown as string)).toEqual([]);
     });
 
     it('should extract a single mention ID', () => {

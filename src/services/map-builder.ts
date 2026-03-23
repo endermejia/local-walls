@@ -169,7 +169,11 @@ export class MapBuilder {
                 savedViewport.north_east_longitude,
               ],
             ]);
-            this.map.fitBounds(bounds, { animate: false, padding: [24, 24] });
+            this.map.fitBounds(bounds, {
+              animate: false,
+              padding: [24, 24],
+              maxZoom: 15,
+            });
           }
           viewportRestored = true;
         } catch (e) {
@@ -566,7 +570,9 @@ export class MapBuilder {
         } else {
           const latLng = group.center;
           // Dynamic cluster size based on count
-          const config = CLUSTER_CONFIG.find((c) => group.count >= c.minCount) || CLUSTER_CONFIG[CLUSTER_CONFIG.length - 1];
+          const config =
+            CLUSTER_CONFIG.find((c) => group.count >= c.minCount) ||
+            CLUSTER_CONFIG[CLUSTER_CONFIG.length - 1];
           const size = config.size;
 
           const commonAreaName =
@@ -699,7 +705,9 @@ export class MapBuilder {
     areaName?: string,
     isLiked = false,
   ): string {
-    const config = CLUSTER_CONFIG.find((c) => count >= c.minCount) || CLUSTER_CONFIG[CLUSTER_CONFIG.length - 1];
+    const config =
+      CLUSTER_CONFIG.find((c) => count >= c.minCount) ||
+      CLUSTER_CONFIG[CLUSTER_CONFIG.length - 1];
     const sizeClass = config.sizeClass;
 
     const spawnClass = this.animateClustersOnNextBuild

@@ -88,6 +88,8 @@ import { SeoService } from '../services/seo.service';
         @let canEditAsAdmin = global.canEditAsAdmin();
         @if (global.selectedArea(); as area) {
           @let canAreaAdmin = global.areaAdminPermissions()[area.id];
+          @let hasPendingRequest =
+            global.pendingAdminRequestAreaIds().has(area.id);
           <div class="mb-4">
             <app-section-header
               class="w-full"
@@ -121,6 +123,25 @@ import { SeoService } from '../services/seo.service';
                       {{ 'delete' | translate }}
                     </button>
                   }
+                </div>
+              } @else if (
+                global.editingMode() &&
+                !canEditAsAdmin &&
+                !canAreaAdmin &&
+                !hasPendingRequest
+              ) {
+                <div actionButtons class="flex gap-2">
+                  <button
+                    tuiButton
+                    size="s"
+                    appearance="secondary"
+                    iconStart="@tui.shield-alert"
+                    type="button"
+                    class="!rounded-full"
+                    (click.zoneless)="requestAdmin()"
+                  >
+                    {{ 'adminRequests.button' | translate }}
+                  </button>
                 </div>
               }
             </app-section-header>
@@ -615,5 +636,43 @@ export class AreaComponent {
     });
 
     void this.router.navigateByUrl('/explore');
+  }
+
+  async requestAdmin(): Promise<void> {
+    const area = this.global.selectedArea();
+    if (!area) return;
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const t = await firstValueFrom(
+      this.translate.get([
+        'adminRequests.confirmTitle',
+        'adminRequests.confirmMessage',
+      ]),
+    );
+    const title = t['adminRequests.confirmTitle'];
+    const message = t['adminRequests.confirmMessage'];
+
+    const data: TuiConfirmData = {
+      content: message,
+      yes: this.translate.instant('accept'),
+      no: this.translate.instant('cancel'),
+      appearance: 'primary',
+    };
+
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: title,
+        size: 's',
+        data,
+      }),
+      { defaultValue: false },
+    );
+
+    if (!confirmed) return;
+
+    const success = await this.areas.requestAreaAdmin(area.id);
+    if (success) {
+      this.global.pendingAdminRequestsResource.reload();
+    }
   }
 }

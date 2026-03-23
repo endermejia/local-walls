@@ -111,6 +111,14 @@ export const routes: Routes = [
         (m) => m.AdminParkingsListComponent,
       ),
   },
+  {
+    path: 'admin/requests',
+    canMatch: [adminGuard],
+    loadComponent: () =>
+      import('../pages/admin-area-requests').then(
+        (m) => m.AdminAreaRequestsComponent,
+      ),
+  },
   // Public landing page
   {
     path: 'info',
