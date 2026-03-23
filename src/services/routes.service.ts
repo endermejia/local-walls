@@ -369,6 +369,46 @@ export class RoutesService {
     return result.sort((a, b) => a.name.localeCompare(b.name));
   }
 
+  async searchRoutes(query: string): Promise<Partial<RouteWithExtras>[]> {
+    if (!isPlatformBrowser(this.platformId) || query.length < 2) return [];
+    await this.supabase.whenReady();
+
+    const { data, error } = await this.supabase.client
+      .from('routes')
+      .select(
+        `
+        id, name, slug, grade, climbing_kind, height, eight_anu_route_slugs,
+        crag:crags!inner(id, name, slug, area:areas(id, name, slug))
+      `,
+      )
+      .ilike('name', `%${query}%`)
+      .limit(20);
+
+    if (error) {
+      console.error('[RoutesService] searchRoutes error', error);
+      return [];
+    }
+
+    return (data || []).map(
+      (r) =>
+        ({
+          id: r.id,
+          name: r.name,
+          slug: r.slug,
+          grade: r.grade,
+          climbing_kind: r.climbing_kind,
+          height: r.height,
+          eight_anu_route_slugs: r.eight_anu_route_slugs,
+          crag_id: r.crag.id,
+          crag_name: r.crag.name,
+          crag_slug: r.crag.slug,
+          area_id: r.crag.area.id,
+          area_name: r.crag.area.name,
+          area_slug: r.crag.area.slug,
+        }) as Partial<RouteWithExtras>,
+    );
+  }
+
   async unify(
     targetRouteId: number,
     sourceRouteIds: number[],

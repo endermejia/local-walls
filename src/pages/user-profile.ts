@@ -66,6 +66,7 @@ import { EmptyStateComponent } from '../components/empty-state';
 import { RoutesTableComponent } from '../components/routes-table';
 import { TourHintComponent } from '../components/tour-hint';
 import { UserStatisticsComponent } from '../components/user-statistics';
+import { PyramidComponent } from '../components/pyramid';
 
 import {
   FeedItem,
@@ -113,6 +114,7 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
     TuiTitle,
     TuiPulse,
     UserStatisticsComponent,
+    PyramidComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -486,7 +488,12 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
             }
 
             @case (1) {
-              <div class="min-w-0">
+              <div class="flex flex-col gap-8 min-w-0">
+                <app-pyramid
+                  [userId]="profile()?.id || id() || ''"
+                  [startingYear]="profile()?.starting_climbing_year"
+                />
+
                 @if (projectsResource.isLoading()) {
                   <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
                     @for (_ of [1, 2, 3, 4]; track $index) {

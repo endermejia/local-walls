@@ -495,7 +495,7 @@ interface RouteScore {
         <div class="trend-hint-header">
           <span class="trend-hint-year">{{ trendData().years[index] }}</span>
           <span class="trend-hint-score">
-            {{ (details?.totalScore | number) || 0 }} pt
+            {{ (details?.totalScore | number) || 0 }} {{ 'points' | translate }}
           </span>
         </div>
 

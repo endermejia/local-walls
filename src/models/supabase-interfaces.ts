@@ -7,6 +7,7 @@ export type DatabaseTable = keyof Tables;
 export type AppRole = Database['public']['Enums']['app_role'];
 export const AppRoles: Record<Uppercase<AppRole>, AppRole> = {
   ADMIN: 'admin',
+  EQUIPPER: 'equipper',
   CLIMBER: 'climber',
 } as const;
 export type AscentType = Database['public']['Enums']['ascent_type'];
@@ -133,3 +134,8 @@ export type RouteAscentCommentLikeUpdateDto =
 export type NotificationDto = TableRow<'notifications'>;
 export type NotificationInsertDto = TableInsert<'notifications'>;
 export type NotificationUpdateDto = TableUpdate<'notifications'>;
+
+// User Pyramid Slots
+export type UserPyramidSlotDto = TableRow<'user_pyramid_slots'>;
+export type UserPyramidSlotInsertDto = TableInsert<'user_pyramid_slots'>;
+export type UserPyramidSlotUpdateDto = TableUpdate<'user_pyramid_slots'>;

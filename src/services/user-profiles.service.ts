@@ -9,7 +9,13 @@ import { firstValueFrom, Observable } from 'rxjs';
 
 import { Import8aComponent } from '../components/import-8a';
 
-import { UserProfileBasicDto, UserProfileDto } from '../models';
+import {
+  RouteDto,
+  UserProfileBasicDto,
+  UserProfileDto,
+  UserPyramidSlotDto,
+  UserPyramidSlotInsertDto,
+} from '../models';
 
 import { normalizeName } from '../utils';
 
@@ -134,5 +140,66 @@ export class UserProfilesService {
     }
 
     return data;
+  }
+
+  async getPyramidSlots(
+    userId: string,
+    year: number,
+  ): Promise<
+    (UserPyramidSlotDto & {
+      route:
+        | (RouteDto & { crag?: { slug: string; area?: { slug: string } } })
+        | null;
+    })[]
+  > {
+    const { data, error } = await this.supabase.client
+      .from('user_pyramid_slots')
+      .select('*, route:routes(*, crag:crags(slug, area:areas(slug)))')
+      .eq('user_id', userId)
+      .eq('year', year);
+
+    if (error) {
+      console.error('[UserProfileService] Error getting pyramid slots:', error);
+      return [];
+    }
+
+    return (
+      (data as (UserPyramidSlotDto & {
+        route:
+          | (RouteDto & { crag?: { slug: string; area?: { slug: string } } })
+          | null;
+      })[]) || []
+    );
+  }
+
+  async updatePyramidSlot(
+    slot: UserPyramidSlotInsertDto,
+  ): Promise<{ success: boolean; error?: string }> {
+    const { error } = await this.supabase.client
+      .from('user_pyramid_slots')
+      .upsert(slot, { onConflict: 'user_id,year,level,position' });
+
+    if (error) {
+      console.error('[UserProfileService] Error updating pyramid slot:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  }
+
+  async deletePyramidSlot(
+    slotId: string,
+  ): Promise<{ success: boolean; error?: string }> {
+    const { error } = await this.supabase.client
+      .from('user_pyramid_slots')
+      .delete()
+      .eq('id', slotId);
+
+    if (error) {
+      console.error('[UserProfileService] Error deleting pyramid slot:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
   }
 }

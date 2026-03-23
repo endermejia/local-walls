@@ -863,5 +863,37 @@
     "for_command": "d",
     "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
     "with_check_expression": null
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "user_pyramid_slots",
+    "for_command": "r",
+    "using_expression": "((( SELECT auth.uid() AS uid) = user_id) OR (EXISTS ( SELECT 1 FROM public.user_profiles up WHERE ((up.id = user_pyramid_slots.user_id) AND (up.private = false)))))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_modify",
+    "schema_name": "public",
+    "table_name": "user_pyramid_slots",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+  },
+  {
+    "policy_name": "own_user_can_modify",
+    "schema_name": "public",
+    "table_name": "user_pyramid_slots",
+    "for_command": "w",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+  },
+  {
+    "policy_name": "own_user_can_modify",
+    "schema_name": "public",
+    "table_name": "user_pyramid_slots",
+    "for_command": "d",
+    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "with_check_expression": null
   }
 ]
