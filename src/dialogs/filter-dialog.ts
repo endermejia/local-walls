@@ -327,14 +327,21 @@ export class FilterDialogComponent {
         )
         .filter((v): v is Exclude<typeof v, undefined> => !!v);
 
+    const rawGradeRange = this.sanitizeRange(
+      (this.form.value.gradeRange as [number, number]) ?? [
+        this.minIndex,
+        this.maxIndex,
+      ],
+    );
+
     const payload: FilterDialog = {
       categories: categories.length ? categories : [],
-      gradeRange: this.sanitizeRange(
-        (this.form.value.gradeRange as [number, number]) ?? [
-          this.minIndex,
-          this.maxIndex,
-        ],
-      ),
+      gradeRange: [
+        rawGradeRange[0],
+        rawGradeRange[1] >= this.maxIndex
+          ? ORDERED_GRADE_VALUES.length - 1
+          : rawGradeRange[1],
+      ],
       selectedShade,
       showCategories: this.context.data?.showCategories,
       showShade: this.context.data?.showShade,
@@ -349,7 +356,7 @@ export class FilterDialogComponent {
     });
     this.context.completeWith({
       categories: [],
-      gradeRange: [this.minIndex, this.maxIndex],
+      gradeRange: [this.minIndex, ORDERED_GRADE_VALUES.length - 1],
       selectedShade: [],
       showCategories: this.context.data?.showCategories,
       showShade: this.context.data?.showShade,

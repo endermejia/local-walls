@@ -15,10 +15,21 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
-import { TuiAppearance, TuiLoader, TuiScrollbar } from '@taiga-ui/core';
-import { TuiSegmented } from '@taiga-ui/kit';
+import {
+  TuiAppearance,
+  TuiButton,
+  TuiLoader,
+  TuiScrollbar,
+} from '@taiga-ui/core';
+import { TuiDialogService } from '@taiga-ui/experimental';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import {
+  TuiBadgeNotification,
+  TuiBadgedContent,
+  TuiSegmented,
+} from '@taiga-ui/kit';
 
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import {
   combineLatest,
   concatMap,
@@ -30,6 +41,7 @@ import {
   Subject,
   switchMap,
   tap,
+  firstValueFrom,
 } from 'rxjs';
 
 import { DesnivelService } from '../services/desnivel.service';
@@ -40,7 +52,16 @@ import { SupabaseService } from '../services/supabase.service';
 
 import { AscentsFeedComponent } from '../components/ascents-feed';
 
-import { FeedItem, RouteAscentWithExtras } from '../models';
+import { FilterDialog, FilterDialogComponent } from '../dialogs/filter-dialog';
+
+import {
+  ClimbingKind,
+  ClimbingKinds,
+  FeedItem,
+  LABEL_TO_VERTICAL_LIFE,
+  ORDERED_GRADE_VALUES,
+  RouteAscentWithExtras,
+} from '../models';
 
 @Component({
   selector: 'app-home',
@@ -52,6 +73,9 @@ import { FeedItem, RouteAscentWithExtras } from '../models';
     RouterLink,
     TranslatePipe,
     TuiAppearance,
+    TuiButton,
+    TuiBadgeNotification,
+    TuiBadgedContent,
     TuiLoader,
     TuiScrollbar,
     TuiSegmented,
@@ -87,8 +111,8 @@ import { FeedItem, RouteAscentWithExtras } from '../models';
           }
 
           <!-- Filter Segmented -->
-          @if (followsLoaded() && followedIds().size > 0) {
-            <div class="flex justify-center">
+          <div class="flex justify-center items-center gap-2">
+            @if (followsLoaded() && followedIds().size > 0) {
               <tui-segmented [(activeItemIndex)]="filterIndex">
                 <button type="button">
                   {{ 'following' | translate }}
@@ -97,8 +121,29 @@ import { FeedItem, RouteAscentWithExtras } from '../models';
                   {{ 'all' | translate }}
                 </button>
               </tui-segmented>
-            </div>
-          }
+            }
+
+            <tui-badged-content>
+              @if (hasActiveFilters()) {
+                <tui-badge-notification
+                  tuiAppearance="accent"
+                  size="s"
+                  tuiSlot="top"
+                />
+              }
+              <button
+                tuiIconButton
+                size="s"
+                appearance="primary-grayscale"
+                iconStart="@tui.sliders-horizontal"
+                (click.zoneless)="openFilters()"
+                [attr.aria-label]="'filters' | translate"
+                title="Filters"
+              >
+                <span class="tui-sr-only">{{ 'filters' | translate }}</span>
+              </button>
+            </tui-badged-content>
+          </div>
 
           <!-- Ascents Feed -->
           @if (ascents(); as ascents) {
@@ -161,6 +206,15 @@ export class HomeComponent implements OnDestroy {
     this.feedFilter.set(index === 0 ? 'following' : 'all');
   }
 
+  protected readonly hasActiveFilters = computed(() => {
+    const [lo, hi] = this.global.feedGradeRange();
+    const gradeActive = !(lo === 0 && hi === ORDERED_GRADE_VALUES.length - 1);
+    return gradeActive || this.global.feedCategories().length > 0;
+  });
+
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
+
   constructor() {
     this.loadFollowedIds();
 
@@ -170,14 +224,19 @@ export class HomeComponent implements OnDestroy {
 
     combineLatest([
       toObservable(this.feedFilter),
+      toObservable(this.global.feedCategories),
+      toObservable(this.global.feedGradeRange),
       toObservable(this.followsLoaded),
     ])
       .pipe(
         takeUntilDestroyed(),
-        filter(([, loaded]) => loaded),
-        map(([f]) => f as 'following' | 'all'),
-        distinctUntilChanged(),
-        switchMap((filter) => {
+        filter(([, , , loaded]) => loaded),
+        map(
+          ([f, cat, grades]) =>
+            ({ filter: f, categories: cat, gradeRange: grades }) as const,
+        ),
+        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
+        switchMap(({ filter }) => {
           this.ascents.set([]);
           this.hasMore.set(true);
           this.isLoading.set(true);
@@ -323,6 +382,30 @@ export class HomeComponent implements OnDestroy {
       query = query.in('user_id', followed);
     }
 
+    const categories = this.global.feedCategories();
+    if (categories.length > 0) {
+      const kindsArray: ClimbingKind[] = [];
+      if (categories.includes(0)) kindsArray.push(ClimbingKinds.SPORT);
+      if (categories.includes(1)) kindsArray.push(ClimbingKinds.BOULDER);
+      if (categories.includes(2)) kindsArray.push(ClimbingKinds.MULTIPITCH);
+      if (kindsArray.length > 0) {
+        query = query.in('route.climbing_kind', kindsArray);
+      }
+    }
+
+    const [loIdx, hiIdx] = this.global.feedGradeRange();
+    if (loIdx > 0 || hiIdx < ORDERED_GRADE_VALUES.length - 1) {
+      const allowedLabels = ORDERED_GRADE_VALUES.slice(loIdx, hiIdx + 1);
+      const allowedDbGrades = allowedLabels
+        .map((label) => LABEL_TO_VERTICAL_LIFE[label])
+        .filter((g): g is number => g !== undefined);
+      // Ensure projects (0) are always rendered for partial ranges
+      if (!allowedDbGrades.includes(0)) {
+        allowedDbGrades.push(0);
+      }
+      query = query.in('grade', allowedDbGrades);
+    }
+
     const { data: ascents } = await query
       .order('date', { ascending: false })
       .order('id', { ascending: false })
@@ -390,6 +473,35 @@ export class HomeComponent implements OnDestroy {
   loadMore() {
     if (this.isBrowser && !this.isLoading()) {
       this.loadMore$.next();
+    }
+  }
+
+  async openFilters() {
+    const data: FilterDialog = {
+      categories: this.global.feedCategories(),
+      gradeRange: this.global.feedGradeRange(),
+      showCategories: true,
+      showGradeRange: true,
+      showShade: false,
+    };
+
+    const result = await firstValueFrom(
+      this.dialogs.open<FilterDialog>(
+        new PolymorpheusComponent(FilterDialogComponent),
+        {
+          label: this.translate.instant('filters'),
+          size: 'l',
+          data,
+          dismissible: false,
+        },
+      ),
+      { defaultValue: null },
+    );
+
+    if (!result) return;
+    this.global.feedCategories.set(result.categories ?? []);
+    if (result.gradeRange) {
+      this.global.feedGradeRange.set(result.gradeRange);
     }
   }
 

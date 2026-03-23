@@ -61,7 +61,7 @@ import {
   TopoPath,
   TopoRouteWithRoute,
   VERTICAL_LIFE_GRADES,
-  GRADE_NUMBER_TO_LABEL,
+  LABEL_TO_VERTICAL_LIFE,
 } from '../models';
 
 @Injectable({
@@ -549,6 +549,16 @@ export class GlobalData {
   areaListShade: WritableSignal<
     ('shade_morning' | 'shade_afternoon' | 'shade_all_day' | 'sun_all_day')[]
   > = signal([]);
+
+  // ---- Feed List Filters (Persisted per session) ----
+  private readonly feedGradeRangeKey = 'feed_grade_range_v1';
+  private readonly feedCategoriesKey = 'feed_categories_v1';
+
+  feedGradeRange: WritableSignal<[number, number]> = signal([
+    0,
+    ORDERED_GRADE_VALUES.length - 1,
+  ]);
+  feedCategories: WritableSignal<number[]> = signal([]);
 
   // ---- Areas ----
   selectedAreaSlug: WritableSignal<string | null> = signal(null);
@@ -1133,11 +1143,14 @@ export class GlobalData {
         // Grade range filter
         const [minIdx, maxIdx] = grades;
         if (minIdx > 0 || maxIdx < ORDERED_GRADE_VALUES.length - 1) {
-          const allGradeIds = Object.keys(GRADE_NUMBER_TO_LABEL)
-            .map(Number)
-            .sort((a, b) => a - b);
-          const allowedGrades = allGradeIds.slice(minIdx, maxIdx + 1);
-          query = query.in('route.grade', allowedGrades);
+          const allowedLabels = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1);
+          const allowedDbGrades = allowedLabels
+            .map((label) => LABEL_TO_VERTICAL_LIFE[label])
+            .filter((g): g is number => g !== undefined);
+          if (!allowedDbGrades.includes(0)) {
+            allowedDbGrades.push(0);
+          }
+          query = query.in('grade', allowedDbGrades);
         }
 
         // Categories filter
@@ -1479,6 +1492,29 @@ export class GlobalData {
       if (rawShade) {
         this.areaListShade.set(JSON.parse(rawShade));
       }
+
+      const rawFeedGradeRange = this.localStorage.getItem(
+        this.feedGradeRangeKey,
+      );
+      if (rawFeedGradeRange) {
+        const parsed = JSON.parse(rawFeedGradeRange);
+        if (Array.isArray(parsed) && parsed.length === 2) {
+          const [a, b] = parsed;
+          const clamp = (v: number) =>
+            Math.max(
+              0,
+              Math.min(ORDERED_GRADE_VALUES.length - 1, Math.round(v)),
+            );
+          this.feedGradeRange.set([clamp(a), clamp(b)]);
+        }
+      }
+
+      const rawFeedCategories = this.localStorage.getItem(
+        this.feedCategoriesKey,
+      );
+      if (rawFeedCategories) {
+        this.feedCategories.set(JSON.parse(rawFeedCategories));
+      }
     } catch {
       // ignore corrupted viewport state
     }
@@ -1524,6 +1560,19 @@ export class GlobalData {
       this.localStorage.setItem(
         this.areaListShadeKey,
         JSON.stringify(this.areaListShade()),
+      );
+    });
+
+    effect(() => {
+      this.localStorage.setItem(
+        this.feedGradeRangeKey,
+        JSON.stringify(this.feedGradeRange()),
+      );
+    });
+    effect(() => {
+      this.localStorage.setItem(
+        this.feedCategoriesKey,
+        JSON.stringify(this.feedCategories()),
       );
     });
 
