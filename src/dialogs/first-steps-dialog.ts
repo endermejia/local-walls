@@ -14,7 +14,7 @@ import { TranslatePipe } from '@ngx-translate/core';
     <div class="flex flex-col items-center gap-6 text-center p-4">
       <img
         ngSrc="/logo/climbeast.svg"
-        alt="Climbeast Logo"
+        alt="ClimBeast Logo"
         class="w-32 h-auto"
         height="93"
         width="128"

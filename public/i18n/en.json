@@ -615,7 +615,7 @@
   "payments.tutorial.step3": "Find your 'Account ID' (starts with acct_) in Stripe settings.",
   "payments.tutorial.step4": "Paste the ID here and save changes.",
   "payments.tutorial.footer": "Users will need to pay this price to view the topos for this area. The money will go directly to your Stripe account.",
-  "payments.paywall.footer": "100% of your payment goes directly to the local equippers of this area for its maintenance. Climbeast does not charge any commission for this transaction.",
+  "payments.paywall.footer": "100% of your payment goes directly to the local equippers of this area for its maintenance. ClimBeast does not charge any commission for this transaction.",
   "payments.buy": "Buy topos",
   "payments.purchased": "Purchased",
   "payments.payToSee": "Support the local equippers",

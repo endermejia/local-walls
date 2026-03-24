@@ -622,7 +622,7 @@
   "payments.tutorial.step3": "Busca tu 'Account ID' (empieza por acct_) en la configuración de Stripe.",
   "payments.tutorial.step4": "Pega el ID aquí y guarda los cambios.",
   "payments.tutorial.footer": "Los usuarios deberán pagar este precio para ver los croquis de esta zona. El dinero irá directamente a tu cuenta de Stripe.",
-  "payments.paywall.footer": "El 100% de tu pago va directamente a los equipadores de esta zona para su mantenimiento. Climbeast no cobra ninguna comisión por esta transacción.",
+  "payments.paywall.footer": "El 100% de tu pago va directamente a los equipadores de esta zona para su mantenimiento. ClimBeast no cobra ninguna comisión por esta transacción.",
   "payments.buy": "Comprar croquis",
   "payments.purchased": "Comprado",
   "payments.payToSee": "Apoya a los equipadores locales",
