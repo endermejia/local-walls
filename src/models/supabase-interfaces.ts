@@ -4,12 +4,6 @@ type Tables = Database['public']['Tables'];
 export type DatabaseTable = keyof Tables;
 
 // Enums
-export type AppRole = Database['public']['Enums']['app_role'];
-export const AppRoles: Record<Uppercase<AppRole>, AppRole> = {
-  ADMIN: 'admin',
-  EQUIPPER: 'equipper',
-  CLIMBER: 'climber',
-} as const;
 export type AscentType = Database['public']['Enums']['ascent_type'];
 export const AscentTypes: Record<Uppercase<AscentType>, AscentType> = {
   RP: 'rp',
@@ -101,7 +95,9 @@ export type TopoInsertDto = TableInsert<'topos'>;
 export type TopoUpdateDto = TableUpdate<'topos'>;
 
 // User Profiles
-export type UserProfileDto = TableRow<'user_profiles'>;
+export type UserProfileDto = TableRow<'user_profiles'> & {
+  is_admin: boolean | null;
+};
 export type UserProfileInsertDto = TableInsert<'user_profiles'>;
 export type UserProfileUpdateDto = TableUpdate<'user_profiles'>;
 

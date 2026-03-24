@@ -22,23 +22,24 @@ export const adminGuard: CanMatchFn = async (): Promise<boolean | UrlTree> => {
     return router.createUrlTree(['/login']);
   }
 
-  // Wait for user role to be loaded
-  // The userRoleResource will load automatically when session is available
-  const roleData = await waitForResource(supabase.userRoleResource);
+  // Wait for user profile to be loaded
+  const profile = await waitForResource(supabase.userProfileResource);
 
-  if (roleData !== undefined) {
-    // Role data is loaded (could be the role object or null)
-    if (roleData?.role === 'admin') {
+  if (profile !== undefined) {
+    if (profile?.is_admin) {
       return true;
     }
 
     // User is logged in but not an admin
-    console.warn('[AdminGuard] User is not admin. Role:', roleData?.role);
+    console.warn(
+      '[AdminGuard] User is not admin. is_admin:',
+      profile?.is_admin,
+    );
     return router.createUrlTree(['/page-not-found']);
   }
 
-  // If role didn't load after waiting, redirect to page-not-found
-  console.error('[AdminGuard] Timeout waiting for user role');
+  // If profile didn't load after waiting, redirect to page-not-found
+  console.error('[AdminGuard] Timeout waiting for user profile');
   return router.createUrlTree(['/page-not-found']);
 };
 
@@ -59,10 +60,10 @@ export const areaAdminGuard: CanMatchFn = async (): Promise<
     return router.createUrlTree(['/login']);
   }
 
-  const roleData = await waitForResource(supabase.userRoleResource);
+  const profile = await waitForResource(supabase.userProfileResource);
 
-  if (roleData !== undefined) {
-    if (roleData?.role === 'admin') {
+  if (profile !== undefined) {
+    if (profile?.is_admin) {
       return true;
     }
 
@@ -73,7 +74,6 @@ export const areaAdminGuard: CanMatchFn = async (): Promise<
     }
 
     console.warn('[AreaAdminGuard] User has no admin permissions');
-    return router.createUrlTree(['/page-not-found']);
   }
 
   return router.createUrlTree(['/page-not-found']);

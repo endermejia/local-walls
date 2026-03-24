@@ -32,7 +32,6 @@ import { mapCragToDetail } from '../utils';
 
 import {
   AmountByEveryGrade,
-  AppRoles,
   AreaDto,
   AreaListItem,
   BreadcrumbItem,
@@ -160,11 +159,10 @@ export class GlobalData {
 
   // ---- Auth (roles) ----
   readonly userProfile = computed(() => this.supabase.userProfile());
-  readonly userRole = computed(() => this.supabase.userRole());
-  readonly editingMode: WritableSignal<boolean> = signal(false);
+  readonly editingMode = signal(false);
   private readonly editingModeStorageKey = 'editing_mode_v1';
 
-  readonly isAdmin = computed(() => this.userRole() === AppRoles.ADMIN);
+  readonly isAdmin = computed(() => !!this.userProfile()?.is_admin);
   readonly canEditAsAdmin = computed(
     () => this.editingMode() && this.isAdmin(),
   );

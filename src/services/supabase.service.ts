@@ -8,14 +8,13 @@ import {
   Provider,
   resource,
   signal,
-  Signal,
   WritableSignal,
 } from '@angular/core';
 import { Router } from '@angular/router';
 
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 
-import { AppRole, UserProfileDto } from '../models';
+import { UserProfileDto } from '../models';
 import { Database } from '../models/supabase-generated';
 
 import { ENV_SUPABASE_URL } from '../environments/environment';
@@ -89,28 +88,6 @@ export class SupabaseService {
     },
   });
   readonly userProfile = computed(() => this.userProfileResource.value());
-  readonly userRoleResource = resource({
-    params: () => this.authUserId(),
-    loader: async ({ params: userId }) => {
-      if (!userId) return null;
-      const { data, error } = await this.client
-        .from('user_roles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
-      if (error) {
-        console.error('[SupabaseService] userRoleResource error', error);
-      }
-      if (!data) {
-        await this.logout();
-        return null;
-      }
-      return data;
-    },
-  });
-  readonly userRole: Signal<AppRole | undefined> = computed(
-    () => this.userRoleResource.value()?.role,
-  );
 
   readonly adminAreasResource = resource({
     params: () => ({

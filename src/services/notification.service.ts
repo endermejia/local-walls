@@ -1,11 +1,13 @@
-import { inject, Injectable } from '@angular/core';
+import { DestroyRef, inject, Injectable } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TuiAlertOptions, TuiAlertService } from '@taiga-ui/core';
 
 import { TranslateService } from '@ngx-translate/core';
-import { firstValueFrom, Subscription } from 'rxjs';
+import { firstValueFrom, switchMap } from 'rxjs';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { GdprNotificationComponent } from '../components/gdpr-notification';
+import { UpdateNotificationComponent } from '../components/update-notification';
 
 @Injectable({
   providedIn: 'root',
@@ -13,6 +15,8 @@ import { GdprNotificationComponent } from '../components/gdpr-notification';
 export class NotificationService {
   private readonly alerts = inject(TuiAlertService);
   private readonly translate = inject(TranslateService);
+  private readonly destroyRef = inject(DestroyRef);
+  private isGdprShowing = false;
 
   private show(
     message: string,
@@ -39,44 +43,16 @@ export class NotificationService {
     });
   }
 
-  error(
-    message: string,
-    label?: string,
-    autoClose: number | boolean | undefined = 3000,
-  ): void {
-    this.show(message, {
-      appearance: 'negative',
-      label: label ? this.translate.instant(label) : undefined,
-      autoClose: autoClose === false ? 0 : (autoClose as number | undefined),
-    });
+  showUpdateAvailable(): void {
+    void firstValueFrom(
+      this.alerts.open(new PolymorpheusComponent(UpdateNotificationComponent), {
+        label: this.translate.instant('update_available'),
+        appearance: 'info',
+        autoClose: 0,
+      }),
+      { defaultValue: undefined },
+    );
   }
-
-  info(
-    message: string,
-    label?: string,
-    autoClose: number | boolean | undefined = 3000,
-  ): void {
-    this.show(message, {
-      appearance: 'info',
-      label: label ? this.translate.instant(label) : undefined,
-      autoClose: autoClose === false ? 0 : (autoClose as number | undefined),
-    });
-  }
-
-  warning(
-    message: string,
-    label?: string,
-    autoClose: number | boolean | undefined = 3000,
-  ): void {
-    this.show(message, {
-      appearance: 'warning',
-      label: label ? this.translate.instant(label) : undefined,
-      autoClose: autoClose === false ? 0 : (autoClose as number | undefined),
-    });
-  }
-
-  private gdprSubscription?: Subscription;
-  private isGdprShowing = false;
 
   showGdpr(): void {
     if (this.isGdprShowing) {
@@ -85,25 +61,29 @@ export class NotificationService {
 
     this.isGdprShowing = true;
 
-    // Ensure translations are loaded before showing
-    this.translate.get('gdpr.title').subscribe((translatedTitle) => {
-      this.gdprSubscription = this.alerts
-        .open(new PolymorpheusComponent(GdprNotificationComponent), {
-          label: translatedTitle,
-          appearance: 'info',
-          autoClose: 0,
-          closeable: false,
-        })
-        .subscribe({
-          complete: () => {
-            this.isGdprShowing = false;
-            this.gdprSubscription = undefined;
-          },
-          error: () => {
-            this.isGdprShowing = false;
-            this.gdprSubscription = undefined;
-          },
-        });
-    });
+    this.translate
+      .get('gdpr.title')
+      .pipe(
+        switchMap((translatedTitle) =>
+          this.alerts.open(
+            new PolymorpheusComponent(GdprNotificationComponent),
+            {
+              label: translatedTitle,
+              appearance: 'info',
+              autoClose: 0,
+              closeable: false,
+            },
+          ),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        complete: () => {
+          this.isGdprShowing = false;
+        },
+        error: () => {
+          this.isGdprShowing = false;
+        },
+      });
   }
 }

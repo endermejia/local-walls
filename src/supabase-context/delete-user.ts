@@ -96,7 +96,6 @@ Deno.serve(async (req: Request) => {
 
     // 2. Comprehensive table cleanup
     const tablesToClean = [
-      { table: 'user_roles', column: 'id' },
       { table: 'area_admins', column: 'user_id' },
       { table: 'area_likes', column: 'user_id' },
       { table: 'crag_likes', column: 'user_id' },

@@ -589,6 +589,7 @@
   "unlink": "Unlink",
   "undo": "Undo",
   "update": "Update",
+  "update_available": "A new version is available. Do you want to reload the page to apply it?",
   "uploadPhoto": "Upload photo",
   "user": "User",
   "userInfo": "Information",

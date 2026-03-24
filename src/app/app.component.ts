@@ -2,6 +2,7 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import {
   Component,
   computed,
+  DestroyRef,
   effect,
   inject,
   PLATFORM_ID,
@@ -10,7 +11,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Meta, Title } from '@angular/platform-browser';
 import { Router, RouterOutlet } from '@angular/router';
-
+import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { SeoService } from '../services/seo.service';
 import { Themes } from '../models';
 
@@ -21,7 +22,8 @@ import { DragDropModule, type CdkDragEnd } from '@angular/cdk/drag-drop';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { firstValueFrom, map, merge, startWith } from 'rxjs';
+import { filter, firstValueFrom, map, merge, startWith } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { GlobalData } from '../services/global-data';
 import { LocalStorage } from '../services/local-storage';
@@ -130,6 +132,8 @@ export class AppComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly doc = inject(DOCUMENT);
   private readonly seo = inject(SeoService);
+  private readonly swUpdate = inject(SwUpdate);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly gdprKey = 'lw_gdpr_accepted';
 
@@ -203,6 +207,32 @@ export class AppComponent {
         this.meta.updateTag({ name: 'theme-color', content: color });
       }
     });
+
+    if (isPlatformBrowser(this.platformId) && this.swUpdate.isEnabled) {
+      // Check for updates on navigation
+      effect(() => {
+        this.currentUrl(); // Dependency on url change
+        void this.swUpdate.checkForUpdate();
+      });
+
+      // Check for updates every 6 hours
+      const sixHours = 6 * 60 * 60 * 1000;
+      setInterval(() => {
+        void this.swUpdate.checkForUpdate();
+      }, sixHours);
+
+      // Reload when update is ready
+      this.swUpdate.versionUpdates
+        .pipe(
+          filter(
+            (evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY',
+          ),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe(() => {
+          this.notifications.showUpdateAvailable();
+        });
+    }
   }
 
   openChat() {

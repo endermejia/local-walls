@@ -3,11 +3,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   inject,
   PLATFORM_ID,
   signal,
   WritableSignal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -51,13 +53,13 @@ import { SupabaseService } from '../services/supabase.service';
 
 import { EmptyStateComponent } from '../components/empty-state';
 
-import { AppRole, AppRoles, AreaListItem } from '../models';
+import { AreaListItem } from '../models';
 
 interface UserWithRole {
   id: string;
   name: string | null;
   avatar: string | null;
-  role: AppRole;
+  is_admin: boolean;
   assignedAreas: AreaListItem[];
   areasControl: FormControl<AreaListItem[]>;
 }
@@ -99,13 +101,11 @@ interface UserWithRole {
         <h1 class="text-2xl font-bold flex items-center gap-2">
           <tui-badged-content [style.--tui-radius.%]="50">
             @if (users().length; as usersCount) {
-              <tui-badge-notification
-                tuiAppearance="accent"
-                size="s"
-                tuiSlot="top"
-              >
-                {{ usersCount }}
-              </tui-badge-notification>
+              <ng-container tuiSlot="top">
+                <tui-badge-notification tuiAppearance="accent" size="s">
+                  {{ usersCount }}
+                </tui-badge-notification>
+              </ng-container>
             }
             <tui-avatar
               tuiThumbnail
@@ -252,8 +252,7 @@ interface UserWithRole {
                       <input
                         tuiSelect
                         [disabled]="user.id === currentUserId()"
-                        [ngModel]="user.role"
-                        [ngModelOptions]="options"
+                        [ngModel]="user.is_admin"
                         (ngModelChange)="onRoleChange($event, user)"
                         autocomplete="off"
                       />
@@ -265,7 +264,7 @@ interface UserWithRole {
                     </tui-textfield>
                   </td>
                   <td *tuiCell="'areas'" tuiTd class="areas-column">
-                    @if (user.role !== 'admin') {
+                    @if (!user.is_admin) {
                       <tui-textfield
                         multi
                         tuiChevron
@@ -361,24 +360,24 @@ interface UserWithRole {
 export class AdminUsersListComponent {
   protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
 
-  protected readonly options = { updateOn: 'blur' } as const;
   protected readonly columns = computed(() => {
     const cols = ['user', 'role', 'areas'];
     return this.global.isMobile() ? cols.filter((c) => c !== 'areas') : cols;
   });
 
-  protected readonly roleOptions = [AppRoles.CLIMBER, AppRoles.ADMIN];
+  protected readonly roleOptions = [false, true];
 
   protected readonly stringifyRole = computed(() => {
     this.global.i18nTick();
     return (x: unknown): string => {
-      if (typeof x !== 'string') return String(x);
-      const key = `options.roles.${x}`;
+      const isAdmin = !!x;
+      const key = isAdmin ? 'options.roles.admin' : 'options.roles.climber';
       const tr = this.translate.instant(key);
-      return tr && tr !== key ? tr : x;
+      return tr && tr !== key ? tr : isAdmin ? 'Admin' : 'Climber';
     };
   });
 
@@ -388,7 +387,7 @@ export class AdminUsersListComponent {
   };
 
   protected readonly searchQuery = signal('');
-  protected readonly roleFilter = signal<AppRole | 'ALL'>('ALL');
+  protected readonly roleFilter = signal<boolean | 'ALL'>('ALL');
   protected readonly roleFilterOptions = ['ALL', ...this.roleOptions];
 
   protected readonly filteredUsers = computed(() => {
@@ -401,7 +400,7 @@ export class AdminUsersListComponent {
     }
 
     if (role !== 'ALL') {
-      list = list.filter((u) => u.role === role);
+      list = list.filter((u) => u.is_admin === role);
     }
 
     return list;
@@ -432,7 +431,7 @@ export class AdminUsersListComponent {
     tuiDefaultSort(a.name || '', b.name || '');
 
   protected roleSorter: TuiComparator<UserWithRole> = (a, b) =>
-    tuiDefaultSort(a.role || '', b.role || '');
+    tuiDefaultSort(String(a.is_admin), String(b.is_admin));
 
   protected onSortChange(sort: TuiTableSortChange<UserWithRole>): void {
     this.direction.set(sort.sortDirection);
@@ -462,11 +461,11 @@ export class AdminUsersListComponent {
       const areas = this.global.areaList();
       const areasMap = new Map(areas.map((a) => [a.id, a]));
 
-      // 2. Fetch user profiles
+      // 2. Fetch user profiles (including is_admin)
       const { data: profiles, error: profilesError } =
         await this.supabase.client
           .from('user_profiles')
-          .select('id, name, avatar');
+          .select('id, name, avatar, is_admin');
 
       if (profilesError) throw profilesError;
       if (!profiles) {
@@ -474,22 +473,11 @@ export class AdminUsersListComponent {
         return;
       }
 
-      // 3. Fetch all user roles
-      const { data: roles, error: rolesError } = await this.supabase.client
-        .from('user_roles')
-        .select('id, role');
-
-      if (rolesError) throw rolesError;
-
-      // 4. Fetch all area-admin mappings
+      // 3. Fetch all area-admin mappings
       const { data: mappings, error: mappingsError } =
         await this.supabase.client.from('area_admins').select('*');
 
       if (mappingsError) throw mappingsError;
-
-      const rolesMap = new Map(
-        (roles || []).map((r) => [r.id, r.role as AppRole]),
-      );
 
       const mappingsByEquipper = new Map<string, number[]>();
       (mappings || []).forEach((m) => {
@@ -505,15 +493,17 @@ export class AdminUsersListComponent {
           .filter((a): a is AreaListItem => !!a);
 
         const control = new FormControl(assignedAreas, { nonNullable: true });
-        control.valueChanges.subscribe((newAreas) => {
-          void this.onAreasChange(profile.id, newAreas);
-        });
+        control.valueChanges
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((newAreas) => {
+            void this.onAreasChange(profile.id, newAreas);
+          });
 
         return {
           id: profile.id,
           name: profile.name,
           avatar: profile.avatar,
-          role: rolesMap.get(profile.id) || AppRoles.CLIMBER,
+          is_admin: !!profile.is_admin,
           assignedAreas,
           areasControl: control,
         };
@@ -528,13 +518,13 @@ export class AdminUsersListComponent {
   }
 
   protected async onRoleChange(
-    newRole: AppRole,
+    isAdmin: boolean,
     user: UserWithRole,
   ): Promise<void> {
     try {
       const { error } = await this.supabase.client
-        .from('user_roles')
-        .update({ role: newRole })
+        .from('user_profiles')
+        .update({ is_admin: isAdmin })
         .eq('id', user.id);
 
       if (error) {
@@ -546,7 +536,7 @@ export class AdminUsersListComponent {
 
       // Update local state
       const updatedUsers = this.users().map((u) =>
-        u.id === user.id ? { ...u, role: newRole } : u,
+        u.id === user.id ? { ...u, is_admin: isAdmin } : u,
       );
       this.users.set(updatedUsers);
     } catch (e) {

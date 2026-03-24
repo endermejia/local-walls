@@ -4,7 +4,7 @@
     "schema_name": "public",
     "table_name": "area_admins",
     "for_command": "d",
-    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
     "with_check_expression": null
   },
   {
@@ -60,7 +60,7 @@
     "schema_name": "public",
     "table_name": "areas",
     "for_command": "d",
-    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
     "with_check_expression": null
   },
   {
@@ -133,7 +133,7 @@
     "schema_name": "public",
     "table_name": "crag_parkings",
     "for_command": "d",
-    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
     "with_check_expression": null
   },
   {
@@ -165,7 +165,7 @@
     "schema_name": "public",
     "table_name": "crags",
     "for_command": "d",
-    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
     "with_check_expression": null
   },
   {
@@ -237,7 +237,7 @@
     "schema_name": "public",
     "table_name": "equippers",
     "for_command": "d",
-    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
     "with_check_expression": null
   },
   {
@@ -389,7 +389,7 @@
     "schema_name": "public",
     "table_name": "parkings",
     "for_command": "d",
-    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
     "with_check_expression": null
   },
   {
@@ -501,7 +501,7 @@
     "schema_name": "public",
     "table_name": "route_equippers",
     "for_command": "d",
-    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
     "with_check_expression": null
   },
   {
@@ -581,7 +581,7 @@
     "schema_name": "public",
     "table_name": "routes",
     "for_command": "d",
-    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
     "with_check_expression": null
   },
   {
@@ -653,7 +653,7 @@
     "schema_name": "public",
     "table_name": "topo_routes",
     "for_command": "d",
-    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
     "with_check_expression": null
   },
   {
@@ -685,7 +685,7 @@
     "schema_name": "public",
     "table_name": "topos",
     "for_command": "d",
-    "using_expression": "(EXISTS ( SELECT 1 FROM user_roles ur WHERE ((ur.id = ( SELECT auth.uid() AS uid)) AND (ur.role = 'admin'::app_role))))",
+    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
     "with_check_expression": null
   },
   {
@@ -775,30 +775,6 @@
     "for_command": "w",
     "using_expression": "(( SELECT auth.uid() AS uid) = id)",
     "with_check_expression": "(( SELECT auth.uid() AS uid) = id)"
-  },
-  {
-    "policy_name": "admin_can_read",
-    "schema_name": "public",
-    "table_name": "user_roles",
-    "for_command": "r",
-    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "admin_can_update",
-    "schema_name": "public",
-    "table_name": "user_roles",
-    "for_command": "w",
-    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "own_user_can_read",
-    "schema_name": "public",
-    "table_name": "user_roles",
-    "for_command": "r",
-    "using_expression": "(( SELECT auth.uid() AS uid) = id)",
-    "with_check_expression": null
   },
   {
     "policy_name": "auth_can_read",

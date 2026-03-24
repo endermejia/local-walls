@@ -2057,6 +2057,7 @@ export interface Database {
           created_at: string | null;
           first_steps: boolean | null;
           id: string;
+          is_admin: boolean | null;
           language: Database['public']['Enums']['language'] | null;
           name: string;
           private: boolean | null;
@@ -2076,6 +2077,7 @@ export interface Database {
           created_at?: string | null;
           first_steps?: boolean | null;
           id?: string;
+          is_admin?: boolean | null;
           language?: Database['public']['Enums']['language'] | null;
           name: string;
           private?: boolean | null;
@@ -2095,6 +2097,7 @@ export interface Database {
           created_at?: string | null;
           first_steps?: boolean | null;
           id?: string;
+          is_admin?: boolean | null;
           language?: Database['public']['Enums']['language'] | null;
           name?: string;
           private?: boolean | null;
@@ -2146,21 +2149,6 @@ export interface Database {
             referencedColumns: ['id'];
           },
         ];
-      };
-      user_roles: {
-        Row: {
-          id: string;
-          role: Database['public']['Enums']['app_role'];
-        };
-        Insert: {
-          id?: string;
-          role: Database['public']['Enums']['app_role'];
-        };
-        Update: {
-          id?: string;
-          role?: Database['public']['Enums']['app_role'];
-        };
-        Relationships: [];
       };
     };
     Views: Record<never, never>;
@@ -2278,7 +2266,6 @@ export interface Database {
       };
     };
     Enums: {
-      app_role: 'admin' | 'equipper' | 'climber';
       ascent_type: 'os' | 'rp' | 'f' | 'attempt';
       climbing_kind: 'sport' | 'boulder' | 'trad' | 'multipitch' | 'mixed';
       language: 'es' | 'en';
@@ -2954,7 +2941,6 @@ export const Constants = {
   },
   public: {
     Enums: {
-      app_role: ['admin', 'equipper', 'climber'],
       ascent_type: ['os', 'rp', 'f', 'attempt'],
       climbing_kind: ['sport', 'boulder', 'trad', 'multipitch', 'mixed'],
       language: ['es', 'en'],

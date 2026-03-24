@@ -596,6 +596,7 @@
   "unlink": "Desvincular",
   "undo": "Deshacer",
   "update": "Actualizar",
+  "update_available": "Hay una nueva versión disponible. ¿Quieres recargar la página para aplicarla?",
   "uploadPhoto": "Subir foto",
   "user": "Usuario",
   "userInfo": "Información",
