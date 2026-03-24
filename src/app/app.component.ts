@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Meta, Title } from '@angular/platform-browser';
-import { Router, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { SeoService } from '../services/seo.service';
 import { Themes } from '../models';
@@ -210,16 +210,24 @@ export class AppComponent {
 
     if (isPlatformBrowser(this.platformId) && this.swUpdate.isEnabled) {
       // Check for updates on navigation
-      effect(() => {
-        this.currentUrl(); // Dependency on url change
-        void this.swUpdate.checkForUpdate();
-      });
+      this.router.events
+        .pipe(
+          filter((event) => event instanceof NavigationEnd),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe(() => {
+          this.swUpdate.checkForUpdate().catch((err) => {
+            console.error('Error checking for updates', err);
+          });
+        });
 
-      // Check for updates every 6 hours
-      const sixHours = 6 * 60 * 60 * 1000;
+      // Check for updates every hour
+      const oneHour = 60 * 60 * 1000;
       setInterval(() => {
-        void this.swUpdate.checkForUpdate();
-      }, sixHours);
+        this.swUpdate.checkForUpdate().catch((err) => {
+          console.error('Error checking for updates', err);
+        });
+      }, oneHour);
 
       // Reload when update is ready
       this.swUpdate.versionUpdates

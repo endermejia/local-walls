@@ -17,6 +17,7 @@ export class NotificationService {
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
   private isGdprShowing = false;
+  private isUpdateShowing = false;
 
   private show(
     message: string,
@@ -44,14 +45,21 @@ export class NotificationService {
   }
 
   showUpdateAvailable(): void {
-    void firstValueFrom(
+    if (this.isUpdateShowing) {
+      return;
+    }
+
+    this.isUpdateShowing = true;
+    firstValueFrom(
       this.alerts.open(new PolymorpheusComponent(UpdateNotificationComponent), {
         label: this.translate.instant('update_available'),
         appearance: 'info',
         autoClose: 0,
       }),
       { defaultValue: undefined },
-    );
+    ).finally(() => {
+      this.isUpdateShowing = false;
+    });
   }
 
   showGdpr(): void {
