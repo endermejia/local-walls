@@ -25,6 +25,7 @@ import { GlobalData } from '../services/global-data';
           [areaId]="context.data.areaId"
           [price]="context.data.price"
           [toposCount]="topos().length"
+          [hideTitle]="true"
         />
       </div>
 

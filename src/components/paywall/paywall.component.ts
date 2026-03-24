@@ -6,7 +6,7 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { TuiButton, TuiIcon, TuiLoader } from '@taiga-ui/core';
+import { TuiButton, TuiLoader, TuiAppearance } from '@taiga-ui/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SupabaseService } from '../../services/supabase.service';
 import { handleErrorToast } from '../../utils';
@@ -14,39 +14,41 @@ import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-paywall',
-  imports: [CommonModule, TuiButton, TuiIcon, TuiLoader, TranslatePipe],
+  imports: [CommonModule, TuiButton, TuiLoader, TranslatePipe, TuiAppearance],
   template: `
     <div
-      class="flex flex-col items-center justify-center p-6 bg-gray-50 dark:bg-gray-900 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-800 text-center gap-4"
+      class="flex flex-col items-center justify-center p-4 rounded-3xl border-2 border-dashed border-[var(--tui-border-normal)] text-center gap-4 sm:gap-6"
+      tuiAppearance="flat"
     >
-      <div class="flex items-center gap-4 w-full justify-center">
-        <div class="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-full shrink-0">
-          <tui-icon
-            icon="@tui.lock"
-            class="text-blue-600 dark:text-blue-400 size-6"
-          />
-        </div>
-        <h2 class="text-xl font-bold">
+      @if (!hideTitle()) {
+        <h2 class="text-xl sm:text-2xl font-bold px-2">
           {{ 'payments.buyAreaTopos' | translate }}
         </h2>
-      </div>
+      }
 
-      <p class="text-gray-500 text-sm max-w-sm px-4">
+      <p class="opacity-70 text-xs sm:text-sm max-w-sm px-2 sm:px-4">
         {{ 'payments.paywall.footer' | translate }}
       </p>
 
       <div
-        class="flex flex-wrap items-center gap-4 w-full max-w-sm justify-center px-4 mt-2"
+        class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full justify-center px-2 mt-1 sm:mt-2"
       >
-        <div class="text-3xl font-black">{{ price() | number: '1.2-2' }} €</div>
+        <div class="text-3xl sm:text-4xl font-black">
+          {{ price() | number: '1.2-2' }} €
+        </div>
 
-        <tui-loader [showLoader]="loading()" [overlay]="true">
+        <tui-loader
+          [showLoader]="loading()"
+          [overlay]="true"
+          class="w-full sm:w-auto"
+        >
           <button
             tuiButton
             appearance="primary"
-            size="m"
-            class="px-8"
+            size="l"
+            class="px-8 w-full sm:w-auto"
             (click.zoneless)="buyNow()"
+            [iconStart]="'@tui.shopping-bag'"
           >
             {{ 'payments.buy' | translate }}
           </button>
@@ -60,6 +62,7 @@ export class PaywallComponent {
   areaId = input.required<number>();
   price = input.required<number>();
   toposCount = input<number>(0);
+  hideTitle = input(false);
 
   loading = signal(false);
 

@@ -575,7 +575,7 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
                           </button>
                         } @empty {
                           <div class="col-span-full opacity-50">
-                            <app-empty-state icon="@tui.shopping-cart" />
+                            <app-empty-state icon="@tui.shopping-bag" />
                           </div>
                         }
                       }

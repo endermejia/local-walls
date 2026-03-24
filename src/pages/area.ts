@@ -178,7 +178,7 @@ import { AreaPaywallDialogComponent } from '../components/area-paywall-dialog';
                     size="m"
                     type="button"
                     (click.zoneless)="viewFirstTopo()"
-                    [iconStart]="global.iconSrc()('topo')"
+                    [iconStart]="'@tui.book-image'"
                   >
                     {{ 'topos' | translate }}
                   </button>
@@ -188,7 +188,7 @@ import { AreaPaywallDialogComponent } from '../components/area-paywall-dialog';
                     appearance="flat"
                     size="m"
                     type="button"
-                    [iconStart]="'@tui.lock'"
+                    [iconStart]="'@tui.shopping-bag'"
                     [disabled]="true"
                   >
                     <tui-loader [showLoader]="true" size="s"></tui-loader>
@@ -200,7 +200,7 @@ import { AreaPaywallDialogComponent } from '../components/area-paywall-dialog';
                     size="m"
                     type="button"
                     (click.zoneless)="buyTopo()"
-                    [iconStart]="'@tui.lock'"
+                    [iconStart]="'@tui.shopping-bag'"
                   >
                     {{ 'payments.buy' | translate }}
                   </button>
