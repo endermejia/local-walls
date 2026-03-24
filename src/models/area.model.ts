@@ -11,6 +11,7 @@ export type AreaListItem = Omit<
   'grades'
 > & {
   grades: AmountByEveryGrade;
+  topos_count: number;
 };
 // Area Likes
 export type AreaLikeDto = TableRow<'area_likes'>;
@@ -26,3 +27,15 @@ export type AreaAdminUpdateDto = TableUpdate<'area_admins'>;
 export type AreaAdminRequestDto = TableRow<'area_admin_requests'>;
 export type AreaAdminRequestInsertDto = TableInsert<'area_admin_requests'>;
 export type AreaAdminRequestUpdateDto = TableUpdate<'area_admin_requests'>;
+
+export interface AreaDetail extends Omit<AreaListItem, 'user_creator_id'> {
+  topos_count: number;
+  is_public: boolean;
+  price: number;
+  stripe_account_id: string | null;
+  purchased?: boolean;
+  user_creator_id: string | null;
+  eight_anu_crag_slugs: string[] | null;
+  created_at: string;
+  slug: string;
+}

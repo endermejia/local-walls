@@ -13,17 +13,19 @@ import {
 import { FormsModule } from '@angular/forms';
 import { form, FormField, required, submit } from '@angular/forms/signals';
 
+import { TuiInputChip, TuiCheckbox, TuiInputNumber } from '@taiga-ui/kit';
 import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { TuiInputChip } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { AreasService } from '../services/areas.service';
+import { GlobalData } from '../services/global-data';
 import { ToastService } from '../services/toast.service';
 
 import { handleErrorToast, slugify } from '../utils';
+import { CounterComponent } from '../components/counter';
 
 @Component({
   selector: 'app-area-form',
@@ -36,7 +38,10 @@ import { handleErrorToast, slugify } from '../utils';
     TuiLabel,
     TuiTextfield,
     TuiInputChip,
+    TuiCheckbox,
+    TuiInputNumber,
     TranslatePipe,
+    CounterComponent,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
@@ -85,6 +90,84 @@ import { handleErrorToast, slugify } from '../utils';
         </tui-textfield>
       }
 
+      <!-- Payments Section -->
+      @if (canEditPayments()) {
+        <div class="border-t pt-4 mt-2">
+          <h3 class="font-bold text-lg mb-2">
+            {{ 'payments.title' | translate }}
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+            <div class="flex flex-col gap-4">
+              <label tuiLabel class="flex items-center gap-2 cursor-pointer">
+                <input
+                  tuiCheckbox
+                  type="checkbox"
+                  [ngModel]="model().is_public"
+                  (ngModelChange)="onIsPublicChange($event)"
+                  name="is_public"
+                />
+                {{ 'payments.isPublic' | translate }}
+              </label>
+
+              <app-counter
+                label="payments.price"
+                suffix="€"
+                [step]="0.5"
+                [ngModel]="model().price"
+                (ngModelChange)="onPriceChange($event)"
+                name="price"
+                [hidden]="model().is_public"
+              />
+
+              <tui-textfield
+                [tuiTextfieldCleaner]="false"
+                [hidden]="model().is_public"
+              >
+                <label tuiLabel for="stripe-id">{{
+                  'payments.stripeAccountId' | translate
+                }}</label>
+                <input
+                  tuiTextfield
+                  id="stripe-id"
+                  [ngModel]="model().stripe_account_id"
+                  (ngModelChange)="onStripeAccountChange($event)"
+                  name="stripe_account_id"
+                  placeholder="acct_..."
+                  autocomplete="off"
+                />
+              </tui-textfield>
+            </div>
+
+            <div
+              class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg text-sm"
+              [hidden]="model().is_public"
+            >
+              <h4 class="font-bold mb-2">
+                {{ 'payments.tutorial.title' | translate }}
+              </h4>
+              <ol class="list-decimal list-inside space-y-1">
+                <li>
+                  {{ 'payments.tutorial.step1' | translate }}
+                  <a
+                    href="https://dashboard.stripe.com/register"
+                    target="_blank"
+                    class="text-blue-500 underline"
+                    >Stripe</a
+                  >
+                </li>
+                <li>{{ 'payments.tutorial.step2' | translate }}</li>
+                <li>{{ 'payments.tutorial.step3' | translate }}</li>
+                <li>{{ 'payments.tutorial.step4' | translate }}</li>
+              </ol>
+              <p class="mt-2 text-xs text-gray-500">
+                {{ 'payments.tutorial.footer' | translate }}
+              </p>
+            </div>
+          </div>
+        </div>
+      }
+
       <div class="flex flex-wrap gap-2 justify-end">
         <button
           tuiButton
@@ -96,9 +179,7 @@ import { handleErrorToast, slugify } from '../utils';
         </button>
         <button
           [disabled]="
-            areaForm.name().invalid() ||
-            (isEdit() && areaForm.slug().invalid()) ||
-            (!areaForm.name().dirty() && isEdit() && !areaForm.slug().dirty())
+            areaForm.name().invalid() || (isEdit() && areaForm.slug().invalid())
           "
           tuiButton
           appearance="primary"
@@ -114,6 +195,7 @@ import { handleErrorToast, slugify } from '../utils';
 })
 export class AreaFormComponent {
   private readonly areas = inject(AreasService);
+  private readonly global = inject(GlobalData);
   private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
   private readonly _dialogCtx: TuiDialogContext<
@@ -148,14 +230,29 @@ export class AreaFormComponent {
 
   readonly isEdit: Signal<boolean> = computed(() => !!this.effectiveAreaData());
 
+  readonly canEditPayments: Signal<boolean> = computed(() => {
+    const isAdmin = this.global.canEditAsAdmin() || this.global.isAdmin();
+    const areaId = this.editingId;
+    const isAreaAdmin = areaId
+      ? !!this.global.areaAdminPermissions()[areaId]
+      : false;
+    return isAdmin || isAreaAdmin;
+  });
+
   model = signal<{
     name: string;
     slug: string;
     eight_anu_crag_slugs: string[];
+    is_public: boolean;
+    price: number;
+    stripe_account_id: string | null;
   }>({
     name: '',
     slug: '',
     eight_anu_crag_slugs: [],
+    is_public: true,
+    price: 0,
+    stripe_account_id: null,
   });
 
   areaForm = form(this.model, (schemaPath) => {
@@ -174,7 +271,14 @@ export class AreaFormComponent {
       const data = this.effectiveAreaData();
       if (!data) return;
       this.editingId = data.id;
-      this.model.update((m) => ({ ...m, name: data.name, slug: data.slug }));
+      this.model.update((m) => ({
+        ...m,
+        name: data.name,
+        slug: data.slug,
+        is_public: true, // Default
+        price: 0,
+        stripe_account_id: null,
+      }));
 
       // Fetch full data to get eight_anu_crag_slugs if not provided in dialog data
       this.fetchFullAreaData(data.id);
@@ -187,6 +291,9 @@ export class AreaFormComponent {
       this.model.update((m) => ({
         ...m,
         eight_anu_crag_slugs: data.eight_anu_crag_slugs || [],
+        is_public: data.is_public ?? true,
+        price: data.price ?? 0,
+        stripe_account_id: data.stripe_account_id ?? null,
       }));
       this.areaForm().reset();
     }
@@ -204,6 +311,9 @@ export class AreaFormComponent {
             name,
             slug,
             eight_anu_crag_slugs,
+            is_public: this.model().is_public,
+            price: this.model().price,
+            stripe_account_id: this.model().stripe_account_id,
           }
         : { name, slug: slugify(name) };
       try {
@@ -236,5 +346,17 @@ export class AreaFormComponent {
 
   onSlugsChange(slugs: string[]): void {
     this.model.update((m) => ({ ...m, eight_anu_crag_slugs: slugs }));
+  }
+
+  onIsPublicChange(value: boolean): void {
+    this.model.update((m) => ({ ...m, is_public: value }));
+  }
+
+  onPriceChange(value: number | null): void {
+    this.model.update((m) => ({ ...m, price: value ?? 0 }));
+  }
+
+  onStripeAccountChange(value: string | null): void {
+    this.model.update((m) => ({ ...m, stripe_account_id: value }));
   }
 }

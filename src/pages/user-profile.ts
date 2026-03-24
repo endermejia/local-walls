@@ -21,6 +21,7 @@ import {
   TuiDataList,
   TuiDropdown,
   TuiFallbackSrcPipe,
+  TuiIcon,
   TuiLabel,
   TuiLink,
   TuiScrollbar,
@@ -103,6 +104,7 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
     TuiDropdown,
     TuiFallbackSrcPipe,
     TuiHeader,
+    TuiIcon,
     TuiLabel,
     TuiLink,
     TuiScrollbar,
@@ -521,6 +523,66 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
             }
             @case (3) {
               <div class="flex flex-col gap-8">
+                <!-- Purchased Areas -->
+                @if (isOwnProfile()) {
+                  <section class="grid gap-2">
+                    <header tuiHeader>
+                      <h3 tuiTitle>{{ 'purchasedAreas' | translate }}</h3>
+                    </header>
+                    <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
+                      @if (purchasedAreasResource.isLoading()) {
+                        @for (_ of [1, 2]; track $index) {
+                          <app-ascent-card-skeleton
+                            [showUser]="false"
+                            [showRoute]="false"
+                          />
+                        }
+                      } @else {
+                        @for (area of purchasedAreas(); track area.id) {
+                          <button
+                            class="p-6 rounded-3xl text-left"
+                            tuiAppearance="outline"
+                            (click.zoneless)="
+                              router.navigate(['/area', area.slug])
+                            "
+                          >
+                            <div class="flex flex-col min-w-0 grow">
+                              <header tuiHeader>
+                                <h2 tuiTitle>{{ area.name }}</h2>
+                              </header>
+                              <section
+                                class="flex items-center justify-between gap-2"
+                              >
+                                <div class="flex flex-col items-start">
+                                  <div class="text-xl">
+                                    {{ area.crags_count }}
+                                    {{
+                                      (area.crags_count === 1
+                                        ? 'crag'
+                                        : 'crags'
+                                      )
+                                        | translate
+                                        | lowercase
+                                    }}
+                                  </div>
+                                </div>
+                                <tui-icon
+                                  icon="@tui.check-badge"
+                                  class="text-blue-500"
+                                />
+                              </section>
+                            </div>
+                          </button>
+                        } @empty {
+                          <div class="col-span-full opacity-50">
+                            <app-empty-state icon="@tui.shopping-cart" />
+                          </div>
+                        }
+                      }
+                    </div>
+                  </section>
+                }
+
                 <!-- Liked Areas -->
                 <section class="grid gap-2">
                   <header tuiHeader>
@@ -1152,6 +1214,50 @@ export class UserProfileComponent {
       return data;
     },
   });
+
+  protected readonly purchasedAreasResource = resource({
+    params: () => this.profile()?.id,
+    loader: async ({ params: userId }) => {
+      if (!userId || !isPlatformBrowser(this.platformId)) return [];
+
+      const { data: purchases } = await this.supabase.client
+        .from('area_purchases')
+        .select('area_id')
+        .eq('user_id', userId);
+
+      const areaIds = purchases?.map((p) => p.area_id) || [];
+      if (!areaIds.length) return [];
+
+      const { data } = await this.supabase.client
+        .from('areas')
+        .select(
+          `
+        id, name, slug,
+        crags_count:crags(count)
+      `,
+        )
+        .in('id', areaIds);
+
+      return (data || []).map(
+        (item: {
+          id: number;
+          name: string;
+          slug: string;
+          crags_count: unknown;
+        }) => ({
+          id: item.id,
+          name: item.name,
+          slug: item.slug,
+          crags_count:
+            (item.crags_count as [{ count: number }])?.[0]?.count || 0,
+        }),
+      );
+    },
+  });
+
+  protected readonly purchasedAreas = computed(
+    () => this.purchasedAreasResource.value() ?? [],
+  );
 
   readonly profile = computed(() => {
     const paramId = this.id();

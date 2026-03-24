@@ -95,9 +95,7 @@ export type TopoInsertDto = TableInsert<'topos'>;
 export type TopoUpdateDto = TableUpdate<'topos'>;
 
 // User Profiles
-export type UserProfileDto = TableRow<'user_profiles'> & {
-  is_admin: boolean | null;
-};
+export type UserProfileDto = TableRow<'user_profiles'>;
 export type UserProfileInsertDto = TableInsert<'user_profiles'>;
 export type UserProfileUpdateDto = TableUpdate<'user_profiles'>;
 

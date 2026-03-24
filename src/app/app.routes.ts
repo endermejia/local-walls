@@ -50,6 +50,12 @@ export const routes: Routes = [
       import('../pages/area-list').then((m) => m.AreaListComponent),
   },
   {
+    path: 'area/redirect',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/area-redirect').then((m) => m.AreaRedirectComponent),
+  },
+  {
     path: 'area/:areaSlug',
     canMatch: [authGuard],
     loadComponent: () => import('../pages/area').then((m) => m.AreaComponent),

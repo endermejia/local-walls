@@ -25,6 +25,7 @@ import {
   TuiTitle,
 } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
   TUI_CONFIRM,
   TuiAvatar,
@@ -58,7 +59,9 @@ import {
 import { handleErrorToast, normalizeName } from '../utils';
 
 import { GradeComponent } from '../components/avatar-grade';
+import { AreaDetail } from '../models/area.model';
 import { SeoService } from '../services/seo.service';
+import { AreaPaywallDialogComponent } from '../components/area-paywall-dialog';
 
 @Component({
   selector: 'app-area',
@@ -147,21 +150,67 @@ import { SeoService } from '../services/seo.service';
             </app-section-header>
           </div>
 
-          <div class="mb-4 flex justify-between items-center gap-2">
-            <button
-              tuiButton
-              appearance="flat"
-              size="m"
-              type="button"
-              (click.zoneless)="viewOnMap()"
-              [iconStart]="'@tui.map-pin'"
-            >
-              {{ 'viewOnMap' | translate }}
-            </button>
+          <div class="mb-4 flex flex-wrap justify-between items-center gap-2">
+            <div class="flex gap-2">
+              <button
+                tuiButton
+                appearance="flat"
+                size="m"
+                type="button"
+                (click.zoneless)="viewOnMap()"
+                [iconStart]="'@tui.map-pin'"
+              >
+                {{ 'viewOnMap' | translate }}
+              </button>
+
+              @if (hasTopos()) {
+                @let details = areaDetail();
+                @let hasAccess =
+                  canEditAsAdmin ||
+                  canAreaAdmin ||
+                  details?.is_public ||
+                  details?.purchased;
+
+                @if (hasAccess) {
+                  <button
+                    tuiButton
+                    appearance="flat"
+                    size="m"
+                    type="button"
+                    (click.zoneless)="viewFirstTopo()"
+                    [iconStart]="global.iconSrc()('topo')"
+                  >
+                    {{ 'topos' | translate }}
+                  </button>
+                } @else if (areaDetailResource.isLoading()) {
+                  <button
+                    tuiButton
+                    appearance="flat"
+                    size="m"
+                    type="button"
+                    [iconStart]="'@tui.lock'"
+                    [disabled]="true"
+                  >
+                    <tui-loader [showLoader]="true" size="s"></tui-loader>
+                  </button>
+                } @else {
+                  <button
+                    tuiButton
+                    appearance="flat"
+                    size="m"
+                    type="button"
+                    (click.zoneless)="buyTopo()"
+                    [iconStart]="'@tui.lock'"
+                  >
+                    {{ 'payments.buy' | translate }}
+                  </button>
+                }
+              }
+            </div>
             <app-chart-routes-by-grade [grades]="area.grades" />
           </div>
 
-          <div class="flex items-center justify-between gap-2 mb-4">
+          <div class="flex items-center justify-between gap-2 mt-4">
             <div class="flex items-center w-full sm:w-auto gap-2">
               <tui-avatar
                 tuiThumbnail
@@ -311,26 +360,6 @@ import { SeoService } from '../services/seo.service';
             </div>
           }
 
-          @if (cragsCount() > 0) {
-            <div class="flex items-center w-full sm:w-auto gap-2 mt-4 mb-4">
-              <tui-avatar
-                tuiThumbnail
-                size="l"
-                [src]="global.iconSrc()('crag')"
-                class="self-center"
-                [attr.aria-label]="'crag' | translate"
-              />
-              <h2 class="text-2xl font-semibold">
-                {{ cragsCount() }}
-                {{
-                  (cragsCount() === 1 ? 'crag' : 'crags')
-                    | translate
-                    | lowercase
-                }}
-              </h2>
-            </div>
-          }
-
           <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
             @for (crag of crags(); track crag.slug) {
               <button
@@ -404,6 +433,23 @@ export class AreaComponent {
       this.selectedShade().length > 0
     );
   });
+
+  protected readonly hasTopos = computed(() => {
+    return (this.global.selectedArea()?.topos_count ?? 0) > 0;
+  });
+
+  protected readonly areaDetailResource = resource({
+    params: () => this.global.selectedArea()?.id,
+    loader: async ({ params: id }) => {
+      if (!id) return null;
+      const { data } = await this.areas.getById(id);
+      return data as AreaDetail | null;
+    },
+  });
+
+  protected readonly areaDetail = computed(() =>
+    this.areaDetailResource.value(),
+  );
 
   protected readonly routesResource = resource({
     params: () => {
@@ -502,6 +548,9 @@ export class AreaComponent {
 
   protected readonly crags = computed(() => this.filteredCrags());
   protected readonly cragsCount = computed(() => this.filteredCrags().length);
+  protected readonly areaToposCount = computed(() =>
+    this.crags().reduce((acc, c) => acc + (c.topos_count || 0), 0),
+  );
 
   constructor() {
     effect(() => {
@@ -674,5 +723,40 @@ export class AreaComponent {
     if (success) {
       this.global.pendingAdminRequestsResource.reload();
     }
+  }
+
+  viewFirstTopo(): void {
+    const topos = this.global.areaToposResource.value();
+    if (!topos || topos.length === 0) return;
+    const area = this.global.selectedArea();
+    if (!area) return;
+
+    // Find first topo crag
+    const firstTopo = topos[0];
+    void this.router.navigate([
+      '/area',
+      area.slug,
+      firstTopo.crag_slug,
+      'topo',
+      firstTopo.id,
+    ]);
+  }
+
+  buyTopo(): void {
+    const area = this.areaDetail();
+    if (!area) return;
+
+    void firstValueFrom(
+      this.dialogs.open(new PolymorpheusComponent(AreaPaywallDialogComponent), {
+        label: this.translate.instant('payments.buyCount', {
+          count: this.areaToposCount(),
+        }),
+        size: 'l',
+        data: {
+          areaId: area.id,
+          price: area.price,
+        },
+      }),
+    );
   }
 }

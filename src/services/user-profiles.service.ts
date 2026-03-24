@@ -13,6 +13,7 @@ import {
   RouteDto,
   UserProfileBasicDto,
   UserProfileDto,
+  UserProfileUpdateDto,
   UserPyramidSlotDto,
   UserPyramidSlotInsertDto,
 } from '../models';
@@ -81,7 +82,7 @@ export class UserProfilesService {
       const { error } = await this.supabase.client
         .from('user_profiles')
         .update({
-          ...updates,
+          ...(updates as UserProfileUpdateDto),
           updated_at: new Date().toISOString(),
         })
         .eq('id', userId);

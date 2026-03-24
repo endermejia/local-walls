@@ -2,299 +2,202 @@
   {
     "policy_name": "admin_can_delete",
     "schema_name": "public",
-    "table_name": "area_admins",
+    "table_name": "area_admin_requests",
     "for_command": "d",
     "using_expression": "is_user_admin(auth.uid())",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "admin_can_insert",
-    "schema_name": "public",
-    "table_name": "area_admins",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "is_user_admin(auth.uid())"
-  },
-  {
-    "policy_name": "admin_can_update",
-    "schema_name": "public",
-    "table_name": "area_admins",
-    "for_command": "w",
-    "using_expression": "is_user_admin(auth.uid())",
-    "with_check_expression": "is_user_admin(auth.uid())"
-  },
-  {
-    "policy_name": "auth_can_read",
-    "schema_name": "public",
-    "table_name": "area_admins",
-    "for_command": "r",
-    "using_expression": "true",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "own_user_can_delete",
-    "schema_name": "public",
-    "table_name": "area_likes",
-    "for_command": "d",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "own_user_can_insert",
-    "schema_name": "public",
-    "table_name": "area_likes",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
-  },
-  {
-    "policy_name": "own_user_can_read",
-    "schema_name": "public",
-    "table_name": "area_likes",
-    "for_command": "r",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "admin_can_delete",
-    "schema_name": "public",
-    "table_name": "areas",
-    "for_command": "d",
-    "using_expression": "is_user_admin(auth.uid())",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "admin_can_insert",
-    "schema_name": "public",
-    "table_name": "areas",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "is_user_admin(auth.uid())"
-  },
-  {
-    "policy_name": "admin_can_update",
-    "schema_name": "public",
-    "table_name": "areas",
-    "for_command": "w",
-    "using_expression": "is_user_admin(auth.uid())",
-    "with_check_expression": "is_user_admin(auth.uid())"
-  },
-  {
-    "policy_name": "auth_can_insert",
-    "schema_name": "public",
-    "table_name": "areas",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "(auth.uid() IS NOT NULL)"
-  },
-  {
-    "policy_name": "creator_can_update",
-    "schema_name": "public",
-    "table_name": "areas",
-    "for_command": "w",
-    "using_expression": "(auth.uid() = user_creator_id)",
-    "with_check_expression": "(auth.uid() = user_creator_id)"
-  },
-  {
-    "policy_name": "auth_can_read",
-    "schema_name": "public",
-    "table_name": "areas",
-    "for_command": "r",
-    "using_expression": "true",
-    "with_check_expression": null
-  },
-
-  {
-    "policy_name": "own_user_can_delete",
-    "schema_name": "public",
-    "table_name": "crag_likes",
-    "for_command": "d",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "own_user_can_insert",
-    "schema_name": "public",
-    "table_name": "crag_likes",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
-  },
-  {
-    "policy_name": "own_user_can_read",
-    "schema_name": "public",
-    "table_name": "crag_likes",
-    "for_command": "r",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "admin_can_delete",
-    "schema_name": "public",
-    "table_name": "crag_parkings",
-    "for_command": "d",
-    "using_expression": "is_user_admin(auth.uid())",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "admin_can_insert",
-    "schema_name": "public",
-    "table_name": "crag_parkings",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "is_user_admin(auth.uid())"
-  },
-  {
-    "policy_name": "admin_can_update",
-    "schema_name": "public",
-    "table_name": "crag_parkings",
-    "for_command": "w",
-    "using_expression": "is_user_admin(auth.uid())",
-    "with_check_expression": "is_user_admin(auth.uid())"
-  },
-  {
-    "policy_name": "auth_can_read",
-    "schema_name": "public",
-    "table_name": "crag_parkings",
-    "for_command": "r",
-    "using_expression": "true",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "admin_can_delete",
-    "schema_name": "public",
-    "table_name": "crags",
-    "for_command": "d",
-    "using_expression": "is_user_admin(auth.uid())",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "admin_can_insert",
-    "schema_name": "public",
-    "table_name": "crags",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "is_user_admin(auth.uid())"
-  },
-  {
-    "policy_name": "admin_can_update",
-    "schema_name": "public",
-    "table_name": "crags",
-    "for_command": "w",
-    "using_expression": "is_user_admin(auth.uid())",
-    "with_check_expression": "is_user_admin(auth.uid())"
-  },
-  {
-    "policy_name": "auth_can_insert",
-    "schema_name": "public",
-    "table_name": "crags",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "(auth.uid() IS NOT NULL)"
-  },
-  {
-    "policy_name": "creator_can_update",
-    "schema_name": "public",
-    "table_name": "crags",
-    "for_command": "w",
-    "using_expression": "(auth.uid() = user_creator_id)",
-    "with_check_expression": "(auth.uid() = user_creator_id)"
-  },
-  {
-    "policy_name": "auth_can_read",
-    "schema_name": "public",
-    "table_name": "crags",
-    "for_command": "r",
-    "using_expression": "true",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "equippers_can_delete",
-    "schema_name": "public",
-    "table_name": "crags",
-    "for_command": "d",
-    "using_expression": "( SELECT is_area_equipper(crags.area_id) AS is_area_equipper)",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "equippers_can_insert",
-    "schema_name": "public",
-    "table_name": "crags",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "( SELECT is_area_equipper(crags.area_id) AS is_area_equipper)"
-  },
-  {
-    "policy_name": "equippers_can_update",
-    "schema_name": "public",
-    "table_name": "crags",
-    "for_command": "w",
-    "using_expression": "( SELECT is_area_equipper(crags.area_id) AS is_area_equipper)",
-    "with_check_expression": "( SELECT is_area_equipper(crags.area_id) AS is_area_equipper)"
-  },
-  {
-    "policy_name": "admin_can_delete",
-    "schema_name": "public",
-    "table_name": "equippers",
-    "for_command": "d",
-    "using_expression": "is_user_admin(auth.uid())",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "admin_can_insert",
-    "schema_name": "public",
-    "table_name": "equippers",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "is_user_admin(auth.uid())"
-  },
-  {
-    "policy_name": "admin_can_update",
-    "schema_name": "public",
-    "table_name": "equippers",
-    "for_command": "w",
-    "using_expression": "is_user_admin(auth.uid())",
-    "with_check_expression": "is_user_admin(auth.uid())"
-  },
-  {
-    "policy_name": "auth_can_read",
-    "schema_name": "public",
-    "table_name": "equippers",
-    "for_command": "r",
-    "using_expression": "true",
     "with_check_expression": null
   },
   {
     "policy_name": "auth_can_insert",
     "schema_name": "public",
-    "table_name": "notifications",
+    "table_name": "area_admin_requests",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "true"
+    "with_check_expression": "(auth.uid()= user_id)"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "area_admin_requests",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
   },
   {
     "policy_name": "own_can_delete",
     "schema_name": "public",
-    "table_name": "notifications",
+    "table_name": "area_admin_requests",
     "for_command": "d",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "using_expression": "(auth.uid()= user_id)",
     "with_check_expression": null
   },
   {
-    "policy_name": "own_can_read",
+    "policy_name": "admin_can_delete",
     "schema_name": "public",
-    "table_name": "notifications",
-    "for_command": "r",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "table_name": "area_admins",
+    "for_command": "d",
+    "using_expression": "is_user_admin(auth.uid())",
     "with_check_expression": null
   },
   {
-    "policy_name": "own_can_update",
+    "policy_name": "admin_can_insert",
     "schema_name": "public",
-    "table_name": "notifications",
+    "table_name": "area_admins",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "area_admins",
     "for_command": "w",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
-    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+    "using_expression": "is_user_admin((SELECT auth.uid()AS uid))",
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "area_admins",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_delete",
+    "schema_name": "public",
+    "table_name": "area_likes",
+    "for_command": "d",
+    "using_expression": "((SELECT auth.uid()AS uid)= user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_insert",
+    "schema_name": "public",
+    "table_name": "area_likes",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "((SELECT auth.uid()AS uid)= user_id)"
+  },
+  {
+    "policy_name": "own_user_can_read",
+    "schema_name": "public",
+    "table_name": "area_likes",
+    "for_command": "r",
+    "using_expression": "((SELECT auth.uid()AS uid)= user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "Users can view their own area purchases",
+    "schema_name": "public",
+    "table_name": "area_purchases",
+    "for_command": "r",
+    "using_expression": "(auth.uid()= user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "areas",
+    "for_command": "d",
+    "using_expression": "is_user_admin(auth.uid())",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "areas",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "areas",
+    "for_command": "w",
+    "using_expression": "is_user_admin((SELECT auth.uid()AS uid))",
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
+  },
+  {
+    "policy_name": "auth_can_insert",
+    "schema_name": "public",
+    "table_name": "areas",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(auth.uid()IS NOT NULL)"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "areas",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "creator_can_update",
+    "schema_name": "public",
+    "table_name": "areas",
+    "for_command": "w",
+    "using_expression": "((auth.uid()= user_creator_id)OR is_user_admin(auth.uid()))",
+    "with_check_expression": "((auth.uid()= user_creator_id)OR is_user_admin(auth.uid()))"
+  },
+  {
+    "policy_name": "participants_can_insert",
+    "schema_name": "public",
+    "table_name": "chat_messages",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(is_chat_participant(room_id)AND(auth.uid()= sender_id)AND(NOT is_room_blocked(room_id, auth.uid())))"
+  },
+  {
+    "policy_name": "participants_can_read",
+    "schema_name": "public",
+    "table_name": "chat_messages",
+    "for_command": "r",
+    "using_expression": "is_chat_participant(room_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "recipient_can_update",
+    "schema_name": "public",
+    "table_name": "chat_messages",
+    "for_command": "w",
+    "using_expression": "(is_chat_participant(room_id)AND(auth.uid()<> sender_id))",
+    "with_check_expression": "(is_chat_participant(room_id)AND(auth.uid()<> sender_id))"
+  },
+  {
+    "policy_name": "sender_can_delete",
+    "schema_name": "public",
+    "table_name": "chat_messages",
+    "for_command": "d",
+    "using_expression": "(auth.uid()= sender_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_can_delete",
+    "schema_name": "public",
+    "table_name": "chat_participants",
+    "for_command": "d",
+    "using_expression": "(auth.uid()= user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "participants_can_read",
+    "schema_name": "public",
+    "table_name": "chat_participants",
+    "for_command": "r",
+    "using_expression": "((auth.uid()= user_id)OR is_chat_participant(room_id))",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "participants_can_delete",
+    "schema_name": "public",
+    "table_name": "chat_rooms",
+    "for_command": "d",
+    "using_expression": "is_chat_participant(id)",
+    "with_check_expression": null
   },
   {
     "policy_name": "participants_can_read",
@@ -313,76 +216,204 @@
     "with_check_expression": "is_chat_participant(id)"
   },
   {
-    "policy_name": "auth_can_insert",
+    "policy_name": "own_user_can_delete",
     "schema_name": "public",
-    "table_name": "chat_rooms",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "true"
-  },
-  {
-    "policy_name": "participants_can_delete",
-    "schema_name": "public",
-    "table_name": "chat_rooms",
+    "table_name": "crag_likes",
     "for_command": "d",
-    "using_expression": "is_chat_participant(id)",
+    "using_expression": "((SELECT auth.uid()AS uid)= user_id)",
     "with_check_expression": null
   },
   {
-    "policy_name": "participants_can_read",
+    "policy_name": "own_user_can_insert",
     "schema_name": "public",
-    "table_name": "chat_participants",
+    "table_name": "crag_likes",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "((SELECT auth.uid()AS uid)= user_id)"
+  },
+  {
+    "policy_name": "own_user_can_read",
+    "schema_name": "public",
+    "table_name": "crag_likes",
     "for_command": "r",
-    "using_expression": "((( SELECT auth.uid() AS uid) = user_id) OR is_chat_participant(room_id))",
+    "using_expression": "((SELECT auth.uid()AS uid)= user_id)",
     "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "crag_parkings",
+    "for_command": "d",
+    "using_expression": "is_user_admin(auth.uid())",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "crag_parkings",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "crag_parkings",
+    "for_command": "w",
+    "using_expression": "is_user_admin((SELECT auth.uid()AS uid))",
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "crag_parkings",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "d",
+    "using_expression": "is_user_admin(auth.uid())",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "w",
+    "using_expression": "is_user_admin((SELECT auth.uid()AS uid))",
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
   },
   {
     "policy_name": "auth_can_insert",
     "schema_name": "public",
-    "table_name": "chat_participants",
+    "table_name": "crags",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "true"
+    "with_check_expression": "(auth.uid()IS NOT NULL)"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "creator_can_update",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "w",
+    "using_expression": "((auth.uid()= user_creator_id)OR is_area_equipper(area_id)OR is_user_admin(auth.uid()))",
+    "with_check_expression": "((auth.uid()= user_creator_id)OR is_area_equipper(area_id)OR is_user_admin(auth.uid()))"
+  },
+  {
+    "policy_name": "equippers_can_delete",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "d",
+    "using_expression": "(SELECT is_area_equipper(crags.area_id)AS is_area_equipper)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "equippers_can_insert",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(SELECT is_area_equipper(crags.area_id)AS is_area_equipper)"
+  },
+  {
+    "policy_name": "equippers_can_update",
+    "schema_name": "public",
+    "table_name": "crags",
+    "for_command": "w",
+    "using_expression": "(SELECT is_area_equipper(crags.area_id)AS is_area_equipper)",
+    "with_check_expression": "(SELECT is_area_equipper(crags.area_id)AS is_area_equipper)"
+  },
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "equippers",
+    "for_command": "d",
+    "using_expression": "is_user_admin(auth.uid())",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "equippers",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "equippers",
+    "for_command": "w",
+    "using_expression": "is_user_admin((SELECT auth.uid()AS uid))",
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "equippers",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "actor_can_insert",
+    "schema_name": "public",
+    "table_name": "notifications",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(actor_id =(SELECT auth.uid()AS uid))"
   },
   {
     "policy_name": "own_can_delete",
     "schema_name": "public",
-    "table_name": "chat_participants",
+    "table_name": "notifications",
     "for_command": "d",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "using_expression": "((SELECT auth.uid()AS uid)= user_id)",
     "with_check_expression": null
   },
   {
-    "policy_name": "participants_can_read",
+    "policy_name": "own_can_read",
     "schema_name": "public",
-    "table_name": "chat_messages",
+    "table_name": "notifications",
     "for_command": "r",
-    "using_expression": "is_chat_participant(room_id)",
+    "using_expression": "((SELECT auth.uid()AS uid)= user_id)",
     "with_check_expression": null
   },
   {
-    "policy_name": "participants_can_insert",
+    "policy_name": "own_can_update",
     "schema_name": "public",
-    "table_name": "chat_messages",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "(is_chat_participant(room_id) AND (( SELECT auth.uid() AS uid) = sender_id) AND NOT is_room_blocked(room_id, auth.uid()))"
-  },
-  {
-    "policy_name": "sender_can_delete",
-    "schema_name": "public",
-    "table_name": "chat_messages",
-    "for_command": "d",
-    "using_expression": "(( SELECT auth.uid() AS uid) = sender_id)",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "recipient_can_update",
-    "schema_name": "public",
-    "table_name": "chat_messages",
+    "table_name": "notifications",
     "for_command": "w",
-    "using_expression": "(is_chat_participant(room_id) AND (( SELECT auth.uid() AS uid) <> sender_id))",
-    "with_check_expression": "(is_chat_participant(room_id) AND (( SELECT auth.uid() AS uid) <> sender_id))"
+    "using_expression": "(auth.uid()= user_id)",
+    "with_check_expression": "(auth.uid()= user_id)"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "storage",
+    "table_name": "objects",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
   },
   {
     "policy_name": "admin_can_delete",
@@ -398,15 +429,15 @@
     "table_name": "parkings",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "is_user_admin(auth.uid())"
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
   },
   {
     "policy_name": "admin_can_update",
     "schema_name": "public",
     "table_name": "parkings",
     "for_command": "w",
-    "using_expression": "is_user_admin(auth.uid())",
-    "with_check_expression": "is_user_admin(auth.uid())"
+    "using_expression": "is_user_admin((SELECT auth.uid()AS uid))",
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
   },
   {
     "policy_name": "auth_can_read",
@@ -415,6 +446,30 @@
     "for_command": "r",
     "using_expression": "true",
     "with_check_expression": null
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "route_ascent_comment_likes",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_can_delete",
+    "schema_name": "public",
+    "table_name": "route_ascent_comment_likes",
+    "for_command": "d",
+    "using_expression": "(auth.uid()= user_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_can_insert",
+    "schema_name": "public",
+    "table_name": "route_ascent_comment_likes",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(auth.uid()= user_id)"
   },
   {
     "policy_name": "auth_can_read",
@@ -429,7 +484,7 @@
     "schema_name": "public",
     "table_name": "route_ascent_comments",
     "for_command": "d",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "using_expression": "((SELECT auth.uid()AS uid)= user_id)",
     "with_check_expression": null
   },
   {
@@ -438,7 +493,7 @@
     "table_name": "route_ascent_comments",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+    "with_check_expression": "((SELECT auth.uid()AS uid)= user_id)"
   },
   {
     "policy_name": "auth_can_read",
@@ -453,7 +508,7 @@
     "schema_name": "public",
     "table_name": "route_ascent_likes",
     "for_command": "d",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "using_expression": "((SELECT auth.uid()AS uid)= user_id)",
     "with_check_expression": null
   },
   {
@@ -462,14 +517,14 @@
     "table_name": "route_ascent_likes",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+    "with_check_expression": "((SELECT auth.uid()AS uid)= user_id)"
   },
   {
     "policy_name": "auth_can_read",
     "schema_name": "public",
     "table_name": "route_ascents",
     "for_command": "r",
-    "using_expression": "((auth.uid() = user_id) OR (private_ascent = false AND is_profile_public(user_id) AND NOT has_ascent_blocking(auth.uid(), user_id)))",
+    "using_expression": "((auth.uid()= user_id)OR((private_ascent = false)AND is_profile_public(user_id)AND(NOT has_ascent_blocking(auth.uid(), user_id))))",
     "with_check_expression": null
   },
   {
@@ -477,7 +532,7 @@
     "schema_name": "public",
     "table_name": "route_ascents",
     "for_command": "d",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "using_expression": "((SELECT auth.uid()AS uid)= user_id)",
     "with_check_expression": null
   },
   {
@@ -486,15 +541,15 @@
     "table_name": "route_ascents",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+    "with_check_expression": "((SELECT auth.uid()AS uid)= user_id)"
   },
   {
     "policy_name": "own_user_can_update",
     "schema_name": "public",
     "table_name": "route_ascents",
     "for_command": "w",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
-    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+    "using_expression": "((SELECT auth.uid()AS uid)= user_id)",
+    "with_check_expression": "((SELECT auth.uid()AS uid)= user_id)"
   },
   {
     "policy_name": "admin_can_delete",
@@ -510,15 +565,15 @@
     "table_name": "route_equippers",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "is_user_admin(auth.uid())"
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
   },
   {
     "policy_name": "admin_can_update",
     "schema_name": "public",
     "table_name": "route_equippers",
     "for_command": "w",
-    "using_expression": "is_user_admin(auth.uid())",
-    "with_check_expression": "is_user_admin(auth.uid())"
+    "using_expression": "is_user_admin((SELECT auth.uid()AS uid))",
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
   },
   {
     "policy_name": "auth_can_read",
@@ -533,7 +588,7 @@
     "schema_name": "public",
     "table_name": "route_likes",
     "for_command": "d",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "using_expression": "((SELECT auth.uid()AS uid)= user_id)",
     "with_check_expression": null
   },
   {
@@ -542,14 +597,14 @@
     "table_name": "route_likes",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+    "with_check_expression": "((SELECT auth.uid()AS uid)= user_id)"
   },
   {
     "policy_name": "own_user_can_read",
     "schema_name": "public",
     "table_name": "route_likes",
     "for_command": "r",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "using_expression": "((SELECT auth.uid()AS uid)= user_id)",
     "with_check_expression": null
   },
   {
@@ -557,7 +612,7 @@
     "schema_name": "public",
     "table_name": "route_projects",
     "for_command": "d",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "using_expression": "((SELECT auth.uid()AS uid)= user_id)",
     "with_check_expression": null
   },
   {
@@ -566,14 +621,14 @@
     "table_name": "route_projects",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
+    "with_check_expression": "((SELECT auth.uid()AS uid)= user_id)"
   },
   {
     "policy_name": "own_user_can_read",
     "schema_name": "public",
     "table_name": "route_projects",
     "for_command": "r",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
+    "using_expression": "((SELECT auth.uid()AS uid)= user_id)",
     "with_check_expression": null
   },
   {
@@ -590,15 +645,15 @@
     "table_name": "routes",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "is_user_admin(auth.uid())"
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
   },
   {
     "policy_name": "admin_can_update",
     "schema_name": "public",
     "table_name": "routes",
     "for_command": "w",
-    "using_expression": "is_user_admin(auth.uid())",
-    "with_check_expression": "is_user_admin(auth.uid())"
+    "using_expression": "is_user_admin((SELECT auth.uid()AS uid))",
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
   },
   {
     "policy_name": "auth_can_insert",
@@ -606,23 +661,23 @@
     "table_name": "routes",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "(auth.uid() IS NOT NULL)"
+    "with_check_expression": "(auth.uid()IS NOT NULL)"
+  },
+  {
+    "policy_name": "auth_can_read",
+    "schema_name": "public",
+    "table_name": "routes",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
   },
   {
     "policy_name": "creator_can_update",
     "schema_name": "public",
     "table_name": "routes",
     "for_command": "w",
-    "using_expression": "(auth.uid() = user_creator_id)",
-    "with_check_expression": "(auth.uid() = user_creator_id)"
-  },
-  {
-    "policy_name": "auth_can_read",
-    "schema_name": "public",
-    "table_name": "routes",
-    "for_command": "r",
-    "using_expression": "true",
-    "with_check_expression": null
+    "using_expression": "((auth.uid()= user_creator_id)OR is_crag_equipper(crag_id)OR is_user_admin(auth.uid()))",
+    "with_check_expression": "((auth.uid()= user_creator_id)OR is_crag_equipper(crag_id)OR is_user_admin(auth.uid()))"
   },
   {
     "policy_name": "equippers_can_delete",
@@ -662,15 +717,15 @@
     "table_name": "topo_routes",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "is_user_admin(auth.uid())"
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
   },
   {
     "policy_name": "admin_can_update",
     "schema_name": "public",
     "table_name": "topo_routes",
     "for_command": "w",
-    "using_expression": "is_user_admin(auth.uid())",
-    "with_check_expression": "is_user_admin(auth.uid())"
+    "using_expression": "is_user_admin((SELECT auth.uid()AS uid))",
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
   },
   {
     "policy_name": "auth_can_read",
@@ -694,23 +749,15 @@
     "table_name": "topos",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "is_user_admin(auth.uid())"
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
   },
   {
     "policy_name": "admin_can_update",
     "schema_name": "public",
     "table_name": "topos",
     "for_command": "w",
-    "using_expression": "is_user_admin(auth.uid())",
-    "with_check_expression": "is_user_admin(auth.uid())"
-  },
-  {
-    "policy_name": "auth_can_read",
-    "schema_name": "public",
-    "table_name": "topos",
-    "for_command": "r",
-    "using_expression": "true",
-    "with_check_expression": null
+    "using_expression": "is_user_admin((SELECT auth.uid()AS uid))",
+    "with_check_expression": "is_user_admin((SELECT auth.uid()AS uid))"
   },
   {
     "policy_name": "equippers_can_delete",
@@ -735,6 +782,46 @@
     "for_command": "w",
     "using_expression": "is_crag_equipper(crag_id)",
     "with_check_expression": "is_crag_equipper(crag_id)"
+  },
+  {
+    "policy_name": "topos_access_policy",
+    "schema_name": "public",
+    "table_name": "topos",
+    "for_command": "r",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_delete",
+    "schema_name": "public",
+    "table_name": "user_blocks",
+    "for_command": "d",
+    "using_expression": "(auth.uid()= blocker_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_insert",
+    "schema_name": "public",
+    "table_name": "user_blocks",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "(auth.uid()= blocker_id)"
+  },
+  {
+    "policy_name": "own_user_can_read",
+    "schema_name": "public",
+    "table_name": "user_blocks",
+    "for_command": "r",
+    "using_expression": "(auth.uid()= blocker_id)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "own_user_can_update",
+    "schema_name": "public",
+    "table_name": "user_blocks",
+    "for_command": "w",
+    "using_expression": "(auth.uid()= blocker_id)",
+    "with_check_expression": null
   },
   {
     "policy_name": "auth_can_read",
@@ -749,7 +836,7 @@
     "schema_name": "public",
     "table_name": "user_follows",
     "for_command": "d",
-    "using_expression": "(user_id = ( SELECT auth.uid() AS uid))",
+    "using_expression": "(user_id =(SELECT auth.uid()AS uid))",
     "with_check_expression": null
   },
   {
@@ -758,7 +845,7 @@
     "table_name": "user_follows",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "((user_id = ( SELECT auth.uid() AS uid)) AND (user_id <> followed_user_id))"
+    "with_check_expression": "((user_id =(SELECT auth.uid()AS uid))AND(user_id <> followed_user_id))"
   },
   {
     "policy_name": "auth_can_read",
@@ -773,135 +860,23 @@
     "schema_name": "public",
     "table_name": "user_profiles",
     "for_command": "w",
-    "using_expression": "(auth.uid() = id)",
-    "with_check_expression": "((auth.uid() = id) AND (is_admin = ( SELECT user_profiles_1.is_admin FROM user_profiles user_profiles_1 WHERE (user_profiles_1.id = auth.uid()))))"
-  },
-  {
-    "policy_name": "auth_can_read",
-    "schema_name": "storage",
-    "table_name": "objects",
-    "for_command": "r",
-    "using_expression": "true",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "own_user_can_read",
-    "schema_name": "public",
-    "table_name": "user_blocks",
-    "for_command": "r",
-    "using_expression": "(auth.uid() = blocker_id)",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "own_user_can_insert",
-    "schema_name": "public",
-    "table_name": "user_blocks",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "(auth.uid() = blocker_id)"
-  },
-  {
-    "policy_name": "own_user_can_update",
-    "schema_name": "public",
-    "table_name": "user_blocks",
-    "for_command": "w",
-    "using_expression": "(auth.uid() = blocker_id)",
-    "with_check_expression": "(auth.uid() = blocker_id)"
-  },
-  {
-    "policy_name": "own_user_can_delete",
-    "schema_name": "public",
-    "table_name": "user_blocks",
-    "for_command": "d",
-    "using_expression": "(auth.uid() = blocker_id)",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "auth_can_read",
-    "schema_name": "public",
-    "table_name": "route_ascent_comment_likes",
-    "for_command": "r",
-    "using_expression": "(auth.uid() IS NOT NULL)",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "own_can_insert",
-    "schema_name": "public",
-    "table_name": "route_ascent_comment_likes",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
-  },
-  {
-    "policy_name": "own_can_delete",
-    "schema_name": "public",
-    "table_name": "route_ascent_comment_likes",
-    "for_command": "d",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
-    "with_check_expression": null
+    "using_expression": "(auth.uid()= id)",
+    "with_check_expression": "((auth.uid()= id)AND(is_admin =(SELECT user_profiles_1.is_admin FROM user_profiles user_profiles_1 WHERE(user_profiles_1.id = auth.uid()))))"
   },
   {
     "policy_name": "auth_can_read",
     "schema_name": "public",
     "table_name": "user_pyramid_slots",
     "for_command": "r",
-    "using_expression": "((( SELECT auth.uid() AS uid) = user_id) OR (EXISTS ( SELECT 1 FROM public.user_profiles up WHERE ((up.id = user_pyramid_slots.user_id) AND (up.private = false)))))",
+    "using_expression": "(((SELECT auth.uid()AS uid)= user_id)OR(EXISTS(SELECT 1 FROM user_profiles up WHERE((up.id = user_pyramid_slots.user_id)AND(up.private = false)))))",
     "with_check_expression": null
   },
   {
     "policy_name": "own_user_can_modify",
     "schema_name": "public",
     "table_name": "user_pyramid_slots",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
-  },
-  {
-    "policy_name": "own_user_can_modify",
-    "schema_name": "public",
-    "table_name": "user_pyramid_slots",
-    "for_command": "w",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
-    "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
-  },
-  {
-    "policy_name": "own_user_can_modify",
-    "schema_name": "public",
-    "table_name": "user_pyramid_slots",
-    "for_command": "d",
-    "using_expression": "(( SELECT auth.uid() AS uid) = user_id)",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "auth_can_insert",
-    "schema_name": "public",
-    "table_name": "area_admin_requests",
-    "for_command": "a",
-    "using_expression": null,
-    "with_check_expression": "(auth.uid() = user_id)"
-  },
-  {
-    "policy_name": "auth_can_read",
-    "schema_name": "public",
-    "table_name": "area_admin_requests",
-    "for_command": "r",
-    "using_expression": "true",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "own_can_delete",
-    "schema_name": "public",
-    "table_name": "area_admin_requests",
-    "for_command": "d",
-    "using_expression": "(auth.uid() = user_id)",
-    "with_check_expression": null
-  },
-  {
-    "policy_name": "admin_can_delete",
-    "schema_name": "public",
-    "table_name": "area_admin_requests",
-    "for_command": "d",
-    "using_expression": "is_user_admin(auth.uid())",
-    "with_check_expression": null
+    "for_command": "*",
+    "using_expression": "((SELECT auth.uid()AS uid)= user_id)",
+    "with_check_expression": "((SELECT auth.uid()AS uid)= user_id)"
   }
 ]

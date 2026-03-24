@@ -13,6 +13,7 @@ import {
   TuiAppearance,
   TuiButton,
   TuiLoader,
+  TuiNotification,
   TuiScrollbar,
   TuiTextfield,
   TuiTitle,
@@ -53,6 +54,7 @@ import {
     TuiButton,
     TuiHeader,
     TuiLoader,
+    TuiNotification,
     TuiScrollbar,
     TuiTextfield,
     TuiTitle,
@@ -86,6 +88,10 @@ import {
             <span>{{ 'nav.my-areas' | translate }}</span>
           </h1>
         </header>
+
+        <tui-notification size="m" class="my-4">
+          {{ 'myAreas.notification' | translate }}
+        </tui-notification>
 
         <div class="sticky top-0 z-10 py-4 flex items-end gap-2">
           <tui-textfield

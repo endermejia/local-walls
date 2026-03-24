@@ -15,6 +15,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 import type {
+  AreaDetail,
   AreaDto,
   AreaInsertDto,
   AreaListItem,
@@ -139,7 +140,7 @@ export class AreasService {
       .from('areas')
       .update(payload)
       .eq('id', id)
-      .select('*')
+      .select('*, is_public, price, stripe_account_id')
       .single();
     if (error) {
       console.error('[AreasService] update error', error);
@@ -155,10 +156,21 @@ export class AreasService {
     await this.supabase.whenReady();
     const { data, error } = await this.supabase.client
       .from('areas')
-      .select('*')
+      .select(
+        '*, is_public, price, stripe_account_id, purchased:area_purchases(id)',
+      )
       .eq('id', id)
       .single();
-    return { data: data as AreaDto, error };
+
+    if (data) {
+      const result = data as unknown as AreaDetail & {
+        purchased: { id: string }[] | boolean;
+      };
+      result.purchased =
+        Array.isArray(result.purchased) && result.purchased.length > 0;
+    }
+
+    return { data: data as unknown as AreaDetail | null, error };
   }
 
   async getAllAreasSimple(): Promise<

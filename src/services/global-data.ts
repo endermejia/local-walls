@@ -595,7 +595,7 @@ export class GlobalData {
       if (!isPlatformBrowser(this.platformId)) {
         return [] as AreaListItem[];
       }
-      const cacheKey = 'cached_areas_list_v1';
+      const cacheKey = 'cached_areas_list_v2';
       try {
         await this.supabase.whenReady();
         const { data, error } =
@@ -639,7 +639,7 @@ export class GlobalData {
       if (!isPlatformBrowser(this.platformId)) {
         return [] as CragListItem[];
       }
-      const cacheKey = `cached_crags_list_${areaSlug}_v1`;
+      const cacheKey = `cached_crags_list_${areaSlug}_v2`;
       try {
         await this.supabase.whenReady();
         const { data, error } = await this.supabase.client.rpc(
@@ -693,7 +693,7 @@ export class GlobalData {
       params: areaSlug,
     }): Promise<(TopoListItem & { crag_slug: string })[]> => {
       if (!areaSlug || !isPlatformBrowser(this.platformId)) return [];
-      const cacheKey = `cached_area_topos_${areaSlug}_v1`;
+      const cacheKey = `cached_area_topos_${areaSlug}_v2`;
       try {
         await this.supabase.whenReady();
         const { data, error } = await this.supabase.client
@@ -855,7 +855,7 @@ export class GlobalData {
     }): Promise<CragDetail | null> => {
       if (!cragSlug || !areaSlug) return null;
       if (!isPlatformBrowser(this.platformId)) return null;
-      const cacheKey = `cached_crag_detail_${areaSlug}_${cragSlug}_v1`;
+      const cacheKey = `cached_crag_detail_${areaSlug}_${cragSlug}_v2`;
       try {
         await this.supabase.whenReady();
         const userId = this.supabase.authUser()?.id;
@@ -866,7 +866,11 @@ export class GlobalData {
             *,
             eight_anu_sector_slugs,
             liked:crag_likes(id),
-            area: areas!inner ( id, name, slug, eight_anu_crag_slugs ),
+            area: areas!inner (
+              id, name, slug, eight_anu_crag_slugs,
+              is_public, price, stripe_account_id,
+              purchased:area_purchases(id)
+            ),
             crag_parkings (
               parking: parkings (*)
             ),

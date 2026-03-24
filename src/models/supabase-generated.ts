@@ -1213,29 +1213,73 @@ export interface Database {
           },
         ];
       };
+      area_purchases: {
+        Row: {
+          amount: number;
+          area_id: number;
+          created_at: string | null;
+          id: string;
+          stripe_session_id: string;
+          user_id: string;
+        };
+        Insert: {
+          amount: number;
+          area_id: number;
+          created_at?: string | null;
+          id?: string;
+          stripe_session_id: string;
+          user_id: string;
+        };
+        Update: {
+          amount?: number;
+          area_id?: number;
+          created_at?: string | null;
+          id?: string;
+          stripe_session_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'area_purchases_area_id_fkey';
+            columns: ['area_id'];
+            isOneToOne: false;
+            referencedRelation: 'areas';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       areas: {
         Row: {
           created_at: string;
           eight_anu_crag_slugs: string[] | null;
           id: number;
+          is_public: boolean | null;
           name: string;
+          price: number | null;
           slug: string;
+          stripe_account_id: string | null;
           user_creator_id: string | null;
         };
         Insert: {
           created_at?: string;
           eight_anu_crag_slugs?: string[] | null;
           id?: number;
+          is_public?: boolean | null;
           name: string;
+          price?: number | null;
           slug: string;
+          stripe_account_id?: string | null;
           user_creator_id?: string | null;
         };
         Update: {
           created_at?: string;
           eight_anu_crag_slugs?: string[] | null;
           id?: number;
+          is_public?: boolean | null;
           name?: string;
+          price?: number | null;
           slug?: string;
+          stripe_account_id?: string | null;
           user_creator_id?: string | null;
         };
         Relationships: [];

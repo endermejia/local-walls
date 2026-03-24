@@ -1,4 +1,4 @@
-import { AsyncPipe, isPlatformBrowser, LowerCasePipe } from '@angular/common';
+import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -26,7 +26,6 @@ import {
   TuiNotification,
   TuiScrollbar,
   TuiTextfield,
-  TuiTitle,
   TuiDropdown,
 } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
@@ -39,7 +38,6 @@ import {
   TuiPulse,
   type TuiConfirmData,
 } from '@taiga-ui/kit';
-import { TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
@@ -62,6 +60,7 @@ import { RoutesTableComponent } from '../components/routes-table';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TourHintComponent } from '../components/tour-hint';
 import { WeatherForecastComponent } from '../components/weather-forecast';
+import { PaywallComponent } from '../components/paywall/paywall.component';
 
 import {
   AmountByEveryGrade,
@@ -73,7 +72,6 @@ import {
   RouteDto,
   RouteWithExtras,
   SearchRouteItem,
-  type TopoListItem,
   PROJECT_GRADE_LABEL,
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
@@ -86,14 +84,12 @@ import {
   normalizeName,
 } from '../utils';
 
-import { TopoImagePipe } from '../pipes';
-
+import { TopoCardComponent } from '../components/topo-card';
 import { SeoService } from '../services/seo.service';
 
 @Component({
   selector: 'app-crag',
   imports: [
-    AsyncPipe,
     ChartRoutesByGradeComponent,
     EmptyStateComponent,
     GradeComponent,
@@ -103,7 +99,7 @@ import { SeoService } from '../services/seo.service';
     SectionHeaderComponent,
     TourHintComponent,
     WeatherForecastComponent,
-    TopoImagePipe,
+    PaywallComponent,
     TranslatePipe,
     TuiAppearance,
     TuiAvatar,
@@ -111,7 +107,6 @@ import { SeoService } from '../services/seo.service';
     TuiBadgedContent,
     TuiButton,
     TuiDataList,
-    TuiHeader,
     TuiIcon,
     TuiLabel,
     TuiLoader,
@@ -120,9 +115,9 @@ import { SeoService } from '../services/seo.service';
     TuiSwipe,
     TuiTabs,
     TuiTextfield,
-    TuiTitle,
     TuiDropdown,
     TuiPulse,
+    TopoCardComponent,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -528,71 +523,30 @@ import { SeoService } from '../services/seo.service';
                   }
                 </div>
                 <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
-                  @for (t of topos(); track t.id) {
-                    <button
-                      class="p-6 rounded-3xl"
-                      tuiAppearance="outline"
-                      (click.zoneless)="
-                        router.navigate([
-                          '/area',
-                          areaSlug(),
-                          cragSlug(),
-                          'topo',
-                          t.id,
-                        ])
-                      "
-                    >
-                      <div class="flex flex-col min-w-0 grow gap-2">
-                        <header tuiHeader>
-                          <h2 tuiTitle>{{ t.name }}</h2>
-                        </header>
-                        <section class="flex flex-col gap-2">
-                          @if (t.photo; as photo) {
-                            <img
-                              [src]="
-                                ({
-                                  path: photo,
-                                  version: global.topoPhotoVersion(),
-                                }
-                                  | topoImage
-                                  | async) || global.iconSrc()('topo')
-                              "
-                              alt="topo"
-                              class="w-full h-48 object-cover rounded shadow-sm"
-                              [attr.loading]="'lazy'"
-                              decoding="async"
-                            />
-                          }
-                          <div
-                            class="flex items-center justify-between gap-2 mt-auto"
-                          >
-                            <div
-                              class="flex items-center justify-between gap-2"
-                            >
-                              @let shade = getShadeInfo(t);
-                              <tui-icon
-                                [icon]="shade.icon"
-                                class="opacity-70 text-xl"
-                              />
-                              <span class="text-sm opacity-80">
-                                {{ shade.label | translate }}
-                                @if (t.shade_change_hour) {
-                                  · {{ 'filters.shade.changeAt' | translate }}
-                                  {{ t.shade_change_hour }}
-                                }
-                              </span>
-                            </div>
-                            <app-chart-routes-by-grade
-                              [grades]="t.grades"
-                              (click)="$event.stopPropagation()"
-                            />
-                          </div>
-                        </section>
+                  @if (
+                    c.is_public || c.purchased || canEditAsAdmin || canAreaAdmin
+                  ) {
+                    @for (t of topos(); track t.id) {
+                      <app-topo-card
+                        [topo]="t"
+                        (selected)="
+                          router.navigate([
+                            '/area',
+                            areaSlug(),
+                            cragSlug(),
+                            'topo',
+                            t.id,
+                          ])
+                        "
+                      />
+                    } @empty {
+                      <div class="col-span-full">
+                        <app-empty-state icon="@tui.image" />
                       </div>
-                    </button>
-                  } @empty {
+                    }
+                  } @else {
                     <div class="col-span-full">
-                      <app-empty-state icon="@tui.image" />
+                      <app-paywall [areaId]="c.area_id" [price]="c.price" />
                     </div>
                   }
                 </div>
@@ -1325,18 +1279,5 @@ export class CragComponent {
     if (isPlatformBrowser(this.platformId)) {
       window.open(url, '_blank', 'noopener,noreferrer');
     }
-  }
-
-  protected getShadeInfo(t: TopoListItem) {
-    if (t.shade_morning && t.shade_afternoon) {
-      return { icon: '@tui.eclipse', label: 'filters.shade.allDay' };
-    }
-    if (t.shade_morning) {
-      return { icon: '@tui.sunset', label: 'filters.shade.morning' };
-    }
-    if (t.shade_afternoon) {
-      return { icon: '@tui.sunrise', label: 'filters.shade.afternoon' };
-    }
-    return { icon: '@tui.sun', label: 'filters.shade.noShade' };
   }
 }

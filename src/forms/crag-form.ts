@@ -28,6 +28,7 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { CragsService } from '../services/crags.service';
+import { GlobalData } from '../services/global-data';
 import { MapService } from '../services/map.service';
 import { ToastService } from '../services/toast.service';
 
@@ -251,6 +252,7 @@ interface CragFormModel {
 export class CragFormComponent {
   protected readonly mapService = inject(MapService);
   private readonly crags = inject(CragsService);
+  private readonly global = inject(GlobalData);
   private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
   private readonly _dialogCtx: TuiDialogContext<
@@ -350,8 +352,6 @@ export class CragFormComponent {
         ...m,
         eight_anu_sector_slugs: data.eight_anu_sector_slugs || [],
       }));
-      // Note: Signal forms don't have a direct equivalent to markAsPristine yet natively in simple setup,
-      // but it handles initial vs dirty state well.
     }
   }
 
@@ -438,12 +438,6 @@ export class CragFormComponent {
       ),
     );
     if (result) {
-      this.cragForm.latitude().value.set(result.lat);
-      this.cragForm.longitude().value.set(result.lng);
-      // Wait, we can't directly mutate model.update if we want field to be dirty?
-      // Actually signal forms uses value.set to also mark dirty usually! But wait...
-      // Field level value set might not exist like that. If we update model, form fields get updated.
-      // Let's just update model.
       this.model.update((m) => ({
         ...m,
         latitude: result.lat,

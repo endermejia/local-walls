@@ -33,6 +33,10 @@ export type CragDetail = CragListItem &
     topos: TopoListItem[];
     eight_anu_crag_slugs?: string[] | null;
     eight_anu_sector_slugs?: string[] | null;
+    is_public: boolean;
+    price: number;
+    stripe_account_id: string | null;
+    purchased: boolean;
   };
 
 // Crags
@@ -52,9 +56,14 @@ export type CragParkingUpdateDto = TableUpdate<'crag_parkings'>;
 
 export type CragWithJoins = CragDto & {
   area: {
+    id: number;
     name: string;
     slug: string;
     eight_anu_crag_slugs: string[] | null;
+    is_public: boolean | null;
+    price: number | null;
+    stripe_account_id: string | null;
+    purchased: { id: string }[];
   } | null;
   crag_parkings: { parking: ParkingDto }[] | null;
   topos:
