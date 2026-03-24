@@ -121,6 +121,7 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
     <tui-scrollbar class="flex grow">
       <section
         (tuiSwipe)="onSwipe($event)"
+        (touchstart.zoneless)="lastTouchTarget = $event.target"
         class="w-full max-w-5xl mx-auto p-4 grid gap-4"
       >
         @let loading = !profile();
@@ -712,9 +713,18 @@ export class UserProfileComponent {
   protected dropdownOpen = signal(false);
   protected readonly followLoading = signal(false);
 
+  protected lastTouchTarget: EventTarget | null = null;
   protected readonly activeTab = this.global.profileActiveTab;
 
   protected onSwipe(event: TuiSwipeEvent): void {
+    if (
+      this.lastTouchTarget instanceof HTMLElement &&
+      (this.lastTouchTarget.closest('app-pyramid') ||
+        this.lastTouchTarget.closest('app-routes-table'))
+    ) {
+      return;
+    }
+
     const direction = event.direction;
     const currentIndex = this.activeTab();
     const maxIndex = this.isOwnProfile() ? 3 : 2;

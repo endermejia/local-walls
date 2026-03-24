@@ -128,6 +128,7 @@ import { SeoService } from '../services/seo.service';
     <tui-scrollbar class="flex grow">
       <section
         (tuiSwipe)="onSwipe($event)"
+        (touchstart.zoneless)="lastTouchTarget = $event.target"
         class="w-full max-w-5xl mx-auto p-4 flex flex-col min-h-full"
       >
         @let canEditAsAdmin = global.canEditAsAdmin();
@@ -788,7 +789,15 @@ export class CragComponent {
 
   protected readonly mapLocationUrl = mapLocationUrl;
 
+  protected lastTouchTarget: EventTarget | null = null;
   protected onSwipe(event: TuiSwipeEvent): void {
+    if (
+      this.lastTouchTarget instanceof HTMLElement &&
+      (this.lastTouchTarget.closest('app-pyramid') ||
+        this.lastTouchTarget.closest('app-routes-table'))
+    ) {
+      return;
+    }
     const direction = event.direction;
     const currentIndex = this.activeTabIndex();
     const maxIndex = this.visibleTabs().length - 1;
