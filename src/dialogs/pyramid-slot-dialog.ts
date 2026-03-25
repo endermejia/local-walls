@@ -32,6 +32,7 @@ export interface PyramidSlotDialogData {
   currentRouteId?: number | null;
   userId: string;
   year: number;
+  canDelete?: boolean;
 }
 
 @Component({
@@ -126,6 +127,7 @@ export interface PyramidSlotDialogData {
             appearance="secondary-destructive"
             size="m"
             class="w-full"
+            [disabled]="data.canDelete === false"
             (click)="selectRoute(null!)"
           >
             {{ 'pyramid.remove' | translate }}

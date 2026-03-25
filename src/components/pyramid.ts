@@ -125,13 +125,13 @@ export interface PyramidLevel {
                   [class.is-empty]="!slot.route_id"
                   [class.is-completed]="isCompleted(slot)"
                   [class.is-locked]="
-                    !isLoading() && !canModifySlot(level.level)
+                    !isLoading() && !canModifySlot(level.level, slot)
                   "
                   [tuiAppearance]="isCompleted(slot) ? 'positive' : 'neutral'"
                   [tuiAppearanceState]="
                     isLoading()
                       ? null
-                      : !canModifySlot(level.level)
+                      : !canModifySlot(level.level, slot)
                         ? 'disabled'
                         : isCompleted(slot)
                           ? 'active'
@@ -442,8 +442,9 @@ export class PyramidComponent implements AfterViewInit {
     return !!this.completedRoutesMap()[slot.route_id];
   }
 
-  canModifySlot(level: number): boolean {
+  canModifySlot(level: number, slot?: UserPyramidSlotDto): boolean {
     if (!this.isOwner()) return false;
+    if (slot?.route_id) return true;
     if (level === 1) return true;
 
     // Check if previous level has at least one slot filled
@@ -476,7 +477,7 @@ export class PyramidComponent implements AfterViewInit {
         | null;
     },
   ): void {
-    if (!this.canModifySlot(level)) {
+    if (!this.canModifySlot(level, slot)) {
       if (slot.route) {
         this.goToRoute(slot.route);
       }
@@ -489,6 +490,23 @@ export class PyramidComponent implements AfterViewInit {
     const expectedGrade =
       level === 1 ? undefined : topGrade ? topGrade - (level - 1) : undefined;
 
+    // Check if deleting this slot would break the pyramid structure.
+    // We cannot delete if:
+    // 1. We are deleting the last filled slot in the current level AND
+    // 2. The next level has at least one filled slot.
+    let canDelete = true;
+    if (slot.route_id) {
+      const currentLevelSlots = this.pyramidLevels().find((l) => l.level === level)?.slots || [];
+      const filledSlotsInCurrentLevel = currentLevelSlots.filter((s) => !!s.route_id).length;
+
+      const nextLevelSlots = this.pyramidLevels().find((l) => l.level === level + 1)?.slots || [];
+      const nextLevelHasFilledSlot = nextLevelSlots.some((s) => !!s.route_id);
+
+      if (filledSlotsInCurrentLevel === 1 && nextLevelHasFilledSlot) {
+        canDelete = false;
+      }
+    }
+
     this.dialogs
       .open<RouteDto | null>(
         new PolymorpheusComponent(PyramidSlotDialogComponent),
@@ -500,6 +518,7 @@ export class PyramidComponent implements AfterViewInit {
             currentRouteId: slot.route_id,
             userId: this.userId(),
             year: this.selectedYear(),
+            canDelete,
           },
           size: 's',
         },
