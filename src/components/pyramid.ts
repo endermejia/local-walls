@@ -457,12 +457,21 @@ export class PyramidComponent implements AfterViewInit {
     return this.userId() === this.supabase.authUserId();
   }
 
-  getExpectedGradeLabel(level: number): string {
-    const topLevelSlot = this.pyramidLevels().find((l) => l.level === 1)
-      ?.slots[0];
-    if (!topLevelSlot?.route) return '';
+  getDeducedTopGrade(): number | undefined {
+    const levels = this.pyramidLevels();
+    for (const l of levels) {
+      const filledSlot = l.slots.find((s) => !!s.route);
+      if (filledSlot?.route) {
+        return filledSlot.route.grade + (l.level - 1);
+      }
+    }
+    return undefined;
+  }
 
-    const topGrade = topLevelSlot.route.grade;
+  getExpectedGradeLabel(level: number): string {
+    const topGrade = this.getDeducedTopGrade();
+    if (!topGrade) return '';
+
     const expectedGrade = topGrade - (level - 1);
     const label = GRADE_NUMBER_TO_LABEL[expectedGrade as VERTICAL_LIFE_GRADES];
     return label || '';
@@ -484,18 +493,22 @@ export class PyramidComponent implements AfterViewInit {
       return;
     }
 
-    const topLevelSlot = this.pyramidLevels().find((l) => l.level === 1)
-      ?.slots[0];
-    const topGrade = topLevelSlot?.route?.grade;
-    const expectedGrade =
-      level === 1 ? undefined : topGrade ? topGrade - (level - 1) : undefined;
+    const deducedTopGrade = this.getDeducedTopGrade();
+    let expectedGrade = deducedTopGrade ? deducedTopGrade - (level - 1) : undefined;
+
+    // We only restrict expected grade selection if there's actually a route
+    // in the pyramid that establishes the baseline. If everything is empty,
+    // expectedGrade is undefined.
 
     // Check if deleting this slot would break the pyramid structure.
     // We cannot delete if:
-    // 1. We are deleting the last filled slot in the current level AND
-    // 2. The next level has at least one filled slot.
+    // 1. We are NOT level 1 AND
+    // 2. We are deleting the last filled slot in the current level AND
+    // 3. The next level has at least one filled slot.
+    // We CAN always delete level 1, but we'll be forced to replace it with
+    // the correctly deduced grade because expectedGrade will be set.
     let canDelete = true;
-    if (slot.route_id) {
+    if (slot.route_id && level > 1) {
       const currentLevelSlots = this.pyramidLevels().find((l) => l.level === level)?.slots || [];
       const filledSlotsInCurrentLevel = currentLevelSlots.filter((s) => !!s.route_id).length;
 

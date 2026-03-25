@@ -27,11 +27,15 @@ import { AscentType, RouteDto } from '../models';
 import { GradeComponent } from '../components/avatar-grade';
 import { AscentTypeComponent } from '../components/ascent-type';
 
+import { Router } from '@angular/router';
+
 export interface PyramidSlotDialogData {
   level: number;
   expectedGrade?: number;
   currentRouteId?: number | null;
-  currentRoute?: RouteDto | null;
+  currentRoute?:
+    | (RouteDto & { crag?: { slug: string; area?: { slug: string } } })
+    | null;
   isCompleted?: boolean;
   ascent?: { score: number; type: AscentType };
   userId: string;
@@ -74,15 +78,18 @@ export interface PyramidSlotDialogData {
 
       @if (data.currentRouteId && data.currentRoute) {
         <div
-          class="flex flex-col items-center gap-2 p-4 rounded-2xl border"
+          class="flex flex-col items-center gap-2 p-4 rounded-2xl border cursor-pointer transition-transform hover:scale-105"
           [class.bg-[var(--tui-status-positive-pale)]]="data.isCompleted"
           [class.border-[var(--tui-status-positive)]]="data.isCompleted"
           [class.bg-[var(--tui-background-neutral-1)]]="!data.isCompleted"
           [class.border-transparent]="!data.isCompleted"
+          tabindex="0"
+          (click)="goToRoute(data.currentRoute)"
+          (keydown.enter)="goToRoute(data.currentRoute)"
         >
           <div class="flex items-center gap-3 w-full justify-center">
             <app-grade [grade]="data.currentRoute.grade" />
-            <span class="font-bold text-lg truncate max-w-[200px]">{{ data.currentRoute.name }}</span>
+            <span class="font-bold text-lg truncate max-w-[200px] hover:underline">{{ data.currentRoute.name }}</span>
           </div>
 
           @if (data.isCompleted && data.ascent) {
@@ -174,6 +181,7 @@ export interface PyramidSlotDialogData {
 })
 export class PyramidSlotDialogComponent {
   private routesService = inject(RoutesService);
+  private router = inject(Router);
   context =
     inject<TuiDialogContext<RouteDto | null, PyramidSlotDialogData>>(
       POLYMORPHEUS_CONTEXT,
@@ -223,5 +231,18 @@ export class PyramidSlotDialogComponent {
 
   removeRoute(): void {
     this.context.completeWith(null);
+  }
+
+  goToRoute(
+    route: RouteDto & { crag?: { slug: string; area?: { slug: string } } },
+  ): void {
+    const areaSlug = route.crag?.area?.slug;
+    const cragSlug = route.crag?.slug;
+    const routeSlug = route.slug;
+
+    if (areaSlug && cragSlug && routeSlug) {
+      this.context.completeWith(undefined as unknown as null); // Dismiss without action
+      void this.router.navigate(['/area', areaSlug, cragSlug, routeSlug]);
+    }
   }
 }
