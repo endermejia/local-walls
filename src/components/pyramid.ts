@@ -156,7 +156,7 @@ export interface PyramidLevel {
                       >
                         <app-grade [grade]="slot.route.grade" [size]="'s'" />
                         <span
-                          class="text-[9px] font-bold truncate hidden sm:block w-full leading-tight uppercase opacity-80 hover:underline"
+                          class="text-[9px] font-bold truncate block w-full leading-tight uppercase opacity-80 hover:underline"
                           (click.zoneless)="
                             $event.stopPropagation(); goToRoute(slot.route!)
                           "
@@ -166,7 +166,7 @@ export interface PyramidLevel {
                         @if (isCompleted(slot)) {
                           @let ascent = completedRoutesMap()[slot.route_id!];
                           <div
-                            class="hidden sm:flex flex-col items-center gap-1 leading-none pt-1"
+                            class="flex flex-col items-center gap-1 leading-none pt-1"
                           >
                             <app-ascent-type
                               [type]="ascent.type"
