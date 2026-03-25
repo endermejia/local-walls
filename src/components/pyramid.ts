@@ -156,7 +156,7 @@ export interface PyramidLevel {
                       >
                         <app-grade [grade]="slot.route.grade" [size]="'s'" />
                         <span
-                          class="text-[9px] font-bold truncate block w-full leading-tight uppercase opacity-80 hover:underline"
+                          class="text-[9px] font-bold truncate hidden sm:block w-full leading-tight uppercase opacity-80 hover:underline"
                           (click.zoneless)="
                             $event.stopPropagation(); goToRoute(slot.route!)
                           "
@@ -166,7 +166,7 @@ export interface PyramidLevel {
                         @if (isCompleted(slot)) {
                           @let ascent = completedRoutesMap()[slot.route_id!];
                           <div
-                            class="flex flex-col items-center gap-1 leading-none pt-1"
+                            class="hidden sm:flex flex-col items-center gap-1 leading-none pt-1"
                           >
                             <app-ascent-type
                               [type]="ascent.type"
@@ -516,6 +516,9 @@ export class PyramidComponent implements AfterViewInit {
             level,
             expectedGrade,
             currentRouteId: slot.route_id,
+            currentRoute: slot.route,
+            isCompleted: this.isCompleted(slot),
+            ascent: slot.route_id ? this.completedRoutesMap()[slot.route_id] : undefined,
             userId: this.userId(),
             year: this.selectedYear(),
             canDelete,

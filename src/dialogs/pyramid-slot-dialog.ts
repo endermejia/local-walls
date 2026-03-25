@@ -22,14 +22,18 @@ import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { RoutesService } from '../services/routes.service';
-import { RouteDto } from '../models';
+import { AscentType, RouteDto } from '../models';
 
 import { GradeComponent } from '../components/avatar-grade';
+import { AscentTypeComponent } from '../components/ascent-type';
 
 export interface PyramidSlotDialogData {
   level: number;
   expectedGrade?: number;
   currentRouteId?: number | null;
+  currentRoute?: RouteDto | null;
+  isCompleted?: boolean;
+  ascent?: { score: number; type: AscentType };
   userId: string;
   year: number;
   canDelete?: boolean;
@@ -50,6 +54,7 @@ export interface PyramidSlotDialogData {
     TuiScrollbar,
     TuiTextfield,
     GradeComponent,
+    AscentTypeComponent,
   ],
   template: `
     <div class="flex flex-col gap-4 p-4 min-w-[320px] max-w-[400px]">
@@ -67,55 +72,79 @@ export interface PyramidSlotDialogData {
         }
       </div>
 
-      <!-- Search Field -->
-      <tui-textfield tuiTextfieldSize="m" [tuiTextfieldCleaner]="true">
-        <tui-icon tuiIconStart icon="@tui.search" />
-        <input
-          tuiTextfield
-          [ngModel]="searchQuery()"
-          (ngModelChange)="onSearchChange($event)"
-          [placeholder]="'search' | translate"
-          autocomplete="off"
-        />
-      </tui-textfield>
-
-      <!-- Results List -->
-      <tui-loader [overlay]="true" [showLoader]="loading()">
-        <tui-scrollbar class="max-h-[300px] -mx-2 px-2">
-          <div class="flex flex-col gap-2 mt-2">
-            @for (route of results(); track route.id) {
-              <div
-                class="flex items-center justify-between p-3 rounded-2xl bg-[var(--tui-background-neutral-1)] hover:bg-[var(--tui-background-neutral-2)] cursor-pointer transition-colors border border-transparent hover:border-[var(--tui-border-normal)]"
-                tabindex="0"
-                (click)="selectRoute(route)"
-                (keydown.enter)="selectRoute(route)"
-              >
-                <div class="flex items-center gap-3 min-w-0">
-                  <app-grade [grade]="route.grade" size="s" />
-                  <div class="flex flex-col min-w-0">
-                    <span class="font-bold truncate">{{ route.name }}</span>
-                    <span class="text-[10px] opacity-60 truncate">
-                      {{ getExtra(route)['crag_name'] }} /
-                      {{ getExtra(route)['area_name'] }}
-                    </span>
-                  </div>
-                </div>
-                <tui-icon icon="@tui.chevron-right" class="opacity-40" />
-              </div>
-            } @empty {
-              @if (searchQuery().length >= 2) {
-                <div class="p-8 text-center opacity-40 italic">
-                  {{ 'noResults' | translate }}
-                </div>
-              } @else {
-                <div class="p-8 text-center opacity-40 italic">
-                  {{ 'pyramid.startTyping' | translate }}
-                </div>
-              }
-            }
+      @if (data.currentRouteId && data.currentRoute) {
+        <div
+          class="flex flex-col items-center gap-2 p-4 rounded-2xl border"
+          [class.bg-[var(--tui-status-positive-pale)]]="data.isCompleted"
+          [class.border-[var(--tui-status-positive)]]="data.isCompleted"
+          [class.bg-[var(--tui-background-neutral-1)]]="!data.isCompleted"
+          [class.border-transparent]="!data.isCompleted"
+        >
+          <div class="flex items-center gap-3 w-full justify-center">
+            <app-grade [grade]="data.currentRoute.grade" />
+            <span class="font-bold text-lg truncate max-w-[200px]">{{ data.currentRoute.name }}</span>
           </div>
-        </tui-scrollbar>
-      </tui-loader>
+
+          @if (data.isCompleted && data.ascent) {
+            <div class="flex items-center gap-2 mt-2">
+              <app-ascent-type [type]="data.ascent.type" />
+              <span class="font-bold text-[var(--tui-status-positive)] text-sm">
+                +{{ data.ascent.score }} {{ 'points' | translate }}
+              </span>
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- Search Field -->
+        <tui-textfield tuiTextfieldSize="m" [tuiTextfieldCleaner]="true">
+          <tui-icon tuiIconStart icon="@tui.search" />
+          <input
+            tuiTextfield
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)"
+            [placeholder]="'search' | translate"
+            autocomplete="off"
+          />
+        </tui-textfield>
+
+        <!-- Results List -->
+        <tui-loader [overlay]="true" [showLoader]="loading()">
+          <tui-scrollbar class="max-h-[300px] -mx-2 px-2">
+            <div class="flex flex-col gap-2 mt-2">
+              @for (route of results(); track route.id) {
+                <div
+                  class="flex items-center justify-between p-3 rounded-2xl bg-[var(--tui-background-neutral-1)] hover:bg-[var(--tui-background-neutral-2)] cursor-pointer transition-colors border border-transparent hover:border-[var(--tui-border-normal)]"
+                  tabindex="0"
+                  (click)="selectRoute(route)"
+                  (keydown.enter)="selectRoute(route)"
+                >
+                  <div class="flex items-center gap-3 min-w-0">
+                    <app-grade [grade]="route.grade" size="s" />
+                    <div class="flex flex-col min-w-0">
+                      <span class="font-bold truncate">{{ route.name }}</span>
+                      <span class="text-[10px] opacity-60 truncate">
+                        {{ getExtra(route)['crag_name'] }} /
+                        {{ getExtra(route)['area_name'] }}
+                      </span>
+                    </div>
+                  </div>
+                  <tui-icon icon="@tui.chevron-right" class="opacity-40" />
+                </div>
+              } @empty {
+                @if (searchQuery().length >= 2) {
+                  <div class="p-8 text-center opacity-40 italic">
+                    {{ 'noResults' | translate }}
+                  </div>
+                } @else {
+                  <div class="p-8 text-center opacity-40 italic">
+                    {{ 'pyramid.startTyping' | translate }}
+                  </div>
+                }
+              }
+            </div>
+          </tui-scrollbar>
+        </tui-loader>
+      }
 
       <!-- Actions -->
       @if (data.currentRouteId) {
