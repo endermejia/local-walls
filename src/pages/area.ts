@@ -178,7 +178,7 @@ import { AreaPaywallDialogComponent } from '../components/area-paywall-dialog';
                     size="m"
                     type="button"
                     (click.zoneless)="viewFirstTopo()"
-                    [iconStart]="'@tui.book-image'"
+                    [iconStart]="'/image/topo.svg'"
                   >
                     {{ 'topos' | translate }}
                   </button>
