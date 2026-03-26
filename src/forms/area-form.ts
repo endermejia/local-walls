@@ -134,7 +134,7 @@ import { CounterComponent } from '../components/counter';
                   label="payments.price"
                   suffix="€"
                   [step]="0.5"
-                  [min]="0"
+                  [min]="0.5"
                   [max]="20"
                   [ngModel]="model().price"
                   (ngModelChange)="onPriceChange($event)"

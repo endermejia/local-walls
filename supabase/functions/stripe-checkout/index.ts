@@ -1,68 +1,79 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import Stripe from 'stripe';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type',
-};
+const ALLOWED_ORIGINS = [
+  'http://localhost:4200',
+  'https://climbeast.com',
+  'https://www.climbeast.com',
+  'https://local-walls.vercel.app',
+];
 
-serve(async (req) => {
+Deno.serve(async (req) => {
+  const origin = req.headers.get('origin') ?? '';
+  const corsHeaders: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    corsHeaders['Access-Control-Allow-Origin'] = origin;
+    corsHeaders['Access-Control-Allow-Methods'] = 'POST, OPTIONS';
+    corsHeaders['Access-Control-Allow-Headers'] =
+      'authorization, x-client-info, apikey, content-type';
+  }
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
+    if (!corsHeaders['Access-Control-Allow-Origin']) {
+      throw new Error(`Origin ${origin} not allowed`);
+    }
+
     const { area_id } = await req.json();
+    if (!area_id) throw new Error('area_id is required');
 
-    // 1. Initialize Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      },
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const authHeader = req.headers.get('Authorization')!;
 
-    // 2. Get user
+    // Cliente para verificar al usuario
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
     const {
       data: { user },
       error: userError,
     } = await supabaseClient.auth.getUser();
     if (userError || !user) throw new Error('Unauthorized');
 
-    // 3. Get area info
-    const { data: area, error: areaError } = await supabaseClient
+    // Cliente admin para leer el área (evitamos problemas de RLS aquí)
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+    const { data: area, error: areaError } = await supabaseAdmin
       .from('areas')
       .select('id, name, price, stripe_account_id')
       .eq('id', area_id)
       .single();
 
-    if (areaError || !area) throw new Error('Area not found');
+    if (areaError || !area) throw new Error(`Area not found (ID: ${area_id})`);
     if (!area.price || area.price <= 0)
-      throw new Error('Area is free or price not set');
+      throw new Error('Area price is not set or invalid');
+    if (area.price < 0.5)
+      throw new Error('Area price must be at least €0.50 (Stripe minimum)');
 
-    // 4. Initialize Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
       apiVersion: '2023-10-16',
       httpClient: Stripe.createFetchHttpClient(),
     });
 
-    const origin = req.headers.get('origin');
-
-    // 5. Create checkout session
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
             currency: 'eur',
-            product_data: {
-              name: `Topo: ${area.name}`,
-            },
+            product_data: { name: `Croquis: ${area.name}` },
             unit_amount: Math.round(area.price * 100),
           },
           quantity: 1,
@@ -72,31 +83,24 @@ serve(async (req) => {
       success_url: `${origin}/area/redirect?session_id={CHECKOUT_SESSION_ID}&area_id=${area.id}`,
       cancel_url: `${origin}/area/redirect?cancel=true&area_id=${area.id}`,
       customer_email: user.email,
-      metadata: {
-        area_id: area.id.toString(),
-        user_id: user.id,
-      },
+      metadata: { area_id: area.id.toString(), user_id: user.id },
     };
 
-    // Add transfer_data if stripe_account_id is present (Stripe Connect)
     if (area.stripe_account_id) {
       sessionConfig.payment_intent_data = {
-        application_fee_amount: 0, // We take no fee for now, or we could take one.
-        transfer_data: {
-          destination: area.stripe_account_id,
-        },
+        transfer_data: { destination: area.stripe_account_id },
       };
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
-
     return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: corsHeaders,
       status: 200,
     });
   } catch (error) {
+    console.error('[stripe-checkout] error:', error.message);
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: corsHeaders,
       status: 400,
     });
   }

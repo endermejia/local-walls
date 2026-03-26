@@ -1,46 +1,54 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import Stripe from 'stripe';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type',
-};
+const ALLOWED_ORIGINS = [
+  'http://localhost:4200',
+  'https://climbeast.com',
+  'https://www.climbeast.com',
+  'https://local-walls.vercel.app',
+];
 
-serve(async (req) => {
+Deno.serve(async (req) => {
+  const origin = req.headers.get('origin') ?? '';
+  const corsHeaders: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    corsHeaders['Access-Control-Allow-Origin'] = origin;
+    corsHeaders['Access-Control-Allow-Methods'] = 'POST, OPTIONS';
+    corsHeaders['Access-Control-Allow-Headers'] =
+      'authorization, x-client-info, apikey, content-type';
+  }
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
+    if (!corsHeaders['Access-Control-Allow-Origin']) {
+      throw new Error(`Origin ${origin} not allowed`);
+    }
+
     const { area_id } = await req.json();
+    if (!area_id) throw new Error('area_id is required');
 
-    // 1. Initialize Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      },
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const authHeader = req.headers.get('Authorization')!;
 
-    // 2. Get user
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
     const {
       data: { user },
       error: userError,
     } = await supabaseClient.auth.getUser();
     if (userError || !user) throw new Error('Unauthorized');
 
-    // 3. Get area info and check admin permissions
-    // Using admin client to query permissions as RLS might be complex
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    );
-
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+    // 1. Obtener área
     const { data: area, error: areaError } = await supabaseAdmin
       .from('areas')
       .select('id, name, stripe_account_id')
@@ -49,15 +57,14 @@ serve(async (req) => {
 
     if (areaError || !area) throw new Error('Area not found');
 
-    // 4. Permission Check: Only Area Admins or Global Admins
-    const { data: isAdmin, error: adminError } = await supabaseAdmin
+    // 2. Verificar permisos
+    const { data: isAdmin } = await supabaseAdmin
       .from('area_admins')
       .select('id')
       .eq('area_id', area_id)
       .eq('user_id', user.id)
       .maybeSingle();
 
-    // Check if user is global admin (you might have a different way to check this)
     const { data: profile } = await supabaseAdmin
       .from('user_profiles')
       .select('is_admin')
@@ -65,22 +72,47 @@ serve(async (req) => {
       .single();
 
     if (!isAdmin && !profile?.is_admin) {
-      throw new Error(
-        'You do not have permission to manage payments for this area',
-      );
+      throw new Error('No tienes permisos de administrador para esta área');
     }
 
-    // 5. Initialize Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
       apiVersion: '2023-10-16',
       httpClient: Stripe.createFetchHttpClient(),
     });
 
-    const origin = req.headers.get('origin');
     let stripeAccountId = area.stripe_account_id;
 
-    // 6. Create Connected Account if it doesn't exist
+    // 3. Verificar si la cuenta existe en Stripe
+    if (stripeAccountId) {
+      try {
+        await stripe.accounts.retrieve(stripeAccountId);
+        console.log(
+          '[stripe-onboarding] Cuenta de Stripe válida encontrada:',
+          stripeAccountId,
+        );
+      } catch (err) {
+        // Si Stripe dice que no existe (error 400), la marcamos como nula para crear una nueva
+        if (
+          err.raw?.code === 'resource_missing' ||
+          err.message.includes('No such account')
+        ) {
+          console.warn(
+            '[stripe-onboarding] La cuenta guardada ya no existe en Stripe, creando una nueva.',
+          );
+          stripeAccountId = null;
+        } else {
+          // Si es otro tipo de error de Stripe, sí lanzamos el error
+          throw err;
+        }
+      }
+    }
+
+    // 4. Crear cuenta si no existe (o si la anterior ya no era válida)
     if (!stripeAccountId) {
+      console.log(
+        '[stripe-onboarding] Creating new stripe account for area: ',
+        area.name,
+      );
       const account = await stripe.accounts.create({
         type: 'express',
         capabilities: {
@@ -88,26 +120,20 @@ serve(async (req) => {
           transfers: { requested: true },
         },
         business_profile: {
-          name: `Monetization: ${area.name}`,
+          name: `Monetización: ${area.name}`,
           product_description: `Croquis de escalada de la zona ${area.name}`,
         },
-        metadata: {
-          area_id: area_id.toString(),
-          user_id: user.id,
-        },
+        metadata: { area_id: area_id.toString(), user_id: user.id },
       });
       stripeAccountId = account.id;
 
-      // Save ID immediately in areas table
-      const { error: updateError } = await supabaseAdmin
+      await supabaseAdmin
         .from('areas')
         .update({ stripe_account_id: stripeAccountId })
         .eq('id', area_id);
-
-      if (updateError) throw updateError;
     }
 
-    // 7. Create Account Link for onboarding
+    // 5. Crear link de onboarding
     const accountLink = await stripe.accountLinks.create({
       account: stripeAccountId,
       refresh_url: `${origin}/area/redirect?onboarding_refresh=true&area_id=${area_id}`,
@@ -118,14 +144,14 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ url: accountLink.url, accountId: stripeAccountId }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: corsHeaders,
         status: 200,
       },
     );
   } catch (error) {
-    console.error('[stripe-onboarding] error:', error);
+    console.error('[stripe-onboarding] error:', error.message);
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: corsHeaders,
       status: 400,
     });
   }

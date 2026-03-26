@@ -140,7 +140,7 @@ export class AreasService {
       .from('areas')
       .update(payload)
       .eq('id', id)
-      .select('*, is_public, price, stripe_account_id')
+      .select('*')
       .single();
     if (error) {
       console.error('[AreasService] update error', error);
@@ -156,9 +156,7 @@ export class AreasService {
     await this.supabase.whenReady();
     const { data, error } = await this.supabase.client
       .from('areas')
-      .select(
-        '*, is_public, price, stripe_account_id, purchased:area_purchases(id)',
-      )
+      .select('*, purchased:area_purchases(id)')
       .eq('id', id)
       .single();
 
