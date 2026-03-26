@@ -663,19 +663,31 @@ export class AreasService {
       this.loading.set(false);
     }
   }
-  async connectStripe(areaId: number): Promise<{ url: string } | null> {
+  async connectStripe(
+    areaId: number,
+    stripeAccountId?: string,
+    forceNew?: boolean,
+  ): Promise<{
+    url?: string;
+    status?: string;
+    accounts?: { id: number; name: string; stripe_account_id: string }[];
+  } | null> {
     if (!isPlatformBrowser(this.platformId)) return null;
     await this.supabase.whenReady();
     try {
       const { data, error } = await this.supabase.client.functions.invoke(
         'stripe-onboarding',
         {
-          body: { area_id: areaId },
+          body: {
+            area_id: areaId,
+            stripe_account_id: stripeAccountId,
+            force_new: forceNew,
+          },
         },
       );
 
       if (error) throw error;
-      return data as { url: string };
+      return data;
     } catch (e) {
       console.error('[AreasService] connectStripe error', e);
       this.toast.error('payments.errorConnecting');

@@ -9,6 +9,8 @@ import {
   InputSignal,
   Signal,
   signal,
+  TemplateRef,
+  ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { form, FormField, required, submit } from '@angular/forms/signals';
@@ -21,6 +23,7 @@ import {
   TuiTextfield,
   TuiIcon,
   TuiLoader,
+  TuiDialogService,
 } from '@taiga-ui/core';
 import { type TuiDialogContext } from '@taiga-ui/experimental';
 import { injectContext } from '@taiga-ui/polymorpheus';
@@ -267,6 +270,52 @@ import { CounterComponent } from '../components/counter';
         </button>
       </div>
     </form>
+
+    <ng-template #accountDialog let-observer let-accounts="data">
+      <div class="flex flex-col gap-6">
+        <div class="flex flex-col gap-2">
+          <h2 class="text-xl font-bold">
+            {{ 'payments.selectAccountTitle' | translate }}
+          </h2>
+          <p class="opacity-60 text-sm">
+            {{ 'payments.selectAccountDescription' | translate }}
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          @for (acc of accounts; track acc.stripe_account_id) {
+            <button
+              tuiButton
+              appearance="secondary"
+              class="w-full text-start"
+              (click)="
+                observer.next(acc.stripe_account_id); observer.complete()
+              "
+            >
+              {{ 'payments.reuseAccount' | translate: { name: acc.name } }}
+            </button>
+          }
+          <div class="border-t my-2"></div>
+          <button
+            tuiButton
+            appearance="primary"
+            class="w-full"
+            (click)="observer.next('NEW'); observer.complete()"
+          >
+            {{ 'payments.createNewAccount' | translate }}
+          </button>
+        </div>
+
+        <button
+          tuiButton
+          appearance="flat"
+          (click)="observer.complete()"
+          class="w-full"
+        >
+          {{ 'cancel' | translate }}
+        </button>
+      </div>
+    </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block w-full' },
@@ -276,6 +325,9 @@ export class AreaFormComponent {
   private readonly global = inject(GlobalData);
   private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
+  private readonly dialogs = inject(TuiDialogService);
+  @ViewChild('accountDialog') accountDialogTemplate?: TemplateRef<unknown>;
+
   private readonly _dialogCtx: TuiDialogContext<
     string | boolean | null,
     { areaData?: { id: number; name: string; slug: string } }
@@ -441,15 +493,36 @@ export class AreaFormComponent {
     this.model.update((m) => ({ ...m, stripe_account_id: value }));
   }
 
-  async onConnectStripe(): Promise<void> {
+  async onConnectStripe(
+    stripeAccountId?: string,
+    forceNew?: boolean,
+  ): Promise<void> {
     const areaId = this.editingId;
     if (!areaId) return;
 
     this.connecting.set(true);
     try {
-      const data = await this.areas.connectStripe(areaId);
+      const data = await this.areas.connectStripe(
+        areaId,
+        stripeAccountId,
+        forceNew,
+      );
+
       if (data?.url) {
         window.location.href = data.url;
+      } else if (data?.status === 'multiple_accounts' && data.accounts) {
+        this.dialogs
+          .open<string>(this.accountDialogTemplate!, {
+            data: data.accounts,
+            size: 's',
+          })
+          .subscribe((choice) => {
+            if (choice === 'NEW') {
+              this.onConnectStripe(undefined, true);
+            } else if (choice) {
+              this.onConnectStripe(choice);
+            }
+          });
       }
     } finally {
       this.connecting.set(false);

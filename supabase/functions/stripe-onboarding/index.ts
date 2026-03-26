@@ -81,6 +81,40 @@ Deno.serve(async (req) => {
     });
 
     let stripeAccountId = area.stripe_account_id;
+    const { stripe_account_id: forcedAccountId, force_new } = await req
+      .json()
+      .catch(() => ({}));
+
+    // 2.5 Si la zona no tiene cuenta y no se ha forzado una, buscamos si tiene en otras
+    if (!stripeAccountId && !forcedAccountId && !force_new) {
+      const { data: otherAdminAreas } = await supabaseAdmin
+        .from('area_admins')
+        .select('id, area:areas(id, name, stripe_account_id)')
+        .eq('user_id', user.id)
+        .not('area.stripe_account_id', 'is', null);
+
+      const accounts = (otherAdminAreas || [])
+        .map((a) => a.area as any)
+        .filter(
+          (a, index, self) =>
+            a &&
+            index ===
+              self.findIndex(
+                (t) => t.stripe_account_id === a.stripe_account_id,
+              ),
+        );
+
+      if (accounts.length > 0) {
+        return new Response(
+          JSON.stringify({ status: 'multiple_accounts', accounts }),
+          { headers: corsHeaders, status: 200 },
+        );
+      }
+    }
+
+    if (forcedAccountId) {
+      stripeAccountId = forcedAccountId;
+    }
 
     // 3. Verificar si la cuenta existe en Stripe
     if (stripeAccountId) {
