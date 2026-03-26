@@ -44,3 +44,7 @@ Thumbs.db
 # Local Netlify folder
 .netlify
 
+# Local configurations and environment variables
+.env
+supabase/.env
+!supabase/.env.example

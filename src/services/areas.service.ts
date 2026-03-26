@@ -665,4 +665,23 @@ export class AreasService {
       this.loading.set(false);
     }
   }
+  async connectStripe(areaId: number): Promise<{ url: string } | null> {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    await this.supabase.whenReady();
+    try {
+      const { data, error } = await this.supabase.client.functions.invoke(
+        'stripe-onboarding',
+        {
+          body: { area_id: areaId },
+        },
+      );
+
+      if (error) throw error;
+      return data as { url: string };
+    } catch (e) {
+      console.error('[AreasService] connectStripe error', e);
+      this.toast.error('payments.errorConnecting');
+      return null;
+    }
+  }
 }

@@ -17,42 +17,54 @@ import { ToastService } from '../../services/toast.service';
   imports: [CommonModule, TuiButton, TuiLoader, TranslatePipe, TuiAppearance],
   template: `
     <div
-      class="flex flex-col items-center justify-center p-4 rounded-3xl border-2 border-dashed border-[var(--tui-border-normal)] text-center gap-4 sm:gap-6"
-      tuiAppearance="flat"
+      class="relative overflow-hidden flex flex-col items-center justify-center p-6 sm:p-10 rounded-[2rem] border border-[var(--tui-border-normal)] text-center gap-6 shadow-xl bg-[var(--tui-background-elevated)]"
     >
+      <!-- Fondo decorativo sutil -->
+      <div
+        class="absolute -top-24 -right-24 w-64 h-64 bg-primary/5 rounded-full blur-3xl"
+      ></div>
+      <div
+        class="absolute -bottom-24 -left-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl"
+      ></div>
+
       @if (!hideTitle()) {
-        <h2 class="text-xl sm:text-2xl font-bold px-2">
+        <h2
+          class="relative text-2xl sm:text-3xl font-black tracking-tight text-balance"
+        >
           {{ 'payments.buyAreaTopos' | translate }}
         </h2>
       }
 
-      <p class="opacity-70 text-xs sm:text-sm max-w-sm px-2 sm:px-4">
-        {{ 'payments.paywall.footer' | translate }}
-      </p>
-
-      <div
-        class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full justify-center px-2 mt-1 sm:mt-2"
-      >
-        <div class="text-3xl sm:text-4xl font-black">
-          {{ price() | number: '1.2-2' }} €
-        </div>
-
-        <tui-loader
-          [showLoader]="loading()"
-          [overlay]="true"
-          class="w-full sm:w-auto"
+      <div class="relative flex flex-col items-center gap-2">
+        <div
+          class="text-4xl sm:text-6xl font-black text-primary tracking-tighter tabular-nums"
         >
+          {{ price() | number: '1.2-2' }}€
+        </div>
+        <p
+          class="text-xs sm:text-sm font-medium opacity-60 uppercase tracking-widest"
+        >
+          {{ 'payments.price' | translate }}
+        </p>
+      </div>
+
+      <div class="relative w-full max-w-xs space-y-4">
+        <tui-loader [showLoader]="loading()" [overlay]="true">
           <button
             tuiButton
             appearance="primary"
             size="l"
-            class="px-8 w-full sm:w-auto"
-            (click.zoneless)="buyNow()"
-            [iconStart]="'@tui.shopping-bag'"
+            class="w-full !rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform"
+            (click.zoneless)="contributeNow()"
+            [iconStart]="'@tui.hand-heart'"
           >
             {{ 'payments.buy' | translate }}
           </button>
         </tui-loader>
+
+        <p class="text-[10px] sm:text-xs leading-relaxed opacity-50 px-4">
+          {{ 'payments.paywall.footer' | translate }}
+        </p>
       </div>
     </div>
   `,
@@ -69,7 +81,7 @@ export class PaywallComponent {
   private readonly supabase = inject(SupabaseService);
   private readonly toast = inject(ToastService);
 
-  async buyNow() {
+  async contributeNow() {
     this.loading.set(true);
     try {
       const { data, error } = await this.supabase.client.functions.invoke(

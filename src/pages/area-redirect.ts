@@ -26,21 +26,43 @@ export class AreaRedirectComponent {
 
   private async init() {
     const cragId = this.route.snapshot.queryParams['crag_id'];
+    const areaId = this.route.snapshot.queryParams['area_id'];
     const cancel = this.route.snapshot.queryParams['cancel'];
+
+    const onboardingSuccess =
+      this.route.snapshot.queryParams['onboarding_success'];
+    const onboardingRefresh =
+      this.route.snapshot.queryParams['onboarding_refresh'];
+
+    if (onboardingSuccess || onboardingRefresh) {
+      if (onboardingSuccess) {
+        this.toast.success('profile.saveSuccess');
+      }
+      if (areaId) {
+        void this.redirectToArea(areaId);
+      } else {
+        void this.router.navigate(['/home']);
+      }
+      return;
+    }
 
     if (cancel) {
       if (cragId) {
-        this.redirectToCrag(cragId);
+        void this.redirectToCrag(cragId);
+      } else if (areaId) {
+        void this.redirectToArea(areaId);
       } else {
-        this.router.navigate(['/home']);
+        void this.router.navigate(['/home']);
       }
       return;
     }
 
     if (cragId) {
       await this.redirectToCrag(cragId, true);
+    } else if (areaId) {
+      await this.redirectToArea(areaId, true);
     } else {
-      this.router.navigate(['/home']);
+      void this.router.navigate(['/home']);
     }
   }
 
@@ -55,13 +77,30 @@ export class AreaRedirectComponent {
       if (success) {
         this.toast.success('payments.purchased');
       }
-      this.router.navigate([
+      void this.router.navigate([
         '/area',
         (crag.area as unknown as { slug: string }).slug,
         crag.slug,
       ]);
     } else {
-      this.router.navigate(['/home']);
+      void this.router.navigate(['/home']);
+    }
+  }
+
+  private async redirectToArea(areaId: string, success = false) {
+    const { data: area } = await this.supabase.client
+      .from('areas')
+      .select('slug')
+      .eq('id', Number(areaId))
+      .single();
+
+    if (area) {
+      if (success) {
+        this.toast.success('payments.purchased');
+      }
+      void this.router.navigate(['/area', area.slug]);
+    } else {
+      void this.router.navigate(['/home']);
     }
   }
 }

@@ -182,27 +182,16 @@ import { AreaPaywallDialogComponent } from '../components/area-paywall-dialog';
                   >
                     {{ 'topos' | translate }}
                   </button>
-                } @else if (areaDetailResource.isLoading()) {
+                } @else if (!areaDetailResource.isLoading()) {
                   <button
                     tuiButton
-                    appearance="flat"
-                    size="m"
-                    type="button"
-                    [iconStart]="'@tui.shopping-bag'"
-                    [disabled]="true"
-                  >
-                    <tui-loader [showLoader]="true" size="s"></tui-loader>
-                  </button>
-                } @else {
-                  <button
-                    tuiButton
-                    appearance="flat"
+                    appearance="accent"
                     size="m"
                     type="button"
                     (click.zoneless)="buyTopo()"
-                    [iconStart]="'@tui.shopping-bag'"
+                    [iconStart]="'@tui.hand-heart'"
                   >
-                    {{ 'payments.buy' | translate }}
+                    {{ 'payments.getTopos' | translate }}
                   </button>
                 }
               }
@@ -467,10 +456,10 @@ export class AreaComponent {
         .from('routes')
         .select(
           `
-          id, 
-          name, 
-          slug, 
-          grade, 
+          id,
+          name,
+          slug,
+          grade,
           crag:crags!inner(id, name, slug)
         `,
         )

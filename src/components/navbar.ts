@@ -459,7 +459,7 @@ import { TourHintComponent } from './tour-hint';
                 class="flex items-center justify-between gap-4 p-2 w-full cursor-pointer hover:bg-[var(--tui-background-neutral-hover)] rounded-lg"
               >
                 <div class="flex items-center gap-2">
-                  <tui-icon icon="@tui.edit-2" />
+                  <tui-icon icon="@tui.pencil" />
                   {{ 'editingMode' | translate }}
                 </div>
                 <input
