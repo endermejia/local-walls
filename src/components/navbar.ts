@@ -4,6 +4,7 @@ import {
   Component,
   computed,
   inject,
+  input,
   signal,
   effect,
   ChangeDetectorRef,
@@ -131,8 +132,10 @@ import { TourHintComponent } from './tour-hint';
             alt="ClimBeast"
             [style.width.px]="40"
             [style.height.px]="40"
+            [class.rounded-full]="loading()"
             width="40"
             height="40"
+            [tuiSkeleton]="loading()"
           />
         </button>
 
@@ -148,6 +151,7 @@ import { TourHintComponent } from './tour-hint';
             [tuiAppearance]="
               home.isActive ? 'flat-destructive' : 'flat-grayscale'
             "
+            [tuiSkeleton]="loading()"
             class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full relative"
             (click)="scrollToTop($event)"
             [attr.aria-label]="'nav.home' | translate"
@@ -182,6 +186,7 @@ import { TourHintComponent } from './tour-hint';
             [tuiAppearance]="
               explore.isActive ? 'flat-destructive' : 'flat-grayscale'
             "
+            [tuiSkeleton]="loading()"
             class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full relative"
             [attr.aria-label]="'nav.explore' | translate"
           >
@@ -215,6 +220,7 @@ import { TourHintComponent } from './tour-hint';
             [tuiAppearance]="
               areas.isActive ? 'flat-destructive' : 'flat-grayscale'
             "
+            [tuiSkeleton]="loading()"
             class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full relative"
             [attr.aria-label]="'nav.areas' | translate"
           >
@@ -283,6 +289,7 @@ import { TourHintComponent } from './tour-hint';
               [tuiAppearance]="
                 searchExpanded() ? 'flat-destructive' : 'flat-grayscale'
               "
+              [tuiSkeleton]="loading()"
               class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer relative"
               (click)="searchOpen = true"
               [attr.aria-label]="'search' | translate"
@@ -346,6 +353,7 @@ import { TourHintComponent } from './tour-hint';
           <button
             type="button"
             tuiAppearance="flat-grayscale"
+            [tuiSkeleton]="loading()"
             class="hidden md:flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer relative"
             (click)="openChat()"
             [attr.aria-label]="'messages' | translate"
@@ -376,6 +384,7 @@ import { TourHintComponent } from './tour-hint';
           <button
             type="button"
             tuiAppearance="flat-grayscale"
+            [tuiSkeleton]="loading()"
             class="hidden md:flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer relative"
             (click)="openNotifications()"
             [attr.aria-label]="'notifications' | translate"
@@ -410,6 +419,7 @@ import { TourHintComponent } from './tour-hint';
             [tuiAppearance]="
               profile.isActive ? 'flat-destructive' : 'flat-grayscale'
             "
+            [tuiSkeleton]="loading()"
             class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full lg:mt-auto"
             [attr.aria-label]="'nav.profile' | translate"
           >
@@ -440,6 +450,7 @@ import { TourHintComponent } from './tour-hint';
             [tuiDropdown]="optionsDropdown"
             [(tuiDropdownOpen)]="configOpen"
             tuiDropdownDirection="top"
+            [tuiSkeleton]="loading()"
             [attr.aria-label]="'config' | translate"
           >
             <tui-icon icon="@tui.menu" />
@@ -511,6 +522,13 @@ import { TourHintComponent } from './tour-hint';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavbarComponent {
+  readonly isLoading = input<boolean>(false);
+  protected readonly loading = computed(
+    () =>
+      this.isLoading() ||
+      this.global.isNavLoading() ||
+      !this.global.userProfile(),
+  );
   protected global = inject(GlobalData);
   protected readonly tourService = inject(TourService);
   protected readonly TourStep = TourStep;

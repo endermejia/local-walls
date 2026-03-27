@@ -86,6 +86,7 @@ export class GlobalData {
 
   // Loading/Status state
   readonly error: WritableSignal<string | null> = signal(null);
+  readonly isNavLoading: WritableSignal<boolean> = signal(false);
 
   // ---- Topo photo version for cache busting ----
   readonly topoPhotoVersion: WritableSignal<number> = signal(0);

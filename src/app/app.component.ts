@@ -13,6 +13,7 @@ import { Meta, Title } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { SeoService } from '../services/seo.service';
+import { SupabaseService } from '../services/supabase.service';
 import { Themes } from '../models';
 
 import { TuiAppearance, TuiButton, TuiRoot } from '@taiga-ui/core';
@@ -152,12 +153,14 @@ export class AppComponent {
     y: 0,
   });
   protected dragging = false;
+  private readonly supabase = inject(SupabaseService);
 
   protected showHeader = computed(() => {
     const url = this.currentUrl();
     const profile = this.global.userProfile();
+    const hasSession = !!this.supabase.session();
     return (
-      profile &&
+      (profile || hasSession) &&
       url !== '/login' &&
       url !== '/signup' &&
       !url?.startsWith('/reset-password')

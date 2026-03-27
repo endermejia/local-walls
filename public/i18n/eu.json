@@ -467,6 +467,7 @@
   "payments.payToSee": "Lagundu tokiko ekipaitzaileei",
   "payments.paywall.footer": "Zure ordainketaren %100 eremu honetako ekipaitzaileentzat da, eremua mantentzeko. ClimBeast-ek ez du komisiorik kobratzen.",
   "payments.price": "eremuko krokis guztiengatik",
+  "payments.priceHelp": "Gutxieneko prezioa: 2,00€. Stripek 0,25€ + %1,5-eko komisioa kobratzen du transakzio bakoitzeko.",
   "payments.purchased": "Desblokeatuta",
   "payments.reconnectStripe": "Kudeatu Stripe-n",
   "payments.stripeAccountId": "Stripe kontuaren IDa",

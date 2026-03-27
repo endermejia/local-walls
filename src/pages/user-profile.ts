@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   effect,
   inject,
   input,
@@ -712,7 +713,6 @@ export class UserProfileComponent {
 
   protected dropdownOpen = signal(false);
   protected readonly followLoading = signal(false);
-
   protected lastTouchTarget: EventTarget | null = null;
   protected readonly activeTab = this.global.profileActiveTab;
 
@@ -1013,6 +1013,19 @@ export class UserProfileComponent {
   }
 
   constructor() {
+    const destroyRef = inject(DestroyRef);
+    effect(
+      () => {
+        const isLoading = this.loading();
+        this.global.isNavLoading.set(isLoading);
+      },
+      { allowSignalWrites: true },
+    );
+
+    destroyRef.onDestroy(() => {
+      this.global.isNavLoading.set(false);
+    });
+
     effect(() => {
       // Re-fetch followed IDs whenever the global follow state changes
       this.followsService.followChange();

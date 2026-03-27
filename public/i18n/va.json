@@ -467,6 +467,7 @@
   "payments.payToSee": "Recolza els equipadors locals",
   "payments.paywall.footer": "El 100% del teu pagament va directament als equipadors d'aquesta zona per al seu manteniment. ClimBeast no cobra cap comissió per aquesta transacció.",
   "payments.price": "per tots els croquis de l'àrea",
+  "payments.priceHelp": "Preu mínim: 2,00€. Stripe aplica una comissió de 0,25€ + 1,5% per transacció.",
   "payments.purchased": "Desbloquejat",
   "payments.reconnectStripe": "Gestionar en Stripe",
   "payments.stripeAccountId": "ID de compte de Stripe",

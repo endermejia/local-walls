@@ -59,8 +59,10 @@ Deno.serve(async (req) => {
     if (areaError || !area) throw new Error(`Area not found (ID: ${area_id})`);
     if (!area.price || area.price <= 0)
       throw new Error('Area price is not set or invalid');
-    if (area.price < 0.5)
-      throw new Error('Area price must be at least €0.50 (Stripe minimum)');
+    if (area.price < 2)
+      throw new Error(
+        'Area price must be at least €2.00 (Stripe processing minimum)',
+      );
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
       apiVersion: '2023-10-16',

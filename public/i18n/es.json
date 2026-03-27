@@ -467,6 +467,7 @@
   "payments.payToSee": "Apoya a los equipadores locales",
   "payments.paywall.footer": "El 100% de tu pago va directamente a los equipadores de esta zona para su mantenimiento. ClimBeast no cobra ninguna comisión por esta transacción.",
   "payments.price": "por todos los croquis del área",
+  "payments.priceHelp": "Precio mínimo: 2,00€. Stripe aplica una comisión de 0,25€ + 1,5% por transacción.",
   "payments.purchased": "Desbloqueado",
   "payments.reconnectStripe": "Gestionar en Stripe",
   "payments.stripeAccountId": "ID de cuenta de Stripe",

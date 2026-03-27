@@ -137,12 +137,15 @@ import { CounterComponent } from '../components/counter';
                   label="payments.price"
                   suffix="€"
                   [step]="0.5"
-                  [min]="0.5"
+                  [min]="2"
                   [max]="20"
                   [ngModel]="model().price"
                   (ngModelChange)="onPriceChange($event)"
                   name="price"
                 />
+                <p class="text-[10px] opacity-60 mt-1">
+                  {{ 'payments.priceHelp' | translate }}
+                </p>
 
                 <div class="flex flex-col gap-3">
                   <span
