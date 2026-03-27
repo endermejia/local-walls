@@ -107,6 +107,7 @@ import {
 } from '../models';
 
 import { FirstStepsDialogComponent } from '../dialogs/first-steps-dialog';
+import { PurchaseHistoryDialogComponent } from '../dialogs/purchase-history-dialog';
 
 interface Country {
   id: string;
@@ -762,6 +763,21 @@ interface Country {
         <div
           class="flex flex-col sm:flex-row items-center sm:justify-between gap-4 mt-8 border-t border-[var(--tui-border-normal)] pt-8"
         >
+          <button
+            tuiButton
+            appearance="outline"
+            type="button"
+            size="m"
+            class="w-full sm:w-auto group"
+            (click)="openPurchaseHistoryDialog()"
+          >
+            <tui-icon
+              icon="@tui.receipt"
+              class="mr-2 group-hover:scale-110 transition-transform"
+            />
+            {{ 'purchaseHistory.view' | translate }}
+          </button>
+
           <button
             tuiButton
             appearance="flat-destructive"
@@ -1508,6 +1524,14 @@ export class UserProfileConfigComponent {
     this.model.update((m) => ({ ...m, deleteEmail: '' }));
     this.dialogs
       .open(template, {
+        size: 'm',
+      })
+      .subscribe();
+  }
+
+  openPurchaseHistoryDialog(): void {
+    this.dialogs
+      .open(new PolymorpheusComponent(PurchaseHistoryDialogComponent), {
         size: 'm',
       })
       .subscribe();
