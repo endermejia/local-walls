@@ -102,7 +102,7 @@ export class CounterComponent implements ControlValueAccessor, OnInit {
   private readonly destroyRef = inject(DestroyRef);
   public readonly ngControl = inject(NgControl, { optional: true, self: true });
 
-  id = input<string>(`counter-${Math.random().toString(36).slice(2, 9)}`);
+  id = input<string>(`counter-${crypto.randomUUID()}`);
   label = input.required<string>();
   suffix = input<string>('');
   min = input<number>(-Infinity);
