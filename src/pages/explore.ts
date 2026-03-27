@@ -471,7 +471,7 @@ import { mapLocationUrl, remToPx } from '../utils';
     </div>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'flex grow min-h-0 h-[100dvh] overflow-hidden',
+    class: 'flex grow min-h-0 overflow-hidden',
   },
 })
 export class ExploreComponent {
