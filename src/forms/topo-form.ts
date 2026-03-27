@@ -849,9 +849,12 @@ export class TopoFormComponent {
     const pending = this.pendingPaths();
     const existing = this.effectiveTopoData()?.topo_routes || [];
 
+    const pendingMap = new Map(pending.map((p) => [p.routeId, p]));
+    const existingMap = new Map(existing.map((e) => [e.route_id, e]));
+
     const routesWithX = routes.map((r) => {
-      const p = pending.find((path) => path.routeId === r.id);
-      const e = existing.find((tr) => tr.route_id === r.id);
+      const p = pendingMap.get(r.id);
+      const e = existingMap.get(r.id);
       const points = p?.path?.points || e?.path?.points || [];
       const minX =
         points.length > 0 ? Math.min(...points.map((pt) => pt.x)) : 999;
