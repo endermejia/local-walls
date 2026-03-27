@@ -275,7 +275,7 @@ export class MessagingService {
   ): RealtimeChannel | null {
     if (!isPlatformBrowser(this.platformId)) return null;
     return this.supabase.client
-      .channel(`unread-messages-${Math.random().toString(36).substring(2, 9)}`)
+      .channel(`unread-messages-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
         {
