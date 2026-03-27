@@ -13,6 +13,7 @@ import {
   PLATFORM_ID,
   resource,
   signal,
+  untracked,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
@@ -596,7 +597,7 @@ interface Country {
               <tui-data-list-wrapper
                 *tuiTextfieldDropdown
                 new
-                [items]="languages"
+                [items]="languages()"
               />
             </tui-textfield>
             <tui-error [error]="getFieldError('language')" />
@@ -877,6 +878,16 @@ export class UserProfileConfigComponent {
   private readonly translate = inject(TranslateService);
   private readonly location = inject(Location);
   private readonly dialogs = inject(TuiDialogService);
+
+  /**
+   * Used to coordinate the success toast with language changes.
+   * If a language is changed, we want the toast to appear in the NEW language.
+   */
+  private readonly pendingSuccessToast = signal<{
+    key: string;
+    lang: Language;
+  } | null>(null);
+
   private readonly dialogContext: TuiDialogContext<unknown, unknown> | null =
     (() => {
       try {
@@ -991,7 +1002,15 @@ export class UserProfileConfigComponent {
   readonly Themes = Themes;
 
   // Language selector
-  readonly languages: Language[] = [Languages.ES, Languages.EN];
+  protected readonly languages = computed(() => {
+    this.global.i18nTick();
+    const allLangs = Object.values(Languages) as Language[];
+    return allLangs.sort((a, b) => {
+      const labelA = this.translate.instant(`options.language.${a}`);
+      const labelB = this.translate.instant(`options.language.${b}`);
+      return labelA.localeCompare(labelB);
+    });
+  });
   readonly stringifyLanguage = computed(() => {
     this.profile();
     this.global.i18nTick();
@@ -1050,6 +1069,24 @@ export class UserProfileConfigComponent {
     effect(() => {
       const userProfile = this.profile();
       if (userProfile) void this.loadProfile();
+    });
+
+    effect(() => {
+      const pending = this.pendingSuccessToast();
+      if (!pending) {
+        return;
+      }
+
+      // Track the current active language (from service)
+      const currentLang = this.global.currentLang();
+
+      // Only show the toast when it matches our target language
+      if (currentLang === pending.lang) {
+        untracked(() => {
+          this.toast.success(pending.key);
+          this.pendingSuccessToast.set(null);
+        });
+      }
     });
 
     effect(() => {
@@ -1475,7 +1512,10 @@ export class UserProfileConfigComponent {
       console.error('Error saving profile:', result.error);
       this.toast.error('profile.saveError');
     } else {
-      this.toast.success('profile.saveSuccess');
+      this.pendingSuccessToast.set({
+        key: 'profile.saveSuccess',
+        lang: updates.language || this.global.selectedLanguage(),
+      });
     }
   }
 

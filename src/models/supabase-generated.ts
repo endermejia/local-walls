@@ -2312,7 +2312,7 @@ export interface Database {
     Enums: {
       ascent_type: 'os' | 'rp' | 'f' | 'attempt';
       climbing_kind: 'sport' | 'boulder' | 'trad' | 'multipitch' | 'mixed';
-      language: 'es' | 'en';
+      language: 'es' | 'en' | 'va' | 'de' | 'eu' | 'fr' | 'it';
       sex: 'male' | 'female' | 'other';
       theme: 'dark' | 'light';
     };
@@ -2987,7 +2987,7 @@ export const Constants = {
     Enums: {
       ascent_type: ['os', 'rp', 'f', 'attempt'],
       climbing_kind: ['sport', 'boulder', 'trad', 'multipitch', 'mixed'],
-      language: ['es', 'en'],
+      language: ['es', 'en', 'va', 'de', 'eu', 'fr', 'it'],
       sex: ['male', 'female', 'other'],
       theme: ['dark', 'light'],
     },

@@ -18,12 +18,13 @@ export class ToastService {
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
 
-  private show(
+  private async show(
     message: string,
     options?: Partial<TuiToastOptions<unknown>> | undefined,
     autoClose = 3000,
-  ): void {
-    const translatedMessage = this.translate.instant(message);
+  ): Promise<void> {
+    const translatedMessage = await firstValueFrom(this.translate.get(message));
+
     void firstValueFrom(
       this.toast.open(translatedMessage, {
         autoClose,

@@ -16,6 +16,9 @@ import { TuiBreakpointService } from '@taiga-ui/core';
 import {
   TUI_ENGLISH_LANGUAGE,
   TUI_SPANISH_LANGUAGE,
+  TUI_GERMAN_LANGUAGE,
+  TUI_FRENCH_LANGUAGE,
+  TUI_ITALIAN_LANGUAGE,
   TuiLanguage,
 } from '@taiga-ui/i18n';
 
@@ -89,14 +92,34 @@ export class GlobalData {
 
   // ---- Language ----
   readonly i18nTick: WritableSignal<number> = signal(0);
-  selectedLanguage: Signal<Language> = computed(
+  readonly selectedLanguage: Signal<Language> = computed(
     () => this.userProfile()?.language || Languages.ES,
   );
-  tuiLanguage: Signal<TuiLanguage> = computed(() =>
-    this.selectedLanguage() === Languages.ES
-      ? TUI_SPANISH_LANGUAGE
-      : TUI_ENGLISH_LANGUAGE,
+
+  /**
+   * Represents the language that is AFTER being successfully loaded and applied.
+   */
+  readonly currentLang = toSignal(
+    this.translate.onLangChange.pipe(map((e) => e.lang as Language)),
+    { initialValue: this.translate.currentLang as Language },
   );
+
+  tuiLanguage: Signal<TuiLanguage> = computed(() => {
+    const lang = this.selectedLanguage();
+    switch (lang) {
+      case Languages.ES:
+        return TUI_SPANISH_LANGUAGE;
+      case Languages.DE:
+        return TUI_GERMAN_LANGUAGE;
+      case Languages.FR:
+        return TUI_FRENCH_LANGUAGE;
+      case Languages.IT:
+        return TUI_ITALIAN_LANGUAGE;
+      default:
+        // Use English for EN, VA, EU if they don't have a native Taiga language package
+        return TUI_ENGLISH_LANGUAGE;
+    }
+  });
 
   // ---- Theme ----
   readonly theme = signal<Theme>(Themes.LIGHT);
@@ -1461,12 +1484,15 @@ export class GlobalData {
       this.translate.onTranslationChange,
       this.translate.onDefaultLangChange,
     ).pipe(
-      map(() => true),
-      startWith(false),
+      map(() => Date.now()),
+      startWith(0),
     ),
   );
 
   constructor() {
+    // Initialize supported languages for ngx-translate
+    this.translate.addLangs(Object.values(Languages));
+
     effect(() => {
       if (this.langUpdateTrigger()) {
         this.i18nTick.update((v) => v + 1);
@@ -1602,7 +1628,18 @@ export class GlobalData {
     effect(() => {
       const selectedLanguage = this.selectedLanguage();
       if (selectedLanguage) {
-        this.translate.use(selectedLanguage);
+        console.log(`[GlobalData] Switching language to: ${selectedLanguage}`);
+        this.translate.use(selectedLanguage).subscribe({
+          next: () =>
+            console.log(
+              `[GlobalData] Switched to ${selectedLanguage} successfully`,
+            ),
+          error: (err) =>
+            console.error(
+              `[GlobalData] Error switching to ${selectedLanguage}:`,
+              err,
+            ),
+        });
       }
     });
 
