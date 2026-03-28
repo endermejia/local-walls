@@ -96,10 +96,6 @@ export class BrowserNotificationService {
         ctx
           .resume()
           .then(() => {
-            console.log(
-              '[BrowserNotificationService] AudioContext resumed, state:',
-              ctx.state,
-            );
             if (ctx.state === 'running') {
               events.forEach((e) =>
                 window.removeEventListener(e, unlockHandler, true),
