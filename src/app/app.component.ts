@@ -148,6 +148,7 @@ export class AppComponent {
   );
 
   private readonly dragPositionKey = 'mobile_buttons_position';
+  private readonly dragResetDelayMs = 100;
   protected readonly dragPosition = signal<{ x: number; y: number }>({
     x: 0,
     y: 0,
@@ -311,7 +312,7 @@ export class AppComponent {
     this.storage.setItem(this.dragPositionKey, JSON.stringify(snapped));
 
     // Reset dragging flag after a short delay to prevent click fire
-    setTimeout(() => (this.dragging = false), 100);
+    setTimeout(() => (this.dragging = false), this.dragResetDelayMs);
   }
 
   private updateSeoTags() {
