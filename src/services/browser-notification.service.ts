@@ -27,11 +27,7 @@ export class BrowserNotificationService {
       NotificationRef.permission === 'denied'
     ) {
       try {
-        const permission = await NotificationRef.requestPermission();
-        console.log(
-          '[BrowserNotificationService] Permission result:',
-          permission,
-        );
+        await NotificationRef.requestPermission();
       } catch (err) {
         console.error(
           '[BrowserNotificationService] requestPermission error',
