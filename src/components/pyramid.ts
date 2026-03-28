@@ -48,6 +48,11 @@ import { GradeComponent } from './avatar-grade';
 import { AscentTypeComponent } from './ascent-type';
 import { PyramidSlotDialogComponent } from '../dialogs/pyramid-slot-dialog';
 
+const CENTER_DELAY_YEAR_CHANGE_MS = 100;
+const CENTER_DELAY_DATA_LOAD_MS = 150;
+const CENTER_DELAY_INIT_MS = 50;
+const CENTER_DELAY_SCROLL_MS = 50;
+
 export interface PyramidLevel {
   level: number;
   slotsCount: number;
@@ -302,7 +307,7 @@ export class PyramidComponent implements AfterViewInit {
       this.selectedYear();
       if (isPlatformBrowser(this.platformId)) {
         this.isCentered.set(false);
-        setTimeout(() => this.centerPyramid(), 100);
+        setTimeout(() => this.centerPyramid(), CENTER_DELAY_YEAR_CHANGE_MS);
       }
     });
 
@@ -310,14 +315,14 @@ export class PyramidComponent implements AfterViewInit {
       // Re-center when data actually arrives and potentially changes widths
       const slots = this.slotsResource.value();
       if (slots && isPlatformBrowser(this.platformId)) {
-        setTimeout(() => this.centerPyramid(), 150);
+        setTimeout(() => this.centerPyramid(), CENTER_DELAY_DATA_LOAD_MS);
       }
     });
   }
 
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      setTimeout(() => this.centerPyramid(), 50);
+      setTimeout(() => this.centerPyramid(), CENTER_DELAY_INIT_MS);
     }
   }
 
@@ -329,7 +334,7 @@ export class PyramidComponent implements AfterViewInit {
         inline: 'center',
         block: 'nearest',
       });
-      setTimeout(() => this.isCentered.set(true), 50);
+      setTimeout(() => this.isCentered.set(true), CENTER_DELAY_SCROLL_MS);
     }
   }
 
@@ -494,7 +499,9 @@ export class PyramidComponent implements AfterViewInit {
     }
 
     const deducedTopGrade = this.getDeducedTopGrade();
-    let expectedGrade = deducedTopGrade ? deducedTopGrade - (level - 1) : undefined;
+    const expectedGrade = deducedTopGrade
+      ? deducedTopGrade - (level - 1)
+      : undefined;
 
     // We only restrict expected grade selection if there's actually a route
     // in the pyramid that establishes the baseline. If everything is empty,
@@ -509,10 +516,14 @@ export class PyramidComponent implements AfterViewInit {
     // the correctly deduced grade because expectedGrade will be set.
     let canDelete = true;
     if (slot.route_id && level > 1) {
-      const currentLevelSlots = this.pyramidLevels().find((l) => l.level === level)?.slots || [];
-      const filledSlotsInCurrentLevel = currentLevelSlots.filter((s) => !!s.route_id).length;
+      const currentLevelSlots =
+        this.pyramidLevels().find((l) => l.level === level)?.slots || [];
+      const filledSlotsInCurrentLevel = currentLevelSlots.filter(
+        (s) => !!s.route_id,
+      ).length;
 
-      const nextLevelSlots = this.pyramidLevels().find((l) => l.level === level + 1)?.slots || [];
+      const nextLevelSlots =
+        this.pyramidLevels().find((l) => l.level === level + 1)?.slots || [];
       const nextLevelHasFilledSlot = nextLevelSlots.some((s) => !!s.route_id);
 
       if (filledSlotsInCurrentLevel === 1 && nextLevelHasFilledSlot) {
@@ -531,7 +542,9 @@ export class PyramidComponent implements AfterViewInit {
             currentRouteId: slot.route_id,
             currentRoute: slot.route,
             isCompleted: this.isCompleted(slot),
-            ascent: slot.route_id ? this.completedRoutesMap()[slot.route_id] : undefined,
+            ascent: slot.route_id
+              ? this.completedRoutesMap()[slot.route_id]
+              : undefined,
             userId: this.userId(),
             year: this.selectedYear(),
             canDelete,
