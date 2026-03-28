@@ -196,7 +196,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             <textarea
               id="ascentComment"
               tuiTextarea
-              [formField]="$any(ascentForm.comment)"
+              [formField]="ascentForm.comment"
               [placeholder]="'ascent.thoughtsPlaceholder' | translate"
               rows="5"
             ></textarea>
@@ -205,7 +205,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             <input
               tuiCheckbox
               type="checkbox"
-              [formField]="$any(ascentForm.private_ascent)"
+              [formField]="ascentForm.private_ascent"
               (click)="onPrivateClick($event)"
               autocomplete="off"
             />
@@ -329,7 +329,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             <input
               id="ascentVideo"
               tuiTextfield
-              [formField]="$any(ascentForm.video_url)"
+              [formField]="ascentForm.video_url"
               placeholder="https://youtube.com/..."
               autocomplete="off"
             />
@@ -465,7 +465,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                     tuiButton
                     type="button"
                     size="s"
-                    [appearance]="$any(model())[key] ? 'primary' : 'neutral'"
+                    [appearance]="isKeyActive(key) ? 'primary' : 'neutral'"
                     (click)="toggleBool(key)"
                   >
                     {{ 'ascent.climbing.' + key | translate }}
@@ -485,7 +485,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                     tuiButton
                     type="button"
                     size="s"
-                    [appearance]="$any(model())[key] ? 'primary' : 'neutral'"
+                    [appearance]="isKeyActive(key) ? 'primary' : 'neutral'"
                     (click)="toggleBool(key)"
                   >
                     {{ 'ascent.steepness.' + key | translate }}
@@ -505,7 +505,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                     tuiButton
                     type="button"
                     size="s"
-                    [appearance]="$any(model())[key] ? 'primary' : 'neutral'"
+                    [appearance]="isKeyActive(key) ? 'primary' : 'neutral'"
                     (click)="toggleBool(key)"
                   >
                     {{ 'ascent.safety.' + key | translate }}
@@ -525,7 +525,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                     tuiButton
                     type="button"
                     size="s"
-                    [appearance]="$any(model())[key] ? 'primary' : 'neutral'"
+                    [appearance]="isKeyActive(key) ? 'primary' : 'neutral'"
                     (click)="toggleBool(key)"
                   >
                     {{ 'ascent.other.' + key | translate }}
@@ -691,7 +691,7 @@ export default class AscentFormComponent {
     no_score: false,
     first_ascent: false,
     traditional: false,
-    video_url: null as string | null,
+    video_url: '',
     photoControl: null as File | null,
   });
 
@@ -925,7 +925,7 @@ export default class AscentFormComponent {
       first_ascent: !!data.first_ascent,
       traditional: !!data.traditional,
       grade: data.grade ?? null,
-      video_url: data.video_url ?? null,
+      video_url: data.video_url ?? '',
       date: dateObj,
       photoControl: null,
     });
@@ -1196,5 +1196,9 @@ export default class AscentFormComponent {
 
   onGradeChange(grade: number | null): void {
     this.model.update((m) => ({ ...m, grade }));
+  }
+
+  protected isKeyActive(key: keyof ReturnType<typeof this.model>): boolean {
+    return !!this.model()[key];
   }
 }
