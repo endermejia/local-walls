@@ -50,7 +50,7 @@ import { NotificationService } from '../services/notification.service';
   ],
   template: `
     <tui-root [attr.tuiTheme]="global.selectedTheme()">
-      <div class="h-[100dvh] flex flex-col-reverse md:flex-row">
+      <div class="fixed inset-0 w-full h-full overflow-hidden flex flex-col-reverse md:flex-row">
         @if (showHeader()) {
           <app-navbar />
         }
