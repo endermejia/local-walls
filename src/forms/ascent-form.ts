@@ -838,17 +838,6 @@ export default class AscentFormComponent {
     if (!this.effectiveAscentData() && this.dialogGrade !== undefined) {
       this.model.update((m) => ({ ...m, grade: this.dialogGrade! }));
     }
-
-    // Auto-open editor when a new file is selected from file input
-    effect(() => {
-      const file = this.model().photoControl;
-      untracked(() => {
-        if (file && !this.isProcessingPhoto()) {
-          this.isProcessingPhoto.set(true);
-          this.editPhoto(file, undefined);
-        }
-      });
-    });
   }
 
   protected async onPrivateClick(event: MouseEvent) {
@@ -1091,14 +1080,7 @@ export default class AscentFormComponent {
     this.isProcessingPhoto.set(false);
 
     if (result) {
-      // If we got a result, set it without triggering the effect again
       this.model.update((m) => ({ ...m, photoControl: result }));
-      // Manually trigger preview update
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.previewUrl.set(reader.result as string);
-      };
-      reader.readAsDataURL(result);
     } else {
       // User canceled, clear the photo
       this.model.update((m) => ({ ...m, photoControl: null }));
@@ -1187,7 +1169,12 @@ export default class AscentFormComponent {
   }
 
   onPhotoFileChange(file: File | null): void {
-    this.model.update((m) => ({ ...m, photoControl: file }));
+    if (file) {
+      this.isProcessingPhoto.set(true);
+      this.editPhoto(file, undefined);
+    } else {
+      this.model.update((m) => ({ ...m, photoControl: null }));
+    }
   }
 
   onRateChange(rate: number): void {
