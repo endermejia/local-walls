@@ -790,6 +790,12 @@ export class GlobalData {
           .select(
             `
             *,
+            crag: crags!inner (
+              id, name, slug, area_id, user_creator_id,
+              area: areas!inner (
+                id, name, slug, is_public, price, purchased:area_purchases(id)
+              )
+            ),
             topo_routes (
               *,
               route: routes (
@@ -845,10 +851,19 @@ export class GlobalData {
           }
         }
 
-        const result = {
+        const result: TopoDetail = {
           ...data,
           topo_routes,
-        };
+          crag: data.crag
+            ? {
+                ...data.crag,
+                area: {
+                  ...data.crag.area,
+                  purchased: (data.crag.area.purchased?.length ?? 0) > 0,
+                },
+              }
+            : undefined,
+        } as unknown as TopoDetail;
         this.localStorage.setItem(cacheKey, JSON.stringify(result));
         return result;
       } catch (e) {

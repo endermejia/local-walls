@@ -36,6 +36,21 @@ export interface TopoRouteWithRoute {
 
 export interface TopoDetail extends TopoDto {
   topo_routes: TopoRouteWithRoute[];
+  crag?: {
+    id: number;
+    name: string;
+    slug: string;
+    area_id: number;
+    user_creator_id: string | null;
+    area: {
+      id: number;
+      name: string;
+      slug: string;
+      is_public: boolean;
+      price: number;
+      purchased?: boolean;
+    };
+  };
 }
 
 export interface ImageEditorResult {
