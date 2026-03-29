@@ -89,7 +89,10 @@ export interface PyramidSlotDialogData {
         >
           <div class="flex items-center gap-3 w-full justify-center">
             <app-grade [grade]="data.currentRoute.grade" />
-            <span class="font-bold text-lg truncate max-w-[200px] hover:underline">{{ data.currentRoute.name }}</span>
+            <span
+              class="font-bold text-lg truncate max-w-[200px] hover:underline"
+              >{{ data.currentRoute.name }}</span
+            >
           </div>
 
           @if (data.isCompleted && data.ascent) {

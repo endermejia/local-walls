@@ -494,7 +494,9 @@ export class PyramidComponent implements AfterViewInit {
     }
 
     const deducedTopGrade = this.getDeducedTopGrade();
-    let expectedGrade = deducedTopGrade ? deducedTopGrade - (level - 1) : undefined;
+    const expectedGrade = deducedTopGrade
+      ? deducedTopGrade - (level - 1)
+      : undefined;
 
     // We only restrict expected grade selection if there's actually a route
     // in the pyramid that establishes the baseline. If everything is empty,
@@ -509,10 +511,14 @@ export class PyramidComponent implements AfterViewInit {
     // the correctly deduced grade because expectedGrade will be set.
     let canDelete = true;
     if (slot.route_id && level > 1) {
-      const currentLevelSlots = this.pyramidLevels().find((l) => l.level === level)?.slots || [];
-      const filledSlotsInCurrentLevel = currentLevelSlots.filter((s) => !!s.route_id).length;
+      const currentLevelSlots =
+        this.pyramidLevels().find((l) => l.level === level)?.slots || [];
+      const filledSlotsInCurrentLevel = currentLevelSlots.filter(
+        (s) => !!s.route_id,
+      ).length;
 
-      const nextLevelSlots = this.pyramidLevels().find((l) => l.level === level + 1)?.slots || [];
+      const nextLevelSlots =
+        this.pyramidLevels().find((l) => l.level === level + 1)?.slots || [];
       const nextLevelHasFilledSlot = nextLevelSlots.some((s) => !!s.route_id);
 
       if (filledSlotsInCurrentLevel === 1 && nextLevelHasFilledSlot) {
@@ -531,7 +537,9 @@ export class PyramidComponent implements AfterViewInit {
             currentRouteId: slot.route_id,
             currentRoute: slot.route,
             isCompleted: this.isCompleted(slot),
-            ascent: slot.route_id ? this.completedRoutesMap()[slot.route_id] : undefined,
+            ascent: slot.route_id
+              ? this.completedRoutesMap()[slot.route_id]
+              : undefined,
             userId: this.userId(),
             year: this.selectedYear(),
             canDelete,
