@@ -12,7 +12,7 @@ import {
   signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
@@ -22,11 +22,9 @@ import {
   TuiDataList,
   TuiDropdown,
   TuiFallbackSrcPipe,
-  TuiLabel,
   TuiLink,
   TuiScrollbar,
   TuiTextfield,
-  TuiTitle,
 } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
@@ -34,7 +32,6 @@ import {
   TUI_COUNTRIES,
   TuiAvatar,
   TuiBadgedContent,
-  TuiBadgeNotification,
   TuiConfirmData,
   TuiDataListWrapper,
   TuiSelect,
@@ -43,16 +40,12 @@ import {
   TuiPulse,
 } from '@taiga-ui/kit';
 import { TUI_CONFIRM } from '@taiga-ui/kit';
-import { TuiHeader } from '@taiga-ui/layout';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
-import { AscentsService } from '../services/ascents.service';
-import { AscentCalendarDialogComponent } from '../dialogs/ascent-calendar-dialog';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { firstValueFrom, startWith } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 import { BlockingService } from '../services/blocking.service';
-import { FiltersService } from '../services/filters.service';
 import { FollowsService } from '../services/follows.service';
 import { GlobalData } from '../services/global-data';
 import { SupabaseService } from '../services/supabase.service';
@@ -61,50 +54,34 @@ import { TourService } from '../services/tour.service';
 import { TourStep } from '../services/tour.service';
 import { UserProfilesService } from '../services/user-profiles.service';
 
-import { AscentCardSkeletonComponent } from '../components/ascent-card-skeleton';
-import { AscentsFeedComponent } from '../components/ascents-feed';
 import { EmptyStateComponent } from '../components/empty-state';
-import { RoutesTableComponent } from '../components/routes-table';
 import { TourHintComponent } from '../components/tour-hint';
-import { UserStatisticsComponent } from '../components/user-statistics';
-import { PyramidComponent } from '../components/pyramid';
-
-import {
-  FeedItem,
-  ORDERED_GRADE_VALUES,
-  RouteAscentWithExtras,
-  RouteWithExtras,
-} from '../models';
-
-import { normalizeName } from '../utils';
 
 import { ChatDialogComponent } from '../dialogs/chat-dialog';
 import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
 import { UserListDialogComponent } from '../dialogs/user-list-dialog';
+import { UserProfileAscentsComponent } from '../components/user-profile/user-profile-ascents.component';
+import { UserProfileProjectsComponent } from '../components/user-profile/user-profile-projects.component';
+import { UserProfileStatisticsComponent } from '../components/user-profile/user-profile-statistics.component';
+import { UserProfileLikesComponent } from '../components/user-profile/user-profile-likes.component';
 
 @Component({
   selector: 'app-user-profile',
   imports: [
-    AscentsFeedComponent,
-    AscentCardSkeletonComponent,
     AsyncPipe,
     EmptyStateComponent,
     LowerCasePipe,
     ReactiveFormsModule,
-    RoutesTableComponent,
     TourHintComponent,
     TranslatePipe,
     TuiAppearance,
     TuiAvatar,
-    TuiBadgeNotification,
     TuiBadgedContent,
     TuiButton,
     TuiDataList,
     TuiDataListWrapper,
     TuiDropdown,
     TuiFallbackSrcPipe,
-    TuiHeader,
-    TuiLabel,
     TuiLink,
     TuiScrollbar,
     TuiSelect,
@@ -112,10 +89,11 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
     TuiSwipe,
     TuiTabs,
     TuiTextfield,
-    TuiTitle,
     TuiPulse,
-    UserStatisticsComponent,
-    PyramidComponent,
+    UserProfileAscentsComponent,
+    UserProfileProjectsComponent,
+    UserProfileStatisticsComponent,
+    UserProfileLikesComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -358,308 +336,27 @@ import { UserListDialogComponent } from '../dialogs/user-list-dialog';
 
           @switch (activeTab()) {
             @case (0) {
-              @if (hasAscents() || query() || hasActiveFilters()) {
-                <div class="min-w-0">
-                  <div class="flex flex-wrap items-center gap-2 mb-4">
-                    <tui-textfield
-                      class="grow min-w-48"
-                      [tuiTextfieldCleaner]="true"
-                      tuiTextfieldSize="l"
-                    >
-                      <label tuiLabel for="route-search">{{
-                        'searchPlaceholder' | translate
-                      }}</label>
-                      <input
-                        tuiTextfield
-                        #routeSearch
-                        id="route-search"
-                        autocomplete="off"
-                        [value]="query()"
-                        (input.zoneless)="onQuery(routeSearch.value)"
-                      />
-                    </tui-textfield>
-
-                    <tui-badged-content>
-                      @if (hasActiveFilters()) {
-                        <tui-badge-notification
-                          tuiAppearance="accent"
-                          size="s"
-                          tuiSlot="top"
-                        />
-                      }
-                      <button
-                        tuiButton
-                        appearance="textfield"
-                        size="l"
-                        type="button"
-                        iconStart="@tui.sliders-horizontal"
-                        [attr.aria-label]="'filters' | translate"
-                        (click.zoneless)="openFilters()"
-                      ></button>
-                    </tui-badged-content>
-
-                    <tui-textfield
-                      class="w-full sm:w-48"
-                      [tuiTextfieldCleaner]="false"
-                      [stringify]="dateValueContent"
-                      tuiTextfieldSize="l"
-                    >
-                      <label tuiLabel for="date-filter">
-                        {{ 'filterByDate' | translate }}
-                      </label>
-                      <input
-                        tuiSelect
-                        id="date-filter"
-                        [formControl]="dateFilterControl"
-                        autocomplete="off"
-                      />
-                      <tui-data-list *tuiTextfieldDropdown>
-                        <tui-data-list-wrapper
-                          new
-                          [items]="dateFilterOptions()"
-                        />
-                      </tui-data-list>
-                    </tui-textfield>
-
-                    <tui-textfield
-                      class="w-full sm:w-48"
-                      [tuiTextfieldCleaner]="false"
-                      [stringify]="sortValueContent"
-                      tuiTextfieldSize="l"
-                    >
-                      <label tuiLabel for="sort-filter">
-                        {{ 'sortBy' | translate }}
-                      </label>
-                      <input
-                        tuiSelect
-                        id="sort-filter"
-                        [formControl]="sortFilterControl"
-                        autocomplete="off"
-                      />
-                      <tui-data-list *tuiTextfieldDropdown>
-                        <tui-data-list-wrapper
-                          new
-                          [items]="['grade', 'date']"
-                        />
-                      </tui-data-list>
-                    </tui-textfield>
-
-                    @if (hasAscents()) {
-                      <button
-                        tuiButton
-                        appearance="secondary"
-                        iconStart="@tui.calendar"
-                        class="w-full sm:w-auto sm:ml-auto"
-                        (click)="openCalendar()"
-                      >
-                        {{ 'statistics.openCalendar' | translate }}
-                      </button>
-                    }
-                  </div>
-
-                  <app-ascents-feed
-                    [ascents]="accumulatedAscents()"
-                    [isLoading]="isLoading() || ascentsResource.isLoading()"
-                    [hasMore]="hasMore()"
-                    [showUser]="false"
-                    [followedIds]="followedIds()"
-                    [columns]="2"
-                    [groupByGrade]="sortFilter() === 'grade'"
-                    (loadMore)="loadMore()"
-                    (follow)="onFollow($event)"
-                    (unfollow)="onUnfollow($event)"
-                  />
-                </div>
-              } @else if (isOwnProfile()) {
-                <div class="mt-8 flex flex-col items-center gap-4">
-                  <button
-                    tuiButton
-                    type="button"
-                    appearance="secondary"
-                    iconStart="@tui.download"
-                    (click.zoneless)="openImport8aDialog()"
-                  >
-                    {{ 'import' | translate }} 8a.nu
-                  </button>
-                </div>
-              } @else {
-                <div class="flex flex-col items-center gap-3">
-                  <app-empty-state icon="@tui.list" />
-                </div>
-              }
+              <app-user-profile-ascents
+                [userId]="profile()?.id || id() || ''"
+                [isOwnProfile]="isOwnProfile()"
+                [profile]="profile()"
+              />
             }
 
             @case (1) {
-              <div class="flex flex-col gap-8 min-w-0">
-                <app-pyramid
-                  [userId]="profile()?.id || id() || ''"
-                  [startingYear]="profile()?.starting_climbing_year"
-                />
-
-                @if (projectsResource.isLoading()) {
-                  <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
-                    @for (_ of [1, 2, 3, 4]; track $index) {
-                      <app-ascent-card-skeleton [showUser]="false" />
-                    }
-                  </div>
-                } @else {
-                  <app-routes-table
-                    [data]="projects()"
-                    [showAdminActions]="false"
-                    [showLocation]="true"
-                    [showRowColors]="false"
-                    [expandableMobile]="false"
-                    [hiddenColumns]="['topo', 'height', 'rating', 'ascents']"
-                  />
-                }
-              </div>
+              <app-user-profile-projects
+                [userId]="profile()?.id || id() || ''"
+                [startingYear]="profile()?.starting_climbing_year"
+              />
             }
 
             @case (2) {
-              <app-user-statistics
+              <app-user-profile-statistics
                 [userId]="id() || supabase.authUserId() || ''"
               />
             }
             @case (3) {
-              <div class="flex flex-col gap-8">
-                <!-- Liked Areas -->
-                <section class="grid gap-2">
-                  <header tuiHeader>
-                    <h3 tuiTitle>{{ 'likedAreas' | translate }}</h3>
-                  </header>
-                  <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
-                    @if (likedAreasResource.isLoading()) {
-                      @for (_ of [1, 2, 3, 4]; track $index) {
-                        <app-ascent-card-skeleton
-                          [showUser]="false"
-                          [showRoute]="false"
-                        />
-                      }
-                    } @else {
-                      @for (area of likedAreas(); track area.id) {
-                        <button
-                          class="p-6 rounded-3xl text-left"
-                          [tuiAppearance]="
-                            area.liked ? 'outline-destructive' : 'outline'
-                          "
-                          (click.zoneless)="
-                            router.navigate(['/area', area.slug])
-                          "
-                        >
-                          <div class="flex flex-col min-w-0 grow">
-                            <header tuiHeader>
-                              <h2 tuiTitle>{{ area.name }}</h2>
-                            </header>
-                            <section
-                              class="flex items-center justify-between gap-2"
-                            >
-                              <div class="text-xl">
-                                {{ area.crags_count }}
-                                {{
-                                  (area.crags_count === 1 ? 'crag' : 'crags')
-                                    | translate
-                                    | lowercase
-                                }}
-                              </div>
-                            </section>
-                          </div>
-                        </button>
-                      } @empty {
-                        <div class="col-span-full opacity-50">
-                          <app-empty-state icon="@tui.heart" />
-                        </div>
-                      }
-                    }
-                  </div>
-                </section>
-
-                <!-- Liked Crags -->
-                <section class="grid gap-2">
-                  <header tuiHeader>
-                    <h3 tuiTitle>{{ 'likedCrags' | translate }}</h3>
-                  </header>
-                  <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
-                    @if (likedCragsResource.isLoading()) {
-                      @for (_ of [1, 2, 3, 4]; track $index) {
-                        <app-ascent-card-skeleton
-                          [showUser]="false"
-                          [showRoute]="false"
-                        />
-                      }
-                    } @else {
-                      @for (crag of likedCrags(); track crag.id) {
-                        <button
-                          class="p-6 rounded-3xl text-left"
-                          [tuiAppearance]="
-                            crag.liked ? 'outline-destructive' : 'outline'
-                          "
-                          (click.zoneless)="
-                            router.navigate([
-                              '/area',
-                              crag.area_slug,
-                              crag.slug,
-                            ])
-                          "
-                        >
-                          <div class="flex flex-col min-w-0 grow">
-                            <header tuiHeader>
-                              <h2 tuiTitle>{{ crag.name }}</h2>
-                            </header>
-                            <section
-                              class="flex items-center justify-between gap-2"
-                            >
-                              <div class="flex flex-col items-start">
-                                <div class="text-xl">
-                                  {{ crag.topos_count }}
-                                  {{
-                                    (crag.topos_count === 1 ? 'topo' : 'topos')
-                                      | translate
-                                      | lowercase
-                                  }}
-                                </div>
-                                <div class="text-sm opacity-70">
-                                  {{ crag.area_name }}
-                                </div>
-                              </div>
-                            </section>
-                          </div>
-                        </button>
-                      } @empty {
-                        <div class="col-span-full opacity-50">
-                          <app-empty-state icon="@tui.heart" />
-                        </div>
-                      }
-                    }
-                  </div>
-                </section>
-
-                <!-- Liked Routes -->
-                <section class="grid gap-2">
-                  <header tuiHeader>
-                    <h3 tuiTitle>{{ 'likedRoutes' | translate }}</h3>
-                  </header>
-                  <div class="min-w-0">
-                    @if (likedRoutesResource.isLoading()) {
-                      <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
-                        @for (_ of [1, 2, 3, 4]; track $index) {
-                          <app-ascent-card-skeleton [showUser]="false" />
-                        }
-                      </div>
-                    } @else if (likedRoutes().length) {
-                      <app-routes-table
-                        [data]="likedRoutes()"
-                        [showAdminActions]="false"
-                        [showLocation]="true"
-                        [showRowColors]="false"
-                      />
-                    } @else {
-                      <div class="opacity-50">
-                        <app-empty-state icon="@tui.heart" />
-                      </div>
-                    }
-                  </div>
-                </section>
-              </div>
+              <app-user-profile-likes [userId]="profile()?.id || id() || ''" />
             }
           }
         } @else {
@@ -700,12 +397,10 @@ export class UserProfileComponent {
   protected readonly countriesNames = toSignal(this.countriesNames$);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
-  private readonly followsService = inject(FollowsService);
+  protected readonly followsService = inject(FollowsService);
   private readonly blockingService = inject(BlockingService);
   private readonly toast = inject(ToastService);
   private readonly userProfilesService = inject(UserProfilesService);
-  private readonly filtersService = inject(FiltersService);
-  private readonly ascentsService = inject(AscentsService);
   private readonly dialogs = inject(TuiDialogService);
 
   // Route param (optional)
@@ -715,442 +410,7 @@ export class UserProfileComponent {
   protected readonly followLoading = signal(false);
   protected lastTouchTarget: EventTarget | null = null;
   protected readonly activeTab = this.global.profileActiveTab;
-
-  protected onSwipe(event: TuiSwipeEvent): void {
-    if (
-      this.lastTouchTarget instanceof HTMLElement &&
-      (this.lastTouchTarget.closest('app-pyramid') ||
-        this.lastTouchTarget.closest('app-routes-table'))
-    ) {
-      return;
-    }
-
-    const direction = event.direction;
-    const currentIndex = this.activeTab();
-    const maxIndex = this.isOwnProfile() ? 3 : 2;
-    if (direction === 'left' && currentIndex < maxIndex) {
-      this.activeTab.set(currentIndex + 1);
-    } else if (direction === 'right' && currentIndex > 0) {
-      this.activeTab.set(currentIndex - 1);
-    }
-  }
-
-  protected readonly followersCountResource = resource({
-    params: () => ({
-      userId: this.profile()?.id,
-      change: this.followsService.followChange(),
-    }),
-    loader: async ({ params }) => {
-      const userId = params.userId;
-      if (!userId || !isPlatformBrowser(this.platformId)) return 0;
-      return await this.followsService.getFollowersCount(userId);
-    },
-  });
-
-  protected readonly followingCountResource = resource({
-    params: () => ({
-      userId: this.profile()?.id,
-      change: this.followsService.followChange(),
-    }),
-    loader: async ({ params }) => {
-      const userId = params.userId;
-      if (!userId || !isPlatformBrowser(this.platformId)) return 0;
-      return await this.followsService.getFollowingCount(userId);
-    },
-  });
-
-  protected readonly followersCount = computed(
-    () => this.followersCountResource.value() ?? 0,
-  );
-  protected readonly followingCount = computed(
-    () => this.followingCountResource.value() ?? 0,
-  );
-
-  protected readonly likedRoutesResource = resource({
-    params: () => this.profile()?.id,
-    loader: async ({ params: userId }) => {
-      if (!userId || !isPlatformBrowser(this.platformId)) return [];
-
-      const { data: routeLikes } = await this.supabase.client
-        .from('route_likes')
-        .select('route_id')
-        .eq('user_id', userId);
-
-      const routeIds = routeLikes?.map((r) => r.route_id) || [];
-      if (!routeIds.length) return [];
-
-      const currentUserId = this.supabase.authUserId();
-      let query = this.supabase.client
-        .from('routes')
-        .select(
-          `
-        *,
-        liked:route_likes(id),
-        project:route_projects(id),
-        ascents:route_ascents(rate),
-        own_ascent:route_ascents(*),
-        crag:crags(
-          slug,
-          name,
-          area:areas(slug, name)
-        )
-      `,
-        )
-        .in('id', routeIds);
-
-      if (currentUserId) {
-        query = query
-          .eq('own_ascent.user_id', currentUserId)
-          .eq('project.user_id', currentUserId)
-          .eq('liked.user_id', currentUserId);
-      }
-
-      const { data, error } = await query;
-      if (error) {
-        console.error('[UserProfile] liked routes error', error);
-        return [];
-      }
-
-      return (
-        data.map((r) =>
-          (() => {
-            const rates =
-              r.ascents?.map((a) => a.rate).filter((rate) => rate != null) ??
-              [];
-            const rating =
-              rates.length > 0
-                ? rates.reduce((a, b) => a + b, 0) / rates.length
-                : 0;
-
-            return {
-              ...r,
-              liked: (r.liked?.length ?? 0) > 0,
-              project: (r.project?.length ?? 0) > 0,
-              crag_slug: r.crag?.slug,
-              crag_name: r.crag?.name,
-              area_slug: r.crag?.area?.slug,
-              area_name: r.crag?.area?.name,
-              rating,
-              ascent_count: r.ascents?.length ?? 0,
-              climbed: (r.own_ascent?.length ?? 0) > 0,
-              own_ascent: r.own_ascent?.[0],
-            } as RouteWithExtras;
-          })(),
-        ) ?? []
-      );
-    },
-  });
-
-  protected readonly likedCragsResource = resource({
-    params: () => this.profile()?.id,
-    loader: async ({ params: userId }) => {
-      if (!userId || !isPlatformBrowser(this.platformId)) return [];
-
-      const { data: cragLikes } = await this.supabase.client
-        .from('crag_likes')
-        .select('crag_id')
-        .eq('user_id', userId);
-
-      const cragIds = cragLikes?.map((c) => c.crag_id) || [];
-      if (!cragIds.length) return [];
-
-      const { data: likedCrags, error } = await this.supabase.client
-        .from('crags')
-        .select(
-          `
-          id,
-          name,
-          slug,
-          area_id,
-          topos_count:topos(count),
-          area:areas(name, slug)
-        `,
-        )
-        .in('id', cragIds);
-
-      if (error) {
-        console.error('[UserProfile] liked crags error', error);
-        return [];
-      }
-
-      return likedCrags.map((c) => ({
-        ...c,
-        topos_count: c.topos_count?.[0]?.count ?? 0,
-        area_name: c.area?.name,
-        area_slug: c.area?.slug,
-        liked: true,
-      }));
-    },
-  });
-
-  protected readonly likedAreasResource = resource({
-    params: () => this.profile()?.id,
-    loader: async ({ params: userId }) => {
-      if (!userId || !isPlatformBrowser(this.platformId)) return [];
-
-      const { data: areaLikes } = await this.supabase.client
-        .from('area_likes')
-        .select('area_id')
-        .eq('user_id', userId);
-
-      const areaIds = areaLikes?.map((a) => a.area_id) || [];
-      if (!areaIds.length) return [];
-
-      const { data: likedAreas, error } = await this.supabase.client
-        .from('areas')
-        .select(
-          `
-          id,
-          name,
-          slug,
-          crags_count:crags(count)
-        `,
-        )
-        .in('id', areaIds);
-
-      if (error) {
-        console.error('[UserProfile] liked areas error', error);
-        return [];
-      }
-
-      // Filter out purchased areas from likes
-      const { data: purchases } = await this.supabase.client
-        .from('area_purchases')
-        .select('area_id')
-        .eq('user_id', userId);
-
-      const purchasedIds = new Set(purchases?.map((p) => p.area_id) || []);
-
-      return likedAreas
-        .filter((a) => !purchasedIds.has(a.id))
-        .map((a) => ({
-          ...a,
-          crags_count: a.crags_count?.[0]?.count ?? 0,
-          liked: true,
-        }));
-    },
-  });
-
-  protected readonly likedRoutes = computed(
-    () => this.likedRoutesResource.value() ?? [],
-  );
-  protected readonly likedCrags = computed(
-    () => this.likedCragsResource.value() ?? [],
-  );
-  protected readonly likedAreas = computed(
-    () => this.likedAreasResource.value() ?? [],
-  );
-
-  protected readonly query = signal('');
-  protected readonly dateFilterControl = new FormControl<string>('last12', {
-    nonNullable: true,
-  });
-  protected readonly dateFilter = toSignal(
-    this.dateFilterControl.valueChanges.pipe(
-      startWith(this.dateFilterControl.value),
-    ),
-    { initialValue: this.dateFilterControl.value },
-  );
-
-  protected readonly sortFilterControl = new FormControl<'grade' | 'date'>(
-    this.global.ascentsSort(),
-    {
-      nonNullable: true,
-    },
-  );
-  protected readonly sortFilter = toSignal(
-    this.sortFilterControl.valueChanges.pipe(
-      startWith(this.sortFilterControl.value),
-    ),
-    { initialValue: this.sortFilterControl.value },
-  );
-
-  protected readonly selectedGradeRange = this.global.areaListGradeRange;
-  protected readonly selectedCategories = this.global.areaListCategories;
-
-  protected readonly hasActiveFilters = computed(() => {
-    const [lo, hi] = this.selectedGradeRange();
-    const gradeActive = !(lo === 0 && hi === ORDERED_GRADE_VALUES.length - 1);
-    return gradeActive || this.selectedCategories().length > 0;
-  });
-
-  protected readonly dateFilterOptions = computed(() => {
-    const years: string[] = [];
-    const currentYear = new Date().getFullYear();
-    const startingYear = this.profile()?.starting_climbing_year || 2020;
-    const startYear = Math.min(2020, startingYear);
-    for (let y = currentYear; y >= startYear; y--) {
-      years.push(y.toString());
-    }
-    return ['last12', 'all', ...years];
-  });
-
-  protected readonly dateValueContent = (option: string): string => {
-    if (option === 'last12') {
-      return this.translate.instant('last12Months');
-    }
-    if (option === 'all') {
-      return this.translate.instant('allTime');
-    }
-    return option;
-  };
-
-  protected readonly sortValueContent = (option: 'grade' | 'date'): string => {
-    return this.translate.instant(
-      option === 'grade' ? 'orderByGrade' : 'orderByDate',
-    );
-  };
-
-  protected readonly accumulatedAscents = signal<FeedItem[]>([]);
-  protected readonly isLoading = signal(true);
   protected readonly followedIds = signal<Set<string>>(new Set());
-
-  loadMore() {
-    if (this.hasMore() && !this.isLoading()) {
-      this.isLoading.set(true);
-      this.global.ascentsPage.update((p) => p + 1);
-    }
-  }
-
-  constructor() {
-    const destroyRef = inject(DestroyRef);
-    effect(
-      () => {
-        const isLoading = this.loading();
-        this.global.isNavLoading.set(isLoading);
-      },
-      { allowSignalWrites: true },
-    );
-
-    destroyRef.onDestroy(() => {
-      this.global.isNavLoading.set(false);
-    });
-
-    effect(() => {
-      // Re-fetch followed IDs whenever the global follow state changes
-      this.followsService.followChange();
-
-      if (isPlatformBrowser(this.platformId)) {
-        void this.followsService
-          .getFollowedIds()
-          .then((ids) => this.followedIds.set(new Set(ids)));
-      }
-    });
-
-    effect(() => {
-      if (!this.tourService.isActive()) return;
-
-      const step = this.tourService.step();
-      if (step === TourStep.PROFILE) {
-        this.activeTab.set(0);
-      } else if (step === TourStep.PROFILE_PROJECTS) {
-        this.activeTab.set(1);
-      } else if (step === TourStep.PROFILE_STATISTICS) {
-        this.activeTab.set(2);
-      } else if (step === TourStep.PROFILE_LIKES) {
-        if (this.isOwnProfile()) {
-          this.activeTab.set(3);
-        } else {
-          // If not own profile, skip likes and finish
-          this.activeTab.set(0);
-        }
-      }
-    });
-
-    effect(() => {
-      // Reset breadcrumbs when navigating to the profile page
-      const profileId = this.profile()?.id;
-      this.id(); // Track the id signal
-
-      // Only reset data if the profile user ID has changed
-      if (profileId && profileId !== this.global.profileUserId()) {
-        this.global.resetDataByPage('home');
-        this.global.profileUserId.set(profileId);
-      }
-    });
-
-    effect(() => {
-      const res = this.ascentsResource.value();
-      if (res) {
-        if (this.global.ascentsPage() === 0) {
-          const processed = this.markDuplicates(res.items).map((i) => ({
-            ...i,
-            kind: 'ascent' as const,
-          }));
-          this.accumulatedAscents.set(processed);
-        } else {
-          // Note: Logic for duplicates handles previous items which are ascents.
-          // But accumulatedAscents now has FeedItem[].
-          // We can cast prev back to RouteAscentWithExtras[] since user profile only has ascents.
-          // Or rewrite markDuplicates to handle FeedItem but ignore non-ascents (though user profile has only ascents).
-          this.accumulatedAscents.update((prev) => {
-            const prevAscents = prev as RouteAscentWithExtras[];
-            const processed = this.markDuplicates([
-              ...prevAscents,
-              ...res.items,
-            ]).map((i) => ({
-              ...i,
-              kind: 'ascent' as const,
-            }));
-            return processed;
-          });
-        }
-        this.isLoading.set(false);
-      } else if (this.ascentsResource.error()) {
-        this.isLoading.set(false);
-      }
-    });
-
-    // Sync initial global filters to local controls/signals if needed
-    // However, global filters are typically reset to defaults on page entry.
-    // The effect below ensures that when the local state changes, the global state is updated and the page is reset.
-    effect(() => {
-      const dateFilter = this.dateFilter();
-      const query = this.query();
-      const sort = this.sortFilter();
-
-      // Read global filters to re-run the effect when they change (e.g., from the filter dialog)
-      this.selectedGradeRange();
-      this.selectedCategories();
-
-      // Reset pagination when any filter changes
-      this.isLoading.set(true);
-      this.global.ascentsPage.set(0);
-
-      // Sync local filters with global signals
-      this.global.ascentsDateFilter.set(dateFilter);
-      this.global.ascentsQuery.set(query || null);
-      this.global.ascentsSort.set(sort);
-    });
-
-    // Guard for activeTab index when switching between own profile and others
-    effect(() => {
-      const isOwn = this.isOwnProfile();
-      if (!isOwn && this.activeTab() > 2) {
-        this.activeTab.set(0);
-      }
-    });
-  }
-
-  onQuery(v: string) {
-    this.query.set(v);
-  }
-
-  onFollow(userId: string) {
-    this.followedIds.update((s) => {
-      const next = new Set(s);
-      next.add(userId);
-      return next;
-    });
-  }
-
-  onUnfollow(userId: string) {
-    this.followedIds.update((s) => {
-      const next = new Set(s);
-      next.delete(userId);
-      return next;
-    });
-  }
 
   // Currently viewed profile (if by id)
   private readonly externalProfileResource = resource({
@@ -1220,6 +480,7 @@ export class UserProfileComponent {
       return this.blockingService.getBlockState(params.userId);
     },
   });
+
   readonly blockState = computed(
     () =>
       this.blockStateResource.value() ?? {
@@ -1244,38 +505,128 @@ export class UserProfileComponent {
     return years;
   });
 
-  readonly projectsResource = this.global.userProjectsResource;
-
-  readonly ascentsResource = this.global.userAscentsResource;
-
-  readonly ascents = computed(() => this.ascentsResource.value()?.items ?? []);
-
-  readonly totalAscents = computed(
-    () => this.ascentsResource.value()?.total ?? 0,
-  );
-  readonly hasMore = computed(() => {
-    return this.accumulatedAscents().length < this.totalAscents();
+  protected readonly followersCountResource = resource({
+    params: () => ({
+      userId: this.profile()?.id,
+      change: this.followsService.followChange(),
+    }),
+    loader: async ({ params }) => {
+      const userId = params.userId;
+      if (!userId || !isPlatformBrowser(this.platformId)) return 0;
+      return await this.followsService.getFollowersCount(userId);
+    },
   });
-  readonly hasAscents = computed(
-    () => this.global.userTotalAscentsCountResource.value() !== 0,
+
+  protected readonly followingCountResource = resource({
+    params: () => ({
+      userId: this.profile()?.id,
+      change: this.followsService.followChange(),
+    }),
+    loader: async ({ params }) => {
+      const userId = params.userId;
+      if (!userId || !isPlatformBrowser(this.platformId)) return 0;
+      return await this.followsService.getFollowingCount(userId);
+    },
+  });
+
+  protected readonly followersCount = computed(
+    () => this.followersCountResource.value() ?? 0,
+  );
+  protected readonly followingCount = computed(
+    () => this.followingCountResource.value() ?? 0,
   );
 
-  readonly projects = computed(() => this.projectsResource.value() ?? []);
+  constructor() {
+    const destroyRef = inject(DestroyRef);
 
-  openEditDialog(): void {
+    // Update global loading state
+    effect(
+      () => {
+        const isLoading = this.loading();
+        this.global.isNavLoading.set(isLoading);
+      },
+      { allowSignalWrites: true },
+    );
+
+    destroyRef.onDestroy(() => {
+      this.global.isNavLoading.set(false);
+    });
+
+    // Handle tour steps and tab switches
+    effect(() => {
+      if (!this.tourService.isActive()) return;
+
+      const step = this.tourService.step();
+      if (step === TourStep.PROFILE) {
+        this.activeTab.set(0);
+      } else if (step === TourStep.PROFILE_PROJECTS) {
+        this.activeTab.set(1);
+      } else if (step === TourStep.PROFILE_STATISTICS) {
+        this.activeTab.set(2);
+      } else if (step === TourStep.PROFILE_LIKES) {
+        if (this.isOwnProfile()) {
+          this.activeTab.set(3);
+        } else {
+          this.activeTab.set(2); // If not own profile, stay on stats
+        }
+      }
+    });
+
+    // Guard for activeTab index when switching between own profile and others
+    effect(() => {
+      const isOwn = this.isOwnProfile();
+      if (!isOwn && this.activeTab() > 2) {
+        this.activeTab.set(0);
+      }
+    });
+
+    // Track viewed user id for breadcrumbs and global state
+    effect(() => {
+      const profileId = this.profile()?.id;
+      this.id(); // Track the id signal to trigger on param change
+
+      if (profileId && profileId !== this.global.profileUserId()) {
+        this.global.resetDataByPage('home');
+        this.global.profileUserId.set(profileId);
+      }
+    });
+
+    // Fetch followed IDs for the current user
+    effect(() => {
+      this.followsService.followChange();
+      if (isPlatformBrowser(this.platformId)) {
+        void this.followsService
+          .getFollowedIds()
+          .then((ids) => this.followedIds.set(new Set(ids)));
+      }
+    });
+  }
+
+  protected onSwipe(event: TuiSwipeEvent): void {
+    if (
+      this.lastTouchTarget instanceof HTMLElement &&
+      (this.lastTouchTarget.closest('app-pyramid') ||
+        this.lastTouchTarget.closest('app-routes-table'))
+    ) {
+      return;
+    }
+
+    const direction = event.direction;
+    const currentIndex = this.activeTab();
+    const maxIndex = this.isOwnProfile() ? 3 : 2;
+    if (direction === 'left' && currentIndex < maxIndex) {
+      this.activeTab.set(currentIndex + 1);
+    } else if (direction === 'right' && currentIndex > 0) {
+      this.activeTab.set(currentIndex - 1);
+    }
+  }
+
+  protected openEditDialog(): void {
     if (!this.isOwnProfile()) return;
     this.userProfilesService.openUserProfileConfigForm();
   }
 
-  protected openImport8aDialog(): void {
-    this.userProfilesService.openImport8aDialog();
-  }
-
-  protected openFilters(): void {
-    this.filtersService.openFilters({ showShade: false });
-  }
-
-  async toggleFollow(): Promise<void> {
+  protected async toggleFollow(): Promise<void> {
     const profile = this.profile();
     const followedUserId = profile?.id;
     if (!followedUserId || this.isOwnProfile() || this.followLoading()) return;
@@ -1312,7 +663,23 @@ export class UserProfileComponent {
     }
   }
 
-  async toggleBlockMessages(): Promise<void> {
+  protected onFollow(userId: string): void {
+    this.followedIds.update((s) => {
+      const next = new Set(s);
+      next.add(userId);
+      return next;
+    });
+  }
+
+  protected onUnfollow(userId: string): void {
+    this.followedIds.update((s) => {
+      const next = new Set(s);
+      next.delete(userId);
+      return next;
+    });
+  }
+
+  protected async toggleBlockMessages(): Promise<void> {
     const profile = this.profile();
     const userId = profile?.id;
     if (!userId || this.isOwnProfile()) return;
@@ -1362,7 +729,7 @@ export class UserProfileComponent {
     }
   }
 
-  async toggleHideAscents(): Promise<void> {
+  protected async toggleHideAscents(): Promise<void> {
     const profile = this.profile();
     const userId = profile?.id;
     if (!userId || this.isOwnProfile()) return;
@@ -1411,6 +778,7 @@ export class UserProfileComponent {
       // If hiding ascents, we might want to unfollow as well?
       if (isHiding && this.isFollowing()) {
         await this.followsService.unfollow(userId);
+        this.onUnfollow(userId);
       }
     }
   }
@@ -1457,37 +825,6 @@ export class UserProfileComponent {
         appearance: 'flat',
       })
       .subscribe();
-  }
-
-  openCalendar(): void {
-    const userId = this.id() || this.supabase.authUserId() || '';
-    if (!userId) return;
-    this.dialogs
-      .open(new PolymorpheusComponent(AscentCalendarDialogComponent), {
-        label: this.translate.instant('ascents'),
-        size: 'm',
-        data: {
-          userId,
-          user: this.profile(),
-        },
-      })
-      .subscribe();
-  }
-
-  private markDuplicates(
-    ascents: RouteAscentWithExtras[],
-  ): RouteAscentWithExtras[] {
-    const seen = new Set<string>();
-    return ascents.map((a) => {
-      // Key: date + normalized route_name
-      const normalizedNameStr = normalizeName(a.route?.name);
-      const key = `${a.date}|${normalizedNameStr}`;
-      const isDuplicate = seen.has(key);
-      if (!isDuplicate) {
-        seen.add(key);
-      }
-      return { ...a, is_duplicate: isDuplicate };
-    });
   }
 }
 
