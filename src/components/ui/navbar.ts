@@ -524,10 +524,7 @@ import { TourHintComponent } from './tour-hint';
 export class NavbarComponent {
   readonly isLoading = input<boolean>(false);
   protected readonly loading = computed(
-    () =>
-      this.isLoading() ||
-      this.global.isNavLoading() ||
-      !this.global.userProfile(),
+    () => this.isLoading() || this.global.isNavLoading(),
   );
   protected global = inject(GlobalData);
   protected readonly tourService = inject(TourService);
