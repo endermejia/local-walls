@@ -26,6 +26,9 @@ import { RouteWithExtras } from '../../../models/route.model';
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block w-full min-w-0',
+  },
 })
 export class UserProfileProjectsListComponent {
   projects = input.required<RouteWithExtras[]>();

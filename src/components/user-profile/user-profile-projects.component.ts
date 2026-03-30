@@ -24,6 +24,9 @@ import { UserProfileProjectsListComponent } from './projects/projects-list.compo
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block w-full min-w-0',
+  },
 })
 export class UserProfileProjectsComponent {
   userId = input.required<string>();

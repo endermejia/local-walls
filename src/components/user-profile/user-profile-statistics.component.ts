@@ -64,6 +64,9 @@ import { UserProfileStatsTrendsComponent } from './statistics/yearly-trend.compo
     UserProfileStatsTrendsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block w-full min-w-0',
+  },
   providers: [
     tuiHintOptionsProvider({
       appearance: 'dark',

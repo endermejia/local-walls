@@ -160,6 +160,9 @@ import { RouteWithExtras } from '../../models';
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block w-full min-w-0',
+  },
 })
 export class UserProfileLikesComponent {
   userId = input.required<string>();

@@ -801,7 +801,7 @@ export interface RoutesTableRow {
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex flex-col min-h-0' },
+  host: { class: 'flex flex-col min-h-0 min-w-0' },
 })
 export class RoutesTableComponent {
   protected readonly global = inject(GlobalData);

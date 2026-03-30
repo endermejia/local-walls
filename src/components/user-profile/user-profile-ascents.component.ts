@@ -191,6 +191,9 @@ import {
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block w-full min-w-0',
+  },
 })
 export class UserProfileAscentsComponent {
   userId = input.required<string>();
