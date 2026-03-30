@@ -1,4 +1,4 @@
-import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -8,11 +8,8 @@ import {
   input,
   InputSignal,
   PLATFORM_ID,
-  resource,
   signal,
-  WritableSignal,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
@@ -20,20 +17,15 @@ import {
   TuiAppearance,
   TuiButton,
   TuiDataList,
+  TuiDropdown,
   TuiIcon,
-  TuiLabel,
   TuiLoader,
   TuiNotification,
   TuiScrollbar,
-  TuiTextfield,
-  TuiDropdown,
 } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import {
   TUI_CONFIRM,
-  TuiAvatar,
-  TuiBadgedContent,
-  TuiBadgeNotification,
   TuiTabs,
   TuiPulse,
   type TuiConfirmData,
@@ -43,81 +35,51 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 import { CragsService } from '../services/crags.service';
-import { EightAnuService } from '../services/eight-anu.service';
-import { FiltersService } from '../services/filters.service';
 import { GlobalData } from '../services/global-data';
-import { ParkingsService } from '../services/parkings.service';
-import { RoutesService } from '../services/routes.service';
 import { SupabaseService } from '../services/supabase.service';
 import { ToastService } from '../services/toast.service';
-import { ToposService } from '../services/topos.service';
 import { TourService, TourStep } from '../services/tour.service';
 
-import { GradeComponent } from '../components/avatar-grade';
 import { ChartRoutesByGradeComponent } from '../components/chart-routes-by-grade';
-import { EmptyStateComponent } from '../components/empty-state';
-import { RoutesTableComponent } from '../components/routes-table';
 import { SectionHeaderComponent } from '../components/section-header';
 import { TourHintComponent } from '../components/tour-hint';
 import { WeatherForecastComponent } from '../components/weather-forecast';
-import { PaywallComponent } from '../components/paywall/paywall.component';
+import { CragRoutesComponent } from '../components/crag/crag-routes';
+import { CragToposComponent } from '../components/crag/crag-topos';
+import { CragParkingsComponent } from '../components/crag/crag-parkings';
 
 import {
   AmountByEveryGrade,
-  ClimbingKinds,
   type CragDetail,
-  LABEL_TO_VERTICAL_LIFE,
-  ORDERED_GRADE_VALUES,
-  ParkingDto,
-  RouteDto,
-  RouteWithExtras,
-  SearchRouteItem,
-  PROJECT_GRADE_LABEL,
   VERTICAL_LIFE_GRADES,
-  GRADE_NUMBER_TO_LABEL,
 } from '../models';
 
-import {
-  handleErrorToast,
-  mapLocationUrl,
-  slugify,
-  normalizeName,
-} from '../utils';
+import { handleErrorToast, mapLocationUrl } from '../utils';
 
-import { TopoCardComponent } from '../components/topo-card';
 import { SeoService } from '../services/seo.service';
 
 @Component({
   selector: 'app-crag',
   imports: [
     ChartRoutesByGradeComponent,
-    EmptyStateComponent,
-    GradeComponent,
-    FormsModule,
-    LowerCasePipe,
-    RoutesTableComponent,
     SectionHeaderComponent,
     TourHintComponent,
     WeatherForecastComponent,
-    PaywallComponent,
+    CragRoutesComponent,
+    CragToposComponent,
+    CragParkingsComponent,
     TranslatePipe,
     TuiAppearance,
-    TuiAvatar,
-    TuiBadgeNotification,
-    TuiBadgedContent,
     TuiButton,
     TuiDataList,
     TuiIcon,
-    TuiLabel,
     TuiLoader,
     TuiNotification,
     TuiScrollbar,
     TuiSwipe,
     TuiTabs,
-    TuiTextfield,
     TuiDropdown,
     TuiPulse,
-    TopoCardComponent,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -128,8 +90,6 @@ import { SeoService } from '../services/seo.service';
       >
         @let canEditAsAdmin = global.canEditAsAdmin();
         @if (cragDetail(); as c) {
-          @let canAreaAdmin = global.areaAdminPermissions()[c.area_id];
-
           <ng-template #cragSwitcher>
             <tui-data-list>
               @for (cragItem of sortedCrags(); track cragItem.id) {
@@ -153,7 +113,6 @@ import { SeoService } from '../services/seo.service';
               [titleDropdown]="cragSwitcher"
               (toggleLike)="onToggleLike()"
             >
-              <!-- Admin/Creator action buttons -->
               @if (global.canEditCrag()) {
                 <div actionButtons class="flex gap-2">
                   <button
@@ -307,385 +266,17 @@ import { SeoService } from '../services/seo.service';
             @let currentTab = visibleTabs()[activeTabIndex()];
             @switch (currentTab) {
               @case (0) {
-                <!-- Routes -->
-                <div class="flex items-center justify-between gap-2 mb-4">
-                  <div class="flex items-center w-full sm:w-auto gap-2">
-                    <tui-avatar
-                      tuiThumbnail
-                      size="l"
-                      src="@tui.route"
-                      class="self-center"
-                      [attr.aria-label]="'routes' | translate"
-                    />
-                    <h2 class="text-2xl font-semibold">
-                      {{ routesCount() }}
-                      {{ 'routes' | translate | lowercase }}
-                    </h2>
-                  </div>
-                  @if (global.editingMode()) {
-                    <div
-                      class="flex gap-2 flex-wrap sm:flex-nowrap justify-end"
-                    >
-                      @if (canEditAsAdmin || canAreaAdmin) {
-                        <button
-                          tuiButton
-                          appearance="textfield"
-                          size="s"
-                          type="button"
-                          (click.zoneless)="routesService.openUnifyRoutes()"
-                          [iconStart]="'@tui.blend'"
-                        >
-                          {{ 'unify' | translate }}
-                        </button>
-                      }
-                      <button
-                        tuiButton
-                        appearance="textfield"
-                        size="s"
-                        type="button"
-                        (click.zoneless)="openCreateRoute()"
-                        [iconStart]="'@tui.plus'"
-                      >
-                        {{ 'new' | translate }}
-                      </button>
-                    </div>
-                  }
-                </div>
-
-                <div class="mb-4 flex items-end gap-2">
-                  <tui-textfield class="grow block" tuiTextfieldSize="l">
-                    <label tuiLabel for="routes-search">{{
-                      'searchPlaceholder' | translate
-                    }}</label>
-                    <input
-                      tuiTextfield
-                      #routesSearch
-                      id="routes-search"
-                      autocomplete="off"
-                      [value]="query()"
-                      (input.zoneless)="onQuery(routesSearch.value)"
-                    />
-                  </tui-textfield>
-                  <tui-badged-content>
-                    @if (hasActiveFilters()) {
-                      <tui-badge-notification
-                        tuiAppearance="accent"
-                        size="s"
-                        tuiSlot="top"
-                      />
-                    }
-                    <button
-                      tuiButton
-                      appearance="textfield"
-                      size="l"
-                      type="button"
-                      iconStart="@tui.sliders-horizontal"
-                      [attr.aria-label]="'filters' | translate"
-                      (click.zoneless)="openFilters()"
-                    ></button>
-                  </tui-badged-content>
-                </div>
-
-                @let routesList = filteredRoutes();
-                @let isSearchingAnu = eightAnuResource.isLoading();
-                @let anuResults = eightAnuResource.value() || [];
-
-                @if (routesList.length > 0) {
-                  <app-routes-table
-                    [data]="routesList"
-                    [showAddRouteToTopo]="true"
-                    [showLocation]="query().trim().length >= 2"
-                  />
-                }
-
-                @if (query().length >= 2 && routesList.length === 0) {
-                  @if (isSearchingAnu) {
-                    <div
-                      class="flex flex-col items-center justify-center p-8 gap-4"
-                    >
-                      <tui-loader size="m" />
-                      <span class="text-sm opacity-60">
-                        {{ 'loading' | translate }} 8a.nu...
-                      </span>
-                    </div>
-                  } @else {
-                    @if (anuResults.length > 0) {
-                      <div class="flex flex-col gap-3 mt-4">
-                        <div class="flex items-center gap-2 opacity-70 mb-2">
-                          <tui-icon [icon]="global.iconSrc()('8anu')" />
-                          <span class="font-medium">
-                            {{ 'eightAnuResults' | translate }}
-                          </span>
-                        </div>
-                        @for (
-                          item of anuResults.slice(0, 3);
-                          track item.zlaggableId
-                        ) {
-                          <div
-                            tuiAppearance="flat"
-                            class="p-4 rounded-3xl flex items-center justify-between gap-4"
-                          >
-                            <div class="flex flex-col gap-1 min-w-0">
-                              <div class="flex items-center gap-2">
-                                <app-grade
-                                  [grade]="mapEightAnuGrade(item.difficulty)"
-                                />
-                                <span class="font-bold truncate">
-                                  {{ item.zlaggableName }}
-                                </span>
-                              </div>
-                              <span class="text-xs opacity-60 truncate">
-                                {{ item.cragName }} · {{ item.sectorName }}
-                              </span>
-                            </div>
-                            <button
-                              tuiButton
-                              appearance="textfield"
-                              size="s"
-                              type="button"
-                              iconStart="@tui.download"
-                              (click.zoneless)="importRoute(item)"
-                            >
-                              {{ 'import' | translate }}
-                            </button>
-                          </div>
-                        }
-                      </div>
-                    }
-
-                    <div
-                      tuiAppearance="flat"
-                      class="flex flex-col items-center justify-center p-8 gap-4 rounded-3xl mt-4"
-                    >
-                      @if (anuResults.length === 0) {
-                        <tui-icon
-                          icon="@tui.search-x"
-                          class="text-4xl opacity-50"
-                        />
-                        <span class="text-sm opacity-60 text-center">
-                          {{ 'crags.8anuNotFound' | translate }}
-                        </span>
-                      } @else {
-                        <span class="text-sm opacity-60 text-center">
-                          {{ 'crags.createLocalInstead' | translate }}
-                        </span>
-                      }
-                      <button
-                        tuiButton
-                        appearance="primary"
-                        size="m"
-                        type="button"
-                        iconStart="@tui.plus"
-                        (click.zoneless)="openCreateRoute(query())"
-                      >
-                        {{ 'crags.createRouteAction' | translate }}
-                      </button>
-                    </div>
-                  }
-                }
-
-                @if (routesList.length === 0 && query().length < 2) {
-                  <app-empty-state icon="@tui.list" />
-                }
+                <app-crag-routes [crag]="c" />
               }
               @case (1) {
-                <!-- Topos -->
-                @let toposCount = c.topos.length;
-                <div class="flex items-center justify-between gap-2 mb-4">
-                  <div class="flex items-center gap-2">
-                    <tui-avatar
-                      tuiThumbnail
-                      size="l"
-                      [src]="global.iconSrc()('topo')"
-                      class="self-center"
-                      [attr.aria-label]="'topo' | translate"
-                    />
-                    <h2 class="text-2xl font-semibold">
-                      {{ toposCount }}
-                      {{
-                        (toposCount === 1 ? 'topo' : 'topos')
-                          | translate
-                          | lowercase
-                      }}
-                    </h2>
-                  </div>
-                  @if (canAreaAdmin) {
-                    <button
-                      tuiButton
-                      appearance="textfield"
-                      size="s"
-                      type="button"
-                      (click.zoneless)="openCreateTopo()"
-                      [iconStart]="'@tui.plus'"
-                    >
-                      {{ 'new' | translate }}
-                    </button>
-                  }
-                </div>
-                <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
-                  @if (
-                    c.is_public || c.purchased || canEditAsAdmin || canAreaAdmin
-                  ) {
-                    @for (t of topos(); track t.id) {
-                      <app-topo-card
-                        [topo]="t"
-                        (selected)="
-                          router.navigate([
-                            '/area',
-                            areaSlug(),
-                            cragSlug(),
-                            'topo',
-                            t.id,
-                          ])
-                        "
-                      />
-                    } @empty {
-                      <div class="col-span-full">
-                        <app-empty-state icon="@tui.image" />
-                      </div>
-                    }
-                  } @else {
-                    <div class="col-span-full">
-                      <app-paywall [areaId]="c.area_id" [price]="c.price" />
-                    </div>
-                  }
-                </div>
+                <app-crag-topos
+                  [crag]="c"
+                  [areaSlug]="areaSlug()"
+                  [cragSlug]="cragSlug()"
+                />
               }
               @case (2) {
-                <!-- Parkings -->
-                <div class="flex items-center justify-between gap-2 mb-4">
-                  <div class="flex items-center w-full sm:w-auto gap-2">
-                    <tui-avatar
-                      tuiThumbnail
-                      size="l"
-                      src="@tui.parking-square"
-                      class="self-center"
-                      [attr.aria-label]="'parkings' | translate"
-                    />
-                    <h2 class="text-2xl font-semibold">
-                      {{ 'parkings' | translate }}
-                    </h2>
-                  </div>
-                  @if (canAreaAdmin) {
-                    <div
-                      class="flex gap-2 flex-wrap sm:flex-nowrap justify-end"
-                    >
-                      <button
-                        tuiButton
-                        appearance="textfield"
-                        size="s"
-                        type="button"
-                        (click.zoneless)="openLinkParking()"
-                        [iconStart]="'@tui.link'"
-                      >
-                        {{ 'link' | translate }}
-                      </button>
-                      <button
-                        tuiButton
-                        appearance="textfield"
-                        size="s"
-                        type="button"
-                        (click.zoneless)="openCreateParking()"
-                        [iconStart]="'@tui.plus'"
-                      >
-                        {{ 'new' | translate }}
-                      </button>
-                    </div>
-                  }
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  @for (p of c.parkings; track p.id) {
-                    <div
-                      tuiAppearance="flat"
-                      class="p-4 rounded-3xl flex flex-col justify-between"
-                    >
-                      <div class="flex flex-col gap-3">
-                        <div class="flex items-start justify-between gap-2 ">
-                          <div class="flex flex-wrap gap-2">
-                            <span tuiTitle class="!text-lg">{{ p.name }}</span>
-                          </div>
-
-                          @if (p.size) {
-                            <div
-                              class="flex flex-nowrap items-center gap-1 opacity-80 whitespace-nowrap"
-                            >
-                              <tui-icon icon="@tui.car" />
-                              <span class="text-lg"> x {{ p.size }} </span>
-                            </div>
-                          }
-
-                          @if (canEditAsAdmin || canAreaAdmin) {
-                            <div class="flex gap-1">
-                              <button
-                                size="s"
-                                appearance="neutral"
-                                iconStart="@tui.square-pen"
-                                tuiIconButton
-                                type="button"
-                                class="!rounded-full"
-                                (click.zoneless)="openEditParking(p)"
-                              >
-                                {{ 'edit' | translate }}
-                              </button>
-                              <button
-                                size="s"
-                                appearance="negative"
-                                iconStart="@tui.unlink"
-                                tuiIconButton
-                                type="button"
-                                class="!rounded-full"
-                                (click.zoneless)="removeParking(p)"
-                              >
-                                {{ 'unlink' | translate }}
-                              </button>
-                            </div>
-                          }
-                        </div>
-
-                        @if (p.latitude && p.longitude) {
-                          <div class="flex flex-wrap gap-2 mt-2">
-                            <button
-                              tuiButton
-                              appearance="secondary"
-                              size="s"
-                              type="button"
-                              class="!rounded-full"
-                              (click.zoneless)="
-                                viewOnMap(p.latitude, p.longitude)
-                              "
-                              [iconStart]="'@tui.map-pin'"
-                            >
-                              {{ 'viewOnMap' | translate }}
-                            </button>
-                            <button
-                              appearance="secondary"
-                              size="s"
-                              tuiButton
-                              type="button"
-                              class="!rounded-full lw-icon-50"
-                              [iconStart]="'/image/google-maps.svg'"
-                              (click.zoneless)="
-                                openExternal(
-                                  mapLocationUrl({
-                                    latitude: p.latitude,
-                                    longitude: p.longitude,
-                                  })
-                                )
-                              "
-                              [attr.aria-label]="'openGoogleMaps' | translate"
-                            >
-                              {{ 'openGoogleMaps' | translate }}
-                            </button>
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  } @empty {
-                    <div class="col-span-full">
-                      <app-empty-state icon="@tui.car" />
-                    </div>
-                  }
-                </div>
+                <app-crag-parkings [crag]="c" />
               }
               @case (3) {
                 <app-weather-forecast
@@ -727,12 +318,7 @@ export class CragComponent {
   protected readonly activeTabIndex = signal(0);
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
-  protected readonly routesService = inject(RoutesService);
-  protected readonly parkingsService = inject(ParkingsService);
   protected readonly cragsService = inject(CragsService);
-  protected readonly toposService = inject(ToposService);
-  protected readonly eightAnuService = inject(EightAnuService);
-  protected readonly filtersService = inject(FiltersService);
   protected readonly platformId = inject(PLATFORM_ID);
   protected readonly toast = inject(ToastService);
   protected readonly translate = inject(TranslateService);
@@ -798,199 +384,6 @@ export class CragComponent {
 
   areaSlug: InputSignal<string> = input.required<string>();
   cragSlug: InputSignal<string> = input.required<string>();
-  readonly query: WritableSignal<string> = signal('');
-  readonly selectedGradeRange = this.global.areaListGradeRange;
-  readonly selectedCategories = this.global.areaListCategories;
-
-  readonly hasActiveFilters = computed(() => {
-    const [lo, hi] = this.selectedGradeRange();
-    const gradeActive = !(lo === 0 && hi === ORDERED_GRADE_VALUES.length - 1);
-    return (
-      gradeActive ||
-      this.selectedCategories().length > 0 ||
-      this.query().trim().length > 0
-    );
-  });
-
-  protected readonly areaRoutesResource = resource({
-    params: () => {
-      const crag = this.cragDetail();
-      return crag?.area_id;
-    },
-    loader: async ({ params: areaId }) => {
-      if (!areaId) return [];
-      return this.routesService.getRoutesByAreaWithDetails(areaId);
-    },
-  });
-
-  readonly filteredRoutes = computed(() => {
-    const q = normalizeName(this.query());
-    const [minIdx, maxIdx] = this.selectedGradeRange();
-    const allowedLabels = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1);
-    const categories = this.selectedCategories();
-    const crag = this.cragDetail();
-    const localList = this.global.cragRoutesResource.value() ?? [];
-
-    const textMatches = (r: Partial<RouteWithExtras>) => {
-      if (!q) return true;
-      const nameMatch = normalizeName(r.name || '').includes(q);
-      const gradeLabel = GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES];
-      const gradeMatch = gradeLabel
-        ? normalizeName(gradeLabel).includes(q)
-        : false;
-      return nameMatch || gradeMatch;
-    };
-
-    const gradeMatches = (r: Partial<RouteWithExtras>) => {
-      const label = GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES];
-      if (!label || label === PROJECT_GRADE_LABEL) return true;
-      return (allowedLabels as readonly string[]).includes(label);
-    };
-
-    const categoryMatches = (r: Partial<RouteWithExtras>) => {
-      if (categories.length === 0) return true;
-      const kind = r.climbing_kind;
-      if (!kind) return true;
-      // 0=Sport, 1=Boulder, 2=Multipitch (from FilterDialog)
-      if (categories.includes(0) && kind === ClimbingKinds.SPORT) return true;
-      if (categories.includes(1) && kind === ClimbingKinds.BOULDER) return true;
-      return categories.includes(2) && kind === ClimbingKinds.MULTIPITCH;
-    };
-
-    const filteredLocals = localList.filter(
-      (r) => textMatches(r) && gradeMatches(r) && categoryMatches(r),
-    );
-
-    // If searching, also include matches from other crags in the area
-    if (q.trim().length >= 2 && crag) {
-      const otherCragsRoutes = this.areaRoutesResource.value() ?? [];
-      const filteredOthers = otherCragsRoutes
-        .filter(
-          (r) =>
-            r.crag_id !== crag.id &&
-            textMatches(r) &&
-            gradeMatches(r) &&
-            categoryMatches(r),
-        )
-        .map(
-          (r) =>
-            ({
-              ...r,
-              // Add a property to help identify foreign routes if needed
-            }) as RouteWithExtras,
-        );
-
-      // Merge and avoid duplicates by slug if somehow they exist
-      const seenSlugs = new Set(filteredLocals.map((r) => r.slug));
-      const othersToAdd = filteredOthers.filter((r) => !seenSlugs.has(r.slug));
-
-      return [...filteredLocals, ...othersToAdd];
-    }
-
-    return filteredLocals;
-  });
-
-  protected readonly eightAnuResource = resource({
-    params: () => {
-      const q = this.query().trim();
-      const crag = this.cragDetail();
-      const allMatchesCount = this.filteredRoutes().length;
-
-      if (q.length >= 2 && crag && allMatchesCount === 0) {
-        // Prefer eight_anu_crag_slugs (area) or eight_anu_sector_slugs (crag) if available
-        const slug =
-          crag.eight_anu_crag_slugs?.[0] || crag.eight_anu_sector_slugs?.[0];
-        return { q, slug };
-      }
-      return null;
-    },
-    loader: async ({ params }): Promise<SearchRouteItem[]> => {
-      if (!params) return [];
-      const searchQuery = params.slug ? `${params.q} ${params.slug}` : params.q;
-      const results = await this.eightAnuService.searchRoutes(searchQuery);
-
-      const areaRoutes = this.areaRoutesResource.value() || [];
-      const existingSlugs = new Set(areaRoutes.map((r) => r.slug));
-      const existingEightAnuSlugs = new Set(
-        areaRoutes.flatMap((r) => r.eight_anu_route_slugs || []),
-      );
-
-      const updatePromises: Promise<RouteDto | null>[] = [];
-
-      for (const item of results) {
-        const itemSlug = slugify(item.zlaggableName);
-        if (existingSlugs.has(itemSlug) || existingEightAnuSlugs.has(itemSlug))
-          continue;
-
-        // Auto-linking logic only for the CURRENT crag to avoid confusion
-        const currentCragRoutes = this.global.cragRoutesResource.value() || [];
-        const matchingLocals = currentCragRoutes.filter(
-          (r) => slugify(r.name) === itemSlug,
-        );
-
-        if (matchingLocals.length > 0) {
-          for (const local of matchingLocals) {
-            const currentSlugs = local.eight_anu_route_slugs || [];
-            if (!currentSlugs.includes(itemSlug)) {
-              if (this.global.editingMode()) {
-                updatePromises.push(
-                  this.routesService.update(
-                    local.id,
-                    {
-                      eight_anu_route_slugs: [...currentSlugs, itemSlug],
-                    },
-                    true,
-                  ),
-                );
-              }
-            }
-          }
-          existingEightAnuSlugs.add(itemSlug);
-        }
-      }
-
-      if (updatePromises.length > 0) {
-        await Promise.all(updatePromises);
-      }
-
-      return results.filter((item) => {
-        const itemSlug = slugify(item.zlaggableName);
-        return (
-          !existingSlugs.has(itemSlug) && !existingEightAnuSlugs.has(itemSlug)
-        );
-      });
-    },
-  });
-
-  protected mapEightAnuGrade(
-    difficulty: string | undefined,
-  ): VERTICAL_LIFE_GRADES {
-    if (!difficulty) return VERTICAL_LIFE_GRADES.G0;
-    const label = difficulty.toLowerCase().replace(' ', '');
-    return (
-      LABEL_TO_VERTICAL_LIFE[label as keyof typeof LABEL_TO_VERTICAL_LIFE] ??
-      VERTICAL_LIFE_GRADES.G0
-    );
-  }
-
-  protected importRoute(item: SearchRouteItem): void {
-    const crag = this.cragDetail();
-    if (!crag) return;
-
-    this.routesService.openRouteForm({
-      cragId: crag.id,
-      routeData: {
-        id: 0,
-        crag_id: crag.id,
-        name: item.zlaggableName,
-        slug: '',
-        grade: this.mapEightAnuGrade(item.difficulty),
-        climbing_kind: ClimbingKinds.SPORT,
-        height: null,
-        eight_anu_route_slugs: [slugify(item.zlaggableName)],
-      },
-    });
-  }
 
   readonly loading = this.cragsService.loading;
   protected readonly sortedCrags = computed(() => {
@@ -1007,24 +400,20 @@ export class CragComponent {
     const gradesVal: AmountByEveryGrade = {};
     for (const r of routes) {
       if (r.grade >= 0) {
-        const g = r.grade as VERTICAL_LIFE_GRADES; // Cast number to enum
+        const g = r.grade as VERTICAL_LIFE_GRADES;
         gradesVal[g] = (gradesVal[g] ?? 0) + 1;
       }
     }
 
-    // Return CragDetail
     return {
       ...c,
       grades: gradesVal,
     };
   });
 
-  protected readonly routesCount = computed(() => this.filteredRoutes().length);
-
-  protected readonly topos = computed(() => {
-    const c = this.cragDetail();
-    if (!c) return [];
-    return c.topos;
+  protected readonly routesCount = computed(() => {
+    const routes = this.global.cragRoutesResource.value() ?? [];
+    return routes.length;
   });
 
   constructor() {
@@ -1044,7 +433,6 @@ export class CragComponent {
       }
     });
 
-    // Synchronize the selected area /crag in global state from route
     effect(() => {
       const aSlug = this.areaSlug();
       const cSlug = this.cragSlug();
@@ -1053,7 +441,6 @@ export class CragComponent {
       this.global.selectedCragSlug.set(cSlug);
     });
 
-    // Update SEO tags when crag data is available
     effect(() => {
       const crag = this.cragDetail();
       const area = this.global.selectedArea();
@@ -1078,90 +465,6 @@ export class CragComponent {
       const tabs = this.visibleTabs();
       if (this.activeTabIndex() >= tabs.length && tabs.length > 0) {
         this.activeTabIndex.set(0);
-      }
-    });
-  }
-
-  onQuery(v: string) {
-    this.query.set(v);
-  }
-
-  openFilters(): void {
-    this.filtersService.openFilters({
-      showShade: false,
-    });
-  }
-
-  openCreateRoute(prefillName?: string): void {
-    const c = this.cragDetail();
-    if (!c) return;
-    this.routesService.openRouteForm({
-      cragId: c.id,
-      routeData: prefillName
-        ? {
-            id: 0,
-            crag_id: c.id,
-            name: prefillName,
-            slug: slugify(prefillName),
-            grade: 0,
-            climbing_kind: ClimbingKinds.SPORT,
-          }
-        : undefined,
-    });
-  }
-
-  openCreateParking(): void {
-    const c = this.cragDetail();
-    if (!c) return;
-    this.parkingsService.openParkingForm({
-      cragId: c.id,
-      defaultLocation:
-        c.latitude && c.longitude
-          ? { lat: c.latitude, lng: c.longitude }
-          : undefined,
-    });
-  }
-
-  openLinkParking(): void {
-    const c = this.cragDetail();
-    if (!c) return;
-    const existingParkingIds = c.parkings.map((p) => p.id);
-    this.parkingsService.openLinkParkingForm({
-      cragId: c.id,
-      existingParkingIds,
-    });
-  }
-
-  openEditParking(parking: ParkingDto): void {
-    this.parkingsService.openParkingForm({
-      parkingData: parking,
-      cragId: this.cragDetail()?.id,
-    });
-  }
-
-  removeParking(parking: ParkingDto): void {
-    const c = this.cragDetail();
-    if (!c || !isPlatformBrowser(this.platformId)) return;
-
-    void firstValueFrom(
-      this.dialogs.open<boolean>(TUI_CONFIRM, {
-        label: this.translate.instant('admin.parkings.unlinkTitle'),
-        size: 's',
-        data: {
-          content: this.translate.instant('admin.parkings.unlinkConfirm', {
-            name: parking.name,
-          }),
-          yes: this.translate.instant('unlink'),
-          no: this.translate.instant('cancel'),
-          appearance: 'accent',
-        } as TuiConfirmData,
-      }),
-      { defaultValue: false },
-    ).then((confirmed) => {
-      if (confirmed) {
-        this.parkingsService
-          .removeParkingFromCrag(c.id, parking.id)
-          .catch((err) => handleErrorToast(err, this.toast));
       }
     });
   }
@@ -1205,8 +508,6 @@ export class CragComponent {
     if (!isPlatformBrowser(this.platformId)) return;
     const c = this.cragDetail();
     if (!c) return;
-    // Optimistic update not possible easily with computed resource without invalidation
-    // We just call the API
     this.cragsService.toggleCragLike(c.id);
   }
 
@@ -1244,7 +545,6 @@ export class CragComponent {
       }
     } catch (e) {
       const error = e as Error;
-      console.error('[CragComponent] Error deleting crag:', error);
       handleErrorToast(error, this.toast);
     }
   }
@@ -1267,12 +567,6 @@ export class CragComponent {
         warning_en: c.warning_en,
       },
     });
-  }
-
-  openCreateTopo(): void {
-    const c = this.cragDetail();
-    if (!c) return;
-    this.toposService.openTopoForm({ cragId: c.id });
   }
 
   protected openExternal(url: string): void {
