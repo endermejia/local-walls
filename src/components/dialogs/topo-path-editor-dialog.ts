@@ -1,5 +1,9 @@
 import { CommonModule } from '@angular/common';
 import {
+  TopoHasPathPipe,
+  TopoPathPointsPipe,
+} from '../../pipes/topo-path.pipe';
+import {
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -63,6 +67,8 @@ export interface TopoPathEditorConfig {
   selector: 'app-topo-path-editor-dialog',
   standalone: true,
   imports: [
+    TopoHasPathPipe,
+    TopoPathPointsPipe,
     CommonModule,
     TuiIcon,
     TuiButton,
@@ -168,7 +174,7 @@ export interface TopoPathEditorConfig {
                       </div>
                     </div>
                     <app-grade [grade]="tr.route.grade" size="s" />
-                    @if (hasPath(tr.route_id)) {
+                    @if (tr.route_id | topoHasPath: pathsMap) {
                       <tui-icon
                         icon="@tui.check"
                         class="text-[var(--tui-text-positive)] text-xs"
@@ -579,10 +585,6 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
         this.selectedRoute.set(tr);
       }
     }
-  }
-
-  hasPath(routeId: number): boolean {
-    return hasPathUtil(routeId, this.pathsMap);
   }
 
   getPointsString(pathData: {
