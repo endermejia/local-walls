@@ -961,14 +961,6 @@ export class RoutesTableComponent {
     routeId: number,
     isPresent: boolean,
   ): Promise<void> {
-    console.log(
-      '[RoutesTable] toggling route',
-      routeId,
-      'on topo',
-      topoId,
-      'isPresent:',
-      isPresent,
-    );
     try {
       if (isPresent) {
         await this.toposService.removeRoute(topoId, routeId, false);
