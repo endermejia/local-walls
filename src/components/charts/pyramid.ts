@@ -57,7 +57,12 @@ export interface PyramidLevel {
     route:
       | (RouteDto & { crag?: { slug: string; area?: { slug: string } } })
       | null;
+    isCompleted: boolean;
+    canModify: boolean;
+    expectedGradeLabel: string;
+    ascent?: { score: number; type: AscentType };
   })[];
+  hasFilledSlot: boolean;
 }
 
 @Component({
@@ -125,17 +130,15 @@ export interface PyramidLevel {
                   [tuiSkeleton]="isLoading()"
                   [id]="level.level === 1 ? 'pyramid-peak' : null"
                   [class.is-empty]="!slot.route_id"
-                  [class.is-completed]="isCompleted(slot)"
-                  [class.is-locked]="
-                    !isLoading() && !canModifySlot(level.level, slot)
-                  "
-                  [tuiAppearance]="isCompleted(slot) ? 'positive' : 'neutral'"
+                  [class.is-completed]="slot.isCompleted"
+                  [class.is-locked]="!isLoading() && !slot.canModify"
+                  [tuiAppearance]="slot.isCompleted ? 'positive' : 'neutral'"
                   [tuiAppearanceState]="
                     isLoading()
                       ? null
-                      : !canModifySlot(level.level, slot)
+                      : !slot.canModify
                         ? 'disabled'
-                        : isCompleted(slot)
+                        : slot.isCompleted
                           ? 'active'
                           : null
                   "
@@ -165,8 +168,8 @@ export interface PyramidLevel {
                         >
                           {{ slot.route.name }}
                         </span>
-                        @if (isCompleted(slot)) {
-                          @let ascent = completedRoutesMap()[slot.route_id!];
+                        @if (slot.isCompleted && slot.ascent) {
+                          @let ascent = slot.ascent;
                           <div
                             class="flex flex-col items-center gap-1 leading-none pt-1"
                           >
@@ -190,7 +193,7 @@ export interface PyramidLevel {
                       />
                       <span
                         class="text-[8px] opacity-40 uppercase font-medium"
-                        >{{ getExpectedGradeLabel(level.level) }}</span
+                        >{{ slot.expectedGradeLabel }}</span
                       >
                     }
                   </div>
@@ -398,6 +401,9 @@ export class PyramidComponent implements AfterViewInit {
     const data = this.slotsResource.value() || [];
     const year = this.selectedYear();
     const userId = this.userId();
+    const completedMap = this.completedRoutesMap();
+    const isOwner = this.isOwner();
+
     const structure = [
       { level: 1, slotsCount: 1 },
       { level: 2, slotsCount: 2 },
@@ -406,31 +412,73 @@ export class PyramidComponent implements AfterViewInit {
       { level: 5, slotsCount: 6 },
     ];
 
-    return structure.map((s) => ({
-      ...s,
-      slots: Array.from({ length: s.slotsCount }, (_, i) => {
-        const found = data.find((d) => d.level === s.level && d.position === i);
-        return (
-          found || {
-            id: '',
-            user_id: userId,
-            year: year,
-            level: s.level,
-            position: i,
-            route_id: null,
-            created_at: '',
-            updated_at: '',
-            route: null,
-          }
-        );
-      }),
-    }));
-  });
+    // Calc deduced top grade once
+    let deducedTopGrade: number | undefined;
+    for (const s of structure) {
+      const filledSlot = data.find((d) => d.level === s.level && !!d.route);
+      if (filledSlot?.route) {
+        deducedTopGrade = filledSlot.route.grade + (s.level - 1);
+        break;
+      }
+    }
 
-  isCompleted(slot: UserPyramidSlotDto): boolean {
-    if (!slot.route_id) return false;
-    return !!this.completedRoutesMap()[slot.route_id];
-  }
+    const levels = structure.map((s) => {
+      const slots = Array.from({ length: s.slotsCount }, (_, i) => {
+        const found = data.find((d) => d.level === s.level && d.position === i);
+        const slotData = found || {
+          id: '',
+          user_id: userId,
+          year: year,
+          level: s.level,
+          position: i,
+          route_id: null,
+          created_at: '',
+          updated_at: '',
+          route: null,
+        };
+
+        const isCompleted = !!(
+          slotData.route_id && completedMap[slotData.route_id]
+        );
+        const ascent = slotData.route_id
+          ? completedMap[slotData.route_id]
+          : undefined;
+
+        let expectedGradeLabel = '';
+        if (!slotData.route && deducedTopGrade) {
+          const expectedGrade = deducedTopGrade - (s.level - 1);
+          expectedGradeLabel =
+            GRADE_NUMBER_TO_LABEL[expectedGrade as VERTICAL_LIFE_GRADES] || '';
+        }
+
+        return {
+          ...slotData,
+          isCompleted,
+          ascent,
+          expectedGradeLabel,
+        };
+      });
+
+      return {
+        ...s,
+        slots,
+        hasFilledSlot: slots.some((slot) => !!slot.route_id),
+      };
+    });
+
+    // Pass 2: canModify
+    return levels.map((l, idx) => {
+      const prevLevelHasFilledSlot =
+        idx > 0 ? levels[idx - 1].hasFilledSlot : true;
+      const slots = l.slots.map((slot) => ({
+        ...slot,
+        canModify:
+          isOwner &&
+          (!!slot.route_id || l.level === 1 || prevLevelHasFilledSlot),
+      }));
+      return { ...l, slots };
+    });
+  });
 
   canModifySlot(level: number, slot?: UserPyramidSlotDto): boolean {
     if (!this.isOwner()) return false;
@@ -458,25 +506,12 @@ export class PyramidComponent implements AfterViewInit {
     return undefined;
   }
 
-  getExpectedGradeLabel(level: number): string {
-    const topGrade = this.getDeducedTopGrade();
-    if (!topGrade) return '';
-
-    const expectedGrade = topGrade - (level - 1);
-    const label = GRADE_NUMBER_TO_LABEL[expectedGrade as VERTICAL_LIFE_GRADES];
-    return label || '';
-  }
-
   onSlotClick(
     level: number,
     position: number,
-    slot: UserPyramidSlotDto & {
-      route:
-        | (RouteDto & { crag?: { slug: string; area?: { slug: string } } })
-        | null;
-    },
+    slot: PyramidLevel['slots'][number],
   ): void {
-    if (!this.canModifySlot(level, slot)) {
+    if (!slot.canModify) {
       if (slot.route) {
         this.goToRoute(slot.route);
       }
@@ -526,10 +561,8 @@ export class PyramidComponent implements AfterViewInit {
             expectedGrade,
             currentRouteId: slot.route_id,
             currentRoute: slot.route,
-            isCompleted: this.isCompleted(slot),
-            ascent: slot.route_id
-              ? this.completedRoutesMap()[slot.route_id]
-              : undefined,
+            isCompleted: slot.isCompleted,
+            ascent: slot.ascent,
             userId: this.userId(),
             year: this.selectedYear(),
             canDelete,

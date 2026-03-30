@@ -63,7 +63,7 @@ import {
   TopoRouteWithRoute,
 } from '../../models';
 import { PaywallComponent } from '../../components/paywall/paywall';
-import { VERTICAL_LIFE_GRADES, GRADE_NUMBER_TO_LABEL } from '../../models';
+import { GradeLabelPipe } from '../../pipes/grade-label.pipe';
 
 import { handleErrorToast } from '../../utils';
 import {
@@ -100,6 +100,7 @@ export interface TopoRouteRow {
   selector: 'app-topo',
   imports: [
     GradeComponent,
+    GradeLabelPipe,
     EmptyStateComponent,
     FormsModule,
     RouterLink,
@@ -379,7 +380,7 @@ export interface TopoRouteRow {
                               font-weight="bold"
                               font-family="sans-serif"
                             >
-                              {{ getGradeLabel(tr.route.grade) }}
+                              {{ tr.route.grade | gradeLabel }}
                             </text>
                           }
                         }
@@ -586,7 +587,7 @@ export interface TopoRouteRow {
                                 font-weight="bold"
                                 font-family="sans-serif"
                               >
-                                {{ getGradeLabel(tr.route.grade) }}
+                                {{ tr.route.grade | gradeLabel }}
                               </text>
                             }
                           </g>
@@ -1456,14 +1457,6 @@ export class TopoComponent {
       'topo',
       topo.id,
     ]);
-  }
-
-  protected getGradeLabel(grade: number): string {
-    return (
-      GRADE_NUMBER_TO_LABEL[grade as VERTICAL_LIFE_GRADES] ||
-      grade?.toString() ||
-      ''
-    );
   }
 
   protected selectNextRoute(): void {

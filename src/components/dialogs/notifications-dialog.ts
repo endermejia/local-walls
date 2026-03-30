@@ -23,6 +23,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { AppNotificationsService } from '../../services/app-notifications.service';
 import { AscentsService } from '../../services/ascents.service';
+import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
 
 import { EmptyStateComponent } from '../ui/empty-state';
@@ -47,6 +48,8 @@ interface GroupedNotification {
   ids: string[];
   count: number;
   hasUnread: boolean;
+  actorsText?: string;
+  notificationTextKey?: string;
 }
 
 @Component({
@@ -101,9 +104,9 @@ interface GroupedNotification {
               <div class="flex flex-col grow min-w-0">
                 <div class="flex justify-between items-start gap-2">
                   <span class="text-sm">
-                    <span class="font-bold">{{ getActorsText(group) }}</span>
+                    <span class="font-bold">{{ group.actorsText }}</span>
                     {{
-                      getNotificationText(group)
+                      group.notificationTextKey
                         | translate: { routeName: group.resource_name || '' }
                     }}
                   </span>
@@ -148,6 +151,7 @@ export class NotificationsDialogComponent {
   private readonly translate = inject(TranslateService);
   protected readonly context = injectContext<TuiDialogContext<void, void>>();
   private readonly ascentsService = inject(AscentsService);
+  private readonly global = inject(GlobalData);
 
   protected readonly notificationsResource = resource<
     NotificationWithActor[],
@@ -157,8 +161,13 @@ export class NotificationsDialogComponent {
   });
 
   protected readonly groupedNotifications = computed(() => {
+    this.global.i18nTick();
     const notifications = this.notificationsResource.value() ?? [];
-    return this.groupNotifications(notifications);
+    return this.groupNotifications(notifications).map((group) => ({
+      ...group,
+      actorsText: this.getActorsText(group),
+      notificationTextKey: this.getNotificationText(group),
+    }));
   });
 
   protected readonly loading = computed(() =>

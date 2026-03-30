@@ -68,6 +68,7 @@ import { GradeComponent } from '../ui/avatar-grade';
 import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { RouteEquippersInputComponent } from './route-equippers-input';
+import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
 
 @Component({
   selector: 'app-routes-table',
@@ -97,6 +98,7 @@ import { RouteEquippersInputComponent } from './route-equippers-input';
     TuiTableExpand,
     TuiTableSortPipe,
     TuiTextfield,
+    IncludesIdPipe,
   ],
   template: `
     @if (tableData(); as data) {
@@ -358,11 +360,8 @@ import { RouteEquippersInputComponent } from './route-equippers-input';
                                     track topo.id
                                   ) {
                                     @let isAttached =
-                                      isRouteInTopo(
-                                        item._ref.id,
-                                        topo.id,
-                                        item.topos
-                                      );
+                                      item.topos | includesId: topo.id;
+
                                     <button
                                       tuiOption
                                       new
@@ -597,11 +596,7 @@ import { RouteEquippersInputComponent } from './route-equippers-input';
                                     track topo.id
                                   ) {
                                     @let isAttached =
-                                      isRouteInTopo(
-                                        item._ref.id,
-                                        topo.id,
-                                        item.topos
-                                      );
+                                      item.topos | includesId: topo.id;
                                     <button
                                       tuiOption
                                       new
@@ -941,14 +936,6 @@ export class RoutesTableComponent {
         height: route.height || null,
       },
     });
-  }
-
-  protected isRouteInTopo(
-    routeId: number,
-    topoId: number,
-    routeTopos: { id: number }[],
-  ): boolean {
-    return routeTopos.some((t) => t.id === topoId);
   }
 
   protected onUpdateRouteHeight(

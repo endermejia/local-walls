@@ -393,13 +393,13 @@ interface Country {
               <ng-template #countryItem let-item>
                 <img
                   [ngSrc]="item | tuiFlag"
-                  alt="{{ idToName(item) }}"
+                  [alt]="countryDictionary()[item] || item"
                   width="20"
                   height="15"
                   [style.margin-right.px]="8"
                   [style.vertical-align]="'middle'"
                 />
-                {{ idToName(item) }}
+                {{ countryDictionary()[item] || item }}
               </ng-template>
             </tui-textfield>
             <tui-error [error]="getFieldError('country')" />
@@ -1051,16 +1051,15 @@ export class UserProfileConfigComponent {
     { length: new Date().getFullYear() - 1900 + 1 },
     (_, i) => new Date().getFullYear() - i,
   );
-  protected readonly countryNameMap = computed(() => {
-    const map = new Map<string, string>();
-    this.countries().forEach((c) => map.set(c.id, c.name));
-    return map;
+  protected readonly countryDictionary = computed(() => {
+    const dict: Record<string, string> = {};
+    this.countries().forEach((c) => (dict[c.id] = c.name));
+    return dict;
   });
-  idToName = (id: string): string => this.countryNameMap().get(id) ?? id;
   stringifyCountryId = (id: string | null): string =>
-    id ? this.idToName(id) : '';
+    id ? (this.countryDictionary()[id] ?? id) : '';
   readonly matcher: TuiStringMatcher<string> = (id, search) =>
-    this.idToName(id)?.toLowerCase() === search.toLowerCase();
+    (this.countryDictionary()[id] ?? id).toLowerCase() === search.toLowerCase();
 
   stringifyEightAnuUser = (user: EightAnuUser | null): string =>
     user?.userName || '';
