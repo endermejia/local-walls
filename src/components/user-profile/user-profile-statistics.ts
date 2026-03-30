@@ -25,21 +25,21 @@ import { AscentsService } from '../../services/ascents.service';
 import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
 
+import { UserAscentStatRecord } from '../../models';
 import {
-  AscentType,
-  GRADE_NUMBER_TO_LABEL,
-  VERTICAL_LIFE_GRADES,
-  UserAscentStatRecord,
-  PROJECT_GRADE_LABEL,
-  GradeLabel,
-} from '../../models';
-import {
-  RouteScore,
   GradeDistribution,
   AscentTypeDistribution,
   TrendData,
   TrendDetail,
 } from '../../models/user-stats.model';
+import {
+  calculateAscentTypeDistribution,
+  calculateGradeDistribution,
+  calculatePeriodScore,
+  calculateTrendSource,
+  filterAscentsByDate,
+  getMaxGrade,
+} from '../../utils';
 
 import { UserProfileStatsScoreComponent } from './statistics/score-card';
 import { UserProfileStatsPyramidComponent } from './statistics/grade-pyramid';
@@ -188,7 +188,7 @@ export class UserProfileStatisticsComponent {
   // Filtered Stats
   stats = computed(() => {
     const all = this.rawStats();
-    return this.filterAscentsByDate(all, this.dateFilterSignal());
+    return filterAscentsByDate(all, this.dateFilterSignal());
   });
 
   private dateFilterSignal = signal<string>('last_12_months');
@@ -197,39 +197,20 @@ export class UserProfileStatisticsComponent {
 
   // 1. Total Score & Top Routes for the selected period
   periodScoreData = computed(() => {
-    return this.calculatePeriodScore(this.stats());
+    return calculatePeriodScore(this.stats());
   });
 
   totalScore = computed(() => this.periodScoreData().score);
   topRoutes = computed(() => this.periodScoreData().topRoutes);
 
   // 2. Max Grades (RP, OS, Flash)
-  maxRedpoint = computed(() => this.getMaxGrade(this.stats(), ['rp']));
-  maxOnsight = computed(() =>
-    this.getMaxGrade(this.stats(), ['os', 'onsight']),
-  );
-  maxFlash = computed(() => this.getMaxGrade(this.stats(), ['f', 'flash']));
+  maxRedpoint = computed(() => getMaxGrade(this.stats(), ['rp']));
+  maxOnsight = computed(() => getMaxGrade(this.stats(), ['os', 'onsight']));
+  maxFlash = computed(() => getMaxGrade(this.stats(), ['f', 'flash']));
 
   // 3. Ascent Type Distribution
   ascentTypeDistribution = computed<AscentTypeDistribution>(() => {
-    const stats = this.stats();
-    let os = 0,
-      flash = 0,
-      rp = 0;
-
-    stats.forEach((a) => {
-      const type = (a.ascent_type || 'rp').toLowerCase();
-      if (type === 'os' || type === 'onsight') os++;
-      else if (type === 'f' || type === 'flash') flash++;
-      else rp++;
-    });
-
-    return {
-      os,
-      flash,
-      rp,
-      total: stats.length,
-    };
+    return calculateAscentTypeDistribution(this.stats());
   });
 
   constructor() {
@@ -239,167 +220,13 @@ export class UserProfileStatisticsComponent {
     });
   }
 
-  private getMaxGrade(
-    ascents: UserAscentStatRecord[],
-    types: string[],
-  ): string | null {
-    let maxGradeId = -1;
-    ascents.forEach((a) => {
-      const type = (a.ascent_type || 'rp').toLowerCase();
-      if (types.includes(type)) {
-        const gradeId = a.ascent_grade || a.route_grade;
-        if (gradeId && gradeId > maxGradeId) {
-          maxGradeId = gradeId;
-        }
-      }
-    });
-
-    if (maxGradeId !== -1) {
-      return GRADE_NUMBER_TO_LABEL[maxGradeId as VERTICAL_LIFE_GRADES] || null;
-    }
-    return null;
-  }
-
-  private filterAscentsByDate(
-    ascents: UserAscentStatRecord[],
-    filter: string,
-  ): UserAscentStatRecord[] {
-    if (!filter || filter === 'all_time') return ascents;
-
-    const now = new Date();
-    let cutOff = new Date(0); // Epoch
-
-    if (filter === 'last_12_months') {
-      cutOff = new Date();
-      cutOff.setFullYear(now.getFullYear() - 1);
-    } else if (filter === 'last_6_months') {
-      cutOff = new Date();
-      cutOff.setMonth(now.getMonth() - 6);
-    } else if (filter === 'this_year') {
-      cutOff = new Date(now.getFullYear(), 0, 1);
-    } else if (/^\d{4}$/.test(filter)) {
-      // Specific Year
-      const y = parseInt(filter, 10);
-      const start = new Date(y, 0, 1);
-      const end = new Date(y, 11, 31, 23, 59, 59);
-      return ascents.filter((a: UserAscentStatRecord) => {
-        const d = new Date(a.ascent_date);
-        return d >= start && d <= end;
-      });
-    }
-
-    return ascents.filter(
-      (a: UserAscentStatRecord) => new Date(a.ascent_date) >= cutOff,
-    );
-  }
-
   // --- Grade Distribution Logic (Pyramid) ---
   gradeDistribution = computed<GradeDistribution>(() => {
-    const stats = this.stats();
-    if (stats.length === 0)
-      return { rows: [], total: 0, maxCount: 0, hasMore: false };
-
-    const buckets = new Map<
-      number,
-      {
-        os: number;
-        flash: number;
-        rp: number;
-        total: number;
-        label: GradeLabel;
-        routes: RouteScore[];
-      }
-    >();
-
-    let totalAscents = 0;
-
-    stats.forEach((ascent: UserAscentStatRecord) => {
-      const routeScore = this.mapAscentToRouteScore(ascent);
-      if (!routeScore) return;
-      const gradeId = routeScore.gradeId!;
-
-      if (!buckets.has(gradeId)) {
-        buckets.set(gradeId, {
-          os: 0,
-          flash: 0,
-          rp: 0,
-          total: 0,
-          label: routeScore.gradeLabel,
-          routes: [],
-        });
-      }
-
-      const bucket = buckets.get(gradeId)!;
-      bucket.total++;
-      totalAscents++;
-
-      bucket.routes.push(routeScore);
-
-      const type = (ascent.ascent_type || 'rp').toLowerCase();
-      if (type === 'os' || type === 'onsight') bucket.os++;
-      else if (type === 'f' || type === 'flash') bucket.flash++;
-      else bucket.rp++;
-    });
-
-    if (buckets.size === 0)
-      return { rows: [], total: 0, maxCount: 0, hasMore: false };
-
-    // Sort Descending (Highest Grade Top)
-    const sortedGradeIds = Array.from(buckets.keys()).sort((a, b) => b - a);
-
-    const hasMore = sortedGradeIds.length > 8;
-    const topGrades = this.showAllGrades()
-      ? sortedGradeIds
-      : sortedGradeIds.slice(0, 8);
-
-    let maxBucketCount = 0;
-    const rows = topGrades.map((id) => {
-      const b = buckets.get(id)!;
-      if (b.total > maxBucketCount) maxBucketCount = b.total;
-
-      // Filter and sort routes for each category
-      const osRoutes = b.routes
-        .filter((r) => r.type === 'os')
-        .sort((x, y) => y.score - x.score);
-      const flashRoutes = b.routes
-        .filter((r) => r.type === 'f')
-        .sort((x, y) => y.score - x.score);
-      const rpRoutes = b.routes
-        .filter((r) => r.type !== 'os' && r.type !== 'f')
-        .sort((x, y) => y.score - x.score);
-
-      const allRoutes = [...osRoutes, ...flashRoutes, ...rpRoutes].sort(
-        (x, y) => y.score - x.score,
-      );
-
-      return {
-        gradeLabel: b.label,
-        os: b.os,
-        flash: b.flash,
-        rp: b.rp,
-        total: b.total,
-        osRoutes,
-        flashRoutes,
-        rpRoutes,
-        allRoutes,
-      };
-    });
-
-    return { rows, total: totalAscents, maxCount: maxBucketCount, hasMore };
+    const limit = this.showAllGrades() ? undefined : 8;
+    return calculateGradeDistribution(this.stats(), limit);
   });
 
   // --- Trend Logic ---
-
-  // Scoring Helpers
-  private getScore(gradeId: number, type: AscentType): number {
-    let bonus = 0;
-    if (type === 'os') bonus = 100;
-    else if (type === 'f') bonus = 50;
-
-    const baseScore = 1000 + (gradeId - 29) * 50;
-
-    return baseScore + bonus;
-  }
 
   // Chart Dimensions (Pixels)
   readonly width = 1000;
@@ -407,97 +234,11 @@ export class UserProfileStatisticsComponent {
 
   // Shared source for chart data to ensure sync between line chart and tooltip details
   private readonly chartSource = computed(() => {
-    const stats = this.rawStats();
-    if (stats.length === 0) return [];
-
-    const ascentsByYear = new Map<string, UserAscentStatRecord[]>();
-    const currentYear = new Date().getFullYear();
-    let minYear = currentYear;
-
-    stats.forEach((ascent: UserAscentStatRecord) => {
-      const dateStr = ascent.ascent_date;
-      if (!dateStr) return;
-      const year = new Date(dateStr).getFullYear();
-      const yearStr = year.toString();
-
-      if (year < minYear) minYear = year;
-      if (!ascentsByYear.has(yearStr)) ascentsByYear.set(yearStr, []);
-      ascentsByYear.get(yearStr)?.push(ascent);
-    });
-
-    const dataPoints: {
-      label: string;
-      score: number;
-      topRoutes: RouteScore[];
-    }[] = [];
-
-    // 1. Yearly Data (up to currentYear - 1)
-    for (let y = minYear; y < currentYear; y++) {
-      const yearStr = y.toString();
-      const ascents = ascentsByYear.get(yearStr) || [];
-      dataPoints.push({
-        label: yearStr,
-        ...this.calculatePeriodScore(ascents),
-      });
-    }
-
-    // 2. 'Today' Data (Last 12 Months)
-    const now = new Date();
-    const last12MonthsShortDate = new Date();
-    last12MonthsShortDate.setFullYear(now.getFullYear() - 1);
-
-    // Filter raw stats for last 12 months
-    const last12MonthsAscents = stats.filter((a: UserAscentStatRecord) => {
-      const d = new Date(a.ascent_date);
-      return d >= last12MonthsShortDate && d <= now;
-    });
-
-    dataPoints.push({
-      label: this.translate.instant('today'),
-      ...this.calculatePeriodScore(last12MonthsAscents),
-    });
-
-    return dataPoints;
-  });
-
-  private calculatePeriodScore(ascents: UserAscentStatRecord[]): {
-    score: number;
-    topRoutes: RouteScore[];
-  } {
-    const validAscents = ascents
-      .map((a) => this.mapAscentToRouteScore(a))
-      .filter((a): a is RouteScore => a !== null && a.score > 0);
-
-    validAscents.sort((a, b) => b.score - a.score);
-    const top10 = validAscents.slice(0, 10);
-    const totalScore = top10.reduce(
-      (sum: number, a: RouteScore) => sum + a.score,
-      0,
+    return calculateTrendSource(
+      this.rawStats(),
+      this.translate.instant('today'),
     );
-
-    return { score: totalScore, topRoutes: top10 };
-  }
-
-  private mapAscentToRouteScore(a: UserAscentStatRecord): RouteScore | null {
-    let gradeId = a.ascent_grade;
-    if (!gradeId && a.route_grade) gradeId = a.route_grade;
-    const name = a.route_name || 'Unknown Route';
-
-    if (!gradeId) return null;
-
-    return {
-      name,
-      gradeLabel:
-        GRADE_NUMBER_TO_LABEL[gradeId as VERTICAL_LIFE_GRADES] ||
-        PROJECT_GRADE_LABEL,
-      gradeId: gradeId as number,
-      score: this.getScore(gradeId, (a.ascent_type || 'rp') as AscentType),
-      type: (a.ascent_type || 'rp') as AscentType,
-      areaSlug: a.area_slug || '',
-      cragSlug: a.crag_slug || '',
-      routeSlug: a.route_slug || '',
-    };
-  }
+  });
 
   trendData = computed<TrendData>(() => {
     const source = this.chartSource();

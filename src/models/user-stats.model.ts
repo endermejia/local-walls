@@ -49,3 +49,9 @@ export interface TrendDetail {
   totalScore: number;
   topRoutes: RouteScore[];
 }
+
+export interface TrendSourcePoint {
+  label: string;
+  score: number;
+  topRoutes: RouteScore[];
+}

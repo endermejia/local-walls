@@ -8,7 +8,6 @@ import {
 
 import {
   FeedItem,
-  NewsItem,
   RouteAscentWithExtras,
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
@@ -18,6 +17,7 @@ import { AscentCardComponent } from './ascent-card';
 import { AscentCardSkeletonComponent } from './ascent-card-skeleton';
 import { InfiniteScrollTriggerComponent } from '../ui/infinite-scroll-trigger';
 import { NewsCardComponent } from '../ui/news-card';
+import { isAscentItem, isNewsItem } from '../../utils';
 
 @Component({
   selector: 'app-ascents-feed',
@@ -34,14 +34,11 @@ import { NewsCardComponent } from '../ui/news-card';
       [class.grid-cols-1]="true"
       [class.xl:grid-cols-2]="columns() >= 2"
     >
-      @for (item of ascents(); track item.id) {
-        @if (item.kind === 'news') {
-          <app-news-card
-            [item]="asNews(item)"
-            [class.xl:col-span-2]="columns() >= 2"
-          />
-        } @else {
-          @let ascent = asAscent(item);
+      @for (item of ascents(); track $index) {
+        @if (isNews(item)) {
+          <app-news-card [item]="item" [class.xl:col-span-2]="columns() >= 2" />
+        } @else if (isAscent(item)) {
+          @let ascent = item;
           @if (groupByGrade()) {
             @let grade = ascent.grade ?? ascent.route?.grade;
             @if (
@@ -117,16 +114,11 @@ export class AscentsFeedComponent {
 
   protected readonly gradeLabelByNumber = GRADE_NUMBER_TO_LABEL;
 
+  protected isAscent = isAscentItem;
+  protected isNews = isNewsItem;
+
   protected asGrade(grade: number): VERTICAL_LIFE_GRADES {
     return grade as VERTICAL_LIFE_GRADES;
-  }
-
-  protected asAscent(item: FeedItem): RouteAscentWithExtras {
-    return item as RouteAscentWithExtras;
-  }
-
-  protected asNews(item: FeedItem): NewsItem {
-    return item as NewsItem;
   }
 
   protected showGradeHeader(

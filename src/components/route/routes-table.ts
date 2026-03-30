@@ -22,7 +22,6 @@ import {
   TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
-import { tuiDefaultSort } from '@taiga-ui/cdk';
 import {
   TuiButton,
   TuiDataList,
@@ -55,46 +54,20 @@ import { ToposService } from '../../services/topos.service';
 
 import {
   RouteAscentWithExtras,
-  RouteWithExtras,
-  VERTICAL_LIFE_GRADES,
-  GRADE_NUMBER_TO_LABEL,
-  PROJECT_GRADE_LABEL,
+  RoutesTableKey,
+  RoutesTableRow,
+  RouteItem,
 } from '../../models';
 
-import { handleErrorToast, normalizeName } from '../../utils';
-
+import {
+  handleErrorToast,
+  mapRouteToTableRow,
+  ROUTE_TABLE_SORTERS,
+} from '../../utils';
 import { GradeComponent } from '../ui/avatar-grade';
 import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { RouteEquippersInputComponent } from './route-equippers-input';
-
-export type RoutesTableKey =
-  | 'grade'
-  | 'route'
-  | 'rating'
-  | 'ascents'
-  | 'height'
-  | 'topo';
-export type RouteItem = RouteWithExtras;
-
-export interface RoutesTableRow {
-  key: string;
-  grade: string;
-  route: string;
-  height: number | null;
-  rating: number;
-  ascents: number;
-  liked: boolean;
-  project: boolean;
-  climbed: boolean;
-  link: string[];
-  area_name?: string;
-  crag_name?: string;
-  area_slug?: string;
-  crag_slug?: string;
-  topos: { id: number; name: string; slug: string }[];
-  _ref: RouteItem;
-}
 
 @Component({
   selector: 'app-routes-table',
@@ -826,21 +799,7 @@ export class RoutesTableComponent {
   hiddenColumns: InputSignal<string[]> = input<string[]>([]);
   expandableMobile: InputSignal<boolean> = input(true);
 
-  protected readonly sorters: Record<
-    RoutesTableKey,
-    TuiComparator<RoutesTableRow>
-  > = {
-    grade: (a, b) => tuiDefaultSort(a._ref.grade, b._ref.grade),
-    route: (a, b) => tuiDefaultSort(a.route, b.route),
-    height: (a, b) => tuiDefaultSort(a.height ?? 0, b.height ?? 0),
-    rating: (a, b) => tuiDefaultSort(a.rating, b.rating),
-    ascents: (a, b) => tuiDefaultSort(a.ascents, b.ascents),
-    topo: (a, b) => {
-      const aVal = a.topos.map((t) => normalizeName(t.name)).join(', ');
-      const bVal = b.topos.map((t) => normalizeName(t.name)).join(', ');
-      return tuiDefaultSort(aVal, bVal) || tuiDefaultSort(a.route, b.route);
-    },
-  };
+  protected readonly sorters = ROUTE_TABLE_SORTERS;
 
   // Internal state for sorting
   protected currentSorter: TuiComparator<RoutesTableRow> =
@@ -891,46 +850,7 @@ export class RoutesTableComponent {
   });
 
   protected readonly tableData: Signal<RoutesTableRow[]> = computed(() =>
-    this.data().map((r: RouteItem) => {
-      // Map numeric grade from Supabase using label mapping
-      const grade =
-        GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES] ??
-        PROJECT_GRADE_LABEL;
-
-      const rating = r.rating || 0;
-      const ascents = r.ascent_count || 0;
-
-      const liked = r.liked;
-      const project = r.project;
-
-      const key = r.id.toString();
-
-      return {
-        key,
-        grade,
-        route: r.name,
-        area_name: r.area_name,
-        crag_name: r.crag_name,
-        area_slug: r.area_slug,
-        crag_slug: r.crag_slug,
-        height: r.height || null,
-        rating,
-        ascents,
-        liked,
-        project,
-        climbed: r.climbed ?? false,
-        link: [
-          '/area',
-          r.area_slug || 'unknown',
-          r.crag_slug || 'unknown',
-          r.slug,
-        ],
-        topos: (r.topos || []).sort((a, b) =>
-          tuiDefaultSort(normalizeName(a.name), normalizeName(b.name)),
-        ),
-        _ref: r,
-      };
-    }),
+    this.data().map(mapRouteToTableRow),
   );
 
   protected getSorter(col: string): TuiComparator<RoutesTableRow> | null {

@@ -68,13 +68,13 @@ import { TrendData, TrendDetail } from '../../../models/user-stats.model';
     </div>
 
     <!-- Hint content for Line Chart -->
-    <ng-template #trendHintContent let-context>
+    <ng-template #trendHintContent let-points let-index="index">
       <div class="trend-hint">
-        @let index = getIndex(context);
-        @let details = trendDetails()[index];
+        @let i = getIndex(index);
+        @let details = trendDetails()[i];
 
         <div class="trend-hint-header">
-          <span class="trend-hint-year">{{ trendData().years[index] }}</span>
+          <span class="trend-hint-year">{{ trendData().years[i] }}</span>
           <span class="trend-hint-score">
             {{ (details?.totalScore | number) || 0 }} {{ 'points' | translate }}
           </span>
@@ -201,8 +201,26 @@ export class UserProfileStatsTrendsComponent {
   width = input.required<number>();
   height = input.required<number>();
 
-  getIndex(context: { $implicit: number }): number {
-    if (context && typeof context.$implicit === 'number') {
+  getIndex(
+    context: number | { index: number } | { $implicit: number } | unknown,
+  ): number {
+    if (typeof context === 'number') {
+      return context;
+    }
+    if (
+      context &&
+      typeof context === 'object' &&
+      'index' in context &&
+      typeof context.index === 'number'
+    ) {
+      return context.index;
+    }
+    if (
+      context &&
+      typeof context === 'object' &&
+      '$implicit' in context &&
+      typeof context.$implicit === 'number'
+    ) {
       return context.$implicit;
     }
     return 0;

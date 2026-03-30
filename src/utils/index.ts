@@ -7,3 +7,6 @@ export * from './pagination.utils';
 export * from './rem-to-px';
 export * from './resource-helpers';
 export * from './slugify';
+export * from './ascents.utils';
+export * from './routes.utils';
+export * from './stats.utils';

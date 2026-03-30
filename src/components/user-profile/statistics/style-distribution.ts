@@ -2,6 +2,7 @@ import { DecimalPipe, PercentPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   input,
   signal,
 } from '@angular/core';
@@ -42,18 +43,28 @@ import { CountUpDirective } from '../../../directives/count-up.directive';
             size="l"
             class="w-full h-full"
             [activeItemIndex]="activeItemIndex()"
+            (activeItemIndexChange)="activeItemIndex.set($event)"
           >
             <div class="text-center">
-              <div
-                class="text-2xl font-bold"
-                [appCountUp]="dist.total"
-                #styleTotalAnim="appCountUp"
-              >
-                {{ styleTotalAnim.currentValue() | number: '1.0-0' }}
-              </div>
-              <div class="text-xs uppercase opacity-70">
-                {{ 'ascents' | translate }}
-              </div>
+              @if (!activeItemName()) {
+                <div
+                  class="text-2xl font-bold"
+                  [appCountUp]="dist.total"
+                  #styleTotalAnim="appCountUp"
+                >
+                  {{ styleTotalAnim.currentValue() | number: '1.0-0' }}
+                </div>
+                <div class="text-xs uppercase opacity-70">
+                  {{ 'ascents' | translate }}
+                </div>
+              } @else {
+                <div class="text-2xl font-bold">
+                  {{ activeItemValue() | number: '1.0-0' }}
+                </div>
+                <div class="text-xs uppercase opacity-70">
+                  {{ activeItemName() ?? '' | translate }}
+                </div>
+              }
             </div>
           </tui-ring-chart>
         </div>
@@ -122,8 +133,22 @@ export class UserProfileStatsStylesComponent {
   distribution = input.required<AscentTypeDistribution | null>();
   activeItemIndex = signal<number>(NaN);
 
+  activeItemName = computed(() => {
+    const idx = this.activeItemIndex();
+    if (isNaN(idx)) return null;
+    return ['ascentTypes.os', 'ascentTypes.f', 'ascentTypes.rp'][idx];
+  });
+
+  activeItemValue = computed(() => {
+    const idx = this.activeItemIndex();
+    const dist = this.distribution();
+    if (isNaN(idx) || !dist) return null;
+    return [dist.os, dist.flash, dist.rp][idx];
+  });
+
   isItemActive(index: number): boolean {
-    return isNaN(this.activeItemIndex()) || this.activeItemIndex() === index;
+    const activeIdx = this.activeItemIndex();
+    return isNaN(activeIdx) || activeIdx === index;
   }
 
   onHover(index: number, hovered: boolean): void {

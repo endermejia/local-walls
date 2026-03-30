@@ -540,13 +540,10 @@ export class UserProfileComponent {
     const destroyRef = inject(DestroyRef);
 
     // Update global loading state
-    effect(
-      () => {
-        const isLoading = this.loading();
-        this.global.isNavLoading.set(isLoading);
-      },
-      { allowSignalWrites: true },
-    );
+    effect(() => {
+      const isLoading = this.loading();
+      this.global.isNavLoading.set(isLoading);
+    });
 
     destroyRef.onDestroy(() => {
       this.global.isNavLoading.set(false);

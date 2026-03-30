@@ -44,6 +44,8 @@ import {
   VERTICAL_LIFE_GRADES,
 } from '../../models';
 
+import { getScore } from '../../utils';
+
 import { GradeComponent } from '../ui/avatar-grade';
 import { AscentTypeComponent } from '../ascent/ascent-type';
 import { PyramidSlotDialogComponent } from '../dialogs/pyramid-slot-dialog';
@@ -382,7 +384,7 @@ export class PyramidComponent implements AfterViewInit {
         const gradeId =
           a.grade || (a.route as { grade: number } | null)?.grade || 0;
         if (gradeId) {
-          const score = this.getScore(gradeId, type);
+          const score = getScore(gradeId, type);
           if (!map[a.route_id] || score > map[a.route_id].score) {
             map[a.route_id] = { score, type };
           }
@@ -391,18 +393,6 @@ export class PyramidComponent implements AfterViewInit {
     });
     return map;
   });
-
-  private getScore(gradeId: number, type: AscentType): number {
-    // Base: 8a (29) = 1000. Step = 50.
-    // Bonus: OS + 2 steps (100), Flash + 1 step (50).
-    let bonus = 0;
-    const t = type.toLowerCase();
-    if (t === 'os' || t === 'onsight') bonus = 100;
-    else if (t === 'f' || t === 'flash') bonus = 50;
-
-    const baseScore = 1000 + (gradeId - 29) * 50;
-    return baseScore + bonus;
-  }
 
   pyramidLevels = computed<PyramidLevel[]>(() => {
     const data = this.slotsResource.value() || [];

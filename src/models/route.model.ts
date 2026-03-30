@@ -25,3 +25,36 @@ export interface RouteWithExtras extends RouteDto {
   topos?: { id: number; name: string; slug: string }[];
   equippers?: EquipperDto[];
 }
+
+export type RouteItem = RouteWithExtras;
+
+export type RoutesTableKey =
+  | 'grade'
+  | 'route'
+  | 'topo'
+  | 'height'
+  | 'rating'
+  | 'ascents'
+  | 'actions'
+  | 'equippers'
+  | 'admin_actions'
+  | 'expand';
+
+export interface RoutesTableRow {
+  key: string;
+  grade: string;
+  route: string;
+  area_name?: string;
+  crag_name?: string;
+  area_slug?: string;
+  crag_slug?: string;
+  height: number | null;
+  rating: number;
+  ascents: number;
+  liked: boolean;
+  project: boolean;
+  climbed: boolean;
+  link: string[];
+  topos: { id: number; name: string }[];
+  _ref: RouteItem;
+}

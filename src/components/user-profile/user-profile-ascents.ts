@@ -37,13 +37,13 @@ import { FollowsService } from '../../services/follows.service';
 import { FiltersService } from '../../services/filters.service';
 import { UserProfilesService } from '../../services/user-profiles.service';
 import { AscentCalendarDialogComponent } from '../dialogs/ascent-calendar-dialog';
-import { normalizeName } from '../../utils';
 import {
   FeedItem,
   ORDERED_GRADE_VALUES,
   RouteAscentWithExtras,
   UserProfileDto,
 } from '../../models';
+import { getAscentDateFilterOptions, processAscentsToFeed } from '../../utils';
 
 @Component({
   selector: 'app-user-profile-ascents',
@@ -242,14 +242,9 @@ export class UserProfileAscentsComponent {
   });
 
   protected readonly dateFilterOptions = computed(() => {
-    const years: string[] = [];
-    const currentYear = new Date().getFullYear();
-    const startingYear = this.profile()?.starting_climbing_year || 2020;
-    const startYear = Math.min(2020, startingYear);
-    for (let y = currentYear; y >= startYear; y--) {
-      years.push(y.toString());
-    }
-    return ['last12', 'all', ...years];
+    return getAscentDateFilterOptions(
+      this.profile()?.starting_climbing_year || undefined,
+    );
   });
 
   protected readonly dateValueContent = (option: string): string => {
@@ -297,21 +292,15 @@ export class UserProfileAscentsComponent {
       const res = this.ascentsResource.value();
       if (res) {
         if (this.global.ascentsPage() === 0) {
-          const processed = this.markDuplicates(res.items).map((i) => ({
-            ...i,
-            kind: 'ascent' as const,
-          }));
+          const processed = processAscentsToFeed(res.items);
           this.accumulatedAscents.set(processed);
         } else {
           this.accumulatedAscents.update((prev) => {
             const prevAscents = prev as RouteAscentWithExtras[];
-            const processed = this.markDuplicates([
+            const processed = processAscentsToFeed([
               ...prevAscents,
               ...res.items,
-            ]).map((i) => ({
-              ...i,
-              kind: 'ascent' as const,
-            }));
+            ]);
             return processed;
           });
         }
@@ -384,20 +373,5 @@ export class UserProfileAscentsComponent {
 
   protected openImport8aDialog(): void {
     this.userProfilesService.openImport8aDialog();
-  }
-
-  private markDuplicates(
-    ascents: RouteAscentWithExtras[],
-  ): RouteAscentWithExtras[] {
-    const seen = new Set<string>();
-    return ascents.map((a) => {
-      const normalizedNameStr = normalizeName(a.route?.name);
-      const key = `${a.date}|${normalizedNameStr}`;
-      const isDuplicate = seen.has(key);
-      if (!isDuplicate) {
-        seen.add(key);
-      }
-      return { ...a, is_duplicate: isDuplicate };
-    });
   }
 }
