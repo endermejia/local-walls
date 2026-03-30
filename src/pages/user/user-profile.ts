@@ -57,13 +57,13 @@ import { UserProfilesService } from '../../services/user-profiles.service';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
 import { TourHintComponent } from '../../components/ui/tour-hint';
 
-import { ChatDialogComponent } from '../../dialogs/chat-dialog';
-import { PhotoViewerDialogComponent } from '../../dialogs/photo-viewer-dialog';
-import { UserListDialogComponent } from '../../dialogs/user-list-dialog';
-import { UserProfileAscentsComponent } from '../../components/user-profile/user-profile-ascents.component';
-import { UserProfileProjectsComponent } from '../../components/user-profile/user-profile-projects.component';
-import { UserProfileStatisticsComponent } from '../../components/user-profile/user-profile-statistics.component';
-import { UserProfileLikesComponent } from '../../components/user-profile/user-profile-likes.component';
+import { ChatDialogComponent } from '../../components/dialogs/chat-dialog';
+import { PhotoViewerDialogComponent } from '../../components/dialogs/photo-viewer-dialog';
+import { UserListDialogComponent } from '../../components/dialogs/user-list-dialog';
+import { UserProfileAscentsComponent } from '../../components/user-profile/user-profile-ascents';
+import { UserProfileProjectsComponent } from '../../components/user-profile/user-profile-projects';
+import { UserProfileStatisticsComponent } from '../../components/user-profile/user-profile-statistics';
+import { UserProfileLikesComponent } from '../../components/user-profile/user-profile-likes';
 
 @Component({
   selector: 'app-user-profile',

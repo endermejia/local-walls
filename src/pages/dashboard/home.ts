@@ -51,7 +51,7 @@ import { AscentsFeedComponent } from '../../components/ascent/ascents-feed';
 import {
   FilterDialog,
   FilterDialogComponent,
-} from '../../dialogs/filter-dialog';
+} from '../../components/dialogs/filter-dialog';
 
 import {
   ClimbingKind,

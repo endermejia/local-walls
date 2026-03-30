@@ -34,15 +34,15 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { MapService } from '../services/map.service';
-import { ParkingsService } from '../services/parkings.service';
-import { ToastService } from '../services/toast.service';
+import { MapService } from '../../services/map.service';
+import { ParkingsService } from '../../services/parkings.service';
+import { ToastService } from '../../services/toast.service';
 
-import { CounterComponent } from '../components/ui/counter';
+import { CounterComponent } from '../ui/counter';
 
-import { ParkingDto } from '../models';
+import { ParkingDto } from '../../models';
 
-import { handleErrorToast } from '../utils';
+import { handleErrorToast } from '../../utils';
 
 interface MinimalParking {
   id: number;

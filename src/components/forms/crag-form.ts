@@ -27,14 +27,14 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { CragsService } from '../services/crags.service';
-import { GlobalData } from '../services/global-data';
-import { MapService } from '../services/map.service';
-import { ToastService } from '../services/toast.service';
+import { CragsService } from '../../services/crags.service';
+import { GlobalData } from '../../services/global-data';
+import { MapService } from '../../services/map.service';
+import { ToastService } from '../../services/toast.service';
 
-import { CounterComponent } from '../components/ui/counter';
+import { CounterComponent } from '../ui/counter';
 
-import { handleErrorToast, slugify } from '../utils';
+import { handleErrorToast, slugify } from '../../utils';
 
 interface MinimalCrag {
   id: number;

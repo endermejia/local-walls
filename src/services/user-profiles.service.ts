@@ -20,7 +20,7 @@ import {
 
 import { normalizeName } from '../utils';
 
-import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
+import { ImageEditorDialogComponent } from '../components/dialogs/image-editor-dialog';
 import { SupabaseService } from './supabase.service';
 
 @Injectable({

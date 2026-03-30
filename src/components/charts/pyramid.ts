@@ -46,7 +46,7 @@ import {
 
 import { GradeComponent } from '../ui/avatar-grade';
 import { AscentTypeComponent } from '../ascent/ascent-type';
-import { PyramidSlotDialogComponent } from '../../dialogs/pyramid-slot-dialog';
+import { PyramidSlotDialogComponent } from '../dialogs/pyramid-slot-dialog';
 
 export interface PyramidLevel {
   level: number;

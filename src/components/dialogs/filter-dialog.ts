@@ -26,7 +26,7 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { map, merge, startWith } from 'rxjs';
 
-import { ORDERED_GRADE_VALUES } from '../models';
+import { ORDERED_GRADE_VALUES } from '../../models';
 
 export interface FilterDialog {
   categories: number[]; // 0=Sport, 1=Boulder, 2=Multipitch

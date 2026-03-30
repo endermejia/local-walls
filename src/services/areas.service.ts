@@ -27,8 +27,8 @@ import { ClimbingKinds, LABEL_TO_VERTICAL_LIFE } from '../models';
 
 import { slugify } from '../utils';
 
-import { AreaFormComponent } from '../forms/area-form';
-import { AreaUnifyComponent } from '../forms/area-unify';
+import { AreaFormComponent } from '../components/forms/area-form';
+import { AreaUnifyComponent } from '../components/forms/area-unify';
 import { EightAnuService } from './eight-anu.service';
 import { GlobalData } from './global-data';
 import { LocalStorage } from './local-storage';

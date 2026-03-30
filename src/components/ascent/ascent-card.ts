@@ -40,7 +40,7 @@ import { CLIMBING_ICONS, RouteAscentWithExtras } from '../../models';
 
 import { getEmbedUrl } from '../../utils/video-helpers';
 
-import { PhotoViewerDialogComponent } from '../../dialogs/photo-viewer-dialog';
+import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
 import { AscentCommentsComponent } from './ascent-comments';
 import { AscentLastCommentComponent } from './ascent-last-comment';
 import { AscentLikesComponent } from './ascent-likes';

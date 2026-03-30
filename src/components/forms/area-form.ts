@@ -30,12 +30,12 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { AreasService } from '../services/areas.service';
-import { GlobalData } from '../services/global-data';
-import { ToastService } from '../services/toast.service';
+import { AreasService } from '../../services/areas.service';
+import { GlobalData } from '../../services/global-data';
+import { ToastService } from '../../services/toast.service';
 
-import { handleErrorToast, slugify } from '../utils';
-import { CounterComponent } from '../components/ui/counter';
+import { handleErrorToast, slugify } from '../../utils';
+import { CounterComponent } from '../ui/counter';
 
 @Component({
   selector: 'app-area-form',

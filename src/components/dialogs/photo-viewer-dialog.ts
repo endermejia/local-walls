@@ -15,7 +15,7 @@ import {
   handleViewerWheelZoom,
   ViewerDragState,
   ViewerZoomPanState,
-} from '../utils/zoom-pan.utils';
+} from '../../utils/zoom-pan.utils';
 
 export interface PhotoViewerData {
   imageUrl: string;

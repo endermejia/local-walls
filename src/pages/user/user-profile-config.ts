@@ -107,8 +107,8 @@ import {
   UserProfileDto,
 } from '../../models';
 
-import { FirstStepsDialogComponent } from '../../dialogs/first-steps-dialog';
-import { PurchaseHistoryDialogComponent } from '../../dialogs/purchase-history-dialog';
+import { FirstStepsDialogComponent } from '../../components/dialogs/first-steps-dialog';
+import { PurchaseHistoryDialogComponent } from '../../components/dialogs/purchase-history-dialog';
 
 interface Country {
   id: string;

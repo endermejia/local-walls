@@ -31,8 +31,8 @@ import { LocalStorage } from '../services/local-storage';
 
 import { NavbarComponent } from '../components/ui/navbar';
 
-import { ChatDialogComponent } from '../dialogs/chat-dialog';
-import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
+import { ChatDialogComponent } from '../components/dialogs/chat-dialog';
+import { NotificationsDialogComponent } from '../components/dialogs/notifications-dialog';
 import { NotificationService } from '../services/notification.service';
 
 @Component({

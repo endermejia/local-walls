@@ -14,7 +14,7 @@ import { TuiButton } from '@taiga-ui/core';
 import { GlobalData } from '../../services/global-data';
 import { ToposService } from '../../services/topos.service';
 import { TopoCardComponent } from '../topo/topo-card';
-import { PaywallComponent } from '../paywall/paywall.component';
+import { PaywallComponent } from '../paywall/paywall';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { CragDetail } from '../../models';
 

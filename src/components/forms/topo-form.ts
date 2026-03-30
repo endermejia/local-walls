@@ -44,12 +44,12 @@ import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
-import { GlobalData } from '../services/global-data';
-import { SupabaseService } from '../services/supabase.service';
-import { ToastService } from '../services/toast.service';
-import { ToposService } from '../services/topos.service';
+import { GlobalData } from '../../services/global-data';
+import { SupabaseService } from '../../services/supabase.service';
+import { ToastService } from '../../services/toast.service';
+import { ToposService } from '../../services/topos.service';
 
-import { GradeComponent } from '../components/ui/avatar-grade';
+import { GradeComponent } from '../ui/avatar-grade';
 
 import {
   RouteDto,
@@ -61,9 +61,9 @@ import {
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
   ImageEditorResult,
-} from '../models';
+} from '../../models';
 
-import { handleErrorToast, slugify } from '../utils';
+import { handleErrorToast, slugify } from '../../utils';
 
 import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
 

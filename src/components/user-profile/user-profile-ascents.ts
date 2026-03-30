@@ -3,12 +3,10 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  DestroyRef,
   effect,
   inject,
   input,
   PLATFORM_ID,
-  resource,
   signal,
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -29,7 +27,7 @@ import {
 } from '@taiga-ui/kit';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { startWith, firstValueFrom } from 'rxjs';
+import { startWith } from 'rxjs';
 
 import { AscentsFeedComponent } from '../ascent/ascents-feed';
 import { EmptyStateComponent } from '../ui/empty-state';
@@ -38,12 +36,13 @@ import { SupabaseService } from '../../services/supabase.service';
 import { FollowsService } from '../../services/follows.service';
 import { FiltersService } from '../../services/filters.service';
 import { UserProfilesService } from '../../services/user-profiles.service';
-import { AscentCalendarDialogComponent } from '../../dialogs/ascent-calendar-dialog';
+import { AscentCalendarDialogComponent } from '../dialogs/ascent-calendar-dialog';
 import { normalizeName } from '../../utils';
 import {
   FeedItem,
   ORDERED_GRADE_VALUES,
   RouteAscentWithExtras,
+  UserProfileDto,
 } from '../../models';
 
 @Component({
@@ -198,7 +197,7 @@ import {
 export class UserProfileAscentsComponent {
   userId = input.required<string>();
   isOwnProfile = input(false);
-  profile = input<any>();
+  profile = input<UserProfileDto | null | undefined>();
 
   protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);

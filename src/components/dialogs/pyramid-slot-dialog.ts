@@ -21,11 +21,11 @@ import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { RoutesService } from '../services/routes.service';
-import { AscentType, RouteDto } from '../models';
+import { RoutesService } from '../../services/routes.service';
+import { AscentType, RouteDto } from '../../models';
 
-import { GradeComponent } from '../components/ui/avatar-grade';
-import { AscentTypeComponent } from '../components/ascent/ascent-type';
+import { GradeComponent } from '../ui/avatar-grade';
+import { AscentTypeComponent } from '../ascent/ascent-type';
 
 import { Router } from '@angular/router';
 

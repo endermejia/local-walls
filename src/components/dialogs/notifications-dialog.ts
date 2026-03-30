@@ -21,17 +21,17 @@ import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
-import { AppNotificationsService } from '../services/app-notifications.service';
-import { AscentsService } from '../services/ascents.service';
-import { SupabaseService } from '../services/supabase.service';
+import { AppNotificationsService } from '../../services/app-notifications.service';
+import { AscentsService } from '../../services/ascents.service';
+import { SupabaseService } from '../../services/supabase.service';
 
-import { EmptyStateComponent } from '../components/ui/empty-state';
+import { EmptyStateComponent } from '../ui/empty-state';
 
 import {
   NotificationWithActor,
   NotificationTypes,
   NotificationType,
-} from '../models';
+} from '../../models';
 
 import { ChatDialogComponent } from './chat-dialog';
 

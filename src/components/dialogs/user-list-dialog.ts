@@ -27,13 +27,13 @@ import { WaIntersectionObserver } from '@ng-web-apis/intersection-observer';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
-import { AscentsService } from '../services/ascents.service';
-import { FollowsService } from '../services/follows.service';
-import { SupabaseService } from '../services/supabase.service';
+import { AscentsService } from '../../services/ascents.service';
+import { FollowsService } from '../../services/follows.service';
+import { SupabaseService } from '../../services/supabase.service';
 
-import { EmptyStateComponent } from '../components/ui/empty-state';
+import { EmptyStateComponent } from '../ui/empty-state';
 
-import { UserProfileBasicDto, UserProfileDto } from '../models';
+import { UserProfileBasicDto, UserProfileDto } from '../../models';
 
 export type UserListType =
   | 'followers'

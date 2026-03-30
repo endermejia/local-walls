@@ -62,7 +62,7 @@ import {
   TopoDetail,
   TopoRouteWithRoute,
 } from '../../models';
-import { PaywallComponent } from '../../components/paywall/paywall.component';
+import { PaywallComponent } from '../../components/paywall/paywall';
 import { VERTICAL_LIFE_GRADES, GRADE_NUMBER_TO_LABEL } from '../../models';
 
 import { handleErrorToast } from '../../utils';

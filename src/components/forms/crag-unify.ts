@@ -29,10 +29,10 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { CragsService } from '../services/crags.service';
-import { GlobalData } from '../services/global-data';
+import { CragsService } from '../../services/crags.service';
+import { GlobalData } from '../../services/global-data';
 
-import { CragDto } from '../models';
+import { CragDto } from '../../models';
 
 @Component({
   selector: 'app-crag-unify',

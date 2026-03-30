@@ -41,10 +41,10 @@ import {
   TrendDetail,
 } from '../../models/user-stats.model';
 
-import { UserProfileStatsScoreComponent } from './statistics/score-card.component';
-import { UserProfileStatsPyramidComponent } from './statistics/grade-pyramid.component';
-import { UserProfileStatsStylesComponent } from './statistics/style-distribution.component';
-import { UserProfileStatsTrendsComponent } from './statistics/yearly-trend.component';
+import { UserProfileStatsScoreComponent } from './statistics/score-card';
+import { UserProfileStatsPyramidComponent } from './statistics/grade-pyramid';
+import { UserProfileStatsStylesComponent } from './statistics/style-distribution';
+import { UserProfileStatsTrendsComponent } from './statistics/yearly-trend';
 
 @Component({
   selector: 'app-user-profile-statistics',

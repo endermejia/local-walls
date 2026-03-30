@@ -29,10 +29,10 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { GlobalData } from '../services/global-data';
-import { RoutesService } from '../services/routes.service';
+import { GlobalData } from '../../services/global-data';
+import { RoutesService } from '../../services/routes.service';
 
-import { RouteDto } from '../models';
+import { RouteDto } from '../../models';
 
 @Component({
   selector: 'app-route-unify',

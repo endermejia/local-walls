@@ -14,17 +14,17 @@ import { TuiHeader } from '@taiga-ui/layout';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { GlobalData } from '../services/global-data';
-import { AscentsService } from '../services/ascents.service';
+import { GlobalData } from '../../services/global-data';
+import { AscentsService } from '../../services/ascents.service';
 
 import {
   AscentType,
   UserAscentStatRecord,
   UserProfileBasicDto,
   RouteAscentWithExtras,
-} from '../models';
+} from '../../models';
 
-import { AscentCardComponent } from '../components/ascent/ascent-card';
+import { AscentCardComponent } from '../ascent/ascent-card';
 
 /** Data passed when opening the dialog. */
 export interface AscentCalendarDialogData {

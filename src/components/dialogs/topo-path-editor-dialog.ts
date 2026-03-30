@@ -25,25 +25,25 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
-import { GlobalData } from '../services/global-data';
-import { ToastService } from '../services/toast.service';
-import { ToposService } from '../services/topos.service';
+import { GlobalData } from '../../services/global-data';
+import { ToastService } from '../../services/toast.service';
+import { ToposService } from '../../services/topos.service';
 
-import { GradeComponent } from '../components/ui/avatar-grade';
+import { GradeComponent } from '../ui/avatar-grade';
 
-import { TopoDetail, TopoRouteWithRoute } from '../models';
+import { TopoDetail, TopoRouteWithRoute } from '../../models';
 
 import {
   removePoint,
   addPointToPath,
   startDragPointMouse,
   startDragPointTouch,
-} from '../utils/drawing.utils';
+} from '../../utils/drawing.utils';
 import {
   getRouteStyleProperties,
   getPointsString as getPointsStringUtil,
   hasPath as hasPathUtil,
-} from '../utils/topo-styles.utils';
+} from '../../utils/topo-styles.utils';
 import {
   ZoomPanState,
   handleWheelZoom,
@@ -52,7 +52,7 @@ import {
   setupEditorTouchPanPinch,
   resetZoomState,
   attachWheelListener,
-} from '../utils/zoom-pan.utils';
+} from '../../utils/zoom-pan.utils';
 
 export interface TopoPathEditorConfig {
   topo: TopoDetail;

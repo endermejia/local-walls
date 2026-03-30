@@ -47,19 +47,19 @@ import {
   firstValueFrom,
 } from 'rxjs';
 
-import { BlockingService } from '../services/blocking.service';
-import { MessagingService } from '../services/messaging.service';
-import { SupabaseService } from '../services/supabase.service';
-import { ToastService } from '../services/toast.service';
-import { UserProfilesService } from '../services/user-profiles.service';
+import { BlockingService } from '../../services/blocking.service';
+import { MessagingService } from '../../services/messaging.service';
+import { SupabaseService } from '../../services/supabase.service';
+import { ToastService } from '../../services/toast.service';
+import { UserProfilesService } from '../../services/user-profiles.service';
 
-import { EmptyStateComponent } from '../components/ui/empty-state';
+import { EmptyStateComponent } from '../ui/empty-state';
 
 import {
   ChatMessageDto,
   ChatRoomWithParticipant,
   UserProfileBasicDto,
-} from '../models';
+} from '../../models';
 
 export interface ChatDialogData {
   userId?: string;

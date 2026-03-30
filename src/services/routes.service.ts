@@ -22,8 +22,8 @@ import type {
 
 import { normalizeName } from '../utils';
 
-import { RouteFormComponent } from '../forms/route-form';
-import { RouteUnifyComponent } from '../forms/route-unify';
+import { RouteFormComponent } from '../components/forms/route-form';
+import { RouteUnifyComponent } from '../components/forms/route-unify';
 
 export interface RouteSimple {
   id: number;

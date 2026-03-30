@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { PyramidComponent } from '../charts/pyramid';
 import { GlobalData } from '../../services/global-data';
-import { UserProfileProjectsListComponent } from './projects/projects-list.component';
+import { UserProfileProjectsListComponent } from './projects/projects-list';
 
 @Component({
   selector: 'app-user-profile-projects',

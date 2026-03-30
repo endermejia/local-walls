@@ -38,12 +38,12 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-import { RoutesService } from '../services/routes.service';
-import { GlobalData } from '../services/global-data';
-import { SupabaseService } from '../services/supabase.service';
-import { ToastService } from '../services/toast.service';
+import { RoutesService } from '../../services/routes.service';
+import { GlobalData } from '../../services/global-data';
+import { SupabaseService } from '../../services/supabase.service';
+import { ToastService } from '../../services/toast.service';
 
-import { CounterComponent } from '../components/ui/counter';
+import { CounterComponent } from '../ui/counter';
 
 import {
   ClimbingKind,
@@ -53,9 +53,9 @@ import {
   RouteDto,
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
-} from '../models';
+} from '../../models';
 
-import { handleErrorToast, slugify } from '../utils';
+import { handleErrorToast, slugify } from '../../utils';
 
 interface MinimalRoute {
   id: number;

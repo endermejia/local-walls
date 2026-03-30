@@ -405,7 +405,9 @@ export class AscentsService {
   }
 
   openAscentDialog(ascentId: number): Observable<void> {
-    return defer(() => from(import('../dialogs/ascent-dialog'))).pipe(
+    return defer(() =>
+      from(import('../components/dialogs/ascent-dialog')),
+    ).pipe(
       switchMap(({ AscentDialogComponent }) =>
         this.dialogs.open<void>(
           new PolymorpheusComponent(AscentDialogComponent),
@@ -420,7 +422,7 @@ export class AscentsService {
   }
 
   openAscentForm(data: AscentDialogData): Observable<boolean> {
-    return defer(() => from(import('../forms/ascent-form'))).pipe(
+    return defer(() => from(import('../components/forms/ascent-form'))).pipe(
       switchMap(({ default: AscentFormComponent }) =>
         this.dialogs.open<boolean>(
           new PolymorpheusComponent(AscentFormComponent),
@@ -945,7 +947,9 @@ export class AscentsService {
   }
 
   openCommentsDialog(ascentId: number): Observable<void> {
-    return defer(() => from(import('../dialogs/ascent-comments-dialog'))).pipe(
+    return defer(() =>
+      from(import('../components/dialogs/ascent-comments-dialog')),
+    ).pipe(
       switchMap(({ AscentCommentsDialogComponent }) =>
         this.dialogs.open<void>(
           new PolymorpheusComponent(AscentCommentsDialogComponent),

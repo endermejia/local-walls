@@ -34,25 +34,29 @@ import {
 } from 'ngx-image-cropper';
 import { firstValueFrom } from 'rxjs';
 
-import { ToastService } from '../services/toast.service';
+import { ToastService } from '../../services/toast.service';
 
-import { GradeComponent } from '../components/ui/avatar-grade';
+import { GradeComponent } from '../ui/avatar-grade';
 
-import { GRADE_COLORS, ImageEditorResult, TopoRouteWithRoute } from '../models';
+import {
+  GRADE_COLORS,
+  ImageEditorResult,
+  TopoRouteWithRoute,
+} from '../../models';
 
 import {
   removePoint,
   addPointToPath,
   startDragPointMouse,
   startDragPointTouch,
-} from '../utils/drawing.utils';
+} from '../../utils/drawing.utils';
 import {
   getRouteColor,
   getRouteStyleProperties,
   getRouteStrokeWidth,
   getPointsString as getPointsStringUtil,
   hasPath as hasPathUtil,
-} from '../utils/topo-styles.utils';
+} from '../../utils/topo-styles.utils';
 import {
   ZoomPanState,
   handleWheelZoom,
@@ -61,7 +65,7 @@ import {
   setupEditorTouchPanPinch,
   resetZoomState,
   attachWheelListener,
-} from '../utils/zoom-pan.utils';
+} from '../../utils/zoom-pan.utils';
 
 export interface ImageEditorConfig {
   file?: File;

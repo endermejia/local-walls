@@ -24,18 +24,18 @@ import { TuiDialogContext, TuiDialogService } from '@taiga-ui/experimental';
 import { TuiAvatar, TUI_CONFIRM, TuiConfirmData } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
-import { AscentsService } from '../services/ascents.service';
-import { SupabaseService } from '../services/supabase.service';
-import { UserProfilesService } from '../services/user-profiles.service';
+import { AscentsService } from '../../services/ascents.service';
+import { SupabaseService } from '../../services/supabase.service';
+import { UserProfilesService } from '../../services/user-profiles.service';
 
-import { EmptyStateComponent } from '../components/ui/empty-state';
-import { CommentLikesComponent } from '../components/social/comment-likes';
+import { EmptyStateComponent } from '../ui/empty-state';
+import { CommentLikesComponent } from '../social/comment-likes';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
-import { UserProfileBasicDto } from '../models';
+import { UserProfileBasicDto } from '../../models';
 
-import { MentionLinkPipe } from '../pipes/mention-link.pipe';
+import { MentionLinkPipe } from '../../pipes/mention-link.pipe';
 
 export interface AscentCommentsDialogData {
   ascentId: number;

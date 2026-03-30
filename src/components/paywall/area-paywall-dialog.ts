@@ -10,7 +10,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext } from '@taiga-ui/core';
 
-import { PaywallComponent } from './paywall.component';
+import { PaywallComponent } from './paywall';
 import { TopoCardComponent } from '../topo/topo-card';
 import { GlobalData } from '../../services/global-data';
 

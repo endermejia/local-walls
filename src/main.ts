@@ -7,7 +7,7 @@ import { injectSpeedInsights } from '@vercel/speed-insights';
 registerLocaleData(localeEs, 'es');
 registerLocaleData(localeEn, 'en');
 
-import { AppComponent } from './app/app.component';
+import { AppComponent } from './app/app';
 import { appConfig } from './app/app.config';
 
 injectSpeedInsights();

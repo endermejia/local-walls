@@ -29,10 +29,10 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { AreasService } from '../services/areas.service';
-import { GlobalData } from '../services/global-data';
+import { AreasService } from '../../services/areas.service';
+import { GlobalData } from '../../services/global-data';
 
-import { AreaDto, AreaListItem } from '../models';
+import { AreaDto, AreaListItem } from '../../models';
 
 @Component({
   selector: 'app-area-unify',

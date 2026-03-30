@@ -58,8 +58,8 @@ import { UserProfilesService } from '../../services/user-profiles.service';
 
 import { Themes } from '../../models';
 
-import { ChatDialogComponent } from '../../dialogs/chat-dialog';
-import { NotificationsDialogComponent } from '../../dialogs/notifications-dialog';
+import { ChatDialogComponent } from '../dialogs/chat-dialog';
+import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
 import { TourHintComponent } from './tour-hint';
 
 @Component({

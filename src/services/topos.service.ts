@@ -20,8 +20,8 @@ import type { Json } from '../models/supabase-generated';
 import {
   TopoPathEditorConfig,
   TopoPathEditorDialogComponent,
-} from '../dialogs/topo-path-editor-dialog';
-import TopoFormComponent from '../forms/topo-form';
+} from '../components/dialogs/topo-path-editor-dialog';
+import TopoFormComponent from '../components/forms/topo-form';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
