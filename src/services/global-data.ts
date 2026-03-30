@@ -1778,7 +1778,6 @@ export class GlobalData {
         });
 
         const mSub = this.messagingService.watchUnreadCount((msg) => {
-          console.log('[GlobalData] Message received:', msg);
           void this.messagingService.refreshUnreadCount();
 
           // Only show if not from me
