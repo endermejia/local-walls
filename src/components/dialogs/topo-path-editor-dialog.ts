@@ -1,5 +1,9 @@
 import { CommonModule } from '@angular/common';
 import {
+  TopoHasPathPipe,
+  TopoPathPointsPipe,
+} from '../../pipes/topo-path.pipe';
+import {
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -63,6 +67,8 @@ export interface TopoPathEditorConfig {
   selector: 'app-topo-path-editor-dialog',
   standalone: true,
   imports: [
+    TopoHasPathPipe,
+    TopoPathPointsPipe,
     CommonModule,
     TuiIcon,
     TuiButton,

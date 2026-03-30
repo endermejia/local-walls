@@ -1,5 +1,10 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
+  TopoHasPathPipe,
+  TopoPathPointsPipe,
+} from '../../pipes/topo-path.pipe';
+import { MapGetPipe } from '../../pipes/map-get.pipe';
+import {
   ChangeDetectionStrategy,
   Component,
   Inject,
@@ -97,6 +102,8 @@ export interface ImageEditorConfig {
   standalone: true,
   imports: [
     MapGetPipe,
+    TopoHasPathPipe,
+    TopoPathPointsPipe,
     CommonModule,
     TuiIcon,
     TuiButton,
