@@ -22,7 +22,7 @@ import { GlobalData } from '../../services/global-data';
 import { ParkingsService } from '../../services/parkings.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
-import { EmptyStateComponent } from '../empty-state';
+import { EmptyStateComponent } from '../ui/empty-state';
 import { CragDetail, ParkingDto } from '../../models';
 import { handleErrorToast, mapLocationUrl } from '../../utils';
 

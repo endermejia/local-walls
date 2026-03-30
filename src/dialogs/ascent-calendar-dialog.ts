@@ -24,7 +24,7 @@ import {
   RouteAscentWithExtras,
 } from '../models';
 
-import { AscentCardComponent } from '../components/ascent-card';
+import { AscentCardComponent } from '../components/ascent/ascent-card';
 
 /** Data passed when opening the dialog. */
 export interface AscentCalendarDialogData {

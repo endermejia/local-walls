@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { RoutesTableComponent } from '../../routes-table';
-import { AscentCardSkeletonComponent } from '../../ascent-card-skeleton';
+import { RoutesTableComponent } from '../../route/routes-table';
+import { AscentCardSkeletonComponent } from '../../ascent/ascent-card-skeleton';
 import { RouteWithExtras } from '../../../models/route.model';
 
 @Component({

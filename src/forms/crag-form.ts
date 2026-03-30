@@ -32,7 +32,7 @@ import { GlobalData } from '../services/global-data';
 import { MapService } from '../services/map.service';
 import { ToastService } from '../services/toast.service';
 
-import { CounterComponent } from '../components/counter';
+import { CounterComponent } from '../components/ui/counter';
 
 import { handleErrorToast, slugify } from '../utils';
 

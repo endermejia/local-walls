@@ -53,7 +53,7 @@ import { SupabaseService } from '../services/supabase.service';
 import { ToastService } from '../services/toast.service';
 import { UserProfilesService } from '../services/user-profiles.service';
 
-import { EmptyStateComponent } from '../components/empty-state';
+import { EmptyStateComponent } from '../components/ui/empty-state';
 
 import {
   ChatMessageDto,

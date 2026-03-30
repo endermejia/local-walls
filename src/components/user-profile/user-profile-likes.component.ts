@@ -13,9 +13,9 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { TuiAppearance, TuiTitle } from '@taiga-ui/core';
 import { TuiHeader } from '@taiga-ui/layout';
 
-import { AscentCardSkeletonComponent } from '../ascent-card-skeleton';
-import { EmptyStateComponent } from '../empty-state';
-import { RoutesTableComponent } from '../routes-table';
+import { AscentCardSkeletonComponent } from '../ascent/ascent-card-skeleton';
+import { EmptyStateComponent } from '../ui/empty-state';
+import { RoutesTableComponent } from '../route/routes-table';
 import { SupabaseService } from '../../services/supabase.service';
 import { RouteWithExtras } from '../../models';
 

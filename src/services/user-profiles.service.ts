@@ -7,7 +7,7 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, Observable } from 'rxjs';
 
-import { Import8aComponent } from '../components/import-8a';
+import { Import8aComponent } from '../components/ascent/import-8a';
 
 import {
   RouteDto,

@@ -36,7 +36,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { ToastService } from '../services/toast.service';
 
-import { GradeComponent } from '../components/avatar-grade';
+import { GradeComponent } from '../components/ui/avatar-grade';
 
 import { GRADE_COLORS, ImageEditorResult, TopoRouteWithRoute } from '../models';
 

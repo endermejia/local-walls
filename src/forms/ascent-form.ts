@@ -53,8 +53,8 @@ import { RoutesService } from '../services/routes.service';
 import { SupabaseService } from '../services/supabase.service';
 import { ToastService } from '../services/toast.service';
 
-import { ButtonAscentTypeComponent } from '../components/button-ascent-type';
-import { CounterComponent } from '../components/counter';
+import { ButtonAscentTypeComponent } from '../components/ascent/button-ascent-type';
+import { CounterComponent } from '../components/ui/counter';
 
 import {
   AscentDialogData,

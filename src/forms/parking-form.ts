@@ -38,7 +38,7 @@ import { MapService } from '../services/map.service';
 import { ParkingsService } from '../services/parkings.service';
 import { ToastService } from '../services/toast.service';
 
-import { CounterComponent } from '../components/counter';
+import { CounterComponent } from '../components/ui/counter';
 
 import { ParkingDto } from '../models';
 

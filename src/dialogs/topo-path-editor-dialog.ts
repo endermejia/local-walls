@@ -29,7 +29,7 @@ import { GlobalData } from '../services/global-data';
 import { ToastService } from '../services/toast.service';
 import { ToposService } from '../services/topos.service';
 
-import { GradeComponent } from '../components/avatar-grade';
+import { GradeComponent } from '../components/ui/avatar-grade';
 
 import { TopoDetail, TopoRouteWithRoute } from '../models';
 

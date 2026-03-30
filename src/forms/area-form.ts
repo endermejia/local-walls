@@ -35,7 +35,7 @@ import { GlobalData } from '../services/global-data';
 import { ToastService } from '../services/toast.service';
 
 import { handleErrorToast, slugify } from '../utils';
-import { CounterComponent } from '../components/counter';
+import { CounterComponent } from '../components/ui/counter';
 
 @Component({
   selector: 'app-area-form',

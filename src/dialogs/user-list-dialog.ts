@@ -31,7 +31,7 @@ import { AscentsService } from '../services/ascents.service';
 import { FollowsService } from '../services/follows.service';
 import { SupabaseService } from '../services/supabase.service';
 
-import { EmptyStateComponent } from '../components/empty-state';
+import { EmptyStateComponent } from '../components/ui/empty-state';
 
 import { UserProfileBasicDto, UserProfileDto } from '../models';
 

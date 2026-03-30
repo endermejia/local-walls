@@ -8,7 +8,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, type Observable, Subject, takeUntil } from 'rxjs';
 
 import { LoaderDialogComponent } from '../dialogs/loader-dialog';
-import { UndoToastComponent } from '../components/undo-toast';
+import { UndoToastComponent } from '../components/ui/undo-toast';
 
 @Injectable({
   providedIn: 'root',

@@ -6,7 +6,7 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { firstValueFrom, Observable } from 'rxjs';
 
-import { LocationPickerComponent } from '../components/location-picker';
+import { LocationPickerComponent } from '../components/location/location-picker';
 
 @Injectable({ providedIn: 'root' })
 export class MapService {

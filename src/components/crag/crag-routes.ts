@@ -28,9 +28,9 @@ import { EightAnuService } from '../../services/eight-anu.service';
 import { FiltersService } from '../../services/filters.service';
 import { GlobalData } from '../../services/global-data';
 import { RoutesService } from '../../services/routes.service';
-import { GradeComponent } from '../avatar-grade';
-import { EmptyStateComponent } from '../empty-state';
-import { RoutesTableComponent } from '../routes-table';
+import { GradeComponent } from '../ui/avatar-grade';
+import { EmptyStateComponent } from '../ui/empty-state';
+import { RoutesTableComponent } from '../route/routes-table';
 import {
   ClimbingKinds,
   CragDetail,

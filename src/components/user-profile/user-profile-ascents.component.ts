@@ -31,8 +31,8 @@ import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { startWith, firstValueFrom } from 'rxjs';
 
-import { AscentsFeedComponent } from '../ascents-feed';
-import { EmptyStateComponent } from '../empty-state';
+import { AscentsFeedComponent } from '../ascent/ascents-feed';
+import { EmptyStateComponent } from '../ui/empty-state';
 import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
 import { FollowsService } from '../../services/follows.service';

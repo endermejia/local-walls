@@ -49,7 +49,7 @@ import { SupabaseService } from '../services/supabase.service';
 import { ToastService } from '../services/toast.service';
 import { ToposService } from '../services/topos.service';
 
-import { GradeComponent } from '../components/avatar-grade';
+import { GradeComponent } from '../components/ui/avatar-grade';
 
 import {
   RouteDto,

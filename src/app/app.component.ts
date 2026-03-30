@@ -29,7 +29,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GlobalData } from '../services/global-data';
 import { LocalStorage } from '../services/local-storage';
 
-import { NavbarComponent } from '../components/navbar';
+import { NavbarComponent } from '../components/ui/navbar';
 
 import { ChatDialogComponent } from '../dialogs/chat-dialog';
 import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';

@@ -6,9 +6,9 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { AscentsService } from '../services/ascents.service';
 
-import { AscentCardComponent } from '../components/ascent-card';
-import { AscentCardSkeletonComponent } from '../components/ascent-card-skeleton';
-import { EmptyStateComponent } from '../components/empty-state';
+import { AscentCardComponent } from '../components/ascent/ascent-card';
+import { AscentCardSkeletonComponent } from '../components/ascent/ascent-card-skeleton';
+import { EmptyStateComponent } from '../components/ui/empty-state';
 
 export interface AscentDialogData {
   ascentId: number;

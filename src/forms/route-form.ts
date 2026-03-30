@@ -43,7 +43,7 @@ import { GlobalData } from '../services/global-data';
 import { SupabaseService } from '../services/supabase.service';
 import { ToastService } from '../services/toast.service';
 
-import { CounterComponent } from '../components/counter';
+import { CounterComponent } from '../components/ui/counter';
 
 import {
   ClimbingKind,

@@ -28,8 +28,8 @@ import { AscentsService } from '../services/ascents.service';
 import { SupabaseService } from '../services/supabase.service';
 import { UserProfilesService } from '../services/user-profiles.service';
 
-import { EmptyStateComponent } from '../components/empty-state';
-import { CommentLikesComponent } from '../components/comment-likes';
+import { EmptyStateComponent } from '../components/ui/empty-state';
+import { CommentLikesComponent } from '../components/social/comment-likes';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 

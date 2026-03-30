@@ -6,8 +6,8 @@ import { TuiAlertOptions, TuiAlertService } from '@taiga-ui/core';
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, switchMap } from 'rxjs';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { GdprNotificationComponent } from '../components/gdpr-notification';
-import { UpdateNotificationComponent } from '../components/update-notification';
+import { GdprNotificationComponent } from '../components/notifications/gdpr-notification';
+import { UpdateNotificationComponent } from '../components/notifications/update-notification';
 
 @Injectable({
   providedIn: 'root',
