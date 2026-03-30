@@ -416,7 +416,6 @@ export class SupabaseService {
       throw response.error;
     }
 
-    console.log('[SupabaseService] uploadAvatar success', response.data);
     return response.data;
   }
 
