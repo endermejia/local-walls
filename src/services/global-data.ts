@@ -1644,12 +1644,7 @@ export class GlobalData {
     effect(() => {
       const selectedLanguage = this.selectedLanguage();
       if (selectedLanguage) {
-        console.log(`[GlobalData] Switching language to: ${selectedLanguage}`);
         this.translate.use(selectedLanguage).subscribe({
-          next: () =>
-            console.log(
-              `[GlobalData] Switched to ${selectedLanguage} successfully`,
-            ),
           error: (err) =>
             console.error(
               `[GlobalData] Error switching to ${selectedLanguage}:`,
