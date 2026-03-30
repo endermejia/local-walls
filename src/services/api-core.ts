@@ -1,3 +1,4 @@
+import { SsrError } from '../errors/ssr.error';
 import { isPlatformBrowser } from '@angular/common';
 import { inject, PLATFORM_ID } from '@angular/core';
 
@@ -25,7 +26,7 @@ export class ApiCore {
       url = new URL(composed, window.location.origin);
     } else {
       // In non-browser contexts we should not be building relative URLs
-      throw new Error('Cannot build relative URL outside of the browser');
+      throw new SsrError('Cannot build relative URL outside of the browser');
     }
 
     if (query) {
@@ -40,7 +41,7 @@ export class ApiCore {
   protected async get<T>(path: string, opts: HttpOptions = {}): Promise<T> {
     if (!this.isBrowser) {
       // Avoid network calls during SSR to external origins
-      throw new Error('HTTP GET attempted during SSR');
+      throw new SsrError('HTTP GET attempted during SSR');
     }
     const url = this.buildUrl(path, opts.query);
     const res = await fetch(url, {
