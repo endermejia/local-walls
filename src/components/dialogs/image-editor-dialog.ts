@@ -96,6 +96,7 @@ export interface ImageEditorConfig {
   selector: 'app-image-editor-dialog',
   standalone: true,
   imports: [
+    MapGetPipe,
     CommonModule,
     TuiIcon,
     TuiButton,
@@ -226,7 +227,7 @@ export interface ImageEditorConfig {
                   [attr.viewBox]="viewBox()"
                 >
                   @for (tr of topoRoutes; track tr.route_id) {
-                    @let entry = pathsMap.get(tr.route_id);
+                    @let entry = tr.route_id | mapGet: pathsMap;
                     @if (entry) {
                       @let isSelected =
                         selectedRoute()?.route_id === tr.route_id;
@@ -429,7 +430,7 @@ export interface ImageEditorConfig {
                         <app-grade [grade]="tr.route.grade" size="xs" />
                       </div>
                     </div>
-                    @if (hasPath(tr.route_id)) {
+                    @if (tr.route_id | topoHasPath: pathsMap) {
                       <tui-icon
                         icon="@tui.check"
                         class="text-[var(--tui-text-positive)] text-xs shrink-0 cursor-pointer hover:text-[var(--tui-text-negative)] transition-colors"
@@ -883,10 +884,6 @@ export class ImageEditorDialogComponent implements AfterViewInit {
       return getRouteColor(undefined, route.route.grade);
     }
     return GRADE_COLORS[5];
-  }
-
-  hasPath(routeId: number): boolean {
-    return hasPathUtil(routeId, this.pathsMap);
   }
 
   getRouteStyle(
