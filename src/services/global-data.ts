@@ -1728,7 +1728,6 @@ export class GlobalData {
         void this.messagingService.refreshUnreadCount();
 
         const nSub = this.notificationsService.watchNotifications((notif) => {
-          console.log('[GlobalData] Notification received:', notif);
           void this.notificationsService.refreshUnreadCount();
 
           // Browser notification for general notifications
@@ -1753,11 +1752,6 @@ export class GlobalData {
                   break;
               }
               if (body) {
-                console.log(
-                  '[GlobalData] Showing browser notification:',
-                  title,
-                  body,
-                );
                 this.browserNotifications.show(title, { body });
 
                 if (typeof document !== 'undefined' && document.hidden) {
@@ -1778,18 +1772,12 @@ export class GlobalData {
         });
 
         const mSub = this.messagingService.watchUnreadCount((msg) => {
-          console.log('[GlobalData] Message received:', msg);
           void this.messagingService.refreshUnreadCount();
 
           // Only show if not from me
           if (msg.sender_id !== userId) {
             void this.supabase.getUserProfile(msg.sender_id!).then((sender) => {
               const title = sender?.name || 'Chat';
-              console.log(
-                '[GlobalData] Showing chat notification:',
-                title,
-                msg.text,
-              );
               this.browserNotifications.show(title, {
                 body: msg.text,
               });
