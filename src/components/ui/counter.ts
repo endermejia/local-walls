@@ -22,6 +22,8 @@ import { TuiInputNumber } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
 import { startWith } from 'rxjs';
+let nextCounterId = 0;
+
 
 @Component({
   selector: 'app-counter',
@@ -102,7 +104,7 @@ export class CounterComponent implements ControlValueAccessor, OnInit {
   private readonly destroyRef = inject(DestroyRef);
   public readonly ngControl = inject(NgControl, { optional: true, self: true });
 
-  id = input<string>(`counter-${crypto.randomUUID()}`);
+  id = input<string>(`counter-${nextCounterId++}`);
   label = input.required<string>();
   suffix = input<string>('');
   min = input<number>(-Infinity);
