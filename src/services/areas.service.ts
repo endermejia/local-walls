@@ -470,6 +470,18 @@ export class AreasService {
           }
           const upsertPayloads: RouteInsertDto[] = [];
 
+          const existingRoutesMap = new Map<
+            string,
+            (typeof existingRoutes)[0]
+          >();
+          for (const r of existingRoutes) {
+            if (r.eight_anu_route_slugs) {
+              for (const slug of r.eight_anu_route_slugs) {
+                existingRoutesMap.set(slug, r);
+              }
+            }
+          }
+
           for (const route of routes) {
             const gradeLabel = this.eightAnuService.normalizeDifficulty(
               route.difficulty,
@@ -481,11 +493,7 @@ export class AreasService {
                 : ClimbingKinds.SPORT;
 
             // Find matching existing route
-            const match = existingRoutes.find(
-              (r) =>
-                r.eight_anu_route_slugs &&
-                r.eight_anu_route_slugs.includes(route.zlaggableSlug),
-            );
+            const match = existingRoutesMap.get(route.zlaggableSlug);
 
             if (match) {
               upsertPayloads.push({
