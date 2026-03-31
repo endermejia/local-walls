@@ -659,29 +659,37 @@ export class TopoFormComponent {
     const selectedRoutes = this.model().selectedRoutes;
 
     // 1. Remove routes that are no longer selected
+    const removePromises: Promise<void>[] = [];
     for (const id of initial) {
       if (!selectedRoutes.some((r) => r.id === id)) {
-        await this.topos.removeRoute(topo.id, id, false);
+        removePromises.push(this.topos.removeRoute(topo.id, id, false));
       }
     }
+    await Promise.all(removePromises);
 
     // 2. Add or update routes with their current index as number
+    const addUpdatePromises: Promise<void>[] = [];
     for (let i = 0; i < selectedRoutes.length; i++) {
       const route = selectedRoutes[i];
       if (!initial.has(route.id)) {
-        await this.topos.addRoute(
-          {
-            topo_id: topo.id,
-            route_id: route.id,
-            number: i,
-          },
-          false,
+        addUpdatePromises.push(
+          this.topos.addRoute(
+            {
+              topo_id: topo.id,
+              route_id: route.id,
+              number: i,
+            },
+            false,
+          ),
         );
       } else {
         // Update existing route's number to reflect potential sorting
-        await this.topos.updateRouteOrder(topo.id, route.id, i, false);
+        addUpdatePromises.push(
+          this.topos.updateRouteOrder(topo.id, route.id, i, false),
+        );
       }
     }
+    await Promise.all(addUpdatePromises);
 
     // One final reload for all topo routes changes
     this.global.topoDetailResource.reload();
