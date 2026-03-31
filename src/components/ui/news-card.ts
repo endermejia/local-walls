@@ -58,7 +58,7 @@ import { NewsItem } from '../../models';
         <a
           [href]="item().link"
           target="_blank"
-          class="block -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full bg-[var(--tui-background-neutral-1)] sm:rounded-2xl overflow-hidden relative flex items-center justify-center"
+          class="-mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full bg-[var(--tui-background-neutral-1)] sm:rounded-2xl overflow-hidden relative flex items-center justify-center"
         >
           <img
             [src]="img"

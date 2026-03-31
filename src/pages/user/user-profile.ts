@@ -283,7 +283,7 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
           <tui-tabs
             [activeItemIndex]="activeTab()"
             (activeItemIndexChange)="activeTab.set($event)"
-            class="w-full mt-6"
+            class="w-full"
             [tuiDropdown]="tourHint"
             [tuiDropdownManual]="
               tourService.isActive() &&
