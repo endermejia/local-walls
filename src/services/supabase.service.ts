@@ -16,6 +16,7 @@ import type { Session, SupabaseClient } from '@supabase/supabase-js';
 
 import { UserProfileDto } from '../models';
 import { Database } from '../models/supabase-generated';
+import { SupabaseNotInitializedError } from '../models';
 
 import { ENV_SUPABASE_URL } from '../environments/environment';
 import { LocalStorage } from './local-storage';
@@ -309,9 +310,7 @@ export class SupabaseService {
   /** Direct access to Supabase client (browser only). Throws if not initialized. */
   get client() {
     if (!this._client) {
-      throw new Error(
-        'Supabase client is not initialized. Ensure you are in the browser and provideSupabaseConfig is set.',
-      );
+      throw new SupabaseNotInitializedError();
     }
     return this._client;
   }
