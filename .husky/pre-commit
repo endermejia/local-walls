@@ -1,5 +1,2 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 # Run linters on staged files only
-npx --no-install lint-staged
+bunx --no-install lint-staged
