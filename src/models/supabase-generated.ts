@@ -1284,6 +1284,178 @@ export interface Database {
         };
         Relationships: [];
       };
+      area_packs: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          price: number;
+          image_url: string | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          price?: number;
+          image_url?: string | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          price?: number;
+          image_url?: string | null;
+          created_at?: string | null;
+        };
+        Relationships: [];
+      };
+      area_pack_items: {
+        Row: {
+          pack_id: string;
+          area_id: number;
+        };
+        Insert: {
+          pack_id: string;
+          area_id: number;
+        };
+        Update: {
+          pack_id?: string;
+          area_id?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'area_pack_items_pack_id_fkey';
+            columns: ['pack_id'];
+            isOneToOne: false;
+            referencedRelation: 'area_packs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'area_pack_items_area_id_fkey';
+            columns: ['area_id'];
+            isOneToOne: false;
+            referencedRelation: 'areas';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      area_pack_purchases: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          pack_id: string | null;
+          amount: number;
+          stripe_session_id: string | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          pack_id?: string | null;
+          amount: number;
+          stripe_session_id?: string | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          pack_id?: string | null;
+          amount?: number;
+          stripe_session_id?: string | null;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'area_pack_purchases_pack_id_fkey';
+            columns: ['pack_id'];
+            isOneToOne: false;
+            referencedRelation: 'area_packs';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      merchandise_items: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          price: number;
+          image_url: string | null;
+          stock: number;
+          category: string | null;
+          active: boolean | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          price?: number;
+          image_url?: string | null;
+          stock?: number;
+          category?: string | null;
+          active?: boolean | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          price?: number;
+          image_url?: string | null;
+          stock?: number;
+          category?: string | null;
+          active?: boolean | null;
+          created_at?: string | null;
+        };
+        Relationships: [];
+      };
+      merchandise_purchases: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          item_id: string | null;
+          amount: number;
+          quantity: number;
+          status: string | null;
+          shipping_address: string | null;
+          stripe_session_id: string | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          item_id?: string | null;
+          amount: number;
+          quantity?: number;
+          status?: string | null;
+          shipping_address?: string | null;
+          stripe_session_id?: string | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          item_id?: string | null;
+          amount?: number;
+          quantity?: number;
+          status?: string | null;
+          shipping_address?: string | null;
+          stripe_session_id?: string | null;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'merchandise_purchases_item_id_fkey';
+            columns: ['item_id'];
+            isOneToOne: false;
+            referencedRelation: 'merchandise_items';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       chat_messages: {
         Row: {
           created_at: string | null;

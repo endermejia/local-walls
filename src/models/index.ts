@@ -20,6 +20,7 @@ export * from './topo.model';
 export * from './user.model';
 export * from './weather.model';
 export * from './news.model';
+export * from './merchandise.model';
 export * from './notifications.model';
 export * from './pagination.model';
 export * from './errors';

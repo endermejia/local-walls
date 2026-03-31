@@ -14,6 +14,14 @@ export const routes: Routes = [
       import('../pages/dashboard/home').then((m) => m.HomeComponent),
   },
   {
+    path: 'merchandising',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/merchandising/merchandising').then(
+        (m) => m.MerchandisingComponent,
+      ),
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('../pages/auth/login').then((m) => m.LoginComponent),
