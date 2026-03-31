@@ -1535,7 +1535,6 @@ export class UserProfileConfigComponent {
   }
 
   async toggleEditingMode(enabled: boolean): Promise<boolean> {
-    console.log('[UserProfileConfigComponent] Toggling editing mode:', enabled);
     if (this.global.editingMode() === enabled) {
       return true;
     }

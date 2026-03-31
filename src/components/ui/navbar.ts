@@ -669,7 +669,6 @@ export class NavbarComponent {
       }
     }
 
-    console.log('[NavbarComponent] Toggling editing mode:', enabled);
     this.global.editingMode.set(enabled);
     const result = await this.userProfilesService.updateUserProfile({
       editing_mode: enabled,
@@ -685,10 +684,6 @@ export class NavbarComponent {
       this.global.editingMode.set(!enabled);
       return false;
     } else {
-      console.log(
-        '[NavbarComponent] Editing mode updated successfully:',
-        enabled,
-      );
       this.toast.success('profile.saveSuccess');
       return true;
     }

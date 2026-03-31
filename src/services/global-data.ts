@@ -1664,10 +1664,6 @@ export class GlobalData {
         untracked(() => this.theme.set(profile.theme as Theme));
       }
       if (profile.editing_mode !== null) {
-        console.log(
-          '[GlobalData] Syncing editingMode from profile:',
-          profile.editing_mode,
-        );
         untracked(() => this.editingMode.set(!!profile.editing_mode));
       }
       if (profile.message_sound !== null) {
