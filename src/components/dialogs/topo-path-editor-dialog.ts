@@ -701,8 +701,12 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
       const topo = this.context.data.topo;
 
       // Save paths
-      for (const [routeId, path] of this.pathsMap.entries()) {
-        await this.topos.updateRoutePath(topo.id, routeId, path, false);
+      const pathsToUpdate = Array.from(this.pathsMap.entries()).map(([routeId, path]) => ({
+        routeId,
+        path: path as any,
+      }));
+      if (pathsToUpdate.length > 0) {
+        await this.topos.bulkUpdateRoutePaths(topo.id, pathsToUpdate, false);
       }
 
       // Save order
