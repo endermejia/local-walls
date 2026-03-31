@@ -24,7 +24,6 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { startWith } from 'rxjs';
 let nextCounterId = 0;
 
-
 @Component({
   selector: 'app-counter',
   standalone: true,

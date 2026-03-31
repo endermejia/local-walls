@@ -39,11 +39,7 @@ import {
   TuiInputFiles,
 } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
-import {
-  injectContext,
-  PolymorpheusComponent,
-  POLYMORPHEUS_CONTEXT,
-} from '@taiga-ui/polymorpheus';
+import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';

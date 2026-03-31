@@ -1,4 +1,3 @@
-
 import { AsyncPipe, DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -373,9 +372,13 @@ export class Import8aComponent {
           console.error(e);
           this.failedFiles$.next(f);
           if (e instanceof EmptyCsvError) {
-            this.toast.error(this.translate.instant('import8a.errors.emptyCSV'));
+            this.toast.error(
+              this.translate.instant('import8a.errors.emptyCSV'),
+            );
           } else {
-            this.toast.error(this.translate.instant('import8a.errors.parseCSV'));
+            this.toast.error(
+              this.translate.instant('import8a.errors.parseCSV'),
+            );
           }
           return null;
         }

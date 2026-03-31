@@ -54,7 +54,6 @@ import {
   constrainTranslation,
   setupEditorMousePan,
   setupEditorTouchPanPinch,
-  resetZoomState,
   attachWheelListener,
 } from '../../utils/zoom-pan.utils';
 

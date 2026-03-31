@@ -8,6 +8,7 @@ import {
   resource,
   signal,
   Signal,
+  untracked,
   WritableSignal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -184,7 +185,7 @@ export class GlobalData {
   // ---- Auth (roles) ----
   readonly userProfile = computed(() => this.supabase.userProfile());
   readonly editingMode = signal(false);
-  private readonly editingModeStorageKey = 'editing_mode_v1';
+  private readonly editingModeStorageKey = 'editing_mode_v2';
 
   readonly isAdmin = computed(() => !!this.userProfile()?.is_admin);
   readonly canEditAsAdmin = computed(
@@ -1656,9 +1657,26 @@ export class GlobalData {
 
     // Sync theme from user profile
     effect(() => {
-      const profileTheme = this.userProfile()?.theme as Theme | undefined;
-      if (profileTheme) {
-        this.theme.set(profileTheme);
+      const profile = this.userProfile();
+      if (!profile) return;
+
+      if (profile.theme) {
+        untracked(() => this.theme.set(profile.theme as Theme));
+      }
+      if (profile.editing_mode !== null) {
+        console.log(
+          '[GlobalData] Syncing editingMode from profile:',
+          profile.editing_mode,
+        );
+        untracked(() => this.editingMode.set(!!profile.editing_mode));
+      }
+      if (profile.message_sound !== null) {
+        untracked(() => this.messageSoundEnabled.set(!!profile.message_sound));
+      }
+      if (profile.notification_sound !== null) {
+        untracked(() =>
+          this.notificationSoundEnabled.set(!!profile.notification_sound),
+        );
       }
     });
 
@@ -1712,6 +1730,24 @@ export class GlobalData {
       this.localStorage.setItem(
         'notification_sound_enabled_v1',
         String(this.notificationSoundEnabled()),
+      );
+    });
+
+    // Hydrate editing mode from localStorage
+    try {
+      const mode = this.localStorage.getItem(this.editingModeStorageKey);
+      if (mode !== null) {
+        this.editingMode.set(mode === 'true');
+      }
+    } catch {
+      // ignore
+    }
+
+    // Persist editing mode to localStorage
+    effect(() => {
+      this.localStorage.setItem(
+        this.editingModeStorageKey,
+        String(this.editingMode()),
       );
     });
 

@@ -79,6 +79,7 @@ export class UserProfilesService {
         return { success: false, error: 'User not authenticated' };
       }
 
+      console.log('[UserProfileService] Updating profile:', updates);
       const { error } = await this.supabase.client
         .from('user_profiles')
         .update({

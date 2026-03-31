@@ -638,21 +638,9 @@ export class NavbarComponent {
     this.userProfilesService.openUserProfileConfigForm();
   }
 
-  protected toggleTheme(isDark: boolean): void {
-    const newTheme = isDark ? Themes.DARK : Themes.LIGHT;
-    this.global.theme.set(newTheme);
-    this.userProfilesService
-      .updateUserProfile({ theme: newTheme })
-      .then((res) => {
-        if (res.success) {
-          this.toast.success('profile.saveSuccess');
-        }
-      });
-  }
-
-  protected async toggleEditingMode(enabled: boolean): Promise<void> {
+  protected async toggleEditingMode(enabled: boolean): Promise<boolean> {
     if (this.global.editingMode() === enabled) {
-      return;
+      return true;
     }
 
     if (enabled && !this.global.isAdmin()) {
@@ -677,10 +665,49 @@ export class NavbarComponent {
       if (!confirmed) {
         // Force the switch to stay false
         this.global.editingMode.set(false);
-        return;
+        return false;
       }
     }
 
+    console.log('[NavbarComponent] Toggling editing mode:', enabled);
     this.global.editingMode.set(enabled);
+    const result = await this.userProfilesService.updateUserProfile({
+      editing_mode: enabled,
+    });
+
+    if (!result.success) {
+      console.error(
+        '[NavbarComponent] Error updating editing mode:',
+        result.error,
+      );
+      this.toast.error('profile.saveError');
+      // Revert the signal if failed
+      this.global.editingMode.set(!enabled);
+      return false;
+    } else {
+      console.log(
+        '[NavbarComponent] Editing mode updated successfully:',
+        enabled,
+      );
+      this.toast.success('profile.saveSuccess');
+      return true;
+    }
+  }
+
+  protected toggleTheme(dark: boolean): void {
+    const theme = dark ? Themes.DARK : Themes.LIGHT;
+    this.global.theme.set(theme);
+    void this.userProfilesService
+      .updateUserProfile({
+        theme,
+      })
+      .then((res) => {
+        if (res.success) {
+          this.toast.success('profile.saveSuccess');
+        } else {
+          console.error('[NavbarComponent] Error updating theme:', res.error);
+          this.toast.error('profile.saveError');
+        }
+      });
   }
 }

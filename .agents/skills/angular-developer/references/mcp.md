@@ -41,8 +41,8 @@ Create a file named `.antigravity/mcp.json` in your project's root:
 {
   "mcpServers": {
     "angular-cli": {
-      "command": "npx",
-      "args": ["-y", "@angular/cli", "mcp"]
+      "command": "bunx",
+      "args": ["@angular/cli", "mcp"]
     }
   }
 }
@@ -56,8 +56,8 @@ Create `.gemini/settings.json` in the project root:
 {
   "mcpServers": {
     "angular-cli": {
-      "command": "npx",
-      "args": ["-y", "@angular/cli", "mcp"]
+      "command": "bunx",
+      "args": ["@angular/cli", "mcp"]
     }
   }
 }
@@ -71,8 +71,8 @@ Create `.cursor/mcp.json` in the project root (or globally at `~/.cursor/mcp.jso
 {
   "mcpServers": {
     "angular-cli": {
-      "command": "npx",
-      "args": ["-y", "@angular/cli", "mcp"]
+      "command": "bunx",
+      "args": ["@angular/cli", "mcp"]
     }
   }
 }
@@ -86,8 +86,8 @@ Create `.vscode/mcp.json`:
 {
   "servers": {
     "angular-cli": {
-      "command": "npx",
-      "args": ["-y", "@angular/cli", "mcp"]
+      "command": "bunx",
+      "args": ["@angular/cli", "mcp"]
     }
   }
 }

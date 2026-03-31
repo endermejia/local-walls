@@ -1153,9 +1153,10 @@ export class UserProfileConfigComponent {
       birth_date,
       eightAnuUser: this.selectedEightAnuUser.value() || null,
       deleteEmail: '',
-      messageSound: this.global.messageSoundEnabled(),
-      notificationSound: this.global.notificationSoundEnabled(),
-      editingMode: this.global.editingMode(),
+      messageSound: profile.message_sound ?? this.global.messageSoundEnabled(),
+      notificationSound:
+        profile.notification_sound ?? this.global.notificationSoundEnabled(),
+      editingMode: profile.editing_mode ?? this.global.editingMode(),
       restartFirstSteps: false,
     });
   }
@@ -1484,19 +1485,34 @@ export class UserProfileConfigComponent {
     this.updateModel('restartFirstSteps', false);
   }
 
-  onMessageSoundChange(enabled: boolean): void {
+  async onMessageSoundChange(enabled: boolean): Promise<void> {
     this.updateModel('messageSound', enabled);
+    await this.updateProfile({ message_sound: enabled });
     this.global.messageSoundEnabled.set(enabled);
   }
 
-  onNotificationSoundChange(enabled: boolean): void {
+  async onNotificationSoundChange(enabled: boolean): Promise<void> {
     this.updateModel('notificationSound', enabled);
+    await this.updateProfile({ notification_sound: enabled });
     this.global.notificationSoundEnabled.set(enabled);
   }
 
-  onEditingModeChange(enabled: boolean): void {
-    this.updateModel('editingMode', enabled);
-    void this.toggleEditingMode(enabled);
+  async onEditingModeChange(enabled: boolean): Promise<void> {
+    // If enabling, we need to show the confirmation first
+    if (enabled) {
+      const confirmed = await this.toggleEditingMode(true);
+      if (confirmed) {
+        this.updateModel('editingMode', true);
+        await this.updateProfile({ editing_mode: true });
+      } else {
+        this.updateModel('editingMode', false);
+      }
+    } else {
+      // Disabling is always allowed without confirmation
+      this.updateModel('editingMode', false);
+      this.global.editingMode.set(false);
+      await this.updateProfile({ editing_mode: false });
+    }
   }
 
   onPrivateProfileChange(enabled: boolean): void {
@@ -1518,9 +1534,10 @@ export class UserProfileConfigComponent {
     }
   }
 
-  async toggleEditingMode(enabled: boolean): Promise<void> {
+  async toggleEditingMode(enabled: boolean): Promise<boolean> {
+    console.log('[UserProfileConfigComponent] Toggling editing mode:', enabled);
     if (this.global.editingMode() === enabled) {
-      return;
+      return true;
     }
 
     if (enabled && !this.global.isAdmin()) {
@@ -1546,11 +1563,12 @@ export class UserProfileConfigComponent {
         // Force the switch to stay false
         this.updateModel('editingMode', false);
         this.global.editingMode.set(false);
-        return;
+        return false;
       }
     }
 
     this.global.editingMode.set(enabled);
+    return true;
   }
 
   async logout(): Promise<void> {

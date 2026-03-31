@@ -37,7 +37,7 @@ export function handleWheelZoom(
     afterZoom?: () => void;
   },
 ): void {
-  const { minScale, maxScale, zoomSpeed } = { ...DEFAULT_CONFIG, ...config };
+  const { minScale, maxScale } = { ...DEFAULT_CONFIG, ...config };
   const wheelEvent = event as WheelEvent;
 
   if (wheelEvent.cancelable) {
