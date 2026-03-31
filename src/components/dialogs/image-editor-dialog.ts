@@ -1,8 +1,5 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import {
-  TopoHasPathPipe,
-  TopoPathPointsPipe,
-} from '../../pipes/topo-path.pipe';
+import { TopoHasPathPipe } from '../../pipes/topo-path.pipe';
 import { MapGetPipe } from '../../pipes/map-get.pipe';
 import {
   ChangeDetectionStrategy,
@@ -60,7 +57,6 @@ import {
   getRouteStyleProperties,
   getRouteStrokeWidth,
   getPointsString as getPointsStringUtil,
-  hasPath as hasPathUtil,
 } from '../../utils/topo-styles.utils';
 import {
   ZoomPanState,
@@ -103,7 +99,6 @@ export interface ImageEditorConfig {
   imports: [
     MapGetPipe,
     TopoHasPathPipe,
-    TopoPathPointsPipe,
     CommonModule,
     TuiIcon,
     TuiButton,

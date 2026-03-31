@@ -1,8 +1,5 @@
 import { CommonModule } from '@angular/common';
-import {
-  TopoHasPathPipe,
-  TopoPathPointsPipe,
-} from '../../pipes/topo-path.pipe';
+import { TopoHasPathPipe } from '../../pipes/topo-path.pipe';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -35,7 +32,7 @@ import { ToposService } from '../../services/topos.service';
 
 import { GradeComponent } from '../ui/avatar-grade';
 
-import { TopoDetail, TopoRouteWithRoute } from '../../models';
+import { TopoDetail, TopoRouteWithRoute, TopoPath } from '../../models';
 
 import {
   removePoint,
@@ -46,7 +43,6 @@ import {
 import {
   getRouteStyleProperties,
   getPointsString as getPointsStringUtil,
-  hasPath as hasPathUtil,
 } from '../../utils/topo-styles.utils';
 import {
   ZoomPanState,
@@ -68,7 +64,6 @@ export interface TopoPathEditorConfig {
   standalone: true,
   imports: [
     TopoHasPathPipe,
-    TopoPathPointsPipe,
     CommonModule,
     TuiIcon,
     TuiButton,
@@ -701,10 +696,12 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
       const topo = this.context.data.topo;
 
       // Save paths
-      const pathsToUpdate = Array.from(this.pathsMap.entries()).map(([routeId, path]) => ({
-        routeId,
-        path: path as any,
-      }));
+      const pathsToUpdate = Array.from(this.pathsMap.entries()).map(
+        ([routeId, path]) => ({
+          routeId,
+          path: { points: path.points, color: path.color } as TopoPath,
+        }),
+      );
       if (pathsToUpdate.length > 0) {
         await this.topos.bulkUpdateRoutePaths(topo.id, pathsToUpdate, false);
       }
