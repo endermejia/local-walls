@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 
-import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogService } from '@taiga-ui/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslateService } from '@ngx-translate/core';
@@ -12,6 +12,7 @@ import type {
   TopoDto,
   TopoInsertDto,
   TopoPath,
+  TopoPathEditorResult,
   TopoRouteInsertDto,
   TopoUpdateDto,
 } from '../models';
@@ -257,22 +258,25 @@ export class ToposService {
     }
   }
 
-  async openTopoPathEditor(data: TopoPathEditorConfig): Promise<boolean> {
+  async openTopoPathEditor(
+    data: TopoPathEditorConfig,
+  ): Promise<TopoPathEditorResult | boolean> {
     if (!isPlatformBrowser(this.platformId)) return false;
 
     return firstValueFrom(
-      this.dialogs.open<boolean>(
+      this.dialogs.open<TopoPathEditorResult | boolean>(
         new PolymorpheusComponent(TopoPathEditorDialogComponent),
         {
           data,
-          size: 'l',
-          closable: false,
+          size: 'fullscreen',
+          closeable: false,
           dismissible: false,
         },
       ),
       { defaultValue: false },
     ).then((result) => {
-      if (result) {
+      // If standalone (saved directly) it returns true.
+      if (result === true) {
         this.global.topoDetailResource.reload();
       }
       return result;

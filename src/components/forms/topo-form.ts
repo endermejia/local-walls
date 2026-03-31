@@ -39,7 +39,11 @@ import {
   TuiInputFiles,
 } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
-import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import {
+  injectContext,
+  PolymorpheusComponent,
+  POLYMORPHEUS_CONTEXT,
+} from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
@@ -60,7 +64,6 @@ import {
   TopoUpdateDto,
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
-  ImageEditorResult,
 } from '../../models';
 
 import { handleErrorToast, slugify } from '../../utils';
@@ -148,38 +151,11 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
       </div>
 
       <section class="grid gap-3">
+        <!-- Header -->
         <div class="flex items-center justify-between px-1">
-          <div class="flex items-center gap-2">
-            @if (
-              isEdit() &&
-              topoData()?.photo &&
-              !photoValue() &&
-              !isExistingPhotoDeleted()
-            ) {
-              @if (existingPhotoUrl(); as url) {
-                <button
-                  tuiButton
-                  type="button"
-                  appearance="neutral"
-                  size="s"
-                  iconStart="@tui.pencil"
-                  (click)="editPhoto(null, url)"
-                >
-                  {{ 'edit' | translate }}
-                </button>
-              }
-              <button
-                tuiButton
-                type="button"
-                appearance="neutral"
-                size="s"
-                iconStart="@tui.pencil"
-                (click)="openPathEditor()"
-              >
-                {{ 'draw' | translate }}
-              </button>
-            }
-          </div>
+          <p class="text-sm font-bold uppercase tracking-wider opacity-60">
+            {{ 'photo' | translate }}
+          </p>
         </div>
 
         <div class="grid gap-2">
@@ -264,6 +240,26 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               }
             }
           </tui-files>
+
+          <!-- Draw paths Button (Large and underneath) -->
+          @if (
+            (previewUrl() || existingPhotoUrl()) &&
+            model().selectedRoutes.length > 0
+          ) {
+            <div class="mt-2">
+              <button
+                tuiButton
+                type="button"
+                appearance="accent"
+                size="m"
+                class="w-full !rounded-xl"
+                [iconStart]="'/image/topo.svg'"
+                (click)="openPathEditor()"
+              >
+                {{ 'draw' | translate }}
+              </button>
+            </div>
+          }
         </div>
       </section>
 
@@ -506,6 +502,9 @@ export class TopoFormComponent {
 
   onPhotoControlChange(file: File | null): void {
     this.model.update((m) => ({ ...m, photoControl: file }));
+    if (file) {
+      this.editPhoto(file);
+    }
   }
 
   onSelectedRoutesChange(routes: RouteDto[]): void {
@@ -524,17 +523,6 @@ export class TopoFormComponent {
       } else {
         this.previewUrl.set(null);
       }
-    });
-
-    // Auto-open editor when a new file is selected from file input
-    effect(() => {
-      const file = this.model().photoControl;
-      untracked(() => {
-        if (file && !this.isProcessingPhoto()) {
-          this.isProcessingPhoto.set(true);
-          this.editPhoto(file, undefined);
-        }
-      });
     });
 
     effect(() => {
@@ -731,23 +719,6 @@ export class TopoFormComponent {
       imageUrl: imageUrl ?? undefined,
       maintainAspectRatio: false,
       allowFree: true,
-      allowDrawing: true,
-      topoRoutes: (this.model().selectedRoutes || []).map((r, i) => {
-        const existing = this.effectiveTopoData()?.topo_routes?.find(
-          (tr) => tr.route_id === r.id,
-        );
-        return {
-          topo_id: this.effectiveTopoData()?.id || 0,
-          route_id: r.id,
-          number: (existing?.number || i) + 1,
-          route: { ...r, own_ascent: null, project: false },
-          path:
-            this.pendingPaths().find((p) => p.routeId === r.id)?.path ||
-            existing?.path ||
-            null,
-        };
-      }),
-      initialMode: imageUrl ? ('draw' as const) : undefined,
     };
 
     if (!data.file && !data.imageUrl) {
@@ -756,11 +727,11 @@ export class TopoFormComponent {
     }
 
     const result = await firstValueFrom(
-      this.dialogs.open<ImageEditorResult | File | null>(
+      this.dialogs.open<File | null>(
         new PolymorpheusComponent(ImageEditorDialogComponent),
         {
           data,
-          appearance: 'fullscreen',
+          size: 'fullscreen',
           closeable: false,
           dismissible: false,
         },
@@ -771,39 +742,22 @@ export class TopoFormComponent {
     // Reset processing flag
     this.isProcessingPhoto.set(false);
 
-    if (result) {
-      const isEditorResult = typeof result === 'object' && 'file' in result;
-      const file = isEditorResult
-        ? result.file
-        : result instanceof File
-          ? result
-          : null;
+    if (result && result instanceof File) {
+      this.model.update((m) => ({ ...m, photoControl: result }));
 
-      if (file) {
-        this.model.update((m) => ({ ...m, photoControl: file }));
-        if (isEditorResult) {
-          if (result.paths) {
-            this.pendingPaths.set(result.paths);
-          }
-          if (result.routeIds) {
-            const current = this.model().selectedRoutes;
-            const sorted = result.routeIds
-              .map((id) => current.find((r) => r.id === id))
-              .filter((r): r is RouteWithExtras => !!r);
-            this.model.update((m) => ({ ...m, selectedRoutes: sorted }));
-          }
-        }
-
-        // Manually trigger preview update
-        const reader = new FileReader();
-        reader.onload = () => {
-          this.previewUrl.set(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-      }
+      // Trigger preview update (NO auto-cascade to path editor)
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.previewUrl.set(reader.result as string);
+      };
+      reader.readAsDataURL(result);
     } else {
-      // User cancelled, clear the photo
-      this.model.update((m) => ({ ...m, photoControl: null }));
+      // User cancelled.
+      // If we were auto-triggered by a fresh pick (model has it, but no preview yet), maybe clear it.
+      // But if we're EDITING an existing one, keep it.
+      if (!imageUrl && !file) {
+        this.model.update((m) => ({ ...m, photoControl: null }));
+      }
     }
   }
 
@@ -876,13 +830,47 @@ export class TopoFormComponent {
     }));
   }
 
-  protected openPathEditor(): void {
+  protected async openPathEditor(overrideUrl?: string): Promise<void> {
     const topo = this.effectiveTopoData();
-    const url = this.existingPhotoUrl();
-    if (!topo || !url) return;
+    const activeUrl =
+      overrideUrl || this.previewUrl() || this.existingPhotoUrl();
+    if (!activeUrl) return;
 
-    this._dialogCtx?.completeWith(false); // Close form first
-    this.topos.openTopoPathEditor({ topo, imageUrl: url });
+    const routes = (this.model().selectedRoutes || []).map((r, i) => {
+      const existing = this.effectiveTopoData()?.topo_routes?.find(
+        (tr) => tr.route_id === r.id,
+      );
+      return {
+        topo_id: this.effectiveTopoData()?.id || 0,
+        route_id: r.id,
+        number: (existing?.number || i) + 1,
+        route: { ...r, own_ascent: null, project: false },
+        path:
+          this.pendingPaths().find((p) => p.routeId === r.id)?.path ||
+          existing?.path ||
+          null,
+      };
+    });
+
+    const result = await this.topos.openTopoPathEditor({
+      imageUrl: activeUrl,
+      topoRoutes: routes,
+      topoName: topo?.name || this.model().name,
+      standalone: false, // Don't save to DB directly, return the paths
+    });
+
+    if (result && typeof result === 'object' && result.saved) {
+      if (result.paths) {
+        this.pendingPaths.set(result.paths);
+      }
+      if (result.routeIds) {
+        const current = this.model().selectedRoutes;
+        const sorted = result.routeIds
+          .map((id: number) => current.find((r) => r.id === id))
+          .filter(Boolean) as RouteWithExtras[];
+        this.model.update((m) => ({ ...m, selectedRoutes: sorted }));
+      }
+    }
   }
 
   goBack(): void {

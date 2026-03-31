@@ -53,8 +53,8 @@ export interface TopoDetail extends TopoDto {
   };
 }
 
-export interface ImageEditorResult {
-  file?: File;
+export interface TopoPathEditorResult {
+  saved?: boolean;
   paths?: {
     routeId: number;
     path: TopoPath;

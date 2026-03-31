@@ -146,13 +146,13 @@ export function addPointToPath(
   >,
   defaults?: { color?: string; [key: string]: unknown },
 ): void {
+  // getBoundingClientRect gives screen coords of the scaled container.
+  // Dividing (clientX - rect.left) by rect.width gives the correct
+  // normalized [0,1] position regardless of current zoom/pan.
   const rect = containerEl.getBoundingClientRect();
-  const x = (event.clientX - rect.left) / scale;
-  const y = (event.clientY - rect.top) / scale;
-
   const coords: NormalizedPoint = {
-    x: Math.max(0, Math.min(1, x / contentWidth)),
-    y: Math.max(0, Math.min(1, y / contentHeight)),
+    x: Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)),
+    y: Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)),
   };
 
   const current = pathsMap.get(routeId) || { points: [], ...defaults };
@@ -189,11 +189,8 @@ export function startDragPointMouse(
 
   const onMouseMove = (e: MouseEvent) => {
     const rect = containerEl.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / scale;
-    const y = (e.clientY - rect.top) / scale;
-
-    point.x = Math.max(0, Math.min(1, x / contentWidth));
-    point.y = Math.max(0, Math.min(1, y / contentHeight));
+    point.x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    point.y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
 
     if (!pendingUpdate) {
       pendingUpdate = true;
@@ -277,11 +274,14 @@ export function startDragPointTouch(
 
     e.preventDefault();
     const rect = containerEl.getBoundingClientRect();
-    const x = (touch.clientX - rect.left) / scale;
-    const y = (touch.clientY - rect.top) / scale;
-
-    point.x = Math.max(0, Math.min(1, x / contentWidth));
-    point.y = Math.max(0, Math.min(1, y / contentHeight));
+    point.x = Math.max(
+      0,
+      Math.min(1, (touch.clientX - rect.left) / rect.width),
+    );
+    point.y = Math.max(
+      0,
+      Math.min(1, (touch.clientY - rect.top) / rect.height),
+    );
 
     if (!pendingUpdate) {
       pendingUpdate = true;

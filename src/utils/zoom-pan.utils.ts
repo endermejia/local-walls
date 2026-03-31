@@ -18,8 +18,8 @@ export interface ZoomPanConfig {
 }
 
 const DEFAULT_CONFIG: Required<ZoomPanConfig> = {
-  minScale: 1,
-  maxScale: 5,
+  minScale: 0.1,
+  maxScale: 10,
   zoomSpeed: 0.15,
   moveThreshold: 5,
 };
@@ -44,9 +44,12 @@ export function handleWheelZoom(
     wheelEvent.preventDefault();
   }
 
-  const delta = wheelEvent.deltaY > 0 ? -zoomSpeed : zoomSpeed;
+  const zoomFactor = 1.1; // 10% change per notch
+  const direction = wheelEvent.deltaY > 0 ? -1 : 1;
+  const factor = direction > 0 ? zoomFactor : 1 / zoomFactor;
+
   const newScale = Math.min(
-    Math.max(minScale, state.scale() + delta),
+    Math.max(minScale, state.scale() * factor),
     maxScale,
   );
 
@@ -56,22 +59,19 @@ export function handleWheelZoom(
   const x = wheelEvent.clientX - rect.left;
   const y = wheelEvent.clientY - rect.top;
 
-  const mouseX = x / state.scale();
-  const mouseY = y / state.scale();
+  // Position of the mouse relative to the content's top-left at the current scale
+  const contentMouseX = x - state.translateX();
+  const contentMouseY = y - state.translateY();
+
+  // The normalized position (0 to 1) of the mouse on the content
+  const normalizedX = contentMouseX / state.scale();
+  const normalizedY = contentMouseY / state.scale();
 
   state.scale.set(newScale);
 
-  if (newScale <= minScale) {
-    state.translateX.set(0);
-    state.translateY.set(0);
-  } else {
-    state.translateX.update(
-      (tx) => wheelEvent.clientX - rect.left + tx - mouseX * newScale,
-    );
-    state.translateY.update(
-      (ty) => wheelEvent.clientY - rect.top + ty - mouseY * newScale,
-    );
-  }
+  // New translation to keep the same normalized point under the mouse
+  state.translateX.set(x - normalizedX * newScale);
+  state.translateY.set(y - normalizedY * newScale);
 
   callbacks?.afterZoom?.();
 }
@@ -88,30 +88,31 @@ export function constrainTranslation(
 ): void {
   const scale = state.scale();
 
-  if (!areaEl || scale <= 1) {
-    state.translateX.set(0);
-    state.translateY.set(0);
-    return;
-  }
+  if (!areaEl) return;
 
   const areaRect = areaEl.getBoundingClientRect();
   const scaledWidth = contentWidth * scale;
   const scaledHeight = contentHeight * scale;
 
-  let minX = 0;
-  const maxX = 0;
+  // Horizontal constraint
   if (scaledWidth > areaRect.width) {
-    minX = areaRect.width - scaledWidth;
+    const minX = areaRect.width - scaledWidth;
+    const maxX = 0;
+    state.translateX.update((x) => Math.min(maxX, Math.max(x, minX)));
+  } else {
+    // If smaller than area, center it
+    state.translateX.set((areaRect.width - scaledWidth) / 2);
   }
 
-  let minY = 0;
-  const maxY = 0;
+  // Vertical constraint
   if (scaledHeight > areaRect.height) {
-    minY = areaRect.height - scaledHeight;
+    const minY = areaRect.height - scaledHeight;
+    const maxY = 0;
+    state.translateY.update((y) => Math.min(maxY, Math.max(y, minY)));
+  } else {
+    // If smaller than area, center it
+    state.translateY.set((areaRect.height - scaledHeight) / 2);
   }
-
-  state.translateX.update((x) => Math.min(maxX, Math.max(x, minX)));
-  state.translateY.update((y) => Math.min(maxY, Math.max(y, minY)));
 }
 
 // ─────────────────────────────────────────────
@@ -136,6 +137,8 @@ export function setupEditorMousePan(
   const initialTx = state.translateX();
   const initialTy = state.translateY();
   let hasMoved = false;
+  // Store the original mousedown event to pass correct coordinates to onNoMove
+  const mousedownEvent = event;
 
   const onMouseMove = (e: MouseEvent) => {
     const dx = e.clientX - startX;
@@ -152,12 +155,13 @@ export function setupEditorMousePan(
     }
   };
 
-  const onMouseUp = (e: MouseEvent) => {
+  const onMouseUp = () => {
     window.removeEventListener('mousemove', onMouseMove);
     window.removeEventListener('mouseup', onMouseUp);
 
     if (!hasMoved) {
-      callbacks?.onNoMove?.(e);
+      // Use mousedown event: it has the coordinates of where the user clicked
+      callbacks?.onNoMove?.(mousedownEvent);
     }
   };
 
@@ -213,17 +217,12 @@ export function setupEditorTouchPanPinch(
 
       state.scale.set(newScale);
 
-      if (newScale <= minScale) {
-        state.translateX.set(0);
-        state.translateY.set(0);
-      } else {
-        state.translateX.update(
-          (tx) => centerX - rect.left + tx - mouseX * newScale,
-        );
-        state.translateY.update(
-          (ty) => centerY - rect.top + ty - mouseY * newScale,
-        );
-      }
+      state.translateX.update(
+        (tx) => centerX - rect.left + tx - mouseX * newScale,
+      );
+      state.translateY.update(
+        (ty) => centerY - rect.top + ty - mouseY * newScale,
+      );
 
       callbacks?.afterMove?.();
     };
