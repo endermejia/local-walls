@@ -1,3 +1,4 @@
+
 import { AsyncPipe, DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -65,6 +66,13 @@ import {
 import { slugify } from '../../utils';
 
 import { GradeComponent } from '../ui/avatar-grade';
+
+class EmptyCsvError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'EmptyCsvError';
+  }
+}
 
 @Component({
   selector: 'app-import-8a',
@@ -355,7 +363,7 @@ export class Import8aComponent {
             const ascents = this.parseCSV(text);
 
             if (ascents.length === 0) {
-              throw new Error('Empty CSV');
+              throw new EmptyCsvError('Empty CSV');
             }
             this.ascents.set(ascents);
             return f;
@@ -364,7 +372,11 @@ export class Import8aComponent {
         } catch (e) {
           console.error(e);
           this.failedFiles$.next(f);
-          this.toast.error(this.translate.instant('import8a.errors.parseCSV'));
+          if (e instanceof EmptyCsvError) {
+            this.toast.error(this.translate.instant('import8a.errors.emptyCSV'));
+          } else {
+            this.toast.error(this.translate.instant('import8a.errors.parseCSV'));
+          }
           return null;
         }
       }),
