@@ -33,6 +33,8 @@ export interface CartProduct {
   type: 'merchandise' | 'area_pack' | 'area';
   quantity: number;
   numericId?: number; // Used for areas (int)
+  selectedSize?: string;
+  selectedColor?: string;
 }
 
 export type OrderStatus =

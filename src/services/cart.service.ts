@@ -56,11 +56,21 @@ export class CartService {
   addItem(product: Omit<CartProduct, 'quantity'>): void {
     const current = this._items();
     const existing = current.find(
-      (i) => i.id === product.id && i.type === product.type,
+      (i) =>
+        i.id === product.id &&
+        i.type === product.type &&
+        i.selectedSize === product.selectedSize &&
+        i.selectedColor === product.selectedColor,
     );
 
     if (existing) {
-      this.updateQuantity(product.id, product.type, existing.quantity + 1);
+      this.updateQuantity(
+        product.id,
+        product.type,
+        existing.quantity + 1,
+        product.selectedSize,
+        product.selectedColor,
+      );
     } else {
       this._items.set([...current, { ...product, quantity: 1 }]);
     }
@@ -71,18 +81,33 @@ export class CartService {
         product.id,
         product.type,
         existing ? existing.quantity + 1 : 1,
+        product.selectedSize,
+        product.selectedColor,
       );
     }
   }
 
-  removeItem(id: string, type: CartProduct['type']): void {
+  removeItem(
+    id: string,
+    type: CartProduct['type'],
+    selectedSize?: string,
+    selectedColor?: string,
+  ): void {
     this._items.update((items) =>
-      items.filter((i) => !(i.id === id && i.type === type)),
+      items.filter(
+        (i) =>
+          !(
+            i.id === id &&
+            i.type === type &&
+            i.selectedSize === selectedSize &&
+            i.selectedColor === selectedColor
+          ),
+      ),
     );
 
     const userId = this.supabase.authUserId();
     if (userId) {
-      this.removeFromSupabase(id, type);
+      this.removeFromSupabase(id, type, selectedSize, selectedColor);
     }
   }
 
@@ -90,21 +115,28 @@ export class CartService {
     id: string,
     type: CartProduct['type'],
     quantity: number,
+    selectedSize?: string,
+    selectedColor?: string,
   ): void {
     if (quantity <= 0) {
-      this.removeItem(id, type);
+      this.removeItem(id, type, selectedSize, selectedColor);
       return;
     }
 
     this._items.update((items) =>
       items.map((i) =>
-        i.id === id && i.type === type ? { ...i, quantity } : i,
+        i.id === id &&
+        i.type === type &&
+        i.selectedSize === selectedSize &&
+        i.selectedColor === selectedColor
+          ? { ...i, quantity }
+          : i,
       ),
     );
 
     const userId = this.supabase.authUserId();
     if (userId) {
-      this.saveToSupabase(id, type, quantity);
+      this.saveToSupabase(id, type, quantity, selectedSize, selectedColor);
     }
   }
 
@@ -150,6 +182,8 @@ export class CartService {
     id: string,
     type: string,
     quantity: number,
+    selectedSize?: string,
+    selectedColor?: string,
   ): Promise<void> {
     const userId = this.supabase.authUserId();
     if (!userId) return;
@@ -160,13 +194,20 @@ export class CartService {
         item_id: id,
         item_type: type,
         quantity,
+        selected_size: selectedSize,
+        selected_color: selectedColor,
         updated_at: new Date().toISOString(),
       },
-      { onConflict: 'user_id,item_type,item_id' },
+      { onConflict: 'user_id,item_type,item_id,selected_size,selected_color' },
     );
   }
 
-  private async removeFromSupabase(id: string, type: string): Promise<void> {
+  private async removeFromSupabase(
+    id: string,
+    type: string,
+    selectedSize?: string,
+    selectedColor?: string,
+  ): Promise<void> {
     const userId = this.supabase.authUserId();
     if (!userId) return;
 
@@ -174,6 +215,8 @@ export class CartService {
       user_id: userId,
       item_id: id,
       item_type: type,
+      selected_size: selectedSize,
+      selected_color: selectedColor,
     });
   }
 

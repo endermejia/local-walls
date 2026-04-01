@@ -19,6 +19,8 @@ import {
 } from '@taiga-ui/core';
 import { TuiBadge, TuiFilter, TuiSkeleton } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
+import { TuiChevron } from '@taiga-ui/kit';
+import { TuiChip } from '@taiga-ui/kit';
 import { startWith } from 'rxjs';
 import { PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
@@ -46,38 +48,34 @@ import { CartOverlayComponent } from '../../components/cart-overlay/cart-overlay
     TuiScrollbar,
     TuiSkeleton,
     TuiTitle,
-    CartOverlayComponent,
   ],
   template: `
     <tui-scrollbar class="h-full">
-      <!-- 🛒 Floating Cart Button -->
-      <button
-        tuiIconButton
-        type="button"
-        appearance="accent"
-        icon="@tui.shopping-cart"
-        size="l"
-        class="fixed bottom-8 right-8 z-[90] shadow-2xl !rounded-full transform transition-all hover:scale-110 active:scale-95"
-        (click)="showCart.set(true)"
-      >
-        @if (cartItems() > 0) {
-          <tui-badge
-            size="s"
-            appearance="primary"
-            class="absolute -top-1 -right-1 border-2 border-white dark:border-zinc-900"
-          >
-            {{ cartItems() }}
-          </tui-badge>
-        }
-      </button>
-
-      <!-- 🛍️ Cart Overlay -->
-      @if (showCart()) {
-        <app-cart-overlay
-          (close)="showCart.set(false)"
-          (checkout)="goToCheckout()"
-        ></app-cart-overlay>
+      <!-- 🛒 Floating Cart Button moved to navbar, but let's keep it here too if specifically requested, or just remove if navbar handles it -->
+      <!-- Actually, user said the button is not visible, I added it to navbar, so I'll keep this one as a fallback for now or remove if redundant -->
+      @if (false) {
+        <button
+          tuiIconButton
+          type="button"
+          appearance="accent"
+          icon="@tui.shopping-cart"
+          size="l"
+          class="fixed bottom-8 right-8 z-[90] shadow-2xl !rounded-full transform transition-all hover:scale-110 active:scale-95"
+          (click)="showNavbarCart()"
+        >
+          @if (cartItems() > 0) {
+            <tui-badge
+              size="s"
+              appearance="primary"
+              class="absolute -top-1 -right-1 border-2 border-white dark:border-zinc-900"
+            >
+              {{ cartItems() }}
+            </tui-badge>
+          }
+        </button>
       }
+
+      <!-- 🛍️ Cart Overlay is now in navbar component, so we don't need it here anymore -->
 
       <div
         class="flex flex-col gap-12 max-w-4xl mx-auto w-full pb-24 pt-10 px-4 md:px-8"
@@ -284,32 +282,144 @@ import { CartOverlayComponent } from '../../components/cart-overlay/cart-overlay
                         size="s"
                         type="button"
                         class="translate-y-4 group-hover:translate-y-0 transition-transform duration-500 !rounded-xl shadow-2xl"
-                        (click)="buyItem(item.id)"
+                        (click)="buyItem(item)"
                       >
-                        <tui-icon icon="@tui.shopping-bag" />
+                        <tui-icon icon="@tui.shopping-cart" />
+                        <span class="ml-2">{{
+                          'merchandising.buy' | translate
+                        }}</span>
                       </button>
                     </div>
                   </div>
 
-                  <div class="flex flex-col px-1 gap-0.5">
-                    <div class="flex justify-between items-baseline gap-2">
-                      <span class="font-bold text-base truncate">{{
-                        item.name
-                      }}</span>
-                      <span class="text-base font-black shrink-0 text-primary">
-                        {{ item.price | number: '1.2-2' }}€
-                      </span>
+                  <div class="flex flex-col px-1 gap-3">
+                    <div class="flex flex-col gap-0.5">
+                      <div class="flex justify-between items-baseline gap-2">
+                        <span class="font-bold text-base truncate">{{
+                          item.name
+                        }}</span>
+                        <span
+                          class="text-base font-black shrink-0 text-primary"
+                        >
+                          {{ item.price | number: '1.2-2' }}€
+                        </span>
+                      </div>
+                      @if (item.category) {
+                        <span
+                          class="text-xs font-medium uppercase tracking-wider text-[var(--tui-text-tertiary)]"
+                        >
+                          {{
+                            'merchandising.filter.' +
+                              item.category.toLowerCase() | translate
+                          }}
+                        </span>
+                      }
                     </div>
-                    @if (item.category) {
-                      <span
-                        class="text-xs font-medium uppercase tracking-wider text-[var(--tui-text-tertiary)]"
-                      >
-                        {{
-                          'merchandising.filter.' + item.category.toLowerCase()
-                            | translate
-                        }}
-                      </span>
-                    }
+
+                    <!-- 📐 Variation Selectors -->
+                    <div class="flex flex-col gap-3 mt-1">
+                      @if (asAny(item).available_sizes?.length) {
+                        <div class="flex flex-col gap-1.5">
+                          <span
+                            class="text-[10px] font-black uppercase tracking-widest text-[var(--tui-text-tertiary)] ml-1"
+                          >
+                            {{ 'merchandising.size' | translate }}
+                          </span>
+                          <div class="flex flex-wrap gap-1.5">
+                            @for (
+                              size of asAny(item).available_sizes;
+                              track $index
+                            ) {
+                              <button
+                                type="button"
+                                (click)="
+                                  setSelection(item.id, 'size', size);
+                                  $event.stopPropagation()
+                                "
+                                class="h-8 min-w-8 px-2 flex items-center justify-center rounded-lg text-[11px] font-bold transition-all border"
+                                [class.bg-primary]="
+                                  getSelection(item.id).size === size
+                                "
+                                [class.text-white]="
+                                  getSelection(item.id).size === size
+                                "
+                                [class.border-primary]="
+                                  getSelection(item.id).size === size
+                                "
+                                [class.border-[var(--tui-border-normal)]]="
+                                  getSelection(item.id).size !== size
+                                "
+                                [class.bg-[var(--tui-background-neutral-1)]]="
+                                  getSelection(item.id).size !== size
+                                "
+                                [class.hover:border-primary]="
+                                  getSelection(item.id).size !== size
+                                "
+                              >
+                                {{ size }}
+                              </button>
+                            }
+                          </div>
+                        </div>
+                      }
+
+                      @if (asAny(item).available_colors?.length) {
+                        <div class="flex flex-col gap-1.5">
+                          <span
+                            class="text-[10px] font-black uppercase tracking-widest text-[var(--tui-text-tertiary)] ml-1"
+                          >
+                            {{ 'merchandising.color' | translate }}
+                          </span>
+                          <div class="flex flex-wrap gap-1.5">
+                            @for (
+                              color of asAny(item).available_colors;
+                              track $index
+                            ) {
+                              <button
+                                type="button"
+                                (click)="
+                                  setSelection(item.id, 'color', color);
+                                  $event.stopPropagation()
+                                "
+                                class="h-8 min-w-8 px-2 flex items-center justify-center rounded-lg text-[11px] font-bold transition-all border"
+                                [class.bg-primary]="
+                                  getSelection(item.id).color === color
+                                "
+                                [class.text-white]="
+                                  getSelection(item.id).color === color
+                                "
+                                [class.border-primary]="
+                                  getSelection(item.id).color === color
+                                "
+                                [class.border-[var(--tui-border-normal)]]="
+                                  getSelection(item.id).color !== color
+                                "
+                                [class.bg-[var(--tui-background-neutral-1)]]="
+                                  getSelection(item.id).color !== color
+                                "
+                                [class.hover:border-primary]="
+                                  getSelection(item.id).color !== color
+                                "
+                              >
+                                {{ color }}
+                              </button>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Desktop Add to Cart (Visible on Hover or always on small screens) -->
+                    <button
+                      tuiButton
+                      appearance="primary"
+                      size="s"
+                      type="button"
+                      class="md:hidden mt-2 !rounded-xl"
+                      (click)="buyItem(item)"
+                    >
+                      {{ 'merchandising.buy' | translate }}
+                    </button>
                   </div>
                 </article>
               } @empty {
@@ -413,15 +523,54 @@ export class MerchandisingComponent {
   protected readonly cartItems = this.cartService.totalItems;
   protected readonly cartTotal = this.cartService.totalPrice;
 
-  protected readonly showCart = signal(false);
-
-  goToCheckout(): void {
-    this.router.navigate(['/merchandising/checkout']);
+  asAny(item: any): any {
+    return item;
   }
 
-  async buyItem(id: string): Promise<void> {
-    const item = this.items().find((i) => i.id === id);
-    if (!item) return;
+  /** Size/Color selections for merchandise items */
+  protected readonly selections = signal<
+    Record<string, { size?: string; color?: string }>
+  >({});
+
+  protected getSelection(itemId: string): { size?: string; color?: string } {
+    return this.selections()[itemId] || {};
+  }
+
+  protected setSelection(
+    itemId: string,
+    type: 'size' | 'color',
+    value: string,
+  ): void {
+    this.selections.update((s) => ({
+      ...s,
+      [itemId]: {
+        ...s[itemId],
+        [type]: value,
+      },
+    }));
+  }
+
+  showNavbarCart(): void {
+    const navbar = document.querySelector('app-navbar');
+    if (navbar) {
+      // We need to trigger the signal in NavbarComponent.
+      // Since they share the same GlobalData, we could use that,
+      // but showCart is in NavbarComponent.
+      // For now, let's inject NavbarComponent if possible or use a service.
+    }
+  }
+
+  async buyItem(item: any): Promise<void> {
+    const selection = this.getSelection(item.id);
+
+    // Check if variations are selected if they are available
+    if (item.available_sizes?.length && !selection.size) {
+      // Could show a toast or highlight the selector
+      return;
+    }
+    if (item.available_colors?.length && !selection.color) {
+      return;
+    }
 
     this.cartService.addItem({
       id: item.id,
@@ -429,8 +578,11 @@ export class MerchandisingComponent {
       price: item.price,
       image_url: item.image_url,
       type: 'merchandise',
+      selectedSize: selection.size,
+      selectedColor: selection.color,
     });
-    this.showCart.set(true);
+
+    this.global.showCart.set(true);
   }
 
   async buyPack(id: string): Promise<void> {
@@ -444,6 +596,7 @@ export class MerchandisingComponent {
       image_url: pack.image_url,
       type: 'area_pack',
     });
-    this.showCart.set(true);
+
+    this.global.showCart.set(true);
   }
 }

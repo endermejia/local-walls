@@ -26,24 +26,16 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Next Steps
 
-- **Corregir service worker**
-- **Corregir problema con Safari. ¿Actualmente funciona en Safari?**
+- **Seccion merchandising**
 
 ## Future Features
 
-- **Likes en comentarios. Notificaciones de likes en comentarios**
-- **Optimizar imagenes para mejor rendimiento. En avatar y fotos de los ascents**
-- **Calendario de volumen, para entrenamiento, etc**
-- **Sección para rocodromos. Para que se puedan hacer vias y croquis en los rocrodromos**
+- **Sección indoor**:
+  - Vias, ascents y croquis en los rocodromos\*\*
+  - Gestion de bonos y rol de admin para los rocodromos, contabilidad, etc
 - **8a.nu Integration**:
   - Copy 8a.nu ascents database.
   - Direct data import using 8a.nu user credentials.
-- **Full Offline Support & Service Worker Configuration**:
-  - Optimize `ngsw-config.json` for aggressive caching of core app assets.
-  - Implement an `OfflineService` to track connectivity and notify users.
-  - Develop a data persistence strategy (e.g., IndexedDB) for offline route browsing and ascent logging.
-  - Implement Background Sync for queued offline actions (likes, comments, ascents).
-  - Enable map tile caching for offline navigation in climbing areas.
 
 ## Navigation
 
