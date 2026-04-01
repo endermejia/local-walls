@@ -152,7 +152,7 @@ import { TourHintComponent } from './tour-hint';
               home.isActive ? 'flat-destructive' : 'flat-grayscale'
             "
             [tuiSkeleton]="loading()"
-            class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full relative"
+            class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full relative group"
             (click)="scrollToTop($event)"
             [attr.aria-label]="'nav.home' | translate"
           >
@@ -169,7 +169,22 @@ import { TourHintComponent } from './tour-hint';
             ) {
               <tui-pulse />
             }
-            <tui-icon icon="@tui.home" />
+            <tui-badged-content>
+              @if (global.unreadNotificationsCount(); as unreadNotifications) {
+                <tui-badge-notification
+                  tuiAppearance="accent"
+                  size="s"
+                  tuiSlot="top"
+                >
+                  {{ unreadNotifications }}
+                </tui-badge-notification>
+              }
+              <tui-icon
+                icon="@tui.home"
+                class="transition-transform duration-300"
+                [style.color]="'var(--tui-text-primary)'"
+              />
+            </tui-badged-content>
 
             <span
               class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
@@ -212,38 +227,37 @@ import { TourHintComponent } from './tour-hint';
             </span>
           </a>
 
-          <!-- Areas -->
-          <a
-            #areas="routerLinkActive"
-            routerLink="/area"
-            routerLinkActive
-            [tuiAppearance]="
-              areas.isActive ? 'flat-destructive' : 'flat-grayscale'
-            "
+          <!-- Messages -->
+          <button
+            type="button"
+            [tuiAppearance]="'flat-grayscale'"
             [tuiSkeleton]="loading()"
-            class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full relative"
-            [attr.aria-label]="'nav.areas' | translate"
+            class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer relative group"
+            (click)="openChat()"
+            [attr.aria-label]="'messages' | translate"
           >
-            <div
-              class="absolute inset-0 pointer-events-none"
-              [tuiDropdown]="tourHint"
-              [tuiDropdownManual]="
-                tourService.isActive() && tourService.step() === TourStep.AREAS
-              "
-              tuiDropdownDirection="bottom"
-            ></div>
-            @if (
-              tourService.isActive() && tourService.step() === TourStep.AREAS
-            ) {
-              <tui-pulse />
-            }
-            <tui-icon icon="@tui.list" />
+            <tui-badged-content>
+              @if (global.unreadMessagesCount(); as unreadMessages) {
+                <tui-badge-notification
+                  tuiAppearance="accent"
+                  size="s"
+                  tuiSlot="top"
+                >
+                  {{ unreadMessages }}
+                </tui-badge-notification>
+              }
+              <tui-icon
+                icon="@tui.send"
+                class="transition-transform duration-300"
+                [style.color]="'var(--tui-text-primary)'"
+              />
+            </tui-badged-content>
             <span
               class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
             >
-              {{ 'nav.areas' | translate }}
+              {{ 'messages' | translate }}
             </span>
-          </a>
+          </button>
 
           @let showConfig =
             global.canEditAsAdmin() || global.canEditAsAreaAdmin();
@@ -348,68 +362,6 @@ import { TourHintComponent } from './tour-hint';
               </tui-textfield>
             </div>
           </div>
-
-          <!-- Messages -->
-          <button
-            type="button"
-            tuiAppearance="flat-grayscale"
-            [tuiSkeleton]="loading()"
-            class="hidden md:flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer relative"
-            (click)="openChat()"
-            [attr.aria-label]="'messages' | translate"
-          >
-            <tui-badged-content>
-              @if (global.unreadMessagesCount(); as unreadMessages) {
-                <tui-badge-notification
-                  tuiAppearance="accent"
-                  size="s"
-                  tuiSlot="top"
-                >
-                  {{ unreadMessages }}
-                </tui-badge-notification>
-              }
-              <tui-icon
-                icon="@tui.messages-square"
-                [style.color]="'var(--tui-text-primary)'"
-              />
-            </tui-badged-content>
-            <span
-              class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
-            >
-              {{ 'messages' | translate }}
-            </span>
-          </button>
-
-          <!-- Notifications -->
-          <button
-            type="button"
-            tuiAppearance="flat-grayscale"
-            [tuiSkeleton]="loading()"
-            class="hidden md:flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full cursor-pointer relative"
-            (click)="openNotifications()"
-            [attr.aria-label]="'notifications' | translate"
-          >
-            <tui-badged-content>
-              @if (global.unreadNotificationsCount(); as unreadNotifications) {
-                <tui-badge-notification
-                  tuiAppearance="accent"
-                  size="s"
-                  tuiSlot="top"
-                >
-                  {{ unreadNotifications }}
-                </tui-badge-notification>
-              }
-              <tui-icon
-                icon="@tui.bell"
-                [style.color]="'var(--tui-text-primary)'"
-              />
-            </tui-badged-content>
-            <span
-              class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
-            >
-              {{ 'notifications' | translate }}
-            </span>
-          </button>
 
           <!-- Profile -->
           <a

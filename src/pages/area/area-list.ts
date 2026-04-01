@@ -7,7 +7,7 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import {
   TuiAppearance,
@@ -51,6 +51,7 @@ import { normalizeName } from '../../utils';
     ChartRoutesByGradeComponent,
     EmptyStateComponent,
     LowerCasePipe,
+    RouterLink,
     TourHintComponent,
     TranslatePipe,
     TuiAppearance,
@@ -66,139 +67,157 @@ import { normalizeName } from '../../utils';
     TuiDropdown,
   ],
   template: `
-    <tui-scrollbar class="flex grow">
-      <section class="w-full max-w-5xl mx-auto p-4">
-        <header class="flex items-center justify-between gap-2">
-          @let areasCount = filtered().length;
-          <h1 class="text-2xl font-bold w-full sm:w-auto">
-            <tui-avatar
-              tuiThumbnail
-              size="l"
-              [src]="global.iconSrc()('zone')"
-              class="self-center"
-              [attr.aria-label]="'area' | translate"
-            />
-            {{ areasCount }}
-            {{ (areasCount === 1 ? 'area' : 'areas') | translate | lowercase }}
-          </h1>
-
-          <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
-            @if (global.canEditAsAdmin()) {
-              <button
-                tuiButton
-                appearance="textfield"
-                size="s"
-                type="button"
-                (click.zoneless)="areasService.openUnifyAreas()"
-                [iconStart]="'@tui.blend'"
-              >
-                {{ 'unify' | translate }}
-              </button>
-            }
-            @if (global.editingMode()) {
-              <button
-                tuiButton
-                appearance="textfield"
-                size="s"
-                type="button"
-                (click.zoneless)="openCreateArea()"
-                [iconStart]="'@tui.plus'"
-              >
-                {{ 'new' | translate }}
-              </button>
-            }
-          </div>
-        </header>
-
-        <div class="sticky top-0 z-10 py-4 flex items-end gap-2">
-          <tui-textfield
-            class="grow block bg-[var(--tui-background-base)]"
-            tuiTextfieldSize="l"
-          >
-            <label tuiLabel for="areas-search">
-              {{ 'searchPlaceholder' | translate }}
-            </label>
-            <input
-              tuiTextfield
-              #areasSearch
-              id="areas-search"
-              autocomplete="off"
-              [value]="query()"
-              (input.zoneless)="onQuery(areasSearch.value)"
-            />
-          </tui-textfield>
-          <tui-badged-content
-            class="bg-[var(--tui-background-base)] rounded-2xl"
-          >
-            @if (hasActiveFilters()) {
-              <tui-badge-notification
-                tuiAppearance="accent"
-                size="s"
-                tuiSlot="top"
+    <div class="relative flex grow min-h-0">
+      <tui-scrollbar class="flex grow">
+        <section class="w-full max-w-5xl mx-auto p-4 pb-32">
+          <header class="flex items-center justify-between gap-2">
+            @let areasCount = filtered().length;
+            <h1 class="text-2xl font-bold w-full sm:w-auto">
+              <tui-avatar
+                tuiThumbnail
+                size="l"
+                [src]="global.iconSrc()('zone')"
+                class="self-center"
+                [attr.aria-label]="'area' | translate"
               />
-            }
-            <button
-              tuiButton
-              appearance="textfield"
-              size="l"
-              type="button"
-              iconStart="@tui.sliders-horizontal"
-              [attr.aria-label]="'filters' | translate"
-              (click.zoneless)="openFilters()"
-            ></button>
-          </tui-badged-content>
-        </div>
+              {{ areasCount }}
+              {{
+                (areasCount === 1 ? 'area' : 'areas') | translate | lowercase
+              }}
+            </h1>
 
-        <!-- Areas list -->
-        @if (!loading()) {
-          <div
-            class="absolute inset-0 pointer-events-none"
-            [tuiDropdown]="tourHint"
-            [tuiDropdownManual]="
-              tourService.isActive() && tourService.step() === TourStep.AREAS
-            "
-            tuiDropdownDirection="bottom"
-          ></div>
-          <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
-            @for (a of filtered(); track a.id) {
+            <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
+              @if (global.canEditAsAdmin()) {
+                <button
+                  tuiButton
+                  appearance="textfield"
+                  size="s"
+                  type="button"
+                  (click.zoneless)="areasService.openUnifyAreas()"
+                  [iconStart]="'@tui.blend'"
+                >
+                  {{ 'unify' | translate }}
+                </button>
+              }
+              @if (global.editingMode()) {
+                <button
+                  tuiButton
+                  appearance="textfield"
+                  size="s"
+                  type="button"
+                  (click.zoneless)="openCreateArea()"
+                  [iconStart]="'@tui.plus'"
+                >
+                  {{ 'new' | translate }}
+                </button>
+              }
+            </div>
+          </header>
+
+          <div class="sticky top-0 z-10 py-4 flex items-end gap-2">
+            <tui-textfield
+              class="grow block bg-[var(--tui-background-base)]"
+              tuiTextfieldSize="l"
+            >
+              <label tuiLabel for="areas-search">
+                {{ 'searchPlaceholder' | translate }}
+              </label>
+              <input
+                tuiTextfield
+                #areasSearch
+                id="areas-search"
+                autocomplete="off"
+                [value]="query()"
+                (input.zoneless)="onQuery(areasSearch.value)"
+              />
+            </tui-textfield>
+            <tui-badged-content
+              class="bg-[var(--tui-background-base)] rounded-2xl"
+            >
+              @if (hasActiveFilters()) {
+                <tui-badge-notification
+                  tuiAppearance="accent"
+                  size="s"
+                  tuiSlot="top"
+                />
+              }
               <button
-                class="p-6 rounded-3xl"
-                [tuiAppearance]="a.liked ? 'outline-destructive' : 'outline'"
-                (click.zoneless)="router.navigate(['/area', a.slug])"
-              >
-                <div class="flex flex-col min-w-0 grow">
-                  <header tuiHeader>
-                    <h2 tuiTitle>{{ a.name }}</h2>
-                  </header>
-                  <section class="flex items-center justify-between gap-2">
-                    <div class="text-xl">
-                      {{ a.crags_count }}
-                      {{
-                        (a.crags_count === 1 ? 'crag' : 'crags')
-                          | translate
-                          | lowercase
-                      }}
-                    </div>
-                    <app-chart-routes-by-grade
-                      (click.zoneless)="$event.stopPropagation()"
-                      [grades]="a.grades"
-                    />
-                  </section>
+                tuiButton
+                appearance="textfield"
+                size="l"
+                type="button"
+                iconStart="@tui.sliders-horizontal"
+                [attr.aria-label]="'filters' | translate"
+                (click.zoneless)="openFilters()"
+              ></button>
+            </tui-badged-content>
+          </div>
+
+          <!-- Areas list -->
+          @if (!loading()) {
+            <div
+              class="absolute inset-0 pointer-events-none"
+              [tuiDropdown]="tourHint"
+              [tuiDropdownManual]="
+                tourService.isActive() && tourService.step() === TourStep.AREAS
+              "
+              tuiDropdownDirection="bottom"
+            ></div>
+            <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
+              @for (a of filtered(); track a.id) {
+                <button
+                  class="p-6 rounded-3xl"
+                  [tuiAppearance]="a.liked ? 'outline-destructive' : 'outline'"
+                  (click.zoneless)="router.navigate(['/area', a.slug])"
+                >
+                  <div class="flex flex-col min-w-0 grow">
+                    <header tuiHeader>
+                      <h2 tuiTitle>{{ a.name }}</h2>
+                    </header>
+                    <section class="flex items-center justify-between gap-2">
+                      <div class="text-xl">
+                        {{ a.crags_count }}
+                        {{
+                          (a.crags_count === 1 ? 'crag' : 'crags')
+                            | translate
+                            | lowercase
+                        }}
+                      </div>
+                      <app-chart-routes-by-grade
+                        (click.zoneless)="$event.stopPropagation()"
+                        [grades]="a.grades"
+                      />
+                    </section>
+                  </div>
+                </button>
+              } @empty {
+                <div class="col-span-full">
+                  <app-empty-state icon="@tui.map" />
                 </div>
-              </button>
-            } @empty {
-              <div class="col-span-full">
-                <app-empty-state icon="@tui.map" />
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="flex items-center justify-center py-8">
-            <tui-loader size="xxl" />
-          </div>
-        }
-      </section>
-    </tui-scrollbar>
+              }
+            </div>
+          } @else {
+            <div class="flex items-center justify-center py-8">
+              <tui-loader size="xxl" />
+            </div>
+          }
+        </section>
+      </tui-scrollbar>
+
+      <div
+        class="absolute bottom-8 left-1/2 -translate-x-1/2 pointer-events-none w-full flex justify-center z-20"
+      >
+        <button
+          tuiButton
+          appearance="primary-grayscale"
+          iconStart="@tui.map"
+          routerLink="/explore"
+          class="pointer-events-auto shadow-xl"
+        >
+          {{ 'map' | translate }}
+        </button>
+      </div>
+    </div>
 
     <ng-template #tourHint>
       <app-tour-hint

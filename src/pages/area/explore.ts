@@ -93,7 +93,19 @@ import { mapLocationUrl, remToPx } from '../../utils';
       <div
         class="relative h-full grow flex flex-col min-w-0 transition-[width] duration-300"
       >
-        <div class="absolute right-4 top-4 flex flex-col gap-2">
+        <div class="absolute right-4 top-4 flex flex-col items-end gap-2">
+          <div class="z-10">
+            <button
+              tuiButton
+              size="s"
+              appearance="primary-grayscale"
+              iconStart="@tui.list"
+              routerLink="/area"
+              class="pointer-events-auto"
+            >
+              {{ 'viewAllAreas' | translate }}
+            </button>
+          </div>
           <div class="z-10">
             <tui-badged-content>
               @if (hasActiveFilters()) {

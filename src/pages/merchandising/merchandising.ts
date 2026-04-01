@@ -22,9 +22,13 @@ import { TuiHeader } from '@taiga-ui/layout';
 import { startWith } from 'rxjs';
 import { PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { Router } from '@angular/router';
 
 import { MerchandiseService } from '../../services/merchandise.service';
 import { GlobalData } from '../../services/global-data';
+import { CartService } from '../../services/cart.service';
+import { CheckoutService } from '../../services/checkout.service';
+import { CartOverlayComponent } from '../../components/cart-overlay/cart-overlay';
 
 @Component({
   selector: 'app-merchandising',
@@ -42,9 +46,39 @@ import { GlobalData } from '../../services/global-data';
     TuiScrollbar,
     TuiSkeleton,
     TuiTitle,
+    CartOverlayComponent,
   ],
   template: `
     <tui-scrollbar class="h-full">
+      <!-- 🛒 Floating Cart Button -->
+      <button
+        tuiIconButton
+        type="button"
+        appearance="accent"
+        icon="@tui.shopping-cart"
+        size="l"
+        class="fixed bottom-8 right-8 z-[90] shadow-2xl !rounded-full transform transition-all hover:scale-110 active:scale-95"
+        (click)="showCart.set(true)"
+      >
+        @if (cartItems() > 0) {
+          <tui-badge
+            size="s"
+            appearance="primary"
+            class="absolute -top-1 -right-1 border-2 border-white dark:border-zinc-900"
+          >
+            {{ cartItems() }}
+          </tui-badge>
+        }
+      </button>
+
+      <!-- 🛍️ Cart Overlay -->
+      @if (showCart()) {
+        <app-cart-overlay
+          (close)="showCart.set(false)"
+          (checkout)="goToCheckout()"
+        ></app-cart-overlay>
+      }
+
       <div
         class="flex flex-col gap-12 max-w-4xl mx-auto w-full pb-24 pt-10 px-4 md:px-8"
       >
@@ -373,11 +407,43 @@ export class MerchandisingComponent {
     });
   });
 
+  private readonly cartService = inject(CartService);
+  private readonly router = inject(Router);
+
+  protected readonly cartItems = this.cartService.totalItems;
+  protected readonly cartTotal = this.cartService.totalPrice;
+
+  protected readonly showCart = signal(false);
+
+  goToCheckout(): void {
+    this.router.navigate(['/merchandising/checkout']);
+  }
+
   async buyItem(id: string): Promise<void> {
-    await this.merchService.buyMerchandise(id);
+    const item = this.items().find((i) => i.id === id);
+    if (!item) return;
+
+    this.cartService.addItem({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      image_url: item.image_url,
+      type: 'merchandise',
+    });
+    this.showCart.set(true);
   }
 
   async buyPack(id: string): Promise<void> {
-    await this.merchService.buyAreaPack(id);
+    const pack = this.packs().find((p) => p.id === id);
+    if (!pack) return;
+
+    this.cartService.addItem({
+      id: pack.id,
+      name: pack.name,
+      price: pack.price,
+      image_url: pack.image_url,
+      type: 'area_pack',
+    });
+    this.showCart.set(true);
   }
 }

@@ -340,7 +340,7 @@ export interface ChatDialogData {
             } @empty {
               @if (!loadingRooms()) {
                 <div class="py-20">
-                  <app-empty-state icon="@tui.messages-square" />
+                  <app-empty-state icon="@tui.send" />
                 </div>
               }
             }

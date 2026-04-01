@@ -285,7 +285,7 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
               type="button"
               appearance="secondary"
               size="m"
-              iconStart="@tui.messages-square"
+              iconStart="@tui.send"
               [tuiSkeleton]="loading"
               (click)="openChat()"
             >
