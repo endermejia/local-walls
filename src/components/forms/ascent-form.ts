@@ -99,8 +99,8 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
   ],
   providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
   template: `
-    <form class="flex flex-col h-full max-h-[calc(100dvh-8rem)]" (submit.zoneless)="onSubmit($event)">
-      <div class="flex-1 min-h-0 overflow-y-auto flex flex-col gap-6 pr-1">
+    <form class="flex flex-col h-full" (submit.zoneless)="onSubmit($event)">
+      <div class="flex-1 flex flex-col gap-6">
         <!-- WHEN DID YOU CLIMB IT? -->
         <section class="grid gap-3">
           <span class="text-sm font-semibold opacity-70 px-1">{{
@@ -548,7 +548,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
       </div>
 
       <!-- FOOTER ACTIONS -->
-      <div class="flex gap-2 justify-end flex-wrap pt-4 shrink-0">
+      <div class="flex gap-2 justify-end flex-wrap pt-4">
         @if (isEdit()) {
           <button
             tuiButton
