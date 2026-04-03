@@ -11,7 +11,7 @@ import { TuiSkeleton } from '@taiga-ui/kit';
   template: `
     <div
       tuiAppearance="flat-grayscale"
-      class="flex flex-col gap-4 p-4 sm:rounded-3xl rounded-none relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full text-left"
+      class="flex flex-col gap-3 p-4 sm:rounded-3xl rounded-none relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full text-left"
     >
       <header class="flex justify-between items-center h-10">
         <div class="flex items-center gap-3">
