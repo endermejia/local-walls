@@ -142,7 +142,7 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
                 >
                   {{ 'edit' | translate }}
                 </button>
-                <a
+                <!-- <a
                   tuiIconButton
                   size="m"
                   appearance="action-grayscale"
@@ -151,7 +151,7 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
                   [tuiHint]="'nav.merchandising' | translate"
                 >
                   <tui-icon icon="@tui.shopping-bag" />
-                </a>
+                </a> -->
               } @else {
                 @let blockMessages = blockState().blockMessages;
                 @let blockAscents = blockState().blockAscents;
