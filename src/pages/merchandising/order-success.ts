@@ -67,10 +67,11 @@ import { CartService } from '../../services/cart.service';
                 @for (item of order.items; track item.id) {
                   <div class="flex justify-between items-center text-sm">
                     <span class="text-zinc-600 dark:text-zinc-400"
-                      >{{ item.quantity }}x Item ID: {{ item.item_id }}</span
+                      >{{ item.quantity || 1 }}x Item ID:
+                      {{ item.item_id }}</span
                     >
                     <span class="font-medium">{{
-                      item.unit_price * item.quantity | currency: 'EUR'
+                      item.unit_price * (item.quantity || 1) | currency: 'EUR'
                     }}</span>
                   </div>
                 }

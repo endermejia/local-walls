@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { CartService } from './cart.service';
-import type { Order } from '../models';
+import type { Order, OrderDetail } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class CheckoutService {
@@ -61,7 +61,7 @@ export class CheckoutService {
     }
   }
 
-  async verifyOrder(sessionId: string): Promise<Order | null> {
+  async verifyOrder(sessionId: string): Promise<OrderDetail | null> {
     const { data, error } = await this.supabase.client
       .from('orders')
       .select('*, items:order_items(*)')
@@ -73,6 +73,6 @@ export class CheckoutService {
       return null;
     }
 
-    return data;
+    return data as OrderDetail;
   }
 }

@@ -173,7 +173,11 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
               <tui-icon
                 icon="@tui.home"
                 class="transition-transform duration-300"
-                [style.color]="'var(--tui-text-primary)'"
+                [style.color]="
+                  home.isActive
+                    ? 'var(--tui-text-negative)'
+                    : 'var(--tui-text-primary)'
+                "
               />
             </tui-badged-content>
 

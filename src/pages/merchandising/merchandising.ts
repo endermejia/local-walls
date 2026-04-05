@@ -315,7 +315,7 @@ import { CartService } from '../../services/cart.service';
 
                     <!-- 📐 Variation Selectors -->
                     <div class="flex flex-col gap-3 mt-1">
-                      @if (asAny(item).available_sizes?.length) {
+                      @if (item.available_sizes?.length) {
                         <div class="flex flex-col gap-1.5">
                           <span
                             class="text-[10px] font-black uppercase tracking-widest text-[var(--tui-text-tertiary)] ml-1"
@@ -323,10 +323,7 @@ import { CartService } from '../../services/cart.service';
                             {{ 'merchandising.size' | translate }}
                           </span>
                           <div class="flex flex-wrap gap-1.5">
-                            @for (
-                              size of asAny(item).available_sizes;
-                              track $index
-                            ) {
+                            @for (size of item.available_sizes; track $index) {
                               <button
                                 type="button"
                                 (click)="
@@ -360,7 +357,7 @@ import { CartService } from '../../services/cart.service';
                         </div>
                       }
 
-                      @if (asAny(item).available_colors?.length) {
+                      @if (item.available_colors?.length) {
                         <div class="flex flex-col gap-1.5">
                           <span
                             class="text-[10px] font-black uppercase tracking-widest text-[var(--tui-text-tertiary)] ml-1"
@@ -369,7 +366,7 @@ import { CartService } from '../../services/cart.service';
                           </span>
                           <div class="flex flex-wrap gap-1.5">
                             @for (
-                              color of asAny(item).available_colors;
+                              color of item.available_colors;
                               track $index
                             ) {
                               <button
@@ -519,10 +516,6 @@ export class MerchandisingComponent {
 
   protected readonly cartItems = this.cartService.totalItems;
   protected readonly cartTotal = this.cartService.totalPrice;
-
-  protected asAny(item: MerchandiseItem): MerchandiseItem {
-    return item;
-  }
 
   /** Size/Color selections for merchandise items */
   protected readonly selections = signal<
