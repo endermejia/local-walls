@@ -810,12 +810,11 @@ interface Country {
         <p class="text-[var(--tui-text-negative)] font-bold">
           {{ 'profile.deleteAccount.warning' | translate }}
         </p>
-        <p
-          [innerHTML]="
-            'profile.deleteAccount.instruction'
-              | translate: { email: userEmail() }
-          "
-        ></p>
+        <p>
+          {{ 'profile.deleteAccount.instruction_prefix' | translate }}
+          <strong>{{ userEmail() }}</strong>
+          {{ 'profile.deleteAccount.instruction_suffix' | translate }}
+        </p>
 
         <tui-textfield>
           <input
