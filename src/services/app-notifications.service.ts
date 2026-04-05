@@ -98,16 +98,20 @@ export class AppNotificationsService {
     return notifications;
   }
 
-  async createNotification(payload: NotificationInsertDto): Promise<void> {
+  async createNotification(
+    payloads: NotificationInsertDto | NotificationInsertDto[],
+  ): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     await this.supabase.whenReady();
 
-    // Don't notify yourself
-    if (payload.user_id === payload.actor_id) return;
+    const payloadArray = Array.isArray(payloads) ? payloads : [payloads];
+    const validPayloads = payloadArray.filter((p) => p.user_id !== p.actor_id);
+
+    if (validPayloads.length === 0) return;
 
     const { error } = await this.supabase.client
       .from('notifications')
-      .insert(payload);
+      .insert(validPayloads);
 
     if (error) {
       console.error(
