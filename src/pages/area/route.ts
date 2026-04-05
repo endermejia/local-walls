@@ -17,6 +17,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import {
   TuiButton,
@@ -290,6 +291,37 @@ import { SeoService } from '../../services/seo.service';
                 </div>
               </div>
             }
+
+            @if (r.topos && r.topos.length) {
+              <div class="flex flex-col items-center">
+                <span
+                  class="text-xs uppercase opacity-60 font-semibold tracking-wider mb-2"
+                >
+                  {{ (r.topos.length === 1 ? 'topo' : 'topos') | translate }}
+                </span>
+                <div class="flex flex-wrap gap-2 justify-center">
+                  @for (t of r.topos; track t.id) {
+                    <button
+                      tuiButton
+                      appearance="secondary"
+                      size="s"
+                      class="!min-w-fit"
+                      (click.zoneless)="
+                        router.navigate([
+                          '/area',
+                          areaSlug(),
+                          cragSlug(),
+                          'topo',
+                          t.id
+                        ])
+                      "
+                    >
+                      {{ t.name }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
           </div>
         </div>
 
@@ -340,6 +372,7 @@ export class RouteComponent {
   protected readonly tourService = inject(TourService);
   protected readonly TourStep = TourStep;
   private readonly followsService = inject(FollowsService);
+  protected readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
