@@ -20,3 +20,19 @@ export function handleErrorToast(
 
   toast.error(messageKey);
 }
+
+/**
+ * Extracts a human-readable message from an unknown error object.
+ * @param error The error object to extract the message from
+ * @returns The error message as a string
+ */
+export function extractErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  if (error === undefined) return 'undefined';
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return 'Unknown error';
+  }
+}
