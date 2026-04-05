@@ -281,7 +281,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                         }
                         @case ('topo') {
                           <div tuiCell size="m">
-                            <div class="flex flex-wrap gap-1">
+                            <div class="flex flex-wrap gap-x-1 gap-y-0">
                               @let toposCount = item.topos.length;
                               @if (toposCount > 0) {
                                 <div tuiGroup [collapsed]="true">
@@ -492,7 +492,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                         class="flex flex-col gap-3 p-3 bg-[var(--tui-background-neutral-1)] rounded-2xl border border-[var(--tui-border-normal)]"
                       >
                         <div
-                          class="flex flex-wrap items-center justify-between gap-2"
+                          class="flex flex-wrap items-center justify-between gap-x-2 gap-y-0"
                         >
                           <div class="flex items-center gap-3">
                             @if (item.height) {
@@ -515,7 +515,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                           </div>
 
                           <div class="flex flex-col gap-2">
-                            <div class="flex flex-wrap gap-1">
+                            <div class="flex flex-wrap gap-x-1 gap-y-0">
                               @let toposCountExp = item.topos.length;
                               @if (toposCountExp > 0) {
                                 <div tuiGroup [collapsed]="true">
