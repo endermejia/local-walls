@@ -93,7 +93,7 @@ import {
   ],
   template: `
     <tui-scrollbar class="h-full">
-      <div class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32 pt-4">
+      <div class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32 pt-2">
         <div class="px-4 flex flex-col gap-4 relative">
           <!-- Filter Segmented -->
           <div class="flex justify-between items-center gap-2">
@@ -148,7 +148,7 @@ import {
             @if (!followsLoaded()) {
               <div
                 [tuiSkeleton]="true"
-                class="w-10 h-10 rounded-full opacity-60"
+                class="w-10 h-10 rounded-full opacity-60 mt-1"
               ></div>
             } @else {
               <tui-badged-content [style.--tui-radius.%]="50">
@@ -180,11 +180,12 @@ import {
               </tui-badged-content>
             }
           </div>
+          <!-- Crags -->
           @if (!followsLoaded() || activeCragsResource.isLoading()) {
             <div class="flex flex-col gap-2 mt-2">
               <div
                 [tuiSkeleton]="true"
-                class="w-24 h-3 rounded-full opacity-40 ml-1"
+                class="w-24 h-4 rounded-full opacity-40 ml-1"
               ></div>
               <div
                 class="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar"
@@ -192,7 +193,7 @@ import {
                 @for (_ of [1, 2, 3, 4, 5, 6]; track $index) {
                   <div
                     [tuiSkeleton]="true"
-                    class="flex-none w-28 h-10 rounded-2xl opacity-30"
+                    class="flex-none w-28 h-11 rounded-2xl opacity-30"
                   ></div>
                 }
               </div>

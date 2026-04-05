@@ -13,7 +13,7 @@ import { TuiSkeleton } from '@taiga-ui/kit';
       tuiAppearance="flat-grayscale"
       class="flex flex-col gap-1 p-4 sm:rounded-3xl rounded-none relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full text-left"
     >
-      <header class="flex justify-between items-start h-10 mb-2">
+      <header class="flex justify-between items-start h-10">
         <div class="flex items-center gap-3">
           @if (showUser()) {
             <div [tuiSkeleton]="true" class="w-8 h-8 rounded-full"></div>
@@ -82,24 +82,17 @@ import { TuiSkeleton } from '@taiga-ui/kit';
         </div>
       </div>
 
-      <div
-        class="flex flex-col gap-1 mt-3 pl-3 border-l-2 border-[var(--tui-border-normal)] opacity-40"
-      >
-        <div [tuiSkeleton]="true" class="w-full h-3 rounded-full"></div>
-        <div [tuiSkeleton]="true" class="w-2/3 h-3 rounded-full"></div>
-      </div>
-
-      <footer class="flex gap-6 mt-4">
+      <footer class="flex gap-3 mt-2">
         <div class="flex items-center gap-2">
           <div
             [tuiSkeleton]="true"
-            class="w-5 h-5 rounded-full opacity-50"
+            class="w-6 h-6 rounded-full opacity-50"
           ></div>
         </div>
         <div class="flex items-center gap-2">
           <div
             [tuiSkeleton]="true"
-            class="w-5 h-5 rounded-full opacity-50"
+            class="w-6 h-6 rounded-full opacity-50"
           ></div>
         </div>
       </footer>
