@@ -911,15 +911,17 @@ export class AscentsService {
     const mentionedUserIds = extractMentionIds(comment);
     const currentUserId = this.supabase.authUserId();
 
-    for (const userId of mentionedUserIds) {
-      if (userId === currentUserId) continue;
-
-      await this.notificationsService.createNotification({
+    const payloads = mentionedUserIds
+      .filter((userId) => userId !== currentUserId)
+      .map((userId) => ({
         user_id: userId,
         actor_id: currentUserId!,
         type: NotificationTypes.MENTION,
         resource_id: ascentId.toString(),
-      });
+      }));
+
+    if (payloads.length > 0) {
+      await this.notificationsService.createNotifications(payloads);
     }
   }
 
