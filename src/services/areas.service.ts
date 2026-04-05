@@ -347,6 +347,25 @@ export class AreasService {
 
       const existingCragsList = areaCrags || [];
 
+      // Pre-compute lookup maps
+      const existingCragsByEightAnuSlug = new Map<
+        string,
+        (typeof existingCragsList)[0]
+      >();
+      const existingCragsBySlug = new Map<
+        string,
+        (typeof existingCragsList)[0]
+      >();
+
+      for (const crag of existingCragsList) {
+        if (crag.eight_anu_sector_slugs) {
+          for (const s of crag.eight_anu_sector_slugs) {
+            existingCragsByEightAnuSlug.set(s, crag);
+          }
+        }
+        existingCragsBySlug.set(crag.slug, crag);
+      }
+
       for (const cragSlug of area.eight_anu_crag_slugs) {
         // Determine country
         let countrySlug = 'spain'; // Default
@@ -396,14 +415,12 @@ export class AreasService {
           const sectorName = routes[0].sectorName || sectorSlug;
 
           // Find or create Crag (Sector)
-          let match = existingCragsList.find((c) =>
-            c.eight_anu_sector_slugs?.includes(sectorSlug),
-          );
+          let match = existingCragsByEightAnuSlug.get(sectorSlug);
 
           if (!match) {
             // Try to find by slug match (if sector name matches existing crag name/slug)
             const targetSlug = slugify(sectorName);
-            match = existingCragsList.find((c) => c.slug === targetSlug);
+            match = existingCragsBySlug.get(targetSlug);
           }
 
           let cragId: number;
@@ -421,8 +438,9 @@ export class AreasService {
                 .update({ eight_anu_sector_slugs: newSlugs })
                 .eq('id', cragId);
 
-              // Update in-memory list
+              // Update in-memory data and maps
               match.eight_anu_sector_slugs = newSlugs;
+              existingCragsByEightAnuSlug.set(sectorSlug, match);
             }
           } else {
             // Create new crag
@@ -444,6 +462,14 @@ export class AreasService {
             }
             cragId = newCrag.id;
             existingCragsList.push(newCrag);
+
+            // Update maps
+            existingCragsBySlug.set(newCrag.slug, newCrag);
+            if (newCrag.eight_anu_sector_slugs) {
+              for (const s of newCrag.eight_anu_sector_slugs) {
+                existingCragsByEightAnuSlug.set(s, newCrag);
+              }
+            }
           }
 
           // Optimization: Bulk upsert routes
