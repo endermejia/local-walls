@@ -464,7 +464,7 @@ export class MapBuilder {
 
     const clustering = this.shouldCluster();
     const currentZoom = this.map.getZoom();
-    const minZoomForParkings = 16; // Minimum zoom level to show parking markers
+    const minZoomForParkings = 14; // Minimum zoom level to show parking markers
 
     // Render Parkings only if Zoom is enough
     if (currentZoom >= minZoomForParkings) {
