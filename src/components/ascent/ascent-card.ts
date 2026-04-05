@@ -80,7 +80,7 @@ import { GradeComponent } from '../ui/avatar-grade';
     >
       <header
         tuiHeader
-        class="flex flex-wrap justify-between items-center gap-2"
+        class="flex flex-wrap justify-between items-center gap-x-2 gap-y-0"
       >
         @if (showUser()) {
           <a
@@ -268,7 +268,7 @@ import { GradeComponent } from '../ui/avatar-grade';
       <div class="flex flex-col gap-1">
         <div class="flex flex-col gap-1">
           @if (ascent.route && showRoute()) {
-            <div class="flex flex-wrap items-center gap-2">
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-0">
               @if (ascent.route.climbing_kind; as kind) {
                 <tui-icon
                   [icon]="climbingIcons[kind] || '@tui.mountain'"
@@ -288,7 +288,9 @@ import { GradeComponent } from '../ui/avatar-grade';
               </a>
               @if (ascent.route && showRoute()) {
                 <span>•</span>
-                <div class="inline-flex items-center gap-1 text-sm opacity-70">
+                <div
+                  class="inline-flex flex-wrap items-center gap-x-1 gap-y-0 text-sm opacity-70"
+                >
                   <a
                     class="hover:underline cursor-pointer"
                     [routerLink]="[
@@ -309,7 +311,7 @@ import { GradeComponent } from '../ui/avatar-grade';
               }
             </div>
           }
-          <div class="flex flex-wrap items-center gap-2 text-sm">
+          <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
             @if (ascent.grade) {
               <app-grade [grade]="ascent.grade" />
             }
@@ -361,7 +363,7 @@ import { GradeComponent } from '../ui/avatar-grade';
       }
 
       @if (moreInfoBadges().length > 0) {
-        <div class="flex flex-wrap gap-1">
+        <div class="flex flex-wrap gap-x-1 gap-y-1">
           @for (badge of moreInfoBadges(); track badge.key) {
             <tui-badge size="s" appearance="neutral">
               {{ badge.label | translate }}
@@ -380,7 +382,7 @@ import { GradeComponent } from '../ui/avatar-grade';
       }
 
       <footer class="flex flex-col gap-1 mt-2">
-        <div class="flex flex-wrap items-center gap-4">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
           <app-ascent-likes
             [ascentId]="ascent.id"
             [isPrivate]="!!ascent.private_ascent"
