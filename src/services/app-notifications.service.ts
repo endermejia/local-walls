@@ -119,6 +119,27 @@ export class AppNotificationsService {
     }
   }
 
+  async createNotifications(payloads: NotificationInsertDto[]): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    await this.supabase.whenReady();
+
+    const validPayloads = payloads.filter((p) => p.user_id !== p.actor_id);
+    if (validPayloads.length === 0) return;
+
+    const { error } = await this.supabase.client
+      .from('notifications')
+      .insert(validPayloads);
+
+    if (error) {
+      console.error(
+        '[AppNotificationsService] createNotifications error',
+        error,
+      );
+    } else {
+      // We could emit something here or rely on polling/realtime
+    }
+  }
+
   async markAsRead(id: string): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     await this.supabase.whenReady();
