@@ -121,11 +121,11 @@ import {
                     {{ (filterIndex === 0 ? 'following' : 'all') | translate }}
                   </button>
                 }
-                <tui-badged-content>
+                <tui-badged-content [style.--tui-radius.%]="50">
                   @if (hasActiveFilters()) {
                     <tui-badge-notification
                       tuiAppearance="accent"
-                      size="m"
+                      size="s"
                       tuiSlot="top"
                     />
                   }
