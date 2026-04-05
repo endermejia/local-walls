@@ -49,7 +49,6 @@ import {
   getPointsString as getPointsStringUtil,
 } from '../../utils/topo-styles.utils';
 import {
-  ZoomPanState,
   handleWheelZoom,
   constrainTranslation,
   setupEditorMousePan,
@@ -745,7 +744,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
   isPanning = signal(false);
 
   // Zoom/Pan state adapter
-  private readonly zoomPanState: ZoomPanState = {
+  private readonly zoomPanState = {
     scale: this.scale,
     translateX: this.translateX,
     translateY: this.translateY,
