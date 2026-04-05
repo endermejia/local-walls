@@ -1341,7 +1341,8 @@ export class GlobalData {
               area:areas(id, name, slug)
             ),
             ascents:route_ascents(rate),
-            own_ascent:route_ascents(*)
+            own_ascent:route_ascents(*),
+            topo_routes(topo:topos(id, name, slug))
           `,
           )
           .eq('crag_id', cragId)
@@ -1386,6 +1387,10 @@ export class GlobalData {
             if (!isAttemptA && isAttemptB) return -1;
             return 0;
           })[0],
+          topos:
+            r.topo_routes
+              ?.map((tr: { topo: unknown }) => tr.topo)
+              .filter((t: unknown) => !!t) || [],
           key: `${cragId}:${routeSlug}`,
         } as RouteWithExtras & { area_id?: number; key: string };
       } catch (e) {

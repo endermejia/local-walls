@@ -1,0 +1,100 @@
+
+> climbeast@0.0.0 start
+> ng serve --hmr=false
+
+❯ Building...
+✔ Building...
+Application bundle generation failed. [34.735 seconds] - 2026-04-05T22:30:26.907Z
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2532: Object is possibly 'undefined'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/pages/area/route.ts:300:30:
+[37m      300 │                   {{ (r.topos.[32mlength[37m === 1 ? 'topo' : 'topos') | ...
+          ╵                               [32m~~~~~~[0m
+
+
+Watch mode enabled. Watching for file changes...
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Browser bundles
+Initial chunk files  | Names               |  Raw size
+styles.css           | styles              | 367.30 kB |
+chunk-VJY5XWAE.js    | -                   |  90.39 kB |
+main.js              | main                |  69.63 kB |
+chunk-5HUESZRN.js    | -                   |  46.57 kB |
+chunk-24FPFLWB.js    | -                   |  45.62 kB |
+chunk-LZEY3GHN.js    | -                   |  26.42 kB |
+chunk-5DWSDFSI.js    | -                   |  23.25 kB |
+chunk-OPSPEMA3.js    | -                   |  18.33 kB |
+chunk-TVW7DFOA.js    | -                   |  17.66 kB |
+chunk-6ZSWDWAX.js    | -                   |  17.25 kB |
+chunk-3BJZGAST.js    | -                   |  14.80 kB |
+chunk-FPXGOM46.js    | -                   |  10.43 kB |
+chunk-PWWTUVM4.js    | -                   |  10.39 kB |
+chunk-JZPW4UEQ.js    | -                   |   9.09 kB |
+chunk-PYL5XWD6.js    | -                   |   2.91 kB |
+chunk-CUXFW66D.js    | -                   |   2.65 kB |
+
+                     | Initial total       | 772.70 kB
+
+Lazy chunk files     | Names               |  Raw size
+chunk-6YATDWEI.js    | user-profile        | 249.92 kB |
+chunk-CD7FR7RR.js    | topo                | 132.06 kB |
+chunk-2C3OWHJU.js    | crag                | 118.47 kB |
+chunk-CRLHO67B.js    | -                   | 115.51 kB |
+chunk-R6AEN5LJ.js    | user-profile-config | 110.23 kB |
+chunk-EW4DVJYY.js    | -                   | 107.71 kB |
+chunk-ITR44NM7.js    | -                   |  87.69 kB |
+chunk-EU63H3M6.js    | -                   |  73.51 kB |
+chunk-F2U2SWHO.js    | ascent-form         |  71.15 kB |
+chunk-IEW223P4.js    | -                   |  66.66 kB |
+chunk-37AJA6S3.js    | explore             |  58.63 kB |
+chunk-EPIFKWNA.js    | area                |  54.55 kB |
+chunk-MMGM4A5S.js    | merchandising       |  51.85 kB |
+chunk-M5NKJBG4.js    | -                   |  51.11 kB |
+chunk-GNF32VOD.js    | route               |  48.84 kB |
+...and 38 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles
+Initial chunk files  | Names               |  Raw size
+chunk-GOPNRBDR.mjs   | -                   |  90.42 kB |
+main.server.mjs      | main.server         |  73.64 kB |
+chunk-DDCIMW5O.mjs   | -                   |  46.61 kB |
+chunk-7MXW5PQO.mjs   | -                   |  45.67 kB |
+chunk-RPQYCBCM.mjs   | -                   |  26.46 kB |
+chunk-NLWNKCHO.mjs   | -                   |  23.29 kB |
+chunk-4P6YXSKU.mjs   | -                   |  18.37 kB |
+chunk-XK7MDZKL.mjs   | -                   |  17.70 kB |
+chunk-IKRP7S3T.mjs   | -                   |  17.29 kB |
+chunk-HDDRPT6H.mjs   | -                   |  14.83 kB |
+chunk-UU2RAD63.mjs   | -                   |  10.46 kB |
+chunk-TVUCVTXI.mjs   | -                   |  10.43 kB |
+chunk-NFNW2ZRE.mjs   | -                   |   9.12 kB |
+chunk-Y7YAOJJE.mjs   | -                   |   2.94 kB |
+server.mjs           | server              |   2.86 kB |
+chunk-ONHWRSED.mjs   | -                   |   2.69 kB |
+polyfills.server.mjs | polyfills.server    | 278 bytes |
+
+Lazy chunk files     | Names               |  Raw size
+chunk-DIFMXYKP.mjs   | user-profile        | 249.98 kB |
+chunk-Z7EUK2OC.mjs   | topo                | 132.11 kB |
+chunk-NOW6YISH.mjs   | crag                | 118.53 kB |
+chunk-UAYNQ7DV.mjs   | -                   | 115.55 kB |
+chunk-4KP6WGPS.mjs   | user-profile-config | 110.28 kB |
+chunk-2ZC3JKRI.mjs   | -                   | 107.75 kB |
+chunk-NTHC5EIT.mjs   | -                   |  87.73 kB |
+chunk-OVR4MDOI.mjs   | -                   |  73.55 kB |
+chunk-WOMVDAAP.mjs   | ascent-form         |  71.20 kB |
+chunk-IF43M6XV.mjs   | -                   |  66.70 kB |
+chunk-4X5CCYJS.mjs   | explore             |  58.69 kB |
+chunk-S4YX6WLF.mjs   | area                |  54.60 kB |
+chunk-7HUGJCNI.mjs   | merchandising       |  51.89 kB |
+chunk-GUIGVLGA.mjs   | -                   |  51.15 kB |
+chunk-4I5AUWBN.mjs   | route               |  48.89 kB |
+...and 38 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [19.477 seconds] - 2026-04-05T22:31:16.775Z
+
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  ➜  Local:   http://localhost:4200/
