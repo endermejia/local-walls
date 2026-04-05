@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export type Database = {
+export interface Database {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
@@ -1388,9 +1388,7 @@ export type Database = {
         ];
       };
     };
-    Views: {
-      [_ in never]: never;
-    };
+    Views: Record<never, never>;
     Functions: {
       create_chat_room: { Args: { other_user_id: string }; Returns: string };
       get_areas_list: {
@@ -1574,7 +1572,7 @@ export type Database = {
       };
     };
   };
-};
+}
 
 type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>;
 
