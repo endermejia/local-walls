@@ -94,10 +94,12 @@ export class NewsCardComponent {
   item = input.required<NewsItem>();
 
   sanitizedTitle = computed(
-    () => this.sanitizer.sanitize(SecurityContext.HTML, this.item().title) || ''
+    () =>
+      this.sanitizer.sanitize(SecurityContext.HTML, this.item().title) || '',
   );
   sanitizedExcerpt = computed(
-    () => this.sanitizer.sanitize(SecurityContext.HTML, this.item().excerpt) || ''
+    () =>
+      this.sanitizer.sanitize(SecurityContext.HTML, this.item().excerpt) || '',
   );
 
   protected readonly avatarUrl =

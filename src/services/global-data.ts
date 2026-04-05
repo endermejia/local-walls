@@ -1017,9 +1017,11 @@ export class GlobalData {
                   .filter((rate): rate is number => rate != null) ?? [];
               const rating =
                 rates.length > 0
-                  ? rates.reduce((a: number, b: number) => a + b, 0) /
-                    rates.length
-                  : 0;
+                  ? rates.reduce(
+                      (a: number, b: number) => (a ?? 0) + (b ?? 0),
+                      0,
+                    ) / rates.length
+                  : null;
 
               return {
                 ...r,
@@ -1227,7 +1229,7 @@ export class GlobalData {
             2: ClimbingKinds.MULTIPITCH,
           };
           const allowedKinds = categories
-            .map((i) => idxToKind[i])
+            .map((i: number) => idxToKind[i])
             .filter(Boolean);
           query = query.in('route.climbing_kind', allowedKinds);
         }
