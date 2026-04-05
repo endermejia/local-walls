@@ -53,7 +53,7 @@ export class MerchandiseService {
     return (data || []) as unknown as AreaPackDetail[];
   }
 
-  async buyMerchandise(itemId: string, quantity: number = 1): Promise<void> {
+  async buyMerchandise(itemId: string, quantity = 1): Promise<void> {
     // This would typically invoke a Stripe checkout session Edge Function
     // For now, we'll just log it or provide a placeholder for implementation
     console.log(`[MerchandiseService] buying item ${itemId} x ${quantity}`);

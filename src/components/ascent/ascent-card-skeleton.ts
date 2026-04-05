@@ -11,12 +11,12 @@ import { TuiSkeleton } from '@taiga-ui/kit';
   template: `
     <div
       tuiAppearance="flat-grayscale"
-      class="flex flex-col gap-4 p-4 sm:rounded-3xl rounded-none relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full text-left"
+      class="flex flex-col gap-1 p-4 sm:rounded-3xl rounded-none relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full text-left"
     >
-      <header class="flex justify-between items-center h-10">
+      <header class="flex justify-between items-start h-10">
         <div class="flex items-center gap-3">
           @if (showUser()) {
-            <div [tuiSkeleton]="true" class="w-10 h-10 rounded-full"></div>
+            <div [tuiSkeleton]="true" class="w-8 h-8 rounded-full"></div>
             <div class="flex flex-col gap-1">
               <div [tuiSkeleton]="true" class="w-24 h-3 rounded-full"></div>
               <div
@@ -42,57 +42,59 @@ import { TuiSkeleton } from '@taiga-ui/kit';
       @if (hasPhoto()) {
         <div
           [tuiSkeleton]="true"
-          class="aspect-[3/4] w-full rounded-2xl opacity-20"
+          class="aspect-[4/3] w-full rounded-2xl opacity-20 mb-2"
         ></div>
       }
 
-      <div class="flex flex-col gap-1">
+      <div class="flex flex-col gap-2">
         @if (showRoute()) {
           <div class="flex items-center gap-2">
-            <div [tuiSkeleton]="true" class="w-48 h-5 rounded-full"></div>
             <div
               [tuiSkeleton]="true"
-              class="w-12 h-3 rounded-full opacity-50"
+              class="w-5 h-5 rounded-md opacity-40"
             ></div>
-          </div>
-          <div class="flex items-center gap-2">
+            <div [tuiSkeleton]="true" class="w-48 h-5 rounded-full"></div>
+            <span class="opacity-30">•</span>
             <div
               [tuiSkeleton]="true"
-              class="w-32 h-3 rounded-full opacity-40"
+              class="w-24 h-3 rounded-full opacity-40"
             ></div>
           </div>
         }
 
-        <div class="flex items-center gap-2 mt-1">
+        <div class="flex items-center gap-2">
           <div
             [tuiSkeleton]="true"
-            class="w-8 h-8 rounded-full opacity-80"
+            class="w-10 h-6 rounded-full opacity-80"
           ></div>
-          <div [tuiSkeleton]="true" class="w-16 h-4 rounded opacity-40"></div>
-          <div [tuiSkeleton]="true" class="w-24 h-3 rounded opacity-40"></div>
+          <div
+            [tuiSkeleton]="true"
+            class="w-16 h-5 rounded-full opacity-40"
+          ></div>
+          <div class="flex gap-0.5 ml-2">
+            @for (i of [1, 2, 3, 4, 5]; track i) {
+              <div
+                [tuiSkeleton]="true"
+                class="w-3 h-3 rounded-full opacity-30"
+              ></div>
+            }
+          </div>
         </div>
       </div>
 
-      <div class="flex flex-col gap-2 mt-2">
-        <div
-          [tuiSkeleton]="true"
-          class="w-full h-3 rounded-full opacity-30"
-        ></div>
-        <div
-          [tuiSkeleton]="true"
-          class="w-2/3 h-3 rounded-full opacity-30"
-        ></div>
-      </div>
-
-      <footer class="flex gap-4 mt-2">
-        <div
-          [tuiSkeleton]="true"
-          class="w-12 h-6 rounded-full opacity-50"
-        ></div>
-        <div
-          [tuiSkeleton]="true"
-          class="w-12 h-6 rounded-full opacity-50"
-        ></div>
+      <footer class="flex gap-3 mt-2">
+        <div class="flex items-center gap-2">
+          <div
+            [tuiSkeleton]="true"
+            class="w-6 h-6 rounded-full opacity-50"
+          ></div>
+        </div>
+        <div class="flex items-center gap-2">
+          <div
+            [tuiSkeleton]="true"
+            class="w-6 h-6 rounded-full opacity-50"
+          ></div>
+        </div>
       </footer>
     </div>
   `,

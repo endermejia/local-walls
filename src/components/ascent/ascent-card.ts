@@ -76,7 +76,7 @@ import { GradeComponent } from '../ui/avatar-grade';
     @let ascent = data();
     <div
       [tuiAppearance]="ascent.is_duplicate ? 'negative' : 'flat-grayscale'"
-      class="flex flex-col gap-4 p-4 sm:rounded-3xl rounded-none relative no-underline text-inherit hover:no-underline -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full text-left"
+      class="flex flex-col gap-1 p-4 sm:rounded-3xl rounded-none relative no-underline text-inherit hover:no-underline -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full text-left"
     >
       <header
         tuiHeader
@@ -379,7 +379,7 @@ import { GradeComponent } from '../ui/avatar-grade';
         </div>
       }
 
-      <footer class="flex flex-col gap-2 mt-2">
+      <footer class="flex flex-col gap-1 mt-2">
         <div class="flex flex-wrap items-center gap-4">
           <app-ascent-likes
             [ascentId]="ascent.id"
