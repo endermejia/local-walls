@@ -890,20 +890,27 @@ export class AscentsService {
     return data;
   }
 
-  private async triggerCommentNotification(ascentId: number) {
-    const { data: ascent } = await this.supabase.client
-      .from('route_ascents')
-      .select('user_id')
-      .eq('id', ascentId)
-      .single();
+  private async triggerCommentNotification(ascentId: number | number[]) {
+    const currentUserId = this.supabase.authUserId();
+    if (!currentUserId) return;
 
-    if (ascent) {
-      await this.notificationsService.createNotification({
+    const ascentIds = Array.isArray(ascentId) ? ascentId : [ascentId];
+    if (ascentIds.length === 0) return;
+
+    const { data: ascents } = await this.supabase.client
+      .from('route_ascents')
+      .select('id, user_id')
+      .in('id', ascentIds);
+
+    if (ascents && ascents.length > 0) {
+      const payloads = ascents.map((ascent) => ({
         user_id: ascent.user_id,
-        actor_id: this.supabase.authUserId()!,
+        actor_id: currentUserId,
         type: NotificationTypes.COMMENT,
-        resource_id: ascentId.toString(),
-      });
+        resource_id: ascent.id.toString(),
+      }));
+
+      await this.notificationsService.createNotification(payloads);
     }
   }
 
@@ -911,15 +918,19 @@ export class AscentsService {
     const mentionedUserIds = extractMentionIds(comment);
     const currentUserId = this.supabase.authUserId();
 
-    for (const userId of mentionedUserIds) {
-      if (userId === currentUserId) continue;
+    if (!currentUserId || mentionedUserIds.length === 0) return;
 
-      await this.notificationsService.createNotification({
+    const payloads = mentionedUserIds
+      .filter((userId) => userId !== currentUserId)
+      .map((userId) => ({
         user_id: userId,
-        actor_id: currentUserId!,
+        actor_id: currentUserId,
         type: NotificationTypes.MENTION,
         resource_id: ascentId.toString(),
-      });
+      }));
+
+    if (payloads.length > 0) {
+      await this.notificationsService.createNotification(payloads);
     }
   }
 
