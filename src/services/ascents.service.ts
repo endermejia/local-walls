@@ -697,6 +697,9 @@ export class AscentsService {
       console.error('[AscentsService] toggleCommentLike error', error);
       throw error;
     }
+    if (data) {
+      void this.triggerCommentLikeNotification(commentId);
+    }
     return data;
   }
 
@@ -903,6 +906,23 @@ export class AscentsService {
         actor_id: this.supabase.authUserId()!,
         type: NotificationTypes.COMMENT,
         resource_id: ascentId.toString(),
+      });
+    }
+  }
+
+  private async triggerCommentLikeNotification(commentId: number) {
+    const { data: comment } = await this.supabase.client
+      .from('route_ascent_comments')
+      .select('user_id, route_ascent_id')
+      .eq('id', commentId)
+      .single();
+
+    if (comment) {
+      await this.notificationsService.createNotification({
+        user_id: comment.user_id,
+        actor_id: this.supabase.authUserId()!,
+        type: NotificationTypes.LIKED_COMMENT,
+        resource_id: comment.route_ascent_id.toString(),
       });
     }
   }

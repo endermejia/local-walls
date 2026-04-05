@@ -57,7 +57,8 @@ export class AppNotificationsService {
         (n) =>
           (n.type === NotificationTypes.LIKE ||
             n.type === NotificationTypes.COMMENT ||
-            n.type === NotificationTypes.MENTION) &&
+            n.type === NotificationTypes.MENTION ||
+            n.type === NotificationTypes.LIKED_COMMENT) &&
           n.resource_id,
       )
       .map((n) => Number(n.resource_id));
@@ -79,7 +80,8 @@ export class AppNotificationsService {
           if (
             (n.type === NotificationTypes.LIKE ||
               n.type === NotificationTypes.COMMENT ||
-              n.type === NotificationTypes.MENTION) &&
+              n.type === NotificationTypes.MENTION ||
+              n.type === NotificationTypes.LIKED_COMMENT) &&
             n.resource_id
           ) {
             const routeName = ascentMap.get(Number(n.resource_id));
