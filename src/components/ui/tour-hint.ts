@@ -14,7 +14,7 @@ import { TranslatePipe } from '@ngx-translate/core';
   standalone: true,
   imports: [TuiButton, TuiIcon, TranslatePipe],
   template: `
-    <div class="flex flex-col gap-4 p-4 max-w-sm">
+    <div class="flex flex-col gap-4 p-4">
       <div class="flex items-start gap-3">
         <tui-icon
           icon="@tui.info"

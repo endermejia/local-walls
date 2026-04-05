@@ -58,6 +58,7 @@ import { UserProfilesService } from '../../services/user-profiles.service';
 
 import { EmptyStateComponent } from '../../components/ui/empty-state';
 import { TourHintComponent } from '../../components/ui/tour-hint';
+import { MenuOptionsButtonComponent } from '../../components/ui/menu-options-button';
 
 import { ChatDialogComponent } from '../../components/dialogs/chat-dialog';
 import { PhotoViewerDialogComponent } from '../../components/dialogs/photo-viewer-dialog';
@@ -99,6 +100,7 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
     UserProfileProjectsComponent,
     UserProfileStatisticsComponent,
     UserProfileLikesComponent,
+    MenuOptionsButtonComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -132,16 +134,12 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
                 </span>
               </div>
               @if (isOwnProfile()) {
-                <button
-                  iconStart="@tui.settings"
-                  size="m"
-                  tuiIconButton
-                  type="button"
+                <app-menu-options-button
                   appearance="action-grayscale"
-                  (click)="openEditDialog()"
-                >
-                  {{ 'edit' | translate }}
-                </button>
+                  direction="bottom"
+                  size="m"
+                  [iconOnly]="true"
+                />
                 <!-- <a
                   tuiIconButton
                   size="m"
@@ -631,11 +629,6 @@ export class UserProfileComponent {
     } else if (direction === 'right' && currentIndex > 0) {
       this.activeTab.set(currentIndex - 1);
     }
-  }
-
-  protected openEditDialog(): void {
-    if (!this.isOwnProfile()) return;
-    this.userProfilesService.openUserProfileConfigForm();
   }
 
   protected async toggleFollow(): Promise<void> {

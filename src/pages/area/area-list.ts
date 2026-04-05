@@ -70,7 +70,14 @@ import { normalizeName } from '../../utils';
     <div class="relative flex grow min-h-0">
       <tui-scrollbar class="flex grow">
         <section class="w-full max-w-5xl mx-auto p-4 pb-32">
-          <header class="flex items-center justify-between gap-2">
+          <header
+            class="flex items-center justify-between gap-2"
+            [tuiDropdown]="tourHint"
+            [tuiDropdownManual]="
+              tourService.isActive() && tourService.step() === TourStep.AREAS
+            "
+            tuiDropdownDirection="bottom"
+          >
             @let areasCount = filtered().length;
             <h1 class="text-2xl font-bold w-full sm:w-auto">
               <tui-avatar
@@ -155,14 +162,6 @@ import { normalizeName } from '../../utils';
 
           <!-- Areas list -->
           @if (!loading()) {
-            <div
-              class="absolute inset-0 pointer-events-none"
-              [tuiDropdown]="tourHint"
-              [tuiDropdownManual]="
-                tourService.isActive() && tourService.step() === TourStep.AREAS
-              "
-              tuiDropdownDirection="bottom"
-            ></div>
             <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
               @for (a of filtered(); track a.id) {
                 <button

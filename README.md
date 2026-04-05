@@ -27,11 +27,25 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 ## Next Steps
 
 - **Seccion merchandising**
+  - Packs de áreas (por ejemplo pack Costa Blanca, que incluya varias áreas de la zona)
+  - Camisetas
+  - Sudaderas
+  - Pegatinas
+  - Magneseras
+  - Gorras
+  - Cepillos
+- **Modificar perfil privado y RLS**
+  - Solicitudes de seguimiento para perfil privado
+  - Controlar que solo se pueda seguir a usuarios con perfil publico
+  - Controlar que no se pueda ver el feed, proyectos, etc de usuarios privados si no los sigues
+- **Modificar boton cog en user-profile**
+  - Cambiarlo icono COG por MENU y debe abrir opciones como el boton menu del navbar (crea un componente para reutizarlo)
+- **Actualizar tour de bienvenida**
 
 ## Future Features
 
 - **Sección indoor**:
-  - Vias, ascents y croquis en los rocodromos\*\*
+  - Vias, ascents y croquis en los rocodromos
   - Gestion de bonos y rol de admin para los rocodromos, contabilidad, etc
 - **8a.nu Integration**:
   - Copy 8a.nu ascents database.

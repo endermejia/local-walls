@@ -8,17 +8,18 @@ export enum TourStep {
   WELCOME = 0,
   HOME = 1,
   EXPLORE = 2,
-  AREAS = 3,
-  SEARCH = 4,
-  CRAG = 5,
-  CRAG_TOPOS = 6,
-  CRAG_PARKINGS = 7,
-  CRAG_WEATHER = 8,
-  ROUTE = 9,
-  PROFILE = 10,
-  PROFILE_PROJECTS = 11,
-  PROFILE_STATISTICS = 12,
-  PROFILE_LIKES = 13,
+  EXPLORE_AREAS = 3,
+  AREAS = 4,
+  SEARCH = 5,
+  CRAG = 6,
+  CRAG_TOPOS = 7,
+  CRAG_PARKINGS = 8,
+  CRAG_WEATHER = 9,
+  ROUTE = 10,
+  PROFILE = 11,
+  PROFILE_PROJECTS = 12,
+  PROFILE_STATISTICS = 13,
+  PROFILE_LIKES = 14,
   OFF = -1,
 }
 
@@ -71,6 +72,7 @@ export class TourService {
         await this.router.navigate(['/home']);
         break;
       case TourStep.EXPLORE:
+      case TourStep.EXPLORE_AREAS:
         await this.router.navigate(['/explore']);
         break;
       case TourStep.AREAS:

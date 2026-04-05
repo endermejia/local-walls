@@ -94,7 +94,15 @@ import { mapLocationUrl, remToPx } from '../../utils';
         class="relative h-full grow flex flex-col min-w-0 transition-[width] duration-300"
       >
         <div class="absolute right-4 top-4 flex flex-col items-end gap-2">
-          <div class="z-10">
+          <div
+            class="z-10"
+            [tuiDropdown]="tourHint"
+            [tuiDropdownManual]="
+              tourService.isActive() &&
+              tourService.step() === TourStep.EXPLORE_AREAS
+            "
+            tuiDropdownDirection="bottom"
+          >
             <button
               tuiButton
               size="s"
@@ -348,7 +356,7 @@ import { mapLocationUrl, remToPx } from '../../utils';
 
       <ng-template #tourHint>
         <app-tour-hint
-          [description]="'tour.explore.description' | translate"
+          [description]="tourDescription() | translate"
           (next)="tourService.next()"
           (skip)="tourService.finish()"
         />
@@ -491,6 +499,15 @@ export class ExploreComponent {
   protected readonly router = inject(Router);
   protected readonly tourService = inject(TourService);
   protected readonly TourStep = TourStep;
+  protected readonly tourDescription = computed(() => {
+    const step = this.tourService.step();
+    switch (step) {
+      case TourStep.EXPLORE_AREAS:
+        return 'tour.explore.areasDescription';
+      default:
+        return 'tour.explore.description';
+    }
+  });
   private readonly filtersService = inject(FiltersService);
   private readonly parkingsService = inject(ParkingsService);
   protected readonly areasService = inject(AreasService);
