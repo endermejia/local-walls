@@ -88,6 +88,7 @@ export class GlobalData {
   // Loading/Status state
   readonly error: WritableSignal<string | null> = signal(null);
   readonly isNavLoading: WritableSignal<boolean> = signal(false);
+  readonly showCart: WritableSignal<boolean> = signal(false);
 
   // ---- Topo photo version for cache busting ----
   readonly topoPhotoVersion: WritableSignal<number> = signal(0);
@@ -1011,11 +1012,13 @@ export class GlobalData {
           data.map((r) =>
             (() => {
               const rates =
-                r.ascents?.map((a) => a.rate).filter((rate) => rate != null) ??
-                [];
+                (r as any).ascents
+                  ?.map((a: any) => a.rate)
+                  .filter((rate: any): rate is number => rate != null) ?? [];
               const rating =
                 rates.length > 0
-                  ? rates.reduce((a, b) => a + b, 0) / rates.length
+                  ? rates.reduce((a: number, b: number) => a + b, 0) /
+                    rates.length
                   : 0;
 
               return {

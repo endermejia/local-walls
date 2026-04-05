@@ -12,7 +12,7 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import {
   TuiAppearance,
@@ -72,6 +72,7 @@ import { AreaPaywallDialogComponent } from '../../components/paywall/area-paywal
     LowerCasePipe,
     SectionHeaderComponent,
     TranslatePipe,
+    RouterLink,
     TuiAvatar,
     TuiBadgeNotification,
     TuiBadgedContent,
@@ -183,16 +184,25 @@ import { AreaPaywallDialogComponent } from '../../components/paywall/area-paywal
                     {{ 'topos' | translate }}
                   </button>
                 } @else if (!areaDetailResource.isLoading()) {
-                  <button
-                    tuiButton
-                    appearance="accent"
-                    size="m"
-                    type="button"
-                    (click.zoneless)="buyTopo()"
-                    [iconStart]="'@tui.hand-heart'"
-                  >
-                    {{ 'payments.getTopos' | translate }}
-                  </button>
+                  <div class="flex flex-col gap-2">
+                    <button
+                      tuiButton
+                      appearance="accent"
+                      size="m"
+                      type="button"
+                      (click.zoneless)="buyTopo()"
+                      [iconStart]="'@tui.hand-heart'"
+                    >
+                      {{ 'payments.getTopos' | translate }}
+                    </button>
+                    <a
+                      routerLink="/merchandising"
+                      fragment="packs"
+                      class="text-[10px] opacity-60 hover:opacity-100 hover:text-indigo-400 text-center no-underline transition-all font-bold uppercase tracking-wider"
+                    >
+                      {{ 'merchandising.packs.subtitle' | translate }}
+                    </a>
+                  </div>
                 }
               }
             </div>

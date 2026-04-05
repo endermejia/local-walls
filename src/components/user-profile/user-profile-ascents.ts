@@ -106,7 +106,7 @@ import { getAscentDateFilterOptions, processAscentsToFeed } from '../../utils';
           </tui-badged-content>
 
           <tui-textfield
-            class="w-full sm:w-48"
+            class="flex-1 min-w-[calc(50%-0.25rem)] sm:w-48 sm:flex-none"
             [tuiTextfieldCleaner]="false"
             [stringify]="dateValueContent"
             tuiTextfieldSize="l"
@@ -126,7 +126,7 @@ import { getAscentDateFilterOptions, processAscentsToFeed } from '../../utils';
           </tui-textfield>
 
           <tui-textfield
-            class="w-full sm:w-48"
+            class="flex-1 min-w-[calc(50%-0.25rem)] sm:w-48 sm:flex-none"
             [tuiTextfieldCleaner]="false"
             [stringify]="sortValueContent"
             tuiTextfieldSize="l"
@@ -320,9 +320,9 @@ export class UserProfileAscentsComponent {
       this.isLoading.set(true);
       this.global.ascentsPage.set(0);
 
-      this.global.ascentsDateFilter.set(dateFilter);
+      this.global.ascentsDateFilter.set(dateFilter!);
       this.global.ascentsQuery.set(query || null);
-      this.global.ascentsSort.set(sort);
+      this.global.ascentsSort.set(sort as 'grade' | 'date');
     });
   }
 

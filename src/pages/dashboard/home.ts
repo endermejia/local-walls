@@ -15,13 +15,21 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
-import { TuiAppearance, TuiButton, TuiScrollbar } from '@taiga-ui/core';
+import {
+  TuiAppearance,
+  TuiButton,
+  TuiDataList,
+  TuiDropdown,
+  TuiIcon,
+  TuiLink,
+  TuiScrollbar,
+} from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
   TuiBadgeNotification,
   TuiBadgedContent,
-  TuiSegmented,
+  TuiChevron,
   TuiSkeleton,
 } from '@taiga-ui/kit';
 
@@ -52,6 +60,7 @@ import {
   FilterDialog,
   FilterDialogComponent,
 } from '../../components/dialogs/filter-dialog';
+import { NotificationsDialogComponent } from '../../components/dialogs/notifications-dialog';
 
 import {
   ClimbingKind,
@@ -75,27 +84,115 @@ import {
     TuiButton,
     TuiBadgeNotification,
     TuiBadgedContent,
+    TuiChevron,
+    TuiDataList,
+    TuiDropdown,
+    TuiLink,
     TuiScrollbar,
-    TuiSegmented,
     TuiSkeleton,
   ],
   template: `
     <tui-scrollbar class="h-full">
       <div class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32 pt-4">
         <div class="px-4 flex flex-col gap-4 relative">
-          @if (activeCragsResource.isLoading()) {
+          <!-- Filter Segmented -->
+          <div class="flex justify-between items-center gap-2">
+            <!-- Left Side: Select and Filter -->
+            <div class="flex items-center gap-2">
+              @if (!followsLoaded()) {
+                <div
+                  [tuiSkeleton]="true"
+                  class="w-32 h-10 rounded-full opacity-60"
+                ></div>
+                <div
+                  [tuiSkeleton]="true"
+                  class="w-10 h-10 rounded-full opacity-60"
+                ></div>
+              } @else {
+                @if (followedIds().size > 0) {
+                  <button
+                    tuiLink
+                    tuiChevron
+                    appearance="flat-grayscale"
+                    type="button"
+                    class="!text-xl !font-bold !text-inherit !no-underline !bg-transparent"
+                    [tuiDropdown]="feedFilterDropdown"
+                    [(tuiDropdownOpen)]="dropdownOpen"
+                  >
+                    {{ (filterIndex === 0 ? 'following' : 'all') | translate }}
+                  </button>
+                }
+                <tui-badged-content>
+                  @if (hasActiveFilters()) {
+                    <tui-badge-notification
+                      tuiAppearance="accent"
+                      size="m"
+                      tuiSlot="top"
+                    />
+                  }
+                  <button
+                    tuiIconButton
+                    size="m"
+                    appearance="action-grayscale"
+                    iconStart="@tui.sliders-horizontal"
+                    (click.zoneless)="openFilters()"
+                    [attr.aria-label]="'filters' | translate"
+                    title="Filters"
+                  >
+                    <span class="tui-sr-only">{{ 'filters' | translate }}</span>
+                  </button>
+                </tui-badged-content>
+              }
+            </div>
+
+            @if (!followsLoaded()) {
+              <div
+                [tuiSkeleton]="true"
+                class="w-10 h-10 rounded-full opacity-60"
+              ></div>
+            } @else {
+              <tui-badged-content [style.--tui-radius.%]="50">
+                @if (
+                  global.unreadNotificationsCount();
+                  as unreadNotifications
+                ) {
+                  <tui-badge-notification
+                    tuiAppearance="accent"
+                    size="s"
+                    tuiSlot="top"
+                  >
+                    {{ unreadNotifications }}
+                  </tui-badge-notification>
+                }
+                <button
+                  tuiIconButton
+                  size="m"
+                  appearance="action-grayscale"
+                  iconStart="@tui.heart"
+                  (click.zoneless)="openNotifications()"
+                  [attr.aria-label]="'notifications' | translate"
+                  title="Notifications"
+                >
+                  <span class="tui-sr-only">{{
+                    'notifications' | translate
+                  }}</span>
+                </button>
+              </tui-badged-content>
+            }
+          </div>
+          @if (!followsLoaded() || activeCragsResource.isLoading()) {
             <div class="flex flex-col gap-2 mt-2">
               <div
                 [tuiSkeleton]="true"
-                class="w-20 h-3 rounded-full opacity-60 ml-1"
+                class="w-24 h-3 rounded-full opacity-40 ml-1"
               ></div>
               <div
                 class="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar"
               >
-                @for (_ of [1, 2, 3, 4, 5]; track $index) {
+                @for (_ of [1, 2, 3, 4, 5, 6]; track $index) {
                   <div
                     [tuiSkeleton]="true"
-                    class="flex-none w-24 h-10 rounded-2xl"
+                    class="flex-none w-28 h-10 rounded-2xl opacity-30"
                   ></div>
                 }
               </div>
@@ -125,49 +222,6 @@ import {
             }
           }
 
-          <!-- Filter Segmented -->
-          <div class="flex justify-center items-center gap-2">
-            @if (!followsLoaded()) {
-              <div
-                [tuiSkeleton]="true"
-                class="w-40 h-8 rounded-full opacity-60 ml-1"
-              ></div>
-              <div
-                [tuiSkeleton]="true"
-                class="w-8 h-8 rounded-full opacity-60"
-              ></div>
-            } @else if (followedIds().size > 0) {
-              <tui-segmented [(activeItemIndex)]="filterIndex" size="s">
-                <button type="button">
-                  {{ 'following' | translate }}
-                </button>
-                <button type="button">
-                  {{ 'all' | translate }}
-                </button>
-              </tui-segmented>
-              <tui-badged-content>
-                @if (hasActiveFilters()) {
-                  <tui-badge-notification
-                    tuiAppearance="accent"
-                    size="s"
-                    tuiSlot="top"
-                  />
-                }
-                <button
-                  tuiIconButton
-                  size="s"
-                  appearance="primary-grayscale"
-                  iconStart="@tui.sliders-horizontal"
-                  (click.zoneless)="openFilters()"
-                  [attr.aria-label]="'filters' | translate"
-                  title="Filters"
-                >
-                  <span class="tui-sr-only">{{ 'filters' | translate }}</span>
-                </button>
-              </tui-badged-content>
-            }
-          </div>
-
           <!-- Ascents Feed -->
           <app-ascents-feed
             [ascents]="ascents()"
@@ -181,6 +235,25 @@ import {
         </div>
       </div>
     </tui-scrollbar>
+
+    <ng-template #feedFilterDropdown>
+      <tui-data-list size="l">
+        <button
+          tuiOption
+          new
+          (click)="filterIndex = 0; dropdownOpen.set(false)"
+        >
+          {{ 'following' | translate }}
+        </button>
+        <button
+          tuiOption
+          new
+          (click)="filterIndex = 1; dropdownOpen.set(false)"
+        >
+          {{ 'all' | translate }}
+        </button>
+      </tui-data-list>
+    </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -196,6 +269,8 @@ export class HomeComponent implements OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly scrollService = inject(ScrollService);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
 
   @ViewChild(TuiScrollbar, { read: ElementRef })
   scrollbar?: ElementRef<HTMLElement>;
@@ -212,6 +287,7 @@ export class HomeComponent implements OnDestroy {
   );
 
   protected readonly feedFilter = signal<'following' | 'all'>('following');
+  protected dropdownOpen = signal(false);
 
   protected get filterIndex(): number {
     return this.feedFilter() === 'following' ? 0 : 1;
@@ -226,9 +302,6 @@ export class HomeComponent implements OnDestroy {
     const gradeActive = !(lo === 0 && hi === ORDERED_GRADE_VALUES.length - 1);
     return gradeActive || this.global.feedCategories().length > 0;
   });
-
-  private readonly dialogs = inject(TuiDialogService);
-  private readonly translate = inject(TranslateService);
 
   constructor() {
     this.loadFollowedIds();
@@ -290,7 +363,6 @@ export class HomeComponent implements OnDestroy {
 
   private async loadFollowedIds() {
     if (!this.isBrowser) {
-      this.followsLoaded.set(true);
       return;
     }
     try {
@@ -518,6 +590,19 @@ export class HomeComponent implements OnDestroy {
     if (result.gradeRange) {
       this.global.feedGradeRange.set(result.gradeRange);
     }
+  }
+
+  protected openNotifications(): void {
+    void firstValueFrom(
+      this.dialogs.open(
+        new PolymorpheusComponent(NotificationsDialogComponent),
+        {
+          label: this.translate.instant('notifications'),
+          size: 'm',
+        },
+      ),
+      { defaultValue: undefined },
+    );
   }
 
   private scrollToTop() {

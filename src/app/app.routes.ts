@@ -14,6 +14,34 @@ export const routes: Routes = [
       import('../pages/dashboard/home').then((m) => m.HomeComponent),
   },
   {
+    path: 'merchandising',
+    canMatch: [authGuard],
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('../pages/merchandising/merchandising').then(
+            (m) => m.MerchandisingComponent,
+          ),
+      },
+      {
+        path: 'checkout',
+        loadComponent: () =>
+          import('../pages/merchandising/checkout').then(
+            (m) => m.CheckoutComponent,
+          ),
+      },
+    ],
+  },
+  {
+    path: 'order-success',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/merchandising/order-success').then(
+        (m) => m.OrderSuccessComponent,
+      ),
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('../pages/auth/login').then((m) => m.LoginComponent),
