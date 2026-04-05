@@ -29,7 +29,12 @@ import type { CartProduct } from '../../models';
       <!-- Backdrop -->
       <div
         class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-        (click)="close.emit()"
+        role="button"
+        tabindex="0"
+        [attr.aria-label]="'close' | translate"
+        (click)="closeOverlay.emit()"
+        (keydown.enter)="closeOverlay.emit()"
+        (keydown.space)="closeOverlay.emit()"
       ></div>
 
       <!-- Panel -->
@@ -51,8 +56,10 @@ import type { CartProduct } from '../../models';
             appearance="flat"
             icon="@tui.x"
             size="s"
-            (click)="close.emit()"
-          ></button>
+            (click)="closeOverlay.emit()"
+          >
+            <span class="tui-sr-only">{{ 'close' | translate }}</span>
+          </button>
         </div>
 
         <tui-scrollbar class="flex-1">
@@ -71,7 +78,7 @@ import type { CartProduct } from '../../models';
                   appearance="flat"
                   size="m"
                   class="mt-4"
-                  (click)="close.emit()"
+                  (click)="closeOverlay.emit()"
                 >
                   {{ 'merchandising.success.continueShopping' | translate }}
                 </button>
@@ -103,7 +110,11 @@ import type { CartProduct } from '../../models';
                         size="xs"
                         class="opacity-0 group-hover:opacity-100 transition-opacity"
                         (click)="removeItem(item.id, item.type)"
-                      ></button>
+                      >
+                        <span class="tui-sr-only">{{
+                          'delete' | translate
+                        }}</span>
+                      </button>
                     </div>
                     <p class="text-xs text-zinc-500 mb-2 capitalize">
                       {{ item.type }}
@@ -124,7 +135,9 @@ import type { CartProduct } from '../../models';
                               item.quantity - 1
                             )
                           "
-                        ></button>
+                        >
+                          <span class="tui-sr-only">Decrease</span>
+                        </button>
                         <span class="w-8 text-center text-sm font-medium">{{
                           item.quantity
                         }}</span>
@@ -141,7 +154,9 @@ import type { CartProduct } from '../../models';
                               item.quantity + 1
                             )
                           "
-                        ></button>
+                        >
+                          <span class="tui-sr-only">Increase</span>
+                        </button>
                       </div>
                       <span
                         class="font-bold text-zinc-900 dark:text-zinc-100"
@@ -188,7 +203,7 @@ import type { CartProduct } from '../../models';
 export class CartOverlayComponent {
   private readonly cartService = inject(CartService);
 
-  @Output() close = new EventEmitter<void>();
+  @Output() closeOverlay = new EventEmitter<void>();
   @Output() checkout = new EventEmitter<void>();
 
   protected readonly items = this.cartService.items;

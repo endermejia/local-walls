@@ -1012,9 +1012,9 @@ export class GlobalData {
           data.map((r) =>
             (() => {
               const rates =
-                (r as any).ascents
-                  ?.map((a: any) => a.rate)
-                  .filter((rate: any): rate is number => rate != null) ?? [];
+                (r as unknown as { ascents: { rate: number }[] }).ascents
+                  ?.map((a) => a.rate)
+                  .filter((rate): rate is number => rate != null) ?? [];
               const rating =
                 rates.length > 0
                   ? rates.reduce((a: number, b: number) => a + b, 0) /

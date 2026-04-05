@@ -1,12 +1,10 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import {
   Component,
-  computed,
   DestroyRef,
   effect,
   inject,
   PLATFORM_ID,
-  signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Meta, Title } from '@angular/platform-browser';
@@ -16,14 +14,12 @@ import { SeoService } from '../services/seo.service';
 import { SupabaseService } from '../services/supabase.service';
 import { Themes } from '../models';
 
-import { TuiAppearance, TuiButton, TuiRoot } from '@taiga-ui/core';
+import { TuiRoot } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
-import { TuiBadgedContent, TuiBadgeNotification } from '@taiga-ui/kit';
-import { DragDropModule, type CdkDragEnd } from '@angular/cdk/drag-drop';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TuiBadgedContent } from '@taiga-ui/kit';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { filter, firstValueFrom, map, merge, startWith } from 'rxjs';
+import { filter, map, merge, startWith } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { GlobalData } from '../services/global-data';
@@ -31,8 +27,6 @@ import { LocalStorage } from '../services/local-storage';
 
 import { NavbarComponent } from '../components/ui/navbar';
 
-import { ChatDialogComponent } from '../components/dialogs/chat-dialog';
-import { NotificationsDialogComponent } from '../components/dialogs/notifications-dialog';
 import { NotificationService } from '../services/notification.service';
 
 @Component({

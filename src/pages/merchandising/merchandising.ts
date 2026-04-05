@@ -19,18 +19,15 @@ import {
 } from '@taiga-ui/core';
 import { TuiBadge, TuiFilter, TuiSkeleton } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
-import { TuiChevron } from '@taiga-ui/kit';
-import { TuiChip } from '@taiga-ui/kit';
 import { startWith } from 'rxjs';
 import { PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 
+import { MerchandiseItem } from '../../models';
 import { MerchandiseService } from '../../services/merchandise.service';
 import { GlobalData } from '../../services/global-data';
 import { CartService } from '../../services/cart.service';
-import { CheckoutService } from '../../services/checkout.service';
-import { CartOverlayComponent } from '../../components/cart-overlay/cart-overlay';
 
 @Component({
   selector: 'app-merchandising',
@@ -523,7 +520,7 @@ export class MerchandisingComponent {
   protected readonly cartItems = this.cartService.totalItems;
   protected readonly cartTotal = this.cartService.totalPrice;
 
-  asAny(item: any): any {
+  protected asAny(item: MerchandiseItem): MerchandiseItem {
     return item;
   }
 
@@ -560,19 +557,28 @@ export class MerchandisingComponent {
     }
   }
 
-  async buyItem(item: any): Promise<void> {
+  async buyItem(item: MerchandiseItem): Promise<void> {
     const selection = this.getSelection(item.id);
 
     // Check if variations are selected if they are available
-    if (item.available_sizes?.length && !selection.size) {
-      // Could show a toast or highlight the selector
+    if (
+      item.available_sizes &&
+      item.available_sizes.length > 0 &&
+      !selection.size
+    ) {
+      this.global.setError('Please select a size');
       return;
     }
-    if (item.available_colors?.length && !selection.color) {
+    if (
+      item.available_colors &&
+      item.available_colors.length > 0 &&
+      !selection.color
+    ) {
+      this.global.setError('Please select a color');
       return;
     }
 
-    this.cartService.addItem({
+    await this.cartService.addItem({
       id: item.id,
       name: item.name,
       price: item.price,

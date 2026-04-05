@@ -20,7 +20,6 @@ import {
   TuiButton,
   TuiDataList,
   TuiDropdown,
-  TuiIcon,
   TuiLink,
   TuiScrollbar,
 } from '@taiga-ui/core';

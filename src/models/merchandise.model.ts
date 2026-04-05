@@ -1,7 +1,10 @@
 import type { Database } from './supabase-generated';
 
 export type MerchandiseItem =
-  Database['public']['Tables']['merchandise_items']['Row'];
+  Database['public']['Tables']['merchandise_items']['Row'] & {
+    available_sizes?: string[];
+    available_colors?: string[];
+  };
 export type AreaPack = Database['public']['Tables']['area_packs']['Row'];
 export type AreaPackItem =
   Database['public']['Tables']['area_pack_items']['Row'];

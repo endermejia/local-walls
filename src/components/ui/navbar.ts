@@ -21,12 +21,7 @@ import {
   TuiSearchHotkey,
   TuiSearchResults,
 } from '@taiga-ui/experimental';
-import {
-  TUI_CONFIRM,
-  TuiAvatar,
-  TuiConfirmData,
-  TuiSkeleton,
-} from '@taiga-ui/kit';
+import { TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
 import {
   TuiPulse,
   TuiBadgedContent,

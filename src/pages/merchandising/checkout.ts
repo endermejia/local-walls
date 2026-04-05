@@ -1,16 +1,6 @@
 import { CommonModule } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
   TuiButton,
@@ -19,8 +9,9 @@ import {
   TuiTitle,
   TuiTextfield,
   TuiLabel,
+  TuiTextfieldDropdownDirective,
 } from '@taiga-ui/core';
-import { TuiChevron, TuiDataListWrapper, TuiSelect } from '@taiga-ui/kit';
+import { TuiDataListWrapper, TuiSelect, TuiChevron } from '@taiga-ui/kit';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CartService } from '../../services/cart.service';
 import { CheckoutService } from '../../services/checkout.service';
@@ -41,6 +32,7 @@ import { CheckoutService } from '../../services/checkout.service';
     TuiSelect,
     TuiChevron,
     TuiDataListWrapper,
+    TuiTextfieldDropdownDirective,
   ],
   template: `
     <tui-scrollbar class="h-full">
@@ -135,7 +127,6 @@ import { CheckoutService } from '../../services/checkout.service';
                   />
                   <tui-data-list-wrapper
                     *tuiTextfieldDropdown
-                    new
                     [items]="countries"
                   />
                 </tui-textfield>

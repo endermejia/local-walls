@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { SupabaseService } from './supabase.service';
-import type { CartProduct, CartItemRecord } from '../models';
+import type { CartProduct } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {

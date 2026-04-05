@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 import { TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
 import {
@@ -23,7 +23,6 @@ import {
   TuiDropdown,
   TuiFallbackSrcPipe,
   TuiHint,
-  TuiIcon,
   TuiLink,
   TuiScrollbar,
   TuiTextfield,
@@ -86,7 +85,6 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
     TuiDropdown,
     TuiFallbackSrcPipe,
     TuiHint,
-    TuiIcon,
     TuiLink,
     TuiScrollbar,
     TuiSelect,
@@ -95,7 +93,6 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
     TuiTabs,
     TuiTextfield,
     TuiPulse,
-    RouterLink,
     UserProfileAscentsComponent,
     UserProfileProjectsComponent,
     UserProfileStatisticsComponent,

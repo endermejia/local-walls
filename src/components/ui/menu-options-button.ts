@@ -3,7 +3,6 @@ import {
   Component,
   inject,
   input,
-  signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -59,7 +58,9 @@ import { UserProfilesService } from '../../services/user-profiles.service';
         [tuiDropdownDirection]="direction()"
         type="button"
         class="transition-colors"
-      ></button>
+      >
+        <span class="tui-sr-only">{{ 'more' | translate }}</span>
+      </button>
     } @else {
       <button
         type="button"
@@ -134,7 +135,7 @@ export class MenuOptionsButtonComponent {
   size = input<'s' | 'm' | 'l'>('m');
   iconOnly = input<boolean>(false);
   loading = input<boolean>(false);
-  direction = input<any>('top');
+  direction = input<'top' | 'bottom'>('top');
   icon = input<string>('@tui.menu');
 
   protected open = false;

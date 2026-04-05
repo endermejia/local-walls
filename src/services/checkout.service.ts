@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { CartService } from './cart.service';
-import type { CartProduct } from '../models';
+import type { Order } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class CheckoutService {
@@ -11,7 +11,9 @@ export class CheckoutService {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
-  async startStripeCheckout(shippingInfo: any): Promise<void> {
+  async startStripeCheckout(
+    shippingInfo: Record<string, unknown>,
+  ): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
 
@@ -51,15 +53,15 @@ export class CheckoutService {
       } else {
         throw new Error('No checkout URL returned from server');
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('[CheckoutService] Stripe error', e);
-      this.error.set(e.message || 'Error redirecting to Stripe');
+      this.error.set((e as Error).message || 'Error redirecting to Stripe');
     } finally {
       this.loading.set(false);
     }
   }
 
-  async verifyOrder(sessionId: string): Promise<any> {
+  async verifyOrder(sessionId: string): Promise<Order | null> {
     const { data, error } = await this.supabase.client
       .from('orders')
       .select('*, items:order_items(*)')
