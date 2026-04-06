@@ -147,48 +147,27 @@ import { mapLocationUrl, remToPx } from '../../utils';
           </div>
         }
 
-        @if (isMobile && !isBottomSheetExpanded()) {
-          <div
-            class="absolute left-1/2 z-40 pointer-events-auto -translate-x-1/2"
-            [tuiDropdown]="tourHint"
-            [tuiDropdownManual]="
-              tourService.isActive() &&
-              tourService.step() === TourStep.EXPLORE_AREAS
-            "
-            tuiDropdownDirection="bottom"
-            [style.bottom]="'calc(' + stops[0] + ' + 1rem)'"
+        <div
+          class="absolute left-1/2 z-40 sm:z-100 pointer-events-auto bottom-[var(--mobile-bottom)] sm:bottom-4"
+          [tuiDropdown]="tourHint"
+          [tuiDropdownManual]="
+            tourService.isActive() &&
+            tourService.step() === TourStep.EXPLORE_AREAS
+          "
+          tuiDropdownDirection="bottom"
+          [style.--mobile-bottom]="'calc(' + stops[0] + ' + 1rem)'"
+          [style.transform]="'translate(-50%, -' + _sheetScrollTop() + 'px)'"
+        >
+          <button
+            tuiButton
+            size="m"
+            appearance="primary-grayscale"
+            iconStart="@tui.list"
+            routerLink="/area"
           >
-            <button
-              tuiButton
-              size="m"
-              appearance="primary-grayscale"
-              iconStart="@tui.list"
-              routerLink="/area"
-            >
-              {{ 'viewAllAreas' | translate }}
-            </button>
-          </div>
-        } @else if (!isMobile) {
-          <div
-            class="absolute bottom-4 left-1/2 -translate-x-1/2 z-100 pointer-events-auto"
-            [tuiDropdown]="tourHint"
-            [tuiDropdownManual]="
-              tourService.isActive() &&
-              tourService.step() === TourStep.EXPLORE_AREAS
-            "
-            tuiDropdownDirection="bottom"
-          >
-            <button
-              tuiButton
-              size="m"
-              appearance="primary-grayscale"
-              iconStart="@tui.list"
-              routerLink="/area"
-            >
-              {{ 'viewAllAreas' | translate }}
-            </button>
-          </div>
-        }
+            {{ 'viewAllAreas' | translate }}
+          </button>
+        </div>
 
         <!-- Map -->
         @defer (on viewport) {
