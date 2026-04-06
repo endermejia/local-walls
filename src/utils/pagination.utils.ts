@@ -6,6 +6,15 @@ import {
   DatabaseTable,
 } from '../models';
 
+export function getPaginationBounds(
+  page: number,
+  size: number,
+): { from: number; to: number } {
+  const from = page * size;
+  const to = from + size - 1;
+  return { from, to };
+}
+
 /**
  * Fetches a paginated list of user profiles based on a many-to-many relationship
  * (e.g., likes, comments, etc.).
@@ -32,8 +41,7 @@ export async function getPaginatedProfilesFromJunction(
   query: string,
   methodName = 'getPaginatedProfilesFromJunction',
 ): Promise<PaginatedProfilesResult> {
-  const from = page * pageSize;
-  const to = from + pageSize - 1;
+  const { from, to } = getPaginationBounds(page, pageSize);
 
   // 1. Fetch user IDs from the junction table
   const likesQuery = supabaseClient
