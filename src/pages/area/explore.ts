@@ -32,6 +32,7 @@ import {
   TuiAvatar,
   TuiBadgedContent,
   TuiBadgeNotification,
+  TuiSkeleton,
 } from '@taiga-ui/kit';
 import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 
@@ -87,6 +88,7 @@ import { mapLocationUrl, remToPx } from '../../utils';
     TuiScrollbar,
     TuiTitle,
     TuiDropdown,
+    TuiSkeleton,
   ],
   template: ` @let isMobile = global.isMobile();
     <div class="h-full w-full flex min-h-0">
@@ -320,13 +322,7 @@ import { mapLocationUrl, remToPx } from '../../utils';
         @if (
           !global.selectedMapCragItem() && !global.selectedMapParkingItem()
         ) {
-          @if (loading) {
-            <div
-              class="absolute w-full h-full top-0 pointer-events-none z-50 flex items-center justify-center bg-[color-mix(in_oklab,var(--tui-background-base),transparent_70%)]"
-            >
-              <tui-loader size="xxl" />
-            </div>
-          } @else if (isMobile && (areas.length || crags.length)) {
+          @if (isMobile) {
             <tui-bottom-sheet
               #sheet
               [stops]="stops"
@@ -335,8 +331,22 @@ import { mapLocationUrl, remToPx } from '../../utils';
               aria-labelledby="areas-title crags-title"
               (scroll.zoneless)="onSheetScroll($event)"
             >
-              <ng-container *ngTemplateOutlet="listContent" />
+              @if (loading) {
+                <ng-container *ngTemplateOutlet="skeletonsContent" />
+              } @else if (areas.length || crags.length) {
+                <ng-container *ngTemplateOutlet="listContent" />
+              } @else {
+                <div class="pb-20">
+                  <app-empty-state icon="@tui.map-pin" />
+                </div>
+              }
             </tui-bottom-sheet>
+          } @else if (loading) {
+            <div
+              class="absolute w-full h-full top-0 pointer-events-none z-50 flex items-center justify-center bg-[color-mix(in_oklab,var(--tui-background-base),transparent_70%)]"
+            >
+              <tui-loader size="xxl" />
+            </div>
           }
         }
       </div>
@@ -347,7 +357,9 @@ import { mapLocationUrl, remToPx } from '../../utils';
           class="flex flex-col shrink-0 h-full w-80 sm:w-96 border-l border-[var(--tui-border-normal)]"
         >
           <tui-scrollbar class="h-full bg-[var(--tui-background-base)]">
-            @if (mapCragItems().length || mapAreaItems().length) {
+            @if (loading) {
+              <ng-container *ngTemplateOutlet="skeletonsContent" />
+            } @else if (mapCragItems().length || mapAreaItems().length) {
               <ng-container *ngTemplateOutlet="listContent" />
             } @else {
               <app-empty-state icon="@tui.map-pin" />
@@ -362,6 +374,16 @@ import { mapLocationUrl, remToPx } from '../../utils';
           (next)="tourService.next()"
           (skip)="tourService.finish()"
         />
+      </ng-template>
+
+      <ng-template #skeletonsContent>
+        <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-20">
+          <div class="grid gap-2">
+            @for (i of [1, 2, 3, 4, 5]; track $index) {
+              <div [tuiSkeleton]="true" class="h-32 w-full rounded-3xl"></div>
+            }
+          </div>
+        </section>
       </ng-template>
 
       <ng-template #listContent>
