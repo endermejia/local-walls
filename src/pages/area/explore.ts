@@ -147,24 +147,16 @@ import { mapLocationUrl, remToPx } from '../../utils';
           </div>
         }
 
-        @if (isMobile) {
+        @if (isMobile && !isBottomSheetExpanded()) {
           <div
-            class="absolute left-1/2 z-40 pointer-events-auto"
+            class="absolute left-1/2 z-40 pointer-events-auto -translate-x-1/2"
             [tuiDropdown]="tourHint"
             [tuiDropdownManual]="
               tourService.isActive() &&
               tourService.step() === TourStep.EXPLORE_AREAS
             "
             tuiDropdownDirection="bottom"
-            [class.bottom-4]="!isBottomSheetExpanded()"
-            [style.bottom]="
-              isBottomSheetExpanded() ? 'calc(' + stops[0] + ' + 1rem)' : null
-            "
-            [style.transform]="
-              isBottomSheetExpanded()
-                ? 'translate(-50%, -' + _sheetScrollTop() + 'px)'
-                : 'translate(-50%, 0)'
-            "
+            [style.bottom]="'calc(' + stops[0] + ' + 1rem)'"
           >
             <button
               tuiButton
@@ -176,7 +168,7 @@ import { mapLocationUrl, remToPx } from '../../utils';
               {{ 'viewAllAreas' | translate }}
             </button>
           </div>
-        } @else {
+        } @else if (!isMobile) {
           <div
             class="absolute bottom-4 left-1/2 -translate-x-1/2 z-100 pointer-events-auto"
             [tuiDropdown]="tourHint"
