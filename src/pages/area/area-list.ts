@@ -208,6 +208,7 @@ import { normalizeName } from '../../utils';
       >
         <button
           tuiButton
+          size="m"
           appearance="primary-grayscale"
           iconStart="@tui.map"
           routerLink="/explore"

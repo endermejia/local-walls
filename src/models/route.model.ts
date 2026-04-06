@@ -1,9 +1,7 @@
 import { EquipperDto, RouteAscentDto, RouteDto } from './supabase-interfaces';
 
-export interface RouteBasicDto extends Pick<
-  RouteDto,
-  'id' | 'name' | 'slug' | 'grade' | 'climbing_kind'
-> {
+export interface RouteBasicDto
+  extends Pick<RouteDto, 'id' | 'name' | 'slug' | 'grade' | 'climbing_kind'> {
   height?: number | null;
 }
 
