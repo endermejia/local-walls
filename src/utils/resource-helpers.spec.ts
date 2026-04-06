@@ -6,7 +6,7 @@ describe('Resource Helpers', () => {
     it('should return the value immediately if it is already defined', async () => {
       const mockResource = {
         value: () => 'test-value'
-      } as ResourceRef<string>;
+      } as unknown as ResourceRef<string>;
 
       const result = await waitForResource(mockResource);
       expect(result).toBe('test-value');
@@ -22,7 +22,7 @@ describe('Resource Helpers', () => {
           }
           return undefined;
         }
-      } as ResourceRef<string>;
+      } as unknown as ResourceRef<string>;
 
       const startTime = Date.now();
       const result = await waitForResource(mockResource, 10, 10);
@@ -41,7 +41,7 @@ describe('Resource Helpers', () => {
           attempts++;
           return undefined;
         }
-      } as ResourceRef<string>;
+      } as unknown as ResourceRef<string>;
 
       const result = await waitForResource(mockResource, 5, 10);
 
