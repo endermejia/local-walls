@@ -557,7 +557,7 @@ export class ExploreComponent {
         overlapsSelectedGrades(c) &&
         matchesShade(c)
       );
-    });
+    }).sort((a, b) => (a.liked === b.liked ? 0 : a.liked ? -1 : 1));
   });
 
   protected mapAreaItems: Signal<MapAreaItem[]> = computed(() => {
@@ -596,7 +596,7 @@ export class ExploreComponent {
         overlapsSelectedGrades(a) &&
         matchesShade(a)
       );
-    });
+    }).sort((a, b) => (a.liked === b.liked ? 0 : a.liked ? -1 : 1));
   });
 
   protected readonly isBottomSheetExpanded: Signal<boolean> = computed(() => {
