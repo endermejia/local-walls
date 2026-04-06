@@ -21,3 +21,11 @@ export async function waitForResource<T>(
   }
   return undefined;
 }
+
+export function getAvatarPath(userId: string): string {
+  return `avatars/${userId}`;
+}
+
+export function getAreaImagePath(areaId: string): string {
+  return `areas/${areaId}/cover`;
+}
