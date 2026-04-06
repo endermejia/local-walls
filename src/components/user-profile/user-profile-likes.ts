@@ -192,7 +192,7 @@ export class UserProfileLikesComponent {
           *,
           liked:route_likes(id),
           project:route_projects(id),
-          ascents:route_ascents(rate),
+          ascents:route_ascents(rate, type),
           own_ascent:route_ascents(*),
           crag:crags(
             slug,
@@ -234,7 +234,7 @@ export class UserProfileLikesComponent {
             area_slug: r.crag?.area?.slug,
             area_name: r.crag?.area?.name,
             rating,
-            ascent_count: r.ascents?.length ?? 0,
+            ascent_count: r.ascents?.filter((a: any) => a.type !== 'attempt').length ?? 0,
             climbed: (r.own_ascent?.length ?? 0) > 0,
             own_ascent: r.own_ascent?.[0],
           } as RouteWithExtras;

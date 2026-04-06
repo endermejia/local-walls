@@ -983,7 +983,7 @@ export class GlobalData {
             *,
             liked:route_likes(id),
             project:route_projects(id),
-            ascents:route_ascents(rate),
+            ascents:route_ascents(rate, type),
             own_ascent:route_ascents(*),
             topo_routes(topo:topos(id, name, slug)),
             route_equippers(equipper:equippers(*)),
@@ -1033,7 +1033,7 @@ export class GlobalData {
                 area_slug: r.crag?.area?.slug,
                 area_name: r.crag?.area?.name,
                 rating,
-                ascent_count: r.ascents?.length ?? 0,
+                ascent_count: r.ascents?.filter((a: any) => a.type !== 'attempt').length ?? 0,
                 climbed:
                   (r.own_ascent?.filter((a) => a.type !== 'attempt').length ??
                     0) > 0,
@@ -1089,7 +1089,7 @@ export class GlobalData {
                 area_id,
                 area:areas(slug, name)
               ),
-              ascents:route_ascents(rate)
+              ascents:route_ascents(rate, type)
             )
           `,
           )
@@ -1123,7 +1123,7 @@ export class GlobalData {
               area_slug: crag?.area?.slug,
               area_name: crag?.area?.name,
               rating,
-              ascent_count: ascents?.length ?? 0,
+              ascent_count: ascents?.filter((a: any) => a.type !== 'attempt').length ?? 0,
             } as RouteWithExtras;
           })
           .filter((r): r is RouteWithExtras => !!r);
@@ -1340,7 +1340,7 @@ export class GlobalData {
               slug,
               area:areas(id, name, slug)
             ),
-            ascents:route_ascents(rate),
+            ascents:route_ascents(rate, type),
             own_ascent:route_ascents(*),
             topo_routes(topo:topos(id, name, slug))
           `,
@@ -1377,7 +1377,7 @@ export class GlobalData {
           area_name: r.crag?.area?.name,
           area_slug: r.crag?.area?.slug,
           rating,
-          ascent_count: r.ascents?.length ?? 0,
+          ascent_count: r.ascents?.filter((a: any) => a.type !== 'attempt').length ?? 0,
           climbed:
             (r.own_ascent?.filter((a) => a.type !== 'attempt').length ?? 0) > 0,
           own_ascent: r.own_ascent?.sort((a, b) => {
