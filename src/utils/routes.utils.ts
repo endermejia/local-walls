@@ -6,6 +6,7 @@ import {
   GRADE_NUMBER_TO_LABEL,
   PROJECT_GRADE_LABEL,
   VERTICAL_LIFE_GRADES,
+  RouteDto
 } from '../models';
 import { normalizeName } from './index';
 
@@ -54,3 +55,17 @@ export const ROUTE_TABLE_SORTERS: Record<
     return tuiDefaultSort(aVal, bVal) || tuiDefaultSort(a.route, b.route);
   },
 };
+
+export function sortRoutesByGrade<T extends Partial<RouteDto>>(routes: T[]): T[] {
+  return [...routes].sort((a, b) => {
+    const gradeA = typeof a.grade === 'number' ? a.grade : 0;
+    const gradeB = typeof b.grade === 'number' ? b.grade : 0;
+
+    // Sort descending by grade, then fallback to name
+    if (gradeA !== gradeB) {
+      return gradeB - gradeA;
+    }
+
+    return tuiDefaultSort(normalizeName(a.name || ''), normalizeName(b.name || ''));
+  });
+}
