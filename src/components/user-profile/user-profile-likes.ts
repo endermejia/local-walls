@@ -17,7 +17,7 @@ import { AscentCardSkeletonComponent } from '../ascent/ascent-card-skeleton';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { RoutesTableComponent } from '../route/routes-table';
 import { SupabaseService } from '../../services/supabase.service';
-import { RouteWithExtras } from '../../models';
+import { AscentTypes, RouteWithExtras, RouteAscentDto } from '../../models';
 
 @Component({
   selector: 'app-user-profile-likes',
@@ -234,7 +234,7 @@ export class UserProfileLikesComponent {
             area_slug: r.crag?.area?.slug,
             area_name: r.crag?.area?.name,
             rating,
-            ascent_count: r.ascents?.filter((a: any) => a.type !== 'attempt').length ?? 0,
+            ascent_count: r.ascents?.filter((a: Partial<RouteAscentDto>) => a.type !== AscentTypes.ATTEMPT).length ?? 0,
             climbed: (r.own_ascent?.length ?? 0) > 0,
             own_ascent: r.own_ascent?.[0],
           } as RouteWithExtras;
