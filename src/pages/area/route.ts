@@ -312,7 +312,7 @@ import { SeoService } from '../../services/seo.service';
                           areaSlug(),
                           cragSlug(),
                           'topo',
-                          t.id
+                          t.id,
                         ])
                       "
                     >

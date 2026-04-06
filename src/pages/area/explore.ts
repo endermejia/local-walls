@@ -94,26 +94,6 @@ import { mapLocationUrl, remToPx } from '../../utils';
         class="relative h-full grow flex flex-col min-w-0 transition-[width] duration-300"
       >
         <div class="absolute right-4 top-4 flex flex-col items-end gap-2">
-          <div
-            class="z-10"
-            [tuiDropdown]="tourHint"
-            [tuiDropdownManual]="
-              tourService.isActive() &&
-              tourService.step() === TourStep.EXPLORE_AREAS
-            "
-            tuiDropdownDirection="bottom"
-          >
-            <button
-              tuiButton
-              size="s"
-              appearance="primary-grayscale"
-              iconStart="@tui.list"
-              routerLink="/area"
-              class="pointer-events-auto"
-            >
-              {{ 'viewAllAreas' | translate }}
-            </button>
-          </div>
           <div class="z-10">
             <tui-badged-content>
               @if (hasActiveFilters()) {
@@ -163,6 +143,57 @@ import { mapLocationUrl, remToPx } from '../../utils';
               (click.zoneless)="setBottomSheet('close')"
             >
               {{ 'map' | translate }}
+            </button>
+          </div>
+        }
+
+        @if (isMobile) {
+          <div
+            class="absolute left-1/2 z-40 pointer-events-auto"
+            [tuiDropdown]="tourHint"
+            [tuiDropdownManual]="
+              tourService.isActive() &&
+              tourService.step() === TourStep.EXPLORE_AREAS
+            "
+            tuiDropdownDirection="bottom"
+            [class.bottom-4]="!isBottomSheetExpanded()"
+            [style.bottom]="
+              isBottomSheetExpanded() ? 'calc(' + stops[0] + ' + 1rem)' : null
+            "
+            [style.transform]="
+              isBottomSheetExpanded()
+                ? 'translate(-50%, -' + _sheetScrollTop() + 'px)'
+                : 'translate(-50%, 0)'
+            "
+          >
+            <button
+              tuiButton
+              size="m"
+              appearance="primary-grayscale"
+              iconStart="@tui.list"
+              routerLink="/area"
+            >
+              {{ 'viewAllAreas' | translate }}
+            </button>
+          </div>
+        } @else {
+          <div
+            class="absolute bottom-4 left-1/2 -translate-x-1/2 z-100 pointer-events-auto"
+            [tuiDropdown]="tourHint"
+            [tuiDropdownManual]="
+              tourService.isActive() &&
+              tourService.step() === TourStep.EXPLORE_AREAS
+            "
+            tuiDropdownDirection="bottom"
+          >
+            <button
+              tuiButton
+              size="m"
+              appearance="primary-grayscale"
+              iconStart="@tui.list"
+              routerLink="/area"
+            >
+              {{ 'viewAllAreas' | translate }}
             </button>
           </div>
         }
@@ -524,7 +555,7 @@ export class ExploreComponent {
   @ViewChild('sheet', { read: ElementRef }) sheetRef?: ElementRef<HTMLElement>;
 
   private readonly _sheetClientHeight: WritableSignal<number> = signal(0);
-  private readonly _sheetScrollTop: WritableSignal<number> = signal(0);
+  protected readonly _sheetScrollTop: WritableSignal<number> = signal(0);
 
   protected mapCragItems: Signal<MapCragItem[]> = computed(() => {
     const items = this.global.mapItemsOnViewport();
