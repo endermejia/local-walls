@@ -35,6 +35,7 @@ import { SupabaseService } from './supabase.service';
 import { mapCragToDetail } from '../utils';
 
 import {
+  AscentTypes,
   AmountByEveryGrade,
   AreaDto,
   AreaListItem,
@@ -56,6 +57,7 @@ import {
   PaginatedAscents,
   ParkingDto,
   RouteAscentWithExtras,
+  RouteAscentDto,
   TopoListItem,
   RouteWithExtras,
   Theme,
@@ -831,8 +833,8 @@ export class GlobalData {
               const ascents = tr.route.own_ascent || [];
               const bestAscent =
                 ascents.sort((a, b) => {
-                  const isAttemptA = a.type === 'attempt';
-                  const isAttemptB = b.type === 'attempt';
+                  const isAttemptA = a.type === AscentTypes.ATTEMPT;
+                  const isAttemptB = b.type === AscentTypes.ATTEMPT;
                   if (isAttemptA && !isAttemptB) return 1;
                   if (!isAttemptA && isAttemptB) return -1;
                   return 0; // Maintain order otherwise (or sort by date/type preference)
@@ -983,7 +985,7 @@ export class GlobalData {
             *,
             liked:route_likes(id),
             project:route_projects(id),
-            ascents:route_ascents(rate),
+            ascents:route_ascents(rate, type),
             own_ascent:route_ascents(*),
             topo_routes(topo:topos(id, name, slug)),
             route_equippers(equipper:equippers(*)),
@@ -1033,13 +1035,13 @@ export class GlobalData {
                 area_slug: r.crag?.area?.slug,
                 area_name: r.crag?.area?.name,
                 rating,
-                ascent_count: r.ascents?.length ?? 0,
+                ascent_count: r.ascents?.filter((a: Partial<RouteAscentDto>) => a.type !== AscentTypes.ATTEMPT).length ?? 0,
                 climbed:
-                  (r.own_ascent?.filter((a) => a.type !== 'attempt').length ??
+                  (r.own_ascent?.filter((a) => a.type !== AscentTypes.ATTEMPT).length ??
                     0) > 0,
                 own_ascent: r.own_ascent?.sort((a, b) => {
-                  const isAttemptA = a.type === 'attempt';
-                  const isAttemptB = b.type === 'attempt';
+                  const isAttemptA = a.type === AscentTypes.ATTEMPT;
+                  const isAttemptB = b.type === AscentTypes.ATTEMPT;
                   if (isAttemptA && !isAttemptB) return 1;
                   if (!isAttemptA && isAttemptB) return -1;
                   return 0;
@@ -1089,7 +1091,7 @@ export class GlobalData {
                 area_id,
                 area:areas(slug, name)
               ),
-              ascents:route_ascents(rate)
+              ascents:route_ascents(rate, type)
             )
           `,
           )
@@ -1123,7 +1125,7 @@ export class GlobalData {
               area_slug: crag?.area?.slug,
               area_name: crag?.area?.name,
               rating,
-              ascent_count: ascents?.length ?? 0,
+              ascent_count: ascents?.filter((a: Partial<RouteAscentDto>) => a.type !== AscentTypes.ATTEMPT).length ?? 0,
             } as RouteWithExtras;
           })
           .filter((r): r is RouteWithExtras => !!r);
@@ -1340,7 +1342,7 @@ export class GlobalData {
               slug,
               area:areas(id, name, slug)
             ),
-            ascents:route_ascents(rate),
+            ascents:route_ascents(rate, type),
             own_ascent:route_ascents(*),
             topo_routes(topo:topos(id, name, slug))
           `,
@@ -1377,12 +1379,12 @@ export class GlobalData {
           area_name: r.crag?.area?.name,
           area_slug: r.crag?.area?.slug,
           rating,
-          ascent_count: r.ascents?.length ?? 0,
+          ascent_count: r.ascents?.filter((a: Partial<RouteAscentDto>) => a.type !== AscentTypes.ATTEMPT).length ?? 0,
           climbed:
-            (r.own_ascent?.filter((a) => a.type !== 'attempt').length ?? 0) > 0,
+            (r.own_ascent?.filter((a) => a.type !== AscentTypes.ATTEMPT).length ?? 0) > 0,
           own_ascent: r.own_ascent?.sort((a, b) => {
-            const isAttemptA = a.type === 'attempt';
-            const isAttemptB = b.type === 'attempt';
+            const isAttemptA = a.type === AscentTypes.ATTEMPT;
+            const isAttemptB = b.type === AscentTypes.ATTEMPT;
             if (isAttemptA && !isAttemptB) return 1;
             if (!isAttemptA && isAttemptB) return -1;
             return 0;
@@ -1423,7 +1425,7 @@ export class GlobalData {
           .from('route_ascents')
           .select('*', { count: 'exact' })
           .eq('route_id', routeId)
-          .neq('type', 'attempt')
+          .neq('type', AscentTypes.ATTEMPT)
           .order('date', { ascending: false })
           .order('id', { ascending: false })
           .range(from, to);
