@@ -1,5 +1,5 @@
 import { TopoHasPathPipe, TopoPathPointsPipe } from './topo-path.pipe';
-import * as topoStylesUtils from '../utils/topo-styles.utils';
+
 
 describe('TopoPathPointsPipe', () => {
   let pipe: TopoPathPointsPipe;

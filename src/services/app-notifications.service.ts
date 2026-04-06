@@ -40,7 +40,7 @@ export class AppNotificationsService {
       return [];
     }
 
-    const typedData = data as unknown as (NotificationWithActor & {
+    const typedData = data as (NotificationWithActor & {
       actor: UserProfileDto | UserProfileDto[];
       resource_id: number;
     })[];
@@ -73,7 +73,7 @@ export class AppNotificationsService {
         const ascentMap = new Map(
           ascents.map((a) => [
             a.id,
-            (a.routes as unknown as { name: string })?.name,
+            (a.routes as { name: string } | null | undefined)?.name,
           ]),
         );
         notifications.forEach((n) => {

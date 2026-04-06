@@ -1,5 +1,5 @@
 import { GradeLabelPipe } from './grade-label.pipe';
-import { GRADE_NUMBER_TO_LABEL, VERTICAL_LIFE_GRADES, PROJECT_GRADE_LABEL } from '../models';
+import { VERTICAL_LIFE_GRADES, PROJECT_GRADE_LABEL } from '../models';
 
 describe('GradeLabelPipe', () => {
   let pipe: GradeLabelPipe;

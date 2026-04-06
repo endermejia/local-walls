@@ -80,11 +80,11 @@ describe('IncludesIdPipe', () => {
     });
 
     it('should handle array with mixed types gracefully', () => {
-      const items = [{ id: '1' }, 2, '3', null, undefined, { other: 'prop' }] as any[];
+      const items = [{ id: '1' }, 2, '3', null, undefined, { id: undefined as unknown as string }] as ({ id?: string | number } | number | string | null | undefined)[];
       expect(pipe.transform(items, '1')).toBeTrue();
       expect(pipe.transform(items, 2)).toBeTrue();
       expect(pipe.transform(items, '3')).toBeTrue();
-      expect(pipe.transform(items, 'other')).toBeFalse();
+      expect(pipe.transform(items, 'other' as unknown as string)).toBeFalse();
     });
 
     it('should use strict equality for matching string and number', () => {
@@ -94,8 +94,8 @@ describe('IncludesIdPipe', () => {
     });
 
     it('should return false if the object does not have an id property', () => {
-      const items = [{ name: 'test' }] as any[];
-      expect(pipe.transform(items, 'test')).toBeFalse();
+      const items = [{ id: undefined as unknown as string }] as ({ id?: string | number } | number | string | null | undefined)[];
+      expect(pipe.transform(items, 'test' as unknown as string)).toBeFalse();
     });
   });
 });

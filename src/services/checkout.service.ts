@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { CartService } from './cart.service';
-import type { Order, OrderDetail } from '../models';
+import type { OrderDetail } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class CheckoutService {

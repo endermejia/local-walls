@@ -41,10 +41,10 @@ describe('ContextIndexPipe', () => {
   });
 
   it('should return 0 if index is not a number', () => {
-    expect(pipe.transform({ index: '3' } as any)).toBe(0);
+    expect(pipe.transform({ index: '3' as unknown as number })).toBe(0);
   });
 
   it('should return 0 if $implicit is not a number', () => {
-    expect(pipe.transform({ $implicit: '4' } as any)).toBe(0);
+    expect(pipe.transform({ $implicit: '4' as unknown as number })).toBe(0);
   });
 });

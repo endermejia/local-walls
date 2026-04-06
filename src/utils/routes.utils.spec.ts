@@ -67,7 +67,7 @@ describe('routes.utils', () => {
         height: null,
         name: 'Minimal Route',
         slug: 'minimal-route',
-        grade: null as any, // Simulate missing grade
+        grade: null as unknown as number, // Simulate missing grade
         climbing_kind: 'sport',
         liked: false,
         project: true,
@@ -133,15 +133,15 @@ describe('routes.utils', () => {
         climbed: false,
         link: [],
         topos: [],
-        _ref: {} as any,
+        _ref: {} as RouteWithExtras,
         ...overrides,
       };
     }
 
     it('should sort by grade', () => {
       const sorter = ROUTE_TABLE_SORTERS['grade'];
-      const rowA = createRow({ _ref: { grade: VERTICAL_LIFE_GRADES.G5a } as any });
-      const rowB = createRow({ _ref: { grade: VERTICAL_LIFE_GRADES.G8a } as any });
+      const rowA = createRow({ _ref: { grade: VERTICAL_LIFE_GRADES.G5a } as RouteWithExtras });
+      const rowB = createRow({ _ref: { grade: VERTICAL_LIFE_GRADES.G8a } as RouteWithExtras });
 
       expect(sorter(rowA, rowB)).toBeLessThan(0);
       expect(sorter(rowB, rowA)).toBeGreaterThan(0);

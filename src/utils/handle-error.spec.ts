@@ -29,12 +29,12 @@ describe('Handle Error Utils', () => {
     });
 
     it('should show unexpected error message for null error', () => {
-      handleErrorToast(null as any, toastServiceMock);
+      handleErrorToast(null as unknown as { code?: string, message?: string }, toastServiceMock);
       expect(toastServiceMock.error).toHaveBeenCalledWith('errors.unexpected');
     });
 
     it('should show unexpected error message for undefined error', () => {
-      handleErrorToast(undefined as any, toastServiceMock);
+      handleErrorToast(undefined as unknown as { code?: string, message?: string }, toastServiceMock);
       expect(toastServiceMock.error).toHaveBeenCalledWith('errors.unexpected');
     });
   });
@@ -56,8 +56,8 @@ describe('Handle Error Utils', () => {
     });
 
     it('should return "Unknown error" for objects that cannot be stringified', () => {
-      const circular: any = {};
-      circular.self = circular;
+      const circular: Record<string, unknown> = {};
+      circular['self'] = circular;
       expect(extractErrorMessage(circular)).toBe('Unknown error');
     });
 
