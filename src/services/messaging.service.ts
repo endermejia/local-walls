@@ -73,7 +73,7 @@ export class MessagingService {
       }[];
     }
 
-    const typedRooms = rooms as unknown as RoomQueryResult[];
+    const typedRooms = rooms as RoomQueryResult[];
 
     return typedRooms
       .map((r) => {

@@ -6,7 +6,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class IncludesIdPipe implements PipeTransform {
   transform<T extends { id?: string | number } | string | number>(
-    items: T[] | null | undefined,
+    items: (T | null | undefined)[] | null | undefined,
     id: string | number | null | undefined,
   ): boolean {
     if (!items || id === null || id === undefined) return false;

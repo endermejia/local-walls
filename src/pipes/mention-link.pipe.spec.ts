@@ -4,7 +4,7 @@ import { MentionLinkPipe } from './mention-link.pipe';
 
 describe('MentionLinkPipe', () => {
   let pipe: MentionLinkPipe;
-  let sanitizer: DomSanitizer;
+
 
   beforeEach(() => {
     // Mock DomSanitizer
@@ -20,7 +20,7 @@ describe('MentionLinkPipe', () => {
     });
 
     pipe = TestBed.inject(MentionLinkPipe);
-    sanitizer = TestBed.inject(DomSanitizer);
+
   });
 
   it('should create an instance', () => {
