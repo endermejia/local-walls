@@ -1,11 +1,15 @@
-import { waitForResource, getAvatarPath, getAreaImagePath } from './resource-helpers';
+import {
+  waitForResource,
+  getAvatarPath,
+  getAreaImagePath,
+} from './resource-helpers';
 import { ResourceRef } from '@angular/core';
 
 describe('Resource Helpers', () => {
   describe('waitForResource', () => {
     it('should return the value immediately if it is already defined', async () => {
       const mockResource = {
-        value: () => 'test-value'
+        value: () => 'test-value',
       } as unknown as ResourceRef<string>;
 
       const result = await waitForResource(mockResource);
@@ -21,7 +25,7 @@ describe('Resource Helpers', () => {
             return 'delayed-value';
           }
           return undefined;
-        }
+        },
       } as unknown as ResourceRef<string>;
 
       const startTime = Date.now();
@@ -40,7 +44,7 @@ describe('Resource Helpers', () => {
         value: () => {
           attempts++;
           return undefined;
-        }
+        },
       } as unknown as ResourceRef<string>;
 
       const result = await waitForResource(mockResource, 5, 10);

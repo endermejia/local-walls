@@ -6,6 +6,7 @@ import {
   inject,
   resource,
 } from '@angular/core';
+import { Router } from '@angular/router';
 
 import {
   TuiAppearance,
@@ -152,6 +153,7 @@ export class NotificationsDialogComponent {
   protected readonly context = injectContext<TuiDialogContext<void, void>>();
   private readonly ascentsService = inject(AscentsService);
   private readonly global = inject(GlobalData);
+  private readonly router = inject(Router);
 
   protected readonly notificationsResource = resource<
     NotificationWithActor[],
@@ -200,6 +202,10 @@ export class NotificationsDialogComponent {
           : 'notifications.likedComment';
       case NotificationTypes.MESSAGE:
         return 'notifications.sentMessage';
+      case NotificationTypes.FOLLOW_REQUEST:
+        return 'notifications.followRequest';
+      case NotificationTypes.FOLLOW_ACCEPTED:
+        return 'notifications.followAccepted';
       default:
         return 'notifications.unknown';
     }
@@ -269,6 +275,12 @@ export class NotificationsDialogComponent {
         }),
         { defaultValue: undefined },
       );
+    } else if (
+      group.type === NotificationTypes.FOLLOW_REQUEST ||
+      group.type === NotificationTypes.FOLLOW_ACCEPTED
+    ) {
+      this.context.completeWith();
+      void this.router.navigate(['/profile', group.actor_id]);
     }
   }
 

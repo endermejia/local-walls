@@ -38,9 +38,6 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
   - Solicitudes de seguimiento para perfil privado
   - Controlar que solo se pueda seguir a usuarios con perfil publico
   - Controlar que no se pueda ver el feed, proyectos, etc de usuarios privados si no los sigues
-- **Modificar boton cog en user-profile**
-  - Cambiarlo icono COG por MENU y debe abrir opciones como el boton menu del navbar (crea un componente para reutizarlo)
-- **Actualizar tour de bienvenida**
 
 ## Future Features
 

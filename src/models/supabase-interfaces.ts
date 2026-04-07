@@ -138,3 +138,8 @@ export type NotificationUpdateDto = TableUpdate<'notifications'>;
 export type UserPyramidSlotDto = TableRow<'user_pyramid_slots'>;
 export type UserPyramidSlotInsertDto = TableInsert<'user_pyramid_slots'>;
 export type UserPyramidSlotUpdateDto = TableUpdate<'user_pyramid_slots'>;
+
+// Follow Requests
+export type FollowRequestDto = TableRow<'follow_requests'>;
+export type FollowRequestInsertDto = TableInsert<'follow_requests'>;
+export type FollowRequestUpdateDto = TableUpdate<'follow_requests'>;

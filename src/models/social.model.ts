@@ -3,6 +3,7 @@ import {
   ChatRoomDto,
   NotificationDto,
   UserProfileDto,
+  FollowRequestDto,
 } from './supabase-interfaces';
 import { UserProfileBasicDto } from './user.model';
 import { NotificationType } from './notifications.model';
@@ -18,3 +19,7 @@ export interface NotificationWithActor extends Omit<NotificationDto, 'type'> {
   actor: UserProfileDto;
   resource_name?: string;
 }
+
+export type PopulatedFollowRequestDto = FollowRequestDto & {
+  follower: UserProfileDto;
+};

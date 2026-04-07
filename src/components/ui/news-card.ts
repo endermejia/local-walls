@@ -24,7 +24,7 @@ import { NewsItem } from '../../models';
   template: `
     <div
       tuiAppearance="flat-grayscale"
-      class="flex flex-col gap-4 p-4 sm:rounded-3xl rounded-none relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full text-left overflow-hidden"
+      class="flex flex-col gap-1 p-4 sm:rounded-3xl rounded-none relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full text-left overflow-hidden"
     >
       <header tuiHeader class="!mt-0 flex justify-between items-center">
         <a

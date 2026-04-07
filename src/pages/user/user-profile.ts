@@ -47,6 +47,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 import { BlockingService } from '../../services/blocking.service';
+import { FollowRequestsService } from '../../services/follow-requests.service';
 import { FollowsService } from '../../services/follows.service';
 import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
@@ -263,16 +264,49 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
         @if (!isOwnProfile()) {
           <div class="flex gap-2">
             @let following = isFollowing();
+            @let requested = isRequested();
+            @let hasIncomingRequest = hasIncomingFollowRequest();
+            @let isPrivate = profile()?.private;
+
+            @if (hasIncomingRequest) {
+              <button
+                tuiButton
+                type="button"
+                appearance="primary"
+                size="m"
+                [iconStart]="'@tui.check'"
+                [tuiSkeleton]="loading || followLoading()"
+                (click)="acceptFollowRequest()"
+              >
+                {{ 'allowFollow' | translate }}
+              </button>
+            }
+
             <button
               tuiButton
               type="button"
               appearance="secondary"
               size="m"
-              [iconStart]="following ? '@tui.bell-filled' : '@tui.bell'"
+              [iconStart]="
+                following
+                  ? '@tui.bell-filled'
+                  : requested
+                    ? '@tui.clock'
+                    : '@tui.bell'
+              "
               [tuiSkeleton]="loading || followLoading()"
               (click)="toggleFollow()"
             >
-              {{ (following ? 'followingStatus' : 'follow') | translate }}
+              {{
+                (following
+                  ? 'followingStatus'
+                  : requested
+                    ? 'requestedStatus'
+                    : isPrivate
+                      ? 'requestFollow'
+                      : 'follow'
+                ) | translate
+              }}
             </button>
 
             <button
@@ -289,7 +323,7 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
           </div>
         }
 
-        @if (isOwnProfile() || !profile()?.private) {
+        @if (isOwnProfile() || !profile()?.private || isFollowing()) {
           <tui-tabs
             [activeItemIndex]="activeTab()"
             (activeItemIndexChange)="activeTab.set($event)"
@@ -407,6 +441,7 @@ export class UserProfileComponent {
   protected readonly countriesNames = toSignal(this.countriesNames$);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
+  protected readonly followRequestsService = inject(FollowRequestsService);
   protected readonly followsService = inject(FollowsService);
   private readonly blockingService = inject(BlockingService);
   private readonly toast = inject(ToastService);
@@ -421,6 +456,18 @@ export class UserProfileComponent {
   protected lastTouchTarget: EventTarget | null = null;
   protected readonly activeTab = this.global.profileActiveTab;
   protected readonly followedIds = signal<Set<string>>(new Set());
+  protected readonly requestedIds = signal<Set<string>>(new Set());
+  protected readonly incomingRequestIds = signal<Set<string>>(new Set());
+
+  readonly isRequested = computed(() => {
+    const profileId = this.profile()?.id;
+    return !!profileId && this.requestedIds().has(profileId);
+  });
+
+  readonly hasIncomingFollowRequest = computed(() => {
+    const profileId = this.profile()?.id;
+    return !!profileId && this.incomingRequestIds().has(profileId);
+  });
 
   // Currently viewed profile (if by id)
   private readonly externalProfileResource = resource({
@@ -601,10 +648,17 @@ export class UserProfileComponent {
     // Fetch followed IDs for the current user
     effect(() => {
       this.followsService.followChange();
+      this.followRequestsService.requestsChange();
       if (isPlatformBrowser(this.platformId)) {
         void this.followsService
           .getFollowedIds()
           .then((ids) => this.followedIds.set(new Set(ids)));
+        void this.followRequestsService
+          .getPendingOutgoingRequestIds()
+          .then((ids) => this.requestedIds.set(new Set(ids)));
+        void this.followRequestsService
+          .getPendingIncomingRequestIds()
+          .then((ids) => this.incomingRequestIds.set(new Set(ids)));
       }
     });
   }
@@ -656,9 +710,52 @@ export class UserProfileComponent {
         if (!confirmed) return;
         await this.followsService.unfollow(followedUserId);
         this.onUnfollow(followedUserId);
+      } else if (this.isRequested()) {
+        await this.followRequestsService.cancelRequest(followedUserId);
+        this.onCancelRequest(followedUserId);
+      } else if (profile.private) {
+        await this.followRequestsService.requestFollow(followedUserId);
+        this.onRequestFollow(followedUserId);
       } else {
         await this.followsService.follow(followedUserId);
         this.onFollow(followedUserId);
+      }
+    } finally {
+      this.followLoading.set(false);
+    }
+  }
+
+  protected onCancelRequest(userId: string): void {
+    this.requestedIds.update((s) => {
+      const next = new Set(s);
+      next.delete(userId);
+      return next;
+    });
+  }
+
+  protected onRequestFollow(userId: string): void {
+    this.requestedIds.update((s) => {
+      const next = new Set(s);
+      next.add(userId);
+      return next;
+    });
+  }
+
+  protected async acceptFollowRequest(): Promise<void> {
+    const profile = this.profile();
+    const followerId = profile?.id;
+    if (!followerId || this.followLoading()) return;
+
+    this.followLoading.set(true);
+    try {
+      const success =
+        await this.followRequestsService.acceptRequestByFollower(followerId);
+      if (success) {
+        this.incomingRequestIds.update((s) => {
+          const next = new Set(s);
+          next.delete(followerId);
+          return next;
+        });
       }
     } finally {
       this.followLoading.set(false);

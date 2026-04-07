@@ -15,6 +15,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   form,
@@ -109,6 +110,8 @@ import {
 
 import { FirstStepsDialogComponent } from '../../components/dialogs/first-steps-dialog';
 import { PurchaseHistoryDialogComponent } from '../../components/dialogs/purchase-history-dialog';
+import { FollowRequestsDialogComponent } from '../../components/dialogs/follow-requests-dialog';
+import { FollowRequestsService } from '../../services/follow-requests.service';
 
 interface Country {
   id: string;
@@ -173,8 +176,8 @@ interface Country {
               (click)="isFirstSteps() ? startTour() : close()"
               [disabled]="
                 isFirstSteps() &&
-                (profileForm.name().invalid() ||
-                  profileForm.name().value() === userEmail())
+                (profileForm.fullName().invalid() ||
+                  profileForm.fullName().value() === userEmail())
               "
             >
               <tui-icon icon="@tui.arrow-left" />
@@ -237,14 +240,14 @@ interface Country {
                 tuiTextfield
                 type="text"
                 autocomplete="off"
-                [ngModel]="model().name"
-                (ngModelChange)="updateModel('name', $event)"
+                [ngModel]="model().fullName"
+                (ngModelChange)="updateModel('fullName', $event)"
                 [invalid]="
                   !!profile() &&
-                  profileForm.name().invalid() &&
-                  profileForm.name().touched()
+                  profileForm.fullName().invalid() &&
+                  profileForm.fullName().touched()
                 "
-                [disabled]="profileForm.name().disabled()"
+                [disabled]="profileForm.fullName().disabled()"
                 (blur)="saveName()"
                 (keydown.enter)="saveName()"
                 [tuiSkeleton]="!userEmail()"
@@ -558,16 +561,6 @@ interface Country {
           <h2 class="text-lg font-bold m-0">
             {{ 'preferences' | translate }}
           </h2>
-          <button
-            size="s"
-            tuiButton
-            type="button"
-            appearance="action-grayscale"
-            (click)="openImport8aDialog()"
-          >
-            <tui-icon icon="@tui.download" />
-            {{ 'import8a.button' | translate }}
-          </button>
         </div>
         <!-- Language & Theme -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -761,45 +754,122 @@ interface Country {
         <br />
 
         <!-- Account Actions -->
-        <div
-          class="flex flex-col sm:flex-row items-center sm:justify-between gap-4 mt-8 border-t border-[var(--tui-border-normal)] pt-8"
+        <h2
+          class="text-xl font-bold mt-12 mb-6 border-t border-[var(--tui-border-normal)] pt-8"
         >
-          <button
-            tuiButton
-            appearance="outline"
-            type="button"
-            size="m"
-            class="w-full sm:w-auto group"
-            (click)="openPurchaseHistoryDialog()"
-          >
-            <tui-icon
-              icon="@tui.receipt"
-              class="mr-2 group-hover:scale-110 transition-transform"
-            />
-            {{ 'purchaseHistory.view' | translate }}
-          </button>
+          {{ 'accountActions' | translate }}
+        </h2>
 
-          <button
-            tuiButton
-            appearance="flat-destructive"
-            type="button"
-            size="m"
-            class="w-full sm:w-auto"
-            (click)="deleteAccount(deleteDialog)"
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Tools & Management -->
+          <div
+            class="flex flex-col gap-4 p-5 rounded-2xl bg-[var(--tui-base-02)] border border-[var(--tui-border-normal)]"
           >
-            {{ 'profile.deleteAccount.button' | translate }}
-          </button>
+            <h3
+              class="text-base font-semibold flex items-center gap-2 m-0 text-[var(--tui-text-secondary)]"
+            >
+              <tui-icon icon="@tui.settings" size="s" />
+              {{ 'toolsAndManagement' | translate }}
+            </h3>
 
-          <button
-            tuiButton
-            appearance="secondary"
-            type="button"
-            size="m"
-            class="w-full sm:w-auto"
-            (click)="logout()"
+            <div class="flex flex-col gap-3">
+              @if (model().isPrivate) {
+                <button
+                  tuiButton
+                  appearance="primary"
+                  type="button"
+                  size="m"
+                  class="w-full justify-start group relative"
+                  (click)="openFollowRequestsDialog()"
+                >
+                  <tui-icon
+                    icon="@tui.users"
+                    class="mr-2 group-hover:scale-110 transition-transform"
+                  />
+                  {{ 'followRequests' | translate }}
+                  @if (pendingRequestsCount() > 0) {
+                    <tui-badge class="absolute -top-2 -right-2">{{
+                      pendingRequestsCount()
+                    }}</tui-badge>
+                  }
+                </button>
+              }
+
+              <button
+                tuiButton
+                appearance="outline"
+                type="button"
+                size="m"
+                class="w-full justify-start group"
+                (click)="openPurchaseHistoryDialog()"
+              >
+                <tui-icon
+                  icon="@tui.receipt"
+                  class="mr-2 group-hover:scale-110 transition-transform"
+                />
+                {{ 'purchaseHistory.view' | translate }}
+              </button>
+
+              <button
+                tuiButton
+                appearance="outline"
+                type="button"
+                size="m"
+                class="w-full justify-start group"
+                (click)="openImport8aDialog()"
+              >
+                <tui-icon
+                  icon="@tui.download"
+                  class="mr-2 group-hover:scale-110 transition-transform"
+                />
+                {{ 'import8a.button' | translate }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Session & Security -->
+          <div
+            class="flex flex-col gap-4 p-5 rounded-2xl bg-[var(--tui-base-02)] border border-[var(--tui-border-normal)]"
           >
-            {{ 'auth.logout' | translate }}
-          </button>
+            <h3
+              class="text-base font-semibold flex items-center gap-2 m-0 text-[var(--tui-text-secondary)]"
+            >
+              <tui-icon icon="@tui.shield" size="s" />
+              {{ 'securityAndSession' | translate }}
+            </h3>
+
+            <div class="flex flex-col gap-3">
+              <button
+                tuiButton
+                appearance="secondary"
+                type="button"
+                size="m"
+                class="w-full justify-start group"
+                (click)="logout()"
+              >
+                <tui-icon
+                  icon="@tui.log-out"
+                  class="mr-2 group-hover:scale-110 transition-transform"
+                />
+                {{ 'auth.logout' | translate }}
+              </button>
+
+              <button
+                tuiButton
+                appearance="flat-destructive"
+                type="button"
+                size="m"
+                class="w-full justify-start group"
+                (click)="deleteAccount(deleteDialog)"
+              >
+                <tui-icon
+                  icon="@tui.trash"
+                  class="mr-2 group-hover:scale-110 transition-transform"
+                />
+                {{ 'profile.deleteAccount.button' | translate }}
+              </button>
+            </div>
+          </div>
         </div>
       </section>
     </tui-scrollbar>
@@ -858,8 +928,8 @@ interface Country {
         (next)="tourService.next()"
         (skip)="tourService.finish()"
         [disabled]="
-          profileForm.name().invalid() ||
-          profileForm.name().value() === userEmail()
+          profileForm.fullName().invalid() ||
+          profileForm.fullName().value() === userEmail()
         "
         [showSkip]="false"
       />
@@ -875,6 +945,8 @@ export class UserProfileConfigComponent {
   protected readonly TourStep = TourStep;
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
+  protected readonly followRequestsService = inject(FollowRequestsService);
+  readonly router = inject(Router);
   private readonly location = inject(Location);
   private readonly dialogs = inject(TuiDialogService);
 
@@ -951,7 +1023,7 @@ export class UserProfileConfigComponent {
   });
 
   protected readonly model = signal({
-    name: '',
+    fullName: '',
     bio: '',
     language: Languages.ES as Language,
     theme: Themes.LIGHT as Theme,
@@ -971,9 +1043,9 @@ export class UserProfileConfigComponent {
   });
 
   protected readonly profileForm = form(this.model, (schemaPath) => {
-    required(schemaPath.name, { message: 'profile.name.required' });
-    minLength(schemaPath.name, 3, { message: 'profile.name.length' });
-    maxLength(schemaPath.name, 50, { message: 'profile.name.length' });
+    required(schemaPath.fullName, { message: 'profile.name.required' });
+    minLength(schemaPath.fullName, 3, { message: 'profile.name.length' });
+    maxLength(schemaPath.fullName, 50, { message: 'profile.name.length' });
 
     maxLength(schemaPath.bio, 50, { message: 'profile.bio.tooLong' });
     maxLength(schemaPath.city, 100, { message: 'profile.city.tooLong' });
@@ -1044,7 +1116,7 @@ export class UserProfileConfigComponent {
     { initialValue: [] as Country[] },
   );
   protected readonly countryIds = computed(() =>
-    this.countries().map((c) => c.id),
+    (this.countries() || []).map((c) => c.id),
   );
   protected readonly years = Array.from(
     { length: new Date().getFullYear() - 1900 + 1 },
@@ -1052,7 +1124,7 @@ export class UserProfileConfigComponent {
   );
   protected readonly countryDictionary = computed(() => {
     const dict: Record<string, string> = {};
-    this.countries().forEach((c) => (dict[c.id] = c.name));
+    (this.countries() || []).forEach((c) => (dict[c.id] = c.name));
     return dict;
   });
   stringifyCountryId = (id: string | null): string =>
@@ -1062,6 +1134,20 @@ export class UserProfileConfigComponent {
 
   stringifyEightAnuUser = (user: EightAnuUser | null): string =>
     user?.userName || '';
+
+  // ----- Data -----
+
+  protected readonly pendingRequestsCountResource = resource({
+    params: () => this.followRequestsService.requestsChange(),
+    loader: async () => {
+      if (!isPlatformBrowser(this.platformId)) return 0;
+      return await this.followRequestsService.getIncomingRequestsCount();
+    },
+  });
+
+  protected readonly pendingRequestsCount = computed(
+    () => this.pendingRequestsCountResource.value() ?? 0,
+  );
 
   constructor() {
     effect(() => {
@@ -1139,7 +1225,7 @@ export class UserProfileConfigComponent {
     }
 
     this.model.set({
-      name: name === this.userEmail() && profile.first_steps ? '' : name,
+      fullName: name === this.userEmail() && profile.first_steps ? '' : name,
       bio: profile.bio || '',
       language: (profile.language as Language) || Languages.ES,
       theme: (profile.theme as Theme) || Themes.LIGHT,
@@ -1221,8 +1307,8 @@ export class UserProfileConfigComponent {
   }
 
   async saveName(): Promise<void> {
-    await this.saveField('name', this.profileForm.name(), {
-      transform: (v) => (v || '').trim(),
+    await this.saveField('name', this.profileForm.fullName(), {
+      transform: (v: string | null) => (v || '').trim(),
       validate: (v) => {
         if (!v) return 'profile.name.required';
         if (v.length < 3 || v.length > 50) return 'profile.name.length';
@@ -1234,7 +1320,7 @@ export class UserProfileConfigComponent {
 
   async saveBio(): Promise<void> {
     await this.saveField('bio', this.profileForm.bio(), {
-      transform: (v) => (v || '').trim(),
+      transform: (v: string | null) => (v || '').trim(),
       errorMessage: 'profile.bio.tooLong',
       errorType: 'info',
     });
@@ -1351,7 +1437,7 @@ export class UserProfileConfigComponent {
       'error';
 
     // Map Signal Forms error keys to our translation keys
-    if (fieldName === 'name') {
+    if (fieldName === 'fullName') {
       if (key === 'required')
         return this.translate.instant('profile.name.required');
       if (key === 'minLength' || key === 'maxLength')
@@ -1582,6 +1668,18 @@ export class UserProfileConfigComponent {
         size: 'm',
       })
       .subscribe();
+  }
+
+  protected openFollowRequestsDialog(): void {
+    void firstValueFrom(
+      this.dialogs.open(
+        new PolymorpheusComponent(FollowRequestsDialogComponent),
+        {
+          label: this.translate.instant('followRequests'),
+          size: 'm',
+        },
+      ),
+    );
   }
 
   openPurchaseHistoryDialog(): void {

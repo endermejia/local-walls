@@ -6,7 +6,11 @@ import { TableInsert, TableRow, TableUpdate } from './supabase-interfaces';
 export type AreaDto = TableRow<'areas'>;
 export type AreaInsertDto = TableInsert<'areas'>;
 export type AreaUpdateDto = TableUpdate<'areas'>;
-export interface AreaListItem extends Omit<Database['public']['Functions']['get_areas_list']['Returns'][number], 'grades'> {
+export interface AreaListItem
+  extends Omit<
+    Database['public']['Functions']['get_areas_list']['Returns'][number],
+    'grades'
+  > {
   grades: AmountByEveryGrade;
   topos_count: number;
 }

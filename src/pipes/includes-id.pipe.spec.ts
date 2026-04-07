@@ -80,7 +80,14 @@ describe('IncludesIdPipe', () => {
     });
 
     it('should handle array with mixed types gracefully', () => {
-      const items = [{ id: '1' }, 2, '3', null, undefined, { id: undefined as unknown as string }] as ({ id?: string | number } | number | string | null | undefined)[];
+      const items = [
+        { id: '1' },
+        2,
+        '3',
+        null,
+        undefined,
+        { id: undefined as unknown as string },
+      ] as ({ id?: string | number } | number | string | null | undefined)[];
       expect(pipe.transform(items, '1')).toBeTrue();
       expect(pipe.transform(items, 2)).toBeTrue();
       expect(pipe.transform(items, '3')).toBeTrue();
@@ -94,7 +101,13 @@ describe('IncludesIdPipe', () => {
     });
 
     it('should return false if the object does not have an id property', () => {
-      const items = [{ id: undefined as unknown as string }] as ({ id?: string | number } | number | string | null | undefined)[];
+      const items = [{ id: undefined as unknown as string }] as (
+        | { id?: string | number }
+        | number
+        | string
+        | null
+        | undefined
+      )[];
       expect(pipe.transform(items, 'test' as unknown as string)).toBeFalse();
     });
   });

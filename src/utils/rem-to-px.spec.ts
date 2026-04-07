@@ -37,7 +37,9 @@ describe('remToPx', () => {
 
     it('should convert px to integer correctly without checking font size', () => {
       if (typeof window !== 'undefined' && typeof spyOn !== 'undefined') {
-        spyOn(window, 'getComputedStyle').and.returnValue({ fontSize: '20px' } as unknown as CSSStyleDeclaration);
+        spyOn(window, 'getComputedStyle').and.returnValue({
+          fontSize: '20px',
+        } as unknown as CSSStyleDeclaration);
       }
       expect(remToPx('20px')).toBe(20);
       expect(remToPx('20.5px')).toBe(21);
@@ -46,7 +48,9 @@ describe('remToPx', () => {
 
     it('should convert rem to integer using computed font size', () => {
       if (typeof window !== 'undefined' && typeof spyOn !== 'undefined') {
-        spyOn(window, 'getComputedStyle').and.returnValue({ fontSize: '20px' } as unknown as CSSStyleDeclaration);
+        spyOn(window, 'getComputedStyle').and.returnValue({
+          fontSize: '20px',
+        } as unknown as CSSStyleDeclaration);
         expect(remToPx('1rem')).toBe(20);
         expect(remToPx('1.5rem')).toBe(30);
       } else {
@@ -57,7 +61,9 @@ describe('remToPx', () => {
 
     it('should convert rem to integer using fallback base 16px if computed font size is invalid', () => {
       if (typeof window !== 'undefined' && typeof spyOn !== 'undefined') {
-        spyOn(window, 'getComputedStyle').and.returnValue({ fontSize: 'invalid' } as unknown as CSSStyleDeclaration);
+        spyOn(window, 'getComputedStyle').and.returnValue({
+          fontSize: 'invalid',
+        } as unknown as CSSStyleDeclaration);
       }
       expect(remToPx('1rem')).toBe(16);
       expect(remToPx('1.5rem')).toBe(24);
@@ -65,7 +71,9 @@ describe('remToPx', () => {
 
     it('should convert rem to integer using fallback base 16px if computed font size is not returned', () => {
       if (typeof window !== 'undefined' && typeof spyOn !== 'undefined') {
-        spyOn(window, 'getComputedStyle').and.returnValue({} as unknown as CSSStyleDeclaration);
+        spyOn(window, 'getComputedStyle').and.returnValue(
+          {} as unknown as CSSStyleDeclaration,
+        );
       }
       expect(remToPx('1rem')).toBe(16);
       expect(remToPx('1.5rem')).toBe(24);

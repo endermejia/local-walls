@@ -29,12 +29,18 @@ describe('Handle Error Utils', () => {
     });
 
     it('should show unexpected error message for null error', () => {
-      handleErrorToast(null as unknown as { code?: string, message?: string }, toastServiceMock);
+      handleErrorToast(
+        null as unknown as { code?: string; message?: string },
+        toastServiceMock,
+      );
       expect(toastServiceMock.error).toHaveBeenCalledWith('errors.unexpected');
     });
 
     it('should show unexpected error message for undefined error', () => {
-      handleErrorToast(undefined as unknown as { code?: string, message?: string }, toastServiceMock);
+      handleErrorToast(
+        undefined as unknown as { code?: string; message?: string },
+        toastServiceMock,
+      );
       expect(toastServiceMock.error).toHaveBeenCalledWith('errors.unexpected');
     });
   });

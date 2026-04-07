@@ -1,6 +1,5 @@
 import { TopoHasPathPipe, TopoPathPointsPipe } from './topo-path.pipe';
 
-
 describe('TopoPathPointsPipe', () => {
   let pipe: TopoPathPointsPipe;
 
@@ -48,9 +47,7 @@ describe('TopoPathPointsPipe', () => {
   });
 
   it('should ignore points with missing coordinates', () => {
-    expect(pipe.transform('10,20 30, 40')).toEqual([
-      { x: 10, y: 20 },
-    ]);
+    expect(pipe.transform('10,20 30, 40')).toEqual([{ x: 10, y: 20 }]);
   });
 });
 

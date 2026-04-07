@@ -1035,10 +1035,14 @@ export class GlobalData {
                 area_slug: r.crag?.area?.slug,
                 area_name: r.crag?.area?.name,
                 rating,
-                ascent_count: r.ascents?.filter((a: Partial<RouteAscentDto>) => a.type !== AscentTypes.ATTEMPT).length ?? 0,
+                ascent_count:
+                  r.ascents?.filter(
+                    (a: Partial<RouteAscentDto>) =>
+                      a.type !== AscentTypes.ATTEMPT,
+                  ).length ?? 0,
                 climbed:
-                  (r.own_ascent?.filter((a) => a.type !== AscentTypes.ATTEMPT).length ??
-                    0) > 0,
+                  (r.own_ascent?.filter((a) => a.type !== AscentTypes.ATTEMPT)
+                    .length ?? 0) > 0,
                 own_ascent: r.own_ascent?.sort((a, b) => {
                   const isAttemptA = a.type === AscentTypes.ATTEMPT;
                   const isAttemptB = b.type === AscentTypes.ATTEMPT;
@@ -1125,7 +1129,11 @@ export class GlobalData {
               area_slug: crag?.area?.slug,
               area_name: crag?.area?.name,
               rating,
-              ascent_count: ascents?.filter((a: Partial<RouteAscentDto>) => a.type !== AscentTypes.ATTEMPT).length ?? 0,
+              ascent_count:
+                ascents?.filter(
+                  (a: Partial<RouteAscentDto>) =>
+                    a.type !== AscentTypes.ATTEMPT,
+                ).length ?? 0,
             } as RouteWithExtras;
           })
           .filter((r): r is RouteWithExtras => !!r);
@@ -1379,9 +1387,13 @@ export class GlobalData {
           area_name: r.crag?.area?.name,
           area_slug: r.crag?.area?.slug,
           rating,
-          ascent_count: r.ascents?.filter((a: Partial<RouteAscentDto>) => a.type !== AscentTypes.ATTEMPT).length ?? 0,
+          ascent_count:
+            r.ascents?.filter(
+              (a: Partial<RouteAscentDto>) => a.type !== AscentTypes.ATTEMPT,
+            ).length ?? 0,
           climbed:
-            (r.own_ascent?.filter((a) => a.type !== AscentTypes.ATTEMPT).length ?? 0) > 0,
+            (r.own_ascent?.filter((a) => a.type !== AscentTypes.ATTEMPT)
+              .length ?? 0) > 0,
           own_ascent: r.own_ascent?.sort((a, b) => {
             const isAttemptA = a.type === AscentTypes.ATTEMPT;
             const isAttemptB = b.type === AscentTypes.ATTEMPT;

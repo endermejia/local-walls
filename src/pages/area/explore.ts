@@ -548,16 +548,18 @@ export class ExploreComponent {
       return matchesShadeFilter(c, shade);
     };
 
-    return items.filter((item): item is MapCragItem => {
-      const isCrag = (item as MapAreaItem).area_type !== 0;
-      if (!isCrag) return false;
-      const c = item as MapCragItem;
-      return (
-        withinSelectedCategories(c) &&
-        overlapsSelectedGrades(c) &&
-        matchesShade(c)
-      );
-    }).sort((a, b) => (a.liked === b.liked ? 0 : a.liked ? -1 : 1));
+    return items
+      .filter((item): item is MapCragItem => {
+        const isCrag = (item as MapAreaItem).area_type !== 0;
+        if (!isCrag) return false;
+        const c = item as MapCragItem;
+        return (
+          withinSelectedCategories(c) &&
+          overlapsSelectedGrades(c) &&
+          matchesShade(c)
+        );
+      })
+      .sort((a, b) => (a.liked === b.liked ? 0 : a.liked ? -1 : 1));
   });
 
   protected mapAreaItems: Signal<MapAreaItem[]> = computed(() => {
@@ -587,16 +589,18 @@ export class ExploreComponent {
       return matchesShadeFilter(a, shade);
     };
 
-    return items.filter((item): item is MapAreaItem => {
-      const isArea = (item as MapAreaItem).area_type === 0;
-      if (!isArea) return false;
-      const a = item as MapAreaItem;
-      return (
-        withinSelectedCategories(a) &&
-        overlapsSelectedGrades(a) &&
-        matchesShade(a)
-      );
-    }).sort((a, b) => (a.liked === b.liked ? 0 : a.liked ? -1 : 1));
+    return items
+      .filter((item): item is MapAreaItem => {
+        const isArea = (item as MapAreaItem).area_type === 0;
+        if (!isArea) return false;
+        const a = item as MapAreaItem;
+        return (
+          withinSelectedCategories(a) &&
+          overlapsSelectedGrades(a) &&
+          matchesShade(a)
+        );
+      })
+      .sort((a, b) => (a.liked === b.liked ? 0 : a.liked ? -1 : 1));
   });
 
   protected readonly isBottomSheetExpanded: Signal<boolean> = computed(() => {

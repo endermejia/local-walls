@@ -1650,6 +1650,45 @@ export interface Database {
         };
         Relationships: [];
       };
+      follow_requests: {
+        Row: {
+          created_at: string;
+          followed_id: string;
+          follower_id: string;
+          id: number;
+          status: string;
+        };
+        Insert: {
+          created_at?: string;
+          followed_id: string;
+          follower_id: string;
+          id?: number;
+          status?: string;
+        };
+        Update: {
+          created_at?: string;
+          followed_id?: string;
+          follower_id?: string;
+          id?: number;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'follow_requests_followed_id_fkey';
+            columns: ['followed_id'];
+            isOneToOne: false;
+            referencedRelation: 'user_profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'follow_requests_follower_id_fkey';
+            columns: ['follower_id'];
+            isOneToOne: false;
+            referencedRelation: 'user_profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       merchandise_items: {
         Row: {
           active: boolean | null;
@@ -2521,6 +2560,10 @@ export interface Database {
     };
     Views: Record<never, never>;
     Functions: {
+      accept_follow_request: {
+        Args: { p_request_id: number };
+        Returns: undefined;
+      };
       create_chat_room: { Args: { other_user_id: string }; Returns: string };
       get_areas_list: {
         Args: never;
@@ -2600,6 +2643,10 @@ export interface Database {
         Returns: boolean;
       };
       is_user_admin: { Args: { p_uid: string }; Returns: boolean };
+      reject_follow_request: {
+        Args: { p_request_id: number };
+        Returns: undefined;
+      };
       toggle_area_like: { Args: { p_area_id: number }; Returns: boolean };
       toggle_comment_like: { Args: { p_comment_id: number }; Returns: boolean };
       toggle_crag_like: { Args: { p_crag_id: number }; Returns: boolean };
@@ -2879,6 +2926,7 @@ export interface Database {
           id: string;
           in_progress_size: number;
           key: string;
+          metadata: Json | null;
           owner_id: string | null;
           upload_signature: string;
           user_metadata: Json | null;
@@ -2890,6 +2938,7 @@ export interface Database {
           id: string;
           in_progress_size?: number;
           key: string;
+          metadata?: Json | null;
           owner_id?: string | null;
           upload_signature: string;
           user_metadata?: Json | null;
@@ -2901,6 +2950,7 @@ export interface Database {
           id?: string;
           in_progress_size?: number;
           key?: string;
+          metadata?: Json | null;
           owner_id?: string | null;
           upload_signature?: string;
           user_metadata?: Json | null;
@@ -3017,6 +3067,14 @@ export interface Database {
     };
     Views: Record<never, never>;
     Functions: {
+      allow_any_operation: {
+        Args: { expected_operations: string[] };
+        Returns: boolean;
+      };
+      allow_only_operation: {
+        Args: { expected_operation: string };
+        Returns: boolean;
+      };
       can_insert_object: {
         Args: { bucketid: string; metadata: Json; name: string; owner: string };
         Returns: undefined;

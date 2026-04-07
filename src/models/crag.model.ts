@@ -5,7 +5,11 @@ import { TableInsert, TableRow, TableUpdate } from './supabase-interfaces';
 import { TopoDto } from './supabase-interfaces';
 import { TopoListItem } from './topo.model';
 
-export interface CragListItem extends Omit<Database['public']['Functions']['get_crags_list_by_area_slug']['Returns'][number], 'grades'> {
+export interface CragListItem
+  extends Omit<
+    Database['public']['Functions']['get_crags_list_by_area_slug']['Returns'][number],
+    'grades'
+  > {
   grades: AmountByEveryGrade;
 }
 
@@ -22,19 +26,21 @@ export interface AdditionalCragData {
   area_id?: number;
 }
 
-export interface CragDetail extends Omit<CragListItem, 'area_id'>, AdditionalCragData {
-    area_id: number;
-    area_name: string;
-    area_slug: string;
-    parkings: ParkingDto[];
-    topos: TopoListItem[];
-    eight_anu_crag_slugs?: string[] | null;
-    eight_anu_sector_slugs?: string[] | null;
-    is_public: boolean;
-    price: number;
-    stripe_account_id: string | null;
-    purchased: boolean;
-  }
+export interface CragDetail
+  extends Omit<CragListItem, 'area_id'>,
+    AdditionalCragData {
+  area_id: number;
+  area_name: string;
+  area_slug: string;
+  parkings: ParkingDto[];
+  topos: TopoListItem[];
+  eight_anu_crag_slugs?: string[] | null;
+  eight_anu_sector_slugs?: string[] | null;
+  is_public: boolean;
+  price: number;
+  stripe_account_id: string | null;
+  purchased: boolean;
+}
 
 // Crags
 export type CragDto = TableRow<'crags'>;
@@ -69,4 +75,4 @@ export interface CragWithJoins extends CragDto {
       })[]
     | null;
   liked: { id: number }[];
-};
+}
