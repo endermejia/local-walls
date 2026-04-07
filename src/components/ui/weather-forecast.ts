@@ -12,7 +12,8 @@ import {
 } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
-import { TuiIcon, TuiScrollbar } from '@taiga-ui/core';
+import { TuiIcon, TuiLoader, TuiScrollbar } from '@taiga-ui/core';
+import { TuiSkeleton } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
 import { filter, switchMap } from 'rxjs';
@@ -30,6 +31,8 @@ import { WeatherService } from '../../services/weather.service';
     TranslatePipe,
     DatePipe,
     DecimalPipe,
+    TuiSkeleton,
+    TuiLoader,
   ],
   template: `
     @if (weather(); as days) {
@@ -132,6 +135,69 @@ import { WeatherService } from '../../services/weather.service';
           </tui-scrollbar>
         }
       </div>
+    } @else {
+      <!-- Skeleton Loading State -->
+      <tui-loader [showLoader]="true" [overlay]="true">
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center gap-2">
+            <div [tuiSkeleton]="true" class="w-4 h-4 rounded-full"></div>
+            <div [tuiSkeleton]="true" class="w-32 h-4 rounded-full"></div>
+          </div>
+
+          <!-- Days Skeleton -->
+          <div class="flex gap-2 overflow-hidden">
+            @for (i of [1, 2, 3, 4, 5, 6, 7]; track i) {
+              <div
+                class="flex flex-col items-center p-3 rounded-2xl border border-[var(--tui-border-normal)] min-w-[70px] bg-[var(--tui-background-base)]"
+              >
+                <div
+                  [tuiSkeleton]="true"
+                  class="w-8 h-2 rounded-full mb-1 opacity-70"
+                ></div>
+                <div
+                  [tuiSkeleton]="true"
+                  class="w-8 h-8 rounded-full my-1"
+                ></div>
+                <div class="flex flex-col items-center gap-1">
+                  <div [tuiSkeleton]="true" class="w-6 h-3 rounded-full"></div>
+                  <div
+                    [tuiSkeleton]="true"
+                    class="w-4 h-2 rounded-full opacity-60"
+                  ></div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Hourly Skeleton -->
+          <div class="flex gap-4 overflow-hidden mt-2">
+            @for (i of hoursSkeleton; track i) {
+              <div class="flex flex-col items-center min-w-[45px] py-1 gap-1">
+                <div
+                  [tuiSkeleton]="true"
+                  class="w-6 h-2 rounded-full opacity-60"
+                ></div>
+                <div
+                  [tuiSkeleton]="true"
+                  class="w-6 h-6 rounded-full my-1"
+                ></div>
+                <div [tuiSkeleton]="true" class="w-4 h-3 rounded-full"></div>
+                <div class="h-[14px] mb-1"></div>
+                <div class="flex flex-col items-center gap-0.5 mt-auto">
+                  <div
+                    [tuiSkeleton]="true"
+                    class="w-4 h-4 rounded-full opacity-70"
+                  ></div>
+                  <div
+                    [tuiSkeleton]="true"
+                    class="w-8 h-2 rounded-full opacity-70"
+                  ></div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </tui-loader>
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -140,6 +206,7 @@ export class WeatherForecastComponent {
   private readonly weatherService = inject(WeatherService);
   protected readonly global = inject(GlobalData);
   protected readonly selectedDayIdx = signal(0);
+  protected readonly hoursSkeleton = Array.from({ length: 24 }, (_, i) => i);
 
   @ViewChild('hourlyScroll', { read: ElementRef })
   hourlyScroll?: ElementRef<HTMLElement>;
