@@ -27,17 +27,10 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 ## Next Steps
 
 - **Seccion merchandising**
-  - Packs de áreas (por ejemplo pack Costa Blanca, que incluya varias áreas de la zona)
-  - Camisetas
-  - Sudaderas
-  - Pegatinas
-  - Magneseras
-  - Gorras
-  - Cepillos
-- **Modificar perfil privado y RLS**
-  - Solicitudes de seguimiento para perfil privado
-  - Controlar que solo se pueda seguir a usuarios con perfil publico
-  - Controlar que no se pueda ver el feed, proyectos, etc de usuarios privados si no los sigues
+  - Packs de áreas
+    - Administrar áreas de un pack
+  - Artículos
+    - Administrar artículos y stock por tallas
 
 ## Future Features
 

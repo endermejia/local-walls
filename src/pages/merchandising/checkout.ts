@@ -9,9 +9,11 @@ import {
   TuiTitle,
   TuiTextfield,
   TuiLabel,
-  TuiTextfieldDropdownDirective,
+  TuiDropdown,
+  TuiIcon,
 } from '@taiga-ui/core';
 import { TuiDataListWrapper, TuiSelect, TuiChevron } from '@taiga-ui/kit';
+import { TuiHeader } from '@taiga-ui/layout';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CartService } from '../../services/cart.service';
 import { CheckoutService } from '../../services/checkout.service';
@@ -32,16 +34,31 @@ import { CheckoutService } from '../../services/checkout.service';
     TuiSelect,
     TuiChevron,
     TuiDataListWrapper,
-    TuiTextfieldDropdownDirective,
+    TuiDropdown,
+    TuiHeader,
+    TuiIcon,
   ],
   template: `
     <tui-scrollbar class="h-full">
       <div class="max-w-4xl mx-auto w-full py-16 px-4 md:px-8">
-        <h1 tuiTitle="l" class="mb-10 text-4xl font-black">
-          {{ 'merchandising.checkout.title' | translate }}
-        </h1>
+        <!-- Sticky Header -->
+        <header
+          tuiHeader
+          class="sticky top-0 z-10 flex items-center gap-4 py-4 mb-4 bg-[var(--tui-background-base)]"
+        >
+          <h1 tuiTitle class="m-0">
+            <button
+              type="button"
+              class="no-underline text-inherit flex items-center gap-2 bg-transparent border-none p-0 cursor-pointer text-left outline-none text-2xl font-black"
+              (click)="goBack()"
+            >
+              <tui-icon icon="@tui.arrow-left" />
+              {{ 'merchandising.checkout.title' | translate }}
+            </button>
+          </h1>
+        </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-12">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-12 mt-6">
           <!-- Shipping Form -->
           <div class="md:col-span-7">
             <form
@@ -127,6 +144,7 @@ import { CheckoutService } from '../../services/checkout.service';
                   />
                   <tui-data-list-wrapper
                     *tuiTextfieldDropdown
+                    new
                     [items]="countries"
                   />
                 </tui-textfield>
@@ -233,13 +251,7 @@ export class CheckoutComponent {
   protected readonly loading = this.checkoutService.loading;
   protected readonly error = this.checkoutService.error;
 
-  protected readonly countries = [
-    'Spain',
-    'France',
-    'Germany',
-    'USA',
-    'United Kingdom',
-  ];
+  protected readonly countries = ['España'];
 
   protected readonly shippingForm = this.fb.group({
     name: ['', [Validators.required]],
@@ -247,12 +259,18 @@ export class CheckoutComponent {
     address: ['', [Validators.required]],
     city: ['', [Validators.required]],
     zip: ['', [Validators.required]],
-    country: ['Spain', [Validators.required]],
+    country: [{ value: 'España', disabled: true }, [Validators.required]],
   });
 
   async onSubmit(): Promise<void> {
     if (this.shippingForm.invalid) return;
 
-    await this.checkoutService.startStripeCheckout(this.shippingForm.value);
+    await this.checkoutService.startStripeCheckout(
+      this.shippingForm.getRawValue(),
+    );
+  }
+
+  goBack(): void {
+    this.router.navigate(['/merchandising']);
   }
 }

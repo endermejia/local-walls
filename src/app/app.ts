@@ -26,6 +26,7 @@ import { GlobalData } from '../services/global-data';
 import { LocalStorage } from '../services/local-storage';
 
 import { NavbarComponent } from '../components/ui/navbar';
+import { CartOverlayComponent } from '../components/cart-overlay/cart-overlay';
 
 import { NotificationService } from '../services/notification.service';
 
@@ -33,6 +34,7 @@ import { NotificationService } from '../services/notification.service';
   selector: 'app-root',
   imports: [
     NavbarComponent,
+    CartOverlayComponent,
     RouterOutlet,
     TranslateModule,
     TuiRoot,
@@ -54,12 +56,24 @@ import { NotificationService } from '../services/notification.service';
           <router-outlet />
         </main>
       </div>
+
+      @if (global.showCart()) {
+        <app-cart-overlay
+          (closeOverlay)="global.showCart.set(false)"
+          (checkout)="onCheckout()"
+        />
+      }
     </tui-root>
   `,
 })
 export class AppComponent {
   protected readonly global = inject(GlobalData);
   protected readonly router = inject(Router);
+
+  protected onCheckout(): void {
+    this.global.showCart.set(false);
+    void this.router.navigate(['/merchandising/checkout']);
+  }
   private title = inject(Title);
   private meta = inject(Meta);
   private translate = inject(TranslateService);

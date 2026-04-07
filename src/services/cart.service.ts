@@ -64,13 +64,24 @@ export class CartService {
     );
 
     if (existing) {
-      this.updateQuantity(
-        product.id,
-        product.type,
-        existing.quantity + 1,
-        product.selectedSize,
-        product.selectedColor,
-      );
+      if (product.type === 'area_pack') {
+        // Toggle behavior for packs: if already in cart, remove it
+        this.removeItem(
+          product.id,
+          product.type,
+          product.selectedSize,
+          product.selectedColor,
+        );
+      } else {
+        // Normal behavior for merchandise: increase quantity
+        this.updateQuantity(
+          product.id,
+          product.type,
+          existing.quantity + 1,
+          product.selectedSize,
+          product.selectedColor,
+        );
+      }
     } else {
       this._items.set([...current, { ...product, quantity: 1 }]);
     }

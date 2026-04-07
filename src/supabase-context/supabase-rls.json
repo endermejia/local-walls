@@ -96,6 +96,30 @@
     "with_check_expression": null
   },
   {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "area_pack_items",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin(auth.uid())"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "area_pack_items",
+    "for_command": "w",
+    "using_expression": "is_user_admin(auth.uid())",
+    "with_check_expression": "is_user_admin(auth.uid())"
+  },
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "area_pack_items",
+    "for_command": "d",
+    "using_expression": "is_user_admin(auth.uid())",
+    "with_check_expression": null
+  },
+  {
     "policy_name": "users_view_own_area_pack_purchases",
     "schema_name": "public",
     "table_name": "area_pack_purchases",
@@ -109,6 +133,30 @@
     "table_name": "area_packs",
     "for_command": "r",
     "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "area_packs",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin(auth.uid())"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "area_packs",
+    "for_command": "w",
+    "using_expression": "is_user_admin(auth.uid())",
+    "with_check_expression": "is_user_admin(auth.uid())"
+  },
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "area_packs",
+    "for_command": "d",
+    "using_expression": "is_user_admin(auth.uid())",
     "with_check_expression": null
   },
   {
@@ -445,6 +493,38 @@
     "table_name": "merchandise_items",
     "for_command": "r",
     "using_expression": "(active = true)",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_view_all",
+    "schema_name": "public",
+    "table_name": "merchandise_items",
+    "for_command": "r",
+    "using_expression": "is_user_admin(auth.uid())",
+    "with_check_expression": null
+  },
+  {
+    "policy_name": "admin_can_insert",
+    "schema_name": "public",
+    "table_name": "merchandise_items",
+    "for_command": "a",
+    "using_expression": null,
+    "with_check_expression": "is_user_admin(auth.uid())"
+  },
+  {
+    "policy_name": "admin_can_update",
+    "schema_name": "public",
+    "table_name": "merchandise_items",
+    "for_command": "w",
+    "using_expression": "is_user_admin(auth.uid())",
+    "with_check_expression": "is_user_admin(auth.uid())"
+  },
+  {
+    "policy_name": "admin_can_delete",
+    "schema_name": "public",
+    "table_name": "merchandise_items",
+    "for_command": "d",
+    "using_expression": "is_user_admin(auth.uid())",
     "with_check_expression": null
   },
   {

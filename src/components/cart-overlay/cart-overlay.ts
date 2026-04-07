@@ -6,7 +6,7 @@ import {
   inject,
   Output,
 } from '@angular/core';
-import { TuiButton, TuiIcon, TuiScrollbar, TuiTitle } from '@taiga-ui/core';
+import { TuiButton, TuiIcon, TuiScrollbar } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CartService } from '../../services/cart.service';
@@ -20,7 +20,6 @@ import type { CartProduct } from '../../models';
     TuiButton,
     TuiIcon,
     TuiScrollbar,
-    TuiTitle,
     TuiBadge,
     TranslatePipe,
   ],
@@ -44,21 +43,23 @@ import type { CartProduct } from '../../models';
         <div
           class="p-6 border-b dark:border-zinc-800 flex items-center justify-between"
         >
-          <h2 tuiTitle="m">
-            {{ 'merchandising.cart.title' | translate }}
-            <tui-badge size="s" appearance="primary" class="ml-2">{{
-              totalItems()
-            }}</tui-badge>
-          </h2>
+          <div class="flex items-center gap-3">
+            <h2 class="text-xl font-black">
+              {{ 'merchandising.cart.title' | translate }}
+            </h2>
+            <tui-badge size="m" appearance="accent">
+              {{ totalItems() }}
+            </tui-badge>
+          </div>
           <button
             tuiIconButton
             type="button"
             appearance="flat"
-            icon="@tui.x"
+            iconStart="@tui.x"
             size="s"
             (click)="closeOverlay.emit()"
           >
-            <span class="tui-sr-only">{{ 'close' | translate }}</span>
+            {{ 'close' | translate }}
           </button>
         </div>
 
@@ -69,7 +70,7 @@ import type { CartProduct } from '../../models';
                 class="flex flex-col items-center justify-center py-20 text-zinc-400"
               >
                 <tui-icon
-                  icon="@tui.shopping-cart"
+                  icon="@tui.shopping-bag"
                   class="text-6xl mb-4 opacity-20"
                 ></tui-icon>
                 <p>{{ 'merchandising.cart.empty' | translate }}</p>
@@ -84,21 +85,29 @@ import type { CartProduct } from '../../models';
                 </button>
               </div>
             } @else {
-              @for (item of items(); track item.id + item.type) {
-                <div class="flex gap-4 group">
+              @for (
+                item of items();
+                track item.id +
+                  item.type +
+                  item.selectedSize +
+                  item.selectedColor
+              ) {
+                <div
+                  class="flex gap-4 group animate-in fade-in slide-in-from-right-4 duration-300"
+                >
                   <div
-                    class="w-20 h-20 bg-zinc-100 dark:bg-zinc-800 rounded-xl overflow-hidden flex-shrink-0"
+                    class="w-20 h-20 bg-zinc-100 dark:bg-zinc-800 rounded-2xl overflow-hidden flex-shrink-0 border border-zinc-100 dark:border-zinc-800"
                   >
                     <img
                       [src]="item.image_url"
                       [alt]="item.name"
-                      class="w-full h-full object-cover"
+                      class="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
                     />
                   </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="flex justify-between items-start">
+                  <div class="flex-1 min-w-0 flex flex-col">
+                    <div class="flex justify-between items-start gap-2">
                       <h3
-                        class="font-semibold text-zinc-900 dark:text-zinc-100 truncate"
+                        class="font-black text-sm text-zinc-900 dark:text-zinc-100 truncate"
                       >
                         {{ item.name }}
                       </h3>
@@ -106,60 +115,93 @@ import type { CartProduct } from '../../models';
                         tuiIconButton
                         type="button"
                         appearance="flat"
-                        icon="@tui.trash"
+                        iconStart="@tui.trash-2"
                         size="xs"
-                        class="opacity-0 group-hover:opacity-100 transition-opacity"
-                        (click)="removeItem(item.id, item.type)"
+                        class="text-zinc-400 hover:text-red-500 transition-colors"
+                        (click)="
+                          removeItem(
+                            item.id,
+                            item.type,
+                            item.selectedSize,
+                            item.selectedColor
+                          )
+                        "
                       >
-                        <span class="tui-sr-only">{{
-                          'delete' | translate
-                        }}</span>
+                        {{ 'delete' | translate }}
                       </button>
                     </div>
-                    <p class="text-xs text-zinc-500 mb-2 capitalize">
-                      {{ item.type }}
-                    </p>
-                    <div class="flex justify-between items-center mt-auto">
+
+                    <div class="flex flex-wrap gap-1.5 mt-1">
+                      @if (item.selectedSize) {
+                        <span
+                          class="text-[9px] font-black bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full uppercase tracking-tighter text-zinc-500 dark:text-zinc-400"
+                        >
+                          {{ 'merchandising.size' | translate }}:
+                          {{ item.selectedSize }}
+                        </span>
+                      }
+                      @if (item.selectedColor) {
+                        <span
+                          class="text-[9px] font-black bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full uppercase tracking-tighter text-zinc-500 dark:text-zinc-400"
+                        >
+                          {{ 'merchandising.color' | translate }}:
+                          {{ item.selectedColor }}
+                        </span>
+                      }
+                    </div>
+                    <div class="flex justify-between items-center mt-auto pt-4">
                       <div class="flex items-center gap-1">
-                        <button
-                          tuiIconButton
-                          type="button"
-                          appearance="flat"
-                          icon="@tui.minus"
-                          size="xs"
-                          [disabled]="item.quantity <= 1"
-                          (click)="
-                            updateQuantity(
-                              item.id,
-                              item.type,
-                              item.quantity - 1
-                            )
-                          "
-                        >
-                          <span class="tui-sr-only">Decrease</span>
-                        </button>
-                        <span class="w-8 text-center text-sm font-medium">{{
-                          item.quantity
-                        }}</span>
-                        <button
-                          tuiIconButton
-                          type="button"
-                          appearance="flat"
-                          icon="@tui.plus"
-                          size="xs"
-                          (click)="
-                            updateQuantity(
-                              item.id,
-                              item.type,
-                              item.quantity + 1
-                            )
-                          "
-                        >
-                          <span class="tui-sr-only">Increase</span>
-                        </button>
+                        @if (item.type !== 'area_pack') {
+                          <button
+                            tuiIconButton
+                            type="button"
+                            appearance="secondary"
+                            size="xs"
+                            [disabled]="item.quantity <= 1"
+                            (click)="
+                              updateQuantity(
+                                item.id,
+                                item.type,
+                                item.quantity - 1,
+                                item.selectedSize,
+                                item.selectedColor
+                              )
+                            "
+                          >
+                            <tui-icon icon="@tui.minus" />
+                            <span class="tui-sr-only">Decrease</span>
+                          </button>
+                          <span class="w-8 text-center font-bold text-sm">{{
+                            item.quantity
+                          }}</span>
+                          <button
+                            tuiIconButton
+                            type="button"
+                            appearance="secondary"
+                            size="xs"
+                            (click)="
+                              updateQuantity(
+                                item.id,
+                                item.type,
+                                item.quantity + 1,
+                                item.selectedSize,
+                                item.selectedColor
+                              )
+                            "
+                          >
+                            <tui-icon icon="@tui.plus" />
+                            <span class="tui-sr-only">Increase</span>
+                          </button>
+                        } @else {
+                          <span
+                            class="px-3 py-1 text-xs font-bold text-zinc-400"
+                          >
+                            {{ item.quantity }}x
+                          </span>
+                        }
                       </div>
                       <span
-                        class="font-bold text-zinc-900 dark:text-zinc-100"
+                        class="font-black text-zinc-900 dark:text-zinc-100 tabular-nums text-sm"
                         >{{
                           item.price * item.quantity | currency: 'EUR'
                         }}</span
@@ -210,15 +252,28 @@ export class CartOverlayComponent {
   protected readonly totalItems = this.cartService.totalItems;
   protected readonly totalPrice = this.cartService.totalPrice;
 
-  removeItem(id: string, type: CartProduct['type']): void {
-    this.cartService.removeItem(id, type);
+  removeItem(
+    id: string,
+    type: CartProduct['type'],
+    selectedSize?: string,
+    selectedColor?: string,
+  ): void {
+    this.cartService.removeItem(id, type, selectedSize, selectedColor);
   }
 
   updateQuantity(
     id: string,
     type: CartProduct['type'],
     quantity: number,
+    selectedSize?: string,
+    selectedColor?: string,
   ): void {
-    this.cartService.updateQuantity(id, type, quantity);
+    this.cartService.updateQuantity(
+      id,
+      type,
+      quantity,
+      selectedSize,
+      selectedColor,
+    );
   }
 }
