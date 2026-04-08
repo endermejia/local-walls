@@ -33,6 +33,8 @@ import {
   TuiInputChip,
   TuiChevron,
   TuiFilterByInputPipe,
+  TuiMultiSelect,
+  TuiCheckbox,
 } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
 import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -73,6 +75,8 @@ interface SimpleArea {
     TuiInputChip,
     TuiChevron,
     TuiFilterByInputPipe,
+    TuiMultiSelect,
+    TuiCheckbox,
     TuiDataList,
     TuiOptGroup,
     TuiCell,
@@ -137,17 +141,14 @@ interface SimpleArea {
           <input
             tuiInputChip
             id="areas"
-            [ngModel]="selectedAreas"
-            (ngModelChange)="onAreasChange($event)"
+            [ngModel]="model().selectedAreas"
+            (ngModelChange)="updateModel('selectedAreas', $event)"
             [disabled]="loadingAreas()"
             [placeholder]="'select' | translate"
           />
           <tui-input-chip *tuiItem />
           <tui-data-list *tuiTextfieldDropdown>
-            <tui-opt-group
-              [label]="'merchandising.packs.areas' | translate"
-              tuiMultiSelectGroup
-            >
+            <tui-opt-group [label]="'areas' | translate" tuiMultiSelectGroup>
               @for (area of allAreas() | tuiFilterByInput; track area.id) {
                 <button type="button" new tuiOption [value]="area">
                   <div tuiCell size="s">
@@ -330,8 +331,6 @@ export class AdminPackDialogComponent implements OnInit {
   readonly loadingAreas = signal(true);
   readonly areaIdsInOtherPacks = signal<Set<number>>(new Set());
 
-  protected selectedAreas: SimpleArea[] = [];
-
   protected readonly photoValue = computed(() => this.model().photoControl);
   protected readonly previewUrl = signal<string | null>(null);
   protected readonly isProcessingPhoto = signal(false);
@@ -344,6 +343,7 @@ export class AdminPackDialogComponent implements OnInit {
     image_url: this.context.data?.image_url || '',
     active: this.context.data?.active ?? true,
     photoControl: null as File | null,
+    selectedAreas: [] as SimpleArea[],
   });
 
   readonly stringifyArea = (item: SimpleArea) => item.name;
@@ -376,11 +376,12 @@ export class AdminPackDialogComponent implements OnInit {
       this.allAreas.set(areas);
 
       if (this.context.data?.items) {
-        this.selectedAreas = this.context.data.items
+        const selected = this.context.data.items
           .map((i: AreaPackDetail['items'][number]) =>
             areas.find((a: SimpleArea) => a.id === i.area_id),
           )
           .filter((a: SimpleArea | undefined): a is SimpleArea => !!a);
+        this.updateModel('selectedAreas', selected);
       }
 
       // Identify areas in other packs
@@ -497,17 +498,13 @@ export class AdminPackDialogComponent implements OnInit {
     }
   }
 
-  onAreasChange(areas: SimpleArea[]) {
-    this.selectedAreas = areas;
-  }
-
   async save() {
     this.isSaving.set(true);
     try {
-      const { photoControl, ...modelData } = this.model();
+      const { photoControl, selectedAreas, ...modelData } = this.model();
       const payload: Partial<AreaPackDetail> = {
         ...modelData,
-        items: this.selectedAreas.map((a) => ({
+        items: selectedAreas.map((a) => ({
           area_id: a.id,
           area: a,
         })) as AreaPackDetail['items'],

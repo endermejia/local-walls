@@ -283,7 +283,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
           />
           <tui-input-chip *tuiItem />
           <tui-data-list *tuiTextfieldDropdown>
-            <tui-opt-group label="Vias" tuiMultiSelectGroup>
+            <tui-opt-group [label]="'routes' | translate" tuiMultiSelectGroup>
               @for (
                 route of availableRoutes() | tuiFilterByInput;
                 track route.id
