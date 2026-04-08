@@ -9,6 +9,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 import { GlobalData } from '../services/global-data';
+import { LocalStorage } from '../services/local-storage';
 import { SupabaseService } from '../services/supabase.service';
 import { ToastService } from '../services/toast.service';
 
@@ -37,6 +38,7 @@ export class RoutesService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly global = inject(GlobalData);
+  private readonly localStorage = inject(LocalStorage);
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
@@ -119,38 +121,53 @@ export class RoutesService {
 
   async getRoutesByAreaSimple(areaId: number): Promise<RouteSimple[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
-    await this.supabase.whenReady();
 
-    let allRoutes: RouteSimple[] = [];
-    let from = 0;
-    const step = 1000;
-    let hasMore = true;
+    const cacheKey = `cached_routes_simple_area_${areaId}`;
+    const cached = this.localStorage.getItem(cacheKey);
 
-    while (hasMore) {
-      const { data, error } = await this.supabase.client
-        .from('routes')
-        .select('id, name, crag_id, crag:crags!inner(name, area_id)')
-        .eq('crag.area_id', areaId)
-        .range(from, from + step - 1);
-
-      if (error) {
-        console.error('[RoutesService] getRoutesByAreaSimple error', error);
-        break;
-      }
-
-      if (data && data.length > 0) {
-        allRoutes = [...allRoutes, ...(data as unknown as RouteSimple[])];
-        if (data.length < step) {
-          hasMore = false;
-        } else {
-          from += step;
-        }
-      } else {
-        hasMore = false;
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch {
+        // Fallback to fetch on parse error
       }
     }
 
-    return allRoutes;
+    try {
+      await this.supabase.whenReady();
+
+      let allRoutes: RouteSimple[] = [];
+      let from = 0;
+      const step = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await this.supabase.client
+          .from('routes')
+          .select('id, name, crag_id, crag:crags!inner(name, area_id)')
+          .eq('crag.area_id', areaId)
+          .range(from, from + step - 1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          allRoutes = [...allRoutes, ...(data as unknown as RouteSimple[])];
+          if (data.length < step) {
+            hasMore = false;
+          } else {
+            from += step;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
+
+      this.localStorage.setItem(cacheKey, JSON.stringify(allRoutes));
+      return allRoutes;
+    } catch (e) {
+      console.warn('[RoutesService] getRoutesByAreaSimple error', e);
+      return [];
+    }
   }
 
   async getRoutesByAreaWithDetails(
@@ -465,29 +482,68 @@ export class RoutesService {
       // 1. Get or create all equippers to get their IDs
       const equipperIds: number[] = [];
 
+      // Extract string equippers to query/create in bulk
+      const stringEquippers = equippers
+        .filter((e): e is string => typeof e === 'string')
+        .map((e) => e.trim());
+
+      const existingEquipperMap = new Map<string, number>();
+
+      if (stringEquippers.length > 0) {
+        // Build an "or" query to find exact matches case-insensitively
+        // e.g. name.ilike.name1,name.ilike.name2
+        // If the list is large, we might need to batch this, but equippers per route is typically a small number.
+        // To be safe with PostgREST syntax for exact ilike matching, we format the query string:
+        const orQuery = stringEquippers
+          .map((name) => `name.ilike.${name.replace(/,/g, '\\,')}`)
+          .join(',');
+
+        const { data: existing, error: existingError } =
+          await this.supabase.client
+            .from('equippers')
+            .select('id, name')
+            .or(orQuery);
+
+        if (existingError) throw existingError;
+
+        if (existing) {
+          for (const eq of existing) {
+            existingEquipperMap.set(eq.name.toLowerCase(), eq.id);
+          }
+        }
+
+        // Determine which equippers need to be created
+        const toCreateNames = Array.from(
+          new Set(
+            stringEquippers.filter(
+              (name) => !existingEquipperMap.has(name.toLowerCase()),
+            ),
+          ),
+        );
+
+        if (toCreateNames.length > 0) {
+          const payloads = toCreateNames.map((name) => ({ name }));
+          const { data: created, error: createError } =
+            await this.supabase.client
+              .from('equippers')
+              .insert(payloads)
+              .select('id, name');
+
+          if (createError) throw createError;
+
+          if (created) {
+            for (const eq of created) {
+              existingEquipperMap.set(eq.name.toLowerCase(), eq.id);
+            }
+          }
+        }
+      }
+
+      // Preserve original order and map everything to IDs
       for (const item of equippers) {
         if (typeof item === 'string') {
-          // Check if it already exists by name (case insensitive)
-          const { data: existing } = await this.supabase.client
-            .from('equippers')
-            .select('id')
-            .ilike('name', item.trim())
-            .maybeSingle();
-
-          if (existing) {
-            equipperIds.push(existing.id);
-          } else {
-            // Create new
-            const { data: created, error: createError } =
-              await this.supabase.client
-                .from('equippers')
-                .insert({ name: item.trim() })
-                .select('id')
-                .single();
-
-            if (createError) throw createError;
-            if (created) equipperIds.push(created.id);
-          }
+          const id = existingEquipperMap.get(item.trim().toLowerCase());
+          if (id !== undefined) equipperIds.push(id);
         } else {
           equipperIds.push(item.id);
         }

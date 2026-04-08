@@ -55,23 +55,36 @@ export function handleWheelZoom(
 
   if (newScale === state.scale()) return;
 
-  const rect = containerEl.getBoundingClientRect();
-  const x = wheelEvent.clientX - rect.left;
-  const y = wheelEvent.clientY - rect.top;
+  const area = containerEl.parentElement as HTMLElement;
+  if (!area) return;
 
-  // Position of the mouse relative to the content's top-left at the current scale
-  const contentMouseX = x - state.translateX();
-  const contentMouseY = y - state.translateY();
+  const containerRect = area.getBoundingClientRect();
+  const restingLeft = containerEl.offsetLeft;
+  const restingTop = containerEl.offsetTop;
 
-  // The normalized position (0 to 1) of the mouse on the content
-  const normalizedX = contentMouseX / state.scale();
-  const normalizedY = contentMouseY / state.scale();
+  // Mouse position relative to the element's top-left at scale 1:
+  const mouseRelX =
+    (wheelEvent.clientX -
+      containerRect.left -
+      restingLeft -
+      state.translateX()) /
+    state.scale();
+  const mouseRelY =
+    (wheelEvent.clientY - containerRect.top - restingTop - state.translateY()) /
+    state.scale();
 
   state.scale.set(newScale);
 
-  // New translation to keep the same normalized point under the mouse
-  state.translateX.set(x - normalizedX * newScale);
-  state.translateY.set(y - normalizedY * newScale);
+  // New translation to keep the same point under the mouse:
+  state.translateX.set(
+    wheelEvent.clientX -
+      containerRect.left -
+      restingLeft -
+      mouseRelX * newScale,
+  );
+  state.translateY.set(
+    wheelEvent.clientY - containerRect.top - restingTop - mouseRelY * newScale,
+  );
 
   callbacks?.afterZoom?.();
 }
@@ -90,28 +103,34 @@ export function constrainTranslation(
 
   if (!areaEl) return;
 
+  const containerEl = areaEl.querySelector(
+    '.zoom-container, .canvas-container',
+  ) as HTMLElement;
+  const restingLeft = containerEl?.offsetLeft ?? 0;
+  const restingTop = containerEl?.offsetTop ?? 0;
+
   const areaRect = areaEl.getBoundingClientRect();
   const scaledWidth = contentWidth * scale;
   const scaledHeight = contentHeight * scale;
 
   // Horizontal constraint
   if (scaledWidth > areaRect.width) {
-    const minX = areaRect.width - scaledWidth;
-    const maxX = 0;
+    const minX = -restingLeft - (scaledWidth - areaRect.width);
+    const maxX = -restingLeft;
     state.translateX.update((x) => Math.min(maxX, Math.max(x, minX)));
   } else {
     // If smaller than area, center it
-    state.translateX.set((areaRect.width - scaledWidth) / 2);
+    state.translateX.set((areaRect.width - scaledWidth) / 2 - restingLeft);
   }
 
   // Vertical constraint
   if (scaledHeight > areaRect.height) {
-    const minY = areaRect.height - scaledHeight;
-    const maxY = 0;
+    const minY = -restingTop - (scaledHeight - areaRect.height);
+    const maxY = -restingTop;
     state.translateY.update((y) => Math.min(maxY, Math.max(y, minY)));
   } else {
     // If smaller than area, center it
-    state.translateY.set((areaRect.height - scaledHeight) / 2);
+    state.translateY.set((areaRect.height - scaledHeight) / 2 - restingTop);
   }
 }
 
@@ -200,9 +219,20 @@ export function setupEditorTouchPanPinch(
     const centerY =
       (touchEvent.touches[0].clientY + touchEvent.touches[1].clientY) / 2;
 
-    const rect = containerEl.getBoundingClientRect();
-    const mouseX = (centerX - rect.left) / startScale;
-    const mouseY = (centerY - rect.top) / startScale;
+    const area = containerEl.parentElement as HTMLElement;
+    const containerRect = area?.getBoundingClientRect();
+    const restingLeft = containerEl.offsetLeft;
+    const restingTop = containerEl.offsetTop;
+
+    const mouseRelX =
+      (centerX -
+        (containerRect?.left ?? 0) -
+        restingLeft -
+        state.translateX()) /
+      startScale;
+    const mouseRelY =
+      (centerY - (containerRect?.top ?? 0) - restingTop - state.translateY()) /
+      startScale;
 
     const onTouchMove = (e: TouchEvent) => {
       if (e.touches.length !== 2) return;
@@ -217,11 +247,14 @@ export function setupEditorTouchPanPinch(
 
       state.scale.set(newScale);
 
-      state.translateX.update(
-        (tx) => centerX - rect.left + tx - mouseX * newScale,
+      state.translateX.set(
+        centerX -
+          (containerRect?.left ?? 0) -
+          restingLeft -
+          mouseRelX * newScale,
       );
-      state.translateY.update(
-        (ty) => centerY - rect.top + ty - mouseY * newScale,
+      state.translateY.set(
+        centerY - (containerRect?.top ?? 0) - restingTop - mouseRelY * newScale,
       );
 
       callbacks?.afterMove?.();

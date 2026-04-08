@@ -403,6 +403,7 @@
   "notFound.imageAlt": "no trobat",
   "notFound.title": "No trobat",
   "notificationSound": "So de notificacions",
+  "pushNotifications": "Notificacions en el dispositiu",
   "notifications": "Notificacions",
   "notifications.andOthers": "altres {{count}}",
   "notifications.commentedAscent": "ha comentat en el teu encadenament a '{{routeName}}'",

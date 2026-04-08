@@ -1280,6 +1280,7 @@ export interface Database {
       };
       area_packs: {
         Row: {
+          active: boolean | null;
           created_at: string | null;
           description: string | null;
           id: string;
@@ -1288,6 +1289,7 @@ export interface Database {
           price: number;
         };
         Insert: {
+          active?: boolean | null;
           created_at?: string | null;
           description?: string | null;
           id?: string;
@@ -1296,6 +1298,7 @@ export interface Database {
           price?: number;
         };
         Update: {
+          active?: boolean | null;
           created_at?: string | null;
           description?: string | null;
           id?: string;
@@ -1945,6 +1948,27 @@ export interface Database {
           longitude?: number;
           name?: string;
           size?: number;
+        };
+        Relationships: [];
+      };
+      push_subscriptions: {
+        Row: {
+          created_at: string | null;
+          id: string;
+          subscription: Json;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          id?: string;
+          subscription: Json;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string | null;
+          id?: string;
+          subscription?: Json;
+          user_id?: string;
         };
         Relationships: [];
       };

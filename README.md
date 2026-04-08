@@ -33,7 +33,8 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
     - Administrar artículos y stock por tallas
     - Las compras deben ser por talla y debe gestionarse el stock
     - Boton ver historial de compras en user-profile-config y en el botón menu del navbar
-    -
+  - Admin
+    - Gestionar pedidos, estado envio, etc
 
 ## Future Features
 
@@ -57,6 +58,8 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
     - Gestion de administradores para los centros
     - Opciones de contabilidad, etc
     - Con el modo editar verá el cog en el navbar para ir a /indoor/admin
+- **Notificaciones en segundo plano**:
+  - Debemos poder recibir notificaciones cuando la app está en segundo plano (por ejemplo, cuando alguien comenta una foto que hemos subido, nos envia un mensaje, etc)
 - **8a.nu Integration**:
   - Copy 8a.nu ascents database.
   - Direct data import using 8a.nu user credentials.

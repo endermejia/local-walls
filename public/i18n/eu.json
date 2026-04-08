@@ -403,6 +403,7 @@
   "notFound.imageAlt": "ez da aurkitu",
   "notFound.title": "Ez da aurkitu",
   "notificationSound": "Notifikazioen soinua",
+  "pushNotifications": "Gailu-jakinarazpenak",
   "notifications": "Notifikazioak",
   "notifications.andOthers": "beste {{count}}",
   "notifications.commentedAscent": "iruzkin bat egin du zure '{{routeName}}' bideko igoeran",
