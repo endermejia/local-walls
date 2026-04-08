@@ -1041,14 +1041,10 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
         await this.topos.bulkUpdateRoutePaths(topoId, pathsToUpdate, false);
       }
 
-      for (const tr of this.topoRoutes) {
-        await this.topos.updateRouteOrder(
-          topoId,
-          tr.route_id,
-          tr.number,
-          false,
-        );
-      }
+      const updatePromises = this.topoRoutes.map((tr) =>
+        this.topos.updateRouteOrder(topoId, tr.route_id, tr.number, false),
+      );
+      await Promise.all(updatePromises);
 
       this.global.topoDetailResource.reload();
       this.toast.success('messages.toasts.pathsSaved');
