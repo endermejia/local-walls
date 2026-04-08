@@ -11,7 +11,6 @@ export type AreaPackPurchase =
   Database['public']['Tables']['area_pack_purchases']['Row'];
 
 export interface AreaPackDetail extends AreaPack {
-  active?: boolean;
   items: {
     area_id: number;
     area: {

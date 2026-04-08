@@ -64,7 +64,10 @@ export function handleWheelZoom(
 
   // Mouse position relative to the element's top-left at scale 1:
   const mouseRelX =
-    (wheelEvent.clientX - containerRect.left - restingLeft - state.translateX()) /
+    (wheelEvent.clientX -
+      containerRect.left -
+      restingLeft -
+      state.translateX()) /
     state.scale();
   const mouseRelY =
     (wheelEvent.clientY - containerRect.top - restingTop - state.translateY()) /
@@ -74,7 +77,10 @@ export function handleWheelZoom(
 
   // New translation to keep the same point under the mouse:
   state.translateX.set(
-    wheelEvent.clientX - containerRect.left - restingLeft - mouseRelX * newScale,
+    wheelEvent.clientX -
+      containerRect.left -
+      restingLeft -
+      mouseRelX * newScale,
   );
   state.translateY.set(
     wheelEvent.clientY - containerRect.top - restingTop - mouseRelY * newScale,
@@ -219,7 +225,10 @@ export function setupEditorTouchPanPinch(
     const restingTop = containerEl.offsetTop;
 
     const mouseRelX =
-      (centerX - (containerRect?.left ?? 0) - restingLeft - state.translateX()) /
+      (centerX -
+        (containerRect?.left ?? 0) -
+        restingLeft -
+        state.translateX()) /
       startScale;
     const mouseRelY =
       (centerY - (containerRect?.top ?? 0) - restingTop - state.translateY()) /
@@ -245,10 +254,7 @@ export function setupEditorTouchPanPinch(
           mouseRelX * newScale,
       );
       state.translateY.set(
-        centerY -
-          (containerRect?.top ?? 0) -
-          restingTop -
-          mouseRelY * newScale,
+        centerY - (containerRect?.top ?? 0) - restingTop - mouseRelY * newScale,
       );
 
       callbacks?.afterMove?.();

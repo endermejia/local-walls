@@ -112,6 +112,7 @@ import { FirstStepsDialogComponent } from '../../components/dialogs/first-steps-
 import { PurchaseHistoryDialogComponent } from '../../components/dialogs/purchase-history-dialog';
 import { FollowRequestsDialogComponent } from '../../components/dialogs/follow-requests-dialog';
 import { FollowRequestsService } from '../../services/follow-requests.service';
+import { PushService } from '../../services/push.service';
 
 interface Country {
   id: string;
@@ -658,6 +659,24 @@ interface Country {
               />
             </div>
 
+            <div
+              class="flex items-center gap-4"
+              [class.opacity-50]="!push.isSupported()"
+            >
+              <label tuiLabel for="pushNotifSwitch">{{
+                'pushNotifications' | translate
+              }}</label>
+              <input
+                id="pushNotifSwitch"
+                tuiSwitch
+                type="checkbox"
+                [disabled]="!push.isSupported()"
+                [ngModel]="push.isSubscribed()"
+                (ngModelChange)="onPushNotificationsChange($event)"
+                autocomplete="off"
+              />
+            </div>
+
             <div class="flex items-center gap-4">
               <label tuiLabel for="privateSwitch">{{
                 'privateProfile' | translate
@@ -940,6 +959,7 @@ export class UserProfileConfigComponent {
   protected readonly global = inject(GlobalData);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
+  protected readonly push = inject(PushService);
   private readonly userProfilesService = inject(UserProfilesService);
   protected readonly tourService = inject(TourService);
   protected readonly TourStep = TourStep;
@@ -1580,6 +1600,24 @@ export class UserProfileConfigComponent {
     this.updateModel('notificationSound', enabled);
     await this.updateProfile({ notification_sound: enabled });
     this.global.notificationSoundEnabled.set(enabled);
+  }
+
+  async onPushNotificationsChange(enabled: boolean): Promise<void> {
+    if (enabled) {
+      try {
+        await this.push.subscribe();
+      } catch (e) {
+        console.error('Error enabling push:', e);
+        this.toast.error('errors.unexpected');
+      }
+    } else {
+      try {
+        await this.push.unsubscribe();
+      } catch (e) {
+        console.error('Error disabling push:', e);
+        this.toast.error('errors.unexpected');
+      }
+    }
   }
 
   async onEditingModeChange(enabled: boolean): Promise<void> {
