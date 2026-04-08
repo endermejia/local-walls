@@ -96,18 +96,33 @@ import type { CartProduct } from '../../models';
                   class="flex gap-4 group animate-in fade-in slide-in-from-right-4 duration-300"
                 >
                   <div
-                    class="w-20 h-20 bg-zinc-100 dark:bg-zinc-800 rounded-2xl overflow-hidden flex-shrink-0 border border-zinc-100 dark:border-zinc-800"
+                    class="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 border border-[var(--tui-border-normal)] bg-[var(--tui-background-neutral-1)]"
                   >
-                    <img
-                      [src]="item.image_url"
-                      [alt]="item.name"
-                      class="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
-                    />
+                    @if (item.image_url) {
+                      <img
+                        [src]="item.image_url"
+                        [alt]="item.name"
+                        class="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
+                      />
+                    } @else {
+                      <div
+                        class="w-full h-full flex items-center justify-center p-4"
+                      >
+                        <tui-icon
+                          [icon]="
+                            item.type === 'merchandise'
+                              ? '@tui.shirt'
+                              : '@tui.map'
+                          "
+                          class="text-3xl opacity-50 text-[var(--tui-text-secondary)]"
+                        />
+                      </div>
+                    }
                   </div>
                   <div class="flex-1 min-w-0 flex flex-col">
                     <div class="flex justify-between items-start gap-2">
                       <h3
-                        class="font-black text-sm text-zinc-900 dark:text-zinc-100 truncate"
+                        class="font-black text-sm truncate text-[var(--tui-text-primary)]"
                       >
                         {{ item.name }}
                       </h3>
@@ -117,7 +132,7 @@ import type { CartProduct } from '../../models';
                         appearance="flat"
                         iconStart="@tui.trash-2"
                         size="xs"
-                        class="text-zinc-400 hover:text-red-500 transition-colors"
+                        class="text-[var(--tui-text-tertiary)] hover:text-[var(--tui-status-negative)] transition-colors"
                         (click)="
                           removeItem(
                             item.id,

@@ -185,7 +185,9 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                     <img
                       [src]="pack.image_url"
                       [alt]="pack.name"
-                      class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-1000"
+                      [class.grayscale]="pack.active === false"
+                      [class.opacity-50]="pack.active === false"
+                      class="w-full h-full object-cover group-hover:scale-105 transition-all duration-1000"
                     />
 
                     <div
@@ -203,17 +205,23 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                     </div>
 
                     @if (isAdmin() && global.editingMode()) {
-                      <div class="absolute top-4 left-4">
+                      <div class="absolute top-4 left-4 flex flex-col gap-2">
                         <button
                           tuiIconButton
                           appearance="glass"
                           size="s"
                           type="button"
-                          class="!rounded-xl backdrop-blur-md bg-white/20 border border-white/30 text-white"
+                          class="!rounded-xl backdrop-blur-md bg-[var(--tui-background-accent-opposite-pressed)] border border-[var(--tui-border-normal)] text-[var(--tui-background-base)]"
                           (click)="editPack(pack); $event.stopPropagation()"
                         >
                           <tui-icon icon="@tui.pencil" />
                         </button>
+
+                        @if (pack.active === false) {
+                          <tui-badge>
+                            {{ 'merchandising.items.inactive' | translate }}
+                          </tui-badge>
+                        }
                       </div>
                     }
                   </div>
@@ -322,7 +330,9 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                       <img
                         [src]="item.image_url"
                         [alt]="item.name"
-                        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        [class.grayscale]="item.active === false"
+                        [class.opacity-50]="item.active === false"
+                        class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
                       />
                     } @else {
                       <div
@@ -353,18 +363,14 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                           appearance="glass"
                           size="s"
                           type="button"
-                          class="!rounded-xl backdrop-blur-md bg-white/20 border border-white/30 text-white"
+                          class="!rounded-xl backdrop-blur-md bg-[var(--tui-background-accent-opposite-pressed)] border border-[var(--tui-border-normal)] text-[var(--tui-background-base)]"
                           (click)="editItem(item); $event.stopPropagation()"
                         >
                           <tui-icon icon="@tui.pencil" />
                         </button>
 
                         @if (item.active === false) {
-                          <tui-badge
-                            appearance="warning"
-                            size="s"
-                            class="font-black !rounded-xl border border-white/20"
-                          >
+                          <tui-badge>
                             {{ 'merchandising.items.inactive' | translate }}
                           </tui-badge>
                         }
@@ -433,8 +439,14 @@ export class MerchandisingComponent {
       this.merchService.getMerchandiseItems(params.onlyActive),
   });
 
-  protected readonly packsResource = resource<AreaPackDetail[], unknown>({
-    loader: () => this.merchService.getAreaPacks(),
+  protected readonly packsResource = resource<
+    AreaPackDetail[],
+    { onlyActive: boolean }
+  >({
+    params: () => ({
+      onlyActive: !(this.isAdmin() && this.global.editingMode()),
+    }),
+    loader: ({ params }) => this.merchService.getAreaPacks(params.onlyActive),
   });
 
   protected readonly items = computed<MerchandiseItem[]>(

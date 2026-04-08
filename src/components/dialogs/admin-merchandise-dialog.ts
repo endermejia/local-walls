@@ -101,7 +101,7 @@ const MERCHANDISE_CATEGORIES = [
           <input
             id="category-select"
             tuiSelect
-            placeholder="Select category"
+            [placeholder]="'merchandising.packs.selectCategory' | translate"
             [ngModel]="model().category"
             (ngModelChange)="updateModel('category', $event)"
             name="category"
@@ -518,19 +518,29 @@ export class AdminMerchandiseDialogComponent {
         if (url) {
           payload.image_url = url;
         } else {
-          throw new Error('Failed to upload image');
+          throw new Error(
+            this.translate.instant('merchandising.items.uploadError'),
+          );
         }
       }
 
       const result = await this.merchService.upsertMerchandiseItem(payload);
       if (result) {
-        this.toast.success('Item saved successfully');
+        this.toast.success(
+          this.translate.instant('merchandising.items.saveSuccess'),
+        );
         this.context.completeWith(result);
       } else {
-        this.toast.error('Failed to save item');
+        this.toast.error(
+          this.translate.instant('merchandising.items.saveError'),
+        );
       }
     } catch (e) {
-      this.toast.error(e instanceof Error ? e.message : 'An error occurred');
+      this.toast.error(
+        e instanceof Error
+          ? e.message
+          : this.translate.instant('errors.unexpected'),
+      );
     } finally {
       this.isSaving.set(false);
       this.isUploading.set(false);

@@ -28,6 +28,7 @@ export class CartService {
   );
 
   private readonly CART_STORAGE_KEY = 'climbeast_cart';
+  private _syncedUserId: string | null = null;
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
@@ -44,24 +45,22 @@ export class CartService {
       }
     });
 
-    // Optional: Sync with Supabase if logged in
+    // Sync with Supabase only once per unique user session (not on every auth event)
     effect(() => {
-      const user = this.supabase.authUser();
-      if (user) {
+      const userId = this.supabase.authUserId();
+      if (userId && userId !== this._syncedUserId) {
+        this._syncedUserId = userId;
         this.syncWithSupabase();
+      } else if (!userId && this._syncedUserId) {
+        // User logged out: reset flag
+        this._syncedUserId = null;
       }
     });
   }
 
   addItem(product: Omit<CartProduct, 'quantity'>): void {
     const current = this._items();
-    const existing = current.find(
-      (i) =>
-        i.id === product.id &&
-        i.type === product.type &&
-        i.selectedSize === product.selectedSize &&
-        i.selectedColor === product.selectedColor,
-    );
+    const existing = current.find((i) => this.itemsMatch(i, product));
 
     if (existing) {
       if (product.type === 'area_pack') {
@@ -74,6 +73,7 @@ export class CartService {
         );
       } else {
         // Normal behavior for merchandise: increase quantity
+        // updateQuantity handles DB persistence internally
         this.updateQuantity(
           product.id,
           product.type,
@@ -83,18 +83,19 @@ export class CartService {
         );
       }
     } else {
+      // New item: add to local state and persist to DB
       this._items.set([...current, { ...product, quantity: 1 }]);
-    }
 
-    const userId = this.supabase.authUserId();
-    if (userId) {
-      this.saveToSupabase(
-        product.id,
-        product.type,
-        existing ? existing.quantity + 1 : 1,
-        product.selectedSize,
-        product.selectedColor,
-      );
+      const userId = this.supabase.authUserId();
+      if (userId) {
+        this.saveToSupabase(
+          product.id,
+          product.type,
+          1,
+          product.selectedSize,
+          product.selectedColor,
+        );
+      }
     }
   }
 
@@ -106,13 +107,7 @@ export class CartService {
   ): void {
     this._items.update((items) =>
       items.filter(
-        (i) =>
-          !(
-            i.id === id &&
-            i.type === type &&
-            i.selectedSize === selectedSize &&
-            i.selectedColor === selectedColor
-          ),
+        (i) => !this.itemsMatch(i, { id, type, selectedSize, selectedColor }),
       ),
     );
 
@@ -136,10 +131,7 @@ export class CartService {
 
     this._items.update((items) =>
       items.map((i) =>
-        i.id === id &&
-        i.type === type &&
-        i.selectedSize === selectedSize &&
-        i.selectedColor === selectedColor
+        this.itemsMatch(i, { id, type, selectedSize, selectedColor })
           ? { ...i, quantity }
           : i,
       ),
@@ -180,12 +172,88 @@ export class CartService {
       return;
     }
 
-    // Merge logic could be complex, for now we let localStorage win if it has items,
-    // or take Supabase if localStorage is empty.
-    if (data && data.length > 0 && this._items().length === 0) {
-      // We need to fetch product details to reconstruct CartProduct
-      // This is a bit complex without a unified product view.
-      // For now, let's keep it simple and just use the DB to store IDs.
+    if (data && data.length > 0) {
+      const dbItems: CartProduct[] = [];
+
+      // Fetch details for each item type to reconstruct full CartProduct
+      for (const row of data) {
+        let itemDetail: CartProduct | null = null;
+        if (row.item_type === 'merchandise') {
+          const { data: item } = await this.supabase.client
+            .from('merchandise_items')
+            .select('id, name, price, image_url')
+            .eq('id', row.item_id)
+            .maybeSingle();
+
+          if (item) {
+            itemDetail = {
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              image_url: item.image_url,
+              type: 'merchandise',
+              quantity: row.quantity ?? 1,
+              selectedSize: row.selected_size ?? undefined,
+              selectedColor: row.selected_color ?? undefined,
+            };
+          }
+        } else if (row.item_type === 'area_pack') {
+          const { data: pack } = await this.supabase.client
+            .from('area_packs')
+            .select('id, name, price, image_url')
+            .eq('id', row.item_id)
+            .maybeSingle();
+
+          if (pack) {
+            itemDetail = {
+              id: pack.id,
+              name: pack.name,
+              price: pack.price,
+              image_url: pack.image_url,
+              type: 'area_pack',
+              quantity: row.quantity ?? 1,
+            };
+          }
+        } else if (row.item_type === 'area') {
+          const { data: area } = await this.supabase.client
+            .from('areas')
+            .select('id, name, price')
+            .eq('id', parseInt(row.item_id))
+            .maybeSingle();
+
+          if (area) {
+            itemDetail = {
+              id: area.id.toString(),
+              numericId: area.id,
+              name: area.name,
+              price: area.price ?? 0,
+              image_url: null,
+              type: 'area',
+              quantity: row.quantity ?? 1,
+            };
+          }
+        }
+
+        if (itemDetail) {
+          // Deduplicate: if the DB somehow has duplicate rows, merge them
+          const existing = dbItems.find((i) => this.itemsMatch(i, itemDetail!));
+          if (existing) {
+            // Keep the higher quantity (shouldn't happen with delete+insert, but safe)
+            existing.quantity = Math.max(
+              existing.quantity,
+              itemDetail.quantity,
+            );
+          } else {
+            dbItems.push(itemDetail);
+          }
+        }
+      }
+
+      // DB is the single source of truth: replace local state entirely
+      this._items.set(dbItems);
+    } else {
+      // No items in DB: clear local cart to stay in sync
+      this._items.set([]);
     }
   }
 
@@ -199,18 +267,37 @@ export class CartService {
     const userId = this.supabase.authUserId();
     if (!userId) return;
 
-    await this.supabase.client.from('cart_items').upsert(
-      {
-        user_id: userId,
-        item_id: id,
-        item_type: type,
-        quantity,
-        selected_size: selectedSize,
-        selected_color: selectedColor,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'user_id,item_type,item_id,selected_size,selected_color' },
-    );
+    // Upsert with NULL columns is unreliable in Postgres without NULLS NOT DISTINCT.
+    // Use delete+insert to guarantee no duplicates.
+    let deleteQuery = this.supabase.client
+      .from('cart_items')
+      .delete()
+      .eq('user_id', userId)
+      .eq('item_id', id)
+      .eq('item_type', type);
+
+    if (selectedSize) {
+      deleteQuery = deleteQuery.eq('selected_size', selectedSize);
+    } else {
+      deleteQuery = deleteQuery.is('selected_size', null);
+    }
+    if (selectedColor) {
+      deleteQuery = deleteQuery.eq('selected_color', selectedColor);
+    } else {
+      deleteQuery = deleteQuery.is('selected_color', null);
+    }
+
+    await deleteQuery;
+
+    await this.supabase.client.from('cart_items').insert({
+      user_id: userId,
+      item_id: id,
+      item_type: type,
+      quantity,
+      selected_size: selectedSize ?? null,
+      selected_color: selectedColor ?? null,
+      updated_at: new Date().toISOString(),
+    });
   }
 
   private async removeFromSupabase(
@@ -222,13 +309,27 @@ export class CartService {
     const userId = this.supabase.authUserId();
     if (!userId) return;
 
-    await this.supabase.client.from('cart_items').delete().match({
-      user_id: userId,
-      item_id: id,
-      item_type: type,
-      selected_size: selectedSize,
-      selected_color: selectedColor,
-    });
+    // .match() with undefined doesn't match NULL in Postgres, so build query explicitly
+    let query = this.supabase.client
+      .from('cart_items')
+      .delete()
+      .eq('user_id', userId)
+      .eq('item_id', id)
+      .eq('item_type', type);
+
+    if (selectedSize) {
+      query = query.eq('selected_size', selectedSize);
+    } else {
+      query = query.is('selected_size', null);
+    }
+
+    if (selectedColor) {
+      query = query.eq('selected_color', selectedColor);
+    } else {
+      query = query.is('selected_color', null);
+    }
+
+    await query;
   }
 
   private async clearSupabase(): Promise<void> {
@@ -239,5 +340,17 @@ export class CartService {
       .from('cart_items')
       .delete()
       .eq('user_id', userId);
+  }
+
+  private itemsMatch(
+    a: Pick<CartProduct, 'id' | 'type' | 'selectedSize' | 'selectedColor'>,
+    b: Pick<CartProduct, 'id' | 'type' | 'selectedSize' | 'selectedColor'>,
+  ): boolean {
+    return (
+      a.id === b.id &&
+      a.type === b.type &&
+      (a.selectedSize || undefined) === (b.selectedSize || undefined) &&
+      (a.selectedColor || undefined) === (b.selectedColor || undefined)
+    );
   }
 }

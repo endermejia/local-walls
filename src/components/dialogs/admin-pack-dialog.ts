@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TuiIdentityMatcher, tuiIsString } from '@taiga-ui/cdk';
 import {
   TuiButton,
   TuiLabel,
@@ -16,17 +17,24 @@ import {
   TuiIcon,
   TuiDialogService,
   TuiLoader,
+  TuiDataList,
+  TuiOptGroup,
+  TuiTitle,
+  TuiHint,
 } from '@taiga-ui/core';
 import {
   TuiInputNumber,
   TuiTextarea,
-  TuiMultiSelect,
-  TuiDataListWrapper,
   TuiFiles,
   TuiInputFiles,
   TuiFileRejectedPipe,
+  TuiSwitch,
   TUI_CONFIRM,
+  TuiInputChip,
+  TuiChevron,
+  TuiFilterByInputPipe,
 } from '@taiga-ui/kit';
+import { TuiCell } from '@taiga-ui/layout';
 import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext } from '@taiga-ui/experimental';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -56,13 +64,20 @@ interface SimpleArea {
     TuiTextfield,
     TuiInputNumber,
     TuiTextarea,
-    TuiMultiSelect,
-    TuiDataListWrapper,
     TuiIcon,
     TuiFiles,
     TuiInputFiles,
     TuiFileRejectedPipe,
     TuiLoader,
+    TuiSwitch,
+    TuiInputChip,
+    TuiChevron,
+    TuiFilterByInputPipe,
+    TuiDataList,
+    TuiOptGroup,
+    TuiCell,
+    TuiTitle,
+    TuiHint,
   ],
   template: `
     <div class="flex flex-col gap-6">
@@ -107,20 +122,71 @@ interface SimpleArea {
         </tui-textfield>
 
         <!-- Areas Selection -->
-        <tui-textfield class="w-full" [stringify]="stringifyArea">
-          <label tuiLabel for="areas">Areas Included</label>
-          <tui-multi-select
+        <tui-textfield
+          multi
+          tuiChevron
+          class="w-full"
+          [stringify]="stringifyArea"
+          [disabledItemHandler]="strings"
+          [identityMatcher]="areaIdentityMatcher"
+          [tuiTextfieldCleaner]="true"
+        >
+          <label tuiLabel for="areas">{{
+            'merchandising.packs.areas' | translate
+          }}</label>
+          <input
+            tuiInputChip
             id="areas"
             [ngModel]="selectedAreas"
             (ngModelChange)="onAreasChange($event)"
             [disabled]="loadingAreas()"
-          >
-            <tui-data-list-wrapper
-              *tuiTextfieldDropdown
-              [items]="allAreas()"
-            ></tui-data-list-wrapper>
-          </tui-multi-select>
+            [placeholder]="'select' | translate"
+          />
+          <tui-input-chip *tuiItem />
+          <tui-data-list *tuiTextfieldDropdown>
+            <tui-opt-group
+              [label]="'merchandising.packs.areas' | translate"
+              tuiMultiSelectGroup
+            >
+              @for (area of allAreas() | tuiFilterByInput; track area.id) {
+                <button type="button" new tuiOption [value]="area">
+                  <div tuiCell size="s">
+                    <tui-icon icon="@tui.map-pin" class="opacity-30" />
+                    <div tuiTitle>
+                      {{ area.name }}
+                      @if (areaIdsInOtherPacks().has(area.id)) {
+                        <tui-icon
+                          icon="@tui.package"
+                          class="text-xs opacity-50"
+                          style="font-size: 0.85rem"
+                          [tuiHint]="
+                            'merchandising.packs.alreadyInPack' | translate
+                          "
+                        />
+                      }
+                    </div>
+                  </div>
+                </button>
+              }
+            </tui-opt-group>
+          </tui-data-list>
         </tui-textfield>
+
+        <!-- Active -->
+        <div
+          class="flex items-center justify-between gap-4 p-4 rounded-xl bg-[var(--tui-base-02)]"
+        >
+          <span class="font-semibold">{{
+            'merchandising.items.active' | translate
+          }}</span>
+          <input
+            tuiSwitch
+            type="checkbox"
+            [ngModel]="model().active"
+            (ngModelChange)="updateModel('active', $event)"
+            name="active"
+          />
+        </div>
 
         <!-- Image -->
         <div class="flex flex-col gap-3">
@@ -262,6 +328,7 @@ export class AdminPackDialogComponent implements OnInit {
   readonly isUploading = signal(false);
   readonly allAreas = signal<SimpleArea[]>([]);
   readonly loadingAreas = signal(true);
+  readonly areaIdsInOtherPacks = signal<Set<number>>(new Set());
 
   protected selectedAreas: SimpleArea[] = [];
 
@@ -275,10 +342,18 @@ export class AdminPackDialogComponent implements OnInit {
     price: this.context.data?.price || 0,
     description: this.context.data?.description || '',
     image_url: this.context.data?.image_url || '',
+    active: this.context.data?.active ?? true,
     photoControl: null as File | null,
   });
 
   readonly stringifyArea = (item: SimpleArea) => item.name;
+
+  protected readonly areaIdentityMatcher: TuiIdentityMatcher<SimpleArea> = (
+    a,
+    b,
+  ) => a.id === b.id;
+
+  protected readonly strings = tuiIsString;
 
   constructor() {
     effect(() => {
@@ -307,6 +382,17 @@ export class AdminPackDialogComponent implements OnInit {
           )
           .filter((a: SimpleArea | undefined): a is SimpleArea => !!a);
       }
+
+      // Identify areas in other packs
+      const allPacks = await this.merchService.getAreaPacks(false);
+      const otherPacks = allPacks.filter((p) => p.id !== this.context.data?.id);
+      const otherIds = new Set<number>();
+      for (const pack of otherPacks) {
+        for (const item of pack.items || []) {
+          otherIds.add(item.area_id);
+        }
+      }
+      this.areaIdsInOtherPacks.set(otherIds);
     } finally {
       this.loadingAreas.set(false);
     }
@@ -433,21 +519,29 @@ export class AdminPackDialogComponent implements OnInit {
         if (url) {
           payload.image_url = url;
         } else {
-          throw new Error('Failed to upload image');
+          throw new Error(
+            this.translate.instant('merchandising.packs.uploadError'),
+          );
         }
       }
 
       const result = await this.merchService.upsertAreaPack(payload);
       if (result) {
-        this.toast.success('Pack saved successfully');
+        this.toast.success(
+          this.translate.instant('merchandising.packs.saveSuccess'),
+        );
         this.context.completeWith(true);
       } else {
-        this.toast.error('Failed to save pack');
+        this.toast.error(
+          this.translate.instant('merchandising.packs.saveError'),
+        );
       }
     } catch (e) {
       const error = e as Error;
       console.error('[AdminPackDialogComponent] Error saving pack:', e);
-      this.toast.error(error.message || 'Error unexpected');
+      this.toast.error(
+        error.message || this.translate.instant('errors.unexpected'),
+      );
     } finally {
       this.isSaving.set(false);
       this.isUploading.set(false);

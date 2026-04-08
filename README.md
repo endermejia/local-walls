@@ -35,8 +35,17 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 ## Future Features
 
 - **Sección indoor**:
-  - Vias, ascents y croquis en los rocodromos
-  - Gestion de bonos y rol de admin para los rocodromos, contabilidad, etc
+  - Vias, ascents y croquis en los centros
+    - tablas indoor-centers, indoor-routes, indoor-ascents, indoor-ascent-comments, indor-ascent-likes, indor-ascent-comment-likes
+    - reutilizar componentes de ascent
+    - crear pagines:
+      - indoor-center
+      - indoor-route
+  - Indoor-center-admins (por rls solo pueden editar sus centros):
+    - Gestion de bonos
+    - Gestion de administradores para los centros
+    - Opciones de contabilidad, etc
+    - Con el modo editar verá el cog en el navbar para ir a /indoor/admin
 - **8a.nu Integration**:
   - Copy 8a.nu ascents database.
   - Direct data import using 8a.nu user credentials.

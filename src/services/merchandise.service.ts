@@ -33,11 +33,11 @@ export class MerchandiseService {
     return data || [];
   }
 
-  async getAreaPacks(): Promise<AreaPackDetail[]> {
+  async getAreaPacks(onlyActive = true): Promise<AreaPackDetail[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
 
-    const { data, error } = await this.supabase.client
+    let query = this.supabase.client
       .from('area_packs')
       .select(
         `
@@ -49,6 +49,12 @@ export class MerchandiseService {
       `,
       )
       .order('created_at', { ascending: false });
+
+    if (onlyActive) {
+      query = query.eq('active', true);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('[MerchandiseService] getAreaPacks error', error);
