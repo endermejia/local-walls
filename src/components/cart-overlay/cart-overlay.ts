@@ -27,7 +27,7 @@ import type { CartProduct } from '../../models';
     <div class="fixed inset-0 z-[100] flex justify-end">
       <!-- Backdrop -->
       <div
-        class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+        class="absolute inset-0 bg-[rgba(0,0,0,0.4)] backdrop-blur-sm transition-opacity"
         role="button"
         tabindex="0"
         [attr.aria-label]="'close' | translate"
@@ -38,10 +38,10 @@ import type { CartProduct } from '../../models';
 
       <!-- Panel -->
       <div
-        class="relative w-full max-w-md bg-white dark:bg-zinc-900 shadow-2xl flex flex-col h-full transform transition-transform duration-300 ease-out"
+        class="relative w-full max-w-md bg-[var(--tui-background-base)] shadow-2xl flex flex-col h-full transform transition-transform duration-300 ease-out"
       >
         <div
-          class="p-6 border-b dark:border-zinc-800 flex items-center justify-between"
+          class="p-6 border-b border-[var(--tui-border-normal)] flex items-center justify-between"
         >
           <div class="flex items-center gap-3">
             <h2 class="text-xl font-black">
@@ -67,7 +67,7 @@ import type { CartProduct } from '../../models';
           <div class="p-6 flex flex-col gap-6">
             @if (items().length === 0) {
               <div
-                class="flex flex-col items-center justify-center py-20 text-zinc-400"
+                class="flex flex-col items-center justify-center py-20 text-[var(--tui-text-tertiary)]"
               >
                 <tui-icon
                   icon="@tui.shopping-bag"
@@ -149,7 +149,7 @@ import type { CartProduct } from '../../models';
                     <div class="flex flex-wrap gap-1.5 mt-1">
                       @if (item.selectedSize) {
                         <span
-                          class="text-[9px] font-black bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full uppercase tracking-tighter text-zinc-500 dark:text-zinc-400"
+                          class="text-[9px] font-black bg-[var(--tui-background-neutral-2)] px-2 py-0.5 rounded-full uppercase tracking-tighter text-[var(--tui-text-secondary)]"
                         >
                           {{ 'merchandising.size' | translate }}:
                           {{ item.selectedSize }}
@@ -157,7 +157,7 @@ import type { CartProduct } from '../../models';
                       }
                       @if (item.selectedColor) {
                         <span
-                          class="text-[9px] font-black bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full uppercase tracking-tighter text-zinc-500 dark:text-zinc-400"
+                          class="text-[9px] font-black bg-[var(--tui-background-neutral-2)] px-2 py-0.5 rounded-full uppercase tracking-tighter text-[var(--tui-text-secondary)]"
                         >
                           {{ 'merchandising.color' | translate }}:
                           {{ item.selectedColor }}
@@ -209,14 +209,14 @@ import type { CartProduct } from '../../models';
                           </button>
                         } @else {
                           <span
-                            class="px-3 py-1 text-xs font-bold text-zinc-400"
+                            class="px-3 py-1 text-xs font-bold text-[var(--tui-text-tertiary)]"
                           >
                             {{ item.quantity }}x
                           </span>
                         }
                       </div>
                       <span
-                        class="font-black text-zinc-900 dark:text-zinc-100 tabular-nums text-sm"
+                        class="font-black text-[var(--tui-text-primary)] tabular-nums text-sm"
                         >{{
                           item.price * item.quantity | currency: 'EUR'
                         }}</span
@@ -231,14 +231,14 @@ import type { CartProduct } from '../../models';
 
         @if (items().length > 0) {
           <div
-            class="p-6 border-t dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50"
+            class="p-6 border-t border-[var(--tui-border-normal)] bg-[var(--tui-background-neutral-1)]"
           >
             <div class="flex justify-between items-center mb-6">
-              <span class="text-zinc-500">{{
+              <span class="text-[var(--tui-text-secondary)]">{{
                 'merchandising.cart.subtotal' | translate
               }}</span>
               <span
-                class="text-2xl font-black text-zinc-900 dark:text-zinc-100"
+                class="text-2xl font-black text-[var(--tui-text-primary)]"
                 >{{ totalPrice() | currency: 'EUR' }}</span
               >
             </div>

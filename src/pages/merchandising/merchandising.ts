@@ -103,10 +103,10 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
         >
           <!-- Subtle decorative elements -->
           <div
-            class="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl"
+            class="absolute -top-24 -right-24 w-64 h-64 bg-[var(--tui-background-accent-1-hover)] opacity-10 rounded-full blur-3xl"
           ></div>
           <div
-            class="absolute -bottom-24 -left-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl"
+            class="absolute -bottom-24 -left-24 w-64 h-64 bg-[var(--tui-background-accent-1-hover)] opacity-10 rounded-full blur-3xl"
           ></div>
 
           <div class="relative flex flex-col items-center gap-4 text-center">
@@ -131,7 +131,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
           <tui-notification
             appearance="info"
             size="s"
-            class="relative max-w-lg !rounded-2xl border-none bg-neutral-50 dark:bg-neutral-900 shadow-sm"
+            class="relative max-w-lg !rounded-2xl border-none bg-[var(--tui-background-neutral-1)] shadow-sm"
           >
             <span class="text-xs font-medium">
               {{ 'merchandising.croquisDisclaimer' | translate }}
@@ -180,7 +180,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                 >
                   <!-- Illustration / Image -->
                   <div
-                    class="relative h-48 overflow-hidden bg-neutral-100 dark:bg-neutral-900"
+                    class="relative h-48 overflow-hidden bg-[var(--tui-background-neutral-1)]"
                   >
                     <img
                       [src]="pack.image_url"

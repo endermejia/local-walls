@@ -27,7 +27,7 @@ import { GlobalData } from '../../services/global-data';
         <div class="flex flex-col gap-8 pb-4">
           <!-- Image Section -->
           <div
-            class="relative aspect-square rounded-[2.5rem] overflow-hidden bg-neutral-100 dark:bg-neutral-800 border border-[var(--tui-border-normal)]"
+            class="relative aspect-square rounded-[2.5rem] overflow-hidden bg-[var(--tui-background-neutral-1)] border border-[var(--tui-border-normal)]"
           >
             @if (item.image_url) {
               <img
@@ -52,7 +52,9 @@ import { GlobalData } from '../../services/global-data';
                 <h2 class="text-3xl font-black tracking-tight">
                   {{ item.name }}
                 </h2>
-                <div class="text-2xl font-black text-primary tabular-nums">
+                <div
+                  class="text-2xl font-black text-[var(--tui-text-accent)] tabular-nums"
+                >
                   {{ item.price | number: '1.2-2' }}€
                 </div>
               </div>
@@ -90,14 +92,20 @@ import { GlobalData } from '../../services/global-data';
                         type="button"
                         (click)="selectedSize.set(size)"
                         class="h-11 min-w-[3.5rem] px-4 flex items-center justify-center rounded-xl text-sm font-bold transition-all border"
-                        [class.bg-primary]="selectedSize() === size"
-                        [class.text-white]="selectedSize() === size"
-                        [class.border-primary]="selectedSize() === size"
-                        [class.border-[var(--tui-border-normal)]]="
-                          selectedSize() !== size
+                        [style.background]="
+                          selectedSize() === size
+                            ? 'var(--tui-background-accent-1)'
+                            : 'var(--tui-background-neutral-1)'
                         "
-                        [class.bg-[var(--tui-background-neutral-1)]]="
-                          selectedSize() !== size
+                        [style.color]="
+                          selectedSize() === size
+                            ? 'var(--tui-background-base)'
+                            : 'var(--tui-text-primary)'
+                        "
+                        [style.border-color]="
+                          selectedSize() === size
+                            ? 'var(--tui-background-accent-1)'
+                            : 'var(--tui-border-normal)'
                         "
                         [class.hover:border-primary]="selectedSize() !== size"
                       >
@@ -121,14 +129,20 @@ import { GlobalData } from '../../services/global-data';
                         type="button"
                         (click)="selectedColor.set(color)"
                         class="h-11 min-w-[3.5rem] px-4 flex items-center justify-center rounded-xl text-sm font-bold transition-all border"
-                        [class.bg-primary]="selectedColor() === color"
-                        [class.text-white]="selectedColor() === color"
-                        [class.border-primary]="selectedColor() === color"
-                        [class.border-[var(--tui-border-normal)]]="
-                          selectedColor() !== color
+                        [style.background]="
+                          selectedColor() === color
+                            ? 'var(--tui-background-accent-1)'
+                            : 'var(--tui-background-neutral-1)'
                         "
-                        [class.bg-[var(--tui-background-neutral-1)]]="
-                          selectedColor() !== color
+                        [style.color]="
+                          selectedColor() === color
+                            ? 'var(--tui-background-base)'
+                            : 'var(--tui-text-primary)'
+                        "
+                        [style.border-color]="
+                          selectedColor() === color
+                            ? 'var(--tui-background-accent-1)'
+                            : 'var(--tui-border-normal)'
                         "
                         [class.hover:border-primary]="selectedColor() !== color"
                       >
@@ -152,7 +166,7 @@ import { GlobalData } from '../../services/global-data';
           appearance="primary"
           size="l"
           type="button"
-          class="w-full !rounded-2xl shadow-2xl shadow-primary/30 transform transition-all active:scale-[0.98]"
+          class="w-full !rounded-2xl shadow-2xl shadow-black/5 transform transition-all active:scale-[0.98]"
           (click)="addToCart()"
           [disabled]="
             (item.available_sizes?.length && !selectedSize()) ||

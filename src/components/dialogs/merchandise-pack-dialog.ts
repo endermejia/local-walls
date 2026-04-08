@@ -35,7 +35,7 @@ import { GlobalData } from '../../services/global-data';
         <div class="flex flex-col gap-8 pb-4 px-1">
           <!-- Image Section -->
           <div
-            class="relative aspect-[16/9] sm:h-64 rounded-[2.5rem] overflow-hidden bg-neutral-100 dark:bg-neutral-800 border border-[var(--tui-border-normal)]"
+            class="relative aspect-[16/9] sm:h-64 rounded-[2.5rem] overflow-hidden bg-[var(--tui-background-neutral-1)] border border-[var(--tui-border-normal)]"
           >
             @if (pack.image_url) {
               <img
@@ -62,7 +62,7 @@ import { GlobalData } from '../../services/global-data';
                   {{ pack.name }}
                 </h2>
                 <div
-                  class="text-2xl font-black text-primary tabular-nums whitespace-nowrap"
+                  class="text-2xl font-black text-[var(--tui-text-accent)] tabular-nums whitespace-nowrap"
                 >
                   {{ pack.price | number: '1.2-2' }}€
                 </div>
@@ -115,7 +115,7 @@ import { GlobalData } from '../../services/global-data';
           appearance="primary"
           size="l"
           type="button"
-          class="w-full !rounded-2xl shadow-xl shadow-primary/20 transform transition-all active:scale-[0.98]"
+          class="w-full !rounded-2xl shadow-xl shadow-black/5 transform transition-all active:scale-[0.98]"
           (click)="addToCart()"
           [disabled]="isInCart()"
         >

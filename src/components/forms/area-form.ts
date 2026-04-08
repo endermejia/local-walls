@@ -116,7 +116,7 @@ import { CounterComponent } from '../ui/counter';
               <!-- Public Toggle -->
               <label
                 tuiLabel
-                class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                class="flex items-center gap-3 p-4 bg-[var(--tui-background-neutral-1)] rounded-2xl border border-[var(--tui-border-normal)] cursor-pointer hover:bg-[var(--tui-background-neutral-1-hover)] transition-colors"
               >
                 <input
                   tuiCheckbox
@@ -156,11 +156,11 @@ import { CounterComponent } from '../ui/counter';
                   <div class="flex flex-col gap-4">
                     @if (model().stripe_account_id) {
                       <div
-                        class="flex items-center gap-3 p-4 bg-green-50/50 dark:bg-green-900/10 border border-green-200/50 dark:border-green-800/50 rounded-2xl"
+                        class="flex items-center gap-3 p-4 bg-[var(--tui-background-positive-neutral)] border border-[var(--tui-border-normal)] rounded-2xl"
                       >
                         <tui-icon
                           icon="@tui.check-circle"
-                          class="text-green-600 shrink-0"
+                          class="text-[var(--tui-status-positive)] shrink-0"
                         />
                         <div class="flex flex-col gap-1 overflow-hidden">
                           <span class="text-sm font-bold leading-none">{{
@@ -204,37 +204,39 @@ import { CounterComponent } from '../ui/counter';
             @if (!model().is_public) {
               <div class="flex flex-col h-full">
                 <div
-                  class="bg-gray-100/50 dark:bg-gray-800/30 p-4 lg:p-6 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 flex flex-col gap-4"
+                  class="bg-[var(--tui-background-neutral-1)] p-4 lg:p-6 rounded-2xl border border-[var(--tui-border-normal)] flex flex-col gap-4"
                 >
-                  <h4 class="font-bold flex items-center gap-2 text-blue-600">
+                  <h4
+                    class="font-bold flex items-center gap-2 text-[var(--tui-text-accent)]"
+                  >
                     <tui-icon icon="@tui.info" />
                     {{ 'payments.tutorial.title' | translate }}
                   </h4>
                   <ul class="space-y-4">
                     <li class="flex gap-4 text-xs lg:text-sm">
                       <span
-                        class="w-6 h-6 shrink-0 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center font-bold text-xs"
+                        class="w-6 h-6 shrink-0 bg-[var(--tui-background-accent-1)] text-[var(--tui-background-base)] rounded-full flex items-center justify-center font-bold text-xs"
                         >1</span
                       >
                       <p>{{ 'payments.tutorial.step1' | translate }}</p>
                     </li>
                     <li class="flex gap-4 text-xs lg:text-sm">
                       <span
-                        class="w-6 h-6 shrink-0 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center font-bold text-xs"
+                        class="w-6 h-6 shrink-0 bg-[var(--tui-background-accent-1)] text-[var(--tui-background-base)] rounded-full flex items-center justify-center font-bold text-xs"
                         >2</span
                       >
                       <p>{{ 'payments.tutorial.step2' | translate }}</p>
                     </li>
                     <li class="flex gap-4 text-xs lg:text-sm">
                       <span
-                        class="w-6 h-6 shrink-0 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center font-bold text-xs"
+                        class="w-6 h-6 shrink-0 bg-[var(--tui-background-accent-1)] text-[var(--tui-background-base)] rounded-full flex items-center justify-center font-bold text-xs"
                         >3</span
                       >
                       <p>{{ 'payments.tutorial.step3' | translate }}</p>
                     </li>
                     <li class="flex gap-4 text-xs lg:text-sm">
                       <span
-                        class="w-6 h-6 shrink-0 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center font-bold text-xs"
+                        class="w-6 h-6 shrink-0 bg-[var(--tui-background-accent-1)] text-[var(--tui-background-base)] rounded-full flex items-center justify-center font-bold text-xs"
                         >4</span
                       >
                       <p>{{ 'payments.tutorial.step4' | translate }}</p>

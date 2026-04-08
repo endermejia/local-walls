@@ -27,7 +27,7 @@ export interface PhotoViewerData {
   imports: [CommonModule, TuiButton, TuiIcon],
   template: `
     <div
-      class="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden touch-none p-0 bg-black/80 backdrop-blur-xl cursor-grab active:cursor-grabbing"
+      class="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden touch-none p-0 bg-[rgba(0,0,0,0.8)] backdrop-blur-xl cursor-grab active:cursor-grabbing"
       (wheel.zoneless)="onWheel($event)"
       (touchstart.zoneless)="onTouchStart($any($event))"
       (touchmove.zoneless)="onTouchMove($any($event))"

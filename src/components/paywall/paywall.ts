@@ -21,10 +21,10 @@ import { ToastService } from '../../services/toast.service';
     >
       <!-- Fondo decorativo sutil -->
       <div
-        class="absolute -top-24 -right-24 w-64 h-64 bg-primary/5 rounded-full blur-3xl"
+        class="absolute -top-24 -right-24 w-64 h-64 bg-[var(--tui-background-accent-1-hover)] opacity-5 rounded-full blur-3xl"
       ></div>
       <div
-        class="absolute -bottom-24 -left-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl"
+        class="absolute -bottom-24 -left-24 w-64 h-64 bg-[var(--tui-background-accent-1-hover)] opacity-10 rounded-full blur-3xl"
       ></div>
 
       @if (!hideTitle()) {
@@ -37,7 +37,7 @@ import { ToastService } from '../../services/toast.service';
 
       <div class="relative flex flex-col items-center gap-2">
         <div
-          class="text-4xl sm:text-6xl font-black text-primary tracking-tighter tabular-nums"
+          class="text-4xl sm:text-6xl font-black text-[var(--tui-text-accent)] tracking-tighter tabular-nums"
         >
           {{ price() | number: '1.2-2' }}€
         </div>
@@ -54,7 +54,7 @@ import { ToastService } from '../../services/toast.service';
             tuiButton
             appearance="primary"
             size="l"
-            class="w-full !rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform"
+            class="w-full !rounded-2xl shadow-lg shadow-black/5 hover:scale-[1.02] transition-transform"
             (click.zoneless)="contributeNow()"
             [iconStart]="'@tui.hand-heart'"
           >
