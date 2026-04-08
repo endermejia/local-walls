@@ -115,19 +115,21 @@ Deno.serve(async (req: Request) => {
       { table: 'user_profiles', column: 'id' },
     ];
 
-    for (const { table, column } of tablesToClean) {
-      const { error: cleanupError } = await supabaseAdminClient
-        .from(table)
-        .delete()
-        .eq(column, userId);
+    await Promise.all(
+      tablesToClean.map(async ({ table, column }) => {
+        const { error: cleanupError } = await supabaseAdminClient
+          .from(table)
+          .delete()
+          .eq(column, userId);
 
-      if (cleanupError) {
-        console.warn(
-          `[delete-user] Cleanup warning for ${table} (${column}):`,
-          cleanupError.message,
-        );
-      }
-    }
+        if (cleanupError) {
+          console.warn(
+            `[delete-user] Cleanup warning for ${table} (${column}):`,
+            cleanupError.message,
+          );
+        }
+      }),
+    );
 
     // ─────────────────────────────
     // Delete User from Auth
