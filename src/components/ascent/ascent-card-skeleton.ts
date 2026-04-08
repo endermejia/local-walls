@@ -1,13 +1,21 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
-import { TuiAppearance } from '@taiga-ui/core';
-import { TuiSkeleton } from '@taiga-ui/kit';
+import { TuiAppearance, TuiIcon } from '@taiga-ui/core';
+import { TuiRating, TuiSkeleton } from '@taiga-ui/kit';
 
 @Component({
   selector: 'app-ascent-card-skeleton',
   standalone: true,
-  imports: [CommonModule, TuiAppearance, TuiSkeleton],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TuiAppearance,
+    TuiSkeleton,
+    TuiRating,
+    TuiIcon,
+  ],
   template: `
     <div
       tuiAppearance="flat-grayscale"
@@ -49,10 +57,10 @@ import { TuiSkeleton } from '@taiga-ui/kit';
       <div class="flex flex-col gap-2">
         @if (showRoute()) {
           <div class="flex items-center gap-2">
-            <div
+            <tui-icon
               [tuiSkeleton]="true"
-              class="w-5 h-5 rounded-md opacity-40"
-            ></div>
+              class="w-5 h-5 opacity-40 !rounded-full"
+            />
             <div [tuiSkeleton]="true" class="w-48 h-5 rounded-full"></div>
             <span class="opacity-30">•</span>
             <div
@@ -71,29 +79,31 @@ import { TuiSkeleton } from '@taiga-ui/kit';
             [tuiSkeleton]="true"
             class="w-16 h-5 rounded-full opacity-40"
           ></div>
-          <div class="flex gap-0.5 ml-2">
-            @for (i of [1, 2, 3, 4, 5]; track i) {
-              <div
-                [tuiSkeleton]="true"
-                class="w-3 h-3 rounded-full opacity-30"
-              ></div>
-            }
-          </div>
+          <tui-rating
+            [readOnly]="true"
+            [ngModel]="5"
+            [style.font-size.rem]="0.5"
+            class="ml-2 opacity-30 pointer-events-none"
+          />
         </div>
       </div>
 
       <footer class="flex gap-3 mt-2">
         <div class="flex items-center gap-2">
-          <div
-            [tuiSkeleton]="true"
-            class="w-6 h-6 rounded-full opacity-50"
-          ></div>
+          <tui-icon
+            icon="@tui.heart"
+            [style.width.rem]="1.5"
+            [style.height.rem]="1.5"
+            class="opacity-30"
+          />
         </div>
         <div class="flex items-center gap-2">
-          <div
-            [tuiSkeleton]="true"
-            class="w-6 h-6 rounded-full opacity-50"
-          ></div>
+          <tui-icon
+            icon="@tui.message-circle"
+            [style.width.rem]="1.5"
+            [style.height.rem]="1.5"
+            class="opacity-30"
+          />
         </div>
       </footer>
     </div>

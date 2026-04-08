@@ -28,21 +28,32 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 - **Seccion merchandising**
   - Packs de áreas
-    - Administrar áreas de un pack
+    - Al comprar un pack se desbloquea el acceso a las áreas del pack, del mismo modo que con las donaciones (revisar como se hace por si hay que hacer cambios. revisar historial de donaciones de user-profile-config)
   - Artículos
     - Administrar artículos y stock por tallas
+    - Las compras deben ser por talla y debe gestionarse el stock
+    - Boton ver historial de compras en user-profile-config y en el botón menu del navbar
+    -
 
 ## Future Features
 
 - **Sección indoor**:
   - Vias, ascents y croquis en los centros
-    - tablas indoor-centers, indoor-routes, indoor-ascents, indoor-ascent-comments, indor-ascent-likes, indor-ascent-comment-likes
+    - tablas indoor-centers, indoor-routes, indoor-ascents, indoor-ascent-comments, indor-ascent-likes, indor-ascent-comment-likes, indoor-topos, ...
     - reutilizar componentes de ascent
-    - crear pagines:
+    - crear paginas:
       - indoor-center
+        - comprar bonos
+        - ver topos del centro (activos y pasados, por defecto solo activos, debemos poder filtrar por fecha)
+        - ver rutas del centro
+        - ver ascents del centro
       - indoor-route
+      - indoor-topo
+        - el topo debe tener fecha inicio y fecha fin
+        - debemos poder subir fotos en un topo
+        - debemos poder consultar los topos por fecha
   - Indoor-center-admins (por rls solo pueden editar sus centros):
-    - Gestion de bonos
+    - Gestion de bonos, informacion del centro, topos, rutas, etc.
     - Gestion de administradores para los centros
     - Opciones de contabilidad, etc
     - Con el modo editar verá el cog en el navbar para ir a /indoor/admin

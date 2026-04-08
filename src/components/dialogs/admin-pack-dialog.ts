@@ -34,7 +34,6 @@ import {
   TuiChevron,
   TuiFilterByInputPipe,
   TuiMultiSelect,
-  TuiCheckbox,
 } from '@taiga-ui/kit';
 import { TuiCell } from '@taiga-ui/layout';
 import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -76,7 +75,6 @@ interface SimpleArea {
     TuiChevron,
     TuiFilterByInputPipe,
     TuiMultiSelect,
-    TuiCheckbox,
     TuiDataList,
     TuiOptGroup,
     TuiCell,
