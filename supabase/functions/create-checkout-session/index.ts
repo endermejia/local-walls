@@ -1,18 +1,35 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import Stripe from 'https://esm.sh/stripe@13.10.0?target=deno';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type',
-};
+const ALLOWED_ORIGINS = [
+  'http://localhost:4200',
+  'https://climbeast.com',
+  'https://www.climbeast.com',
+  'https://local-walls.vercel.app',
+];
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get('origin') ?? '';
+  const corsHeaders: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    corsHeaders['Access-Control-Allow-Origin'] = origin;
+    corsHeaders['Access-Control-Allow-Headers'] =
+      'authorization, x-client-info, apikey, content-type';
+    corsHeaders['Access-Control-Allow-Methods'] = 'POST, OPTIONS';
+  }
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
+    if (!corsHeaders['Access-Control-Allow-Origin']) {
+      throw new Error(`Origin ${origin} not allowed`);
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -99,8 +116,8 @@ Deno.serve(async (req) => {
       payment_method_types: ['card'],
       line_items,
       mode: 'payment',
-      success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get('origin')}/merchandising/checkout`,
+      success_url: `${origin}/order-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/merchandising/checkout`,
       customer_email: user.email,
       client_reference_id: order.id,
       metadata: {
@@ -115,12 +132,12 @@ Deno.serve(async (req) => {
       .eq('id', order.id);
 
     return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: corsHeaders,
       status: 200,
     });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: corsHeaders,
       status: 400,
     });
   }
