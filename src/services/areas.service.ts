@@ -345,7 +345,12 @@ export class AreasService {
         .select('id, name, slug, eight_anu_sector_slugs')
         .eq('area_id', areaId);
 
-      const existingCragsList = areaCrags || [];
+      const existingCragsList = (areaCrags || []) as {
+        id: number;
+        name: string;
+        slug: string;
+        eight_anu_sector_slugs: string[] | null;
+      }[];
 
       // Pre-compute lookup maps
       const existingCragsByEightAnuSlug = new Map<
@@ -366,6 +371,8 @@ export class AreasService {
         existingCragsBySlug.set(crag.slug, crag);
       }
 
+      // 1. Accumulate and de-duplicate all routes from all 8a.nu crag slugs
+      const routesMap = new Map<string, EightAnuRoute>();
       for (const cragSlug of area.eight_anu_crag_slugs) {
         // Determine country
         let countrySlug = 'spain'; // Default
@@ -395,14 +402,17 @@ export class AreasService {
           ),
         ]);
 
-        const allRoutes = [...sportRoutes, ...boulderRoutes];
-        if (allRoutes.length === 0) {
-          continue;
+        for (const r of [...sportRoutes, ...boulderRoutes]) {
+          routesMap.set(r.zlaggableSlug, r);
         }
+      }
 
-        // Group by sector
+      const allRoutesAcrossSlugs = Array.from(routesMap.values());
+
+      if (allRoutesAcrossSlugs.length > 0) {
+        // 2. Group by sector
         const routesBySector = new Map<string, EightAnuRoute[]>();
-        for (const route of allRoutes) {
+        for (const route of allRoutesAcrossSlugs) {
           const sectorSlug = route.sectorSlug || 'unknown-sector';
           if (!routesBySector.has(sectorSlug)) {
             routesBySector.set(sectorSlug, []);
@@ -410,7 +420,11 @@ export class AreasService {
           routesBySector.get(sectorSlug)!.push(route);
         }
 
-        // Process groups
+        // 3. Identify crags to create or update
+        const cragsToCreateMap = new Map<string, CragInsertDto>();
+        const cragsToUpdateMap = new Map<number, string[]>();
+        const sectorToCragId = new Map<string, number>();
+
         for (const [sectorSlug, routes] of routesBySector.entries()) {
           const sectorName = routes[0].sectorName || sectorSlug;
 
@@ -423,139 +437,165 @@ export class AreasService {
             match = existingCragsBySlug.get(targetSlug);
           }
 
-          let cragId: number;
-
           if (match) {
-            cragId = match.id;
+            sectorToCragId.set(sectorSlug, match.id);
             // Update 8a slugs if needed
             if (!match.eight_anu_sector_slugs?.includes(sectorSlug)) {
               const newSlugs = [
                 ...(match.eight_anu_sector_slugs || []),
                 sectorSlug,
               ];
-              await this.supabase.client
-                .from('crags')
-                .update({ eight_anu_sector_slugs: newSlugs })
-                .eq('id', cragId);
-
-              // Update in-memory data and maps
               match.eight_anu_sector_slugs = newSlugs;
-              existingCragsByEightAnuSlug.set(sectorSlug, match);
+              cragsToUpdateMap.set(match.id, newSlugs);
             }
           } else {
-            // Create new crag
-            const { data: newCrag, error: createError } =
-              await this.supabase.client
-                .from('crags')
-                .insert({
-                  area_id: areaId,
-                  name: sectorName,
-                  slug: slugify(sectorName),
-                  eight_anu_sector_slugs: [sectorSlug],
-                })
-                .select('id, name, slug, eight_anu_sector_slugs')
-                .single();
-
-            if (createError) {
-              console.error('Error creating crag', sectorName, createError);
-              continue;
-            }
-            cragId = newCrag.id;
-            existingCragsList.push(newCrag);
-
-            // Update maps
-            existingCragsBySlug.set(newCrag.slug, newCrag);
-            if (newCrag.eight_anu_sector_slugs) {
-              for (const s of newCrag.eight_anu_sector_slugs) {
-                existingCragsByEightAnuSlug.set(s, newCrag);
+            // Check if we already have a pending crag for this slug
+            const targetSlug = slugify(sectorName);
+            const pending = cragsToCreateMap.get(targetSlug);
+            if (pending) {
+              // Merge into existing pending crag
+              if (!pending.eight_anu_sector_slugs?.includes(sectorSlug)) {
+                pending.eight_anu_sector_slugs = [
+                  ...(pending.eight_anu_sector_slugs || []),
+                  sectorSlug,
+                ];
               }
-            }
-          }
-
-          // Optimization: Bulk upsert routes
-          // Check global 8a slugs to avoid duplicates
-          const sectorRouteSlugs = routes.map((r) => r.zlaggableSlug);
-          const existingRoutes: {
-            id: number;
-            crag_id: number;
-            slug: string;
-            eight_anu_route_slugs: string[] | null;
-          }[] = [];
-
-          if (sectorRouteSlugs.length > 0) {
-            const CHUNK_SIZE = 50;
-            for (let i = 0; i < sectorRouteSlugs.length; i += CHUNK_SIZE) {
-              const chunk = sectorRouteSlugs.slice(i, i + CHUNK_SIZE);
-              const { data } = await this.supabase.client
-                .from('routes')
-                .select('id, crag_id, slug, eight_anu_route_slugs')
-                .overlaps('eight_anu_route_slugs', chunk);
-
-              if (data) existingRoutes.push(...data);
-            }
-          }
-          const upsertPayloads: RouteInsertDto[] = [];
-
-          const existingRoutesMap = new Map<
-            string,
-            (typeof existingRoutes)[0]
-          >();
-          for (const r of existingRoutes) {
-            if (r.eight_anu_route_slugs) {
-              for (const slug of r.eight_anu_route_slugs) {
-                existingRoutesMap.set(slug, r);
-              }
-            }
-          }
-
-          for (const route of routes) {
-            const gradeLabel = this.eightAnuService.normalizeDifficulty(
-              route.difficulty,
-            );
-            const gradeId = LABEL_TO_VERTICAL_LIFE[gradeLabel] ?? 0;
-            const climbingKind =
-              route.category === 1
-                ? ClimbingKinds.BOULDER
-                : ClimbingKinds.SPORT;
-
-            // Find matching existing route
-            const match = existingRoutesMap.get(route.zlaggableSlug);
-
-            if (match) {
-              upsertPayloads.push({
-                id: match.id,
-                crag_id: cragId,
-                slug: match.slug,
-                name: route.zlaggableName,
-                grade: gradeId,
-                climbing_kind: climbingKind,
-              });
             } else {
-              upsertPayloads.push({
-                crag_id: cragId,
-                slug: slugify(route.zlaggableName),
-                eight_anu_route_slugs: [route.zlaggableSlug],
-                name: route.zlaggableName,
-                grade: gradeId,
-                climbing_kind: climbingKind,
+              cragsToCreateMap.set(targetSlug, {
+                area_id: areaId,
+                name: sectorName,
+                slug: targetSlug,
+                eight_anu_sector_slugs: [sectorSlug],
               });
             }
           }
+        }
+        const cragsToCreate = Array.from(cragsToCreateMap.values());
 
-          if (upsertPayloads.length > 0) {
-            // Process in chunks of 100
-            const chunkSize = 100;
-            for (let i = 0; i < upsertPayloads.length; i += chunkSize) {
-              const chunk = upsertPayloads.slice(i, i + chunkSize);
-              const { error: upsertError } = await this.supabase.client
-                .from('routes')
-                .upsert(chunk);
+        // 4. Bulk create crags
+        if (cragsToCreate.length > 0) {
+          const { data: newCrags, error: createError } =
+            await this.supabase.client
+              .from('crags')
+              .insert(cragsToCreate)
+              .select('id, name, slug, eight_anu_sector_slugs');
 
-              if (upsertError) {
-                console.error('Error upserting routes chunk', upsertError);
-              } else {
-                totalRoutes += chunk.length;
+          if (createError) {
+            console.error('Error creating crags', createError);
+          } else if (newCrags) {
+            for (const nc of newCrags) {
+              existingCragsList.push(nc);
+              existingCragsBySlug.set(nc.slug, nc);
+              if (nc.eight_anu_sector_slugs) {
+                for (const s of nc.eight_anu_sector_slugs) {
+                  existingCragsByEightAnuSlug.set(s, nc);
+                  sectorToCragId.set(s, nc.id);
+                }
               }
+            }
+          }
+        }
+
+        // 5. Bulk update crags (parallelized)
+        if (cragsToUpdateMap.size > 0) {
+          await Promise.all(
+            Array.from(cragsToUpdateMap.entries()).map(([id, slugs]) =>
+              this.supabase.client
+                .from('crags')
+                .update({ eight_anu_sector_slugs: slugs })
+                .eq('id', id),
+            ),
+          );
+        }
+
+        // 6. Bulk fetch existing routes for all sectors
+        const allRouteSlugs = allRoutesAcrossSlugs.map((r) => r.zlaggableSlug);
+        const existingRoutes: {
+          id: number;
+          crag_id: number;
+          slug: string;
+          eight_anu_route_slugs: string[] | null;
+        }[] = [];
+
+        if (allRouteSlugs.length > 0) {
+          const CHUNK_SIZE = 500;
+          for (let i = 0; i < allRouteSlugs.length; i += CHUNK_SIZE) {
+            const chunk = allRouteSlugs.slice(i, i + CHUNK_SIZE);
+            const { data } = await this.supabase.client
+              .from('routes')
+              .select('id, crag_id, slug, eight_anu_route_slugs')
+              .overlaps('eight_anu_route_slugs', chunk);
+
+            if (data) existingRoutes.push(...data);
+          }
+        }
+
+        const existingRoutesMap = new Map<
+          string,
+          (typeof existingRoutes)[0]
+        >();
+        for (const r of existingRoutes) {
+          if (r.eight_anu_route_slugs) {
+            for (const slug of r.eight_anu_route_slugs) {
+              existingRoutesMap.set(slug, r);
+            }
+          }
+        }
+
+        // 7. Prepare and bulk upsert routes
+        const upsertPayloads: RouteInsertDto[] = [];
+
+        for (const route of allRoutesAcrossSlugs) {
+          const sectorSlug = route.sectorSlug || 'unknown-sector';
+          const cragId = sectorToCragId.get(sectorSlug);
+          if (!cragId) continue;
+
+          const gradeLabel = this.eightAnuService.normalizeDifficulty(
+            route.difficulty,
+          );
+          const gradeId = LABEL_TO_VERTICAL_LIFE[gradeLabel] ?? 0;
+          const climbingKind =
+            route.category === 1
+              ? ClimbingKinds.BOULDER
+              : ClimbingKinds.SPORT;
+
+          // Find matching existing route
+          const match = existingRoutesMap.get(route.zlaggableSlug);
+
+          if (match) {
+            upsertPayloads.push({
+              id: match.id,
+              crag_id: cragId,
+              slug: match.slug,
+              name: route.zlaggableName,
+              grade: gradeId,
+              climbing_kind: climbingKind,
+            });
+          } else {
+            upsertPayloads.push({
+              crag_id: cragId,
+              slug: slugify(route.zlaggableName),
+              eight_anu_route_slugs: [route.zlaggableSlug],
+              name: route.zlaggableName,
+              grade: gradeId,
+              climbing_kind: climbingKind,
+            });
+          }
+        }
+
+        if (upsertPayloads.length > 0) {
+          // Process in chunks of 1000
+          const chunkSize = 1000;
+          for (let i = 0; i < upsertPayloads.length; i += chunkSize) {
+            const chunk = upsertPayloads.slice(i, i + chunkSize);
+            const { error: upsertError } = await this.supabase.client
+              .from('routes')
+              .upsert(chunk);
+
+            if (upsertError) {
+              console.error('Error upserting routes chunk', upsertError);
+            } else {
+              totalRoutes += chunk.length;
             }
           }
         }
