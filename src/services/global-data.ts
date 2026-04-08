@@ -1,3 +1,4 @@
+import { MapIndoorItem } from '../models';
 import { isPlatformBrowser } from '@angular/common';
 import {
   computed,
@@ -376,7 +377,7 @@ export class GlobalData {
         let totalRoutes = 0;
         const climbingKinds = new Set<string>();
 
-        (c.routes || []).forEach((r) => {
+        (c.routes || []).forEach((r: any) => {
           totalRoutes++;
           grades[r.grade] = (grades[r.grade] || 0) + 1;
           if (r.climbing_kind) climbingKinds.add(r.climbing_kind);
@@ -386,8 +387,8 @@ export class GlobalData {
         if (climbingKinds.has(ClimbingKinds.BOULDER)) category = 1;
         else if (climbingKinds.has(ClimbingKinds.MULTIPITCH)) category = 2;
 
-        const shadeMorning = (c.topos || []).some((t) => t.shade_morning);
-        const shadeAfternoon = (c.topos || []).some((t) => t.shade_afternoon);
+        const shadeMorning = (c.topos || []).some((t: any) => t.shade_morning);
+        const shadeAfternoon = (c.topos || []).some((t: any) => t.shade_afternoon);
 
         const isLiked = (c.liked || []).length > 0;
 
@@ -427,6 +428,39 @@ export class GlobalData {
    * - Crags: included when their [lat,lng] is inside bounds.
    * - Areas: included when their bbox intersects bounds.
    */
+
+  public readonly mapIndoorCenters = resource({
+    params: () => {
+      const b = this.mapBounds();
+      return b ? { bounds: b } : null;
+    },
+    loader: async ({ params }) => {
+      if (!params) return [];
+      const { bounds } = params;
+      const { data } = await this.supabase.client
+        .rpc('get_indoor_centers_in_bounds' as any, {
+          min_lat: bounds.south_west_latitude,
+          min_lng: bounds.south_west_longitude,
+          max_lat: bounds.north_east_latitude,
+          max_lng: bounds.north_east_longitude,
+        })
+        .select('id, name, slug, location');
+
+      return ((data as any[]) || []).map((c: any) => {
+        const match = c.location?.match(/POINT\(([^ ]+) ([^ ]+)\)/);
+        const lng = match ? parseFloat(match[1]) : 0;
+        const lat = match ? parseFloat(match[2]) : 0;
+        return {
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          latitude: lat,
+          longitude: lng,
+        } as MapIndoorItem;
+      });
+    },
+  });
+
   mapItemsOnViewport: Signal<MapItem[]> = computed(() => {
     const bounds = this.mapBounds();
     const items = this.mapResource.value()?.items || [];
@@ -535,26 +569,26 @@ export class GlobalData {
           return [];
         }
 
-        return (data || []).map((a) => {
+        return ((data as any[]) || []).map((a) => {
           const grades: AmountByEveryGrade = {};
           let cragsCount = 0;
           const climbingKinds = new Set<string>();
           let shadeMorning = false;
           let shadeAfternoon = false;
 
-          (a.crags || []).forEach((c) => {
+          (a.crags || []).forEach((c: any) => {
             cragsCount++;
-            (c.routes || []).forEach((r) => {
+            (c.routes || []).forEach((r: any) => {
               const g = r.grade as VERTICAL_LIFE_GRADES;
               grades[g] = (grades[g] || 0) + 1;
               if (r.climbing_kind) {
                 climbingKinds.add(r.climbing_kind);
               }
             });
-            if ((c.topos || []).some((t) => t.shade_morning)) {
+            if ((c.topos || []).some((t: any) => t.shade_morning)) {
               shadeMorning = true;
             }
-            if ((c.topos || []).some((t) => t.shade_afternoon)) {
+            if ((c.topos || []).some((t: any) => t.shade_afternoon)) {
               shadeAfternoon = true;
             }
           });
@@ -587,15 +621,15 @@ export class GlobalData {
   private readonly areaListGradeRangeKey = 'area_list_grade_range_v1';
   private readonly areaListCategoriesKey = 'area_list_categories_v1';
   private readonly areaListShadeKey = 'area_list_shade_v1';
+  private readonly showIndoorCentersKey = 'show_indoor_centers_v1';
 
   areaListGradeRange: WritableSignal<[number, number]> = signal([
     0,
     ORDERED_GRADE_VALUES.length - 1,
   ]);
   areaListCategories: WritableSignal<number[]> = signal([]);
-  areaListShade: WritableSignal<
-    ('shade_morning' | 'shade_afternoon' | 'shade_all_day' | 'sun_all_day')[]
-  > = signal([]);
+  areaListShade: WritableSignal<('shade_morning' | 'shade_afternoon' | 'shade_all_day' | 'sun_all_day')[]> = signal([]);
+  showIndoorCenters: WritableSignal<boolean> = signal(false);
 
   // ---- Feed List Filters (Persisted per session) ----
   private readonly feedGradeRangeKey = 'feed_grade_range_v1';
@@ -1578,9 +1612,14 @@ export class GlobalData {
         this.areaListCategories.set(JSON.parse(rawCategories));
       }
 
-      const rawShade = this.localStorage.getItem(this.areaListShadeKey);
+            const rawShade = this.localStorage.getItem(this.areaListShadeKey);
       if (rawShade) {
         this.areaListShade.set(JSON.parse(rawShade));
+      }
+
+      const rawShowIndoor = this.localStorage.getItem(this.showIndoorCentersKey);
+      if (rawShowIndoor) {
+        this.showIndoorCenters.set(JSON.parse(rawShowIndoor));
       }
 
       const rawFeedGradeRange = this.localStorage.getItem(
@@ -1646,10 +1685,17 @@ export class GlobalData {
         JSON.stringify(this.areaListCategories()),
       );
     });
-    effect(() => {
+        effect(() => {
       this.localStorage.setItem(
         this.areaListShadeKey,
         JSON.stringify(this.areaListShade()),
+      );
+    });
+
+    effect(() => {
+      this.localStorage.setItem(
+        this.showIndoorCentersKey,
+        JSON.stringify(this.showIndoorCenters()),
       );
     });
 

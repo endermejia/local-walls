@@ -20,6 +20,12 @@ interface DbArea {
   slug: string;
 }
 
+interface DbIndoorCenter {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 interface DbCrag {
   id: number;
   name: string;
@@ -103,6 +109,11 @@ export class SearchService {
           .select('id, name, avatar')
           .or(`name.ilike.${q},name.ilike.${qLoose}`)
           .limit(50),
+        this.supabase.client
+          .from('indoor_centers' as any)
+          .select('id, name, slug')
+          .or(`name.ilike.${q},slug.ilike.${qSlug}`)
+          .limit(5),
       ]),
     ).pipe(
       map((responses) => {
@@ -110,6 +121,7 @@ export class SearchService {
         const crags = responses[1].data as DbCrag[] | null;
         const routes = responses[2].data as DbRoute[] | null;
         const users = responses[3].data as DbUser[] | null;
+        const indoorCenters = responses[4]?.data as DbIndoorCenter[] | null;
 
         const results: SearchData = {};
         if (areas?.length) {
@@ -166,6 +178,16 @@ export class SearchService {
                   type: 'user',
                 }) as SearchItem,
             );
+        }
+        if (indoorCenters?.length) {
+          results['Indoor'] = indoorCenters.map(
+            (c: DbIndoorCenter) =>
+              ({
+                title: c.name,
+                href: `/indoor/${c.slug}`,
+                icon: '@tui.home',
+              }) as SearchItem,
+          );
         }
         return results;
       }),

@@ -8,6 +8,31 @@ import { LandingComponent } from '../pages/marketing/landing';
 
 export const routes: Routes = [
   {
+    path: 'indoor/admin',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/indoor/indoor-admin').then((m) => m.IndoorAdminComponent),
+  },
+  {
+    path: 'indoor/:slug',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/indoor/indoor-center').then((m) => m.IndoorCenterComponent),
+  },
+  {
+    path: 'indoor/:slug/topo/:id',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/indoor/indoor-topo').then((m) => m.IndoorTopoComponent),
+  },
+  {
+    path: 'indoor/:slug/route/:id',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/indoor/indoor-route').then((m) => m.IndoorRouteComponent),
+  },
+
+  {
     path: 'home',
     canMatch: [authGuard],
     loadComponent: () =>

@@ -7,6 +7,7 @@ import {
   MapAreaItem,
   MapBounds,
   MapCragItem,
+  MapIndoorItem,
   MapOptions,
   ParkingDto,
 } from '../models';
@@ -27,7 +28,7 @@ interface ClusterItem {
   longitude: number;
   name: string;
   key: string;
-  markerType: 'api' | 'crag';
+    markerType: 'api' | 'crag' | 'indoor';
   liked?: boolean;
   apiItem?: MapCragItem;
   areaKeys?: string[];
@@ -375,15 +376,21 @@ export class MapBuilder {
     for (const c of apiItems) {
       const latlng = new L.LatLng(c.latitude, c.longitude);
       if (!bounds.contains(latlng)) continue;
+
+      let type: 'api' | 'crag' | 'indoor' = 'api';
+      if (!('area_type' in c) && !('grade_average' in c) && !('type' in c) && 'name' in c) {
+        type = 'indoor';
+      }
+
       items.push({
         latitude: c.latitude,
         longitude: c.longitude,
         name: c.name,
-        key: `api:${c.id ?? c.slug ?? c.name}:${c.latitude.toFixed(5)},${c.longitude.toFixed(5)}`,
-        markerType: 'api',
+        key: `${type}:${c.id ?? c.slug ?? c.name}:${c.latitude.toFixed(5)},${c.longitude.toFixed(5)}`,
+        markerType: type,
         liked: c.liked,
-        apiItem: c,
-        areaName: c.area_name,
+        apiItem: c as any,
+        areaName: (c as any).area_name,
       });
     }
 
@@ -672,11 +679,11 @@ export class MapBuilder {
     }
   }
 
-  private cragLabelHtml(
+    private cragLabelHtml(
     name: string,
     isSelected: boolean,
     isFavorite: boolean,
-    markerType: 'api' | 'area' | 'crag' = 'api',
+    markerType: 'api' | 'area' | 'crag' | 'indoor' = 'api',
   ): string {
     let backgroundColorClass = isFavorite
       ? 'lw-marker--accent'
@@ -685,7 +692,11 @@ export class MapBuilder {
       case 'area':
         backgroundColorClass = 'lw-marker--secondary';
         break;
+      case 'indoor':
+        backgroundColorClass = 'bg-accent text-accent-content';
+        break;
     }
+
     // The rest of the code remains the same
     const scale = isSelected ? 1.1 : isFavorite ? 1.2 : 1;
 

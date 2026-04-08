@@ -24,3 +24,4 @@ export * from './merchandise.model';
 export * from './notifications.model';
 export * from './pagination.model';
 export * from './errors';
+export * from './indoor.model';

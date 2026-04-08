@@ -21,7 +21,7 @@ export class MerchandiseService {
       .order('created_at', { ascending: false });
 
     if (onlyActive) {
-      query = query.eq('active', true);
+      query = query.eq('active' as any, true);
     }
 
     const { data, error } = await query;
@@ -51,7 +51,7 @@ export class MerchandiseService {
       .order('created_at', { ascending: false });
 
     if (onlyActive) {
-      query = query.eq('active', true);
+      query = query.eq('active' as any, true);
     }
 
     const { data, error } = await query;
@@ -107,7 +107,7 @@ export class MerchandiseService {
 
       const { data: savedPack, error: packError } = await this.supabase.client
         .from('area_packs')
-        .upsert(packToSave as AreaPackDetail)
+        .upsert(packToSave as any)
         .select()
         .single();
 

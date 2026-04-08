@@ -34,6 +34,7 @@ export class FiltersService {
       showCategories: options.showCategories ?? true,
       showShade: options.showShade ?? true,
       showGradeRange: options.showGradeRange ?? true,
+      showIndoorCenters: this.global.showIndoorCenters(),
     };
 
     void firstValueFrom(
@@ -62,6 +63,9 @@ export class FiltersService {
 
       this.global.areaListCategories.set(result.categories ?? []);
       this.global.areaListShade.set(result.selectedShade ?? []);
+      if (result.showIndoorCenters !== undefined) {
+        this.global.showIndoorCenters.set(result.showIndoorCenters);
+      }
     });
   }
 }

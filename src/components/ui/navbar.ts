@@ -260,7 +260,7 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
             <!-- Configuration -->
             <a
               #config="routerLinkActive"
-              [routerLink]="global.canEditAsAdmin() ? '/admin' : '/my-areas'"
+              [routerLink]="router.url.startsWith('/indoor') ? '/indoor/admin' : (global.canEditAsAdmin() ? '/admin' : '/my-areas')"
               routerLinkActive
               [tuiAppearance]="
                 config.isActive ? 'flat-destructive' : 'flat-grayscale'
@@ -435,7 +435,7 @@ export class NavbarComponent {
   });
   private readonly toast = inject(ToastService);
   private readonly searchService = inject(SearchService);
-  private readonly router = inject(Router);
+  protected readonly router = inject(Router);
   private readonly scrollService = inject(ScrollService);
   private readonly supabase = inject(SupabaseService);
   private readonly userProfilesService = inject(UserProfilesService);

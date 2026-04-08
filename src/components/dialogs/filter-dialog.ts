@@ -42,6 +42,7 @@ export interface FilterDialog {
   showCategories?: boolean;
   showShade?: boolean;
   showGradeRange?: boolean;
+  showIndoorCenters?: boolean;
 }
 
 @Component({
