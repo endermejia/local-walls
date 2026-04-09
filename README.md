@@ -39,16 +39,27 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 ## Future Features
 
 - **Sección indoor**:
-  - Vias, ascents y croquis en los centros
-    - tablas indoor-centers, indoor-routes, indoor-ascents, indoor-ascent-comments, indor-ascent-likes, indor-ascent-comment-likes, indoor-topos, ...
-    - reutilizar componentes de ascent
-    - crear paginas:
-      - indoor-center
+  - En filter-dialog agregar filtro de "indoor" por defecto deshabilitado
+    - En el feed (/home) debemos mostrar los indoor-ascents si está habilitado el filtro
+      - Crear nuevo componente indoor-ascent-card tomando como base ascent-card
+    - En el mapa (/explore) debemos mostrar los indoor-center si está habilitado el filtro
+      - Crear nuevo marcador para los centros indoor.
+  - En el mapa explore:
+    - Usar nuevos callbacks para cargar los centros indoor en el map-builder, no mezcles la logica de crags y la de indoor. son distintas
+    - Cuando seleccionemos un centro indoor, debemos ver un elemento parecido a cuando seleccionamos un crag, pero con la informacion de los centros indoor, nombre del centro, avatar del centro, routes by grade tomando como base routes by grade de crag pero con las rutas de indoor, etc.
+    - Al seleccionar hacer click sobre el centro seleccionado debemos ir a la pagina del centro indoor
+  - Pagina del centro indoor
+    - informacion del centro (avatar, nombre, descripcion, etc)
+    - tui-tabs:
+      - Bonos
         - comprar bonos
+        - ver bonos comprados (fecha de expiracion, bonos usados, historial de dias, bonos restantes, etc)
+      - Topos
         - ver topos del centro (activos y pasados, por defecto solo activos, debemos poder filtrar por fecha)
-        - ver rutas del centro
+      - Rutas
+        - ver rutas del centro, deben tener
+      - Ascents
         - ver ascents del centro
-      - indoor-route
       - indoor-topo
         - el topo debe tener fecha inicio y fecha fin
         - debemos poder subir fotos en un topo
@@ -58,8 +69,10 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
     - Gestion de administradores para los centros
     - Opciones de contabilidad, etc
     - Con el modo editar verá el cog en el navbar para ir a /indoor/admin
-- **Notificaciones en segundo plano**:
-  - Debemos poder recibir notificaciones cuando la app está en segundo plano (por ejemplo, cuando alguien comenta una foto que hemos subido, nos envia un mensaje, etc)
+- **Notificaciones al cerrar la app**:
+  - Debemos poder recibir notificaciones cuando la app está cerrada por completo. Ahora estamos recibiendo la notificación cuando la app está en segundo plano, pero no cuando se cierra. Y el sonido de la notificacion siempre se escucha con el volumen de Multimedia en android y no con el volumen de Notificaciones.
+- **Cambiar ascent-form dependiendo del climbing_kind**:
+  - Si es boulder deben aparecer los campos de "boulder" en vez de los de "sport"
 - **8a.nu Integration**:
   - Copy 8a.nu ascents database.
   - Direct data import using 8a.nu user credentials.
