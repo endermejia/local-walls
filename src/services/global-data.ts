@@ -1808,7 +1808,7 @@ export class GlobalData {
                   icon: '/logo/android-chrome-192x192.png',
                   badge: '/logo/climbeast-small.svg',
                   data: {
-                    url: '/notifications',
+                    url: '/home',
                   },
                 });
 
@@ -1850,7 +1850,7 @@ export class GlobalData {
                 badge: '/logo/climbeast-small.svg',
                 tag: `msg-${msg.sender_id}`, // Stack notifications from the same user
                 data: {
-                  url: `/chat/${msg.sender_id}`,
+                  url: '/home',
                 },
               });
 

@@ -85,7 +85,7 @@ serve(async (req) => {
             tag: `cb-notif-${record.type}-${Date.now()}`,
             renotify: true,
             data: {
-              url: '/',
+              url: '/home',
             },
           },
         });

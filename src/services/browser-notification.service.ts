@@ -66,7 +66,7 @@ export class BrowserNotificationService {
             ...options,
             data: {
               ...options?.data,
-              url: options?.data?.url || '/',
+              url: options?.data?.url || '/home',
             },
           } as NotificationOptions & { renotify?: boolean });
         } else {
