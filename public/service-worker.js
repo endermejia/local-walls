@@ -12,23 +12,24 @@ self.addEventListener("push", (event) => {
     const data = event.data.json();
     console.log("[ServiceWorker] Push data:", data);
 
-    if (data.notification) {
-      const title = data.notification.title || "ClimBeast";
-      const options = {
-        body: data.notification.body || "",
-        icon: data.notification.icon || "/assets/icons/icon-192x192.png",
-        badge: data.notification.badge || "/assets/icons/badge-72x72.png",
-        vibrate: data.notification.vibrate || [200, 100, 200],
-        tag: data.notification.tag || "cb-notif",
-        renotify: data.notification.renotify !== false,
-        data: {
-          url: data.notification.data?.url || "/home",
-          ...data.notification.data,
-        },
-      };
+    // Support both flattened and nested (Angular-style) structures
+    const notif = data.notification || data;
+    const title = notif.title || "ClimBeast";
 
-      event.waitUntil(self.registration.showNotification(title, options));
-    }
+    const options = {
+      body: notif.body || "",
+      icon: notif.icon || "/logo/android-chrome-192x192.png",
+      badge: notif.badge || "/logo/favicon-32x32.png",
+      vibrate: notif.vibrate || [200, 100, 200],
+      tag: notif.tag || "cb-notif",
+      renotify: notif.renotify !== false,
+      data: {
+        url: notif.data?.url || "/home",
+        ...notif.data,
+      },
+    };
+
+    event.waitUntil(self.registration.showNotification(title, options));
   } catch (err) {
     console.error("[ServiceWorker] Error parsing push data:", err);
   }
@@ -54,8 +55,19 @@ self.addEventListener("notificationclick", (event) => {
         // Check if there is already a window open with this URL
         for (let i = 0; i < windowClients.length; i++) {
           const client = windowClients[i];
-          if (client.url.includes(urlToOpen) && "focus" in client) {
-            return client.focus();
+          // Use URL object for safer comparison
+          try {
+            const clientUrl = new URL(client.url);
+            if (
+              clientUrl.pathname === urlToOpen ||
+              client.url.includes(urlToOpen)
+            ) {
+              if ("focus" in client) return client.focus();
+            }
+          } catch (e) {
+            if (client.url.includes(urlToOpen) && "focus" in client) {
+              return client.focus();
+            }
           }
         }
         // If no window is open, open a new one
