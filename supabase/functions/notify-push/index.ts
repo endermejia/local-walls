@@ -18,17 +18,32 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    // Fetch recipient subscriptions
-    const { data: subscriptions, error } = await supabase
+    // 1. Fetch recipient subscriptions
+    const { data: subscriptions, error: subError } = await supabase
       .from('push_subscriptions')
-      .select(
-        'subscription, users:user_profiles!push_subscriptions_user_id_fkey(notification_sound, message_sound)',
-      )
+      .select('subscription')
       .eq('user_id', record.user_id);
 
-    if (error) throw error;
+    if (subError) throw subError;
 
-    console.log(`Sending to ${subscriptions?.length || 0} subscriptions`);
+    if (!subscriptions || subscriptions.length === 0) {
+      console.log('No subscriptions found for user:', record.user_id);
+      return new Response(
+        JSON.stringify({ success: true, message: 'No subscriptions' }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+    }
+
+    // 2. Fetch user profile preferences (sound/notifications enabled)
+    const { data: userProfile } = await supabase
+      .from('user_profiles')
+      .select('notification_sound, message_sound')
+      .eq('id', record.user_id)
+      .single();
+
+    console.log(`Sending to ${subscriptions.length} subscriptions`);
 
     let body = 'Nueva notificación';
     switch (record.type) {
@@ -57,12 +72,8 @@ serve(async (req) => {
     }
 
     const results = await Promise.allSettled(
-      (subscriptions || []).map((sub) => {
-        let shouldNotify = false;
-
-        // Handle array or object from join
-        const users = sub.users;
-        const userProfile = Array.isArray(users) ? users[0] : users;
+      subscriptions.map((sub) => {
+        let shouldNotify = true;
 
         if (userProfile) {
           if (record.type === 'message') {
@@ -70,8 +81,6 @@ serve(async (req) => {
           } else {
             shouldNotify = userProfile.notification_sound !== false;
           }
-        } else {
-          shouldNotify = true;
         }
 
         if (!shouldNotify) return Promise.resolve();
@@ -110,7 +119,8 @@ serve(async (req) => {
     // Cleanup invalid subscriptions
     const invalidSubs = results
       .map((res, i) =>
-        res.status === 'rejected' && res.reason.statusCode === 410
+        res.status === 'rejected' &&
+        (res.reason.statusCode === 410 || res.reason.statusCode === 404)
           ? subscriptions[i].subscription
           : null,
       )
@@ -118,7 +128,13 @@ serve(async (req) => {
 
     if (invalidSubs.length > 0) {
       console.log(`Cleaning up ${invalidSubs.length} invalid subscriptions`);
-      // Add logic to delete if needed, but for now we just log
+      // Optional: Logic to delete these from DB
+      for (const sub of invalidSubs) {
+        await supabase
+          .from('push_subscriptions')
+          .delete()
+          .eq('subscription', sub);
+      }
     }
 
     return new Response(JSON.stringify({ success: true }), {
