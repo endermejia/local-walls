@@ -403,7 +403,6 @@
   "notFound.imageAlt": "not found",
   "notFound.title": "Not found",
   "notificationSound": "Notification sound",
-  "pushNotifications": "Push notifications",
   "notifications": "Notifications",
   "notifications.andOthers": "{{count}} others",
   "notifications.commentedAscent": "commented on your ascent on '{{routeName}}'",

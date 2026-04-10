@@ -403,7 +403,6 @@
   "notFound.imageAlt": "non trovato",
   "notFound.title": "Non trovato",
   "notificationSound": "Suono notifiche",
-  "pushNotifications": "Notifiche sul dispositivo",
   "notifications": "Notifiche",
   "notifications.andOthers": "altri {{count}}",
   "notifications.commentedAscent": "ha commentato la tua salita su '{{routeName}}'",
