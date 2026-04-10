@@ -31,6 +31,7 @@ import { BrowserNotificationService } from './browser-notification.service';
 import { LocalStorage } from './local-storage';
 import { MessagingService } from './messaging.service';
 import { SupabaseService } from './supabase.service';
+import { PushService } from './push.service';
 
 import { mapCragToDetail } from '../utils';
 
@@ -80,6 +81,7 @@ export class GlobalData {
   private readonly notificationsService = inject(AppNotificationsService);
   private readonly messagingService = inject(MessagingService);
   private readonly browserNotifications = inject(BrowserNotificationService);
+  private readonly push = inject(PushService);
   private breakpointService = inject(TuiBreakpointService);
 
   readonly isMobile = toSignal(
@@ -1700,6 +1702,19 @@ export class GlobalData {
       }
     });
 
+    // Automatically subscribe to push if supported and not subscribed
+    effect(() => {
+      const profile = this.userProfile();
+      if (
+        profile &&
+        isPlatformBrowser(this.platformId) &&
+        this.push.isSupported() &&
+        !this.push.isSubscribed()
+      ) {
+        void this.push.subscribe();
+      }
+    });
+
     if (isPlatformBrowser(this.platformId)) {
       this.browserNotifications.bindUserGesture();
 
@@ -1803,25 +1818,22 @@ export class GlobalData {
                   break;
               }
               if (body) {
-                void this.browserNotifications.show(title, {
-                  body,
-                  icon: '/logo/android-chrome-192x192.png',
-                  badge: '/logo/climbeast-small.svg',
-                  data: {
-                    url: '/home',
-                  },
-                });
+                if (this.notificationSoundEnabled()) {
+                  void this.browserNotifications.show(title, {
+                    body,
+                    icon: '/logo/android-chrome-192x192.png',
+                    badge: '/logo/climbeast-small.svg',
+                    data: {
+                      url: '/home',
+                    },
+                  });
 
-                // On Android/Mobile, the system already handles notifications,
-                // so we don't need to flash title or play manual sound if it's already a system notification.
-                if (
-                  typeof document !== 'undefined' &&
-                  document.hidden &&
-                  !this.isMobile()
-                ) {
-                  this.browserNotifications.flashTitle(title);
-
-                  if (this.notificationSoundEnabled()) {
+                  if (
+                    typeof document !== 'undefined' &&
+                    document.hidden &&
+                    !this.isMobile()
+                  ) {
+                    this.browserNotifications.flashTitle(title);
                     this.browserNotifications.playSound();
                   }
                 }
@@ -1838,8 +1850,8 @@ export class GlobalData {
         const mSub = this.messagingService.watchUnreadCount((msg) => {
           void this.messagingService.refreshUnreadCount();
 
-          // Only show if not from me
-          if (msg.sender_id !== userId) {
+          // Only show if not from me and message sounds are enabled
+          if (msg.sender_id !== userId && this.messageSoundEnabled()) {
             void this.supabase.getUserProfile(msg.sender_id!).then((sender) => {
               const title = sender?.name || 'Chat';
               void this.browserNotifications.show(title, {
@@ -1862,10 +1874,6 @@ export class GlobalData {
                 !this.isMobile()
               ) {
                 this.browserNotifications.flashTitle(title);
-              }
-
-              // Play sound only if enabled AND not on mobile (redundant)
-              if (this.messageSoundEnabled() && !this.isMobile()) {
                 this.browserNotifications.playSound();
               }
             });

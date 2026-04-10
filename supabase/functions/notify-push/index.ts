@@ -58,7 +58,7 @@ serve(async (req) => {
 
     const results = await Promise.allSettled(
       (subscriptions || []).map((sub) => {
-        let soundEnabled = false;
+        let shouldNotify = false;
 
         // Handle array or object from join
         const users = sub.users;
@@ -66,14 +66,15 @@ serve(async (req) => {
 
         if (userProfile) {
           if (record.type === 'message') {
-            soundEnabled = userProfile.message_sound !== false;
+            shouldNotify = userProfile.message_sound !== false;
           } else {
-            soundEnabled = userProfile.notification_sound !== false;
+            shouldNotify = userProfile.notification_sound !== false;
           }
         } else {
-          // default to true if we cant find the profile setting
-          soundEnabled = true;
+          shouldNotify = true;
         }
+
+        if (!shouldNotify) return Promise.resolve();
 
         const payload = JSON.stringify({
           notification: {
@@ -82,10 +83,16 @@ serve(async (req) => {
             icon: 'https://climbeast.com/logo/android-chrome-192x192.png',
             badge: 'https://climbeast.com/logo/favicon-32x32.png',
             vibrate: [200, 100, 200],
-            tag: `cb-notif-${record.type}-${Date.now()}`,
+            tag:
+              record.type === 'message'
+                ? `msg-${record.room_id}`
+                : `cb-notif-${record.type}-${record.id || Date.now()}`,
             renotify: true,
             data: {
-              url: '/home',
+              url:
+                record.type === 'message'
+                  ? `/chat/${record.room_id}`
+                  : record.url || '/home',
             },
           },
         });
