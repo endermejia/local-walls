@@ -90,7 +90,7 @@ serve(async (req) => {
             title: 'ClimBeast',
             body: body,
             icon: 'https://climbeast.com/logo/android-chrome-192x192.png',
-            badge: 'https://climbeast.com/logo/favicon-32x32.png',
+            badge: 'https://climbeast.com/logo/climbeast-small.svg',
             vibrate: [200, 100, 200],
             tag:
               record.type === 'message'

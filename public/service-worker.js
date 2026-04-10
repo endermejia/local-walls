@@ -19,7 +19,7 @@ self.addEventListener("push", (event) => {
     const options = {
       body: notif.body || "",
       icon: notif.icon || "/logo/android-chrome-192x192.png",
-      badge: notif.badge || "/logo/favicon-32x32.png",
+      badge: notif.badge || "/logo/climbeast-small.svg",
       vibrate: notif.vibrate || [200, 100, 200],
       tag: notif.tag || "cb-notif",
       renotify: notif.renotify !== false,
@@ -29,7 +29,28 @@ self.addEventListener("push", (event) => {
       },
     };
 
-    event.waitUntil(self.registration.showNotification(title, options));
+    // Prevent duplicate notifications if the app is already open and focused
+    event.waitUntil(
+      clients
+        .matchAll({
+          type: "window",
+          includeUncontrolled: true,
+        })
+        .then((windowClients) => {
+          const isAppFocused = windowClients.some(
+            (client) => client.visibilityState === "visible",
+          );
+
+          if (isAppFocused) {
+            console.log(
+              "[ServiceWorker] App is focused, skip showing push notification",
+            );
+            return;
+          }
+
+          return self.registration.showNotification(title, options);
+        }),
+    );
   } catch (err) {
     console.error("[ServiceWorker] Error parsing push data:", err);
   }
