@@ -10,41 +10,66 @@ self.addEventListener("push", (event) => {
 
   try {
     const data = event.data.json();
-    console.log("[ServiceWorker] Push data:", data);
+    console.log("[ServiceWorker] Push data:", JSON.stringify(data));
 
-    // If 'notification' is at the root, NGSW (Angular SW) might auto-show it.
-    // We prefer reading it from data.notification if we want full manual control.
-    const notif = data.notification || data.data?.notification || data;
+    // Handle nested payload from Edge Function: { data: { notification: { ... } } }
+    // Or standard: { notification: { ... } }
+    let notif =
+      data.notification || (data.data && data.data.notification) || data;
+
+    // In some cases, 'data' might be the actual notification if not wrapped at all
+    if (!notif.title && data.title) notif = data;
+
     const title = notif.title || "ClimBeast";
+    const body = notif.body || "";
+
+    // Ensure relative URLs are resolved to absolute ones for reliability
+    const origin = self.location.origin;
+    const icon = notif.icon
+      ? notif.icon.startsWith("http")
+        ? notif.icon
+        : `${origin}${notif.icon}`
+      : `${origin}/logo/android-chrome-192x192.png`;
+    const badge = notif.badge
+      ? notif.badge.startsWith("http")
+        ? notif.badge
+        : `${origin}${notif.badge}`
+      : `${origin}/logo/climbeast-small.svg`;
+
+    // Extract target URL, ensuring it's relative to origin
+    let targetUrl = notif.data?.url || (data.data && data.data.url) || "/home";
+    if (!targetUrl.startsWith("http")) {
+      targetUrl = new URL(targetUrl, origin).href;
+    }
 
     const options = {
-      body: notif.body || "",
-      icon: notif.icon || "/logo/android-chrome-192x192.png",
-      badge: notif.badge || "/logo/climbeast-small.svg",
+      body: body,
+      icon: icon,
+      badge: badge,
       vibrate: notif.vibrate || [200, 100, 200],
       tag: notif.tag || "cb-notif",
       renotify: notif.renotify !== false,
       data: {
-        url: notif.data?.url || (data.data && data.data.url) || "/home",
+        url: targetUrl,
         ...notif.data,
       },
     };
 
-    // Prevent duplicate notifications if the app is already open and focused
+    console.log("[ServiceWorker] Showing notification:", title, options);
+
     event.waitUntil(
       clients
-        .matchAll({
-          type: "window",
-          includeUncontrolled: true,
-        })
+        .matchAll({ type: "window", includeUncontrolled: true })
         .then((windowClients) => {
-          const isAppFocused = windowClients.some(
-            (client) => client.visibilityState === "visible",
+          // If any window is visible/focused, we might skip to avoid disruption
+          // BUT if the user specifically asked to skip when 'open', we check visibility
+          const isAppActive = windowClients.some(
+            (client) => client.visibilityState === "visible" && client.focused,
           );
 
-          if (isAppFocused) {
+          if (isAppActive) {
             console.log(
-              "[ServiceWorker] App is focused OR already handled, skip showing push notification",
+              "[ServiceWorker] App is active/focused, skipping notification display.",
             );
             return;
           }
@@ -53,7 +78,7 @@ self.addEventListener("push", (event) => {
         }),
     );
   } catch (err) {
-    console.error("[ServiceWorker] Error parsing push data:", err);
+    console.error("[ServiceWorker] Error processing push event:", err);
   }
 });
 
@@ -65,34 +90,31 @@ self.addEventListener("notificationclick", (event) => {
 
   event.notification.close();
 
-  const urlToOpen = event.notification.data?.url || "/home";
+  // Get the target URL from notification data. It's already absolute.
+  const urlToOpen =
+    event.notification.data?.url || new URL("/home", self.location.origin).href;
 
   event.waitUntil(
     clients
-      .matchAll({
-        type: "window",
-        includeUncontrolled: true,
-      })
+      .matchAll({ type: "window", includeUncontrolled: true })
       .then((windowClients) => {
-        // Check if there is already a window open with this URL
-        for (let i = 0; i < windowClients.length; i++) {
-          const client = windowClients[i];
-          // Use URL object for safer comparison
-          try {
-            const clientUrl = new URL(client.url);
-            if (
-              clientUrl.pathname === urlToOpen ||
-              client.url.includes(urlToOpen)
-            ) {
-              if ("focus" in client) return client.focus();
-            }
-          } catch (e) {
-            if (client.url.includes(urlToOpen) && "focus" in client) {
-              return client.focus();
-            }
+        // 1. Try to find a window that already has this URL open
+        for (const client of windowClients) {
+          if (client.url === urlToOpen && "focus" in client) {
+            return client.focus();
           }
         }
-        // If no window is open, open a new one
+
+        // 2. If no exact match, try to find ANY window of our app and navigate it
+        for (const client of windowClients) {
+          if ("focus" in client && "navigate" in client) {
+            return client
+              .focus()
+              .then((fClient) => fClient.navigate(urlToOpen));
+          }
+        }
+
+        // 3. If no window is open at all, open a new one
         if (clients.openWindow) {
           return clients.openWindow(urlToOpen);
         }
