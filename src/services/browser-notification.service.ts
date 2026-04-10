@@ -68,7 +68,7 @@ export class BrowserNotificationService {
               ...options?.data,
               url: options?.data?.url || '/',
             },
-          });
+          } as NotificationOptions & { renotify?: boolean });
         } else {
           // Fallback to traditional browser notification
           const n = new NotificationRef(title, options);
