@@ -34,7 +34,7 @@ self.addEventListener("push", (event) => {
       ? notif.badge.startsWith("http")
         ? notif.badge
         : `${origin}${notif.badge}`
-      : `${origin}/logo/climbeast-small.svg`;
+      : `${origin}/logo/climbeast-small.png`;
 
     // Extract target URL, ensuring it's relative to origin
     let targetUrl = notif.data?.url || (data.data && data.data.url) || "/home";
@@ -55,21 +55,25 @@ self.addEventListener("push", (event) => {
       },
     };
 
-    console.log("[ServiceWorker] Showing notification:", title, options);
+    console.log(
+      "[ServiceWorker] Showing notification:",
+      title,
+      JSON.stringify(options),
+    );
 
     event.waitUntil(
       clients
         .matchAll({ type: "window", includeUncontrolled: true })
         .then((windowClients) => {
-          // If any window is visible/focused, we might skip to avoid disruption
-          // BUT if the user specifically asked to skip when 'open', we check visibility
-          const isAppActive = windowClients.some(
+          // Mejorado: En móvil, ser visible + estar enfocado es muy estricto.
+          // Solo omitimos la notificación si la app está REALMENTE en primer plano.
+          const isAppFocused = windowClients.some(
             (client) => client.visibilityState === "visible" && client.focused,
           );
 
-          if (isAppActive) {
+          if (isAppFocused) {
             console.log(
-              "[ServiceWorker] App is active/focused, skipping notification display.",
+              "[ServiceWorker] App is active and focused, skipping notification display.",
             );
             return;
           }

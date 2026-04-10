@@ -86,24 +86,22 @@ serve(async (req) => {
         if (!shouldNotify) return Promise.resolve();
 
         const payload = JSON.stringify({
-          data: {
-            notification: {
-              title: 'ClimBeast',
-              body: body,
-              icon: 'https://climbeast.com/logo/android-chrome-192x192.png',
-              badge: 'https://climbeast.com/logo/climbeast-small.svg',
-              vibrate: [200, 100, 200],
-              tag:
+          notification: {
+            title: 'ClimBeast',
+            body: body,
+            icon: 'https://climbeast.com/logo/android-chrome-192x192.png',
+            badge: 'https://climbeast.com/logo/climbeast-small.png',
+            vibrate: [200, 100, 200],
+            tag:
+              record.type === 'message'
+                ? `msg-${record.room_id}`
+                : `cb-notif-${record.type}-${record.id || Date.now()}`,
+            renotify: true,
+            data: {
+              url:
                 record.type === 'message'
-                  ? `msg-${record.room_id}`
-                  : `cb-notif-${record.type}-${record.id || Date.now()}`,
-              renotify: true,
-              data: {
-                url:
-                  record.type === 'message'
-                    ? `/chat/${record.room_id}`
-                    : record.url || '/home',
-              },
+                  ? `/chat/${record.room_id}`
+                  : record.url || '/home',
             },
           },
         });
