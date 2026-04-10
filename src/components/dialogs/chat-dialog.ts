@@ -63,6 +63,7 @@ import {
 
 export interface ChatDialogData {
   userId?: string;
+  roomId?: string;
 }
 
 @Component({
@@ -435,8 +436,12 @@ export class ChatDialogComponent implements OnDestroy {
 
   constructor() {
     const initialUserId = this.context.data?.userId;
+    const initialRoomId = this.context.data?.roomId;
+
     if (initialUserId) {
       void this.openChatWithUser(initialUserId);
+    } else if (initialRoomId) {
+      void this.openChatWithRoom(initialRoomId);
     }
 
     this.userSearchControl.valueChanges
@@ -477,37 +482,27 @@ export class ChatDialogComponent implements OnDestroy {
   private async openChatWithUser(userId: string) {
     const roomId = await this.messagingService.getOrCreateRoom(userId);
     if (roomId) {
-      await this.roomsResource.reload();
-      // Wait for rooms to be loaded if they are not yet
-      let room = this.rooms().find((r) => r.id === roomId);
+      void this.openChatWithRoom(roomId);
+    }
+  }
 
-      if (!room) {
-        // If not found, it might be a brand new room, we can try to construct a minimal one
-        // or just wait for the resource to finish loading.
-        // Since getRooms() returns ChatRoomWithParticipant[], we need the participant info.
-        // Let's try to find it one more time after a short delay if it's still loading
-        if (this.loadingRooms()) {
-          await new Promise((resolve) => setTimeout(resolve, 500));
-          room = this.rooms().find((r) => r.id === roomId);
-        }
-      }
+  private async openChatWithRoom(roomId: string) {
+    await this.roomsResource.reload();
+    // Wait for rooms to be loaded if they are not yet
+    let room = this.rooms().find((r) => r.id === roomId);
 
-      if (room) {
-        this.onSelectRoom(room);
-      } else {
-        // Fallback: if we still don't have the room object, we might need to fetch the participant
-        const user = await this.userProfilesService.getUserProfile(userId);
-        if (user) {
-          this.onSelectRoom({
-            id: roomId,
-            participant: user,
-            unread_count: 0,
-            last_message: undefined,
-            created_at: new Date().toISOString(),
-            last_message_at: null,
-          });
-        }
-      }
+    if (!room && this.loadingRooms()) {
+      // Small buffer to wait for reload if necessary
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      room = this.rooms().find((r) => r.id === roomId);
+    }
+
+    if (room) {
+      this.onSelectRoom(room);
+    } else {
+      // If we still don't have it, we try to fetch this specific room directly if service allows
+      // or at least stay in rooms view.
+      console.warn('[ChatDialog] Room not found in list:', roomId);
     }
   }
 

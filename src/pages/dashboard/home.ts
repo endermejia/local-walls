@@ -10,10 +10,16 @@ import {
   computed,
   signal,
   ViewChild,
+  input,
+  effect,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import {
+  ChatDialogComponent,
+  ChatDialogData,
+} from '../../components/dialogs/chat-dialog';
 
 import {
   TuiAppearance,
@@ -263,7 +269,7 @@ import {
 export class HomeComponent implements OnDestroy {
   protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
-  protected readonly router = inject(Router);
+  private readonly router = inject(Router);
   private readonly desnivelService = inject(DesnivelService);
   private readonly followsService = inject(FollowsService);
   private readonly platformId = inject(PLATFORM_ID);
@@ -275,6 +281,7 @@ export class HomeComponent implements OnDestroy {
   @ViewChild(TuiScrollbar, { read: ElementRef })
   scrollbar?: ElementRef<HTMLElement>;
 
+  readonly roomId = input<string | undefined>();
   protected readonly followedIds = signal<Set<string>>(new Set());
   protected readonly followsLoaded = signal(false);
 
@@ -305,6 +312,13 @@ export class HomeComponent implements OnDestroy {
 
   constructor() {
     this.loadFollowedIds();
+
+    effect(() => {
+      const id = this.roomId();
+      if (id && this.isBrowser) {
+        void this.openChat(id);
+      }
+    });
 
     this.scrollService.scrollToTop$.pipe(takeUntilDestroyed()).subscribe(() => {
       this.scrollToTop();
@@ -603,6 +617,24 @@ export class HomeComponent implements OnDestroy {
       ),
       { defaultValue: undefined },
     );
+  }
+
+  protected async openChat(roomId?: string): Promise<void> {
+    const data: ChatDialogData = { roomId };
+
+    await firstValueFrom(
+      this.dialogs.open(new PolymorpheusComponent(ChatDialogComponent), {
+        label: this.translate.instant('messages'),
+        size: 'm',
+        data,
+      }),
+      { defaultValue: undefined },
+    );
+
+    // Clean up URL after closing
+    if (this.roomId()) {
+      void this.router.navigate(['/home'], { replaceUrl: true });
+    }
   }
 
   private scrollToTop() {

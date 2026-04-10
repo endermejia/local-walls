@@ -81,6 +81,10 @@ export const serverRoutes: ServerRoute[] = [
     path: 'admin/parkings',
     renderMode: RenderMode.Prerender,
   },
+  {
+    path: 'chat/:roomId',
+    renderMode: RenderMode.Server,
+  },
   // Fallback routes
   {
     path: '',

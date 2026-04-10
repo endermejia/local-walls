@@ -12,8 +12,9 @@ self.addEventListener("push", (event) => {
     const data = event.data.json();
     console.log("[ServiceWorker] Push data:", data);
 
-    // Support both flattened and nested (Angular-style) structures
-    const notif = data.notification || data;
+    // If 'notification' is at the root, NGSW (Angular SW) might auto-show it.
+    // We prefer reading it from data.notification if we want full manual control.
+    const notif = data.notification || data.data?.notification || data;
     const title = notif.title || "ClimBeast";
 
     const options = {
@@ -24,7 +25,7 @@ self.addEventListener("push", (event) => {
       tag: notif.tag || "cb-notif",
       renotify: notif.renotify !== false,
       data: {
-        url: notif.data?.url || "/home",
+        url: notif.data?.url || (data.data && data.data.url) || "/home",
         ...notif.data,
       },
     };
@@ -43,7 +44,7 @@ self.addEventListener("push", (event) => {
 
           if (isAppFocused) {
             console.log(
-              "[ServiceWorker] App is focused, skip showing push notification",
+              "[ServiceWorker] App is focused OR already handled, skip showing push notification",
             );
             return;
           }

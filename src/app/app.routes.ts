@@ -162,6 +162,12 @@ export const routes: Routes = [
         (m) => m.AdminAreaRequestsComponent,
       ),
   },
+  {
+    path: 'chat/:roomId',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/dashboard/home').then((m) => m.HomeComponent),
+  },
   // Public landing page
   {
     path: 'info',

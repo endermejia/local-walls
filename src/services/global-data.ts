@@ -27,7 +27,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { map, merge, startWith } from 'rxjs';
 
 import { AppNotificationsService } from './app-notifications.service';
-import { BrowserNotificationService } from './browser-notification.service';
 import { LocalStorage } from './local-storage';
 import { MessagingService } from './messaging.service';
 import { SupabaseService } from './supabase.service';
@@ -80,7 +79,6 @@ export class GlobalData {
   private supabase = inject(SupabaseService);
   private readonly notificationsService = inject(AppNotificationsService);
   private readonly messagingService = inject(MessagingService);
-  private readonly browserNotifications = inject(BrowserNotificationService);
   private readonly push = inject(PushService);
   private breakpointService = inject(TuiBreakpointService);
 
@@ -1113,8 +1111,9 @@ export class GlobalData {
             const r = item.route;
             if (!r) return null;
             const rates =
-              r.ascents?.map((a) => a.rate).filter((rate) => rate != null) ??
-              [];
+              r.ascents
+                ?.map((a) => a.rate)
+                .filter((rate): rate is number => rate != null) ?? [];
             const rating =
               rates.length > 0
                 ? rates.reduce((a, b) => a + b, 0) / rates.length
@@ -1373,7 +1372,9 @@ export class GlobalData {
 
         const r = data;
         const rates =
-          r.ascents?.map((a) => a.rate).filter((rate) => rate != null) ?? [];
+          r.ascents
+            ?.map((a) => a.rate)
+            .filter((rate): rate is number => rate != null) ?? [];
         const rating =
           rates.length > 0
             ? rates.reduce((a, b) => a + b, 0) / rates.length
@@ -1713,25 +1714,6 @@ export class GlobalData {
       }
     });
 
-    if (isPlatformBrowser(this.platformId)) {
-      this.browserNotifications.bindUserGesture();
-
-      const NotificationRef = (
-        window as unknown as { Notification: typeof Notification }
-      ).Notification;
-      if (NotificationRef) {
-        if (NotificationRef.permission === 'default') {
-          const requestPermission = () => {
-            void this.browserNotifications.requestPermission();
-            window.removeEventListener('click', requestPermission);
-          };
-          window.addEventListener('click', requestPermission);
-        } else {
-          void this.browserNotifications.requestPermission();
-        }
-      }
-    }
-
     // Hydrate audio preferences
     try {
       const msgSound = this.localStorage.getItem('message_sound_enabled_v1');
@@ -1796,79 +1778,12 @@ export class GlobalData {
           console.log('[GlobalData] New notification received:', notif.type);
           // Always refresh count for navbar
           void this.notificationsService.refreshUnreadCount();
-
-          // Popup/Sound only if enabled in profile
-          if (notif.actor_id && this.notificationSoundEnabled()) {
-            void this.supabase.getUserProfile(notif.actor_id).then((actor) => {
-              const title = actor?.name || 'ClimBeast';
-              let body = '';
-              switch (notif.type) {
-                case NotificationTypes.LIKE:
-                  body = this.translate.instant('notifications.likedAscent');
-                  break;
-                case NotificationTypes.COMMENT:
-                  body = this.translate.instant(
-                    'notifications.commentedAscent',
-                  );
-                  break;
-                case NotificationTypes.MENTION:
-                  body = this.translate.instant('notifications.mention');
-                  break;
-                case NotificationTypes.LIKED_COMMENT:
-                  body = this.translate.instant('notifications.likedComment');
-                  break;
-              }
-
-              if (body) {
-                void this.browserNotifications.show(title, {
-                  body,
-                  icon: '/logo/android-chrome-192x192.png',
-                  badge: '/logo/climbeast-small.svg',
-                  data: { url: '/home' },
-                });
-
-                if (
-                  typeof document !== 'undefined' &&
-                  document.hidden &&
-                  !this.isMobile()
-                ) {
-                  this.browserNotifications.flashTitle(title);
-                  this.browserNotifications.playSound();
-                }
-              }
-            });
-          }
         });
 
         const mSub = this.messagingService.watchUnreadCount((msg) => {
           console.log('[GlobalData] New message in DB detected');
           // Always refresh count for navbar
           void this.messagingService.refreshUnreadCount();
-
-          // Popup/Sound only if enabled and message is relevant (not from me)
-          if (msg.sender_id !== userId && this.messageSoundEnabled()) {
-            void this.supabase.getUserProfile(msg.sender_id!).then((sender) => {
-              const title = sender?.name || 'Chat';
-              void this.browserNotifications.show(title, {
-                body: msg.text,
-                icon: sender?.avatar
-                  ? this.supabase.buildAvatarUrl(sender.avatar)
-                  : '/logo/android-chrome-192x192.png',
-                badge: '/logo/climbeast-small.svg',
-                tag: `msg-${msg.sender_id}`,
-                data: { url: '/home' },
-              });
-
-              if (
-                typeof document !== 'undefined' &&
-                document.hidden &&
-                !this.isMobile()
-              ) {
-                this.browserNotifications.flashTitle(title);
-                this.browserNotifications.playSound();
-              }
-            });
-          }
         });
 
         onCleanup(() => {
