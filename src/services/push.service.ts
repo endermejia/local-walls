@@ -61,6 +61,10 @@ export class PushService {
     }
   }
 
+  async getCurrentSubscription(): Promise<PushSubscription | null> {
+    return firstValueFrom(this.swPush.subscription);
+  }
+
   private async checkSubscription(): Promise<void> {
     this.swPush.subscription.subscribe((subscription) => {
       this.isSubscribed.set(!!subscription);
@@ -71,11 +75,14 @@ export class PushService {
     });
   }
 
-  private async saveSubscription(
-    subscription: PushSubscription,
-  ): Promise<void> {
+  async saveSubscription(subscription: PushSubscription): Promise<void> {
     const userId = this.supabase.authUserId();
-    if (!userId) return;
+    if (!userId) {
+      console.warn(
+        '[PushService] Skipping saveSubscription: No user ID available',
+      );
+      return;
+    }
 
     const { error } = await this.supabase.client
       .from('push_subscriptions')

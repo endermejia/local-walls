@@ -1694,16 +1694,22 @@ export class GlobalData {
       }
     });
 
-    // Automatically subscribe to push if supported and not subscribed
+    // Automatically subscribe to push if supported
     effect(() => {
       const profile = this.userProfile();
       if (
         profile &&
         isPlatformBrowser(this.platformId) &&
-        this.push.isSupported() &&
-        !this.push.isSubscribed()
+        this.push.isSupported()
       ) {
-        void this.push.subscribe();
+        if (!this.push.isSubscribed()) {
+          void this.push.subscribe();
+        } else {
+          // Even if already subscribed browser-side, sync with DB to ensure this userId has it
+          void this.push.getCurrentSubscription().then((sub) => {
+            if (sub) void this.push.saveSubscription(sub);
+          });
+        }
       }
     });
 
