@@ -1611,14 +1611,6 @@ export class GlobalData {
       // ignore corrupted viewport state
     }
 
-    // Persist editing mode changes
-    effect(() => {
-      this.localStorage.setItem(
-        this.editingModeStorageKey,
-        String(this.editingMode()),
-      );
-    });
-
     // Persist and react to map bounds changes
     effect(() => {
       const mapBounds = this.mapBounds();
@@ -1790,14 +1782,17 @@ export class GlobalData {
     effect((onCleanup) => {
       const userId = this.supabase.authUserId();
       if (userId) {
+        console.log('[GlobalData] Setting up Realtime for user:', userId);
         void this.notificationsService.refreshUnreadCount();
         void this.messagingService.refreshUnreadCount();
 
         const nSub = this.notificationsService.watchNotifications((notif) => {
+          console.log('[GlobalData] New notification received:', notif.type);
+          // Always refresh count for navbar
           void this.notificationsService.refreshUnreadCount();
 
-          // Browser notification for general notifications
-          if (notif.actor_id) {
+          // Popup/Sound only if enabled in profile
+          if (notif.actor_id && this.notificationSoundEnabled()) {
             void this.supabase.getUserProfile(notif.actor_id).then((actor) => {
               const title = actor?.name || 'ClimBeast';
               let body = '';
@@ -1817,40 +1812,34 @@ export class GlobalData {
                   body = this.translate.instant('notifications.likedComment');
                   break;
               }
-              if (body) {
-                if (this.notificationSoundEnabled()) {
-                  void this.browserNotifications.show(title, {
-                    body,
-                    icon: '/logo/android-chrome-192x192.png',
-                    badge: '/logo/climbeast-small.svg',
-                    data: {
-                      url: '/home',
-                    },
-                  });
 
-                  if (
-                    typeof document !== 'undefined' &&
-                    document.hidden &&
-                    !this.isMobile()
-                  ) {
-                    this.browserNotifications.flashTitle(title);
-                    this.browserNotifications.playSound();
-                  }
+              if (body) {
+                void this.browserNotifications.show(title, {
+                  body,
+                  icon: '/logo/android-chrome-192x192.png',
+                  badge: '/logo/climbeast-small.svg',
+                  data: { url: '/home' },
+                });
+
+                if (
+                  typeof document !== 'undefined' &&
+                  document.hidden &&
+                  !this.isMobile()
+                ) {
+                  this.browserNotifications.flashTitle(title);
+                  this.browserNotifications.playSound();
                 }
-              } else {
-                console.warn(
-                  '[GlobalData] Unknown notification type or missing body:',
-                  notif.type,
-                );
               }
             });
           }
         });
 
         const mSub = this.messagingService.watchUnreadCount((msg) => {
+          console.log('[GlobalData] New message in DB detected');
+          // Always refresh count for navbar
           void this.messagingService.refreshUnreadCount();
 
-          // Only show if not from me and message sounds are enabled
+          // Popup/Sound only if enabled and message is relevant (not from me)
           if (msg.sender_id !== userId && this.messageSoundEnabled()) {
             void this.supabase.getUserProfile(msg.sender_id!).then((sender) => {
               const title = sender?.name || 'Chat';
@@ -1860,14 +1849,10 @@ export class GlobalData {
                   ? this.supabase.buildAvatarUrl(sender.avatar)
                   : '/logo/android-chrome-192x192.png',
                 badge: '/logo/climbeast-small.svg',
-                tag: `msg-${msg.sender_id}`, // Stack notifications from the same user
-                data: {
-                  url: '/home',
-                },
+                tag: `msg-${msg.sender_id}`,
+                data: { url: '/home' },
               });
 
-              // On mobile, system handles sound/vibration/visibility.
-              // Flash title only for desktop browsers.
               if (
                 typeof document !== 'undefined' &&
                 document.hidden &&
@@ -1881,6 +1866,7 @@ export class GlobalData {
         });
 
         onCleanup(() => {
+          console.log('[GlobalData] Cleaning up Realtime subscriptions');
           nSub?.unsubscribe();
           mSub?.unsubscribe();
         });
