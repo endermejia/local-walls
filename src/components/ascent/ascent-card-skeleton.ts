@@ -21,7 +21,9 @@ import { TuiRating, TuiSkeleton } from '@taiga-ui/kit';
       tuiAppearance="flat-grayscale"
       class="flex flex-col gap-1 p-4 sm:rounded-3xl rounded-none relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full text-left"
     >
-      <header class="flex justify-between items-start h-10">
+      <header
+        class="flex flex-wrap justify-between items-center gap-x-2 gap-y-0 min-h-10"
+      >
         <div class="flex items-center gap-3">
           @if (showUser()) {
             <div [tuiSkeleton]="true" class="w-8 h-8 rounded-full"></div>
@@ -54,56 +56,60 @@ import { TuiRating, TuiSkeleton } from '@taiga-ui/kit';
         ></div>
       }
 
-      <div class="flex flex-col gap-2">
-        @if (showRoute()) {
-          <div class="flex items-center gap-2">
-            <tui-icon
-              [tuiSkeleton]="true"
-              class="w-5 h-5 opacity-40 !rounded-full"
-            />
-            <div [tuiSkeleton]="true" class="w-48 h-5 rounded-full"></div>
-            <span class="opacity-30">•</span>
+      <div class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1">
+          @if (showRoute()) {
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-0">
+              <tui-icon
+                [tuiSkeleton]="true"
+                class="w-5 h-5 opacity-40 !rounded-full"
+              />
+              <div [tuiSkeleton]="true" class="w-48 h-5 rounded-full"></div>
+              <span class="opacity-30">•</span>
+              <div
+                [tuiSkeleton]="true"
+                class="w-24 h-3 rounded-full opacity-40"
+              ></div>
+            </div>
+          }
+
+          <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
             <div
               [tuiSkeleton]="true"
-              class="w-24 h-3 rounded-full opacity-40"
+              class="w-10 h-6 rounded-full opacity-80"
             ></div>
+            <div
+              [tuiSkeleton]="true"
+              class="w-16 h-5 rounded-full opacity-40"
+            ></div>
+            <tui-rating
+              [readOnly]="true"
+              [ngModel]="5"
+              [style.font-size.rem]="0.5"
+              class="opacity-30 pointer-events-none"
+            />
           </div>
-        }
-
-        <div class="flex items-center gap-2">
-          <div
-            [tuiSkeleton]="true"
-            class="w-10 h-6 rounded-full opacity-80"
-          ></div>
-          <div
-            [tuiSkeleton]="true"
-            class="w-16 h-5 rounded-full opacity-40"
-          ></div>
-          <tui-rating
-            [readOnly]="true"
-            [ngModel]="5"
-            [style.font-size.rem]="0.5"
-            class="ml-2 opacity-30 pointer-events-none"
-          />
         </div>
       </div>
 
-      <footer class="flex gap-3 mt-2">
-        <div class="flex items-center gap-2">
-          <tui-icon
-            icon="@tui.heart"
-            [style.width.rem]="1.5"
-            [style.height.rem]="1.5"
-            class="opacity-30"
-          />
-        </div>
-        <div class="flex items-center gap-2">
-          <tui-icon
-            icon="@tui.message-circle"
-            [style.width.rem]="1.5"
-            [style.height.rem]="1.5"
-            class="opacity-30"
-          />
+      <footer class="flex flex-col gap-1 mt-2">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <div class="flex items-center gap-2">
+            <tui-icon
+              icon="@tui.heart"
+              [style.width.rem]="1.5"
+              [style.height.rem]="1.5"
+              class="opacity-30"
+            />
+          </div>
+          <div class="flex items-center gap-2">
+            <tui-icon
+              icon="@tui.message-circle"
+              [style.width.rem]="1.5"
+              [style.height.rem]="1.5"
+              class="opacity-30"
+            />
+          </div>
         </div>
       </footer>
     </div>
