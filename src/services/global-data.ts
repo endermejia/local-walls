@@ -1784,7 +1784,7 @@ export class GlobalData {
           // Browser notification for general notifications
           if (notif.actor_id) {
             void this.supabase.getUserProfile(notif.actor_id).then((actor) => {
-              const title = actor?.name || 'Topo';
+              const title = actor?.name || 'ClimBeast';
               let body = '';
               switch (notif.type) {
                 case NotificationTypes.LIKE:
@@ -1803,9 +1803,22 @@ export class GlobalData {
                   break;
               }
               if (body) {
-                this.browserNotifications.show(title, { body });
+                void this.browserNotifications.show(title, {
+                  body,
+                  icon: '/logo/android-chrome-192x192.png',
+                  badge: '/logo/climbeast-small.svg',
+                  data: {
+                    url: '/notifications',
+                  },
+                });
 
-                if (typeof document !== 'undefined' && document.hidden) {
+                // On Android/Mobile, the system already handles notifications,
+                // so we don't need to flash title or play manual sound if it's already a system notification.
+                if (
+                  typeof document !== 'undefined' &&
+                  document.hidden &&
+                  !this.isMobile()
+                ) {
                   this.browserNotifications.flashTitle(title);
 
                   if (this.notificationSoundEnabled()) {
@@ -1829,17 +1842,30 @@ export class GlobalData {
           if (msg.sender_id !== userId) {
             void this.supabase.getUserProfile(msg.sender_id!).then((sender) => {
               const title = sender?.name || 'Chat';
-              this.browserNotifications.show(title, {
+              void this.browserNotifications.show(title, {
                 body: msg.text,
+                icon: sender?.avatar
+                  ? this.supabase.buildAvatarUrl(sender.avatar)
+                  : '/logo/android-chrome-192x192.png',
+                badge: '/logo/climbeast-small.svg',
+                tag: `msg-${msg.sender_id}`, // Stack notifications from the same user
+                data: {
+                  url: `/chat/${msg.sender_id}`,
+                },
               });
 
-              // Flash title if hidden
-              if (typeof document !== 'undefined' && document.hidden) {
+              // On mobile, system handles sound/vibration/visibility.
+              // Flash title only for desktop browsers.
+              if (
+                typeof document !== 'undefined' &&
+                document.hidden &&
+                !this.isMobile()
+              ) {
                 this.browserNotifications.flashTitle(title);
               }
 
-              // Play sound if enabled
-              if (this.messageSoundEnabled()) {
+              // Play sound only if enabled AND not on mobile (redundant)
+              if (this.messageSoundEnabled() && !this.isMobile()) {
                 this.browserNotifications.playSound();
               }
             });

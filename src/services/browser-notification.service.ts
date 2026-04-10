@@ -37,7 +37,7 @@ export class BrowserNotificationService {
     }
   }
 
-  show(title: string, options?: NotificationOptions): void {
+  async show(title: string, options?: NotificationOptions): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     const NotificationRef = (
       window as unknown as { Notification: typeof Notification }
@@ -55,14 +55,32 @@ export class BrowserNotificationService {
 
     if (NotificationRef.permission === 'granted') {
       try {
-        const n = new NotificationRef(title, options);
-        n.onclick = () => {
-          window.focus();
-          n.close();
-          this.stopTitleFlash();
-        };
+        // Preferred method for PWAs on Android: use the ServiceWorkerRegistration
+        // This ensures the notification is handled as a system-level notification
+        // and can 'wake up' the worker context if needed.
+        const reg = await navigator.serviceWorker.ready;
+        if (reg && 'showNotification' in reg) {
+          await reg.showNotification(title, options);
+        } else {
+          // Fallback to traditional browser notification
+          const n = new NotificationRef(title, options);
+          n.onclick = () => {
+            window.focus();
+            n.close();
+            this.stopTitleFlash();
+          };
+        }
       } catch (e) {
         console.error('[BrowserNotificationService] show error', e);
+        // Last resort fallback
+        try {
+          new NotificationRef(title, options);
+        } catch (e2) {
+          console.error(
+            '[BrowserNotificationService] final fallback error',
+            e2,
+          );
+        }
       }
     } else {
       console.warn(
