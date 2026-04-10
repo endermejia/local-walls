@@ -82,7 +82,7 @@ export const appConfig: ApplicationConfig = {
       url: ENV_SUPABASE_URL,
       anonKey: ENV_SUPABASE_ANON_KEY,
     }),
-    provideServiceWorker('ngsw-worker.js', {
+    provideServiceWorker('service-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerImmediately',
     }),

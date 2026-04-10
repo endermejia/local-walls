@@ -60,7 +60,15 @@ export class BrowserNotificationService {
         // and can 'wake up' the worker context if needed.
         const reg = await navigator.serviceWorker.ready;
         if (reg && 'showNotification' in reg) {
-          await reg.showNotification(title, options);
+          await reg.showNotification(title, {
+            tag: options?.tag || 'climbeast-notif',
+            renotify: true,
+            ...options,
+            data: {
+              ...options?.data,
+              url: options?.data?.url || '/',
+            },
+          });
         } else {
           // Fallback to traditional browser notification
           const n = new NotificationRef(title, options);
