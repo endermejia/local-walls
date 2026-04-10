@@ -641,6 +641,9 @@ export class ChatDialogComponent implements OnDestroy {
   }
 
   private focusTextarea() {
+    if (!window.matchMedia('(pointer: fine)').matches) {
+      return;
+    }
     setTimeout(() => {
       this.messageTextarea?.nativeElement.focus();
     }, 200);
