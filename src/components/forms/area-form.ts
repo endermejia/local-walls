@@ -71,7 +71,7 @@ import { CounterComponent } from '../ui/counter';
         <tui-error [error]="'errors.required' | translate" />
       }
 
-      @if (isEdit()) {
+      @if (isEdit() && global.isAdmin()) {
         <tui-textfield class="block">
           <label tuiLabel for="area-slug">{{ 'slug' | translate }}</label>
           <input
@@ -102,8 +102,8 @@ import { CounterComponent } from '../ui/counter';
         </tui-textfield>
       }
 
-      <!-- Payments Section -->
-      @if (canEditPayments()) {
+      <!-- Admin Settings / Payments Section -->
+      @if (canEditAdminSettings()) {
         <div class="border-t pt-6 mt-4">
           <h3 class="font-bold text-xl mb-6">
             {{ 'payments.title' | translate }}
@@ -265,7 +265,8 @@ import { CounterComponent } from '../ui/counter';
         </button>
         <button
           [disabled]="
-            areaForm.name().invalid() || (isEdit() && areaForm.slug().invalid())
+            areaForm.name().invalid() ||
+            (isEdit() && global.isAdmin() && areaForm.slug().invalid())
           "
           tuiButton
           appearance="primary"
@@ -327,7 +328,7 @@ import { CounterComponent } from '../ui/counter';
 })
 export class AreaFormComponent {
   private readonly areas = inject(AreasService);
-  private readonly global = inject(GlobalData);
+  protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
@@ -363,9 +364,12 @@ export class AreaFormComponent {
     { id: number; name: string; slug: string } | undefined
   > = computed(() => this.dialogAreaData ?? this.areaData());
 
-  readonly isEdit: Signal<boolean> = computed(() => !!this.effectiveAreaData());
+  readonly isEdit: Signal<boolean> = computed(
+    () => !!this.effectiveAreaData()?.id,
+  );
+  readonly isAdmin: Signal<boolean> = computed(() => this.global.isAdmin());
 
-  readonly canEditPayments: Signal<boolean> = computed(() => {
+  readonly canEditAdminSettings: Signal<boolean> = computed(() => {
     const isAdmin = this.global.canEditAsAdmin() || this.global.isAdmin();
     const areaId = this.editingId;
     const isAreaAdmin = areaId
@@ -390,10 +394,12 @@ export class AreaFormComponent {
     stripe_account_id: null,
   });
 
-  areaForm = form(this.model, (schemaPath) => {
-    required(schemaPath.name);
-    required(schemaPath.slug, {
-      when: () => this.isEdit(),
+  areaForm = form(this.model, (path) => {
+    required(path.name);
+    // Explicitly define path.slug to ensure it's always registered in the form
+    path.slug;
+    required(path.slug, {
+      when: () => this.isEdit() && this.global.isAdmin(),
     });
   });
 
@@ -407,18 +413,17 @@ export class AreaFormComponent {
     effect(() => {
       const data = this.effectiveAreaData();
       if (!data) return;
-      this.editingId = data.id;
+      this.editingId = data.id || null;
       this.model.update((m) => ({
         ...m,
         name: data.name,
-        slug: data.slug,
-        is_public: true, // Default
-        price: 0,
-        stripe_account_id: null,
+        slug: data.slug || '',
       }));
 
-      // Fetch full data to get eight_anu_crag_slugs if not provided in dialog data
-      this.fetchFullAreaData(data.id);
+      if (data.id) {
+        // Fetch full data to get eight_anu_crag_slugs and visibility settings when editing
+        this.fetchFullAreaData(data.id);
+      }
     });
   }
 
