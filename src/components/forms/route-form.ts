@@ -32,6 +32,7 @@ import {
   TuiHideSelectedPipe,
   TuiInputChip,
   TuiInputNumber,
+  TuiComboBox,
   TuiSelect,
 } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
@@ -39,6 +40,7 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { RoutesService } from '../../services/routes.service';
+import { AreasService } from '../../services/areas.service';
 import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
@@ -48,6 +50,7 @@ import { CounterComponent } from '../ui/counter';
 import {
   ClimbingKind,
   ClimbingKinds,
+  AreaDto,
   CragDto,
   EquipperDto,
   RouteDto,
@@ -58,14 +61,26 @@ import {
 import { handleErrorToast, slugify } from '../../utils';
 
 interface MinimalRoute {
-  id: number;
-  crag_id: number;
+  id?: number;
+  crag_id?: number;
   name: string;
+  slug?: string;
+  grade?: number;
+  climbing_kind?: ClimbingKind;
+  height?: number | null;
+  eight_anu_route_slugs?: string[] | null;
+}
+
+interface RouteFormModel {
+  name: string;
+  area: AreaDto | null;
+  crag: CragDto | null;
   slug: string;
   grade: number;
   climbing_kind: ClimbingKind;
-  height?: number | null;
-  eight_anu_route_slugs?: string[] | null;
+  height: number | null;
+  equippers: (EquipperDto | string)[];
+  eight_anu_route_slugs: string[];
 }
 
 @Component({
@@ -88,10 +103,35 @@ interface MinimalRoute {
     TuiDataList,
     TuiHideSelectedPipe,
     CounterComponent,
+    TuiComboBox,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
-      @if (cragOptions.value()?.length) {
+      <tui-textfield
+        tuiChevron
+        [tuiTextfieldCleaner]="false"
+        [stringify]="areaStringify"
+        [identityMatcher]="areaIdentityMatcher"
+      >
+        <label tuiLabel for="area">
+          {{ 'area' | translate }}
+        </label>
+        <input
+          tuiComboBox
+          id="area"
+          [ngModel]="model().area"
+          (ngModelChange)="onAreaChange($event)"
+          name="area"
+          autocomplete="off"
+        />
+        <tui-data-list-wrapper
+          *tuiTextfieldDropdown
+          new
+          [items]="areaOptions.value() || [] | tuiFilterByInput"
+        />
+      </tui-textfield>
+
+      @if (cragOptions.value()?.length || model().crag) {
         <tui-textfield
           tuiChevron
           [tuiTextfieldCleaner]="false"
@@ -102,7 +142,7 @@ interface MinimalRoute {
             {{ 'crag' | translate }}
           </label>
           <input
-            tuiSelect
+            tuiComboBox
             id="crag"
             [ngModel]="model().crag"
             (ngModelChange)="onCragChange($event)"
@@ -112,7 +152,7 @@ interface MinimalRoute {
           <tui-data-list-wrapper
             *tuiTextfieldDropdown
             new
-            [items]="cragOptions.value() || []"
+            [items]="cragOptions.value() || [] | tuiFilterByInput"
           />
         </tui-textfield>
       }
@@ -339,20 +379,12 @@ export class RouteFormComponent {
 
   readonly isEdit: Signal<boolean> = computed(() => {
     const data = this.effectiveRouteData();
-    return !!data && data.id > 0;
+    return !!data?.id && data.id > 0;
   });
 
-  model = signal<{
-    name: string;
-    crag: CragDto | null;
-    slug: string;
-    grade: number;
-    climbing_kind: ClimbingKind;
-    height: number | null;
-    equippers: (EquipperDto | string)[];
-    eight_anu_route_slugs: string[];
-  }>({
+  model = signal<RouteFormModel>({
     name: '',
+    area: null,
     crag: null,
     slug: '',
     grade: 23,
@@ -362,8 +394,9 @@ export class RouteFormComponent {
     eight_anu_route_slugs: [],
   });
 
-  routeForm = form(this.model, (path) => {
+  routeForm = form<RouteFormModel>(this.model, (path) => {
     required(path.name);
+    required(path.area);
     required(path.crag);
     required(path.grade);
     required(path.climbing_kind);
@@ -371,6 +404,8 @@ export class RouteFormComponent {
   });
 
   private editingId: number | null = null;
+  private isInitialized = false;
+  private isInitialCragApplied = false;
 
   protected readonly gradeOptions: readonly number[] = Object.keys(
     GRADE_NUMBER_TO_LABEL,
@@ -387,6 +422,13 @@ export class RouteFormComponent {
   protected readonly kindStringify = (kind: ClimbingKind): string =>
     this.translate.instant(`climbingKinds.${kind}`);
 
+  protected readonly areaStringify = (area: AreaDto): string => area.name;
+
+  protected readonly areaIdentityMatcher: TuiIdentityMatcher<AreaDto> = (
+    a,
+    b,
+  ) => a.id === b.id;
+
   protected readonly cragStringify = (crag: CragDto): string => crag.name;
 
   protected readonly cragIdentityMatcher: TuiIdentityMatcher<CragDto> = (
@@ -394,31 +436,26 @@ export class RouteFormComponent {
     b,
   ) => a.id === b.id;
 
+  private readonly areas = inject(AreasService);
   private readonly initialAreaId = signal<number | null>(null);
 
-  protected readonly cragOptions = resource<CragDto[], number | undefined>({
-    params: () => this.effectiveCragId(),
-    loader: async ({ params: cragId }) => {
+  protected readonly areaOptions = resource<AreaDto[], undefined>({
+    loader: async () => {
       await this.supabase.whenReady();
-      if (!isPlatformBrowser(this.platformId) || !cragId) return [];
+      if (!isPlatformBrowser(this.platformId)) return [];
+      const { data } = await this.supabase.client
+        .from('areas')
+        .select('*')
+        .order('name');
+      return (data as AreaDto[]) || [];
+    },
+  });
 
-      let areaId = this.initialAreaId();
-
-      if (!areaId) {
-        // 1. Get area_id of the current crag
-        const { data: currentCrag } = await this.supabase.client
-          .from('crags')
-          .select('area_id')
-          .eq('id', cragId)
-          .maybeSingle();
-
-        areaId = currentCrag?.area_id ?? null;
-        if (areaId) {
-          this.initialAreaId.set(areaId);
-        }
-      }
-
-      if (!areaId) return [];
+  protected readonly cragOptions = resource<CragDto[], number | null>({
+    params: () => this.model().area?.id ?? null,
+    loader: async ({ params: areaId }) => {
+      await this.supabase.whenReady();
+      if (!isPlatformBrowser(this.platformId) || !areaId) return [];
 
       // 2. Get all crags of that area
       const { data: crags } = await this.supabase.client
@@ -466,59 +503,95 @@ export class RouteFormComponent {
     }
   }
 
+  onAreaChange(area: AreaDto | null): void {
+    const current = this.model();
+    if (current.area?.id !== area?.id) {
+      this.model.update((m) => ({ ...m, area, crag: null }));
+    }
+  }
+
   constructor() {
+    // 1. If we have a target crag ID, ensure we find its area and set it
     effect(async () => {
-      const data = this.effectiveRouteData();
       const initialCragId = this.effectiveCragId();
+      const inputCragId = this.effectiveRouteData()?.crag_id;
+      const targetCragId = inputCragId ?? initialCragId;
+      const areaOptions = this.areaOptions.value();
 
-      // We need to wait for cragOptions to be loaded to find the correct object
-      const options = this.cragOptions.value();
-      if (!options?.length) return;
+      if (!targetCragId || !areaOptions?.length) return;
 
-      untracked(() => {
-        if (!this.model().crag) {
-          if (initialCragId) {
-            const selectedCrag = options.find((c) => c.id === initialCragId);
-            if (selectedCrag) {
-              this.model.update((m) => ({ ...m, crag: selectedCrag }));
-            }
-          }
-        }
-      });
+      const currentArea = untracked(() => this.model().area);
+      if (currentArea) return;
 
-      if (!data) return;
-      this.editingId = data.id;
+      const { data: crag } = await this.supabase.client
+        .from('crags')
+        .select('area_id')
+        .eq('id', targetCragId)
+        .maybeSingle();
 
-      untracked(() => {
-        this.model.update((m) => ({
-          ...m,
-          name: data.name,
-          slug: data.slug,
-          grade: data.grade,
-          climbing_kind: data.climbing_kind,
-          height: data.height ?? null,
-          eight_anu_route_slugs: this.model().eight_anu_route_slugs.length
-            ? this.model().eight_anu_route_slugs
-            : data.eight_anu_route_slugs || [],
-        }));
-      });
-
-      if (data.crag_id) {
-        const selectedCrag = options.find((c) => c.id === data.crag_id);
-        if (selectedCrag) {
+      if (crag?.area_id) {
+        const area = areaOptions.find((a) => a.id === crag.area_id);
+        if (area) {
           untracked(() => {
-            this.model.update((m) => ({ ...m, crag: selectedCrag }));
+            this.model.update((m) => ({ ...m, area }));
           });
         }
       }
+    });
 
-      // Load equippers
-      const equippers = await this.routes.getRouteEquippers(data.id);
-      untracked(() => {
-        this.model.update((m) => ({ ...m, equippers }));
-      });
+    // 2. Prefill model data and handle late crag selection
+    effect(() => {
+      const data = this.effectiveRouteData();
+      const initialCragId = this.effectiveCragId();
+      const targetCragId = data?.crag_id ?? initialCragId;
+      const cragOptionsList = this.cragOptions.value();
 
-      this.fetchFullRouteData(data.id);
+      // Handle prefill only once
+      if (!this.isInitialized) {
+        untracked(() => {
+          if (data) {
+            this.editingId = data.id || null;
+            this.model.update((m) => ({
+              ...m,
+              name: data.name,
+              slug: data.slug || '',
+              grade: data.grade ?? m.grade,
+              climbing_kind: data.climbing_kind ?? m.climbing_kind,
+              height: data.height ?? null,
+              eight_anu_route_slugs:
+                data.eight_anu_route_slugs || m.eight_anu_route_slugs || [],
+            }));
+
+            if (data.id) {
+              this.fetchFullRouteData(data.id);
+              this.routes.getRouteEquippers(data.id).then((equippers) => {
+                this.model.update((m) => ({ ...m, equippers }));
+              });
+            }
+            this.isInitialized = true;
+          }
+        });
+      }
+
+      // Handle crag object selection once area is set and cragOptions are loaded
+      if (
+        targetCragId &&
+        cragOptionsList?.length &&
+        !this.isInitialCragApplied
+      ) {
+        const currentCrag = untracked(() => this.model().crag);
+        if (!currentCrag || currentCrag.id === targetCragId) {
+          const selectedCrag = cragOptionsList.find(
+            (c) => c.id === targetCragId,
+          );
+          if (selectedCrag) {
+            untracked(() => {
+              this.model.update((m) => ({ ...m, crag: selectedCrag }));
+            });
+            this.isInitialCragApplied = true;
+          }
+        }
+      }
     });
   }
 

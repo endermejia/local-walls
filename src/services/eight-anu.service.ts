@@ -9,6 +9,7 @@ import {
   EightAnuSearchResponse,
   GradeLabel,
   SearchApiResponse,
+  SearchApiItem,
   SearchCragItem,
   SearchRouteItem,
 } from '../models';
@@ -176,6 +177,38 @@ export class EightAnuService {
         showOnMap: 'false',
       },
     });
+  }
+
+  /**
+   * Performs a unified search on 8a.nu for various entity types.
+   */
+  async searchUnified(
+    query: string,
+    types: ('0' | '1' | '3')[],
+  ): Promise<SearchApiItem[]> {
+    try {
+      const params: any = {
+        query,
+        pageIndex: '0',
+        showOnMap: 'false',
+      };
+      // We can't use 'entityTypes[]' as a single param with multiple values easily with HttpParams
+      // but let's see how HttpClient handles arrays
+      const response = await firstValueFrom(
+        this.http.get<SearchApiResponse>(this.searchUrl, {
+          params: {
+            ...params,
+            'entityTypes[]': types,
+          },
+        }),
+        { defaultValue: null },
+      );
+
+      return response?.items || [];
+    } catch (e) {
+      console.error('[8a.nu] Error in searchUnified:', e);
+      return [];
+    }
   }
 
   getUserBySlug(slug: string): Observable<EightAnuSearchResponse> {

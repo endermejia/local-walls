@@ -37,6 +37,13 @@ import { ToastService } from '../../services/toast.service';
 import { handleErrorToast, slugify } from '../../utils';
 import { CounterComponent } from '../ui/counter';
 
+interface MinimalArea {
+  id?: number;
+  name: string;
+  slug?: string;
+  eight_anu_crag_slugs?: string[];
+}
+
 @Component({
   selector: 'app-area-form',
   imports: [
@@ -336,14 +343,11 @@ export class AreaFormComponent {
 
   private readonly _dialogCtx: TuiDialogContext<
     string | boolean | null,
-    { areaData?: { id: number; name: string; slug: string } }
+    { areaId?: number; areaData?: MinimalArea }
   > | null = (() => {
     try {
       return injectContext<
-        TuiDialogContext<
-          string | boolean | null,
-          { areaData?: { id: number; name: string; slug: string } }
-        >
+        TuiDialogContext<string | boolean | null, { areaData?: MinimalArea }>
       >();
     } catch {
       return null;
@@ -351,18 +355,16 @@ export class AreaFormComponent {
   })();
 
   // When using as a routed/page component, an input can provide the area data for editing
-  areaData: InputSignal<
-    { id: number; name: string; slug: string } | undefined
-  > = input<{ id: number; name: string; slug: string } | undefined>(undefined);
+  areaData: InputSignal<MinimalArea | undefined> = input<
+    MinimalArea | undefined
+  >(undefined);
 
   // Area data when opened as a dialog
-  private readonly dialogAreaData:
-    | { id: number; name: string; slug: string }
-    | undefined = this._dialogCtx?.data?.areaData;
+  private readonly dialogAreaData: MinimalArea | undefined =
+    this._dialogCtx?.data?.areaData;
 
-  private readonly effectiveAreaData: Signal<
-    { id: number; name: string; slug: string } | undefined
-  > = computed(() => this.dialogAreaData ?? this.areaData());
+  private readonly effectiveAreaData: Signal<MinimalArea | undefined> =
+    computed(() => this.dialogAreaData ?? this.areaData());
 
   readonly isEdit: Signal<boolean> = computed(
     () => !!this.effectiveAreaData()?.id,
@@ -418,6 +420,8 @@ export class AreaFormComponent {
         ...m,
         name: data.name,
         slug: data.slug || '',
+        eight_anu_crag_slugs:
+          data.eight_anu_crag_slugs || m.eight_anu_crag_slugs,
       }));
 
       if (data.id) {

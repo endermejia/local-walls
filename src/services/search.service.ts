@@ -13,6 +13,7 @@ import {
 import { normalizeName, slugify } from '../utils';
 
 import { SupabaseService } from './supabase.service';
+import { EightAnuService } from './eight-anu.service';
 
 interface DbArea {
   id: number;
@@ -67,6 +68,7 @@ interface DbUser {
 export class SearchService {
   private readonly supabase = inject(SupabaseService);
   private readonly translate = inject(TranslateService);
+  private readonly eightAnu = inject(EightAnuService);
 
   search(query: string): Observable<SearchData | null> {
     const trimmedQuery = query.trim();
@@ -103,13 +105,15 @@ export class SearchService {
           .select('id, name, avatar')
           .or(`name.ilike.${q},name.ilike.${qLoose}`)
           .limit(50),
-      ]),
+        this.eightAnu.searchUnified(trimmedQuery, ['0', '1', '3']),
+      ]) as Promise<any[]>,
     ).pipe(
       map((responses) => {
         const areas = responses[0].data as DbArea[] | null;
         const crags = responses[1].data as DbCrag[] | null;
         const routes = responses[2].data as DbRoute[] | null;
         const users = responses[3].data as DbUser[] | null;
+        const eightAnuItems = responses[4] as any[];
 
         const results: SearchData = {};
         const areasTitle = this.translate.instant('areas');
@@ -123,7 +127,20 @@ export class SearchService {
               }) as SearchItem,
           );
         } else {
+          const anuArea = eightAnuItems?.find((i) => i.type === 0);
           results[areasTitle] = [
+            ...(anuArea
+              ? [
+                  {
+                    title: `${this.translate.instant('import')} ${anuArea.areaName}`,
+                    subtitle: anuArea.countryName,
+                    href: '',
+                    icon: '@tui.download',
+                    type: 'import-area',
+                    data: anuArea,
+                  } as SearchItem,
+                ]
+              : []),
             {
               title: this.translate.instant('areas.newTitle'),
               href: '',
@@ -145,7 +162,20 @@ export class SearchService {
             } as SearchItem;
           });
         } else {
+          const anuCrag = eightAnuItems?.find((i) => i.type === 1);
           results[cragsTitle] = [
+            ...(anuCrag
+              ? [
+                  {
+                    title: `${this.translate.instant('import')} ${anuCrag.cragName}`,
+                    subtitle: `${anuCrag.areaName}, ${anuCrag.countryName}`,
+                    href: '',
+                    icon: '@tui.download',
+                    type: 'import-crag',
+                    data: anuCrag,
+                  } as SearchItem,
+                ]
+              : []),
             {
               title: this.translate.instant('crags.newTitle'),
               href: '',
@@ -170,7 +200,20 @@ export class SearchService {
             } as SearchItem;
           });
         } else {
+          const anuRoute = eightAnuItems?.find((i) => i.type === 3);
           results[routesTitle] = [
+            ...(anuRoute
+              ? [
+                  {
+                    title: `${this.translate.instant('import')} ${anuRoute.zlaggableName}`,
+                    subtitle: `${anuRoute.cragName}, ${anuRoute.areaName}`,
+                    href: '',
+                    icon: '@tui.download',
+                    type: 'import-route',
+                    data: anuRoute,
+                  } as SearchItem,
+                ]
+              : []),
             {
               title: this.translate.instant('routes.newTitle'),
               href: '',

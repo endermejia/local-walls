@@ -56,6 +56,7 @@ export class CragsService {
       description_en?: string | null;
       warning_es?: string | null;
       warning_en?: string | null;
+      eight_anu_sector_slugs?: string[];
     };
   }): void {
     const isEdit = !!data?.cragData?.id;

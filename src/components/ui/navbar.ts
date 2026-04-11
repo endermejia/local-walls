@@ -47,6 +47,7 @@ import { GlobalData } from '../../services/global-data';
 import { ScrollService } from '../../services/scroll.service';
 import { SearchService } from '../../services/search.service';
 import { SearchData, SearchItem } from '../../models/search-item.model';
+import { GradeLabel, LABEL_TO_VERTICAL_LIFE } from '../../models/grade.model';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 import { TourService } from '../../services/tour.service';
@@ -481,7 +482,7 @@ export class NavbarComponent {
   );
 
   protected onResultClick(item: SearchItem, event?: Event): void {
-    if (item.type?.startsWith('create-')) {
+    if (item.type?.startsWith('create-') || item.type?.startsWith('import-')) {
       event?.preventDefault();
       event?.stopPropagation();
 
@@ -503,11 +504,50 @@ export class NavbarComponent {
             routeData: { name: query },
           });
           break;
+        case 'import-area':
+          const anuArea = item.data;
+          this.areasService.openAreaForm({
+            areaData: {
+              name: anuArea.areaName,
+              slug: anuArea.areaSlug,
+              eight_anu_crag_slugs: [anuArea.areaSlug],
+            },
+          });
+          break;
+        case 'import-crag':
+          const anuCrag = item.data;
+          this.cragsService.openCragForm({
+            areaId: this.global.selectedArea()?.id,
+            cragData: {
+              name: anuCrag.cragName,
+              slug: anuCrag.cragSlug,
+              eight_anu_sector_slugs: [anuCrag.cragSlug],
+            },
+          });
+          break;
+        case 'import-route':
+          const anuRoute = item.data;
+          this.routesService.openRouteForm({
+            cragId: this.global.selectedCrag()?.id,
+            routeData: {
+              name: anuRoute.zlaggableName,
+              slug: anuRoute.zlaggableSlug,
+              grade: this.gradeToNumber(anuRoute.difficulty),
+              eight_anu_route_slugs: [anuRoute.zlaggableSlug],
+            },
+          });
+          break;
       }
     }
 
     this.searchOpen = false;
     this.control.setValue('', { emitEvent: false });
+  }
+
+  protected gradeToNumber(label: string | undefined): number {
+    if (!label) return 0;
+    const normalized = label.toLowerCase().replace(' ', '') as GradeLabel;
+    return LABEL_TO_VERTICAL_LIFE[normalized] || 0;
   }
 
   protected scrollToTop(event: MouseEvent): void {
