@@ -188,7 +188,10 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                         }
                         @case ('grade') {
                           <div tuiCell size="m">
-                            <app-grade [grade]="item._ref.grade" />
+                            <app-grade
+                              [grade]="item._ref.grade"
+                              [kind]="item._ref.climbing_kind"
+                            />
                           </div>
                         }
                         @case ('route') {

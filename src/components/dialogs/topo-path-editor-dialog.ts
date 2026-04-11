@@ -101,7 +101,11 @@ export interface TopoPathEditorConfig {
                     <div class="route-info">
                       <div class="route-name">{{ tr.route.name }}</div>
                     </div>
-                    <app-grade [grade]="tr.route.grade" size="s" />
+                    <app-grade
+                      [grade]="tr.route.grade"
+                      [kind]="tr.route.climbing_kind"
+                      size="s"
+                    />
                     @if (tr.route_id | topoHasPath: pathsMap) {
                       <tui-icon icon="@tui.check" class="path-check" />
                     }

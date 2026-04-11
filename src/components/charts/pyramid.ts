@@ -38,6 +38,8 @@ import { AscentsService } from '../../services/ascents.service';
 import { ToastService } from '../../services/toast.service';
 import {
   AscentType,
+  ClimbingKind,
+  ClimbingKinds,
   GRADE_NUMBER_TO_LABEL,
   RouteDto,
   UserPyramidSlotDto,
@@ -159,7 +161,11 @@ export interface PyramidLevel {
                       <div
                         class="flex flex-col items-center gap-1 w-full max-w-[200px]"
                       >
-                        <app-grade [grade]="slot.route.grade" [size]="'s'" />
+                        <app-grade
+                          [grade]="slot.route.grade"
+                          [kind]="slot.route.climbing_kind"
+                          [size]="'s'"
+                        />
                         <span
                           class="text-[9px] font-bold truncate block w-full leading-tight uppercase opacity-80 hover:underline"
                           (click.zoneless)="
@@ -403,6 +409,7 @@ export class PyramidComponent implements AfterViewInit {
     const userId = this.userId();
     const completedMap = this.completedRoutesMap();
     const isOwner = this.isOwner();
+    const kind = this.pyramidKind();
 
     const structure = [
       { level: 1, slotsCount: 1 },
@@ -447,8 +454,10 @@ export class PyramidComponent implements AfterViewInit {
         let expectedGradeLabel = '';
         if (!slotData.route && deducedTopGrade) {
           const expectedGrade = deducedTopGrade - (s.level - 1);
-          expectedGradeLabel =
+          const label =
             GRADE_NUMBER_TO_LABEL[expectedGrade as VERTICAL_LIFE_GRADES] || '';
+          expectedGradeLabel =
+            kind === ClimbingKinds.BOULDER ? label.toUpperCase() : label;
         }
 
         return {
@@ -494,6 +503,23 @@ export class PyramidComponent implements AfterViewInit {
   isOwner(): boolean {
     return this.userId() === this.supabase.authUserId();
   }
+
+  protected readonly pyramidKind = computed(() => {
+    const data = this.slotsResource.value() || [];
+    const counts: Record<string, number> = {
+      sport: 0,
+      boulder: 0,
+      mixed: 0,
+      multipitch: 0,
+      trad: 0,
+    };
+    data.forEach((s) => {
+      if (s.route?.climbing_kind) counts[s.route.climbing_kind]++;
+    });
+
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    return (sorted[0]?.[0] as ClimbingKind) || ClimbingKinds.SPORT;
+  });
 
   getDeducedTopGrade(): number | undefined {
     const levels = this.pyramidLevels();
@@ -566,6 +592,7 @@ export class PyramidComponent implements AfterViewInit {
             userId: this.userId(),
             year: this.selectedYear(),
             canDelete,
+            kind: this.pyramidKind(),
           },
           size: 's',
         },

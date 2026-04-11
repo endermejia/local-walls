@@ -313,7 +313,10 @@ import { GradeComponent } from '../ui/avatar-grade';
           }
           <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
             @if (ascent.grade) {
-              <app-grade [grade]="ascent.grade" />
+              <app-grade
+                [grade]="ascent.grade"
+                [kind]="ascent.route?.climbing_kind"
+              />
             }
             @if (ascent.soft) {
               <tui-badge size="s" appearance="neutral">

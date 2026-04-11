@@ -290,7 +290,10 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               ) {
                 <button type="button" new tuiOption [value]="route">
                   <div tuiCell size="s">
-                    <app-grade [grade]="route.grade" />
+                    <app-grade
+                      [grade]="route.grade"
+                      [kind]="route.climbing_kind"
+                    />
                     <div tuiTitle>
                       {{ route.name }}
                       @if (routeIdsInOtherTopos().has(route.id)) {

@@ -1,5 +1,6 @@
 // Grade model: enum of French sport grades, type alias from enum values,
 // and ordered lists for convenience.
+import { ClimbingKind } from './supabase-interfaces';
 export enum VERTICAL_LIFE_GRADES {
   G0 = 0, // unknown/lowest bucket
   G1 = 1, // 1
@@ -106,6 +107,88 @@ export const GRADE_NUMBER_TO_LABEL: Partial<
   [VERTICAL_LIFE_GRADES.G9bPlus]: '9b+',
   [VERTICAL_LIFE_GRADES.G9c]: '9c',
 };
+
+export const GRADE_TO_YDS: Partial<Record<VERTICAL_LIFE_GRADES, string>> = {
+  [VERTICAL_LIFE_GRADES.G3a]: '5.3',
+  [VERTICAL_LIFE_GRADES.G3b]: '5.4',
+  [VERTICAL_LIFE_GRADES.G3c]: '5.5',
+  [VERTICAL_LIFE_GRADES.G4a]: '5.6',
+  [VERTICAL_LIFE_GRADES.G4b]: '5.6',
+  [VERTICAL_LIFE_GRADES.G4c]: '5.7',
+  [VERTICAL_LIFE_GRADES.G5a]: '5.8',
+  [VERTICAL_LIFE_GRADES.G5aPlus]: '5.8',
+  [VERTICAL_LIFE_GRADES.G5b]: '5.9',
+  [VERTICAL_LIFE_GRADES.G5bPlus]: '5.9',
+  [VERTICAL_LIFE_GRADES.G5c]: '5.10a',
+  [VERTICAL_LIFE_GRADES.G5cPlus]: '5.10a',
+  [VERTICAL_LIFE_GRADES.G6a]: '5.10a',
+  [VERTICAL_LIFE_GRADES.G6aPlus]: '5.10b',
+  [VERTICAL_LIFE_GRADES.G6b]: '5.10c',
+  [VERTICAL_LIFE_GRADES.G6bPlus]: '5.10d',
+  [VERTICAL_LIFE_GRADES.G6c]: '5.11a',
+  [VERTICAL_LIFE_GRADES.G6cPlus]: '5.11c',
+  [VERTICAL_LIFE_GRADES.G7a]: '5.11d',
+  [VERTICAL_LIFE_GRADES.G7aPlus]: '5.12a',
+  [VERTICAL_LIFE_GRADES.G7b]: '5.12b',
+  [VERTICAL_LIFE_GRADES.G7bPlus]: '5.12c',
+  [VERTICAL_LIFE_GRADES.G7c]: '5.12d',
+  [VERTICAL_LIFE_GRADES.G7cPlus]: '5.13a',
+  [VERTICAL_LIFE_GRADES.G8a]: '5.13b',
+  [VERTICAL_LIFE_GRADES.G8aPlus]: '5.13c',
+  [VERTICAL_LIFE_GRADES.G8b]: '5.13d',
+  [VERTICAL_LIFE_GRADES.G8bPlus]: '5.14a',
+  [VERTICAL_LIFE_GRADES.G8c]: '5.14b',
+  [VERTICAL_LIFE_GRADES.G8cPlus]: '5.14c',
+  [VERTICAL_LIFE_GRADES.G9a]: '5.14d',
+  [VERTICAL_LIFE_GRADES.G9aPlus]: '5.15a',
+  [VERTICAL_LIFE_GRADES.G9b]: '5.15b',
+  [VERTICAL_LIFE_GRADES.G9bPlus]: '5.15c',
+  [VERTICAL_LIFE_GRADES.G9c]: '5.15d',
+};
+
+export const GRADE_TO_V_SCALE: Partial<Record<VERTICAL_LIFE_GRADES, string>> = {
+  [VERTICAL_LIFE_GRADES.G3a]: 'VB',
+  [VERTICAL_LIFE_GRADES.G3b]: 'VB',
+  [VERTICAL_LIFE_GRADES.G3c]: 'VB',
+  [VERTICAL_LIFE_GRADES.G4a]: 'V0-',
+  [VERTICAL_LIFE_GRADES.G4b]: 'V0',
+  [VERTICAL_LIFE_GRADES.G4c]: 'V0+',
+  [VERTICAL_LIFE_GRADES.G5a]: 'V1',
+  [VERTICAL_LIFE_GRADES.G5aPlus]: 'V1',
+  [VERTICAL_LIFE_GRADES.G5b]: 'V1',
+  [VERTICAL_LIFE_GRADES.G5bPlus]: 'V2',
+  [VERTICAL_LIFE_GRADES.G5c]: 'V2',
+  [VERTICAL_LIFE_GRADES.G5cPlus]: 'V2',
+  [VERTICAL_LIFE_GRADES.G6a]: 'V2',
+  [VERTICAL_LIFE_GRADES.G6aPlus]: 'V3',
+  [VERTICAL_LIFE_GRADES.G6b]: 'V4',
+  [VERTICAL_LIFE_GRADES.G6bPlus]: 'V4',
+  [VERTICAL_LIFE_GRADES.G6c]: 'V5',
+  [VERTICAL_LIFE_GRADES.G6cPlus]: 'V6',
+  [VERTICAL_LIFE_GRADES.G7a]: 'V6',
+  [VERTICAL_LIFE_GRADES.G7aPlus]: 'V7',
+  [VERTICAL_LIFE_GRADES.G7b]: 'V8',
+  [VERTICAL_LIFE_GRADES.G7bPlus]: 'V8',
+  [VERTICAL_LIFE_GRADES.G7c]: 'V9',
+  [VERTICAL_LIFE_GRADES.G7cPlus]: 'V10',
+  [VERTICAL_LIFE_GRADES.G8a]: 'V11',
+  [VERTICAL_LIFE_GRADES.G8aPlus]: 'V12',
+  [VERTICAL_LIFE_GRADES.G8b]: 'V13',
+  [VERTICAL_LIFE_GRADES.G8bPlus]: 'V14',
+  [VERTICAL_LIFE_GRADES.G8c]: 'V15',
+  [VERTICAL_LIFE_GRADES.G8cPlus]: 'V16',
+  [VERTICAL_LIFE_GRADES.G9a]: 'V17',
+};
+
+export function getEquivalentGrade(
+  grade: VERTICAL_LIFE_GRADES | number,
+  kind?: ClimbingKind | null,
+): string | null {
+  if (kind === 'boulder') {
+    return GRADE_TO_V_SCALE[grade as VERTICAL_LIFE_GRADES] || null;
+  }
+  return GRADE_TO_YDS[grade as VERTICAL_LIFE_GRADES] || null;
+}
 
 export const LABEL_TO_VERTICAL_LIFE: Partial<
   Record<GradeLabel, VERTICAL_LIFE_GRADES>

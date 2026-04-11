@@ -47,6 +47,7 @@ import { TourStep } from '../../services/tour.service';
 
 import { AscentsFeedComponent } from '../../components/ascent/ascents-feed';
 import { ChartAscentsByGradeComponent } from '../../components/charts/chart-ascents-by-grade';
+import { GradeComponent } from '../../components/ui/avatar-grade';
 import { SectionHeaderComponent } from '../../components/ui/section-header';
 import { TourHintComponent } from '../../components/ui/tour-hint';
 
@@ -82,6 +83,7 @@ import { SeoService } from '../../services/seo.service';
     TuiDropdown,
     TuiHint,
     TuiIcon,
+    GradeComponent,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">
@@ -101,6 +103,12 @@ import { SeoService } from '../../services/seo.service';
             [liked]="r.liked"
             (toggleLike)="routesService.toggleRouteLike(r.id, r)"
           >
+            <app-grade
+              [grade]="r.grade"
+              [kind]="r.climbing_kind"
+              size="l"
+              titleInfo
+            />
             @if (global.canEditRoute()) {
               <div actionButtons class="flex gap-2">
                 <button

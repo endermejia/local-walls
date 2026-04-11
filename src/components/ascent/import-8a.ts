@@ -186,8 +186,9 @@ class EmptyCsvError extends Error {
                       <div class="flex items-center gap-3">
                         <app-grade
                           [grade]="
-                            LABEL_TO_VERTICAL_LIFE[ascent.difficulty] ?? 0
+                            this.LABEL_TO_VERTICAL_LIFE[ascent.difficulty] ?? 0
                           "
+                          [kind]="ascent.climbing_kind"
                         />
                         <div>
                           <div class="font-semibold">

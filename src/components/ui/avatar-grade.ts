@@ -5,7 +5,7 @@ import {
   input,
 } from '@angular/core';
 
-import { TuiSizeL, TuiSizeS, TuiSizeXS } from '@taiga-ui/core';
+import { TuiHint, TuiSizeL, TuiSizeS, TuiSizeXS } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -15,17 +15,20 @@ import {
   GradeLabel,
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
+  ClimbingKind,
+  getEquivalentGrade,
 } from '../../models';
 
 @Component({
   selector: 'app-grade',
-  imports: [TuiBadge, TranslatePipe],
+  imports: [TuiBadge, TranslatePipe, TuiHint],
   template: `
     <tui-badge
       [size]="badgeSize()"
-      class="self-center font-bold !text-[var(--tui-text-primary-on-accent-1)] !rounded-full"
+      class="self-center font-bold !text-[var(--tui-text-primary-on-accent-1)] !rounded-full content-center"
       [style.background]="gradeColor()"
       [attr.aria-label]="'grade' | translate"
+      [tuiHint]="hint()"
     >
       <strong>{{ gradeLabel() }}</strong>
     </tui-badge>
@@ -34,11 +37,28 @@ import {
 })
 export class GradeComponent {
   grade = input.required<number>();
+  kind = input<ClimbingKind | null | undefined>(null);
   size = input<TuiSizeS | TuiSizeL | TuiSizeXS>('l');
 
-  protected readonly gradeLabel = computed(
-    () => GRADE_NUMBER_TO_LABEL[this.grade() as VERTICAL_LIFE_GRADES],
-  );
+  protected readonly gradeLabel = computed(() => {
+    const label =
+      GRADE_NUMBER_TO_LABEL[this.grade() as VERTICAL_LIFE_GRADES] || '';
+    if (this.kind() === 'boulder') {
+      return label.toUpperCase();
+    }
+    return label;
+  });
+
+  protected readonly secondaryGrade = computed(() => {
+    return getEquivalentGrade(this.grade(), this.kind());
+  });
+
+  protected readonly hint = computed(() => {
+    const primary = this.gradeLabel();
+    const secondary = this.secondaryGrade();
+    return secondary ? `${primary} / ${secondary}` : primary;
+  });
+
   protected readonly gradeColor = computed(() => {
     return colorForGrade(this.gradeLabel() as GradeLabel);
   });

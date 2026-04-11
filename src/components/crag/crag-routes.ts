@@ -177,7 +177,10 @@ import { normalizeName, slugify } from '../../utils';
               >
                 <div class="flex flex-col gap-1 min-w-0">
                   <div class="flex items-center gap-2">
-                    <app-grade [grade]="mapEightAnuGrade(item.difficulty)" />
+                    <app-grade
+                      [grade]="mapEightAnuGrade(item.difficulty)"
+                      [kind]="cragKind()"
+                    />
                     <span class="font-bold truncate">
                       {{ item.zlaggableName }}
                     </span>
@@ -406,6 +409,25 @@ export class CragRoutesComponent {
   });
 
   protected readonly routesCount = computed(() => this.filteredRoutes().length);
+
+  protected readonly cragKind = computed(() => {
+    const routes = this.global.cragRoutesResource.value() ?? [];
+    if (routes.length === 0) return ClimbingKinds.SPORT;
+
+    const counts: Record<string, number> = {
+      sport: 0,
+      boulder: 0,
+      multipitch: 0,
+      mixed: 0,
+      trad: 0,
+    };
+    routes.forEach((r) => {
+      if (r.climbing_kind) counts[r.climbing_kind]++;
+    });
+
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    return sorted[0][0] as any;
+  });
 
   protected mapEightAnuGrade(
     difficulty: string | undefined,

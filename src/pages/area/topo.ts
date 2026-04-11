@@ -627,6 +627,7 @@ export interface TopoRouteRow {
                           <div class="mt-2 text-center">
                             <app-grade
                               [grade]="selectedRoute.route.grade"
+                              [kind]="selectedRoute.route.climbing_kind"
                               size="m"
                             />
                           </div>
@@ -809,7 +810,10 @@ export interface TopoRouteRow {
                                     size="m"
                                     class="justify-center h-full"
                                   >
-                                    <app-grade [grade]="item.grade" />
+                                    <app-grade
+                                      [grade]="item.grade"
+                                      [kind]="item._ref.route.climbing_kind"
+                                    />
                                   </div>
                                 }
                                 @case ('height') {

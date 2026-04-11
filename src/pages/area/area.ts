@@ -51,6 +51,7 @@ import { SectionHeaderComponent } from '../../components/ui/section-header';
 
 import {
   ClimbingKinds,
+  ClimbingKind,
   isGradeRangeOverlap,
   normalizeRoutesByGrade,
   ORDERED_GRADE_VALUES,
@@ -338,7 +339,11 @@ import { AreaPaywallDialogComponent } from '../../components/paywall/area-paywal
                   "
                 >
                   <div class="flex items-center gap-3 w-full">
-                    <app-grade [grade]="route.grade" size="s" />
+                    <app-grade
+                      [grade]="route.grade"
+                      [kind]="route.climbing_kind"
+                      size="s"
+                    />
                     <div class="flex flex-col min-w-0 items-start">
                       <span class="font-bold truncate w-full text-left">
                         {{ route.name }}
@@ -470,6 +475,7 @@ export class AreaComponent {
           name,
           slug,
           grade,
+          climbing_kind,
           crag:crags!inner(id, name, slug)
         `,
         )
@@ -486,6 +492,7 @@ export class AreaComponent {
         name: string;
         slug: string;
         grade: number;
+        climbing_kind: ClimbingKind;
         crag: { id: number; name: string; slug: string };
       }[];
     },

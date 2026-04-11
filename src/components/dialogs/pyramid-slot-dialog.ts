@@ -22,7 +22,7 @@ import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { RoutesService } from '../../services/routes.service';
-import { AscentType, RouteDto } from '../../models';
+import { AscentType, RouteDto, ClimbingKind } from '../../models';
 
 import { GradeComponent } from '../ui/avatar-grade';
 import { AscentTypeComponent } from '../ascent/ascent-type';
@@ -41,6 +41,7 @@ export interface PyramidSlotDialogData {
   userId: string;
   year: number;
   canDelete?: boolean;
+  kind?: ClimbingKind;
 }
 
 @Component({
@@ -71,7 +72,10 @@ export interface PyramidSlotDialogData {
             <span class="text-xs"
               >{{ 'pyramid.requiredGrade' | translate }}:</span
             >
-            <app-grade [grade]="data.expectedGrade" />
+            <app-grade
+              [grade]="data.expectedGrade"
+              [kind]="data.kind || 'sport'"
+            />
           </div>
         }
       </div>
@@ -88,7 +92,10 @@ export interface PyramidSlotDialogData {
           (keydown.enter)="goToRoute(data.currentRoute)"
         >
           <div class="flex items-center gap-3 w-full justify-center">
-            <app-grade [grade]="data.currentRoute.grade" />
+            <app-grade
+              [grade]="data.currentRoute.grade"
+              [kind]="data.currentRoute.climbing_kind"
+            />
             <span
               class="font-bold text-lg truncate max-w-[200px] hover:underline"
               >{{ data.currentRoute.name }}</span
@@ -129,7 +136,11 @@ export interface PyramidSlotDialogData {
                   (keydown.enter)="selectRoute(route)"
                 >
                   <div class="flex items-center gap-3 min-w-0">
-                    <app-grade [grade]="route.grade" size="s" />
+                    <app-grade
+                      [grade]="route.grade"
+                      [kind]="route.climbing_kind"
+                      size="s"
+                    />
                     <div class="flex flex-col min-w-0">
                       <span class="font-bold truncate">{{ route.name }}</span>
                       <span class="text-[10px] opacity-60 truncate">
