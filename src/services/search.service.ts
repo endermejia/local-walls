@@ -112,8 +112,9 @@ export class SearchService {
         const users = responses[3].data as DbUser[] | null;
 
         const results: SearchData = {};
+        const areasTitle = this.translate.instant('areas');
         if (areas?.length) {
-          results[this.translate.instant('areas')] = areas.map(
+          results[areasTitle] = areas.map(
             (a: DbArea) =>
               ({
                 title: a.name,
@@ -121,9 +122,20 @@ export class SearchService {
                 icon: '@tui.map-pin',
               }) as SearchItem,
           );
+        } else {
+          results[areasTitle] = [
+            {
+              title: this.translate.instant('areas.newTitle'),
+              href: '',
+              icon: '@tui.plus',
+              type: 'create-area',
+            },
+          ];
         }
+
+        const cragsTitle = this.translate.instant('crags');
         if (crags?.length) {
-          results[this.translate.instant('crags')] = crags.map((c: DbCrag) => {
+          results[cragsTitle] = crags.map((c: DbCrag) => {
             const area = Array.isArray(c.area) ? c.area[0] : c.area;
             return {
               title: c.name,
@@ -132,25 +144,42 @@ export class SearchService {
               icon: '@tui.mountain',
             } as SearchItem;
           });
-        }
-        if (routes?.length) {
-          results[this.translate.instant('routes')] = routes.map(
-            (r: DbRoute) => {
-              const crag = Array.isArray(r.crag) ? r.crag[0] : r.crag;
-              const area = Array.isArray(crag?.area)
-                ? crag?.area[0]
-                : crag?.area;
-              return {
-                title: r.name,
-                subtitle: `${area?.name || ''} > ${crag?.name || ''}`,
-                href: `/area/${area?.slug}/${crag?.slug}/${r.slug}`,
-                icon: '@tui.route',
-                difficulty:
-                  GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES],
-              } as SearchItem;
+        } else {
+          results[cragsTitle] = [
+            {
+              title: this.translate.instant('crags.newTitle'),
+              href: '',
+              icon: '@tui.plus',
+              type: 'create-crag',
             },
-          );
+          ];
         }
+
+        const routesTitle = this.translate.instant('routes');
+        if (routes?.length) {
+          results[routesTitle] = routes.map((r: DbRoute) => {
+            const crag = Array.isArray(r.crag) ? r.crag[0] : r.crag;
+            const area = Array.isArray(crag?.area) ? crag?.area[0] : crag?.area;
+            return {
+              title: r.name,
+              subtitle: `${area?.name || ''} > ${crag?.name || ''}`,
+              href: `/area/${area?.slug}/${crag?.slug}/${r.slug}`,
+              icon: '@tui.route',
+              difficulty:
+                GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES],
+            } as SearchItem;
+          });
+        } else {
+          results[routesTitle] = [
+            {
+              title: this.translate.instant('routes.newTitle'),
+              href: '',
+              icon: '@tui.plus',
+              type: 'create-route',
+            },
+          ];
+        }
+
         if (users?.length) {
           results[this.translate.instant('users')] = users
             .filter((u) =>

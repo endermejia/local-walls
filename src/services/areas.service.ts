@@ -53,9 +53,9 @@ export class AreasService {
   readonly error: WritableSignal<string | null> = signal<string | null>(null);
 
   openAreaForm(data?: {
-    areaData?: { id: number; name: string; slug: string };
+    areaData?: { id?: number; name: string; slug?: string };
   }): void {
-    const isEdit = !!data?.areaData;
+    const isEdit = !!data?.areaData?.id;
     const oldSlug = data?.areaData?.slug;
     void firstValueFrom(
       this.dialogs.open<string | boolean | null>(

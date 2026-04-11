@@ -49,17 +49,17 @@ export class RoutesService {
   openRouteForm(data: {
     cragId?: number;
     routeData?: {
-      id: number;
-      crag_id: number;
+      id?: number;
+      crag_id?: number;
       name: string;
-      slug: string;
-      grade: number;
-      climbing_kind: string;
+      slug?: string;
+      grade?: number;
+      climbing_kind?: string;
       height?: number | null;
       eight_anu_route_slugs?: string[] | null;
     };
   }): void {
-    const isEdit = !!data.routeData;
+    const isEdit = !!data.routeData?.id;
     const oldSlug = data.routeData?.slug;
     void firstValueFrom(
       this.dialogs.open<string | boolean | null>(

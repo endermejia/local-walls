@@ -53,7 +53,6 @@ import {
   MapItem,
   MapResponse,
   ORDERED_GRADE_VALUES,
-  NotificationTypes,
   PaginatedAscents,
   ParkingDto,
   RouteAscentWithExtras,
@@ -1780,7 +1779,7 @@ export class GlobalData {
           void this.notificationsService.refreshUnreadCount();
         });
 
-        const mSub = this.messagingService.watchUnreadCount((msg) => {
+        const mSub = this.messagingService.watchUnreadCount(() => {
           console.log('[GlobalData] New message in DB detected');
           // Always refresh count for navbar
           void this.messagingService.refreshUnreadCount();

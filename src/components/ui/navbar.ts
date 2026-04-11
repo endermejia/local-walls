@@ -40,9 +40,13 @@ import {
   switchMap,
 } from 'rxjs';
 
+import { AreasService } from '../../services/areas.service';
+import { CragsService } from '../../services/crags.service';
+import { RoutesService } from '../../services/routes.service';
 import { GlobalData } from '../../services/global-data';
 import { ScrollService } from '../../services/scroll.service';
 import { SearchService } from '../../services/search.service';
+import { SearchData, SearchItem } from '../../models/search-item.model';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 import { TourService } from '../../services/tour.service';
@@ -332,8 +336,8 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
                     <ng-template let-item>
                       <a
                         tuiCell
-                        [routerLink]="item.href"
-                        (click)="onResultClick()"
+                        [routerLink]="item.href || null"
+                        (click)="onResultClick(item, $event)"
                       >
                         @if (item.type === 'user') {
                           <tui-avatar
@@ -441,6 +445,9 @@ export class NavbarComponent {
   private readonly userProfilesService = inject(UserProfilesService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
+  private readonly areasService = inject(AreasService);
+  private readonly cragsService = inject(CragsService);
+  private readonly routesService = inject(RoutesService);
 
   protected readonly searchExpanded = signal(false);
   protected readonly control = new FormControl('');
@@ -473,7 +480,32 @@ export class NavbarComponent {
     { initialValue: null },
   );
 
-  protected onResultClick(): void {
+  protected onResultClick(item: SearchItem, event?: Event): void {
+    if (item.type?.startsWith('create-')) {
+      event?.preventDefault();
+      event?.stopPropagation();
+
+      const query = (this.control.value || '').trim();
+
+      switch (item.type) {
+        case 'create-area':
+          this.areasService.openAreaForm({ areaData: { name: query } });
+          break;
+        case 'create-crag':
+          this.cragsService.openCragForm({
+            areaId: this.global.selectedArea()?.id,
+            cragData: { name: query },
+          });
+          break;
+        case 'create-route':
+          this.routesService.openRouteForm({
+            cragId: this.global.selectedCrag()?.id,
+            routeData: { name: query },
+          });
+          break;
+      }
+    }
+
     this.searchOpen = false;
     this.control.setValue('', { emitEvent: false });
   }

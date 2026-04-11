@@ -288,7 +288,9 @@ export class CragFormComponent {
   private readonly effectiveCragData: Signal<MinimalCrag | undefined> =
     computed(() => this.dialogCragData ?? this.cragData());
 
-  readonly isEdit: Signal<boolean> = computed(() => !!this.effectiveCragData());
+  readonly isEdit: Signal<boolean> = computed(
+    () => !!this.effectiveCragData()?.id,
+  );
 
   model = signal<CragFormModel>({
     name: '',

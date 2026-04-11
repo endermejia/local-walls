@@ -48,10 +48,10 @@ serve(async (req) => {
     let body = 'Nueva notificación';
     switch (record.type) {
       case 'like':
-        body = 'A alguien le ha gustado tu ascensión';
+        body = 'A alguien le ha gustado tu encadene';
         break;
       case 'comment':
-        body = 'Alguien ha comentado tu ascensión';
+        body = 'Alguien ha comentado tu encadene';
         break;
       case 'mention':
         body = 'Te han mencionado en un comentario';

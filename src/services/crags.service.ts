@@ -45,10 +45,10 @@ export class CragsService {
   openCragForm(data?: {
     areaId?: number;
     cragData?: {
-      id: number;
-      area_id: number;
+      id?: number;
+      area_id?: number;
       name: string;
-      slug: string;
+      slug?: string;
       latitude?: number | null;
       longitude?: number | null;
       approach?: number | null;
@@ -58,7 +58,7 @@ export class CragsService {
       warning_en?: string | null;
     };
   }): void {
-    const isEdit = !!data?.cragData;
+    const isEdit = !!data?.cragData?.id;
     const oldSlug = data?.cragData?.slug;
     void firstValueFrom(
       this.dialogs.open<string | boolean | null>(
