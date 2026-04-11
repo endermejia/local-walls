@@ -175,16 +175,65 @@ export class CartService {
     if (data && data.length > 0) {
       const dbItems: CartProduct[] = [];
 
+      // Group IDs by item type
+      const merchandiseIds = [
+        ...new Set(
+          data
+            .filter((row) => row.item_type === 'merchandise')
+            .map((row) => row.item_id),
+        ),
+      ];
+      const areaPackIds = [
+        ...new Set(
+          data
+            .filter((row) => row.item_type === 'area_pack')
+            .map((row) => row.item_id),
+        ),
+      ];
+      const areaIds = [
+        ...new Set(
+          data
+            .filter((row) => row.item_type === 'area')
+            .map((row) => parseInt(row.item_id)),
+        ),
+      ];
+
+      // Batch fetch details
+      const [merchandiseRes, areaPacksRes, areasRes] = await Promise.all([
+        merchandiseIds.length > 0
+          ? this.supabase.client
+              .from('merchandise_items')
+              .select('id, name, price, image_url')
+              .in('id', merchandiseIds)
+          : Promise.resolve({ data: [] }),
+        areaPackIds.length > 0
+          ? this.supabase.client
+              .from('area_packs')
+              .select('id, name, price, image_url')
+              .in('id', areaPackIds)
+          : Promise.resolve({ data: [] }),
+        areaIds.length > 0
+          ? this.supabase.client
+              .from('areas')
+              .select('id, name, price')
+              .in('id', areaIds)
+          : Promise.resolve({ data: [] }),
+      ]);
+
+      // Create lookup maps
+      const merchandiseMap = new Map(
+        (merchandiseRes.data || []).map((m) => [m.id, m]),
+      );
+      const areaPacksMap = new Map(
+        (areaPacksRes.data || []).map((p) => [p.id, p]),
+      );
+      const areasMap = new Map((areasRes.data || []).map((a) => [a.id, a]));
+
       // Fetch details for each item type to reconstruct full CartProduct
       for (const row of data) {
         let itemDetail: CartProduct | null = null;
         if (row.item_type === 'merchandise') {
-          const { data: item } = await this.supabase.client
-            .from('merchandise_items')
-            .select('id, name, price, image_url')
-            .eq('id', row.item_id)
-            .maybeSingle();
-
+          const item = merchandiseMap.get(row.item_id);
           if (item) {
             itemDetail = {
               id: item.id,
@@ -198,12 +247,7 @@ export class CartService {
             };
           }
         } else if (row.item_type === 'area_pack') {
-          const { data: pack } = await this.supabase.client
-            .from('area_packs')
-            .select('id, name, price, image_url')
-            .eq('id', row.item_id)
-            .maybeSingle();
-
+          const pack = areaPacksMap.get(row.item_id);
           if (pack) {
             itemDetail = {
               id: pack.id,
@@ -215,12 +259,7 @@ export class CartService {
             };
           }
         } else if (row.item_type === 'area') {
-          const { data: area } = await this.supabase.client
-            .from('areas')
-            .select('id, name, price')
-            .eq('id', parseInt(row.item_id))
-            .maybeSingle();
-
+          const area = areasMap.get(parseInt(row.item_id));
           if (area) {
             itemDetail = {
               id: area.id.toString(),
