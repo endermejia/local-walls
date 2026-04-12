@@ -201,7 +201,7 @@ export class SearchService {
                 GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES],
             } as SearchItem;
           });
-        } else if (!hasAnyResults) {
+        } else {
           const anuRoute = eightAnuItems?.find((i) => i.type === 3);
           results[routesTitle] = [
             ...(anuRoute
