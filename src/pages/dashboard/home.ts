@@ -30,6 +30,7 @@ import {
   TuiScrollbar,
 } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiPullToRefresh } from '@taiga-ui/addon-mobile';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
   TuiBadgeNotification,
@@ -40,6 +41,7 @@ import {
 
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import {
+  Observer,
   combineLatest,
   concatMap,
   distinctUntilChanged,
@@ -93,12 +95,14 @@ import {
     TuiDataList,
     TuiDropdown,
     TuiLink,
+    TuiPullToRefresh,
     TuiScrollbar,
     TuiSkeleton,
   ],
   template: `
     <tui-scrollbar class="h-full">
-      <div class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32 pt-2">
+      <tui-pull-to-refresh (pulled)="onPullToRefresh($event)">
+        <div class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32 pt-2">
         <div class="px-4 flex flex-col gap-4 relative">
           <!-- Filter Segmented -->
           <div class="flex justify-between items-center gap-2">
@@ -240,6 +244,7 @@ import {
           />
         </div>
       </div>
+      </tui-pull-to-refresh>
     </tui-scrollbar>
 
     <ng-template #feedFilterDropdown>
@@ -282,6 +287,7 @@ export class HomeComponent implements OnDestroy {
   scrollbar?: ElementRef<HTMLElement>;
 
   readonly roomId = input<string | undefined>();
+  protected readonly refreshTrigger = signal(0);
   protected readonly followedIds = signal<Set<string>>(new Set());
   protected readonly followsLoaded = signal(false);
 
@@ -329,13 +335,14 @@ export class HomeComponent implements OnDestroy {
       toObservable(this.global.feedCategories),
       toObservable(this.global.feedGradeRange),
       toObservable(this.followsLoaded),
+      toObservable(this.refreshTrigger),
     ])
       .pipe(
         takeUntilDestroyed(),
         filter(([, , , loaded]) => loaded),
         map(
-          ([f, cat, grades]) =>
-            ({ filter: f, categories: cat, gradeRange: grades }) as const,
+          ([f, cat, grades, , refresh]) =>
+            ({ filter: f, categories: cat, gradeRange: grades, refresh }) as const,
         ),
         distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
         switchMap(({ filter }) => {
@@ -553,6 +560,18 @@ export class HomeComponent implements OnDestroy {
         route: mappedRoute,
       } as RouteAscentWithExtras & { kind: 'ascent' };
     });
+  }
+
+  onPullToRefresh(observer: Observer<void>) {
+    this.refreshTrigger.update((v) => v + 1);
+    this.activeCragsResource.reload();
+
+    const intervalId = setInterval(() => {
+      if (!this.isLoading()) {
+        observer.complete();
+        clearInterval(intervalId);
+      }
+    }, 100);
   }
 
   onFollow(userId: string) {
