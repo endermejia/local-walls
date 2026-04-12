@@ -653,7 +653,7 @@ export class HomeComponent implements OnDestroy {
     }
   }
 
-  onPullToRefresh(observer: Observer<void>) {
+  onPullToRefresh(observer: any) {
     this.ascents.set([]);
     this.hasMore.set(true);
     this.isLoading.set(true);
