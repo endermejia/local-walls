@@ -115,6 +115,8 @@ export class SearchService {
         const users = responses[3].data as DbUser[] | null;
         const eightAnuItems = responses[4] as any[];
 
+        const hasAnyResults = (areas?.length || 0) > 0 || (crags?.length || 0) > 0 || (routes?.length || 0) > 0 || (users?.length || 0) > 0;
+
         const results: SearchData = {};
         const areasTitle = this.translate.instant('areas');
         if (areas?.length) {
@@ -126,7 +128,7 @@ export class SearchService {
                 icon: '@tui.map-pin',
               }) as SearchItem,
           );
-        } else {
+        } else if (!hasAnyResults) {
           const anuArea = eightAnuItems?.find((i) => i.type === 0);
           results[areasTitle] = [
             ...(anuArea
@@ -161,7 +163,7 @@ export class SearchService {
               icon: '@tui.mountain',
             } as SearchItem;
           });
-        } else {
+        } else if (!hasAnyResults) {
           const anuCrag = eightAnuItems?.find((i) => i.type === 1);
           results[cragsTitle] = [
             ...(anuCrag
