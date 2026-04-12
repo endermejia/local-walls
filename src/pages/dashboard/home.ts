@@ -1,3 +1,4 @@
+import { Observer } from 'rxjs';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -21,6 +22,7 @@ import {
   ChatDialogData,
 } from '../../components/dialogs/chat-dialog';
 
+import { TuiPullToRefresh } from '@taiga-ui/addon-mobile';
 import {
   TuiAppearance,
   TuiButton,
@@ -95,151 +97,158 @@ import {
     TuiLink,
     TuiScrollbar,
     TuiSkeleton,
+    TuiPullToRefresh,
   ],
   template: `
     <tui-scrollbar class="h-full">
-      <div class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32 pt-2">
-        <div class="px-4 flex flex-col gap-4 relative">
-          <!-- Filter Segmented -->
-          <div class="flex justify-between items-center gap-2">
-            <!-- Left Side: Select and Filter -->
-            <div class="flex items-center gap-2">
+      <tui-pull-to-refresh (pulled)="onPullToRefresh($event)">
+        <div class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32 pt-2">
+          <div class="px-4 flex flex-col gap-4 relative">
+            <!-- Filter Segmented -->
+            <div class="flex justify-between items-center gap-2">
+              <!-- Left Side: Select and Filter -->
+              <div class="flex items-center gap-2">
+                @if (!followsLoaded()) {
+                  <div
+                    [tuiSkeleton]="true"
+                    class="w-32 h-10 rounded-full opacity-60"
+                  ></div>
+                  <div
+                    [tuiSkeleton]="true"
+                    class="w-10 h-10 rounded-full opacity-60"
+                  ></div>
+                } @else {
+                  @if (followedIds().size > 0) {
+                    <button
+                      tuiLink
+                      tuiChevron
+                      appearance="flat-grayscale"
+                      type="button"
+                      class="!text-xl !font-bold !text-inherit !no-underline !bg-transparent"
+                      [tuiDropdown]="feedFilterDropdown"
+                      [(tuiDropdownOpen)]="dropdownOpen"
+                    >
+                      {{
+                        (filterIndex === 0 ? 'following' : 'all') | translate
+                      }}
+                    </button>
+                  }
+                  <tui-badged-content [style.--tui-radius.%]="50">
+                    @if (hasActiveFilters()) {
+                      <tui-badge-notification
+                        tuiAppearance="accent"
+                        size="s"
+                        tuiSlot="top"
+                      />
+                    }
+                    <button
+                      tuiIconButton
+                      size="m"
+                      appearance="action-grayscale"
+                      iconStart="@tui.sliders-horizontal"
+                      (click.zoneless)="openFilters()"
+                      [attr.aria-label]="'filters' | translate"
+                      title="Filters"
+                    >
+                      <span class="tui-sr-only">{{
+                        'filters' | translate
+                      }}</span>
+                    </button>
+                  </tui-badged-content>
+                }
+              </div>
+
               @if (!followsLoaded()) {
                 <div
                   [tuiSkeleton]="true"
-                  class="w-32 h-10 rounded-full opacity-60"
-                ></div>
-                <div
-                  [tuiSkeleton]="true"
-                  class="w-10 h-10 rounded-full opacity-60"
+                  class="w-10 h-10 rounded-full opacity-60 mt-1"
                 ></div>
               } @else {
-                @if (followedIds().size > 0) {
-                  <button
-                    tuiLink
-                    tuiChevron
-                    appearance="flat-grayscale"
-                    type="button"
-                    class="!text-xl !font-bold !text-inherit !no-underline !bg-transparent"
-                    [tuiDropdown]="feedFilterDropdown"
-                    [(tuiDropdownOpen)]="dropdownOpen"
-                  >
-                    {{ (filterIndex === 0 ? 'following' : 'all') | translate }}
-                  </button>
-                }
                 <tui-badged-content [style.--tui-radius.%]="50">
-                  @if (hasActiveFilters()) {
+                  @if (
+                    global.unreadNotificationsCount();
+                    as unreadNotifications
+                  ) {
                     <tui-badge-notification
                       tuiAppearance="accent"
                       size="s"
                       tuiSlot="top"
-                    />
+                    >
+                      {{ unreadNotifications }}
+                    </tui-badge-notification>
                   }
                   <button
                     tuiIconButton
                     size="m"
                     appearance="action-grayscale"
-                    iconStart="@tui.sliders-horizontal"
-                    (click.zoneless)="openFilters()"
-                    [attr.aria-label]="'filters' | translate"
-                    title="Filters"
+                    iconStart="@tui.heart"
+                    (click.zoneless)="openNotifications()"
+                    [attr.aria-label]="'notifications' | translate"
+                    title="Notifications"
                   >
-                    <span class="tui-sr-only">{{ 'filters' | translate }}</span>
+                    <span class="tui-sr-only">{{
+                      'notifications' | translate
+                    }}</span>
                   </button>
                 </tui-badged-content>
               }
             </div>
-
-            @if (!followsLoaded()) {
-              <div
-                [tuiSkeleton]="true"
-                class="w-10 h-10 rounded-full opacity-60 mt-1"
-              ></div>
-            } @else {
-              <tui-badged-content [style.--tui-radius.%]="50">
-                @if (
-                  global.unreadNotificationsCount();
-                  as unreadNotifications
-                ) {
-                  <tui-badge-notification
-                    tuiAppearance="accent"
-                    size="s"
-                    tuiSlot="top"
-                  >
-                    {{ unreadNotifications }}
-                  </tui-badge-notification>
-                }
-                <button
-                  tuiIconButton
-                  size="m"
-                  appearance="action-grayscale"
-                  iconStart="@tui.heart"
-                  (click.zoneless)="openNotifications()"
-                  [attr.aria-label]="'notifications' | translate"
-                  title="Notifications"
-                >
-                  <span class="tui-sr-only">{{
-                    'notifications' | translate
-                  }}</span>
-                </button>
-              </tui-badged-content>
-            }
-          </div>
-          <!-- Crags -->
-          @if (!followsLoaded() || activeCragsResource.isLoading()) {
-            <div class="flex flex-col gap-2 mt-2">
-              <div
-                [tuiSkeleton]="true"
-                class="w-24 h-4 rounded-full opacity-40 ml-1"
-              ></div>
-              <div
-                class="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar"
-              >
-                @for (_ of [1, 2, 3, 4, 5, 6]; track $index) {
-                  <div
-                    [tuiSkeleton]="true"
-                    class="flex-none w-28 h-11 rounded-2xl opacity-30"
-                  ></div>
-                }
-              </div>
-            </div>
-          } @else if (activeCrags(); as crags) {
-            @if (crags.length > 0) {
+            <!-- Crags -->
+            @if (!followsLoaded() || activeCragsResource.isLoading()) {
               <div class="flex flex-col gap-2 mt-2">
-                <span class="text-xs font-bold opacity-60 uppercase px-1">
-                  {{ 'crags' | translate }}
-                </span>
+                <div
+                  [tuiSkeleton]="true"
+                  class="w-24 h-4 rounded-full opacity-40 ml-1"
+                ></div>
                 <div
                   class="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar"
                 >
-                  @for (c of crags; track c.id) {
-                    <a
-                      [routerLink]="['/area', c.area_slug, c.slug]"
-                      tuiAppearance="textfield"
-                      class="flex-none p-3 rounded-2xl flex items-center gap-2 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
-                    >
-                      <span class="whitespace-nowrap font-bold text-sm">{{
-                        c.name
-                      }}</span>
-                    </a>
+                  @for (_ of [1, 2, 3, 4, 5, 6]; track $index) {
+                    <div
+                      [tuiSkeleton]="true"
+                      class="flex-none w-28 h-11 rounded-2xl opacity-30"
+                    ></div>
                   }
                 </div>
               </div>
+            } @else if (activeCrags(); as crags) {
+              @if (crags.length > 0) {
+                <div class="flex flex-col gap-2 mt-2">
+                  <span class="text-xs font-bold opacity-60 uppercase px-1">
+                    {{ 'crags' | translate }}
+                  </span>
+                  <div
+                    class="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar"
+                  >
+                    @for (c of crags; track c.id) {
+                      <a
+                        [routerLink]="['/area', c.area_slug, c.slug]"
+                        tuiAppearance="textfield"
+                        class="flex-none p-3 rounded-2xl flex items-center gap-2 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
+                      >
+                        <span class="whitespace-nowrap font-bold text-sm">{{
+                          c.name
+                        }}</span>
+                      </a>
+                    }
+                  </div>
+                </div>
+              }
             }
-          }
 
-          <!-- Ascents Feed -->
-          <app-ascents-feed
-            [ascents]="ascents()"
-            [isLoading]="isLoading()"
-            [hasMore]="hasMore()"
-            [followedIds]="followedIds()"
-            (loadMore)="loadMore()"
-            (follow)="onFollow($event)"
-            (unfollow)="onUnfollow($event)"
-          />
+            <!-- Ascents Feed -->
+            <app-ascents-feed
+              [ascents]="ascents()"
+              [isLoading]="isLoading()"
+              [hasMore]="hasMore()"
+              [followedIds]="followedIds()"
+              (loadMore)="loadMore()"
+              (follow)="onFollow($event)"
+              (unfollow)="onUnfollow($event)"
+            />
+          </div>
         </div>
-      </div>
+      </tui-pull-to-refresh>
     </tui-scrollbar>
 
     <ng-template #feedFilterDropdown>
@@ -267,6 +276,7 @@ import {
   },
 })
 export class HomeComponent implements OnDestroy {
+  private pullRefreshInterval: any;
   protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
@@ -643,7 +653,23 @@ export class HomeComponent implements OnDestroy {
     }
   }
 
+  onPullToRefresh(observer: Observer<void>) {
+    this.ascents.set([]);
+    this.hasMore.set(true);
+    this.isLoading.set(true);
+    this.loadMore$.next();
+    this.pullRefreshInterval = setInterval(() => {
+      if (!this.isLoading()) {
+        clearInterval(this.pullRefreshInterval);
+        observer.complete();
+      }
+    }, 100);
+  }
+
   ngOnDestroy() {
+    if (this.pullRefreshInterval) {
+      clearInterval(this.pullRefreshInterval);
+    }
     this.loadMore$.complete();
   }
 }
