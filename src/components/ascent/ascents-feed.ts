@@ -52,7 +52,7 @@ import { NewsCardComponent } from '../ui/news-card';
                 <span class="text-2xl font-black shrink-0">
                   {{ gradeLabelByNumber[asGrade(grade)] }}
                 </span>
-                <div class="h-px grow bg-[var(--tui-border-normal)]"></div>
+                <div class="h-px grow bg-(--tui-border-normal)"></div>
               </div>
             }
           }

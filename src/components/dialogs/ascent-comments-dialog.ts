@@ -77,7 +77,7 @@ export interface AscentCommentsDialogData {
                   <a
                     [routerLink]="['/profile', comment.user_id]"
                     (click)="context.completeWith()"
-                    class="font-bold text-sm truncate hover:underline text-[var(--tui-text-primary)] cursor-pointer block min-w-0"
+                    class="font-bold text-sm truncate hover:underline text-(--tui-text-primary) cursor-pointer block min-w-0"
                   >
                     {{ comment.user_profiles.name }}
                   </a>
@@ -86,7 +86,7 @@ export interface AscentCommentsDialogData {
                   </span>
                 </div>
                 <p
-                  class="text-sm whitespace-pre-wrap break-words"
+                  class="text-sm whitespace-pre-wrap wrap-break-word"
                   [innerHTML]="comment.comment | mentionLink"
                 ></p>
                 <div class="flex items-center justify-end mt-1">
@@ -140,19 +140,19 @@ export interface AscentCommentsDialogData {
 
       <div
         #container
-        class="p-4 border-t border-[var(--tui-border-normal)] relative"
+        class="p-4 border-t border-(--tui-border-normal) relative"
       >
         <span class="text-[13px] font-bold opacity-70 mb-2 block">
           {{ 'addComment' | translate }}
         </span>
 
         <div
-          class="relative bg-[var(--tui-background-base)] border border-[var(--tui-border-normal)] rounded-xl flex items-end p-2 gap-2 focus-within:ring-2 focus-within:ring-[var(--tui-text-action)] transition-shadow"
+          class="relative bg-(--tui-background-base) border border-(--tui-border-normal) rounded-xl flex items-end p-2 gap-2 focus-within:ring-2 focus-within:ring-(--tui-text-action) transition-shadow"
         >
           <div
             #editor
             contenteditable="true"
-            class="outline-none grow max-h-32 overflow-y-auto whitespace-pre-wrap break-words text-sm py-2 px-1"
+            class="outline-none grow max-h-32 overflow-y-auto whitespace-pre-wrap wrap-break-word text-sm py-2 px-1"
             (input)="onEditorInput()"
             (click)="onEditorInput()"
             (keyup)="onEditorInput()"
@@ -163,7 +163,7 @@ export interface AscentCommentsDialogData {
 
           @if (isEditorEmpty()) {
             <span
-              class="absolute top-4 left-3 pointer-events-none text-[var(--tui-text-tertiary)] text-sm"
+              class="absolute top-4 left-3 pointer-events-none text-(--tui-text-tertiary) text-sm"
               >...</span
             >
           }
@@ -186,7 +186,7 @@ export interface AscentCommentsDialogData {
 
         @if (showMentions() && mentionUsers().length > 0) {
           <div
-            class="absolute bottom-full mb-2 w-64 max-w-full shadow-lg bg-[var(--tui-background-base)] border border-[var(--tui-border-normal)] rounded-lg z-10 overflow-hidden"
+            class="absolute bottom-full mb-2 w-64 max-w-full shadow-lg bg-(--tui-background-base) border border-(--tui-border-normal) rounded-lg z-10 overflow-hidden"
             [style.left.px]="mentionPopupLeft()"
           >
             <tui-scrollbar class="max-h-48">
@@ -197,9 +197,9 @@ export interface AscentCommentsDialogData {
                     (mousedown)="$event.preventDefault(); selectUser(user)"
                     class="flex items-center gap-2 p-2 w-full text-left transition-colors cursor-pointer"
                     [class]="{
-                      'bg-[var(--tui-background-neutral-1)]':
+                      'bg-(--tui-background-neutral-1)':
                         i === selectedMentionIndex(),
-                      'hover:bg-[var(--tui-background-neutral-1)]':
+                      'hover:bg-(--tui-background-neutral-1)':
                         i !== selectedMentionIndex(),
                     }"
                   >

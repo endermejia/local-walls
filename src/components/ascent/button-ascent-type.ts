@@ -30,7 +30,7 @@ import { AscentType } from '../../models';
       [size]="size()"
       class="transition-transform active:scale-95 rounded-full!"
       [style.background]="active() ? info.background : ''"
-      [class.!text-[var(--tui-text-primary-on-accent-1)]]="active()"
+      [class.text-(--tui-text-primary-on-accent-1)!]="active()"
       [appearance]="active() ? 'none' : 'neutral'"
     >
       <tui-icon [icon]="info.icon" />

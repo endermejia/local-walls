@@ -32,7 +32,7 @@ import { TranslatePipe } from '@ngx-translate/core';
           type="button"
           [size]="size()"
           appearance="action-grayscale"
-          class="!pr-1 !pl-1 !h-auto"
+          class="pr-1! pl-1! h-auto!"
           (click)="onShowLikes($event)"
         >
           {{ likesCount() }}

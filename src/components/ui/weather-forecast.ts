@@ -57,10 +57,10 @@ import { WeatherService } from '../../services/weather.service';
                 type="button"
                 (click)="selectedDayIdx.set(idx)"
                 class="flex flex-col items-center p-3 rounded-2xl border transition-all min-w-[70px]"
-                [class.bg-[var(--tui-background-neutral-1)]]="
+                [class.bg-(--tui-background-accent-1-hover)]="
                   selectedDayIdx() === idx
                 "
-                [class.border-primary]="selectedDayIdx() === idx"
+                [class.border-(--tui-border-accent)]="selectedDayIdx() === idx"
                 [class.bg-(--tui-background-base)]="selectedDayIdx() !== idx"
                 [class.border-(--tui-border-normal)]="selectedDayIdx() !== idx"
               >
@@ -88,6 +88,7 @@ import { WeatherService } from '../../services/weather.service';
         @if (days[selectedDayIdx()]; as selectedDay) {
           <tui-scrollbar
             #hourlyScroll
+            class="pb-4"
             (touchstart)="$event.stopPropagation()"
             (touchmove)="$event.stopPropagation()"
             (touchend)="$event.stopPropagation()"
@@ -96,11 +97,15 @@ import { WeatherService } from '../../services/weather.service';
               @for (hour of selectedDay.hourly; track hour.time) {
                 <div
                   class="flex flex-col items-center min-w-[50px] py-1 px-1 rounded-xl transition-colors border hour-item"
-                  [class.bg-(--tui-background-neutral-1)]="
+                  [class.bg-(--tui-background-accent-1-hover)]="
                     isCurrentHour(hour.time)
                   "
-                  [class.border-primary]="isCurrentHour(hour.time)"
-                  [class.border-transparent]="!isCurrentHour(hour.time)"
+                  [class.border-(--tui-border-accent)]="
+                    isCurrentHour(hour.time)
+                  "
+                  [class.border-(--tui-border-normal)]="
+                    !isCurrentHour(hour.time)
+                  "
                 >
                   <span class="text-[10px] opacity-60">
                     {{ hour.time | date: 'HH:mm' }}

@@ -126,7 +126,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
               <th
                 *tuiHead="'actions'"
                 tuiTh
-                class="actions-column !w-48"
+                class="actions-column w-48!"
                 [sorter]="null"
               >
                 {{ 'actions' | translate }}

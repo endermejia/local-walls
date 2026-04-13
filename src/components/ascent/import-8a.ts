@@ -203,7 +203,7 @@ class EmptyCsvError extends Error {
                         <span
                           tuiAvatar
                           size="s"
-                          class="!text-[var(--tui-text-primary-on-accent-1)]"
+                          class="text-(--tui-text-primary-on-accent-1)!"
                           [style.background]="
                             ascentsService.ascentInfo()[
                               ascent.type || 'default'

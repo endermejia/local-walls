@@ -24,7 +24,7 @@ import { TranslatePipe } from '@ngx-translate/core';
         <h2 class="text-3xl font-bold">
           {{ 'firstSteps.welcomeTitle' | translate }}
         </h2>
-        <p class="text-xl text-[var(--tui-text-secondary)]">
+        <p class="text-xl text-(--tui-text-secondary)">
           {{ 'firstSteps.welcomeDescription' | translate }}
         </p>
       </div>

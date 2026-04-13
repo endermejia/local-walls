@@ -44,7 +44,7 @@ import { CheckoutService } from '../../services/checkout.service';
         <!-- Sticky Header -->
         <header
           tuiHeader
-          class="sticky top-0 z-10 flex items-center gap-4 py-4 mb-4 bg-[var(--tui-background-base)]"
+          class="sticky top-0 z-10 flex items-center gap-4 py-4 mb-4 bg-(--tui-background-base)"
         >
           <h1 tuiTitle class="m-0">
             <button
@@ -168,7 +168,7 @@ import { CheckoutService } from '../../services/checkout.service';
           <!-- Order Summary -->
           <div class="md:col-span-5">
             <div
-              class="bg-[var(--tui-background-neutral-1)] rounded-3xl p-8 sticky top-8 border border-[var(--tui-border-normal)]"
+              class="bg-(--tui-background-neutral-1) rounded-3xl p-8 sticky top-8 border border-(--tui-border-normal)"
             >
               <h2 tuiTitle="m" class="mb-6">
                 {{ 'merchandising.checkout.summary' | translate }}
@@ -179,10 +179,10 @@ import { CheckoutService } from '../../services/checkout.service';
                   <div class="flex justify-between items-center text-sm">
                     <div class="flex gap-3 items-center min-w-0">
                       <span
-                        class="w-6 h-6 flex items-center justify-center bg-[var(--tui-background-neutral-2)] rounded text-[10px] font-bold"
+                        class="w-6 h-6 flex items-center justify-center bg-(--tui-background-neutral-2) rounded text-[10px] font-bold"
                         >{{ item.quantity }}x</span
                       >
-                      <span class="truncate text-[var(--tui-text-secondary)]">{{
+                      <span class="truncate text-(--tui-text-secondary)">{{
                         item.name
                       }}</span>
                     </div>
@@ -194,10 +194,10 @@ import { CheckoutService } from '../../services/checkout.service';
               </div>
 
               <div
-                class="flex flex-col gap-2 pt-6 border-t border-[var(--tui-border-normal)]"
+                class="flex flex-col gap-2 pt-6 border-t border-(--tui-border-normal)"
               >
                 <div
-                  class="flex justify-between items-center text-[var(--tui-text-secondary)] text-sm"
+                  class="flex justify-between items-center text-(--tui-text-secondary) text-sm"
                 >
                   <span>{{
                     'merchandising.checkout.subtotal' | translate
@@ -205,12 +205,12 @@ import { CheckoutService } from '../../services/checkout.service';
                   <span>{{ subtotal() | currency: 'EUR' }}</span>
                 </div>
                 <div
-                  class="flex justify-between items-center text-[var(--tui-text-secondary)] text-sm"
+                  class="flex justify-between items-center text-(--tui-text-secondary) text-sm"
                 >
                   <span>{{
                     'merchandising.checkout.shipping' | translate
                   }}</span>
-                  <span class="text-[var(--tui-status-positive)] font-medium">{{
+                  <span class="text-(--tui-status-positive) font-medium">{{
                     'merchandising.checkout.free' | translate
                   }}</span>
                 </div>

@@ -27,7 +27,7 @@ import { GlobalData } from '../../services/global-data';
         <div class="flex flex-col gap-8 pb-4">
           <!-- Image Section -->
           <div
-            class="relative aspect-square rounded-[2.5rem] overflow-hidden bg-[var(--tui-background-neutral-1)] border border-[var(--tui-border-normal)]"
+            class="relative aspect-square rounded-[2.5rem] overflow-hidden bg-(--tui-background-neutral-1) border border-(--tui-border-normal)"
           >
             @if (item.image_url) {
               <img
@@ -39,7 +39,7 @@ import { GlobalData } from '../../services/global-data';
               <div class="w-full h-full flex items-center justify-center">
                 <tui-icon
                   icon="@tui.shirt"
-                  class="text-8xl opacity-10 text-[var(--tui-text-tertiary)]"
+                  class="text-8xl opacity-10 text-(--tui-text-tertiary)"
                 />
               </div>
             }
@@ -53,14 +53,14 @@ import { GlobalData } from '../../services/global-data';
                   {{ item.name }}
                 </h2>
                 <div
-                  class="text-2xl font-black text-[var(--tui-text-accent)] tabular-nums"
+                  class="text-2xl font-black text-(--tui-text-accent) tabular-nums"
                 >
                   {{ item.price | number: '1.2-2' }}€
                 </div>
               </div>
               @if (item.category) {
                 <span
-                  class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--tui-text-tertiary)]"
+                  class="text-xs font-bold uppercase tracking-[0.2em] text-(--tui-text-tertiary)"
                 >
                   {{
                     'merchandising.filter.' + item.category.toLowerCase()
@@ -71,9 +71,7 @@ import { GlobalData } from '../../services/global-data';
             </div>
 
             @if (item.description) {
-              <p
-                class="text-base text-[var(--tui-text-secondary)] leading-relaxed"
-              >
+              <p class="text-base text-(--tui-text-secondary) leading-relaxed">
                 {{ item.description }}
               </p>
             }
@@ -82,7 +80,7 @@ import { GlobalData } from '../../services/global-data';
               @if (item.available_sizes?.length) {
                 <div class="flex flex-col gap-3">
                   <span
-                    class="text-xs font-black uppercase tracking-widest text-[var(--tui-text-tertiary)]"
+                    class="text-xs font-black uppercase tracking-widest text-(--tui-text-tertiary)"
                   >
                     {{ 'merchandising.size' | translate }}
                   </span>
@@ -91,7 +89,7 @@ import { GlobalData } from '../../services/global-data';
                       <button
                         type="button"
                         (click)="selectedSize.set(size)"
-                        class="h-11 min-w-[3.5rem] px-4 flex items-center justify-center rounded-xl text-sm font-bold transition-all border"
+                        class="h-11 min-w-14 px-4 flex items-center justify-center rounded-xl text-sm font-bold transition-all border"
                         [style.background]="
                           selectedSize() === size
                             ? 'var(--tui-background-accent-1)'
@@ -119,7 +117,7 @@ import { GlobalData } from '../../services/global-data';
               @if (item.available_colors?.length) {
                 <div class="flex flex-col gap-3">
                   <span
-                    class="text-xs font-black uppercase tracking-widest text-[var(--tui-text-tertiary)]"
+                    class="text-xs font-black uppercase tracking-widest text-(--tui-text-tertiary)"
                   >
                     {{ 'merchandising.color' | translate }}
                   </span>
@@ -128,7 +126,7 @@ import { GlobalData } from '../../services/global-data';
                       <button
                         type="button"
                         (click)="selectedColor.set(color)"
-                        class="h-11 min-w-[3.5rem] px-4 flex items-center justify-center rounded-xl text-sm font-bold transition-all border"
+                        class="h-11 min-w-14 px-4 flex items-center justify-center rounded-xl text-sm font-bold transition-all border"
                         [style.background]="
                           selectedColor() === color
                             ? 'var(--tui-background-accent-1)'
@@ -159,14 +157,14 @@ import { GlobalData } from '../../services/global-data';
 
       <!-- Fixed Buy Button -->
       <div
-        class="flex flex-col gap-4 pt-4 border-t border-[var(--tui-border-normal)] flex-shrink-0"
+        class="flex flex-col gap-4 pt-4 border-t border-(--tui-border-normal) shrink-0"
       >
         <button
           tuiButton
           appearance="primary"
           size="l"
           type="button"
-          class="w-full !rounded-2xl shadow-2xl shadow-black/5 transform transition-all active:scale-[0.98]"
+          class="w-full rounded-2xl! shadow-2xl shadow-black/5 transform transition-all active:scale-[0.98]"
           (click)="addToCart()"
           [disabled]="
             (item.available_sizes?.length && !selectedSize()) ||

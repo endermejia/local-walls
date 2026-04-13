@@ -27,7 +27,7 @@ import { SeoService } from '../../services/seo.service';
   ],
   template: `
     <div
-      class="min-h-screen flex flex-col items-center justify-center p-6 bg-[var(--tui-background-base)] text-center"
+      class="min-h-screen flex flex-col items-center justify-center p-6 bg-(--tui-background-base) text-center"
     >
       <div class="mb-8 relative w-[150px] h-[109px]">
         <img
@@ -45,7 +45,7 @@ import { SeoService } from '../../services/seo.service';
         </h1>
       </header>
 
-      <p class="text-[var(--tui-text-02)] text-lg max-w-md mb-12">
+      <p class="text-(--tui-text-02) text-lg max-w-md mb-12">
         {{ 'landing.description' | translate }}
       </p>
 

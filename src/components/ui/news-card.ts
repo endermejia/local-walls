@@ -26,7 +26,7 @@ import { NewsItem } from '../../models';
       tuiAppearance="flat-grayscale"
       class="flex flex-col gap-1 p-4 sm:rounded-3xl rounded-none relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full text-left overflow-hidden"
     >
-      <header tuiHeader class="!mt-0 flex justify-between items-center">
+      <header tuiHeader class="mt-0! flex justify-between items-center">
         <a
           [href]="item().link"
           target="_blank"
@@ -61,7 +61,7 @@ import { NewsItem } from '../../models';
         <a
           [href]="item().link"
           target="_blank"
-          class="-mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full bg-[var(--tui-background-neutral-1)] sm:rounded-2xl overflow-hidden relative flex items-center justify-center"
+          class="-mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full bg-(--tui-background-neutral-1) sm:rounded-2xl overflow-hidden relative flex items-center justify-center"
         >
           <img
             [src]="img"
@@ -75,13 +75,13 @@ import { NewsItem } from '../../models';
         <a
           [href]="item().link"
           target="_blank"
-          class="font-bold text-lg leading-tight hover:underline cursor-pointer text-[var(--tui-text-primary)] no-underline"
+          class="font-bold text-lg leading-tight hover:underline cursor-pointer text-(--tui-text-primary) no-underline"
           [innerHTML]="sanitizedTitle()"
         ></a>
       </div>
 
       <div
-        class="text-sm italic border-l-2 border-[var(--tui-border-normal)] pl-3 py-1 self-start text-[var(--tui-text-secondary)] line-clamp-3"
+        class="text-sm italic border-l-2 border-(--tui-border-normal) pl-3 py-1 self-start text-(--tui-text-secondary) line-clamp-3"
         [innerHTML]="sanitizedExcerpt()"
       ></div>
     </div>

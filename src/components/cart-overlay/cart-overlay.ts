@@ -24,7 +24,7 @@ import type { CartProduct } from '../../models';
     TranslatePipe,
   ],
   template: `
-    <div class="fixed inset-0 z-[100] flex justify-end">
+    <div class="fixed inset-0 z-100 flex justify-end">
       <!-- Backdrop -->
       <div
         class="absolute inset-0 bg-[rgba(0,0,0,0.4)] backdrop-blur-sm transition-opacity"
@@ -38,10 +38,10 @@ import type { CartProduct } from '../../models';
 
       <!-- Panel -->
       <div
-        class="relative w-full max-w-md bg-[var(--tui-background-base)] shadow-2xl flex flex-col h-full transform transition-transform duration-300 ease-out"
+        class="relative w-full max-w-md bg-(--tui-background-base) shadow-2xl flex flex-col h-full transform transition-transform duration-300 ease-out"
       >
         <div
-          class="p-6 border-b border-[var(--tui-border-normal)] flex items-center justify-between"
+          class="p-6 border-b border-(--tui-border-normal) flex items-center justify-between"
         >
           <div class="flex items-center gap-3">
             <h2 class="text-xl font-black">
@@ -67,7 +67,7 @@ import type { CartProduct } from '../../models';
           <div class="p-6 flex flex-col gap-6">
             @if (items().length === 0) {
               <div
-                class="flex flex-col items-center justify-center py-20 text-[var(--tui-text-tertiary)]"
+                class="flex flex-col items-center justify-center py-20 text-(--tui-text-tertiary)"
               >
                 <tui-icon
                   icon="@tui.shopping-bag"
@@ -96,7 +96,7 @@ import type { CartProduct } from '../../models';
                   class="flex gap-4 group animate-in fade-in slide-in-from-right-4 duration-300"
                 >
                   <div
-                    class="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 border border-[var(--tui-border-normal)] bg-[var(--tui-background-neutral-1)]"
+                    class="w-20 h-20 rounded-2xl overflow-hidden shrink-0 border border-(--tui-border-normal) bg-(--tui-background-neutral-1)"
                   >
                     @if (item.image_url) {
                       <img
@@ -114,7 +114,7 @@ import type { CartProduct } from '../../models';
                               ? '@tui.shirt'
                               : '@tui.map'
                           "
-                          class="text-3xl opacity-50 text-[var(--tui-text-secondary)]"
+                          class="text-3xl opacity-50 text-(--tui-text-secondary)"
                         />
                       </div>
                     }
@@ -122,7 +122,7 @@ import type { CartProduct } from '../../models';
                   <div class="flex-1 min-w-0 flex flex-col">
                     <div class="flex justify-between items-start gap-2">
                       <h3
-                        class="font-black text-sm truncate text-[var(--tui-text-primary)]"
+                        class="font-black text-sm truncate text-(--tui-text-primary)"
                       >
                         {{ item.name }}
                       </h3>
@@ -132,7 +132,7 @@ import type { CartProduct } from '../../models';
                         appearance="flat"
                         iconStart="@tui.trash-2"
                         size="xs"
-                        class="text-[var(--tui-text-tertiary)] hover:text-[var(--tui-status-negative)] transition-colors"
+                        class="text-(--tui-text-tertiary) hover:text-(--tui-status-negative) transition-colors"
                         (click)="
                           removeItem(
                             item.id,
@@ -149,7 +149,7 @@ import type { CartProduct } from '../../models';
                     <div class="flex flex-wrap gap-1.5 mt-1">
                       @if (item.selectedSize) {
                         <span
-                          class="text-[9px] font-black bg-[var(--tui-background-neutral-2)] px-2 py-0.5 rounded-full uppercase tracking-tighter text-[var(--tui-text-secondary)]"
+                          class="text-[9px] font-black bg-(--tui-background-neutral-2) px-2 py-0.5 rounded-full uppercase tracking-tighter text-(--tui-text-secondary)"
                         >
                           {{ 'merchandising.size' | translate }}:
                           {{ item.selectedSize }}
@@ -157,7 +157,7 @@ import type { CartProduct } from '../../models';
                       }
                       @if (item.selectedColor) {
                         <span
-                          class="text-[9px] font-black bg-[var(--tui-background-neutral-2)] px-2 py-0.5 rounded-full uppercase tracking-tighter text-[var(--tui-text-secondary)]"
+                          class="text-[9px] font-black bg-(--tui-background-neutral-2) px-2 py-0.5 rounded-full uppercase tracking-tighter text-(--tui-text-secondary)"
                         >
                           {{ 'merchandising.color' | translate }}:
                           {{ item.selectedColor }}
@@ -209,14 +209,14 @@ import type { CartProduct } from '../../models';
                           </button>
                         } @else {
                           <span
-                            class="px-3 py-1 text-xs font-bold text-[var(--tui-text-tertiary)]"
+                            class="px-3 py-1 text-xs font-bold text-(--tui-text-tertiary)"
                           >
                             {{ item.quantity }}x
                           </span>
                         }
                       </div>
                       <span
-                        class="font-black text-[var(--tui-text-primary)] tabular-nums text-sm"
+                        class="font-black text-(--tui-text-primary) tabular-nums text-sm"
                         >{{
                           item.price * item.quantity | currency: 'EUR'
                         }}</span
@@ -231,16 +231,15 @@ import type { CartProduct } from '../../models';
 
         @if (items().length > 0) {
           <div
-            class="p-6 border-t border-[var(--tui-border-normal)] bg-[var(--tui-background-neutral-1)]"
+            class="p-6 border-t border-(--tui-border-normal) bg-(--tui-background-neutral-1)"
           >
             <div class="flex justify-between items-center mb-6">
-              <span class="text-[var(--tui-text-secondary)]">{{
+              <span class="text-(--tui-text-secondary)">{{
                 'merchandising.cart.subtotal' | translate
               }}</span>
-              <span
-                class="text-2xl font-black text-[var(--tui-text-primary)]"
-                >{{ totalPrice() | currency: 'EUR' }}</span
-              >
+              <span class="text-2xl font-black text-(--tui-text-primary)">{{
+                totalPrice() | currency: 'EUR'
+              }}</span>
             </div>
             <button tuiButton class="w-full" size="l" (click)="checkout.emit()">
               {{ 'merchandising.cart.checkout' | translate }}

@@ -44,7 +44,7 @@ import { RouteDto } from '../../models';
               <div class="grid gap-3 pt-2 pb-6 px-1">
                 @for (group of area.duplicateGroups; track $index) {
                   <div
-                    class="border border-[var(--tui-border-normal)] p-4 rounded-xl flex items-center justify-between gap-4"
+                    class="border border-(--tui-border-normal) p-4 rounded-xl flex items-center justify-between gap-4"
                   >
                     <div>
                       <div class="font-bold">

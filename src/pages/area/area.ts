@@ -271,7 +271,7 @@ import { AreaPaywallDialogComponent } from '../../components/paywall/area-paywal
 
           <div class="sticky top-0 z-10 py-4 flex items-end gap-2">
             <tui-textfield
-              class="grow block bg-[var(--tui-background-base)]"
+              class="grow block bg-(--tui-background-base)"
               tuiTextfieldSize="l"
             >
               <label tuiLabel for="crags-search">{{
@@ -286,9 +286,7 @@ import { AreaPaywallDialogComponent } from '../../components/paywall/area-paywal
                 (input.zoneless)="onQuery(cragsSearch.value)"
               />
             </tui-textfield>
-            <tui-badged-content
-              class="bg-[var(--tui-background-base)] rounded-2xl"
-            >
+            <tui-badged-content class="bg-(--tui-background-base) rounded-2xl">
               @if (hasActiveFilters()) {
                 <tui-badge-notification
                   tuiAppearance="accent"

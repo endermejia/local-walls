@@ -139,7 +139,7 @@ import { handleErrorToast } from '../../utils';
                 *tuiHead="'description'"
                 tuiTh
                 [sorter]="descriptionSorter"
-                class="!w-96"
+                class="w-96!"
               >
                 {{ 'description' | translate }}
               </th>
@@ -147,7 +147,7 @@ import { handleErrorToast } from '../../utils';
                 *tuiHead="'actions'"
                 tuiTh
                 [sorter]="null"
-                class="!w-24 text-right"
+                class="w-24! text-right"
               ></th>
             </tr>
           </thead>

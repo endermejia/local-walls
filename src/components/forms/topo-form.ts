@@ -190,11 +190,11 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                       alt="Preview"
                     />
                     <div
-                      class="absolute inset-0 bg-[var(--tui-background-neutral-1)]/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      class="absolute inset-0 bg-(--tui-background-neutral-1)/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <tui-icon
                         icon="@tui.pencil"
-                        class="text-[var(--tui-text-primary-on-accent-1)] text-3xl"
+                        class="text-(--tui-text-primary-on-accent-1) text-3xl"
                       />
                     </div>
                   </div>
@@ -223,11 +223,11 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                         alt="Existing photo"
                       />
                       <div
-                        class="absolute inset-0 bg-[var(--tui-background-neutral-1)]/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        class="absolute inset-0 bg-(--tui-background-neutral-1)/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <tui-icon
                           icon="@tui.pencil"
-                          class="text-[var(--tui-text-primary-on-accent-1)] text-3xl"
+                          class="text-(--tui-text-primary-on-accent-1) text-3xl"
                         />
                       </div>
                     </div>
@@ -248,7 +248,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                 type="button"
                 appearance="accent"
                 size="m"
-                class="w-full !rounded-xl"
+                class="w-full rounded-xl!"
                 [iconStart]="'/image/topo.svg'"
                 (click)="openPathEditor()"
               >

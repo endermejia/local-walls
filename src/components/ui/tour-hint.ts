@@ -16,11 +16,8 @@ import { TranslatePipe } from '@ngx-translate/core';
   template: `
     <div class="flex flex-col gap-4 p-4">
       <div class="flex items-start gap-3">
-        <tui-icon
-          icon="@tui.info"
-          class="mt-1 text-[var(--tui-text-tertiary)]"
-        />
-        <p class="text-[var(--tui-text-primary)] m-0 text-sm leading-relaxed">
+        <tui-icon icon="@tui.info" class="mt-1 text-(--tui-text-tertiary)" />
+        <p class="text-(--tui-text-primary) m-0 text-sm leading-relaxed">
           {{ description() }}
         </p>
       </div>

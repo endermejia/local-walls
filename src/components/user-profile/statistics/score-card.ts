@@ -11,10 +11,10 @@ import { CountUpDirective } from '../../../directives/count-up.directive';
     <div class="grid gap-6">
       <!-- Score Card -->
       <div
-        class="bg-[var(--tui-background-base)] shadow-md rounded-2xl p-6 text-center border border-[var(--tui-border-normal)]"
+        class="bg-(--tui-background-base) shadow-md rounded-2xl p-6 text-center border border-(--tui-border-normal)"
       >
         <div
-          class="text-[var(--tui-text-tertiary)] uppercase text-sm font-bold tracking-wider mb-2"
+          class="text-(--tui-text-tertiary) uppercase text-sm font-bold tracking-wider mb-2"
         >
           {{ 'statistics.totalScore' | translate }}
         </div>
@@ -25,7 +25,7 @@ import { CountUpDirective } from '../../../directives/count-up.directive';
         >
           {{ totalScoreAnim.currentValue() | number: '1.0-0' }}
         </div>
-        <div class="text-[var(--tui-text-tertiary)] mt-2 text-sm">
+        <div class="text-(--tui-text-tertiary) mt-2 text-sm">
           {{ 'statistics.top10Ascents' | translate }}
         </div>
       </div>
@@ -33,7 +33,7 @@ import { CountUpDirective } from '../../../directives/count-up.directive';
       <!-- Key Stats Grid -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div
-          class="bg-[var(--tui-background-base)] shadow-sm p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1"
+          class="bg-(--tui-background-base) shadow-sm p-4 rounded-xl border border-(--tui-border-normal) flex flex-col items-center justify-center gap-1"
         >
           <div
             class="text-3xl font-bold"
@@ -47,9 +47,9 @@ import { CountUpDirective } from '../../../directives/count-up.directive';
           </div>
         </div>
         <div
-          class="bg-[var(--tui-background-base)] shadow-sm p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1"
+          class="bg-(--tui-background-base) shadow-sm p-4 rounded-xl border border-(--tui-border-normal) flex flex-col items-center justify-center gap-1"
         >
-          <div class="text-3xl font-bold text-[var(--tui-status-negative)]">
+          <div class="text-3xl font-bold text-(--tui-status-negative)">
             {{ maxRedpoint() || '-' }}
           </div>
           <div class="text-xs uppercase opacity-70 font-semibold">
@@ -57,9 +57,9 @@ import { CountUpDirective } from '../../../directives/count-up.directive';
           </div>
         </div>
         <div
-          class="bg-[var(--tui-background-base)] shadow-sm p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1"
+          class="bg-(--tui-background-base) shadow-sm p-4 rounded-xl border border-(--tui-border-normal) flex flex-col items-center justify-center gap-1"
         >
-          <div class="text-3xl font-bold text-[var(--tui-status-positive)]">
+          <div class="text-3xl font-bold text-(--tui-status-positive)">
             {{ maxOnsight() || '-' }}
           </div>
           <div class="text-xs uppercase opacity-70 font-semibold">
@@ -67,9 +67,9 @@ import { CountUpDirective } from '../../../directives/count-up.directive';
           </div>
         </div>
         <div
-          class="bg-[var(--tui-background-base)] shadow-sm p-4 rounded-xl border border-[var(--tui-border-normal)] flex flex-col items-center justify-center gap-1"
+          class="bg-(--tui-background-base) shadow-sm p-4 rounded-xl border border-(--tui-border-normal) flex flex-col items-center justify-center gap-1"
         >
-          <div class="text-3xl font-bold text-[var(--tui-status-warning)]">
+          <div class="text-3xl font-bold text-(--tui-status-warning)">
             {{ maxFlash() || '-' }}
           </div>
           <div class="text-xs uppercase opacity-70 font-semibold">

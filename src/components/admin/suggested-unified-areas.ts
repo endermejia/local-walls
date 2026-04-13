@@ -36,7 +36,7 @@ import { normalizeName } from '../../utils';
         <div class="grid gap-2">
           @for (group of duplicates(); track $index) {
             <div
-              class="border border-[var(--tui-border-normal)] p-4 rounded-xl flex items-center justify-between gap-4"
+              class="border border-(--tui-border-normal) p-4 rounded-xl flex items-center justify-between gap-4"
             >
               <div>
                 <div class="font-bold">{{ group[0].name }}</div>

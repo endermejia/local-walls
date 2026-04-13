@@ -28,7 +28,7 @@ import { CountUpDirective } from '../../../directives/count-up.directive';
   ],
   template: `
     <div
-      class="bg-[var(--tui-background-base)] shadow-md p-6 rounded-2xl border border-[var(--tui-border-normal)] flex flex-col items-center"
+      class="bg-(--tui-background-base) shadow-md p-6 rounded-2xl border border-(--tui-border-normal) flex flex-col items-center"
     >
       <h3 class="font-bold text-lg mb-4 self-start flex items-center gap-2">
         <tui-icon icon="@tui.chart-pie" />

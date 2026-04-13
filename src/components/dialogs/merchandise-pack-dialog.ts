@@ -35,7 +35,7 @@ import { GlobalData } from '../../services/global-data';
         <div class="flex flex-col gap-8 pb-4 px-1">
           <!-- Image Section -->
           <div
-            class="relative aspect-[16/9] sm:h-64 rounded-[2.5rem] overflow-hidden bg-[var(--tui-background-neutral-1)] border border-[var(--tui-border-normal)]"
+            class="relative aspect-video sm:h-64 rounded-[2.5rem] overflow-hidden bg-(--tui-background-neutral-1) border border-(--tui-border-normal)"
           >
             @if (pack.image_url) {
               <img
@@ -51,7 +51,7 @@ import { GlobalData } from '../../services/global-data';
               />
             }
             <div
-              class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"
+              class="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent"
             ></div>
           </div>
 
@@ -62,29 +62,27 @@ import { GlobalData } from '../../services/global-data';
                   {{ pack.name }}
                 </h2>
                 <div
-                  class="text-2xl font-black text-[var(--tui-text-accent)] tabular-nums whitespace-nowrap"
+                  class="text-2xl font-black text-(--tui-text-accent) tabular-nums whitespace-nowrap"
                 >
                   {{ pack.price | number: '1.2-2' }}€
                 </div>
               </div>
               <span
-                class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--tui-text-tertiary)]"
+                class="text-xs font-bold uppercase tracking-[0.2em] text-(--tui-text-tertiary)"
               >
                 {{ 'merchandising.filter.area_pack' | translate }}
               </span>
             </div>
 
             @if (pack.description) {
-              <p
-                class="text-base text-[var(--tui-text-secondary)] leading-relaxed"
-              >
+              <p class="text-base text-(--tui-text-secondary) leading-relaxed">
                 {{ pack.description }}
               </p>
             }
 
             <div class="flex flex-col gap-4 pt-2">
               <span
-                class="text-xs font-black uppercase tracking-widest text-[var(--tui-text-tertiary)]"
+                class="text-xs font-black uppercase tracking-widest text-(--tui-text-tertiary)"
               >
                 {{
                   'merchandising.packs.includes'
@@ -97,7 +95,7 @@ import { GlobalData } from '../../services/global-data';
                     tuiBadge
                     appearance="primary"
                     size="m"
-                    class="font-semibold !rounded-xl"
+                    class="font-semibold rounded-xl!"
                   >
                     {{ item.area.name }}
                   </span>
@@ -109,14 +107,14 @@ import { GlobalData } from '../../services/global-data';
       </tui-scrollbar>
 
       <div
-        class="flex flex-col gap-4 pt-4 border-t border-[var(--tui-border-normal)] flex-shrink-0"
+        class="flex flex-col gap-4 pt-4 border-t border-(--tui-border-normal) shrink-0"
       >
         <button
           tuiButton
           appearance="primary"
           size="l"
           type="button"
-          class="w-full !rounded-2xl shadow-xl shadow-black/5 transform transition-all active:scale-[0.98]"
+          class="w-full rounded-2xl! shadow-xl shadow-black/5 transform transition-all active:scale-[0.98]"
           (click)="addToCart()"
           [disabled]="isInCart()"
         >

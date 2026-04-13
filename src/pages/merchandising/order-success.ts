@@ -40,7 +40,7 @@ import { CartService } from '../../services/cart.service';
         } @else if (orderResource.value(); as order) {
           <div class="flex flex-col items-center gap-6">
             <div
-              class="w-24 h-24 bg-[var(--tui-background-positive-neutral)] text-[var(--tui-status-positive)] rounded-full flex items-center justify-center mb-4"
+              class="w-24 h-24 bg-(--tui-background-positive-neutral) text-(--tui-status-positive) rounded-full flex items-center justify-center mb-4"
             >
               <tui-icon icon="@tui.check" class="text-5xl"></tui-icon>
             </div>
@@ -49,15 +49,15 @@ import { CartService } from '../../services/cart.service';
               {{ 'merchandising.success.title' | translate }}
             </h1>
 
-            <p class="text-[var(--tui-text-secondary)] max-w-md mx-auto">
+            <p class="text-(--tui-text-secondary) max-w-md mx-auto">
               {{ 'merchandising.success.description' | translate }}
-              <span class="font-bold text-[var(--tui-text-primary)]"
+              <span class="font-bold text-(--tui-text-primary)"
                 >#{{ order.id.slice(0, 8) }}</span
               >
             </p>
 
             <div
-              class="w-full bg-[var(--tui-background-neutral-1)] rounded-3xl p-8 mt-8 text-left border border-[var(--tui-border-normal)]"
+              class="w-full bg-(--tui-background-neutral-1) rounded-3xl p-8 mt-8 text-left border border-(--tui-border-normal)"
             >
               <h2 tuiTitle="m" class="mb-6">
                 {{ 'merchandising.success.summary' | translate }}
@@ -66,7 +66,7 @@ import { CartService } from '../../services/cart.service';
               <div class="flex flex-col gap-4">
                 @for (item of order.items; track item.id) {
                   <div class="flex justify-between items-center text-sm">
-                    <span class="text-[var(--tui-text-secondary)]"
+                    <span class="text-(--tui-text-secondary)"
                       >{{ item.quantity || 1 }}x Item ID:
                       {{ item.item_id }}</span
                     >
@@ -77,7 +77,7 @@ import { CartService } from '../../services/cart.service';
                 }
 
                 <div
-                  class="pt-6 border-t border-[var(--tui-border-normal)] flex justify-between items-center text-xl font-black mt-2"
+                  class="pt-6 border-t border-(--tui-border-normal) flex justify-between items-center text-xl font-black mt-2"
                 >
                   <span>{{ 'merchandising.success.total' | translate }}</span>
                   <span>{{ order.total_amount | currency: 'EUR' }}</span>

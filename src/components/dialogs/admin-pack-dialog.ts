@@ -173,7 +173,7 @@ interface SimpleArea {
 
         <!-- Active -->
         <div
-          class="flex items-center justify-between gap-4 p-4 rounded-xl bg-[var(--tui-base-02)]"
+          class="flex items-center justify-between gap-4 p-4 rounded-xl bg-(--tui-base-02)"
         >
           <span class="font-semibold">{{
             'merchandising.items.active' | translate
@@ -255,11 +255,11 @@ interface SimpleArea {
                         alt="Preview"
                       />
                       <div
-                        class="absolute inset-0 bg-[var(--tui-background-neutral-1)]/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        class="absolute inset-0 bg-(--tui-background-neutral-1)/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <tui-icon
                           icon="@tui.pencil"
-                          class="text-[var(--tui-text-primary-on-accent-1)] text-3xl"
+                          class="text-(--tui-text-primary-on-accent-1) text-3xl"
                         />
                       </div>
                     </div>
@@ -279,11 +279,11 @@ interface SimpleArea {
                       alt="Existing photo"
                     />
                     <div
-                      class="absolute inset-0 bg-[var(--tui-background-neutral-1)]/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      class="absolute inset-0 bg-(--tui-background-neutral-1)/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <tui-icon
                         icon="@tui.pencil"
-                        class="text-[var(--tui-text-primary-on-accent-1)] text-3xl"
+                        class="text-(--tui-text-primary-on-accent-1) text-3xl"
                       />
                     </div>
                   </div>

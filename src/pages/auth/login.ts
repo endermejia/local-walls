@@ -191,7 +191,7 @@ import { SupabaseService } from '../../services/supabase.service';
                 >
                   {{ 'signIn' | translate }}
                 </button>
-                <div class="text-center text-[var(--tui-text-02)]">
+                <div class="text-center text-(--tui-text-02)">
                   {{ 'auth.noAccount' | translate }}
                   <button
                     type="button"
@@ -212,7 +212,7 @@ import { SupabaseService } from '../../services/supabase.service';
                 >
                   {{ 'register' | translate }}
                 </button>
-                <div class="text-center text-[var(--tui-text-02)]">
+                <div class="text-center text-(--tui-text-02)">
                   {{ 'auth.alreadyAccount' | translate }}
                   <button
                     type="button"

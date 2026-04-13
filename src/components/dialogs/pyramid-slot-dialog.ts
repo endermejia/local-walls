@@ -83,9 +83,9 @@ export interface PyramidSlotDialogData {
       @if (data.currentRouteId && data.currentRoute) {
         <div
           class="flex flex-col items-center gap-2 p-4 rounded-2xl border cursor-pointer transition-transform hover:scale-105"
-          [class.bg-[var(--tui-status-positive-pale)]]="data.isCompleted"
-          [class.border-[var(--tui-status-positive)]]="data.isCompleted"
-          [class.bg-[var(--tui-background-neutral-1)]]="!data.isCompleted"
+          [class.bg-(--tui-status-positive-pale)]="data.isCompleted"
+          [class.border-(--tui-status-positive)]="data.isCompleted"
+          [class.bg-(--tui-background-neutral-1)]="!data.isCompleted"
           [class.border-transparent]="!data.isCompleted"
           tabindex="0"
           (click)="goToRoute(data.currentRoute)"
@@ -105,7 +105,7 @@ export interface PyramidSlotDialogData {
           @if (data.isCompleted && data.ascent) {
             <div class="flex items-center gap-2 mt-2">
               <app-ascent-type [type]="data.ascent.type" />
-              <span class="font-bold text-[var(--tui-status-positive)] text-sm">
+              <span class="font-bold text-(--tui-status-positive) text-sm">
                 +{{ data.ascent.score }} {{ 'points' | translate }}
               </span>
             </div>
@@ -130,7 +130,7 @@ export interface PyramidSlotDialogData {
             <div class="flex flex-col gap-2 mt-2">
               @for (route of results(); track route.id) {
                 <div
-                  class="flex items-center justify-between p-3 rounded-2xl bg-[var(--tui-background-neutral-1)] hover:bg-[var(--tui-background-neutral-2)] cursor-pointer transition-colors border border-transparent hover:border-[var(--tui-border-normal)]"
+                  class="flex items-center justify-between p-3 rounded-2xl bg-(--tui-background-neutral-1) hover:bg-(--tui-background-neutral-2) cursor-pointer transition-colors border border-transparent hover:border-(--tui-border-normal)"
                   tabindex="0"
                   (click)="selectRoute(route)"
                   (keydown.enter)="selectRoute(route)"
@@ -170,7 +170,7 @@ export interface PyramidSlotDialogData {
       <!-- Actions -->
       @if (data.currentRouteId) {
         <div
-          class="flex justify-center mt-2 border-t border-[var(--tui-border-normal)] pt-4"
+          class="flex justify-center mt-2 border-t border-(--tui-border-normal) pt-4"
         >
           <button
             tuiButton

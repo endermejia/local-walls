@@ -65,7 +65,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
     <tui-scrollbar class="h-full">
       <!-- 🛒 Floating Cart Button -->
       <div
-        class="fixed top-0 right-0 w-full z-[95] flex justify-end p-2 sm:p-4 pointer-events-none"
+        class="fixed top-0 right-0 w-full z-95 flex justify-end p-2 sm:p-4 pointer-events-none"
       >
         <tui-badged-content
           [style.--tui-radius.%]="50"
@@ -98,15 +98,15 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
       >
         <!-- 🚀 Hero Page Header -->
         <header
-          class="relative flex flex-col items-center text-center gap-6 py-12 px-6 rounded-[3.5rem] overflow-hidden border border-[var(--tui-border-normal)] shadow-2xl shadow-black/5"
+          class="relative flex flex-col items-center text-center gap-6 py-12 px-6 rounded-[3.5rem] overflow-hidden border border-(--tui-border-normal) shadow-2xl shadow-black/5"
           style="background: var(--tui-background-base)"
         >
           <!-- Subtle decorative elements -->
           <div
-            class="absolute -top-24 -right-24 w-64 h-64 bg-[var(--tui-background-accent-1-hover)] opacity-10 rounded-full blur-3xl"
+            class="absolute -top-24 -right-24 w-64 h-64 bg-(--tui-background-accent-1-hover) opacity-10 rounded-full blur-3xl"
           ></div>
           <div
-            class="absolute -bottom-24 -left-24 w-64 h-64 bg-[var(--tui-background-accent-1-hover)] opacity-10 rounded-full blur-3xl"
+            class="absolute -bottom-24 -left-24 w-64 h-64 bg-(--tui-background-accent-1-hover) opacity-10 rounded-full blur-3xl"
           ></div>
 
           <div class="relative flex flex-col items-center gap-4 text-center">
@@ -123,7 +123,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
           </div>
 
           <p
-            class="relative text-base sm:text-lg text-[var(--tui-text-secondary)] leading-relaxed max-w-2xl text-balance"
+            class="relative text-base sm:text-lg text-(--tui-text-secondary) leading-relaxed max-w-2xl text-balance"
           >
             {{ 'merchandising.description' | translate }}
           </p>
@@ -132,7 +132,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
             tuiNotification
             appearance="info"
             size="s"
-            class="relative max-w-lg !rounded-2xl border-none bg-[var(--tui-background-neutral-1)] shadow-sm"
+            class="relative max-w-lg rounded-2xl! border-none bg-(--tui-background-neutral-1) shadow-sm"
           >
             <span class="text-xs font-medium">
               {{ 'merchandising.croquisDisclaimer' | translate }}
@@ -152,7 +152,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                 appearance="accent"
                 size="s"
                 type="button"
-                class="!rounded-xl"
+                class="rounded-xl!"
                 (click)="editPack()"
               >
                 <tui-icon icon="@tui.plus" />
@@ -181,7 +181,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                 >
                   <!-- Illustration / Image -->
                   <div
-                    class="relative h-48 overflow-hidden bg-[var(--tui-background-neutral-1)]"
+                    class="relative h-48 overflow-hidden bg-(--tui-background-neutral-1)"
                   >
                     <img
                       [src]="pack.image_url"
@@ -192,7 +192,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                     />
 
                     <div
-                      class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"
+                      class="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent"
                     ></div>
 
                     <div class="absolute top-4 right-4">
@@ -200,7 +200,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                         tuiBadge
                         appearance="primary"
                         size="l"
-                        class="shadow-xl font-black !rounded-xl border border-white/20"
+                        class="shadow-xl font-black rounded-xl! border border-white/20"
                       >
                         {{ pack.price | number: '1.2-2' }}€
                       </span>
@@ -213,7 +213,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                           appearance="secondary-grayscale"
                           size="s"
                           type="button"
-                          class="!rounded-xl backdrop-blur-md bg-[var(--tui-background-accent-opposite-pressed)] border border-[var(--tui-border-normal)] text-[var(--tui-background-base)]"
+                          class="rounded-xl! backdrop-blur-md bg-(--tui-background-accent-opposite-pressed) border border-(--tui-border-normal) text-(--tui-background-base)"
                           (click)="editPack(pack); $event.stopPropagation()"
                         >
                           <tui-icon icon="@tui.pencil" />
@@ -237,7 +237,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
 
                     @if (pack.description) {
                       <p
-                        class="text-sm text-[var(--tui-text-secondary)] leading-relaxed"
+                        class="text-sm text-(--tui-text-secondary) leading-relaxed"
                       >
                         {{ pack.description }}
                       </p>
@@ -250,7 +250,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                           tuiBadge
                           appearance="primary"
                           size="m"
-                          class="font-semibold !rounded-xl opacity-90"
+                          class="font-semibold rounded-xl! opacity-90"
                         >
                           {{ item.area.name }}
                         </span>
@@ -260,7 +260,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                 </article>
               } @empty {
                 <div
-                  class="col-span-full py-20 text-center text-sm text-[var(--tui-text-tertiary)] rounded-[2.5rem]"
+                  class="col-span-full py-20 text-center text-sm text-(--tui-text-tertiary) rounded-[2.5rem]"
                   style="border: 2px dashed var(--tui-border-normal)"
                 >
                   {{ 'merchandising.packs.empty' | translate }}
@@ -282,7 +282,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                 appearance="accent"
                 size="s"
                 type="button"
-                class="!rounded-xl"
+                class="rounded-xl!"
                 (click)="editItem()"
               >
                 <tui-icon icon="@tui.plus" />
@@ -309,7 +309,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
               @for (_ of [1, 2, 3, 4, 5, 6]; track $index) {
                 <div
                   [tuiSkeleton]="true"
-                  class="aspect-square rounded-[2rem]"
+                  class="aspect-square rounded-4xl"
                 ></div>
               }
             } @else {
@@ -326,7 +326,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                   "
                 >
                   <div
-                    class="relative aspect-square rounded-[2.5rem] overflow-hidden transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-1.5 border border-[var(--tui-border-normal)]"
+                    class="relative aspect-square rounded-[2.5rem] overflow-hidden transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-1.5 border border-(--tui-border-normal)"
                     style="background: var(--tui-background-neutral-1)"
                   >
                     @if (item.image_url) {
@@ -343,7 +343,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                       >
                         <tui-icon
                           icon="@tui.shirt"
-                          class="text-[var(--tui-text-tertiary)] text-7xl opacity-20"
+                          class="text-(--tui-text-tertiary) text-7xl opacity-20"
                         />
                       </div>
                     }
@@ -354,7 +354,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                         tuiBadge
                         appearance="primary"
                         size="l"
-                        class="shadow-xl font-black !rounded-xl border border-white/20"
+                        class="shadow-xl font-black rounded-xl! border border-white/20"
                       >
                         {{ item.price | number: '1.2-2' }}€
                       </span>
@@ -367,7 +367,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                           appearance="secondary-grayscale"
                           size="s"
                           type="button"
-                          class="!rounded-xl backdrop-blur-md bg-[var(--tui-background-accent-opposite-pressed)] border border-[var(--tui-border-normal)] text-[var(--tui-background-base)]"
+                          class="rounded-xl! backdrop-blur-md bg-(--tui-background-accent-opposite-pressed) border border-(--tui-border-normal) text-(--tui-background-base)"
                           (click)="editItem(item); $event.stopPropagation()"
                         >
                           <tui-icon icon="@tui.pencil" />
@@ -388,7 +388,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                     }}</span>
                     @if (item.category) {
                       <span
-                        class="text-[10px] font-bold uppercase tracking-widest text-[var(--tui-text-tertiary)]"
+                        class="text-[10px] font-bold uppercase tracking-widest text-(--tui-text-tertiary)"
                       >
                         {{
                           'merchandising.filter.' + item.category.toLowerCase()
@@ -400,7 +400,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                 </article>
               } @empty {
                 <div
-                  class="col-span-full py-20 text-center text-sm text-[var(--tui-text-tertiary)] rounded-[2.5rem]"
+                  class="col-span-full py-20 text-center text-sm text-(--tui-text-tertiary) rounded-[2.5rem]"
                   style="border: 2px dashed var(--tui-border-normal)"
                 >
                   {{ 'merchandising.items.empty' | translate }}

@@ -40,7 +40,7 @@ import { EquipperDto, RouteWithExtras } from '../../models';
       multi
       tuiChevron
       tuiTextfieldSize="s"
-      class="!border-none !bg-transparent h-full"
+      class="border-none! bg-transparent! h-full"
       style="border-block-end: none;"
       [tuiTextfieldCleaner]="false"
       [stringify]="equipperStringify"

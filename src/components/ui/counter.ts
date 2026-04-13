@@ -65,7 +65,7 @@ let nextCounterId = 0;
             [max]="max()"
             [formControl]="control"
             [invalid]="!!invalid"
-            class="!w-full"
+            class="w-full!"
             autocomplete="off"
           />
           @if (suffix()) {

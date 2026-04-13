@@ -57,7 +57,7 @@ interface AscentDateMarker {
   template: `
     <div class="flex flex-col gap-0 max-h-[85dvh] -m-4">
       <div
-        class="p-2 flex flex-col items-center border-b border-[var(--tui-border-normal)]"
+        class="p-2 flex flex-col items-center border-b border-(--tui-border-normal)"
       >
         <tui-calendar
           [value]="selectedDay()"
@@ -65,14 +65,14 @@ interface AscentDateMarker {
           [disabledItemHandler]="disabledItemHandler()"
           (dayClick)="onDayClick($event)"
           (monthChange)="onMonthChange($event)"
-          class="!max-w-full tui-calendar-compact"
+          class="max-w-full! tui-calendar-compact"
         />
       </div>
 
       <div class="flex-1 overflow-hidden flex flex-col">
         <header
           tuiHeader
-          class="px-3 py-2 flex items-center justify-between border-b border-[var(--tui-border-normal)]"
+          class="px-3 py-2 flex items-center justify-between border-b border-(--tui-border-normal)"
         >
           <span class="font-bold text-base">
             {{
@@ -91,7 +91,7 @@ interface AscentDateMarker {
           </span>
         </header>
 
-        <tui-scrollbar class="flex-1 !overflow-x-hidden">
+        <tui-scrollbar class="flex-1 overflow-x-hidden!">
           <div class="flex flex-col gap-2 px-4 py-2">
             @if (monthResource.isLoading()) {
               <div class="py-12 flex justify-center">

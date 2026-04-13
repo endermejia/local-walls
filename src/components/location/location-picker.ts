@@ -28,7 +28,7 @@ import { MapComponent } from './map';
 
       <!-- Overlay Controls -->
       <div
-        class="absolute p-4 bottom-0 left-0 right-0 z-[1000] flex justify-center gap-4 pointer-events-none bg-[var(--tui-background-base)]"
+        class="absolute p-4 bottom-0 left-0 right-0 z-1000 flex justify-center gap-4 pointer-events-none bg-(--tui-background-base)"
       >
         <button
           tuiButton

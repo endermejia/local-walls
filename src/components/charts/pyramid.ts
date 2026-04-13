@@ -89,7 +89,7 @@ export interface PyramidLevel {
   ],
   template: `
     <div
-      class="flex flex-col gap-6 p-6 rounded-2xl bg-[var(--tui-background-base)] shadow-md border border-[var(--tui-border-normal)]"
+      class="flex flex-col gap-6 p-6 rounded-2xl bg-(--tui-background-base) shadow-md border border-(--tui-border-normal)"
     >
       <!-- Header with Year Selector -->
       <div class="flex items-center justify-between gap-4 flex-wrap">
@@ -185,7 +185,7 @@ export interface PyramidLevel {
                               class="scale-90"
                             />
                             <span
-                              class="text-[9px] font-bold text-[var(--tui-status-positive)]"
+                              class="text-[9px] font-bold text-(--tui-status-positive)"
                             >
                               +{{ ascent.score }} {{ 'points' | translate }}
                             </span>

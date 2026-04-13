@@ -217,7 +217,7 @@ export interface TopoRouteRow {
               >
                 <div
                   class="relative h-full transition-transform duration-75 ease-out zoom-container origin-top-left"
-                  [class.!duration-0]="dragState.isDragging"
+                  [class.duration-0!]="dragState.isDragging"
                   [style.transform]="
                     'translate(' +
                     zoomPosition().x +
@@ -423,7 +423,7 @@ export interface TopoRouteRow {
 
                 <div
                   class="relative transition-transform duration-75 ease-out zoom-container origin-top-left"
-                  [class.!duration-0]="dragState.isDragging"
+                  [class.duration-0!]="dragState.isDragging"
                   (click)="onImageClick(); $event.stopPropagation()"
                   (keydown.enter)="$event.stopPropagation()"
                   tabindex="-1"
@@ -675,20 +675,20 @@ export interface TopoRouteRow {
                             tuiTh
                             [sorter]="getSorter(col)"
                             [class.text-center]="col !== 'name'"
-                            [class.!w-10]="isMobile && col === 'index'"
-                            [class.!w-12]="
+                            [class.w-10!]="isMobile && col === 'index'"
+                            [class.w-12!]="
                               (!isMobile && col === 'index') ||
                               (isMobile && col === 'grade')
                             "
-                            [class.!w-20]="!isMobile && col === 'grade'"
-                            [class.!w-24]="
+                            [class.w-20!]="!isMobile && col === 'grade'"
+                            [class.w-24!]="
                               (isMobile &&
                                 (col === 'actions' ||
                                   col === 'admin_actions')) ||
                               (!isMobile &&
                                 (col === 'height' || col === 'admin_actions'))
                             "
-                            [class.!w-28]="!isMobile && col === 'actions'"
+                            [class.w-28!]="!isMobile && col === 'actions'"
                           >
                             <div class="items-center justify-center gap-1">
                               @switch (col) {
@@ -824,8 +824,8 @@ export interface TopoRouteRow {
                                     @if (global.canEditCrag()) {
                                       <tui-textfield
                                         tuiTextfieldSize="s"
-                                        [class.!w-16]="!isMobile"
-                                        [class.!w-12]="isMobile"
+                                        [class.w-16!]="!isMobile"
+                                        [class.w-12!]="isMobile"
                                         class="h-8!"
                                       >
                                         <input

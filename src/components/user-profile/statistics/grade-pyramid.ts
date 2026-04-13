@@ -25,7 +25,7 @@ import { GradeDistribution } from '../../../models/user-stats.model';
   ],
   template: `
     <div
-      class="bg-[var(--tui-background-base)] shadow-md p-6 rounded-2xl border border-[var(--tui-border-normal)]"
+      class="bg-(--tui-background-base) shadow-md p-6 rounded-2xl border border-(--tui-border-normal)"
     >
       <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
         <tui-icon icon="@tui.pyramid" />
@@ -39,9 +39,7 @@ import { GradeDistribution } from '../../../models/user-stats.model';
             <div
               class="grid grid-cols-[3rem_1fr_3rem] gap-3 items-center text-sm"
             >
-              <div
-                class="font-bold text-center text-[var(--tui-text-secondary)]"
-              >
+              <div class="font-bold text-center text-(--tui-text-secondary)">
                 {{ row.gradeLabel }}
               </div>
               <div
@@ -56,25 +54,25 @@ import { GradeDistribution } from '../../../models/user-stats.model';
               >
                 <!-- Background bar for context -->
                 <div
-                  class="absolute inset-0 opacity-10 bg-[var(--tui-text-primary)]"
+                  class="absolute inset-0 opacity-10 bg-(--tui-text-primary)"
                 ></div>
 
                 <!-- Segments -->
                 @if (row.rp > 0) {
                   <div
-                    class="bg-[var(--tui-status-negative)] h-full transition-all duration-500"
+                    class="bg-(--tui-status-negative) h-full transition-all duration-500"
                     [style.width.%]="(row.rp / row.total) * 100"
                   ></div>
                 }
                 @if (row.flash > 0) {
                   <div
-                    class="bg-[var(--tui-status-warning)] h-full transition-all duration-500"
+                    class="bg-(--tui-status-warning) h-full transition-all duration-500"
                     [style.width.%]="(row.flash / row.total) * 100"
                   ></div>
                 }
                 @if (row.os > 0) {
                   <div
-                    class="bg-[var(--tui-status-positive)] h-full transition-all duration-500"
+                    class="bg-(--tui-status-positive) h-full transition-all duration-500"
                     [style.width.%]="(row.os / row.total) * 100"
                   ></div>
                 }

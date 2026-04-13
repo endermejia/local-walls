@@ -31,7 +31,7 @@ import { AscentType } from '../../models';
       tuiBadge
       [size]="badgeSize()"
       [style.background]="info.background"
-      class="!text-[var(--tui-text-primary-on-accent-1)] rounded-full!"
+      class="text-(--tui-text-primary-on-accent-1)! rounded-full!"
       [tuiHint]="hasAttempts() ? hintTemplate : null"
     >
       <tui-icon [icon]="info.icon" />

@@ -28,7 +28,7 @@ import { ContextIndexPipe } from '../../../pipes/context-index.pipe';
   ],
   template: `
     <div
-      class="bg-[var(--tui-background-base)] shadow-md p-6 rounded-2xl border border-[var(--tui-border-normal)]"
+      class="bg-(--tui-background-base) shadow-md p-6 rounded-2xl border border-(--tui-border-normal)"
     >
       <header class="mb-4">
         <h3 class="font-bold text-lg flex items-center gap-2">

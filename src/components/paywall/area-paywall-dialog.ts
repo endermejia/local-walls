@@ -25,7 +25,7 @@ import { GlobalData } from '../../services/global-data';
   ],
   template: `
     <div
-      class="flex flex-col gap-6 h-full min-h-0 bg-[var(--tui-background-base)] p-4 sm:p-6"
+      class="flex flex-col gap-6 h-full min-h-0 bg-(--tui-background-base) p-4 sm:p-6"
     >
       <div class="flex-none">
         <app-paywall
@@ -41,9 +41,7 @@ import { GlobalData } from '../../services/global-data';
           <h3 class="font-bold opacity-60 uppercase text-xs tracking-widest">
             {{ 'topos' | translate }} ({{ topos().length }})
           </h3>
-          <div
-            class="h-px grow ml-4 bg-[var(--tui-border-normal)] opacity-30"
-          ></div>
+          <div class="h-px grow ml-4 bg-(--tui-border-normal) opacity-30"></div>
         </div>
 
         <tui-scrollbar class="flex grow min-h-0">

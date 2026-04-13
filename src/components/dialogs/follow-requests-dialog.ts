@@ -41,7 +41,7 @@ import { EmptyStateComponent } from '../ui/empty-state';
         <div class="flex flex-col gap-1 p-4">
           @for (request of requests(); track request.id) {
             <a
-              class="flex items-center gap-3 p-3 hover:bg-[var(--tui-background-neutral-1)] transition-colors rounded-xl cursor-pointer"
+              class="flex items-center gap-3 p-3 hover:bg-(--tui-background-neutral-1) transition-colors rounded-xl cursor-pointer"
               [routerLink]="['/profile', request.follower_id]"
               (click)="context.completeWith(true)"
             >
