@@ -143,7 +143,7 @@ export class SupabaseService {
     if (path.startsWith('http')) return path;
     const base = (this.url || ENV_SUPABASE_URL || '').replace(/\/$/, '');
     const rel = String(path).replace(/^\//, '');
-    return `${base}/storage/v1/object/public/avatar/${rel}`;
+    return `${base}/storage/v1/object/public/${bucket}/${rel}`;
   }
 
   /**

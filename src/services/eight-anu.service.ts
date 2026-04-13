@@ -187,7 +187,7 @@ export class EightAnuService {
     types: ('0' | '1' | '3')[],
   ): Promise<SearchApiItem[]> {
     try {
-      const params: any = {
+      const params: Record<string, string | readonly string[]> = {
         query,
         pageIndex: '0',
         showOnMap: 'false',

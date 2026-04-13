@@ -84,7 +84,7 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
           <div class="flex flex-col gap-3">
             <div class="flex items-start justify-between gap-2 ">
               <div class="flex flex-wrap gap-2">
-                <span tuiTitle class="!text-lg">{{ p.name }}</span>
+                <span tuiTitle class="text-lg!">{{ p.name }}</span>
               </div>
 
               @if (p.size) {
@@ -142,7 +142,7 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
                   size="s"
                   tuiButton
                   type="button"
-                  class="rounded-full! lw-icon-50"
+                  class="rounded-full!"
                   [iconStart]="'/image/google-maps.svg'"
                   (click.zoneless)="
                     openExternal(

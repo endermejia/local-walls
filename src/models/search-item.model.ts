@@ -5,7 +5,7 @@ export interface SearchItem {
   icon?: string;
   type?: string;
   difficulty?: string;
-  data?: any;
+  data?: unknown;
 }
 
 export type SearchData = Record<string, readonly SearchItem[]>;

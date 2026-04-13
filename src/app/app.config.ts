@@ -11,7 +11,6 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
-import { toObservable } from '@angular/core/rxjs-interop';
 import {
   provideClientHydration,
   withEventReplay,

@@ -32,6 +32,7 @@ import { GradeComponent } from '../ui/avatar-grade';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { RoutesTableComponent } from '../route/routes-table';
 import {
+  ClimbingKind,
   ClimbingKinds,
   CragDetail,
   GRADE_NUMBER_TO_LABEL,
@@ -426,7 +427,7 @@ export class CragRoutesComponent {
     });
 
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-    return sorted[0][0] as any;
+    return sorted[0][0] as ClimbingKind;
   });
 
   protected mapEightAnuGrade(

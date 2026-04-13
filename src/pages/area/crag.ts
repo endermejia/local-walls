@@ -190,7 +190,6 @@ import { SeoService } from '../../services/seo.service';
                       size="m"
                       tuiButton
                       type="button"
-                      class="lw-icon-50"
                       [iconStart]="'/image/google-maps.svg'"
                       (click.zoneless)="
                         openExternal(

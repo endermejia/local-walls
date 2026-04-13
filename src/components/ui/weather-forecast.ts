@@ -40,7 +40,7 @@ import { WeatherService } from '../../services/weather.service';
         <h3
           class="text-sm font-semibold flex items-center gap-2 opacity-70 uppercase tracking-wider"
         >
-          <tui-icon icon="@tui.cloud-sun" class="!size-4" />
+          <tui-icon icon="@tui.cloud-sun" class="size-4!" />
           {{ 'weather.title' | translate }}
         </h3>
 
@@ -61,12 +61,8 @@ import { WeatherService } from '../../services/weather.service';
                   selectedDayIdx() === idx
                 "
                 [class.border-primary]="selectedDayIdx() === idx"
-                [class.bg-[var(--tui-background-base)]]="
-                  selectedDayIdx() !== idx
-                "
-                [class.border-[var(--tui-border-normal)]]="
-                  selectedDayIdx() !== idx
-                "
+                [class.bg-(--tui-background-base)]="selectedDayIdx() !== idx"
+                [class.border-(--tui-border-normal)]="selectedDayIdx() !== idx"
               >
                 <span class="text-xs opacity-70 mb-1 capitalize">
                   {{
@@ -74,7 +70,7 @@ import { WeatherService } from '../../services/weather.service';
                       | date: 'EEE' : undefined : global.selectedLanguage()
                   }}
                 </span>
-                <tui-icon [icon]="day.icon" class="!size-8 my-1" />
+                <tui-icon [icon]="day.icon" class="size-8! my-1" />
                 <div class="flex flex-col items-center">
                   <span class="font-bold">
                     {{ day.maxTemp | number: '1.0-0' }}°
@@ -92,18 +88,24 @@ import { WeatherService } from '../../services/weather.service';
         @if (days[selectedDayIdx()]; as selectedDay) {
           <tui-scrollbar
             #hourlyScroll
-            class="pb-2"
             (touchstart)="$event.stopPropagation()"
             (touchmove)="$event.stopPropagation()"
             (touchend)="$event.stopPropagation()"
           >
-            <div class="flex gap-4">
+            <div class="flex gap-4 px-2 pb-6">
               @for (hour of selectedDay.hourly; track hour.time) {
-                <div class="flex flex-col items-center min-w-[45px] py-1">
+                <div
+                  class="flex flex-col items-center min-w-[50px] py-1 px-1 rounded-xl transition-colors border hour-item"
+                  [class.bg-(--tui-background-neutral-1)]="
+                    isCurrentHour(hour.time)
+                  "
+                  [class.border-primary]="isCurrentHour(hour.time)"
+                  [class.border-transparent]="!isCurrentHour(hour.time)"
+                >
                   <span class="text-[10px] opacity-60">
                     {{ hour.time | date: 'HH:mm' }}
                   </span>
-                  <tui-icon [icon]="hour.icon" class="!size-6 my-1" />
+                  <tui-icon [icon]="hour.icon" class="size-6! my-1" />
                   <span class="text-xs font-medium">
                     {{ hour.temp | number: '1.0-0' }}°
                   </span>
@@ -123,7 +125,7 @@ import { WeatherService } from '../../services/weather.service';
                   >
                     <tui-icon
                       [icon]="hour.windDirIcon"
-                      class="!size-4 opacity-70"
+                      class="size-4! opacity-70"
                     />
                     <span class="text-[9px] opacity-70">
                       {{ hour.windSpeed | number: '1.0-0' }} km/h
@@ -148,7 +150,7 @@ import { WeatherService } from '../../services/weather.service';
           <div class="flex gap-2 overflow-hidden">
             @for (i of [1, 2, 3, 4, 5, 6, 7]; track i) {
               <div
-                class="flex flex-col items-center p-3 rounded-2xl border border-[var(--tui-border-normal)] min-w-[70px] bg-[var(--tui-background-base)]"
+                class="flex flex-col items-center p-3 rounded-2xl border border-(--tui-border-normal) min-w-[70px] bg-(--tui-background-base)"
               >
                 <div
                   [tuiSkeleton]="true"
@@ -228,11 +230,48 @@ export class WeatherForecastComponent {
       untracked(() => {
         setTimeout(() => {
           const el = this.hourlyScroll?.nativeElement;
-          if (el) {
+          if (!el) return;
+
+          const days = this.weather();
+          const dayIdx = this.selectedDayIdx();
+          const currentDay = days?.[dayIdx];
+          if (!currentDay || !currentDay.hourly) return;
+
+          const now = new Date();
+          const currentIdx = currentDay.hourly.findIndex(
+            (h) =>
+              h.time.getHours() === now.getHours() &&
+              h.time.getDate() === now.getDate(),
+          );
+
+          if (currentIdx !== -1) {
+            const items = el.querySelectorAll('.hour-item');
+            const target = items[currentIdx] as HTMLElement;
+            if (target) {
+              const elRect = el.getBoundingClientRect();
+              const targetRect = target.getBoundingClientRect();
+              const scrollOffset =
+                targetRect.left -
+                elRect.left -
+                elRect.width / 2 +
+                targetRect.width / 2;
+              el.scrollLeft += scrollOffset;
+            }
+          } else {
             el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2;
           }
         }, 0);
       });
     });
+  }
+
+  protected isCurrentHour(date: Date): boolean {
+    const now = new Date();
+    return (
+      date.getHours() === now.getHours() &&
+      date.getDate() === now.getDate() &&
+      date.getMonth() === now.getMonth() &&
+      date.getFullYear() === now.getFullYear()
+    );
   }
 }

@@ -13,7 +13,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { TuiAppearance, TuiTitle } from '@taiga-ui/core';
 import { TuiHeader } from '@taiga-ui/layout';
 
-import { AscentCardSkeletonComponent } from '../ascent/ascent-card-skeleton';
+import { TuiSkeleton } from '@taiga-ui/kit';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { RoutesTableComponent } from '../route/routes-table';
 import { SupabaseService } from '../../services/supabase.service';
@@ -28,7 +28,7 @@ import { AscentTypes, RouteWithExtras, RouteAscentDto } from '../../models';
     TuiAppearance,
     TuiTitle,
     TuiHeader,
-    AscentCardSkeletonComponent,
+    TuiSkeleton,
     EmptyStateComponent,
     RoutesTableComponent,
   ],
@@ -42,10 +42,16 @@ import { AscentTypes, RouteWithExtras, RouteAscentDto } from '../../models';
         <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
           @if (likedAreasResource.isLoading()) {
             @for (_ of [1, 2, 3, 4]; track $index) {
-              <app-ascent-card-skeleton
-                [showUser]="false"
-                [showRoute]="false"
-              />
+              <div
+                class="p-6 rounded-3xl flex flex-col gap-4"
+                tuiAppearance="outline"
+              >
+                <div [tuiSkeleton]="true" class="w-2/3 h-6 rounded-3xl"></div>
+                <div
+                  [tuiSkeleton]="true"
+                  class="w-1/3 h-5 rounded-3xl opacity-60"
+                ></div>
+              </div>
             }
           } @else {
             @for (area of likedAreas(); track area.id) {
@@ -87,10 +93,16 @@ import { AscentTypes, RouteWithExtras, RouteAscentDto } from '../../models';
         <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
           @if (likedCragsResource.isLoading()) {
             @for (_ of [1, 2, 3, 4]; track $index) {
-              <app-ascent-card-skeleton
-                [showUser]="false"
-                [showRoute]="false"
-              />
+              <div
+                class="p-6 rounded-3xl flex flex-col gap-4"
+                tuiAppearance="outline"
+              >
+                <div [tuiSkeleton]="true" class="w-2/3 h-6 rounded-3xl"></div>
+                <div
+                  [tuiSkeleton]="true"
+                  class="w-1/3 h-5 rounded-3xl opacity-60"
+                ></div>
+              </div>
             }
           } @else {
             @for (crag of likedCrags(); track crag.id) {
@@ -140,7 +152,16 @@ import { AscentTypes, RouteWithExtras, RouteAscentDto } from '../../models';
           @if (likedRoutesResource.isLoading()) {
             <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
               @for (_ of [1, 2, 3, 4]; track $index) {
-                <app-ascent-card-skeleton [showUser]="false" />
+                <div
+                  class="p-6 rounded-3xl flex flex-col gap-4"
+                  tuiAppearance="outline"
+                >
+                  <div [tuiSkeleton]="true" class="w-1/2 h-6 rounded-3xl"></div>
+                  <div
+                    [tuiSkeleton]="true"
+                    class="w-1/4 h-4 rounded-3xl opacity-60"
+                  ></div>
+                </div>
               }
             </div>
           } @else if (likedRoutes().length) {
@@ -219,7 +240,9 @@ export class UserProfileLikesComponent {
       return (
         data.map((r) => {
           const rates =
-            r.ascents?.map((a) => a.rate).filter((rate) => rate != null) ?? [];
+            r.ascents
+              ?.map((a) => a.rate)
+              .filter((rate): rate is number => rate != null) ?? [];
           const rating =
             rates.length > 0
               ? rates.reduce((a, b) => a + b, 0) / rates.length

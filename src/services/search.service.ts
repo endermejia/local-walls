@@ -8,6 +8,9 @@ import {
   SearchItem,
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
+  SearchAreaItem,
+  SearchCragItem,
+  SearchRouteItem,
 } from '../models';
 
 import { normalizeName, slugify } from '../utils';
@@ -106,14 +109,14 @@ export class SearchService {
           .or(`name.ilike.${q},name.ilike.${qLoose}`)
           .limit(50),
         this.eightAnu.searchUnified(trimmedQuery, ['0', '1', '3']),
-      ]) as Promise<any[]>,
+      ]),
     ).pipe(
       map((responses) => {
         const areas = responses[0].data as DbArea[] | null;
         const crags = responses[1].data as DbCrag[] | null;
         const routes = responses[2].data as DbRoute[] | null;
         const users = responses[3].data as DbUser[] | null;
-        const eightAnuItems = responses[4] as any[];
+        const eightAnuItems = responses[4];
 
         const hasAnyResults =
           (areas?.length || 0) > 0 ||
@@ -133,7 +136,9 @@ export class SearchService {
               }) as SearchItem,
           );
         } else if (!hasAnyResults) {
-          const anuArea = eightAnuItems?.find((i) => i.type === 0);
+          const anuArea = eightAnuItems?.find(
+            (i): i is SearchAreaItem => i.type === 0,
+          );
           results[areasTitle] = [
             ...(anuArea
               ? [
@@ -168,7 +173,9 @@ export class SearchService {
             } as SearchItem;
           });
         } else if (!hasAnyResults) {
-          const anuCrag = eightAnuItems?.find((i) => i.type === 1);
+          const anuCrag = eightAnuItems?.find(
+            (i): i is SearchCragItem => i.type === 1,
+          );
           results[cragsTitle] = [
             ...(anuCrag
               ? [
@@ -206,7 +213,9 @@ export class SearchService {
             } as SearchItem;
           });
         } else {
-          const anuRoute = eightAnuItems?.find((i) => i.type === 3);
+          const anuRoute = eightAnuItems?.find(
+            (i): i is SearchRouteItem => i.type === 3,
+          );
           results[routesTitle] = [
             ...(anuRoute
               ? [

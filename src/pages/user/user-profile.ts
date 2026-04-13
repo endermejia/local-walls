@@ -11,7 +11,6 @@ import {
   resource,
   signal,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -119,8 +118,11 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
             tuiAvatar
             [tuiSkeleton]="loading"
             size="xxl"
-            class="cursor-pointer transition-transform hover:scale-105 active:scale-95"
+            class="cursor-pointer transition-transform hover:scale-105 active:scale-95 focus-visible:outline-(--tui-border-accent)"
+            tabindex="0"
             (click)="showEnlargedPhoto()"
+            (keydown.enter)="showEnlargedPhoto()"
+            (keydown.space)="$event.preventDefault(); showEnlargedPhoto()"
           >
             @if (avatar) {
               <img [src]="avatar" [alt]="profile()?.name || ''" />

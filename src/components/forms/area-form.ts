@@ -124,7 +124,7 @@ interface MinimalArea {
               <!-- Public Toggle -->
               <label
                 tuiLabel
-                class="flex items-center gap-3 p-4 bg-[var(--tui-background-neutral-1)] rounded-2xl border border-[var(--tui-border-normal)] cursor-pointer hover:bg-[var(--tui-background-neutral-1-hover)] transition-colors"
+                class="flex items-center gap-3 p-4 bg-(--tui-background-neutral-1) rounded-2xl border border-(--tui-border-normal) cursor-pointer hover:bg-(--tui-background-neutral-1-hover) transition-colors"
               >
                 <input
                   tuiCheckbox
@@ -164,11 +164,11 @@ interface MinimalArea {
                   <div class="flex flex-col gap-4">
                     @if (model().stripe_account_id) {
                       <div
-                        class="flex items-center gap-3 p-4 bg-[var(--tui-background-positive-neutral)] border border-[var(--tui-border-normal)] rounded-2xl"
+                        class="flex items-center gap-3 p-4 bg-(--tui-background-positive-neutral) border border-(--tui-border-normal) rounded-2xl"
                       >
                         <tui-icon
                           icon="@tui.check-circle"
-                          class="text-[var(--tui-status-positive)] shrink-0"
+                          class="text-(--tui-status-positive) shrink-0"
                         />
                         <div class="flex flex-col gap-1 overflow-hidden">
                           <span class="text-sm font-bold leading-none">{{
@@ -212,10 +212,10 @@ interface MinimalArea {
             @if (!model().is_public) {
               <div class="flex flex-col h-full">
                 <div
-                  class="bg-[var(--tui-background-neutral-1)] p-4 lg:p-6 rounded-2xl border border-[var(--tui-border-normal)] flex flex-col gap-4"
+                  class="bg-(--tui-background-neutral-1) p-4 lg:p-6 rounded-2xl border border-(--tui-border-normal) flex flex-col gap-4"
                 >
                   <h4
-                    class="font-bold flex items-center gap-2 text-[var(--tui-text-accent)]"
+                    class="font-bold flex items-center gap-2 text-(--tui-text-accent)"
                   >
                     <tui-icon icon="@tui.info" />
                     {{ 'payments.tutorial.title' | translate }}
@@ -223,28 +223,28 @@ interface MinimalArea {
                   <ul class="space-y-4">
                     <li class="flex gap-4 text-xs lg:text-sm">
                       <span
-                        class="w-6 h-6 shrink-0 bg-[var(--tui-background-accent-1)] text-[var(--tui-background-base)] rounded-full flex items-center justify-center font-bold text-xs"
+                        class="w-6 h-6 shrink-0 bg-(--tui-background-accent-1) text-(--tui-background-base) rounded-full flex items-center justify-center font-bold text-xs"
                         >1</span
                       >
                       <p>{{ 'payments.tutorial.step1' | translate }}</p>
                     </li>
                     <li class="flex gap-4 text-xs lg:text-sm">
                       <span
-                        class="w-6 h-6 shrink-0 bg-[var(--tui-background-accent-1)] text-[var(--tui-background-base)] rounded-full flex items-center justify-center font-bold text-xs"
+                        class="w-6 h-6 shrink-0 bg-(--tui-background-accent-1) text-(--tui-background-base) rounded-full flex items-center justify-center font-bold text-xs"
                         >2</span
                       >
                       <p>{{ 'payments.tutorial.step2' | translate }}</p>
                     </li>
                     <li class="flex gap-4 text-xs lg:text-sm">
                       <span
-                        class="w-6 h-6 shrink-0 bg-[var(--tui-background-accent-1)] text-[var(--tui-background-base)] rounded-full flex items-center justify-center font-bold text-xs"
+                        class="w-6 h-6 shrink-0 bg-(--tui-background-accent-1) text-(--tui-background-base) rounded-full flex items-center justify-center font-bold text-xs"
                         >3</span
                       >
                       <p>{{ 'payments.tutorial.step3' | translate }}</p>
                     </li>
                     <li class="flex gap-4 text-xs lg:text-sm">
                       <span
-                        class="w-6 h-6 shrink-0 bg-[var(--tui-background-accent-1)] text-[var(--tui-background-base)] rounded-full flex items-center justify-center font-bold text-xs"
+                        class="w-6 h-6 shrink-0 bg-(--tui-background-accent-1) text-(--tui-background-base) rounded-full flex items-center justify-center font-bold text-xs"
                         >4</span
                       >
                       <p>{{ 'payments.tutorial.step4' | translate }}</p>
@@ -399,8 +399,6 @@ export class AreaFormComponent {
 
   areaForm = form(this.model, (path) => {
     required(path.name);
-    // Explicitly define path.slug to ensure it's always registered in the form
-    path.slug;
     required(path.slug, {
       when: () => this.isEdit() && this.global.isAdmin(),
     });

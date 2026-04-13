@@ -42,7 +42,12 @@ import { RoutesService } from '../../services/routes.service';
 import { GlobalData } from '../../services/global-data';
 import { ScrollService } from '../../services/scroll.service';
 import { SearchService } from '../../services/search.service';
-import { SearchData, SearchItem } from '../../models/search-item.model';
+import { SearchItem } from '../../models/search-item.model';
+import {
+  SearchAreaItem,
+  SearchCragItem,
+  SearchRouteItem,
+} from '../../models/search-api.model';
 import { GradeLabel, LABEL_TO_VERTICAL_LIFE } from '../../models/grade.model';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
@@ -510,8 +515,8 @@ export class NavbarComponent {
             routeData: { name: query },
           });
           break;
-        case 'import-area':
-          const anuArea = item.data;
+        case 'import-area': {
+          const anuArea = item.data as SearchAreaItem;
           this.areasService.openAreaForm({
             areaData: {
               name: anuArea.areaName,
@@ -520,8 +525,9 @@ export class NavbarComponent {
             },
           });
           break;
-        case 'import-crag':
-          const anuCrag = item.data;
+        }
+        case 'import-crag': {
+          const anuCrag = item.data as SearchCragItem;
           this.cragsService.openCragForm({
             areaId: this.global.selectedArea()?.id,
             cragData: {
@@ -531,8 +537,9 @@ export class NavbarComponent {
             },
           });
           break;
-        case 'import-route':
-          const anuRoute = item.data;
+        }
+        case 'import-route': {
+          const anuRoute = item.data as SearchRouteItem;
           this.routesService.openRouteForm({
             cragId: this.global.selectedCrag()?.id,
             routeData: {
@@ -543,6 +550,7 @@ export class NavbarComponent {
             },
           });
           break;
+        }
       }
     }
 

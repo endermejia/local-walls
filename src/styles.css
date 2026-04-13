@@ -311,7 +311,3 @@ th[tuiTh] {
   -moz-user-select: none !important;
   -ms-user-select: none !important;
 }
-
-.lw-icon-50 {
-  --tui-icon-size: 50px;
-}
