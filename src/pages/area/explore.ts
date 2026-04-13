@@ -155,7 +155,9 @@ import { mapLocationUrl, remToPx } from '../../utils';
             tourService.step() === TourStep.EXPLORE_AREAS
           "
           tuiDropdownDirection="bottom"
-          [style.--mobile-bottom]="'calc(' + stops[0] + ' + 1rem)'"
+          [style.--mobile-bottom]="
+            hasMobileBottomContent() ? 'calc(' + stops[0] + ' + 1rem)' : '1rem'
+          "
           [style.transform]="'translate(-50%, -' + _sheetScrollTop() + 'px)'"
         >
           <button
@@ -611,6 +613,15 @@ export class ExploreComponent {
     const offset = remToPx(this.stops[0] as string) || 0;
     const maxTop = Math.max(0, clientHeight - offset);
     return scrollTop >= maxTop * 0.5;
+  });
+
+  protected readonly hasMobileBottomContent = computed(() => {
+    return (
+      !!this.global.selectedMapCragItem() ||
+      !!this.global.selectedMapParkingItem() ||
+      this.mapAreaItems().length > 0 ||
+      this.mapCragItems().length > 0
+    );
   });
 
   protected readonly hasActiveFilters = computed(() => {
