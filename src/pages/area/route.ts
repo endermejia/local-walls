@@ -204,10 +204,9 @@ import { SeoService } from '../../services/seo.service';
                 </div>
               }
               @if (!r.climbed) {
-                <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                 <button
                   tuiButton
-                  [appearance]="r.project ? 'glass' : 'secondary'"
+                  [appearance]="r.project ? 'info' : 'secondary'"
                   size="m"
                   iconStart="@tui.bookmark"
                   (click)="routesService.toggleRouteProject(r.id, r)"

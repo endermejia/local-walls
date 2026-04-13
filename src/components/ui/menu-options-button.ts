@@ -47,7 +47,6 @@ import { UserProfilesService } from '../../services/user-profiles.service';
   ],
   template: `
     @if (iconOnly()) {
-      <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
       <button
         [appearance]="appearance()"
         [size]="size()"
@@ -88,7 +87,7 @@ import { UserProfilesService } from '../../services/user-profiles.service';
           {{ 'config' | translate }}
         </button>
         <label
-          class="flex items-center justify-between gap-4 p-2 w-full cursor-pointer hover:bg-[var(--tui-background-neutral-hover)] rounded-lg"
+          class="flex items-center justify-between gap-4 p-2 w-full cursor-pointer hover:bg-(--tui-background-neutral-hover) rounded-lg"
         >
           <div class="flex items-center gap-2">
             <tui-icon icon="@tui.pencil" />
@@ -103,7 +102,7 @@ import { UserProfilesService } from '../../services/user-profiles.service';
           />
         </label>
         <div
-          class="flex items-center justify-between gap-4 p-2 w-full hover:bg-[var(--tui-background-neutral-hover)] rounded-lg"
+          class="flex items-center justify-between gap-4 p-2 w-full hover:bg-(--tui-background-neutral-hover) rounded-lg"
         >
           <div class="flex items-center gap-2">
             <tui-icon icon="@tui.palette" />

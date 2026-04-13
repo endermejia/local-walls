@@ -24,7 +24,6 @@ import { AscentType } from '../../models';
   imports: [TuiButton, TuiIcon],
   template: `
     @let info = typeInfo();
-    <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
     <button
       tuiIconButton
       type="button"

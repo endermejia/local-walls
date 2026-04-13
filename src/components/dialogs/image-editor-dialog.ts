@@ -57,11 +57,11 @@ export interface ImageEditorConfig {
   ],
   template: `
     <div
-      class="flex flex-col h-full overflow-hidden bg-[var(--tui-background-base)] text-[var(--tui-text-primary)]"
+      class="flex flex-col h-full overflow-hidden bg-(--tui-background-base) text-(--tui-text-primary)"
     >
       <!-- Top Toolbar (All Options) -->
       <div
-        class="px-3 py-2 border-b border-[var(--tui-border-normal)] bg-[var(--tui-background-base)] shrink-0 z-50"
+        class="px-3 py-2 border-b border-(--tui-border-normal) bg-(--tui-background-base) shrink-0 z-50"
       >
         <div
           class="flex flex-wrap items-center justify-center gap-3 sm:gap-6 overflow-x-auto scrollbar-none"
@@ -69,10 +69,9 @@ export interface ImageEditorConfig {
           <!-- Aspect Ratios -->
           @if (!forceAspectRatio) {
             <div
-              class="flex items-center gap-1 p-1 rounded-xl bg-[var(--tui-background-neutral-1)]"
+              class="flex items-center gap-1 p-1 rounded-xl bg-(--tui-background-neutral-1)"
             >
               @for (ratio of availableRatios; track ratio.ratio) {
-                <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                 <button
                   tuiButton
                   size="s"
@@ -82,19 +81,18 @@ export interface ImageEditorConfig {
                       : 'flat'
                   "
                   (click)="setAspectRatio(ratio.ratio)"
-                  class="!rounded-lg"
+                  class="rounded-lg!"
                 >
                   {{ ratio.titleKey }}
                 </button>
               }
               @if (allowFree) {
-                <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                 <button
                   tuiButton
                   size="s"
                   [appearance]="!maintainAspectRatio ? 'primary' : 'flat'"
                   (click)="toggleMaintainAspectRatio()"
-                  class="!rounded-lg"
+                  class="rounded-lg!"
                 >
                   {{ 'free' | translate }}
                 </button>
@@ -106,14 +104,14 @@ export interface ImageEditorConfig {
           <div class="flex items-center gap-3">
             <!-- Rotate -->
             <div
-              class="flex items-center gap-1 p-1 rounded-xl bg-[var(--tui-background-neutral-1)]"
+              class="flex items-center gap-1 p-1 rounded-xl bg-(--tui-background-neutral-1)"
             >
               <button
                 tuiIconButton
                 appearance="flat"
                 size="s"
                 (click)="rotateLeft()"
-                class="!rounded-lg"
+                class="rounded-lg!"
                 [title]="'rotate' | translate"
               >
                 <tui-icon icon="@tui.rotate-ccw" />
@@ -123,7 +121,7 @@ export interface ImageEditorConfig {
                 appearance="flat"
                 size="s"
                 (click)="rotateRight()"
-                class="!rounded-lg"
+                class="rounded-lg!"
                 [title]="'rotate' | translate"
               >
                 <tui-icon icon="@tui.rotate-cw" />
@@ -132,14 +130,14 @@ export interface ImageEditorConfig {
 
             <!-- Flip -->
             <div
-              class="flex items-center gap-1 p-1 rounded-xl bg-[var(--tui-background-neutral-1)]"
+              class="flex items-center gap-1 p-1 rounded-xl bg-(--tui-background-neutral-1)"
             >
               <button
                 tuiIconButton
                 appearance="flat"
                 size="s"
                 (click)="flipHorizontal()"
-                class="!rounded-lg"
+                class="rounded-lg!"
                 [title]="'flipX' | translate"
               >
                 <tui-icon icon="@tui.flip-horizontal" />
@@ -149,7 +147,7 @@ export interface ImageEditorConfig {
                 appearance="flat"
                 size="s"
                 (click)="flipVertical()"
-                class="!rounded-lg"
+                class="rounded-lg!"
                 [title]="'flipY' | translate"
               >
                 <tui-icon icon="@tui.flip-vertical" />
@@ -158,14 +156,14 @@ export interface ImageEditorConfig {
 
             <!-- Zoom -->
             <div
-              class="flex items-center gap-1 p-1 rounded-xl bg-[var(--tui-background-neutral-1)]"
+              class="flex items-center gap-1 p-1 rounded-xl bg-(--tui-background-neutral-1)"
             >
               <button
                 tuiIconButton
                 appearance="flat"
                 size="s"
                 (click)="zoomOut()"
-                class="!rounded-lg"
+                class="rounded-lg!"
                 [title]="'zoomOut' | translate"
               >
                 <tui-icon icon="@tui.minus" />
@@ -175,7 +173,7 @@ export interface ImageEditorConfig {
                 appearance="flat"
                 size="s"
                 (click)="zoomIn()"
-                class="!rounded-lg"
+                class="rounded-lg!"
                 [title]="'zoomIn' | translate"
               >
                 <tui-icon icon="@tui.plus" />
@@ -187,7 +185,7 @@ export interface ImageEditorConfig {
 
       <!-- Main Cropper Area (Middle) -->
       <div
-        class="flex-1 overflow-hidden relative bg-[var(--tui-background-neutral-1)] flex items-center justify-center p-2"
+        class="flex-1 overflow-hidden relative bg-(--tui-background-neutral-1) flex items-center justify-center p-2"
       >
         <div
           class="flex items-center justify-center transition-opacity duration-300"
@@ -216,7 +214,7 @@ export interface ImageEditorConfig {
 
         @if (!cropperVisible()) {
           <div
-            class="absolute inset-0 flex items-center justify-center backdrop-blur-sm z-10 bg-[var(--tui-background-base-alt)]/50"
+            class="absolute inset-0 flex items-center justify-center backdrop-blur-sm z-10 bg-(--tui-background-base-alt)/50"
           >
             <tui-loader size="xl"></tui-loader>
           </div>
@@ -225,7 +223,7 @@ export interface ImageEditorConfig {
 
       <!-- Bottom Actions (Footer) -->
       <div
-        class="shrink-0 border-t bg-[var(--tui-background-base)] z-20 flex flex-col"
+        class="shrink-0 border-t bg-(--tui-background-base) z-20 flex flex-col"
         style="border-color: var(--tui-border-normal)"
       >
         <div class="px-4 py-2 flex justify-between items-center">
@@ -235,7 +233,7 @@ export interface ImageEditorConfig {
             size="m"
             (click)="close()"
             type="button"
-            class="!rounded-xl"
+            class="rounded-xl!"
           >
             {{ 'cancel' | translate }}
           </button>
@@ -247,7 +245,7 @@ export interface ImageEditorConfig {
               loading() || (!croppedImageBlob && !imageFile && !imageBase64())
             "
             (click)="save()"
-            class="!rounded-xl !px-8"
+            class="rounded-xl! px-8!"
           >
             {{ 'save' | translate }}
           </button>

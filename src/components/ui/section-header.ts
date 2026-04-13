@@ -58,7 +58,6 @@ import { GlobalData } from '../../services/global-data';
         <div class="flex flex-wrap items-center gap-2 shrink-0">
           <!-- Like button -->
           @if (showLike()) {
-            <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
             <button
               size="s"
               [appearance]="liked() ? 'accent' : 'neutral'"
@@ -86,7 +85,7 @@ import { GlobalData } from '../../services/global-data';
             tuiChevron
             appearance="flat"
             type="button"
-            class="!text-2xl !font-bold !text-inherit !no-underline !bg-transparent"
+            class="text-2xl! font-bold! text-inherit! no-underline! bg-transparent!"
             [tuiDropdown]="template"
             [(tuiDropdownOpen)]="dropdownOpen"
           >

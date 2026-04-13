@@ -115,7 +115,6 @@ export interface ChatDialogData {
           <span class="font-bold truncate text-sm">{{
             room.participant?.name
           }}</span>
-          <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
           <button
             tuiIconButton
             type="button"
@@ -159,7 +158,6 @@ export interface ChatDialogData {
             @for (msg of messages(); track msg.id) {
               @let isMe = msg.sender_id === supabase.authUserId();
               <div class="flex" [class.justify-end]="isMe">
-                <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                 <div
                   [appearance]="isMe ? 'accent' : 'secondary-grayscale'"
                   tuiMessage

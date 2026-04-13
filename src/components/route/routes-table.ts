@@ -431,7 +431,6 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                             }
 
                             @if (!item.climbed) {
-                              <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                               <button
                                 size="m"
                                 [appearance]="
@@ -679,7 +678,6 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                             }
 
                             @if (!item.climbed) {
-                              <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                               <button
                                 size="m"
                                 [appearance]="

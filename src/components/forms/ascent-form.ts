@@ -347,7 +347,6 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               name="rate"
               class="text-primary"
             />
-            <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
             <button
               tuiIconButton
               type="button"
@@ -372,7 +371,6 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
           <div
             class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
           >
-            <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
             <button
               tuiButton
               type="button"
@@ -435,7 +433,6 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               </button>
             </div>
 
-            <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
             <button
               tuiButton
               type="button"
@@ -462,7 +459,6 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               }}</span>
               <div class="flex flex-wrap gap-2">
                 @for (key of climbingTypes; track key) {
-                  <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                   <button
                     tuiButton
                     type="button"
@@ -483,7 +479,6 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               }}</span>
               <div class="flex flex-wrap gap-2">
                 @for (key of steepnessTypes; track key) {
-                  <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                   <button
                     tuiButton
                     type="button"
@@ -504,7 +499,6 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               }}</span>
               <div class="flex flex-wrap gap-2">
                 @for (key of safetyIssues; track key) {
-                  <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                   <button
                     tuiButton
                     type="button"
@@ -525,7 +519,6 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               }}</span>
               <div class="flex flex-wrap gap-2">
                 @for (key of otherInfo; track key) {
-                  <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                   <button
                     tuiButton
                     type="button"

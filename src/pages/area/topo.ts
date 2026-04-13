@@ -910,12 +910,11 @@ export interface TopoRouteRow {
                                       </span>
                                     }
                                     @if (!item.climbed) {
-                                      <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                                       <button
                                         tuiIconButton
                                         size="m"
                                         [appearance]="
-                                          item.project ? 'glass' : 'secondary'
+                                          item.project ? 'info' : 'secondary'
                                         "
                                         iconStart="@tui.bookmark"
                                         class="rounded-full!"
