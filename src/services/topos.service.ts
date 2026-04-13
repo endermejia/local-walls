@@ -268,8 +268,8 @@ export class ToposService {
         new PolymorpheusComponent(TopoPathEditorDialogComponent),
         {
           data,
-          size: 'fullscreen',
-          closeable: false,
+          appearance: 'fullscreen',
+          closable: false,
           dismissible: false,
         },
       ),

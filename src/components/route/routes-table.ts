@@ -31,9 +31,10 @@ import {
   TuiIcon,
   TuiLink,
   TuiScrollbar,
-  TuiTextfield,
+  TuiCell,
+  TuiInput,
 } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogService } from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
   TuiChevron,
@@ -41,8 +42,6 @@ import {
   TuiInputNumber,
   TuiRating,
 } from '@taiga-ui/kit';
-import { TuiCell } from '@taiga-ui/layout';
-
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
@@ -97,7 +96,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
     TuiTable,
     TuiTableExpand,
     TuiTableSortPipe,
-    TuiTextfield,
+    TuiInput,
     IncludesIdPipe,
   ],
   template: `
@@ -126,12 +125,12 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                     [class.text-right]="
                       col === 'actions' || col === 'admin_actions'
                     "
-                    [class.!w-12]="col === 'expand'"
-                    [class.!w-16]="col === 'height'"
-                    [class.!w-20]="col === 'grade' || col === 'ascents'"
-                    [class.!w-24]="col === 'rating'"
-                    [class.!w-32]="col === 'actions' || col === 'admin_actions'"
-                    [class.!w-64]="col === 'equippers'"
+                    [class.w-12!]="col === 'expand'"
+                    [class.w-16!]="col === 'height'"
+                    [class.w-20!]="col === 'grade' || col === 'ascents'"
+                    [class.w-24!]="col === 'rating'"
+                    [class.w-32!]="col === 'actions' || col === 'admin_actions'"
+                    [class.w-64!]="col === 'equippers'"
                   >
                     <div class="flex items-center gap-1">
                       {{
@@ -179,7 +178,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                             size="xs"
                             tuiIconButton
                             type="button"
-                            class="!rounded-full"
+                            class="rounded-full!"
                             [tuiChevron]="exp.expanded()"
                             (click.zoneless)="exp.toggle()"
                           >
@@ -238,13 +237,13 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                             @if (canEditRoute) {
                               <tui-textfield
                                 tuiTextfieldSize="s"
-                                [class.!w-16]="!isMobile"
-                                [class.!w-12]="isMobile"
-                                class="!h-8"
+                                [class.w-16!]="!isMobile"
+                                [class.w-12!]="isMobile"
+                                class="h-8!"
                               >
                                 <input
                                   tuiInputNumber
-                                  class="text-center !h-full !border-none !p-0 route-height-input"
+                                  class="text-center h-full! border-none! p-0! route-height-input"
                                   [ngModel]="item.height"
                                   (blur.zoneless)="
                                     onUpdateRouteHeight(
@@ -273,7 +272,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                               [max]="5"
                               [ngModel]="item.rating"
                               [readOnly]="true"
-                              [style.font-size.rem]="0.5"
+                              [style.font-size.rem]="1"
                             />
                           </div>
                         }
@@ -292,7 +291,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                                     <button
                                       tuiButton
                                       appearance="secondary"
-                                      class="!min-w-fit"
+                                      class="min-w-fit!"
                                       size="xs"
                                       (click.zoneless)="
                                         router.navigate([
@@ -342,7 +341,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                                   size="xs"
                                   tuiButton
                                   type="button"
-                                  class="!rounded-full"
+                                  class="rounded-full!"
                                   iconStart="@tui.plus"
                                   [tuiDropdown]="toposMenu"
                                   [tuiDropdownOpen]="
@@ -409,7 +408,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                                 iconStart="@tui.circle-plus"
                                 tuiIconButton
                                 type="button"
-                                class="!rounded-full"
+                                class="rounded-full!"
                                 [tuiHint]="'ascent.new' | translate"
                                 (click.zoneless)="onLogAscent(item._ref)"
                               >
@@ -432,15 +431,18 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                             }
 
                             @if (!item.climbed) {
+                              <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                               <button
                                 size="m"
                                 [appearance]="
-                                  item.project ? 'glass' : 'secondary'
+                                  item.project
+                                    ? 'secondary-grayscale'
+                                    : 'secondary'
                                 "
                                 iconStart="@tui.bookmark"
                                 tuiIconButton
                                 type="button"
-                                class="!rounded-full"
+                                class="rounded-full!"
                                 [tuiHint]="'project' | translate"
                                 (click.zoneless)="
                                   routesService.toggleRouteProject(
@@ -463,7 +465,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                                 iconStart="@tui.square-pen"
                                 tuiIconButton
                                 type="button"
-                                class="!rounded-full"
+                                class="rounded-full!"
                                 (click.zoneless)="openEditRoute(item._ref)"
                               >
                                 {{ 'edit' | translate }}
@@ -475,7 +477,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                                   iconStart="@tui.trash"
                                   tuiIconButton
                                   type="button"
-                                  class="!rounded-full"
+                                  class="rounded-full!"
                                   (click.zoneless)="deleteRoute(item._ref)"
                                 >
                                   {{ 'delete' | translate }}
@@ -492,7 +494,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                   <tr tuiTr>
                     <td [colSpan]="columns().length" tuiTd>
                       <div
-                        class="flex flex-col gap-3 p-3 bg-[var(--tui-background-neutral-1)] rounded-2xl border border-[var(--tui-border-normal)]"
+                        class="flex flex-col gap-3 p-3 bg-(--tui-background-neutral-1) rounded-2xl border border-(--tui-border-normal)"
                       >
                         <div
                           class="flex flex-wrap items-center justify-between gap-x-2 gap-y-0"
@@ -526,7 +528,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                                     <button
                                       tuiButton
                                       appearance="secondary"
-                                      class="!min-w-fit"
+                                      class="min-w-fit!"
                                       size="xs"
                                       (click.zoneless)="
                                         router.navigate([
@@ -575,7 +577,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                                   size="xs"
                                   tuiButton
                                   type="button"
-                                  class="!rounded-full"
+                                  class="rounded-full!"
                                   iconStart="@tui.plus"
                                   [tuiDropdown]="toposMenuExpanded"
                                   [tuiDropdownOpen]="
@@ -649,7 +651,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                                 iconStart="@tui.circle-plus"
                                 tuiIconButton
                                 type="button"
-                                class="!rounded-full"
+                                class="rounded-full!"
                                 [tuiHint]="'ascent.new' | translate"
                                 (click.zoneless)="
                                   onLogAscent(item._ref);
@@ -677,15 +679,18 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                             }
 
                             @if (!item.climbed) {
+                              <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                               <button
                                 size="m"
                                 [appearance]="
-                                  item.project ? 'glass' : 'secondary'
+                                  item.project
+                                    ? 'secondary-grayscale'
+                                    : 'secondary'
                                 "
                                 iconStart="@tui.bookmark"
                                 tuiIconButton
                                 type="button"
-                                class="!rounded-full"
+                                class="rounded-full!"
                                 [tuiHint]="'project' | translate"
                                 (click.zoneless)="
                                   routesService.toggleRouteProject(
@@ -706,7 +711,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                                 iconStart="@tui.square-pen"
                                 tuiIconButton
                                 type="button"
-                                class="!rounded-full"
+                                class="rounded-full!"
                                 (click.zoneless)="
                                   openEditRoute(item._ref);
                                   $event.stopPropagation()
@@ -720,7 +725,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                                 iconStart="@tui.trash"
                                 tuiIconButton
                                 type="button"
-                                class="!rounded-full"
+                                class="rounded-full!"
                                 (click.zoneless)="
                                   deleteRoute(item._ref);
                                   $event.stopPropagation()
@@ -734,7 +739,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
 
                         @if (showLocation()) {
                           <div
-                            class="text-xs opacity-60 flex gap-1 items-center border-t border-[var(--tui-border-normal)] pt-2"
+                            class="text-xs opacity-60 flex gap-1 items-center border-t border-(--tui-border-normal) pt-2"
                           >
                             <tui-icon icon="@tui.map-pin" class="text-[10px]" />
                             <a
@@ -979,7 +984,7 @@ export class RoutesTableComponent {
       }
       await this.global.cragRoutesResource.reload();
       await this.global.cragDetailResource.reload();
-    } catch (e) {
+    } catch (e: unknown) {
       console.error('[RoutesTable] error toggling route on topo', e);
       handleErrorToast(e as Error, this.toast);
     }

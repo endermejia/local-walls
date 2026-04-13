@@ -11,9 +11,9 @@ import {
   untracked,
   WritableSignal,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 
-import { TuiBreakpointService } from '@taiga-ui/core';
+import { TUI_BREAKPOINT } from '@taiga-ui/core';
 import {
   TUI_ENGLISH_LANGUAGE,
   TUI_SPANISH_LANGUAGE,
@@ -79,7 +79,7 @@ export class GlobalData {
   private readonly notificationsService = inject(AppNotificationsService);
   private readonly messagingService = inject(MessagingService);
   private readonly push = inject(PushService);
-  private breakpointService = inject(TuiBreakpointService);
+  private breakpointService = toObservable(inject(TUI_BREAKPOINT));
 
   readonly isMobile = toSignal(
     this.breakpointService.pipe(map((b) => b === 'mobile')),

@@ -43,8 +43,8 @@ import { ContextIndexPipe } from '../../../pipes/context-index.pipe';
             class="chart-container"
             [axisXLabels]="trendXLabels()"
             [axisYLabels]="trendYLabels()"
-            [verticalLines]="trendXLabels().length"
-            [horizontalLines]="5"
+            [verticalLines]="trendXLabels().length + 1"
+            [horizontalLines]="6"
             [tuiLineChartHint]="trendHintContent"
           >
             <!-- Total Score Trend -->
@@ -137,12 +137,12 @@ import { ContextIndexPipe } from '../../../pipes/context-index.pipe';
       margin-bottom: 0.25rem;
     }
     .trend-hint-year {
-      font: var(--tui-font-text-s);
+      font: var(--tui-typography-body-s);
       opacity: 0.5;
       font-weight: bold;
     }
     .trend-hint-score {
-      font: var(--tui-font-heading-4);
+      font: var(--tui-typography-heading-h4);
       font-weight: 900;
     }
     .trend-routes {
@@ -182,7 +182,7 @@ import { ContextIndexPipe } from '../../../pipes/context-index.pipe';
       text-align: right;
     }
     .route-score-grade {
-      font: var(--tui-font-text-m);
+      font: var(--tui-typography-body-m);
       opacity: 0.8;
       margin-right: 0.5rem;
     }

@@ -15,12 +15,12 @@ import {
   TuiError,
   TuiLabel,
   TuiOptGroup,
-  TuiTextfield,
+  TuiInput,
+  TuiFilterByInputPipe,
 } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
+import { type TuiDialogContext } from '@taiga-ui/core';
 import {
   TuiChevron,
-  TuiFilterByInputPipe,
   TuiInputChip,
   TuiComboBox,
   TuiMultiSelect,
@@ -51,7 +51,7 @@ import { AreaDto, AreaListItem } from '../../models';
     TuiLabel,
     TuiMultiSelect,
     TuiOptGroup,
-    TuiTextfield,
+    TuiInput,
   ],
   template: `
     <div class="flex flex-col gap-4">
@@ -72,7 +72,7 @@ import { AreaDto, AreaListItem } from '../../models';
           name="targetArea"
           [placeholder]="'select' | translate"
         />
-        <tui-data-list *tuiTextfieldDropdown>
+        <tui-data-list *tuiDropdown>
           @for (area of availableAreas() | tuiFilterByInput; track area.id) {
             <button tuiOption new [value]="area">
               {{ area.name }}
@@ -106,7 +106,7 @@ import { AreaDto, AreaListItem } from '../../models';
           [placeholder]="'select' | translate"
         />
         <tui-input-chip *tuiItem />
-        <tui-data-list *tuiTextfieldDropdown>
+        <tui-data-list *tuiDropdown>
           <tui-opt-group tuiMultiSelectGroup>
             @for (
               area of availableSources() | tuiFilterByInput;
@@ -128,7 +128,7 @@ import { AreaDto, AreaListItem } from '../../models';
       <tui-textfield class="block">
         <label tuiLabel for="new-name">{{ 'areas.newName' | translate }}</label>
         <input
-          tuiTextfield
+          tuiInput
           id="new-name"
           autocomplete="off"
           [formField]="$any(unifyForm.newName)"

@@ -14,7 +14,7 @@ import {
   TuiIcon,
   TuiLoader,
   TuiScrollbar,
-  TuiTextfield,
+  TuiInput,
 } from '@taiga-ui/core';
 import { TuiDialogContext } from '@taiga-ui/core';
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
@@ -57,7 +57,7 @@ export interface PyramidSlotDialogData {
     TuiIcon,
     TuiLoader,
     TuiScrollbar,
-    TuiTextfield,
+    TuiInput,
     GradeComponent,
     AscentTypeComponent,
   ],
@@ -116,7 +116,7 @@ export interface PyramidSlotDialogData {
         <tui-textfield tuiTextfieldSize="m" [tuiTextfieldCleaner]="true">
           <tui-icon tuiIconStart icon="@tui.search" />
           <input
-            tuiTextfield
+            tuiInput
             [ngModel]="searchQuery()"
             (ngModelChange)="onSearchChange($event)"
             [placeholder]="'search' | translate"
@@ -125,7 +125,7 @@ export interface PyramidSlotDialogData {
         </tui-textfield>
 
         <!-- Results List -->
-        <tui-loader [overlay]="true" [showLoader]="loading()">
+        <tui-loader [overlay]="true" [loading]="loading()">
           <tui-scrollbar class="max-h-[300px] -mx-2 px-2">
             <div class="flex flex-col gap-2 mt-2">
               @for (route of results(); track route.id) {

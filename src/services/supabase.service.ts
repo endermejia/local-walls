@@ -130,8 +130,12 @@ export class SupabaseService {
     return data;
   }
 
-  buildAvatarUrl(path: string | null | undefined): string {
-    return this.getPublicUrl('avatar', path);
+  buildAvatarUrl(path?: string | null): string {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+
+    const base = (this.url || ENV_SUPABASE_URL || '').replace(/\/$/, '');
+    return `${base}/storage/v1/object/public/avatar/${path}`;
   }
 
   getPublicUrl(bucket: string, path: string | null | undefined): string {
@@ -139,7 +143,7 @@ export class SupabaseService {
     if (path.startsWith('http')) return path;
     const base = (this.url || ENV_SUPABASE_URL || '').replace(/\/$/, '');
     const rel = String(path).replace(/^\//, '');
-    return `${base}/storage/v1/object/public/${bucket}/${rel}`;
+    return `${base}/storage/v1/object/public/avatar/${rel}`;
   }
 
   /**
@@ -164,6 +168,8 @@ export class SupabaseService {
     } catch (e) {
       console.warn('[SupabaseService] Error reading cached topo url', e);
     }
+
+    await this.whenReady();
 
     const { data, error } = await this.client.storage
       .from('topos')
@@ -231,12 +237,14 @@ export class SupabaseService {
       console.warn('[SupabaseService] Error reading cached ascent url', e);
     }
 
+    await this.whenReady();
+
     const { data, error } = await this.client.storage
       .from('route-ascent-photos')
       .createSignedUrl(path, 3600, options); // 1 hour
 
     if (error) {
-      console.error('[SupabaseService] getAscentSignedUrl error', error);
+      console.warn('[SupabaseService] getAscentSignedUrl error', error);
       return '';
     }
 

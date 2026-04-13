@@ -1,4 +1,4 @@
-import { AsyncPipe, CommonModule, DatePipe } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -18,14 +18,13 @@ import {
   TuiAppearance,
   TuiButton,
   TuiDataList,
-  TuiFallbackSrcPipe,
   TuiIcon,
   TuiLabel,
   TuiLoader,
   TuiScrollbar,
-  TuiTextfield,
+  TuiInput,
 } from '@taiga-ui/core';
-import { TuiDialogContext, TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogContext, TuiDialogService } from '@taiga-ui/core';
 import {
   TuiAvatar,
   TuiBadgeNotification,
@@ -74,12 +73,10 @@ export interface ChatDialogData {
     TranslatePipe,
     TuiButton,
     TuiScrollbar,
-    TuiTextfield,
+    TuiInput,
     TuiLabel,
     TuiLoader,
     TuiAvatar,
-    TuiFallbackSrcPipe,
-    AsyncPipe,
     DatePipe,
     FormsModule,
     CommonModule,
@@ -96,7 +93,7 @@ export interface ChatDialogData {
       @if (selectedRoom(); as room) {
         <!-- Messages View -->
         <div
-          class="flex items-center p-2 border-b border-[var(--tui-border-normal)] gap-2"
+          class="flex items-center p-2 border-b border-(--tui-border-normal) gap-2"
         >
           <button
             tuiIconButton
@@ -108,17 +105,17 @@ export interface ChatDialogData {
           >
             {{ 'back' | translate }}
           </button>
-          <tui-avatar
-            [src]="
-              supabase.buildAvatarUrl(room.participant?.avatar)
-                | tuiFallbackSrc: '@tui.user'
-                | async
-            "
-            size="s"
-          />
+          <span tuiAvatar size="s">
+            @if (room.participant?.avatar; as avatar) {
+              <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
+            } @else {
+              @tui.user
+            }
+          </span>
           <span class="font-bold truncate text-sm">{{
             room.participant?.name
           }}</span>
+          <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
           <button
             tuiIconButton
             type="button"
@@ -162,6 +159,7 @@ export interface ChatDialogData {
             @for (msg of messages(); track msg.id) {
               @let isMe = msg.sender_id === supabase.authUserId();
               <div class="flex" [class.justify-end]="isMe">
+                <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                 <div
                   [appearance]="isMe ? 'accent' : 'secondary-grayscale'"
                   tuiMessage
@@ -177,7 +175,7 @@ export interface ChatDialogData {
                     @if (isMe) {
                       <tui-icon
                         [icon]="msg.read_at ? '@tui.check-check' : '@tui.check'"
-                        class="!w-3 !h-3"
+                        class="w-3! h-3!"
                       />
                     }
                   </div>
@@ -187,7 +185,7 @@ export interface ChatDialogData {
           </div>
         </tui-scrollbar>
 
-        <div class="p-4 border-t border-[var(--tui-border-normal)]">
+        <div class="p-4 border-t border-(--tui-border-normal)">
           @if (isBlockedByMe()) {
             <div
               class="flex flex-col items-center justify-center p-4 gap-2 opacity-70"
@@ -253,15 +251,13 @@ export interface ChatDialogData {
         </div>
       } @else {
         <!-- Rooms View -->
-        <div
-          class="p-4 border-b border-[var(--tui-border-normal)] relative z-50"
-        >
+        <div class="p-4 border-b border-(--tui-border-normal) relative z-50">
           <tui-textfield class="w-full" tuiTextfieldSize="m">
             <label tuiLabel for="user-search">{{
               'searchUser' | translate
             }}</label>
             <input
-              tuiTextfield
+              tuiInput
               id="user-search"
               autocomplete="off"
               [formControl]="userSearchControl"
@@ -271,7 +267,7 @@ export interface ChatDialogData {
 
           @if (searchResults().length > 0) {
             <div
-              class="absolute left-4 right-4 mt-1 shadow-2xl rounded-xl overflow-hidden border border-[var(--tui-border-normal)] bg-[var(--tui-background-base)] z-[100]"
+              class="absolute left-4 right-4 mt-1 shadow-2xl rounded-xl overflow-hidden border border-(--tui-border-normal) bg-(--tui-background-base) z-100"
             >
               <tui-data-list>
                 @for (user of searchResults(); track user.id) {
@@ -281,15 +277,13 @@ export interface ChatDialogData {
                     type="button"
                     (click)="onSelectUser(user)"
                   >
-                    <tui-avatar
-                      [src]="
-                        supabase.buildAvatarUrl(user.avatar)
-                          | tuiFallbackSrc: '@tui.user'
-                          | async
-                      "
-                      size="xs"
-                      class="mr-2"
-                    />
+                    <span tuiAvatar size="xs" class="mr-2">
+                      @if (user.avatar; as avatar) {
+                        <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
+                      } @else {
+                        @tui.user
+                      }
+                    </span>
                     {{ user.name }}
                   </button>
                 }
@@ -302,17 +296,16 @@ export interface ChatDialogData {
           <div class="flex flex-col">
             @for (room of rooms(); track room.id) {
               <button
-                class="flex items-center gap-4 p-4 text-left hover:bg-[var(--tui-background-neutral-1)] transition-colors border-b border-[var(--tui-border-normal)] last:border-0 w-full"
+                class="flex items-center gap-4 p-4 text-left hover:bg-(--tui-background-neutral-1) transition-colors border-b border-(--tui-border-normal) last:border-0 w-full"
                 (click)="onSelectRoom(room)"
               >
-                <tui-avatar
-                  [src]="
-                    supabase.buildAvatarUrl(room.participant?.avatar)
-                      | tuiFallbackSrc: '@tui.user'
-                      | async
-                  "
-                  size="m"
-                />
+                <span tuiAvatar size="m">
+                  @if (room.participant?.avatar; as avatar) {
+                    <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
+                  } @else {
+                    @tui.user
+                  }
+                </span>
                 <div class="flex-1 min-w-0">
                   <div class="flex justify-between items-center gap-2">
                     <span class="font-bold truncate">{{
@@ -448,13 +441,13 @@ export class ChatDialogComponent implements OnDestroy {
       .pipe(
         debounceTime(300),
         distinctUntilChanged(),
-        switchMap((val) => {
+        switchMap((val: string | null) => {
           if (!val || val.length < 2) return of([]);
           return from(this.userProfilesService.searchUsers(val));
         }),
         takeUntilDestroyed(),
       )
-      .subscribe((users) => {
+      .subscribe((users: UserProfileBasicDto[]) => {
         this.searchResults.set(users);
       });
 

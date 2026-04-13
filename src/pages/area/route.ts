@@ -26,7 +26,7 @@ import {
   TuiDropdown,
   TuiHint,
 } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogService } from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
   TuiAvatar,
@@ -117,7 +117,7 @@ import { SeoService } from '../../services/seo.service';
                   iconStart="@tui.square-pen"
                   tuiIconButton
                   type="button"
-                  class="!rounded-full"
+                  class="rounded-full!"
                   (click.zoneless)="openEditRoute()"
                 >
                   {{ 'edit' | translate }}
@@ -129,7 +129,7 @@ import { SeoService } from '../../services/seo.service';
                     iconStart="@tui.trash"
                     tuiIconButton
                     type="button"
-                    class="!rounded-full"
+                    class="rounded-full!"
                     (click.zoneless)="deleteRoute()"
                   >
                     {{ 'delete' | translate }}
@@ -175,7 +175,7 @@ import { SeoService } from '../../services/seo.service';
                         r.own_ascent.type || 'default'
                       ].background
                     "
-                    class="!text-[var(--tui-text-primary-on-accent-1)] grow"
+                    class="text-(--tui-text-primary-on-accent-1)! grow"
                     size="m"
                     (click)="onEditAscent(r.own_ascent, r.name)"
                   >
@@ -193,7 +193,7 @@ import { SeoService } from '../../services/seo.service';
                     appearance="secondary"
                     size="m"
                     iconStart="@tui.circle-plus"
-                    class="!rounded-full shrink-0"
+                    class="rounded-full! shrink-0"
                     [tuiHint]="'ascent.new' | translate"
                     (click)="onLogAscent()"
                   >
@@ -204,6 +204,7 @@ import { SeoService } from '../../services/seo.service';
                 </div>
               }
               @if (!r.climbed) {
+                <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                 <button
                   tuiButton
                   [appearance]="r.project ? 'glass' : 'secondary'"
@@ -228,11 +229,11 @@ import { SeoService } from '../../services/seo.service';
                     {{ 'height' | translate }}
                   </span>
                   <div class="flex items-center gap-2">
-                    <tui-avatar
+                    <span
+                      [tuiAvatar]="'@tui.arrow-up-right'"
                       size="s"
                       appearance="secondary"
-                      [src]="'@tui.arrow-up-right'"
-                    />
+                    ></span>
                     <span class="text-xl font-semibold"
                       >{{ height || '--' }}m</span
                     >
@@ -247,11 +248,13 @@ import { SeoService } from '../../services/seo.service';
                   {{ 'climbing_kind' | translate }}
                 </span>
                 <div class="flex items-center gap-2">
-                  <tui-avatar
+                  <span
+                    [tuiAvatar]="
+                      climbingIcons[r.climbing_kind] || '@tui.mountain'
+                    "
                     size="s"
                     appearance="secondary"
-                    [src]="climbingIcons[r.climbing_kind] || '@tui.mountain'"
-                  />
+                  ></span>
                   <span class="text-xl font-semibold">{{
                     'climbingKinds.' + r.climbing_kind | translate
                   }}</span>
@@ -269,7 +272,7 @@ import { SeoService } from '../../services/seo.service';
                     [max]="5"
                     [ngModel]="r.rating || 0"
                     [readOnly]="true"
-                    [style.font-size.rem]="0.6"
+                    [style.font-size.rem]="1.5"
                   />
                   @if (r.rating; as rating) {
                     <span class="text-xl font-semibold">
@@ -288,11 +291,11 @@ import { SeoService } from '../../services/seo.service';
                   {{ 'equippers' | translate }}
                 </span>
                 <div class="flex items-center gap-2">
-                  <tui-avatar
+                  <span
+                    tuiAvatar="@tui.hammer"
                     size="s"
                     appearance="secondary"
-                    src="@tui.hammer"
-                  />
+                  ></span>
                   <span class="text-sm opacity-80 text-center">{{
                     equippersNames()
                   }}</span>
@@ -313,7 +316,7 @@ import { SeoService } from '../../services/seo.service';
                       tuiButton
                       appearance="secondary"
                       size="s"
-                      class="!min-w-fit"
+                      class="min-w-fit!"
                       (click.zoneless)="
                         router.navigate([
                           '/area',

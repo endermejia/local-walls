@@ -14,20 +14,16 @@ import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { TuiAutoFocus } from '@taiga-ui/cdk';
-import { TuiIcon, TuiTextfield, TuiTitle } from '@taiga-ui/core';
+import { TuiIcon, TuiTitle, TuiCell, TuiInput } from '@taiga-ui/core';
 import { TuiAppearance, TuiDataList, TuiDropdown } from '@taiga-ui/core';
-import {
-  TuiDialogService,
-  TuiSearchHotkey,
-  TuiSearchResults,
-} from '@taiga-ui/experimental';
+import { TuiDialogService } from '@taiga-ui/core';
 import { TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
 import {
   TuiPulse,
   TuiBadgedContent,
   TuiBadgeNotification,
 } from '@taiga-ui/kit';
-import { TuiCell, TuiInputSearch, TUI_INPUT_SEARCH } from '@taiga-ui/layout';
+import { TuiInputSearch, TUI_INPUT_SEARCH } from '@taiga-ui/layout';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -62,7 +58,7 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
 @Component({
   selector: 'app-navbar',
   host: {
-    class: 'z-[100] relative md:w-20 md:h-full md:flex md:items-center',
+    class: 'z-100 relative md:w-20 md:h-full md:flex md:items-center',
   },
   providers: [
     {
@@ -92,10 +88,8 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
     TuiAvatar,
     TuiIcon,
     TuiInputSearch,
-    TuiSearchHotkey,
-    TuiSearchResults,
     TuiSkeleton,
-    TuiTextfield,
+    TuiInput,
     TuiCell,
     TuiTitle,
     TuiAutoFocus,
@@ -110,7 +104,7 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
   ],
   template: `
     <aside
-      class="w-full md:w-20 md:hover:w-64 md:h-full bg-[var(--tui-background-base)] transition-[width] duration-300 z-[100] group flex flex-col border-t md:border xl:border-none border-[var(--tui-border-normal)] md:absolute md:left-0 md:top-0 md:bottom-0 overflow-hidden sm:rounded-2xl"
+      class="w-full md:w-20 md:hover:w-64 md:h-full bg-(--tui-background-base) transition-[width] duration-300 z-100 group flex flex-col border-t md:border xl:border-none border-(--tui-border-normal) md:absolute md:left-0 md:top-0 md:bottom-0 overflow-hidden sm:rounded-2xl"
       ngSkipHydration
     >
       <div
@@ -324,7 +318,6 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
               <tui-textfield>
                 <input
                   #searchInput
-                  tuiSearchHotkey
                   autocomplete="off"
                   tuiAutoFocus
                   [formControl]="control"
@@ -333,19 +326,21 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
                   [placeholder]="'searchPlaceholder' | translate"
                 />
                 <ng-template #search>
-                  <tui-search-results [results]="results()">
-                    <ng-template let-item>
+                  <tui-data-list>
+                    @for (item of flatResults(); track $index) {
                       <a
                         tuiCell
                         [routerLink]="item.href || null"
                         (click)="onResultClick(item, $event)"
                       >
                         @if (item.type === 'user') {
-                          <tui-avatar
-                            [src]="item.icon || '@tui.user'"
-                            size="xs"
-                            class="mr-2"
-                          />
+                          <span tuiAvatar size="xs" class="mr-2">
+                            @if (item.icon && !item.icon.startsWith('@tui.')) {
+                              <img [src]="item.icon" alt="" />
+                            } @else {
+                              <tui-icon [icon]="item.icon || '@tui.user'" />
+                            }
+                          </span>
                         } @else if (item.icon) {
                           <tui-icon [icon]="item.icon" class="mr-2" />
                         }
@@ -356,8 +351,8 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
                           }
                         </span>
                       </a>
-                    </ng-template>
-                  </tui-search-results>
+                    }
+                  </tui-data-list>
                 </ng-template>
               </tui-textfield>
             </div>
@@ -375,8 +370,8 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
             class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full lg:mt-auto"
             [attr.aria-label]="'nav.profile' | translate"
           >
-            <tui-avatar
-              [src]="global.userAvatar() || '@tui.user'"
+            <span
+              tuiAvatar
               [tuiSkeleton]="!global.userProfile()"
               [class.ring-2]="profile.isActive"
               [class.ring-offset-2]="profile.isActive"
@@ -384,7 +379,13 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
                 profile.isActive ? 'var(--tui-text-negative)' : ''
               "
               size="xs"
-            />
+            >
+              @if (global.userAvatar(); as avatar) {
+                <img [src]="avatar" [alt]="global.userProfile()?.name || ''" />
+              } @else {
+                <tui-icon icon="@tui.user" />
+              }
+            </span>
             <span
               class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden"
             >
@@ -480,6 +481,11 @@ export class NavbarComponent {
     ),
     { initialValue: null },
   );
+
+  protected readonly flatResults = computed(() => {
+    const data = this.results();
+    return data ? Object.values(data).flat() : [];
+  });
 
   protected onResultClick(item: SearchItem, event?: Event): void {
     if (item.type?.startsWith('create-') || item.type?.startsWith('import-')) {

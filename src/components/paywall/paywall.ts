@@ -49,7 +49,7 @@ import { ToastService } from '../../services/toast.service';
       </div>
 
       <div class="relative w-full max-w-xs space-y-4">
-        <tui-loader [showLoader]="loading()" [overlay]="true">
+        <tui-loader [loading]="loading()" [overlay]="true">
           <button
             tuiButton
             appearance="primary"

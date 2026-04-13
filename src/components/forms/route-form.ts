@@ -22,13 +22,13 @@ import {
   TuiDataList,
   TuiError,
   TuiLabel,
-  TuiTextfield,
+  TuiInput,
+  TuiFilterByInputPipe,
 } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
+import { type TuiDialogContext } from '@taiga-ui/core';
 import {
   TuiChevron,
   TuiDataListWrapper,
-  TuiFilterByInputPipe,
   TuiHideSelectedPipe,
   TuiInputChip,
   TuiInputNumber,
@@ -92,7 +92,7 @@ interface RouteFormModel {
     TuiButton,
     TuiError,
     TuiLabel,
-    TuiTextfield,
+    TuiInput,
     TranslatePipe,
     TuiInputNumber,
     TuiSelect,
@@ -125,7 +125,7 @@ interface RouteFormModel {
           autocomplete="off"
         />
         <tui-data-list-wrapper
-          *tuiTextfieldDropdown
+          *tuiDropdown
           new
           [items]="areaOptions.value() || [] | tuiFilterByInput"
         />
@@ -150,7 +150,7 @@ interface RouteFormModel {
             autocomplete="off"
           />
           <tui-data-list-wrapper
-            *tuiTextfieldDropdown
+            *tuiDropdown
             new
             [items]="cragOptions.value() || [] | tuiFilterByInput"
           />
@@ -160,7 +160,7 @@ interface RouteFormModel {
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="name">{{ 'routes.name' | translate }}</label>
         <input
-          tuiTextfield
+          tuiInput
           id="name"
           [formField]="routeForm.name"
           autocomplete="off"
@@ -171,7 +171,7 @@ interface RouteFormModel {
         <tui-textfield [tuiTextfieldCleaner]="false">
           <label tuiLabel for="slug">{{ 'slug' | translate }}</label>
           <input
-            tuiTextfield
+            tuiInput
             id="slug"
             [formField]="routeForm.slug"
             type="text"
@@ -203,7 +203,7 @@ interface RouteFormModel {
           autocomplete="off"
         />
         <tui-input-chip *tuiItem />
-        <tui-data-list *tuiTextfieldDropdown>
+        <tui-data-list *tuiDropdown>
           @for (
             item of allEquippers.value() || []
               | tuiHideSelected
@@ -233,11 +233,7 @@ interface RouteFormModel {
           name="climbing_kind"
           autocomplete="off"
         />
-        <tui-data-list-wrapper
-          *tuiTextfieldDropdown
-          new
-          [items]="kindOptions"
-        />
+        <tui-data-list-wrapper *tuiDropdown new [items]="kindOptions" />
       </tui-textfield>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -248,7 +244,7 @@ interface RouteFormModel {
             size="m"
             appearance="secondary"
             iconStart="@tui.minus"
-            class="!rounded-full shrink-0"
+            class="rounded-full! shrink-0"
             (click)="changeGrade(-1)"
           >
             -
@@ -268,11 +264,7 @@ interface RouteFormModel {
               name="grade"
               autocomplete="off"
             />
-            <tui-data-list-wrapper
-              *tuiTextfieldDropdown
-              new
-              [items]="gradeOptions"
-            />
+            <tui-data-list-wrapper *tuiDropdown new [items]="gradeOptions" />
           </tui-textfield>
           <button
             tuiIconButton
@@ -280,7 +272,7 @@ interface RouteFormModel {
             size="m"
             appearance="secondary"
             iconStart="@tui.plus"
-            class="!rounded-full shrink-0"
+            class="rounded-full! shrink-0"
             (click)="changeGrade(1)"
           >
             +

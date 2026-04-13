@@ -27,7 +27,7 @@ import {
   TuiBadgeNotification,
 } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
-import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogService } from '@taiga-ui/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { startWith } from 'rxjs';
 
@@ -128,7 +128,8 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
             {{ 'merchandising.description' | translate }}
           </p>
 
-          <tui-notification
+          <div
+            tuiNotification
             appearance="info"
             size="s"
             class="relative max-w-lg !rounded-2xl border-none bg-[var(--tui-background-neutral-1)] shadow-sm"
@@ -136,7 +137,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
             <span class="text-xs font-medium">
               {{ 'merchandising.croquisDisclaimer' | translate }}
             </span>
-          </tui-notification>
+          </div>
         </header>
 
         <!-- ─── Area Packs ─── -->
@@ -195,20 +196,21 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                     ></div>
 
                     <div class="absolute top-4 right-4">
-                      <tui-badge
+                      <span
+                        tuiBadge
                         appearance="primary"
                         size="l"
                         class="shadow-xl font-black !rounded-xl border border-white/20"
                       >
                         {{ pack.price | number: '1.2-2' }}€
-                      </tui-badge>
+                      </span>
                     </div>
 
                     @if (isAdmin() && global.editingMode()) {
                       <div class="absolute top-4 left-4 flex flex-col gap-2">
                         <button
                           tuiIconButton
-                          appearance="glass"
+                          appearance="secondary-grayscale"
                           size="s"
                           type="button"
                           class="!rounded-xl backdrop-blur-md bg-[var(--tui-background-accent-opposite-pressed)] border border-[var(--tui-border-normal)] text-[var(--tui-background-base)]"
@@ -218,9 +220,9 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                         </button>
 
                         @if (pack.active === false) {
-                          <tui-badge>
+                          <span tuiBadge>
                             {{ 'merchandising.items.inactive' | translate }}
-                          </tui-badge>
+                          </span>
                         }
                       </div>
                     }
@@ -244,13 +246,14 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                     <!-- Area listing -->
                     <div class="flex flex-wrap gap-2 pt-2">
                       @for (item of pack.items; track item.area_id) {
-                        <tui-badge
+                        <span
+                          tuiBadge
                           appearance="primary"
                           size="m"
                           class="font-semibold !rounded-xl opacity-90"
                         >
                           {{ item.area.name }}
-                        </tui-badge>
+                        </span>
                       }
                     </div>
                   </div>
@@ -347,20 +350,21 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
 
                     <!-- Price badge instead of buy button -->
                     <div class="absolute top-4 right-4">
-                      <tui-badge
+                      <span
+                        tuiBadge
                         appearance="primary"
                         size="l"
                         class="shadow-xl font-black !rounded-xl border border-white/20"
                       >
                         {{ item.price | number: '1.2-2' }}€
-                      </tui-badge>
+                      </span>
                     </div>
 
                     @if (isAdmin() && global.editingMode()) {
                       <div class="absolute top-4 left-4 flex flex-col gap-2">
                         <button
                           tuiIconButton
-                          appearance="glass"
+                          appearance="secondary-grayscale"
                           size="s"
                           type="button"
                           class="!rounded-xl backdrop-blur-md bg-[var(--tui-background-accent-opposite-pressed)] border border-[var(--tui-border-normal)] text-[var(--tui-background-base)]"
@@ -370,9 +374,9 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
                         </button>
 
                         @if (item.active === false) {
-                          <tui-badge>
+                          <span tuiBadge>
                             {{ 'merchandising.items.inactive' | translate }}
-                          </tui-badge>
+                          </span>
                         }
                       </div>
                     }

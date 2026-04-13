@@ -14,8 +14,8 @@ import {
   TuiButton,
   TuiLoader,
   TuiScrollbar,
-  TuiTextfield,
   TuiTitle,
+  TuiInput,
 } from '@taiga-ui/core';
 import { TuiDropdown } from '@taiga-ui/core';
 import {
@@ -62,7 +62,7 @@ import { normalizeName } from '../../utils';
     TuiHeader,
     TuiLoader,
     TuiScrollbar,
-    TuiTextfield,
+    TuiInput,
     TuiTitle,
     TuiDropdown,
   ],
@@ -80,13 +80,13 @@ import { normalizeName } from '../../utils';
           >
             @let areasCount = filtered().length;
             <h1 class="text-2xl font-bold w-full sm:w-auto">
-              <tui-avatar
+              <span
+                [tuiAvatar]="global.iconSrc()('zone')"
                 tuiThumbnail
                 size="l"
-                [src]="global.iconSrc()('zone')"
                 class="self-center"
                 [attr.aria-label]="'area' | translate"
-              />
+              ></span>
               {{ areasCount }}
               {{
                 (areasCount === 1 ? 'area' : 'areas') | translate | lowercase
@@ -130,7 +130,7 @@ import { normalizeName } from '../../utils';
                 {{ 'searchPlaceholder' | translate }}
               </label>
               <input
-                tuiTextfield
+                tuiInput
                 #areasSearch
                 id="areas-search"
                 autocomplete="off"

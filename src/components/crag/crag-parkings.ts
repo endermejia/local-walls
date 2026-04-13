@@ -39,13 +39,13 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
   template: `
     <div class="flex items-center justify-between gap-2 mb-4">
       <div class="flex items-center w-full sm:w-auto gap-2">
-        <tui-avatar
+        <span
+          tuiAvatar="@tui.parking-square"
           tuiThumbnail
           size="l"
-          src="@tui.parking-square"
           class="self-center"
           [attr.aria-label]="'parkings' | translate"
-        />
+        ></span>
         <h2 class="text-2xl font-semibold">
           {{ 'parkings' | translate }}
         </h2>
@@ -104,7 +104,7 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
                     iconStart="@tui.square-pen"
                     tuiIconButton
                     type="button"
-                    class="!rounded-full"
+                    class="rounded-full!"
                     (click.zoneless)="openEditParking(p)"
                   >
                     {{ 'edit' | translate }}
@@ -115,7 +115,7 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
                     iconStart="@tui.unlink"
                     tuiIconButton
                     type="button"
-                    class="!rounded-full"
+                    class="rounded-full!"
                     (click.zoneless)="removeParking(p)"
                   >
                     {{ 'unlink' | translate }}
@@ -131,7 +131,7 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
                   appearance="secondary"
                   size="s"
                   type="button"
-                  class="!rounded-full"
+                  class="rounded-full!"
                   (click.zoneless)="viewOnMap(p.latitude, p.longitude)"
                   [iconStart]="'@tui.map-pin'"
                 >
@@ -142,7 +142,7 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
                   size="s"
                   tuiButton
                   type="button"
-                  class="!rounded-full lw-icon-50"
+                  class="rounded-full! lw-icon-50"
                   [iconStart]="'/image/google-maps.svg'"
                   (click.zoneless)="
                     openExternal(

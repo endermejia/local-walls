@@ -25,11 +25,10 @@ import {
   TuiFiles,
   TuiInputFiles,
   TuiSkeleton,
-  TuiSlides,
   TuiStepper,
 } from '@taiga-ui/kit';
 import { TuiAvatar } from '@taiga-ui/kit';
-import { TuiHeader } from '@taiga-ui/layout';
+import { TuiHeader, TuiSlides } from '@taiga-ui/layout';
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -112,9 +111,9 @@ class EmptyCsvError extends Error {
           <!-- Step 0: Upload CSV -->
           @if (index === 0) {
             <div class="grid gap-4">
-              <tui-notification appearance="info" class="mt-4">
+              <div tuiNotification appearance="info" class="mt-4">
                 <div [innerHTML]="'import8a.csvInstructions' | translate"></div>
-              </tui-notification>
+              </div>
 
               <div class="mt-6">
                 @if (!control.value) {
@@ -201,7 +200,8 @@ class EmptyCsvError extends Error {
                         </div>
                       </div>
                       <div class="flex items-center gap-2">
-                        <tui-avatar
+                        <span
+                          tuiAvatar
                           size="s"
                           class="!text-[var(--tui-text-primary-on-accent-1)]"
                           [style.background]="
@@ -217,7 +217,7 @@ class EmptyCsvError extends Error {
                               ].icon
                             "
                           />
-                        </tui-avatar>
+                        </span>
                       </div>
                     </div>
                   } @placeholder {
@@ -225,10 +225,10 @@ class EmptyCsvError extends Error {
                       class="p-2 border-b last:border-0 flex justify-between items-center gap-4"
                     >
                       <div class="flex items-center gap-3">
-                        <tui-avatar size="m" tuiSkeleton />
+                        <span tuiAvatar size="m" tuiSkeleton></span>
                       </div>
                       <div class="flex items-center gap-2">
-                        <tui-avatar size="s" tuiSkeleton />
+                        <span tuiAvatar size="s" tuiSkeleton></span>
                       </div>
                     </div>
                   }

@@ -15,7 +15,7 @@ import { SupabaseService } from '../services/supabase.service';
 import { Themes } from '../models';
 
 import { TuiRoot } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogService } from '@taiga-ui/core';
 import { TuiBadgedContent } from '@taiga-ui/kit';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';

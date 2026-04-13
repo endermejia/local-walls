@@ -137,7 +137,7 @@ import { WeatherService } from '../../services/weather.service';
       </div>
     } @else {
       <!-- Skeleton Loading State -->
-      <tui-loader [showLoader]="true" [overlay]="true">
+      <tui-loader [loading]="true" [overlay]="true">
         <div class="flex flex-col gap-4">
           <div class="flex items-center gap-2">
             <div [tuiSkeleton]="true" class="w-4 h-4 rounded-full"></div>

@@ -15,12 +15,12 @@ import {
   TuiError,
   TuiLabel,
   TuiOptGroup,
-  TuiTextfield,
+  TuiInput,
+  TuiFilterByInputPipe,
 } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
+import { type TuiDialogContext } from '@taiga-ui/core';
 import {
   TuiChevron,
-  TuiFilterByInputPipe,
   TuiInputChip,
   TuiComboBox,
   TuiMultiSelect,
@@ -51,7 +51,7 @@ import { RouteDto } from '../../models';
     TuiLabel,
     TuiMultiSelect,
     TuiOptGroup,
-    TuiTextfield,
+    TuiInput,
   ],
   template: `
     <div class="flex flex-col gap-4">
@@ -72,7 +72,7 @@ import { RouteDto } from '../../models';
           name="targetRoute"
           [placeholder]="'select' | translate"
         />
-        <tui-data-list *tuiTextfieldDropdown>
+        <tui-data-list *tuiDropdown>
           @for (route of cragRoutes() | tuiFilterByInput; track route.id) {
             <button tuiOption new [value]="route">
               {{ route.name }}
@@ -106,7 +106,7 @@ import { RouteDto } from '../../models';
           [placeholder]="'select' | translate"
         />
         <tui-input-chip *tuiItem />
-        <tui-data-list *tuiTextfieldDropdown>
+        <tui-data-list *tuiDropdown>
           <tui-opt-group tuiMultiSelectGroup>
             @for (
               route of availableSources() | tuiFilterByInput;
@@ -130,7 +130,7 @@ import { RouteDto } from '../../models';
           'routes.newName' | translate
         }}</label>
         <input
-          tuiTextfield
+          tuiInput
           id="new-name"
           autocomplete="off"
           [formField]="$any(unifyForm.newName)"

@@ -27,8 +27,10 @@ import {
   TuiLink,
   TuiOptGroup,
   TuiScrollbar,
-  TuiTextfield,
   TuiTitle,
+  TuiCell,
+  TuiInput,
+  TuiFilterByInputPipe,
 } from '@taiga-ui/core';
 import {
   TuiAvatar,
@@ -37,14 +39,11 @@ import {
   TuiBadgedContentDirective,
   TuiChevron,
   TuiDataListWrapper,
-  TuiFilterByInputPipe,
   TuiInputChip,
   TuiMultiSelect,
   TuiSelect,
   TuiSkeleton,
 } from '@taiga-ui/kit';
-import { TuiCell } from '@taiga-ui/layout';
-
 import { WaIntersectionObserver } from '@ng-web-apis/intersection-observer';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -91,7 +90,7 @@ interface UserWithRole {
     TuiSkeleton,
     TuiTable,
     TuiTableSortPipe,
-    TuiTextfield,
+    TuiInput,
     TuiTitle,
     WaIntersectionObserver,
   ],
@@ -107,13 +106,13 @@ interface UserWithRole {
                 </tui-badge-notification>
               </ng-container>
             }
-            <tui-avatar
+            <span
+              tuiAvatar="@tui.users"
               tuiThumbnail
               size="l"
-              src="@tui.users"
               class="self-center"
               [attr.aria-label]="'admin.users.title' | translate"
-            />
+            ></span>
           </tui-badged-content>
           {{ 'admin.users.title' | translate }}
         </h1>
@@ -124,7 +123,7 @@ interface UserWithRole {
           <label tuiLabel for="user-search">{{ 'search' | translate }}</label>
           <input
             id="user-search"
-            tuiTextfield
+            tuiInput
             type="text"
             autocomplete="off"
             [ngModel]="searchQuery()"
@@ -147,11 +146,7 @@ interface UserWithRole {
             (ngModelChange)="roleFilter.set($event)"
             autocomplete="off"
           />
-          <tui-data-list-wrapper
-            *tuiTextfieldDropdown
-            new
-            [items]="roleFilterOptions"
-          />
+          <tui-data-list-wrapper *tuiDropdown new [items]="roleFilterOptions" />
         </tui-textfield>
       </div>
 
@@ -179,7 +174,7 @@ interface UserWithRole {
               <th
                 *tuiHead="'role'"
                 tuiTh
-                class="role-column !w-48"
+                class="role-column w-48!"
                 [sorter]="roleSorter"
                 [sticky]="true"
               >
@@ -188,7 +183,7 @@ interface UserWithRole {
               <th
                 *tuiHead="'areas'"
                 tuiTh
-                class="areas-column !w-80"
+                class="areas-column w-80!"
                 [sorter]="null"
               >
                 {{ 'areas' | translate }}
@@ -221,10 +216,16 @@ interface UserWithRole {
                   <td *tuiCell="'user'" tuiTd class="user-cell">
                     <div class="flex items-center gap-3">
                       <a [routerLink]="['/profile', user.id]">
-                        <tui-avatar
-                          size="m"
-                          [src]="supabase.buildAvatarUrl(user.avatar)"
-                        />
+                        <span tuiAvatar size="m">
+                          @if (user.avatar; as avatar) {
+                            <img
+                              [src]="supabase.buildAvatarUrl(avatar)"
+                              alt=""
+                            />
+                          } @else {
+                            @tui.user
+                          }
+                        </span>
                       </a>
                       <div class="flex flex-col">
                         <a
@@ -257,7 +258,7 @@ interface UserWithRole {
                         autocomplete="off"
                       />
                       <tui-data-list-wrapper
-                        *tuiTextfieldDropdown
+                        *tuiDropdown
                         new
                         [items]="roleOptions"
                       />
@@ -281,7 +282,7 @@ interface UserWithRole {
                           autocomplete="off"
                         />
                         <tui-input-chip *tuiItem />
-                        <tui-data-list *tuiTextfieldDropdown>
+                        <tui-data-list *tuiDropdown>
                           <tui-opt-group
                             [label]="'areas' | translate"
                             tuiMultiSelectGroup
@@ -480,34 +481,41 @@ export class AdminUsersListComponent {
       if (mappingsError) throw mappingsError;
 
       const mappingsByEquipper = new Map<string, number[]>();
-      (mappings || []).forEach((m) => {
+      (mappings || []).forEach((m: { user_id: string; area_id: number }) => {
         const list = mappingsByEquipper.get(m.user_id) || [];
         list.push(m.area_id);
         mappingsByEquipper.set(m.user_id, list);
       });
 
-      const usersWithRoles: UserWithRole[] = profiles.map((profile) => {
-        const assignedAreaIds = mappingsByEquipper.get(profile.id) || [];
-        const assignedAreas = assignedAreaIds
-          .map((id) => areasMap.get(id))
-          .filter((a): a is AreaListItem => !!a);
+      const usersWithRoles: UserWithRole[] = profiles.map(
+        (profile: {
+          id: string;
+          name: string | null;
+          avatar: string | null;
+          is_admin: boolean | null;
+        }) => {
+          const assignedAreaIds = mappingsByEquipper.get(profile.id) || [];
+          const assignedAreas = assignedAreaIds
+            .map((id) => areasMap.get(id))
+            .filter((a): a is AreaListItem => !!a);
 
-        const control = new FormControl(assignedAreas, { nonNullable: true });
-        control.valueChanges
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe((newAreas) => {
-            void this.onAreasChange(profile.id, newAreas);
-          });
+          const control = new FormControl(assignedAreas, { nonNullable: true });
+          control.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((newAreas: AreaListItem[]) => {
+              void this.onAreasChange(profile.id, newAreas);
+            });
 
-        return {
-          id: profile.id,
-          name: profile.name,
-          avatar: profile.avatar,
-          is_admin: !!profile.is_admin,
-          assignedAreas,
-          areasControl: control,
-        };
-      });
+          return {
+            id: profile.id,
+            name: profile.name,
+            avatar: profile.avatar,
+            is_admin: !!profile.is_admin,
+            assignedAreas,
+            areasControl: control,
+          };
+        },
+      );
 
       this.users.set(usersWithRoles);
     } catch (e) {

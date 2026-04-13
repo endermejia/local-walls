@@ -36,9 +36,9 @@ import { SupabaseService } from '../../services/supabase.service';
       <div class="grid gap-2">
         <a
           routerLink="/admin/users"
-          class="flex items-center gap-4 p-4 bg-[var(--tui-background-base)] rounded-2xl border border-[var(--tui-border-normal)] no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
+          class="flex items-center gap-4 p-4 bg-(--tui-background-base) rounded-2xl border border-(--tui-border-normal) no-underline text-inherit hover:bg-(--tui-background-neutral-1)"
         >
-          <tui-icon icon="@tui.users" class="text-[var(--tui-text-tertiary)]" />
+          <tui-icon icon="@tui.users" class="text-(--tui-text-tertiary)" />
           <div class="flex-1">
             <div class="flex items-center justify-between">
               <span class="font-bold">{{ 'nav.admin-users' | translate }}</span>
@@ -46,16 +46,18 @@ import { SupabaseService } from '../../services/supabase.service';
               @if (usersSampleResource.value(); as users) {
                 <tui-avatar-stack>
                   @for (user of users; track user.id) {
-                    <tui-avatar
-                      size="s"
-                      [round]="true"
-                      [src]="user.avatar_url"
-                    />
+                    <span tuiAvatar size="s">
+                      @if (user.avatar_url; as url) {
+                        <img [src]="url" alt="" />
+                      } @else {
+                        @tui.user
+                      }
+                    </span>
                   }
                 </tui-avatar-stack>
               }
             </div>
-            <p class="text-sm text-[var(--tui-text-secondary)]">
+            <p class="text-sm text-(--tui-text-secondary)">
               {{ 'admin.users.description' | translate }}
             </p>
           </div>
@@ -63,14 +65,14 @@ import { SupabaseService } from '../../services/supabase.service';
 
         <a
           routerLink="/admin/unify"
-          class="flex items-center gap-4 p-4 bg-[var(--tui-background-base)] rounded-2xl border border-[var(--tui-border-normal)] no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
+          class="flex items-center gap-4 p-4 bg-(--tui-background-base) rounded-2xl border border-(--tui-border-normal) no-underline text-inherit hover:bg-(--tui-background-neutral-1)"
         >
-          <tui-icon icon="@tui.copy" class="text-[var(--tui-text-tertiary)]" />
+          <tui-icon icon="@tui.copy" class="text-(--tui-text-tertiary)" />
           <div class="flex-1">
             <span class="font-bold block">
               {{ 'admin.unifyTitle' | translate }}
             </span>
-            <p class="text-sm text-[var(--tui-text-secondary)]">
+            <p class="text-sm text-(--tui-text-secondary)">
               {{ 'admin.unifyDescription' | translate }}
             </p>
           </div>
@@ -78,17 +80,14 @@ import { SupabaseService } from '../../services/supabase.service';
 
         <a
           routerLink="/admin/requests"
-          class="flex items-center gap-4 p-4 bg-[var(--tui-background-base)] rounded-2xl border border-[var(--tui-border-normal)] no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
+          class="flex items-center gap-4 p-4 bg-(--tui-background-base) rounded-2xl border border-(--tui-border-normal) no-underline text-inherit hover:bg-(--tui-background-neutral-1)"
         >
-          <tui-icon
-            icon="@tui.shield"
-            class="text-[var(--tui-text-tertiary)]"
-          />
+          <tui-icon icon="@tui.shield" class="text-(--tui-text-tertiary)" />
           <div class="flex-1">
             <span class="font-bold block">
               {{ 'adminRequests.manageTitle' | translate }}
             </span>
-            <p class="text-sm text-[var(--tui-text-secondary)]">
+            <p class="text-sm text-(--tui-text-secondary)">
               {{ 'adminRequests.manageDescription' | translate }}
             </p>
           </div>
@@ -96,17 +95,14 @@ import { SupabaseService } from '../../services/supabase.service';
 
         <a
           routerLink="/admin/parkings"
-          class="flex items-center gap-4 p-4 bg-[var(--tui-background-base)] rounded-2xl border border-[var(--tui-border-normal)] no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
+          class="flex items-center gap-4 p-4 bg-(--tui-background-base) rounded-2xl border border-(--tui-border-normal) no-underline text-inherit hover:bg-(--tui-background-neutral-1)"
         >
-          <tui-icon
-            icon="@tui.map-pin"
-            class="text-[var(--tui-text-tertiary)]"
-          />
+          <tui-icon icon="@tui.map-pin" class="text-(--tui-text-tertiary)" />
           <div class="flex-1">
             <span class="font-bold block">
               {{ 'nav.admin-parkings' | translate }}
             </span>
-            <p class="text-sm text-[var(--tui-text-secondary)]">
+            <p class="text-sm text-(--tui-text-secondary)">
               {{ 'admin.parkings.description' | translate }}
             </p>
           </div>
@@ -114,17 +110,14 @@ import { SupabaseService } from '../../services/supabase.service';
 
         <a
           routerLink="/admin/equippers"
-          class="flex items-center gap-4 p-4 bg-[var(--tui-background-base)] rounded-2xl border border-[var(--tui-border-normal)] no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
+          class="flex items-center gap-4 p-4 bg-(--tui-background-base) rounded-2xl border border-(--tui-border-normal) no-underline text-inherit hover:bg-(--tui-background-neutral-1)"
         >
-          <tui-icon
-            icon="@tui.hammer"
-            class="text-[var(--tui-text-tertiary)]"
-          />
+          <tui-icon icon="@tui.hammer" class="text-(--tui-text-tertiary)" />
           <div class="flex-1">
             <span class="font-bold block">
               {{ 'nav.admin-equippers' | translate }}
             </span>
-            <p class="text-sm text-[var(--tui-text-secondary)]">
+            <p class="text-sm text-(--tui-text-secondary)">
               {{ 'admin.equippers.description' | translate }}
             </p>
           </div>
@@ -153,7 +146,7 @@ export class AdminComponent {
         if (error) throw error;
 
         return (
-          data?.map((u) => ({
+          data?.map((u: { id: string; avatar_url: string | null }) => ({
             ...u,
             avatar_url: u.avatar_url
               ? this.supabase.buildAvatarUrl(u.avatar_url)

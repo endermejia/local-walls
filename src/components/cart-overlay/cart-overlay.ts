@@ -47,9 +47,9 @@ import type { CartProduct } from '../../models';
             <h2 class="text-xl font-black">
               {{ 'merchandising.cart.title' | translate }}
             </h2>
-            <tui-badge size="m" appearance="accent">
+            <span tuiBadge size="m" appearance="accent">
               {{ totalItems() }}
-            </tui-badge>
+            </span>
           </div>
           <button
             tuiIconButton

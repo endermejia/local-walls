@@ -7,10 +7,10 @@ import {
   TuiNotification,
   TuiScrollbar,
   TuiTitle,
-  TuiTextfield,
   TuiLabel,
   TuiDropdown,
   TuiIcon,
+  TuiInput,
 } from '@taiga-ui/core';
 import { TuiDataListWrapper, TuiSelect, TuiChevron } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
@@ -29,7 +29,7 @@ import { CheckoutService } from '../../services/checkout.service';
     TuiScrollbar,
     TuiTitle,
     TranslatePipe,
-    TuiTextfield,
+    TuiInput,
     TuiLabel,
     TuiSelect,
     TuiChevron,
@@ -77,7 +77,7 @@ import { CheckoutService } from '../../services/checkout.service';
                   }}</label>
                   <input
                     id="nameInput"
-                    tuiTextfield
+                    tuiInput
                     placeholder="John Doe"
                     formControlName="name"
                   />
@@ -89,7 +89,7 @@ import { CheckoutService } from '../../services/checkout.service';
                   }}</label>
                   <input
                     id="emailInput"
-                    tuiTextfield
+                    tuiInput
                     placeholder="john@example.com"
                     type="email"
                     formControlName="email"
@@ -102,7 +102,7 @@ import { CheckoutService } from '../../services/checkout.service';
                   }}</label>
                   <input
                     id="addressInput"
-                    tuiTextfield
+                    tuiInput
                     placeholder="Street 123"
                     formControlName="address"
                   />
@@ -115,7 +115,7 @@ import { CheckoutService } from '../../services/checkout.service';
                     }}</label>
                     <input
                       id="cityInput"
-                      tuiTextfield
+                      tuiInput
                       placeholder="Madrid"
                       formControlName="city"
                     />
@@ -126,7 +126,7 @@ import { CheckoutService } from '../../services/checkout.service';
                     }}</label>
                     <input
                       id="zipInput"
-                      tuiTextfield
+                      tuiInput
                       placeholder="28001"
                       formControlName="zip"
                     />
@@ -142,19 +142,15 @@ import { CheckoutService } from '../../services/checkout.service';
                     tuiSelect
                     formControlName="country"
                   />
-                  <tui-data-list-wrapper
-                    *tuiTextfieldDropdown
-                    new
-                    [items]="countries"
-                  />
+                  <tui-data-list-wrapper *tuiDropdown new [items]="countries" />
                 </tui-textfield>
               </section>
 
               @if (error()) {
-                <tui-notification appearance="error" class="mt-4">
+                <div tuiNotification appearance="negative" class="mt-4">
                   {{ 'merchandising.checkout.error' | translate }}:
                   {{ error() }}
-                </tui-notification>
+                </div>
               }
 
               <button

@@ -23,7 +23,7 @@ export class MentionLinkPipe implements PipeTransform {
       // We use a specific class 'mention-link' to target click events if needed
       // and data-id attribute.
       // We also use href for standard behavior/SEO, but the app should intercept it.
-      return `<a class="mention-link font-bold hover:underline cursor-pointer text-[var(--tui-text-action)]" href="/profile/${id}" data-id="${id}">@${name}</a>`;
+      return `<a class="mention-link font-bold hover:underline cursor-pointer text-(--tui-text-action)" href="/profile/${id}" data-id="${id}">@${name}</a>`;
     });
 
     return this.sanitizer.bypassSecurityTrustHtml(linked);

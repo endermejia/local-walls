@@ -17,7 +17,7 @@ import {
   TuiButton,
   TuiDataList,
   TuiLabel,
-  TuiTextfield,
+  TuiInput,
 } from '@taiga-ui/core';
 import {
   TuiBadgedContent,
@@ -25,7 +25,7 @@ import {
   TuiDataListWrapper,
   TuiSelect,
 } from '@taiga-ui/kit';
-import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogService } from '@taiga-ui/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { startWith } from 'rxjs';
 
@@ -58,7 +58,7 @@ import { getAscentDateFilterOptions, processAscentsToFeed } from '../../utils';
     TuiDataListWrapper,
     TuiLabel,
     TuiSelect,
-    TuiTextfield,
+    TuiInput,
     TuiBadgedContent,
     TuiBadgeNotification,
     AscentsFeedComponent,
@@ -77,7 +77,7 @@ import { getAscentDateFilterOptions, processAscentsToFeed } from '../../utils';
               'searchPlaceholder' | translate
             }}</label>
             <input
-              tuiTextfield
+              tuiInput
               #routeSearch
               id="route-search"
               autocomplete="off"
@@ -120,7 +120,7 @@ import { getAscentDateFilterOptions, processAscentsToFeed } from '../../utils';
               [formControl]="dateFilterControl"
               autocomplete="off"
             />
-            <tui-data-list *tuiTextfieldDropdown>
+            <tui-data-list *tuiDropdown>
               <tui-data-list-wrapper new [items]="dateFilterOptions()" />
             </tui-data-list>
           </tui-textfield>
@@ -140,7 +140,7 @@ import { getAscentDateFilterOptions, processAscentsToFeed } from '../../utils';
               [formControl]="sortFilterControl"
               autocomplete="off"
             />
-            <tui-data-list *tuiTextfieldDropdown>
+            <tui-data-list *tuiDropdown>
               <tui-data-list-wrapper new [items]="['grade', 'date']" />
             </tui-data-list>
           </tui-textfield>

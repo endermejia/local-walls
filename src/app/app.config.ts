@@ -1,3 +1,4 @@
+import { provideTaiga } from '@taiga-ui/core';
 import {
   HttpClient,
   provideHttpClient,
@@ -24,8 +25,6 @@ import {
   withPreloading,
 } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
-
-import { provideEventPlugins } from '@taiga-ui/event-plugins';
 import { TUI_LANGUAGE } from '@taiga-ui/i18n';
 
 import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
@@ -70,12 +69,10 @@ export const appConfig: ApplicationConfig = {
       },
       defaultLanguage: 'es',
     }),
-    provideEventPlugins(),
+    provideTaiga(),
     {
       provide: TUI_LANGUAGE,
-      useFactory: (global: GlobalData) => {
-        return toObservable(global.tuiLanguage);
-      },
+      useFactory: (global: GlobalData) => global.tuiLanguage,
       deps: [GlobalData],
     },
     provideSupabaseConfig({

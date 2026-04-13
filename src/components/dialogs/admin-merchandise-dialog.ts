@@ -11,11 +11,11 @@ import { FormsModule } from '@angular/forms';
 import {
   TuiButton,
   TuiLabel,
-  TuiTextfield,
   TuiDataList,
   TuiIcon,
   TuiDialogService,
   TuiLoader,
+  TuiInput,
 } from '@taiga-ui/core';
 import {
   TuiInputNumber,
@@ -29,7 +29,7 @@ import {
   TUI_CONFIRM,
 } from '@taiga-ui/kit';
 import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext } from '@taiga-ui/experimental';
+import { TuiDialogContext } from '@taiga-ui/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { MerchandiseItem } from '../../models';
@@ -59,7 +59,7 @@ const MERCHANDISE_CATEGORIES = [
     TranslatePipe,
     TuiButton,
     TuiLabel,
-    TuiTextfield,
+    TuiInput,
     TuiInputNumber,
     TuiTextarea,
     TuiSwitch,
@@ -71,7 +71,6 @@ const MERCHANDISE_CATEGORIES = [
     TuiFiles,
     TuiFileRejectedPipe,
     TuiLoader,
-    TranslatePipe,
   ],
   template: `
     <div class="flex flex-col gap-6">
@@ -81,7 +80,7 @@ const MERCHANDISE_CATEGORIES = [
           <label tuiLabel for="name">{{ 'userName' | translate }}</label>
           <input
             id="name"
-            tuiTextfield
+            tuiInput
             type="text"
             [ngModel]="model().name"
             (ngModelChange)="updateModel('name', $event)"
@@ -106,11 +105,7 @@ const MERCHANDISE_CATEGORIES = [
             (ngModelChange)="updateModel('category', $event)"
             name="category"
           />
-          <tui-data-list-wrapper
-            *tuiTextfieldDropdown
-            new
-            [items]="categories"
-          />
+          <tui-data-list-wrapper *tuiDropdown new [items]="categories" />
         </tui-textfield>
 
         <div class="grid grid-cols-2 gap-4">
@@ -152,7 +147,7 @@ const MERCHANDISE_CATEGORIES = [
             }}</label>
             <input
               id="available_sizes"
-              tuiTextfield
+              tuiInput
               type="text"
               [ngModel]="sizesString()"
               (ngModelChange)="updateArrayModel('available_sizes', $event)"
@@ -167,7 +162,7 @@ const MERCHANDISE_CATEGORIES = [
             }}</label>
             <input
               id="available_colors"
-              tuiTextfield
+              tuiInput
               type="text"
               [ngModel]="colorsString()"
               (ngModelChange)="updateArrayModel('available_colors', $event)"
@@ -324,7 +319,7 @@ const MERCHANDISE_CATEGORIES = [
         >
           {{ 'cancel' | translate }}
         </button>
-        <tui-loader [showLoader]="isSaving() || isUploading()" [overlay]="true">
+        <tui-loader [loading]="isSaving() || isUploading()" [overlay]="true">
           <button tuiButton appearance="primary" type="button" (click)="save()">
             {{ 'save' | translate }}
           </button>
@@ -460,7 +455,7 @@ export class AdminMerchandiseDialogComponent {
         {
           data,
           appearance: 'fullscreen',
-          closeable: false,
+          closable: false,
           dismissible: false,
         },
       ),

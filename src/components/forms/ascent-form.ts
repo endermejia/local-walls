@@ -22,16 +22,14 @@ import {
   TuiError,
   TuiIcon,
   TuiLabel,
-  TuiTextfield,
-} from '@taiga-ui/core';
-import {
+  TuiInput,
+  TuiCheckbox,
   type TuiDialogContext,
   TuiDialogService,
-} from '@taiga-ui/experimental';
+} from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
   TuiConfirmData,
-  TuiCheckbox,
   TuiChevron,
   TuiDataListWrapper,
   TuiInputDate,
@@ -93,11 +91,11 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
     TuiRating,
     TuiSelect,
     TuiTextarea,
-    TuiTextfield,
+    TuiInput,
     CounterComponent,
     ButtonAscentTypeComponent,
   ],
-  providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
+  providers: [tuiDateFormatProvider({ mode: 'dd/mm/yyyy', separator: '/' })],
   template: `
     <form class="flex flex-col h-full" (submit.zoneless)="onSubmit($event)">
       <div class="flex-1 min-h-0 overflow-y-auto flex flex-col gap-6 pr-1">
@@ -115,7 +113,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               name="date"
               autocomplete="off"
             />
-            <tui-calendar *tuiTextfieldDropdown />
+            <tui-calendar *tuiDropdown />
           </tui-textfield>
           @if (ascentForm.date().invalid() && ascentForm.date().touched()) {
             <tui-error [error]="'errors.required' | translate" />
@@ -281,11 +279,11 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                         alt="Preview"
                       />
                       <div
-                        class="absolute inset-0 bg-[var(--tui-background-neutral-1)]/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        class="absolute inset-0 bg-(--tui-background-neutral-1)/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <tui-icon
                           icon="@tui.pencil"
-                          class="text-[var(--tui-text-primary-on-accent-1)] text-3xl"
+                          class="text-(--tui-text-primary-on-accent-1) text-3xl"
                         />
                       </div>
                     </div>
@@ -305,11 +303,11 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                       alt="Existing photo"
                     />
                     <div
-                      class="absolute inset-0 bg-[var(--tui-background-neutral-1)]/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      class="absolute inset-0 bg-(--tui-background-neutral-1)/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <tui-icon
                         icon="@tui.pencil"
-                        class="text-[var(--tui-text-primary-on-accent-1)] text-3xl"
+                        class="text-(--tui-text-primary-on-accent-1) text-3xl"
                       />
                     </div>
                   </div>
@@ -328,7 +326,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             <label tuiLabel for="ascentVideo">Video URL (YouTube)</label>
             <input
               id="ascentVideo"
-              tuiTextfield
+              tuiInput
               [formField]="$any(ascentForm.video_url)"
               placeholder="https://youtube.com/..."
               autocomplete="off"
@@ -349,6 +347,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               name="rate"
               class="text-primary"
             />
+            <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
             <button
               tuiIconButton
               type="button"
@@ -373,13 +372,14 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
           <div
             class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
           >
+            <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
             <button
               tuiButton
               type="button"
               size="m"
               [appearance]="model().soft ? 'primary' : 'neutral'"
               (click)="toggleBool('soft')"
-              class="!rounded-xl grow sm:grow-0"
+              class="rounded-xl! grow sm:grow-0"
             >
               {{ 'ascent.soft' | translate }}
             </button>
@@ -391,7 +391,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                 size="m"
                 appearance="secondary"
                 iconStart="@tui.minus"
-                class="!rounded-full shrink-0"
+                class="rounded-full! shrink-0"
                 (click)="changeGrade(-1)"
               >
                 -
@@ -416,7 +416,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                   autocomplete="off"
                 />
                 <tui-data-list-wrapper
-                  *tuiTextfieldDropdown
+                  *tuiDropdown
                   new
                   [items]="gradeOptions"
                 ></tui-data-list-wrapper>
@@ -428,20 +428,21 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
                 size="m"
                 appearance="secondary"
                 iconStart="@tui.plus"
-                class="!rounded-full shrink-0"
+                class="rounded-full! shrink-0"
                 (click)="changeGrade(1)"
               >
                 +
               </button>
             </div>
 
+            <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
             <button
               tuiButton
               type="button"
               size="m"
               [appearance]="model().hard ? 'primary' : 'neutral'"
               (click)="toggleBool('hard')"
-              class="!rounded-xl grow sm:grow-0"
+              class="rounded-xl! grow sm:grow-0"
             >
               {{ 'ascent.hard' | translate }}
             </button>
@@ -461,6 +462,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               }}</span>
               <div class="flex flex-wrap gap-2">
                 @for (key of climbingTypes; track key) {
+                  <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                   <button
                     tuiButton
                     type="button"
@@ -481,6 +483,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               }}</span>
               <div class="flex flex-wrap gap-2">
                 @for (key of steepnessTypes; track key) {
+                  <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                   <button
                     tuiButton
                     type="button"
@@ -501,6 +504,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               }}</span>
               <div class="flex flex-wrap gap-2">
                 @for (key of safetyIssues; track key) {
+                  <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                   <button
                     tuiButton
                     type="button"
@@ -521,6 +525,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
               }}</span>
               <div class="flex flex-wrap gap-2">
                 @for (key of otherInfo; track key) {
+                  <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                   <button
                     tuiButton
                     type="button"

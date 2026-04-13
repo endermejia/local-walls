@@ -12,10 +12,10 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import {
   TuiDataList,
   TuiLoader,
-  TuiTextfield,
   tuiHintOptionsProvider,
   TuiIcon,
   TuiPoint,
+  TuiInput,
 } from '@taiga-ui/core';
 import { TuiDataListWrapper, TuiSelect } from '@taiga-ui/kit';
 
@@ -53,7 +53,7 @@ import { UserProfileStatsTrendsComponent } from './statistics/yearly-trend';
     ReactiveFormsModule,
     TuiLoader,
     TuiSelect,
-    TuiTextfield,
+    TuiInput,
     TuiDataList,
     TuiDataListWrapper,
     TranslatePipe,
@@ -91,13 +91,13 @@ import { UserProfileStatsTrendsComponent } from './statistics/yearly-trend';
             [formControl]="dateFilterControl"
             autocomplete="off"
           />
-          <tui-data-list *tuiTextfieldDropdown>
+          <tui-data-list *tuiDropdown>
             <tui-data-list-wrapper new [items]="dateFilterOptions()" />
           </tui-data-list>
         </tui-textfield>
       </div>
 
-      <tui-loader [showLoader]="statsResource.isLoading()">
+      <tui-loader [loading]="statsResource.isLoading()">
         <div class="grid gap-6">
           <app-user-profile-stats-score
             [totalScore]="totalScore()"

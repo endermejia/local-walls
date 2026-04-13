@@ -115,7 +115,11 @@ export class SearchService {
         const users = responses[3].data as DbUser[] | null;
         const eightAnuItems = responses[4] as any[];
 
-        const hasAnyResults = (areas?.length || 0) > 0 || (crags?.length || 0) > 0 || (routes?.length || 0) > 0 || (users?.length || 0) > 0;
+        const hasAnyResults =
+          (areas?.length || 0) > 0 ||
+          (crags?.length || 0) > 0 ||
+          (routes?.length || 0) > 0 ||
+          (users?.length || 0) > 0;
 
         const results: SearchData = {};
         const areasTitle = this.translate.instant('areas');

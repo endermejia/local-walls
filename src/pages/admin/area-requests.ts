@@ -78,13 +78,13 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
                 {{ requestsCount }}
               </tui-badge-notification>
             }
-            <tui-avatar
+            <span
+              tuiAvatar="@tui.shield"
               tuiThumbnail
               size="l"
-              src="@tui.shield"
               class="self-center"
               [attr.aria-label]="'adminRequests.manageTitle' | translate"
-            />
+            ></span>
           </tui-badged-content>
           {{ 'adminRequests.manageTitle' | translate }}
         </h1>
@@ -181,7 +181,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
                         size="m"
                         appearance="primary"
                         type="button"
-                        class="!rounded-full"
+                        class="rounded-full!"
                         (click.zoneless)="approve(req)"
                       >
                         {{ 'adminRequests.approve' | translate }}
@@ -191,7 +191,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
                         size="m"
                         appearance="secondary-destructive"
                         type="button"
-                        class="!rounded-full"
+                        class="rounded-full!"
                         (click.zoneless)="reject(req)"
                       >
                         {{ 'adminRequests.reject' | translate }}

@@ -1,7 +1,7 @@
+import { TuiPortalContext } from '@taiga-ui/cdk';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TuiButton } from '@taiga-ui/core';
 import { TuiToast, TuiToastOptions } from '@taiga-ui/kit';
-import { TuiPopover } from '@taiga-ui/cdk/services';
 import { TranslatePipe } from '@ngx-translate/core';
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 
@@ -28,7 +28,7 @@ export interface UndoToastData {
 })
 export class UndoToastComponent {
   protected readonly context =
-    inject<TuiPopover<TuiToastOptions<UndoToastData>, boolean>>(
+    inject<TuiPortalContext<TuiToastOptions<UndoToastData>, boolean>>(
       POLYMORPHEUS_CONTEXT,
     );
 

@@ -19,7 +19,7 @@ import { TuiRating, TuiSkeleton } from '@taiga-ui/kit';
   template: `
     <div
       tuiAppearance="flat-grayscale"
-      class="flex flex-col gap-1 p-4 sm:rounded-3xl rounded-none relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full text-left"
+      class="flex flex-col gap-1 p-4 sm:rounded-3xl rounded-none relative -mx-4 sm:mx-0 w-(calc(100%+2rem)) sm:w-full text-left"
     >
       <header
         class="flex flex-wrap justify-between items-center gap-x-2 gap-y-0 min-h-10"
@@ -52,7 +52,7 @@ import { TuiRating, TuiSkeleton } from '@taiga-ui/kit';
       @if (hasPhoto()) {
         <div
           [tuiSkeleton]="true"
-          class="aspect-[4/3] w-full rounded-2xl opacity-20 mb-2"
+          class="aspect-4/3 w-full rounded-2xl opacity-20 mb-2"
         ></div>
       }
 
@@ -62,7 +62,7 @@ import { TuiRating, TuiSkeleton } from '@taiga-ui/kit';
             <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
               <tui-icon
                 [tuiSkeleton]="true"
-                class="w-5 h-5 opacity-40 !rounded-full"
+                class="w-5 h-5 opacity-40 rounded-full!"
               />
               <div [tuiSkeleton]="true" class="w-48 h-5 rounded-full"></div>
               <span class="opacity-30">•</span>
@@ -85,7 +85,7 @@ import { TuiRating, TuiSkeleton } from '@taiga-ui/kit';
             <tui-rating
               [readOnly]="true"
               [ngModel]="5"
-              [style.font-size.rem]="0.5"
+              [style.font-size.rem]="1"
               class="opacity-30 pointer-events-none"
             />
           </div>

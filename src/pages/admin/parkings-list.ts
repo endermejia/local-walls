@@ -21,9 +21,9 @@ import {
   TuiAppearance,
   TuiButton,
   TuiScrollbar,
-  TuiTextfield,
+  TuiInput,
 } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogService } from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
   TuiAvatar,
@@ -63,7 +63,7 @@ import { handleErrorToast } from '../../utils';
     TuiSkeleton,
     TuiTable,
     TuiTableSortPipe,
-    TuiTextfield,
+    TuiInput,
   ],
   template: `
     <section class="flex flex-col w-full max-w-5xl mx-auto p-4">
@@ -79,13 +79,13 @@ import { handleErrorToast } from '../../utils';
                 {{ parkingsCount }}
               </tui-badge-notification>
             }
-            <tui-avatar
+            <span
+              tuiAvatar="@tui.map-pin"
               tuiThumbnail
               size="l"
-              src="@tui.map-pin"
               class="self-center"
               [attr.aria-label]="'parkings' | translate"
-            />
+            ></span>
           </tui-badged-content>
           {{ 'parkings' | translate }}
         </h1>
@@ -108,7 +108,7 @@ import { handleErrorToast } from '../../utils';
           }}</label>
           <input
             id="parking-search"
-            tuiTextfield
+            tuiInput
             type="text"
             [ngModel]="searchQuery()"
             (ngModelChange)="searchQuery.set($event)"
@@ -185,7 +185,7 @@ import { handleErrorToast } from '../../utils';
                         size="s"
                         appearance="neutral"
                         iconStart="@tui.square-pen"
-                        class="!rounded-full"
+                        class="rounded-full!"
                         (click.zoneless)="editParking(item)"
                       >
                         {{ 'edit' | translate }}
@@ -195,7 +195,7 @@ import { handleErrorToast } from '../../utils';
                         size="s"
                         appearance="negative"
                         iconStart="@tui.trash"
-                        class="!rounded-full"
+                        class="rounded-full!"
                         (click.zoneless)="deleteParking(item)"
                       >
                         {{ 'delete' | translate }}

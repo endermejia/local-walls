@@ -21,10 +21,10 @@ import {
   TuiLabel,
   TuiLoader,
   TuiScrollbar,
-  TuiTextfield,
   TuiTitle,
+  TuiInput,
 } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogService } from '@taiga-ui/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
   TUI_CONFIRM,
@@ -83,7 +83,7 @@ import { AreaPaywallDialogComponent } from '../../components/paywall/area-paywal
     TuiLabel,
     TuiLoader,
     TuiScrollbar,
-    TuiTextfield,
+    TuiInput,
     TuiTitle,
     TuiAppearance,
   ],
@@ -110,7 +110,7 @@ import { AreaPaywallDialogComponent } from '../../components/paywall/area-paywal
                     iconStart="@tui.square-pen"
                     tuiIconButton
                     type="button"
-                    class="!rounded-full"
+                    class="rounded-full!"
                     (click.zoneless)="openEditArea()"
                   >
                     {{ 'edit' | translate }}
@@ -122,7 +122,7 @@ import { AreaPaywallDialogComponent } from '../../components/paywall/area-paywal
                       iconStart="@tui.trash"
                       tuiIconButton
                       type="button"
-                      class="!rounded-full"
+                      class="rounded-full!"
                       (click.zoneless)="deleteArea()"
                     >
                       {{ 'delete' | translate }}
@@ -142,7 +142,7 @@ import { AreaPaywallDialogComponent } from '../../components/paywall/area-paywal
                     appearance="secondary"
                     iconStart="@tui.shield-alert"
                     type="button"
-                    class="!rounded-full"
+                    class="rounded-full!"
                     (click.zoneless)="requestAdmin()"
                   >
                     {{ 'adminRequests.button' | translate }}
@@ -212,13 +212,13 @@ import { AreaPaywallDialogComponent } from '../../components/paywall/area-paywal
 
           <div class="flex items-center justify-between gap-2 mt-4">
             <div class="flex items-center w-full sm:w-auto gap-2">
-              <tui-avatar
+              <span
+                [tuiAvatar]="global.iconSrc()('crag')"
                 tuiThumbnail
                 size="l"
-                [src]="global.iconSrc()('crag')"
                 class="self-center"
                 [attr.aria-label]="'crag' | translate"
-              />
+              ></span>
               <h2 class="text-2xl font-semibold">
                 {{ cragsCount() }}
                 {{
@@ -278,7 +278,7 @@ import { AreaPaywallDialogComponent } from '../../components/paywall/area-paywal
                 'searchPlaceholder' | translate
               }}</label>
               <input
-                tuiTextfield
+                tuiInput
                 #cragsSearch
                 id="crags-search"
                 autocomplete="off"
@@ -311,13 +311,13 @@ import { AreaPaywallDialogComponent } from '../../components/paywall/area-paywal
           @let routesList = routes();
           @if (routesList.length > 0) {
             <div class="flex items-center w-full sm:w-auto gap-2 mt-4 mb-4">
-              <tui-avatar
+              <span
+                tuiAvatar="@tui.route"
                 tuiThumbnail
                 size="l"
-                src="@tui.route"
                 class="self-center"
                 [attr.aria-label]="'routes' | translate"
-              />
+              ></span>
               <h2 class="text-2xl font-semibold">
                 {{ routesList.length }}
                 {{ 'routes' | translate | lowercase }}

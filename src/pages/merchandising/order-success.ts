@@ -105,9 +105,9 @@ import { CartService } from '../../services/cart.service';
             </div>
           </div>
         } @else {
-          <tui-notification status="error">
+          <div tuiNotification status="error">
             {{ 'merchandising.success.notFound' | translate }}
-          </tui-notification>
+          </div>
           <button
             tuiButton
             appearance="flat"

@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+import { TuiIcon } from '@taiga-ui/core';
 import { TuiAvatar } from '@taiga-ui/kit';
 
 import { firstValueFrom } from 'rxjs';
@@ -21,11 +22,17 @@ import { MentionLinkPipe } from '../../pipes/mention-link.pipe';
 @Component({
   selector: 'app-ascent-last-comment',
   standalone: true,
-  imports: [CommonModule, TuiAvatar, MentionLinkPipe, CommentLikesComponent],
+  imports: [
+    CommonModule,
+    TuiAvatar,
+    TuiIcon,
+    MentionLinkPipe,
+    CommentLikesComponent,
+  ],
   template: `
     @if (lastCommentResource.value(); as comment) {
       <div
-        class="flex items-start gap-2 bg-[var(--tui-background-neutral-1)] p-2 rounded-xl mt-1 animate-in fade-in slide-in-from-top-1 duration-300 cursor-pointer hover:bg-[var(--tui-background-neutral-1-hover)] transition-colors"
+        class="flex items-start gap-2 bg-(--tui-background-neutral-1) p-2 rounded-xl mt-1 animate-in fade-in slide-in-from-top-1 duration-300 cursor-pointer hover:bg-(--tui-background-neutral-1-hover) transition-colors"
         (click)="showComments($event)"
         (keydown.enter)="showComments($event)"
         (keydown.space)="showComments($event)"
@@ -33,19 +40,19 @@ import { MentionLinkPipe } from '../../pipes/mention-link.pipe';
       >
         <div class="flex flex-col gap-1 grow min-w-0">
           <div class="flex items-center gap-2">
-            <tui-avatar
-              [src]="
-                supabase.buildAvatarUrl(comment.user_profiles.avatar) ||
-                '@tui.user'
-              "
-              size="xs"
-            />
+            <span tuiAvatar size="xs">
+              @if (comment.user_profiles.avatar; as avatar) {
+                <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
+              } @else {
+                <tui-icon icon="@tui.user" />
+              }
+            </span>
             <span class="text-[10px] font-bold opacity-70 truncate">
               {{ comment.user_profiles.name }}
             </span>
           </div>
           <p
-            class="text-xs line-clamp-2 break-words pl-1 opacity-90"
+            class="text-xs line-clamp-2 wrap-break-word pl-1 opacity-90"
             [innerHTML]="comment.comment | mentionLink"
           ></p>
         </div>
@@ -76,7 +83,7 @@ export class AscentLastCommentComponent {
   constructor() {
     this.ascentsService.ascentCommentsUpdate
       .pipe(takeUntilDestroyed())
-      .subscribe((id) => {
+      .subscribe((id: number) => {
         if (id === this.ascentId()) {
           this.lastCommentResource.reload();
         }

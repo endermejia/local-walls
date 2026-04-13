@@ -12,13 +12,8 @@ import {
 import { FormsModule } from '@angular/forms';
 
 import { TuiIdentityMatcher } from '@taiga-ui/cdk';
-import { TuiDataList, TuiTextfield } from '@taiga-ui/core';
-import {
-  TuiChevron,
-  TuiFilterByInputPipe,
-  TuiHideSelectedPipe,
-  TuiInputChip,
-} from '@taiga-ui/kit';
+import { TuiDataList, TuiInput, TuiFilterByInputPipe } from '@taiga-ui/core';
+import { TuiChevron, TuiHideSelectedPipe, TuiInputChip } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -32,7 +27,7 @@ import { EquipperDto, RouteWithExtras } from '../../models';
   selector: 'app-route-equippers-input',
   imports: [
     FormsModule,
-    TuiTextfield,
+    TuiInput,
     TuiChevron,
     TuiInputChip,
     TuiDataList,
@@ -61,7 +56,7 @@ import { EquipperDto, RouteWithExtras } from '../../models';
         [placeholder]="'select' | translate"
       />
       <tui-input-chip *tuiItem />
-      <tui-data-list *tuiTextfieldDropdown>
+      <tui-data-list *tuiDropdown>
         @let items = allEquippers.value() || [];
         @if (searchQuery().length > 2) {
           @for (

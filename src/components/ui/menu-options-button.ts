@@ -13,7 +13,7 @@ import {
   TuiDropdown,
   TuiIcon,
 } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogService } from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
   TuiConfirmData,
@@ -47,6 +47,7 @@ import { UserProfilesService } from '../../services/user-profiles.service';
   ],
   template: `
     @if (iconOnly()) {
+      <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
       <button
         [appearance]="appearance()"
         [size]="size()"

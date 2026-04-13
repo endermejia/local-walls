@@ -1,7 +1,7 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { TuiAlertOptions, TuiAlertService } from '@taiga-ui/core';
+import { TuiNotificationOptions, TuiNotificationService } from '@taiga-ui/core';
 
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, switchMap } from 'rxjs';
@@ -13,7 +13,7 @@ import { UpdateNotificationComponent } from '../components/notifications/update-
   providedIn: 'root',
 })
 export class NotificationService {
-  private readonly alerts = inject(TuiAlertService);
+  private readonly alerts = inject(TuiNotificationService);
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
   private isGdprShowing = false;
@@ -21,7 +21,7 @@ export class NotificationService {
 
   private show(
     message: string,
-    options?: Partial<TuiAlertOptions<unknown>>,
+    options?: Partial<TuiNotificationOptions>,
   ): void {
     const translatedMessage = this.translate.instant(message);
     void firstValueFrom(
@@ -79,7 +79,7 @@ export class NotificationService {
               label: translatedTitle,
               appearance: 'info',
               autoClose: 0,
-              closeable: false,
+              closable: false,
             },
           ),
         ),

@@ -1,6 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
 import { TuiButton, TuiScrollbar } from '@taiga-ui/core';
-import { TuiAlertContext } from '@taiga-ui/core';
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 import { TranslateModule } from '@ngx-translate/core';
 import { LocalStorage } from '../../services/local-storage';
@@ -54,8 +53,7 @@ import { LocalStorage } from '../../services/local-storage';
   ],
 })
 export class GdprNotificationComponent {
-  private readonly context =
-    inject<TuiAlertContext<boolean, void>>(POLYMORPHEUS_CONTEXT);
+  private readonly context = inject<any>(POLYMORPHEUS_CONTEXT);
   private readonly storage = inject(LocalStorage);
   private readonly gdprKey = 'lw_gdpr_accepted';
 

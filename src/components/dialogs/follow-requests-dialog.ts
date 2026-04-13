@@ -1,4 +1,4 @@
-import { AsyncPipe, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -11,17 +11,11 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import {
-  TuiButton,
-  TuiFallbackSrcPipe,
-  TuiLoader,
-  TuiScrollbar,
-} from '@taiga-ui/core';
-import { TuiDialogContext } from '@taiga-ui/experimental';
+import { TuiButton, TuiLoader, TuiScrollbar } from '@taiga-ui/core';
+import { TuiDialogContext } from '@taiga-ui/core';
 import { TuiAvatar } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
-import { WaIntersectionObserver } from '@ng-web-apis/intersection-observer';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { FollowRequestsService } from '../../services/follow-requests.service';
@@ -33,20 +27,17 @@ import { EmptyStateComponent } from '../ui/empty-state';
 @Component({
   selector: 'app-follow-requests-dialog',
   imports: [
-    AsyncPipe,
     RouterLink,
     TuiAvatar,
-    TuiFallbackSrcPipe,
     TuiLoader,
     TuiScrollbar,
     TranslatePipe,
     EmptyStateComponent,
-    WaIntersectionObserver,
     TuiButton,
   ],
   template: `
     <div class="flex flex-col h-[60dvh] min-h-[400px] -m-4">
-      <tui-scrollbar waIntersectionRoot class="grow min-h-0">
+      <tui-scrollbar class="grow min-h-0">
         <div class="flex flex-col gap-1 p-4">
           @for (request of requests(); track request.id) {
             <a
@@ -54,14 +45,13 @@ import { EmptyStateComponent } from '../ui/empty-state';
               [routerLink]="['/profile', request.follower_id]"
               (click)="context.completeWith(true)"
             >
-              <tui-avatar
-                [src]="
-                  supabase.buildAvatarUrl(request.follower.avatar)
-                    | tuiFallbackSrc: '@tui.user'
-                    | async
+              <span
+                [tuiAvatar]="
+                  supabase.buildAvatarUrl(request.follower.avatar) ||
+                  '@tui.user'
                 "
                 size="m"
-              />
+              ></span>
               <div class="flex flex-col grow min-w-0">
                 <span class="font-bold text-text truncate">{{
                   request.follower.name
@@ -114,12 +104,8 @@ import { EmptyStateComponent } from '../ui/empty-state';
           }
 
           @if (hasMore() && !loading()) {
-            <div
-              class="p-4 flex justify-center"
-              waIntersectionObserver
-              (waIntersectionObservee)="onIntersection($any($event))"
-            >
-              <tui-loader />
+            <div class="p-4 flex justify-center text-sm opacity-50">
+              {{ 'loading' | translate }}
             </div>
           }
         </div>

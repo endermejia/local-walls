@@ -148,7 +148,7 @@ import { mapLocationUrl, remToPx } from '../../utils';
         }
 
         <div
-          class="absolute left-1/2 z-40 sm:z-100 pointer-events-auto bottom-[var(--mobile-bottom)] sm:bottom-4"
+          class="absolute left-1/2 z-40 sm:z-100 pointer-events-auto bottom-(--mobile-bottom) sm:bottom-4"
           [tuiDropdown]="tourHint"
           [tuiDropdownManual]="
             tourService.isActive() &&
@@ -198,11 +198,11 @@ import { mapLocationUrl, remToPx } from '../../utils';
         @if (global.selectedMapCragItem(); as c) {
           <!-- Selected crag information section with the same width as the bottom-sheet -->
           <div
-            class="absolute w-full max-w-[30rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0 px-4 pb-4"
+            class="absolute w-full max-w-120 mx-auto z-50 pointer-events-none left-0 right-0 bottom-0 px-4 pb-4"
           >
             <button
               tuiCardLarge
-              tuiAppearance="floating"
+              appearance="floating"
               class="pointer-events-auto w-full"
               (click.zoneless)="router.navigate(['/area', c.area_slug, c.slug])"
             >
@@ -212,7 +212,7 @@ import { mapLocationUrl, remToPx } from '../../utils';
                 </header>
                 <section class="grid grid-cols-[1fr_auto] gap-2 items-stretch">
                   <div class="flex flex-col justify-between">
-                    <span tuiSubtitle class="!text-xl w-fit">{{
+                    <span tuiSubtitle class="text-xl! w-fit">{{
                       c.area_name
                     }}</span>
                     <div
@@ -250,11 +250,11 @@ import { mapLocationUrl, remToPx } from '../../utils';
         } @else if (global.selectedMapParkingItem(); as p) {
           <!-- Selected parking information section -->
           <div
-            class="absolute w-full max-w-[30rem] mx-auto z-50 pointer-events-none left-0 right-0 bottom-0 px-4 pb-4"
+            class="absolute w-full max-w-120 mx-auto z-50 pointer-events-none left-0 right-0 bottom-0 px-4 pb-4"
           >
             <div
               tuiCardLarge
-              tuiAppearance="floating"
+              appearance="floating"
               class="pointer-events-auto w-full"
             >
               <div class="flex flex-col grow gap-2">
@@ -278,7 +278,7 @@ import { mapLocationUrl, remToPx } from '../../utils';
                       iconStart="@tui.square-pen"
                       tuiIconButton
                       type="button"
-                      class="!rounded-full"
+                      class="rounded-full!"
                       (click.zoneless)="openEditParking(p)"
                     >
                       {{ 'edit' | translate }}
@@ -322,7 +322,7 @@ import { mapLocationUrl, remToPx } from '../../utils';
         ) {
           @if (loading) {
             <div
-              class="absolute w-full h-full top-0 pointer-events-none z-50 flex items-center justify-center bg-[color-mix(in_oklab,var(--tui-background-base),transparent_70%)]"
+              class="absolute w-full h-full top-0 pointer-events-none z-50 flex items-center justify-center bg-(--tui-background-base)/30"
             >
               <tui-loader size="xxl" />
             </div>
@@ -344,9 +344,9 @@ import { mapLocationUrl, remToPx } from '../../utils';
       <!-- Desktop Sidebar (always visible) -->
       @if (!isMobile) {
         <div
-          class="flex flex-col shrink-0 h-full w-80 sm:w-96 border-l border-[var(--tui-border-normal)]"
+          class="flex flex-col shrink-0 h-full w-80 sm:w-96 border-l border-(--tui-border-normal)"
         >
-          <tui-scrollbar class="h-full bg-[var(--tui-background-base)]">
+          <tui-scrollbar class="h-full bg-(--tui-background-base)">
             @if (mapCragItems().length || mapAreaItems().length) {
               <ng-container *ngTemplateOutlet="listContent" />
             } @else {
@@ -368,12 +368,12 @@ import { mapLocationUrl, remToPx } from '../../utils';
         @if (areas.length) {
           <h3 tuiHeader id="areas-title" class="justify-center sm:pt-4">
             <div class="flex flex-row align-items-center justify-center gap-2">
-              <tui-avatar
+              <span
+                [tuiAvatar]="global.iconSrc()('zone')"
                 tuiThumbnail
                 size="l"
-                [src]="global.iconSrc()('zone')"
                 [attr.aria-label]="'area' | translate"
-              />
+              ></span>
               <span tuiTitle class="justify-center">
                 {{ areas.length }}
                 {{
@@ -423,13 +423,13 @@ import { mapLocationUrl, remToPx } from '../../utils';
         @if (crags.length) {
           <h3 tuiHeader id="crags-title" class="justify-center">
             <div class="flex flex-row align-items-center justify-center gap-2">
-              <tui-avatar
+              <span
+                [tuiAvatar]="global.iconSrc()('crag')"
                 tuiThumbnail
                 size="l"
-                [src]="global.iconSrc()('crag')"
                 class="self-center"
                 [attr.aria-label]="'crag' | translate"
-              />
+              ></span>
               <span tuiTitle class="justify-center">
                 {{ crags.length }}
                 {{
@@ -463,7 +463,7 @@ import { mapLocationUrl, remToPx } from '../../utils';
                           tuiLink
                           appearance="action-grayscale"
                           [routerLink]="['/area', c.area_slug]"
-                          class="!text-xl w-fit"
+                          class="text-xl! w-fit"
                           (click.zoneless)="$event.stopPropagation()"
                           >{{ c.area_name }}</a
                         >

@@ -58,13 +58,14 @@ import { GlobalData } from '../../services/global-data';
         <div class="flex flex-wrap items-center gap-2 shrink-0">
           <!-- Like button -->
           @if (showLike()) {
+            <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
             <button
               size="s"
               [appearance]="liked() ? 'accent' : 'neutral'"
               iconStart="@tui.heart"
               tuiIconButton
               type="button"
-              class="!rounded-full"
+              class="rounded-full!"
               (click.zoneless)="toggleLike.emit()"
             >
               {{ (liked() ? 'favorite.remove' : 'favorite.add') | translate }}

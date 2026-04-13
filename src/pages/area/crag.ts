@@ -23,7 +23,7 @@ import {
   TuiNotification,
   TuiScrollbar,
 } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogService } from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
   TuiTabs,
@@ -121,7 +121,7 @@ import { SeoService } from '../../services/seo.service';
                     iconStart="@tui.square-pen"
                     tuiIconButton
                     type="button"
-                    class="!rounded-full"
+                    class="rounded-full!"
                     (click.zoneless)="openEditCrag()"
                   >
                     {{ 'edit' | translate }}
@@ -133,7 +133,7 @@ import { SeoService } from '../../services/seo.service';
                       iconStart="@tui.trash"
                       tuiIconButton
                       type="button"
-                      class="!rounded-full"
+                      class="rounded-full!"
                       (click.zoneless)="deleteCrag()"
                     >
                       {{ 'delete' | translate }}
@@ -165,9 +165,9 @@ import { SeoService } from '../../services/seo.service';
               }
 
               @if (warn) {
-                <tui-notification appearance="warning">
+                <div tuiNotification appearance="warning">
                   {{ warn }}
-                </tui-notification>
+                </div>
               }
 
               <div

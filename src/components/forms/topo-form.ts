@@ -23,22 +23,22 @@ import {
   TuiIcon,
   TuiLabel,
   TuiOptGroup,
-  TuiTextfield,
   TuiTitle,
-} from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
-import {
+  TuiCell,
+  TuiInput,
   TuiCheckbox,
+  TuiFilterByInputPipe,
+} from '@taiga-ui/core';
+import { type TuiDialogContext } from '@taiga-ui/core';
+import {
   TuiChevron,
   TUI_CONFIRM,
-  TuiFilterByInputPipe,
   TuiInputChip,
   TuiInputTime,
   TuiMultiSelect,
   TuiFiles,
   TuiInputFiles,
 } from '@taiga-ui/kit';
-import { TuiCell } from '@taiga-ui/layout';
 import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -86,7 +86,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
     TuiLabel,
     TuiMultiSelect,
     TuiOptGroup,
-    TuiTextfield,
+    TuiInput,
     TuiTitle,
     TuiFiles,
     TuiInputFiles,
@@ -99,7 +99,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="name">{{ 'topos.name' | translate }}</label>
         <input
-          tuiTextfield
+          tuiInput
           id="name"
           [formField]="topoForm.name"
           autocomplete="off"
@@ -282,7 +282,7 @@ import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
             [placeholder]="'select' | translate"
           />
           <tui-input-chip *tuiItem />
-          <tui-data-list *tuiTextfieldDropdown>
+          <tui-data-list *tuiDropdown>
             <tui-opt-group [label]="'routes' | translate" tuiMultiSelectGroup>
               @for (
                 route of availableRoutes() | tuiFilterByInput;
@@ -730,8 +730,8 @@ export class TopoFormComponent {
         new PolymorpheusComponent(ImageEditorDialogComponent),
         {
           data,
-          size: 'fullscreen',
-          closeable: false,
+          appearance: 'fullscreen',
+          closable: false,
           dismissible: false,
         },
       ),

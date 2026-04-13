@@ -27,17 +27,18 @@ import { AscentType } from '../../models';
   imports: [TuiBadge, TuiIcon, TuiHint, TranslatePipe],
   template: `
     @let info = typeInfo();
-    <tui-badge
+    <span
+      tuiBadge
       [size]="badgeSize()"
       [style.background]="info.background"
-      class="!text-[var(--tui-text-primary-on-accent-1)] !rounded-full"
+      class="!text-[var(--tui-text-primary-on-accent-1)] rounded-full!"
       [tuiHint]="hasAttempts() ? hintTemplate : null"
     >
       <tui-icon [icon]="info.icon" />
       <span class="ml-1 uppercase font-bold">
         {{ 'ascentTypes.' + (type() || 'rp') | translate }}
       </span>
-    </tui-badge>
+    </span>
 
     <ng-template #hintTemplate>
       {{ attempts() }}

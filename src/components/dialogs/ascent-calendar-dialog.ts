@@ -8,7 +8,7 @@ import {
   TuiLoader,
 } from '@taiga-ui/core';
 import { TuiDay, TuiBooleanHandler, TuiMonth } from '@taiga-ui/cdk';
-import { TuiDialogContext } from '@taiga-ui/experimental';
+import { TuiDialogContext } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
 import { injectContext } from '@taiga-ui/polymorpheus';
@@ -80,10 +80,15 @@ interface AscentDateMarker {
                 | date: 'longDate' : undefined : global.selectedLanguage()
             }}
           </span>
-          <tui-badge appearance="neutral" size="s" class="font-bold opacity-60">
+          <span
+            tuiBadge
+            appearance="neutral"
+            size="s"
+            class="font-bold opacity-60"
+          >
             {{ ascentsForSelectedDay().length }}
             {{ 'ascents' | translate | lowercase }}
-          </tui-badge>
+          </span>
         </header>
 
         <tui-scrollbar class="flex-1 !overflow-x-hidden">

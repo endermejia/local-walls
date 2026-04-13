@@ -2,7 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { SupabaseService } from './supabase.service';
-import type { MerchandiseItem, AreaPackDetail } from '../models';
+import type { MerchandiseItem, AreaPackDetail, AreaPack } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class MerchandiseService {
@@ -100,7 +100,7 @@ export class MerchandiseService {
 
       const { data: savedPack, error: packError } = await this.supabase.client
         .from('area_packs')
-        .upsert(packToSave as AreaPackDetail)
+        .upsert(packToSave as AreaPack)
         .select()
         .single();
 

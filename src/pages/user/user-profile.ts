@@ -1,4 +1,4 @@
-import { AsyncPipe, isPlatformBrowser, LowerCasePipe } from '@angular/common';
+import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -21,13 +21,13 @@ import {
   TuiButton,
   TuiDataList,
   TuiDropdown,
-  TuiFallbackSrcPipe,
   TuiHint,
   TuiLink,
   TuiScrollbar,
-  TuiTextfield,
+  TuiInput,
+  TuiIcon,
 } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogService } from '@taiga-ui/core';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
 import {
   TUI_COUNTRIES,
@@ -71,7 +71,6 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
 @Component({
   selector: 'app-user-profile',
   imports: [
-    AsyncPipe,
     EmptyStateComponent,
     LowerCasePipe,
     ReactiveFormsModule,
@@ -84,7 +83,6 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
     TuiDataList,
     TuiDataListWrapper,
     TuiDropdown,
-    TuiFallbackSrcPipe,
     TuiHint,
     TuiLink,
     TuiScrollbar,
@@ -92,13 +90,14 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
     TuiSkeleton,
     TuiSwipe,
     TuiTabs,
-    TuiTextfield,
+    TuiInput,
     TuiPulse,
     UserProfileAscentsComponent,
     UserProfileProjectsComponent,
     UserProfileStatisticsComponent,
     UserProfileLikesComponent,
     MenuOptionsButtonComponent,
+    TuiIcon,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -116,13 +115,19 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
             <tui-pulse />
           }
           @let avatar = profileAvatarSrc();
-          <tui-avatar
-            [src]="avatar | tuiFallbackSrc: '@tui.user' | async"
+          <span
+            tuiAvatar
             [tuiSkeleton]="loading"
             size="xxl"
             class="cursor-pointer transition-transform hover:scale-105 active:scale-95"
             (click)="showEnlargedPhoto()"
-          />
+          >
+            @if (avatar) {
+              <img [src]="avatar" [alt]="profile()?.name || ''" />
+            } @else {
+              <tui-icon icon="@tui.user" />
+            }
+          </span>
           <div class="grow">
             <div class="flex flex-row gap-2 items-center">
               @let name = profile()?.name;
@@ -205,7 +210,7 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
                 class="flex items-center gap-2"
                 [tuiSkeleton]="loading ? 'country, city' : false"
               >
-                {{ countriesNames()?.[country] }}{{ city ? ', ' + city : '' }}
+                {{ countriesNames()[country] }}{{ city ? ', ' + city : '' }}
               </span>
               @if (profileAge(); as age) {
                 |
@@ -437,8 +442,7 @@ export class UserProfileComponent {
   protected readonly router = inject(Router);
   protected readonly tourService = inject(TourService);
   protected readonly TourStep = TourStep;
-  private readonly countriesNames$ = inject(TUI_COUNTRIES);
-  protected readonly countriesNames = toSignal(this.countriesNames$);
+  protected readonly countriesNames = inject(TUI_COUNTRIES);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
   protected readonly followRequestsService = inject(FollowRequestsService);

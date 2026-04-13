@@ -18,17 +18,13 @@ import {
   TuiIcon,
   TuiLabel,
   TuiOptGroup,
-  TuiTextfield,
   TuiTitle,
-} from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
-import {
-  TuiChevron,
+  TuiCell,
+  TuiInput,
   TuiFilterByInputPipe,
-  TuiInputChip,
-  TuiMultiSelect,
-} from '@taiga-ui/kit';
-import { TuiCell } from '@taiga-ui/layout';
+} from '@taiga-ui/core';
+import { type TuiDialogContext } from '@taiga-ui/core';
+import { TuiChevron, TuiInputChip, TuiMultiSelect } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -45,7 +41,7 @@ import { ParkingDto } from '../../models';
     FormsModule,
     TuiButton,
     TuiLabel,
-    TuiTextfield,
+    TuiInput,
     TranslatePipe,
     TuiChevron,
     TuiInputChip,
@@ -80,7 +76,7 @@ import { ParkingDto } from '../../models';
           autocomplete="off"
         />
         <tui-input-chip *tuiItem />
-        <tui-data-list *tuiTextfieldDropdown>
+        <tui-data-list *tuiDropdown>
           <tui-opt-group label="Parkings" tuiMultiSelectGroup>
             @for (
               parking of availableParkings() | tuiFilterByInput;

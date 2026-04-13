@@ -17,9 +17,9 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 
-import { TuiButton, TuiLink } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
-import { TuiFilter, type TuiKeySteps, TuiRange } from '@taiga-ui/kit';
+import { TuiButton, TuiLink, TuiKeySteps } from '@taiga-ui/core';
+import { type TuiDialogContext } from '@taiga-ui/core';
+import { TuiFilter, TuiRange } from '@taiga-ui/kit';
 import { TuiForm } from '@taiga-ui/layout';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
@@ -82,7 +82,7 @@ export interface FilterDialog {
           </div>
           <tui-range
             id="grade-range"
-            size="m"
+            [style.--tui-thumb-size.rem]="0.75"
             [min]="minIndex"
             [max]="maxIndex"
             [step]="1"

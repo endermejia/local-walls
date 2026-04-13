@@ -16,8 +16,8 @@ import {
   TuiButton,
   TuiIcon,
   TuiNotification,
-  TuiTextfield,
   TuiTitle,
+  TuiInput,
 } from '@taiga-ui/core';
 import { TuiPassword } from '@taiga-ui/kit';
 import { TuiCardLarge, TuiForm, TuiHeader } from '@taiga-ui/layout';
@@ -35,7 +35,7 @@ import { SupabaseService } from '../../services/supabase.service';
     TuiButton,
     TuiIcon,
     TuiNotification,
-    TuiTextfield,
+    TuiInput,
     TuiTitle,
     TuiHeader,
     TuiCardLarge,
@@ -47,7 +47,7 @@ import { SupabaseService } from '../../services/supabase.service';
     <div class="relative h-full flex justify-center items-center">
       <div class="relative z-10 w-full md:w-3/5 flex justify-center p-6">
         <form
-          tuiAppearance="floating"
+          appearance="floating"
           tuiCardLarge
           tuiForm="m"
           class="w-full max-w-sm mx-auto"
@@ -71,11 +71,11 @@ import { SupabaseService } from '../../services/supabase.service';
 
           @let err = error();
           @if (err) {
-            <tui-notification appearance="warning">
+            <div tuiNotification appearance="warning">
               <h3 tuiTitle>
                 {{ err | translate }}
               </h3>
-            </tui-notification>
+            </div>
           }
 
           @if (!isRecovery()) {
@@ -84,7 +84,7 @@ import { SupabaseService } from '../../services/supabase.service';
               <input
                 id="emailInput"
                 #emailInput
-                tuiTextfield
+                tuiInput
                 type="email"
                 [value]="email()"
                 (input.zoneless)="onInputEmail(emailInput.value)"
@@ -96,9 +96,9 @@ import { SupabaseService } from '../../services/supabase.service';
             </tui-textfield>
 
             @if (validate() && !emailValid()) {
-              <tui-notification appearance="warning">
+              <div tuiNotification appearance="warning">
                 <h3 tuiTitle>{{ 'auth.enterValidEmail' | translate }}</h3>
-              </tui-notification>
+              </div>
             }
 
             <tui-textfield>
@@ -108,7 +108,7 @@ import { SupabaseService } from '../../services/supabase.service';
               <input
                 id="passwordInput"
                 #passwordInput
-                tuiTextfield
+                tuiInput
                 type="password"
                 [value]="password()"
                 (input.zoneless)="onInputPassword(passwordInput.value)"
@@ -124,17 +124,17 @@ import { SupabaseService } from '../../services/supabase.service';
             </tui-textfield>
 
             @if (validate() && isRegister() && !passwordValid()) {
-              <tui-notification appearance="warning">
+              <div tuiNotification appearance="warning">
                 <h3 tuiTitle>
                   {{ 'auth.passwordRequirements' | translate: { min: 6 } }}
                 </h3>
-              </tui-notification>
+              </div>
             } @else if (
               validate() && !isRegister() && password().length === 0
             ) {
-              <tui-notification appearance="warning">
+              <div tuiNotification appearance="warning">
                 <h3 tuiTitle>{{ 'errors.required' | translate }}</h3>
-              </tui-notification>
+              </div>
             }
 
             @if (isRegister()) {
@@ -145,7 +145,7 @@ import { SupabaseService } from '../../services/supabase.service';
                 <input
                   id="confirmRegPasswordInput"
                   #confirmRegPasswordInput
-                  tuiTextfield
+                  tuiInput
                   type="password"
                   [value]="confirmPassword()"
                   (input.zoneless)="
@@ -162,9 +162,9 @@ import { SupabaseService } from '../../services/supabase.service';
               </tui-textfield>
 
               @if (validate() && confirmPassword() !== password()) {
-                <tui-notification appearance="warning">
+                <div tuiNotification appearance="warning">
                   <h3 tuiTitle>{{ 'errors.passwordMismatch' | translate }}</h3>
-                </tui-notification>
+                </div>
               }
             }
 
@@ -227,9 +227,9 @@ import { SupabaseService } from '../../services/supabase.service';
             </footer>
           } @else {
             <!-- Password recovery form -->
-            <tui-notification appearance="neutral">
+            <div tuiNotification appearance="neutral">
               <h3 tuiTitle>{{ 'auth.inRecoveryInfo' | translate }}</h3>
-            </tui-notification>
+            </div>
             <tui-textfield>
               <label tuiLabel for="newPasswordInput">{{
                 'newPassword' | translate
@@ -237,7 +237,7 @@ import { SupabaseService } from '../../services/supabase.service';
               <input
                 id="newPasswordInput"
                 #newPasswordInput
-                tuiTextfield
+                tuiInput
                 type="password"
                 [value]="newPassword()"
                 (input.zoneless)="newPassword.set(newPasswordInput.value)"
@@ -250,11 +250,11 @@ import { SupabaseService } from '../../services/supabase.service';
             </tui-textfield>
 
             @if (validate() && !newPasswordValid()) {
-              <tui-notification appearance="warning">
+              <div tuiNotification appearance="warning">
                 <h3 tuiTitle>
                   {{ 'auth.passwordRequirements' | translate: { min: 6 } }}
                 </h3>
-              </tui-notification>
+              </div>
             }
 
             <tui-textfield>
@@ -264,7 +264,7 @@ import { SupabaseService } from '../../services/supabase.service';
               <input
                 id="confirmPasswordInput"
                 #confirmPasswordInput
-                tuiTextfield
+                tuiInput
                 type="password"
                 [value]="confirmPassword()"
                 (input.zoneless)="
@@ -281,9 +281,9 @@ import { SupabaseService } from '../../services/supabase.service';
             </tui-textfield>
 
             @if (validate() && confirmPassword() !== newPassword()) {
-              <tui-notification appearance="warning">
+              <div tuiNotification appearance="warning">
                 <h3 tuiTitle>{{ 'errors.passwordMismatch' | translate }}</h3>
-              </tui-notification>
+              </div>
             }
 
             <footer class="flex flex-col gap-2">

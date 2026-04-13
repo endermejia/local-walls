@@ -1,4 +1,4 @@
-import { AsyncPipe, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -12,18 +12,17 @@ import {
 import { RouterLink } from '@angular/router';
 
 import {
-  TuiTextfield,
   TuiButton,
-  TuiFallbackSrcPipe,
   TuiLabel,
   TuiLoader,
   TuiScrollbar,
+  TuiInput,
+  TuiIcon,
 } from '@taiga-ui/core';
-import { TuiDialogContext, TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogContext, TuiDialogService } from '@taiga-ui/core';
 import { TuiAvatar, TuiConfirmData, TUI_CONFIRM } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
-import { WaIntersectionObserver } from '@ng-web-apis/intersection-observer';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
@@ -51,18 +50,16 @@ export interface UserListDialogData {
 @Component({
   selector: 'app-user-list-dialog',
   imports: [
-    AsyncPipe,
     RouterLink,
     TuiAvatar,
-    TuiFallbackSrcPipe,
     TuiLoader,
     TuiScrollbar,
     TranslatePipe,
-    TuiTextfield,
+    TuiInput,
     TuiLabel,
     EmptyStateComponent,
-    WaIntersectionObserver,
     TuiButton,
+    TuiIcon,
   ],
   template: `
     <div class="flex flex-col h-[60dvh] min-h-[400px] -m-4">
@@ -71,13 +68,13 @@ export interface UserListDialogData {
         <tui-textfield
           [tuiTextfieldCleaner]="true"
           tuiTextfieldSize="m"
-          class="w-full bg-[var(--tui-background-base)]"
+          class="w-full bg-(--tui-background-base)"
         >
           <label tuiLabel for="user-search">
             {{ 'search' | translate }}
           </label>
           <input
-            tuiTextfield
+            tuiInput
             #userSearch
             id="user-search"
             autocomplete="off"
@@ -87,22 +84,21 @@ export interface UserListDialogData {
         </tui-textfield>
       </div>
 
-      <tui-scrollbar waIntersectionRoot class="grow min-h-0">
+      <tui-scrollbar class="grow min-h-0">
         <div class="flex flex-col gap-1">
           @for (user of users(); track user.id) {
             <a
-              class="flex items-center gap-3 p-3 hover:bg-[var(--tui-background-neutral-1)] transition-colors rounded-xl cursor-pointer"
+              class="flex items-center gap-3 p-3 hover:bg-(--tui-background-neutral-1) transition-colors rounded-xl cursor-pointer"
               [routerLink]="['/profile', user.id]"
               (click)="context.completeWith(true)"
             >
-              <tui-avatar
-                [src]="
-                  supabase.buildAvatarUrl(user.avatar)
-                    | tuiFallbackSrc: '@tui.user'
-                    | async
-                "
-                size="m"
-              />
+              <span tuiAvatar size="m">
+                @if (user.avatar; as avatar) {
+                  <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
+                } @else {
+                  <tui-icon icon="@tui.user" />
+                }
+              </span>
               <div class="flex flex-col grow min-w-0">
                 <span class="font-bold text-text truncate">{{
                   user.name
@@ -156,12 +152,8 @@ export interface UserListDialogData {
           }
 
           @if (hasMore() && !loading()) {
-            <div
-              class="p-4 flex justify-center"
-              waIntersectionObserver
-              (waIntersectionObservee)="onIntersection($any($event))"
-            >
-              <tui-loader />
+            <div class="p-4 flex justify-center text-sm opacity-50">
+              {{ 'loading' | translate }}
             </div>
           }
         </div>

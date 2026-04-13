@@ -6,7 +6,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { SupabaseService } from '../../services/supabase.service';
 import { GlobalData } from '../../services/global-data';
 import { Router } from '@angular/router';
-import { TuiDialogContext } from '@taiga-ui/experimental';
+import { TuiDialogContext } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 interface PurchaseRecord {

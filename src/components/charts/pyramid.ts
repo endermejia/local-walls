@@ -24,7 +24,7 @@ import {
   TuiHint,
   TuiIcon,
   TuiScrollbar,
-  TuiTextfield,
+  TuiInput,
 } from '@taiga-ui/core';
 import { TuiDataListWrapper, TuiSelect, TuiSkeleton } from '@taiga-ui/kit';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -83,7 +83,7 @@ export interface PyramidLevel {
     TuiScrollbar,
     TuiSelect,
     TuiSkeleton,
-    TuiTextfield,
+    TuiInput,
     GradeComponent,
     AscentTypeComponent,
   ],
@@ -110,7 +110,7 @@ export interface PyramidLevel {
               (ngModelChange)="selectedYear.set($event)"
               autocomplete="off"
             />
-            <tui-data-list *tuiTextfieldDropdown>
+            <tui-data-list *tuiDropdown>
               <tui-data-list-wrapper new [items]="years()" />
             </tui-data-list>
           </tui-textfield>

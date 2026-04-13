@@ -15,8 +15,8 @@ import {
   TuiLoader,
   TuiNotification,
   TuiScrollbar,
-  TuiTextfield,
   TuiTitle,
+  TuiInput,
 } from '@taiga-ui/core';
 import {
   TuiAvatar,
@@ -56,7 +56,7 @@ import {
     TuiLoader,
     TuiNotification,
     TuiScrollbar,
-    TuiTextfield,
+    TuiInput,
     TuiTitle,
   ],
   template: `
@@ -77,21 +77,21 @@ import {
                   {{ areasCount }}
                 </tui-badge-notification>
               }
-              <tui-avatar
+              <span
+                [tuiAvatar]="global.iconSrc()('zone')"
                 tuiThumbnail
                 size="l"
-                [src]="global.iconSrc()('zone')"
                 class="self-center"
                 [attr.aria-label]="'nav.my-areas' | translate"
-              />
+              ></span>
             </tui-badged-content>
             <span>{{ 'nav.my-areas' | translate }}</span>
           </h1>
         </header>
 
-        <tui-notification size="m" class="my-4">
+        <div tuiNotification size="m" class="my-4">
           {{ 'myAreas.notification' | translate }}
-        </tui-notification>
+        </div>
 
         <div class="sticky top-0 z-10 py-4 flex items-end gap-2">
           <tui-textfield
@@ -102,7 +102,7 @@ import {
               {{ 'searchPlaceholder' | translate }}
             </label>
             <input
-              tuiTextfield
+              tuiInput
               #areasSearch
               id="areas-search"
               autocomplete="off"

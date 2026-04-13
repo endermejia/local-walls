@@ -1,9 +1,4 @@
-import {
-  AsyncPipe,
-  isPlatformBrowser,
-  Location,
-  NgOptimizedImage,
-} from '@angular/common';
+import { isPlatformBrowser, Location, NgOptimizedImage } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -31,22 +26,19 @@ import { TuiDay, TuiStringMatcher } from '@taiga-ui/cdk';
 import {
   TuiButton,
   tuiDateFormatProvider,
-  TuiFallbackSrcPipe,
-  TuiFlagPipe,
   TuiIcon,
   TuiNotification,
   TuiScrollbar,
-  TuiTextfield,
   TuiTitle,
   TuiDropdown,
   TuiError,
   TuiCalendar,
   TuiCalendarYear,
-} from '@taiga-ui/core';
-import {
+  TuiInput,
+  TuiFilterByInputPipe,
   TuiDialogService,
   type TuiDialogContext,
-} from '@taiga-ui/experimental';
+} from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
   TUI_COUNTRIES,
@@ -56,7 +48,6 @@ import {
   TuiChevron,
   TuiComboBox,
   TuiDataListWrapper,
-  TuiFilterByInputPipe,
   TuiInputDate,
   TuiInputNumber,
   TuiInputYear,
@@ -68,6 +59,7 @@ import {
   TuiTextarea,
   TuiPulse,
   type TuiConfirmData,
+  TuiFlagPipe,
 } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
 import { PolymorpheusContent } from '@taiga-ui/polymorpheus';
@@ -121,7 +113,6 @@ interface Country {
 @Component({
   selector: 'app-user-profile-config',
   imports: [
-    AsyncPipe,
     FormsModule,
     NgOptimizedImage,
     TourHintComponent,
@@ -133,7 +124,6 @@ interface Country {
     TuiChevron,
     TuiComboBox,
     TuiDataListWrapper,
-    TuiFallbackSrcPipe,
     TuiFilterByInputPipe,
     TuiFlagPipe,
     TuiHeader,
@@ -149,7 +139,7 @@ interface Country {
     TuiSkeleton,
     TuiSwitch,
     TuiTextarea,
-    TuiTextfield,
+    TuiInput,
     TuiDropdown,
     TuiPulse,
     TuiTitle,
@@ -158,7 +148,7 @@ interface Country {
     TuiCalendarYear,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [tuiDateFormatProvider({ mode: 'DMY', separator: '/' })],
+  providers: [tuiDateFormatProvider({ mode: 'dd/mm/yyyy', separator: '/' })],
   host: { class: 'flex grow min-h-0' },
   template: `
     <tui-scrollbar class="flex grow">
@@ -196,9 +186,10 @@ interface Country {
               class="rounded-full"
             >
               @if (userEmail()) {
-                <tui-icon icon="@tui.upload" tuiSlot="top" tuiBadge />
+                <tui-icon iconStart="@tui.upload" tuiSlot="top" tuiBadge />
               }
-              <tui-avatar
+              <span
+                tuiAvatar
                 (mouseenter)="avatarHovered.set(true)"
                 (mouseleave)="avatarHovered.set(false)"
                 (click)="!isUploadingAvatar() && uploadAvatar()"
@@ -206,10 +197,15 @@ interface Country {
                 tabindex="0"
                 class="cursor-pointer"
                 size="xxl"
-                [src]="avatarSrc() | tuiFallbackSrc: '@tui.user' | async"
                 [tuiShimmer]="isUploadingAvatar()"
                 [tuiSkeleton]="!userEmail()"
-              />
+              >
+                @if (avatarSrc(); as avatar) {
+                  <img [src]="avatar" alt="" />
+                } @else {
+                  @tui.user
+                }
+              </span>
             </tui-badged-content>
           </div>
           <div
@@ -237,7 +233,7 @@ interface Country {
               }}</label>
               <input
                 id="nameInput"
-                tuiTextfield
+                tuiInput
                 type="text"
                 autocomplete="off"
                 [ngModel]="model().fullName"
@@ -260,11 +256,11 @@ interface Country {
               <tui-pulse />
             }
             @if (nameEqualsEmail()) {
-              <tui-notification appearance="warning" class="mt-2">
+              <div tuiNotification appearance="warning" class="mt-2">
                 <h3 tuiTitle>
                   {{ 'profile.name.equalsEmail' | translate }}
                 </h3>
-              </tui-notification>
+              </div>
             }
           </div>
         </div>
@@ -273,7 +269,7 @@ interface Country {
           <tui-textfield class="w-full" [tuiTextfieldCleaner]="false">
             <label tuiLabel for="emailInput">{{ 'email' | translate }}</label>
             <input
-              tuiTextfield
+              tuiInput
               type="email"
               autocomplete="off"
               [ngModel]="userEmail()"
@@ -311,7 +307,13 @@ interface Country {
         <!-- Temporarily hidden
         <div class="flex items-center gap-4">
           @if (selectedEightAnuUser.value(); as user) {
-            <tui-avatar size="l" [src]="user.avatar" />
+            <div tuiAvatar size="l">
+              @if (user.avatar) {
+                <img [src]="user.avatar" alt="" />
+              } @else {
+                @tui.user
+              }
+            </div>
           }
 
           @let items = eightAnuResults();
@@ -349,7 +351,13 @@ interface Country {
             />
             <ng-template #eightAnuItem let-item>
               <div class="flex items-center gap-2">
-                <tui-avatar size="s" [src]="item.avatar" />
+                  <div tuiAvatar size="s" class="mr-2">
+                    @if (item.avatar; as avatar) {
+                      <img [src]="avatar" alt="" />
+                    } @else {
+                      @tui.user
+                    }
+                  </div>
                 <span>{{ item.userName }}</span>
               </div>
             </ng-template>
@@ -388,7 +396,7 @@ interface Country {
                 [tuiSkeleton]="!userEmail()"
               />
               <tui-data-list-wrapper
-                *tuiTextfieldDropdown
+                *tuiDropdown
                 new
                 [items]="countryIds() | tuiFilterByInput"
                 [itemContent]="countryItem"
@@ -413,7 +421,7 @@ interface Country {
               <label tuiLabel for="cityInput">{{ 'city' | translate }}</label>
               <input
                 id="cityInput"
-                tuiTextfield
+                tuiInput
                 type="text"
                 autocomplete="off"
                 [ngModel]="model().city"
@@ -456,7 +464,7 @@ interface Country {
                 [tuiSkeleton]="!userEmail()"
                 autocomplete="off"
               />
-              <tui-calendar *tuiTextfieldDropdown />
+              <tui-calendar *tuiDropdown />
             </tui-textfield>
             <tui-error [error]="getFieldError('birth_date')" />
           </div>
@@ -485,7 +493,7 @@ interface Country {
                 autocomplete="off"
               />
               <tui-calendar-year
-                *tuiTextfieldDropdown
+                *tuiDropdown
                 [value]="model().starting_climbing_year || currentYear"
                 (yearClick)="
                   updateModel('starting_climbing_year', $event);
@@ -544,11 +552,7 @@ interface Country {
                 [tuiSkeleton]="!userEmail()"
                 autocomplete="off"
               />
-              <tui-data-list-wrapper
-                *tuiTextfieldDropdown
-                new
-                [items]="sexes"
-              />
+              <tui-data-list-wrapper *tuiDropdown new [items]="sexes" />
             </tui-textfield>
             <tui-error [error]="getFieldError('sex')" />
           </div>
@@ -587,11 +591,7 @@ interface Country {
                 [tuiSkeleton]="!userEmail()"
                 autocomplete="off"
               />
-              <tui-data-list-wrapper
-                *tuiTextfieldDropdown
-                new
-                [items]="languages()"
-              />
+              <tui-data-list-wrapper *tuiDropdown new [items]="languages()" />
             </tui-textfield>
             <tui-error [error]="getFieldError('language')" />
 
@@ -675,7 +675,7 @@ interface Country {
         </div>
 
         <!-- Modo Edición -->
-        <div class="mt-8 pt-8 border-t border-[var(--tui-border-normal)]">
+        <div class="mt-8 pt-8 border-t border-(--tui-border-normal)">
           <div class="flex items-center justify-between gap-4 mb-4">
             <h2 class="text-lg font-bold m-0 flex items-center gap-2">
               <tui-icon icon="@tui.pencil" />
@@ -691,9 +691,9 @@ interface Country {
             />
           </div>
 
-          <tui-notification appearance="info" class="mt-2">
+          <div tuiNotification appearance="info" class="mt-2">
             <div
-              class="text-base font-bold text-[var(--tui-text-primary)] border-b border-[var(--tui-border-hint)] pb-2 mb-3"
+              class="text-base font-bold text-(--tui-text-primary) border-b border-(--tui-border-hint) pb-2 mb-3"
             >
               {{ 'profile.editing.infoTitle' | translate }}
             </div>
@@ -748,14 +748,14 @@ interface Country {
                 </ul>
               </li>
             </ul>
-          </tui-notification>
+          </div>
         </div>
 
         <br />
 
         <!-- Account Actions -->
         <h2
-          class="text-xl font-bold mt-12 mb-6 border-t border-[var(--tui-border-normal)] pt-8"
+          class="text-xl font-bold mt-12 mb-6 border-t border-(--tui-border-normal) pt-8"
         >
           {{ 'accountActions' | translate }}
         </h2>
@@ -763,10 +763,10 @@ interface Country {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Tools & Management -->
           <div
-            class="flex flex-col gap-4 p-5 rounded-2xl bg-[var(--tui-base-02)] border border-[var(--tui-border-normal)]"
+            class="flex flex-col gap-4 p-5 rounded-2xl bg-(--tui-base-02) border border-(--tui-border-normal)"
           >
             <h3
-              class="text-base font-semibold flex items-center gap-2 m-0 text-[var(--tui-text-secondary)]"
+              class="text-base font-semibold flex items-center gap-2 m-0 text-(--tui-text-secondary)"
             >
               <tui-icon icon="@tui.settings" size="s" />
               {{ 'toolsAndManagement' | translate }}
@@ -788,9 +788,9 @@ interface Country {
                   />
                   {{ 'followRequests' | translate }}
                   @if (pendingRequestsCount() > 0) {
-                    <tui-badge class="absolute -top-2 -right-2">{{
+                    <span tuiBadge class="absolute -top-2 -right-2">{{
                       pendingRequestsCount()
-                    }}</tui-badge>
+                    }}</span>
                   }
                 </button>
               }
@@ -829,10 +829,10 @@ interface Country {
 
           <!-- Session & Security -->
           <div
-            class="flex flex-col gap-4 p-5 rounded-2xl bg-[var(--tui-base-02)] border border-[var(--tui-border-normal)]"
+            class="flex flex-col gap-4 p-5 rounded-2xl bg-(--tui-base-02) border border-(--tui-border-normal)"
           >
             <h3
-              class="text-base font-semibold flex items-center gap-2 m-0 text-[var(--tui-text-secondary)]"
+              class="text-base font-semibold flex items-center gap-2 m-0 text-(--tui-text-secondary)"
             >
               <tui-icon icon="@tui.shield" size="s" />
               {{ 'securityAndSession' | translate }}
@@ -877,7 +877,7 @@ interface Country {
     <ng-template #deleteDialog let-observer>
       <div class="flex flex-col gap-4">
         <h3 tuiTitle>{{ 'profile.deleteAccount.title' | translate }}</h3>
-        <p class="text-[var(--tui-text-negative)] font-bold">
+        <p class="text-(--tui-text-negative) font-bold">
           {{ 'profile.deleteAccount.warning' | translate }}
         </p>
         <p>
@@ -888,7 +888,7 @@ interface Country {
 
         <tui-textfield>
           <input
-            tuiTextfield
+            tuiInput
             [ngModel]="model().deleteEmail"
             (ngModelChange)="updateModel('deleteEmail', $event)"
             [invalid]="
@@ -984,11 +984,11 @@ export class UserProfileConfigComponent {
       filter(() => !this.selectedEightAnuUser.value()),
       tap(() => this.eightAnuShowLoader.set(true)),
       debounceTime(300),
-      switchMap((query) =>
+      switchMap((query: string) =>
         query.length >= 3
           ? this.eightAnuService
               .searchUsers(query)
-              .pipe(map((res) => res.items))
+              .pipe(map((res: { items: EightAnuUser[] }) => res.items))
           : of([]),
       ),
       tap(() => this.eightAnuShowLoader.set(false)),
@@ -1108,14 +1108,11 @@ export class UserProfileConfigComponent {
   });
 
   // Country selector
-  readonly countries = toSignal(
-    inject(TUI_COUNTRIES).pipe(
-      map((x) =>
-        Object.entries(x).map(([id, name]) => ({ id, name }) as Country),
-      ),
-    ),
-    { initialValue: [] as Country[] },
-  );
+  private readonly countriesMap = inject(TUI_COUNTRIES);
+  readonly countries = computed(() => {
+    const x = this.countriesMap();
+    return Object.entries(x).map(([id, name]) => ({ id, name }) as Country);
+  });
   protected readonly countryIds = computed(() =>
     (this.countries() || []).map((c) => c.id),
   );

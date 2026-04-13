@@ -23,15 +23,16 @@ import {
   selector: 'app-grade',
   imports: [TuiBadge, TranslatePipe, TuiHint],
   template: `
-    <tui-badge
+    <span
+      tuiBadge
       [size]="badgeSize()"
-      class="self-center font-bold !text-[var(--tui-text-primary-on-accent-1)] !rounded-full content-center"
+      class="self-center font-bold text-(--tui-text-primary-on-accent-1)! rounded-full! content-center"
       [style.background]="gradeColor()"
       [attr.aria-label]="'grade' | translate"
       [tuiHint]="hint()"
     >
       <strong>{{ gradeLabel() }}</strong>
-    </tui-badge>
+    </span>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

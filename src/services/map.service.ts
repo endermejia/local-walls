@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
-import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogService } from '@taiga-ui/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { firstValueFrom, Observable } from 'rxjs';

@@ -31,17 +31,16 @@ import {
   TuiLink,
   TuiLoader,
   TuiScrollbar,
-  TuiTextfield,
+  TuiCell,
+  TuiInput,
 } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogService } from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
   TuiAvatar,
   type TuiConfirmData,
   TuiInputNumber,
 } from '@taiga-ui/kit';
-import { TuiCell } from '@taiga-ui/layout';
-
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
@@ -116,7 +115,7 @@ export interface TopoRouteRow {
     TuiLoader,
     TuiScrollbar,
     TuiTable,
-    TuiTextfield,
+    TuiInput,
     PaywallComponent,
   ],
   template: `
@@ -162,7 +161,7 @@ export interface TopoRouteRow {
                     size="s"
                     appearance="neutral"
                     iconStart="@tui.square-pen"
-                    class="!rounded-full"
+                    class="rounded-full!"
                     (click.zoneless)="openEditTopo(t)"
                   >
                     {{ 'edit' | translate }}
@@ -173,7 +172,7 @@ export interface TopoRouteRow {
                       size="s"
                       appearance="negative"
                       iconStart="@tui.trash"
-                      class="!rounded-full"
+                      class="rounded-full!"
                       (click.zoneless)="deleteTopo(t)"
                     >
                       {{ 'delete' | translate }}
@@ -202,7 +201,7 @@ export interface TopoRouteRow {
             <!-- Topo image container -->
             @let topoImage = topoImageResource.value();
             <div
-              class="relative w-full h-full lg:col-span-2 bg-[var(--tui-background-neutral-1)] md:rounded-xl md:border md:border-[var(--tui-border-normal)] overflow-hidden cursor-grab active:cursor-grabbing touch-none"
+              class="relative w-full h-full lg:col-span-2 bg-(--tui-background-neutral-1) md:rounded-xl md:border md:border-(--tui-border-normal) overflow-hidden cursor-grab active:cursor-grabbing touch-none"
               #scrollContainer
               (wheel.zoneless)="onWheel($event)"
               (touchstart.zoneless)="onTouchStart($any($event))"
@@ -393,7 +392,7 @@ export interface TopoRouteRow {
             <!-- Topo fullscreen -->
             @if (isFullscreen()) {
               <div
-                class="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden touch-none backdrop-blur-xl cursor-grab active:cursor-grabbing"
+                class="fixed inset-0 z-1000 flex items-center justify-center overflow-hidden touch-none backdrop-blur-xl cursor-grab active:cursor-grabbing"
                 tabindex="0"
                 (keydown.enter)="toggleFullscreen(false)"
                 (click)="toggleFullscreen(false)"
@@ -410,12 +409,12 @@ export interface TopoRouteRow {
                 (window:keydown.escape)="toggleFullscreen(false)"
               >
                 <!-- Close button -->
-                <div class="absolute top-4 right-4 z-[1001]">
+                <div class="absolute top-4 right-4 z-1001">
                   <button
                     tuiIconButton
                     appearance="floating"
                     [size]="isMobile ? 'm' : 'l'"
-                    class="bg-[var(--tui-background-base)]"
+                    class="bg-(--tui-background-base)"
                     (click)="toggleFullscreen(false); $event.stopPropagation()"
                   >
                     <tui-icon icon="@tui.x" />
@@ -441,7 +440,7 @@ export interface TopoRouteRow {
                   <img
                     [src]="topoImage || global.iconSrc()('topo')"
                     [alt]="t.name"
-                    class="max-w-[100dvw] max-h-[100dvh] object-contain block"
+                    class="max-w-dvw max-h-dvh object-contain block"
                     draggable="false"
                     (load)="onImageLoad($event)"
                   />
@@ -600,7 +599,7 @@ export interface TopoRouteRow {
                 <!-- Route Info Tooltip -->
                 @if (hasAccess && selectedRouteInfo(); as selectedRoute) {
                   <div
-                    class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-[var(--tui-background-base)] border border-[var(--tui-border-normal)] rounded-2xl shadow-2xl p-4 w-[90vw] md:w-auto md:min-w-80 max-w-[95vw] z-10"
+                    class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-(--tui-background-base) border border-(--tui-border-normal) rounded-2xl shadow-2xl p-4 w-[90vw] md:w-auto md:min-w-80 max-w-[95vw] z-10"
                     (click)="$event.stopPropagation()"
                     (keydown.enter)="$event.stopPropagation()"
                     tabindex="-1"
@@ -611,7 +610,7 @@ export interface TopoRouteRow {
                         appearance="flat"
                         size="s"
                         iconStart="@tui.chevron-left"
-                        class="!rounded-full"
+                        class="rounded-full!"
                         (click)="selectPrevRoute(); $event.stopPropagation()"
                       >
                         {{ 'previous' | translate }}
@@ -620,7 +619,7 @@ export interface TopoRouteRow {
                       <div class="flex flex-1 items-center gap-3 min-w-0">
                         <div class="flex-1 min-w-0">
                           <div
-                            class="font-bold text-lg break-words line-clamp-2 text-center"
+                            class="font-bold text-lg wrap-break-word line-clamp-2 text-center"
                           >
                             {{ selectedRoute.route.name }}
                           </div>
@@ -639,7 +638,7 @@ export interface TopoRouteRow {
                         appearance="flat"
                         size="s"
                         iconStart="@tui.chevron-right"
-                        class="!rounded-full mr-1"
+                        class="rounded-full! mr-1"
                         (click)="selectNextRoute(); $event.stopPropagation()"
                       >
                         {{ 'next' | translate }}
@@ -725,7 +724,7 @@ export interface TopoRouteRow {
                             '-' +
                             item._ref.route_id
                           "
-                          [class.!bg-[var(--tui-background-accent-1-hover)]]="
+                          [class.bg-(--tui-background-accent-1-hover)!]="
                             item._ref.route_id === selectedRouteId()
                           "
                           [style.background]="
@@ -764,13 +763,13 @@ export interface TopoRouteRow {
                                     @if (global.canEditCrag()) {
                                       <tui-textfield
                                         tuiTextfieldSize="s"
-                                        [class.!w-16]="!isMobile"
-                                        [class.!w-10]="isMobile"
-                                        class="!h-8"
+                                        [class.w-16!]="!isMobile"
+                                        [class.w-10!]="isMobile"
+                                        class="h-8!"
                                       >
                                         <input
                                           tuiInputNumber
-                                          class="text-center !h-full !border-none !p-0 route-index-input"
+                                          class="text-center h-full! border-none! p-0! route-index-input"
                                           [ngModel]="item.index + 1"
                                           (blur.zoneless)="
                                             onUpdateRouteNumber(
@@ -827,11 +826,11 @@ export interface TopoRouteRow {
                                         tuiTextfieldSize="s"
                                         [class.!w-16]="!isMobile"
                                         [class.!w-12]="isMobile"
-                                        class="!h-8"
+                                        class="h-8!"
                                       >
                                         <input
                                           tuiInputNumber
-                                          class="text-center !h-full !border-none !p-0 route-height-input"
+                                          class="text-center h-full! border-none! p-0! route-height-input"
                                           [ngModel]="item.height"
                                           (blur.zoneless)="
                                             onUpdateRouteHeight(
@@ -871,7 +870,7 @@ export interface TopoRouteRow {
                                         size="m"
                                         appearance="neutral"
                                         iconStart="@tui.circle-plus"
-                                        class="!rounded-full"
+                                        class="rounded-full!"
                                         (click.zoneless)="
                                           onLogAscent(item._ref);
                                           $event.stopPropagation()
@@ -883,8 +882,9 @@ export interface TopoRouteRow {
                                       item._ref.route.own_ascent;
                                       as ascentToEdit
                                     ) {
-                                      <tui-avatar
-                                        class="cursor-pointer !text-[var(--tui-text-primary-on-accent-1)]"
+                                      <span
+                                        tuiAvatar
+                                        class="cursor-pointer text-(--tui-text-primary-on-accent-1)!"
                                         [style.background]="
                                           ascentsService.ascentInfo()[
                                             ascentToEdit?.type || 'default'
@@ -907,9 +907,10 @@ export interface TopoRouteRow {
                                             ].icon
                                           "
                                         />
-                                      </tui-avatar>
+                                      </span>
                                     }
                                     @if (!item.climbed) {
+                                      <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                                       <button
                                         tuiIconButton
                                         size="m"
@@ -917,7 +918,7 @@ export interface TopoRouteRow {
                                           item.project ? 'glass' : 'secondary'
                                         "
                                         iconStart="@tui.bookmark"
-                                        class="!rounded-full"
+                                        class="rounded-full!"
                                         (click.zoneless)="
                                           onToggleProject(item);
                                           $event.stopPropagation()
@@ -940,7 +941,7 @@ export interface TopoRouteRow {
                                         size="s"
                                         appearance="negative"
                                         iconStart="@tui.unlink"
-                                        class="!rounded-full"
+                                        class="rounded-full!"
                                         (click.zoneless)="
                                           deleteTopoRoute(item._ref);
                                           $event.stopPropagation()

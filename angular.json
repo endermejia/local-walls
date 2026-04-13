@@ -39,10 +39,10 @@
               }
             ],
             "styles": [
-              "node_modules/@taiga-ui/core/styles/taiga-ui-theme.less",
-              "node_modules/@taiga-ui/core/styles/taiga-ui-fonts.less",
-              "node_modules/@taiga-ui/core/styles/taiga-ui-local.less",
-              "node_modules/@taiga-ui/addon-mobile/styles/taiga-ui-mobile.less",
+              "@taiga-ui/styles/taiga-ui-theme.less",
+              "@taiga-ui/styles/taiga-ui-fonts.less",
+              "@taiga-ui/styles/utils.less",
+              "@taiga-ui/addon-mobile/styles/taiga-ui-mobile.less",
               "node_modules/leaflet/dist/leaflet.css",
               "src/styles.css"
             ],
@@ -99,7 +99,7 @@
         "test": {
           "builder": "@angular/build:karma",
           "options": {
-            "polyfills": ["zone.js", "zone.js/testing"],
+            "polyfills": [],
             "tsConfig": "tsconfig.spec.json",
             "assets": [
               {

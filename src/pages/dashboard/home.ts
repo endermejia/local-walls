@@ -29,7 +29,7 @@ import {
   TuiLink,
   TuiScrollbar,
 } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogService } from '@taiga-ui/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
   TuiBadgeNotification,
@@ -120,7 +120,7 @@ import {
                     tuiChevron
                     appearance="flat-grayscale"
                     type="button"
-                    class="!text-xl !font-bold !text-inherit !no-underline !bg-transparent"
+                    class="text-xl! font-bold! text-inherit! no-underline! bg-transparent!"
                     [tuiDropdown]="feedFilterDropdown"
                     [(tuiDropdownOpen)]="dropdownOpen"
                   >
@@ -216,7 +216,7 @@ import {
                     <a
                       [routerLink]="['/area', c.area_slug, c.slug]"
                       tuiAppearance="textfield"
-                      class="flex-none p-3 rounded-2xl flex items-center gap-2 no-underline text-inherit hover:bg-[var(--tui-background-neutral-1)]"
+                      class="flex-none p-3 rounded-2xl flex items-center gap-2 no-underline text-inherit hover:bg-(--tui-background-neutral-1)"
                     >
                       <span class="whitespace-nowrap font-bold text-sm">{{
                         c.name

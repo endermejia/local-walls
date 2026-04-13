@@ -26,20 +26,19 @@ import { FormsModule } from '@angular/forms';
 import { TuiIdentityMatcher } from '@taiga-ui/cdk';
 import {
   TuiButton,
-  TuiDataList,
   TuiError,
   TuiLabel,
   TuiNumberFormat,
-  TuiTextfield,
+  TuiInput,
+  TuiFilterByInputPipe,
 } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
+import { type TuiDialogContext } from '@taiga-ui/core';
 import {
   TuiInputNumber,
   TuiTextarea,
   TuiInputChip,
   TuiChevron,
   TuiDataListWrapper,
-  TuiFilterByInputPipe,
   TuiComboBox,
   TuiSelect,
 } from '@taiga-ui/kit';
@@ -97,7 +96,7 @@ interface CragFormModel {
     TuiButton,
     TuiError,
     TuiLabel,
-    TuiTextfield,
+    TuiInput,
     TranslatePipe,
     TuiInputNumber,
     TuiTextarea,
@@ -107,7 +106,6 @@ interface CragFormModel {
     TuiDataListWrapper,
     TuiChevron,
     TuiFilterByInputPipe,
-    TuiDataList,
     CounterComponent,
     TuiComboBox,
   ],
@@ -131,7 +129,7 @@ interface CragFormModel {
           autocomplete="off"
         />
         <tui-data-list-wrapper
-          *tuiTextfieldDropdown
+          *tuiDropdown
           new
           [items]="areaOptions.value() || [] | tuiFilterByInput"
         />
@@ -140,7 +138,7 @@ interface CragFormModel {
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="crag-name">{{ 'name' | translate }}</label>
         <input
-          tuiTextfield
+          tuiInput
           id="crag-name"
           [formField]="cragForm.name"
           type="text"
@@ -155,7 +153,7 @@ interface CragFormModel {
         <tui-textfield [tuiTextfieldCleaner]="false">
           <label tuiLabel for="crag-slug">{{ 'slug' | translate }}</label>
           <input
-            tuiTextfield
+            tuiInput
             id="crag-slug"
             [formField]="cragForm.slug"
             type="text"

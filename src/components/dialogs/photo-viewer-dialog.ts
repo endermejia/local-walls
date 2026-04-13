@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 
 import { TuiButton, TuiIcon } from '@taiga-ui/core';
-import { TuiDialogContext } from '@taiga-ui/experimental';
+import { TuiDialogContext } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 import {
@@ -27,7 +27,7 @@ export interface PhotoViewerData {
   imports: [CommonModule, TuiButton, TuiIcon],
   template: `
     <div
-      class="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden touch-none p-0 bg-[rgba(0,0,0,0.8)] backdrop-blur-xl cursor-grab active:cursor-grabbing"
+      class="fixed inset-0 z-1000 flex items-center justify-center overflow-hidden touch-none p-0 bg-black/80 backdrop-blur-xl cursor-grab active:cursor-grabbing"
       (wheel.zoneless)="onWheel($event)"
       (touchstart.zoneless)="onTouchStart($any($event))"
       (touchmove.zoneless)="onTouchMove($any($event))"
@@ -61,7 +61,7 @@ export interface PhotoViewerData {
       >
         <img
           [src]="context.data.imageUrl"
-          class="max-w-[100dvw] max-h-[100dvh] block object-contain shadow-2xl rounded-2xl"
+          class="max-w-dvw max-h-dvh block object-contain shadow-2xl rounded-2xl"
           alt="Photo preview"
           draggable="false"
           (load)="resetZoom()"
@@ -69,12 +69,12 @@ export interface PhotoViewerData {
       </div>
 
       <!-- Close button -->
-      <div class="absolute top-4 right-4 z-[1001]">
+      <div class="absolute top-4 right-4 z-1001">
         <button
           tuiIconButton
           appearance="floating"
           size="l"
-          class="bg-[var(--tui-background-base)] rounded-full"
+          class="bg-(--tui-background-base) rounded-full"
           (click)="context.completeWith(); $event.stopPropagation()"
         >
           <tui-icon icon="@tui.x" />

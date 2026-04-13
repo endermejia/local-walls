@@ -13,7 +13,6 @@ import { TuiIdentityMatcher, tuiIsString } from '@taiga-ui/cdk';
 import {
   TuiButton,
   TuiLabel,
-  TuiTextfield,
   TuiIcon,
   TuiDialogService,
   TuiLoader,
@@ -21,6 +20,9 @@ import {
   TuiOptGroup,
   TuiTitle,
   TuiHint,
+  TuiCell,
+  TuiInput,
+  TuiFilterByInputPipe,
 } from '@taiga-ui/core';
 import {
   TuiInputNumber,
@@ -32,12 +34,10 @@ import {
   TUI_CONFIRM,
   TuiInputChip,
   TuiChevron,
-  TuiFilterByInputPipe,
   TuiMultiSelect,
 } from '@taiga-ui/kit';
-import { TuiCell } from '@taiga-ui/layout';
 import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext } from '@taiga-ui/experimental';
+import { TuiDialogContext } from '@taiga-ui/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { AreaPackDetail } from '../../models';
@@ -62,7 +62,7 @@ interface SimpleArea {
     TranslatePipe,
     TuiButton,
     TuiLabel,
-    TuiTextfield,
+    TuiInput,
     TuiInputNumber,
     TuiTextarea,
     TuiIcon,
@@ -89,7 +89,7 @@ interface SimpleArea {
           <label tuiLabel for="name">{{ 'userName' | translate }}</label>
           <input
             id="name"
-            tuiTextfield
+            tuiInput
             type="text"
             [ngModel]="model().name"
             (ngModelChange)="updateModel('name', $event)"
@@ -145,7 +145,7 @@ interface SimpleArea {
             [placeholder]="'select' | translate"
           />
           <tui-input-chip *tuiItem />
-          <tui-data-list *tuiTextfieldDropdown>
+          <tui-data-list *tuiDropdown>
             <tui-opt-group [label]="'areas' | translate" tuiMultiSelectGroup>
               @for (area of allAreas() | tuiFilterByInput; track area.id) {
                 <button type="button" new tuiOption [value]="area">
@@ -303,7 +303,7 @@ interface SimpleArea {
         >
           {{ 'cancel' | translate }}
         </button>
-        <tui-loader [showLoader]="isSaving() || isUploading()" [overlay]="true">
+        <tui-loader [loading]="isSaving() || isUploading()" [overlay]="true">
           <button tuiButton appearance="primary" type="button" (click)="save()">
             {{ 'save' | translate }}
           </button>
@@ -451,7 +451,7 @@ export class AdminPackDialogComponent implements OnInit {
         {
           data,
           appearance: 'fullscreen',
-          closeable: false,
+          closable: false,
           dismissible: false,
         },
       ),

@@ -21,7 +21,7 @@ import {
   TuiIcon,
   TuiLabel,
   TuiLoader,
-  TuiTextfield,
+  TuiInput,
 } from '@taiga-ui/core';
 
 import { EightAnuService } from '../../services/eight-anu.service';
@@ -59,7 +59,7 @@ import { normalizeName, slugify } from '../../utils';
     TuiIcon,
     TuiLabel,
     TuiLoader,
-    TuiTextfield,
+    TuiInput,
     GradeComponent,
     EmptyStateComponent,
     RoutesTableComponent,
@@ -67,13 +67,13 @@ import { normalizeName, slugify } from '../../utils';
   template: `
     <div class="flex items-center justify-between gap-2 mb-4">
       <div class="flex items-center w-full sm:w-auto gap-2">
-        <tui-avatar
+        <span
+          tuiAvatar="@tui.route"
           tuiThumbnail
           size="l"
-          src="@tui.route"
           class="self-center"
           [attr.aria-label]="'routes' | translate"
-        />
+        ></span>
         <h2 class="text-2xl font-semibold">
           {{ routesCount() }}
           {{ 'routes' | translate | lowercase }}
@@ -113,7 +113,7 @@ import { normalizeName, slugify } from '../../utils';
           'searchPlaceholder' | translate
         }}</label>
         <input
-          tuiTextfield
+          tuiInput
           #routesSearch
           id="routes-search"
           autocomplete="off"

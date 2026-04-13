@@ -93,13 +93,14 @@ import { GlobalData } from '../../services/global-data';
               </span>
               <div class="flex flex-wrap gap-2">
                 @for (item of pack.items; track item.area_id) {
-                  <tui-badge
+                  <span
+                    tuiBadge
                     appearance="primary"
                     size="m"
                     class="font-semibold !rounded-xl"
                   >
                     {{ item.area.name }}
-                  </tui-badge>
+                  </span>
                 }
               </div>
             </div>

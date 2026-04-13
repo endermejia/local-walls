@@ -17,7 +17,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 
-import { TuiButton, TuiError, TuiLabel, TuiTextfield } from '@taiga-ui/core';
+import { TuiButton, TuiError, TuiLabel, TuiInput } from '@taiga-ui/core';
 import { TuiInputNumber } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -31,7 +31,7 @@ let nextCounterId = 0;
     CommonModule,
     ReactiveFormsModule,
     TuiButton,
-    TuiTextfield,
+    TuiInput,
     TuiLabel,
     TuiError,
     TuiInputNumber,
@@ -46,7 +46,7 @@ let nextCounterId = 0;
           size="m"
           appearance="secondary"
           iconStart="@tui.minus"
-          class="!rounded-full shrink-0"
+          class="rounded-full! shrink-0"
           (click)="change(-step())"
           [disabled]="disabled() || isControlDisabled"
         >
@@ -81,7 +81,7 @@ let nextCounterId = 0;
           size="m"
           appearance="secondary"
           iconStart="@tui.plus"
-          class="!rounded-full shrink-0"
+          class="rounded-full! shrink-0"
           (click)="change(step())"
           [disabled]="disabled() || isControlDisabled"
         >

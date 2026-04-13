@@ -14,16 +14,22 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
 
 import { TuiItem } from '@taiga-ui/cdk';
-import { TuiAppearance, TuiButton, TuiHint, TuiIcon } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/experimental';
+import {
+  TuiAppearance,
+  TuiButton,
+  TuiCarousel,
+  TuiHint,
+  TuiIcon,
+} from '@taiga-ui/core';
+import { TuiDialogService } from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
   TuiAvatar,
   TuiBadge,
-  TuiCarousel,
   TuiConfirmData,
   TuiPagination,
   TuiRating,
+  TuiSkeleton,
 } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -71,6 +77,7 @@ import { GradeComponent } from '../ui/avatar-grade';
     TuiItem,
     TuiPagination,
     TuiRating,
+    TuiSkeleton,
   ],
   template: `
     @let ascent = data();
@@ -87,12 +94,13 @@ import { GradeComponent } from '../ui/avatar-grade';
             [routerLink]="['/profile', ascent.user_id]"
             class="flex items-center gap-3 no-underline text-inherit cursor-pointer group/user"
           >
-            <tui-avatar
-              [src]="
-                supabase.buildAvatarUrl(ascent.user?.avatar) || '@tui.user'
-              "
-              size="s"
-            />
+            <span tuiAvatar size="s">
+              @if (cardUserAvatar(); as avatar) {
+                <img [src]="avatar" [alt]="ascent.user?.name || ''" />
+              } @else {
+                <tui-icon icon="@tui.user" />
+              }
+            </span>
             <div class="flex flex-col">
               <span class="font-bold text-sm group-hover/user:underline">
                 {{ ascent.user?.name || 'User' }}
@@ -112,7 +120,7 @@ import { GradeComponent } from '../ui/avatar-grade';
                 tuiButton
                 size="s"
                 appearance="secondary-grayscale"
-                class="!rounded-full"
+                class="rounded-full!"
                 [disabled]="loading()"
                 [iconStart]="loading() ? '@tui.loader' : ''"
                 (click)="unfollow(ascent.user_id, ascent.user?.name || 'User')"
@@ -124,7 +132,7 @@ import { GradeComponent } from '../ui/avatar-grade';
                 tuiButton
                 size="s"
                 appearance="action"
-                class="!rounded-full"
+                class="rounded-full!"
                 [disabled]="loading()"
                 [iconStart]="loading() ? '@tui.loader' : ''"
                 (click)="follow(ascent.user_id)"
@@ -138,15 +146,15 @@ import { GradeComponent } from '../ui/avatar-grade';
                 tuiButton
                 size="s"
                 appearance="secondary-grayscale"
-                class="!rounded-full"
+                class="rounded-full!"
                 (click)="editAscent()"
               >
                 {{ 'edit' | translate }}
               </button>
               @if (ascent.private_ascent) {
-                <tui-badge appearance="accent" class="text-xs">
+                <span tuiBadge appearance="accent" class="text-xs">
                   {{ 'private' | translate }}
-                </tui-badge>
+                </span>
               }
             </div>
           }
@@ -166,15 +174,15 @@ import { GradeComponent } from '../ui/avatar-grade';
                   tuiButton
                   size="s"
                   appearance="secondary-grayscale"
-                  class="!rounded-full"
+                  class="rounded-full!"
                   (click)="editAscent()"
                 >
                   {{ 'edit' | translate }}
                 </button>
                 @if (ascent.private_ascent) {
-                  <tui-badge appearance="accent" class="text-xs">
+                  <span tuiBadge appearance="accent" class="text-xs">
                     {{ 'private' | translate }}
-                  </tui-badge>
+                  </span>
                 }
               </div>
             }
@@ -186,17 +194,16 @@ import { GradeComponent } from '../ui/avatar-grade';
         @if (items.length > 1) {
           <div class="relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full">
             <tui-carousel
-              [style.--tui-carousel-height]="'auto'"
-              [(index)]="index"
+              [index]="index()"
+              (indexChange)="index.set($event)"
+              [draggable]="true"
               class="w-full"
             >
               @for (item of items; track $index) {
                 <ng-container *tuiItem>
                   <div
-                    class="w-full overflow-hidden flex items-center justify-center bg-[var(--tui-background-neutral-1)] rounded-none sm:rounded-2xl relative"
-                    [ngClass]="{
-                      'aspect-video': item.type === 'video',
-                    }"
+                    class="overflow-hidden flex items-center justify-center bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl relative min-h-44"
+                    [class.aspect-video]="true"
                   >
                     @if (item.type === 'image') {
                       <img
@@ -224,21 +231,20 @@ import { GradeComponent } from '../ui/avatar-grade';
               }
             </tui-carousel>
             <div class="px-4 sm:px-0">
+              <!-- TODO: (Taiga UI migration) use tui-pager instead -->
               <tui-pagination
-                size="s"
                 class="mt-2"
                 [length]="items.length"
-                [(index)]="index"
+                [index]="index()"
+                (indexChange)="index.set($event)"
               />
             </div>
           </div>
         } @else if (items.length === 1) {
           @let item = items[0];
           <div
-            class="overflow-hidden flex items-center justify-center bg-[var(--tui-background-neutral-1)] -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl relative"
-            [ngClass]="{
-              'aspect-video': item.type === 'video',
-            }"
+            class="overflow-hidden flex items-center justify-center bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl relative min-h-44"
+            [class.aspect-video]="true"
           >
             @if (item.type === 'image') {
               <img
@@ -262,6 +268,11 @@ import { GradeComponent } from '../ui/avatar-grade';
               ></iframe>
             }
           </div>
+        } @else if (ascentPhotoResource.isLoading()) {
+          <div
+            class="aspect-video bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl"
+            tuiSkeleton
+          ></div>
         }
       }
 
@@ -319,14 +330,14 @@ import { GradeComponent } from '../ui/avatar-grade';
               />
             }
             @if (ascent.soft) {
-              <tui-badge size="s" appearance="neutral">
+              <span tuiBadge size="s" appearance="neutral">
                 {{ 'ascent.soft' | translate }}
-              </tui-badge>
+              </span>
             }
             @if (ascent.hard) {
-              <tui-badge size="s" appearance="neutral">
+              <span tuiBadge size="s" appearance="neutral">
                 {{ 'ascent.hard' | translate }}
-              </tui-badge>
+              </span>
             }
             @if (ascent.type; as ascentType) {
               <app-ascent-type
@@ -341,7 +352,7 @@ import { GradeComponent } from '../ui/avatar-grade';
                   [max]="5"
                   [readOnly]="true"
                   class="pointer-events-none"
-                  [style.font-size.rem]="0.5"
+                  [style.font-size.rem]="1"
                   [attr.aria-label]="'rating' | translate"
                 />
               </div>
@@ -349,7 +360,7 @@ import { GradeComponent } from '../ui/avatar-grade';
             @if (ascent.recommended) {
               <tui-icon
                 icon="@tui.thumbs-up"
-                class="!w-4 !h-4 text-[var(--tui-text-action)]"
+                class="w-4! h-4! text-(--tui-text-action)"
                 [tuiHint]="'ascent.recommend' | translate"
               />
             }
@@ -359,7 +370,7 @@ import { GradeComponent } from '../ui/avatar-grade';
 
       @if (ascent.comment; as ascentComment) {
         <p
-          class="text-sm italic border-l-2 border-[var(--tui-border-normal)] pl-3 py-1 self-start"
+          class="text-sm italic border-l-2 border-(--tui-border-normal) pl-3 py-1 self-start"
         >
           "{{ ascentComment }}"
         </p>
@@ -368,18 +379,18 @@ import { GradeComponent } from '../ui/avatar-grade';
       @if (moreInfoBadges().length > 0) {
         <div class="flex flex-wrap gap-x-1 gap-y-1">
           @for (badge of moreInfoBadges(); track badge.key) {
-            <tui-badge size="s" appearance="neutral">
+            <span tuiBadge size="s" appearance="neutral">
               {{ badge.label | translate }}
-            </tui-badge>
+            </span>
           }
         </div>
       }
 
       @if (ascent.is_duplicate) {
         <div
-          class="flex items-center gap-2 text-xs font-bold text-[var(--tui-text-negative)] uppercase tracking-wider mt-1"
+          class="flex items-center gap-2 text-xs font-bold text-(--tui-text-negative) uppercase tracking-wider mt-1"
         >
-          <tui-icon icon="@tui.triangle-alert" class="!w-4 !h-4" />
+          <tui-icon icon="@tui.triangle-alert" class="w-4! h-4!" />
           {{ 'ascent.duplicateWarning' | translate }}
         </div>
       }
@@ -423,21 +434,36 @@ export class AscentCardComponent {
 
   protected readonly loading = signal(false);
 
-  protected index = 0;
+  protected onNext(): void {
+    this.index.update((i) => (i + 1) % this.mediaItems().length);
+  }
+
+  protected onPrev(): void {
+    this.index.update(
+      (i) => (i - 1 + this.mediaItems().length) % this.mediaItems().length,
+    );
+  }
+
+  protected readonly index = signal(0);
 
   protected readonly ascentPhotoResource = resource({
     params: () => this.data().photo_path,
     loader: async ({ params: path }) => {
       if (!path) return null;
-      // Optimize for feed: resize to 600px width (suitable for 360px rendered on retina), quality 60
-      return this.supabase.getAscentSignedUrl(path, {
-        transform: { width: 600, quality: 60 },
-      });
+      await this.supabase.whenReady();
+      // Use same transform as topos for stability, resize to 1200px (retina friendly), quality 70
+      return this.supabase.getAscentSignedUrl(path);
     },
   });
   protected readonly ascentPhotoUrl = computed(() =>
     this.ascentPhotoResource.value(),
   );
+
+  protected readonly cardUserAvatar = computed(() => {
+    const avatar = this.data().user?.avatar;
+    if (!avatar) return null;
+    return this.supabase.buildAvatarUrl(avatar);
+  });
 
   private static readonly MORE_INFO_FIELDS: {
     key: keyof RouteAscentWithExtras;
@@ -466,6 +492,12 @@ export class AscentCardComponent {
     { key: 'first_ascent', label: 'ascent.other.first_ascent' },
     { key: 'traditional', label: 'ascent.other.traditional' },
   ];
+
+  protected readonly activeMedia = computed(() => {
+    const items = this.mediaItems();
+    const idx = this.index();
+    return items.length > 0 ? items[idx] : null;
+  });
 
   protected readonly moreInfoBadges = computed(() => {
     const a = this.data();

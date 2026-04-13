@@ -1,4 +1,4 @@
-import { AsyncPipe, CommonModule, DatePipe } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -11,11 +11,10 @@ import { Router } from '@angular/router';
 import {
   TuiAppearance,
   TuiButton,
-  TuiFallbackSrcPipe,
   TuiLoader,
   TuiScrollbar,
 } from '@taiga-ui/core';
-import { TuiDialogContext, TuiDialogService } from '@taiga-ui/experimental';
+import { TuiDialogContext, TuiDialogService } from '@taiga-ui/core';
 import { TuiAvatar, TuiBadgeNotification } from '@taiga-ui/kit';
 import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
@@ -57,7 +56,6 @@ interface GroupedNotification {
   selector: 'app-notifications-dialog',
   standalone: true,
   imports: [
-    AsyncPipe,
     CommonModule,
     DatePipe,
     EmptyStateComponent,
@@ -66,14 +64,13 @@ interface GroupedNotification {
     TuiAvatar,
     TuiBadgeNotification,
     TuiButton,
-    TuiFallbackSrcPipe,
     TuiLoader,
     TuiScrollbar,
   ],
   template: `
     <div class="flex flex-col h-[60dvh] min-h-[400px] -m-4">
       <div
-        class="flex justify-end items-center p-4 border-b border-[var(--tui-border-normal)]"
+        class="flex justify-end items-center p-4 border-b border-(--tui-border-normal)"
       >
         <button
           tuiButton
@@ -91,17 +88,16 @@ interface GroupedNotification {
         <div class="flex flex-col">
           @for (group of groupedNotifications(); track group.id) {
             <button
-              class="relative flex gap-3 p-4 border-b border-[var(--tui-border-normal)] last:border-0 text-left transition-colors w-full hover:bg-[var(--tui-background-neutral-1)]"
+              class="relative flex gap-3 p-4 border-b border-(--tui-border-normal) last:border-0 text-left transition-colors w-full hover:bg-(--tui-background-neutral-1)"
               (click)="onNotificationClick(group)"
             >
-              <tui-avatar
-                [src]="
-                  supabase.buildAvatarUrl(group.actors[0].avatar)
-                    | tuiFallbackSrc: '@tui.user'
-                    | async
-                "
-                size="s"
-              />
+              <span tuiAvatar size="s">
+                @if (group.actors[0].avatar; as avatar) {
+                  <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
+                } @else {
+                  @tui.user
+                }
+              </span>
               <div class="flex flex-col grow min-w-0">
                 <div class="flex justify-between items-start gap-2">
                   <span class="text-sm">

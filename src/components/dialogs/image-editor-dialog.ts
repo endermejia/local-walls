@@ -11,7 +11,7 @@ import {
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 import { TuiButton, TuiIcon, TuiLoader } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
+import { type TuiDialogContext } from '@taiga-ui/core';
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -72,6 +72,7 @@ export interface ImageEditorConfig {
               class="flex items-center gap-1 p-1 rounded-xl bg-[var(--tui-background-neutral-1)]"
             >
               @for (ratio of availableRatios; track ratio.ratio) {
+                <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                 <button
                   tuiButton
                   size="s"
@@ -87,6 +88,7 @@ export interface ImageEditorConfig {
                 </button>
               }
               @if (allowFree) {
+                <!-- TODO: (Taiga UI migration) [appearance] binding uses a dynamic expression. If it can produce "error"/"success"/"glass", replace with "negative"/"positive"/"secondary-grayscale" -->
                 <button
                   tuiButton
                   size="s"

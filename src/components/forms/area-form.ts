@@ -15,17 +15,18 @@ import {
 import { FormsModule } from '@angular/forms';
 import { form, FormField, required, submit } from '@angular/forms/signals';
 
-import { TuiInputChip, TuiCheckbox, TuiInputNumber } from '@taiga-ui/kit';
+import { TuiInputChip, TuiInputNumber } from '@taiga-ui/kit';
 import {
   TuiButton,
   TuiError,
   TuiLabel,
-  TuiTextfield,
   TuiIcon,
   TuiLoader,
   TuiDialogService,
+  TuiInput,
+  TuiCheckbox,
 } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
+import { type TuiDialogContext } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -53,7 +54,7 @@ interface MinimalArea {
     TuiButton,
     TuiError,
     TuiLabel,
-    TuiTextfield,
+    TuiInput,
     TuiInputChip,
     TuiCheckbox,
     TuiInputNumber,
@@ -67,7 +68,7 @@ interface MinimalArea {
       <tui-textfield class="block">
         <label tuiLabel for="area-name">{{ 'name' | translate }}</label>
         <input
-          tuiTextfield
+          tuiInput
           id="area-name"
           [formField]="areaForm.name"
           type="text"
@@ -82,7 +83,7 @@ interface MinimalArea {
         <tui-textfield class="block">
           <label tuiLabel for="area-slug">{{ 'slug' | translate }}</label>
           <input
-            tuiTextfield
+            tuiInput
             id="area-slug"
             [formField]="areaForm.slug"
             type="text"
@@ -181,7 +182,7 @@ interface MinimalArea {
                       </div>
                     }
 
-                    <tui-loader [showLoader]="connecting()" [overlay]="true">
+                    <tui-loader [loading]="connecting()" [overlay]="true">
                       <button
                         tuiButton
                         type="button"

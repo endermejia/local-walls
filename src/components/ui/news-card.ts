@@ -32,7 +32,7 @@ import { NewsItem } from '../../models';
           target="_blank"
           class="flex items-center gap-3 no-underline text-inherit cursor-pointer group/user"
         >
-          <tui-avatar [src]="avatarUrl" size="s" />
+          <span [tuiAvatar]="avatarUrl" size="s"></span>
           <div class="flex flex-col">
             <span class="font-bold text-sm group-hover/user:underline">
               Desnivel
@@ -49,7 +49,7 @@ import { NewsItem } from '../../models';
           tuiButton
           size="s"
           appearance="secondary-grayscale"
-          class="!rounded-full no-underline"
+          class="rounded-full! no-underline"
           [href]="item().link"
           target="_blank"
         >

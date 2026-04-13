@@ -15,12 +15,12 @@ import {
   TuiError,
   TuiLabel,
   TuiOptGroup,
-  TuiTextfield,
+  TuiInput,
+  TuiFilterByInputPipe,
 } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
+import { type TuiDialogContext } from '@taiga-ui/core';
 import {
   TuiChevron,
-  TuiFilterByInputPipe,
   TuiInputChip,
   TuiComboBox,
   TuiMultiSelect,
@@ -51,7 +51,7 @@ import { CragDto } from '../../models';
     TuiLabel,
     TuiMultiSelect,
     TuiOptGroup,
-    TuiTextfield,
+    TuiInput,
   ],
   template: `
     <div class="flex flex-col gap-4">
@@ -72,7 +72,7 @@ import { CragDto } from '../../models';
           name="targetCrag"
           [placeholder]="'select' | translate"
         />
-        <tui-data-list *tuiTextfieldDropdown>
+        <tui-data-list *tuiDropdown>
           @for (crag of availableCrags() | tuiFilterByInput; track crag.id) {
             <button tuiOption new [value]="crag">
               {{ crag.name }}
@@ -105,7 +105,7 @@ import { CragDto } from '../../models';
           name="sourceCrags"
           [placeholder]="'select' | translate"
         />
-        <tui-data-list *tuiTextfieldDropdown>
+        <tui-data-list *tuiDropdown>
           <tui-opt-group tuiMultiSelectGroup>
             @for (
               crag of availableSources() | tuiFilterByInput;
@@ -127,7 +127,7 @@ import { CragDto } from '../../models';
       <tui-textfield class="block">
         <label tuiLabel for="new-name">{{ 'crags.newName' | translate }}</label>
         <input
-          tuiTextfield
+          tuiInput
           id="new-name"
           autocomplete="off"
           [formField]="$any(unifyForm.newName)"

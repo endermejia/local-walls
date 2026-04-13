@@ -5,11 +5,10 @@ import { TableInsert, TableRow, TableUpdate } from './supabase-interfaces';
 import { TopoDto } from './supabase-interfaces';
 import { TopoListItem } from './topo.model';
 
-export interface CragListItem
-  extends Omit<
-    Database['public']['Functions']['get_crags_list_by_area_slug']['Returns'][number],
-    'grades'
-  > {
+export interface CragListItem extends Omit<
+  Database['public']['Functions']['get_crags_list_by_area_slug']['Returns'][number],
+  'grades'
+> {
   grades: AmountByEveryGrade;
 }
 
@@ -27,8 +26,7 @@ export interface AdditionalCragData {
 }
 
 export interface CragDetail
-  extends Omit<CragListItem, 'area_id'>,
-    AdditionalCragData {
+  extends Omit<CragListItem, 'area_id'>, AdditionalCragData {
   area_id: number;
   area_name: string;
   area_slug: string;

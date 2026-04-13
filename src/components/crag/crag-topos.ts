@@ -33,13 +33,13 @@ import { CragDetail } from '../../models';
     @let toposCount = topos().length;
     <div class="flex items-center justify-between gap-2 mb-4">
       <div class="flex items-center gap-2">
-        <tui-avatar
+        <span
+          [tuiAvatar]="global.iconSrc()('topo')"
           tuiThumbnail
           size="l"
-          [src]="global.iconSrc()('topo')"
           class="self-center"
           [attr.aria-label]="'topo' | translate"
-        />
+        ></span>
         <h2 class="text-2xl font-semibold">
           {{ toposCount }}
           {{ (toposCount === 1 ? 'topo' : 'topos') | translate | lowercase }}

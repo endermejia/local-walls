@@ -26,9 +26,9 @@ import {
   TuiError,
   TuiLabel,
   TuiNumberFormat,
-  TuiTextfield,
+  TuiInput,
 } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/experimental';
+import { type TuiDialogContext } from '@taiga-ui/core';
 import { TuiInputNumber } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
 
@@ -61,7 +61,7 @@ interface MinimalParking {
     TuiButton,
     TuiError,
     TuiLabel,
-    TuiTextfield,
+    TuiInput,
     TranslatePipe,
     TuiInputNumber,
     TuiNumberFormat,
@@ -72,7 +72,7 @@ interface MinimalParking {
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="parking-name">{{ 'name' | translate }}</label>
         <input
-          tuiTextfield
+          tuiInput
           id="parking-name"
           [formField]="parkingForm.name"
           type="text"
