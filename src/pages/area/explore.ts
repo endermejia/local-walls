@@ -148,15 +148,19 @@ import { mapLocationUrl, remToPx } from '../../utils';
         }
 
         <div
-          class="absolute left-1/2 z-40 sm:z-100 pointer-events-auto bottom-(--mobile-bottom) sm:bottom-4"
+          class="absolute left-1/2 z-60 sm:z-100 pointer-events-auto"
+          [style.bottom]="
+            global.isMobile() && hasBottomSheet()
+              ? 'calc(' + stops[0] + ' + 1.5rem)'
+              : '1rem'
+          "
+          [style.transform]="'translate(-50%, -' + _sheetScrollTop() + 'px)'"
           [tuiDropdown]="tourHint"
           [tuiDropdownManual]="
             tourService.isActive() &&
             tourService.step() === TourStep.EXPLORE_AREAS
           "
           tuiDropdownDirection="bottom"
-          [style.--mobile-bottom]="'calc(' + stops[0] + ' + 1rem)'"
-          [style.transform]="'translate(-50%, -' + _sheetScrollTop() + 'px)'"
         >
           <button
             tuiButton
@@ -601,6 +605,20 @@ export class ExploreComponent {
         );
       })
       .sort((a, b) => (a.liked === b.liked ? 0 : a.liked ? -1 : 1));
+  });
+
+  protected readonly hasBottomSheet = computed(() => {
+    const loading =
+      this.global.mapResource.isLoading() ||
+      this.global.areasMapResource.isLoading();
+    if (loading) return false;
+    const cragsCount = this.mapCragItems().length;
+    const areasCount = this.mapAreaItems().length;
+    return (
+      (areasCount > 0 || cragsCount > 0) &&
+      !this.global.selectedMapCragItem() &&
+      !this.global.selectedMapParkingItem()
+    );
   });
 
   protected readonly isBottomSheetExpanded: Signal<boolean> = computed(() => {
