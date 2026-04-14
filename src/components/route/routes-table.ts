@@ -10,6 +10,7 @@ import {
   PLATFORM_ID,
   signal,
   Signal,
+  viewChildren,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -133,13 +134,25 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                     [class.w-64!]="col === 'equippers'"
                   >
                     <div class="flex items-center gap-1">
-                      {{
-                        col === 'actions' ||
-                        col === 'admin_actions' ||
-                        col === 'expand'
-                          ? ''
-                          : (col | translate)
-                      }}
+                      @if (col === 'expand') {
+                        <button
+                          appearance="flat-grayscale"
+                          size="xs"
+                          tuiIconButton
+                          type="button"
+                          class="rounded-full!"
+                          [tuiChevron]="allExpanded()"
+                          (click.zoneless)="toggleAllExpanded()"
+                        >
+                          Toggle All
+                        </button>
+                      } @else {
+                        {{
+                          col === 'actions' || col === 'admin_actions'
+                            ? ''
+                            : (col | translate)
+                        }}
+                      }
                     </div>
                   </th>
                 }
@@ -815,6 +828,19 @@ export class RoutesTableComponent {
 
   protected readonly openDropdownId = signal<string | null>(null);
 
+  protected readonly expanders = viewChildren(TuiTableExpand);
+  protected readonly allExpanded = signal(false);
+
+  protected toggleAllExpanded() {
+    this.allExpanded.update((v) => !v);
+    const expandState = this.allExpanded();
+    for (const exp of this.expanders()) {
+      if (exp.expanded() !== expandState) {
+        exp.expanded.set(expandState);
+      }
+    }
+  }
+
   constructor() {
     effect(() => {
       this.currentDirection = this.direction();
@@ -861,8 +887,8 @@ export class RoutesTableComponent {
   );
 
   protected getSorter(col: string): TuiComparator<RoutesTableRow> | null {
-    if (col === 'actions' || col === 'admin_actions') return null;
-    if (col === 'expand') return this.sorters['ascents'];
+    if (col === 'actions' || col === 'admin_actions' || col === 'expand')
+      return null;
     return this.sorters[col as RoutesTableKey] ?? null;
   }
 
