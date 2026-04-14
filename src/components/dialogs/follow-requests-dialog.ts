@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { TuiButton, TuiLoader, TuiScrollbar } from '@taiga-ui/core';
+import { TuiButton, TuiLoader, TuiScrollbar, TuiIcon } from '@taiga-ui/core';
 import { TuiDialogContext } from '@taiga-ui/core';
 import { TuiAvatar } from '@taiga-ui/kit';
 import { injectContext } from '@taiga-ui/polymorpheus';
@@ -34,6 +34,7 @@ import { EmptyStateComponent } from '../ui/empty-state';
     TranslatePipe,
     EmptyStateComponent,
     TuiButton,
+    TuiIcon,
   ],
   template: `
     <div class="flex flex-col h-[60dvh] min-h-[400px] -m-4">
@@ -45,13 +46,13 @@ import { EmptyStateComponent } from '../ui/empty-state';
               [routerLink]="['/profile', request.follower_id]"
               (click)="context.completeWith(true)"
             >
-              <span
-                [tuiAvatar]="
-                  supabase.buildAvatarUrl(request.follower.avatar) ||
-                  '@tui.user'
-                "
-                size="m"
-              ></span>
+              <span tuiAvatar size="m">
+                @if (request.follower.avatar; as avatar) {
+                  <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
+                } @else {
+                  <tui-icon icon="@tui.user" />
+                }
+              </span>
               <div class="flex flex-col grow min-w-0">
                 <span class="font-bold text-text truncate">{{
                   request.follower.name

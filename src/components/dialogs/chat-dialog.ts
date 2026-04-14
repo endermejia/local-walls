@@ -109,7 +109,7 @@ export interface ChatDialogData {
             @if (room.participant?.avatar; as avatar) {
               <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
             } @else {
-              @tui.user
+              <tui-icon icon="@tui.user" />
             }
           </span>
           <span class="font-bold truncate text-sm">{{
@@ -279,7 +279,7 @@ export interface ChatDialogData {
                       @if (user.avatar; as avatar) {
                         <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
                       } @else {
-                        @tui.user
+                        <tui-icon icon="@tui.user" />
                       }
                     </span>
                     {{ user.name }}
@@ -301,7 +301,7 @@ export interface ChatDialogData {
                   @if (room.participant?.avatar; as avatar) {
                     <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
                   } @else {
-                    @tui.user
+                    <tui-icon icon="@tui.user" />
                   }
                 </span>
                 <div class="flex-1 min-w-0">

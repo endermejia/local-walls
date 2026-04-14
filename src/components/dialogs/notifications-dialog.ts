@@ -13,6 +13,7 @@ import {
   TuiButton,
   TuiLoader,
   TuiScrollbar,
+  TuiIcon,
 } from '@taiga-ui/core';
 import { TuiDialogContext, TuiDialogService } from '@taiga-ui/core';
 import { TuiAvatar, TuiBadgeNotification } from '@taiga-ui/kit';
@@ -66,6 +67,7 @@ interface GroupedNotification {
     TuiButton,
     TuiLoader,
     TuiScrollbar,
+    TuiIcon,
   ],
   template: `
     <div class="flex flex-col h-[60dvh] min-h-[400px] -m-4">
@@ -95,7 +97,7 @@ interface GroupedNotification {
                 @if (group.actors[0].avatar; as avatar) {
                   <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
                 } @else {
-                  @tui.user
+                  <tui-icon icon="@tui.user" />
                 }
               </span>
               <div class="flex flex-col grow min-w-0">
