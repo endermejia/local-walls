@@ -434,9 +434,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                               <button
                                 size="m"
                                 [appearance]="
-                                  item.project
-                                    ? 'secondary-grayscale'
-                                    : 'secondary'
+                                  item.project ? 'info' : 'secondary'
                                 "
                                 iconStart="@tui.bookmark"
                                 tuiIconButton
@@ -681,9 +679,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                               <button
                                 size="m"
                                 [appearance]="
-                                  item.project
-                                    ? 'secondary-grayscale'
-                                    : 'secondary'
+                                  item.project ? 'info' : 'secondary'
                                 "
                                 iconStart="@tui.bookmark"
                                 tuiIconButton

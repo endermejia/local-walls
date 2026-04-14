@@ -45,6 +45,7 @@ import {
   TuiAvatar,
   TuiBadge,
   TuiBadgedContentComponent,
+  TuiBadgedContentDirective,
   TuiChevron,
   TuiComboBox,
   TuiDataListWrapper,
@@ -120,6 +121,7 @@ interface Country {
     TuiAvatar,
     TuiBadge,
     TuiBadgedContentComponent,
+    TuiBadgedContentDirective,
     TuiButton,
     TuiChevron,
     TuiComboBox,
@@ -180,18 +182,25 @@ interface Country {
         <div class="flex flex-col md:flex-row items-center gap-4">
           <div class="relative inline-block">
             <tui-badged-content
-              [style.--tui-radius.%]="50"
               [class.ring-4]="isFirstSteps()"
               [class.ring-primary]="isFirstSteps()"
-              class="rounded-full"
+              class="rounded-full hover:shadow-lg transition-shadow duration-300"
             >
-              @if (userEmail()) {
-                <tui-icon iconStart="@tui.upload" tuiSlot="top" tuiBadge />
+              @if (userEmail() && (profile()?.avatar || global.userAvatar())) {
+                <button
+                  tuiButton
+                  appearance="action-destructive"
+                  size="s"
+                  tuiSlot="bottom"
+                  class="rounded-full!"
+                  type="button"
+                  (click)="deleteAvatar()"
+                >
+                  <tui-icon icon="@tui.trash" />
+                </button>
               }
               <span
                 tuiAvatar
-                (mouseenter)="avatarHovered.set(true)"
-                (mouseleave)="avatarHovered.set(false)"
                 (click)="!isUploadingAvatar() && uploadAvatar()"
                 (keydown.enter)="!isUploadingAvatar() && uploadAvatar()"
                 tabindex="0"
@@ -1013,14 +1022,9 @@ export class UserProfileConfigComponent {
     const email = this.userEmail();
     return profile?.name === email && email !== '';
   });
-  protected avatarHovered = signal(false);
   protected isUploadingAvatar = signal(false);
-  protected avatarSrc = computed<string>(() => {
-    const hovered = this.avatarHovered();
-    const avatar = this.global.userAvatar();
-    if (hovered) return '@tui.image-up';
-    if (avatar) return avatar;
-    return '@tui.user';
+  protected avatarSrc = computed<string | null>(() => {
+    return this.global.userAvatar() || null;
   });
 
   protected readonly model = signal({
@@ -1533,6 +1537,35 @@ export class UserProfileConfigComponent {
 
     // Trigger file selection
     input.click();
+  }
+
+  async deleteAvatar(): Promise<void> {
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('profile.avatar.delete.title'),
+        size: 's',
+        data: {
+          content: this.translate.instant('profile.avatar.delete.confirm'),
+          yes: this.translate.instant('delete'),
+          no: this.translate.instant('cancel'),
+        } as TuiConfirmData,
+      }),
+      { defaultValue: false },
+    );
+
+    if (!confirmed) return;
+
+    this.isUploadingAvatar.set(true);
+    try {
+      await this.updateProfile({ avatar: null });
+      this.toast.success('profile.avatar.delete.success');
+      this.supabase.userProfileResource.reload();
+    } catch (e) {
+      console.error('Error deleting avatar:', e);
+      this.toast.error('profile.avatar.delete.error');
+    } finally {
+      this.isUploadingAvatar.set(false);
+    }
   }
 
   openImport8aDialog(): void {
