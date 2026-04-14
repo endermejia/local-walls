@@ -24,6 +24,7 @@ import { tuiDefaultSort, TuiIdentityMatcher, tuiIsString } from '@taiga-ui/cdk';
 import {
   TuiAppearance,
   TuiDataList,
+  TuiIcon,
   TuiLink,
   TuiOptGroup,
   TuiScrollbar,
@@ -65,6 +66,7 @@ interface UserWithRole {
 
 @Component({
   selector: 'app-users-list-admin',
+  standalone: true,
   imports: [
     EmptyStateComponent,
     FormsModule,
@@ -79,6 +81,7 @@ interface UserWithRole {
     TuiCell,
     TuiChevron,
     TuiDataList,
+    TuiIcon,
     TuiDataListWrapper,
     TuiFilterByInputPipe,
     TuiInputChip,
@@ -223,7 +226,7 @@ interface UserWithRole {
                               alt=""
                             />
                           } @else {
-                            @tui.user
+                            <tui-icon icon="@tui.user" />
                           }
                         </span>
                       </a>

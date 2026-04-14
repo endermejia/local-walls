@@ -18,6 +18,7 @@ import { SupabaseService } from '../../services/supabase.service';
 
 @Component({
   selector: 'app-admin',
+  standalone: true,
   imports: [
     RouterLink,
     TranslatePipe,
@@ -50,7 +51,7 @@ import { SupabaseService } from '../../services/supabase.service';
                       @if (user.avatar_url; as url) {
                         <img [src]="url" alt="" />
                       } @else {
-                        @tui.user
+                        <tui-icon icon="@tui.user" />
                       }
                     </span>
                   }

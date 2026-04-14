@@ -113,6 +113,7 @@ interface Country {
 
 @Component({
   selector: 'app-user-profile-config',
+  standalone: true,
   imports: [
     FormsModule,
     NgOptimizedImage,
@@ -212,7 +213,7 @@ interface Country {
                 @if (avatarSrc(); as avatar) {
                   <img [src]="avatar" alt="" />
                 } @else {
-                  @tui.user
+                  <tui-icon icon="@tui.user" />
                 }
               </span>
             </tui-badged-content>
@@ -320,7 +321,7 @@ interface Country {
               @if (user.avatar) {
                 <img [src]="user.avatar" alt="" />
               } @else {
-                @tui.user
+                <tui-icon icon="@tui.user" />
               }
             </div>
           }
@@ -364,7 +365,7 @@ interface Country {
                     @if (item.avatar; as avatar) {
                       <img [src]="avatar" alt="" />
                     } @else {
-                      @tui.user
+                      <tui-icon icon="@tui.user" />
                     }
                   </div>
                 <span>{{ item.userName }}</span>

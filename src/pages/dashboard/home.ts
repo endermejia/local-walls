@@ -25,8 +25,6 @@ import {
   TuiAppearance,
   TuiButton,
   TuiDataList,
-  TuiDropdown,
-  TuiLink,
   TuiScrollbar,
 } from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/core';
@@ -34,7 +32,6 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
   TuiBadgeNotification,
   TuiBadgedContent,
-  TuiChevron,
   TuiSkeleton,
 } from '@taiga-ui/kit';
 
@@ -60,6 +57,7 @@ import { ScrollService } from '../../services/scroll.service';
 import { SupabaseService } from '../../services/supabase.service';
 
 import { AscentsFeedComponent } from '../../components/ascent/ascents-feed';
+import { DropdownButtonComponent } from '../../components/ui/dropdown-button';
 
 import {
   FilterDialog,
@@ -89,12 +87,11 @@ import {
     TuiButton,
     TuiBadgeNotification,
     TuiBadgedContent,
-    TuiChevron,
+    TuiAppearance,
     TuiDataList,
-    TuiDropdown,
-    TuiLink,
     TuiScrollbar,
     TuiSkeleton,
+    DropdownButtonComponent,
   ],
   template: `
     <tui-scrollbar class="h-full">
@@ -115,17 +112,14 @@ import {
                 ></div>
               } @else {
                 @if (followedIds().size > 0) {
-                  <button
-                    tuiLink
-                    tuiChevron
+                  <app-dropdown-button
                     appearance="flat-grayscale"
-                    type="button"
-                    class="text-xl! font-bold! text-inherit! no-underline! bg-transparent!"
-                    [tuiDropdown]="feedFilterDropdown"
-                    [(tuiDropdownOpen)]="dropdownOpen"
+                    size="xl"
+                    [content]="feedFilterDropdown"
+                    [(open)]="dropdownOpen"
                   >
                     {{ (filterIndex === 0 ? 'following' : 'all') | translate }}
-                  </button>
+                  </app-dropdown-button>
                 }
                 <tui-badged-content [style.--tui-radius.%]="50">
                   @if (hasActiveFilters()) {

@@ -69,6 +69,7 @@ import { UserProfileLikesComponent } from '../../components/user-profile/user-pr
 
 @Component({
   selector: 'app-user-profile',
+  standalone: true,
   imports: [
     EmptyStateComponent,
     LowerCasePipe,
