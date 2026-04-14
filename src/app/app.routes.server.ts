@@ -89,8 +89,6 @@ export const serverRoutes: ServerRoute[] = [
   {
     path: '',
     renderMode: RenderMode.Server,
-    headers: { Location: '/info' },
-    status: 302,
   },
   {
     path: 'page-not-found',
@@ -99,7 +97,5 @@ export const serverRoutes: ServerRoute[] = [
   {
     path: '**',
     renderMode: RenderMode.Server,
-    headers: { Location: '/page-not-found' },
-    status: 302,
   },
 ];
