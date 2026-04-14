@@ -8,23 +8,36 @@ import {
   signal,
   effect,
   ChangeDetectorRef,
+  viewChild,
+  TemplateRef,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { TuiAutoFocus } from '@taiga-ui/cdk';
-import { TuiIcon, TuiTitle, TuiCell, TuiInput } from '@taiga-ui/core';
-import { TuiAppearance, TuiDataList, TuiDropdown } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/core';
-import { TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
 import {
+  TuiIcon,
+  TuiTitle,
+  TuiCell,
+  TuiTextfield,
+  TuiAppearance,
+  TuiDataList,
+  TuiDropdown,
+  TuiDialogService,
+} from '@taiga-ui/core';
+import {
+  TuiAvatar,
+  TuiSkeleton,
   TuiPulse,
   TuiBadgedContent,
   TuiBadgeNotification,
 } from '@taiga-ui/kit';
 import { TuiInputSearch, TUI_INPUT_SEARCH } from '@taiga-ui/layout';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import {
+  PolymorpheusComponent,
+  PolymorpheusContent,
+} from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
@@ -70,15 +83,27 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
       provide: TUI_INPUT_SEARCH,
       useFactory: () => {
         const translate = inject(TranslateService);
-        return translate.stream('searchPlaceholder').pipe(
-          map((placeholder: string) => ({
-            popular: '',
-            history: '',
-            placeholder,
-            hotkey: '',
-            all: '',
-            empty: '',
-          })),
+        return toSignal(
+          translate.stream('searchPlaceholder').pipe(
+            map((placeholder: string) => ({
+              popular: '',
+              history: '',
+              placeholder,
+              hotkey: '',
+              all: '',
+              empty: '',
+            })),
+          ),
+          {
+            initialValue: {
+              popular: '',
+              history: '',
+              placeholder: '',
+              hotkey: '',
+              all: '',
+              empty: '',
+            },
+          },
         );
       },
     },
@@ -94,7 +119,7 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
     TuiIcon,
     TuiInputSearch,
     TuiSkeleton,
-    TuiInput,
+    TuiTextfield,
     TuiCell,
     TuiTitle,
     TuiAutoFocus,
@@ -331,31 +356,49 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
                   [placeholder]="'searchPlaceholder' | translate"
                 />
                 <ng-template #search>
-                  <tui-data-list>
-                    @for (item of flatResults(); track $index) {
-                      <a
-                        tuiCell
-                        [routerLink]="item.href || null"
-                        (click)="onResultClick(item, $event)"
-                      >
-                        @if (item.type === 'user') {
-                          <span tuiAvatar size="xs" class="mr-2">
-                            @if (item.icon && !item.icon.startsWith('@tui.')) {
-                              <img [src]="item.icon" alt="" />
-                            } @else {
-                              <tui-icon [icon]="item.icon || '@tui.user'" />
-                            }
-                          </span>
-                        } @else if (item.icon) {
-                          <tui-icon [icon]="item.icon" class="mr-2" />
+                  <tui-data-list
+                    size="s"
+                    [emptyContent]="
+                      (results() !== null ? 'nothingFound' : '') | translate
+                    "
+                  >
+                    @for (group of groupedResults(); track group[0]) {
+                      <tui-opt-group [label]="group[0] | translate">
+                        @for (
+                          item of group[1];
+                          track item.href + item.type + item.title
+                        ) {
+                          <a
+                            tuiOption
+                            [routerLink]="item.href || null"
+                            (click)="onResultClick(item, $event)"
+                          >
+                            <div class="flex items-center w-full">
+                              @if (item.type === 'user') {
+                                <span tuiAvatar size="xs" class="mr-2">
+                                  @if (
+                                    item.icon && !item.icon.startsWith('@tui.')
+                                  ) {
+                                    <img [src]="item.icon" alt="" />
+                                  } @else {
+                                    <tui-icon
+                                      [icon]="item.icon || '@tui.user'"
+                                    />
+                                  }
+                                </span>
+                              } @else if (item.icon) {
+                                <tui-icon [icon]="item.icon" class="mr-2" />
+                              }
+                              <span tuiTitle>
+                                {{ item.title }}
+                                @if (item.subtitle) {
+                                  <span tuiSubtitle>{{ item.subtitle }}</span>
+                                }
+                              </span>
+                            </div>
+                          </a>
                         }
-                        <span tuiTitle>
-                          {{ item.title }}
-                          @if (item.subtitle) {
-                            <span tuiSubtitle>{{ item.subtitle }}</span>
-                          }
-                        </span>
-                      </a>
+                      </tui-opt-group>
                     }
                   </tui-data-list>
                 </ng-template>
@@ -460,6 +503,11 @@ export class NavbarComponent {
   protected readonly control = new FormControl('');
   protected searchOpen = false;
 
+  protected readonly searchTemplate = viewChild<TemplateRef<object>>('search');
+
+  protected readonly search = (_: HTMLInputElement): PolymorpheusContent =>
+    this.searchTemplate() || '';
+
   constructor() {
     const cdr = inject(ChangeDetectorRef);
     effect(() => {
@@ -487,9 +535,10 @@ export class NavbarComponent {
     { initialValue: null },
   );
 
-  protected readonly flatResults = computed(() => {
+  protected readonly groupedResults = computed(() => {
     const data = this.results();
-    return data ? Object.values(data).flat() : [];
+    if (!data) return [];
+    return Object.entries(data).filter(([_, items]) => items.length > 0);
   });
 
   protected onResultClick(item: SearchItem, event?: Event): void {
