@@ -1,4 +1,4 @@
-import { NgOptimizedImage } from '@angular/common';
+import { NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -32,6 +32,9 @@ import {
   TuiPulse,
   TuiBadgedContent,
   TuiBadgeNotification,
+  TuiTabs,
+  TuiTab,
+  TuiBadge,
 } from '@taiga-ui/kit';
 import { TuiInputSearch, TUI_INPUT_SEARCH } from '@taiga-ui/layout';
 import {
@@ -127,9 +130,13 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
     TuiPulse,
     TourHintComponent,
     TuiDataList,
+    TuiTabs,
+    TuiTab,
+    TuiBadge,
     TuiBadgedContent,
     TuiBadgeNotification,
     NgOptimizedImage,
+    NgTemplateOutlet,
     MenuOptionsButtonComponent,
   ],
   template: `
@@ -356,51 +363,122 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
                   [placeholder]="'searchPlaceholder' | translate"
                 />
                 <ng-template #search>
-                  <tui-data-list
-                    size="s"
-                    [emptyContent]="
-                      (results() !== null ? 'nothingFound' : '') | translate
-                    "
-                  >
-                    @for (group of groupedResults(); track group[0]) {
-                      <tui-opt-group [label]="group[0] | translate">
-                        @for (
-                          item of group[1];
-                          track item.href + item.type + item.title
-                        ) {
-                          <a
-                            tuiOption
-                            [routerLink]="item.href || null"
-                            (click)="onResultClick(item, $event)"
-                          >
-                            <div class="flex items-center w-full">
-                              @if (item.type === 'user') {
-                                <span tuiAvatar size="xs" class="mr-2">
-                                  @if (
-                                    item.icon && !item.icon.startsWith('@tui.')
-                                  ) {
-                                    <img [src]="item.icon" alt="" />
-                                  } @else {
-                                    <tui-icon
-                                      [icon]="item.icon || '@tui.user'"
-                                    />
-                                  }
-                                </span>
-                              } @else if (item.icon) {
-                                <tui-icon [icon]="item.icon" class="mr-2" />
-                              }
-                              <span tuiTitle>
-                                {{ item.title }}
-                                @if (item.subtitle) {
-                                  <span tuiSubtitle>{{ item.subtitle }}</span>
-                                }
+                  @if (results() !== null) {
+                    <div
+                      class="flex flex-col h-full bg-(--tui-background-base) rounded-xl overflow-hidden min-w-200 max-h-[80vh]"
+                    >
+                      <div class="p-2">
+                        <tui-tabs [(activeItemIndex)]="activeSearchTab">
+                          <button tuiTab>
+                            {{ 'all' | translate }}
+                            <span
+                              tuiBadge
+                              size="s"
+                              appearance="neutral"
+                              class="ml-2 inline-flex items-center"
+                            >
+                              {{ totalResults() }}
+                            </span>
+                          </button>
+                          @for (group of groupedResults(); track group.key) {
+                            <button tuiTab>
+                              {{ group.key | translate }}
+                              <span
+                                tuiBadge
+                                size="s"
+                                appearance="neutral"
+                                class="ml-2 inline-flex items-center"
+                              >
+                                {{ group.items.length }}
                               </span>
-                            </div>
-                          </a>
+                            </button>
+                          }
+                        </tui-tabs>
+                      </div>
+
+                      <div class="flex-1 overflow-y-auto min-h-0">
+                        <tui-data-list
+                          size="s"
+                          [emptyContent]="
+                            (results() !== null && totalResults() === 0
+                              ? 'nothingFound'
+                              : ''
+                            ) | translate
+                          "
+                        >
+                          @if (activeSearchTab() === 0) {
+                            <!-- "All" Tab -->
+                            @for (group of groupedResults(); track group.key) {
+                              <tui-opt-group [label]="group.key | translate">
+                                @for (
+                                  item of group.items;
+                                  track item.href + item.type + item.title
+                                ) {
+                                  <a
+                                    tuiOption
+                                    [routerLink]="item.href || null"
+                                    (click)="onResultClick(item, $event)"
+                                  >
+                                    <ng-container
+                                      [ngTemplateOutlet]="itemTemplate"
+                                      [ngTemplateOutletContext]="{
+                                        $implicit: item,
+                                      }"
+                                    ></ng-container>
+                                  </a>
+                                }
+                              </tui-opt-group>
+                            }
+                          } @else {
+                            <!-- Category specific Tab -->
+                            @let activeGroup =
+                              groupedResults()[activeSearchTab() - 1];
+                            @if (activeGroup) {
+                              @for (
+                                item of activeGroup.items;
+                                track item.href + item.type + item.title
+                              ) {
+                                <a
+                                  tuiOption
+                                  [routerLink]="item.href || null"
+                                  (click)="onResultClick(item, $event)"
+                                >
+                                  <ng-container
+                                    [ngTemplateOutlet]="itemTemplate"
+                                    [ngTemplateOutletContext]="{
+                                      $implicit: item,
+                                    }"
+                                  ></ng-container>
+                                </a>
+                              }
+                            }
+                          }
+                        </tui-data-list>
+                      </div>
+                    </div>
+                  }
+
+                  <ng-template #itemTemplate let-item>
+                    <div class="flex items-center w-full">
+                      @if (item.type === 'user') {
+                        <span tuiAvatar size="xs" class="mr-2">
+                          @if (item.icon && !item.icon.startsWith('@tui.')) {
+                            <img [src]="item.icon" alt="" />
+                          } @else {
+                            <tui-icon [icon]="item.icon || '@tui.user'" />
+                          }
+                        </span>
+                      } @else if (item.icon) {
+                        <tui-icon [icon]="item.icon" class="mr-2" />
+                      }
+                      <span tuiTitle>
+                        {{ item.title }}
+                        @if (item.subtitle) {
+                          <span tuiSubtitle>{{ item.subtitle }}</span>
                         }
-                      </tui-opt-group>
-                    }
-                  </tui-data-list>
+                      </span>
+                    </div>
+                  </ng-template>
                 </ng-template>
               </tui-textfield>
             </div>
@@ -502,6 +580,7 @@ export class NavbarComponent {
   protected readonly searchExpanded = signal(false);
   protected readonly control = new FormControl('');
   protected searchOpen = false;
+  protected readonly activeSearchTab = signal(0);
 
   protected readonly searchTemplate = viewChild<TemplateRef<object>>('search');
 
@@ -522,6 +601,12 @@ export class NavbarComponent {
         }, 500);
       }
     });
+
+    effect(() => {
+      if (this.searchOpen) {
+        this.activeSearchTab.set(0);
+      }
+    });
   }
 
   protected readonly results = toSignal(
@@ -538,8 +623,17 @@ export class NavbarComponent {
   protected readonly groupedResults = computed(() => {
     const data = this.results();
     if (!data) return [];
-    return Object.entries(data).filter(([_, items]) => items.length > 0);
+    return Object.entries(data)
+      .filter(([_, items]) => items.length > 0)
+      .map(([key, items]) => ({ key, items }));
   });
+
+  protected readonly totalResults = computed(() =>
+    this.groupedResults().reduce(
+      (acc, current) => acc + current.items.length,
+      0,
+    ),
+  );
 
   protected onResultClick(item: SearchItem, event?: Event): void {
     if (item.type?.startsWith('create-') || item.type?.startsWith('import-')) {

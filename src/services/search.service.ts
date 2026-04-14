@@ -125,9 +125,8 @@ export class SearchService {
           (users?.length || 0) > 0;
 
         const results: SearchData = {};
-        const areasTitle = this.translate.instant('areas');
         if (areas?.length) {
-          results[areasTitle] = areas.map(
+          results['areas'] = areas.map(
             (a: DbArea) =>
               ({
                 title: a.name,
@@ -136,19 +135,18 @@ export class SearchService {
               }) as SearchItem,
           );
         } else if (!hasAnyResults) {
-          const anuArea = eightAnuItems?.find(
-            (i): i is SearchAreaItem => i.type === 0,
-          );
-          results[areasTitle] = [
-            ...(anuArea
+          results['areas'] = [
+            ...(eightAnuItems?.find((i): i is SearchAreaItem => i.type === 0)
               ? [
                   {
-                    title: `${this.translate.instant('import')} ${anuArea.areaName}`,
-                    subtitle: anuArea.countryName,
+                    title: `${this.translate.instant('import')} ${(eightAnuItems.find((i) => i.type === 0) as SearchAreaItem).areaName}`,
+                    subtitle: (
+                      eightAnuItems.find((i) => i.type === 0) as SearchAreaItem
+                    ).countryName,
                     href: '',
                     icon: '@tui.download',
                     type: 'import-area',
-                    data: anuArea,
+                    data: eightAnuItems.find((i) => i.type === 0),
                   } as SearchItem,
                 ]
               : []),
@@ -161,9 +159,8 @@ export class SearchService {
           ];
         }
 
-        const cragsTitle = this.translate.instant('crags');
         if (crags?.length) {
-          results[cragsTitle] = crags.map((c: DbCrag) => {
+          results['crags'] = crags.map((c: DbCrag) => {
             const area = Array.isArray(c.area) ? c.area[0] : c.area;
             return {
               title: c.name,
@@ -173,19 +170,16 @@ export class SearchService {
             } as SearchItem;
           });
         } else if (!hasAnyResults) {
-          const anuCrag = eightAnuItems?.find(
-            (i): i is SearchCragItem => i.type === 1,
-          );
-          results[cragsTitle] = [
-            ...(anuCrag
+          results['crags'] = [
+            ...(eightAnuItems?.find((i): i is SearchCragItem => i.type === 1)
               ? [
                   {
-                    title: `${this.translate.instant('import')} ${anuCrag.cragName}`,
-                    subtitle: `${anuCrag.areaName}, ${anuCrag.countryName}`,
+                    title: `${this.translate.instant('import')} ${(eightAnuItems.find((i) => i.type === 1) as SearchCragItem).cragName}`,
+                    subtitle: `${(eightAnuItems.find((i) => i.type === 1) as SearchCragItem).areaName}, ${(eightAnuItems.find((i) => i.type === 1) as SearchCragItem).countryName}`,
                     href: '',
                     icon: '@tui.download',
                     type: 'import-crag',
-                    data: anuCrag,
+                    data: eightAnuItems.find((i) => i.type === 1),
                   } as SearchItem,
                 ]
               : []),
@@ -198,9 +192,8 @@ export class SearchService {
           ];
         }
 
-        const routesTitle = this.translate.instant('routes');
         if (routes?.length) {
-          results[routesTitle] = routes.map((r: DbRoute) => {
+          results['routes'] = routes.map((r: DbRoute) => {
             const crag = Array.isArray(r.crag) ? r.crag[0] : r.crag;
             const area = Array.isArray(crag?.area) ? crag?.area[0] : crag?.area;
             return {
@@ -216,7 +209,7 @@ export class SearchService {
           const anuRoute = eightAnuItems?.find(
             (i): i is SearchRouteItem => i.type === 3,
           );
-          results[routesTitle] = [
+          results['routes'] = [
             ...(anuRoute
               ? [
                   {
@@ -239,7 +232,7 @@ export class SearchService {
         }
 
         if (users?.length) {
-          results[this.translate.instant('users')] = users
+          results['users'] = users
             .filter((u) =>
               normalizeName(u.name).includes(normalizeName(trimmedQuery)),
             )
