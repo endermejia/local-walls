@@ -433,9 +433,7 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                             @if (!item.climbed) {
                               <button
                                 size="m"
-                                [appearance]="
-                                  item.project ? 'info' : 'secondary'
-                                "
+                                [appearance]="item.project ? 'info' : 'neutral'"
                                 iconStart="@tui.bookmark"
                                 tuiIconButton
                                 type="button"
@@ -488,275 +486,287 @@ import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
                   }
                 </tr>
                 <tui-table-expand #exp [expanded]="false">
-                  <tr tuiTr>
-                    <td [colSpan]="columns().length" tuiTd>
-                      <div
-                        class="flex flex-col gap-3 p-3 bg-(--tui-background-neutral-1) rounded-2xl border border-(--tui-border-normal)"
-                      >
+                  <tr>
+                    <td
+                      [colSpan]="columns().length"
+                      class="p-0! border-none! w-full! max-w-full!"
+                    >
+                      <div class="w-full box-border px-1 py-2">
                         <div
-                          class="flex flex-wrap items-center justify-between gap-x-2 gap-y-0"
+                          class="flex flex-col gap-3 p-3 bg-(--tui-background-neutral-1) rounded-2xl border border-(--tui-border-normal) w-full overflow-hidden"
                         >
-                          <div class="flex items-center gap-3">
-                            @if (item.height) {
-                              <div class="flex items-center gap-1 opacity-70">
-                                <tui-icon
-                                  icon="@tui.arrow-up-right"
-                                  class="text-xs"
-                                />
-                                <span class="font-medium"
-                                  >{{ item.height }}m</span
-                                >
-                              </div>
-                            }
-                            <div class="flex items-center gap-1 opacity-70">
-                              <tui-icon icon="@tui.star" class="text-xs" />
-                              <span class="font-medium">{{
-                                item.rating | number: '1.1-1'
-                              }}</span>
-                            </div>
-                          </div>
-
-                          <div class="flex flex-col gap-2">
-                            <div class="flex flex-wrap gap-x-1 gap-y-0">
-                              @let toposCountExp = item.topos.length;
-                              @if (toposCountExp > 0) {
-                                <div tuiGroup [collapsed]="true">
-                                  @for (t of item.topos; track t.id) {
-                                    <button
-                                      tuiButton
-                                      appearance="secondary"
-                                      class="min-w-fit!"
-                                      size="xs"
-                                      (click.zoneless)="
-                                        router.navigate([
-                                          '/area',
-                                          item.area_slug,
-                                          item.crag_slug,
-                                          'topo',
-                                          t.id,
-                                        ])
-                                      "
-                                    >
-                                      {{ t.name }}
-                                    </button>
-                                  }
-                                  @if (
-                                    global.editingMode() && showAddRouteToTopo()
-                                  ) {
-                                    <button
-                                      appearance="secondary"
-                                      size="xs"
-                                      tuiIconButton
-                                      type="button"
-                                      iconStart="@tui.chevron-down"
-                                      [tuiDropdown]="toposMenuExpanded"
-                                      [tuiDropdownOpen]="
-                                        openDropdownId() === item.key + '_exp'
-                                      "
-                                      (tuiDropdownOpenChange)="
-                                        openDropdownId.set(
-                                          $event ? item.key + '_exp' : null
-                                        )
-                                      "
-                                      (click.zoneless)="
-                                        $event.stopPropagation()
-                                      "
-                                    >
-                                      {{ 'addRouteToTopo' | translate }}
-                                    </button>
-                                  }
+                          <div
+                            class="flex flex-wrap items-center justify-between gap-x-2 gap-y-0"
+                          >
+                            <div class="flex items-center gap-3">
+                              @if (item.height) {
+                                <div class="flex items-center gap-1 opacity-70">
+                                  <tui-icon
+                                    icon="@tui.arrow-up-right"
+                                    class="text-xs"
+                                  />
+                                  <span class="font-medium"
+                                    >{{ item.height }}m</span
+                                  >
                                 </div>
-                              } @else if (
-                                global.editingMode() && showAddRouteToTopo()
-                              ) {
+                              }
+                              <div class="flex items-center gap-1 opacity-70">
+                                <tui-icon icon="@tui.star" class="text-xs" />
+                                <span class="font-medium">{{
+                                  item.rating | number: '1.1-1'
+                                }}</span>
+                              </div>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                              <div class="flex flex-wrap gap-x-1 gap-y-0">
+                                @let toposCountExp = item.topos.length;
+                                @if (toposCountExp > 0) {
+                                  <div tuiGroup [collapsed]="true">
+                                    @for (t of item.topos; track t.id) {
+                                      <button
+                                        tuiButton
+                                        appearance="secondary"
+                                        class="min-w-fit!"
+                                        size="xs"
+                                        (click.zoneless)="
+                                          router.navigate([
+                                            '/area',
+                                            item.area_slug,
+                                            item.crag_slug,
+                                            'topo',
+                                            t.id,
+                                          ])
+                                        "
+                                      >
+                                        {{ t.name }}
+                                      </button>
+                                    }
+                                    @if (
+                                      global.editingMode() &&
+                                      showAddRouteToTopo()
+                                    ) {
+                                      <button
+                                        appearance="secondary"
+                                        size="xs"
+                                        tuiIconButton
+                                        type="button"
+                                        iconStart="@tui.chevron-down"
+                                        [tuiDropdown]="toposMenuExpanded"
+                                        [tuiDropdownOpen]="
+                                          openDropdownId() === item.key + '_exp'
+                                        "
+                                        (tuiDropdownOpenChange)="
+                                          openDropdownId.set(
+                                            $event ? item.key + '_exp' : null
+                                          )
+                                        "
+                                        (click.zoneless)="
+                                          $event.stopPropagation()
+                                        "
+                                      >
+                                        {{ 'addRouteToTopo' | translate }}
+                                      </button>
+                                    }
+                                  </div>
+                                } @else if (
+                                  global.editingMode() && showAddRouteToTopo()
+                                ) {
+                                  <button
+                                    appearance="flat-grayscale"
+                                    size="xs"
+                                    tuiButton
+                                    type="button"
+                                    class="rounded-full!"
+                                    iconStart="@tui.plus"
+                                    [tuiDropdown]="toposMenuExpanded"
+                                    [tuiDropdownOpen]="
+                                      openDropdownId() === item.key + '_exp'
+                                    "
+                                    (tuiDropdownOpenChange)="
+                                      openDropdownId.set(
+                                        $event ? item.key + '_exp' : null
+                                      )
+                                    "
+                                    (click.zoneless)="$event.stopPropagation()"
+                                  >
+                                    {{ 'addRouteToTopo' | translate }}
+                                  </button>
+                                }
+                                <ng-template #toposMenuExpanded>
+                                  <tui-data-list>
+                                    @for (
+                                      topo of global.cragDetailResource.value()
+                                        ?.topos || [];
+                                      track topo.id
+                                    ) {
+                                      @let isAttached =
+                                        item.topos | includesId: topo.id;
+                                      <button
+                                        tuiOption
+                                        new
+                                        (click)="
+                                          toggleRouteOnTopo(
+                                            topo.id,
+                                            item._ref.id,
+                                            isAttached
+                                          );
+                                          openDropdownId.set(null)
+                                        "
+                                      >
+                                        <tui-icon
+                                          [icon]="
+                                            isAttached
+                                              ? '@tui.check'
+                                              : '@tui.image'
+                                          "
+                                          class="mr-2"
+                                        />
+                                        {{ topo.name }}
+                                      </button>
+                                    }
+                                  </tui-data-list>
+                                </ng-template>
+                              </div>
+
+                              @if (item.ascents; as ascents) {
+                                <div class="flex items-center gap-1 opacity-70">
+                                  <span class="font-medium">{{
+                                    item.ascents
+                                  }}</span>
+                                  {{
+                                    (ascents > 1 ? 'ascents' : 'ascent')
+                                      | translate
+                                      | lowercase
+                                  }}
+                                </div>
+                              }
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                              @if (!item.climbed) {
                                 <button
-                                  appearance="flat-grayscale"
-                                  size="xs"
-                                  tuiButton
+                                  size="m"
+                                  appearance="neutral"
+                                  iconStart="@tui.circle-plus"
+                                  tuiIconButton
                                   type="button"
                                   class="rounded-full!"
-                                  iconStart="@tui.plus"
-                                  [tuiDropdown]="toposMenuExpanded"
-                                  [tuiDropdownOpen]="
-                                    openDropdownId() === item.key + '_exp'
+                                  [tuiHint]="'ascent.new' | translate"
+                                  (click.zoneless)="
+                                    onLogAscent(item._ref);
+                                    $event.stopPropagation()
                                   "
-                                  (tuiDropdownOpenChange)="
-                                    openDropdownId.set(
-                                      $event ? item.key + '_exp' : null
-                                    )
-                                  "
-                                  (click.zoneless)="$event.stopPropagation()"
                                 >
-                                  {{ 'addRouteToTopo' | translate }}
+                                  {{ 'ascent.new' | translate }}
+                                </button>
+                              } @else if (
+                                item._ref.own_ascent;
+                                as ascentToEdit
+                              ) {
+                                <app-button-ascent-type
+                                  [type]="ascentToEdit?.type"
+                                  [active]="true"
+                                  class="cursor-pointer"
+                                  tabindex="0"
+                                  [tuiHint]="'ascent.edit' | translate"
+                                  (click.zoneless)="
+                                    onEditAscent(ascentToEdit, item._ref.name);
+                                    $event.stopPropagation()
+                                  "
+                                  (keydown.enter)="
+                                    onEditAscent(ascentToEdit, item._ref.name);
+                                    $event.stopPropagation()
+                                  "
+                                />
+                              }
+
+                              @if (!item.climbed) {
+                                <button
+                                  size="m"
+                                  [appearance]="
+                                    item.project ? 'info' : 'neutral'
+                                  "
+                                  iconStart="@tui.bookmark"
+                                  tuiIconButton
+                                  type="button"
+                                  class="rounded-full!"
+                                  [tuiHint]="'project' | translate"
+                                  (click.zoneless)="
+                                    routesService.toggleRouteProject(
+                                      item._ref.id,
+                                      item._ref
+                                    );
+                                    $event.stopPropagation()
+                                  "
+                                >
+                                  {{ 'project' | translate }}
                                 </button>
                               }
-                              <ng-template #toposMenuExpanded>
-                                <tui-data-list>
-                                  @for (
-                                    topo of global.cragDetailResource.value()
-                                      ?.topos || [];
-                                    track topo.id
-                                  ) {
-                                    @let isAttached =
-                                      item.topos | includesId: topo.id;
-                                    <button
-                                      tuiOption
-                                      new
-                                      (click)="
-                                        toggleRouteOnTopo(
-                                          topo.id,
-                                          item._ref.id,
-                                          isAttached
-                                        );
-                                        openDropdownId.set(null)
-                                      "
-                                    >
-                                      <tui-icon
-                                        [icon]="
-                                          isAttached
-                                            ? '@tui.check'
-                                            : '@tui.image'
-                                        "
-                                        class="mr-2"
-                                      />
-                                      {{ topo.name }}
-                                    </button>
-                                  }
-                                </tui-data-list>
-                              </ng-template>
+
+                              @if (canEditRoute && showAdminActions()) {
+                                <button
+                                  size="s"
+                                  appearance="neutral"
+                                  iconStart="@tui.square-pen"
+                                  tuiIconButton
+                                  type="button"
+                                  class="rounded-full!"
+                                  (click.zoneless)="
+                                    openEditRoute(item._ref);
+                                    $event.stopPropagation()
+                                  "
+                                >
+                                  {{ 'edit' | translate }}
+                                </button>
+                                <button
+                                  size="s"
+                                  appearance="negative"
+                                  iconStart="@tui.trash"
+                                  tuiIconButton
+                                  type="button"
+                                  class="rounded-full!"
+                                  (click.zoneless)="
+                                    deleteRoute(item._ref);
+                                    $event.stopPropagation()
+                                  "
+                                >
+                                  {{ 'delete' | translate }}
+                                </button>
+                              }
                             </div>
-
-                            @if (item.ascents; as ascents) {
-                              <div class="flex items-center gap-1 opacity-70">
-                                <span class="font-medium">{{
-                                  item.ascents
-                                }}</span>
-                                {{
-                                  (ascents > 1 ? 'ascents' : 'ascent')
-                                    | translate
-                                    | lowercase
-                                }}
-                              </div>
-                            }
                           </div>
 
-                          <div class="flex items-center gap-3">
-                            @if (!item.climbed) {
-                              <button
-                                size="m"
-                                appearance="neutral"
-                                iconStart="@tui.circle-plus"
-                                tuiIconButton
-                                type="button"
-                                class="rounded-full!"
-                                [tuiHint]="'ascent.new' | translate"
-                                (click.zoneless)="
-                                  onLogAscent(item._ref);
-                                  $event.stopPropagation()
-                                "
-                              >
-                                {{ 'ascent.new' | translate }}
-                              </button>
-                            } @else if (item._ref.own_ascent; as ascentToEdit) {
-                              <app-button-ascent-type
-                                [type]="ascentToEdit?.type"
-                                [active]="true"
-                                class="cursor-pointer"
-                                tabindex="0"
-                                [tuiHint]="'ascent.edit' | translate"
-                                (click.zoneless)="
-                                  onEditAscent(ascentToEdit, item._ref.name);
-                                  $event.stopPropagation()
-                                "
-                                (keydown.enter)="
-                                  onEditAscent(ascentToEdit, item._ref.name);
-                                  $event.stopPropagation()
-                                "
+                          @if (showLocation()) {
+                            <div
+                              class="text-xs opacity-60 flex gap-1 items-center border-t border-(--tui-border-normal) pt-2"
+                            >
+                              <tui-icon
+                                icon="@tui.map-pin"
+                                class="text-[10px]"
                               />
-                            }
-
-                            @if (!item.climbed) {
-                              <button
-                                size="m"
-                                [appearance]="
-                                  item.project ? 'info' : 'secondary'
-                                "
-                                iconStart="@tui.bookmark"
-                                tuiIconButton
-                                type="button"
-                                class="rounded-full!"
-                                [tuiHint]="'project' | translate"
-                                (click.zoneless)="
-                                  routesService.toggleRouteProject(
-                                    item._ref.id,
-                                    item._ref
-                                  );
-                                  $event.stopPropagation()
-                                "
+                              <a
+                                tuiLink
+                                [routerLink]="['/area', item.area_slug]"
+                                (click)="$event.stopPropagation()"
                               >
-                                {{ 'project' | translate }}
-                              </button>
-                            }
-
-                            @if (canEditRoute && showAdminActions()) {
-                              <button
-                                size="s"
-                                appearance="neutral"
-                                iconStart="@tui.square-pen"
-                                tuiIconButton
-                                type="button"
-                                class="rounded-full!"
-                                (click.zoneless)="
-                                  openEditRoute(item._ref);
-                                  $event.stopPropagation()
-                                "
+                                {{ item.area_name }}
+                              </a>
+                              <span>/</span>
+                              <a
+                                tuiLink
+                                [routerLink]="[
+                                  '/area',
+                                  item.area_slug,
+                                  item.crag_slug,
+                                ]"
+                                (click)="$event.stopPropagation()"
                               >
-                                {{ 'edit' | translate }}
-                              </button>
-                              <button
-                                size="s"
-                                appearance="negative"
-                                iconStart="@tui.trash"
-                                tuiIconButton
-                                type="button"
-                                class="rounded-full!"
-                                (click.zoneless)="
-                                  deleteRoute(item._ref);
-                                  $event.stopPropagation()
-                                "
-                              >
-                                {{ 'delete' | translate }}
-                              </button>
-                            }
-                          </div>
+                                {{ item.crag_name }}
+                              </a>
+                            </div>
+                          }
                         </div>
-
-                        @if (showLocation()) {
-                          <div
-                            class="text-xs opacity-60 flex gap-1 items-center border-t border-(--tui-border-normal) pt-2"
-                          >
-                            <tui-icon icon="@tui.map-pin" class="text-[10px]" />
-                            <a
-                              tuiLink
-                              [routerLink]="['/area', item.area_slug]"
-                              (click)="$event.stopPropagation()"
-                            >
-                              {{ item.area_name }}
-                            </a>
-                            <span>/</span>
-                            <a
-                              tuiLink
-                              [routerLink]="[
-                                '/area',
-                                item.area_slug,
-                                item.crag_slug,
-                              ]"
-                              (click)="$event.stopPropagation()"
-                            >
-                              {{ item.crag_name }}
-                            </a>
-                          </div>
-                        }
                       </div>
                     </td>
                   </tr>
