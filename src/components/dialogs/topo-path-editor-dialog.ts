@@ -7,7 +7,7 @@ import {
   ElementRef,
   inject,
   signal,
-  ViewChild,
+  viewChild,
   AfterViewInit,
   ChangeDetectorRef,
 } from '@angular/core';
@@ -720,9 +720,12 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly global = inject(GlobalData);
 
-  @ViewChild('image') imageElement!: ElementRef<HTMLImageElement>;
-  @ViewChild('container') containerElement!: ElementRef<HTMLDivElement>;
-  @ViewChild('editorArea') editorAreaElement!: ElementRef<HTMLDivElement>;
+  protected readonly imageElement =
+    viewChild.required<ElementRef<HTMLImageElement>>('image');
+  protected readonly containerElement =
+    viewChild.required<ElementRef<HTMLDivElement>>('container');
+  protected readonly editorAreaElement =
+    viewChild.required<ElementRef<HTMLDivElement>>('editorArea');
 
   loading = signal(false);
   selectedRoute = signal<TopoRouteWithRoute | null>(null);
@@ -783,14 +786,14 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
   }
 
   private doAttachWheelListener(): void {
-    attachWheelListener(this.editorAreaElement?.nativeElement, (e) =>
+    attachWheelListener(this.editorAreaElement()?.nativeElement, (e) =>
       this.onWheel(e),
     );
   }
 
   onImageLoad(): void {
-    const img = this.imageElement.nativeElement;
-    const area = this.editorAreaElement.nativeElement;
+    const img = this.imageElement().nativeElement;
+    const area = this.editorAreaElement().nativeElement;
 
     // Use natural dimensions for the coordinate system
     this.width.set(img.naturalWidth);
@@ -818,7 +821,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     handleWheelZoom(
       event,
       this.zoomPanState,
-      this.containerElement.nativeElement,
+      this.containerElement().nativeElement,
       {},
       { afterZoom: () => this.doConstrainTranslation() },
     );
@@ -879,7 +882,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
   private doConstrainTranslation(): void {
     constrainTranslation(
       this.zoomPanState,
-      this.editorAreaElement?.nativeElement,
+      this.editorAreaElement()?.nativeElement,
       this.width(),
       this.height(),
     );
@@ -939,7 +942,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     addPointToPath(
       event,
       route.route_id,
-      this.containerElement.nativeElement,
+      this.containerElement().nativeElement,
       this.scale(),
       this.width(),
       this.height(),
@@ -958,7 +961,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
       event,
       numericRouteId,
       index,
-      this.containerElement.nativeElement,
+      this.containerElement().nativeElement,
       this.scale(),
       this.width(),
       this.height(),
@@ -981,7 +984,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
       event,
       numericRouteId,
       index,
-      this.containerElement.nativeElement,
+      this.containerElement().nativeElement,
       this.scale(),
       this.width(),
       this.height(),
@@ -1000,7 +1003,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     setupEditorTouchPanPinch(
       event,
       this.zoomPanState,
-      this.containerElement.nativeElement,
+      this.containerElement().nativeElement,
       {},
       {
         afterMove: () => this.doConstrainTranslation(),

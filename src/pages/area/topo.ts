@@ -12,7 +12,8 @@ import {
   resource,
   signal,
   Signal,
-  ViewChild,
+  viewChild,
+  viewChildren,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -392,6 +393,7 @@ export interface TopoRouteRow {
             <!-- Topo fullscreen -->
             @if (isFullscreen()) {
               <div
+                #fullscreenContainer
                 class="fixed inset-0 z-1000 flex items-center justify-center overflow-hidden touch-none backdrop-blur-xl cursor-grab active:cursor-grabbing"
                 tabindex="0"
                 (keydown.enter)="toggleFullscreen(false)"
@@ -422,6 +424,7 @@ export interface TopoRouteRow {
                 </div>
 
                 <div
+                  #fullscreenZoomContainer
                   class="relative transition-transform duration-75 ease-out zoom-container origin-top-left"
                   [class.duration-0!]="dragState.isDragging"
                   (click)="onImageClick(); $event.stopPropagation()"
@@ -438,6 +441,7 @@ export interface TopoRouteRow {
                   "
                 >
                   <img
+                    #topoImgFullscreen
                     [src]="topoImage || global.iconSrc()('topo')"
                     [alt]="t.name"
                     class="max-w-dvw max-h-dvh object-contain block"
@@ -717,6 +721,7 @@ export interface TopoRouteRow {
                     ) {
                       <tbody tuiTbody>
                         <tr
+                          #routeRow
                           tuiTr
                           [id]="
                             'route-row-' +
@@ -1003,7 +1008,15 @@ export class TopoComponent {
   private readonly translate = inject(TranslateService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly toast = inject(ToastService);
-  @ViewChild('scrollContainer') scrollContainer?: ElementRef<HTMLDivElement>;
+  protected readonly scrollContainer =
+    viewChild<ElementRef<HTMLDivElement>>('scrollContainer');
+  protected readonly fullscreenContainer = viewChild<
+    ElementRef<HTMLDivElement>
+  >('fullscreenContainer');
+  protected readonly topoImgFullscreen =
+    viewChild<ElementRef<HTMLImageElement>>('topoImgFullscreen');
+  private readonly routeRows =
+    viewChildren<ElementRef<HTMLTableRowElement>>('routeRow');
   protected readonly isFullscreen = signal(false);
   protected readonly zoomScale = signal(1);
   protected readonly zoomPosition = signal({ x: 0, y: 0 });
@@ -1269,7 +1282,9 @@ export class TopoComponent {
       if (topoId && routeId && isPlatformBrowser(this.platformId)) {
         setTimeout(() => {
           const rowId = `route-row-${topoId}-${routeId}`;
-          const row = document.getElementById(rowId);
+          const row = this.routeRows().find(
+            (r) => r.nativeElement.id === rowId,
+          )?.nativeElement;
           if (row) {
             row.scrollIntoView({
               block: 'center',
@@ -1293,12 +1308,14 @@ export class TopoComponent {
 
     // Use the appropriate container based on current view mode
     const containerEl = this.isFullscreen()
-      ? (document.querySelector('.fixed.inset-0.z-\\[1000\\]') as HTMLElement)
-      : this.scrollContainer?.nativeElement;
+      ? this.fullscreenContainer()?.nativeElement
+      : this.scrollContainer()?.nativeElement;
 
     if (!containerEl) return;
 
-    const imgEl = containerEl.querySelector('img');
+    const imgEl = this.isFullscreen()
+      ? this.topoImgFullscreen()?.nativeElement
+      : containerEl.querySelector('img');
     if (!imgEl) return;
 
     const pts = tr.path.points;

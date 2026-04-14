@@ -10,7 +10,7 @@ import {
   Signal,
   signal,
   TemplateRef,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { form, FormField, required, submit } from '@angular/forms/signals';
@@ -340,7 +340,8 @@ export class AreaFormComponent {
   private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
-  @ViewChild('accountDialog') accountDialogTemplate?: TemplateRef<unknown>;
+  private readonly accountDialogTemplate =
+    viewChild<TemplateRef<unknown>>('accountDialog');
 
   private readonly _dialogCtx: TuiDialogContext<
     string | boolean | null,
@@ -525,7 +526,7 @@ export class AreaFormComponent {
         window.location.href = data.url;
       } else if (data?.status === 'multiple_accounts' && data.accounts) {
         this.dialogs
-          .open<string>(this.accountDialogTemplate!, {
+          .open<string>(this.accountDialogTemplate()!, {
             data: data.accounts,
             size: 's',
           })

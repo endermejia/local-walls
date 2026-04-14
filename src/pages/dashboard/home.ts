@@ -9,7 +9,7 @@ import {
   resource,
   computed,
   signal,
-  ViewChild,
+  viewChild,
   input,
   effect,
 } from '@angular/core';
@@ -272,8 +272,7 @@ export class HomeComponent implements OnDestroy {
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
 
-  @ViewChild(TuiScrollbar, { read: ElementRef })
-  scrollbar?: ElementRef<HTMLElement>;
+  protected readonly scrollbar = viewChild(TuiScrollbar, { read: ElementRef });
 
   readonly roomId = input<string | undefined>();
   protected readonly followedIds = signal<Set<string>>(new Set());
@@ -632,8 +631,8 @@ export class HomeComponent implements OnDestroy {
   }
 
   private scrollToTop() {
-    if (this.scrollbar?.nativeElement) {
-      this.scrollbar.nativeElement.scrollTo({ top: 0, behavior: 'smooth' });
+    if (this.scrollbar()?.nativeElement) {
+      this.scrollbar()!.nativeElement.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 

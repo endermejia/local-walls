@@ -12,7 +12,8 @@ import {
   PLATFORM_ID,
   resource,
   signal,
-  ViewChild,
+  viewChild,
+  viewChildren,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -128,9 +129,9 @@ export interface PyramidLevel {
             <div class="pyramid-level flex justify-center gap-2 w-full">
               @for (slot of level.slots; track $index) {
                 <div
+                  #slot
                   class="pyramid-slot relative group cursor-pointer transition-all duration-300 rounded-xl shadow-sm hover:scale-105"
                   [tuiSkeleton]="isLoading()"
-                  [id]="level.level === 1 ? 'pyramid-peak' : null"
                   [class.is-empty]="!slot.route_id"
                   [class.is-completed]="slot.isCompleted"
                   [class.is-locked]="!isLoading() && !slot.canModify"
@@ -293,7 +294,9 @@ export class PyramidComponent implements AfterViewInit {
   protected platformId = inject(PLATFORM_ID);
   global = inject(GlobalData);
 
-  @ViewChild('pyramidContainer') pyramidContainer?: ElementRef<HTMLDivElement>;
+  protected readonly pyramidContainer =
+    viewChild<ElementRef<HTMLDivElement>>('pyramidContainer');
+  private readonly pyramidSlots = viewChildren<ElementRef<HTMLElement>>('slot');
 
   isCentered = signal(false);
 
@@ -333,7 +336,7 @@ export class PyramidComponent implements AfterViewInit {
   }
 
   private centerPyramid(): void {
-    const peak = document.getElementById('pyramid-peak');
+    const peak = this.pyramidSlots()[0]?.nativeElement;
     if (peak) {
       peak.scrollIntoView({
         behavior: 'auto',

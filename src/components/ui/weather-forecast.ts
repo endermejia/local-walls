@@ -7,8 +7,10 @@ import {
   inject,
   input,
   signal,
+  Signal,
   untracked,
-  ViewChild,
+  viewChild,
+  viewChildren,
 } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
@@ -96,6 +98,7 @@ import { WeatherService } from '../../services/weather.service';
             <div class="flex gap-4 px-2 pb-6">
               @for (hour of selectedDay.hourly; track hour.time) {
                 <div
+                  #hourItem
                   class="flex flex-col items-center min-w-[50px] py-1 px-1 rounded-xl transition-colors border hour-item"
                   [class.bg-(--tui-background-accent-1-hover)]="
                     isCurrentHour(hour.time)
@@ -215,8 +218,10 @@ export class WeatherForecastComponent {
   protected readonly selectedDayIdx = signal(0);
   protected readonly hoursSkeleton = Array.from({ length: 24 }, (_, i) => i);
 
-  @ViewChild('hourlyScroll', { read: ElementRef })
-  hourlyScroll?: ElementRef<HTMLElement>;
+  protected readonly hourlyScroll: Signal<ElementRef<HTMLElement> | undefined> =
+    viewChild('hourlyScroll', { read: ElementRef });
+  private readonly hourItems =
+    viewChildren<ElementRef<HTMLElement>>('hourItem');
 
   coords = input.required<{ lat: number; lng: number }>();
 
@@ -234,7 +239,7 @@ export class WeatherForecastComponent {
 
       untracked(() => {
         setTimeout(() => {
-          const el = this.hourlyScroll?.nativeElement;
+          const el = this.hourlyScroll()?.nativeElement;
           if (!el) return;
 
           const days = this.weather();
@@ -250,8 +255,7 @@ export class WeatherForecastComponent {
           );
 
           if (currentIdx !== -1) {
-            const items = el.querySelectorAll('.hour-item');
-            const target = items[currentIdx] as HTMLElement;
+            const target = this.hourItems()[currentIdx]?.nativeElement;
             if (target) {
               const elRect = el.getBoundingClientRect();
               const targetRect = target.getBoundingClientRect();

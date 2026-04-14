@@ -13,7 +13,8 @@ import {
   OutputEmitterRef,
   PLATFORM_ID,
   signal,
-  ViewChild,
+  Signal,
+  viewChild,
 } from '@angular/core';
 
 import { TuiButton } from '@taiga-ui/core';
@@ -148,8 +149,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     },
   };
 
-  @ViewChild('container', { read: ElementRef })
-  private containerRef?: ElementRef<HTMLElement>;
+  private readonly containerRef: Signal<ElementRef<HTMLElement> | undefined> =
+    viewChild('container', { read: ElementRef });
 
   constructor() {
     effect(() => {
@@ -214,14 +215,14 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   }
 
   private tryInit(): void {
-    const el = this.containerRef?.nativeElement;
+    const el = this.containerRef()?.nativeElement;
     if (!el || this.mapInitialized() || !this.isBrowser()) return;
     window.requestAnimationFrame(() => void this.initMap());
   }
 
   private async initMap(): Promise<void> {
     if (this.mapInitialized() || !this.isBrowser()) return;
-    const el = this.containerRef?.nativeElement;
+    const el = this.containerRef()?.nativeElement;
     if (!el) return;
     await this.mapBuilder.init(
       el,

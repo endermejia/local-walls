@@ -6,10 +6,11 @@ import {
   inject,
   resource,
   signal,
+  Signal,
   ElementRef,
   effect,
   OnDestroy,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -360,11 +361,11 @@ export class ChatDialogComponent implements OnDestroy {
   protected readonly context =
     injectContext<TuiDialogContext<void, ChatDialogData>>();
 
-  @ViewChild('scrollbar', { read: ElementRef })
-  private scrollbar?: ElementRef<HTMLElement>;
-
-  @ViewChild('messageTextarea', { read: ElementRef })
-  private messageTextarea?: ElementRef<HTMLTextAreaElement>;
+  private readonly scrollbar: Signal<ElementRef<HTMLElement> | undefined> =
+    viewChild('scrollbar', { read: ElementRef });
+  private readonly messageTextarea: Signal<
+    ElementRef<HTMLTextAreaElement> | undefined
+  > = viewChild('messageTextarea', { read: ElementRef });
 
   private roomSubscription?: RealtimeChannel | null;
   private roomsSubscription?: RealtimeChannel | null;
@@ -631,7 +632,7 @@ export class ChatDialogComponent implements OnDestroy {
       return;
     }
     setTimeout(() => {
-      this.messageTextarea?.nativeElement.focus();
+      this.messageTextarea()?.nativeElement.focus();
     }, 200);
   }
 
@@ -650,7 +651,7 @@ export class ChatDialogComponent implements OnDestroy {
 
   private scrollToBottom() {
     setTimeout(() => {
-      const el = this.scrollbar?.nativeElement;
+      const el = this.scrollbar()?.nativeElement;
       if (el) {
         el.scrollTop = el.scrollHeight;
       }

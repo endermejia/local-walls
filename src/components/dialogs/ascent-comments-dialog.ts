@@ -8,7 +8,8 @@ import {
   inject,
   resource,
   signal,
-  ViewChild,
+  viewChild,
+  viewChildren,
   effect,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -193,6 +194,7 @@ export interface AscentCommentsDialogData {
               <div #mentionList class="flex flex-col">
                 @for (user of mentionUsers(); track user.id; let i = $index) {
                   <button
+                    #mentionAction
                     type="button"
                     (mousedown)="$event.preventDefault(); selectUser(user)"
                     class="flex items-center gap-2 p-2 w-full text-left transition-colors cursor-pointer"
@@ -248,9 +250,14 @@ export class AscentCommentsDialogComponent {
   protected readonly context =
     injectContext<TuiDialogContext<void, AscentCommentsDialogData>>();
 
-  @ViewChild('editor') editorRef!: ElementRef<HTMLDivElement>;
-  @ViewChild('container') containerRef!: ElementRef<HTMLDivElement>;
-  @ViewChild('mentionList') mentionListRef?: ElementRef<HTMLDivElement>;
+  protected readonly editorRef =
+    viewChild.required<ElementRef<HTMLDivElement>>('editor');
+  protected readonly containerRef =
+    viewChild.required<ElementRef<HTMLDivElement>>('container');
+  protected readonly mentionListRef =
+    viewChild<ElementRef<HTMLDivElement>>('mentionList');
+  private readonly mentionActions =
+    viewChildren<ElementRef<HTMLButtonElement>>('mentionAction');
 
   protected readonly ascentId = this.context.data.ascentId;
   protected readonly sending = signal(false);
@@ -292,11 +299,8 @@ export class AscentCommentsDialogComponent {
       this.selectedMentionIndex.set(0);
       // Ensure we scroll to top when list updates
       setTimeout(() => {
-        if (this.mentionListRef?.nativeElement) {
-          const first =
-            this.mentionListRef.nativeElement.querySelector('button');
-          first?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-        }
+        const first = this.mentionActions()[0]?.nativeElement;
+        first?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
       });
     });
   }
@@ -349,12 +353,8 @@ export class AscentCommentsDialogComponent {
   private scrollToSelectedMention() {
     // Use setTimeout to allow DOM to update class styles first, though not strictly necessary if manual calc
     setTimeout(() => {
-      if (!this.mentionListRef) return;
-      const container = this.mentionListRef.nativeElement;
-      const buttons = container.querySelectorAll('button');
-      const selectedButton = buttons[
-        this.selectedMentionIndex()
-      ] as HTMLElement;
+      const selectedButton =
+        this.mentionActions()[this.selectedMentionIndex()]?.nativeElement;
 
       if (selectedButton) {
         selectedButton.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -363,8 +363,8 @@ export class AscentCommentsDialogComponent {
   }
 
   private checkEmpty() {
-    if (!this.editorRef) return;
-    const text = this.editorRef.nativeElement.textContent?.trim();
+    if (!this.editorRef()) return;
+    const text = this.editorRef().nativeElement.textContent?.trim();
     this.isEditorEmpty.set(!text);
   }
 
@@ -393,7 +393,7 @@ export class AscentCommentsDialogComponent {
             // Calculate Position
             const rect = range.getBoundingClientRect();
             const containerRect =
-              this.containerRef.nativeElement.getBoundingClientRect();
+              this.containerRef().nativeElement.getBoundingClientRect();
 
             // Position relative to the container
             let relativeLeft = rect.left - containerRect.left;
@@ -422,8 +422,8 @@ export class AscentCommentsDialogComponent {
   }
 
   protected onReply(user: UserProfileBasicDto) {
-    if (!this.editorRef) return;
-    const editor = this.editorRef.nativeElement;
+    if (!this.editorRef()) return;
+    const editor = this.editorRef().nativeElement;
     editor.focus();
 
     // Move cursor to end before inserting
@@ -487,7 +487,7 @@ export class AscentCommentsDialogComponent {
       replaceRange.setStartAfter(pill);
       replaceRange.insertNode(space);
     } else {
-      const editor = this.editorRef.nativeElement;
+      const editor = this.editorRef().nativeElement;
       editor.appendChild(pill);
       editor.appendChild(space);
     }
@@ -508,8 +508,8 @@ export class AscentCommentsDialogComponent {
   }
 
   private getCommentContent(): string {
-    if (!this.editorRef) return '';
-    const clone = this.editorRef.nativeElement.cloneNode(true) as HTMLElement;
+    if (!this.editorRef()) return '';
+    const clone = this.editorRef().nativeElement.cloneNode(true) as HTMLElement;
 
     // Convert pills to markdown syntax
     const pills = clone.querySelectorAll('.mention-pill');
@@ -540,8 +540,8 @@ export class AscentCommentsDialogComponent {
         commentText,
       );
       if (result) {
-        if (this.editorRef) {
-          this.editorRef.nativeElement.innerHTML = '';
+        if (this.editorRef()) {
+          this.editorRef().nativeElement.innerHTML = '';
           this.checkEmpty();
         }
         this.commentsResource.reload();

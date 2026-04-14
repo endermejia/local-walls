@@ -12,7 +12,7 @@ import {
   PLATFORM_ID,
   signal,
   Signal,
-  ViewChild,
+  viewChild,
   WritableSignal,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
@@ -527,7 +527,8 @@ export class ExploreComponent {
 
   protected readonly stops = ['6.5rem'] as const;
 
-  @ViewChild('sheet', { read: ElementRef }) sheetRef?: ElementRef<HTMLElement>;
+  protected readonly sheetRef: Signal<ElementRef<HTMLElement> | undefined> =
+    viewChild('sheet', { read: ElementRef });
 
   private readonly _sheetClientHeight: WritableSignal<number> = signal(0);
   protected readonly _sheetScrollTop: WritableSignal<number> = signal(0);
@@ -683,7 +684,7 @@ export class ExploreComponent {
   protected onSheetScroll(event: Event): void {
     if (!this.isBrowser()) return;
     const target =
-      (event?.target as HTMLElement) || this.sheetRef?.nativeElement;
+      (event?.target as HTMLElement) || this.sheetRef()?.nativeElement;
     if (!target) return;
     this.updateBottomSheetScrollSignals(target);
   }
@@ -706,10 +707,10 @@ export class ExploreComponent {
       this.global.selectedMapParkingItem.set(null);
     }
 
-    const el = this.sheetRef?.nativeElement;
+    const el = this.sheetRef()?.nativeElement;
     if (!el) {
       window.requestAnimationFrame(() => {
-        const node = this.sheetRef?.nativeElement;
+        const node = this.sheetRef()?.nativeElement;
         if (!node) return;
         window.requestAnimationFrame(() => {
           const target =
@@ -749,7 +750,7 @@ export class ExploreComponent {
     };
 
     window.requestAnimationFrame(() => {
-      const nodeA = this.sheetRef?.nativeElement || el;
+      const nodeA = this.sheetRef()?.nativeElement || el;
       window.requestAnimationFrame(() => doScroll(nodeA));
     });
   }
