@@ -9,7 +9,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-first-steps-dialog',
-  imports: [TuiButton, TranslatePipe, NgOptimizedImage],
+  imports: [NgOptimizedImage, TranslatePipe, TuiButton],
   template: `
     <div class="flex flex-col items-center gap-6 text-center p-4">
       <img

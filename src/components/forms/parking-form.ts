@@ -56,16 +56,16 @@ interface MinimalParking {
   selector: 'app-parking-form',
   imports: [
     CommonModule,
+    CounterComponent,
     FormField,
     FormsModule,
+    TranslatePipe,
     TuiButton,
     TuiError,
-    TuiLabel,
     TuiInput,
-    TranslatePipe,
     TuiInputNumber,
+    TuiLabel,
     TuiNumberFormat,
-    CounterComponent,
   ],
   template: `
     <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">

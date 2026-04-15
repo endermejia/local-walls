@@ -24,7 +24,7 @@ import { AscentType } from '../../models';
 @Component({
   selector: 'app-ascent-type',
   standalone: true,
-  imports: [TuiBadge, TuiIcon, TuiHint, TranslatePipe],
+  imports: [TranslatePipe, TuiBadge, TuiHint, TuiIcon],
   template: `
     @let info = typeInfo();
     <span

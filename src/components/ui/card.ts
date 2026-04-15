@@ -4,7 +4,7 @@ import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 
 @Component({
   selector: 'app-card',
-  imports: [TuiCardLarge, TuiHeader, TuiTitle, TuiIcon],
+  imports: [TuiCardLarge, TuiHeader, TuiIcon, TuiTitle],
   template: `
     <div
       tuiCardLarge

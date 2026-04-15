@@ -29,13 +29,13 @@ import { WeatherService } from '../../services/weather.service';
   standalone: true,
   imports: [
     CommonModule,
-    TuiIcon,
-    TuiScrollbar,
-    TranslatePipe,
     DatePipe,
     DecimalPipe,
-    TuiSkeleton,
+    TranslatePipe,
+    TuiIcon,
     TuiLoader,
+    TuiScrollbar,
+    TuiSkeleton,
   ],
   template: `
     @if (weather(); as days) {

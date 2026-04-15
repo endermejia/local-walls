@@ -27,13 +27,13 @@ import { CheckoutService } from '../../services/checkout.service';
   imports: [
     CommonModule,
     RouterLink,
+    TranslatePipe,
     TuiButton,
     TuiIcon,
     TuiNotification,
     TuiScrollbar,
-    TuiTitle,
     TuiSkeleton,
-    TranslatePipe,
+    TuiTitle,
   ],
   template: `
     <tui-scrollbar class="h-full">

@@ -16,7 +16,7 @@ import { type MapOptions } from '../../models';
 
 @Component({
   selector: 'app-location-picker',
-  imports: [MapComponent, TuiButton, TranslatePipe],
+  imports: [MapComponent, TranslatePipe, TuiButton],
   template: `
     <div class="flex flex-col h-full w-full relative">
       <app-map

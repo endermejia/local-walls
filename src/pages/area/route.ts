@@ -67,23 +67,22 @@ import { handleErrorToast } from '../../utils';
 @Component({
   selector: 'app-route',
   imports: [
-    SectionHeaderComponent,
-    TranslatePipe,
-    TuiLoader,
-    TuiAvatar,
-
-    TuiButton,
-    TuiRating,
+    AscentsFeedComponent,
+    ChartAscentsByGradeComponent,
     DecimalPipe,
     FormsModule,
-    AscentsFeedComponent,
-    TourHintComponent,
-    ChartAscentsByGradeComponent,
+    GradeComponent,
     LowerCasePipe,
+    SectionHeaderComponent,
+    TourHintComponent,
+    TranslatePipe,
+    TuiAvatar,
+    TuiButton,
     TuiDropdown,
     TuiHint,
     TuiIcon,
-    GradeComponent,
+    TuiLoader,
+    TuiRating,
   ],
   template: `
     <section class="w-full max-w-5xl mx-auto p-4">

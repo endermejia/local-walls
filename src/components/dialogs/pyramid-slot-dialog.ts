@@ -48,18 +48,18 @@ export interface PyramidSlotDialogData {
   selector: 'app-pyramid-slot-dialog',
   standalone: true,
   imports: [
+    AscentTypeComponent,
     CommonModule,
     FormsModule,
+    GradeComponent,
     TranslatePipe,
     TuiButton,
     TuiDataList,
     TuiHint,
     TuiIcon,
+    TuiInput,
     TuiLoader,
     TuiScrollbar,
-    TuiInput,
-    GradeComponent,
-    AscentTypeComponent,
   ],
   template: `
     <div class="flex flex-col gap-4 p-4 min-w-[320px] max-w-[400px]">

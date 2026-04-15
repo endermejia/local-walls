@@ -13,11 +13,11 @@ import { AreaListItem } from '../../models';
   selector: 'app-area-card',
   imports: [
     AppCardComponent,
-    TuiLink,
-    TranslatePipe,
-    RouterLink,
-    LowerCasePipe,
     ChartRoutesByGradeComponent,
+    LowerCasePipe,
+    RouterLink,
+    TranslatePipe,
+    TuiLink,
   ],
   template: `
     @let item = area();

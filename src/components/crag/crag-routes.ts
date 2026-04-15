@@ -55,22 +55,22 @@ import { normalizeName, slugify } from '../../utils';
 @Component({
   selector: 'app-crag-routes',
   imports: [
+    EmptyStateComponent,
     FormsModule,
+    GradeComponent,
+    IconSrcPipe,
     LowerCasePipe,
+    RoutesTableComponent,
     TranslatePipe,
     TuiAppearance,
     TuiAvatar,
-    TuiBadgeNotification,
     TuiBadgedContent,
+    TuiBadgeNotification,
     TuiButton,
     TuiIcon,
+    TuiInput,
     TuiLabel,
     TuiLoader,
-    TuiInput,
-    GradeComponent,
-    EmptyStateComponent,
-    RoutesTableComponent,
-    IconSrcPipe,
   ],
   template: `
     <div class="flex items-center justify-between gap-2 mb-4">

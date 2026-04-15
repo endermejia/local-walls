@@ -12,7 +12,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 @Component({
   selector: 'app-tour-hint',
   standalone: true,
-  imports: [TuiButton, TuiIcon, TranslatePipe],
+  imports: [TranslatePipe, TuiButton, TuiIcon],
   template: `
     <div class="flex flex-col gap-4 p-4">
       <div class="flex items-start gap-3">

@@ -73,8 +73,10 @@ export interface PyramidLevel {
   selector: 'app-pyramid',
   standalone: true,
   imports: [
+    AscentTypeComponent,
     CommonModule,
     FormsModule,
+    GradeComponent,
     TranslatePipe,
     TuiAppearance,
     TuiDataList,
@@ -82,12 +84,10 @@ export interface PyramidLevel {
     TuiDropdown,
     TuiHint,
     TuiIcon,
+    TuiInput,
     TuiScrollbar,
     TuiSelect,
     TuiSkeleton,
-    TuiInput,
-    GradeComponent,
-    AscentTypeComponent,
   ],
   template: `
     <div

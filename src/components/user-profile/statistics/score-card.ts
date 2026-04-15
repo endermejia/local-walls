@@ -8,7 +8,7 @@ import { CountUpDirective } from '../../../directives/count-up.directive';
 @Component({
   selector: 'app-user-profile-stats-score',
   standalone: true,
-  imports: [DecimalPipe, TranslatePipe, CountUpDirective],
+  imports: [CountUpDirective, DecimalPipe, TranslatePipe],
   template: `
     <div class="grid gap-6">
       <!-- Score Card -->

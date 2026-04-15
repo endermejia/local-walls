@@ -28,13 +28,13 @@ import { AscentTypes, RouteWithExtras, RouteAscentDto } from '../../models';
   standalone: true,
   imports: [
     CommonModule,
-    TranslatePipe,
-    TuiAppearance,
-    TuiTitle,
-    TuiHeader,
-    TuiSkeleton,
     EmptyStateComponent,
     RoutesTableComponent,
+    TranslatePipe,
+    TuiAppearance,
+    TuiHeader,
+    TuiSkeleton,
+    TuiTitle,
   ],
   template: `
     <div class="flex flex-col gap-8">

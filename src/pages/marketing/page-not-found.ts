@@ -11,11 +11,11 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
 @Component({
   selector: 'app-page-not-found',
   imports: [
-    TuiBlockStatus,
-    TuiButton,
+    IconSrcPipe,
     RouterLink,
     TranslateModule,
-    IconSrcPipe,
+    TuiBlockStatus,
+    TuiButton,
   ],
   template: `
     <div class="flex h-full items-center justify-center">

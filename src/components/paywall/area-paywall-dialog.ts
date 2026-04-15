@@ -21,10 +21,10 @@ import { TopoCardComponent } from '../topo/topo-card';
   selector: 'app-area-paywall-dialog',
   imports: [
     CommonModule,
-    TuiScrollbar,
     PaywallComponent,
     TopoCardComponent,
     TranslatePipe,
+    TuiScrollbar,
   ],
   template: `
     <div

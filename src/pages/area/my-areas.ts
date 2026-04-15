@@ -47,20 +47,20 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
   imports: [
     ChartRoutesByGradeComponent,
     EmptyStateComponent,
+    IconSrcPipe,
     LowerCasePipe,
     TranslatePipe,
     TuiAppearance,
     TuiAvatar,
-    TuiBadgeNotification,
     TuiBadgedContent,
+    TuiBadgeNotification,
     TuiButton,
     TuiHeader,
+    TuiInput,
     TuiLoader,
     TuiNotification,
     TuiScrollbar,
-    TuiInput,
     TuiTitle,
-    IconSrcPipe,
   ],
   template: `
     <tui-scrollbar class="flex grow">

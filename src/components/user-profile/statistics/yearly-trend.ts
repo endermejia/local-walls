@@ -20,15 +20,15 @@ import { ContextIndexPipe } from '../../../pipes/context-index.pipe';
   standalone: true,
   imports: [
     CommonModule,
+    ContextIndexPipe,
     DecimalPipe,
+    RouterLink,
+    TranslatePipe,
     TuiAxes,
+    TuiIcon,
     TuiLineChart,
     TuiLineChartHint,
-    TuiIcon,
     TuiScrollbar,
-    TranslatePipe,
-    RouterLink,
-    ContextIndexPipe,
   ],
   template: `
     <div

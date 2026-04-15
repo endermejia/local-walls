@@ -18,13 +18,13 @@ import { GradeDistribution } from '../../../models/user-stats.model';
   standalone: true,
   imports: [
     CommonModule,
-    TranslatePipe,
     LowerCasePipe,
-    TuiIcon,
-    TuiHint,
-    TuiScrollbar,
-    TuiButton,
     RouterLink,
+    TranslatePipe,
+    TuiButton,
+    TuiHint,
+    TuiIcon,
+    TuiScrollbar,
   ],
   template: `
     <div

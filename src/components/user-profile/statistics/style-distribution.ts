@@ -21,14 +21,14 @@ import { CountUpDirective } from '../../../directives/count-up.directive';
   selector: 'app-user-profile-stats-styles',
   standalone: true,
   imports: [
+    CountUpDirective,
     DecimalPipe,
     PercentPipe,
-    TuiRingChart,
-    TuiLegendItem,
-    TuiIcon,
-    TuiHovered,
     TranslatePipe,
-    CountUpDirective,
+    TuiHovered,
+    TuiIcon,
+    TuiLegendItem,
+    TuiRingChart,
   ],
   template: `
     <div

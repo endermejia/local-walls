@@ -18,7 +18,7 @@ import { RouteDto } from '../../models';
 
 @Component({
   selector: 'app-suggested-unified-routes',
-  imports: [CommonModule, TuiButton, TuiLoader, TuiAccordion, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, TuiAccordion, TuiButton, TuiLoader],
   template: `
     <div class="flex flex-col gap-4">
       <h3 class="font-bold text-lg">

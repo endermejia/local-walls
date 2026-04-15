@@ -50,11 +50,11 @@ export interface ImageEditorConfig {
   standalone: true,
   imports: [
     CommonModule,
-    TuiIcon,
-    TuiButton,
-    TuiLoader,
     ImageCropperComponent,
     TranslatePipe,
+    TuiButton,
+    TuiIcon,
+    TuiLoader,
   ],
   template: `
     <div

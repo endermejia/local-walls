@@ -21,11 +21,11 @@ import type { CartProduct } from '../../models';
   standalone: true,
   imports: [
     CommonModule,
+    TranslatePipe,
+    TuiBadge,
     TuiButton,
     TuiIcon,
     TuiScrollbar,
-    TuiBadge,
-    TranslatePipe,
   ],
   template: `
     <div class="fixed inset-0 z-100 flex justify-end">

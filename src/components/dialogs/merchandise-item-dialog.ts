@@ -24,7 +24,7 @@ import { MerchandiseItem } from '../../models';
 @Component({
   selector: 'app-merchandise-item-dialog',
   standalone: true,
-  imports: [CommonModule, TuiButton, TuiIcon, TuiScrollbar, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, TuiButton, TuiIcon, TuiScrollbar],
   template: `
     <div class="flex flex-col gap-6 max-h-[75vh] min-h-0 overflow-hidden">
       <tui-scrollbar class="flex-1 min-h-0">

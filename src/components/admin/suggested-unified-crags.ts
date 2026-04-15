@@ -19,7 +19,7 @@ import { normalizeName } from '../../utils';
 
 @Component({
   selector: 'app-suggested-unified-crags',
-  imports: [CommonModule, TuiButton, TuiLoader, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, TuiButton, TuiLoader],
   template: `
     <div class="flex flex-col gap-4">
       <h3 class="font-bold text-lg">

@@ -27,11 +27,11 @@ import { AreaPackDetail } from '../../models';
   standalone: true,
   imports: [
     CommonModule,
+    TranslatePipe,
+    TuiBadge,
     TuiButton,
     TuiIcon,
     TuiScrollbar,
-    TranslatePipe,
-    TuiBadge,
   ],
   template: `
     <div class="flex flex-col gap-6 max-h-[85vh] min-h-0 overflow-hidden">

@@ -19,7 +19,7 @@ import { AscentsService } from '../../services/ascents.service';
 @Component({
   selector: 'app-ascent-comments',
   standalone: true,
-  imports: [TuiButton, TuiIcon, TranslatePipe],
+  imports: [TranslatePipe, TuiButton, TuiIcon],
   template: `
     @if (!isHidden()) {
       <div class="flex items-center gap-1">

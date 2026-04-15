@@ -15,7 +15,7 @@ export interface UndoToastData {
 @Component({
   standalone: true,
   selector: 'app-undo-toast',
-  imports: [TuiButton, TuiToast, TranslatePipe],
+  imports: [TranslatePipe, TuiButton, TuiToast],
   template: `
     <div tuiToast iconStart="@tui.info">
       <span class="truncate">{{

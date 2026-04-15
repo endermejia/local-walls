@@ -102,10 +102,12 @@ export interface TopoRouteRow {
 @Component({
   selector: 'app-topo',
   imports: [
-    GradeComponent,
-    GradeLabelPipe,
     EmptyStateComponent,
     FormsModule,
+    GradeComponent,
+    GradeLabelPipe,
+    IconSrcPipe,
+    PaywallComponent,
     RouterLink,
     SectionHeaderComponent,
     TranslatePipe,
@@ -114,14 +116,12 @@ export interface TopoRouteRow {
     TuiCell,
     TuiDataList,
     TuiIcon,
+    TuiInput,
     TuiInputNumber,
     TuiLink,
     TuiLoader,
     TuiScrollbar,
     TuiTable,
-    TuiInput,
-    PaywallComponent,
-    IconSrcPipe,
   ],
   template: `
     <div class="h-full w-full">

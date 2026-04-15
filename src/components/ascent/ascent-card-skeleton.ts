@@ -12,9 +12,9 @@ import { TuiRating, TuiSkeleton } from '@taiga-ui/kit';
     CommonModule,
     FormsModule,
     TuiAppearance,
-    TuiSkeleton,
-    TuiRating,
     TuiIcon,
+    TuiRating,
+    TuiSkeleton,
   ],
   template: `
     <div

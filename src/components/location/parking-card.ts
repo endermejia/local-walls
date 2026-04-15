@@ -15,7 +15,7 @@ import { ParkingDto } from '../../models';
 
 @Component({
   selector: 'app-parking-card',
-  imports: [AppCardComponent, TuiIcon, TuiCopy, TuiButton, TranslatePipe],
+  imports: [AppCardComponent, TranslatePipe, TuiButton, TuiCopy, TuiIcon],
   template: `
     @let item = parking();
     <app-card [appearance]="appearance()">

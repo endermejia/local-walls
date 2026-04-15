@@ -49,12 +49,12 @@ export interface FilterDialog {
   imports: [
     FormsModule,
     ReactiveFormsModule,
-    TuiButton,
-    TuiLink,
-    TuiForm,
-    TuiRange,
-    TuiFilter,
     TranslatePipe,
+    TuiButton,
+    TuiFilter,
+    TuiForm,
+    TuiLink,
+    TuiRange,
   ],
   template: `
     <form tuiForm [formGroup]="form">

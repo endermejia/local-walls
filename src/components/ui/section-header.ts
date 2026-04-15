@@ -22,13 +22,13 @@ import { DropdownButtonComponent } from './dropdown-button';
 @Component({
   selector: 'app-section-header',
   imports: [
+    DropdownButtonComponent,
     RouterLink,
     TranslatePipe,
     TuiBreadcrumbs,
     TuiButton,
     TuiItem,
     TuiLink,
-    DropdownButtonComponent,
   ],
   template: `
     <header class="flex flex-col w-full">

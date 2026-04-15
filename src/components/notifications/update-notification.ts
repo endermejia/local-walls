@@ -7,7 +7,7 @@ import { TranslateModule } from '@ngx-translate/core';
 @Component({
   standalone: true,
   selector: 'app-update-notification',
-  imports: [TuiButton, TranslateModule],
+  imports: [TranslateModule, TuiButton],
   template: `
     <div class="flex flex-col gap-3">
       <p>{{ 'update_available' | translate }}</p>

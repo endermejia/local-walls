@@ -17,13 +17,13 @@ import { SeoService } from '../../services/seo.service';
 @Component({
   selector: 'app-landing',
   imports: [
+    NgOptimizedImage,
     RouterLink,
     TranslatePipe,
     TuiAppearance,
     TuiButton,
-    TuiTitle,
     TuiHeader,
-    NgOptimizedImage,
+    TuiTitle,
   ],
   template: `
     <div

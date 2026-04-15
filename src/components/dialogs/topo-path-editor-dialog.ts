@@ -70,13 +70,13 @@ export interface TopoPathEditorConfig {
   selector: 'app-topo-path-editor-dialog',
   standalone: true,
   imports: [
-    TopoHasPathPipe,
     CommonModule,
-    TuiIcon,
-    TuiButton,
-    TuiLoader,
     GradeComponent,
+    TopoHasPathPipe,
     TranslateModule,
+    TuiButton,
+    TuiIcon,
+    TuiLoader,
     TuiScrollbar,
   ],
   template: `

@@ -47,11 +47,11 @@ import { AreaDto, AreaListItem } from '../../models';
     TuiDataList,
     TuiError,
     TuiFilterByInputPipe,
+    TuiInput,
     TuiInputChip,
     TuiLabel,
     TuiMultiSelect,
     TuiOptGroup,
-    TuiInput,
   ],
   template: `
     <div class="flex flex-col gap-4">

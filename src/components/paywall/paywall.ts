@@ -18,7 +18,7 @@ import { handleErrorToast } from '../../utils';
 
 @Component({
   selector: 'app-paywall',
-  imports: [CommonModule, TuiButton, TuiLoader, TranslatePipe, TuiAppearance],
+  imports: [CommonModule, TranslatePipe, TuiAppearance, TuiButton, TuiLoader],
   template: `
     <div
       class="relative overflow-hidden flex flex-col items-center justify-center p-6 sm:p-10 rounded-4xl border border-(--tui-border-normal) text-center gap-6 shadow-xl bg-(--tui-background-elevated)"

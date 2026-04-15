@@ -29,7 +29,7 @@ import { computeGradeChartData } from '../../utils';
 
 @Component({
   selector: 'app-chart-ascents-by-grade',
-  imports: [TranslatePipe, TuiRingChart, LowerCasePipe, TuiSkeleton],
+  imports: [LowerCasePipe, TranslatePipe, TuiRingChart, TuiSkeleton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   styles: [

@@ -13,7 +13,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 @Component({
   selector: 'app-likes',
   standalone: true,
-  imports: [CommonModule, TuiButton, TuiIcon, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, TuiButton, TuiIcon],
   template: `
     <div class="flex items-center gap-1">
       <tui-icon

@@ -32,12 +32,12 @@ let nextCounterId = 0;
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    TuiButton,
-    TuiInput,
-    TuiLabel,
-    TuiError,
-    TuiInputNumber,
     TranslatePipe,
+    TuiButton,
+    TuiError,
+    TuiInput,
+    TuiInputNumber,
+    TuiLabel,
   ],
   template: `
     <div class="flex flex-col gap-1">

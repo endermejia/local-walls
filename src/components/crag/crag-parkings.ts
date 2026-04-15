@@ -31,11 +31,11 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
 @Component({
   selector: 'app-crag-parkings',
   imports: [
-    ParkingCardComponent,
     EmptyStateComponent,
+    ParkingCardComponent,
     TranslatePipe,
-    TuiAvatar,
     TuiAppearance,
+    TuiAvatar,
     TuiButton,
   ],
   template: `

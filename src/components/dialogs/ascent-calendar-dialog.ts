@@ -44,17 +44,17 @@ interface AscentDateMarker {
   selector: 'app-ascent-calendar-dialog',
   standalone: true,
   imports: [
+    AscentCardComponent,
     CommonModule,
     DatePipe,
     LowerCasePipe,
-    TuiCalendar,
-    TuiScrollbar,
-    TuiLoader,
     TranslatePipe,
-    TuiIcon,
-    TuiHeader,
     TuiBadge,
-    AscentCardComponent,
+    TuiCalendar,
+    TuiHeader,
+    TuiIcon,
+    TuiLoader,
+    TuiScrollbar,
   ],
   template: `
     <div class="flex flex-col gap-0 max-h-[85dvh] -m-4">

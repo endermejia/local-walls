@@ -17,14 +17,14 @@ import { SuggestedUnifiedRoutesComponent } from '../../components/admin/suggeste
   imports: [
     CommonModule,
     RouterLink,
-    TuiTabs,
-    TuiHeader,
-    TuiTitle,
-    TuiIcon,
-    TranslatePipe,
     SuggestedUnifiedAreasComponent,
     SuggestedUnifiedCragsComponent,
     SuggestedUnifiedRoutesComponent,
+    TranslatePipe,
+    TuiHeader,
+    TuiIcon,
+    TuiTabs,
+    TuiTitle,
   ],
   template: `
     <div class="p-4 flex flex-col gap-4 max-w-2xl mx-auto w-full">

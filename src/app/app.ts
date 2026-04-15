@@ -34,12 +34,12 @@ import { Themes } from '../models';
 @Component({
   selector: 'app-root',
   imports: [
-    NavbarComponent,
     CartOverlayComponent,
+    NavbarComponent,
     RouterOutlet,
     TranslateModule,
-    TuiRoot,
     TuiBadgedContent,
+    TuiRoot,
   ],
   template: `
     <tui-root [attr.tuiTheme]="global.selectedTheme()">

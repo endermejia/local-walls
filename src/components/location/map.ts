@@ -34,7 +34,7 @@ import type {
 
 @Component({
   selector: 'app-map',
-  imports: [TuiButton, TranslatePipe],
+  imports: [TranslatePipe, TuiButton],
   template: `
     <div class="relative w-full h-full">
       <div

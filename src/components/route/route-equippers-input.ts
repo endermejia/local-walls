@@ -27,13 +27,13 @@ import { EquipperDto, RouteWithExtras } from '../../models';
   selector: 'app-route-equippers-input',
   imports: [
     FormsModule,
-    TuiInput,
+    TranslatePipe,
     TuiChevron,
-    TuiInputChip,
     TuiDataList,
     TuiFilterByInputPipe,
     TuiHideSelectedPipe,
-    TranslatePipe,
+    TuiInput,
+    TuiInputChip,
   ],
   template: `
     <tui-textfield

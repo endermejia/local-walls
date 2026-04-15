@@ -25,13 +25,13 @@ interface PurchaseRecord {
   standalone: true,
   imports: [
     CommonModule,
-    DatePipe,
     CurrencyPipe,
-    TuiScrollbar,
-    TuiLoader,
+    DatePipe,
     TranslatePipe,
-    TuiIcon,
     TuiHeader,
+    TuiIcon,
+    TuiLoader,
+    TuiScrollbar,
   ],
   template: `
     <div class="flex flex-col gap-0 max-h-[80dvh] -m-4">

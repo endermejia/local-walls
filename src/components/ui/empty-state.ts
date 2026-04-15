@@ -6,7 +6,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-empty-state',
-  imports: [TuiIcon, TranslatePipe],
+  imports: [TranslatePipe, TuiIcon],
   template: `
     <div
       class="flex flex-col items-center justify-center gap-4 opacity-50 py-10"

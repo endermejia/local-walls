@@ -79,19 +79,19 @@ import {
   imports: [
     AscentsFeedComponent,
     CommonModule,
+    DropdownButtonComponent,
     FormsModule,
     ReactiveFormsModule,
     RouterLink,
     TranslatePipe,
     TuiAppearance,
-    TuiButton,
-    TuiBadgeNotification,
-    TuiBadgedContent,
     TuiAppearance,
+    TuiBadgedContent,
+    TuiBadgeNotification,
+    TuiButton,
     TuiDataList,
     TuiScrollbar,
     TuiSkeleton,
-    DropdownButtonComponent,
   ],
   template: `
     <tui-scrollbar class="h-full">

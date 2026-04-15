@@ -23,15 +23,15 @@ import { TopoListItem } from '../../models';
 @Component({
   selector: 'app-topo-card',
   imports: [
+    ChartRoutesByGradeComponent,
     CommonModule,
+    IconSrcPipe,
+    TopoImagePipe,
+    TranslatePipe,
     TuiAppearance,
+    TuiHeader,
     TuiIcon,
     TuiTitle,
-    TuiHeader,
-    TranslatePipe,
-    ChartRoutesByGradeComponent,
-    TopoImagePipe,
-    IconSrcPipe,
   ],
   template: `
     @let item = topo();

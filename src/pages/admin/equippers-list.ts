@@ -57,15 +57,15 @@ import { handleErrorToast } from '../../utils';
     TranslatePipe,
     TuiAppearance,
     TuiAvatar,
-    TuiBadgeNotification,
     TuiBadgedContentComponent,
     TuiBadgedContentDirective,
+    TuiBadgeNotification,
     TuiButton,
+    TuiInput,
     TuiScrollbar,
     TuiSkeleton,
     TuiTable,
     TuiTableSortPipe,
-    TuiInput,
   ],
   template: `
     <section class="flex flex-col w-full max-w-5xl mx-auto p-4">

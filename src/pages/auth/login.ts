@@ -31,18 +31,18 @@ import { SupabaseService } from '../../services/supabase.service';
 @Component({
   selector: 'app-login',
   imports: [
+    NgOptimizedImage,
     TranslatePipe,
     TuiAppearance,
     TuiButton,
-    TuiIcon,
-    TuiNotification,
-    TuiInput,
-    TuiTitle,
-    TuiHeader,
     TuiCardLarge,
     TuiForm,
-    NgOptimizedImage,
+    TuiHeader,
+    TuiIcon,
+    TuiInput,
+    TuiNotification,
     TuiPassword,
+    TuiTitle,
   ],
   template: `
     <div class="relative h-full flex justify-center items-center">

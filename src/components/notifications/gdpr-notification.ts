@@ -10,7 +10,7 @@ import { LocalStorage } from '../../services/local-storage';
 @Component({
   selector: 'app-gdpr-notification',
   standalone: true,
-  imports: [TuiButton, TuiScrollbar, TranslateModule],
+  imports: [TranslateModule, TuiButton, TuiScrollbar],
   template: `
     <div class="flex flex-col gap-4">
       <div class="max-h-[40vh] flex flex-col">

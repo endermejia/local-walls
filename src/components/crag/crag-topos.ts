@@ -26,14 +26,14 @@ import { CragDetail } from '../../models';
 @Component({
   selector: 'app-crag-topos',
   imports: [
-    TranslatePipe,
-    LowerCasePipe,
-    TuiAvatar,
-    TuiButton,
-    TopoCardComponent,
-    PaywallComponent,
     EmptyStateComponent,
     IconSrcPipe,
+    LowerCasePipe,
+    PaywallComponent,
+    TopoCardComponent,
+    TranslatePipe,
+    TuiAvatar,
+    TuiButton,
   ],
   template: `
     @let toposCount = topos().length;

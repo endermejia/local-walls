@@ -77,10 +77,11 @@ import {
   selector: 'app-routes-table',
   imports: [
     ButtonAscentTypeComponent,
-    GradeComponent,
     DecimalPipe,
     EmptyStateComponent,
     FormsModule,
+    GradeComponent,
+    IncludesIdPipe,
     LowerCasePipe,
     RouteEquippersInputComponent,
     RouterLink,
@@ -93,6 +94,7 @@ import {
     TuiGroup,
     TuiHint,
     TuiIcon,
+    TuiInput,
     TuiInputNumber,
     TuiLink,
     TuiRating,
@@ -100,8 +102,6 @@ import {
     TuiTable,
     TuiTableExpand,
     TuiTableSortPipe,
-    TuiInput,
-    IncludesIdPipe,
   ],
   template: `
     @if (tableData(); as data) {

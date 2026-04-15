@@ -21,7 +21,7 @@ import {
 
 @Component({
   selector: 'app-grade',
-  imports: [TuiBadge, TranslatePipe, TuiHint],
+  imports: [TranslatePipe, TuiBadge, TuiHint],
   template: `
     <span
       tuiBadge
