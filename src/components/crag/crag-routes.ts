@@ -85,32 +85,30 @@ import { normalizeName, slugify } from '../../utils';
           {{ 'routes' | translate | lowercase }}
         </h2>
       </div>
-      @if (global.editingMode()) {
-        <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
-          @if (canEditAsAdmin() || canAreaAdmin()) {
-            <button
-              tuiButton
-              appearance="textfield"
-              size="s"
-              type="button"
-              (click.zoneless)="routesService.openUnifyRoutes()"
-              [iconStart]="'@tui.blend'"
-            >
-              {{ 'unify' | translate }}
-            </button>
-          }
+      <div class="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
+        @if (canEditAsAdmin() || canAreaAdmin()) {
           <button
             tuiButton
             appearance="textfield"
             size="s"
             type="button"
-            (click.zoneless)="openCreateRoute()"
-            [iconStart]="'@tui.plus'"
+            (click.zoneless)="routesService.openUnifyRoutes()"
+            [iconStart]="'@tui.blend'"
           >
-            {{ 'new' | translate }}
+            {{ 'unify' | translate }}
           </button>
-        </div>
-      }
+        }
+        <button
+          tuiButton
+          appearance="textfield"
+          size="s"
+          type="button"
+          (click.zoneless)="openCreateRoute()"
+          [iconStart]="'@tui.plus'"
+        >
+          {{ 'new' | translate }}
+        </button>
+      </div>
     </div>
 
     <div class="mb-4 flex items-end gap-2">

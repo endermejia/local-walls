@@ -106,18 +106,16 @@ import { normalizeName } from '../../utils';
                   {{ 'unify' | translate }}
                 </button>
               }
-              @if (global.editingMode()) {
-                <button
-                  tuiButton
-                  appearance="textfield"
-                  size="s"
-                  type="button"
-                  (click.zoneless)="openCreateArea()"
-                  [iconStart]="'@tui.plus'"
-                >
-                  {{ 'new' | translate }}
-                </button>
-              }
+              <button
+                tuiButton
+                appearance="textfield"
+                size="s"
+                type="button"
+                (click.zoneless)="openCreateArea()"
+                [iconStart]="'@tui.plus'"
+              >
+                {{ 'new' | translate }}
+              </button>
             </div>
           </header>
 

@@ -241,18 +241,16 @@ import { handleErrorToast, normalizeName } from '../../utils';
                   {{ 'unify' | translate }}
                 </button>
               }
-              @if (global.editingMode()) {
-                <button
-                  tuiButton
-                  appearance="textfield"
-                  size="s"
-                  type="button"
-                  (click.zoneless)="openCreateCrag()"
-                  [iconStart]="'@tui.plus'"
-                >
-                  {{ 'new' | translate }}
-                </button>
-              }
+              <button
+                tuiButton
+                appearance="textfield"
+                size="s"
+                type="button"
+                (click.zoneless)="openCreateCrag()"
+                [iconStart]="'@tui.plus'"
+              >
+                {{ 'new' | translate }}
+              </button>
               @if (canEditAsAdmin) {
                 <button
                   tuiButton
