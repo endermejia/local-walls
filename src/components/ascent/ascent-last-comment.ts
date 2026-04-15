@@ -18,17 +18,19 @@ import { SupabaseService } from '../../services/supabase.service';
 
 import { CommentLikesComponent } from '../social/comment-likes';
 
+import { AvatarUrlPipe } from '../../pipes';
 import { MentionLinkPipe } from '../../pipes/mention-link.pipe';
 
 @Component({
   selector: 'app-ascent-last-comment',
   standalone: true,
   imports: [
+    AvatarUrlPipe,
+    CommentLikesComponent,
     CommonModule,
+    MentionLinkPipe,
     TuiAvatar,
     TuiIcon,
-    MentionLinkPipe,
-    CommentLikesComponent,
   ],
   template: `
     @if (lastCommentResource.value(); as comment) {
@@ -43,7 +45,7 @@ import { MentionLinkPipe } from '../../pipes/mention-link.pipe';
           <div class="flex items-center gap-2">
             <span tuiAvatar size="xs">
               @if (comment.user_profiles.avatar; as avatar) {
-                <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
+                <img [src]="avatar | avatarUrl" alt="" />
               } @else {
                 <tui-icon icon="@tui.user" />
               }

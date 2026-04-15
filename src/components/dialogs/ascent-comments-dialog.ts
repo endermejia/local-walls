@@ -33,6 +33,7 @@ import { EmptyStateComponent } from '../ui/empty-state';
 
 import { UserProfileBasicDto } from '../../models';
 
+import { AvatarUrlPipe } from '../../pipes';
 import { MentionLinkPipe } from '../../pipes/mention-link.pipe';
 
 export interface AscentCommentsDialogData {
@@ -43,18 +44,19 @@ export interface AscentCommentsDialogData {
   selector: 'app-ascent-comments-dialog',
   standalone: true,
   imports: [
-    EmptyStateComponent,
-    TranslatePipe,
-    TuiButton,
-    TuiScrollbar,
-    TuiLoader,
-    TuiAvatar,
-    DatePipe,
-    FormsModule,
-    RouterLink,
-    MentionLinkPipe,
+    AvatarUrlPipe,
     CommentLikesComponent,
     CommonModule,
+    DatePipe,
+    EmptyStateComponent,
+    FormsModule,
+    MentionLinkPipe,
+    RouterLink,
+    TranslatePipe,
+    TuiAvatar,
+    TuiButton,
+    TuiLoader,
+    TuiScrollbar,
   ],
   template: `
     <div class="flex flex-col h-[60dvh] min-h-[400px] -m-4">
@@ -69,8 +71,7 @@ export interface AscentCommentsDialogData {
               >
                 <span
                   [tuiAvatar]="
-                    supabase.buildAvatarUrl(comment.user_profiles.avatar) ||
-                    '@tui.user'
+                    (comment.user_profiles.avatar | avatarUrl) || '@tui.user'
                   "
                   size="s"
                 ></span>
@@ -208,9 +209,7 @@ export interface AscentCommentsDialogData {
                     }"
                   >
                     <span
-                      [tuiAvatar]="
-                        supabase.buildAvatarUrl(user.avatar) || '@tui.user'
-                      "
+                      [tuiAvatar]="(user.avatar | avatarUrl) || '@tui.user'"
                       size="xs"
                     ></span>
                     <span class="text-sm font-medium">{{ user.name }}</span>

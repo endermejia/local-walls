@@ -13,40 +13,39 @@ import { CragListItem } from '../../models';
   standalone: true,
   imports: [
     AppCardComponent,
+    ChartRoutesByGradeComponent,
+    RouterLink,
+    TranslatePipe,
     TuiButton,
     TuiIcon,
     TuiLink,
-    TranslatePipe,
-    RouterLink,
-    ChartRoutesByGradeComponent,
   ],
   template: `
-    <app-card [appearance]="appearance()" [liked]="crag().liked">
+    @let item = crag();
+    <app-card [appearance]="appearance()" [liked]="item.liked">
       <ng-container title>
         <a
           tuiLink
-          [routerLink]="['/area', crag().area_slug, crag().slug]"
+          [routerLink]="['/area', item.area_slug, item.slug]"
           class="font-bold! block text-2xl! text-(--tui-text-primary)! whitespace-normal!"
         >
-          {{ crag().name }}
+          {{ item.name }}
         </a>
       </ng-container>
       <div content class="flex flex-col min-h-32">
-        @let routesCount = crag().routes_count || 0;
+        @let routesCount = item.routes_count || 0;
         @let topoCount =
-          crag().topos?.length ||
-          (crag().crag_topos_counts || [])[0]?.count ||
-          0;
+          item.topos?.length || (item.crag_topos_counts || [])[0]?.count || 0;
 
         <!-- Area name at the very top of content -->
         @if (showAreaName()) {
           <a
             tuiLink
             appearance="action-grayscale"
-            [routerLink]="['/area', crag().area_slug]"
+            [routerLink]="['/area', item.area_slug]"
             class="text-xs! opacity-60 mb-1 w-fit"
           >
-            {{ crag().area_name }}
+            {{ item.area_name }}
           </a>
         }
 
@@ -56,7 +55,7 @@ import { CragListItem } from '../../models';
             <a
               tuiLink
               class="flex items-center gap-2 cursor-pointer no-underline! text-inherit! opacity-90 hover:opacity-100 transition-opacity"
-              [routerLink]="['/area', crag().area_slug, crag().slug]"
+              [routerLink]="['/area', item.area_slug, item.slug]"
             >
               <tui-icon icon="@tui.route" [style.font-size.rem]="1" />
               <span class="text-xs! sm:text-sm! whitespace-nowrap">
@@ -68,7 +67,7 @@ import { CragListItem } from '../../models';
                 tuiLink
                 appearance="action-grayscale"
                 class="flex items-center gap-2 cursor-pointer no-underline! opacity-90 hover:opacity-100 transition-opacity"
-                [routerLink]="['/area', crag().area_slug, crag().slug]"
+                [routerLink]="['/area', item.area_slug, item.slug]"
                 [queryParams]="{ tab: 'topos' }"
               >
                 <div
@@ -80,7 +79,7 @@ import { CragListItem } from '../../models';
                 </span>
               </a>
             }
-            @if (crag().approach; as appr) {
+            @if (item.approach; as appr) {
               <div class="flex items-center gap-1 opacity-60">
                 <tui-icon icon="@tui.footprints" [style.font-size.rem]="1" />
                 <span class="text-xs! sm:text-sm! whitespace-nowrap">
@@ -91,9 +90,9 @@ import { CragListItem } from '../../models';
           </div>
 
           <!-- Topo badges -->
-          @if (crag().topos?.length) {
+          @if (item.topos?.length) {
             <div class="flex flex-wrap gap-2 pt-1">
-              @for (topo of crag().topos; track topo.id) {
+              @for (topo of item.topos; track topo.id) {
                 <button
                   tuiButton
                   size="xs"
@@ -101,8 +100,8 @@ import { CragListItem } from '../../models';
                   class="rounded-full!"
                   [routerLink]="[
                     '/area',
-                    crag().area_slug,
-                    crag().slug,
+                    item.area_slug,
+                    item.slug,
                     'topo',
                     topo.id,
                   ]"
@@ -116,8 +115,8 @@ import { CragListItem } from '../../models';
       </div>
 
       <!-- Chart at the right side (extra slot) centered vertically of the content area -->
-      @if (crag().grades) {
-        <app-chart-routes-by-grade extra [grades]="crag().grades!" />
+      @if (item.grades) {
+        <app-chart-routes-by-grade extra [grades]="item.grades" />
       }
     </app-card>
   `,

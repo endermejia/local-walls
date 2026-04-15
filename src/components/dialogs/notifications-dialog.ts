@@ -37,6 +37,8 @@ import {
   NotificationType,
 } from '../../models';
 
+import { AvatarUrlPipe } from '../../pipes';
+
 interface GroupedNotification {
   id: string;
   type: NotificationType | string;
@@ -57,6 +59,7 @@ interface GroupedNotification {
   selector: 'app-notifications-dialog',
   standalone: true,
   imports: [
+    AvatarUrlPipe,
     CommonModule,
     DatePipe,
     EmptyStateComponent,
@@ -65,9 +68,9 @@ interface GroupedNotification {
     TuiAvatar,
     TuiBadgeNotification,
     TuiButton,
+    TuiIcon,
     TuiLoader,
     TuiScrollbar,
-    TuiIcon,
   ],
   template: `
     <div class="flex flex-col h-[60dvh] min-h-[400px] -m-4">
@@ -95,7 +98,7 @@ interface GroupedNotification {
             >
               <span tuiAvatar size="s">
                 @if (group.actors[0].avatar; as avatar) {
-                  <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
+                  <img [src]="avatar | avatarUrl" alt="" />
                 } @else {
                   <tui-icon icon="@tui.user" />
                 }

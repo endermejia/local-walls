@@ -20,19 +20,20 @@ import { AreaListItem } from '../../models';
     ChartRoutesByGradeComponent,
   ],
   template: `
-    <app-card [appearance]="appearance()" [liked]="area().liked">
+    @let item = area();
+    <app-card [appearance]="appearance()" [liked]="item.liked">
       <ng-container title>
         <a
           tuiLink
-          [routerLink]="['/area', area().slug]"
+          [routerLink]="['/area', item.slug]"
           class="font-bold! block text-2xl! text-(--tui-text-primary)! whitespace-normal!"
         >
-          {{ area().name }}
+          {{ item.name }}
         </a>
       </ng-container>
 
       <div content class="flex flex-col gap-1">
-        @if (area().crags_count; as count) {
+        @if (item.crags_count; as count) {
           <div class="text-xl">
             {{ count }}
             {{ (count === 1 ? 'crag' : 'crags') | translate | lowercase }}
@@ -40,7 +41,7 @@ import { AreaListItem } from '../../models';
         }
       </div>
 
-      <app-chart-routes-by-grade extra [grades]="area().grades" />
+      <app-chart-routes-by-grade extra [grades]="item.grades" />
     </app-card>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

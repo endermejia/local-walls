@@ -17,17 +17,18 @@ import { ParkingDto } from '../../models';
   selector: 'app-parking-card',
   imports: [AppCardComponent, TuiIcon, TuiCopy, TuiButton, TranslatePipe],
   template: `
+    @let item = parking();
     <app-card [appearance]="appearance()">
       <ng-container title>
         <span
           class="font-bold! block text-2xl! text-(--tui-text-primary)! whitespace-normal!"
         >
-          {{ parking().name }}
+          {{ item.name }}
         </span>
       </ng-container>
 
       <div extra class="flex items-center gap-2">
-        @let size = parking().size;
+        @let size = item.size;
         @if (size !== undefined && size !== null) {
           <div class="flex items-center gap-1 opacity-60">
             <tui-icon icon="@tui.car" />

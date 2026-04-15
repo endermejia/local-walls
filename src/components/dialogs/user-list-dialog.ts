@@ -34,6 +34,7 @@ import { SupabaseService } from '../../services/supabase.service';
 import { EmptyStateComponent } from '../ui/empty-state';
 
 import { UserProfileBasicDto, UserProfileDto } from '../../models';
+import { AvatarUrlPipe } from '../../pipes';
 
 export type UserListType =
   | 'followers'
@@ -51,16 +52,17 @@ export interface UserListDialogData {
 @Component({
   selector: 'app-user-list-dialog',
   imports: [
-    RouterLink,
-    TuiAvatar,
-    TuiLoader,
-    TuiScrollbar,
-    TranslatePipe,
-    TuiInput,
-    TuiLabel,
+    AvatarUrlPipe,
     EmptyStateComponent,
+    RouterLink,
+    TranslatePipe,
+    TuiAvatar,
     TuiButton,
     TuiIcon,
+    TuiInput,
+    TuiLabel,
+    TuiLoader,
+    TuiScrollbar,
   ],
   template: `
     <div class="flex flex-col h-[60dvh] min-h-[400px] -m-4">
@@ -95,7 +97,7 @@ export interface UserListDialogData {
             >
               <span tuiAvatar size="m">
                 @if (user.avatar; as avatar) {
-                  <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
+                  <img [src]="avatar | avatarUrl" alt="" />
                 } @else {
                   <tui-icon icon="@tui.user" />
                 }

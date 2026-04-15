@@ -1,3 +1,4 @@
+export * from './ascents.utils';
 export * from './crag-mappers';
 export * from './grade-chart';
 export * from './handle-error';
@@ -6,7 +7,6 @@ export * from './mentions.utils';
 export * from './pagination.utils';
 export * from './rem-to-px';
 export * from './resource-helpers';
-export * from './slugify';
-export * from './ascents.utils';
 export * from './routes.utils';
+export * from './slugify';
 export * from './stats.utils';

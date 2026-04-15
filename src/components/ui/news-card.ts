@@ -22,13 +22,14 @@ import { NewsItem } from '../../models';
   standalone: true,
   imports: [CommonModule, TuiAppearance, TuiAvatar, TuiButton, TuiHeader],
   template: `
+    @let data = item();
     <div
       tuiAppearance="flat-grayscale"
       class="flex flex-col gap-1 p-4 sm:rounded-3xl rounded-none relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full text-left overflow-hidden"
     >
       <header tuiHeader class="mt-0! flex justify-between items-center">
         <a
-          [href]="item().link"
+          [href]="data.link"
           target="_blank"
           class="flex items-center gap-3 no-underline text-inherit cursor-pointer group/user"
         >
@@ -39,7 +40,7 @@ import { NewsItem } from '../../models';
             </span>
             <span class="text-xs">
               {{
-                item().date
+                data.date
                   | date: 'longDate' : undefined : global.selectedLanguage()
               }}
             </span>
@@ -50,30 +51,30 @@ import { NewsItem } from '../../models';
           size="s"
           appearance="secondary-grayscale"
           class="rounded-full! no-underline"
-          [href]="item().link"
+          [href]="data.link"
           target="_blank"
         >
           Leer más
         </a>
       </header>
 
-      @if (item().image; as img) {
+      @if (data.image; as img) {
         <a
-          [href]="item().link"
+          [href]="data.link"
           target="_blank"
           class="-mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full bg-(--tui-background-neutral-1) sm:rounded-2xl overflow-hidden relative flex items-center justify-center"
         >
           <img
             [src]="img"
             class="w-full h-auto object-contain transition-transform duration-500 hover:scale-105"
-            [alt]="item().title"
+            [alt]="data.title"
           />
         </a>
       }
 
       <div class="flex flex-col gap-1">
         <a
-          [href]="item().link"
+          [href]="data.link"
           target="_blank"
           class="font-bold text-lg leading-tight hover:underline cursor-pointer text-(--tui-text-primary) no-underline"
           [innerHTML]="sanitizedTitle()"

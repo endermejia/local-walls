@@ -34,6 +34,7 @@ import { TopoListItem } from '../../models';
     IconSrcPipe,
   ],
   template: `
+    @let item = topo();
     <button
       class="p-6 rounded-3xl text-start w-full"
       tuiAppearance="outline"
@@ -42,10 +43,10 @@ import { TopoListItem } from '../../models';
     >
       <div class="flex flex-col min-w-0 grow gap-2">
         <header tuiHeader>
-          <h2 tuiTitle>{{ topo().name }}</h2>
+          <h2 tuiTitle>{{ item.name }}</h2>
         </header>
         <section class="flex flex-col gap-2">
-          @if (topo().photo; as photo) {
+          @if (item.photo; as photo) {
             <img
               [src]="
                 ({
@@ -63,18 +64,18 @@ import { TopoListItem } from '../../models';
           }
           <div class="flex items-center justify-between gap-2 mt-auto">
             <div class="flex items-center justify-between gap-2">
-              @let shade = getShadeInfo(topo());
+              @let shade = getShadeInfo(item);
               <tui-icon [icon]="shade.icon" class="opacity-70 text-xl" />
               <span class="text-sm opacity-80">
                 {{ shade.label | translate }}
-                @if (topo().shade_change_hour) {
+                @if (item.shade_change_hour) {
                   · {{ 'filters.shade.changeAt' | translate }}
-                  {{ topo().shade_change_hour }}
+                  {{ item.shade_change_hour }}
                 }
               </span>
             </div>
             <app-chart-routes-by-grade
-              [grades]="topo().grades"
+              [grades]="item.grades"
               (click)="$event.stopPropagation()"
             />
           </div>

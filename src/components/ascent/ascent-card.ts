@@ -52,6 +52,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
 
 import { CLIMBING_ICONS, RouteAscentWithExtras } from '../../models';
 
+import { AvatarUrlPipe } from '../../pipes';
 import { getEmbedUrl } from '../../utils/video-helpers';
 
 @Component({
@@ -61,9 +62,10 @@ import { getEmbedUrl } from '../../utils/video-helpers';
     AscentLastCommentComponent,
     AscentLikesComponent,
     AscentTypeComponent,
-    GradeComponent,
+    AvatarUrlPipe,
     CommonModule,
     FormsModule,
+    GradeComponent,
     ReactiveFormsModule,
     RouterLink,
     TranslatePipe,
@@ -96,8 +98,11 @@ import { getEmbedUrl } from '../../utils/video-helpers';
             class="flex items-center gap-3 no-underline text-inherit cursor-pointer group/user"
           >
             <span tuiAvatar size="s">
-              @if (cardUserAvatar(); as avatar) {
-                <img [src]="avatar" [alt]="ascent.user?.name || ''" />
+              @if (ascent.user?.avatar; as avatar) {
+                <img
+                  [src]="avatar | avatarUrl"
+                  [alt]="ascent.user?.name || ''"
+                />
               } @else {
                 <tui-icon icon="@tui.user" />
               }
@@ -459,12 +464,6 @@ export class AscentCardComponent {
   protected readonly ascentPhotoUrl = computed(() =>
     this.ascentPhotoResource.value(),
   );
-
-  protected readonly cardUserAvatar = computed(() => {
-    const avatar = this.data().user?.avatar;
-    if (!avatar) return null;
-    return this.supabase.buildAvatarUrl(avatar);
-  });
 
   private static readonly MORE_INFO_FIELDS: {
     key: keyof RouteAscentWithExtras;

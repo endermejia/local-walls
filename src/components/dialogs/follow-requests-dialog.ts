@@ -23,18 +23,20 @@ import { SupabaseService } from '../../services/supabase.service';
 import { EmptyStateComponent } from '../ui/empty-state';
 
 import { PopulatedFollowRequestDto } from '../../models';
+import { AvatarUrlPipe } from '../../pipes';
 
 @Component({
   selector: 'app-follow-requests-dialog',
   imports: [
-    RouterLink,
-    TuiAvatar,
-    TuiLoader,
-    TuiScrollbar,
-    TranslatePipe,
+    AvatarUrlPipe,
     EmptyStateComponent,
+    RouterLink,
+    TranslatePipe,
+    TuiAvatar,
     TuiButton,
     TuiIcon,
+    TuiLoader,
+    TuiScrollbar,
   ],
   template: `
     <div class="flex flex-col h-[60dvh] min-h-[400px] -m-4">
@@ -48,7 +50,7 @@ import { PopulatedFollowRequestDto } from '../../models';
             >
               <span tuiAvatar size="m">
                 @if (request.follower.avatar; as avatar) {
-                  <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
+                  <img [src]="avatar | avatarUrl" alt="" />
                 } @else {
                   <tui-icon icon="@tui.user" />
                 }

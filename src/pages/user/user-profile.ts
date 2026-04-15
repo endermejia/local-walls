@@ -65,13 +65,16 @@ import { UserProfileAscentsComponent } from '../../components/user-profile/user-
 import { UserProfileLikesComponent } from '../../components/user-profile/user-profile-likes';
 import { UserProfileProjectsComponent } from '../../components/user-profile/user-profile-projects';
 import { UserProfileStatisticsComponent } from '../../components/user-profile/user-profile-statistics';
+import { AvatarUrlPipe } from '../../pipes';
 
 @Component({
   selector: 'app-user-profile',
   standalone: true,
   imports: [
+    AvatarUrlPipe,
     EmptyStateComponent,
     LowerCasePipe,
+    MenuOptionsButtonComponent,
     ReactiveFormsModule,
     TourHintComponent,
     TranslatePipe,
@@ -83,20 +86,19 @@ import { UserProfileStatisticsComponent } from '../../components/user-profile/us
     TuiDataListWrapper,
     TuiDropdown,
     TuiHint,
+    TuiIcon,
+    TuiInput,
     TuiLink,
+    TuiPulse,
     TuiScrollbar,
     TuiSelect,
     TuiSkeleton,
     TuiSwipe,
     TuiTabs,
-    TuiInput,
-    TuiPulse,
     UserProfileAscentsComponent,
+    UserProfileLikesComponent,
     UserProfileProjectsComponent,
     UserProfileStatisticsComponent,
-    UserProfileLikesComponent,
-    MenuOptionsButtonComponent,
-    TuiIcon,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -113,7 +115,6 @@ import { UserProfileStatisticsComponent } from '../../components/user-profile/us
           ) {
             <tui-pulse />
           }
-          @let avatar = profileAvatarSrc();
           <span
             tuiAvatar
             [tuiSkeleton]="loading"
@@ -124,8 +125,8 @@ import { UserProfileStatisticsComponent } from '../../components/user-profile/us
             (keydown.enter)="showEnlargedPhoto()"
             (keydown.space)="$event.preventDefault(); showEnlargedPhoto()"
           >
-            @if (avatar) {
-              <img [src]="avatar" [alt]="profile()?.name || ''" />
+            @if (profile()?.avatar; as avatar) {
+              <img [src]="avatar | avatarUrl" [alt]="profile()?.name || ''" />
             } @else {
               <tui-icon icon="@tui.user" />
             }

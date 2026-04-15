@@ -55,6 +55,7 @@ import { SupabaseService } from '../../services/supabase.service';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
 
 import { AreaListItem } from '../../models';
+import { AvatarUrlPipe } from '../../pipes';
 
 interface UserWithRole {
   id: string;
@@ -69,6 +70,7 @@ interface UserWithRole {
   selector: 'app-users-list-admin',
   standalone: true,
   imports: [
+    AvatarUrlPipe,
     EmptyStateComponent,
     FormsModule,
     ReactiveFormsModule,
@@ -82,9 +84,10 @@ interface UserWithRole {
     TuiCell,
     TuiChevron,
     TuiDataList,
-    TuiIcon,
     TuiDataListWrapper,
     TuiFilterByInputPipe,
+    TuiIcon,
+    TuiInput,
     TuiInputChip,
     TuiLink,
     TuiMultiSelect,
@@ -94,7 +97,6 @@ interface UserWithRole {
     TuiSkeleton,
     TuiTable,
     TuiTableSortPipe,
-    TuiInput,
     TuiTitle,
     WaIntersectionObserver,
   ],
@@ -222,10 +224,7 @@ interface UserWithRole {
                       <a [routerLink]="['/profile', user.id]">
                         <span tuiAvatar size="m">
                           @if (user.avatar; as avatar) {
-                            <img
-                              [src]="supabase.buildAvatarUrl(avatar)"
-                              alt=""
-                            />
+                            <img [src]="avatar | avatarUrl" alt="" />
                           } @else {
                             <tui-icon icon="@tui.user" />
                           }

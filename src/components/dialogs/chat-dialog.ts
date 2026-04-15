@@ -62,6 +62,8 @@ import {
   UserProfileBasicDto,
 } from '../../models';
 
+import { AvatarUrlPipe } from '../../pipes';
+
 export interface ChatDialogData {
   userId?: string;
   roomId?: string;
@@ -71,23 +73,24 @@ export interface ChatDialogData {
   selector: 'app-chat-dialog',
   standalone: true,
   imports: [
+    AvatarUrlPipe,
+    CommonModule,
+    DatePipe,
     EmptyStateComponent,
+    FormsModule,
+    ReactiveFormsModule,
     TranslatePipe,
+    TuiAppearance,
+    TuiAvatar,
+    TuiBadgeNotification,
     TuiButton,
-    TuiScrollbar,
+    TuiDataList,
+    TuiIcon,
     TuiInput,
     TuiLabel,
     TuiLoader,
-    TuiAvatar,
-    DatePipe,
-    FormsModule,
-    CommonModule,
-    TuiBadgeNotification,
-    TuiIcon,
-    ReactiveFormsModule,
-    TuiDataList,
-    TuiAppearance,
     TuiMessage,
+    TuiScrollbar,
     TuiTextarea,
   ],
   template: `
@@ -109,7 +112,7 @@ export interface ChatDialogData {
           </button>
           <span tuiAvatar size="s">
             @if (room.participant?.avatar; as avatar) {
-              <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
+              <img [src]="avatar | avatarUrl" alt="" />
             } @else {
               <tui-icon icon="@tui.user" />
             }
@@ -279,7 +282,7 @@ export interface ChatDialogData {
                   >
                     <span tuiAvatar size="xs" class="mr-2">
                       @if (user.avatar; as avatar) {
-                        <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
+                        <img [src]="avatar | avatarUrl" alt="" />
                       } @else {
                         <tui-icon icon="@tui.user" />
                       }
@@ -301,7 +304,7 @@ export interface ChatDialogData {
               >
                 <span tuiAvatar size="m">
                   @if (room.participant?.avatar; as avatar) {
-                    <img [src]="supabase.buildAvatarUrl(avatar)" alt="" />
+                    <img [src]="avatar | avatarUrl" alt="" />
                   } @else {
                     <tui-icon icon="@tui.user" />
                   }
