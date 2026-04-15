@@ -7,6 +7,8 @@ import { TuiLink } from '@taiga-ui/core';
 import { ChartRoutesByGradeComponent } from '../charts/chart-routes-by-grade';
 import { AppCardComponent } from '../ui/card';
 
+import { AreaListItem } from '../../models';
+
 @Component({
   selector: 'app-area-card',
   imports: [
@@ -44,6 +46,13 @@ import { AppCardComponent } from '../ui/card';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AreaCardComponent {
-  area = input.required<any>();
+  area = input.required<AreaListItem, Partial<AreaListItem>>({
+    transform: (value) =>
+      ({
+        ...value,
+        liked: value.liked ?? false,
+        grades: value.grades ?? {},
+      }) as AreaListItem,
+  });
   appearance = input<string>('outline');
 }

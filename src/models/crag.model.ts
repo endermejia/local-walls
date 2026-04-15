@@ -11,6 +11,14 @@ export interface CragListItem extends Omit<
   'grades'
 > {
   grades: AmountByEveryGrade;
+  // Extra fields from Map data or others
+  approach?: number;
+  routes_count?: number;
+  area_name?: string;
+  area_slug?: string;
+  topos?: { id: number; name: string; slug: string }[];
+  // Legacy compatibility fields
+  crag_topos_counts?: { count: number }[];
 }
 
 // export interface CragDetail_DEPRECATED { ... } // Removed
@@ -22,13 +30,9 @@ export interface AdditionalCragData {
   warning_en?: string;
   latitude: number;
   longitude: number;
-  approach?: number;
-  area_id?: number;
 }
 
-export interface CragDetail
-  extends Omit<CragListItem, 'area_id'>, AdditionalCragData {
-  area_id: number;
+export interface CragDetail extends CragListItem, AdditionalCragData {
   area_name: string;
   area_slug: string;
   parkings: ParkingDto[];

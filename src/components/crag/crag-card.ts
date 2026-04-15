@@ -6,6 +6,8 @@ import { TuiButton, TuiIcon, TuiLink } from '@taiga-ui/core';
 import { ChartRoutesByGradeComponent } from '../charts/chart-routes-by-grade';
 import { AppCardComponent } from '../ui/card';
 
+import { CragListItem } from '../../models';
+
 @Component({
   selector: 'app-crag-card',
   standalone: true,
@@ -127,7 +129,14 @@ import { AppCardComponent } from '../ui/card';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CragCardComponent {
-  crag = input.required<any>();
+  crag = input.required<CragListItem, Partial<CragListItem>>({
+    transform: (value) =>
+      ({
+        ...value,
+        liked: value.liked ?? false,
+        grades: value.grades ?? {},
+      }) as CragListItem,
+  });
   appearance = input<string>('outline');
   showAreaName = input<boolean>(true);
 }

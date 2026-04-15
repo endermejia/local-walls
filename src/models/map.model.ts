@@ -1,4 +1,4 @@
-import { AmountByEveryGrade } from '../models';
+import { AmountByEveryGrade, ClimbingKind } from '../models';
 
 export interface MapAreaItem {
   id: number;
@@ -11,7 +11,7 @@ export interface MapAreaItem {
   liked?: boolean;
   grades?: AmountByEveryGrade;
   crags_count?: number;
-  climbing_kind?: string[];
+  climbing_kind?: ClimbingKind[];
   shade_morning?: boolean;
   shade_afternoon?: boolean;
   shade_all_day?: boolean;

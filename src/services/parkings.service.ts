@@ -184,10 +184,9 @@ export class ParkingsService {
       event.preventDefault();
       event.stopPropagation();
     }
-    const p = parking as any;
     const url = mapLocationUrl({
-      latitude: p.latitude || p.lat,
-      longitude: p.longitude || p.lng,
+      latitude: parking.latitude,
+      longitude: parking.longitude,
     });
     this.openExternal(url);
   }

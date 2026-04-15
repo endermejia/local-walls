@@ -14,6 +14,7 @@ export interface AreaListItem extends Omit<
   grades: AmountByEveryGrade;
   topos_count: number;
 }
+
 // Area Likes
 export type AreaLikeDto = TableRow<'area_likes'>;
 export type AreaLikeInsertDto = TableInsert<'area_likes'>;

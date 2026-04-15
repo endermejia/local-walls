@@ -7,13 +7,15 @@ import {
 } from '@angular/core';
 import { TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TuiCopy } from '@taiga-ui/kit';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { ParkingsService } from '../../services/parkings.service';
 import { AppCardComponent } from '../ui/card';
+import { ParkingDto } from '../../models';
 
 @Component({
   selector: 'app-parking-card',
-  imports: [AppCardComponent, TuiIcon, TuiCopy, TuiButton],
+  imports: [AppCardComponent, TuiIcon, TuiCopy, TuiButton, TranslatePipe],
   template: `
     <app-card [appearance]="appearance()">
       <ng-container title>
@@ -25,7 +27,7 @@ import { AppCardComponent } from '../ui/card';
       </ng-container>
 
       <div extra class="flex items-center gap-2">
-        @let size = parking().size ?? parking().capacity;
+        @let size = parking().size;
         @if (size !== undefined && size !== null) {
           <div class="flex items-center gap-1 opacity-60">
             <tui-icon icon="@tui.car" />
@@ -40,9 +42,6 @@ import { AppCardComponent } from '../ui/card';
       </ng-container>
 
       <div content class="flex flex-col gap-2 grow justify-center">
-        @if (parking().description; as desc) {
-          <p class="line-clamp-2 text-sm italic opacity-70">"{{ desc }}"</p>
-        }
         <div class="flex items-center gap-1">
           <tui-icon
             icon="@tui.map-pin"
@@ -59,8 +58,11 @@ import { AppCardComponent } from '../ui/card';
               size="xs"
               iconStart="@tui.share-2"
               class="opacity-70 hover:opacity-100"
+              [title]="'share' | translate"
               (click)="share()"
-            ></button>
+            >
+              {{ 'share' | translate }}
+            </button>
           }
         </div>
 
@@ -75,14 +77,12 @@ import { AppCardComponent } from '../ui/card';
 export class ParkingCardComponent {
   protected readonly parkingsService = inject(ParkingsService);
 
-  parking = input.required<any>();
+  parking = input.required<ParkingDto>();
   appearance = input<string>('outline');
 
   protected readonly coords = computed(() => {
     const p = this.parking();
-    const lat = p.lat || p.latitude;
-    const lng = p.lng || p.longitude;
-    return `${lat}, ${lng}`;
+    return `${p.latitude}, ${p.longitude}`;
   });
 
   protected readonly canShare = computed(() => !!navigator.share);
@@ -98,7 +98,7 @@ export class ParkingCardComponent {
         text: `Parking: ${name}\nCoordenadas: ${coords}`,
         url: url,
       });
-    } catch (err) {
+    } catch (_err) {
       // Ignore abort errors
     }
   }
