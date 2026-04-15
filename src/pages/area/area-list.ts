@@ -10,13 +10,11 @@ import {
 } from '@angular/core';
 
 import { TuiDropdown } from '@taiga-ui/core';
-import { TuiHeader } from '@taiga-ui/layout';
 import {
   TuiAppearance,
   TuiButton,
   TuiLoader,
   TuiScrollbar,
-  TuiTitle,
   TuiInput,
 } from '@taiga-ui/core';
 import {
@@ -33,7 +31,7 @@ import { GlobalData } from '../../services/global-data';
 import { TourService } from '../../services/tour.service';
 import { TourStep } from '../../services/tour.service';
 
-import { ChartRoutesByGradeComponent } from '../../components/charts/chart-routes-by-grade';
+import { AreaCardComponent } from '../../components/area/area-card';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
 import { TourHintComponent } from '../../components/ui/tour-hint';
 
@@ -49,7 +47,7 @@ import { normalizeName } from '../../utils';
 @Component({
   selector: 'app-area-list',
   imports: [
-    ChartRoutesByGradeComponent,
+    AreaCardComponent,
     EmptyStateComponent,
     LowerCasePipe,
     RouterLink,
@@ -60,11 +58,9 @@ import { normalizeName } from '../../utils';
     TuiBadgeNotification,
     TuiBadgedContent,
     TuiButton,
-    TuiHeader,
     TuiLoader,
     TuiScrollbar,
     TuiInput,
-    TuiTitle,
     TuiDropdown,
     IconSrcPipe,
   ],
@@ -162,31 +158,11 @@ import { normalizeName } from '../../utils';
           @if (!loading()) {
             <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
               @for (a of filtered(); track a.id) {
-                <button
-                  class="p-6 rounded-3xl"
-                  [tuiAppearance]="a.liked ? 'outline-destructive' : 'outline'"
+                <app-area-card
+                  [area]="a"
+                  class="cursor-pointer"
                   (click.zoneless)="router.navigate(['/area', a.slug])"
-                >
-                  <div class="flex flex-col min-w-0 grow">
-                    <header tuiHeader>
-                      <h2 tuiTitle>{{ a.name }}</h2>
-                    </header>
-                    <section class="flex items-center justify-between gap-2">
-                      <div class="text-xl">
-                        {{ a.crags_count }}
-                        {{
-                          (a.crags_count === 1 ? 'crag' : 'crags')
-                            | translate
-                            | lowercase
-                        }}
-                      </div>
-                      <app-chart-routes-by-grade
-                        (click.zoneless)="$event.stopPropagation()"
-                        [grades]="a.grades"
-                      />
-                    </section>
-                  </div>
-                </button>
+                />
               } @empty {
                 <div class="col-span-full">
                   <app-empty-state icon="@tui.map" />

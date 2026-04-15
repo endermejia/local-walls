@@ -44,7 +44,7 @@ import { ParkingsService } from '../../services/parkings.service';
 import { TourService } from '../../services/tour.service';
 import { TourStep } from '../../services/tour.service';
 
-import { ChartRoutesByGradeComponent } from '../../components/charts/chart-routes-by-grade';
+import { AreaCardComponent } from '../../components/area/area-card';
 import { CragCardComponent } from '../../components/crag/crag-card';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
 import { MapComponent } from '../../components/location/map';
@@ -67,7 +67,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
 @Component({
   selector: 'app-home',
   imports: [
-    ChartRoutesByGradeComponent,
+    AreaCardComponent,
     CragCardComponent,
     EmptyStateComponent,
     LowerCasePipe,
@@ -355,35 +355,11 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-20">
             <div class="grid gap-2">
               @for (a of areas; track a.slug) {
-                <button
-                  class="p-6 rounded-3xl"
-                  [tuiAppearance]="a.liked ? 'outline-destructive' : 'outline'"
+                <app-area-card
+                  [area]="a"
+                  class="cursor-pointer"
                   (click.zoneless)="router.navigate(['/area', a.slug])"
-                >
-                  <div class="flex flex-col min-w-0 grow">
-                    <header tuiHeader>
-                      <h2 tuiTitle>{{ a.name }}</h2>
-                    </header>
-                    <section class="flex items-center justify-between gap-2">
-                      @if (a.crags_count; as count) {
-                        <div class="text-xl">
-                          {{ count }}
-                          {{
-                            (count === 1 ? 'crag' : 'crags')
-                              | translate
-                              | lowercase
-                          }}
-                        </div>
-                      }
-                      @if (a.grades; as grades) {
-                        <app-chart-routes-by-grade
-                          (click.zoneless)="$event.stopPropagation()"
-                          [grades]="grades"
-                        />
-                      }
-                    </section>
-                  </div>
-                </button>
+                />
               }
             </div>
           </section>

@@ -16,7 +16,6 @@ import {
 
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TuiDialogService } from '@taiga-ui/core';
-import { TuiHeader } from '@taiga-ui/layout';
 import {
   TUI_CONFIRM,
   TuiAvatar,
@@ -31,7 +30,6 @@ import {
   TuiLabel,
   TuiLoader,
   TuiScrollbar,
-  TuiTitle,
   TuiInput,
 } from '@taiga-ui/core';
 
@@ -80,13 +78,11 @@ import { handleErrorToast, normalizeName } from '../../utils';
     TuiBadgeNotification,
     TuiBadgedContent,
     TuiButton,
-    TuiHeader,
     TuiIcon,
     TuiLabel,
     TuiLoader,
     TuiScrollbar,
     TuiInput,
-    TuiTitle,
     TuiAppearance,
     IconSrcPipe,
     CragCardComponent,
