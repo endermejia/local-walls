@@ -59,11 +59,13 @@ import { WeatherService } from '../../services/weather.service';
               <button
                 type="button"
                 (click)="selectedDayIdx.set(idx)"
-                class="flex flex-col items-center p-3 rounded-2xl border transition-all min-w-[70px]"
-                [class.bg-(--tui-background-accent-1-hover)]="
+                class="flex flex-col items-center p-3 rounded-2xl border transition-all min-w-[70px] hover:bg-(--tui-background-neutral-1-hover) cursor-pointer"
+                [class.bg-(--tui-background-neutral-1)]="
                   selectedDayIdx() === idx
                 "
-                [class.border-(--tui-border-accent)]="selectedDayIdx() === idx"
+                [class.border-(--tui-border-normal-hover)]="
+                  selectedDayIdx() === idx
+                "
                 [class.bg-(--tui-background-base)]="selectedDayIdx() !== idx"
                 [class.border-(--tui-border-normal)]="selectedDayIdx() !== idx"
               >
@@ -101,10 +103,10 @@ import { WeatherService } from '../../services/weather.service';
                 <div
                   #hourItem
                   class="flex flex-col items-center min-w-[50px] py-1 px-1 rounded-xl transition-colors border hour-item"
-                  [class.bg-(--tui-background-accent-1-hover)]="
+                  [class.bg-(--tui-background-neutral-1)]="
                     isCurrentHour(hour.time)
                   "
-                  [class.border-(--tui-border-accent)]="
+                  [class.border-(--tui-border-normal-hover)]="
                     isCurrentHour(hour.time)
                   "
                   [class.border-(--tui-border-normal)]="
