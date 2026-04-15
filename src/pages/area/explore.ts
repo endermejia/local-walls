@@ -225,7 +225,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
             <app-crag-card
               [crag]="c"
               appearance="floating"
-              class="pointer-events-auto shadow-2xl"
+              class="pointer-events-auto"
             />
           </div>
         } @else if (global.selectedMapParkingItem(); as p) {
@@ -237,7 +237,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
               [parking]="p"
               appearance="floating"
               titleSize="l"
-              class="pointer-events-auto shadow-2xl"
+              class="pointer-events-auto"
             >
               <ng-container titleActions>
                 @if (global.canEditAsAdmin()) {
