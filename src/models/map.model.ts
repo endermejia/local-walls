@@ -38,6 +38,7 @@ export interface MapCragItem {
   shade_afternoon?: boolean;
   shade_all_day?: boolean;
   sun_all_day?: boolean;
+  topos?: { id: number; name: string; slug: string }[];
 }
 
 export type MapItem = MapCragItem | MapAreaItem;

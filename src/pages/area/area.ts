@@ -47,6 +47,7 @@ import { SeoService } from '../../services/seo.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 
+import { CragCardComponent } from '../../components/crag/crag-card';
 import { AreaPaywallDialogComponent } from '../../components/paywall/area-paywall-dialog';
 import { ChartRoutesByGradeComponent } from '../../components/charts/chart-routes-by-grade';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
@@ -88,6 +89,7 @@ import { handleErrorToast, normalizeName } from '../../utils';
     TuiTitle,
     TuiAppearance,
     IconSrcPipe,
+    CragCardComponent,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -364,29 +366,14 @@ import { handleErrorToast, normalizeName } from '../../utils';
 
           <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
             @for (crag of crags(); track crag.slug) {
-              <button
-                class="p-6 rounded-3xl"
-                [tuiAppearance]="crag.liked ? 'outline-destructive' : 'outline'"
+              <app-crag-card
+                [crag]="{ ...crag, area_slug: areaSlug() }"
+                [showAreaName]="false"
+                class="cursor-pointer"
                 (click.zoneless)="
-                  router.navigate(['/area', area.slug, crag.slug])
+                  router.navigate(['/area', areaSlug(), crag.slug])
                 "
-              >
-                <div class="flex flex-col min-w-0 grow">
-                  <header tuiHeader>
-                    <h2 tuiTitle>{{ crag.name }}</h2>
-                  </header>
-                  <section class="flex items-center justify-between gap-2">
-                    <div class="text-xl">
-                      {{ crag.topos_count }}
-                      {{ 'topos' | translate | lowercase }}
-                    </div>
-                    <app-chart-routes-by-grade
-                      (click)="$event.stopPropagation()"
-                      [grades]="crag.grades"
-                    />
-                  </section>
-                </div>
-              </button>
+              />
             } @empty {
               @if (routesList.length === 0) {
                 <app-empty-state

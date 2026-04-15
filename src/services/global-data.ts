@@ -344,7 +344,7 @@ export class GlobalData {
           id, name, slug, latitude, longitude,
           area:areas (name, slug),
           routes (grade, climbing_kind),
-          topos (shade_morning, shade_afternoon),
+          topos (id, name, slug, shade_morning, shade_afternoon),
           liked:crag_likes(id)
         `,
       );
@@ -396,6 +396,11 @@ export class GlobalData {
           category,
           routes_count: totalRoutes,
           topos_count: (c.topos || []).length,
+          topos: (c.topos || []).map((t) => ({
+            id: t.id,
+            name: t.name,
+            slug: t.slug,
+          })),
           shade_morning: shadeMorning,
           shade_afternoon: shadeAfternoon,
           shade_all_day: shadeMorning && shadeAfternoon,

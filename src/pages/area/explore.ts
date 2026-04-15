@@ -45,6 +45,7 @@ import { TourService } from '../../services/tour.service';
 import { TourStep } from '../../services/tour.service';
 
 import { ChartRoutesByGradeComponent } from '../../components/charts/chart-routes-by-grade';
+import { CragCardComponent } from '../../components/crag/crag-card';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
 import { MapComponent } from '../../components/location/map';
 import { TourHintComponent } from '../../components/ui/tour-hint';
@@ -67,6 +68,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
   selector: 'app-home',
   imports: [
     ChartRoutesByGradeComponent,
+    CragCardComponent,
     EmptyStateComponent,
     LowerCasePipe,
     NgTemplateOutlet,
@@ -206,54 +208,12 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           <div
             class="absolute w-full max-w-120 mx-auto z-50 pointer-events-none left-0 right-0 bottom-0 px-4 pb-4"
           >
-            <div
-              tuiCardLarge
+            <app-crag-card
+              [crag]="c"
               appearance="floating"
-              class="pointer-events-auto w-full cursor-pointer"
-              (click.zoneless)="router.navigate(['/area', c.area_slug, c.slug])"
-              role="button"
-              tabindex="0"
-            >
-              <div class="flex flex-col min-w-0 grow">
-                <header tuiHeader>
-                  <h2 tuiTitle>{{ c.name }}</h2>
-                </header>
-                <section class="grid grid-cols-[1fr_auto] gap-2 items-stretch">
-                  <div class="flex flex-col justify-between">
-                    <span tuiSubtitle class="text-xl! w-fit">{{
-                      c.area_name
-                    }}</span>
-                    <div
-                      class="text-xl h-full mb-7 content-center flex items-center gap-4"
-                    >
-                      <div>
-                        {{ c.topos_count }}
-                        {{
-                          (c.topos_count === 1 ? 'topo' : 'topos')
-                            | translate
-                            | lowercase
-                        }}
-                      </div>
-                      @if (c.approach) {
-                        <div class="flex w-fit items-center gap-1 opacity-70">
-                          <tui-icon icon="@tui.footprints" />
-                          <span class="whitespace-nowrap">
-                            {{ c.approach }}
-                            min.
-                          </span>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                  <div class="flex items-center">
-                    <app-chart-routes-by-grade
-                      (click.zoneless)="$event.stopPropagation()"
-                      [grades]="c.grades"
-                    />
-                  </div>
-                </section>
-              </div>
-            </div>
+              titleSize="l"
+              class="pointer-events-auto shadow-2xl"
+            />
           </div>
         } @else if (global.selectedMapParkingItem(); as p) {
           <!-- Selected parking information section -->
@@ -451,48 +411,13 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-20">
             <div class="grid gap-2">
               @for (c of crags; track c.id) {
-                <button
-                  class="p-6 rounded-3xl"
-                  [tuiAppearance]="c.liked ? 'outline-destructive' : 'outline'"
+                <app-crag-card
+                  [crag]="c"
+                  class="cursor-pointer"
                   (click.zoneless)="
                     router.navigate(['/area', c.area_slug, c.slug])
                   "
-                >
-                  <div class="flex flex-col min-w-0 grow">
-                    <header tuiHeader>
-                      <h2 tuiTitle>{{ c.name }}</h2>
-                    </header>
-                    <section
-                      class="grid grid-cols-[1fr_auto] gap-2 items-stretch"
-                    >
-                      <div class="flex flex-col justify-between">
-                        <a
-                          tuiSubtitle
-                          tuiLink
-                          appearance="action-grayscale"
-                          [routerLink]="['/area', c.area_slug]"
-                          class="text-xl! w-fit"
-                          (click.zoneless)="$event.stopPropagation()"
-                          >{{ c.area_name }}</a
-                        >
-                        <div class="text-xl h-full mb-7 content-center">
-                          {{ c.topos_count }}
-                          {{
-                            (c.topos_count === 1 ? 'topo' : 'topos')
-                              | translate
-                              | lowercase
-                          }}
-                        </div>
-                      </div>
-                      <div class="flex items-center">
-                        <app-chart-routes-by-grade
-                          (click.zoneless)="$event.stopPropagation()"
-                          [grades]="c.grades"
-                        />
-                      </div>
-                    </section>
-                  </div>
-                </button>
+                />
               }
             </div>
           </section>
