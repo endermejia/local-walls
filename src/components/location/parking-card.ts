@@ -18,7 +18,7 @@ import { AppCardComponent } from '../ui/card';
     <app-card [appearance]="appearance()">
       <ng-container title>
         <span
-          class="font-bold! truncate block text-2xl! text-(--tui-text-primary)!"
+          class="font-bold! block text-2xl! text-(--tui-text-primary)! whitespace-normal!"
         >
           {{ parking().name }}
         </span>

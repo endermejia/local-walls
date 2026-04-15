@@ -24,7 +24,7 @@ import { AppCardComponent } from '../ui/card';
         <a
           tuiLink
           [routerLink]="['/area', crag().area_slug, crag().slug]"
-          class="font-bold! truncate block text-2xl! text-(--tui-text-primary)!"
+          class="font-bold! block text-2xl! text-(--tui-text-primary)! whitespace-normal!"
         >
           {{ crag().name }}
         </a>
@@ -94,9 +94,9 @@ import { AppCardComponent } from '../ui/card';
               @for (topo of crag().topos; track topo.id) {
                 <button
                   tuiButton
-                  size="s"
-                  appearance="primary-grayscale"
-                  class="rounded-full! text-xs!"
+                  size="xs"
+                  appearance="info"
+                  class="rounded-full!"
                   [routerLink]="[
                     '/area',
                     crag().area_slug,

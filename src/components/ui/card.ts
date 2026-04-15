@@ -12,7 +12,7 @@ import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
       class="w-full h-full flex flex-col gap-0!"
     >
       <header tuiHeader>
-        <h2 tuiTitle class="font-bold! truncate">
+        <h2 tuiTitle class="font-bold! whitespace-normal! min-w-0">
           <ng-content select="[title]" />
         </h2>
 

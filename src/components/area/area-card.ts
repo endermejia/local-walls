@@ -23,7 +23,7 @@ import { AppCardComponent } from '../ui/card';
         <a
           tuiLink
           [routerLink]="['/area', area().slug]"
-          class="font-bold! truncate block text-2xl! text-(--tui-text-primary)!"
+          class="font-bold! block text-2xl! text-(--tui-text-primary)! whitespace-normal!"
         >
           {{ area().name }}
         </a>
