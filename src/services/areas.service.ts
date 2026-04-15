@@ -319,6 +319,7 @@ export class AreasService {
       } else {
         this.toast.success('messages.toasts.favoriteAdded');
       }
+      this.global.likedAreasResource.reload();
       return liked;
     } catch (e) {
       console.error('[AreasService] toggleAreaLike error', e);

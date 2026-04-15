@@ -4,15 +4,15 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   computed,
+  effect,
   inject,
   input,
   signal,
-  effect,
-  ChangeDetectorRef,
-  viewChild,
   TemplateRef,
+  viewChild,
 } from '@angular/core';
 
 import { TuiAutoFocus } from '@taiga-ui/cdk';
@@ -20,23 +20,23 @@ import { TuiInputSearch, TUI_INPUT_SEARCH } from '@taiga-ui/layout';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
   TuiAvatar,
-  TuiSkeleton,
-  TuiPulse,
+  TuiBadge,
   TuiBadgedContent,
   TuiBadgeNotification,
-  TuiTabs,
+  TuiPulse,
+  TuiSkeleton,
   TuiTab,
-  TuiBadge,
+  TuiTabs,
 } from '@taiga-ui/kit';
 import {
-  TuiIcon,
-  TuiTitle,
-  TuiCell,
-  TuiTextfield,
   TuiAppearance,
+  TuiCell,
   TuiDataList,
-  TuiDropdown,
   TuiDialogService,
+  TuiDropdown,
+  TuiIcon,
+  TuiTextfield,
+  TuiTitle,
 } from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';

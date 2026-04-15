@@ -16,10 +16,10 @@ import {
 import { TUI_BREAKPOINT } from '@taiga-ui/core';
 import {
   TUI_ENGLISH_LANGUAGE,
-  TUI_SPANISH_LANGUAGE,
-  TUI_GERMAN_LANGUAGE,
   TUI_FRENCH_LANGUAGE,
+  TUI_GERMAN_LANGUAGE,
   TUI_ITALIAN_LANGUAGE,
+  TUI_SPANISH_LANGUAGE,
   TuiLanguage,
 } from '@taiga-ui/i18n';
 
@@ -28,6 +28,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { map, merge, startWith } from 'rxjs';
 
 import { AppNotificationsService } from './app-notifications.service';
+import { FavoritesService } from './favorites.service';
 import { MessagingService } from './messaging.service';
 import { PushService } from './push.service';
 import { SupabaseService } from './supabase.service';
@@ -72,14 +73,15 @@ import { mapCragToDetail } from '../utils';
   providedIn: 'root',
 })
 export class GlobalData {
-  private translate = inject(TranslateService);
-  private localStorage = inject(LocalStorage);
-  private platformId = inject(PLATFORM_ID);
-  private supabase = inject(SupabaseService);
-  private readonly notificationsService = inject(AppNotificationsService);
+  private readonly favorites = inject(FavoritesService);
   private readonly messagingService = inject(MessagingService);
+  private readonly notificationsService = inject(AppNotificationsService);
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly push = inject(PushService);
+  private readonly supabase = inject(SupabaseService);
   private breakpointService = toObservable(inject(TUI_BREAKPOINT));
+  private localStorage = inject(LocalStorage);
+  private translate = inject(TranslateService);
 
   readonly isMobile = toSignal(
     this.breakpointService.pipe(map((b) => b === 'mobile')),
@@ -604,6 +606,45 @@ export class GlobalData {
     ORDERED_GRADE_VALUES.length - 1,
   ]);
   feedCategories: WritableSignal<number[]> = signal([]);
+
+  // ---- Liked / Favorites (Shared) ----
+  readonly likedAreasResource = resource({
+    params: () => this.supabase.authUserId(),
+    loader: async ({ params: userId }) => {
+      if (!userId) return [];
+      return this.favorites.getLikedAreas(userId);
+    },
+  });
+
+  readonly likedCragsResource = resource({
+    params: () => this.supabase.authUserId(),
+    loader: async ({ params: userId }) => {
+      if (!userId) return [];
+      return this.favorites.getLikedCrags(userId);
+    },
+  });
+
+  readonly likedRoutesResource = resource({
+    params: () => this.supabase.authUserId(),
+    loader: async ({ params: userId }) => {
+      if (!userId) return [];
+      return this.favorites.getLikedRoutes(userId);
+    },
+  });
+
+  readonly likedAreas = computed(() => this.likedAreasResource.value() ?? []);
+  readonly likedCrags = computed(() => this.likedCragsResource.value() ?? []);
+  readonly likedRoutes = computed(() => this.likedRoutesResource.value() ?? []);
+
+  readonly likedAreaIds = computed(() =>
+    this.likedAreas().map((a: AreaListItem) => a.id),
+  );
+  readonly likedCragIds = computed(() =>
+    this.likedCrags().map((c: CragListItem) => c.id),
+  );
+  readonly likedRouteIds = computed(() =>
+    this.likedRoutes().map((r: RouteWithExtras) => r.id),
+  );
 
   // ---- Areas ----
   selectedAreaSlug: WritableSignal<string | null> = signal(null);

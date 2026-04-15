@@ -675,6 +675,7 @@ export class RoutesService {
       }
 
       this.syncResources(routeId, { liked: isLiked }, currentRoute);
+      this.global.likedRoutesResource.reload();
 
       return isLiked;
     } catch (e) {

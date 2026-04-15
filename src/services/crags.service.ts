@@ -292,6 +292,8 @@ export class CragsService {
         this.toast.success('messages.toasts.favoriteAdded');
       }
 
+      this.global.likedCragsResource.reload();
+
       return liked;
     } catch (e) {
       console.error('[CragsService] toggleCragLike error', e);

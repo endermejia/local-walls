@@ -17,12 +17,11 @@ import {
   effect,
 } from '@angular/core';
 
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { TuiDialogService } from '@taiga-ui/core';
 import {
   TuiAppearance,
   TuiButton,
   TuiDataList,
+  TuiDialogService,
   TuiScrollbar,
 } from '@taiga-ui/core';
 import {
@@ -30,6 +29,7 @@ import {
   TuiBadgedContent,
   TuiSkeleton,
 } from '@taiga-ui/kit';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
@@ -50,6 +50,7 @@ import {
 import { DesnivelService } from '../../services/desnivel.service';
 import { FollowsService } from '../../services/follows.service';
 import { GlobalData } from '../../services/global-data';
+import { LocalStorage } from '../../services/local-storage';
 import { ScrollService } from '../../services/scroll.service';
 import { SupabaseService } from '../../services/supabase.service';
 
@@ -85,7 +86,6 @@ import {
     RouterLink,
     TranslatePipe,
     TuiAppearance,
-    TuiAppearance,
     TuiBadgedContent,
     TuiBadgeNotification,
     TuiButton,
@@ -111,14 +111,19 @@ import {
                   class="w-10 h-10 rounded-full opacity-60"
                 ></div>
               } @else {
-                @if (followedIds().size > 0) {
+                @if (
+                  followedIds().size > 0 ||
+                  global.likedAreaIds().length > 0 ||
+                  global.likedCragIds().length > 0 ||
+                  global.likedRouteIds().length > 0
+                ) {
                   <app-dropdown-button
                     appearance="flat-grayscale"
                     size="xl"
                     [content]="feedFilterDropdown"
                     [(open)]="dropdownOpen"
                   >
-                    {{ (filterIndex === 0 ? 'following' : 'all') | translate }}
+                    {{ filterLabels[feedFilter()] | translate }}
                   </app-dropdown-button>
                 }
                 <tui-badged-content [style.--tui-radius.%]="50">
@@ -238,20 +243,11 @@ import {
 
     <ng-template #feedFilterDropdown>
       <tui-data-list size="l">
-        <button
-          tuiOption
-          new
-          (click)="filterIndex = 0; dropdownOpen.set(false)"
-        >
-          {{ 'following' | translate }}
-        </button>
-        <button
-          tuiOption
-          new
-          (click)="filterIndex = 1; dropdownOpen.set(false)"
-        >
-          {{ 'all' | translate }}
-        </button>
+        @for (option of filterOptions(); track option) {
+          <button tuiOption new (click)="setFilter(option)">
+            {{ filterLabels[option] | translate }}
+          </button>
+        }
       </tui-data-list>
     </ng-template>
   `,
@@ -263,14 +259,16 @@ import {
 export class HomeComponent implements OnDestroy {
   protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
-  private readonly router = inject(Router);
   private readonly desnivelService = inject(DesnivelService);
-  private readonly followsService = inject(FollowsService);
-  private readonly platformId = inject(PLATFORM_ID);
-  private readonly isBrowser = isPlatformBrowser(this.platformId);
-  private readonly scrollService = inject(ScrollService);
   private readonly dialogs = inject(TuiDialogService);
+  private readonly followsService = inject(FollowsService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly router = inject(Router);
+  private readonly scrollService = inject(ScrollService);
+  private readonly storage = inject(LocalStorage);
   private readonly translate = inject(TranslateService);
+
+  private readonly STORAGE_KEY = 'home_feed_filter';
 
   protected readonly scrollbar = viewChild(TuiScrollbar, { read: ElementRef });
 
@@ -286,15 +284,60 @@ export class HomeComponent implements OnDestroy {
     () => this.activeCragsResource.value() ?? [],
   );
 
-  protected readonly feedFilter = signal<'following' | 'all'>('following');
+  protected readonly feedFilter = signal<
+    | 'following'
+    | 'all'
+    | 'favorite_areas'
+    | 'favorite_crags'
+    | 'favorite_routes'
+  >((this.storage.getItem(this.STORAGE_KEY) as any) || 'following');
+
+  protected readonly saveFilterEffect = effect(
+    () => {
+      const currentFilter = this.feedFilter();
+      const options = this.filterOptions();
+      if (!options.includes(currentFilter)) {
+        this.feedFilter.set('following');
+      } else {
+        this.storage.setItem(this.STORAGE_KEY, currentFilter);
+      }
+    },
+    { allowSignalWrites: true },
+  );
   protected dropdownOpen = signal(false);
 
-  protected get filterIndex(): number {
-    return this.feedFilter() === 'following' ? 0 : 1;
-  }
+  protected readonly filterLabels: Record<
+    | 'following'
+    | 'all'
+    | 'favorite_areas'
+    | 'favorite_crags'
+    | 'favorite_routes',
+    string
+  > = {
+    following: 'following',
+    all: 'all',
+    favorite_areas: 'likedAreas',
+    favorite_crags: 'likedCrags',
+    favorite_routes: 'likedRoutes',
+  };
 
-  protected set filterIndex(index: number) {
-    this.feedFilter.set(index === 0 ? 'following' : 'all');
+  protected readonly filterOptions = computed(() => {
+    const options: (keyof typeof this.filterLabels)[] = ['following', 'all'];
+    if (this.global.likedAreaIds().length > 0) {
+      options.push('favorite_areas');
+    }
+    if (this.global.likedCragIds().length > 0) {
+      options.push('favorite_crags');
+    }
+    if (this.global.likedRouteIds().length > 0) {
+      options.push('favorite_routes');
+    }
+    return options;
+  });
+
+  protected setFilter(filter: keyof typeof this.filterLabels) {
+    this.feedFilter.set(filter);
+    this.dropdownOpen.set(false);
   }
 
   protected readonly hasActiveFilters = computed(() => {
@@ -322,13 +365,23 @@ export class HomeComponent implements OnDestroy {
       toObservable(this.global.feedCategories),
       toObservable(this.global.feedGradeRange),
       toObservable(this.followsLoaded),
+      toObservable(this.global.likedAreaIds),
+      toObservable(this.global.likedCragIds),
+      toObservable(this.global.likedRouteIds),
     ])
       .pipe(
         takeUntilDestroyed(),
         filter(([, , , loaded]) => loaded),
         map(
-          ([f, cat, grades]) =>
-            ({ filter: f, categories: cat, gradeRange: grades }) as const,
+          ([f, cat, grades, , areas, crags, routes]) =>
+            ({
+              filter: f,
+              categories: cat,
+              gradeRange: grades,
+              areas,
+              crags,
+              routes,
+            }) as const,
         ),
         distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
         switchMap(({ filter }) => {
@@ -439,7 +492,12 @@ export class HomeComponent implements OnDestroy {
 
   private async fetchAscents(
     page: number,
-    filter: 'following' | 'all' = this.feedFilter(),
+    filter:
+      | 'following'
+      | 'all'
+      | 'favorite_areas'
+      | 'favorite_crags'
+      | 'favorite_routes' = this.feedFilter(),
   ): Promise<(RouteAscentWithExtras & { kind: 'ascent' })[]> {
     if (!this.isBrowser) return [];
     await this.supabase.whenReady();
@@ -457,10 +515,9 @@ export class HomeComponent implements OnDestroy {
           *,
           route:routes!inner(
             *,
-            crag:crags(
-              slug,
-              name,
-              area:areas(slug,name)
+            crag:crags!inner(
+              *,
+              area:areas!inner(slug, name)
             )
           )
         `,
@@ -474,6 +531,27 @@ export class HomeComponent implements OnDestroy {
         return [];
       }
       query = query.in('user_id', followed);
+    } else if (filter === 'favorite_areas') {
+      const areaIds = this.global.likedAreaIds();
+      if (areaIds.length === 0) {
+        this.hasMore.set(false);
+        return [];
+      }
+      query = query.in('route.crag.area_id', areaIds);
+    } else if (filter === 'favorite_crags') {
+      const cragIds = this.global.likedCragIds();
+      if (cragIds.length === 0) {
+        this.hasMore.set(false);
+        return [];
+      }
+      query = query.in('route.crag_id', cragIds);
+    } else if (filter === 'favorite_routes') {
+      const routeIds = this.global.likedRouteIds();
+      if (routeIds.length === 0) {
+        this.hasMore.set(false);
+        return [];
+      }
+      query = query.in('route_id', routeIds);
     }
 
     const categories = this.global.feedCategories();

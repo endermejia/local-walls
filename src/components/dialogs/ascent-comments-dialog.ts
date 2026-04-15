@@ -77,8 +77,11 @@ export interface AscentCommentsDialogData {
                 class="block hover:opacity-80 transition-opacity flex-none"
               >
                 <span tuiAvatar size="s">
-                  @if (comment.user_profiles.avatar; as avatar) {
-                    <img [src]="avatar | avatarUrl" alt="avatar" />
+                  @if (comment.user_profiles.avatar) {
+                    <img
+                      [src]="comment.user_profiles.avatar | avatarUrl"
+                      [alt]="comment.user_profiles.name"
+                    />
                   } @else {
                     <tui-icon icon="@tui.user" />
                   }

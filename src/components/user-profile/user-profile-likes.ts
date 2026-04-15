@@ -1,4 +1,4 @@
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
   ChangeDetectionStrategy,
@@ -6,7 +6,6 @@ import {
   computed,
   inject,
   input,
-  PLATFORM_ID,
   resource,
 } from '@angular/core';
 
@@ -16,12 +15,14 @@ import { TuiSkeleton } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { FavoritesService } from '../../services/favorites.service';
+import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
 
 import { EmptyStateComponent } from '../ui/empty-state';
 import { RoutesTableComponent } from '../route/routes-table';
 
-import { AscentTypes, RouteWithExtras, RouteAscentDto } from '../../models';
+import { AreaListItem, CragListItem, RouteWithExtras } from '../../models';
 
 @Component({
   selector: 'app-user-profile-likes',
@@ -44,7 +45,7 @@ import { AscentTypes, RouteWithExtras, RouteAscentDto } from '../../models';
           <h3 tuiTitle>{{ 'likedAreas' | translate }}</h3>
         </header>
         <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
-          @if (likedAreasResource.isLoading()) {
+          @if (isLoading() && !likedAreas().length) {
             @for (_ of [1, 2, 3, 4]; track $index) {
               <div
                 class="p-6 rounded-3xl flex flex-col gap-4"
@@ -95,7 +96,7 @@ import { AscentTypes, RouteWithExtras, RouteAscentDto } from '../../models';
           <h3 tuiTitle>{{ 'likedCrags' | translate }}</h3>
         </header>
         <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
-          @if (likedCragsResource.isLoading()) {
+          @if (isLoading() && !likedCrags().length) {
             @for (_ of [1, 2, 3, 4]; track $index) {
               <div
                 class="p-6 rounded-3xl flex flex-col gap-4"
@@ -153,7 +154,7 @@ import { AscentTypes, RouteWithExtras, RouteAscentDto } from '../../models';
           <h3 tuiTitle>{{ 'likedRoutes' | translate }}</h3>
         </header>
         <div class="min-w-0">
-          @if (likedRoutesResource.isLoading()) {
+          @if (isLoading() && !likedRoutes().length) {
             <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
               @for (_ of [1, 2, 3, 4]; track $index) {
                 <div
@@ -192,183 +193,59 @@ import { AscentTypes, RouteWithExtras, RouteAscentDto } from '../../models';
 export class UserProfileLikesComponent {
   userId = input.required<string>();
 
+  private readonly favorites = inject(FavoritesService);
+  protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
-  private readonly platformId = inject(PLATFORM_ID);
+
+  protected readonly isOwnProfile = computed(() => {
+    const currentId = this.supabase.authUserId();
+    return !!currentId && currentId === this.userId();
+  });
+
+  protected readonly likedRoutes = computed<RouteWithExtras[]>(() =>
+    this.isOwnProfile()
+      ? (this.global.likedRoutes() as RouteWithExtras[])
+      : (this.likedRoutesResource.value() ?? []),
+  );
+
+  protected readonly likedCrags = computed<CragListItem[]>(() =>
+    this.isOwnProfile()
+      ? (this.global.likedCrags() as CragListItem[])
+      : (this.likedCragsResource.value() ?? []),
+  );
+
+  protected readonly likedAreas = computed<AreaListItem[]>(() =>
+    this.isOwnProfile()
+      ? (this.global.likedAreas() as AreaListItem[])
+      : (this.likedAreasResource.value() ?? []),
+  );
+
+  protected readonly isLoading = computed(
+    () =>
+      this.likedRoutesResource.isLoading() ||
+      this.likedCragsResource.isLoading() ||
+      this.likedAreasResource.isLoading(),
+  );
 
   protected readonly likedRoutesResource = resource({
     params: () => this.userId(),
     loader: async ({ params: userId }) => {
-      if (!userId || !isPlatformBrowser(this.platformId)) return [];
-
-      const { data: routeLikes } = await this.supabase.client
-        .from('route_likes')
-        .select('route_id')
-        .eq('user_id', userId);
-
-      const routeIds = routeLikes?.map((r) => r.route_id) || [];
-      if (!routeIds.length) return [];
-
-      const currentUserId = this.supabase.authUserId();
-      let query = this.supabase.client
-        .from('routes')
-        .select(
-          `
-          *,
-          liked:route_likes(id),
-          project:route_projects(id),
-          ascents:route_ascents(rate, type),
-          own_ascent:route_ascents(*),
-          crag:crags(
-            slug,
-            name,
-            area:areas(slug, name)
-          )
-        `,
-        )
-        .in('id', routeIds);
-
-      if (currentUserId) {
-        query = query
-          .eq('own_ascent.user_id', currentUserId)
-          .eq('project.user_id', currentUserId)
-          .eq('liked.user_id', currentUserId);
-      }
-
-      const { data, error } = await query;
-      if (error) {
-        console.error('[UserProfile] liked routes error', error);
-        return [];
-      }
-
-      return (
-        data.map((r) => {
-          const rates =
-            r.ascents
-              ?.map((a) => a.rate)
-              .filter((rate): rate is number => rate != null) ?? [];
-          const rating =
-            rates.length > 0
-              ? rates.reduce((a, b) => a + b, 0) / rates.length
-              : 0;
-
-          return {
-            ...r,
-            liked: (r.liked?.length ?? 0) > 0,
-            project: (r.project?.length ?? 0) > 0,
-            crag_slug: r.crag?.slug,
-            crag_name: r.crag?.name,
-            area_slug: r.crag?.area?.slug,
-            area_name: r.crag?.area?.name,
-            rating,
-            ascent_count:
-              r.ascents?.filter(
-                (a: Partial<RouteAscentDto>) => a.type !== AscentTypes.ATTEMPT,
-              ).length ?? 0,
-            climbed: (r.own_ascent?.length ?? 0) > 0,
-            own_ascent: r.own_ascent?.[0],
-          } as RouteWithExtras;
-        }) ?? []
-      );
+      return this.favorites.getLikedRoutes(userId);
     },
   });
 
   protected readonly likedCragsResource = resource({
     params: () => this.userId(),
     loader: async ({ params: userId }) => {
-      if (!userId || !isPlatformBrowser(this.platformId)) return [];
-
-      const { data: cragLikes } = await this.supabase.client
-        .from('crag_likes')
-        .select('crag_id')
-        .eq('user_id', userId);
-
-      const cragIds = cragLikes?.map((c) => c.crag_id) || [];
-      if (!cragIds.length) return [];
-
-      const { data: likedCrags, error } = await this.supabase.client
-        .from('crags')
-        .select(
-          `
-          id,
-          name,
-          slug,
-          area_id,
-          topos_count:topos(count),
-          area:areas(name, slug)
-        `,
-        )
-        .in('id', cragIds);
-
-      if (error) {
-        console.error('[UserProfile] liked crags error', error);
-        return [];
-      }
-
-      return likedCrags.map((c) => ({
-        ...c,
-        topos_count: c.topos_count?.[0]?.count ?? 0,
-        area_name: c.area?.name,
-        area_slug: c.area?.slug,
-        liked: true,
-      }));
+      return this.favorites.getLikedCrags(userId);
     },
   });
 
   protected readonly likedAreasResource = resource({
     params: () => this.userId(),
     loader: async ({ params: userId }) => {
-      if (!userId || !isPlatformBrowser(this.platformId)) return [];
-
-      const { data: areaLikes } = await this.supabase.client
-        .from('area_likes')
-        .select('area_id')
-        .eq('user_id', userId);
-
-      const areaIds = areaLikes?.map((a) => a.area_id) || [];
-      if (!areaIds.length) return [];
-
-      const { data: likedAreas, error } = await this.supabase.client
-        .from('areas')
-        .select(
-          `
-          id,
-          name,
-          slug,
-          crags_count:crags(count)
-        `,
-        )
-        .in('id', areaIds);
-
-      if (error) {
-        console.error('[UserProfile] liked areas error', error);
-        return [];
-      }
-
-      const { data: purchases } = await this.supabase.client
-        .from('area_purchases')
-        .select('area_id')
-        .eq('user_id', userId);
-
-      const purchasedIds = new Set(purchases?.map((p) => p.area_id) || []);
-
-      return likedAreas
-        .filter((a) => !purchasedIds.has(a.id))
-        .map((a) => ({
-          ...a,
-          crags_count: a.crags_count?.[0]?.count ?? 0,
-          liked: true,
-        }));
+      return this.favorites.getLikedAreas(userId);
     },
   });
-
-  protected readonly likedRoutes = computed(
-    () => this.likedRoutesResource.value() ?? [],
-  );
-  protected readonly likedCrags = computed(
-    () => this.likedCragsResource.value() ?? [],
-  );
-  protected readonly likedAreas = computed(
-    () => this.likedAreasResource.value() ?? [],
-  );
 }

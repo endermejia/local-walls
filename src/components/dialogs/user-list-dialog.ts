@@ -98,9 +98,9 @@ export interface UserListDialogData {
               [routerLink]="['/profile', user.id]"
               (click)="context.completeWith(true)"
             >
-              <span tuiAvatar size="m">
-                @if (user.avatar; as avatar) {
-                  <img [src]="avatar | avatarUrl" alt="avatar" />
+              <span tuiAvatar size="m" class="flex-none">
+                @if (user.avatar) {
+                  <img [src]="user.avatar | avatarUrl" [alt]="user.name" />
                 } @else {
                   <tui-icon icon="@tui.user" />
                 }
