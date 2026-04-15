@@ -206,11 +206,13 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           <div
             class="absolute w-full max-w-120 mx-auto z-50 pointer-events-none left-0 right-0 bottom-0 px-4 pb-4"
           >
-            <button
+            <div
               tuiCardLarge
               appearance="floating"
-              class="pointer-events-auto w-full"
+              class="pointer-events-auto w-full cursor-pointer"
               (click.zoneless)="router.navigate(['/area', c.area_slug, c.slug])"
+              role="button"
+              tabindex="0"
             >
               <div class="flex flex-col min-w-0 grow">
                 <header tuiHeader>
@@ -251,7 +253,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
                   </div>
                 </section>
               </div>
-            </button>
+            </div>
           </div>
         } @else if (global.selectedMapParkingItem(); as p) {
           <!-- Selected parking information section -->
