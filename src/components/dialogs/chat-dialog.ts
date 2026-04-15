@@ -112,7 +112,7 @@ export interface ChatDialogData {
           </button>
           <span tuiAvatar size="s">
             @if (room.participant?.avatar; as avatar) {
-              <img [src]="avatar | avatarUrl" alt="" />
+              <img [src]="avatar | avatarUrl" alt="avatar" />
             } @else {
               <tui-icon icon="@tui.user" />
             }
@@ -282,7 +282,7 @@ export interface ChatDialogData {
                   >
                     <span tuiAvatar size="xs" class="mr-2">
                       @if (user.avatar; as avatar) {
-                        <img [src]="avatar | avatarUrl" alt="" />
+                        <img [src]="avatar | avatarUrl" alt="avatar" />
                       } @else {
                         <tui-icon icon="@tui.user" />
                       }
@@ -304,7 +304,7 @@ export interface ChatDialogData {
               >
                 <span tuiAvatar size="m">
                   @if (room.participant?.avatar; as avatar) {
-                    <img [src]="avatar | avatarUrl" alt="" />
+                    <img [src]="avatar | avatarUrl" alt="avatar" />
                   } @else {
                     <tui-icon icon="@tui.user" />
                   }

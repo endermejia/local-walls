@@ -17,8 +17,14 @@ import {
 
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiAvatar, TUI_CONFIRM, TuiConfirmData } from '@taiga-ui/kit';
-import { TuiButton, TuiLoader, TuiScrollbar } from '@taiga-ui/core';
-import { TuiDialogContext, TuiDialogService } from '@taiga-ui/core';
+import {
+  TuiButton,
+  TuiDialogContext,
+  TuiDialogService,
+  TuiIcon,
+  TuiLoader,
+  TuiScrollbar,
+} from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -55,6 +61,7 @@ export interface AscentCommentsDialogData {
     TranslatePipe,
     TuiAvatar,
     TuiButton,
+    TuiIcon,
     TuiLoader,
     TuiScrollbar,
   ],
@@ -69,12 +76,13 @@ export interface AscentCommentsDialogData {
                 (click)="context.completeWith()"
                 class="block hover:opacity-80 transition-opacity flex-none"
               >
-                <span
-                  [tuiAvatar]="
-                    (comment.user_profiles.avatar | avatarUrl) || '@tui.user'
-                  "
-                  size="s"
-                ></span>
+                <span tuiAvatar size="s">
+                  @if (comment.user_profiles.avatar; as avatar) {
+                    <img [src]="avatar | avatarUrl" alt="avatar" />
+                  } @else {
+                    <tui-icon icon="@tui.user" />
+                  }
+                </span>
               </a>
               <div class="flex flex-col grow min-w-0">
                 <div class="flex justify-between items-start gap-2">
@@ -208,10 +216,13 @@ export interface AscentCommentsDialogData {
                         i !== selectedMentionIndex(),
                     }"
                   >
-                    <span
-                      [tuiAvatar]="(user.avatar | avatarUrl) || '@tui.user'"
-                      size="xs"
-                    ></span>
+                    <span tuiAvatar size="xs">
+                      @if (user.avatar; as avatar) {
+                        <img [src]="avatar | avatarUrl" alt="avatar" />
+                      } @else {
+                        <tui-icon icon="@tui.user" />
+                      }
+                    </span>
                     <span class="text-sm font-medium">{{ user.name }}</span>
                   </button>
                 }

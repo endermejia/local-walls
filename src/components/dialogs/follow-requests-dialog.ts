@@ -50,7 +50,7 @@ import { AvatarUrlPipe } from '../../pipes';
             >
               <span tuiAvatar size="m">
                 @if (request.follower.avatar; as avatar) {
-                  <img [src]="avatar | avatarUrl" alt="" />
+                  <img [src]="avatar | avatarUrl" alt="avatar" />
                 } @else {
                   <tui-icon icon="@tui.user" />
                 }

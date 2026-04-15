@@ -49,7 +49,7 @@ import { SupabaseService } from '../../services/supabase.service';
                   @for (user of users; track user.id) {
                     <span tuiAvatar size="s">
                       @if (user.avatar_url; as url) {
-                        <img [src]="url" alt="" />
+                        <img [src]="url" alt="avatar" />
                       } @else {
                         <tui-icon icon="@tui.user" />
                       }

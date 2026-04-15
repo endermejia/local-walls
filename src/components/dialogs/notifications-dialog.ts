@@ -98,7 +98,7 @@ interface GroupedNotification {
             >
               <span tuiAvatar size="s">
                 @if (group.actors[0].avatar; as avatar) {
-                  <img [src]="avatar | avatarUrl" alt="" />
+                  <img [src]="avatar | avatarUrl" alt="avatar" />
                 } @else {
                   <tui-icon icon="@tui.user" />
                 }

@@ -211,7 +211,7 @@ interface Country {
                 [tuiSkeleton]="!userEmail()"
               >
                 @if (avatarSrc(); as avatar) {
-                  <img [src]="avatar" alt="" />
+                  <img [src]="avatar" alt="avatar" />
                 } @else {
                   <tui-icon icon="@tui.user" />
                 }
@@ -319,7 +319,7 @@ interface Country {
           @if (selectedEightAnuUser.value(); as user) {
             <div tuiAvatar size="l">
               @if (user.avatar) {
-                <img [src]="user.avatar" alt="" />
+                <img [src]="user.avatar" alt="avatar" />
               } @else {
                 <tui-icon icon="@tui.user" />
               }
@@ -363,7 +363,7 @@ interface Country {
               <div class="flex items-center gap-2">
                   <div tuiAvatar size="s" class="mr-2">
                     @if (item.avatar; as avatar) {
-                      <img [src]="avatar" alt="" />
+                      <img [src]="avatar" alt="avatar" />
                     } @else {
                       <tui-icon icon="@tui.user" />
                     }

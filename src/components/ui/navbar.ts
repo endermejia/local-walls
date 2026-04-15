@@ -459,7 +459,7 @@ import {
                       @if (item.type === 'user') {
                         <span tuiAvatar size="xs" class="mr-2">
                           @if (item.icon && !item.icon.startsWith('@tui.')) {
-                            <img [src]="item.icon" alt="" />
+                            <img [src]="item.icon" [alt]="item.title" />
                           } @else {
                             <tui-icon [icon]="item.icon || '@tui.user'" />
                           }

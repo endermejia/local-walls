@@ -13,14 +13,16 @@ import {
 
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiAvatar, TuiConfirmData, TUI_CONFIRM } from '@taiga-ui/kit';
-import { TuiDialogContext, TuiDialogService } from '@taiga-ui/core';
 import {
   TuiButton,
+  TuiDialogContext,
+  TuiDialogService,
+  TuiIcon,
+  TuiInput,
   TuiLabel,
   TuiLoader,
   TuiScrollbar,
-  TuiInput,
-  TuiIcon,
+  TuiTextfield,
 } from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -63,6 +65,7 @@ export interface UserListDialogData {
     TuiLabel,
     TuiLoader,
     TuiScrollbar,
+    TuiTextfield,
   ],
   template: `
     <div class="flex flex-col h-[60dvh] min-h-[400px] -m-4">
@@ -97,7 +100,7 @@ export interface UserListDialogData {
             >
               <span tuiAvatar size="m">
                 @if (user.avatar; as avatar) {
-                  <img [src]="avatar | avatarUrl" alt="" />
+                  <img [src]="avatar | avatarUrl" alt="avatar" />
                 } @else {
                   <tui-icon icon="@tui.user" />
                 }

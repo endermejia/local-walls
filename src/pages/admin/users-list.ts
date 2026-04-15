@@ -224,7 +224,7 @@ interface UserWithRole {
                       <a [routerLink]="['/profile', user.id]">
                         <span tuiAvatar size="m">
                           @if (user.avatar; as avatar) {
-                            <img [src]="avatar | avatarUrl" alt="" />
+                            <img [src]="avatar | avatarUrl" alt="avatar" />
                           } @else {
                             <tui-icon icon="@tui.user" />
                           }

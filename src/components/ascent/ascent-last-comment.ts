@@ -45,7 +45,7 @@ import { MentionLinkPipe } from '../../pipes/mention-link.pipe';
           <div class="flex items-center gap-2">
             <span tuiAvatar size="xs">
               @if (comment.user_profiles.avatar; as avatar) {
-                <img [src]="avatar | avatarUrl" alt="" />
+                <img [src]="avatar | avatarUrl" alt="avatar" />
               } @else {
                 <tui-icon icon="@tui.user" />
               }
