@@ -153,13 +153,21 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
         @let hasSelection =
           !!global.selectedMapCragItem() || !!global.selectedMapParkingItem();
 
+        @let isExploreAreasTourStep =
+          tourService.isActive() &&
+          tourService.step() === TourStep.EXPLORE_AREAS;
+
         <!-- Bottom version (No selection) -->
         <div
           class="absolute left-1/2 z-60 sm:z-100 pointer-events-auto transition-opacity duration-300 ease-in-out"
           [style.bottom]="buttonBottomOffset()"
-          [style.opacity]="hasMapResults && !hasSelection ? 1 : 0"
+          [style.opacity]="
+            (hasMapResults && !hasSelection) || isExploreAreasTourStep ? 1 : 0
+          "
           [style.visibility]="
-            hasMapResults && !hasSelection ? 'visible' : 'hidden'
+            (hasMapResults && !hasSelection) || isExploreAreasTourStep
+              ? 'visible'
+              : 'hidden'
           "
           [style.transform]="'translate(-50%, -' + _sheetScrollTop() + 'px)'"
         >
@@ -169,6 +177,8 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
             appearance="primary-grayscale"
             iconStart="@tui.list"
             routerLink="/area"
+            [tuiDropdown]="tourHint"
+            [tuiDropdownManual]="isExploreAreasTourStep"
           >
             {{ 'viewAllAreas' | translate }}
           </button>
@@ -193,14 +203,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
 
         <!-- Map -->
         @defer (on viewport) {
-          <div
-            class="absolute inset-0 pointer-events-none"
-            [tuiDropdown]="tourHint"
-            [tuiDropdownManual]="
-              tourService.isActive() && tourService.step() === TourStep.EXPLORE
-            "
-            tuiDropdownDirection="bottom"
-          ></div>
+          <div class="absolute inset-0 pointer-events-none"></div>
           <app-map
             class="w-full h-full"
             [mapCragItems]="mapCragItems()"
