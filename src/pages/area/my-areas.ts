@@ -40,6 +40,8 @@ import {
   ORDERED_GRADE_VALUES,
 } from '../../models';
 
+import { IconSrcPipe } from '../../pipes/icon-src.pipe';
+
 @Component({
   selector: 'app-my-areas',
   imports: [
@@ -58,6 +60,7 @@ import {
     TuiScrollbar,
     TuiInput,
     TuiTitle,
+    IconSrcPipe,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -78,7 +81,7 @@ import {
                 </tui-badge-notification>
               }
               <span
-                [tuiAvatar]="global.iconSrc()('zone')"
+                [tuiAvatar]="'zone' | iconSrc: global.theme()"
                 tuiThumbnail
                 size="l"
                 class="self-center"

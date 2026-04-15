@@ -62,6 +62,7 @@ import {
   ORDERED_GRADE_VALUES,
 } from '../../models';
 
+import { IconSrcPipe } from '../../pipes/icon-src.pipe';
 import { handleErrorToast, normalizeName } from '../../utils';
 
 @Component({
@@ -86,6 +87,7 @@ import { handleErrorToast, normalizeName } from '../../utils';
     TuiInput,
     TuiTitle,
     TuiAppearance,
+    IconSrcPipe,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -213,7 +215,7 @@ import { handleErrorToast, normalizeName } from '../../utils';
           <div class="flex items-center justify-between gap-2 mt-4">
             <div class="flex items-center w-full sm:w-auto gap-2">
               <span
-                [tuiAvatar]="global.iconSrc()('crag')"
+                [tuiAvatar]="'crag' | iconSrc: global.theme()"
                 tuiThumbnail
                 size="l"
                 class="self-center"

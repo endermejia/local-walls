@@ -61,6 +61,7 @@ import {
 } from '../../models';
 
 import { mapLocationUrl, remToPx } from '../../utils';
+import { IconSrcPipe } from '../../pipes/icon-src.pipe';
 
 @Component({
   selector: 'app-home',
@@ -87,6 +88,7 @@ import { mapLocationUrl, remToPx } from '../../utils';
     TuiScrollbar,
     TuiTitle,
     TuiDropdown,
+    IconSrcPipe,
   ],
   template: ` @let isMobile = global.isMobile();
     <div class="h-full w-full flex min-h-0">
@@ -373,7 +375,7 @@ import { mapLocationUrl, remToPx } from '../../utils';
           <h3 tuiHeader id="areas-title" class="justify-center sm:pt-4">
             <div class="flex flex-row align-items-center justify-center gap-2">
               <span
-                [tuiAvatar]="global.iconSrc()('zone')"
+                [tuiAvatar]="'zone' | iconSrc: global.theme()"
                 tuiThumbnail
                 size="l"
                 [attr.aria-label]="'area' | translate"
@@ -428,7 +430,7 @@ import { mapLocationUrl, remToPx } from '../../utils';
           <h3 tuiHeader id="crags-title" class="justify-center">
             <div class="flex flex-row align-items-center justify-center gap-2">
               <span
-                [tuiAvatar]="global.iconSrc()('crag')"
+                [tuiAvatar]="'crag' | iconSrc: global.theme()"
                 tuiThumbnail
                 size="l"
                 class="self-center"

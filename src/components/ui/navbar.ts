@@ -360,11 +360,11 @@ import {
                   autocomplete="off"
                   tuiAutoFocus
                   [formControl]="control"
-                  [tuiInputSearch]="search"
+                  [tuiInputSearch]="searchContent"
                   [(tuiInputSearchOpen)]="searchOpen"
                   [placeholder]="'searchPlaceholder' | translate"
                 />
-                <ng-template #search>
+                <ng-template #searchContent>
                   @if (results() !== null) {
                     <div
                       class="flex flex-col h-full bg-(--tui-background-base) rounded-xl overflow-hidden min-w-200 max-h-[80vh]"
@@ -584,10 +584,8 @@ export class NavbarComponent {
   protected searchOpen = false;
   protected readonly activeSearchTab = signal(0);
 
-  protected readonly searchTemplate = viewChild<TemplateRef<object>>('search');
-
-  protected readonly search = (_: HTMLInputElement): PolymorpheusContent =>
-    this.searchTemplate() || '';
+  protected readonly searchTemplate =
+    viewChild<TemplateRef<object>>('searchContent');
 
   constructor() {
     const cdr = inject(ChangeDetectorRef);
@@ -626,7 +624,7 @@ export class NavbarComponent {
     const data = this.results();
     if (!data) return [];
     return Object.entries(data)
-      .filter(([_, items]) => items.length > 0)
+      .filter(([, items]) => items.length > 0)
       .map(([key, items]) => ({ key, items }));
   });
 

@@ -67,6 +67,8 @@ import {
 } from '../../models';
 
 import { GradeLabelPipe } from '../../pipes/grade-label.pipe';
+import { IconSrcPipe } from '../../pipes/icon-src.pipe';
+import { PointsToSvgPipe } from '../../pipes/points-to-svg.pipe';
 import { handleErrorToast } from '../../utils';
 import {
   getRouteStyleProperties,
@@ -120,6 +122,8 @@ export interface TopoRouteRow {
     TuiTable,
     TuiInput,
     PaywallComponent,
+    IconSrcPipe,
+    PointsToSvgPipe,
   ],
   template: `
     <div class="h-full w-full">
@@ -233,7 +237,7 @@ export interface TopoRouteRow {
                   (click.zoneless)="onImageClick()"
                 >
                   <img
-                    [src]="topoImage || global.iconSrc()('topo')"
+                    [src]="topoImage || ('topo' | iconSrc: global.theme())"
                     [alt]="t.name"
                     class="w-auto h-full max-w-none block object-cover"
                     draggable="false"
@@ -261,9 +265,7 @@ export interface TopoRouteRow {
                             "
                             (mouseenter)="hoveredRouteId.set(tr.route_id)"
                             (mouseleave)="hoveredRouteId.set(null)"
-                            [attr.points]="
-                              getPointsString(tr.path, 1000, hScale)
-                            "
+                            [attr.points]="tr.pointsString"
                             fill="none"
                             stroke="transparent"
                             [attr.stroke-width]="
@@ -280,31 +282,17 @@ export interface TopoRouteRow {
                       <!-- Layer 2: Visuals (Lines) -->
                       @for (tr of renderedTopoRoutes(); track tr.route_id) {
                         @if (tr.path && tr.path.points.length > 0) {
-                          @let style =
-                            getRouteStyle(
-                              tr.path.color,
-                              $any(tr.route.grade),
-                              tr.route_id
-                            );
-                          @let width =
-                            getRouteWidth(
-                              tr.route_id === selectedRouteId(),
-                              tr.route_id === hoveredRouteId()
-                            );
-
                           <!-- Border/Shadow Line -->
                           <polyline
-                            [attr.points]="
-                              getPointsString(tr.path, 1000, hScale)
-                            "
+                            [attr.points]="tr.pointsString"
                             fill="none"
                             stroke="white"
-                            [style.opacity]="style.isDashed ? 1 : 0.7"
+                            [style.opacity]="tr.style.isDashed ? 1 : 0.7"
                             [attr.stroke-width]="
-                              width * 1000 + (style.isDashed ? 2.5 : 1.5)
+                              tr.width * 1000 + (tr.style.isDashed ? 2.5 : 1.5)
                             "
                             [attr.stroke-dasharray]="
-                              style.isDashed ? '10, 10' : 'none'
+                              tr.style.isDashed ? '10, 10' : 'none'
                             "
                             stroke-linejoin="round"
                             stroke-linecap="round"
@@ -313,15 +301,13 @@ export interface TopoRouteRow {
 
                           <!-- Main Line -->
                           <polyline
-                            [attr.points]="
-                              getPointsString(tr.path, 1000, hScale)
-                            "
+                            [attr.points]="tr.pointsString"
                             fill="none"
-                            [attr.stroke]="style.stroke"
-                            [style.opacity]="style.opacity"
-                            [attr.stroke-width]="width * 1000"
+                            [attr.stroke]="tr.style.stroke"
+                            [style.opacity]="tr.style.opacity"
+                            [attr.stroke-width]="tr.width * 1000"
                             [attr.stroke-dasharray]="
-                              style.isDashed ? '10, 10' : 'none'
+                              tr.style.isDashed ? '10, 10' : 'none'
                             "
                             stroke-linejoin="round"
                             stroke-linecap="round"
@@ -336,9 +322,9 @@ export interface TopoRouteRow {
                             <circle
                               [attr.cx]="last.x * 1000"
                               [attr.cy]="last.y * hScale"
-                              [attr.r]="width * 1000"
+                              [attr.r]="tr.width * 1000"
                               fill="white"
-                              [style.opacity]="style.opacity"
+                              [style.opacity]="tr.style.opacity"
                               stroke="black"
                               [attr.stroke-width]="0.5"
                             />
@@ -367,7 +353,7 @@ export interface TopoRouteRow {
                               [attr.cx]="first.x * 1000"
                               [attr.cy]="first.y * hScale"
                               [attr.r]="10"
-                              [attr.fill]="style.stroke"
+                              [attr.fill]="tr.style.stroke"
                               stroke="white"
                               stroke-width="1"
                             />
@@ -444,7 +430,7 @@ export interface TopoRouteRow {
                 >
                   <img
                     #topoImgFullscreen
-                    [src]="topoImage || global.iconSrc()('topo')"
+                    [src]="topoImage || ('topo' | iconSrc: global.theme())"
                     [alt]="t.name"
                     class="max-w-dvw max-h-dvh object-contain block"
                     draggable="false"
@@ -469,9 +455,7 @@ export interface TopoRouteRow {
                             "
                             (mouseenter)="hoveredRouteId.set(tr.route_id)"
                             (mouseleave)="hoveredRouteId.set(null)"
-                            [attr.points]="
-                              getPointsString(tr.path, 1000, hScale)
-                            "
+                            [attr.points]="tr.pointsString"
                             fill="none"
                             stroke="transparent"
                             [attr.stroke-width]="
@@ -488,31 +472,17 @@ export interface TopoRouteRow {
                       <!-- Layer 2: Visuals (Lines) -->
                       @for (tr of renderedTopoRoutes(); track tr.route_id) {
                         @if (tr.path && tr.path.points.length > 0) {
-                          @let fsStyle =
-                            getRouteStyle(
-                              tr.path.color,
-                              $any(tr.route.grade),
-                              tr.route_id
-                            );
-                          @let width =
-                            getRouteWidth(
-                              tr.route_id === selectedRouteId(),
-                              tr.route_id === hoveredRouteId()
-                            );
-
                           <!-- Border/Shadow Line -->
                           <polyline
-                            [attr.points]="
-                              getPointsString(tr.path, 1000, hScale)
-                            "
+                            [attr.points]="tr.pointsString"
                             fill="none"
                             stroke="white"
-                            [style.opacity]="fsStyle.isDashed ? 1 : 0.7"
+                            [style.opacity]="tr.style.isDashed ? 1 : 0.7"
                             [attr.stroke-width]="
-                              width * 1000 + (fsStyle.isDashed ? 2.5 : 1.5)
+                              tr.width * 1000 + (tr.style.isDashed ? 2.5 : 1.5)
                             "
                             [attr.stroke-dasharray]="
-                              fsStyle.isDashed ? '10, 10' : 'none'
+                              tr.style.isDashed ? '10, 10' : 'none'
                             "
                             stroke-linejoin="round"
                             stroke-linecap="round"
@@ -521,15 +491,13 @@ export interface TopoRouteRow {
 
                           <!-- Main Line -->
                           <polyline
-                            [attr.points]="
-                              getPointsString(tr.path, 1000, hScale)
-                            "
+                            [attr.points]="tr.pointsString"
                             fill="none"
-                            [attr.stroke]="fsStyle.stroke"
-                            [style.opacity]="fsStyle.opacity"
-                            [attr.stroke-width]="width * 1000"
+                            [attr.stroke]="tr.style.stroke"
+                            [style.opacity]="tr.style.opacity"
+                            [attr.stroke-width]="tr.width * 1000"
                             [attr.stroke-dasharray]="
-                              fsStyle.isDashed ? '10, 10' : 'none'
+                              tr.style.isDashed ? '10, 10' : 'none'
                             "
                             stroke-linejoin="round"
                             stroke-linecap="round"
@@ -544,9 +512,9 @@ export interface TopoRouteRow {
                             <circle
                               [attr.cx]="last.x * 1000"
                               [attr.cy]="last.y * hScale"
-                              [attr.r]="width * 1000"
+                              [attr.r]="tr.width * 1000"
                               fill="white"
-                              [style.opacity]="fsStyle.opacity"
+                              [style.opacity]="tr.style.opacity"
                               stroke="black"
                               [attr.stroke-width]="0.5"
                             />
@@ -565,20 +533,13 @@ export interface TopoRouteRow {
                             (mouseenter)="hoveredRouteId.set(tr.route_id)"
                             (mouseleave)="hoveredRouteId.set(null)"
                           >
-                            @let fsStyle =
-                              getRouteStyle(
-                                tr.path.color,
-                                $any(tr.route.grade),
-                                tr.route_id
-                              );
-
                             <!-- Start Point: Colored Circle -->
                             @if (tr.path.points[0]; as first) {
                               <circle
                                 [attr.cx]="first.x * 1000"
                                 [attr.cy]="first.y * hScale"
                                 [attr.r]="10"
-                                [attr.fill]="fsStyle.stroke"
+                                [attr.fill]="tr.style.stroke"
                                 stroke="white"
                                 stroke-width="1"
                               />
@@ -1140,10 +1101,13 @@ export class TopoComponent {
     const t = this.topo();
     if (!t) return [];
 
-    // Sort routes so the selected and hovered ones are rendered last (on top)
-    const routes = [...t.topo_routes];
     const selectedId = this.selectedRouteId();
     const hoveredId = this.hoveredRouteId();
+    const ratio = this.imageRatio();
+    const hScale = 1000 / ratio;
+
+    // Sort routes so the selected and hovered ones are rendered last (on top)
+    const routes = [...t.topo_routes];
 
     routes.sort((a, b) => {
       const getPriority = (id: number) => {
@@ -1155,7 +1119,27 @@ export class TopoComponent {
       return getPriority(a.route_id) - getPriority(b.route_id);
     });
 
-    return routes;
+    return routes.map((tr) => {
+      const isSelected = tr.route_id === selectedId;
+      const isHovered = tr.route_id === hoveredId;
+      const style = getRouteStyleProperties(
+        isSelected,
+        isHovered,
+        tr.path?.color,
+        tr.route.grade,
+      );
+      const width = getRouteStrokeWidth(isSelected, isHovered, 2, 'viewer');
+      const pointsString = tr.path
+        ? getPointsStringUtil(tr.path.points, 1000, hScale)
+        : '';
+
+      return {
+        ...tr,
+        style,
+        width,
+        pointsString,
+      };
+    });
   });
   protected readonly crag = this.global.cragDetailResource.value;
   protected readonly allAreaTopos = this.global.areaToposResource.value;

@@ -49,6 +49,7 @@ import {
   VERTICAL_LIFE_GRADES,
 } from '../../models';
 
+import { IconSrcPipe } from '../../pipes/icon-src.pipe';
 import { normalizeName, slugify } from '../../utils';
 
 @Component({
@@ -69,6 +70,7 @@ import { normalizeName, slugify } from '../../utils';
     GradeComponent,
     EmptyStateComponent,
     RoutesTableComponent,
+    IconSrcPipe,
   ],
   template: `
     <div class="flex items-center justify-between gap-2 mb-4">
@@ -169,7 +171,7 @@ import { normalizeName, slugify } from '../../utils';
         @if (anuResults.length > 0) {
           <div class="flex flex-col gap-3 mt-4">
             <div class="flex items-center gap-2 opacity-70 mb-2">
-              <tui-icon [icon]="global.iconSrc()('8anu')" />
+              <tui-icon [icon]="'8anu' | iconSrc: global.theme()" />
               <span class="font-medium">
                 {{ 'eightAnuResults' | translate }}
               </span>

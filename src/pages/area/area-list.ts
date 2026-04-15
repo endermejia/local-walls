@@ -43,6 +43,7 @@ import {
   ORDERED_GRADE_VALUES,
 } from '../../models';
 
+import { IconSrcPipe } from '../../pipes/icon-src.pipe';
 import { normalizeName } from '../../utils';
 
 @Component({
@@ -65,6 +66,7 @@ import { normalizeName } from '../../utils';
     TuiInput,
     TuiTitle,
     TuiDropdown,
+    IconSrcPipe,
   ],
   template: `
     <div class="relative flex grow min-h-0">
@@ -81,7 +83,7 @@ import { normalizeName } from '../../utils';
             @let areasCount = filtered().length;
             <h1 class="text-2xl font-bold w-full sm:w-auto">
               <span
-                [tuiAvatar]="global.iconSrc()('zone')"
+                [tuiAvatar]="'zone' | iconSrc: global.theme()"
                 tuiThumbnail
                 size="l"
                 class="self-center"
