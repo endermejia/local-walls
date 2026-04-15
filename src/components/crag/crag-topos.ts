@@ -1,4 +1,5 @@
 import { LowerCasePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,16 +7,19 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { Router } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+
 import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiButton } from '@taiga-ui/core';
 
+import { TranslatePipe } from '@ngx-translate/core';
+
 import { GlobalData } from '../../services/global-data';
 import { ToposService } from '../../services/topos.service';
-import { TopoCardComponent } from '../topo/topo-card';
-import { PaywallComponent } from '../paywall/paywall';
+
 import { EmptyStateComponent } from '../ui/empty-state';
+import { PaywallComponent } from '../paywall/paywall';
+import { TopoCardComponent } from '../topo/topo-card';
+
 import { CragDetail } from '../../models';
 
 @Component({

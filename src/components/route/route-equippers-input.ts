@@ -1,3 +1,4 @@
+import { FormsModule } from '@angular/forms';
 import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -9,11 +10,10 @@ import {
   resource,
   signal,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 
-import { TuiIdentityMatcher } from '@taiga-ui/cdk';
-import { TuiDataList, TuiInput, TuiFilterByInputPipe } from '@taiga-ui/core';
 import { TuiChevron, TuiHideSelectedPipe, TuiInputChip } from '@taiga-ui/kit';
+import { TuiDataList, TuiInput, TuiFilterByInputPipe } from '@taiga-ui/core';
+import { TuiIdentityMatcher } from '@taiga-ui/cdk';
 
 import { TranslatePipe } from '@ngx-translate/core';
 

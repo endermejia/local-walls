@@ -1,4 +1,7 @@
+import { FormsModule } from '@angular/forms';
 import { isPlatformBrowser, Location, NgOptimizedImage } from '@angular/common';
+import { Router } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,8 +13,6 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
 import {
   form,
   required,
@@ -20,25 +21,12 @@ import {
   min,
   max,
 } from '@angular/forms/signals';
-import { FormsModule } from '@angular/forms';
 
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { PolymorpheusContent } from '@taiga-ui/polymorpheus';
 import { TuiDay, TuiStringMatcher } from '@taiga-ui/cdk';
-import {
-  TuiButton,
-  tuiDateFormatProvider,
-  TuiIcon,
-  TuiNotification,
-  TuiScrollbar,
-  TuiTitle,
-  TuiDropdown,
-  TuiError,
-  TuiCalendar,
-  TuiCalendarYear,
-  TuiInput,
-  TuiFilterByInputPipe,
-  TuiDialogService,
-  type TuiDialogContext,
-} from '@taiga-ui/core';
+import { TuiHeader } from '@taiga-ui/layout';
 import {
   TUI_CONFIRM,
   TUI_COUNTRIES,
@@ -62,12 +50,25 @@ import {
   type TuiConfirmData,
   TuiFlagPipe,
 } from '@taiga-ui/kit';
-import { TuiHeader } from '@taiga-ui/layout';
-import { PolymorpheusContent } from '@taiga-ui/polymorpheus';
-import { injectContext } from '@taiga-ui/polymorpheus';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import {
+  TuiButton,
+  tuiDateFormatProvider,
+  TuiIcon,
+  TuiNotification,
+  TuiScrollbar,
+  TuiTitle,
+  TuiDropdown,
+  TuiError,
+  TuiCalendar,
+  TuiCalendarYear,
+  TuiInput,
+  TuiFilterByInputPipe,
+  TuiDialogService,
+  type TuiDialogContext,
+} from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import {
   debounceTime,
   filter,
@@ -81,6 +82,7 @@ import {
 } from 'rxjs';
 
 import { EightAnuService } from '../../services/eight-anu.service';
+import { FollowRequestsService } from '../../services/follow-requests.service';
 import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
@@ -88,6 +90,9 @@ import { TourService } from '../../services/tour.service';
 import { TourStep } from '../../services/tour.service';
 import { UserProfilesService } from '../../services/user-profiles.service';
 
+import { FirstStepsDialogComponent } from '../../components/dialogs/first-steps-dialog';
+import { FollowRequestsDialogComponent } from '../../components/dialogs/follow-requests-dialog';
+import { PurchaseHistoryDialogComponent } from '../../components/dialogs/purchase-history-dialog';
 import { TourHintComponent } from '../../components/ui/tour-hint';
 
 import {
@@ -100,11 +105,6 @@ import {
   Themes,
   UserProfileDto,
 } from '../../models';
-
-import { FirstStepsDialogComponent } from '../../components/dialogs/first-steps-dialog';
-import { PurchaseHistoryDialogComponent } from '../../components/dialogs/purchase-history-dialog';
-import { FollowRequestsDialogComponent } from '../../components/dialogs/follow-requests-dialog';
-import { FollowRequestsService } from '../../services/follow-requests.service';
 
 interface Country {
   id: string;

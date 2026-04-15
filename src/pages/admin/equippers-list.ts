@@ -1,3 +1,4 @@
+import { FormsModule } from '@angular/forms';
 import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -8,22 +9,8 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 
-import {
-  TuiSortDirection,
-  TuiTable,
-  TuiTableSortChange,
-  TuiTableSortPipe,
-} from '@taiga-ui/addon-table';
-import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
-import {
-  TuiAppearance,
-  TuiButton,
-  TuiScrollbar,
-  TuiInput,
-} from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
@@ -34,8 +21,22 @@ import {
   TuiSkeleton,
   type TuiConfirmData,
 } from '@taiga-ui/kit';
+import {
+  TuiAppearance,
+  TuiButton,
+  TuiScrollbar,
+  TuiInput,
+} from '@taiga-ui/core';
+import {
+  TuiSortDirection,
+  TuiTable,
+  TuiTableSortChange,
+  TuiTableSortPipe,
+} from '@taiga-ui/addon-table';
+import type { TuiComparator } from '@taiga-ui/addon-table/types';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
 import { GlobalData } from '../../services/global-data';

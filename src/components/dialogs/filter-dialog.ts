@@ -1,3 +1,4 @@
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,7 +10,6 @@ import {
   Signal,
   WritableSignal,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormGroup,
@@ -17,13 +17,14 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 
+import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiButton, TuiLink, TuiKeySteps } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/core';
 import { TuiFilter, TuiRange } from '@taiga-ui/kit';
 import { TuiForm } from '@taiga-ui/layout';
-import { injectContext } from '@taiga-ui/polymorpheus';
+import { type TuiDialogContext } from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { map, merge, startWith } from 'rxjs';
 
 import { ORDERED_GRADE_VALUES } from '../../models';

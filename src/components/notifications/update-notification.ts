@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+
 import { TuiButton } from '@taiga-ui/core';
+
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   standalone: true,

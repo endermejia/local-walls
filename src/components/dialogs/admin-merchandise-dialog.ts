@@ -1,3 +1,5 @@
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,8 +8,9 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+
+import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TuiDialogContext } from '@taiga-ui/core';
 import {
   TuiButton,
   TuiLabel,
@@ -28,15 +31,18 @@ import {
   TuiFileRejectedPipe,
   TUI_CONFIRM,
 } from '@taiga-ui/kit';
-import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext } from '@taiga-ui/core';
+
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
-import { MerchandiseItem } from '../../models';
+
 import { MerchandiseService } from '../../services/merchandise.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
+
 import { ImageEditorDialogComponent } from './image-editor-dialog';
+
+import { MerchandiseItem } from '../../models';
 
 const MERCHANDISE_CATEGORIES = [
   'camiseta',

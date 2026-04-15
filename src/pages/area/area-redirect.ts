@@ -1,6 +1,8 @@
-import { Component, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Component, inject } from '@angular/core';
+
 import { TuiLoader } from '@taiga-ui/core';
+
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 

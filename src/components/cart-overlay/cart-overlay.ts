@@ -6,10 +6,14 @@ import {
   inject,
   Output,
 } from '@angular/core';
-import { TuiButton, TuiIcon, TuiScrollbar } from '@taiga-ui/core';
+
 import { TuiBadge } from '@taiga-ui/kit';
+import { TuiButton, TuiIcon, TuiScrollbar } from '@taiga-ui/core';
+
 import { TranslatePipe } from '@ngx-translate/core';
+
 import { CartService } from '../../services/cart.service';
+
 import type { CartProduct } from '../../models';
 
 @Component({

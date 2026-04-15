@@ -1,3 +1,4 @@
+import { UserAscentStatRecord } from '../models/route-ascent.model';
 import {
   AscentType,
   GradeLabel,
@@ -11,7 +12,6 @@ import {
   GradeDistribution,
   TrendSourcePoint,
 } from '../models/user-stats.model';
-import { UserAscentStatRecord } from '../models/route-ascent.model';
 
 /**
  * Calculates a score for a given grade and ascent type.

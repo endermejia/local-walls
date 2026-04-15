@@ -5,8 +5,8 @@ import {
   input,
 } from '@angular/core';
 
-import { TuiHint, TuiSizeL, TuiSizeS, TuiSizeXS } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
+import { TuiHint, TuiSizeL, TuiSizeS, TuiSizeXS } from '@taiga-ui/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 

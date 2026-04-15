@@ -1,4 +1,7 @@
+import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -11,21 +14,13 @@ import {
   viewChild,
   TemplateRef,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { TuiAutoFocus } from '@taiga-ui/cdk';
+import { TuiInputSearch, TUI_INPUT_SEARCH } from '@taiga-ui/layout';
 import {
-  TuiIcon,
-  TuiTitle,
-  TuiCell,
-  TuiTextfield,
-  TuiAppearance,
-  TuiDataList,
-  TuiDropdown,
-  TuiDialogService,
-} from '@taiga-ui/core';
+  PolymorpheusComponent,
+  PolymorpheusContent,
+} from '@taiga-ui/polymorpheus';
 import {
   TuiAvatar,
   TuiSkeleton,
@@ -36,13 +31,19 @@ import {
   TuiTab,
   TuiBadge,
 } from '@taiga-ui/kit';
-import { TuiInputSearch, TUI_INPUT_SEARCH } from '@taiga-ui/layout';
 import {
-  PolymorpheusComponent,
-  PolymorpheusContent,
-} from '@taiga-ui/polymorpheus';
+  TuiIcon,
+  TuiTitle,
+  TuiCell,
+  TuiTextfield,
+  TuiAppearance,
+  TuiDataList,
+  TuiDropdown,
+  TuiDialogService,
+} from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import {
   debounceTime,
   distinctUntilChanged,
@@ -54,17 +55,10 @@ import {
 
 import { AreasService } from '../../services/areas.service';
 import { CragsService } from '../../services/crags.service';
-import { RoutesService } from '../../services/routes.service';
 import { GlobalData } from '../../services/global-data';
+import { RoutesService } from '../../services/routes.service';
 import { ScrollService } from '../../services/scroll.service';
 import { SearchService } from '../../services/search.service';
-import { SearchItem } from '../../models/search-item.model';
-import {
-  SearchAreaItem,
-  SearchCragItem,
-  SearchRouteItem,
-} from '../../models/search-api.model';
-import { GradeLabel, LABEL_TO_VERTICAL_LIFE } from '../../models/grade.model';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 import { TourService } from '../../services/tour.service';
@@ -72,9 +66,17 @@ import { TourStep } from '../../services/tour.service';
 import { UserProfilesService } from '../../services/user-profiles.service';
 
 import { ChatDialogComponent } from '../dialogs/chat-dialog';
+import { MenuOptionsButtonComponent } from './menu-options-button';
 import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
 import { TourHintComponent } from './tour-hint';
-import { MenuOptionsButtonComponent } from './menu-options-button';
+
+import { GradeLabel, LABEL_TO_VERTICAL_LIFE } from '../../models/grade.model';
+import { SearchItem } from '../../models/search-item.model';
+import {
+  SearchAreaItem,
+  SearchCragItem,
+  SearchRouteItem,
+} from '../../models/search-api.model';
 
 @Component({
   selector: 'app-navbar',

@@ -1,3 +1,4 @@
+import { RouterLink } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -7,16 +8,16 @@ import {
   signal,
   TemplateRef,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 
-import { TuiItem } from '@taiga-ui/cdk';
-import { TuiButton, TuiLink } from '@taiga-ui/core';
 import { TuiBreadcrumbs } from '@taiga-ui/kit';
-import { DropdownButtonComponent } from './dropdown-button';
+import { TuiButton, TuiLink } from '@taiga-ui/core';
+import { TuiItem } from '@taiga-ui/cdk';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { GlobalData } from '../../services/global-data';
+
+import { DropdownButtonComponent } from './dropdown-button';
 
 @Component({
   selector: 'app-section-header',

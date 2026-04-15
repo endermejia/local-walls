@@ -1,18 +1,11 @@
+import { FormsModule } from '@angular/forms';
 import {
   ChangeDetectionStrategy,
   Component,
   inject,
   input,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 
-import {
-  TuiAppearance,
-  TuiButton,
-  TuiDataList,
-  TuiDropdown,
-  TuiIcon,
-} from '@taiga-ui/core';
 import { TuiDialogService } from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
@@ -21,15 +14,24 @@ import {
   TuiSkeleton,
   TuiSwitch,
 } from '@taiga-ui/kit';
+import {
+  TuiAppearance,
+  TuiButton,
+  TuiDataList,
+  TuiDropdown,
+  TuiIcon,
+} from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
-import { Themes } from '../../models';
 import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 import { UserProfilesService } from '../../services/user-profiles.service';
+
+import { Themes } from '../../models';
 
 @Component({
   selector: 'app-menu-options-button',

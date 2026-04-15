@@ -5,18 +5,22 @@ import {
   computed,
   inject,
 } from '@angular/core';
+
+import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
+import { TuiBadge } from '@taiga-ui/kit';
 import {
   TuiButton,
   TuiDialogContext,
   TuiIcon,
   TuiScrollbar,
 } from '@taiga-ui/core';
-import { TuiBadge } from '@taiga-ui/kit';
-import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
+
 import { TranslatePipe } from '@ngx-translate/core';
-import { AreaPackDetail } from '../../models';
+
 import { CartService } from '../../services/cart.service';
 import { GlobalData } from '../../services/global-data';
+
+import { AreaPackDetail } from '../../models';
 
 @Component({
   selector: 'app-merchandise-pack-dialog',

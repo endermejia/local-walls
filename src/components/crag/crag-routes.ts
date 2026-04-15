@@ -1,3 +1,4 @@
+import { FormsModule } from '@angular/forms';
 import { LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -8,13 +9,7 @@ import {
   resource,
   signal,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
-import {
-  TuiAvatar,
-  TuiBadgedContent,
-  TuiBadgeNotification,
-} from '@taiga-ui/kit';
+
 import {
   TuiAppearance,
   TuiButton,
@@ -23,14 +18,23 @@ import {
   TuiLoader,
   TuiInput,
 } from '@taiga-ui/core';
+import {
+  TuiAvatar,
+  TuiBadgedContent,
+  TuiBadgeNotification,
+} from '@taiga-ui/kit';
+
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { EightAnuService } from '../../services/eight-anu.service';
 import { FiltersService } from '../../services/filters.service';
 import { GlobalData } from '../../services/global-data';
 import { RoutesService } from '../../services/routes.service';
-import { GradeComponent } from '../ui/avatar-grade';
+
 import { EmptyStateComponent } from '../ui/empty-state';
+import { GradeComponent } from '../ui/avatar-grade';
 import { RoutesTableComponent } from '../route/routes-table';
+
 import {
   ClimbingKind,
   ClimbingKinds,
@@ -44,6 +48,7 @@ import {
   SearchRouteItem,
   VERTICAL_LIFE_GRADES,
 } from '../../models';
+
 import { normalizeName, slugify } from '../../utils';
 
 @Component({

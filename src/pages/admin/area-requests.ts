@@ -1,4 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -8,15 +9,7 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 
-import {
-  TuiSortDirection,
-  TuiTable,
-  TuiTableSortChange,
-  TuiTableSortPipe,
-} from '@taiga-ui/addon-table';
-import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
 import {
   TuiAppearance,
@@ -24,19 +17,27 @@ import {
   TuiLink,
   TuiScrollbar,
 } from '@taiga-ui/core';
-
 import {
   TuiAvatar,
   TuiBadgeNotification,
   TuiBadgedContentComponent,
   TuiSkeleton,
 } from '@taiga-ui/kit';
+import {
+  TuiSortDirection,
+  TuiTable,
+  TuiTableSortChange,
+  TuiTableSortPipe,
+} from '@taiga-ui/addon-table';
+import type { TuiComparator } from '@taiga-ui/addon-table/types';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
+import { AreasService } from '../../services/areas.service';
 import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
-import { AreasService } from '../../services/areas.service';
+
+import { EmptyStateComponent } from '../../components/ui/empty-state';
 
 interface AreaAdminRequest {
   id: number;
@@ -44,8 +45,6 @@ interface AreaAdminRequest {
   area: { id: number; name: string; slug: string };
   user: { id: string; name: string | null };
 }
-
-import { EmptyStateComponent } from '../../components/ui/empty-state';
 
 @Component({
   selector: 'app-admin-area-requests',

@@ -1,4 +1,6 @@
 import { CommonModule } from '@angular/common';
+import { form, FormField, min, required, submit } from '@angular/forms/signals';
+import { FormsModule } from '@angular/forms';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -11,22 +13,9 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { form, FormField, min, required, submit } from '@angular/forms/signals';
 
+import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TuiDay } from '@taiga-ui/cdk';
-import {
-  TuiAppearance,
-  TuiButton,
-  tuiDateFormatProvider,
-  TuiError,
-  TuiIcon,
-  TuiLabel,
-  TuiInput,
-  TuiCheckbox,
-  type TuiDialogContext,
-  TuiDialogService,
-} from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
   TuiConfirmData,
@@ -40,9 +29,21 @@ import {
   TuiInputFiles,
   TuiFileRejectedPipe,
 } from '@taiga-ui/kit';
-import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import {
+  TuiAppearance,
+  TuiButton,
+  tuiDateFormatProvider,
+  TuiError,
+  TuiIcon,
+  TuiLabel,
+  TuiInput,
+  TuiCheckbox,
+  type TuiDialogContext,
+  TuiDialogService,
+} from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
 import { AscentsService } from '../../services/ascents.service';
@@ -53,6 +54,7 @@ import { ToastService } from '../../services/toast.service';
 
 import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
 import { CounterComponent } from '../ui/counter';
+import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
 
 import {
   AscentDialogData,
@@ -66,8 +68,6 @@ import {
 } from '../../models';
 
 import { handleErrorToast } from '../../utils';
-
-import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
 
 @Component({
   selector: 'app-ascent-form',

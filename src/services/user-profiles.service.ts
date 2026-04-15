@@ -1,12 +1,16 @@
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { TuiDialogService } from '@taiga-ui/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TuiDialogService } from '@taiga-ui/core';
 
 import { TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom, Observable } from 'rxjs';
 
+import { SupabaseService } from './supabase.service';
+
+import { ImageEditorDialogComponent } from '../components/dialogs/image-editor-dialog';
 import { Import8aComponent } from '../components/ascent/import-8a';
 
 import {
@@ -19,9 +23,6 @@ import {
 } from '../models';
 
 import { normalizeName } from '../utils';
-
-import { ImageEditorDialogComponent } from '../components/dialogs/image-editor-dialog';
-import { SupabaseService } from './supabase.service';
 
 @Injectable({
   providedIn: 'root',

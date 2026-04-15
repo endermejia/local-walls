@@ -1,10 +1,10 @@
-import { isPlatformBrowser } from '@angular/common';
-import { inject, PLATFORM_ID } from '@angular/core';
 import { CanMatchFn, Router, UrlTree } from '@angular/router';
-
-import { waitForResource } from '../utils';
+import { inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 import { SupabaseService } from '../services/supabase.service';
+
+import { waitForResource } from '../utils';
 
 /** Allows route matching only for admin users. On server, always allow. */
 export const adminGuard: CanMatchFn = async (): Promise<boolean | UrlTree> => {

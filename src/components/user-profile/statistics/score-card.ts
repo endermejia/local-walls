@@ -1,6 +1,8 @@
-import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+
 import { TranslatePipe } from '@ngx-translate/core';
+
 import { CountUpDirective } from '../../../directives/count-up.directive';
 
 @Component({

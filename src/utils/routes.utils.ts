@@ -1,5 +1,6 @@
 import { tuiDefaultSort } from '@taiga-ui/cdk';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
+
 import {
   RouteWithExtras,
   RoutesTableRow,
@@ -8,6 +9,7 @@ import {
   VERTICAL_LIFE_GRADES,
   RouteDto,
 } from '../models';
+
 import { normalizeName } from './index';
 
 export function mapRouteToTableRow(r: RouteWithExtras): RoutesTableRow {

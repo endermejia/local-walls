@@ -1,7 +1,9 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
+
 import { SupabaseService } from './supabase.service';
+
 import type { MerchandiseItem, AreaPackDetail, AreaPack } from '../models';
 
 @Injectable({ providedIn: 'root' })

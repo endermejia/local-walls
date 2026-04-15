@@ -6,12 +6,18 @@ import {
   input,
   output,
 } from '@angular/core';
+
 import { TuiAppearance, TuiIcon, TuiTitle } from '@taiga-ui/core';
 import { TuiHeader } from '@taiga-ui/layout';
+
 import { TranslatePipe } from '@ngx-translate/core';
-import { TopoListItem } from '../../models';
+
 import { GlobalData } from '../../services/global-data';
+
 import { ChartRoutesByGradeComponent } from '../charts/chart-routes-by-grade';
+
+import { TopoListItem } from '../../models';
+
 import { TopoImagePipe } from '../../pipes/topo-image.pipe';
 
 @Component({

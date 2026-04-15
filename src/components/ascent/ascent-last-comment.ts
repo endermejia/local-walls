@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,9 +7,9 @@ import {
   input,
   resource,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TuiIcon } from '@taiga-ui/core';
+
 import { TuiAvatar } from '@taiga-ui/kit';
+import { TuiIcon } from '@taiga-ui/core';
 
 import { firstValueFrom } from 'rxjs';
 
@@ -16,6 +17,7 @@ import { AscentsService } from '../../services/ascents.service';
 import { SupabaseService } from '../../services/supabase.service';
 
 import { CommentLikesComponent } from '../social/comment-likes';
+
 import { MentionLinkPipe } from '../../pipes/mention-link.pipe';
 
 @Component({

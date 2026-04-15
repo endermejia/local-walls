@@ -1,13 +1,16 @@
 import { CommonModule, LowerCasePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
   input,
   signal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+
 import { TuiIcon, TuiHint, TuiScrollbar, TuiButton } from '@taiga-ui/core';
+
+import { TranslatePipe } from '@ngx-translate/core';
+
 import { GradeDistribution } from '../../../models/user-stats.model';
 
 @Component({

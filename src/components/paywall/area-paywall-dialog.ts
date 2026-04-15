@@ -5,14 +5,17 @@ import {
   inject,
   computed,
 } from '@angular/core';
-import { TuiScrollbar } from '@taiga-ui/core';
-import { TranslatePipe } from '@ngx-translate/core';
+
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext } from '@taiga-ui/core';
+import { TuiScrollbar } from '@taiga-ui/core';
+
+import { TranslatePipe } from '@ngx-translate/core';
+
+import { GlobalData } from '../../services/global-data';
 
 import { PaywallComponent } from './paywall';
 import { TopoCardComponent } from '../topo/topo-card';
-import { GlobalData } from '../../services/global-data';
 
 @Component({
   selector: 'app-area-paywall-dialog',

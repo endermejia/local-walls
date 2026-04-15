@@ -1,4 +1,5 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -8,20 +9,20 @@ import {
   signal,
   ChangeDetectorRef,
 } from '@angular/core';
-import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
+import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 import { TuiButton, TuiIcon, TuiLoader } from '@taiga-ui/core';
 import { type TuiDialogContext } from '@taiga-ui/core';
-import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
+import { ToastService } from '../../services/toast.service';
+
 import {
   ImageCroppedEvent,
   ImageCropperComponent,
   ImageTransform,
 } from 'ngx-image-cropper';
-
-import { ToastService } from '../../services/toast.service';
 
 export interface ImageEditorConfig {
   file?: File;

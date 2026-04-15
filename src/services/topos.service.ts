@@ -1,12 +1,23 @@
-import { isPlatformBrowser } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
-import { TuiDialogService } from '@taiga-ui/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TuiDialogService } from '@taiga-ui/core';
 
 import { TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
+import { SupabaseService } from './supabase.service';
+import { ToastService } from './toast.service';
+
+import {
+  TopoPathEditorConfig,
+  TopoPathEditorDialogComponent,
+} from '../components/dialogs/topo-path-editor-dialog';
+import TopoFormComponent from '../components/forms/topo-form';
+
+import type { Json } from '../models/supabase-generated';
 import type {
   TopoDetail,
   TopoDto,
@@ -16,16 +27,8 @@ import type {
   TopoRouteInsertDto,
   TopoUpdateDto,
 } from '../models';
-import type { Json } from '../models/supabase-generated';
 
-import {
-  TopoPathEditorConfig,
-  TopoPathEditorDialogComponent,
-} from '../components/dialogs/topo-path-editor-dialog';
-import TopoFormComponent from '../components/forms/topo-form';
 import { GlobalData } from './global-data';
-import { SupabaseService } from './supabase.service';
-import { ToastService } from './toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class ToposService {

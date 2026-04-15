@@ -1,4 +1,6 @@
 import { DecimalPipe, isPlatformBrowser, LowerCasePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -12,17 +14,15 @@ import {
   Signal,
   viewChildren,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
 
+import { TuiDialogService } from '@taiga-ui/core';
 import {
-  TuiSortDirection,
-  TuiTable,
-  TuiTableExpand,
-  TuiTableSortChange,
-  TuiTableSortPipe,
-} from '@taiga-ui/addon-table';
-import type { TuiComparator } from '@taiga-ui/addon-table/types';
+  TUI_CONFIRM,
+  TuiChevron,
+  type TuiConfirmData,
+  TuiInputNumber,
+  TuiRating,
+} from '@taiga-ui/kit';
 import {
   TuiButton,
   TuiDataList,
@@ -35,15 +35,17 @@ import {
   TuiCell,
   TuiInput,
 } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/core';
 import {
-  TUI_CONFIRM,
-  TuiChevron,
-  type TuiConfirmData,
-  TuiInputNumber,
-  TuiRating,
-} from '@taiga-ui/kit';
+  TuiSortDirection,
+  TuiTable,
+  TuiTableExpand,
+  TuiTableSortChange,
+  TuiTableSortPipe,
+} from '@taiga-ui/addon-table';
+import type { TuiComparator } from '@taiga-ui/addon-table/types';
+
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
 import { AscentsService } from '../../services/ascents.service';
@@ -52,6 +54,11 @@ import { RoutesService } from '../../services/routes.service';
 import { ToastService } from '../../services/toast.service';
 import { ToposService } from '../../services/topos.service';
 
+import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
+import { EmptyStateComponent } from '../ui/empty-state';
+import { GradeComponent } from '../ui/avatar-grade';
+import { RouteEquippersInputComponent } from './route-equippers-input';
+
 import {
   RouteAscentWithExtras,
   RoutesTableKey,
@@ -59,16 +66,12 @@ import {
   RouteItem,
 } from '../../models';
 
+import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
 import {
   handleErrorToast,
   mapRouteToTableRow,
   ROUTE_TABLE_SORTERS,
 } from '../../utils';
-import { GradeComponent } from '../ui/avatar-grade';
-import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
-import { EmptyStateComponent } from '../ui/empty-state';
-import { RouteEquippersInputComponent } from './route-equippers-input';
-import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
 
 @Component({
   selector: 'app-routes-table',

@@ -1,4 +1,5 @@
 import { AmountByEveryGrade } from './grade.model';
+
 import { Database } from './supabase-generated';
 import { TableInsert, TableRow, TableUpdate } from './supabase-interfaces';
 

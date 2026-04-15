@@ -1,4 +1,6 @@
 import { CommonModule } from '@angular/common';
+import { form, FormField, required } from '@angular/forms/signals';
+import { FormsModule } from '@angular/forms';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,9 +8,9 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { form, FormField, required } from '@angular/forms/signals';
 
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { type TuiDialogContext } from '@taiga-ui/core';
 import {
   TuiButton,
   TuiDataList,
@@ -18,14 +20,12 @@ import {
   TuiInput,
   TuiFilterByInputPipe,
 } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/core';
 import {
   TuiChevron,
   TuiInputChip,
   TuiComboBox,
   TuiMultiSelect,
 } from '@taiga-ui/kit';
-import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 

@@ -1,6 +1,8 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { SupabaseService } from './supabase.service';
+
 import { CartService } from './cart.service';
+import { SupabaseService } from './supabase.service';
+
 import type { OrderDetail } from '../models';
 
 @Injectable({ providedIn: 'root' })

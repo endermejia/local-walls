@@ -1,4 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
+import { Router } from '@angular/router';
 import {
   inject,
   Injectable,
@@ -6,14 +7,23 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { Router } from '@angular/router';
 
-import { TuiDialogService } from '@taiga-ui/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TuiDialogService } from '@taiga-ui/core';
 
 import { TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
+import { EightAnuService } from './eight-anu.service';
+import { NotificationService } from './notification.service';
+import { SupabaseService } from './supabase.service';
+import { ToastService } from './toast.service';
+
+import { AreaFormComponent } from '../components/forms/area-form';
+import { AreaUnifyComponent } from '../components/forms/area-unify';
+
+import { ClimbingKinds, LABEL_TO_VERTICAL_LIFE } from '../models';
 import type {
   AreaDetail,
   AreaDto,
@@ -23,18 +33,10 @@ import type {
   EightAnuRoute,
   RouteInsertDto,
 } from '../models';
-import { ClimbingKinds, LABEL_TO_VERTICAL_LIFE } from '../models';
 
-import { slugify } from '../utils';
-
-import { AreaFormComponent } from '../components/forms/area-form';
-import { AreaUnifyComponent } from '../components/forms/area-unify';
-import { EightAnuService } from './eight-anu.service';
 import { GlobalData } from './global-data';
 import { LocalStorage } from './local-storage';
-import { NotificationService } from './notification.service';
-import { SupabaseService } from './supabase.service';
-import { ToastService } from './toast.service';
+import { slugify } from '../utils';
 
 @Injectable({ providedIn: 'root' })
 export class AreasService {

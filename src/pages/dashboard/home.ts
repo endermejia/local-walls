@@ -1,4 +1,7 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -13,22 +16,15 @@ import {
   input,
   effect,
 } from '@angular/core';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import {
-  ChatDialogComponent,
-  ChatDialogData,
-} from '../../components/dialogs/chat-dialog';
 
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TuiDialogService } from '@taiga-ui/core';
 import {
   TuiAppearance,
   TuiButton,
   TuiDataList,
   TuiScrollbar,
 } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/core';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
   TuiBadgeNotification,
   TuiBadgedContent,
@@ -36,6 +32,7 @@ import {
 } from '@taiga-ui/kit';
 
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+
 import {
   combineLatest,
   concatMap,
@@ -58,12 +55,15 @@ import { SupabaseService } from '../../services/supabase.service';
 
 import { AscentsFeedComponent } from '../../components/ascent/ascents-feed';
 import { DropdownButtonComponent } from '../../components/ui/dropdown-button';
-
+import { NotificationsDialogComponent } from '../../components/dialogs/notifications-dialog';
+import {
+  ChatDialogComponent,
+  ChatDialogData,
+} from '../../components/dialogs/chat-dialog';
 import {
   FilterDialog,
   FilterDialogComponent,
 } from '../../components/dialogs/filter-dialog';
-import { NotificationsDialogComponent } from '../../components/dialogs/notifications-dialog';
 
 import {
   ClimbingKind,

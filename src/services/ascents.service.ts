@@ -1,11 +1,16 @@
-import { isPlatformBrowser } from '@angular/common';
 import { computed, inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
-import { TuiDialogService } from '@taiga-ui/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TuiDialogService } from '@taiga-ui/core';
 
 import { TranslateService } from '@ngx-translate/core';
+
 import { defer, from, Observable, Subject, switchMap, tap } from 'rxjs';
+
+import { AppNotificationsService } from './app-notifications.service';
+import { SupabaseService } from './supabase.service';
+import { ToastService } from './toast.service';
 
 import {
   AscentDialogData,
@@ -23,11 +28,8 @@ import {
   RouteAscentCommentWithExtras,
 } from '../models';
 
-import { AppNotificationsService } from './app-notifications.service';
-import { GlobalData } from './global-data';
-import { SupabaseService } from './supabase.service';
-import { ToastService } from './toast.service';
 import { extractMentionIds, getPaginatedProfilesFromJunction } from '../utils';
+import { GlobalData } from './global-data';
 
 @Injectable({ providedIn: 'root' })
 export class AscentsService {

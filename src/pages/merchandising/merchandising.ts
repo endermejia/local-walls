@@ -1,4 +1,7 @@
 import { CommonModule, DecimalPipe, isPlatformBrowser } from '@angular/common';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -7,10 +10,10 @@ import {
   PLATFORM_ID,
   resource,
 } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TuiDialogService } from '@taiga-ui/core';
+import { TuiHeader } from '@taiga-ui/layout';
 import {
   TuiAppearance,
   TuiButton,
@@ -26,19 +29,21 @@ import {
   TuiBadgedContentComponent,
   TuiBadgeNotification,
 } from '@taiga-ui/kit';
-import { TuiHeader } from '@taiga-ui/layout';
-import { TuiDialogService } from '@taiga-ui/core';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { startWith } from 'rxjs';
 
-import { MerchandiseItem, AreaPackDetail } from '../../models';
-import { MerchandiseService } from '../../services/merchandise.service';
-import { GlobalData } from '../../services/global-data';
 import { CartService } from '../../services/cart.service';
-import { MerchandiseItemDialogComponent } from '../../components/dialogs/merchandise-item-dialog';
-import { MerchandisePackDialogComponent } from '../../components/dialogs/merchandise-pack-dialog';
+import { GlobalData } from '../../services/global-data';
+import { MerchandiseService } from '../../services/merchandise.service';
+
 import { AdminMerchandiseDialogComponent } from '../../components/dialogs/admin-merchandise-dialog';
 import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-dialog';
+import { MerchandiseItemDialogComponent } from '../../components/dialogs/merchandise-item-dialog';
+import { MerchandisePackDialogComponent } from '../../components/dialogs/merchandise-pack-dialog';
+
+import { MerchandiseItem, AreaPackDetail } from '../../models';
 
 @Component({
   selector: 'app-merchandising',

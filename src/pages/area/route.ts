@@ -1,9 +1,5 @@
-import {
-  DecimalPipe,
-  isPlatformBrowser,
-  Location,
-  LowerCasePipe,
-} from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -16,16 +12,13 @@ import {
   resource,
   signal,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-
 import {
-  TuiButton,
-  TuiIcon,
-  TuiLoader,
-  TuiDropdown,
-  TuiHint,
-} from '@taiga-ui/core';
+  DecimalPipe,
+  isPlatformBrowser,
+  Location,
+  LowerCasePipe,
+} from '@angular/common';
+
 import { TuiDialogService } from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
@@ -33,14 +26,23 @@ import {
   type TuiConfirmData,
   TuiRating,
 } from '@taiga-ui/kit';
+import {
+  TuiButton,
+  TuiIcon,
+  TuiLoader,
+  TuiDropdown,
+  TuiHint,
+} from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
 import { AscentsService } from '../../services/ascents.service';
 import { FollowsService } from '../../services/follows.service';
 import { GlobalData } from '../../services/global-data';
 import { RoutesService } from '../../services/routes.service';
+import { SeoService } from '../../services/seo.service';
 import { ToastService } from '../../services/toast.service';
 import { TourService } from '../../services/tour.service';
 import { TourStep } from '../../services/tour.service';
@@ -61,8 +63,6 @@ import {
 } from '../../models';
 
 import { handleErrorToast } from '../../utils';
-
-import { SeoService } from '../../services/seo.service';
 
 @Component({
   selector: 'app-route',

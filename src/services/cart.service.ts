@@ -1,3 +1,4 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
   computed,
   effect,
@@ -6,8 +7,9 @@ import {
   PLATFORM_ID,
   signal,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+
 import { SupabaseService } from './supabase.service';
+
 import type { CartProduct } from '../models';
 
 @Injectable({ providedIn: 'root' })

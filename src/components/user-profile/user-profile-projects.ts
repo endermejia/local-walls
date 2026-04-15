@@ -5,8 +5,10 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { PyramidComponent } from '../charts/pyramid';
+
 import { GlobalData } from '../../services/global-data';
+
+import { PyramidComponent } from '../charts/pyramid';
 import { UserProfileProjectsListComponent } from './projects/projects-list';
 
 @Component({

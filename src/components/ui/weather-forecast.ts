@@ -1,4 +1,5 @@
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -12,12 +13,12 @@ import {
   viewChild,
   viewChildren,
 } from '@angular/core';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
 import { TuiIcon, TuiLoader, TuiScrollbar } from '@taiga-ui/core';
 import { TuiSkeleton } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
+
 import { filter, switchMap } from 'rxjs';
 
 import { GlobalData } from '../../services/global-data';

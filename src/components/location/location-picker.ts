@@ -5,14 +5,14 @@ import {
   signal,
 } from '@angular/core';
 
-import { TuiButton, TuiDialogContext } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiButton, TuiDialogContext } from '@taiga-ui/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { type MapOptions } from '../../models';
-
 import { MapComponent } from './map';
+
+import { type MapOptions } from '../../models';
 
 @Component({
   selector: 'app-location-picker',

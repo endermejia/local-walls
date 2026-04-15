@@ -5,17 +5,21 @@ import {
   inject,
   signal,
 } from '@angular/core';
+
+import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 import {
   TuiButton,
   TuiDialogContext,
   TuiIcon,
   TuiScrollbar,
 } from '@taiga-ui/core';
-import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
+
 import { TranslatePipe } from '@ngx-translate/core';
-import { MerchandiseItem } from '../../models';
+
 import { CartService } from '../../services/cart.service';
 import { GlobalData } from '../../services/global-data';
+
+import { MerchandiseItem } from '../../models';
 
 @Component({
   selector: 'app-merchandise-item-dialog',

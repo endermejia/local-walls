@@ -1,4 +1,6 @@
 import { AmountByEveryGrade } from './grade.model';
+import { RouteBasicWithOwnData } from './route.model';
+
 import { RouteAscentDto, RouteDto, TopoDto } from './supabase-interfaces';
 
 export interface TopoListItem {
@@ -23,8 +25,6 @@ export interface TopoPath {
   color?: string;
   [key: string]: unknown;
 }
-
-import { RouteBasicWithOwnData } from './route.model';
 
 export interface TopoRouteWithRoute {
   topo_id: number;

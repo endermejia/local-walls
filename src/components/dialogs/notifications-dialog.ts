@@ -1,4 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,8 +7,10 @@ import {
   inject,
   resource,
 } from '@angular/core';
-import { Router } from '@angular/router';
 
+import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TuiAvatar, TuiBadgeNotification } from '@taiga-ui/kit';
+import { TuiDialogContext, TuiDialogService } from '@taiga-ui/core';
 import {
   TuiAppearance,
   TuiButton,
@@ -15,11 +18,9 @@ import {
   TuiScrollbar,
   TuiIcon,
 } from '@taiga-ui/core';
-import { TuiDialogContext, TuiDialogService } from '@taiga-ui/core';
-import { TuiAvatar, TuiBadgeNotification } from '@taiga-ui/kit';
-import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
 import { AppNotificationsService } from '../../services/app-notifications.service';
@@ -27,6 +28,7 @@ import { AscentsService } from '../../services/ascents.service';
 import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
 
+import { ChatDialogComponent } from './chat-dialog';
 import { EmptyStateComponent } from '../ui/empty-state';
 
 import {
@@ -34,8 +36,6 @@ import {
   NotificationTypes,
   NotificationType,
 } from '../../models';
-
-import { ChatDialogComponent } from './chat-dialog';
 
 interface GroupedNotification {
   id: string;

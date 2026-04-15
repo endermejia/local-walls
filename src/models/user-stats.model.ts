@@ -1,4 +1,5 @@
 import { GradeLabel } from './grade.model';
+
 import { AscentType } from './supabase-interfaces';
 
 export interface RouteScore {

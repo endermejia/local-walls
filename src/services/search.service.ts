@@ -1,7 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 
 import { TranslateService } from '@ngx-translate/core';
+
 import { catchError, from, map, Observable, of } from 'rxjs';
+
+import { EightAnuService } from './eight-anu.service';
+import { SupabaseService } from './supabase.service';
 
 import {
   SearchData,
@@ -14,9 +18,6 @@ import {
 } from '../models';
 
 import { normalizeName, slugify } from '../utils';
-
-import { SupabaseService } from './supabase.service';
-import { EightAnuService } from './eight-anu.service';
 
 interface DbArea {
   id: number;

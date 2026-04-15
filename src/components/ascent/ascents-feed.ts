@@ -6,17 +6,17 @@ import {
   output,
 } from '@angular/core';
 
+import { AscentCardComponent } from './ascent-card';
+import { AscentCardSkeletonComponent } from './ascent-card-skeleton';
+import { InfiniteScrollTriggerComponent } from '../ui/infinite-scroll-trigger';
+import { NewsCardComponent } from '../ui/news-card';
+
 import {
   FeedItem,
   RouteAscentWithExtras,
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
 } from '../../models';
-
-import { AscentCardComponent } from './ascent-card';
-import { AscentCardSkeletonComponent } from './ascent-card-skeleton';
-import { InfiniteScrollTriggerComponent } from '../ui/infinite-scroll-trigger';
-import { NewsCardComponent } from '../ui/news-card';
 
 @Component({
   selector: 'app-ascents-feed',

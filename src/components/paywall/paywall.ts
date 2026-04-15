@@ -6,11 +6,15 @@ import {
   input,
   signal,
 } from '@angular/core';
+
 import { TuiButton, TuiLoader, TuiAppearance } from '@taiga-ui/core';
+
 import { TranslatePipe } from '@ngx-translate/core';
+
 import { SupabaseService } from '../../services/supabase.service';
-import { handleErrorToast } from '../../utils';
 import { ToastService } from '../../services/toast.service';
+
+import { handleErrorToast } from '../../utils';
 
 @Component({
   selector: 'app-paywall',

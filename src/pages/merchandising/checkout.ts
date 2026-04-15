@@ -1,7 +1,10 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+
+import { TuiDataListWrapper, TuiSelect, TuiChevron } from '@taiga-ui/kit';
+import { TuiHeader } from '@taiga-ui/layout';
 import {
   TuiButton,
   TuiNotification,
@@ -12,9 +15,9 @@ import {
   TuiIcon,
   TuiInput,
 } from '@taiga-ui/core';
-import { TuiDataListWrapper, TuiSelect, TuiChevron } from '@taiga-ui/kit';
-import { TuiHeader } from '@taiga-ui/layout';
+
 import { TranslatePipe } from '@ngx-translate/core';
+
 import { CartService } from '../../services/cart.service';
 import { CheckoutService } from '../../services/checkout.service';
 

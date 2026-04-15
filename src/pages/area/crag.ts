@@ -1,4 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
+import { Router } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,9 +11,15 @@ import {
   PLATFORM_ID,
   signal,
 } from '@angular/core';
-import { Router } from '@angular/router';
 
+import { TuiDialogService } from '@taiga-ui/core';
 import { TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
+import {
+  TUI_CONFIRM,
+  TuiTabs,
+  TuiPulse,
+  type TuiConfirmData,
+} from '@taiga-ui/kit';
 import {
   TuiAppearance,
   TuiButton,
@@ -23,30 +30,25 @@ import {
   TuiNotification,
   TuiScrollbar,
 } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/core';
-import {
-  TUI_CONFIRM,
-  TuiTabs,
-  TuiPulse,
-  type TuiConfirmData,
-} from '@taiga-ui/kit';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
 import { CragsService } from '../../services/crags.service';
 import { GlobalData } from '../../services/global-data';
+import { SeoService } from '../../services/seo.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 import { TourService, TourStep } from '../../services/tour.service';
 
 import { ChartRoutesByGradeComponent } from '../../components/charts/chart-routes-by-grade';
+import { CragParkingsComponent } from '../../components/crag/crag-parkings';
+import { CragRoutesComponent } from '../../components/crag/crag-routes';
+import { CragToposComponent } from '../../components/crag/crag-topos';
 import { SectionHeaderComponent } from '../../components/ui/section-header';
 import { TourHintComponent } from '../../components/ui/tour-hint';
 import { WeatherForecastComponent } from '../../components/ui/weather-forecast';
-import { CragRoutesComponent } from '../../components/crag/crag-routes';
-import { CragToposComponent } from '../../components/crag/crag-topos';
-import { CragParkingsComponent } from '../../components/crag/crag-parkings';
 
 import {
   AmountByEveryGrade,
@@ -55,8 +57,6 @@ import {
 } from '../../models';
 
 import { handleErrorToast, mapLocationUrl } from '../../utils';
-
-import { SeoService } from '../../services/seo.service';
 
 @Component({
   selector: 'app-crag',

@@ -1,4 +1,6 @@
+import { FormsModule } from '@angular/forms';
 import { isPlatformBrowser } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -15,16 +17,15 @@ import {
   viewChild,
   viewChildren,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
 
-import {
-  TuiSortDirection,
-  TuiTable,
-  TuiTableSortChange,
-} from '@taiga-ui/addon-table';
-import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
+import { TuiDialogService } from '@taiga-ui/core';
+import {
+  TUI_CONFIRM,
+  TuiAvatar,
+  type TuiConfirmData,
+  TuiInputNumber,
+} from '@taiga-ui/kit';
 import {
   TuiButton,
   TuiDataList,
@@ -35,14 +36,15 @@ import {
   TuiCell,
   TuiInput,
 } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/core';
 import {
-  TUI_CONFIRM,
-  TuiAvatar,
-  type TuiConfirmData,
-  TuiInputNumber,
-} from '@taiga-ui/kit';
+  TuiSortDirection,
+  TuiTable,
+  TuiTableSortChange,
+} from '@taiga-ui/addon-table';
+import type { TuiComparator } from '@taiga-ui/addon-table/types';
+
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
 import { AscentsService } from '../../services/ascents.service';
@@ -52,8 +54,9 @@ import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 import { ToposService } from '../../services/topos.service';
 
-import { GradeComponent } from '../../components/ui/avatar-grade';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
+import { GradeComponent } from '../../components/ui/avatar-grade';
+import { PaywallComponent } from '../../components/paywall/paywall';
 import { SectionHeaderComponent } from '../../components/ui/section-header';
 
 import {
@@ -62,9 +65,8 @@ import {
   TopoDetail,
   TopoRouteWithRoute,
 } from '../../models';
-import { PaywallComponent } from '../../components/paywall/paywall';
-import { GradeLabelPipe } from '../../pipes/grade-label.pipe';
 
+import { GradeLabelPipe } from '../../pipes/grade-label.pipe';
 import { handleErrorToast } from '../../utils';
 import {
   getRouteStyleProperties,

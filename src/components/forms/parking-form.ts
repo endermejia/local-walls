@@ -1,4 +1,5 @@
 import { CommonModule, Location } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -11,7 +12,6 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import {
   form,
   FormField,
@@ -21,6 +21,9 @@ import {
   submit,
 } from '@angular/forms/signals';
 
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiInputNumber } from '@taiga-ui/kit';
+import { type TuiDialogContext } from '@taiga-ui/core';
 import {
   TuiButton,
   TuiError,
@@ -28,9 +31,6 @@ import {
   TuiNumberFormat,
   TuiInput,
 } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/core';
-import { TuiInputNumber } from '@taiga-ui/kit';
-import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 

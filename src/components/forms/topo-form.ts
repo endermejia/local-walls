@@ -1,4 +1,6 @@
 import { CommonModule, Location } from '@angular/common';
+import { form, FormField, required, submit } from '@angular/forms/signals';
+import { FormsModule } from '@angular/forms';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -12,10 +14,10 @@ import {
   Signal,
   untracked,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { form, FormField, required, submit } from '@angular/forms/signals';
 
+import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TuiIdentityMatcher, tuiIsString, TuiTime } from '@taiga-ui/cdk';
+import { type TuiDialogContext } from '@taiga-ui/core';
 import {
   TuiButton,
   TuiDataList,
@@ -29,7 +31,6 @@ import {
   TuiCheckbox,
   TuiFilterByInputPipe,
 } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/core';
 import {
   TuiChevron,
   TUI_CONFIRM,
@@ -39,9 +40,9 @@ import {
   TuiFiles,
   TuiInputFiles,
 } from '@taiga-ui/kit';
-import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
 import { GlobalData } from '../../services/global-data';
@@ -50,6 +51,7 @@ import { ToastService } from '../../services/toast.service';
 import { ToposService } from '../../services/topos.service';
 
 import { GradeComponent } from '../ui/avatar-grade';
+import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
 
 import {
   RouteDto,
@@ -63,8 +65,6 @@ import {
 } from '../../models';
 
 import { handleErrorToast, slugify } from '../../utils';
-
-import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
 
 @Component({
   selector: 'app-topo-form',

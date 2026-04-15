@@ -1,8 +1,4 @@
-import {
-  CommonModule,
-  isPlatformBrowser,
-  LowerCasePipe,
-} from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -15,9 +11,15 @@ import {
   viewChild,
   WritableSignal,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import {
+  CommonModule,
+  isPlatformBrowser,
+  LowerCasePipe,
+} from '@angular/common';
 
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
+import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
+import { TuiDropdown } from '@taiga-ui/core';
 import {
   TuiAppearance,
   TuiButton,
@@ -27,13 +29,11 @@ import {
   TuiScrollbar,
   TuiTitle,
 } from '@taiga-ui/core';
-import { TuiDropdown } from '@taiga-ui/core';
 import {
   TuiAvatar,
   TuiBadgedContent,
   TuiBadgeNotification,
 } from '@taiga-ui/kit';
-import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe } from '@ngx-translate/core';
 

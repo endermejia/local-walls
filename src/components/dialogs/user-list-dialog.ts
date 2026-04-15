@@ -1,4 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,8 +10,10 @@ import {
   resource,
   signal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiAvatar, TuiConfirmData, TUI_CONFIRM } from '@taiga-ui/kit';
+import { TuiDialogContext, TuiDialogService } from '@taiga-ui/core';
 import {
   TuiButton,
   TuiLabel,
@@ -19,11 +22,9 @@ import {
   TuiInput,
   TuiIcon,
 } from '@taiga-ui/core';
-import { TuiDialogContext, TuiDialogService } from '@taiga-ui/core';
-import { TuiAvatar, TuiConfirmData, TUI_CONFIRM } from '@taiga-ui/kit';
-import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
 import { AscentsService } from '../../services/ascents.service';

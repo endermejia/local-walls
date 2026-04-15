@@ -1,4 +1,5 @@
 import { CommonModule, Location, isPlatformBrowser } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -21,9 +22,10 @@ import {
   max,
   submit,
 } from '@angular/forms/signals';
-import { FormsModule } from '@angular/forms';
 
+import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiIdentityMatcher } from '@taiga-ui/cdk';
+import { type TuiDialogContext } from '@taiga-ui/core';
 import {
   TuiButton,
   TuiError,
@@ -32,7 +34,6 @@ import {
   TuiInput,
   TuiFilterByInputPipe,
 } from '@taiga-ui/core';
-import { type TuiDialogContext } from '@taiga-ui/core';
 import {
   TuiInputNumber,
   TuiTextarea,
@@ -42,12 +43,11 @@ import {
   TuiComboBox,
   TuiSelect,
 } from '@taiga-ui/kit';
-import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { CragsService } from '../../services/crags.service';
 import { AreasService } from '../../services/areas.service';
+import { CragsService } from '../../services/crags.service';
 import { GlobalData } from '../../services/global-data';
 import { MapService } from '../../services/map.service';
 import { SupabaseService } from '../../services/supabase.service';
@@ -56,6 +56,7 @@ import { ToastService } from '../../services/toast.service';
 import { CounterComponent } from '../ui/counter';
 
 import { AreaDto } from '../../models';
+
 import { handleErrorToast, slugify } from '../../utils';
 
 interface MinimalCrag {

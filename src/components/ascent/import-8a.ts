@@ -1,11 +1,11 @@
 import { AsyncPipe, DatePipe } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   Component,
   inject,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormsModule,
@@ -13,6 +13,9 @@ import {
   Validators,
 } from '@angular/forms';
 
+import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
+import { TuiAvatar } from '@taiga-ui/kit';
+import { TuiHeader, TuiSlides } from '@taiga-ui/layout';
 import {
   TuiButton,
   TuiDialogContext,
@@ -27,11 +30,9 @@ import {
   TuiSkeleton,
   TuiStepper,
 } from '@taiga-ui/kit';
-import { TuiAvatar } from '@taiga-ui/kit';
-import { TuiHeader, TuiSlides } from '@taiga-ui/layout';
-import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import {
   BehaviorSubject,
   finalize,
@@ -50,6 +51,8 @@ import { NotificationService } from '../../services/notification.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 
+import { GradeComponent } from '../ui/avatar-grade';
+
 import {
   AscentType,
   AscentTypes,
@@ -62,8 +65,6 @@ import {
 } from '../../models';
 
 import { slugify } from '../../utils';
-
-import { GradeComponent } from '../ui/avatar-grade';
 
 class EmptyCsvError extends Error {
   constructor(message: string) {

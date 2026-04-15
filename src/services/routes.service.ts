@@ -1,17 +1,21 @@
-import { isPlatformBrowser } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 
-import { TuiDialogService } from '@taiga-ui/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TuiDialogService } from '@taiga-ui/core';
 
 import { TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
 import { GlobalData } from '../services/global-data';
 import { LocalStorage } from '../services/local-storage';
 import { SupabaseService } from '../services/supabase.service';
 import { ToastService } from '../services/toast.service';
+
+import { RouteFormComponent } from '../components/forms/route-form';
+import { RouteUnifyComponent } from '../components/forms/route-unify';
 
 import type {
   EquipperDto,
@@ -22,9 +26,6 @@ import type {
 } from '../models';
 
 import { normalizeName } from '../utils';
-
-import { RouteFormComponent } from '../components/forms/route-form';
-import { RouteUnifyComponent } from '../components/forms/route-unify';
 
 export interface RouteSimple {
   id: number;

@@ -1,6 +1,6 @@
-import { isPlatformBrowser } from '@angular/common';
-import { inject, PLATFORM_ID } from '@angular/core';
 import { CanMatchFn, Route, Router, UrlTree } from '@angular/router';
+import { inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 import { SupabaseService } from '../services/supabase.service';
 

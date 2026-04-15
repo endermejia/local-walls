@@ -1,4 +1,6 @@
 import { CommonModule, DatePipe } from '@angular/common';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -12,9 +14,9 @@ import {
   OnDestroy,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiDialogContext, TuiDialogService } from '@taiga-ui/core';
 import {
   TuiAppearance,
   TuiButton,
@@ -25,7 +27,6 @@ import {
   TuiScrollbar,
   TuiInput,
 } from '@taiga-ui/core';
-import { TuiDialogContext, TuiDialogService } from '@taiga-ui/core';
 import {
   TuiAvatar,
   TuiBadgeNotification,
@@ -34,10 +35,10 @@ import {
   TUI_CONFIRM,
   TuiTextarea,
 } from '@taiga-ui/kit';
-import { injectContext } from '@taiga-ui/polymorpheus';
 
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import {
   debounceTime,
   distinctUntilChanged,

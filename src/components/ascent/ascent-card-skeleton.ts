@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { TuiAppearance, TuiIcon } from '@taiga-ui/core';

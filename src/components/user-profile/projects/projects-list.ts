@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { RoutesTableComponent } from '../../route/routes-table';
+
 import { TuiSkeleton } from '@taiga-ui/kit';
+
+import { RoutesTableComponent } from '../../route/routes-table';
+
 import { RouteWithExtras } from '../../../models/route.model';
 
 @Component({

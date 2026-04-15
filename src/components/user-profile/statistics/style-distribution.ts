@@ -6,11 +6,15 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { TuiRingChart, TuiLegendItem } from '@taiga-ui/addon-charts';
-import { TuiIcon } from '@taiga-ui/core';
+
 import { TuiHovered } from '@taiga-ui/cdk';
+import { TuiIcon } from '@taiga-ui/core';
+import { TuiRingChart, TuiLegendItem } from '@taiga-ui/addon-charts';
+
 import { TranslatePipe } from '@ngx-translate/core';
+
 import { AscentTypeDistribution } from '../../../models/user-stats.model';
+
 import { CountUpDirective } from '../../../directives/count-up.directive';
 
 @Component({

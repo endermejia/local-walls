@@ -1,4 +1,5 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Router } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -8,15 +9,18 @@ import {
   PLATFORM_ID,
   resource,
 } from '@angular/core';
-import { Router } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+
 import { TuiAppearance, TuiTitle } from '@taiga-ui/core';
 import { TuiHeader } from '@taiga-ui/layout';
-
 import { TuiSkeleton } from '@taiga-ui/kit';
+
+import { TranslatePipe } from '@ngx-translate/core';
+
+import { SupabaseService } from '../../services/supabase.service';
+
 import { EmptyStateComponent } from '../ui/empty-state';
 import { RoutesTableComponent } from '../route/routes-table';
-import { SupabaseService } from '../../services/supabase.service';
+
 import { AscentTypes, RouteWithExtras, RouteAscentDto } from '../../models';
 
 @Component({

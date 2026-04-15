@@ -1,4 +1,6 @@
 import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -11,23 +13,12 @@ import {
   resource,
   signal,
 } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 
-import { TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
-import {
-  TuiAppearance,
-  TuiButton,
-  TuiDataList,
-  TuiDropdown,
-  TuiHint,
-  TuiLink,
-  TuiScrollbar,
-  TuiInput,
-  TuiIcon,
-} from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/core';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TUI_CONFIRM } from '@taiga-ui/kit';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
+import { TuiDialogService } from '@taiga-ui/core';
+import { TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
 import {
   TUI_COUNTRIES,
   TuiAvatar,
@@ -39,10 +30,20 @@ import {
   TuiTabs,
   TuiPulse,
 } from '@taiga-ui/kit';
-import { TUI_CONFIRM } from '@taiga-ui/kit';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import {
+  TuiAppearance,
+  TuiButton,
+  TuiDataList,
+  TuiDropdown,
+  TuiHint,
+  TuiLink,
+  TuiScrollbar,
+  TuiInput,
+  TuiIcon,
+} from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
 import { BlockingService } from '../../services/blocking.service';
@@ -55,17 +56,16 @@ import { TourService } from '../../services/tour.service';
 import { TourStep } from '../../services/tour.service';
 import { UserProfilesService } from '../../services/user-profiles.service';
 
-import { EmptyStateComponent } from '../../components/ui/empty-state';
-import { TourHintComponent } from '../../components/ui/tour-hint';
-import { MenuOptionsButtonComponent } from '../../components/ui/menu-options-button';
-
 import { ChatDialogComponent } from '../../components/dialogs/chat-dialog';
+import { EmptyStateComponent } from '../../components/ui/empty-state';
+import { MenuOptionsButtonComponent } from '../../components/ui/menu-options-button';
 import { PhotoViewerDialogComponent } from '../../components/dialogs/photo-viewer-dialog';
+import { TourHintComponent } from '../../components/ui/tour-hint';
 import { UserListDialogComponent } from '../../components/dialogs/user-list-dialog';
 import { UserProfileAscentsComponent } from '../../components/user-profile/user-profile-ascents';
+import { UserProfileLikesComponent } from '../../components/user-profile/user-profile-likes';
 import { UserProfileProjectsComponent } from '../../components/user-profile/user-profile-projects';
 import { UserProfileStatisticsComponent } from '../../components/user-profile/user-profile-statistics';
-import { UserProfileLikesComponent } from '../../components/user-profile/user-profile-likes';
 
 @Component({
   selector: 'app-user-profile',

@@ -1,10 +1,4 @@
-import { provideTaiga } from '@taiga-ui/core';
-import {
-  HttpClient,
-  provideHttpClient,
-  withFetch,
-  withInterceptors,
-} from '@angular/common/http';
+import { provideServiceWorker } from '@angular/service-worker';
 import {
   ApplicationConfig,
   isDevMode,
@@ -12,18 +6,25 @@ import {
   provideZonelessChangeDetection,
 } from '@angular/core';
 import {
-  provideClientHydration,
-  withEventReplay,
-  withIncrementalHydration,
-  withHttpTransferCacheOptions,
-} from '@angular/platform-browser';
+  HttpClient,
+  provideHttpClient,
+  withFetch,
+  withInterceptors,
+} from '@angular/common/http';
 import {
   PreloadAllModules,
   provideRouter,
   withComponentInputBinding,
   withPreloading,
 } from '@angular/router';
-import { provideServiceWorker } from '@angular/service-worker';
+import {
+  provideClientHydration,
+  withEventReplay,
+  withIncrementalHydration,
+  withHttpTransferCacheOptions,
+} from '@angular/platform-browser';
+
+import { provideTaiga } from '@taiga-ui/core';
 import { TUI_LANGUAGE } from '@taiga-ui/i18n';
 
 import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
@@ -33,11 +34,11 @@ import { errorInterceptor } from '../services/error.interceptor';
 import { GlobalData } from '../services/global-data';
 import { provideSupabaseConfig } from '../services/supabase.service';
 
+import { routes } from './app.routes';
 import {
   ENV_SUPABASE_ANON_KEY,
   ENV_SUPABASE_URL,
 } from '../environments/environment';
-import { routes } from './app.routes';
 
 const httpLoaderFactory: (http: HttpClient) => TranslateHttpLoader = (
   http: HttpClient,

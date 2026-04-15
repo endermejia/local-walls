@@ -1,5 +1,4 @@
 import { CommonModule } from '@angular/common';
-import { TopoHasPathPipe } from '../../pipes/topo-path.pipe';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -12,6 +11,8 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { TUI_CONFIRM } from '@taiga-ui/kit';
 import {
   TuiButton,
   TuiDialogContext,
@@ -20,10 +21,9 @@ import {
   TuiLoader,
   TuiScrollbar,
 } from '@taiga-ui/core';
-import { TUI_CONFIRM } from '@taiga-ui/kit';
-import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
 import { GlobalData } from '../../services/global-data';
@@ -38,12 +38,7 @@ import {
   TopoPathEditorResult,
 } from '../../models';
 
-import {
-  removePoint,
-  addPointToPath,
-  startDragPointMouse,
-  startDragPointTouch,
-} from '../../utils/drawing.utils';
+import { TopoHasPathPipe } from '../../pipes/topo-path.pipe';
 import {
   getRouteStyleProperties,
   getPointsString as getPointsStringUtil,
@@ -55,6 +50,12 @@ import {
   setupEditorTouchPanPinch,
   attachWheelListener,
 } from '../../utils/zoom-pan.utils';
+import {
+  removePoint,
+  addPointToPath,
+  startDragPointMouse,
+  startDragPointTouch,
+} from '../../utils/drawing.utils';
 
 export interface TopoPathEditorConfig {
   imageUrl: string;

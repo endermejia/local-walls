@@ -1,4 +1,6 @@
 import { DatePipe, CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -12,22 +14,22 @@ import {
   viewChildren,
   effect,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
 
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiAvatar, TUI_CONFIRM, TuiConfirmData } from '@taiga-ui/kit';
 import { TuiButton, TuiLoader, TuiScrollbar } from '@taiga-ui/core';
 import { TuiDialogContext, TuiDialogService } from '@taiga-ui/core';
-import { TuiAvatar, TUI_CONFIRM, TuiConfirmData } from '@taiga-ui/kit';
-import { injectContext } from '@taiga-ui/polymorpheus';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
+import { firstValueFrom } from 'rxjs';
 
 import { AscentsService } from '../../services/ascents.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { UserProfilesService } from '../../services/user-profiles.service';
 
-import { EmptyStateComponent } from '../ui/empty-state';
 import { CommentLikesComponent } from '../social/comment-likes';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { firstValueFrom } from 'rxjs';
+import { EmptyStateComponent } from '../ui/empty-state';
 
 import { UserProfileBasicDto } from '../../models';
 

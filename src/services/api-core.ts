@@ -1,6 +1,7 @@
-import { SsrError } from '../errors/ssr.error';
-import { isPlatformBrowser } from '@angular/common';
 import { inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+
+import { SsrError } from '../errors/ssr.error';
 
 export interface HttpOptions {
   headers?: Record<string, string>;

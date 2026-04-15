@@ -1,4 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
+
 import { GRADE_NUMBER_TO_LABEL, VERTICAL_LIFE_GRADES } from '../models';
 
 @Pipe({

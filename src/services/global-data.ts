@@ -1,4 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
+import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import {
   computed,
   effect,
@@ -11,7 +12,6 @@ import {
   untracked,
   WritableSignal,
 } from '@angular/core';
-import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 
 import { TUI_BREAKPOINT } from '@taiga-ui/core';
 import {
@@ -24,15 +24,13 @@ import {
 } from '@taiga-ui/i18n';
 
 import { TranslateService } from '@ngx-translate/core';
+
 import { map, merge, startWith } from 'rxjs';
 
 import { AppNotificationsService } from './app-notifications.service';
-import { LocalStorage } from './local-storage';
 import { MessagingService } from './messaging.service';
-import { SupabaseService } from './supabase.service';
 import { PushService } from './push.service';
-
-import { mapCragToDetail } from '../utils';
+import { SupabaseService } from './supabase.service';
 
 import {
   AscentTypes,
@@ -67,6 +65,9 @@ import {
   VERTICAL_LIFE_GRADES,
   LABEL_TO_VERTICAL_LIFE,
 } from '../models';
+
+import { LocalStorage } from './local-storage';
+import { mapCragToDetail } from '../utils';
 
 @Injectable({
   providedIn: 'root',

@@ -1,3 +1,5 @@
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -7,8 +9,9 @@ import {
   computed,
   effect,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+
+import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TuiDialogContext } from '@taiga-ui/core';
 import { TuiIdentityMatcher, tuiIsString } from '@taiga-ui/cdk';
 import {
   TuiButton,
@@ -36,16 +39,19 @@ import {
   TuiChevron,
   TuiMultiSelect,
 } from '@taiga-ui/kit';
-import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { TuiDialogContext } from '@taiga-ui/core';
+
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
-import { AreaPackDetail } from '../../models';
-import { MerchandiseService } from '../../services/merchandise.service';
+
 import { AreasService } from '../../services/areas.service';
-import { ToastService } from '../../services/toast.service';
+import { MerchandiseService } from '../../services/merchandise.service';
 import { SupabaseService } from '../../services/supabase.service';
+import { ToastService } from '../../services/toast.service';
+
 import { ImageEditorDialogComponent } from './image-editor-dialog';
+
+import { AreaPackDetail } from '../../models';
 
 interface SimpleArea {
   id: number;

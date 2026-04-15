@@ -1,9 +1,9 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
+import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext, TuiLoader } from '@taiga-ui/core';
 import { TuiProgress } from '@taiga-ui/kit';
-import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 
 import { type Observable } from 'rxjs';
 

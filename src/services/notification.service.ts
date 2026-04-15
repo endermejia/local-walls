@@ -1,11 +1,13 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TuiNotificationOptions, TuiNotificationService } from '@taiga-ui/core';
 
 import { TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom, switchMap } from 'rxjs';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+
 import { GdprNotificationComponent } from '../components/notifications/gdpr-notification';
 import { UpdateNotificationComponent } from '../components/notifications/update-notification';
 

@@ -1,4 +1,3 @@
-import { TuiAccordion } from '@taiga-ui/kit';
 import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -8,7 +7,9 @@ import {
   resource,
 } from '@angular/core';
 
+import { TuiAccordion } from '@taiga-ui/kit';
 import { TuiButton, TuiLoader } from '@taiga-ui/core';
+
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { RouteSimple, RoutesService } from '../../services/routes.service';

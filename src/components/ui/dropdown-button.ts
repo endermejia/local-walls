@@ -5,8 +5,9 @@ import {
   model,
   TemplateRef,
 } from '@angular/core';
-import { TuiDropdown, TuiLink } from '@taiga-ui/core';
+
 import { TuiChevron } from '@taiga-ui/kit';
+import { TuiDropdown, TuiLink } from '@taiga-ui/core';
 
 @Component({
   selector: 'app-dropdown-button',

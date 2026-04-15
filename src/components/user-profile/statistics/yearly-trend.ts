@@ -1,14 +1,18 @@
-import { CommonModule, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
+
+import { TuiIcon, TuiScrollbar } from '@taiga-ui/core';
 import {
   TuiAxes,
   TuiLineChart,
   TuiLineChartHint,
 } from '@taiga-ui/addon-charts';
-import { TuiIcon, TuiScrollbar } from '@taiga-ui/core';
+
 import { TranslatePipe } from '@ngx-translate/core';
+
 import { TrendData, TrendDetail } from '../../../models/user-stats.model';
+
 import { ContextIndexPipe } from '../../../pipes/context-index.pipe';
 
 @Component({

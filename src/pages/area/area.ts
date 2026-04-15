@@ -1,4 +1,5 @@
 import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -12,8 +13,17 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
 
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { TuiDialogService } from '@taiga-ui/core';
+import { TuiHeader } from '@taiga-ui/layout';
+import {
+  TUI_CONFIRM,
+  TuiAvatar,
+  TuiBadgedContent,
+  TuiBadgeNotification,
+  type TuiConfirmData,
+} from '@taiga-ui/kit';
 import {
   TuiAppearance,
   TuiButton,
@@ -24,31 +34,26 @@ import {
   TuiTitle,
   TuiInput,
 } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/core';
-import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import {
-  TUI_CONFIRM,
-  TuiAvatar,
-  TuiBadgedContent,
-  TuiBadgeNotification,
-  type TuiConfirmData,
-} from '@taiga-ui/kit';
-import { TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
 import { firstValueFrom } from 'rxjs';
 
 import { AreasService } from '../../services/areas.service';
 import { CragsService } from '../../services/crags.service';
 import { FiltersService } from '../../services/filters.service';
 import { GlobalData } from '../../services/global-data';
+import { SeoService } from '../../services/seo.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 
+import { AreaPaywallDialogComponent } from '../../components/paywall/area-paywall-dialog';
 import { ChartRoutesByGradeComponent } from '../../components/charts/chart-routes-by-grade';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
+import { GradeComponent } from '../../components/ui/avatar-grade';
 import { SectionHeaderComponent } from '../../components/ui/section-header';
 
+import { AreaDetail } from '../../models/area.model';
 import {
   ClimbingKinds,
   ClimbingKind,
@@ -58,11 +63,6 @@ import {
 } from '../../models';
 
 import { handleErrorToast, normalizeName } from '../../utils';
-
-import { GradeComponent } from '../../components/ui/avatar-grade';
-import { AreaDetail } from '../../models/area.model';
-import { SeoService } from '../../services/seo.service';
-import { AreaPaywallDialogComponent } from '../../components/paywall/area-paywall-dialog';
 
 @Component({
   selector: 'app-area',

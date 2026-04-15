@@ -1,9 +1,10 @@
 import { AmountByEveryGrade } from './grade.model';
+import { TopoListItem } from './topo.model';
+
 import { Database } from './supabase-generated';
 import { ParkingDto } from './supabase-interfaces';
 import { TableInsert, TableRow, TableUpdate } from './supabase-interfaces';
 import { TopoDto } from './supabase-interfaces';
-import { TopoListItem } from './topo.model';
 
 export interface CragListItem extends Omit<
   Database['public']['Functions']['get_crags_list_by_area_slug']['Returns'][number],

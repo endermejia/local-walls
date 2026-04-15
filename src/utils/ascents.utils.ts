@@ -1,4 +1,5 @@
 import { NewsItem, RouteAscentWithExtras, FeedItem } from '../models';
+
 import { normalizeName } from './index';
 
 /**

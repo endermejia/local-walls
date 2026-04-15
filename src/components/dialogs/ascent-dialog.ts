@@ -1,8 +1,8 @@
 import { Component, computed, inject, resource } from '@angular/core';
 
-import { TuiScrollbar } from '@taiga-ui/core';
-import { TuiDialogContext } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiDialogContext } from '@taiga-ui/core';
+import { TuiScrollbar } from '@taiga-ui/core';
 
 import { AscentsService } from '../../services/ascents.service';
 

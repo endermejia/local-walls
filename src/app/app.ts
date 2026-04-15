@@ -1,4 +1,9 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { Meta, Title } from '@angular/platform-browser';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   Component,
   DestroyRef,
@@ -6,29 +11,25 @@ import {
   inject,
   PLATFORM_ID,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { Meta, Title } from '@angular/platform-browser';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
-import { SeoService } from '../services/seo.service';
-import { SupabaseService } from '../services/supabase.service';
-import { Themes } from '../models';
 
-import { TuiRoot } from '@taiga-ui/core';
-import { TuiDialogService } from '@taiga-ui/core';
 import { TuiBadgedContent } from '@taiga-ui/kit';
+import { TuiDialogService } from '@taiga-ui/core';
+import { TuiRoot } from '@taiga-ui/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+
 import { filter, map, merge, startWith } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { GlobalData } from '../services/global-data';
 import { LocalStorage } from '../services/local-storage';
-
-import { NavbarComponent } from '../components/ui/navbar';
-import { CartOverlayComponent } from '../components/cart-overlay/cart-overlay';
-
 import { NotificationService } from '../services/notification.service';
+import { SeoService } from '../services/seo.service';
+import { SupabaseService } from '../services/supabase.service';
+
+import { CartOverlayComponent } from '../components/cart-overlay/cart-overlay';
+import { NavbarComponent } from '../components/ui/navbar';
+
+import { Themes } from '../models';
 
 @Component({
   selector: 'app-root',

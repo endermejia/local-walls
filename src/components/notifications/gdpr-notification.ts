@@ -1,7 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
-import { TuiButton, TuiScrollbar, TuiDialogContext } from '@taiga-ui/core';
+
 import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
+import { TuiButton, TuiScrollbar, TuiDialogContext } from '@taiga-ui/core';
+
 import { TranslateModule } from '@ngx-translate/core';
+
 import { LocalStorage } from '../../services/local-storage';
 
 @Component({

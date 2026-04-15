@@ -1,11 +1,11 @@
 import { NgOptimizedImage } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
   inject,
   OnInit,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 
 import { TuiAppearance, TuiButton, TuiTitle } from '@taiga-ui/core';
 import { TuiHeader } from '@taiga-ui/layout';

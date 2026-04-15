@@ -1,4 +1,5 @@
 import { LowerCasePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -7,8 +8,8 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { Router } from '@angular/router';
 
+import { TuiHeader } from '@taiga-ui/layout';
 import {
   TuiAppearance,
   TuiButton,
@@ -23,7 +24,6 @@ import {
   TuiBadgedContentComponent,
   TuiBadgeNotification,
 } from '@taiga-ui/kit';
-import { TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe } from '@ngx-translate/core';
 

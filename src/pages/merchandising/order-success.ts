@@ -1,3 +1,4 @@
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -5,7 +6,8 @@ import {
   inject,
   resource,
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+
+import { TuiSkeleton } from '@taiga-ui/kit';
 import {
   TuiButton,
   TuiIcon,
@@ -13,10 +15,11 @@ import {
   TuiScrollbar,
   TuiTitle,
 } from '@taiga-ui/core';
-import { TuiSkeleton } from '@taiga-ui/kit';
+
 import { TranslatePipe } from '@ngx-translate/core';
-import { CheckoutService } from '../../services/checkout.service';
+
 import { CartService } from '../../services/cart.service';
+import { CheckoutService } from '../../services/checkout.service';
 
 @Component({
   selector: 'app-order-success',

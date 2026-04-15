@@ -1,10 +1,11 @@
 import { Routes } from '@angular/router';
 
+import { LandingComponent } from '../pages/marketing/landing';
+
 import { adminGuard, areaAdminGuard } from '../guard/admin.guard';
 import { authGuard } from '../guard/auth.guard';
 import { noAuthGuard } from '../guard/no-auth.guard';
 import { rootRedirectGuard } from '../guard/root-redirect.guard';
-import { LandingComponent } from '../pages/marketing/landing';
 
 export const routes: Routes = [
   {

@@ -1,13 +1,16 @@
-import { Component, inject, resource } from '@angular/core';
 import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
-import { TuiScrollbar, TuiIcon, TuiLoader } from '@taiga-ui/core';
-import { TuiHeader } from '@taiga-ui/layout';
-import { TranslatePipe } from '@ngx-translate/core';
-import { SupabaseService } from '../../services/supabase.service';
-import { GlobalData } from '../../services/global-data';
+import { Component, inject, resource } from '@angular/core';
 import { Router } from '@angular/router';
-import { TuiDialogContext } from '@taiga-ui/core';
+
 import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiDialogContext } from '@taiga-ui/core';
+import { TuiHeader } from '@taiga-ui/layout';
+import { TuiScrollbar, TuiIcon, TuiLoader } from '@taiga-ui/core';
+
+import { TranslatePipe } from '@ngx-translate/core';
+
+import { GlobalData } from '../../services/global-data';
+import { SupabaseService } from '../../services/supabase.service';
 
 interface PurchaseRecord {
   id: string;

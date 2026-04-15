@@ -1,4 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,20 +10,20 @@ import {
   resource,
   signal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 
+import { injectContext } from '@taiga-ui/polymorpheus';
+import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiButton, TuiLoader, TuiScrollbar, TuiIcon } from '@taiga-ui/core';
 import { TuiDialogContext } from '@taiga-ui/core';
-import { TuiAvatar } from '@taiga-ui/kit';
-import { injectContext } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { FollowRequestsService } from '../../services/follow-requests.service';
-import { PopulatedFollowRequestDto } from '../../models';
 import { SupabaseService } from '../../services/supabase.service';
 
 import { EmptyStateComponent } from '../ui/empty-state';
+
+import { PopulatedFollowRequestDto } from '../../models';
 
 @Component({
   selector: 'app-follow-requests-dialog',

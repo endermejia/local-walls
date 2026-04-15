@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { TuiButton } from '@taiga-ui/core';
 import { TuiBlockStatus } from '@taiga-ui/layout';
+import { TuiButton } from '@taiga-ui/core';
 
 import { TranslateModule } from '@ngx-translate/core';
 

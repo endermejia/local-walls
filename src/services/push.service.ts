@@ -1,10 +1,14 @@
-import { isPlatformBrowser } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { SwPush } from '@angular/service-worker';
+
 import { firstValueFrom } from 'rxjs';
-import { ENV_VAPID_PUBLIC_KEY } from '../environments/environment';
+
 import { SupabaseService } from './supabase.service';
+
 import { Json } from '../models/supabase-generated';
+
+import { ENV_VAPID_PUBLIC_KEY } from '../environments/environment';
 
 @Injectable({
   providedIn: 'root',
