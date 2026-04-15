@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TuiButton, TuiIcon, TuiLink } from '@taiga-ui/core';
-import { TuiBadge } from '@taiga-ui/kit';
 
 import { ChartRoutesByGradeComponent } from '../charts/chart-routes-by-grade';
 import { AppCardComponent } from '../ui/card';
@@ -17,7 +16,6 @@ import { AppCardComponent } from '../ui/card';
     TuiLink,
     TranslatePipe,
     RouterLink,
-    TuiBadge,
     ChartRoutesByGradeComponent,
   ],
   template: `
@@ -26,7 +24,7 @@ import { AppCardComponent } from '../ui/card';
         <a
           tuiLink
           [routerLink]="['/area', crag().area_slug, crag().slug]"
-          class="font-bold! no-underline! truncate block text-2xl! text-(--tui-text-primary)!"
+          class="font-bold! truncate block text-2xl! text-(--tui-text-primary)!"
         >
           {{ crag().name }}
         </a>
@@ -53,27 +51,33 @@ import { AppCardComponent } from '../ui/card';
         <!-- Information strictly centered -->
         <div class="grow flex flex-col justify-center gap-2">
           <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-            @if (topoCount > 0) {
-              <div
-                appearance="neutral"
-                size="s"
-                tuiBadge
-                class="flex items-center gap-1"
-              >
-                <tui-icon icon="@tui.images" />
-                <span> {{ topoCount }} {{ 'topos' | translate }} </span>
-              </div>
-            }
-            <div class="flex items-center gap-2">
-              <tui-icon
-                icon="@tui.route"
-                class="opacity-60"
-                [style.font-size.rem]="1"
-              />
+            <a
+              tuiLink
+              class="flex items-center gap-2 cursor-pointer no-underline! text-inherit! opacity-90 hover:opacity-100 transition-opacity"
+              [routerLink]="['/area', crag().area_slug, crag().slug]"
+            >
+              <tui-icon icon="@tui.route" [style.font-size.rem]="1" />
               <span class="text-xs! sm:text-sm! whitespace-nowrap">
                 {{ routesCount }} {{ 'routes' | translate }}
               </span>
-            </div>
+            </a>
+            @if (topoCount > 0) {
+              <a
+                tuiLink
+                appearance="action-grayscale"
+                class="flex items-center gap-2 cursor-pointer no-underline! opacity-90 hover:opacity-100 transition-opacity"
+                [routerLink]="['/area', crag().area_slug, crag().slug]"
+                [queryParams]="{ tab: 'topos' }"
+              >
+                <div
+                  class="w-4 h-4 bg-current"
+                  [style.mask]="'url(image/topo.svg) center/contain no-repeat'"
+                ></div>
+                <span class="text-xs! sm:text-sm! whitespace-nowrap">
+                  {{ topoCount }} {{ 'topos' | translate }}
+                </span>
+              </a>
+            }
             @if (crag().approach; as appr) {
               <div class="flex items-center gap-1 opacity-60">
                 <tui-icon icon="@tui.footprints" [style.font-size.rem]="1" />

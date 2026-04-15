@@ -1,5 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -326,6 +327,9 @@ export class CragComponent {
   protected readonly tourService = inject(TourService);
   protected readonly TourStep = TourStep;
   private readonly seo = inject(SeoService);
+  private readonly route = inject(ActivatedRoute);
+
+  protected readonly queryParams = toSignal(this.route.queryParams);
 
   protected readonly mapLocationUrl = mapLocationUrl;
 
@@ -412,8 +416,14 @@ export class CragComponent {
   });
 
   protected readonly routesCount = computed(() => {
-    const routes = this.global.cragRoutesResource.value() ?? [];
-    return routes.length;
+    const detail = this.cragDetail();
+    const routes = this.global.cragRoutesResource.value();
+    return routes
+      ? routes.length
+      : Object.values(detail?.grades || {}).reduce(
+          (a, b) => (a ?? 0) + (b ?? 0),
+          0,
+        );
   });
 
   constructor() {
@@ -465,6 +475,23 @@ export class CragComponent {
       const tabs = this.visibleTabs();
       if (this.activeTabIndex() >= tabs.length && tabs.length > 0) {
         this.activeTabIndex.set(0);
+      }
+    });
+
+    effect(() => {
+      const params = this.queryParams();
+      const tabs = this.visibleTabs();
+      if (!params || !tabs.length) return;
+
+      const tab = params['tab'];
+      if (tab === 'topos' && tabs.includes(1)) {
+        this.activeTabIndex.set(tabs.indexOf(1));
+      } else if (tab === 'routes' && tabs.includes(0)) {
+        this.activeTabIndex.set(tabs.indexOf(0));
+      } else if (tab === 'parkings' && tabs.includes(2)) {
+        this.activeTabIndex.set(tabs.indexOf(2));
+      } else if (tab === 'weather' && tabs.includes(3)) {
+        this.activeTabIndex.set(tabs.indexOf(3));
       }
     });
   }

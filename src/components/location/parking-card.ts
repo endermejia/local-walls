@@ -5,7 +5,6 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TuiCopy } from '@taiga-ui/kit';
 
@@ -14,7 +13,7 @@ import { AppCardComponent } from '../ui/card';
 
 @Component({
   selector: 'app-parking-card',
-  imports: [AppCardComponent, TuiIcon, RouterLink, TuiCopy, TuiButton],
+  imports: [AppCardComponent, TuiIcon, TuiCopy, TuiButton],
   template: `
     <app-card [appearance]="appearance()">
       <ng-container title>
