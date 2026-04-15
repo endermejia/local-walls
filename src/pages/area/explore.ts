@@ -18,13 +18,11 @@ import {
 } from '@angular/common';
 
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
-import { TuiCardLarge, TuiHeader } from '@taiga-ui/layout';
+import { TuiHeader } from '@taiga-ui/layout';
 import { TuiDropdown } from '@taiga-ui/core';
 import {
   TuiAppearance,
   TuiButton,
-  TuiIcon,
-  TuiLink,
   TuiLoader,
   TuiScrollbar,
   TuiTitle,
@@ -46,6 +44,7 @@ import { TourStep } from '../../services/tour.service';
 
 import { AreaCardComponent } from '../../components/area/area-card';
 import { CragCardComponent } from '../../components/crag/crag-card';
+import { ParkingCardComponent } from '../../components/location/parking-card';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
 import { MapComponent } from '../../components/location/map';
 import { TourHintComponent } from '../../components/ui/tour-hint';
@@ -69,6 +68,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
   imports: [
     AreaCardComponent,
     CragCardComponent,
+    ParkingCardComponent,
     EmptyStateComponent,
     LowerCasePipe,
     NgTemplateOutlet,
@@ -82,10 +82,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
     TuiBadgedContent,
     TuiBottomSheet,
     TuiButton,
-    TuiCardLarge,
     TuiHeader,
-    TuiIcon,
-    TuiLink,
     TuiLoader,
     TuiScrollbar,
     TuiTitle,
@@ -151,20 +148,37 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           </div>
         }
 
+        @let hasMapResults =
+          mapAreaItems().length > 0 || mapCragItems().length > 0;
+        @let hasSelection =
+          !!global.selectedMapCragItem() || !!global.selectedMapParkingItem();
+
+        <!-- Bottom version (No selection) -->
         <div
-          class="absolute left-1/2 z-60 sm:z-100 pointer-events-auto"
-          [style.bottom]="
-            global.isMobile() && hasBottomSheet()
-              ? 'calc(' + stops[0] + ' + 1.5rem)'
-              : '1rem'
+          class="absolute left-1/2 z-60 sm:z-100 pointer-events-auto transition-opacity duration-300 ease-in-out"
+          [style.bottom]="buttonBottomOffset()"
+          [style.opacity]="hasMapResults && !hasSelection ? 1 : 0"
+          [style.visibility]="
+            hasMapResults && !hasSelection ? 'visible' : 'hidden'
           "
           [style.transform]="'translate(-50%, -' + _sheetScrollTop() + 'px)'"
-          [tuiDropdown]="tourHint"
-          [tuiDropdownManual]="
-            tourService.isActive() &&
-            tourService.step() === TourStep.EXPLORE_AREAS
-          "
-          tuiDropdownDirection="bottom"
+        >
+          <button
+            tuiButton
+            size="m"
+            appearance="primary-grayscale"
+            iconStart="@tui.list"
+            routerLink="/area"
+          >
+            {{ 'viewAllAreas' | translate }}
+          </button>
+        </div>
+
+        <!-- Top version (With selection) -->
+        <div
+          class="absolute left-1/2 top-4 z-60 sm:z-100 pointer-events-auto transition-opacity duration-300 ease-in-out -translate-x-1/2"
+          [style.opacity]="hasSelection ? 1 : 0"
+          [style.visibility]="hasSelection ? 'visible' : 'hidden'"
         >
           <button
             tuiButton
@@ -211,7 +225,6 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
             <app-crag-card
               [crag]="c"
               appearance="floating"
-              titleSize="l"
               class="pointer-events-auto shadow-2xl"
             />
           </div>
@@ -220,47 +233,37 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           <div
             class="absolute w-full max-w-120 mx-auto z-50 pointer-events-none left-0 right-0 bottom-0 px-4 pb-4"
           >
-            <div
-              tuiCardLarge
+            <app-parking-card
+              [parking]="p"
               appearance="floating"
-              class="pointer-events-auto w-full"
+              titleSize="l"
+              class="pointer-events-auto shadow-2xl"
             >
-              <div class="flex flex-col grow gap-2">
-                <header tuiHeader class="flex wrap gap-2">
-                  <h2 tuiTitle>{{ p.name }}</h2>
-                  <section class="text-sm opacity-80">
-                    @if (p.size) {
-                      <div class="flex w-fit items-center gap-1">
-                        <tui-icon icon="@tui.car" />
-                        <span class="text-lg">
-                          x
-                          {{ p.size }}
-                        </span>
-                      </div>
-                    }
-                  </section>
-                  @if (global.canEditAsAdmin()) {
-                    <button
-                      size="s"
-                      appearance="neutral"
-                      iconStart="@tui.square-pen"
-                      tuiIconButton
-                      type="button"
-                      class="rounded-full!"
-                      (click.zoneless)="openEditParking(p)"
-                    >
-                      {{ 'edit' | translate }}
-                    </button>
-                  }
-                </header>
+              <ng-container titleActions>
+                @if (global.canEditAsAdmin()) {
+                  <button
+                    size="s"
+                    appearance="neutral"
+                    iconStart="@tui.square-pen"
+                    tuiIconButton
+                    type="button"
+                    class="rounded-full!"
+                    (click.zoneless)="openEditParking(p)"
+                  >
+                    {{ 'edit' | translate }}
+                  </button>
+                }
+              </ng-container>
+
+              <ng-container actions>
                 @if (p.latitude && p.longitude) {
                   <button
                     appearance="flat"
-                    size="m"
+                    size="s"
                     tuiButton
                     type="button"
                     [iconStart]="'/image/google-maps.svg'"
-                    class="[--tui-icon-size:1.25rem]"
+                    class="[--tui-icon-size:1.25rem] rounded-full!"
                     (click.zoneless)="
                       openExternal(
                         mapLocationUrl({
@@ -269,13 +272,12 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
                         })
                       )
                     "
-                    [attr.aria-label]="'openGoogleMaps' | translate"
                   >
-                    {{ 'openGoogleMaps' | translate }}
+                    Google Maps
                   </button>
                 }
-              </div>
-            </div>
+              </ng-container>
+            </app-parking-card>
           </div>
         }
 
@@ -355,11 +357,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-20">
             <div class="grid gap-2">
               @for (a of areas; track a.slug) {
-                <app-area-card
-                  [area]="a"
-                  class="cursor-pointer"
-                  (click.zoneless)="router.navigate(['/area', a.slug])"
-                />
+                <app-area-card [area]="a" />
               }
             </div>
           </section>
@@ -387,13 +385,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-20">
             <div class="grid gap-2">
               @for (c of crags; track c.id) {
-                <app-crag-card
-                  [crag]="c"
-                  class="cursor-pointer"
-                  (click.zoneless)="
-                    router.navigate(['/area', c.area_slug, c.slug])
-                  "
-                />
+                <app-crag-card [crag]="c" />
               }
             </div>
           </section>
@@ -545,6 +537,24 @@ export class ExploreComponent {
       this.global.areaListCategories().length > 0 ||
       this.global.areaListShade().length > 0
     );
+  });
+
+  protected readonly buttonBottomOffset = computed(() => {
+    const isMobile = this.global.isMobile();
+    const hasSheet = this.hasBottomSheet();
+    const hasSelection =
+      !!this.global.selectedMapCragItem() ||
+      !!this.global.selectedMapParkingItem();
+
+    if (hasSelection) {
+      return 'calc(100% - 6rem)';
+    }
+
+    if (isMobile && hasSheet) {
+      return `calc(${this.stops[0]} + 1.5rem)`;
+    }
+
+    return '1rem';
   });
 
   protected unifyVisibleAreas(): void {

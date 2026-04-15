@@ -18,17 +18,12 @@ import { AppCardComponent } from '../ui/card';
     ChartRoutesByGradeComponent,
   ],
   template: `
-    <app-card
-      [appearance]="appearance()"
-      [titleSize]="titleSize()"
-      [liked]="area().liked"
-    >
+    <app-card [appearance]="appearance()" [liked]="area().liked">
       <ng-container title>
         <a
           tuiLink
           [routerLink]="['/area', area().slug]"
-          class="no-underline! truncate block"
-          (click)="$event.stopPropagation()"
+          class="font-bold! no-underline! truncate block text-2xl! text-(--tui-text-primary)!"
         >
           {{ area().name }}
         </a>
@@ -43,11 +38,7 @@ import { AppCardComponent } from '../ui/card';
         }
       </div>
 
-      <app-chart-routes-by-grade
-        extra
-        (click.zoneless)="$event.stopPropagation()"
-        [grades]="area().grades"
-      />
+      <app-chart-routes-by-grade extra [grades]="area().grades" />
     </app-card>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -55,5 +46,4 @@ import { AppCardComponent } from '../ui/card';
 export class AreaCardComponent {
   area = input.required<any>();
   appearance = input<string>('outline');
-  titleSize = input<'m' | 'l'>('m');
 }

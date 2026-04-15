@@ -10,12 +10,7 @@ import {
 } from '@angular/core';
 
 import { TuiAvatar, TUI_CONFIRM, type TuiConfirmData } from '@taiga-ui/kit';
-import {
-  TuiAppearance,
-  TuiDialogService,
-  TuiIcon,
-  TuiButton,
-} from '@taiga-ui/core';
+import { TuiAppearance, TuiDialogService, TuiButton } from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -27,6 +22,7 @@ import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 
 import { EmptyStateComponent } from '../ui/empty-state';
+import { ParkingCardComponent } from '../location/parking-card';
 
 import { CragDetail, ParkingDto } from '../../models';
 
@@ -35,12 +31,12 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
 @Component({
   selector: 'app-crag-parkings',
   imports: [
+    ParkingCardComponent,
+    EmptyStateComponent,
     TranslatePipe,
     TuiAvatar,
     TuiAppearance,
     TuiButton,
-    TuiIcon,
-    EmptyStateComponent,
   ],
   template: `
     <div class="flex items-center justify-between gap-2 mb-4">
@@ -83,89 +79,69 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       @for (p of crag()?.parkings; track p.id) {
-        <div
-          tuiAppearance="flat"
-          class="p-4 rounded-3xl flex flex-col justify-between"
-        >
-          <div class="flex flex-col gap-3">
-            <div class="flex items-start justify-between gap-2 ">
-              <div class="flex flex-wrap gap-2">
-                <span tuiTitle class="text-lg!">{{ p.name }}</span>
-              </div>
-
-              @if (p.size) {
-                <div
-                  class="flex flex-nowrap items-center gap-1 opacity-80 whitespace-nowrap"
-                >
-                  <tui-icon icon="@tui.car" />
-                  <span class="text-lg"> x {{ p.size }} </span>
-                </div>
-              }
-
-              @if (canEditAsAdmin() || canAreaAdmin()) {
-                <div class="flex gap-1">
-                  <button
-                    size="s"
-                    appearance="neutral"
-                    iconStart="@tui.square-pen"
-                    tuiIconButton
-                    type="button"
-                    class="rounded-full!"
-                    (click.zoneless)="openEditParking(p)"
-                  >
-                    {{ 'edit' | translate }}
-                  </button>
-                  <button
-                    size="s"
-                    appearance="negative"
-                    iconStart="@tui.unlink"
-                    tuiIconButton
-                    type="button"
-                    class="rounded-full!"
-                    (click.zoneless)="removeParking(p)"
-                  >
-                    {{ 'unlink' | translate }}
-                  </button>
-                </div>
-              }
-            </div>
-
-            @if (p.latitude && p.longitude) {
-              <div class="flex flex-wrap gap-2 mt-2">
-                <button
-                  tuiButton
-                  appearance="secondary"
-                  size="s"
-                  type="button"
-                  class="rounded-full!"
-                  (click.zoneless)="viewOnMap(p.latitude, p.longitude)"
-                  [iconStart]="'@tui.map-pin'"
-                >
-                  {{ 'viewOnMap' | translate }}
-                </button>
-                <button
-                  appearance="secondary"
-                  size="s"
-                  tuiButton
-                  type="button"
-                  class="rounded-full!"
-                  [iconStart]="'/image/google-maps.svg'"
-                  (click.zoneless)="
-                    openExternal(
-                      mapLocationUrl({
-                        latitude: p.latitude,
-                        longitude: p.longitude,
-                      })
-                    )
-                  "
-                  [attr.aria-label]="'openGoogleMaps' | translate"
-                >
-                  {{ 'openGoogleMaps' | translate }}
-                </button>
-              </div>
+        <app-parking-card [parking]="p">
+          <ng-container titleActions>
+            @if (canEditAsAdmin() || canAreaAdmin()) {
+              <button
+                size="s"
+                appearance="neutral"
+                iconStart="@tui.square-pen"
+                tuiIconButton
+                type="button"
+                class="rounded-full!"
+                (click.zoneless)="openEditParking(p)"
+              >
+                {{ 'edit' | translate }}
+              </button>
+              <button
+                size="s"
+                appearance="negative"
+                iconStart="@tui.unlink"
+                tuiIconButton
+                type="button"
+                class="rounded-full!"
+                (click.zoneless)="removeParking(p)"
+              >
+                {{ 'remove' | translate }}
+              </button>
             }
-          </div>
-        </div>
+          </ng-container>
+
+          <ng-container actions>
+            @if (p.latitude && p.longitude) {
+              <button
+                tuiButton
+                appearance="secondary"
+                size="s"
+                type="button"
+                class="rounded-full!"
+                (click.zoneless)="viewOnMap(p.latitude, p.longitude)"
+                [iconStart]="'@tui.map-pin'"
+              >
+                {{ 'viewOnMap' | translate }}
+              </button>
+              <button
+                appearance="secondary"
+                size="s"
+                tuiButton
+                type="button"
+                class="rounded-full!"
+                [iconStart]="'/image/google-maps.svg'"
+                class="[--tui-icon-size:1.25rem] rounded-full!"
+                (click.zoneless)="
+                  openExternal(
+                    mapLocationUrl({
+                      latitude: p.latitude,
+                      longitude: p.longitude,
+                    })
+                  )
+                "
+              >
+                Google Maps
+              </button>
+            }
+          </ng-container>
+        </app-parking-card>
       } @empty {
         <div class="col-span-full">
           <app-empty-state icon="@tui.car" />

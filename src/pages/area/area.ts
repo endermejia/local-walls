@@ -365,10 +365,6 @@ import { handleErrorToast, normalizeName } from '../../utils';
               <app-crag-card
                 [crag]="{ ...crag, area_slug: areaSlug() }"
                 [showAreaName]="false"
-                class="cursor-pointer"
-                (click.zoneless)="
-                  router.navigate(['/area', areaSlug(), crag.slug])
-                "
               />
             } @empty {
               @if (routesList.length === 0) {

@@ -158,11 +158,7 @@ import { normalizeName } from '../../utils';
           @if (!loading()) {
             <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
               @for (a of filtered(); track a.id) {
-                <app-area-card
-                  [area]="a"
-                  class="cursor-pointer"
-                  (click.zoneless)="router.navigate(['/area', a.slug])"
-                />
+                <app-area-card [area]="a" />
               } @empty {
                 <div class="col-span-full">
                   <app-empty-state icon="@tui.map" />

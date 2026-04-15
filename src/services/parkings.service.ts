@@ -17,6 +17,7 @@ import ParkingFormComponent from '../components/forms/parking-form';
 import type { ParkingDto, ParkingInsertDto, ParkingUpdateDto } from '../models';
 
 import { GlobalData } from './global-data';
+import { mapLocationUrl } from '../utils';
 
 @Injectable({ providedIn: 'root' })
 export class ParkingsService {
@@ -176,5 +177,24 @@ export class ParkingsService {
     }
     this.global.cragDetailResource.reload();
     this.toast.success('messages.toasts.parkingUnlinked');
+  }
+
+  openMaps(parking: ParkingDto, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    const p = parking as any;
+    const url = mapLocationUrl({
+      latitude: p.latitude || p.lat,
+      longitude: p.longitude || p.lng,
+    });
+    this.openExternal(url);
+  }
+
+  openExternal(url: string): void {
+    if (isPlatformBrowser(this.platformId)) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
   }
 }
