@@ -46,7 +46,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { AreasService } from '../../services/areas.service';
 import { MerchandiseService } from '../../services/merchandise.service';
-import { SupabaseService } from '../../services/supabase.service';
+
 import { ToastService } from '../../services/toast.service';
 
 import { ImageEditorDialogComponent } from './image-editor-dialog';
@@ -327,7 +327,6 @@ export class AdminPackDialogComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
-  private readonly supabase = inject(SupabaseService);
 
   readonly isSaving = signal(false);
   readonly isUploading = signal(false);

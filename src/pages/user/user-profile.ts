@@ -54,7 +54,6 @@ import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 import { TourService } from '../../services/tour.service';
 import { TourStep } from '../../services/tour.service';
-import { UserProfilesService } from '../../services/user-profiles.service';
 
 import { ChatDialogComponent } from '../../components/dialogs/chat-dialog';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
@@ -452,7 +451,7 @@ export class UserProfileComponent {
   protected readonly followsService = inject(FollowsService);
   private readonly blockingService = inject(BlockingService);
   private readonly toast = inject(ToastService);
-  private readonly userProfilesService = inject(UserProfilesService);
+
   private readonly dialogs = inject(TuiDialogService);
 
   // Route param (optional)

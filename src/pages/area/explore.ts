@@ -12,9 +12,9 @@ import {
   WritableSignal,
 } from '@angular/core';
 import {
-  CommonModule,
   isPlatformBrowser,
   LowerCasePipe,
+  NgTemplateOutlet,
 } from '@angular/common';
 
 import { TuiBottomSheet } from '@taiga-ui/addon-mobile';
@@ -68,8 +68,8 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
   imports: [
     ChartRoutesByGradeComponent,
     EmptyStateComponent,
-    CommonModule,
     LowerCasePipe,
+    NgTemplateOutlet,
     MapComponent,
     RouterLink,
     TourHintComponent,
@@ -375,7 +375,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           <h3 tuiHeader id="areas-title" class="justify-center sm:pt-4">
             <div class="flex flex-row align-items-center justify-center gap-2">
               <span
-                [tuiAvatar]="'zone' | iconSrc: global.theme()"
+                [tuiAvatar]="'zone' | iconSrc"
                 tuiThumbnail
                 size="l"
                 [attr.aria-label]="'area' | translate"
@@ -430,7 +430,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           <h3 tuiHeader id="crags-title" class="justify-center">
             <div class="flex flex-row align-items-center justify-center gap-2">
               <span
-                [tuiAvatar]="'crag' | iconSrc: global.theme()"
+                [tuiAvatar]="'crag' | iconSrc"
                 tuiThumbnail
                 size="l"
                 class="self-center"

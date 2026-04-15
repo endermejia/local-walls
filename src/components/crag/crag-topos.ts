@@ -20,6 +20,7 @@ import { EmptyStateComponent } from '../ui/empty-state';
 import { PaywallComponent } from '../paywall/paywall';
 import { TopoCardComponent } from '../topo/topo-card';
 
+import { IconSrcPipe } from '../../pipes/icon-src.pipe';
 import { CragDetail } from '../../models';
 
 @Component({
@@ -32,13 +33,14 @@ import { CragDetail } from '../../models';
     TopoCardComponent,
     PaywallComponent,
     EmptyStateComponent,
+    IconSrcPipe,
   ],
   template: `
     @let toposCount = topos().length;
     <div class="flex items-center justify-between gap-2 mb-4">
       <div class="flex items-center gap-2">
         <span
-          [tuiAvatar]="global.iconSrc()('topo')"
+          [tuiAvatar]="'topo' | iconSrc"
           tuiThumbnail
           size="l"
           class="self-center"

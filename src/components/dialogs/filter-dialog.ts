@@ -3,7 +3,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  DestroyRef,
   effect,
   inject,
   signal,
@@ -198,8 +197,6 @@ export class FilterDialogComponent {
     ([, idx]) => ORDERED_GRADE_VALUES[idx] ?? '',
   );
 
-  private readonly destroyRef = inject(DestroyRef);
-
   // React to i18n changes
   private readonly langUpdateTrigger = toSignal(
     merge(
@@ -263,7 +260,7 @@ export class FilterDialogComponent {
         map((v) => this.sanitizeRange(v ?? [this.minIndex, this.maxIndex])),
       ),
       { initialValue: sanitizedInitial },
-    );
+    ) as Signal<[number, number]>;
   }
 
   private clamp(v: number): number {

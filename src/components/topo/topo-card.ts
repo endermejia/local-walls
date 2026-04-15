@@ -16,9 +16,9 @@ import { GlobalData } from '../../services/global-data';
 
 import { ChartRoutesByGradeComponent } from '../charts/chart-routes-by-grade';
 
-import { TopoListItem } from '../../models';
-
+import { IconSrcPipe } from '../../pipes/icon-src.pipe';
 import { TopoImagePipe } from '../../pipes/topo-image.pipe';
+import { TopoListItem } from '../../models';
 
 @Component({
   selector: 'app-topo-card',
@@ -31,6 +31,7 @@ import { TopoImagePipe } from '../../pipes/topo-image.pipe';
     TranslatePipe,
     ChartRoutesByGradeComponent,
     TopoImagePipe,
+    IconSrcPipe,
   ],
   template: `
     <button
@@ -52,7 +53,7 @@ import { TopoImagePipe } from '../../pipes/topo-image.pipe';
                   version: global.topoPhotoVersion(),
                 }
                   | topoImage
-                  | async) || global.iconSrc()('topo')
+                  | async) || ('topo' | iconSrc)
               "
               alt="topo"
               class="w-full h-40 object-cover rounded shadow-sm"

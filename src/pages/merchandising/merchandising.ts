@@ -1,6 +1,6 @@
 import { CommonModule, DecimalPipe, isPlatformBrowser } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
@@ -517,7 +517,6 @@ export class MerchandisingComponent {
   });
 
   private readonly cartService = inject(CartService);
-  private readonly router = inject(Router);
 
   protected readonly cartItems = this.cartService.totalItems;
   protected readonly cartTotal = this.cartService.totalPrice;

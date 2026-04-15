@@ -173,7 +173,6 @@ export interface TopoPathEditorConfig {
                 @let isSelected = selectedRoute()?.route_id === +entry.key;
                 @let style =
                   getRouteStyle(
-                    entry.value.color,
                     entry.value._ref.route.grade.toString(),
                     +entry.key
                   );
@@ -912,13 +911,9 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     return getPointsStringUtil(pathData.points, this.width(), this.height());
   }
 
-  getRouteStyle(
-    color: string | undefined,
-    grade: string | number,
-    routeId: number,
-  ) {
+  getRouteStyle(grade: string | number, routeId: number) {
     const isSelected = this.selectedRoute()?.route_id === routeId;
-    return getRouteStyleProperties(isSelected, false, color, grade);
+    return getRouteStyleProperties(isSelected, false, grade);
   }
 
   onImageClick(event: Event): void {
@@ -944,9 +939,6 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
       event,
       route.route_id,
       this.containerElement().nativeElement,
-      this.scale(),
-      this.width(),
-      this.height(),
       this.pathsMap,
       { _ref: route },
     );
@@ -963,9 +955,6 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
       numericRouteId,
       index,
       this.containerElement().nativeElement,
-      this.scale(),
-      this.width(),
-      this.height(),
       this.pathsMap,
       {
         onUpdate: () => this.cdr.markForCheck(),
@@ -986,9 +975,6 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
       numericRouteId,
       index,
       this.containerElement().nativeElement,
-      this.scale(),
-      this.width(),
-      this.height(),
       this.pathsMap,
       {
         onLongPress: () => {

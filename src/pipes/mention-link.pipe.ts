@@ -20,7 +20,7 @@ export class MentionLinkPipe implements PipeTransform {
     // Reset lastIndex since MENTION_PATTERN is a global regex
     MENTION_PATTERN.lastIndex = 0;
 
-    const linked = escaped.replace(MENTION_PATTERN, (match, name, id) => {
+    const linked = escaped.replace(MENTION_PATTERN, (_match, name, id) => {
       // We use a specific class 'mention-link' to target click events if needed
       // and data-id attribute.
       // We also use href for standard behavior/SEO, but the app should intercept it.

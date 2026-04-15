@@ -37,7 +37,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 import { MerchandiseService } from '../../services/merchandise.service';
-import { SupabaseService } from '../../services/supabase.service';
+
 import { ToastService } from '../../services/toast.service';
 
 import { ImageEditorDialogComponent } from './image-editor-dialog';
@@ -344,7 +344,6 @@ export class AdminMerchandiseDialogComponent {
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
-  private readonly supabase = inject(SupabaseService);
 
   readonly isSaving = signal(false);
   readonly isUploading = signal(false);

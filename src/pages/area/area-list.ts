@@ -21,7 +21,7 @@ import {
 } from '@taiga-ui/core';
 import {
   TuiAvatar,
-  TuiBadgedContentComponent,
+  TuiBadgedContent,
   TuiBadgeNotification,
 } from '@taiga-ui/kit';
 
@@ -58,7 +58,7 @@ import { normalizeName } from '../../utils';
     TuiAppearance,
     TuiAvatar,
     TuiBadgeNotification,
-    TuiBadgedContentComponent,
+    TuiBadgedContent,
     TuiButton,
     TuiHeader,
     TuiLoader,
@@ -83,7 +83,7 @@ import { normalizeName } from '../../utils';
             @let areasCount = filtered().length;
             <h1 class="text-2xl font-bold w-full sm:w-auto">
               <span
-                [tuiAvatar]="'zone' | iconSrc: global.theme()"
+                [tuiAvatar]="'zone' | iconSrc"
                 tuiThumbnail
                 size="l"
                 class="self-center"

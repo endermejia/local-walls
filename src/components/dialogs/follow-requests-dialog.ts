@@ -16,11 +16,10 @@ import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiButton, TuiLoader, TuiScrollbar, TuiIcon } from '@taiga-ui/core';
 import { TuiDialogContext } from '@taiga-ui/core';
 
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { FollowRequestsService } from '../../services/follow-requests.service';
 import { SupabaseService } from '../../services/supabase.service';
-
 import { EmptyStateComponent } from '../ui/empty-state';
 
 import { PopulatedFollowRequestDto } from '../../models';
@@ -121,7 +120,6 @@ export class FollowRequestsDialogComponent {
   protected readonly supabase = inject(SupabaseService);
   private readonly followRequestsService = inject(FollowRequestsService);
   protected readonly context = injectContext<TuiDialogContext<boolean, void>>();
-  private readonly translate = inject(TranslateService);
 
   protected readonly page = signal(0);
   protected readonly pageSize = 20;

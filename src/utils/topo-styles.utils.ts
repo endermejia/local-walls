@@ -14,10 +14,7 @@ export interface RouteStyleConfig {
   baseStrokeWidth?: number;
 }
 
-export function getRouteColor(
-  color: string | undefined,
-  grade: string | number,
-): string {
+export function getRouteColor(grade: string | number): string {
   const label = GRADE_NUMBER_TO_LABEL[grade as VERTICAL_LIFE_GRADES];
 
   return colorForGrade(label as GradeLabel) || GRADE_COLORS[5];
@@ -26,10 +23,9 @@ export function getRouteColor(
 export function getRouteStyleProperties(
   isSelected: boolean,
   isHovered: boolean,
-  color: string | undefined,
   grade: string | number,
 ): { stroke: string; opacity: number; isDashed: boolean } {
-  const finalColor = getRouteColor(color, grade);
+  const finalColor = getRouteColor(grade);
 
   // Opacity: Selected/Hovered = 1, Default = 0.8
   const opacity = isSelected || isHovered ? 1 : 0.8;
@@ -86,7 +82,6 @@ export function hasPath(
  * Wraps `getRouteStyleProperties` with ID-based lookup.
  */
 export function getRouteStyleForId(
-  color: string | undefined,
   grade: string | number,
   routeId: number,
   selectedRouteId: number | null,
@@ -94,5 +89,5 @@ export function getRouteStyleForId(
 ): { stroke: string; opacity: number; isDashed: boolean } {
   const isSelected = selectedRouteId === routeId;
   const isHovered = hoveredRouteId === routeId;
-  return getRouteStyleProperties(isSelected, isHovered, color, grade);
+  return getRouteStyleProperties(isSelected, isHovered, grade);
 }

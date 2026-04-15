@@ -21,7 +21,7 @@ import {
 } from '@taiga-ui/core';
 import {
   TuiAvatar,
-  TuiBadgedContentComponent,
+  TuiBadgedContent,
   TuiBadgeNotification,
 } from '@taiga-ui/kit';
 
@@ -52,7 +52,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
     TuiAppearance,
     TuiAvatar,
     TuiBadgeNotification,
-    TuiBadgedContentComponent,
+    TuiBadgedContent,
     TuiButton,
     TuiHeader,
     TuiLoader,
@@ -81,7 +81,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
                 </tui-badge-notification>
               }
               <span
-                [tuiAvatar]="'zone' | iconSrc: global.theme()"
+                [tuiAvatar]="'zone' | iconSrc"
                 tuiThumbnail
                 size="l"
                 class="self-center"

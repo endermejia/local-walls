@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { TuiBlockStatus } from '@taiga-ui/layout';
@@ -6,17 +6,23 @@ import { TuiButton } from '@taiga-ui/core';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { GlobalData } from '../../services/global-data';
+import { IconSrcPipe } from '../../pipes/icon-src.pipe';
 
 @Component({
   selector: 'app-page-not-found',
-  imports: [TuiBlockStatus, TuiButton, RouterLink, TranslateModule],
+  imports: [
+    TuiBlockStatus,
+    TuiButton,
+    RouterLink,
+    TranslateModule,
+    IconSrcPipe,
+  ],
   template: `
     <div class="flex h-full items-center justify-center">
       <tui-block-status class="w-full max-w-5xl mx-auto p-4">
         <img
           alt="{{ 'notFound.imageAlt' | translate }}"
-          [src]="global.iconSrc()('404')"
+          [src]="'404' | iconSrc"
           tuiSlot="top"
         />
 
@@ -40,6 +46,4 @@ import { GlobalData } from '../../services/global-data';
     class: 'h-full',
   },
 })
-export class PageNotFoundComponent {
-  readonly global = inject(GlobalData);
-}
+export class PageNotFoundComponent {}

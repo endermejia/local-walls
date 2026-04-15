@@ -215,7 +215,7 @@ import { handleErrorToast, normalizeName } from '../../utils';
           <div class="flex items-center justify-between gap-2 mt-4">
             <div class="flex items-center w-full sm:w-auto gap-2">
               <span
-                [tuiAvatar]="'crag' | iconSrc: global.theme()"
+                [tuiAvatar]="'crag' | iconSrc"
                 tuiThumbnail
                 size="l"
                 class="self-center"

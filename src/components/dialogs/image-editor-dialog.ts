@@ -14,7 +14,7 @@ import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 import { TuiButton, TuiIcon, TuiLoader } from '@taiga-ui/core';
 import { type TuiDialogContext } from '@taiga-ui/core';
 
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { ToastService } from '../../services/toast.service';
 
@@ -292,7 +292,6 @@ export interface ImageEditorConfig {
 export class ImageEditorDialogComponent {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly toast = inject(ToastService);
-  private readonly translate = inject(TranslateService);
 
   imageChangedEvent: Event | null = null;
   imageFile: File | undefined;

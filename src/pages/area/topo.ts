@@ -68,7 +68,6 @@ import {
 
 import { GradeLabelPipe } from '../../pipes/grade-label.pipe';
 import { IconSrcPipe } from '../../pipes/icon-src.pipe';
-import { PointsToSvgPipe } from '../../pipes/points-to-svg.pipe';
 import { handleErrorToast } from '../../utils';
 import {
   getRouteStyleProperties,
@@ -123,7 +122,6 @@ export interface TopoRouteRow {
     TuiInput,
     PaywallComponent,
     IconSrcPipe,
-    PointsToSvgPipe,
   ],
   template: `
     <div class="h-full w-full">
@@ -237,7 +235,7 @@ export interface TopoRouteRow {
                   (click.zoneless)="onImageClick()"
                 >
                   <img
-                    [src]="topoImage || ('topo' | iconSrc: global.theme())"
+                    [src]="topoImage || ('topo' | iconSrc)"
                     [alt]="t.name"
                     class="w-auto h-full max-w-none block object-cover"
                     draggable="false"
@@ -335,12 +333,6 @@ export interface TopoRouteRow {
                       <!-- Layer 3: Indicators (Top) -->
                       @for (tr of renderedTopoRoutes(); track tr.route_id) {
                         @if (tr.path && tr.path.points.length > 0) {
-                          @let style =
-                            getRouteStyle(
-                              tr.path.color,
-                              $any(tr.route.grade),
-                              tr.route_id
-                            );
                           @if (tr.path.points[0]; as first) {
                             <circle
                               class="pointer-events-auto cursor-pointer"
@@ -430,7 +422,7 @@ export interface TopoRouteRow {
                 >
                   <img
                     #topoImgFullscreen
-                    [src]="topoImage || ('topo' | iconSrc: global.theme())"
+                    [src]="topoImage || ('topo' | iconSrc)"
                     [alt]="t.name"
                     class="max-w-dvw max-h-dvh object-contain block"
                     draggable="false"
@@ -1024,20 +1016,6 @@ export class TopoComponent {
     );
   }
 
-  protected getRouteStyle(
-    color: string | undefined,
-    grade: string | number,
-    routeId: number,
-  ) {
-    const isSelected = this.selectedRouteId() === routeId;
-    const isHovered = this.hoveredRouteId() === routeId;
-    return getRouteStyleProperties(isSelected, isHovered, color, grade);
-  }
-
-  protected getRouteWidth(isSelected: boolean, isHovered: boolean): number {
-    return getRouteStrokeWidth(isSelected, isHovered, 2, 'viewer');
-  }
-
   protected onImageClick(): void {
     if (this.dragState.hasMoved) return;
     if (this.selectedRouteId()) {
@@ -1125,7 +1103,6 @@ export class TopoComponent {
       const style = getRouteStyleProperties(
         isSelected,
         isHovered,
-        tr.path?.color,
         tr.route.grade,
       );
       const width = getRouteStrokeWidth(isSelected, isHovered, 2, 'viewer');

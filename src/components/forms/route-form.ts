@@ -39,7 +39,6 @@ import {
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-import { AreasService } from '../../services/areas.service';
 import { GlobalData } from '../../services/global-data';
 import { RoutesService } from '../../services/routes.service';
 import { SupabaseService } from '../../services/supabase.service';
@@ -427,9 +426,6 @@ export class RouteFormComponent {
     a,
     b,
   ) => a.id === b.id;
-
-  private readonly areas = inject(AreasService);
-  private readonly initialAreaId = signal<number | null>(null);
 
   protected readonly areaOptions = resource<AreaDto[], undefined>({
     loader: async () => {

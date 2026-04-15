@@ -46,9 +46,8 @@ import {
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { AreasService } from '../../services/areas.service';
 import { CragsService } from '../../services/crags.service';
-import { GlobalData } from '../../services/global-data';
+
 import { MapService } from '../../services/map.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
@@ -306,10 +305,10 @@ interface CragFormModel {
 export class CragFormComponent {
   protected readonly mapService = inject(MapService);
   private readonly crags = inject(CragsService);
-  private readonly areas = inject(AreasService);
+
   private readonly supabase = inject(SupabaseService);
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly global = inject(GlobalData);
+
   private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
   private readonly _dialogCtx: TuiDialogContext<
@@ -377,7 +376,7 @@ export class CragFormComponent {
   });
 
   private editingId: number | null = null;
-  private editingAreaId: number | null = null;
+
   private isInitialized = false;
 
   protected readonly areaOptions = resource<AreaDto[], undefined>({
@@ -432,7 +431,6 @@ export class CragFormComponent {
       }
 
       this.editingId = data.id || null;
-      this.editingAreaId = data.area_id || null;
 
       const currentSlugs = untracked(() => this.model().eight_anu_sector_slugs);
 

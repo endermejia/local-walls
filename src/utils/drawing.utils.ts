@@ -137,9 +137,6 @@ export function addPointToPath(
   event: MouseEvent,
   routeId: number,
   containerEl: HTMLElement,
-  scale: number,
-  contentWidth: number,
-  contentHeight: number,
   pathsMap: Map<
     number,
     { points: NormalizedPoint[]; color?: string; [key: string]: unknown }
@@ -171,9 +168,6 @@ export function startDragPointMouse(
   routeId: number,
   index: number,
   containerEl: HTMLElement,
-  scale: number,
-  contentWidth: number,
-  contentHeight: number,
   pathsMap: Map<number, { points: NormalizedPoint[]; [key: string]: unknown }>,
   callbacks?: {
     onUpdate?: () => void;
@@ -223,9 +217,6 @@ export function startDragPointTouch(
   routeId: number,
   index: number,
   containerEl: HTMLElement,
-  scale: number,
-  contentWidth: number,
-  contentHeight: number,
   pathsMap: Map<number, { points: NormalizedPoint[]; [key: string]: unknown }>,
   callbacks?: {
     onUpdate?: () => void;

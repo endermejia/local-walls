@@ -1,7 +1,7 @@
 import { inject, Pipe, PipeTransform } from '@angular/core';
 
 import { GlobalData } from '../services/global-data';
-import { Theme } from '../models';
+import { IconName } from '../models';
 
 @Pipe({
   name: 'iconSrc',
@@ -11,7 +11,8 @@ import { Theme } from '../models';
 export class IconSrcPipe implements PipeTransform {
   private readonly global = inject(GlobalData);
 
-  transform(name: string, _theme: Theme | string): string {
-    return this.global.iconSrc()(name as any);
+  transform(name: IconName | string): string {
+    const theme = this.global.theme();
+    return `/image/${name}-${theme}.svg`;
   }
 }

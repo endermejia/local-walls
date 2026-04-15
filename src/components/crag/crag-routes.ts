@@ -171,7 +171,7 @@ import { normalizeName, slugify } from '../../utils';
         @if (anuResults.length > 0) {
           <div class="flex flex-col gap-3 mt-4">
             <div class="flex items-center gap-2 opacity-70 mb-2">
-              <tui-icon [icon]="'8anu' | iconSrc: global.theme()" />
+              <tui-icon [icon]="'8anu' | iconSrc" />
               <span class="font-medium">
                 {{ 'eightAnuResults' | translate }}
               </span>

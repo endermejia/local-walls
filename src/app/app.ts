@@ -1,5 +1,5 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { Meta, Title } from '@angular/platform-browser';
+import { Meta } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 
 import { TuiBadgedContent } from '@taiga-ui/kit';
-import { TuiDialogService } from '@taiga-ui/core';
+
 import { TuiRoot } from '@taiga-ui/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -75,11 +75,9 @@ export class AppComponent {
     this.global.showCart.set(false);
     void this.router.navigate(['/merchandising/checkout']);
   }
-  private title = inject(Title);
   private meta = inject(Meta);
   private translate = inject(TranslateService);
   private storage = inject(LocalStorage);
-  private readonly dialogs = inject(TuiDialogService);
   private readonly notifications = inject(NotificationService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly doc = inject(DOCUMENT);

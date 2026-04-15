@@ -17,10 +17,7 @@ import {
 
 import { TuiAutoFocus } from '@taiga-ui/cdk';
 import { TuiInputSearch, TUI_INPUT_SEARCH } from '@taiga-ui/layout';
-import {
-  PolymorpheusComponent,
-  PolymorpheusContent,
-} from '@taiga-ui/polymorpheus';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import {
   TuiAvatar,
   TuiSkeleton,
@@ -59,11 +56,8 @@ import { GlobalData } from '../../services/global-data';
 import { RoutesService } from '../../services/routes.service';
 import { ScrollService } from '../../services/scroll.service';
 import { SearchService } from '../../services/search.service';
-import { SupabaseService } from '../../services/supabase.service';
-import { ToastService } from '../../services/toast.service';
 import { TourService } from '../../services/tour.service';
 import { TourStep } from '../../services/tour.service';
-import { UserProfilesService } from '../../services/user-profiles.service';
 
 import { ChatDialogComponent } from '../dialogs/chat-dialog';
 import { MenuOptionsButtonComponent } from './menu-options-button';
@@ -567,12 +561,9 @@ export class NavbarComponent {
         return 'tour.home.description';
     }
   });
-  private readonly toast = inject(ToastService);
   private readonly searchService = inject(SearchService);
   private readonly router = inject(Router);
   private readonly scrollService = inject(ScrollService);
-  private readonly supabase = inject(SupabaseService);
-  private readonly userProfilesService = inject(UserProfilesService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   private readonly areasService = inject(AreasService);

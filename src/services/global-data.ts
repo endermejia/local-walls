@@ -42,7 +42,6 @@ import {
   CragDetail,
   CragListItem,
   CragWithJoins,
-  IconName,
   Language,
   Languages,
   MapAreaItem,
@@ -130,12 +129,6 @@ export class GlobalData {
   readonly theme = signal<Theme>(Themes.LIGHT);
 
   readonly selectedTheme = this.theme.asReadonly();
-
-  iconSrc: Signal<(name: IconName) => string> = computed(() => {
-    const theme = this.theme();
-    // Return the icon URL based on the theme
-    return (name: IconName) => `/image/${name}-${theme}.svg`;
-  });
 
   // ---- Breadcrumbs ----
   breadcrumbs: Signal<BreadcrumbItem[]> = computed<BreadcrumbItem[]>(() => {
