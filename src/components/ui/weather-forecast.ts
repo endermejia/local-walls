@@ -54,7 +54,7 @@ import { WeatherService } from '../../services/weather.service';
           (touchmove)="$event.stopPropagation()"
           (touchend)="$event.stopPropagation()"
         >
-          <div class="flex gap-2">
+          <div class="flex gap-2 px-2 pb-4">
             @for (day of days; track day.date; let idx = $index) {
               <button
                 type="button"
@@ -91,12 +91,12 @@ import { WeatherService } from '../../services/weather.service';
         @if (days[selectedDayIdx()]; as selectedDay) {
           <tui-scrollbar
             #hourlyScroll
-            class="pb-4"
+            class="pb-2"
             (touchstart)="$event.stopPropagation()"
             (touchmove)="$event.stopPropagation()"
             (touchend)="$event.stopPropagation()"
           >
-            <div class="flex gap-4 px-2 pb-6">
+            <div class="flex gap-3 px-2 pb-4">
               @for (hour of selectedDay.hourly; track hour.time) {
                 <div
                   #hourItem
@@ -156,7 +156,7 @@ import { WeatherService } from '../../services/weather.service';
           </div>
 
           <!-- Days Skeleton -->
-          <div class="flex gap-2 overflow-hidden">
+          <div class="flex gap-2 px-2 pb-4 overflow-hidden">
             @for (i of [1, 2, 3, 4, 5, 6, 7]; track i) {
               <div
                 class="flex flex-col items-center p-3 rounded-2xl border border-(--tui-border-normal) min-w-[70px] bg-(--tui-background-base)"
@@ -181,7 +181,7 @@ import { WeatherService } from '../../services/weather.service';
           </div>
 
           <!-- Hourly Skeleton -->
-          <div class="flex gap-4 overflow-hidden mt-2">
+          <div class="flex gap-3 px-2 pb-4 overflow-hidden mt-2">
             @for (i of hoursSkeleton; track i) {
               <div class="flex flex-col items-center min-w-[45px] py-1 gap-1">
                 <div
