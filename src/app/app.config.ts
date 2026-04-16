@@ -26,6 +26,7 @@ import {
 } from '@angular/platform-browser';
 
 import { provideTaiga } from '@taiga-ui/core';
+import { NG_EVENT_PLUGINS } from '@taiga-ui/event-plugins';
 import { TUI_LANGUAGE } from '@taiga-ui/i18n';
 
 import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
@@ -72,6 +73,7 @@ export const appConfig: ApplicationConfig = {
       defaultLanguage: 'es',
     }),
     provideTaiga(),
+    NG_EVENT_PLUGINS,
     {
       provide: TUI_LANGUAGE,
       useFactory: (global: GlobalData) => global.tuiLanguage,
