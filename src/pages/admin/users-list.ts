@@ -157,172 +157,170 @@ interface UserWithRole {
       </div>
 
       <tui-scrollbar waIntersectionRoot class="flex grow">
-        <table
-          [size]="global.isMobile() ? 's' : 'l'"
-          tuiTable
-          class="w-full"
-          [columns]="columns()"
-          [direction]="direction()"
-          [sorter]="sorter()"
-          (sortChange)="onSortChange($event)"
-        >
-          <thead tuiThead>
-            <tr tuiThGroup>
-              <th
-                *tuiHead="'user'"
-                tuiTh
-                class="user-column"
-                [sorter]="userSorter"
-                [sticky]="true"
-              >
-                {{ 'user' | translate }}
-              </th>
-              <th
-                *tuiHead="'role'"
-                tuiTh
-                class="role-column w-48!"
-                [sorter]="roleSorter"
-                [sticky]="true"
-              >
-                {{ 'role' | translate }}
-              </th>
-              <th
-                *tuiHead="'areas'"
-                tuiTh
-                class="areas-column w-80!"
-                [sorter]="null"
-              >
-                {{ 'areas' | translate }}
-              </th>
-            </tr>
-          </thead>
+        @let sortedUsersList = filteredUsers() | tuiTableSort;
+        @if (sortedUsersList.length > 0) {
+          <table
+            [size]="global.isMobile() ? 's' : 'l'"
+            tuiTable
+            class="w-full"
+            [columns]="columns()"
+            [direction]="direction()"
+            [sorter]="sorter()"
+            (sortChange)="onSortChange($event)"
+          >
+            <thead tuiThead>
+              <tr tuiThGroup>
+                <th
+                  *tuiHead="'user'"
+                  tuiTh
+                  class="user-column"
+                  [sorter]="userSorter"
+                  [sticky]="true"
+                >
+                  {{ 'user' | translate }}
+                </th>
+                <th
+                  *tuiHead="'role'"
+                  tuiTh
+                  class="role-column w-48!"
+                  [sorter]="roleSorter"
+                  [sticky]="true"
+                >
+                  {{ 'role' | translate }}
+                </th>
+                <th
+                  *tuiHead="'areas'"
+                  tuiTh
+                  class="areas-column w-80!"
+                  [sorter]="null"
+                >
+                  {{ 'areas' | translate }}
+                </th>
+              </tr>
+            </thead>
 
-          @let sortedUsersList = filteredUsers() | tuiTableSort;
-          <tbody tuiTbody [data]="sortedUsersList">
-            @if (loading()) {
-              @for (_item of skeletons; track $index) {
-                <tr tuiTr>
-                  <td *tuiCell="'user'" tuiTd class="user-cell">
-                    <div class="flex items-center gap-3">
-                      <div
-                        [tuiSkeleton]="true"
-                        class="w-10 h-10 rounded-full"
-                      ></div>
-                      <div [tuiSkeleton]="true" class="w-32 h-4"></div>
-                    </div>
-                  </td>
-                  <td *tuiCell="'role'" tuiTd class="role-cell">
-                    <div [tuiSkeleton]="true" class="w-full h-10"></div>
-                  </td>
-                </tr>
-              }
-            } @else {
-              @for (user of sortedUsersList; track user.id) {
-                <tr tuiTr [class.is-current]="user.id === currentUserId()">
-                  <td *tuiCell="'user'" tuiTd class="user-cell">
-                    <div class="flex items-center gap-3">
-                      <a [routerLink]="['/profile', user.id]">
-                        <span tuiAvatar size="m">
-                          @if (user.avatar; as avatar) {
-                            <img [src]="avatar | avatarUrl" alt="avatar" />
-                          } @else {
-                            <tui-icon icon="@tui.user" />
-                          }
-                        </span>
-                      </a>
-                      <div class="flex flex-col">
-                        <a
-                          tuiLink
-                          [routerLink]="['/profile', user.id]"
-                          class="font-medium"
-                        >
-                          {{ user.name || ('anonymous' | translate) }}
-                        </a>
-                        @if (user.id === currentUserId()) {
-                          <span class="text-xs opacity-60">
-                            ({{ 'you' | translate }})
-                          </span>
-                        }
+            <tbody tuiTbody [data]="sortedUsersList">
+              @if (loading()) {
+                @for (_item of skeletons; track $index) {
+                  <tr tuiTr>
+                    <td *tuiCell="'user'" tuiTd class="user-cell">
+                      <div class="flex items-center gap-3">
+                        <div
+                          [tuiSkeleton]="true"
+                          class="w-10 h-10 rounded-full"
+                        ></div>
+                        <div [tuiSkeleton]="true" class="w-32 h-4"></div>
                       </div>
-                    </div>
-                  </td>
-                  <td *tuiCell="'role'" tuiTd class="role-cell">
-                    <tui-textfield
-                      tuiChevron
-                      class="role-select"
-                      [tuiTextfieldCleaner]="false"
-                      [stringify]="stringifyRole()"
-                    >
-                      <input
-                        tuiSelect
-                        [disabled]="user.id === currentUserId()"
-                        [ngModel]="user.is_admin"
-                        (ngModelChange)="onRoleChange($event, user)"
-                        autocomplete="off"
-                      />
-                      <tui-data-list-wrapper
-                        *tuiDropdown
-                        new
-                        [items]="roleOptions"
-                      />
-                    </tui-textfield>
-                  </td>
-                  <td *tuiCell="'areas'" tuiTd class="areas-column">
-                    @if (!user.is_admin) {
+                    </td>
+                    <td *tuiCell="'role'" tuiTd class="role-cell">
+                      <div [tuiSkeleton]="true" class="w-full h-10"></div>
+                    </td>
+                  </tr>
+                }
+              } @else {
+                @for (user of sortedUsersList; track user.id) {
+                  <tr tuiTr [class.is-current]="user.id === currentUserId()">
+                    <td *tuiCell="'user'" tuiTd class="user-cell">
+                      <div class="flex items-center gap-3">
+                        <a [routerLink]="['/profile', user.id]">
+                          <span tuiAvatar size="m">
+                            @if (user.avatar; as avatar) {
+                              <img [src]="avatar | avatarUrl" alt="avatar" />
+                            } @else {
+                              <tui-icon icon="@tui.user" />
+                            }
+                          </span>
+                        </a>
+                        <div class="flex flex-col">
+                          <a
+                            tuiLink
+                            [routerLink]="['/profile', user.id]"
+                            class="font-medium"
+                          >
+                            {{ user.name || ('anonymous' | translate) }}
+                          </a>
+                          @if (user.id === currentUserId()) {
+                            <span class="text-xs opacity-60">
+                              ({{ 'you' | translate }})
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    </td>
+                    <td *tuiCell="'role'" tuiTd class="role-cell">
                       <tui-textfield
-                        multi
                         tuiChevron
-                        [stringify]="stringifyArea"
-                        [disabledItemHandler]="strings"
-                        [identityMatcher]="areaIdentityMatcher"
+                        class="role-select"
                         [tuiTextfieldCleaner]="false"
+                        [stringify]="stringifyRole()"
                       >
                         <input
-                          tuiInputChip
-                          id="areas-select-{{ user.id }}"
-                          [formControl]="user.areasControl"
-                          [placeholder]="'select' | translate"
+                          tuiSelect
+                          [disabled]="user.id === currentUserId()"
+                          [ngModel]="user.is_admin"
+                          (ngModelChange)="onRoleChange($event, user)"
                           autocomplete="off"
                         />
-                        <tui-input-chip *tuiItem />
-                        <tui-data-list *tuiDropdown>
-                          <tui-opt-group
-                            [label]="'areas' | translate"
-                            tuiMultiSelectGroup
-                          >
-                            @for (
-                              area of availableAreas() | tuiFilterByInput;
-                              track area.id
-                            ) {
-                              <button
-                                type="button"
-                                new
-                                tuiOption
-                                [value]="area"
-                              >
-                                <div tuiCell size="s">
-                                  <div tuiTitle>
-                                    {{ area.name }}
-                                  </div>
-                                </div>
-                              </button>
-                            }
-                          </tui-opt-group>
-                        </tui-data-list>
+                        <tui-data-list-wrapper
+                          *tuiDropdown
+                          new
+                          [items]="roleOptions"
+                        />
                       </tui-textfield>
-                    }
-                  </td>
-                </tr>
-              } @empty {
-                <tr tuiTr>
-                  <td [attr.colspan]="columns().length" tuiTd>
-                    <app-empty-state icon="@tui.users" />
-                  </td>
-                </tr>
+                    </td>
+                    <td *tuiCell="'areas'" tuiTd class="areas-column">
+                      @if (!user.is_admin) {
+                        <tui-textfield
+                          multi
+                          tuiChevron
+                          [stringify]="stringifyArea"
+                          [disabledItemHandler]="strings"
+                          [identityMatcher]="areaIdentityMatcher"
+                          [tuiTextfieldCleaner]="false"
+                        >
+                          <input
+                            tuiInputChip
+                            id="areas-select-{{ user.id }}"
+                            [formControl]="user.areasControl"
+                            [placeholder]="'select' | translate"
+                            autocomplete="off"
+                          />
+                          <tui-input-chip *tuiItem />
+                          <tui-data-list *tuiDropdown>
+                            <tui-opt-group
+                              [label]="'areas' | translate"
+                              tuiMultiSelectGroup
+                            >
+                              @for (
+                                area of availableAreas() | tuiFilterByInput;
+                                track area.id
+                              ) {
+                                <button
+                                  type="button"
+                                  new
+                                  tuiOption
+                                  [value]="area"
+                                >
+                                  <div tuiCell size="s">
+                                    <div tuiTitle>
+                                      {{ area.name }}
+                                    </div>
+                                  </div>
+                                </button>
+                              }
+                            </tui-opt-group>
+                          </tui-data-list>
+                        </tui-textfield>
+                      }
+                    </td>
+                  </tr>
+                }
               }
-            }
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        } @else {
+          <app-empty-state icon="@tui.users" />
+        }
       </tui-scrollbar>
     </section>
   `,

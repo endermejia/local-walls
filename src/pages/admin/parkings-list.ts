@@ -1,5 +1,5 @@
+import { DecimalPipe, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -51,6 +51,7 @@ import { handleErrorToast } from '../../utils';
 @Component({
   selector: 'app-admin-parkings-list',
   imports: [
+    DecimalPipe,
     EmptyStateComponent,
     FormsModule,
     TranslatePipe,
@@ -120,100 +121,103 @@ import { handleErrorToast } from '../../utils';
       </div>
 
       <tui-scrollbar class="flex grow">
-        <table
-          [size]="global.isMobile() ? 's' : 'l'"
-          tuiTable
-          class="w-full"
-          [columns]="columns()"
-          [direction]="direction()"
-          [sorter]="sorter()"
-          (sortChange)="onSortChange($event)"
-        >
-          <thead tuiThead>
-            <tr tuiThGroup>
-              <th *tuiHead="'name'" tuiTh [sorter]="nameSorter">
-                {{ 'name' | translate }}
-              </th>
-              <th *tuiHead="'lat'" tuiTh [sorter]="latSorter" class="!w-24">
-                {{ 'lat' | translate }}
-              </th>
-              <th *tuiHead="'lng'" tuiTh [sorter]="lngSorter" class="!w-24">
-                {{ 'lng' | translate }}
-              </th>
-              <th *tuiHead="'size'" tuiTh [sorter]="sizeSorter" class="!w-24">
-                {{ 'capacity' | translate }}
-              </th>
-              <th
-                *tuiHead="'actions'"
-                tuiTh
-                [sorter]="null"
-                class="!w-32 text-right"
-              ></th>
-            </tr>
-          </thead>
+        @let list = filteredParkings() | tuiTableSort;
+        @if (list.length > 0) {
+          <table
+            [size]="global.isMobile() ? 's' : 'l'"
+            tuiTable
+            class="w-full"
+            [columns]="columns()"
+            [direction]="direction()"
+            [sorter]="sorter()"
+            (sortChange)="onSortChange($event)"
+          >
+            <thead tuiThead>
+              <tr tuiThGroup>
+                <th *tuiHead="'name'" tuiTh [sorter]="nameSorter">
+                  {{ 'name' | translate }}
+                </th>
+                <th *tuiHead="'lat'" tuiTh [sorter]="latSorter" class="w-24!">
+                  {{ 'lat' | translate }}
+                </th>
+                <th *tuiHead="'lng'" tuiTh [sorter]="lngSorter" class="w-24!">
+                  {{ 'lng' | translate }}
+                </th>
+                <th *tuiHead="'size'" tuiTh [sorter]="sizeSorter" class="w-24!">
+                  {{ 'capacity' | translate }}
+                </th>
+                <th
+                  *tuiHead="'actions'"
+                  tuiTh
+                  [sorter]="null"
+                  class="w-32! text-right"
+                ></th>
+              </tr>
+            </thead>
 
-          @let list = filteredParkings() | tuiTableSort;
-          <tbody tuiTbody [data]="list">
-            @if (loading()) {
-              @for (_item of skeletons; track $index) {
-                <tr tuiTr>
-                  @for (col of columns(); track col) {
-                    <td *tuiCell="col" tuiTd>
-                      <div [tuiSkeleton]="true" class="w-full h-10"></div>
+            <tbody tuiTbody [data]="list">
+              @if (loading()) {
+                @for (_item of skeletons; track $index) {
+                  <tr tuiTr>
+                    @for (col of columns(); track col) {
+                      <td *tuiCell="col" tuiTd>
+                        <div
+                          [tuiSkeleton]="true"
+                          class="h-6 w-full rounded-2xl"
+                        ></div>
+                      </td>
+                    }
+                  </tr>
+                }
+              } @else {
+                @for (item of list; track item.id) {
+                  <tr tuiTr>
+                    <td *tuiCell="'name'" tuiTd>
+                      <span class="font-medium">{{ item.name }}</span>
                     </td>
-                  }
-                </tr>
+                    <td *tuiCell="'lat'" tuiTd>
+                      {{ item.latitude | number: '1.4-4' }}
+                    </td>
+                    <td *tuiCell="'lng'" tuiTd>
+                      {{ item.longitude | number: '1.4-4' }}
+                    </td>
+                    <td *tuiCell="'size'" tuiTd>
+                      {{ item.size }}
+                    </td>
+                    <td *tuiCell="'actions'" tuiTd class="text-right">
+                      <div class="flex justify-end gap-2">
+                        <button
+                          appearance="flat"
+                          size="s"
+                          tuiIconButton
+                          type="button"
+                          iconStart="@tui.square-pen"
+                          class="rounded-full!"
+                          (click.zoneless)="editParking(item)"
+                        >
+                          {{ 'edit' | translate }}
+                        </button>
+                        <button
+                          appearance="flat-destructive"
+                          size="s"
+                          tuiIconButton
+                          type="button"
+                          iconStart="@tui.trash"
+                          class="rounded-full!"
+                          (click.zoneless)="deleteParking(item)"
+                        >
+                          {{ 'delete' | translate }}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
               }
-            } @else {
-              @for (item of list; track item.id) {
-                <tr tuiTr>
-                  <td *tuiCell="'name'" tuiTd>
-                    {{ item.name }}
-                  </td>
-                  <td *tuiCell="'lat'" tuiTd>
-                    {{ item.latitude }}
-                  </td>
-                  <td *tuiCell="'lng'" tuiTd>
-                    {{ item.longitude }}
-                  </td>
-                  <td *tuiCell="'size'" tuiTd>
-                    {{ item.size }}
-                  </td>
-                  <td *tuiCell="'actions'" tuiTd>
-                    <div class="flex flex-wrap gap-1">
-                      <button
-                        tuiIconButton
-                        size="s"
-                        appearance="neutral"
-                        iconStart="@tui.square-pen"
-                        class="rounded-full!"
-                        (click.zoneless)="editParking(item)"
-                      >
-                        {{ 'edit' | translate }}
-                      </button>
-                      <button
-                        tuiIconButton
-                        size="s"
-                        appearance="negative"
-                        iconStart="@tui.trash"
-                        class="rounded-full!"
-                        (click.zoneless)="deleteParking(item)"
-                      >
-                        {{ 'delete' | translate }}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              } @empty {
-                <tr tuiTr>
-                  <td [attr.colspan]="columns().length" tuiTd>
-                    <app-empty-state icon="@tui.car" />
-                  </td>
-                </tr>
-              }
-            }
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        } @else {
+          <app-empty-state icon="@tui.car" />
+        }
       </tui-scrollbar>
     </section>
   `,

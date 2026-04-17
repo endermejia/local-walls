@@ -122,105 +122,103 @@ import { handleErrorToast } from '../../utils';
       </div>
 
       <tui-scrollbar class="flex grow">
-        <table
-          [size]="global.isMobile() ? 's' : 'l'"
-          tuiTable
-          class="w-full"
-          [columns]="columns()"
-          [direction]="direction()"
-          [sorter]="sorter()"
-          (sortChange)="onSortChange($event)"
-        >
-          <thead tuiThead>
-            <tr tuiThGroup>
-              <th *tuiHead="'name'" tuiTh [sorter]="nameSorter">
-                {{ 'name' | translate }}
-              </th>
-              <th
-                *tuiHead="'description'"
-                tuiTh
-                [sorter]="descriptionSorter"
-                class="w-96!"
-              >
-                {{ 'description' | translate }}
-              </th>
-              <th
-                *tuiHead="'actions'"
-                tuiTh
-                [sorter]="null"
-                class="w-24! text-right"
-              ></th>
-            </tr>
-          </thead>
+        @let list = filteredEquippers() | tuiTableSort;
+        @if (list.length > 0) {
+          <table
+            [size]="global.isMobile() ? 's' : 'l'"
+            tuiTable
+            class="w-full"
+            [columns]="columns()"
+            [direction]="direction()"
+            [sorter]="sorter()"
+            (sortChange)="onSortChange($event)"
+          >
+            <thead tuiThead>
+              <tr tuiThGroup>
+                <th *tuiHead="'name'" tuiTh [sorter]="nameSorter">
+                  {{ 'name' | translate }}
+                </th>
+                <th
+                  *tuiHead="'description'"
+                  tuiTh
+                  [sorter]="descriptionSorter"
+                  class="w-96!"
+                >
+                  {{ 'description' | translate }}
+                </th>
+                <th
+                  *tuiHead="'actions'"
+                  tuiTh
+                  [sorter]="null"
+                  class="w-24! text-right"
+                ></th>
+              </tr>
+            </thead>
 
-          @let list = filteredEquippers() | tuiTableSort;
-          <tbody tuiTbody [data]="list">
-            @if (loading()) {
-              @for (_item of skeletons; track $index) {
-                <tr tuiTr>
-                  <td *tuiCell="'name'" tuiTd>
-                    <div [tuiSkeleton]="true" class="w-full h-10"></div>
-                  </td>
-                  <td *tuiCell="'description'" tuiTd>
-                    <div [tuiSkeleton]="true" class="w-full h-10"></div>
-                  </td>
-                  <td *tuiCell="'actions'" tuiTd>
-                    <div [tuiSkeleton]="true" class="w-10 h-10"></div>
-                  </td>
-                </tr>
+            <tbody tuiTbody [data]="list">
+              @if (loading()) {
+                @for (_item of skeletons; track $index) {
+                  <tr tuiTr>
+                    <td *tuiCell="'name'" tuiTd>
+                      <div [tuiSkeleton]="true" class="w-full h-10"></div>
+                    </td>
+                    <td *tuiCell="'description'" tuiTd>
+                      <div [tuiSkeleton]="true" class="w-full h-10"></div>
+                    </td>
+                    <td *tuiCell="'actions'" tuiTd>
+                      <div [tuiSkeleton]="true" class="w-10 h-10"></div>
+                    </td>
+                  </tr>
+                }
+              } @else {
+                @for (item of list; track item.id) {
+                  <tr tuiTr>
+                    <td *tuiCell="'name'" tuiTd>
+                      <tui-textfield [tuiTextfieldCleaner]="false">
+                        <input
+                          tuiInput
+                          [ngModel]="item.name"
+                          [ngModelOptions]="options"
+                          (ngModelChange)="
+                            updateEquipper(item.id, { name: $event })
+                          "
+                          autocomplete="off"
+                        />
+                      </tui-textfield>
+                    </td>
+                    <td *tuiCell="'description'" tuiTd>
+                      <tui-textfield [tuiTextfieldCleaner]="false">
+                        <input
+                          tuiInput
+                          [ngModel]="item.description"
+                          [ngModelOptions]="options"
+                          (ngModelChange)="
+                            updateEquipper(item.id, { description: $event })
+                          "
+                          autocomplete="off"
+                        />
+                      </tui-textfield>
+                    </td>
+                    <td *tuiCell="'actions'" tuiTd>
+                      <button
+                        tuiIconButton
+                        size="s"
+                        appearance="negative"
+                        iconStart="@tui.trash"
+                        class="rounded-full!"
+                        (click.zoneless)="deleteEquipper(item)"
+                      >
+                        {{ 'delete' | translate }}
+                      </button>
+                    </td>
+                  </tr>
+                }
               }
-            } @else {
-              @for (item of list; track item.id) {
-                <tr tuiTr>
-                  <td *tuiCell="'name'" tuiTd>
-                    <tui-textfield [tuiTextfieldCleaner]="false">
-                      <input
-                        tuiInput
-                        [ngModel]="item.name"
-                        [ngModelOptions]="options"
-                        (ngModelChange)="
-                          updateEquipper(item.id, { name: $event })
-                        "
-                        autocomplete="off"
-                      />
-                    </tui-textfield>
-                  </td>
-                  <td *tuiCell="'description'" tuiTd>
-                    <tui-textfield [tuiTextfieldCleaner]="false">
-                      <input
-                        tuiInput
-                        [ngModel]="item.description"
-                        [ngModelOptions]="options"
-                        (ngModelChange)="
-                          updateEquipper(item.id, { description: $event })
-                        "
-                        autocomplete="off"
-                      />
-                    </tui-textfield>
-                  </td>
-                  <td *tuiCell="'actions'" tuiTd>
-                    <button
-                      tuiIconButton
-                      size="s"
-                      appearance="negative"
-                      iconStart="@tui.trash"
-                      class="rounded-full!"
-                      (click.zoneless)="deleteEquipper(item)"
-                    >
-                      {{ 'delete' | translate }}
-                    </button>
-                  </td>
-                </tr>
-              } @empty {
-                <tr tuiTr>
-                  <td [attr.colspan]="columns().length" tuiTd>
-                    <app-empty-state icon="@tui.hammer" />
-                  </td>
-                </tr>
-              }
-            }
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        } @else {
+          <app-empty-state icon="@tui.hammer" />
+        }
       </tui-scrollbar>
     </section>
   `,

@@ -617,316 +617,321 @@ export interface TopoRouteRow {
             >
               <tui-scrollbar class="h-full">
                 @if (hasAccess) {
-                  <table
-                    tuiTable
-                    [size]="isMobile ? 's' : 'm'"
-                    class="w-full"
-                    [class.table-fixed]="isMobile"
-                    [columns]="columns()"
-                    [direction]="direction()"
-                    [sorter]="sorter()"
-                    (sortChange)="onSortChange($event)"
-                  >
-                    <thead tuiThead>
-                      <tr tuiThGroup>
-                        @for (col of columns(); track col) {
-                          <th
-                            *tuiHead="col"
-                            tuiTh
-                            [sorter]="getSorter(col)"
-                            [class.text-center]="col !== 'name'"
-                            [class.w-10!]="isMobile && col === 'index'"
-                            [class.w-12!]="
-                              (!isMobile && col === 'index') ||
-                              (isMobile && col === 'grade')
-                            "
-                            [class.w-20!]="!isMobile && col === 'grade'"
-                            [class.w-24!]="
-                              (isMobile &&
-                                (col === 'actions' ||
-                                  col === 'admin_actions')) ||
-                              (!isMobile &&
-                                (col === 'height' || col === 'admin_actions'))
-                            "
-                            [class.w-28!]="!isMobile && col === 'actions'"
-                          >
-                            <div class="items-center justify-center gap-1">
-                              @switch (col) {
-                                @case ('index') {
-                                  #
-                                }
-                                @case ('name') {
-                                  {{ 'routes.name' | translate }}
-                                }
-                                @case ('grade') {
-                                  {{ 'grade' | translate }}
-                                }
-                                @case ('height') {
-                                  {{ 'routes.height' | translate }}
-                                }
-                              }
-                            </div>
-                          </th>
-                        }
-                      </tr>
-                    </thead>
-                    @let sortedData = sortedTableData();
-                    @for (
-                      item of sortedData;
-                      track item._ref.topo_id + '-' + item._ref.route_id
-                    ) {
-                      <tbody tuiTbody>
-                        <tr
-                          #routeRow
-                          tuiTr
-                          [id]="
-                            'route-row-' +
-                            item._ref.topo_id +
-                            '-' +
-                            item._ref.route_id
-                          "
-                          [class.bg-(--tui-background-accent-1-hover)!]="
-                            item._ref.route_id === selectedRouteId()
-                          "
-                          [style.background]="
-                            item.climbed
-                              ? ascentsService.ascentInfo()[
-                                  item._ref.route.own_ascent?.type || 'default'
-                                ].backgroundSubtle
-                              : item.project
-                                ? 'var(--tui-status-info-pale)'
-                                : ''
-                          "
-                          class="group cursor-pointer"
-                          (mouseenter)="hoveredRouteId.set(item._ref.route_id)"
-                          (mouseleave)="hoveredRouteId.set(null)"
-                          (click)="
-                            selectedRouteId.set(
-                              selectedRouteId() === item._ref.route_id
-                                ? null
-                                : item._ref.route_id
-                            )
-                          "
-                        >
+                  @let sortedData = sortedTableData();
+                  @if (sortedData.length > 0) {
+                    <table
+                      tuiTable
+                      [size]="isMobile ? 's' : 'm'"
+                      class="w-full"
+                      [class.table-fixed]="isMobile"
+                      [columns]="columns()"
+                      [direction]="direction()"
+                      [sorter]="sorter()"
+                      (sortChange)="onSortChange($event)"
+                    >
+                      <thead tuiThead>
+                        <tr tuiThGroup>
                           @for (col of columns(); track col) {
-                            <td
-                              *tuiCell="col"
-                              tuiTd
+                            <th
+                              *tuiHead="col"
+                              tuiTh
+                              [sorter]="getSorter(col)"
                               [class.text-center]="col !== 'name'"
+                              [class.w-10!]="isMobile && col === 'index'"
+                              [class.w-12!]="
+                                (!isMobile && col === 'index') ||
+                                (isMobile && col === 'grade')
+                              "
+                              [class.w-20!]="!isMobile && col === 'grade'"
+                              [class.w-24!]="
+                                (isMobile &&
+                                  (col === 'actions' ||
+                                    col === 'admin_actions')) ||
+                                (!isMobile &&
+                                  (col === 'height' || col === 'admin_actions'))
+                              "
+                              [class.w-28!]="!isMobile && col === 'actions'"
                             >
-                              @switch (col) {
-                                @case ('index') {
-                                  <div
-                                    tuiCell
-                                    size="m"
-                                    class="justify-center h-full"
-                                  >
-                                    @if (global.canEditCrag()) {
-                                      <tui-textfield
-                                        tuiTextfieldSize="s"
-                                        [class.w-16!]="!isMobile"
-                                        [class.w-10!]="isMobile"
-                                        class="h-8!"
-                                      >
-                                        <input
-                                          tuiInputNumber
-                                          class="text-center h-full! border-none! p-0! route-index-input"
-                                          [ngModel]="item.index + 1"
-                                          (blur.zoneless)="
-                                            onUpdateRouteNumber(
-                                              item._ref,
-                                              $any($event.target).value
-                                            )
-                                          "
-                                          (keydown.enter)="
-                                            onUpdateRouteNumber(
-                                              item._ref,
-                                              $any($event.target).value
-                                            );
-                                            $event.stopPropagation()
-                                          "
-                                          autocomplete="off"
-                                        />
-                                      </tui-textfield>
-                                    } @else {
-                                      {{ item.index + 1 }}
-                                    }
-                                  </div>
+                              <div class="items-center justify-center gap-1">
+                                @switch (col) {
+                                  @case ('index') {
+                                    #
+                                  }
+                                  @case ('name') {
+                                    {{ 'routes.name' | translate }}
+                                  }
+                                  @case ('grade') {
+                                    {{ 'grade' | translate }}
+                                  }
+                                  @case ('height') {
+                                    {{ 'routes.height' | translate }}
+                                  }
                                 }
-                                @case ('name') {
-                                  <div tuiCell size="m" class="h-full">
-                                    <a
-                                      tuiLink
-                                      [routerLink]="item.link"
-                                      class="text-left"
-                                    >
-                                      {{ item.name }}
-                                    </a>
-                                  </div>
-                                }
-                                @case ('grade') {
-                                  <div
-                                    tuiCell
-                                    size="m"
-                                    class="justify-center h-full"
-                                  >
-                                    <app-grade
-                                      [grade]="item.grade"
-                                      [kind]="item._ref.route.climbing_kind"
-                                    />
-                                  </div>
-                                }
-                                @case ('height') {
-                                  <div
-                                    tuiCell
-                                    size="m"
-                                    class="justify-center h-full"
-                                  >
-                                    @if (global.canEditCrag()) {
-                                      <tui-textfield
-                                        tuiTextfieldSize="s"
-                                        [class.w-16!]="!isMobile"
-                                        [class.w-12!]="isMobile"
-                                        class="h-8!"
-                                      >
-                                        <input
-                                          tuiInputNumber
-                                          class="text-center h-full! border-none! p-0! route-height-input"
-                                          [ngModel]="item.height"
-                                          (blur.zoneless)="
-                                            onUpdateRouteHeight(
-                                              item._ref,
-                                              $any($event.target).value
-                                            )
-                                          "
-                                          (keydown.enter)="
-                                            onUpdateRouteHeight(
-                                              item._ref,
-                                              $any($event.target).value
-                                            );
-                                            $event.stopPropagation()
-                                          "
-                                          autocomplete="off"
-                                        />
-                                        <span class="tui-textfield__suffix"
-                                          >m</span
-                                        >
-                                      </tui-textfield>
-                                    } @else {
-                                      {{
-                                        item.height ? item.height + 'm' : '-'
-                                      }}
-                                    }
-                                  </div>
-                                }
-                                @case ('actions') {
-                                  <div
-                                    tuiCell
-                                    size="m"
-                                    class="justify-center h-full"
-                                  >
-                                    @if (!item.climbed) {
-                                      <button
-                                        tuiIconButton
-                                        size="m"
-                                        appearance="neutral"
-                                        iconStart="@tui.circle-plus"
-                                        class="rounded-full!"
-                                        (click.zoneless)="
-                                          onLogAscent(item._ref);
-                                          $event.stopPropagation()
-                                        "
-                                      >
-                                        {{ 'ascent.new' | translate }}
-                                      </button>
-                                    } @else if (
-                                      item._ref.route.own_ascent;
-                                      as ascentToEdit
-                                    ) {
-                                      <span
-                                        tuiAvatar
-                                        class="cursor-pointer text-(--tui-text-primary-on-accent-1)!"
-                                        [style.background]="
-                                          ascentsService.ascentInfo()[
-                                            ascentToEdit?.type || 'default'
-                                          ].background
-                                        "
-                                        tabindex="0"
-                                        (click.zoneless)="
-                                          onEditAscent(ascentToEdit, item.name);
-                                          $event.stopPropagation()
-                                        "
-                                        (keydown.enter)="
-                                          onEditAscent(ascentToEdit, item.name);
-                                          $event.stopPropagation()
-                                        "
-                                      >
-                                        <tui-icon
-                                          [icon]="
-                                            ascentsService.ascentInfo()[
-                                              ascentToEdit?.type || 'default'
-                                            ].icon
-                                          "
-                                        />
-                                      </span>
-                                    }
-                                    @if (!item.climbed) {
-                                      <button
-                                        tuiIconButton
-                                        size="m"
-                                        [appearance]="
-                                          item.project ? 'info' : 'neutral'
-                                        "
-                                        iconStart="@tui.bookmark"
-                                        class="rounded-full!"
-                                        (click.zoneless)="
-                                          onToggleProject(item);
-                                          $event.stopPropagation()
-                                        "
-                                      >
-                                        {{ 'project' | translate }}
-                                      </button>
-                                    }
-                                  </div>
-                                }
-                                @case ('admin_actions') {
-                                  <div
-                                    tuiCell
-                                    size="m"
-                                    class="justify-center h-full"
-                                  >
-                                    @if (global.canEditCrag()) {
-                                      <button
-                                        tuiIconButton
-                                        size="s"
-                                        appearance="negative"
-                                        iconStart="@tui.unlink"
-                                        class="rounded-full!"
-                                        (click.zoneless)="
-                                          deleteTopoRoute(item._ref);
-                                          $event.stopPropagation()
-                                        "
-                                      >
-                                        {{ 'unlink' | translate }}
-                                      </button>
-                                    }
-                                  </div>
-                                }
-                              }
-                            </td>
+                              </div>
+                            </th>
                           }
                         </tr>
-                      </tbody>
-                    } @empty {
-                      <tbody tuiTbody>
-                        <tr tuiTr>
-                          <td [attr.colspan]="columns().length" tuiTd>
-                            <app-empty-state icon="@tui.route" />
-                          </td>
-                        </tr>
-                      </tbody>
-                    }
-                  </table>
+                      </thead>
+                      @for (
+                        item of sortedData;
+                        track item._ref.topo_id + '-' + item._ref.route_id
+                      ) {
+                        <tbody tuiTbody>
+                          <tr
+                            #routeRow
+                            tuiTr
+                            [id]="
+                              'route-row-' +
+                              item._ref.topo_id +
+                              '-' +
+                              item._ref.route_id
+                            "
+                            [class.bg-(--tui-background-accent-1-hover)!]="
+                              item._ref.route_id === selectedRouteId()
+                            "
+                            [style.background]="
+                              item.climbed
+                                ? ascentsService.ascentInfo()[
+                                    item._ref.route.own_ascent?.type ||
+                                      'default'
+                                  ].backgroundSubtle
+                                : item.project
+                                  ? 'var(--tui-status-info-pale)'
+                                  : ''
+                            "
+                            class="group cursor-pointer"
+                            (mouseenter)="
+                              hoveredRouteId.set(item._ref.route_id)
+                            "
+                            (mouseleave)="hoveredRouteId.set(null)"
+                            (click)="
+                              selectedRouteId.set(
+                                selectedRouteId() === item._ref.route_id
+                                  ? null
+                                  : item._ref.route_id
+                              )
+                            "
+                          >
+                            @for (col of columns(); track col) {
+                              <td
+                                *tuiCell="col"
+                                tuiTd
+                                [class.text-center]="col !== 'name'"
+                              >
+                                @switch (col) {
+                                  @case ('index') {
+                                    <div
+                                      tuiCell
+                                      size="m"
+                                      class="justify-center h-full"
+                                    >
+                                      @if (global.canEditCrag()) {
+                                        <tui-textfield
+                                          tuiTextfieldSize="s"
+                                          [class.w-16!]="!isMobile"
+                                          [class.w-10!]="isMobile"
+                                          class="h-8!"
+                                        >
+                                          <input
+                                            tuiInputNumber
+                                            class="text-center h-full! border-none! p-0! route-index-input"
+                                            [ngModel]="item.index + 1"
+                                            (blur.zoneless)="
+                                              onUpdateRouteNumber(
+                                                item._ref,
+                                                $any($event.target).value
+                                              )
+                                            "
+                                            (keydown.enter)="
+                                              onUpdateRouteNumber(
+                                                item._ref,
+                                                $any($event.target).value
+                                              );
+                                              $event.stopPropagation()
+                                            "
+                                            autocomplete="off"
+                                          />
+                                        </tui-textfield>
+                                      } @else {
+                                        {{ item.index + 1 }}
+                                      }
+                                    </div>
+                                  }
+                                  @case ('name') {
+                                    <div tuiCell size="m" class="h-full">
+                                      <a
+                                        tuiLink
+                                        [routerLink]="item.link"
+                                        class="text-left"
+                                      >
+                                        {{ item.name }}
+                                      </a>
+                                    </div>
+                                  }
+                                  @case ('grade') {
+                                    <div
+                                      tuiCell
+                                      size="m"
+                                      class="justify-center h-full"
+                                    >
+                                      <app-grade
+                                        [grade]="item.grade"
+                                        [kind]="item._ref.route.climbing_kind"
+                                      />
+                                    </div>
+                                  }
+                                  @case ('height') {
+                                    <div
+                                      tuiCell
+                                      size="m"
+                                      class="justify-center h-full"
+                                    >
+                                      @if (global.canEditCrag()) {
+                                        <tui-textfield
+                                          tuiTextfieldSize="s"
+                                          [class.w-16!]="!isMobile"
+                                          [class.w-12!]="isMobile"
+                                          class="h-8!"
+                                        >
+                                          <input
+                                            tuiInputNumber
+                                            class="text-center h-full! border-none! p-0! route-height-input"
+                                            [ngModel]="item.height"
+                                            (blur.zoneless)="
+                                              onUpdateRouteHeight(
+                                                item._ref,
+                                                $any($event.target).value
+                                              )
+                                            "
+                                            (keydown.enter)="
+                                              onUpdateRouteHeight(
+                                                item._ref,
+                                                $any($event.target).value
+                                              );
+                                              $event.stopPropagation()
+                                            "
+                                            autocomplete="off"
+                                          />
+                                          <span class="tui-textfield__suffix"
+                                            >m</span
+                                          >
+                                        </tui-textfield>
+                                      } @else {
+                                        {{
+                                          item.height ? item.height + 'm' : '-'
+                                        }}
+                                      }
+                                    </div>
+                                  }
+                                  @case ('actions') {
+                                    <div
+                                      tuiCell
+                                      size="m"
+                                      class="justify-center h-full"
+                                    >
+                                      @if (!item.climbed) {
+                                        <button
+                                          tuiIconButton
+                                          size="m"
+                                          appearance="neutral"
+                                          iconStart="@tui.circle-plus"
+                                          class="rounded-full!"
+                                          (click.zoneless)="
+                                            onLogAscent(item._ref);
+                                            $event.stopPropagation()
+                                          "
+                                        >
+                                          {{ 'ascent.new' | translate }}
+                                        </button>
+                                      } @else if (
+                                        item._ref.route.own_ascent;
+                                        as ascentToEdit
+                                      ) {
+                                        <span
+                                          tuiAvatar
+                                          class="cursor-pointer text-(--tui-text-primary-on-accent-1)!"
+                                          [style.background]="
+                                            ascentsService.ascentInfo()[
+                                              ascentToEdit?.type || 'default'
+                                            ].background
+                                          "
+                                          tabindex="0"
+                                          (click.zoneless)="
+                                            onEditAscent(
+                                              ascentToEdit,
+                                              item.name
+                                            );
+                                            $event.stopPropagation()
+                                          "
+                                          (keydown.enter)="
+                                            onEditAscent(
+                                              ascentToEdit,
+                                              item.name
+                                            );
+                                            $event.stopPropagation()
+                                          "
+                                        >
+                                          <tui-icon
+                                            [icon]="
+                                              ascentsService.ascentInfo()[
+                                                ascentToEdit?.type || 'default'
+                                              ].icon
+                                            "
+                                          />
+                                        </span>
+                                      }
+                                      @if (!item.climbed) {
+                                        <button
+                                          tuiIconButton
+                                          size="m"
+                                          [appearance]="
+                                            item.project ? 'info' : 'neutral'
+                                          "
+                                          iconStart="@tui.bookmark"
+                                          class="rounded-full!"
+                                          (click.zoneless)="
+                                            onToggleProject(item);
+                                            $event.stopPropagation()
+                                          "
+                                        >
+                                          {{ 'project' | translate }}
+                                        </button>
+                                      }
+                                    </div>
+                                  }
+                                  @case ('admin_actions') {
+                                    <div
+                                      tuiCell
+                                      size="m"
+                                      class="justify-center h-full"
+                                    >
+                                      @if (global.canEditCrag()) {
+                                        <button
+                                          tuiIconButton
+                                          size="s"
+                                          appearance="negative"
+                                          iconStart="@tui.unlink"
+                                          class="rounded-full!"
+                                          (click.zoneless)="
+                                            deleteTopoRoute(item._ref);
+                                            $event.stopPropagation()
+                                          "
+                                        >
+                                          {{ 'unlink' | translate }}
+                                        </button>
+                                      }
+                                    </div>
+                                  }
+                                }
+                              </td>
+                            }
+                          </tr>
+                        </tbody>
+                      }
+                    </table>
+                  } @else {
+                    <app-empty-state icon="@tui.route" />
+                  }
                 } @else {
                   <div class="flex h-full items-center justify-center p-4">
                     <app-paywall

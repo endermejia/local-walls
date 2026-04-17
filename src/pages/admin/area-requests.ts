@@ -94,123 +94,121 @@ interface AreaAdminRequest {
       </p>
 
       <tui-scrollbar class="flex grow">
-        <table
-          [size]="global.isMobile() ? 's' : 'l'"
-          tuiTable
-          class="w-full"
-          [columns]="columns()"
-          [direction]="direction()"
-          [sorter]="sorter()"
-          (sortChange)="onSortChange($event)"
-        >
-          <thead tuiThead>
-            <tr tuiThGroup>
-              <th
-                *tuiHead="'user'"
-                tuiTh
-                class="user-column"
-                [sorter]="userSorter"
-                [sticky]="true"
-              >
-                {{ 'adminRequests.user' | translate }}
-              </th>
-              <th
-                *tuiHead="'area'"
-                tuiTh
-                class="area-column"
-                [sorter]="areaSorter"
-              >
-                {{ 'adminRequests.area' | translate }}
-              </th>
-              <th
-                *tuiHead="'actions'"
-                tuiTh
-                class="actions-column w-48!"
-                [sorter]="null"
-              >
-                {{ 'actions' | translate }}
-              </th>
-            </tr>
-          </thead>
+        @let sortedList = requests() | tuiTableSort;
+        @if (sortedList.length > 0) {
+          <table
+            [size]="global.isMobile() ? 's' : 'l'"
+            tuiTable
+            class="w-full"
+            [columns]="columns()"
+            [direction]="direction()"
+            [sorter]="sorter()"
+            (sortChange)="onSortChange($event)"
+          >
+            <thead tuiThead>
+              <tr tuiThGroup>
+                <th
+                  *tuiHead="'user'"
+                  tuiTh
+                  class="user-column"
+                  [sorter]="userSorter"
+                  [sticky]="true"
+                >
+                  {{ 'adminRequests.user' | translate }}
+                </th>
+                <th
+                  *tuiHead="'area'"
+                  tuiTh
+                  class="area-column"
+                  [sorter]="areaSorter"
+                >
+                  {{ 'adminRequests.area' | translate }}
+                </th>
+                <th
+                  *tuiHead="'actions'"
+                  tuiTh
+                  class="actions-column w-48!"
+                  [sorter]="null"
+                >
+                  {{ 'actions' | translate }}
+                </th>
+              </tr>
+            </thead>
 
-          @let sortedList = requests() | tuiTableSort;
-          <tbody tuiTbody [data]="sortedList">
-            @if (loading()) {
-              @for (_item of skeletons; track $index) {
-                <tr tuiTr>
-                  <td *tuiCell="'user'" tuiTd class="p-4">
-                    <div [tuiSkeleton]="true" class="w-32 h-4"></div>
-                  </td>
-                  <td *tuiCell="'area'" tuiTd class="p-4">
-                    <div [tuiSkeleton]="true" class="w-48 h-4"></div>
-                  </td>
-                  <td *tuiCell="'actions'" tuiTd class="p-4">
-                    <div
-                      [tuiSkeleton]="true"
-                      class="w-24 h-8 rounded-full"
-                    ></div>
-                  </td>
-                </tr>
+            <tbody tuiTbody [data]="sortedList">
+              @if (loading()) {
+                @for (_item of skeletons; track $index) {
+                  <tr tuiTr>
+                    <td *tuiCell="'user'" tuiTd class="p-4">
+                      <div [tuiSkeleton]="true" class="w-32 h-4"></div>
+                    </td>
+                    <td *tuiCell="'area'" tuiTd class="p-4">
+                      <div [tuiSkeleton]="true" class="w-48 h-4"></div>
+                    </td>
+                    <td *tuiCell="'actions'" tuiTd class="p-4">
+                      <div
+                        [tuiSkeleton]="true"
+                        class="w-24 h-8 rounded-full"
+                      ></div>
+                    </td>
+                  </tr>
+                }
+              } @else {
+                @for (req of sortedList; track req.id) {
+                  <tr tuiTr>
+                    <td *tuiCell="'user'" tuiTd class="p-4">
+                      <div class="flex flex-col">
+                        <a
+                          tuiLink
+                          [routerLink]="['/profile', req.user.id]"
+                          class="font-medium"
+                        >
+                          {{ req.user.name || ('anonymous' | translate) }}
+                        </a>
+                      </div>
+                    </td>
+                    <td *tuiCell="'area'" tuiTd class="p-4">
+                      <div class="font-medium">
+                        <a tuiLink [routerLink]="['/area', req.area.slug]">{{
+                          req.area.name
+                        }}</a>
+                      </div>
+                    </td>
+                    <td *tuiCell="'actions'" tuiTd class="p-4">
+                      <div class="flex gap-2 flex-wrap">
+                        <button
+                          tuiButton
+                          size="m"
+                          appearance="primary"
+                          type="button"
+                          class="rounded-full!"
+                          (click.zoneless)="approve(req)"
+                        >
+                          {{ 'adminRequests.approve' | translate }}
+                        </button>
+                        <button
+                          tuiButton
+                          size="m"
+                          appearance="secondary-destructive"
+                          type="button"
+                          class="rounded-full!"
+                          (click.zoneless)="reject(req)"
+                        >
+                          {{ 'adminRequests.reject' | translate }}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
               }
-            } @else {
-              @for (req of sortedList; track req.id) {
-                <tr tuiTr>
-                  <td *tuiCell="'user'" tuiTd class="p-4">
-                    <div class="flex flex-col">
-                      <a
-                        tuiLink
-                        [routerLink]="['/profile', req.user.id]"
-                        class="font-medium"
-                      >
-                        {{ req.user.name || ('anonymous' | translate) }}
-                      </a>
-                    </div>
-                  </td>
-                  <td *tuiCell="'area'" tuiTd class="p-4">
-                    <div class="font-medium">
-                      <a tuiLink [routerLink]="['/area', req.area.slug]">{{
-                        req.area.name
-                      }}</a>
-                    </div>
-                  </td>
-                  <td *tuiCell="'actions'" tuiTd class="p-4">
-                    <div class="flex gap-2 flex-wrap">
-                      <button
-                        tuiButton
-                        size="m"
-                        appearance="primary"
-                        type="button"
-                        class="rounded-full!"
-                        (click.zoneless)="approve(req)"
-                      >
-                        {{ 'adminRequests.approve' | translate }}
-                      </button>
-                      <button
-                        tuiButton
-                        size="m"
-                        appearance="secondary-destructive"
-                        type="button"
-                        class="rounded-full!"
-                        (click.zoneless)="reject(req)"
-                      >
-                        {{ 'adminRequests.reject' | translate }}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              } @empty {
-                <tr tuiTr>
-                  <td [attr.colspan]="columns().length" tuiTd>
-                    <app-empty-state
-                      icon="@tui.shield"
-                      [message]="'adminRequests.empty' | translate"
-                    />
-                  </td>
-                </tr>
-              }
-            }
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        } @else {
+          <app-empty-state
+            icon="@tui.shield"
+            [message]="'adminRequests.empty' | translate"
+          />
+        }
       </tui-scrollbar>
     </section>
   `,
