@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { TranslateLoader } from '@ngx-translate/core';
 import { Observable, of } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, tap, timeout } from 'rxjs/operators';
 
 export class CachedTranslateLoader implements TranslateLoader {
   constructor(
@@ -15,6 +15,7 @@ export class CachedTranslateLoader implements TranslateLoader {
 
     // Try to fetch from network first
     return this.http.get(`${this.prefix}${lang}${this.suffix}`).pipe(
+      timeout(2000), // Wait max 2s before falling back to cache
       tap((translation) => {
         if (typeof window !== 'undefined' && window.localStorage) {
           try {
@@ -39,7 +40,8 @@ export class CachedTranslateLoader implements TranslateLoader {
             }
           }
         }
-        throw error;
+        // Fallback to empty translation to avoid blocking app boot
+        return of({});
       }),
     );
   }

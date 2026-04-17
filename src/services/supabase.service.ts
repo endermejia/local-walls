@@ -63,7 +63,8 @@ export class SupabaseService {
   readonly userProfileResource = resource({
     params: () => this.authUserId(),
     loader: async ({ params: userId }) => {
-      if (!userId) return null;
+      if (!userId || !isPlatformBrowser(this.platformId)) return null;
+      const cacheKey = `cached_user_profile_${userId}_v1`;
       try {
         const { data, error } = await this.client
           .from('user_profiles')
@@ -72,19 +73,31 @@ export class SupabaseService {
           .maybeSingle();
 
         if (error) {
-          console.error('[SupabaseService] userProfileResource error', error);
           throw error;
         }
 
-        if (!data) {
+        if (data) {
+          this.localStorage.setItem(cacheKey, JSON.stringify(data));
+        } else {
           await this.logout();
           return null;
         }
 
         return data;
       } catch (e) {
-        console.error('[SupabaseService] userProfileResource error', e);
-        throw e;
+        console.warn(
+          '[SupabaseService] userProfileResource error/offline, trying cache',
+          e,
+        );
+        const cached = this.localStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            return JSON.parse(cached) as UserProfileDto;
+          } catch {
+            console.error('[SupabaseService] Cache parse error');
+          }
+        }
+        return null;
       }
     },
   });
