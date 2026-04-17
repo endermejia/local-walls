@@ -41,7 +41,6 @@
             "styles": [
               "@taiga-ui/styles/taiga-ui-theme.less",
               "@taiga-ui/styles/taiga-ui-fonts.less",
-              "@taiga-ui/styles/utils.less",
               "node_modules/leaflet/dist/leaflet.css",
               "src/styles.css"
             ],
