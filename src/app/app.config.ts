@@ -26,7 +26,6 @@ import {
 
 import { provideTaiga } from '@taiga-ui/core';
 import { provideEventPlugins } from '@taiga-ui/event-plugins';
-import { TUI_PLATFORM } from '@taiga-ui/cdk';
 import { TUI_LANGUAGE } from '@taiga-ui/i18n';
 
 import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
@@ -73,10 +72,6 @@ export const appConfig: ApplicationConfig = {
     }),
     provideTaiga(),
     provideEventPlugins(),
-    {
-      provide: TUI_PLATFORM,
-      useValue: 'web',
-    },
     {
       provide: TUI_LANGUAGE,
       useFactory: (global: GlobalData) => global.tuiLanguage,
