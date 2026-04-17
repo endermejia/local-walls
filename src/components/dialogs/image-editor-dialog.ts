@@ -199,7 +199,7 @@ export interface ImageEditorConfig {
             [imageBase64]="imageBase64()"
             [maintainAspectRatio]="maintainAspectRatio"
             [aspectRatio]="aspectRatio"
-            [resizeToWidth]="resizeToWidth"
+            [resizeToWidth]="resizeToWidth || undefined"
             [cropperMinWidth]="128"
             [roundCropper]="false"
             [canvasRotation]="canvasRotation"
@@ -320,8 +320,8 @@ export class ImageEditorDialogComponent {
 
   forceAspectRatio = false;
   allowFree = true;
-  resizeToWidth = 2048;
-  imageQuality = 92;
+  resizeToWidth = 0;
+  imageQuality = 100;
 
   constructor(
     @Inject(POLYMORPHEUS_CONTEXT)
@@ -332,8 +332,10 @@ export class ImageEditorDialogComponent {
     const data = this.context.data;
     this.forceAspectRatio = !!data.forceAspectRatio;
     this.allowFree = data.allowFree !== undefined ? data.allowFree : true;
-    this.resizeToWidth = data.resizeToWidth || 2048;
-    this.imageQuality = data.imageQuality || 92;
+    this.resizeToWidth =
+      data.resizeToWidth !== undefined ? data.resizeToWidth : 0;
+    this.imageQuality =
+      data.imageQuality !== undefined ? data.imageQuality : 100;
     this.maintainAspectRatio =
       data.maintainAspectRatio !== undefined ? data.maintainAspectRatio : true;
 

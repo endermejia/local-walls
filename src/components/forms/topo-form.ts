@@ -52,7 +52,10 @@ import { ToposService } from '../../services/topos.service';
 import { ShadeInfoPipe } from '../../pipes/shade-info.pipe';
 
 import { GradeComponent } from '../ui/avatar-grade';
-import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
+import {
+  ImageEditorDialogComponent,
+  ImageEditorConfig,
+} from '../dialogs/image-editor-dialog';
 
 import {
   RouteDto,
@@ -725,11 +728,13 @@ export class TopoFormComponent {
       }
     }
 
-    const data = {
+    const data: ImageEditorConfig = {
       file: file ?? undefined,
       imageUrl: imageUrl ?? undefined,
       maintainAspectRatio: false,
       allowFree: true,
+      imageQuality: 100,
+      resizeToWidth: 0,
     };
 
     if (!data.file && !data.imageUrl) {

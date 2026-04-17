@@ -54,7 +54,10 @@ import { ToastService } from '../../services/toast.service';
 
 import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
 import { CounterComponent } from '../ui/counter';
-import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
+import {
+  ImageEditorDialogComponent,
+  ImageEditorConfig,
+} from '../dialogs/image-editor-dialog';
 
 import {
   AscentDialogData,
@@ -1043,7 +1046,7 @@ export default class AscentFormComponent {
       }
     }
 
-    const data = {
+    const data: ImageEditorConfig = {
       file: file ?? undefined,
       imageUrl: urlToEdit ?? undefined,
       aspectRatios: [
@@ -1052,8 +1055,8 @@ export default class AscentFormComponent {
         { titleKey: '16:9', descriptionKey: '16:9', ratio: 16 / 9 },
       ],
       allowFree: false,
-      resizeToWidth: 1200,
-      imageQuality: 75,
+      resizeToWidth: 0,
+      imageQuality: 100,
     };
 
     if (!data.file && !data.imageUrl) {
