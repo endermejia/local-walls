@@ -29,7 +29,7 @@ import { provideEventPlugins } from '@taiga-ui/event-plugins';
 import { TUI_LANGUAGE } from '@taiga-ui/i18n';
 
 import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { CachedTranslateLoader } from '../services/cached-translate-loader';
 
 import { errorInterceptor } from '../services/error.interceptor';
 import { GlobalData } from '../services/global-data';
@@ -41,9 +41,9 @@ import {
   ENV_SUPABASE_URL,
 } from '../environments/environment';
 
-const httpLoaderFactory: (http: HttpClient) => TranslateHttpLoader = (
+const httpLoaderFactory: (http: HttpClient) => CachedTranslateLoader = (
   http: HttpClient,
-) => new TranslateHttpLoader(http, '/i18n/', '.json');
+) => new CachedTranslateLoader(http, '/i18n/', '.json');
 
 export const appConfig: ApplicationConfig = {
   providers: [

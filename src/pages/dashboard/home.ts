@@ -295,18 +295,15 @@ export class HomeComponent implements OnDestroy {
     (this.storage.getItem(this.STORAGE_KEY) as HomeFeedFilter) || 'following',
   );
 
-  protected readonly saveFilterEffect = effect(
-    () => {
-      const currentFilter = this.feedFilter();
-      const options = this.filterOptions();
-      if (!options.includes(currentFilter)) {
-        this.feedFilter.set('following');
-      } else {
-        this.storage.setItem(this.STORAGE_KEY, currentFilter);
-      }
-    },
-    { allowSignalWrites: true },
-  );
+  protected readonly saveFilterEffect = effect(() => {
+    const currentFilter = this.feedFilter();
+    const options = this.filterOptions();
+    if (!options.includes(currentFilter)) {
+      this.feedFilter.set('following');
+    } else {
+      this.storage.setItem(this.STORAGE_KEY, currentFilter);
+    }
+  });
   protected dropdownOpen = signal(false);
 
   protected readonly filterLabels: Record<HomeFeedFilter, string> = {

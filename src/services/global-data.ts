@@ -611,24 +611,84 @@ export class GlobalData {
   readonly likedAreasResource = resource({
     params: () => this.supabase.authUserId(),
     loader: async ({ params: userId }) => {
-      if (!userId) return [];
-      return this.favorites.getLikedAreas(userId);
+      if (!userId || !isPlatformBrowser(this.platformId)) return [];
+      const cacheKey = `cached_liked_areas_${userId}_v2`;
+      try {
+        await this.supabase.whenReady();
+        const list = await this.favorites.getLikedAreas(userId);
+        this.localStorage.setItem(cacheKey, JSON.stringify(list));
+        return list;
+      } catch (e) {
+        console.warn(
+          '[GlobalData] likedAreasResource error/offline, trying cache',
+          e,
+        );
+        const cached = this.localStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            return JSON.parse(cached) as AreaListItem[];
+          } catch {
+            console.error('[GlobalData] Cache parse error');
+          }
+        }
+        return [];
+      }
     },
   });
 
   readonly likedCragsResource = resource({
     params: () => this.supabase.authUserId(),
     loader: async ({ params: userId }) => {
-      if (!userId) return [];
-      return this.favorites.getLikedCrags(userId);
+      if (!userId || !isPlatformBrowser(this.platformId)) return [];
+      const cacheKey = `cached_liked_crags_${userId}_v2`;
+      try {
+        await this.supabase.whenReady();
+        const list = await this.favorites.getLikedCrags(userId);
+        this.localStorage.setItem(cacheKey, JSON.stringify(list));
+        return list;
+      } catch (e) {
+        console.warn(
+          '[GlobalData] likedCragsResource error/offline, trying cache',
+          e,
+        );
+        const cached = this.localStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            return JSON.parse(cached) as CragListItem[];
+          } catch {
+            console.error('[GlobalData] Cache parse error');
+          }
+        }
+        return [];
+      }
     },
   });
 
   readonly likedRoutesResource = resource({
     params: () => this.supabase.authUserId(),
     loader: async ({ params: userId }) => {
-      if (!userId) return [];
-      return this.favorites.getLikedRoutes(userId);
+      if (!userId || !isPlatformBrowser(this.platformId)) return [];
+      const cacheKey = `cached_liked_routes_${userId}_v2`;
+      try {
+        await this.supabase.whenReady();
+        const list = await this.favorites.getLikedRoutes(userId);
+        this.localStorage.setItem(cacheKey, JSON.stringify(list));
+        return list;
+      } catch (e) {
+        console.warn(
+          '[GlobalData] likedRoutesResource error/offline, trying cache',
+          e,
+        );
+        const cached = this.localStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            return JSON.parse(cached) as RouteWithExtras[];
+          } catch {
+            console.error('[GlobalData] Cache parse error');
+          }
+        }
+        return [];
+      }
     },
   });
 
@@ -1591,7 +1651,7 @@ export class GlobalData {
       }
     });
 
-    // Hydrate last map bounds from storage on a browser
+    // Hydrate state from localStorage
     try {
       const rawEditingMode = this.localStorage.getItem(
         this.editingModeStorageKey,
@@ -1602,8 +1662,7 @@ export class GlobalData {
 
       const rawBounds = this.localStorage.getItem(this.mapBoundsStorageKey);
       if (rawBounds) {
-        const parsed = JSON.parse(rawBounds) as MapBounds;
-        this.mapBounds.set(parsed);
+        this.mapBounds.set(JSON.parse(rawBounds));
       }
 
       const rawGradeRange = this.localStorage.getItem(
@@ -1612,13 +1671,7 @@ export class GlobalData {
       if (rawGradeRange) {
         const parsed = JSON.parse(rawGradeRange);
         if (Array.isArray(parsed) && parsed.length === 2) {
-          const [a, b] = parsed;
-          const clamp = (v: number) =>
-            Math.max(
-              0,
-              Math.min(ORDERED_GRADE_VALUES.length - 1, Math.round(v)),
-            );
-          this.areaListGradeRange.set([clamp(a), clamp(b)]);
+          this.areaListGradeRange.set(parsed as [number, number]);
         }
       }
 
@@ -1640,13 +1693,7 @@ export class GlobalData {
       if (rawFeedGradeRange) {
         const parsed = JSON.parse(rawFeedGradeRange);
         if (Array.isArray(parsed) && parsed.length === 2) {
-          const [a, b] = parsed;
-          const clamp = (v: number) =>
-            Math.max(
-              0,
-              Math.min(ORDERED_GRADE_VALUES.length - 1, Math.round(v)),
-            );
-          this.feedGradeRange.set([clamp(a), clamp(b)]);
+          this.feedGradeRange.set(parsed as [number, number]);
         }
       }
 
@@ -1656,39 +1703,54 @@ export class GlobalData {
       if (rawFeedCategories) {
         this.feedCategories.set(JSON.parse(rawFeedCategories));
       }
-    } catch {
-      // ignore corrupted viewport state
+
+      const msgSound = this.localStorage.getItem('message_sound_enabled_v1');
+      if (msgSound !== null) {
+        this.messageSoundEnabled.set(msgSound === 'true');
+      }
+
+      const notifSound = this.localStorage.getItem(
+        'notification_sound_enabled_v1',
+      );
+      if (notifSound !== null) {
+        this.notificationSoundEnabled.set(notifSound === 'true');
+      }
+    } catch (e) {
+      console.warn('[GlobalData] Hydrate error', e);
     }
 
-    // Persist and react to map bounds changes
+    // Persist state to localStorage via effects
     effect(() => {
-      const mapBounds = this.mapBounds();
-      if (mapBounds) {
-        // Save the last viewport for next sessions (SSR-safe local storage wrapper)
-        try {
-          this.localStorage.setItem(
-            this.mapBoundsStorageKey,
-            JSON.stringify(mapBounds),
-          );
-        } catch {
-          // ignore corrupted viewport state
-        }
+      this.localStorage.setItem(
+        this.editingModeStorageKey,
+        String(this.editingMode()),
+      );
+    });
+
+    effect(() => {
+      const bounds = this.mapBounds();
+      if (bounds) {
+        this.localStorage.setItem(
+          this.mapBoundsStorageKey,
+          JSON.stringify(bounds),
+        );
       }
     });
 
-    // Persist filters
     effect(() => {
       this.localStorage.setItem(
         this.areaListGradeRangeKey,
         JSON.stringify(this.areaListGradeRange()),
       );
     });
+
     effect(() => {
       this.localStorage.setItem(
         this.areaListCategoriesKey,
         JSON.stringify(this.areaListCategories()),
       );
     });
+
     effect(() => {
       this.localStorage.setItem(
         this.areaListShadeKey,
@@ -1702,6 +1764,7 @@ export class GlobalData {
         JSON.stringify(this.feedGradeRange()),
       );
     });
+
     effect(() => {
       this.localStorage.setItem(
         this.feedCategoriesKey,
@@ -1709,6 +1772,21 @@ export class GlobalData {
       );
     });
 
+    effect(() => {
+      this.localStorage.setItem(
+        'message_sound_enabled_v1',
+        String(this.messageSoundEnabled()),
+      );
+    });
+
+    effect(() => {
+      this.localStorage.setItem(
+        'notification_sound_enabled_v1',
+        String(this.notificationSoundEnabled()),
+      );
+    });
+
+    // Language switching logic
     effect(() => {
       const selectedLanguage = this.selectedLanguage();
       if (selectedLanguage) {
@@ -1722,7 +1800,7 @@ export class GlobalData {
       }
     });
 
-    // Sync theme from user profile
+    // Sync state from user profile
     effect(() => {
       const profile = this.userProfile();
       if (!profile) return;
@@ -1754,7 +1832,6 @@ export class GlobalData {
         if (!this.push.isSubscribed()) {
           void this.push.subscribe();
         } else {
-          // Even if already subscribed browser-side, sync with DB to ensure this userId has it
           void this.push.getCurrentSubscription().then((sub) => {
             if (sub) void this.push.saveSubscription(sub);
           });
@@ -1762,80 +1839,22 @@ export class GlobalData {
       }
     });
 
-    // Hydrate audio preferences
-    try {
-      const msgSound = this.localStorage.getItem('message_sound_enabled_v1');
-      if (msgSound === null) {
-        // Default to true
-        this.messageSoundEnabled.set(true);
-      } else {
-        this.messageSoundEnabled.set(msgSound === 'true');
-      }
-
-      const notifSound = this.localStorage.getItem(
-        'notification_sound_enabled_v1',
-      );
-      if (notifSound !== null) {
-        this.notificationSoundEnabled.set(notifSound === 'true');
-      }
-    } catch {
-      // ignore
-    }
-
-    // Persist audio preferences
-    effect(() => {
-      this.localStorage.setItem(
-        'message_sound_enabled_v1',
-        String(this.messageSoundEnabled()),
-      );
-    });
-    effect(() => {
-      this.localStorage.setItem(
-        'notification_sound_enabled_v1',
-        String(this.notificationSoundEnabled()),
-      );
-    });
-
-    // Hydrate editing mode from localStorage
-    try {
-      const mode = this.localStorage.getItem(this.editingModeStorageKey);
-      if (mode !== null) {
-        this.editingMode.set(mode === 'true');
-      }
-    } catch {
-      // ignore
-    }
-
-    // Persist editing mode to localStorage
-    effect(() => {
-      this.localStorage.setItem(
-        this.editingModeStorageKey,
-        String(this.editingMode()),
-      );
-    });
-
     // Refresh unread counts when user changes and setup Realtime
     effect((onCleanup) => {
       const userId = this.supabase.authUserId();
       if (userId) {
-        console.log('[GlobalData] Setting up Realtime for user:', userId);
         void this.notificationsService.refreshUnreadCount();
         void this.messagingService.refreshUnreadCount();
 
-        const nSub = this.notificationsService.watchNotifications((notif) => {
-          console.log('[GlobalData] New notification received:', notif.type);
-          // Always refresh count for navbar
+        const nSub = this.notificationsService.watchNotifications(() => {
           void this.notificationsService.refreshUnreadCount();
         });
 
         const mSub = this.messagingService.watchUnreadCount(() => {
-          console.log('[GlobalData] New message in DB detected');
-          // Always refresh count for navbar
           void this.messagingService.refreshUnreadCount();
         });
 
         onCleanup(() => {
-          console.log('[GlobalData] Cleaning up Realtime subscriptions');
           nSub?.unsubscribe();
           mSub?.unsubscribe();
         });
