@@ -34,6 +34,9 @@ export function mapCragToDetail(rawData: CragWithJoins): CragDetail {
       };
     }) ?? [];
 
+  const routes_count = new Set(
+    rawData.topos?.flatMap((t) => t.topo_routes.map((tr) => tr.route_id)) ?? [],
+  ).size;
   const topos_count = topos.length;
   const shade_morning = topos.some((t) => t.shade_morning);
   const shade_afternoon = topos.some((t) => t.shade_afternoon);
@@ -41,6 +44,7 @@ export function mapCragToDetail(rawData: CragWithJoins): CragDetail {
   const sun_all_day = topos.some((t) => !t.shade_morning && !t.shade_afternoon);
 
   return {
+    routes_count,
     id: rawData.id,
     name: rawData.name,
     slug: rawData.slug,

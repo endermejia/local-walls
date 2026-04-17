@@ -75,6 +75,13 @@ import {
   RouteAscentWithExtras,
 } from '../../models';
 
+export type HomeFeedFilter =
+  | 'following'
+  | 'all'
+  | 'favorite_areas'
+  | 'favorite_crags'
+  | 'favorite_routes';
+
 @Component({
   selector: 'app-home',
   imports: [
@@ -284,13 +291,9 @@ export class HomeComponent implements OnDestroy {
     () => this.activeCragsResource.value() ?? [],
   );
 
-  protected readonly feedFilter = signal<
-    | 'following'
-    | 'all'
-    | 'favorite_areas'
-    | 'favorite_crags'
-    | 'favorite_routes'
-  >((this.storage.getItem(this.STORAGE_KEY) as any) || 'following');
+  protected readonly feedFilter = signal<HomeFeedFilter>(
+    (this.storage.getItem(this.STORAGE_KEY) as HomeFeedFilter) || 'following',
+  );
 
   protected readonly saveFilterEffect = effect(
     () => {
@@ -306,14 +309,7 @@ export class HomeComponent implements OnDestroy {
   );
   protected dropdownOpen = signal(false);
 
-  protected readonly filterLabels: Record<
-    | 'following'
-    | 'all'
-    | 'favorite_areas'
-    | 'favorite_crags'
-    | 'favorite_routes',
-    string
-  > = {
+  protected readonly filterLabels: Record<HomeFeedFilter, string> = {
     following: 'following',
     all: 'all',
     favorite_areas: 'likedAreas',
@@ -335,7 +331,7 @@ export class HomeComponent implements OnDestroy {
     return options;
   });
 
-  protected setFilter(filter: keyof typeof this.filterLabels) {
+  protected setFilter(filter: HomeFeedFilter) {
     this.feedFilter.set(filter);
     this.dropdownOpen.set(false);
   }
@@ -492,12 +488,7 @@ export class HomeComponent implements OnDestroy {
 
   private async fetchAscents(
     page: number,
-    filter:
-      | 'following'
-      | 'all'
-      | 'favorite_areas'
-      | 'favorite_crags'
-      | 'favorite_routes' = this.feedFilter(),
+    filter: HomeFeedFilter = this.feedFilter(),
   ): Promise<(RouteAscentWithExtras & { kind: 'ascent' })[]> {
     if (!this.isBrowser) return [];
     await this.supabase.whenReady();

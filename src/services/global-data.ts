@@ -709,15 +709,24 @@ export class GlobalData {
       const cacheKey = `cached_crags_list_${areaSlug}_v2`;
       try {
         await this.supabase.whenReady();
-        const { data, error } = await this.supabase.client.rpc(
-          'get_crags_list_by_area_slug',
-          { p_area_slug: areaSlug },
-        );
+        const { data, error } = await this.supabase.client
+          .rpc('get_crags_list')
+          .eq('area_slug', areaSlug);
+
         if (error) {
           console.error('[GlobalData] cragsListResource error', error);
           throw error;
         }
-        const list = (data as CragListItem[]) ?? [];
+        const list =
+          (data?.map((c) => ({
+            ...c,
+            grades: c.grades as unknown as AmountByEveryGrade,
+            topos: c.topos as unknown as {
+              id: number;
+              name: string;
+              slug: string;
+            }[],
+          })) as CragListItem[]) ?? [];
         this.localStorage.setItem(cacheKey, JSON.stringify(list));
         return list;
       } catch (e) {

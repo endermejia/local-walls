@@ -6,10 +6,27 @@ import { SupabaseService } from './supabase.service';
 import {
   AreaListItem,
   AscentTypes,
+  AmountByEveryGrade,
   CragListItem,
   RouteWithExtras,
   RouteAscentDto,
+  RouteDto,
 } from '../models';
+
+interface RouteWithJoins extends RouteDto {
+  liked: { id: number }[];
+  project: { id: number }[];
+  ascents: { rate: number | null; type: string }[];
+  own_ascent: RouteAscentDto[];
+  crag: {
+    slug: string;
+    name: string;
+    area: {
+      slug: string;
+      name: string;
+    } | null;
+  } | null;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -30,15 +47,7 @@ export class FavoritesService {
     if (!areaIds.length) return [];
 
     const { data: likedAreas, error } = await this.supabase.client
-      .from('areas')
-      .select(
-        `
-        id,
-        name,
-        slug,
-        crags_count:crags(count)
-      `,
-      )
+      .rpc('get_areas_list')
       .in('id', areaIds);
 
     if (error) {
@@ -57,7 +66,7 @@ export class FavoritesService {
       .filter((a) => !purchasedIds.has(a.id))
       .map((a) => ({
         ...a,
-        crags_count: (a.crags_count as any)?.[0]?.count ?? 0,
+        grades: a.grades as unknown as AmountByEveryGrade,
         liked: true,
       })) as AreaListItem[];
   }
@@ -74,17 +83,7 @@ export class FavoritesService {
     if (!cragIds.length) return [];
 
     const { data: likedCrags, error } = await this.supabase.client
-      .from('crags')
-      .select(
-        `
-        id,
-        name,
-        slug,
-        area_id,
-        topos_count:topos(count),
-        area:areas(name, slug)
-      `,
-      )
+      .rpc('get_crags_list')
       .in('id', cragIds);
 
     if (error) {
@@ -92,11 +91,10 @@ export class FavoritesService {
       return [];
     }
 
-    return (likedCrags || []).map((c: any) => ({
+    return (likedCrags || []).map((c) => ({
       ...c,
-      topos_count: c.topos_count?.[0]?.count ?? 0,
-      area_name: c.area?.name,
-      area_slug: c.area?.slug,
+      grades: c.grades as unknown as AmountByEveryGrade,
+      topos: c.topos as unknown as { id: number; name: string; slug: string }[],
       liked: true,
     })) as CragListItem[];
   }
@@ -144,10 +142,12 @@ export class FavoritesService {
       return [];
     }
 
-    return (data || []).map((r: any) => {
+    const routes = data as unknown as RouteWithJoins[];
+
+    return routes.map((r) => {
       const rates =
         r.ascents
-          ?.map((a: any) => a.rate)
+          ?.map((a) => a.rate)
           .filter((rate: number | null): rate is number => rate != null) ?? [];
       const rating =
         rates.length > 0
@@ -164,9 +164,7 @@ export class FavoritesService {
         area_name: r.crag?.area?.name,
         rating,
         ascent_count:
-          r.ascents?.filter(
-            (a: Partial<RouteAscentDto>) => a.type !== AscentTypes.ATTEMPT,
-          ).length ?? 0,
+          r.ascents?.filter((a) => a.type !== AscentTypes.ATTEMPT).length ?? 0,
         climbed: (r.own_ascent?.length ?? 0) > 0,
         own_ascent: r.own_ascent?.[0],
       } as RouteWithExtras;

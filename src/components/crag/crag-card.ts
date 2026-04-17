@@ -89,7 +89,7 @@ import { CragListItem } from '../../models';
           </div>
 
           <!-- Topo badges -->
-          @if (item.topos?.length) {
+          @if (item.topos.length) {
             <div class="flex flex-wrap gap-2 pt-1">
               @for (topo of item.topos; track topo.id) {
                 <button

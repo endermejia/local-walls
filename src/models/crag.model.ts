@@ -7,15 +7,13 @@ import { TableInsert, TableRow, TableUpdate } from './supabase-interfaces';
 import { TopoDto } from './supabase-interfaces';
 
 export interface CragListItem extends Omit<
-  Database['public']['Functions']['get_crags_list_by_area_slug']['Returns'][number],
+  Database['public']['Functions']['get_crags_list']['Returns'][number],
   'grades' | 'topos'
 > {
   grades: AmountByEveryGrade;
   topos: { id: number; name: string; slug: string }[];
   // Extra fields from Map data or others
   approach?: number;
-  area_name?: string;
-  area_slug?: string;
 }
 
 export interface AdditionalCragData {

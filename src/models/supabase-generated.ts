@@ -3250,10 +3250,12 @@ export interface Database {
           user_creator_id: string;
         }[];
       };
-      get_crags_list_by_area_slug: {
-        Args: { p_area_slug: string };
+      get_crags_list: {
+        Args: never;
         Returns: {
           area_id: number;
+          area_name: string;
+          area_slug: string;
           climbing_kind: Database['public']['Enums']['climbing_kind'][];
           created_at: string;
           grades: Json;
