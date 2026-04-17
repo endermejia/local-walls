@@ -15,7 +15,6 @@ import {
   signal,
   Signal,
   viewChild,
-  viewChildren,
 } from '@angular/core';
 
 import { tuiDefaultSort } from '@taiga-ui/cdk';
@@ -970,8 +969,6 @@ export class TopoComponent {
   >('fullscreenContainer');
   protected readonly topoImgFullscreen =
     viewChild<ElementRef<HTMLImageElement>>('topoImgFullscreen');
-  private readonly routeRows =
-    viewChildren<ElementRef<HTMLTableRowElement>>('routeRow');
   protected readonly isFullscreen = signal(false);
   protected readonly zoomScale = signal(1);
   protected readonly zoomPosition = signal({ x: 0, y: 0 });
@@ -998,6 +995,12 @@ export class TopoComponent {
     const img = event.target as HTMLImageElement;
     if (img.naturalWidth && img.naturalHeight) {
       this.imageRatio.set(img.naturalWidth / img.naturalHeight);
+    }
+
+    // If a route was already selected before the image finished loading, center it now
+    const selectedId = this.selectedRouteId();
+    if (selectedId) {
+      setTimeout(() => this.centerOnRoute(), 50);
     }
   }
 
@@ -1242,49 +1245,59 @@ export class TopoComponent {
     effect(() => {
       const topoId = this.topo()?.id;
       const routeId = this.selectedRouteId();
-      if (topoId && routeId && isPlatformBrowser(this.platformId)) {
-        setTimeout(() => {
-          const rowId = `route-row-${topoId}-${routeId}`;
-          const row = this.routeRows().find(
-            (r) => r.nativeElement.id === rowId,
-          )?.nativeElement;
-          if (row) {
-            row.scrollIntoView({
-              block: 'center',
-              behavior: 'smooth',
-            });
-          }
+      const isFullscreen = this.isFullscreen(); // Re-trigger when toggling fullscreen
 
-          // Center the route in the image viewer
-          this.centerOnRoute(routeId);
-        });
+      if (routeId && topoId) {
+        // Give time for potential UI changes (like entering fullscreen) to finish rendering
+        setTimeout(() => {
+          this.centerOnRoute();
+
+          // Only scroll the list if we are NOT in fullscreen (the list is hidden in FS)
+          if (!isFullscreen) {
+            const rowId = `route-row-${topoId}-${routeId}`;
+            const row = document.getElementById(rowId);
+            if (row) {
+              row.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'nearest',
+              });
+            }
+          }
+        }, 200);
       }
     });
   }
 
-  private centerOnRoute(routeId: number): void {
+  private centerOnRoute(): void {
     const topo = this.topo();
     if (!topo || !isPlatformBrowser(this.platformId)) return;
-
-    const tr = topo.topo_routes.find((r) => r.route_id === routeId);
-    if (!tr || !tr.path || tr.path.points.length === 0) return;
 
     // Use the appropriate container based on current view mode
     const containerEl = this.isFullscreen()
       ? this.fullscreenContainer()?.nativeElement
       : this.scrollContainer()?.nativeElement;
 
+    // If container is not ready (e.g. just entered fullscreen), it might be null for a moment
     if (!containerEl) return;
 
     const imgEl = this.isFullscreen()
       ? this.topoImgFullscreen()?.nativeElement
-      : containerEl.querySelector('img');
+      : (containerEl.querySelector('img') as HTMLImageElement);
+
     if (!imgEl) return;
 
-    const pts = tr.path.points;
-
     // Helper to perform the actual centering
+    // If the image is not ready, it will be centered by onImageLoad
+    if (imgEl.naturalWidth === 0 || imgEl.offsetWidth === 0) {
+      return;
+    }
+
     const performCenter = (el: HTMLElement) => {
+      const info = this.selectedRouteInfo();
+      if (!info || !info.path || info.path.points.length === 0) return;
+
+      const pts = info.path.points;
       const minX = Math.min(...pts.map((p) => p.x));
       const maxX = Math.max(...pts.map((p) => p.x));
       const minY = Math.min(...pts.map((p) => p.y));
@@ -1294,14 +1307,7 @@ export class TopoComponent {
       centerViewerOnPoint(this.viewerState, center, el);
     };
 
-    // If image is not yet fully loaded or rendered, wait for it
-    if (!imgEl.complete || imgEl.offsetWidth === 0) {
-      imgEl.addEventListener('load', () => performCenter(containerEl), {
-        once: true,
-      });
-    } else {
-      performCenter(containerEl);
-    }
+    performCenter(containerEl);
   }
 
   protected onLogAscent(tr: TopoRouteWithRoute): void {

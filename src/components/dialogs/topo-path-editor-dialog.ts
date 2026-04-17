@@ -896,12 +896,79 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
         this.selectedRoute.set(null);
       } else {
         this.selectedRoute.set(tr);
+        // Center the view on the newly selected route
+        this.centerOnRoute(tr);
       }
     } else {
       if (!selected) {
         this.selectedRoute.set(tr);
+        this.centerOnRoute(tr);
       }
     }
+  }
+
+  private centerOnRoute(tr: TopoRouteWithRoute): void {
+    const path = this.pathsMap.get(tr.route_id);
+    if (!path || !path.points || path.points.length === 0) return;
+
+    const pts = path.points;
+    const minX = Math.min(...pts.map((p) => p.x));
+    const maxX = Math.max(...pts.map((p) => p.x));
+    const minY = Math.min(...pts.map((p) => p.y));
+    const maxY = Math.max(...pts.map((p) => p.y));
+    const center = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
+
+    // Ensure we are zoomed in enough to see the route clearly,
+    // but don't force a zoom-out if already zoomed in.
+    if (this.scale() < 1) {
+      this.scale.set(1);
+    }
+
+    // Small delay to allow potential zoom scale signal to propagate
+    setTimeout(() => this.centerOnPoint(center), 0);
+  }
+
+  private centerOnPoint(point: { x: number; y: number }): void {
+    const areaEl = this.editorAreaElement()?.nativeElement;
+    const containerEl = this.containerElement()?.nativeElement;
+    if (!areaEl || !containerEl) return;
+
+    const areaRect = areaEl.getBoundingClientRect();
+    const scale = this.scale();
+    const baseW = this.width();
+    const baseH = this.height();
+
+    // The container might have its own resting offset (though usually 0 in this editor)
+    const restingLeft = containerEl.offsetLeft;
+    const restingTop = containerEl.offsetTop;
+
+    // We want the point (point.x * baseW * scale) to be at areaRect.width / 2
+    let targetX = areaRect.width / 2 - restingLeft - point.x * baseW * scale;
+    let targetY = areaRect.height / 2 - restingTop - point.y * baseH * scale;
+
+    // Apply constraints similar to constrainTranslation util
+    const scaledW = baseW * scale;
+    const scaledH = baseH * scale;
+
+    if (scaledW > areaRect.width) {
+      const minX = -restingLeft - (scaledW - areaRect.width);
+      const maxX = -restingLeft;
+      targetX = Math.max(minX, Math.min(targetX, maxX));
+    } else {
+      targetX = (areaRect.width - scaledW) / 2 - restingLeft;
+    }
+
+    if (scaledH > areaRect.height) {
+      const minY = -restingTop - (scaledH - areaRect.height);
+      const maxY = -restingTop;
+      targetY = Math.max(minY, Math.min(targetY, maxY));
+    } else {
+      targetY = (areaRect.height - scaledH) / 2 - restingTop;
+    }
+
+    this.translateX.set(targetX);
+    this.translateY.set(targetY);
+    this.cdr.markForCheck();
   }
 
   getPointsString(pathData: {
