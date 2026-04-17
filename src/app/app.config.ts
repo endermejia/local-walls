@@ -2,6 +2,7 @@ import { provideServiceWorker } from '@angular/service-worker';
 import {
   ApplicationConfig,
   isDevMode,
+  provideAnimationsAsync,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
@@ -48,6 +49,7 @@ const httpLoaderFactory: (http: HttpClient) => CachedTranslateLoader = (
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideAnimationsAsync(),
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(
