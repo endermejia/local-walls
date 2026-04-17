@@ -143,7 +143,7 @@ export interface TopoPathEditorConfig {
         }
 
         <!-- ── CANVAS AREA ── -->
-        <div class="canvas-area" #editorArea (wheel.zoneless)="onWheel($event)">
+        <div class="canvas-area" #editorArea>
           <div
             #container
             class="canvas-container"
@@ -450,8 +450,9 @@ export interface TopoPathEditorConfig {
     }
 
     .sidebar-scroll {
+      display: block;
       flex: 1;
-      overflow: hidden;
+      min-height: 0;
     }
 
     .route-list {
