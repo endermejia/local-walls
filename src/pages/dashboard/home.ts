@@ -53,6 +53,7 @@ import { GlobalData } from '../../services/global-data';
 import { LocalStorage } from '../../services/local-storage';
 import { ScrollService } from '../../services/scroll.service';
 import { SupabaseService } from '../../services/supabase.service';
+import { VisitedCragsService } from '../../services/visited-crags.service';
 
 import { AscentsFeedComponent } from '../../components/ascent/ascents-feed';
 import { DropdownButtonComponent } from '../../components/ui/dropdown-button';
@@ -274,6 +275,7 @@ export class HomeComponent implements OnDestroy {
   private readonly scrollService = inject(ScrollService);
   private readonly storage = inject(LocalStorage);
   private readonly translate = inject(TranslateService);
+  private readonly visitedCragsService = inject(VisitedCragsService);
 
   private readonly STORAGE_KEY = 'home_feed_filter';
 
@@ -287,9 +289,21 @@ export class HomeComponent implements OnDestroy {
     loader: () => this.fetchActiveCrags(),
   });
 
-  protected readonly activeCrags = computed(
-    () => this.activeCragsResource.value() ?? [],
-  );
+  protected readonly activeCrags = computed(() => {
+    const visited = this.visitedCragsService.visitedCrags();
+    const active = this.activeCragsResource.value() ?? [];
+
+    const merged = [...visited];
+    const visitedIds = new Set(visited.map((c) => c.id));
+
+    for (const c of active) {
+      if (!visitedIds.has(c.id)) {
+        merged.push(c);
+      }
+    }
+
+    return merged;
+  });
 
   protected readonly feedFilter = signal<HomeFeedFilter>(
     (this.storage.getItem(this.STORAGE_KEY) as HomeFeedFilter) || 'following',

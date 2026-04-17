@@ -42,6 +42,7 @@ import { SeoService } from '../../services/seo.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 import { TourService, TourStep } from '../../services/tour.service';
+import { VisitedCragsService } from '../../services/visited-crags.service';
 
 import { ChartRoutesByGradeComponent } from '../../components/charts/chart-routes-by-grade';
 import { CragParkingsComponent } from '../../components/crag/crag-parkings';
@@ -326,6 +327,7 @@ export class CragComponent {
   protected readonly dialogs = inject(TuiDialogService);
   protected readonly tourService = inject(TourService);
   protected readonly TourStep = TourStep;
+  private readonly visitedCragsService = inject(VisitedCragsService);
   private readonly seo = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
 
@@ -492,6 +494,19 @@ export class CragComponent {
         this.activeTabIndex.set(tabs.indexOf(2));
       } else if (tab === 'weather' && tabs.includes(3)) {
         this.activeTabIndex.set(tabs.indexOf(3));
+      }
+    });
+
+    effect(() => {
+      const crag = this.cragDetail();
+      const area = this.global.selectedArea();
+      if (crag && area) {
+        this.visitedCragsService.addVisitedCrag({
+          id: crag.id,
+          name: crag.name,
+          slug: crag.slug,
+          area_slug: area.slug,
+        });
       }
     });
   }
