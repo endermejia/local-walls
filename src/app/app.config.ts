@@ -4,6 +4,7 @@ import {
   isDevMode,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
+  signal,
 } from '@angular/core';
 import {
   HttpClient,
@@ -24,7 +25,7 @@ import {
   withHttpTransferCacheOptions,
 } from '@angular/platform-browser';
 
-import { provideTaiga } from '@taiga-ui/core';
+import { provideTaiga, TUI_DARK_MODE } from '@taiga-ui/core';
 import { provideEventPlugins } from '@taiga-ui/event-plugins';
 import { TUI_PLATFORM } from '@taiga-ui/cdk';
 import { TUI_LANGUAGE } from '@taiga-ui/i18n';
@@ -78,6 +79,10 @@ export const appConfig: ApplicationConfig = {
     {
       provide: TUI_PLATFORM,
       useValue: 'web',
+    },
+    {
+      provide: TUI_DARK_MODE,
+      useValue: signal(false),
     },
     {
       provide: TUI_LANGUAGE,
