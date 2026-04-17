@@ -41,7 +41,6 @@ import {
   ENV_SUPABASE_ANON_KEY,
   ENV_SUPABASE_URL,
 } from '../environments/environment';
-import { provideAnimations } from '@angular/platform-browser/animations';
 
 const httpLoaderFactory: (http: HttpClient) => CachedTranslateLoader = (
   http: HttpClient,
@@ -49,7 +48,6 @@ const httpLoaderFactory: (http: HttpClient) => CachedTranslateLoader = (
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideAnimations(),
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(
