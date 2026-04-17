@@ -6,43 +6,48 @@ import { catchError, tap, timeout } from 'rxjs/operators';
 export class CachedTranslateLoader implements TranslateLoader {
   constructor(
     private http: HttpClient,
-    private prefix: string = '/i18n/',
-    private suffix: string = '.json',
+    private prefix = '/i18n/',
+    private suffix = '.json',
   ) {}
 
-  public getTranslation(lang: string): Observable<any> {
+  public getTranslation(lang: string): Observable<Record<string, unknown>> {
     const cacheKey = `cached_translation_${lang}_v1`;
 
     // Try to fetch from network first
-    return this.http.get(`${this.prefix}${lang}${this.suffix}`).pipe(
-      timeout(2000), // Wait max 2s before falling back to cache
-      tap((translation) => {
-        if (typeof window !== 'undefined' && window.localStorage) {
-          try {
-            window.localStorage.setItem(cacheKey, JSON.stringify(translation));
-          } catch (e) {
-            console.warn('[CachedTranslateLoader] Error saving to cache', e);
-          }
-        }
-      }),
-      catchError((error) => {
-        console.warn(
-          `[CachedTranslateLoader] Network error fetching ${lang}, checking cache`,
-          error,
-        );
-        if (typeof window !== 'undefined' && window.localStorage) {
-          const cached = window.localStorage.getItem(cacheKey);
-          if (cached) {
+    return this.http
+      .get<Record<string, unknown>>(`${this.prefix}${lang}${this.suffix}`)
+      .pipe(
+        timeout(2000), // Wait max 2s before falling back to cache
+        tap((translation) => {
+          if (typeof window !== 'undefined' && window.localStorage) {
             try {
-              return of(JSON.parse(cached));
+              window.localStorage.setItem(
+                cacheKey,
+                JSON.stringify(translation),
+              );
             } catch (e) {
-              console.error('[CachedTranslateLoader] Error parsing cache', e);
+              console.warn('[CachedTranslateLoader] Error saving to cache', e);
             }
           }
-        }
-        // Fallback to empty translation to avoid blocking app boot
-        return of({});
-      }),
-    );
+        }),
+        catchError((error) => {
+          console.warn(
+            `[CachedTranslateLoader] Network error fetching ${lang}, checking cache`,
+            error,
+          );
+          if (typeof window !== 'undefined' && window.localStorage) {
+            const cached = window.localStorage.getItem(cacheKey);
+            if (cached) {
+              try {
+                return of(JSON.parse(cached) as Record<string, unknown>);
+              } catch (e) {
+                console.error('[CachedTranslateLoader] Error parsing cache', e);
+              }
+            }
+          }
+          // Fallback to empty translation to avoid blocking app boot
+          return of({} as Record<string, unknown>);
+        }),
+      );
   }
 }
