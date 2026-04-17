@@ -8,20 +8,15 @@ import { TopoDto } from './supabase-interfaces';
 
 export interface CragListItem extends Omit<
   Database['public']['Functions']['get_crags_list_by_area_slug']['Returns'][number],
-  'grades'
+  'grades' | 'topos'
 > {
   grades: AmountByEveryGrade;
+  topos: { id: number; name: string; slug: string }[];
   // Extra fields from Map data or others
   approach?: number;
-  routes_count?: number;
   area_name?: string;
   area_slug?: string;
-  topos?: { id: number; name: string; slug: string }[];
-  // Legacy compatibility fields
-  crag_topos_counts?: { count: number }[];
 }
-
-// export interface CragDetail_DEPRECATED { ... } // Removed
 
 export interface AdditionalCragData {
   description_es?: string;

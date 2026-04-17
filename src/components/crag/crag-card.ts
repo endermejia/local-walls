@@ -34,8 +34,7 @@ import { CragListItem } from '../../models';
       </ng-container>
       <div content class="flex flex-col min-h-32">
         @let routesCount = item.routes_count || 0;
-        @let topoCount =
-          item.topos?.length || (item.crag_topos_counts || [])[0]?.count || 0;
+        @let topoCount = item.topos.length;
 
         <!-- Area name at the very top of content -->
         @if (showAreaName()) {
