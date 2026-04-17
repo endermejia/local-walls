@@ -222,7 +222,7 @@ export type HomeFeedFilter =
                     <a
                       [routerLink]="['/area', c.area_slug, c.slug]"
                       tuiAppearance="textfield"
-                      class="flex-none p-3 rounded-2xl flex items-center gap-2 no-underline text-inherit hover:bg-(--tui-background-neutral-1)"
+                      class="flex-none p-3 rounded-2xl"
                     >
                       <span class="whitespace-nowrap font-bold text-sm">{{
                         c.name
