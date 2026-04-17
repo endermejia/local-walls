@@ -17,6 +17,7 @@ import { GlobalData } from '../../services/global-data';
 import { ChartRoutesByGradeComponent } from '../charts/chart-routes-by-grade';
 
 import { IconSrcPipe } from '../../pipes/icon-src.pipe';
+import { ShadeInfoPipe } from '../../pipes/shade-info.pipe';
 import { TopoImagePipe } from '../../pipes/topo-image.pipe';
 import { TopoListItem } from '../../models';
 
@@ -26,6 +27,7 @@ import { TopoListItem } from '../../models';
     ChartRoutesByGradeComponent,
     CommonModule,
     IconSrcPipe,
+    ShadeInfoPipe,
     TopoImagePipe,
     TranslatePipe,
     TuiAppearance,
@@ -64,15 +66,17 @@ import { TopoListItem } from '../../models';
           }
           <div class="flex items-center justify-between gap-2 mt-auto">
             <div class="flex items-center justify-between gap-2">
-              @let shade = getShadeInfo(item);
-              <tui-icon [icon]="shade.icon" class="opacity-70 text-xl" />
-              <span class="text-sm opacity-80">
-                {{ shade.label | translate }}
-                @if (item.shade_change_hour) {
-                  · {{ 'filters.shade.changeAt' | translate }}
-                  {{ item.shade_change_hour }}
-                }
-              </span>
+              @let shade = item | shadeInfo;
+              @if (shade) {
+                <tui-icon [icon]="shade.icon" class="opacity-70 text-xl" />
+                <span class="text-sm opacity-80">
+                  {{ shade.label | translate }}
+                  @if (item.shade_change_hour) {
+                    · {{ 'filters.shade.changeAt' | translate }}
+                    {{ item.shade_change_hour }}
+                  }
+                </span>
+              }
             </div>
             <app-chart-routes-by-grade
               [grades]="item.grades"
@@ -89,17 +93,4 @@ export class TopoCardComponent {
   protected readonly global = inject(GlobalData);
   topo = input.required<TopoListItem>();
   selected = output<void>();
-
-  protected getShadeInfo(t: TopoListItem) {
-    if (t.shade_morning && t.shade_afternoon) {
-      return { icon: '@tui.cloud-sun', label: 'filters.shade.allDay' };
-    }
-    if (t.shade_morning) {
-      return { icon: '@tui.sun', label: 'filters.shade.morning' };
-    }
-    if (t.shade_afternoon) {
-      return { icon: '@tui.moon', label: 'filters.shade.afternoon' };
-    }
-    return { icon: '@tui.sun', label: 'filters.shade.noShade' };
-  }
 }

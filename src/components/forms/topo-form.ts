@@ -49,6 +49,7 @@ import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 import { ToposService } from '../../services/topos.service';
+import { ShadeInfoPipe } from '../../pipes/shade-info.pipe';
 
 import { GradeComponent } from '../ui/avatar-grade';
 import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
@@ -73,6 +74,7 @@ import { handleErrorToast, slugify } from '../../utils';
     FormField,
     FormsModule,
     GradeComponent,
+    ShadeInfoPipe,
     TranslatePipe,
     TuiButton,
     TuiCell,
@@ -115,7 +117,12 @@ import { handleErrorToast, slugify } from '../../utils';
               [formField]="topoForm.shade_morning"
               autocomplete="off"
             />
-            <tui-icon icon="@tui.sunset" />
+            <tui-icon
+              [icon]="
+                ({ shade_morning: true, shade_afternoon: false } | shadeInfo)
+                  ?.icon
+              "
+            />
             {{ 'filters.shade.morning' | translate }}
           </label>
 
@@ -126,7 +133,12 @@ import { handleErrorToast, slugify } from '../../utils';
               [formField]="topoForm.shade_afternoon"
               autocomplete="off"
             />
-            <tui-icon icon="@tui.sunrise" />
+            <tui-icon
+              [icon]="
+                ({ shade_morning: false, shade_afternoon: true } | shadeInfo)
+                  ?.icon
+              "
+            />
             {{ 'filters.shade.afternoon' | translate }}
           </label>
         </div>

@@ -67,6 +67,7 @@ import {
 
 import { GradeLabelPipe } from '../../pipes/grade-label.pipe';
 import { IconSrcPipe } from '../../pipes/icon-src.pipe';
+import { ShadeInfoPipe } from '../../pipes/shade-info.pipe';
 import { handleErrorToast } from '../../utils';
 import {
   getRouteStyleProperties,
@@ -106,6 +107,7 @@ export interface TopoRouteRow {
     GradeComponent,
     GradeLabelPipe,
     IconSrcPipe,
+    ShadeInfoPipe,
     PaywallComponent,
     RouterLink,
     SectionHeaderComponent,
@@ -136,7 +138,7 @@ export interface TopoRouteRow {
             >
               <!-- Shade info as title additional info -->
               <ng-container titleInfo>
-                @if (shadeInfo(); as info) {
+                @if (t | shadeInfo; as info) {
                   <tui-icon [icon]="info.icon" class="text-2xl opacity-70" />
                 }
               </ng-container>
@@ -1139,22 +1141,6 @@ export class TopoComponent {
       if (!params) return null;
       return await this.supabase.getTopoSignedUrl(params.path, params.version);
     },
-  });
-
-  protected readonly shadeInfo = computed(() => {
-    const t = this.topo();
-    if (!t) return null;
-
-    if (t.shade_morning && t.shade_afternoon) {
-      return { icon: '@tui.eclipse', label: 'filters.shade.allDay' };
-    }
-    if (t.shade_morning) {
-      return { icon: '@tui.sunset', label: 'filters.shade.morning' };
-    }
-    if (t.shade_afternoon) {
-      return { icon: '@tui.sunrise', label: 'filters.shade.afternoon' };
-    }
-    return { icon: '@tui.sun', label: 'filters.shade.noShade' };
   });
 
   protected readonly columns = computed(() => {
