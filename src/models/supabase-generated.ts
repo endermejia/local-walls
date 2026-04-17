@@ -3260,11 +3260,13 @@ export interface Database {
           id: number;
           liked: boolean;
           name: string;
+          routes_count: number;
           shade_afternoon: boolean;
           shade_all_day: boolean;
           shade_morning: boolean;
           slug: string;
           sun_all_day: boolean;
+          topos: Json;
           topos_count: number;
           user_creator_id: string;
         }[];
