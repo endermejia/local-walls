@@ -1,5 +1,6 @@
 {
-  "buildCommand": "npm run build",
+  "installCommand": "bun install",
+  "buildCommand": "bun run build",
   "outputDirectory": "dist/climbeast/browser",
   "cleanUrls": true,
   "trailingSlash": false,

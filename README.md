@@ -147,15 +147,15 @@ The app is configured as a PWA using Angular Service Worker. It provides:
 ### Local Setup
 
 ```bash
-npm install
-npm start
+bun install
+bun start
 ```
 
 ### SSR Testing
 
 ```bash
-npm run build
-npm run serve:ssr:climbeast
+bun run build
+bun run serve:ssr:climbeast
 ```
 
 ## Contributing
