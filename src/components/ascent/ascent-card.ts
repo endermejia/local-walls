@@ -207,14 +207,13 @@ import { getEmbedUrl } from '../../utils/video-helpers';
             >
               @for (item of items; track $index) {
                 <ng-container *tuiItem>
-                  <div
-                    class="overflow-hidden flex items-center justify-center bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl relative min-h-44"
-                    [class.aspect-video]="true"
-                  >
-                    @if (item.type === 'image') {
+                  @if (item.type === 'image') {
+                    <div
+                      class="overflow-hidden bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl"
+                    >
                       <img
                         [src]="item.url"
-                        class="w-full h-auto object-contain cursor-pointer"
+                        class="w-full h-auto block cursor-pointer"
                         [alt]="ascent.route?.name || 'Ascent photo'"
                         [attr.loading]="priority() ? 'eager' : 'lazy'"
                         (click)="showEnlargedPhoto(item.url)"
@@ -223,7 +222,11 @@ import { getEmbedUrl } from '../../utils/video-helpers';
                         tabindex="0"
                         role="button"
                       />
-                    } @else {
+                    </div>
+                  } @else {
+                    <div
+                      class="overflow-hidden bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl aspect-video"
+                    >
                       <iframe
                         [src]="item.url"
                         class="w-full h-full"
@@ -231,8 +234,8 @@ import { getEmbedUrl } from '../../utils/video-helpers';
                         allowfullscreen
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       ></iframe>
-                    }
-                  </div>
+                    </div>
+                  }
                 </ng-container>
               }
             </tui-carousel>
@@ -248,14 +251,13 @@ import { getEmbedUrl } from '../../utils/video-helpers';
           </div>
         } @else if (items.length === 1) {
           @let item = items[0];
-          <div
-            class="overflow-hidden flex items-center justify-center bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl relative min-h-44"
-            [class.aspect-video]="true"
-          >
-            @if (item.type === 'image') {
+          @if (item.type === 'image') {
+            <div
+              class="overflow-hidden bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl"
+            >
               <img
                 [src]="item.url"
-                class="w-full h-auto object-contain cursor-pointer"
+                class="w-full h-auto block cursor-pointer"
                 [alt]="ascent.route?.name || 'Ascent photo'"
                 [attr.loading]="priority() ? 'eager' : 'lazy'"
                 (click)="showEnlargedPhoto(item.url)"
@@ -264,7 +266,11 @@ import { getEmbedUrl } from '../../utils/video-helpers';
                 tabindex="0"
                 role="button"
               />
-            } @else {
+            </div>
+          } @else {
+            <div
+              class="overflow-hidden bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl aspect-video"
+            >
               <iframe
                 [src]="item.url"
                 class="w-full h-full"
@@ -272,8 +278,8 @@ import { getEmbedUrl } from '../../utils/video-helpers';
                 allowfullscreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               ></iframe>
-            }
-          </div>
+            </div>
+          }
         } @else if (ascentPhotoResource.isLoading()) {
           <div
             class="aspect-video bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl"
