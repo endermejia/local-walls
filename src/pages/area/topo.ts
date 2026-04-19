@@ -1115,7 +1115,14 @@ export class TopoComponent {
         isHovered,
         tr.route.grade,
       );
-      const width = getRouteStrokeWidth(isSelected, isHovered, 2, 'viewer');
+      const width = getRouteStrokeWidth(
+        isSelected,
+        isHovered,
+        5,
+        'viewer',
+        tr.path?.width,
+      );
+
       const pointsString = tr.path
         ? getPointsStringUtil(tr.path.points, 1000, hScale)
         : '';

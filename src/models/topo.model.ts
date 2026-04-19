@@ -23,6 +23,7 @@ export interface RouteWithOwnData extends RouteDto {
 export interface TopoPath {
   points: { x: number; y: number }[];
   color?: string;
+  width?: number;
   [key: string]: unknown;
 }
 

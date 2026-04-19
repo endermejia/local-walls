@@ -43,15 +43,21 @@ export function getRouteStyleProperties(
 export function getRouteStrokeWidth(
   isSelected: boolean,
   isHovered: boolean,
-  baseWidth = 2,
+  baseWidth = 5,
   viewMode: 'editor' | 'viewer' = 'editor',
+  customWidth?: number,
 ): number {
+  const width = customWidth || baseWidth;
+  const factor = width / 1000;
+
   if (viewMode === 'viewer') {
-    if (isSelected) return 0.008;
-    if (isHovered) return 0.007;
-    return 0.005;
+    if (isSelected) return factor * 1.6;
+    if (isHovered) return factor * 1.4;
+    return factor;
   }
-  return isSelected ? baseWidth * 2 : baseWidth;
+
+  // In editor mode, we return the factor to be multiplied by the image width
+  return isSelected ? factor * 1.6 : factor;
 }
 
 /**

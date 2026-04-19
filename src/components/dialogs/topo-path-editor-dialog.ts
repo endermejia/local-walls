@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -20,6 +21,7 @@ import {
   TuiIcon,
   TuiLoader,
   TuiScrollbar,
+  TuiSlider,
 } from '@taiga-ui/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -41,8 +43,10 @@ import {
 import { TopoHasPathPipe } from '../../pipes/topo-path.pipe';
 import {
   getRouteStyleProperties,
+  getRouteStrokeWidth,
   getPointsString as getPointsStringUtil,
 } from '../../utils/topo-styles.utils';
+
 import {
   handleWheelZoom,
   constrainTranslation,
@@ -71,6 +75,8 @@ export interface TopoPathEditorConfig {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
+
     GradeComponent,
     TopoHasPathPipe,
     TranslateModule,
@@ -78,7 +84,9 @@ export interface TopoPathEditorConfig {
     TuiIcon,
     TuiLoader,
     TuiScrollbar,
+    TuiSlider,
   ],
+
   template: `
     <div class="editor-root">
       <!-- ═════════════════════ BODY (canvas + sidebar) ═════════════════════ -->
@@ -125,10 +133,25 @@ export interface TopoPathEditorConfig {
                 <tui-icon icon="@tui.move" class="tip-icon" />
                 {{ 'topos.editor.movePoint' | translate }}
               </p>
-              <p class="tip tip--danger">
-                <tui-icon icon="@tui.trash" class="tip-icon--danger" />
-                {{ 'topos.editor.deletePoint' | translate }}
-              </p>
+            </div>
+
+            <!-- Line Width Slider -->
+            <div class="line-width-control">
+              <div class="control-header">
+                <span class="control-label">{{
+                  'topos.editor.lineWidth' | translate
+                }}</span>
+                <span class="control-value">{{ lineWidth() }}</span>
+              </div>
+              <input
+                tuiSlider
+                type="range"
+                [min]="1"
+                [max]="15"
+                [step]="0.5"
+                [ngModel]="lineWidth()"
+                (ngModelChange)="lineWidth.set($event)"
+              />
             </div>
           </div>
         </aside>
@@ -193,7 +216,14 @@ export interface TopoPathEditorConfig {
                     fill="none"
                     stroke="transparent"
                     [attr.stroke-width]="
-                      isSelected ? width() * 0.06 : width() * 0.03
+                      getRouteStrokeWidth(
+                        isSelected,
+                        false,
+                        lineWidth(),
+                        'editor'
+                      ) *
+                      width() *
+                      5
                     "
                     stroke-linejoin="round"
                     stroke-linecap="round"
@@ -205,7 +235,13 @@ export interface TopoPathEditorConfig {
                     stroke="white"
                     [style.opacity]="style.isDashed ? 1 : 0.7"
                     [attr.stroke-width]="
-                      (isSelected ? width() * 0.008 : width() * 0.005) +
+                      getRouteStrokeWidth(
+                        isSelected,
+                        false,
+                        lineWidth(),
+                        'editor'
+                      ) *
+                        width() +
                       (style.isDashed ? 2.5 : 1.5)
                     "
                     [attr.stroke-dasharray]="
@@ -223,7 +259,12 @@ export interface TopoPathEditorConfig {
                     [attr.stroke]="style.stroke"
                     [style.opacity]="style.opacity"
                     [attr.stroke-width]="
-                      isSelected ? width() * 0.008 : width() * 0.005
+                      getRouteStrokeWidth(
+                        isSelected,
+                        false,
+                        lineWidth(),
+                        'editor'
+                      ) * width()
                     "
                     [attr.stroke-dasharray]="
                       style.isDashed
@@ -233,6 +274,7 @@ export interface TopoPathEditorConfig {
                     stroke-linejoin="round"
                     stroke-linecap="round"
                   />
+
                   <!-- End dot -->
                   @if (
                     entry.value.points[entry.value.points.length - 1];
@@ -241,7 +283,14 @@ export interface TopoPathEditorConfig {
                     <circle
                       [attr.cx]="last.x * width()"
                       [attr.cy]="last.y * height()"
-                      [attr.r]="isSelected ? width() * 0.008 : width() * 0.005"
+                      [attr.r]="
+                        getRouteStrokeWidth(
+                          isSelected,
+                          false,
+                          lineWidth(),
+                          'editor'
+                        ) * width()
+                      "
                       fill="white"
                       [style.opacity]="style.opacity"
                       stroke="black"
@@ -579,6 +628,37 @@ export interface TopoPathEditorConfig {
       font-size: 0.875rem;
     }
 
+    /* ── Line Width Control ── */
+    .line-width-control {
+      flex-shrink: 0;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--tui-border-normal);
+      background: var(--tui-background-neutral-1);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .control-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0.6;
+    }
+
+    .control-value {
+      font-size: 0.875rem;
+      font-weight: 800;
+      color: var(--tui-text-accent-1);
+    }
+
     /* ── Mobile sidebar overlay ── */
     @media (max-width: 767px) {
       .route-sidebar {
@@ -737,9 +817,13 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     {
       points: { x: number; y: number }[];
       color?: string;
+      width?: number;
       _ref: TopoRouteWithRoute;
     }
   >();
+  lineWidth = signal(5);
+
+  protected readonly getRouteStrokeWidth = getRouteStrokeWidth;
 
   width = signal(0);
   height = signal(0);
@@ -768,9 +852,13 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     // Initialize paths from existing data
     this.topoRoutes.forEach((tr) => {
       if (tr.path) {
+        if (tr.path.width) {
+          this.lineWidth.set(tr.path.width);
+        }
         this.pathsMap.set(tr.route_id, {
           points: [...tr.path.points],
           color: tr.path.color,
+          width: tr.path.width,
           _ref: tr,
         });
       }
@@ -1082,7 +1170,11 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
       const pathsToUpdate = Array.from(this.pathsMap.entries()).map(
         ([routeId, path]) => ({
           routeId,
-          path: { points: path.points, color: path.color } as TopoPath,
+          path: {
+            points: path.points,
+            color: path.color,
+            width: this.lineWidth(),
+          } as TopoPath,
         }),
       );
 

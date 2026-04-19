@@ -580,6 +580,7 @@
   "topos.editTitle": "Edit topo",
   "topos.editor.addPoint": "Click to add point",
   "topos.editor.deletePoint": "Right click to delete",
+  "topos.editor.lineWidth": "Line width",
   "topos.editor.movePoint": "Drag to move",
   "topos.editor.sort": "Sort",
   "topos.editor.sortConfirm": "Are you sure you want to sort routes from left to right based on their position on the screen?",

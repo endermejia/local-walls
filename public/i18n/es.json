@@ -580,6 +580,7 @@
   "topos.editTitle": "Editar croquis",
   "topos.editor.addPoint": "Click para añadir punto",
   "topos.editor.deletePoint": "Click derecho para borrar",
+  "topos.editor.lineWidth": "Grosor de línea",
   "topos.editor.movePoint": "Arrastra para mover",
   "topos.editor.sort": "Ordenar",
   "topos.editor.sortConfirm": "¿Estás seguro de que quieres ordenar las vías de izquierda a derecha según su posición en pantalla?",
