@@ -361,9 +361,9 @@ export interface TopoPathEditorConfig {
         <!-- Mobile FAB to toggle sidebar -->
         <button
           tuiIconButton
-          appearance="primary"
+          appearance="floating"
           size="m"
-          class="fab-routes"
+          class="fab-routes bg-(--tui-background-base)!"
           (click)="sidebarOpen.set(!sidebarOpen())"
         >
           <tui-icon [icon]="sidebarOpen() ? '@tui.x' : '@tui.list'" />
@@ -710,21 +710,14 @@ export interface TopoPathEditorConfig {
       z-index: 15;
     }
 
-    /* ── FAB ── */
     .fab-routes {
       position: absolute;
-      top: 1.25rem;
-      right: 1.25rem;
+      top: 1rem;
+      right: 1rem;
       z-index: 30;
       border-radius: 50% !important;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
       display: none;
-    }
-
-    @media (max-width: 767px) {
-      .fab-routes {
-        top: 1rem;
-      }
     }
 
     /* ── Canvas area ── */

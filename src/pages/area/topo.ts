@@ -83,7 +83,6 @@ import {
   handleViewerTouchMove,
   handleViewerMouseDown,
   handleViewerMouseMove,
-  resetViewerZoomState,
   centerViewerOnPoint,
 } from '../../utils/zoom-pan.utils';
 
@@ -1008,6 +1007,8 @@ export class TopoComponent {
     const selectedId = this.selectedRouteId();
     if (selectedId) {
       setTimeout(() => this.centerOnRoute(), 50);
+    } else {
+      this.resetZoom();
     }
   }
 
@@ -1037,19 +1038,56 @@ export class TopoComponent {
 
   protected toggleFullscreen(value: boolean): void {
     this.isFullscreen.set(value);
-    if (!value) {
+    // Use setTimeout to allow the UI to render the new container before resetting zoom
+    setTimeout(() => {
       this.resetZoom();
-    }
+    }, 0);
   }
 
+  protected readonly minScale = computed(() => {
+    const ratio = this.imageRatio();
+    const isFullscreen = this.isFullscreen();
+    const container = isFullscreen
+      ? this.fullscreenContainer()?.nativeElement
+      : this.scrollContainer()?.nativeElement;
+
+    if (!container) return 0.1;
+
+    const w = container.offsetWidth;
+    const h = container.offsetHeight;
+    if (!w || !h) return 0.1;
+
+    const containerRatio = w / h;
+
+    if (isFullscreen) {
+      // In fullscreen, we want to at least cover the full width of the screen.
+      // Since object-contain + max-w-dvw already fits width for wide images at scale 1,
+      // and h-full fits height for portrait images at scale 1,
+      // the scale required to fit the width is exactly max(1, containerRatio / ratio).
+      return Math.max(1, containerRatio / ratio);
+    }
+
+    // In normal view, we want to at least see the whole image (fit).
+    return Math.max(0.1, Math.min(1, containerRatio / ratio));
+  });
+
   protected resetZoom(): void {
-    resetViewerZoomState(this.viewerState);
+    const isFullscreen = this.isFullscreen();
+    const ms = this.minScale();
+    // In fullscreen, we always want to start at the minScale (full width).
+    // In normal view, we want to start at scale 1 (fit height) unless that's smaller than minScale.
+    const defaultScale = isFullscreen ? ms : Math.max(1, ms);
+
+    this.zoomScale.set(defaultScale);
+    this.zoomPosition.set({ x: 0, y: 0 });
     this.dragState.initialTx = 0;
     this.dragState.initialTy = 0;
   }
 
   protected onWheel(event: Event): void {
-    handleViewerWheelZoom(event, this.viewerState);
+    handleViewerWheelZoom(event, this.viewerState, {
+      minScale: this.minScale(),
+    });
   }
 
   protected onTouchStart(event: Event): void {
@@ -1057,7 +1095,9 @@ export class TopoComponent {
   }
 
   protected onTouchMove(event: Event): void {
-    handleViewerTouchMove(event, this.viewerState, this.dragState);
+    handleViewerTouchMove(event, this.viewerState, this.dragState, {
+      minScale: this.minScale(),
+    });
   }
 
   protected onTouchEnd(): void {
