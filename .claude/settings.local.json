@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find D:/git/local-walls/src -type f \\\\\\( -name \"*.ts\" -o -name \"*.js\" \\\\\\) -exec grep -l \"workbox\\\\|CacheStorage\\\\|IndexedDB\" {} \\\\;)"
+    ]
+  }
+}

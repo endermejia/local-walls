@@ -20,9 +20,9 @@ export const rootRedirectGuard: CanActivateFn = async (): Promise<
     return router.createUrlTree(['/info']);
   }
 
-  // On the client, check if user is authenticated
+  // Wait for client init (resolves from localStorage, no network call needed).
   await supabase.whenReady();
-  const session = await supabase.getSession();
+  const session = supabase.session();
 
   if (session) {
     // Authenticated user -> redirect to /home

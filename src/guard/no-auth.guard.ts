@@ -14,7 +14,7 @@ export const noAuthGuard: CanMatchFn = async (): Promise<boolean | UrlTree> => {
   }
 
   await supabase.whenReady();
-  const session = await supabase.getSession();
+  const session = supabase.session();
 
   if (session) {
     return router.createUrlTree(['/home']);

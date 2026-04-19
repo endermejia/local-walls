@@ -16,9 +16,9 @@ export const authGuard: CanMatchFn = async (
     return true;
   }
 
-  // Ensure the client is initialized and try to get the session
+  // Wait for client init (resolves from localStorage, no network call needed).
   await supabase.whenReady();
-  const session = await supabase.getSession();
+  const session = supabase.session();
   if (!session) {
     return router.createUrlTree(['/login']);
   }

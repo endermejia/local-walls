@@ -295,6 +295,7 @@ export class SupabaseService {
         '[SupabaseService] Missing SUPABASE config. Provide it via provideSupabaseConfig({ url, anonKey }).',
       );
       this._readyResolve?.();
+      this._readyResolve = null;
       return;
     }
     try {
@@ -307,17 +308,26 @@ export class SupabaseService {
           detectSessionInUrl: true,
         },
       });
-      // Initial session fetch
-      const { data } = await this._client.auth.getSession();
-      this._session.set(data.session ?? null);
-      // Subscribe to auth state changes
+      // Subscribe to auth state changes BEFORE calling getSession().
+      // Supabase fires INITIAL_SESSION immediately from localStorage (no network call),
+      // which is sufficient for routing guards to determine auth state offline.
+      // Token refresh for expired tokens happens in the background via getSession().
       this._client.auth.onAuthStateChange((event, sess) => {
         this._session.set(sess ?? null);
         this._lastEvent.set(event ?? null);
+        // Resolve _ready on the first event (INITIAL_SESSION) so guards never
+        // block waiting for a network token refresh when offline.
+        if (this._readyResolve) {
+          this._readyResolve();
+          this._readyResolve = null;
+        }
       });
+      // Trigger session validation in the background. This may refresh an expired
+      // token via network, but we don't await it to avoid blocking whenReady() offline.
+      void this._client.auth.getSession();
     } catch (e) {
       console.error('[SupabaseService] Failed to initialize client', e);
-    } finally {
+      // Ensure _ready always resolves even on unexpected errors.
       this._readyResolve?.();
       this._readyResolve = null;
     }
