@@ -1038,10 +1038,6 @@ export class TopoComponent {
 
   protected toggleFullscreen(value: boolean): void {
     this.isFullscreen.set(value);
-    // Use setTimeout to allow the UI to render the new container before resetting zoom
-    setTimeout(() => {
-      this.resetZoom();
-    }, 0);
   }
 
   protected readonly minScale = computed(() => {
