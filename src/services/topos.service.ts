@@ -279,9 +279,13 @@ export class ToposService {
       { defaultValue: false },
     ).then((result) => {
       // If standalone (saved directly) it returns true.
-      if (result === true) {
+      if (
+        result === true ||
+        (result && typeof result === 'object' && result.saved)
+      ) {
         this.global.topoDetailResource.reload();
       }
+
       return result;
     });
   }

@@ -582,6 +582,7 @@
   "topos.editor.deletePoint": "Click derecho para borrar",
   "topos.editor.lineWidth": "Grosor de línea",
   "topos.editor.movePoint": "Arrastra para mover",
+  "topos.editor.removePathConfirm": "¿Estás seguro de que quieres eliminar la línea de esta vía?",
   "topos.editor.sort": "Ordenar",
   "topos.editor.sortConfirm": "¿Estás seguro de que quieres ordenar las vías de izquierda a derecha según su posición en pantalla?",
   "topos.manageRoutes": "Gestionar vías asociadas",

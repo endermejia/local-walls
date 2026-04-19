@@ -582,6 +582,7 @@
   "topos.editor.deletePoint": "Right click to delete",
   "topos.editor.lineWidth": "Line width",
   "topos.editor.movePoint": "Drag to move",
+  "topos.editor.removePathConfirm": "Are you sure you want to remove the path for this route?",
   "topos.editor.sort": "Sort",
   "topos.editor.sortConfirm": "Are you sure you want to sort routes from left to right based on their position on the screen?",
   "topos.manageRoutes": "Manage linked routes",

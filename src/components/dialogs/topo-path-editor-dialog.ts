@@ -28,7 +28,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { firstValueFrom } from 'rxjs';
 
-import { GlobalData } from '../../services/global-data';
 import { ToastService } from '../../services/toast.service';
 import { ToposService } from '../../services/topos.service';
 
@@ -98,12 +97,12 @@ export interface TopoPathEditorConfig {
             <tui-scrollbar class="sidebar-scroll">
               <div class="route-list">
                 @for (tr of topoRoutes; track tr.route_id) {
-                  <button
+                  @let hasPath = tr.route_id | topoHasPath: pathsMap;
+                  <div
                     class="route-item"
                     [class.route-item--active]="
                       selectedRoute()?.route_id === tr.route_id
                     "
-                    [attr.aria-label]="tr.route.name"
                     (click)="selectRoute(tr, true)"
                   >
                     <div class="route-num">{{ tr.number }}</div>
@@ -115,10 +114,30 @@ export interface TopoPathEditorConfig {
                       [kind]="tr.route.climbing_kind"
                       size="s"
                     />
-                    @if (tr.route_id | topoHasPath: pathsMap) {
-                      <tui-icon icon="@tui.check" class="path-check" />
-                    }
-                  </button>
+
+                    <div
+                      class="flex items-center gap-1"
+                      (click)="$event.stopPropagation()"
+                    >
+                      @if (hasPath) {
+                        @if (selectedRoute()?.route_id === tr.route_id) {
+                          <button
+                            tuiIconButton
+                            appearance="flat"
+                            size="s"
+                            iconStart="@tui.trash"
+                            class="rounded-full!"
+                            [class.text-white!]="true"
+                            (click)="removePath(tr)"
+                          >
+                            {{ 'delete' | translate }}
+                          </button>
+                        } @else {
+                          <tui-icon icon="@tui.check" class="path-check" />
+                        }
+                      }
+                    </div>
+                  </div>
                 }
               </div>
             </tui-scrollbar>
@@ -310,36 +329,20 @@ export interface TopoPathEditorConfig {
                       "
                       (contextmenu)="removePoint($event, entry.key, $index)"
                     >
+                      @let strokeW =
+                        getRouteStrokeWidth(true, false, lineWidth(), 'editor');
                       <circle
                         [attr.cx]="pt.x * width()"
                         [attr.cy]="pt.y * height()"
-                        [attr.r]="width() * 0.012"
+                        [attr.r]="strokeW * width() * 1.5"
                         fill="rgba(0,0,0,0.4)"
                       />
                       <circle
                         [attr.cx]="pt.x * width()"
                         [attr.cy]="pt.y * height()"
-                        [attr.r]="width() * 0.006"
+                        [attr.r]="strokeW * width() * 0.8"
                         [attr.fill]="style.stroke"
                       />
-                      @if ($index === 0) {
-                        <circle
-                          [attr.cx]="pt.x * width()"
-                          [attr.cy]="pt.y * height() - width() * 0.02"
-                          [attr.r]="width() * 0.01"
-                          fill="var(--tui-background-base)"
-                        />
-                        <text
-                          [attr.x]="pt.x * width()"
-                          [attr.y]="pt.y * height() - width() * 0.016"
-                          text-anchor="middle"
-                          fill="var(--tui-text-primary)"
-                          [attr.font-size]="width() * 0.01"
-                          font-weight="bold"
-                        >
-                          {{ selectedRoute()?.number! + 1 }}
-                        </text>
-                      }
                     </g>
                   }
                 }
@@ -710,7 +713,7 @@ export interface TopoPathEditorConfig {
     /* ── FAB ── */
     .fab-routes {
       position: absolute;
-      bottom: 1.25rem;
+      top: 1.25rem;
       right: 1.25rem;
       z-index: 30;
       border-radius: 50% !important;
@@ -720,7 +723,7 @@ export interface TopoPathEditorConfig {
 
     @media (max-width: 767px) {
       .fab-routes {
-        bottom: 1rem;
+        top: 1rem;
       }
     }
 
@@ -799,7 +802,6 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   private readonly cdr = inject(ChangeDetectorRef);
-  private readonly global = inject(GlobalData);
 
   protected readonly imageElement =
     viewChild.required<ElementRef<HTMLImageElement>>('image');
@@ -1160,6 +1162,26 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     this.cdr.markForCheck();
   }
 
+  async removePath(tr: TopoRouteWithRoute): Promise<void> {
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('delete'),
+        size: 's',
+        data: {
+          content: this.translate.instant('topos.editor.removePathConfirm'),
+          yes: this.translate.instant('delete'),
+          no: this.translate.instant('cancel'),
+        },
+      }),
+      { defaultValue: false },
+    );
+    if (confirmed) {
+      this.pathsMap.delete(tr.route_id);
+      this.selectedRoute.set(null);
+      this.cdr.markForCheck();
+    }
+  }
+
   close(): void {
     this.context.completeWith(false);
   }
@@ -1204,7 +1226,6 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
         );
       }
 
-      this.global.topoDetailResource.reload();
       this.toast.success('messages.toasts.pathsSaved');
       this.context.completeWith(true);
     } catch (error) {

@@ -345,7 +345,7 @@ export interface TopoRouteRow {
                               (mouseleave)="hoveredRouteId.set(null)"
                               [attr.cx]="first.x * 1000"
                               [attr.cy]="first.y * hScale"
-                              [attr.r]="10"
+                              [attr.r]="tr.width * 2000"
                               [attr.fill]="tr.style.stroke"
                               stroke="white"
                               stroke-width="1"
@@ -353,11 +353,11 @@ export interface TopoRouteRow {
                             <text
                               class="pointer-events-none"
                               [attr.x]="first.x * 1000"
-                              [attr.y]="first.y * hScale + 3"
+                              [attr.y]="first.y * hScale + tr.width * 600"
                               text-anchor="middle"
                               fill="white"
                               style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
-                              font-size="8"
+                              [attr.font-size]="tr.width * 1600"
                               font-weight="bold"
                               font-family="sans-serif"
                             >
@@ -531,18 +531,18 @@ export interface TopoRouteRow {
                               <circle
                                 [attr.cx]="first.x * 1000"
                                 [attr.cy]="first.y * hScale"
-                                [attr.r]="10"
+                                [attr.r]="tr.width * 2000"
                                 [attr.fill]="tr.style.stroke"
                                 stroke="white"
                                 stroke-width="1"
                               />
                               <text
                                 [attr.x]="first.x * 1000"
-                                [attr.y]="first.y * hScale + 3"
+                                [attr.y]="first.y * hScale + tr.width * 600"
                                 text-anchor="middle"
                                 fill="white"
                                 style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
-                                font-size="8"
+                                [attr.font-size]="tr.width * 1600"
                                 font-weight="bold"
                                 font-family="sans-serif"
                               >
