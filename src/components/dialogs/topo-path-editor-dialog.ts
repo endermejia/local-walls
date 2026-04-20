@@ -100,10 +100,13 @@ export interface TopoPathEditorConfig {
                   @let hasPath = tr.route_id | topoHasPath: pathsMap;
                   <div
                     class="route-item"
+                    role="button"
+                    tabindex="0"
                     [class.route-item--active]="
                       selectedRoute()?.route_id === tr.route_id
                     "
-                    (click)="selectRoute(tr, true)"
+                    (click.zoneless)="selectRoute(tr, true)"
+                    (keydown.enter.zoneless)="selectRoute(tr, true)"
                   >
                     <div class="route-num">{{ tr.number }}</div>
                     <div class="route-info">
@@ -115,10 +118,7 @@ export interface TopoPathEditorConfig {
                       size="s"
                     />
 
-                    <div
-                      class="flex items-center gap-1"
-                      (click)="$event.stopPropagation()"
-                    >
+                    <div class="flex items-center gap-1">
                       @if (hasPath) {
                         @if (selectedRoute()?.route_id === tr.route_id) {
                           <button
@@ -128,7 +128,7 @@ export interface TopoPathEditorConfig {
                             iconStart="@tui.trash"
                             class="rounded-full!"
                             [class.text-white!]="true"
-                            (click)="removePath(tr)"
+                            (click)="removePath(tr); $event.stopPropagation()"
                           >
                             {{ 'delete' | translate }}
                           </button>
@@ -1011,8 +1011,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
       this.scale.set(1);
     }
 
-    // Small delay to allow potential zoom scale signal to propagate
-    setTimeout(() => this.centerOnPoint(center), 0);
+    this.centerOnPoint(center);
   }
 
   private centerOnPoint(point: { x: number; y: number }): void {

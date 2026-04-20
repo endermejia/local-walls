@@ -1037,8 +1037,8 @@ export class TopoComponent {
   protected readonly selectedRouteInfo = computed(() => {
     const routeId = this.selectedRouteId();
     const topo = this.topo();
-    if (!routeId || !topo) return null;
-    return topo.topo_routes.find((r) => r.route_id === routeId) || null;
+    if (!routeId || !topo || !topo.topo_routes) return null;
+    return topo.topo_routes.find((r) => r?.route_id === routeId) || null;
   });
 
   protected readonly imageRatio = signal(1);
@@ -1321,7 +1321,7 @@ export class TopoComponent {
           const rowId = `route-row-${topoId}-${routeId}`;
           const row = rows.find((r) => r?.nativeElement?.id === rowId);
 
-          if (row) {
+          if (row?.nativeElement) {
             row.nativeElement.scrollIntoView({
               behavior: 'smooth',
               block: 'center',
@@ -1428,6 +1428,7 @@ export class TopoComponent {
     if (val === null || isNaN(val) || val === tr.number + 1) return;
     this.toposService
       .updateRouteOrder(tr.topo_id, tr.route_id, val - 1)
+      .then(() => this.global.topoDetailResource.reload())
       .catch((err) => handleErrorToast(err, this.toast));
   }
 
@@ -1442,10 +1443,11 @@ export class TopoComponent {
           ? parseInt(newHeight, 10)
           : newHeight;
 
-    if (val === tr.route.height) return;
+    if (val === tr.route?.height) return;
 
     this.routesService
       .update(tr.route_id, { height: val })
+      .then(() => this.global.topoDetailResource.reload())
       .catch((err) => handleErrorToast(err, this.toast));
   }
 
@@ -1541,7 +1543,9 @@ export class TopoComponent {
 
     if (drawnRoutes.length === 0) return;
 
-    const currentIndex = drawnRoutes.findIndex((r) => r.route_id === currentId);
+    const currentIndex = drawnRoutes.findIndex(
+      (r) => r?.route_id === currentId,
+    );
     if (currentIndex === -1) return;
 
     const nextIndex =
@@ -1580,7 +1584,7 @@ export class TopoComponent {
           if (match) {
             const routeId = parseInt(match[2], 10);
             const currentIndex = data.findIndex(
-              (item) => item._ref.route_id === routeId,
+              (item) => item?._ref?.route_id === routeId,
             );
             if (currentIndex !== -1) {
               nextIdx = (currentIndex + step + data.length) % data.length;
@@ -1591,7 +1595,7 @@ export class TopoComponent {
         if (nextIdx !== undefined) {
           nextItem = data[nextIdx];
 
-          if (nextItem) {
+          if (nextItem?._ref) {
             event.preventDefault(); // Stop TuiInputNumber from changing value
             this.selectedRouteId.set(nextItem._ref.route_id);
 
@@ -1604,7 +1608,7 @@ export class TopoComponent {
                 ? this.indexInputs()
                 : this.heightInputs();
             const nextInput = inputs[nextIdx!];
-            if (nextInput) {
+            if (nextInput?.nativeElement) {
               nextInput.nativeElement.focus();
               nextInput.nativeElement.select();
             }
@@ -1619,7 +1623,7 @@ export class TopoComponent {
 
       if (currentId) {
         const currentIndex = data.findIndex(
-          (item) => item._ref.route_id === currentId,
+          (item) => item?._ref?.route_id === currentId,
         );
         if (currentIndex !== -1) {
           nextIndex = (currentIndex + step + data.length) % data.length;
@@ -1627,7 +1631,7 @@ export class TopoComponent {
       }
 
       nextItem = data[nextIndex];
-      if (nextItem) {
+      if (nextItem?._ref) {
         this.selectedRouteId.set(nextItem._ref.route_id);
         event.preventDefault(); // Prevent page scroll
       }

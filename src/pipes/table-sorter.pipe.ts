@@ -2,6 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { tuiDefaultSort } from '@taiga-ui/cdk';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 
+import { TopoRouteWithRoute } from '../models';
+
 export interface TopoRouteRow {
   index: number;
   name: string;
@@ -11,7 +13,7 @@ export interface TopoRouteRow {
   link: string[];
   climbed: boolean;
   project: boolean;
-  _ref: any; // We can use any here or import the full type
+  _ref: TopoRouteWithRoute;
 }
 
 export const TOPO_ROUTE_SORTERS: Record<string, TuiComparator<TopoRouteRow>> = {
