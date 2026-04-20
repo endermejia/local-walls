@@ -966,7 +966,10 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
   private doConstrainTranslation(): void {
     constrainTranslation(
       this.zoomPanState,
-      this.editorAreaElement()?.nativeElement,
+      {
+        area: this.editorAreaElement().nativeElement,
+        container: this.containerElement().nativeElement,
+      },
       this.width(),
       this.height(),
     );

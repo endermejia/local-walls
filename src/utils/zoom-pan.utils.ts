@@ -95,17 +95,13 @@ export function handleWheelZoom(
 
 export function constrainTranslation(
   state: ZoomPanState,
-  areaEl: HTMLElement | undefined | null,
+  elements: { area: HTMLElement; container: HTMLElement },
   contentWidth: number,
   contentHeight: number,
 ): void {
   const scale = state.scale();
+  const { area: areaEl, container: containerEl } = elements;
 
-  if (!areaEl) return;
-
-  const containerEl = areaEl.querySelector(
-    '.zoom-container, .canvas-container',
-  ) as HTMLElement;
   const restingLeft = containerEl?.offsetLeft ?? 0;
   const restingTop = containerEl?.offsetTop ?? 0;
 
@@ -305,9 +301,16 @@ export interface ViewerZoomPanState {
   zoomPosition: WritableSignal<{ x: number; y: number }>;
 }
 
+export interface ViewerElements {
+  container: HTMLElement;
+  zoomContainer: HTMLElement;
+  img: HTMLImageElement;
+}
+
 export function handleViewerWheelZoom(
   event: Event,
   state: ViewerZoomPanState,
+  elements: ViewerElements,
   config: ZoomPanConfig = {},
 ): void {
   const { minScale, maxScale, zoomSpeed } = { ...DEFAULT_CONFIG, ...config };
@@ -325,9 +328,7 @@ export function handleViewerWheelZoom(
 
   if (newScale === state.zoomScale()) return;
 
-  const area = wheelEvent.currentTarget as HTMLElement;
-  const zoomContainer = area.querySelector('.zoom-container') as HTMLElement;
-  if (!zoomContainer) return;
+  const { zoomContainer, container: area } = elements;
 
   // Key fix: Use the transform's current logical position,
   // and the mouse position RELATIVE to the top-left of the image at scale 1.
@@ -363,7 +364,7 @@ export function handleViewerWheelZoom(
       mouseRelY * newScale,
   };
 
-  const constrained = calculateConstrainedPosition(newPos, newScale, area);
+  const constrained = calculateConstrainedPosition(newPos, newScale, elements);
   state.zoomPosition.set(constrained);
 }
 
@@ -403,6 +404,7 @@ export function handleViewerTouchStart(
   event: Event,
   state: ViewerZoomPanState,
   drag: ViewerDragState,
+  elements: ViewerElements,
 ): void {
   const touchEvent = event as TouchEvent;
 
@@ -436,9 +438,7 @@ export function handleViewerTouchStart(
       touchEvent.touches[1],
     );
 
-    const area = touchEvent.currentTarget as HTMLElement;
-    const container = area.querySelector('.zoom-container') as HTMLElement;
-    if (!container) return;
+    const { zoomContainer: container } = elements;
 
     const rect = container.getBoundingClientRect();
     drag.initialPinchRect = { left: rect.left, top: rect.top };
@@ -456,6 +456,7 @@ export function handleViewerTouchMove(
   event: Event,
   state: ViewerZoomPanState,
   drag: ViewerDragState,
+  elements: ViewerElements,
   config: ZoomPanConfig = {},
 ): void {
   const { minScale, maxScale, moveThreshold } = {
@@ -479,12 +480,10 @@ export function handleViewerTouchMove(
         y: drag.initialTy + dy,
       };
 
-      // Apply constraints before setting state to prevent bounce
-      const area = touchEvent.currentTarget as HTMLElement;
       const constrained = calculateConstrainedPosition(
         newPos,
         state.zoomScale(),
-        area,
+        elements,
       );
 
       state.zoomPosition.set(constrained);
@@ -524,8 +523,11 @@ export function handleViewerTouchMove(
           drag.initialMouseY * newScale,
       };
 
-      const area = touchEvent.currentTarget as HTMLElement;
-      const constrained = calculateConstrainedPosition(newPos, newScale, area);
+      const constrained = calculateConstrainedPosition(
+        newPos,
+        newScale,
+        elements,
+      );
       state.zoomPosition.set(constrained);
     }
   }
@@ -537,13 +539,13 @@ export function handleViewerTouchMove(
 export function centerViewerOnPoint(
   state: ViewerZoomPanState,
   point: { x: number; y: number },
-  containerEl: HTMLElement,
+  elements: ViewerElements,
 ): void {
-  const zoomContainerEl = containerEl.querySelector(
-    '.zoom-container',
-  ) as HTMLElement;
-  const imgEl = zoomContainerEl?.querySelector('img') as HTMLImageElement;
-  if (!zoomContainerEl || !imgEl) return;
+  const {
+    container: containerEl,
+    zoomContainer: zoomContainerEl,
+    img: imgEl,
+  } = elements;
 
   const containerRect = containerEl.getBoundingClientRect();
   const scale = state.zoomScale();
@@ -564,7 +566,7 @@ export function centerViewerOnPoint(
   const constrained = calculateConstrainedPosition(
     { x: targetX, y: targetY },
     scale,
-    containerEl,
+    elements,
   );
   state.zoomPosition.set(constrained);
 }
@@ -587,6 +589,7 @@ export function handleViewerMouseMove(
   event: MouseEvent,
   state: ViewerZoomPanState,
   drag: ViewerDragState,
+  elements: ViewerElements,
   config: ZoomPanConfig = {},
 ): void {
   if (!drag.isDragging) return;
@@ -606,12 +609,10 @@ export function handleViewerMouseMove(
       y: drag.initialTy + dy,
     };
 
-    // Apply constraints before setting state to prevent bounce
-    const area = event.currentTarget as HTMLElement;
     const constrained = calculateConstrainedPosition(
       newPos,
       state.zoomScale(),
-      area,
+      elements,
     );
 
     state.zoomPosition.set(constrained);
@@ -624,13 +625,13 @@ export function handleViewerMouseMove(
 export function calculateConstrainedPosition(
   pos: { x: number; y: number },
   scale: number,
-  containerEl: HTMLElement,
+  elements: ViewerElements,
 ): { x: number; y: number } {
-  const zoomContainerEl = containerEl.querySelector(
-    '.zoom-container',
-  ) as HTMLElement;
-  const imgEl = zoomContainerEl?.querySelector('img') as HTMLImageElement;
-  if (!zoomContainerEl || !imgEl) return pos;
+  const {
+    container: containerEl,
+    zoomContainer: zoomContainerEl,
+    img: imgEl,
+  } = elements;
 
   const containerRect = containerEl.getBoundingClientRect();
 

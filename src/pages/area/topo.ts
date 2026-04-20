@@ -16,9 +16,9 @@ import {
   signal,
   Signal,
   viewChild,
+  viewChildren,
 } from '@angular/core';
 
-import { tuiDefaultSort } from '@taiga-ui/cdk';
 import { TuiDialogService } from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
@@ -69,6 +69,8 @@ import {
 import { GradeLabelPipe } from '../../pipes/grade-label.pipe';
 import { IconSrcPipe } from '../../pipes/icon-src.pipe';
 import { ShadeInfoPipe } from '../../pipes/shade-info.pipe';
+import { AscentInfoPipe } from '../../pipes/ascent-info.pipe';
+import { TableSorterPipe } from '../../pipes/table-sorter.pipe';
 import { handleErrorToast } from '../../utils';
 import {
   getRouteStyleProperties,
@@ -78,6 +80,7 @@ import {
 import {
   ViewerZoomPanState,
   ViewerDragState,
+  ViewerElements,
   createViewerDragState,
   handleViewerWheelZoom,
   handleViewerTouchStart,
@@ -112,6 +115,8 @@ export interface TopoRouteRow {
     RouterLink,
     SectionHeaderComponent,
     TranslatePipe,
+    AscentInfoPipe,
+    TableSorterPipe,
     TuiAvatar,
     TuiButton,
     TuiCell,
@@ -222,6 +227,7 @@ export interface TopoRouteRow {
                 class="h-full w-full flex items-center justify-center min-w-full"
               >
                 <div
+                  #zoomContainerNormal
                   class="relative h-full transition-transform duration-75 ease-out zoom-container origin-top-left"
                   [class.duration-0!]="dragState.isDragging"
                   [style.transform]="
@@ -236,6 +242,7 @@ export interface TopoRouteRow {
                   (click.zoneless)="onImageClick()"
                 >
                   <img
+                    #topoImgNormal
                     [src]="topoImage || ('topo' | iconSrc)"
                     [alt]="t.name"
                     class="w-auto h-full max-w-none block object-cover"
@@ -635,7 +642,7 @@ export interface TopoRouteRow {
                             <th
                               *tuiHead="col"
                               tuiTh
-                              [sorter]="getSorter(col)"
+                              [sorter]="col | tableSorter"
                               [class.text-center]="col !== 'name'"
                               [class.w-10!]="isMobile && col === 'index'"
                               [class.w-12!]="
@@ -673,8 +680,9 @@ export interface TopoRouteRow {
                         </tr>
                       </thead>
                       @for (
-                        item of sortedData;
-                        track item._ref.topo_id + '-' + item._ref.route_id
+                        item of sortedTableData();
+                        track item._ref.topo_id + '-' + item._ref.route_id;
+                        let i = $index
                       ) {
                         <tbody tuiTbody>
                           <tr
@@ -691,10 +699,10 @@ export interface TopoRouteRow {
                             "
                             [style.background]="
                               item.climbed
-                                ? ascentsService.ascentInfo()[
-                                    item._ref.route.own_ascent?.type ||
-                                      'default'
-                                  ].backgroundSubtle
+                                ? (
+                                    item._ref.route.own_ascent?.type
+                                    | ascentInfo
+                                  ).backgroundSubtle
                                 : item.project
                                   ? 'var(--tui-status-info-pale)'
                                   : ''
@@ -733,6 +741,7 @@ export interface TopoRouteRow {
                                           class="h-8!"
                                         >
                                           <input
+                                            #indexInput
                                             tuiInputNumber
                                             class="text-center h-full! border-none! p-0! route-index-input"
                                             [ngModel]="item.index + 1"
@@ -748,6 +757,9 @@ export interface TopoRouteRow {
                                                 $any($event.target).value
                                               );
                                               $event.stopPropagation()
+                                            "
+                                            (keydown)="
+                                              onTableKeyDown($event, i)
                                             "
                                             autocomplete="off"
                                           />
@@ -794,6 +806,7 @@ export interface TopoRouteRow {
                                           class="h-8!"
                                         >
                                           <input
+                                            #heightInput
                                             tuiInputNumber
                                             class="text-center h-full! border-none! p-0! route-height-input"
                                             [ngModel]="item.height"
@@ -809,6 +822,9 @@ export interface TopoRouteRow {
                                                 $any($event.target).value
                                               );
                                               $event.stopPropagation()
+                                            "
+                                            (keydown)="
+                                              onTableKeyDown($event, i)
                                             "
                                             autocomplete="off"
                                           />
@@ -851,9 +867,8 @@ export interface TopoRouteRow {
                                           tuiAvatar
                                           class="cursor-pointer text-(--tui-text-primary-on-accent-1)!"
                                           [style.background]="
-                                            ascentsService.ascentInfo()[
-                                              ascentToEdit?.type || 'default'
-                                            ].background
+                                            (ascentToEdit?.type | ascentInfo)
+                                              .background
                                           "
                                           tabindex="0"
                                           (click.zoneless)="
@@ -873,9 +888,8 @@ export interface TopoRouteRow {
                                         >
                                           <tui-icon
                                             [icon]="
-                                              ascentsService.ascentInfo()[
-                                                ascentToEdit?.type || 'default'
-                                              ].icon
+                                              (ascentToEdit?.type | ascentInfo)
+                                                .icon
                                             "
                                           />
                                         </span>
@@ -976,6 +990,23 @@ export class TopoComponent {
   >('fullscreenContainer');
   protected readonly topoImgFullscreen =
     viewChild<ElementRef<HTMLImageElement>>('topoImgFullscreen');
+  protected readonly topoImgNormal =
+    viewChild<ElementRef<HTMLImageElement>>('topoImgNormal');
+  protected readonly routeRows = viewChildren('routeRow', {
+    read: ElementRef,
+  });
+  protected readonly indexInputs = viewChildren('indexInput', {
+    read: ElementRef,
+  });
+  protected readonly heightInputs = viewChildren('heightInput', {
+    read: ElementRef,
+  });
+  protected readonly zoomContainerNormal = viewChild<
+    ElementRef<HTMLDivElement>
+  >('zoomContainerNormal');
+  protected readonly fullscreenZoomContainer = viewChild<
+    ElementRef<HTMLDivElement>
+  >('fullscreenZoomContainer');
   protected readonly isFullscreen = signal(false);
   protected readonly hoveredRouteId = signal<number | null>(null);
   protected readonly selectedRouteId = signal<number | null>(null);
@@ -1088,17 +1119,23 @@ export class TopoComponent {
   }
 
   protected onWheel(event: Event): void {
-    handleViewerWheelZoom(event, this.viewerState, {
+    const el = this.getViewerElements();
+    if (!el) return;
+    handleViewerWheelZoom(event, this.viewerState, el, {
       minScale: this.minScale(),
     });
   }
 
   protected onTouchStart(event: Event): void {
-    handleViewerTouchStart(event, this.viewerState, this.dragState);
+    const el = this.getViewerElements();
+    if (!el) return;
+    handleViewerTouchStart(event, this.viewerState, this.dragState, el);
   }
 
   protected onTouchMove(event: Event): void {
-    handleViewerTouchMove(event, this.viewerState, this.dragState, {
+    const el = this.getViewerElements();
+    if (!el) return;
+    handleViewerTouchMove(event, this.viewerState, this.dragState, el, {
       minScale: this.minScale(),
     });
   }
@@ -1112,7 +1149,9 @@ export class TopoComponent {
   }
 
   protected onMouseMove(event: MouseEvent): void {
-    handleViewerMouseMove(event, this.viewerState, this.dragState);
+    const el = this.getViewerElements();
+    if (!el) return;
+    handleViewerMouseMove(event, this.viewerState, this.dragState, el);
   }
 
   protected onMouseUp(): void {
@@ -1247,26 +1286,12 @@ export class TopoComponent {
     });
   });
 
-  protected readonly sorters: Record<string, TuiComparator<TopoRouteRow>> = {
-    index: (a, b) => tuiDefaultSort(a.index, b.index),
-    name: (a, b) => tuiDefaultSort(a.name, b.name),
-    grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
-    height: (a, b) => tuiDefaultSort(a.height ?? 0, b.height ?? 0),
-  };
-
   protected readonly direction = signal<TuiSortDirection>(TuiSortDirection.Asc);
-  protected readonly sorter = signal<TuiComparator<TopoRouteRow>>(
-    this.sorters['index'],
-  );
-
-  protected getSorter(col: string): TuiComparator<TopoRouteRow> | null {
-    if (col === 'actions' || col === 'admin_actions') return null;
-    return this.sorters[col] ?? null;
-  }
+  protected readonly sorter = signal<TuiComparator<TopoRouteRow>>(() => 0);
 
   protected onSortChange(sort: TuiTableSortChange<TopoRouteRow>): void {
     this.direction.set(sort.sortDirection);
-    this.sorter.set(sort.sortComparator || this.sorters['index']);
+    this.sorter.set(sort.sortComparator || (() => 0));
   }
 
   constructor() {
@@ -1292,10 +1317,12 @@ export class TopoComponent {
 
         // Only scroll the list if we are NOT in fullscreen (the list is hidden in FS)
         if (!isFullscreen) {
+          const rows = this.routeRows(); // Reactive dependency on rows collection
           const rowId = `route-row-${topoId}-${routeId}`;
-          const row = document.getElementById(rowId);
+          const row = rows.find((r) => r?.nativeElement?.id === rowId);
+
           if (row) {
-            row.scrollIntoView({
+            row.nativeElement.scrollIntoView({
               behavior: 'smooth',
               block: 'center',
               inline: 'nearest',
@@ -1308,21 +1335,10 @@ export class TopoComponent {
 
   private centerOnRoute(): void {
     const topo = this.topo();
-    if (!topo || !isPlatformBrowser(this.platformId)) return;
+    const els = this.getViewerElements();
+    if (!topo || !isPlatformBrowser(this.platformId) || !els) return;
 
-    // Use the appropriate container based on current view mode
-    const containerEl = this.isFullscreen()
-      ? this.fullscreenContainer()?.nativeElement
-      : this.scrollContainer()?.nativeElement;
-
-    // If container is not ready (e.g. just entered fullscreen), it might be null for a moment
-    if (!containerEl) return;
-
-    const imgEl = this.isFullscreen()
-      ? this.topoImgFullscreen()?.nativeElement
-      : (containerEl.querySelector('img') as HTMLImageElement);
-
-    if (!imgEl) return;
+    const { img: imgEl } = els;
 
     // Helper to perform the actual centering
     // If the image is not ready, it will be centered by onImageLoad
@@ -1330,7 +1346,7 @@ export class TopoComponent {
       return;
     }
 
-    const performCenter = (el: HTMLElement) => {
+    const performCenter = (elements: ViewerElements) => {
       const info = this.selectedRouteInfo();
       if (!info || !info.path || info.path.points.length === 0) return;
 
@@ -1341,10 +1357,29 @@ export class TopoComponent {
       const maxY = Math.max(...pts.map((p) => p.y));
       const center = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
 
-      centerViewerOnPoint(this.viewerState, center, el);
+      centerViewerOnPoint(this.viewerState, center, elements);
     };
 
-    performCenter(containerEl);
+    performCenter(els);
+  }
+
+  private getViewerElements(): ViewerElements | null {
+    const isFs = this.isFullscreen();
+    const container = isFs
+      ? this.fullscreenContainer()
+      : this.scrollContainer();
+    const zoomContainer = isFs
+      ? this.fullscreenZoomContainer()
+      : this.zoomContainerNormal();
+    const img = isFs ? this.topoImgFullscreen() : this.topoImgNormal();
+
+    if (!container || !zoomContainer || !img) return null;
+
+    return {
+      container: container.nativeElement,
+      zoomContainer: zoomContainer.nativeElement,
+      img: img.nativeElement,
+    };
   }
 
   protected onLogAscent(tr: TopoRouteWithRoute): void {
@@ -1514,7 +1549,7 @@ export class TopoComponent {
     this.selectedRouteId.set(drawnRoutes[nextIndex].route_id);
   }
 
-  protected onTableKeyDown(event: KeyboardEvent): void {
+  protected onTableKeyDown(event: KeyboardEvent, index?: number): void {
     const target = event.target as HTMLElement;
     const isInput = target.tagName === 'INPUT';
 
@@ -1531,45 +1566,48 @@ export class TopoComponent {
 
       const step = event.key === 'ArrowUp' ? -1 : 1;
       let nextItem: TopoRouteRow | undefined;
+      let nextIdx: number | undefined;
 
       if (isInput) {
-        // Find current row from input's ancestor tr
-        const tr = target.closest('tr');
-        if (!tr) return;
+        if (index !== undefined) {
+          nextIdx = (index + step + data.length) % data.length;
+        } else {
+          // Fallback if index not passed
+          const tr = target.closest('tr');
+          const rowIdAttr = tr?.getAttribute('id') || '';
+          const match = rowIdAttr.match(/route-row-(\d+)-(\d+)/);
 
-        const rowIdAttr = tr.getAttribute('id') || '';
-        const match = rowIdAttr.match(/route-row-(\d+)-(\d+)/);
-        if (!match) return;
+          if (match) {
+            const routeId = parseInt(match[2], 10);
+            const currentIndex = data.findIndex(
+              (item) => item._ref.route_id === routeId,
+            );
+            if (currentIndex !== -1) {
+              nextIdx = (currentIndex + step + data.length) % data.length;
+            }
+          }
+        }
 
-        const routeId = parseInt(match[2], 10);
-        const currentIndex = data.findIndex(
-          (item) => item._ref.route_id === routeId,
-        );
-
-        if (currentIndex !== -1) {
-          const nextIdx = (currentIndex + step + data.length) % data.length;
+        if (nextIdx !== undefined) {
           nextItem = data[nextIdx];
 
           if (nextItem) {
             event.preventDefault(); // Stop TuiInputNumber from changing value
             this.selectedRouteId.set(nextItem._ref.route_id);
 
-            const nextRowId = `route-row-${nextItem._ref.topo_id}-${nextItem._ref.route_id}`;
             const inputClass = target.classList.contains('route-index-input')
               ? '.route-index-input'
               : '.route-height-input';
 
-            // Use requestAnimationFrame to wait for potential template updates
-            setTimeout(() => {
-              const nextRow = document.getElementById(nextRowId);
-              const nextInput = nextRow?.querySelector(
-                inputClass,
-              ) as HTMLInputElement;
-              if (nextInput) {
-                nextInput.focus();
-                nextInput.select();
-              }
-            });
+            const inputs =
+              inputClass === '.route-index-input'
+                ? this.indexInputs()
+                : this.heightInputs();
+            const nextInput = inputs[nextIdx!];
+            if (nextInput) {
+              nextInput.nativeElement.focus();
+              nextInput.nativeElement.select();
+            }
           }
         }
         return;

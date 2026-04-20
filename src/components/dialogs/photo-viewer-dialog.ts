@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { injectContext } from '@taiga-ui/polymorpheus';
@@ -27,6 +33,7 @@ export interface PhotoViewerData {
   imports: [CommonModule, TuiButton, TuiIcon],
   template: `
     <div
+      #container
       class="fixed inset-0 z-1000 flex items-center justify-center overflow-hidden touch-none p-0 bg-black/80 backdrop-blur-xl cursor-grab active:cursor-grabbing"
       (wheel.zoneless)="onWheel($event)"
       (touchstart.zoneless)="onTouchStart($any($event))"
@@ -43,6 +50,7 @@ export interface PhotoViewerData {
       role="button"
     >
       <div
+        #zoomContainer
         class="relative transition-transform duration-75 ease-out outline-none zoom-container origin-top-left"
         [class.!duration-0]="dragState.isDragging"
         tabindex="-1"
@@ -60,6 +68,7 @@ export interface PhotoViewerData {
         "
       >
         <img
+          #img
           [src]="context.data.imageUrl"
           class="max-w-dvw max-h-dvh block object-contain shadow-2xl rounded-2xl"
           alt="Photo preview"
@@ -103,6 +112,20 @@ export class PhotoViewerDialogComponent {
     zoomPosition: this.zoomPosition,
   };
 
+  protected readonly container =
+    viewChild<ElementRef<HTMLElement>>('container');
+  protected readonly zoomContainer =
+    viewChild<ElementRef<HTMLElement>>('zoomContainer');
+  protected readonly img = viewChild<ElementRef<HTMLImageElement>>('img');
+
+  protected getViewerElements() {
+    const c = this.container()?.nativeElement;
+    const z = this.zoomContainer()?.nativeElement;
+    const i = this.img()?.nativeElement;
+    if (!c || !z || !i) return null;
+    return { container: c, zoomContainer: z, img: i };
+  }
+
   protected readonly dragState: ViewerDragState = createViewerDragState();
 
   protected resetZoom(): void {
@@ -112,15 +135,18 @@ export class PhotoViewerDialogComponent {
   }
 
   protected onWheel(event: Event): void {
-    handleViewerWheelZoom(event, this.viewerState);
+    const el = this.getViewerElements();
+    if (el) handleViewerWheelZoom(event, this.viewerState, el);
   }
 
   protected onTouchStart(event: Event): void {
-    handleViewerTouchStart(event, this.viewerState, this.dragState);
+    const el = this.getViewerElements();
+    if (el) handleViewerTouchStart(event, this.viewerState, this.dragState, el);
   }
 
   protected onTouchMove(event: Event): void {
-    handleViewerTouchMove(event, this.viewerState, this.dragState);
+    const el = this.getViewerElements();
+    if (el) handleViewerTouchMove(event, this.viewerState, this.dragState, el);
   }
 
   protected onTouchEnd(): void {
@@ -132,7 +158,8 @@ export class PhotoViewerDialogComponent {
   }
 
   protected onMouseMove(event: MouseEvent): void {
-    handleViewerMouseMove(event, this.viewerState, this.dragState);
+    const el = this.getViewerElements();
+    if (el) handleViewerMouseMove(event, this.viewerState, this.dragState, el);
   }
 
   protected onMouseUp(): void {
