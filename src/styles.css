@@ -87,6 +87,22 @@ th[tuiTh] {
   }
 }
 
+/* Merchandising Dialogs - Remove internal scrolling */
+tui-dialog:has(app-merchandise-item-dialog),
+tui-dialog:has(app-merchandise-pack-dialog) {
+  max-height: none !important;
+}
+
+tui-dialog:has(app-merchandise-item-dialog) .t-content,
+tui-dialog:has(app-merchandise-pack-dialog) .t-content {
+  overflow: visible !important;
+}
+
+tui-dialog:has(app-merchandise-item-dialog) tui-scrollbar,
+tui-dialog:has(app-merchandise-pack-dialog) tui-scrollbar {
+  display: contents !important;
+}
+
 tui-textfield:has(tui-input-chip) label[tuilabel] {
   margin-bottom: 1.8rem !important;
 }

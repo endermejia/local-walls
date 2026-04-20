@@ -21,6 +21,7 @@ import {
   TuiInput,
 } from '@taiga-ui/core';
 import {
+  TuiInputChip,
   TuiInputNumber,
   TuiTextarea,
   TuiSwitch,
@@ -42,7 +43,7 @@ import { ToastService } from '../../services/toast.service';
 
 import { ImageEditorDialogComponent } from './image-editor-dialog';
 
-import { MerchandiseItem } from '../../models';
+import { MerchandiseItemDetail, MerchandiseStock } from '../../models';
 
 const MERCHANDISE_CATEGORIES = [
   'camiseta',
@@ -71,6 +72,7 @@ const MERCHANDISE_CATEGORIES = [
     TuiFiles,
     TuiIcon,
     TuiInput,
+    TuiInputChip,
     TuiInputNumber,
     TuiLabel,
     TuiLoader,
@@ -94,28 +96,27 @@ const MERCHANDISE_CATEGORIES = [
           />
         </tui-textfield>
 
-        <!-- Category -->
-        <tui-textfield
-          tuiChevron
-          [stringify]="categoryStringify"
-          class="w-full"
-        >
-          <label tuiLabel for="category-select">{{
-            'merchandising.items.category' | translate
-          }}</label>
-          <input
-            id="category-select"
-            tuiSelect
-            [placeholder]="'merchandising.packs.selectCategory' | translate"
-            [ngModel]="model().category"
-            (ngModelChange)="updateModel('category', $event)"
-            name="category"
-          />
-          <tui-data-list-wrapper *tuiDropdown new [items]="categories" />
-        </tui-textfield>
-
+        <!-- Category + Price -->
         <div class="grid grid-cols-2 gap-4">
-          <!-- Price -->
+          <tui-textfield
+            tuiChevron
+            [stringify]="categoryStringify"
+            class="w-full"
+          >
+            <label tuiLabel for="category-select">{{
+              'merchandising.items.category' | translate
+            }}</label>
+            <input
+              id="category-select"
+              tuiSelect
+              [placeholder]="'merchandising.packs.selectCategory' | translate"
+              [ngModel]="model().category"
+              (ngModelChange)="updateModel('category', $event)"
+              name="category"
+            />
+            <tui-data-list-wrapper *tuiDropdown new [items]="categories" />
+          </tui-textfield>
+
           <tui-textfield class="w-full">
             <label tuiLabel for="price">{{ 'price' | translate }}</label>
             <input
@@ -128,54 +129,61 @@ const MERCHANDISE_CATEGORIES = [
             />
             <span class="tui-textfield__suffix">€</span>
           </tui-textfield>
-
-          <!-- Stock -->
-          <tui-textfield class="w-full">
-            <label tuiLabel for="stock">{{
-              'merchandising.items.stock' | translate
-            }}</label>
-            <input
-              id="stock"
-              tuiInputNumber
-              [min]="0"
-              [ngModel]="model().stock"
-              (ngModelChange)="updateModel('stock', $event)"
-              name="stock"
-            />
-          </tui-textfield>
         </div>
 
-        <!-- Sizes & Colors -->
-        <div class="grid grid-cols-2 gap-4">
-          <tui-textfield class="w-full">
-            <label tuiLabel for="available_sizes">{{
-              'merchandising.items.sizes' | translate
-            }}</label>
-            <input
-              id="available_sizes"
-              tuiInput
-              type="text"
-              [ngModel]="sizesString()"
-              (ngModelChange)="updateArrayModel('available_sizes', $event)"
-              name="available_sizes"
-              placeholder="S,M,L,XL"
-            />
-          </tui-textfield>
+        <!-- Sizes -->
+        <tui-textfield multi class="block">
+          <label tuiLabel>{{ 'merchandising.items.sizes' | translate }}</label>
+          <input
+            tuiInputChip
+            [ngModel]="model().available_sizes"
+            (ngModelChange)="onSizesChange($event)"
+            name="available_sizes"
+            autocomplete="off"
+          />
+          <tui-input-chip *tuiItem />
+        </tui-textfield>
 
-          <tui-textfield class="w-full">
-            <label tuiLabel for="available_colors">{{
-              'merchandising.items.colors' | translate
-            }}</label>
-            <input
-              id="available_colors"
-              tuiInput
-              type="text"
-              [ngModel]="colorsString()"
-              (ngModelChange)="updateArrayModel('available_colors', $event)"
-              name="available_colors"
-              placeholder="Black,White,Red"
-            />
-          </tui-textfield>
+        <!-- Colors -->
+        <tui-textfield multi class="block">
+          <label tuiLabel>{{ 'merchandising.items.colors' | translate }}</label>
+          <input
+            tuiInputChip
+            [ngModel]="model().available_colors"
+            (ngModelChange)="updateModel('available_colors', $event)"
+            name="available_colors"
+            autocomplete="off"
+          />
+          <tui-input-chip *tuiItem />
+        </tui-textfield>
+
+        <!-- Stock per Size -->
+        <div
+          class="flex flex-col gap-3 p-4 rounded-2xl bg-(--tui-background-neutral-1) border border-(--tui-border-normal)"
+        >
+          <span class="text-xs font-bold uppercase tracking-widest opacity-60">
+            {{ 'merchandising.items.stock' | translate }}
+          </span>
+
+          @if (model().available_sizes.length === 0) {
+            <div class="py-4 text-center text-xs opacity-50 italic">
+              {{ 'merchandising.items.noSizesForStock' | translate }}
+            </div>
+          } @else {
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              @for (size of model().available_sizes; track size) {
+                <tui-textfield class="w-full" size="s">
+                  <label tuiLabel>{{ size }}</label>
+                  <input
+                    tuiInputNumber
+                    [min]="0"
+                    [ngModel]="getStockForSize(size)"
+                    (ngModelChange)="updateStockForSize(size, $event)"
+                  />
+                </tui-textfield>
+              }
+            </div>
+          }
         </div>
 
         <!-- Description -->
@@ -338,7 +346,10 @@ const MERCHANDISE_CATEGORIES = [
 export class AdminMerchandiseDialogComponent {
   readonly context =
     injectContext<
-      TuiDialogContext<MerchandiseItem | null, MerchandiseItem | undefined>
+      TuiDialogContext<
+        MerchandiseItemDetail | null,
+        MerchandiseItemDetail | undefined
+      >
     >();
   private readonly merchService = inject(MerchandiseService);
   private readonly toast = inject(ToastService);
@@ -366,7 +377,7 @@ export class AdminMerchandiseDialogComponent {
     name: this.context.data?.name || '',
     category: this.context.data?.category || '',
     price: this.context.data?.price || 0,
-    stock: this.context.data?.stock || 0,
+    stock: this.context.data?.stock || ([] as MerchandiseStock[]),
     description: this.context.data?.description || '',
     image_url: this.context.data?.image_url || '',
     active: this.context.data?.active ?? true,
@@ -390,12 +401,9 @@ export class AdminMerchandiseDialogComponent {
     });
   }
 
-  protected sizesString() {
-    return this.model().available_sizes?.join(', ') || '';
-  }
-
-  protected colorsString() {
-    return this.model().available_colors?.join(', ') || '';
+  protected onSizesChange(sizes: string[]): void {
+    this.updateModel('available_sizes', sizes);
+    this.syncStockWithSizes(sizes);
   }
 
   updateModel<K extends keyof ReturnType<typeof this.model>>(
@@ -408,12 +416,50 @@ export class AdminMerchandiseDialogComponent {
     }));
   }
 
-  updateArrayModel(key: 'available_sizes' | 'available_colors', value: string) {
-    const arr = value
-      .split(',')
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
-    this.updateModel(key, arr);
+  protected getStockForSize(size: string): number {
+    return this.model().stock.find((s) => s.size === size)?.stock || 0;
+  }
+
+  protected updateStockForSize(size: string, stock: number): void {
+    const currentStock = [...this.model().stock];
+    const index = currentStock.findIndex((s) => s.size === size);
+
+    if (index >= 0) {
+      currentStock[index] = { ...currentStock[index], stock };
+    } else {
+      currentStock.push({
+        id: '', // Will be generated or ignored by upsert
+        item_id: this.model().id || '',
+        size,
+        stock,
+        created_at: null,
+        updated_at: null,
+      });
+    }
+
+    this.updateModel('stock', currentStock);
+  }
+
+  private syncStockWithSizes(sizes: string[]): void {
+    const currentStock = [...this.model().stock];
+    // Keep only stock entries for sizes that are still present
+    const filteredStock = currentStock.filter((s) => sizes.includes(s.size));
+
+    // Add missing entries
+    for (const size of sizes) {
+      if (!filteredStock.find((s) => s.size === size)) {
+        filteredStock.push({
+          id: '',
+          item_id: this.model().id || '',
+          size,
+          stock: 0,
+          created_at: null,
+          updated_at: null,
+        });
+      }
+    }
+
+    this.updateModel('stock', filteredStock);
   }
 
   onPhotoFileChange(file: File | null): void {

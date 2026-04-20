@@ -4,7 +4,14 @@ import { PLATFORM_ID } from '@angular/core';
 
 import { SupabaseService } from './supabase.service';
 
-import type { MerchandiseItem, AreaPackDetail, AreaPack } from '../models';
+import type {
+  MerchandiseItem,
+  AreaPackDetail,
+  AreaPack,
+  MerchandiseItemDetail,
+  OrderDetail,
+  OrderStatus,
+} from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class MerchandiseService {
@@ -13,13 +20,16 @@ export class MerchandiseService {
 
   readonly loading = signal(false);
 
-  async getMerchandiseItems(onlyActive = true): Promise<MerchandiseItem[]> {
+  async getMerchandiseItems(
+    onlyActive = true,
+    includeStock = false,
+  ): Promise<MerchandiseItemDetail[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
 
     let query = this.supabase.client
       .from('merchandise_items')
-      .select('*')
+      .select(includeStock ? '*, stock:merchandise_stock(*)' : '*')
       .order('created_at', { ascending: false });
 
     if (onlyActive) {
@@ -32,7 +42,7 @@ export class MerchandiseService {
       console.error('[MerchandiseService] getMerchandiseItems error', error);
       return [];
     }
-    return data || [];
+    return (data as unknown as MerchandiseItemDetail[]) || [];
   }
 
   async getAreaPacks(onlyActive = true): Promise<AreaPackDetail[]> {
@@ -67,20 +77,36 @@ export class MerchandiseService {
   }
 
   async upsertMerchandiseItem(
-    item: Partial<MerchandiseItem>,
+    item: Partial<MerchandiseItemDetail>,
   ): Promise<MerchandiseItem | null> {
     if (!isPlatformBrowser(this.platformId)) return null;
     await this.supabase.whenReady();
     this.loading.set(true);
 
     try {
+      const itemToSave = { ...item };
+      const stockToSave = itemToSave.stock;
+      delete itemToSave.stock;
+
       const { data, error } = await this.supabase.client
         .from('merchandise_items')
-        .upsert(item as MerchandiseItem)
+        .upsert(itemToSave as MerchandiseItem)
         .select()
         .single();
 
       if (error) throw error;
+
+      // Handle stock upsert if provided
+      if (stockToSave && data) {
+        for (const s of stockToSave) {
+          await this.supabase.client.from('merchandise_stock').upsert({
+            item_id: data.id,
+            size: s.size,
+            stock: s.stock,
+          });
+        }
+      }
+
       return data;
     } catch (e) {
       console.error('[MerchandiseService] upsertMerchandiseItem error', e);
@@ -88,6 +114,150 @@ export class MerchandiseService {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  async updateItemStock(
+    itemId: string,
+    size: string,
+    stock: number,
+  ): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    await this.supabase.whenReady();
+
+    const { error } = await this.supabase.client
+      .from('merchandise_stock')
+      .upsert({ item_id: itemId, size, stock }, { onConflict: 'item_id,size' });
+
+    return !error;
+  }
+
+  async getUserOrders(): Promise<OrderDetail[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+
+    const { data, error } = await this.supabase.client
+      .from('orders')
+      .select('*, items:order_items(*)')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('[MerchandiseService] getUserOrders error', error);
+      return [];
+    }
+    return data || [];
+  }
+
+  async getAllOrders(): Promise<OrderDetail[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+
+    const { data, error } = await this.supabase.client
+      .from('orders')
+      .select('*, items:order_items(*)')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('[MerchandiseService] getAllOrders error', error);
+      return [];
+    }
+    return data || [];
+  }
+
+  async updateOrderStatus(
+    orderId: string,
+    status: OrderStatus,
+  ): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    await this.supabase.whenReady();
+
+    try {
+      // 1. Get current order to check previous status and get items
+      const { data: order, error: fetchError } = await this.supabase.client
+        .from('orders')
+        .select('*, items:order_items(*)')
+        .eq('id', orderId)
+        .single();
+
+      if (fetchError || !order)
+        throw fetchError || new Error('Order not found');
+
+      const previousStatus = order.status;
+
+      // 2. Update the status
+      const { error: updateError } = await this.supabase.client
+        .from('orders')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', orderId);
+
+      if (updateError) throw updateError;
+
+      // 3. Handle stock management
+      // - If transitioning TO 'cancelled' from a state that had already decremented stock
+      if (
+        status === 'cancelled' &&
+        previousStatus !== 'cancelled' &&
+        previousStatus !== 'pending'
+      ) {
+        await this.adjustStockForOrder(order.items, 'increment');
+      }
+      // - If transitioning FROM 'pending' to something else (except cancelled)
+      // Assuming stock was NOT decremented on 'pending' to avoid locking it for unpaid orders
+      else if (
+        previousStatus === 'pending' &&
+        status !== 'pending' &&
+        status !== 'cancelled'
+      ) {
+        await this.adjustStockForOrder(order.items, 'decrement');
+      }
+      // - If transitioning FROM 'cancelled' to an active state
+      else if (
+        previousStatus === 'cancelled' &&
+        status !== 'pending' &&
+        status !== 'cancelled'
+      ) {
+        await this.adjustStockForOrder(order.items, 'decrement');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('[MerchandiseService] updateOrderStatus error', error);
+      return false;
+    }
+  }
+
+  private async adjustStockForOrder(
+    items: any[],
+    action: 'increment' | 'decrement',
+  ): Promise<void> {
+    for (const item of items) {
+      if (!item.item_id || !item.selected_size) continue;
+
+      // Get current stock
+      const { data: stockData } = await this.supabase.client
+        .from('merchandise_stock')
+        .select('stock')
+        .eq('item_id', item.item_id)
+        .eq('size', item.selected_size)
+        .single();
+
+      if (stockData) {
+        const newStock =
+          action === 'increment'
+            ? stockData.stock + item.quantity
+            : Math.max(0, stockData.stock - item.quantity);
+
+        await this.supabase.client
+          .from('merchandise_stock')
+          .update({ stock: newStock })
+          .eq('item_id', item.item_id)
+          .eq('size', item.selected_size);
+      }
+    }
+  }
+
+  async cancelOrder(orderId: string): Promise<boolean> {
+    // User logic: only if status != 'enviado'
+    return this.updateOrderStatus(orderId, 'cancelled');
   }
 
   async upsertAreaPack(pack: Partial<AreaPackDetail>): Promise<boolean> {

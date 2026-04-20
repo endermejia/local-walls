@@ -2012,7 +2012,6 @@ export interface Database {
           image_url: string | null;
           name: string;
           price: number;
-          stock: number;
         };
         Insert: {
           active?: boolean | null;
@@ -2025,7 +2024,6 @@ export interface Database {
           image_url?: string | null;
           name: string;
           price?: number;
-          stock?: number;
         };
         Update: {
           active?: boolean | null;
@@ -2038,7 +2036,6 @@ export interface Database {
           image_url?: string | null;
           name?: string;
           price?: number;
-          stock?: number;
         };
         Relationships: [];
       };
@@ -2085,6 +2082,41 @@ export interface Database {
         Relationships: [
           {
             foreignKeyName: 'merchandise_purchases_item_id_fkey';
+            columns: ['item_id'];
+            isOneToOne: false;
+            referencedRelation: 'merchandise_items';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      merchandise_stock: {
+        Row: {
+          created_at: string | null;
+          id: string;
+          item_id: string;
+          size: string;
+          stock: number;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          id?: string;
+          item_id: string;
+          size: string;
+          stock?: number;
+          updated_at?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          id?: string;
+          item_id?: string;
+          size?: string;
+          stock?: number;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'merchandise_stock_item_id_fkey';
             columns: ['item_id'];
             isOneToOne: false;
             referencedRelation: 'merchandise_items';

@@ -43,7 +43,7 @@ import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-di
 import { MerchandiseItemDialogComponent } from '../../components/dialogs/merchandise-item-dialog';
 import { MerchandisePackDialogComponent } from '../../components/dialogs/merchandise-pack-dialog';
 
-import { MerchandiseItem, AreaPackDetail } from '../../models';
+import { AreaPackDetail, MerchandiseItemDetail } from '../../models';
 
 @Component({
   selector: 'app-merchandising',
@@ -156,7 +156,7 @@ import { MerchandiseItem, AreaPackDetail } from '../../models';
                 appearance="accent"
                 size="s"
                 type="button"
-                class="rounded-xl!"
+                class="rounded-xl! bg-(--tui-background-accent-1)! text-(--tui-background-base)!"
                 (click)="editPack()"
               >
                 <tui-icon icon="@tui.plus" />
@@ -213,7 +213,7 @@ import { MerchandiseItem, AreaPackDetail } from '../../models';
                           appearance="accent"
                           size="s"
                           type="button"
-                          class="rounded-xl! shadow-lg"
+                          class="rounded-xl! shadow-lg bg-(--tui-background-accent-1)! text-(--tui-background-base)!"
                           (click)="editPack(pack); $event.stopPropagation()"
                         >
                           <tui-icon icon="@tui.pencil" />
@@ -282,7 +282,7 @@ import { MerchandiseItem, AreaPackDetail } from '../../models';
                 appearance="accent"
                 size="s"
                 type="button"
-                class="rounded-xl!"
+                class="rounded-xl! bg-(--tui-background-accent-1)! text-(--tui-background-base)!"
                 (click)="editItem()"
               >
                 <tui-icon icon="@tui.plus" />
@@ -367,7 +367,7 @@ import { MerchandiseItem, AreaPackDetail } from '../../models';
                           appearance="accent"
                           size="s"
                           type="button"
-                          class="rounded-xl! shadow-lg"
+                          class="rounded-xl! shadow-lg bg-(--tui-background-accent-1)! text-(--tui-background-base)!"
                           (click)="editItem(item); $event.stopPropagation()"
                         >
                           <tui-icon icon="@tui.pencil" />
@@ -433,14 +433,14 @@ export class MerchandisingComponent {
   private readonly dialogService = inject(TuiDialogService);
 
   protected readonly itemsResource = resource<
-    MerchandiseItem[],
+    MerchandiseItemDetail[],
     { onlyActive: boolean }
   >({
     params: () => ({
       onlyActive: !(this.isAdmin() && this.global.editingMode()),
     }),
     loader: ({ params }: { params: { onlyActive: boolean } }) =>
-      this.merchService.getMerchandiseItems(params.onlyActive),
+      this.merchService.getMerchandiseItems(params.onlyActive, true),
   });
 
   protected readonly packsResource = resource<
@@ -453,7 +453,7 @@ export class MerchandisingComponent {
     loader: ({ params }) => this.merchService.getAreaPacks(params.onlyActive),
   });
 
-  protected readonly items = computed<MerchandiseItem[]>(
+  protected readonly items = computed<MerchandiseItemDetail[]>(
     () => this.itemsResource.value() ?? [],
   );
   protected readonly packs = computed<AreaPackDetail[]>(
@@ -503,12 +503,14 @@ export class MerchandisingComponent {
       return products;
     }
 
-    return (products as MerchandiseItem[]).filter((item: MerchandiseItem) => {
-      if (!item.category) return false;
-      const key = `merchandising.filter.${item.category.toLowerCase()}`;
-      const label = this.translate.instant(key);
-      return selectedLabels.includes(label);
-    });
+    return (products as MerchandiseItemDetail[]).filter(
+      (item: MerchandiseItemDetail) => {
+        if (!item.category) return false;
+        const key = `merchandising.filter.${item.category.toLowerCase()}`;
+        const label = this.translate.instant(key);
+        return selectedLabels.includes(label);
+      },
+    );
   });
 
   private readonly cartService = inject(CartService);
@@ -518,7 +520,7 @@ export class MerchandisingComponent {
 
   protected readonly isAdmin = this.global.isAdmin;
 
-  protected openItemDetail(item: MerchandiseItem): void {
+  protected openItemDetail(item: MerchandiseItemDetail): void {
     this.dialogService
       .open(new PolymorpheusComponent(MerchandiseItemDialogComponent), {
         data: item,
@@ -538,9 +540,9 @@ export class MerchandisingComponent {
       .subscribe();
   }
 
-  protected editItem(item?: MerchandiseItem): void {
+  protected editItem(item?: MerchandiseItemDetail): void {
     this.dialogService
-      .open<MerchandiseItem | null>(
+      .open<MerchandiseItemDetail | null>(
         new PolymorpheusComponent(AdminMerchandiseDialogComponent),
         {
           data: item,
@@ -551,7 +553,7 @@ export class MerchandisingComponent {
           dismissible: true,
         },
       )
-      .subscribe((result: MerchandiseItem | null) => {
+      .subscribe((result: MerchandiseItemDetail | null) => {
         if (result) {
           void this.itemsResource.reload();
         }

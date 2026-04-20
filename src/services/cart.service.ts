@@ -74,8 +74,11 @@ export class CartService {
           product.selectedColor,
         );
       } else {
-        // Normal behavior for merchandise: increase quantity
-        // updateQuantity handles DB persistence internally
+        // Check stock limit before increasing quantity
+        const maxStock = existing.maxStock ?? product.maxStock;
+        if (maxStock !== undefined && existing.quantity >= maxStock) {
+          return;
+        }
         this.updateQuantity(
           product.id,
           product.type,
@@ -132,11 +135,13 @@ export class CartService {
     }
 
     this._items.update((items) =>
-      items.map((i) =>
-        this.itemsMatch(i, { id, type, selectedSize, selectedColor })
-          ? { ...i, quantity }
-          : i,
-      ),
+      items.map((i) => {
+        if (!this.itemsMatch(i, { id, type, selectedSize, selectedColor }))
+          return i;
+        const capped =
+          i.maxStock !== undefined ? Math.min(quantity, i.maxStock) : quantity;
+        return { ...i, quantity: capped };
+      }),
     );
 
     const userId = this.supabase.authUserId();

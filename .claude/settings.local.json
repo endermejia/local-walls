@@ -1,7 +1,26 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find D:/git/local-walls/src -type f \\\\\\( -name \"*.ts\" -o -name \"*.js\" \\\\\\) -exec grep -l \"workbox\\\\|CacheStorage\\\\|IndexedDB\" {} \\\\;)"
+      "Bash(find D:/git/local-walls/src -type f \\\\\\( -name \"*.ts\" -o -name \"*.js\" \\\\\\) -exec grep -l \"workbox\\\\|CacheStorage\\\\|IndexedDB\" {} \\\\;)",
+      "Bash(xargs grep:*)",
+      "Bash(sed -i 's/\"purchaseHistory.title\": \"Historial de compras\"/\"purchaseHistory.title\": \"Historial\"/' /d/git/local-walls/public/i18n/es.json)",
+      "Bash(sed -i 's/\"purchaseHistory.title\": \"Purchase History\"/\"purchaseHistory.title\": \"History\"/' /d/git/local-walls/public/i18n/en.json)",
+      "Bash(sed -i 's/\"purchaseHistory.title\": \"Spendenhistorie\"/\"purchaseHistory.title\": \"Verlauf\"/' /d/git/local-walls/public/i18n/de.json)",
+      "Bash(sed -i 's/\"purchaseHistory.title\": \"Historique des dons\"/\"purchaseHistory.title\": \"Historique\"/' /d/git/local-walls/public/i18n/fr.json)",
+      "Bash(sed -i 's/\"purchaseHistory.title\": \"Cronologia donazioni\"/\"purchaseHistory.title\": \"Cronologia\"/' /d/git/local-walls/public/i18n/it.json)",
+      "Bash(sed -i 's/\"purchaseHistory.view\": \"Spendenhistorie ansehen\"/\"purchaseHistory.view\": \"Verlauf ansehen\"/' /d/git/local-walls/public/i18n/de.json)",
+      "Bash(sed -i 's|\"purchaseHistory.view\": \"Voir l'\\\\''historique des dons\"|\"purchaseHistory.view\": \"Voir l'\\\\''historique\"|' /d/git/local-walls/public/i18n/fr.json)",
+      "Bash(sed -i 's/\"purchaseHistory.view\": \"Vedi cronologia donazioni\"/\"purchaseHistory.view\": \"Vedi cronologia\"/' /d/git/local-walls/public/i18n/it.json)",
+      "Bash(sed -i 's/\"purchaseHistory.view\": \"Ikusi dohaintzen historia\"/\"purchaseHistory.view\": \"Ikusi historia\"/' /d/git/local-walls/public/i18n/eu.json)",
+      "Bash(sed -i 's/\"purchaseHistory.view\": \"Veure historial de donacions\"/\"purchaseHistory.view\": \"Veure historial\"/' /d/git/local-walls/public/i18n/va.json)",
+      "Bash(sed -i 's/\"purchaseHistory.empty\": \"Du hast noch keine Spenden getätigt.\"/\"purchaseHistory.empty\": \"Du hast noch keine Käufe getätigt.\"/' /d/git/local-walls/public/i18n/de.json)",
+      "Bash(sed -i 's|\"purchaseHistory.empty\": \"Vous n'\\\\''avez pas encore effectué de don.\"|\"purchaseHistory.empty\": \"Vous n'\\\\''avez pas encore effectué d'\\\\''achat.\"|' /d/git/local-walls/public/i18n/fr.json)",
+      "Bash(sed -i 's/\"purchaseHistory.empty\": \"Non hai ancora effettuato alcuna donazione.\"/\"purchaseHistory.empty\": \"Non hai ancora effettuato alcun acquisto.\"/' /d/git/local-walls/public/i18n/it.json)",
+      "Bash(sed -i 's/\"purchaseHistory.empty\": \"Oraindik ez duzu dohaintzarik egin.\"/\"purchaseHistory.empty\": \"Oraindik ez duzu erosketa egin.\"/' /d/git/local-walls/public/i18n/eu.json)",
+      "Bash(sed -i 's/\"purchaseHistory.empty\": \"Encara no has realitzat cap donació.\"/\"purchaseHistory.empty\": \"Encara no has realitzat cap compra.\"/' /d/git/local-walls/public/i18n/va.json)",
+      "Bash(python3 -c ':*)",
+      "Bash(node -e ':*)",
+      "Bash(node D:/git/local-walls/scripts/sync-translations.mjs)"
     ]
   }
 }

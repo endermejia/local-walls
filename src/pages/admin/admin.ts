@@ -123,6 +123,24 @@ import { SupabaseService } from '../../services/supabase.service';
             </p>
           </div>
         </a>
+
+        <a
+          routerLink="/admin/orders"
+          class="flex items-center gap-4 p-4 bg-(--tui-background-base) rounded-2xl border border-(--tui-border-normal) no-underline text-inherit hover:bg-(--tui-background-neutral-1)"
+        >
+          <tui-icon
+            icon="@tui.shopping-bag"
+            class="text-(--tui-text-tertiary)"
+          />
+          <div class="flex-1">
+            <span class="font-bold block">
+              {{ 'admin.orders.title' | translate }}
+            </span>
+            <p class="text-sm text-(--tui-text-secondary)">
+              {{ 'admin.orders.description' | translate }}
+            </p>
+          </div>
+        </a>
       </div>
     </div>
   `,

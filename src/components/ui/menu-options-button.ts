@@ -5,6 +5,7 @@ import {
   inject,
   input,
 } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { TuiDialogService } from '@taiga-ui/core';
 import {
@@ -88,6 +89,12 @@ import { Themes } from '../../models';
           <tui-icon icon="@tui.settings" class="mr-2" />
           {{ 'config' | translate }}
         </button>
+        @if (global.isAdmin()) {
+          <button tuiOption new (click)="goToMerchandising(); open = false">
+            <tui-icon icon="@tui.shopping-bag" class="mr-2" />
+            {{ 'nav.merchandising' | translate }}
+          </button>
+        }
         <label
           class="flex items-center justify-between gap-4 p-2 w-full cursor-pointer hover:bg-(--tui-background-neutral-hover) rounded-lg"
         >
@@ -148,9 +155,14 @@ export class MenuOptionsButtonComponent {
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
   private readonly dialogs = inject(TuiDialogService);
+  private readonly router = inject(Router);
 
   protected openConfig(): void {
     this.userProfilesService.openUserProfileConfigForm();
+  }
+
+  protected goToMerchandising(): void {
+    void this.router.navigate(['/merchandising']);
   }
 
   protected async logout(): Promise<void> {

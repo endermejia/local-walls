@@ -164,6 +164,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'admin/orders',
+    canMatch: [adminGuard],
+    loadComponent: () =>
+      import('../pages/admin/shop-orders').then(
+        (m) => m.AdminShopOrdersComponent,
+      ),
+  },
+  {
     path: 'chat/:roomId',
     canMatch: [authGuard],
     loadComponent: () =>

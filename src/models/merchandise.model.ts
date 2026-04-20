@@ -23,9 +23,16 @@ export interface AreaPackDetail extends AreaPack {
 
 export type Order = Database['public']['Tables']['orders']['Row'];
 export type OrderItem = Database['public']['Tables']['order_items']['Row'];
+export type MerchandiseStock =
+  Database['public']['Tables']['merchandise_stock']['Row'];
+
 export interface OrderDetail extends Order {
-  items: OrderItem[];
+  items: (OrderItem & {
+    product_name?: string;
+    image_url?: string;
+  })[];
 }
+
 export type CartItemRecord = Database['public']['Tables']['cart_items']['Row'];
 
 export interface CartProduct {
@@ -38,11 +45,17 @@ export interface CartProduct {
   numericId?: number; // Used for areas (int)
   selectedSize?: string;
   selectedColor?: string;
+  maxStock?: number; // Max units allowed (merchandise with stock control)
 }
 
 export type OrderStatus =
   | 'pending'
-  | 'paid'
-  | 'shipped'
+  | 'en_proceso' // Paid, being prepared
+  | 'enviado'
+  | 'recibido'
   | 'cancelled'
   | 'refunded';
+
+export interface MerchandiseItemDetail extends MerchandiseItem {
+  stock?: MerchandiseStock[];
+}

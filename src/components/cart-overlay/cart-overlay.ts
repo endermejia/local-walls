@@ -7,12 +7,19 @@ import {
   Output,
 } from '@angular/core';
 
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TuiBadge } from '@taiga-ui/kit';
-import { TuiButton, TuiIcon, TuiScrollbar } from '@taiga-ui/core';
+import {
+  TuiButton,
+  TuiDialogService,
+  TuiIcon,
+  TuiScrollbar,
+} from '@taiga-ui/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { CartService } from '../../services/cart.service';
+import { PurchaseHistoryDialogComponent } from '../dialogs/purchase-history-dialog';
 
 import type { CartProduct } from '../../models';
 
@@ -198,6 +205,10 @@ import type { CartProduct } from '../../models';
                             type="button"
                             appearance="secondary"
                             size="xs"
+                            [disabled]="
+                              item.maxStock !== undefined &&
+                              item.quantity >= item.maxStock
+                            "
                             (click)="
                               updateQuantity(
                                 item.id,
@@ -233,11 +244,11 @@ import type { CartProduct } from '../../models';
           </div>
         </tui-scrollbar>
 
-        @if (items().length > 0) {
-          <div
-            class="p-6 border-t border-(--tui-border-normal) bg-(--tui-background-neutral-1)"
-          >
-            <div class="flex justify-between items-center mb-6">
+        <div
+          class="p-6 border-t border-(--tui-border-normal) bg-(--tui-background-neutral-1) flex flex-col gap-3"
+        >
+          @if (items().length > 0) {
+            <div class="flex justify-between items-center">
               <span class="text-(--tui-text-secondary)">{{
                 'merchandising.cart.subtotal' | translate
               }}</span>
@@ -248,8 +259,18 @@ import type { CartProduct } from '../../models';
             <button tuiButton class="w-full" size="l" (click)="checkout.emit()">
               {{ 'merchandising.cart.checkout' | translate }}
             </button>
-          </div>
-        }
+          }
+          <button
+            tuiButton
+            appearance="flat"
+            size="s"
+            class="w-full"
+            (click)="openPurchaseHistory()"
+          >
+            <tui-icon icon="@tui.receipt" class="mr-1" />
+            {{ 'purchaseHistory.view' | translate }}
+          </button>
+        </div>
       </div>
     </div>
   `,
@@ -262,6 +283,7 @@ import type { CartProduct } from '../../models';
 })
 export class CartOverlayComponent {
   private readonly cartService = inject(CartService);
+  private readonly dialogs = inject(TuiDialogService);
 
   @Output() closeOverlay = new EventEmitter<void>();
   @Output() checkout = new EventEmitter<void>();
@@ -269,6 +291,14 @@ export class CartOverlayComponent {
   protected readonly items = this.cartService.items;
   protected readonly totalItems = this.cartService.totalItems;
   protected readonly totalPrice = this.cartService.totalPrice;
+
+  protected openPurchaseHistory(): void {
+    this.dialogs
+      .open(new PolymorpheusComponent(PurchaseHistoryDialogComponent), {
+        size: 'm',
+      })
+      .subscribe();
+  }
 
   removeItem(
     id: string,

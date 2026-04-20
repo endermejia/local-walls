@@ -2,11 +2,12 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from '@angular/core';
 
-import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
+import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiButton, TuiDialogContext, TuiIcon } from '@taiga-ui/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -14,7 +15,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { CartService } from '../../services/cart.service';
 import { GlobalData } from '../../services/global-data';
 
-import { MerchandiseItem } from '../../models';
+import { MerchandiseItemDetail } from '../../models';
 
 @Component({
   selector: 'app-merchandise-item-dialog',
@@ -86,10 +87,11 @@ import { MerchandiseItem } from '../../models';
                 </span>
                 <div class="flex flex-wrap gap-2">
                   @for (size of item.available_sizes; track $index) {
+                    @let inStock = isSizeInStock(size);
                     <button
                       type="button"
-                      (click)="selectedSize.set(size)"
-                      class="h-11 min-w-14 px-4 flex items-center justify-center rounded-xl text-sm font-bold transition-all border"
+                      (click)="inStock && selectedSize.set(size)"
+                      class="h-11 min-w-14 px-4 flex flex-col items-center justify-center rounded-xl transition-all border relative overflow-hidden"
                       [style.background]="
                         selectedSize() === size
                           ? 'var(--tui-background-accent-1)'
@@ -98,16 +100,29 @@ import { MerchandiseItem } from '../../models';
                       [style.color]="
                         selectedSize() === size
                           ? 'var(--tui-background-base)'
-                          : 'var(--tui-text-primary)'
+                          : inStock
+                            ? 'var(--tui-text-primary)'
+                            : 'var(--tui-text-tertiary)'
                       "
                       [style.border-color]="
                         selectedSize() === size
                           ? 'var(--tui-background-accent-1)'
                           : 'var(--tui-border-normal)'
                       "
-                      [class.hover:border-primary]="selectedSize() !== size"
+                      [style.opacity]="inStock ? 1 : 0.5"
+                      [class.cursor-not-allowed]="!inStock"
+                      [class.hover:border-primary]="
+                        selectedSize() !== size && inStock
+                      "
                     >
-                      {{ size }}
+                      <span class="text-sm font-bold">{{ size }}</span>
+                      @if (!inStock) {
+                        <span
+                          class="text-[8px] uppercase font-black absolute bottom-1 leading-none opacity-50"
+                        >
+                          {{ 'merchandising.items.noStockShort' | translate }}
+                        </span>
+                      }
                     </button>
                   }
                 </div>
@@ -163,8 +178,10 @@ import { MerchandiseItem } from '../../models';
             class="w-full rounded-2xl! shadow-2xl shadow-black/5 transform transition-all active:scale-[0.98]"
             (click)="addToCart()"
             [disabled]="
-              (item.available_sizes?.length && !selectedSize()) ||
-              (item.available_colors?.length && !selectedColor())
+              (item.available_sizes?.length &&
+                (!selectedSize() || !isSizeInStock(selectedSize()!))) ||
+              (item.available_colors?.length && !selectedColor()) ||
+              !canAddMore()
             "
           >
             <tui-icon icon="@tui.shopping-bag" />
@@ -186,13 +203,45 @@ import { MerchandiseItem } from '../../models';
 export class MerchandiseItemDialogComponent {
   private readonly cartService = inject(CartService);
   private readonly global = inject(GlobalData);
-  private readonly context =
-    inject<TuiDialogContext<void, MerchandiseItem>>(POLYMORPHEUS_CONTEXT);
+  protected readonly context =
+    injectContext<TuiDialogContext<void, MerchandiseItemDetail>>();
+  protected readonly item: MerchandiseItemDetail = this.context.data;
 
-  protected readonly item = this.context.data as MerchandiseItem;
+  protected isSizeInStock(size: string): boolean {
+    const stock = this.item.stock?.find((s) => s.size === size);
+    return (stock?.stock ?? 0) > 0;
+  }
 
   protected readonly selectedSize = signal<string | undefined>(undefined);
   protected readonly selectedColor = signal<string | undefined>(undefined);
+
+  private readonly stockForSelection = computed(() => {
+    const size = this.selectedSize();
+    if (!size || !this.item.stock?.length) return undefined;
+    return this.item.stock.find((s) => s.size === size)?.stock ?? 0;
+  });
+
+  private readonly cartQtyForSelection = computed(() => {
+    const size = this.selectedSize();
+    const color = this.selectedColor();
+    return (
+      this.cartService
+        .items()
+        .find(
+          (i) =>
+            i.id === this.item.id &&
+            i.type === 'merchandise' &&
+            (i.selectedSize || undefined) === (size || undefined) &&
+            (i.selectedColor || undefined) === (color || undefined),
+        )?.quantity ?? 0
+    );
+  });
+
+  protected readonly canAddMore = computed(() => {
+    const max = this.stockForSelection();
+    if (max === undefined) return true;
+    return this.cartQtyForSelection() < max;
+  });
 
   async addToCart(): Promise<void> {
     await this.cartService.addItem({
@@ -203,6 +252,7 @@ export class MerchandiseItemDialogComponent {
       type: 'merchandise',
       selectedSize: this.selectedSize(),
       selectedColor: this.selectedColor(),
+      maxStock: this.stockForSelection(),
     });
 
     this.global.showCart.set(true);
