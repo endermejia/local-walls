@@ -7,8 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 
-import { TuiAppearance, TuiButton, TuiTitle } from '@taiga-ui/core';
-import { TuiHeader } from '@taiga-ui/layout';
+import { TuiAppearance, TuiButton } from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -22,8 +21,6 @@ import { SeoService } from '../../services/seo.service';
     TranslatePipe,
     TuiAppearance,
     TuiButton,
-    TuiHeader,
-    TuiTitle,
   ],
   template: `
     <div
@@ -39,9 +36,16 @@ import { SeoService } from '../../services/seo.service';
         />
       </div>
 
-      <header tuiHeader class="text-center">
-        <h1 tuiTitle>
-          {{ 'landing.welcome' | translate }}
+      <header class="text-center mb-8">
+        <h1
+          class="text-4xl sm:text-5xl font-black tracking-tight text-balance leading-tight flex flex-col items-center"
+        >
+          <span class="leading-none">{{ 'climbeast.title' | translate }}</span>
+          <span
+            class="text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] text-(--tui-text-tertiary) mt-2"
+          >
+            {{ 'climbeast.subtitle' | translate }}
+          </span>
         </h1>
       </header>
 

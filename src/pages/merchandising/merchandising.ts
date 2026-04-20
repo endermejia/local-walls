@@ -106,14 +106,6 @@ import { MerchandiseItem, AreaPackDetail } from '../../models';
           class="relative flex flex-col items-center text-center gap-6 py-12 px-6 rounded-[3.5rem] overflow-hidden border border-(--tui-border-normal) shadow-2xl shadow-black/5"
           style="background: var(--tui-background-base)"
         >
-          <!-- Subtle decorative elements -->
-          <div
-            class="absolute -top-24 -right-24 w-64 h-64 bg-(--tui-background-accent-1-hover) opacity-10 rounded-full blur-3xl"
-          ></div>
-          <div
-            class="absolute -bottom-24 -left-24 w-64 h-64 bg-(--tui-background-accent-1-hover) opacity-10 rounded-full blur-3xl"
-          ></div>
-
           <div class="relative flex flex-col items-center gap-4 text-center">
             <img
               src="logo/climbeast.svg"
@@ -121,9 +113,16 @@ import { MerchandiseItem, AreaPackDetail } from '../../models';
               class="h-16 sm:h-20 w-auto mb-2 opacity-90 drop-shadow-sm"
             />
             <h1
-              class="text-4xl sm:text-5xl font-black tracking-tight text-balance leading-tight"
+              class="text-4xl sm:text-5xl font-black tracking-tight text-balance leading-tight flex flex-col items-center"
             >
-              {{ 'merchandising.title' | translate }}
+              <span class="leading-none">{{
+                'climbeast.title' | translate
+              }}</span>
+              <span
+                class="text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] text-(--tui-text-tertiary) mt-2"
+              >
+                {{ 'climbeast.subtitle' | translate }}
+              </span>
             </h1>
           </div>
 
@@ -195,10 +194,6 @@ import { MerchandiseItem, AreaPackDetail } from '../../models';
                       [class.opacity-50]="pack.active === false"
                       class="w-full h-full object-cover group-hover:scale-105 transition-all duration-1000"
                     />
-
-                    <div
-                      class="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent"
-                    ></div>
 
                     <div class="absolute top-4 right-4">
                       <span
