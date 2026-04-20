@@ -10,6 +10,7 @@ import {
   inject,
   input,
   InputSignal,
+  linkedSignal,
   PLATFORM_ID,
   resource,
   signal,
@@ -424,7 +425,7 @@ export interface TopoRouteRow {
                     #topoImgFullscreen
                     [src]="topoImage || ('topo' | iconSrc)"
                     [alt]="t.name"
-                    class="max-w-dvw max-h-dvh object-contain block"
+                    class="w-full h-auto block max-w-none"
                     draggable="false"
                     (load)="onImageLoad($event)"
                   />
@@ -976,10 +977,24 @@ export class TopoComponent {
   protected readonly topoImgFullscreen =
     viewChild<ElementRef<HTMLImageElement>>('topoImgFullscreen');
   protected readonly isFullscreen = signal(false);
-  protected readonly zoomScale = signal(1);
-  protected readonly zoomPosition = signal({ x: 0, y: 0 });
   protected readonly hoveredRouteId = signal<number | null>(null);
   protected readonly selectedRouteId = signal<number | null>(null);
+
+  protected readonly zoomScale = linkedSignal({
+    source: () => ({
+      fs: this.isFullscreen(),
+      id: this.topo()?.id,
+    }),
+    computation: () => 1,
+  });
+
+  protected readonly zoomPosition = linkedSignal({
+    source: () => ({
+      fs: this.isFullscreen(),
+      id: this.topo()?.id,
+    }),
+    computation: () => ({ x: 0, y: 0 }),
+  });
 
   // Viewer zoom/pan state adapter
   private readonly viewerState: ViewerZoomPanState = {
@@ -1006,9 +1021,7 @@ export class TopoComponent {
     // If a route was already selected before the image finished loading, center it now
     const selectedId = this.selectedRouteId();
     if (selectedId) {
-      setTimeout(() => this.centerOnRoute(), 50);
-    } else {
-      this.resetZoom();
+      this.centerOnRoute();
     }
   }
 
@@ -1056,11 +1069,11 @@ export class TopoComponent {
     const containerRatio = w / h;
 
     if (isFullscreen) {
-      // In fullscreen, we want to at least cover the full width of the screen.
-      // Since object-contain + max-w-dvw already fits width for wide images at scale 1,
-      // and h-full fits height for portrait images at scale 1,
-      // the scale required to fit the width is exactly max(1, containerRatio / ratio).
-      return Math.max(1, containerRatio / ratio);
+      // In fullscreen, with w-full, scale 1 is already full width.
+      // We only need to zoom out if the image is too tall for the screen.
+      // imageHeight = w_screen / ratio. We want s * imageHeight = h_screen.
+      // s = h_screen / imageHeight = h_screen / (w_screen / ratio) = (h_screen / w_screen) * ratio = ratio / containerRatio.
+      return Math.min(1, ratio / containerRatio);
     }
 
     // In normal view, we want to at least see the whole image (fit).
@@ -1068,13 +1081,7 @@ export class TopoComponent {
   });
 
   protected resetZoom(): void {
-    const isFullscreen = this.isFullscreen();
-    const ms = this.minScale();
-    // In fullscreen, we always want to start at the minScale (full width).
-    // In normal view, we want to start at scale 1 (fit height) unless that's smaller than minScale.
-    const defaultScale = isFullscreen ? ms : Math.max(1, ms);
-
-    this.zoomScale.set(defaultScale);
+    this.zoomScale.set(1);
     this.zoomPosition.set({ x: 0, y: 0 });
     this.dragState.initialTx = 0;
     this.dragState.initialTy = 0;
@@ -1271,7 +1278,6 @@ export class TopoComponent {
       this.global.selectedAreaSlug.set(aSlug);
       this.global.selectedCragSlug.set(cSlug);
       if (topoId) {
-        this.resetZoom();
         this.global.selectedTopoId.set(topoId);
       }
     });
@@ -1282,23 +1288,20 @@ export class TopoComponent {
       const isFullscreen = this.isFullscreen(); // Re-trigger when toggling fullscreen
 
       if (routeId && topoId) {
-        // Give time for potential UI changes (like entering fullscreen) to finish rendering
-        setTimeout(() => {
-          this.centerOnRoute();
+        this.centerOnRoute();
 
-          // Only scroll the list if we are NOT in fullscreen (the list is hidden in FS)
-          if (!isFullscreen) {
-            const rowId = `route-row-${topoId}-${routeId}`;
-            const row = document.getElementById(rowId);
-            if (row) {
-              row.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center',
-                inline: 'nearest',
-              });
-            }
+        // Only scroll the list if we are NOT in fullscreen (the list is hidden in FS)
+        if (!isFullscreen) {
+          const rowId = `route-row-${topoId}-${routeId}`;
+          const row = document.getElementById(rowId);
+          if (row) {
+            row.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+              inline: 'nearest',
+            });
           }
-        }, 200);
+        }
       }
     });
   }
