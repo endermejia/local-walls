@@ -30,7 +30,6 @@ import {
   TuiSortDirection,
   TuiTable,
   TuiTableSortChange,
-  TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 
@@ -65,7 +64,6 @@ import { handleErrorToast } from '../../utils';
     TuiScrollbar,
     TuiSkeleton,
     TuiTable,
-    TuiTableSortPipe,
   ],
   template: `
     <section class="flex flex-col w-full max-w-5xl mx-auto p-4">
@@ -121,8 +119,7 @@ import { handleErrorToast } from '../../utils';
       </div>
 
       <tui-scrollbar class="flex grow">
-        @let list = filteredParkings() | tuiTableSort;
-        @if (list.length > 0) {
+        @if (filteredParkings().length > 0) {
           <table
             [size]="global.isMobile() ? 's' : 'l'"
             tuiTable
@@ -132,6 +129,7 @@ import { handleErrorToast } from '../../utils';
             [sorter]="sorter()"
             (sortChange)="onSortChange($event)"
           >
+            @let list = filteredParkings() | tuiTableSort;
             <thead tuiThead>
               <tr tuiThGroup>
                 <th *tuiHead="'name'" tuiTh [sorter]="nameSorter">

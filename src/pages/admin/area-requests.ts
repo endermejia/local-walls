@@ -27,7 +27,6 @@ import {
   TuiSortDirection,
   TuiTable,
   TuiTableSortChange,
-  TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 
@@ -61,7 +60,6 @@ interface AreaAdminRequest {
     TuiScrollbar,
     TuiSkeleton,
     TuiTable,
-    TuiTableSortPipe,
   ],
   template: `
     <section class="flex flex-col w-full max-w-5xl mx-auto p-4">
@@ -94,8 +92,7 @@ interface AreaAdminRequest {
       </p>
 
       <tui-scrollbar class="flex grow">
-        @let sortedList = requests() | tuiTableSort;
-        @if (sortedList.length > 0) {
+        @if (requests().length > 0) {
           <table
             [size]="global.isMobile() ? 's' : 'l'"
             tuiTable
@@ -105,6 +102,7 @@ interface AreaAdminRequest {
             [sorter]="sorter()"
             (sortChange)="onSortChange($event)"
           >
+            @let sortedList = requests() | tuiTableSort;
             <thead tuiThead>
               <tr tuiThGroup>
                 <th

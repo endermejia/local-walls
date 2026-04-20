@@ -25,16 +25,7 @@ import {
   TuiTitle,
 } from '@taiga-ui/core';
 import { TuiChevron, TuiDataListWrapper, TuiSelect } from '@taiga-ui/kit';
-import {
-  TuiTable,
-  TuiTableCell,
-  TuiTableHead,
-  TuiTableTbody,
-  TuiTableTd,
-  TuiTableTh,
-  TuiTableThGroup,
-  TuiTableTr,
-} from '@taiga-ui/addon-table';
+import { TuiTable } from '@taiga-ui/addon-table';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -58,13 +49,6 @@ import { OrderDetail, OrderStatus } from '../../models/merchandise.model';
     TuiLoader,
     TuiNotification,
     TuiTable,
-    TuiTableTbody,
-    TuiTableThGroup,
-    TuiTableTh,
-    TuiTableTr,
-    TuiTableTd,
-    TuiTableHead,
-    TuiTableCell,
     TuiSelect,
     TuiChevron,
     TuiDataList,

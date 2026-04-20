@@ -42,7 +42,6 @@ import {
   TuiSortDirection,
   TuiTable,
   TuiTableSortChange,
-  TuiTableSortPipe,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 
@@ -95,7 +94,6 @@ interface UserWithRole {
     TuiSelect,
     TuiSkeleton,
     TuiTable,
-    TuiTableSortPipe,
     TuiTitle,
     WaIntersectionObserver,
   ],
@@ -156,8 +154,7 @@ interface UserWithRole {
       </div>
 
       <tui-scrollbar waIntersectionRoot class="flex grow">
-        @let sortedUsersList = filteredUsers() | tuiTableSort;
-        @if (sortedUsersList.length > 0) {
+        @if (filteredUsers().length > 0) {
           <table
             [size]="global.isMobile() ? 's' : 'l'"
             tuiTable
@@ -167,6 +164,7 @@ interface UserWithRole {
             [sorter]="sorter()"
             (sortChange)="onSortChange($event)"
           >
+            @let sortedUsersList = filteredUsers() | tuiTableSort;
             <thead tuiThead>
               <tr tuiThGroup>
                 <th

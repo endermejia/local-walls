@@ -39,6 +39,13 @@ import {
 import {
   TuiSortDirection,
   TuiTable,
+  TuiTableTbody,
+  TuiTableThGroup,
+  TuiTableTh,
+  TuiTableTr,
+  TuiTableTd,
+  TuiTableHead,
+  TuiTableCell,
   TuiTableSortChange,
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
@@ -128,6 +135,13 @@ export interface TopoRouteRow {
     TuiLoader,
     TuiScrollbar,
     TuiTable,
+    TuiTableTbody,
+    TuiTableThGroup,
+    TuiTableTh,
+    TuiTableTr,
+    TuiTableTd,
+    TuiTableHead,
+    TuiTableCell,
   ],
   template: `
     <div class="h-full w-full">
