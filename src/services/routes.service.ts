@@ -25,13 +25,20 @@ import type {
   RouteWithExtras,
 } from '../models';
 
-import { normalizeName } from '../utils';
+import { normalizeNameStrict } from '../utils';
 
 export interface RouteSimple {
   id: number;
   name: string;
+  slug?: string;
   crag_id: number;
-  crag: { name: string; area_id: number } | null;
+  crag: {
+    name: string;
+    slug?: string;
+    area_id: number;
+    area_slug?: string;
+    area_name?: string;
+  } | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -274,7 +281,7 @@ export class RoutesService {
         const name = item.name || '';
         if (name.toUpperCase().trim() === 'N.N.') continue;
 
-        const key = `${area.id}-${normalizeName(name)}`;
+        const key = `${area.id}-${normalizeNameStrict(name)}`;
         const count = (groups.get(key) ?? 0) + 1;
         groups.set(key, count);
 
@@ -324,7 +331,7 @@ export class RoutesService {
       const { data, error } = await this.supabase.client
         .from('routes')
         .select(
-          'id, name, crag_id, crag:crags!inner(name, area_id, area:areas!inner(id, name, slug))',
+          'id, name, slug, crag_id, crag:crags!inner(name, slug, area_id, area:areas!inner(id, name, slug))',
         )
         .range(from, from + step - 1);
 
@@ -346,8 +353,15 @@ export class RoutesService {
         areaMap.get(area.id)!.allRoutes.push({
           id: item.id,
           name: item.name,
+          slug: item.slug,
           crag_id: item.crag_id,
-          crag: { name: item.crag.name, area_id: area.id },
+          crag: {
+            name: item.crag.name,
+            slug: item.crag.slug,
+            area_id: area.id,
+            area_slug: area.slug,
+            area_name: area.name,
+          },
         });
       }
 
@@ -366,7 +380,8 @@ export class RoutesService {
       const groups = new Map<string, RouteSimple[]>();
       for (const route of areaData.allRoutes) {
         if ((route.name || '').toUpperCase().trim() === 'N.N.') continue;
-        const key = normalizeName(route.name);
+        const key = normalizeNameStrict(route.name);
+        if (!key) continue;
         if (!groups.has(key)) groups.set(key, []);
         groups.get(key)!.push(route);
       }
@@ -385,6 +400,79 @@ export class RoutesService {
     }
 
     return result.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  async getAllRoutesWithDuplicateEightAnuSlugs(): Promise<
+    { eightAnuSlug: string; routes: RouteSimple[] }[]
+  > {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+
+    const slugToRoutes = new Map<string, RouteSimple[]>();
+    let from = 0;
+    const step = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await this.supabase.client
+        .from('routes')
+        .select(
+          'id, name, slug, crag_id, eight_anu_route_slugs, crag:crags!inner(name, slug, area_id, area:areas!inner(id, name, slug))',
+        )
+        .not('eight_anu_route_slugs', 'is', null)
+        .range(from, from + step - 1);
+
+      if (error) {
+        console.error(
+          '[RoutesService] getAllRoutesWithDuplicateEightAnuSlugs error',
+          error,
+        );
+        break;
+      }
+      if (!data || data.length === 0) break;
+
+      for (const item of data) {
+        const area = item.crag.area;
+        const route: RouteSimple = {
+          id: item.id,
+          name: item.name,
+          slug: item.slug,
+          crag_id: item.crag_id,
+          crag: {
+            name: item.crag.name,
+            slug: item.crag.slug,
+            area_id: area.id,
+            area_slug: area.slug,
+            area_name: area.name,
+          },
+        };
+        for (const eightAnuSlug of item.eight_anu_route_slugs as string[]) {
+          if (!slugToRoutes.has(eightAnuSlug))
+            slugToRoutes.set(eightAnuSlug, []);
+          slugToRoutes.get(eightAnuSlug)!.push(route);
+        }
+      }
+
+      if (data.length < step) hasMore = false;
+      else from += step;
+    }
+
+    // Deduplicate and filter: skip groups from different areas or already seen
+    const seen = new Set<string>();
+    const result: { eightAnuSlug: string; routes: RouteSimple[] }[] = [];
+    for (const [eightAnuSlug, routes] of slugToRoutes.entries()) {
+      if (routes.length < 2) continue;
+      const areaIds = new Set(routes.map((r) => r.crag?.area_id));
+      if (areaIds.size > 1) continue;
+      const key = routes
+        .map((r) => r.id)
+        .sort((a, b) => a - b)
+        .join(',');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      result.push({ eightAnuSlug, routes });
+    }
+    return result;
   }
 
   async searchRoutes(query: string): Promise<Partial<RouteWithExtras>[]> {

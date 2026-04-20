@@ -557,6 +557,7 @@
   "routes.newTitle": "Bide berria",
   "routes.sourceRoutes": "Jatorrizko bideak (ezabatuko dira)",
   "routes.suggestedDuplicates": "Iradokitako bide bikoiztuak",
+  "routes.duplicatesByEightAnu": "Bikoiztuak 8a.nu slug-aren arabera",
   "routes.targetRoute": "Helburuko bidea (mantenduko da)",
   "routes.unifyDescription": "Hautatu bakarrean bateratu nahi dituzun bideak. 8a.nu-ko slug guztiak mantenduko dira eta igoerak/gogokoak/proiektuak helburuko bidean konbinatuko dira.",
   "routes.unifyTitle": "Bateratu bideak",

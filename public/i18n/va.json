@@ -557,6 +557,7 @@
   "routes.newTitle": "Nova via",
   "routes.sourceRoutes": "Vies d'origen (s'eliminaran)",
   "routes.suggestedDuplicates": "Vies duplicades suggerides",
+  "routes.duplicatesByEightAnu": "Duplicats per slug de 8a.nu",
   "routes.targetRoute": "Via de destí (es mantindrà)",
   "routes.unifyDescription": "Selecciona les vies que vols unificar en una sola. Es conservaran tots els slugs de 8a.nu i els encadenaments/likes/projectes es combinaran en la via de destí.",
   "routes.unifyTitle": "Unificar vies",

@@ -557,6 +557,7 @@
   "routes.newTitle": "Create new route",
   "routes.sourceRoutes": "Source routes (will be deleted)",
   "routes.suggestedDuplicates": "Suggested duplicate routes",
+  "routes.duplicatesByEightAnu": "Duplicates by 8a.nu slug",
   "routes.targetRoute": "Target route (will be kept)",
   "routes.unifyDescription": "Select routes to unify into one. All 8a.nu slugs will be preserved and ascents/likes/projects will be merged into the target route.",
   "routes.unifyTitle": "Unify routes",

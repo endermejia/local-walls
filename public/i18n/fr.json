@@ -557,6 +557,7 @@
   "routes.newTitle": "Nouvelle voie",
   "routes.sourceRoutes": "Voies d'origine (seront supprimées)",
   "routes.suggestedDuplicates": "Voies en double suggérées",
+  "routes.duplicatesByEightAnu": "Doublons par slug 8a.nu",
   "routes.targetRoute": "Voie de destination (sera conservée)",
   "routes.unifyDescription": "Sélectionnez les voies à unifier en une seule. Tous les slugs 8a.nu seront conservés et les ascensions/favoris/projets seront combinés dans la voie de destination.",
   "routes.unifyTitle": "Unifier les voies",

@@ -557,6 +557,7 @@
   "routes.newTitle": "Neue Route",
   "routes.sourceRoutes": "Quellrouten (werden gelöscht)",
   "routes.suggestedDuplicates": "Vorgeschlagene doppelte Routen",
+  "routes.duplicatesByEightAnu": "Duplikate nach 8a.nu-Slug",
   "routes.targetRoute": "Zielroute (bleibt erhalten)",
   "routes.unifyDescription": "Wählen Sie die Routen aus, die Sie zu einer einzigen zusammenführen möchten. Alle 8a.nu Slugs bleiben erhalten und Begehungen/Likes/Projekte werden in der Zielroute kombiniert.",
   "routes.unifyTitle": "Routen zusammenführen",

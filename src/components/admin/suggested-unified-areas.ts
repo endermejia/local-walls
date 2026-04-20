@@ -6,6 +6,7 @@ import {
   inject,
   resource,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { TuiButton, TuiLoader } from '@taiga-ui/core';
 
@@ -19,7 +20,7 @@ import { normalizeName } from '../../utils';
 
 @Component({
   selector: 'app-suggested-unified-areas',
-  imports: [CommonModule, TranslatePipe, TuiButton, TuiLoader],
+  imports: [CommonModule, TranslatePipe, TuiButton, TuiLoader, RouterLink],
   template: `
     <div class="flex flex-col gap-4">
       <h3 class="font-bold text-lg">
@@ -38,12 +39,22 @@ import { normalizeName } from '../../utils';
             <div
               class="border border-(--tui-border-normal) p-4 rounded-xl flex items-center justify-between gap-4"
             >
-              <div>
-                <div class="font-bold">{{ group[0].name }}</div>
-                <div class="text-sm opacity-70">
-                  {{ group.length }} {{ 'areas' | translate }} ({{
-                    getNames(group)
-                  }})
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-col gap-1">
+                  @for (area of group; track area.id) {
+                    <div class="text-sm">
+                      @if (area.slug) {
+                        <a
+                          [routerLink]="['/area', area.slug]"
+                          target="_blank"
+                          class="font-medium underline underline-offset-2 hover:opacity-70"
+                          >{{ area.name }}</a
+                        >
+                      } @else {
+                        <span class="font-medium">{{ area.name }}</span>
+                      }
+                    </div>
+                  }
                 </div>
               </div>
               <button
@@ -83,10 +94,6 @@ export class SuggestedUnifiedAreasComponent {
 
     return Array.from(groups.values()).filter((g) => g.length > 1);
   });
-
-  protected getNames(group: AreaDto[]): string {
-    return group.map((a) => a.name).join(', ');
-  }
 
   protected async onUnify(group: AreaDto[]) {
     const success = await this.areasService.openUnifyAreas(group);

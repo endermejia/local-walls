@@ -557,6 +557,7 @@
   "routes.newTitle": "Nuovo tiro",
   "routes.sourceRoutes": "Tiri di origine (verranno eliminati)",
   "routes.suggestedDuplicates": "Tiri duplicati suggeriti",
+  "routes.duplicatesByEightAnu": "Duplicati per slug 8a.nu",
   "routes.targetRoute": "Tiro di destinazione (verrà mantenuto)",
   "routes.unifyDescription": "Seleziona i tiri che vuoi unificare in uno solo. Verranno conservati tutti gli slug di 8a.nu e le salite/preferiti/progetti verranno combinati nel tiro di destinazione.",
   "routes.unifyTitle": "Unifica tiri",

@@ -28,8 +28,9 @@ import { GlobalData } from './global-data';
 export interface CragSimple {
   id: number;
   name: string;
+  slug?: string;
   area_id: number;
-  area: { name: string } | null;
+  area: { name: string; slug?: string } | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -129,7 +130,7 @@ export class CragsService {
     while (hasMore) {
       const { data, error } = await this.supabase.client
         .from('crags')
-        .select('id, name, area_id, area:areas(name)')
+        .select('id, name, slug, area_id, area:areas(name, slug)')
         .range(from, from + step - 1);
 
       if (error) {

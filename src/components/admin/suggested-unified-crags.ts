@@ -6,6 +6,7 @@ import {
   inject,
   resource,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { TuiButton, TuiLoader } from '@taiga-ui/core';
 
@@ -15,11 +16,11 @@ import { CragSimple, CragsService } from '../../services/crags.service';
 
 import { CragDto } from '../../models';
 
-import { normalizeName } from '../../utils';
+import { normalizeNameStrict } from '../../utils';
 
 @Component({
   selector: 'app-suggested-unified-crags',
-  imports: [CommonModule, TranslatePipe, TuiButton, TuiLoader],
+  imports: [CommonModule, TranslatePipe, TuiButton, TuiLoader, RouterLink],
   template: `
     <div class="flex flex-col gap-4">
       <h3 class="font-bold text-lg">
@@ -38,17 +39,28 @@ import { normalizeName } from '../../utils';
             <div
               class="border border-(--tui-border-normal) p-4 rounded-xl flex items-center justify-between gap-4"
             >
-              <div>
+              <div class="flex-1 min-w-0">
                 <div class="font-bold">
                   {{ group[0].name }}
                   <span class="font-normal opacity-70 text-sm">
                     ({{ getAreaName(group[0]) }})
                   </span>
                 </div>
-                <div class="text-sm opacity-70">
-                  {{ group.length }} {{ 'crags' | translate }} ({{
-                    getNames(group)
-                  }})
+                <div class="flex flex-col gap-1 mt-1">
+                  @for (crag of group; track crag.id) {
+                    <div class="text-sm opacity-70">
+                      @if (crag.area?.slug && crag.slug) {
+                        <a
+                          [routerLink]="['/area', crag.area!.slug, crag.slug]"
+                          target="_blank"
+                          class="underline underline-offset-2 hover:opacity-100"
+                          >{{ crag.name }}</a
+                        >
+                      } @else {
+                        {{ crag.name }}
+                      }
+                    </div>
+                  }
                 </div>
               </div>
               <button
@@ -80,7 +92,7 @@ export class SuggestedUnifiedCragsComponent {
 
     for (const crag of crags) {
       // Key includes area_id to avoid cross-area merging
-      const key = `${crag.area_id}-${normalizeName(crag.name)}`;
+      const key = `${crag.area_id}-${normalizeNameStrict(crag.name)}`;
       if (!groups.has(key)) {
         groups.set(key, []);
       }
@@ -92,10 +104,6 @@ export class SuggestedUnifiedCragsComponent {
 
   protected getAreaName(crag: CragSimple): string {
     return crag.area?.name || '';
-  }
-
-  protected getNames(group: CragSimple[]): string {
-    return group.map((a) => a.name).join(', ');
   }
 
   protected async onUnify(group: CragSimple[]) {

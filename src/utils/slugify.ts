@@ -19,6 +19,20 @@ export function slugify(input: string | undefined | null): string {
   v = v.replace(/^-+|-+$/g, '');
   return v;
 }
+// Strict normalization for duplicate detection: only strips diacritics and lowercases.
+// Does NOT replace hyphens, dots or other separators, so "V.T." and "V T" stay distinct.
+export function normalizeNameStrict(input: string | undefined | null): string {
+  const value = (input ?? '').toString();
+  if (!value) return '';
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[''´`]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
 export function normalizeName(input: string | undefined | null): string {
   const value = (input ?? '').toString();
   if (!value) return '';
