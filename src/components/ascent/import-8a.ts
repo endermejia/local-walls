@@ -1119,6 +1119,96 @@ export class Import8aComponent {
         completedItems += batch.length;
         progress$.next(Math.floor((completedItems / totalItems) * 100));
       }
+
+      // Second pass: for routes not resolved by name, check by 8a slug
+      const unresolvedItems = itemsToResolve.filter((item) => {
+        const key = `${slugify(item.area)}|${slugify(item.crag)}|${slugify(item.name)}`;
+        return !this.resolvedSlugsMap.has(key);
+      });
+
+      if (unresolvedItems.length > 0) {
+        // Build csvKey -> route_8a_slug from CSV data (no API call needed)
+        const csvSlugByKey = new Map<string, string>();
+        for (const a of ascents) {
+          if (a.route_8a_slug) {
+            const key = `${slugify(a.location_name)}|${slugify(a.sector_name)}|${slugify(a.name)}`;
+            csvSlugByKey.set(key, a.route_8a_slug);
+          }
+        }
+
+        // Separate items: those with a known CSV slug vs. those needing 8anu API lookup
+        const slugByKey = new Map<string, string>(); // csvKey -> 8a slug
+        const itemsNeedingApi: typeof unresolvedItems = [];
+
+        for (const item of unresolvedItems) {
+          const key = `${slugify(item.area)}|${slugify(item.crag)}|${slugify(item.name)}`;
+          const csvSlug = csvSlugByKey.get(key);
+          if (csvSlug) {
+            slugByKey.set(key, csvSlug);
+          } else {
+            itemsNeedingApi.push(item);
+          }
+        }
+
+        // Query 8anu API only for routes without a CSV slug (minimise calls)
+        const API_CONCURRENCY = 2;
+        for (let i = 0; i < itemsNeedingApi.length; i += API_CONCURRENCY) {
+          const apiBatch = itemsNeedingApi.slice(i, i + API_CONCURRENCY);
+          await Promise.all(
+            apiBatch.map(async (item) => {
+              const key = `${slugify(item.area)}|${slugify(item.crag)}|${slugify(item.name)}`;
+              try {
+                const result = await this.eightAnuService.searchRoute(
+                  item.area,
+                  item.crag,
+                  item.name,
+                );
+                if (result?.zlaggableSlug) {
+                  slugByKey.set(key, result.zlaggableSlug);
+                }
+              } catch (e) {
+                console.error(
+                  `[8a Import] Error fetching 8a slug for route ${item.name}:`,
+                  e,
+                );
+              }
+            }),
+          );
+        }
+
+        // Single batched DB query: find routes that share any of these 8a slugs
+        if (slugByKey.size > 0) {
+          const allSlugs = [...new Set(slugByKey.values())];
+          const SLUG_CHUNK_SIZE = 50;
+          const routesBySlugs: {
+            name: string;
+            slug: string;
+            eight_anu_route_slugs: string[] | null;
+          }[] = [];
+
+          for (let i = 0; i < allSlugs.length; i += SLUG_CHUNK_SIZE) {
+            const slugChunk = allSlugs.slice(i, i + SLUG_CHUNK_SIZE);
+            const { data } = await this.supabase.client
+              .from('routes')
+              .select('name, slug, eight_anu_route_slugs')
+              .overlaps('eight_anu_route_slugs', slugChunk);
+            if (data) routesBySlugs.push(...data);
+          }
+
+          for (const [key, slug8a] of slugByKey.entries()) {
+            if (this.resolvedSlugsMap.has(key)) continue;
+            const match = routesBySlugs.find((r) =>
+              r.eight_anu_route_slugs?.includes(slug8a),
+            );
+            if (match) {
+              this.resolvedSlugsMap.set(key, {
+                slug: match.slug,
+                eightAnuSlugs: match.eight_anu_route_slugs || [],
+              });
+            }
+          }
+        }
+      }
     } catch (e) {
       console.error('[8a Import] Error resolving data:', e);
       this.toast.error(this.translate.instant('import8a.errors.resolve'));
