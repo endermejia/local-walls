@@ -133,8 +133,11 @@ const MERCHANDISE_CATEGORIES = [
 
         <!-- Sizes -->
         <tui-textfield multi class="block">
-          <label tuiLabel>{{ 'merchandising.items.sizes' | translate }}</label>
+          <label tuiLabel for="sizes">{{
+            'merchandising.items.sizes' | translate
+          }}</label>
           <input
+            id="sizes"
             tuiInputChip
             [ngModel]="model().available_sizes"
             (ngModelChange)="onSizesChange($event)"
@@ -146,8 +149,11 @@ const MERCHANDISE_CATEGORIES = [
 
         <!-- Colors -->
         <tui-textfield multi class="block">
-          <label tuiLabel>{{ 'merchandising.items.colors' | translate }}</label>
+          <label tuiLabel for="colors">{{
+            'merchandising.items.colors' | translate
+          }}</label>
           <input
+            id="colors"
             tuiInputChip
             [ngModel]="model().available_colors"
             (ngModelChange)="updateModel('available_colors', $event)"
@@ -173,8 +179,9 @@ const MERCHANDISE_CATEGORIES = [
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
               @for (size of model().available_sizes; track size) {
                 <tui-textfield class="w-full" size="s">
-                  <label tuiLabel>{{ size }}</label>
+                  <label tuiLabel [for]="'stock-' + size">{{ size }}</label>
                   <input
+                    [id]="'stock-' + size"
                     tuiInputNumber
                     [min]="0"
                     [ngModel]="getStockForSize(size)"

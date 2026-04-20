@@ -216,27 +216,41 @@ export class PurchaseHistoryDialogComponent {
       // Process Area Purchases
       if (areaPurchases.data) {
         records.push(
-          ...areaPurchases.data.map((p: any) => ({
-            id: p.id,
-            amount: p.amount,
-            created_at: p.created_at || '',
-            name: p.area?.name || 'Unknown Area',
-            type: 'area' as const,
-            slug: p.area?.slug,
-          })),
+          ...areaPurchases.data.map(
+            (p: {
+              id: string;
+              amount: number;
+              created_at: string | null;
+              area: { name: string; slug: string } | null;
+            }) => ({
+              id: p.id,
+              amount: p.amount,
+              created_at: p.created_at || '',
+              name: p.area?.name || 'Unknown Area',
+              type: 'area' as const,
+              slug: p.area?.slug,
+            }),
+          ),
         );
       }
 
       // Process Pack Purchases
       if (packPurchases.data) {
         records.push(
-          ...packPurchases.data.map((p: any) => ({
-            id: p.id,
-            amount: p.amount,
-            created_at: p.created_at || '',
-            name: p.pack?.name || 'Unknown Pack',
-            type: 'pack' as const,
-          })),
+          ...packPurchases.data.map(
+            (p: {
+              id: string;
+              amount: number;
+              created_at: string | null;
+              pack: { name: string } | null;
+            }) => ({
+              id: p.id,
+              amount: p.amount,
+              created_at: p.created_at || '',
+              name: p.pack?.name || 'Unknown Pack',
+              type: 'pack' as const,
+            }),
+          ),
         );
       }
 

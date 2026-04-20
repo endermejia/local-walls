@@ -54,7 +54,6 @@ import { ToastService } from '../../services/toast.service';
 import { GradeComponent } from '../ui/avatar-grade';
 
 import { Json } from '../../models/supabase-generated';
-
 import {
   AscentType,
   AscentTypes,
@@ -76,7 +75,6 @@ class EmptyCsvError extends Error {
 }
 
 interface Import8aPayload {
-  [key: string]: Json | undefined;
   area_name: string;
   area_slug: string;
   area_8a_slug: string;
@@ -101,7 +99,27 @@ interface Import8aPayload {
 
 interface ExistingUserAscentKey {
   date: string | null;
-  route: unknown;
+  route:
+    | {
+        slug: string;
+        name: string;
+        crag: {
+          slug: string;
+          area: {
+            slug: string;
+          };
+        };
+      }
+    | {
+        slug: string;
+        name: string;
+        crag: {
+          slug: string;
+          area: {
+            slug: string;
+          };
+        };
+      }[];
 }
 
 @Component({
@@ -870,7 +888,7 @@ export class Import8aComponent {
           const { data, error } = await this.supabase.client.rpc(
             'import_8a_ascents',
             {
-              ascents: chunk,
+              ascents: chunk as unknown as Json[],
             },
           );
 

@@ -10,6 +10,7 @@ import type {
   AreaPack,
   MerchandiseItemDetail,
   OrderDetail,
+  OrderItem,
   OrderStatus,
 } from '../models';
 
@@ -226,11 +227,11 @@ export class MerchandiseService {
   }
 
   private async adjustStockForOrder(
-    items: any[],
+    items: OrderItem[],
     action: 'increment' | 'decrement',
   ): Promise<void> {
     for (const item of items) {
-      if (!item.item_id || !item.selected_size) continue;
+      if (!item.item_id || !item.selected_size || !item.quantity) continue;
 
       // Get current stock
       const { data: stockData } = await this.supabase.client
