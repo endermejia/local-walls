@@ -164,4 +164,4 @@ This repo runs Prettier automatically before each commit via Husky + lint-staged
 
 With love, by Gabri Mejía ❤
 
-[Live DEMO](https://climbeast.com) 🚀
+[ClimBeast](https://climbeast.com) 🚀
