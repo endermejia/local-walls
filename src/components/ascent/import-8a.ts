@@ -53,6 +53,8 @@ import { ToastService } from '../../services/toast.service';
 
 import { GradeComponent } from '../ui/avatar-grade';
 
+import { Json } from '../../models/supabase-generated';
+
 import {
   AscentType,
   AscentTypes,
@@ -74,6 +76,7 @@ class EmptyCsvError extends Error {
 }
 
 interface Import8aPayload {
+  [key: string]: Json | undefined;
   area_name: string;
   area_slug: string;
   area_8a_slug: string;
@@ -838,7 +841,7 @@ export class Import8aComponent {
           route_slug: routeSlug,
           route_8a_slug: match?.zlaggableSlug ?? null,
           grade,
-          climbing_kind: a.climbing_kind,
+          climbing_kind: a.climbing_kind ?? ClimbingKinds.SPORT,
           date: a.date.split('T')[0],
           style: a.type,
           attempts: a.tries,
@@ -849,13 +852,11 @@ export class Import8aComponent {
       });
 
       const existingAscentKeys = await this.getOrLoadExistingAscentKeys();
-      const {
-        payload: deduplicatedPayload,
-        skipped: skippedBeforeImport,
-      } = this.deduplicatePayloadAgainstExistingAscents(
-        payload,
-        existingAscentKeys,
-      );
+      const { payload: deduplicatedPayload, skipped: skippedBeforeImport } =
+        this.deduplicatePayloadAgainstExistingAscents(
+          payload,
+          existingAscentKeys,
+        );
 
       // 3. Call RPC in batches
       const CHUNK_SIZE = 50;
@@ -1083,9 +1084,10 @@ export class Import8aComponent {
     return { payload: deduplicatedPayload, skipped };
   }
 
-  private async getOrLoadExistingAscentKeys(
-    range?: { from: string; to: string },
-  ): Promise<Set<string>> {
+  private async getOrLoadExistingAscentKeys(range?: {
+    from: string;
+    to: string;
+  }): Promise<Set<string>> {
     if (
       this.existingAscentKeysCache &&
       (!range ||

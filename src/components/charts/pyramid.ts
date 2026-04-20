@@ -44,6 +44,7 @@ import { PyramidSlotDialogComponent } from '../dialogs/pyramid-slot-dialog';
 
 import {
   AscentType,
+  AscentTypes,
   ClimbingKind,
   ClimbingKinds,
   GRADE_NUMBER_TO_LABEL,
@@ -372,7 +373,7 @@ export class PyramidComponent implements AfterViewInit {
         .from('route_ascents')
         .select('route_id, type, grade, route:routes(grade)')
         .eq('user_id', params.userId)
-        .neq('type', 'attempt')
+        .neq('type', AscentTypes.ATTEMPT)
         .gte('date', `${params.year}-01-01`)
         .lte('date', `${params.year}-12-31`);
 
@@ -392,8 +393,8 @@ export class PyramidComponent implements AfterViewInit {
     const ascents = this.completedRoutesResource.value() || [];
     const map: Record<number, { score: number; type: AscentType }> = {};
     ascents.forEach((a) => {
-      if (a.route_id && a.type !== 'attempt') {
-        const type = (a.type || 'rp') as AscentType;
+      if (a.route_id && a.type !== AscentTypes.ATTEMPT) {
+        const type = (a.type || AscentTypes.RP) as AscentType;
         const gradeId =
           a.grade || (a.route as { grade: number } | null)?.grade || 0;
         if (gradeId) {

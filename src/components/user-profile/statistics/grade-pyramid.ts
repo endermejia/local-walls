@@ -12,6 +12,7 @@ import { TuiIcon, TuiHint, TuiScrollbar, TuiButton } from '@taiga-ui/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { GradeDistribution } from '../../../models/user-stats.model';
+import { AscentTypes } from '../../../models';
 
 @Component({
   selector: 'app-user-profile-stats-pyramid',
@@ -135,9 +136,11 @@ import { GradeDistribution } from '../../../models/user-stats.model';
                     route.cragSlug,
                     route.routeSlug,
                   ]"
-                  [class.onsight]="route.type === 'os'"
-                  [class.flash]="route.type === 'f'"
-                  [class.redpoint]="route.type === 'rp' || !route.type"
+                  [class.onsight]="route.type === AscentTypes.OS"
+                  [class.flash]="route.type === AscentTypes.F"
+                  [class.redpoint]="
+                    route.type === AscentTypes.RP || !route.type
+                  "
                 >
                   {{ route.name || ('anonymous' | translate) }}
                 </a>
@@ -231,6 +234,8 @@ import { GradeDistribution } from '../../../models/user-stats.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserProfileStatsPyramidComponent {
+  protected readonly AscentTypes = AscentTypes;
+
   distribution = input.required<GradeDistribution | null>();
   showAllGrades = signal(false);
 }

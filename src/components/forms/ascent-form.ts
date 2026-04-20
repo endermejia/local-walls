@@ -1152,7 +1152,7 @@ export default class AscentFormComponent {
   }
 
   setType(id: AscentType): void {
-    if (id === 'attempt') {
+    if (id === AscentTypes.ATTEMPT) {
       this.attemptSelected();
     } else {
       this.model.update((m) => ({ ...m, type: id }));
