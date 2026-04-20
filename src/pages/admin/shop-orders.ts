@@ -126,9 +126,10 @@ import { OrderDetail, OrderStatus } from '../../models/merchandise.model';
                   <td tuiTd *tuiCell="'actions'">
                     <button
                       tuiIconButton
-                      appearance="flat"
+                      appearance="neutral"
                       size="s"
                       type="button"
+                      class="rounded-full!"
                       (click)="viewDetails(order)"
                     >
                       <tui-icon icon="@tui.eye" />

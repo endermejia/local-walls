@@ -187,7 +187,7 @@ interface AreaAdminRequest {
                         <button
                           tuiButton
                           size="m"
-                          appearance="secondary-destructive"
+                          appearance="negative"
                           type="button"
                           class="rounded-full!"
                           (click.zoneless)="reject(req)"

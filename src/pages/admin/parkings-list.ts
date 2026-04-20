@@ -185,7 +185,7 @@ import { handleErrorToast } from '../../utils';
                     <td *tuiCell="'actions'" tuiTd class="text-right">
                       <div class="flex justify-end gap-2">
                         <button
-                          appearance="flat"
+                          appearance="neutral"
                           size="s"
                           tuiIconButton
                           type="button"
@@ -196,7 +196,7 @@ import { handleErrorToast } from '../../utils';
                           {{ 'edit' | translate }}
                         </button>
                         <button
-                          appearance="flat-destructive"
+                          appearance="negative"
                           size="s"
                           tuiIconButton
                           type="button"

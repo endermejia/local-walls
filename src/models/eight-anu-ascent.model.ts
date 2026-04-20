@@ -14,6 +14,8 @@ export interface EightAnuAscent {
   comment: string;
   recommended: boolean;
   climbing_kind?: ClimbingKind;
+  route_8a_slug?: string;
+  local_route_slug?: string;
 }
 
 export interface EightAnuRoute {

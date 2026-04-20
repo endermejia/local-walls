@@ -87,6 +87,7 @@ interface Import8aPayload {
   route_name: string;
   route_slug: string;
   route_8a_slug: string | null;
+  eight_anu_route_slugs: string[];
   grade: number;
   climbing_kind: ClimbingKind;
   date: string;
@@ -103,6 +104,7 @@ interface ExistingUserAscentKey {
     | {
         slug: string;
         name: string;
+        eight_anu_route_slugs: string[] | null;
         crag: {
           slug: string;
           area: {
@@ -113,6 +115,7 @@ interface ExistingUserAscentKey {
     | {
         slug: string;
         name: string;
+        eight_anu_route_slugs: string[] | null;
         crag: {
           slug: string;
           area: {
@@ -247,6 +250,17 @@ interface ExistingUserAscentKey {
                             {{ ascent.sector_name }} -
                             {{ ascent.date | date }}
                           </div>
+                          @if (getResolvedData(ascent); as data) {
+                            <div class="text-[10px] opacity-50 flex gap-2">
+                              <span>slug: {{ data.slug }}</span>
+                              @for (
+                                slug8a of data.eightAnuSlugs;
+                                track slug8a
+                              ) {
+                                <span>8a: {{ slug8a }}</span>
+                              }
+                            </div>
+                          }
                         </div>
                       </div>
                       <div class="flex items-center gap-2">
@@ -351,7 +365,19 @@ export class Import8aComponent {
   private existingAscentKeysCacheRange: { from: string; to: string } | null =
     null;
 
-  protected onStep(step: number): void {
+  private readonly resolvedSlugsMap = new Map<
+    string,
+    { slug: string; eightAnuSlugs: string[] }
+  >();
+
+  protected getResolvedData(
+    ascent: EightAnuAscent,
+  ): { slug: string; eightAnuSlugs: string[] } | undefined {
+    const key = `${slugify(ascent.location_name)}|${slugify(ascent.sector_name)}|${slugify(ascent.name)}`;
+    return this.resolvedSlugsMap.get(key);
+  }
+
+  protected async onStep(step: number): Promise<void> {
     this.direction = step - this.index;
     this.index = step;
   }
@@ -421,8 +447,10 @@ export class Import8aComponent {
               throw new EmptyCsvError('Empty CSV');
             }
 
+            await this.resolveCsvAscentsWith8aData(parsedAscents);
             const { ascents } =
               await this.deduplicateCsvAscentsAgainstExisting(parsedAscents);
+
             this.ascents.set(ascents);
             return f;
           }
@@ -837,12 +865,14 @@ export class Import8aComponent {
 
         const coords = areaToCoords.get(a.location_name);
 
-        const sectorData = sectorTo8aRoutes.get(`${areaSlug}|${sectorSlug}`);
-        const match = sectorData?.routes.find(
-          (r) => slugify(r.zlaggableName) === slugify(a.name),
-        );
+        const csvKey = `${areaSlug}|${sectorSlug}|${slugify(a.name)}`;
+        const resolved = this.resolvedSlugsMap.get(csvKey);
 
-        const routeSlug = match ? match.zlaggableSlug : slugify(a.name);
+        const route_8a_slug =
+          a.route_8a_slug || resolved?.eightAnuSlugs?.[0] || null;
+        const eight_anu_route_slugs =
+          resolved?.eightAnuSlugs || (route_8a_slug ? [route_8a_slug] : []);
+        const routeSlug = resolved?.slug || route_8a_slug || slugify(a.name);
         const grade = LABEL_TO_VERTICAL_LIFE[a.difficulty] ?? 0;
 
         return {
@@ -857,7 +887,8 @@ export class Import8aComponent {
           lng: coords?.longitude ?? null,
           route_name: a.name,
           route_slug: routeSlug,
-          route_8a_slug: match?.zlaggableSlug ?? null,
+          route_8a_slug,
+          eight_anu_route_slugs,
           grade,
           climbing_kind: a.climbing_kind ?? ClimbingKinds.SPORT,
           date: a.date.split('T')[0],
@@ -987,22 +1018,126 @@ export class Import8aComponent {
     return AscentTypes.RP;
   }
 
+  private async resolveCsvAscentsWith8aData(
+    ascents: EightAnuAscent[],
+  ): Promise<void> {
+    if (ascents.length === 0) return;
+
+    this.searching.set(true);
+    const progress$ = new BehaviorSubject<number>(0);
+    const loaderClose = this.toast.showLoader(
+      'import8a.resolvingRoutes',
+      progress$,
+    );
+
+    try {
+      this.resolvedSlugsMap.clear();
+
+      const uniqueItems = new Map<
+        string,
+        { area: string; crag: string; name: string }
+      >();
+      for (const a of ascents) {
+        const key = `${slugify(a.location_name)}|${slugify(a.sector_name)}|${slugify(a.name)}`;
+        if (!uniqueItems.has(key)) {
+          uniqueItems.set(key, {
+            area: a.location_name,
+            crag: a.sector_name,
+            name: a.name,
+          });
+        }
+      }
+
+      const itemsToResolve = Array.from(uniqueItems.values());
+      const totalItems = itemsToResolve.length;
+      let completedItems = 0;
+
+      const BATCH_SIZE = 100;
+
+      for (let i = 0; i < totalItems; i += BATCH_SIZE) {
+        const batch = itemsToResolve.slice(i, i + BATCH_SIZE);
+        const names = batch.map((b) => b.name);
+
+        const { data: matchedRoutes, error } = await this.supabase.client
+          .from('routes')
+          .select(
+            `
+            name,
+            slug,
+            eight_anu_route_slugs,
+            crag:crags!inner(
+              name,
+              slug,
+              area:areas!inner(
+                name,
+                slug
+              )
+            )
+          `,
+          )
+          .in('name', names)
+          .returns<
+            {
+              name: string;
+              slug: string;
+              eight_anu_route_slugs: string[] | null;
+              crag: {
+                name: string;
+                slug: string;
+                area: {
+                  name: string;
+                  slug: string;
+                };
+              };
+            }[]
+          >();
+
+        if (error) {
+          console.error(
+            '[8a Import] Error fetching routes for resolution:',
+            error,
+          );
+        }
+
+        if (matchedRoutes) {
+          for (const r of matchedRoutes) {
+            // Find which items in the current batch match this route's name
+            const matchingItems = batch.filter(
+              (b) => slugify(b.name) === slugify(r.name),
+            );
+
+            for (const item of matchingItems) {
+              const key = `${slugify(item.area)}|${slugify(item.crag)}|${slugify(item.name)}`;
+              this.resolvedSlugsMap.set(key, {
+                slug: r.slug,
+                eightAnuSlugs: r.eight_anu_route_slugs || [],
+              });
+            }
+          }
+        }
+
+        completedItems += batch.length;
+        progress$.next(Math.floor((completedItems / totalItems) * 100));
+      }
+    } catch (e) {
+      console.error('[8a Import] Error resolving data:', e);
+      this.toast.error(this.translate.instant('import8a.errors.resolve'));
+    } finally {
+      this.searching.set(false);
+      loaderClose.next();
+      loaderClose.complete();
+    }
+  }
+
   private buildAscentDedupKey(
     date: string | null | undefined,
-    areaSlug: string | null | undefined,
-    cragSlug: string | null | undefined,
-    routeSlug: string | null | undefined,
+    slug: string | null | undefined,
+    is8aSlug = false,
   ): string | null {
     const normalizedDate = (date ?? '').split('T')[0].trim();
-    const normalizedAreaSlug = slugify(areaSlug);
-    const normalizedCragSlug = slugify(cragSlug);
-    const normalizedRouteSlug = slugify(routeSlug);
-
-    if (!normalizedDate || !normalizedRouteSlug) {
-      return null;
-    }
-
-    return `${normalizedDate}|${normalizedAreaSlug}|${normalizedCragSlug}|${normalizedRouteSlug}`;
+    if (!normalizedDate || !slug) return null;
+    const identifier = is8aSlug ? `8a:${slug}` : slugify(slug);
+    return `${normalizedDate}|${identifier}`;
   }
 
   private async deduplicateCsvAscentsAgainstExisting(
@@ -1021,34 +1156,38 @@ export class Import8aComponent {
     let skipped = 0;
 
     for (const ascent of ascents) {
-      const key = this.buildAscentDedupKey(
-        ascent.date,
-        ascent.location_name,
-        ascent.sector_name,
-        ascent.name,
-      );
-      const looseKey = this.buildAscentDedupKey(
-        ascent.date,
-        '',
-        '',
-        ascent.name,
-      );
+      const keysToCheck: (string | null)[] = [];
+      const csvKey = `${slugify(ascent.location_name)}|${slugify(ascent.sector_name)}|${slugify(ascent.name)}`;
+      const resolved = this.resolvedSlugsMap.get(csvKey);
 
-      if (!key) {
-        deduplicatedAscents.push(ascent);
-        continue;
+      // 1. Check by local slug from DB if we resolved it
+      if (resolved?.slug) {
+        keysToCheck.push(this.buildAscentDedupKey(ascent.date, resolved.slug));
       }
 
-      if (
-        existingKeys.has(key) ||
-        (looseKey !== null && existingKeys.has(looseKey)) ||
-        seenInCsv.has(key)
-      ) {
+      // 2. Always check by name-based slug as fallback/redundancy
+      keysToCheck.push(this.buildAscentDedupKey(ascent.date, ascent.name));
+
+      // 2. Check by 8a slug (from CSV or from resolved DB data)
+      const eightAnuSlug = ascent.route_8a_slug || resolved?.eightAnuSlugs?.[0];
+      if (eightAnuSlug) {
+        keysToCheck.push(
+          this.buildAscentDedupKey(ascent.date, eightAnuSlug, true),
+        );
+      }
+
+      const isDuplicate = keysToCheck.some(
+        (k) => k && (existingKeys.has(k) || seenInCsv.has(k)),
+      );
+
+      if (isDuplicate) {
         skipped++;
         continue;
       }
 
-      seenInCsv.add(key);
+      for (const k of keysToCheck) {
+        if (k) seenInCsv.add(k);
+      }
       deduplicatedAscents.push(ascent);
     }
 
@@ -1068,34 +1207,32 @@ export class Import8aComponent {
     let skipped = 0;
 
     for (const ascent of payload) {
-      const key = this.buildAscentDedupKey(
-        ascent.date,
-        ascent.area_slug,
-        ascent.crag_slug,
-        ascent.route_slug,
-      );
-      const looseKey = this.buildAscentDedupKey(
-        ascent.date,
-        '',
-        '',
-        ascent.route_slug,
+      const keysToCheck: (string | null)[] = [];
+
+      // 1. Check by local slug
+      keysToCheck.push(
+        this.buildAscentDedupKey(ascent.date, ascent.route_slug),
       );
 
-      if (!key) {
-        deduplicatedPayload.push(ascent);
-        continue;
+      // 2. Check by 8a slug
+      if (ascent.route_8a_slug) {
+        keysToCheck.push(
+          this.buildAscentDedupKey(ascent.date, ascent.route_8a_slug, true),
+        );
       }
 
-      if (
-        existingKeys.has(key) ||
-        (looseKey !== null && existingKeys.has(looseKey)) ||
-        seenInImport.has(key)
-      ) {
+      const isDuplicate = keysToCheck.some(
+        (k) => k && (existingKeys.has(k) || seenInImport.has(k)),
+      );
+
+      if (isDuplicate) {
         skipped++;
         continue;
       }
 
-      seenInImport.add(key);
+      for (const k of keysToCheck) {
+        if (k) seenInImport.add(k);
+      }
       deduplicatedPayload.push(ascent);
     }
 
@@ -1131,12 +1268,7 @@ export class Import8aComponent {
           route:routes!inner(
             slug,
             name,
-            crag:crags!inner(
-              slug,
-              area:areas!inner(
-                slug
-              )
-            )
+            eight_anu_route_slugs
           )
         `,
       )
@@ -1169,6 +1301,7 @@ export class Import8aComponent {
           ? (routeDataRaw as {
               slug?: string | null;
               name?: string | null;
+              eight_anu_route_slugs?: string[] | null;
               crag?:
                 | {
                     slug?: string | null;
@@ -1188,33 +1321,27 @@ export class Import8aComponent {
             })
           : null;
 
-      const cragDataRaw = Array.isArray(routeData?.crag)
-        ? routeData?.crag[0]
-        : routeData?.crag;
-      const areaDataRaw = Array.isArray(cragDataRaw?.area)
-        ? cragDataRaw?.area[0]
-        : cragDataRaw?.area;
-
       const routeIdentifier = routeData?.slug || routeData?.name || '';
-      const key = this.buildAscentDedupKey(
-        ascent.date,
-        areaDataRaw?.slug || '',
-        cragDataRaw?.slug || '',
-        routeIdentifier,
-      );
+      const key = this.buildAscentDedupKey(ascent.date, routeIdentifier);
       if (key) {
         existingKeys.add(key);
       }
 
-      if (ascent.date && routeIdentifier) {
-        const looseKey = this.buildAscentDedupKey(
-          ascent.date,
-          '',
-          '',
-          routeIdentifier,
-        );
-        if (looseKey) {
-          existingKeys.add(looseKey);
+      // Also add a name-only key to catch routes with different slugs but same names
+      if (routeData?.name) {
+        const nameKey = this.buildAscentDedupKey(ascent.date, routeData.name);
+        if (nameKey) {
+          existingKeys.add(nameKey);
+        }
+      }
+
+      // Add keys for each 8a slug
+      if (ascent.date && routeData?.eight_anu_route_slugs) {
+        for (const slug of routeData.eight_anu_route_slugs) {
+          const slugKey = this.buildAscentDedupKey(ascent.date, slug, true);
+          if (slugKey) {
+            existingKeys.add(slugKey);
+          }
         }
       }
     }
