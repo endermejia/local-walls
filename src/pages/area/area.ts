@@ -62,7 +62,7 @@ import {
 } from '../../models';
 
 import { IconSrcPipe } from '../../pipes/icon-src.pipe';
-import { handleErrorToast, normalizeName } from '../../utils';
+import { handleErrorToast, matchesQuery } from '../../utils';
 
 @Component({
   selector: 'app-area',
@@ -478,14 +478,12 @@ export class AreaComponent {
   protected readonly routes = computed(() => this.routesResource.value() ?? []);
 
   readonly filteredCrags = computed(() => {
-    const q = normalizeName(this.query());
+    const query = this.query();
     const [minIdx, maxIdx] = this.selectedGradeRange();
     const list = this.global.cragsList();
 
     const textMatches = (c: (typeof list)[number]) =>
-      !q ||
-      normalizeName(c.name).includes(q) ||
-      normalizeName(c.slug).includes(q);
+      matchesQuery(c.name, query) || matchesQuery(c.slug, query);
 
     const gradeMatches = (c: (typeof list)[number]) => {
       const grades = normalizeRoutesByGrade(c.grades);

@@ -55,6 +55,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
 
 import { AreaListItem } from '../../models';
 import { AvatarUrlPipe } from '../../pipes';
+import { matchesQuery } from '../../utils';
 
 interface UserWithRole {
   id: string;
@@ -390,12 +391,12 @@ export class AdminUsersListComponent {
   protected readonly roleFilterOptions = ['ALL', ...this.roleOptions];
 
   protected readonly filteredUsers = computed(() => {
-    const query = this.searchQuery().toLowerCase().trim();
+    const query = this.searchQuery();
     const role = this.roleFilter();
     let list = this.users();
 
     if (query) {
-      list = list.filter((u) => (u.name || '').toLowerCase().includes(query));
+      list = list.filter((u) => matchesQuery(u.name, query));
     }
 
     if (role !== 'ALL') {

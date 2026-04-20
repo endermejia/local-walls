@@ -46,7 +46,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
 
 import { EquipperDto } from '../../models';
 
-import { handleErrorToast } from '../../utils';
+import { handleErrorToast, matchesQuery } from '../../utils';
 
 @Component({
   selector: 'app-admin-equippers-list',
@@ -256,12 +256,9 @@ export class AdminEquippersListComponent {
     tuiDefaultSort(a.description || '', b.description || '');
 
   protected readonly filteredEquippers = computed(() => {
-    const query = this.searchQuery().toLowerCase().trim();
-    if (!query) return this.equippers();
+    const query = this.searchQuery();
     return this.equippers().filter(
-      (e) =>
-        e.name.toLowerCase().includes(query) ||
-        (e.description || '').toLowerCase().includes(query),
+      (e) => matchesQuery(e.name, query) || matchesQuery(e.description, query),
     );
   });
 

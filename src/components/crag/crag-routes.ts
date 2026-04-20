@@ -50,7 +50,7 @@ import {
 } from '../../models';
 
 import { IconSrcPipe } from '../../pipes/icon-src.pipe';
-import { normalizeName, slugify } from '../../utils';
+import { matchesQuery, slugify } from '../../utils';
 
 @Component({
   selector: 'app-crag-routes',
@@ -282,7 +282,7 @@ export class CragRoutesComponent {
   });
 
   readonly filteredRoutes = computed(() => {
-    const q = normalizeName(this.query());
+    const query = this.query();
     const [minIdx, maxIdx] = this.selectedGradeRange();
     const allowedLabels = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1);
     const categories = this.selectedCategories();
@@ -290,12 +290,9 @@ export class CragRoutesComponent {
     const localList = this.global.cragRoutesResource.value() ?? [];
 
     const textMatches = (r: Partial<RouteWithExtras>) => {
-      if (!q) return true;
-      const nameMatch = normalizeName(r.name || '').includes(q);
+      const nameMatch = matchesQuery(r.name, query);
       const gradeLabel = GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES];
-      const gradeMatch = gradeLabel
-        ? normalizeName(gradeLabel).includes(q)
-        : false;
+      const gradeMatch = matchesQuery(gradeLabel, query);
       return nameMatch || gradeMatch;
     };
 
@@ -318,7 +315,7 @@ export class CragRoutesComponent {
       (r) => textMatches(r) && gradeMatches(r) && categoryMatches(r),
     );
 
-    if (q.trim().length >= 2 && crag) {
+    if (query.trim().length >= 2 && crag) {
       const otherCragsRoutes = this.areaRoutesResource.value() ?? [];
       const filteredOthers = otherCragsRoutes
         .filter(

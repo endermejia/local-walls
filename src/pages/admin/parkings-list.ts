@@ -45,7 +45,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
 
 import { ParkingDto } from '../../models';
 
-import { handleErrorToast } from '../../utils';
+import { handleErrorToast, matchesQuery } from '../../utils';
 
 @Component({
   selector: 'app-admin-parkings-list',
@@ -260,9 +260,8 @@ export class AdminParkingsListComponent {
     tuiDefaultSort(a.size, b.size);
 
   protected readonly filteredParkings = computed(() => {
-    const query = this.searchQuery().toLowerCase().trim();
-    if (!query) return this.parkings();
-    return this.parkings().filter((p) => p.name.toLowerCase().includes(query));
+    const query = this.searchQuery();
+    return this.parkings().filter((p) => matchesQuery(p.name, query));
   });
 
   protected onSortChange(sort: TuiTableSortChange<ParkingDto>): void {

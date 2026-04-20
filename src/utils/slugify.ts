@@ -25,6 +25,21 @@ export function normalizeName(input: string | undefined | null): string {
   return value
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/['’´`]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
     .toLowerCase()
-    .trim();
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+export function matchesQuery(
+  source: string | undefined | null,
+  query: string | undefined | null,
+): boolean {
+  const nSource = normalizeName(source);
+  const nQuery = normalizeName(query);
+  if (!nQuery) return true;
+
+  const queryWords = nQuery.split(' ');
+  return queryWords.every((word) => nSource.includes(word));
 }

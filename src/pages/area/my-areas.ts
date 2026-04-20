@@ -41,6 +41,7 @@ import {
 } from '../../models';
 
 import { IconSrcPipe } from '../../pipes/icon-src.pipe';
+import { matchesQuery } from '../../utils';
 
 @Component({
   selector: 'app-my-areas',
@@ -207,14 +208,12 @@ export class MyAreasComponent {
     );
   });
   readonly filtered = computed(() => {
-    const q = this.query().trim().toLowerCase();
+    const query = this.query();
     const [minIdx, maxIdx] = this.selectedGradeRange();
     const allowedLabels = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1);
     const list = this.areas();
     const textMatches = (a: (typeof list)[number]) =>
-      !q ||
-      a.name.toLowerCase().includes(q) ||
-      a.slug.toLowerCase().includes(q);
+      matchesQuery(a.name, query) || matchesQuery(a.slug, query);
     const gradeMatches = (a: (typeof list)[number]) => {
       const grades = normalizeRoutesByGrade(a.grades);
       for (const label of allowedLabels) {
