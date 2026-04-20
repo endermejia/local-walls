@@ -44,7 +44,7 @@ export class SearchService {
         // Process Areas
         const areas = (dbData?.areas || []) as any[];
         if (areas.length > 0) {
-          results['areas'] = areas.map((a) => ({
+          results['areas'] = areas.slice(0, 5).map((a) => ({
             title: a.title,
             href: a.href,
             icon: a.icon,
@@ -79,7 +79,7 @@ export class SearchService {
         // Process Crags
         const crags = (dbData?.crags || []) as any[];
         if (crags.length > 0) {
-          results['crags'] = crags.map((c) => ({
+          results['crags'] = crags.slice(0, 5).map((c) => ({
             title: c.title,
             subtitle: c.subtitle,
             href: c.href,
@@ -114,7 +114,7 @@ export class SearchService {
         // Process Routes
         const routes = (dbData?.routes || []) as any[];
         if (routes.length > 0) {
-          results['routes'] = routes.map((r) => ({
+          results['routes'] = routes.slice(0, 5).map((r) => ({
             title: r.title,
             subtitle: r.subtitle,
             href: r.href,
@@ -151,7 +151,7 @@ export class SearchService {
         // Process Users
         const users = (dbData?.users || []) as any[];
         if (users.length > 0) {
-          results['users'] = users.map((u) => ({
+          results['users'] = users.slice(0, 5).map((u) => ({
             title: u.title,
             href: u.href,
             icon: this.supabase.buildAvatarUrl(u.icon) || u.title[0],
