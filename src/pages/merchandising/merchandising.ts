@@ -210,10 +210,10 @@ import { MerchandiseItem, AreaPackDetail } from '../../models';
                       <div class="absolute top-4 left-4 flex flex-col gap-2">
                         <button
                           tuiIconButton
-                          appearance="secondary-grayscale"
+                          appearance="accent"
                           size="s"
                           type="button"
-                          class="rounded-xl! backdrop-blur-md bg-(--tui-background-accent-opposite-pressed) border border-(--tui-border-normal) text-(--tui-background-base)"
+                          class="rounded-xl! shadow-lg"
                           (click)="editPack(pack); $event.stopPropagation()"
                         >
                           <tui-icon icon="@tui.pencil" />
@@ -364,10 +364,10 @@ import { MerchandiseItem, AreaPackDetail } from '../../models';
                       <div class="absolute top-4 left-4 flex flex-col gap-2">
                         <button
                           tuiIconButton
-                          appearance="secondary-grayscale"
+                          appearance="accent"
                           size="s"
                           type="button"
-                          class="rounded-xl! backdrop-blur-md bg-(--tui-background-accent-opposite-pressed) border border-(--tui-border-normal) text-(--tui-background-base)"
+                          class="rounded-xl! shadow-lg"
                           (click)="editItem(item); $event.stopPropagation()"
                         >
                           <tui-icon icon="@tui.pencil" />
@@ -523,7 +523,7 @@ export class MerchandisingComponent {
       .open(new PolymorpheusComponent(MerchandiseItemDialogComponent), {
         data: item,
         label: this.translate.instant(item.name || 'merchandising.items.title'),
-        size: 'm',
+        size: 'l',
       })
       .subscribe();
   }
@@ -533,7 +533,7 @@ export class MerchandisingComponent {
       .open(new PolymorpheusComponent(MerchandisePackDialogComponent), {
         data: pack,
         label: pack.name,
-        size: 'm',
+        size: 'l',
       })
       .subscribe();
   }

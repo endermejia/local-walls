@@ -64,9 +64,9 @@ th[tuiTh] {
 @media (max-width: 768px) {
   /* Adjust this breakpoint as needed */
   tui-dialog._closable {
-    width: calc(100% - 2rem) !important;
-    max-width: 400px !important;
-    margin: 1rem auto !important;
+    width: calc(100% - 1.5rem) !important;
+    max-width: 500px !important;
+    margin: 0.75rem auto !important;
   }
 
   section.t-dialog {
@@ -78,6 +78,17 @@ th[tuiTh] {
     right: 0 !important;
     bottom: 0 !important;
   }
+}
+
+@media (min-width: 1024px) {
+  tui-dialog._size_l {
+    max-width: 1200px !important;
+    width: 95vw !important;
+  }
+}
+
+tui-textfield:has(tui-input-chip) label[tuilabel] {
+  margin-bottom: 1.8rem !important;
 }
 
 /* MAP STYLES*/

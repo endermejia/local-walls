@@ -38,8 +38,6 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Future Features
 
-- **Notificaciones al cerrar la app**:
-  - Debemos poder recibir notificaciones cuando la app está cerrada por completo. Ahora estamos recibiendo la notificación cuando la app está en segundo plano, pero no cuando se cierra. Y el sonido de la notificacion siempre se escucha con el volumen de Multimedia en android y no con el volumen de Notificaciones.
 - **Cambiar ascent-form dependiendo del climbing_kind**:
   - Si es boulder deben aparecer los campos de "boulder" en vez de los de "sport"
 - **8a.nu Integration**:
