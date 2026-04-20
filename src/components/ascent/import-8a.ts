@@ -73,6 +73,34 @@ class EmptyCsvError extends Error {
   }
 }
 
+interface Import8aPayload {
+  area_name: string;
+  area_slug: string;
+  area_8a_slug: string;
+  crag_name: string;
+  crag_slug: string;
+  crag_8a_slug: string;
+  country_code: string;
+  lat: number | null;
+  lng: number | null;
+  route_name: string;
+  route_slug: string;
+  route_8a_slug: string | null;
+  grade: number;
+  climbing_kind: ClimbingKind;
+  date: string;
+  style: AscentType;
+  attempts: number | null;
+  rating: number | null;
+  comment: string;
+  recommended: boolean;
+}
+
+interface ExistingUserAscentKey {
+  date: string | null;
+  route: unknown;
+}
+
 @Component({
   selector: 'app-import-8a',
   imports: [
@@ -240,7 +268,7 @@ class EmptyCsvError extends Error {
                 <button
                   tuiButton
                   type="button"
-                  [disabled]="importing()"
+                  [disabled]="importing() || ascents().length === 0"
                   (click)="onImport()"
                 >
                   {{ 'import' | translate }}
@@ -298,6 +326,9 @@ export class Import8aComponent {
   protected readonly LABEL_TO_VERTICAL_LIFE = LABEL_TO_VERTICAL_LIFE;
 
   private loaderClose$?: Subject<void>;
+  private existingAscentKeysCache: Set<string> | null = null;
+  private existingAscentKeysCacheRange: { from: string; to: string } | null =
+    null;
 
   protected onStep(step: number): void {
     this.direction = step - this.index;
@@ -336,6 +367,8 @@ export class Import8aComponent {
     this.control.setValue(null);
     this.ascents.set([]);
     this.loadedFile.set(null);
+    this.existingAscentKeysCache = null;
+    this.existingAscentKeysCacheRange = null;
   }
 
   protected processFile(
@@ -361,11 +394,14 @@ export class Import8aComponent {
         try {
           if (f instanceof File) {
             const text = await f.text();
-            const ascents = this.parseCSV(text);
+            const parsedAscents = this.parseCSV(text);
 
-            if (ascents.length === 0) {
+            if (parsedAscents.length === 0) {
               throw new EmptyCsvError('Empty CSV');
             }
+
+            const { ascents } =
+              await this.deduplicateCsvAscentsAgainstExisting(parsedAscents);
             this.ascents.set(ascents);
             return f;
           }
@@ -771,7 +807,7 @@ export class Import8aComponent {
       }
 
       // 2. Prepare payload for SQL function
-      const payload = ascents.map((a) => {
+      const payload: Import8aPayload[] = ascents.map((a) => {
         const areaSlug = slugify(a.location_name);
         const area8aSlug = areaToSlug.get(a.location_name) || areaSlug;
         const sectorSlug = slugify(a.sector_name);
@@ -812,11 +848,20 @@ export class Import8aComponent {
         };
       });
 
+      const existingAscentKeys = await this.getOrLoadExistingAscentKeys();
+      const {
+        payload: deduplicatedPayload,
+        skipped: skippedBeforeImport,
+      } = this.deduplicatePayloadAgainstExistingAscents(
+        payload,
+        existingAscentKeys,
+      );
+
       // 3. Call RPC in batches
       const CHUNK_SIZE = 50;
-      const chunks = [];
-      for (let i = 0; i < payload.length; i += CHUNK_SIZE) {
-        chunks.push(payload.slice(i, i + CHUNK_SIZE));
+      const chunks: Import8aPayload[][] = [];
+      for (let i = 0; i < deduplicatedPayload.length; i += CHUNK_SIZE) {
+        chunks.push(deduplicatedPayload.slice(i, i + CHUNK_SIZE));
       }
 
       const results = await Promise.all(
@@ -843,7 +888,7 @@ export class Import8aComponent {
       );
 
       let totalInserted = 0;
-      let totalSkipped = 0;
+      let totalSkipped = skippedBeforeImport;
       let totalCreatedAreas = 0;
       let totalCreatedCrags = 0;
       let totalCreatedRoutes = 0;
@@ -866,6 +911,7 @@ export class Import8aComponent {
       this.global.cragsListResource.reload();
       this.global.cragDetailResource.reload();
       this.global.cragRoutesResource.reload();
+      progress$.next(100);
 
       // 5. Show success message
       let skippedInfo = '';
@@ -920,5 +966,259 @@ export class Import8aComponent {
     if (t.includes('os') || t.includes('onsight')) return AscentTypes.OS;
     if (t.includes('flash') || t === 'f') return AscentTypes.F;
     return AscentTypes.RP;
+  }
+
+  private buildAscentDedupKey(
+    date: string | null | undefined,
+    areaSlug: string | null | undefined,
+    cragSlug: string | null | undefined,
+    routeSlug: string | null | undefined,
+  ): string | null {
+    const normalizedDate = (date ?? '').split('T')[0].trim();
+    const normalizedAreaSlug = slugify(areaSlug);
+    const normalizedCragSlug = slugify(cragSlug);
+    const normalizedRouteSlug = slugify(routeSlug);
+
+    if (!normalizedDate || !normalizedRouteSlug) {
+      return null;
+    }
+
+    return `${normalizedDate}|${normalizedAreaSlug}|${normalizedCragSlug}|${normalizedRouteSlug}`;
+  }
+
+  private async deduplicateCsvAscentsAgainstExisting(
+    ascents: EightAnuAscent[],
+  ): Promise<{ ascents: EightAnuAscent[]; skipped: number }> {
+    if (ascents.length === 0) {
+      return { ascents, skipped: 0 };
+    }
+
+    const csvDateRange = this.getCsvDateRange(ascents);
+    const existingKeys = await this.getOrLoadExistingAscentKeys(
+      csvDateRange || undefined,
+    );
+    const seenInCsv = new Set<string>();
+    const deduplicatedAscents: EightAnuAscent[] = [];
+    let skipped = 0;
+
+    for (const ascent of ascents) {
+      const key = this.buildAscentDedupKey(
+        ascent.date,
+        ascent.location_name,
+        ascent.sector_name,
+        ascent.name,
+      );
+      const looseKey = this.buildAscentDedupKey(
+        ascent.date,
+        '',
+        '',
+        ascent.name,
+      );
+
+      if (!key) {
+        deduplicatedAscents.push(ascent);
+        continue;
+      }
+
+      if (
+        existingKeys.has(key) ||
+        (looseKey !== null && existingKeys.has(looseKey)) ||
+        seenInCsv.has(key)
+      ) {
+        skipped++;
+        continue;
+      }
+
+      seenInCsv.add(key);
+      deduplicatedAscents.push(ascent);
+    }
+
+    return { ascents: deduplicatedAscents, skipped };
+  }
+
+  private deduplicatePayloadAgainstExistingAscents(
+    payload: Import8aPayload[],
+    existingKeys: Set<string>,
+  ): { payload: Import8aPayload[]; skipped: number } {
+    if (payload.length === 0) {
+      return { payload, skipped: 0 };
+    }
+
+    const seenInImport = new Set<string>();
+    const deduplicatedPayload: Import8aPayload[] = [];
+    let skipped = 0;
+
+    for (const ascent of payload) {
+      const key = this.buildAscentDedupKey(
+        ascent.date,
+        ascent.area_slug,
+        ascent.crag_slug,
+        ascent.route_slug,
+      );
+      const looseKey = this.buildAscentDedupKey(
+        ascent.date,
+        '',
+        '',
+        ascent.route_slug,
+      );
+
+      if (!key) {
+        deduplicatedPayload.push(ascent);
+        continue;
+      }
+
+      if (
+        existingKeys.has(key) ||
+        (looseKey !== null && existingKeys.has(looseKey)) ||
+        seenInImport.has(key)
+      ) {
+        skipped++;
+        continue;
+      }
+
+      seenInImport.add(key);
+      deduplicatedPayload.push(ascent);
+    }
+
+    return { payload: deduplicatedPayload, skipped };
+  }
+
+  private async getOrLoadExistingAscentKeys(
+    range?: { from: string; to: string },
+  ): Promise<Set<string>> {
+    if (
+      this.existingAscentKeysCache &&
+      (!range ||
+        (this.existingAscentKeysCacheRange !== null &&
+          this.existingAscentKeysCacheRange.from <= range.from &&
+          this.existingAscentKeysCacheRange.to >= range.to))
+    ) {
+      return this.existingAscentKeysCache;
+    }
+
+    const userId = this.supabase.authUserId();
+    if (!userId) {
+      this.existingAscentKeysCache = new Set<string>();
+      this.existingAscentKeysCacheRange = range || null;
+      return this.existingAscentKeysCache;
+    }
+
+    let query = this.supabase.client
+      .from('route_ascents')
+      .select(
+        `
+          date,
+          route:routes!inner(
+            slug,
+            name,
+            crag:crags!inner(
+              slug,
+              area:areas!inner(
+                slug
+              )
+            )
+          )
+        `,
+      )
+      .eq('user_id', userId)
+      .not('date', 'is', null);
+
+    if (range) {
+      query = query.gte('date', range.from).lte('date', range.to);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error(
+        '[8a Import] Error loading existing ascents for deduplication:',
+        error,
+      );
+      this.existingAscentKeysCache = new Set<string>();
+      this.existingAscentKeysCacheRange = range || null;
+      return this.existingAscentKeysCache;
+    }
+
+    const existingKeys = new Set<string>();
+    for (const ascent of (data ?? []) as ExistingUserAscentKey[]) {
+      const routeDataRaw = Array.isArray(ascent.route)
+        ? ascent.route[0]
+        : ascent.route;
+      const routeData =
+        routeDataRaw && typeof routeDataRaw === 'object'
+          ? (routeDataRaw as {
+              slug?: string | null;
+              name?: string | null;
+              crag?:
+                | {
+                    slug?: string | null;
+                    area?:
+                      | { slug?: string | null }
+                      | { slug?: string | null }[]
+                      | null;
+                  }
+                | {
+                    slug?: string | null;
+                    area?:
+                      | { slug?: string | null }
+                      | { slug?: string | null }[]
+                      | null;
+                  }[]
+                | null;
+            })
+          : null;
+
+      const cragDataRaw = Array.isArray(routeData?.crag)
+        ? routeData?.crag[0]
+        : routeData?.crag;
+      const areaDataRaw = Array.isArray(cragDataRaw?.area)
+        ? cragDataRaw?.area[0]
+        : cragDataRaw?.area;
+
+      const routeIdentifier = routeData?.slug || routeData?.name || '';
+      const key = this.buildAscentDedupKey(
+        ascent.date,
+        areaDataRaw?.slug || '',
+        cragDataRaw?.slug || '',
+        routeIdentifier,
+      );
+      if (key) {
+        existingKeys.add(key);
+      }
+
+      if (ascent.date && routeIdentifier) {
+        const looseKey = this.buildAscentDedupKey(
+          ascent.date,
+          '',
+          '',
+          routeIdentifier,
+        );
+        if (looseKey) {
+          existingKeys.add(looseKey);
+        }
+      }
+    }
+
+    this.existingAscentKeysCache = existingKeys;
+    this.existingAscentKeysCacheRange = range || null;
+    return existingKeys;
+  }
+
+  private getCsvDateRange(
+    ascents: EightAnuAscent[],
+  ): { from: string; to: string } | null {
+    const normalizedDates = ascents
+      .map((a) => (a.date || '').split('T')[0].trim())
+      .filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d))
+      .sort();
+
+    if (normalizedDates.length === 0) {
+      return null;
+    }
+
+    return {
+      from: normalizedDates[0],
+      to: normalizedDates[normalizedDates.length - 1],
+    };
   }
 }
