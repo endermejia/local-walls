@@ -1,6 +1,7 @@
 import { UserAscentStatRecord } from '../models/route-ascent.model';
 import {
   AscentType,
+  AscentTypes,
   GradeLabel,
   GRADE_NUMBER_TO_LABEL,
   PROJECT_GRADE_LABEL,
@@ -25,8 +26,8 @@ export function getScore(gradeId: number, type: AscentType | string): number {
 
   let bonus = 0;
   const t = type.toLowerCase();
-  if (t === 'os' || t === 'onsight') bonus = 125;
-  else if (t === 'f' || t === 'flash') bonus = 60;
+  if (t === AscentTypes.OS || t === 'onsight') bonus = 125;
+  else if (t === AscentTypes.F || t === 'flash') bonus = 60;
 
   const baseScore = 1000 + (gradeId - 29) * 50;
   return Math.max(0, baseScore + bonus);
@@ -41,12 +42,12 @@ export function getMaxGrade(
 ): string | null {
   let maxGradeId = -1;
   ascents.forEach((a) => {
-    const type = (a.ascent_type || 'rp').toLowerCase();
+    const type = (a.ascent_type || AscentTypes.RP).toLowerCase();
     const typeMatches = types.some(
       (t) =>
         type === t.toLowerCase() ||
-        (t === 'os' && type === 'onsight') ||
-        (t === 'f' && type === 'flash'),
+        (t === AscentTypes.OS && type === 'onsight') ||
+        (t === AscentTypes.F && type === 'flash'),
     );
 
     if (typeMatches) {

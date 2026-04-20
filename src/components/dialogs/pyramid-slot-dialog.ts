@@ -27,7 +27,12 @@ import { RoutesService } from '../../services/routes.service';
 import { AscentTypeComponent } from '../ascent/ascent-type';
 import { GradeComponent } from '../ui/avatar-grade';
 
-import { AscentType, RouteDto, ClimbingKind } from '../../models';
+import {
+  AscentType,
+  RouteDto,
+  ClimbingKind,
+  ClimbingKinds,
+} from '../../models';
 
 export interface PyramidSlotDialogData {
   level: number;
@@ -74,7 +79,7 @@ export interface PyramidSlotDialogData {
             >
             <app-grade
               [grade]="data.expectedGrade"
-              [kind]="data.kind || 'sport'"
+              [kind]="data.kind || ClimbingKinds.SPORT"
             />
           </div>
         }
@@ -194,6 +199,8 @@ export interface PyramidSlotDialogData {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PyramidSlotDialogComponent {
+  protected readonly ClimbingKinds = ClimbingKinds;
+
   private routesService = inject(RoutesService);
   private router = inject(Router);
   context =

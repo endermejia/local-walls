@@ -12,6 +12,7 @@ import {
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { TrendData, TrendDetail } from '../../../models/user-stats.model';
+import { AscentTypes } from '../../../models';
 
 import { ContextIndexPipe } from '../../../pipes/context-index.pipe';
 
@@ -99,9 +100,11 @@ import { ContextIndexPipe } from '../../../pipes/context-index.pipe';
                       route.cragSlug,
                       route.routeSlug,
                     ]"
-                    [class.onsight]="route.type === 'os'"
-                    [class.flash]="route.type === 'f'"
-                    [class.redpoint]="route.type === 'rp' || !route.type"
+                    [class.onsight]="route.type === AscentTypes.OS"
+                    [class.flash]="route.type === AscentTypes.F"
+                    [class.redpoint]="
+                      route.type === AscentTypes.RP || !route.type
+                    "
                   >
                     {{ route.name || ('anonymous' | translate) }}
                   </a>
@@ -200,6 +203,8 @@ import { ContextIndexPipe } from '../../../pipes/context-index.pipe';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserProfileStatsTrendsComponent {
+  protected readonly AscentTypes = AscentTypes;
+
   trendData = input.required<TrendData>();
   trendDetails = input.required<TrendDetail[]>();
   trendXLabels = input.required<string[]>();

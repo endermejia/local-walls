@@ -15,6 +15,7 @@ import { ToastService } from './toast.service';
 import {
   AscentDialogData,
   AscentType,
+  AscentTypes,
   RouteAscentDto,
   RouteAscentInsertDto,
   RouteAscentUpdateDto,
@@ -217,7 +218,7 @@ export class AscentsService {
         return {
           id: a.id,
           ascent_date: a.date || '',
-          ascent_type: a.type || 'rp',
+          ascent_type: a.type || AscentTypes.RP,
           ascent_grade: a.grade,
           attempts: a.attempts,
           private_ascent: a.private_ascent ?? false,
@@ -254,7 +255,7 @@ export class AscentsService {
 
     return (data ?? []).map((r) => ({
       date: r.date ?? '',
-      type: r.type ?? 'rp',
+      type: r.type ?? AscentTypes.RP,
     }));
   }
 
@@ -332,7 +333,7 @@ export class AscentsService {
       return {
         id: a.id,
         ascent_date: a.date ?? '',
-        ascent_type: a.type ?? 'rp',
+        ascent_type: a.type ?? AscentTypes.RP,
         ascent_grade: a.grade,
         attempts: a.attempts,
         private_ascent: a.private_ascent ?? false,

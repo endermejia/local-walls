@@ -16,6 +16,7 @@ import {
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
   ClimbingKind,
+  ClimbingKinds,
   getEquivalentGrade,
 } from '../../models';
 
@@ -44,7 +45,7 @@ export class GradeComponent {
   protected readonly gradeLabel = computed(() => {
     const label =
       GRADE_NUMBER_TO_LABEL[this.grade() as VERTICAL_LIFE_GRADES] || '';
-    if (this.kind() === 'boulder') {
+    if (this.kind() === ClimbingKinds.BOULDER) {
       return label.toUpperCase();
     }
     return label;
