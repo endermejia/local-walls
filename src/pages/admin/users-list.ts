@@ -68,7 +68,6 @@ interface UserWithRole {
 
 @Component({
   selector: 'app-users-list-admin',
-  standalone: true,
   imports: [
     AvatarUrlPipe,
     EmptyStateComponent,
