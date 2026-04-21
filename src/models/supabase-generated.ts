@@ -3409,6 +3409,13 @@ export interface Database {
         Args: { p_request_id: number };
         Returns: undefined;
       };
+      search_items_fuzzy: { Args: { p_query: string }; Returns: Json };
+      search_text: {
+        Args: { r: Database['public']['Tables']['routes']['Row'] };
+        Returns: string;
+      };
+      show_limit: { Args: never; Returns: number };
+      show_trgm: { Args: { '': string }; Returns: string[] };
       st_3dclosestpoint: {
         Args: { geom1: unknown; geom2: unknown };
         Returns: unknown;
@@ -4044,6 +4051,7 @@ export interface Database {
       };
       toggle_route_like: { Args: { p_route_id: number }; Returns: boolean };
       toggle_route_project: { Args: { p_route_id: number }; Returns: boolean };
+      unaccent: { Args: { '': string }; Returns: string };
       unify_areas: {
         Args: {
           p_new_name: string;

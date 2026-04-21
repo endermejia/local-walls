@@ -17,6 +17,40 @@ import {
   SearchRouteItem,
 } from '../models';
 
+interface DbArea {
+  title: string;
+  href: string;
+  icon: string;
+}
+
+interface DbCrag {
+  title: string;
+  subtitle: string;
+  href: string;
+  icon: string;
+}
+
+interface DbRoute {
+  title: string;
+  subtitle: string;
+  href: string;
+  icon: string;
+  difficulty: number;
+}
+
+interface DbUser {
+  title: string;
+  href: string;
+  icon: string;
+}
+
+interface DbSearchResponse {
+  areas?: DbArea[];
+  crags?: DbCrag[];
+  routes?: DbRoute[];
+  users?: DbUser[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -31,18 +65,18 @@ export class SearchService {
 
     return from(
       Promise.all([
-        (this.supabase.client.rpc as any)('search_items_fuzzy', {
+        this.supabase.client.rpc('search_items_fuzzy', {
           p_query: trimmedQuery,
         }),
         this.eightAnu.searchUnified(trimmedQuery, ['0', '1', '3']),
       ]),
     ).pipe(
       map(([dbResponse, eightAnuItems]) => {
-        const dbData = dbResponse.data as any;
+        const dbData = dbResponse.data as DbSearchResponse | null;
         const results: SearchData = {};
 
         // Process Areas
-        const areas = (dbData?.areas || []) as any[];
+        const areas = dbData?.areas || [];
         if (areas.length > 0) {
           results['areas'] = areas.map((a) => ({
             title: a.title,
@@ -52,7 +86,7 @@ export class SearchService {
         }
 
         // Process Crags
-        const crags = (dbData?.crags || []) as any[];
+        const crags = dbData?.crags || [];
         if (crags.length > 0) {
           results['crags'] = crags.map((c) => ({
             title: c.title,
@@ -63,7 +97,7 @@ export class SearchService {
         }
 
         // Process Routes
-        const routes = (dbData?.routes || []) as any[];
+        const routes = dbData?.routes || [];
         if (routes.length > 0) {
           results['routes'] = routes.map((r) => ({
             title: r.title,
@@ -76,7 +110,7 @@ export class SearchService {
         }
 
         // Process Users
-        const users = (dbData?.users || []) as any[];
+        const users = dbData?.users || [];
         if (users.length > 0) {
           results['users'] = users.map((u) => ({
             title: u.title,
