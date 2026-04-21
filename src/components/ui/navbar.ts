@@ -30,7 +30,6 @@ import {
 } from '@taiga-ui/kit';
 import {
   TuiAppearance,
-  TuiCell,
   TuiDataList,
   TuiDialogService,
   TuiDropdown,
@@ -65,13 +64,15 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
 import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
 import { TourHintComponent } from './tour-hint';
 
-import { GradeLabel, LABEL_TO_VERTICAL_LIFE } from '../../models/grade.model';
-import { SearchData, SearchItem } from '../../models/search-item.model';
 import {
+  GradeLabel,
+  LABEL_TO_VERTICAL_LIFE,
   SearchAreaItem,
   SearchCragItem,
+  SearchData,
+  SearchItem,
   SearchRouteItem,
-} from '../../models/search-api.model';
+} from '../../models';
 
 @Component({
   selector: 'app-navbar',
@@ -124,7 +125,6 @@ import {
     TuiBadge,
     TuiBadgedContent,
     TuiBadgeNotification,
-    TuiCell,
     TuiDataList,
     TuiDropdown,
     TuiIcon,
@@ -585,7 +585,7 @@ export class NavbarComponent {
   protected readonly searchExpanded = signal(false);
   protected readonly control = new FormControl('');
   protected searchOpen = false;
-  protected readonly activeSearchTab = signal(0);
+  protected activeSearchTab = signal(0);
 
   protected readonly searchTemplate =
     viewChild<TemplateRef<object>>('searchContent');
