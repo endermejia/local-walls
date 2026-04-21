@@ -361,7 +361,7 @@ import {
                 <ng-template #searchContent>
                   @if (results() !== null) {
                     <div
-                      class="flex flex-col h-full bg-(--tui-background-base) rounded-xl overflow-hidden min-w-200 max-h-[80vh]"
+                      class="flex flex-col h-full bg-(--tui-background-base) rounded-xl overflow-hidden w-[calc(100vw-1rem)] md:w-auto md:min-w-200 max-h-[80vh]"
                     >
                       <div class="p-2">
                         <tui-tabs [(activeItemIndex)]="activeSearchTab">
