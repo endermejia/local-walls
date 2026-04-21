@@ -49,8 +49,51 @@ export class SearchService {
             href: a.href,
             icon: a.icon,
           }));
-        } else {
-          // If no local areas, show import/create options
+        }
+
+        // Process Crags
+        const crags = (dbData?.crags || []) as any[];
+        if (crags.length > 0) {
+          results['crags'] = crags.map((c) => ({
+            title: c.title,
+            subtitle: c.subtitle,
+            href: c.href,
+            icon: c.icon,
+          }));
+        }
+
+        // Process Routes
+        const routes = (dbData?.routes || []) as any[];
+        if (routes.length > 0) {
+          results['routes'] = routes.map((r) => ({
+            title: r.title,
+            subtitle: r.subtitle,
+            href: r.href,
+            icon: r.icon,
+            difficulty:
+              GRADE_NUMBER_TO_LABEL[r.difficulty as VERTICAL_LIFE_GRADES],
+          }));
+        }
+
+        // Process Users
+        const users = (dbData?.users || []) as any[];
+        if (users.length > 0) {
+          results['users'] = users.map((u) => ({
+            title: u.title,
+            href: u.href,
+            icon: this.supabase.buildAvatarUrl(u.icon) || u.title[0],
+            type: 'user',
+          }));
+        }
+
+        // Only show create/import options when there are no results at all
+        const hasAnyResults =
+          areas.length > 0 ||
+          crags.length > 0 ||
+          routes.length > 0 ||
+          users.length > 0;
+
+        if (!hasAnyResults) {
           const anuArea = eightAnuItems?.find(
             (i): i is SearchAreaItem => i.type === 0,
           );
@@ -74,18 +117,7 @@ export class SearchService {
               type: 'create-area',
             },
           ];
-        }
 
-        // Process Crags
-        const crags = (dbData?.crags || []) as any[];
-        if (crags.length > 0) {
-          results['crags'] = crags.map((c) => ({
-            title: c.title,
-            subtitle: c.subtitle,
-            href: c.href,
-            icon: c.icon,
-          }));
-        } else {
           const anuCrag = eightAnuItems?.find(
             (i): i is SearchCragItem => i.type === 1,
           );
@@ -109,20 +141,7 @@ export class SearchService {
               type: 'create-crag',
             },
           ];
-        }
 
-        // Process Routes
-        const routes = (dbData?.routes || []) as any[];
-        if (routes.length > 0) {
-          results['routes'] = routes.map((r) => ({
-            title: r.title,
-            subtitle: r.subtitle,
-            href: r.href,
-            icon: r.icon,
-            difficulty:
-              GRADE_NUMBER_TO_LABEL[r.difficulty as VERTICAL_LIFE_GRADES],
-          }));
-        } else {
           const anuRoute = eightAnuItems?.find(
             (i): i is SearchRouteItem => i.type === 3,
           );
@@ -146,17 +165,6 @@ export class SearchService {
               type: 'create-route',
             },
           ];
-        }
-
-        // Process Users
-        const users = (dbData?.users || []) as any[];
-        if (users.length > 0) {
-          results['users'] = users.map((u) => ({
-            title: u.title,
-            href: u.href,
-            icon: this.supabase.buildAvatarUrl(u.icon) || u.title[0],
-            type: 'user',
-          }));
         }
 
         return results;
