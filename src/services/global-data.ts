@@ -1253,6 +1253,43 @@ export class GlobalData {
     },
   });
 
+  readonly firstAscentYearResource = resource({
+    params: () => this.profileUserId(),
+    loader: async ({ params: userId }) => {
+      if (!userId || !isPlatformBrowser(this.platformId)) return null;
+      try {
+        await this.supabase.whenReady();
+        const { data, error } = await this.supabase.client
+          .from('route_ascents')
+          .select('date')
+          .eq('user_id', userId)
+          .order('date', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        if (error) throw error;
+        if (!data?.date) return null;
+
+        return new Date(data.date).getFullYear();
+      } catch (e) {
+        console.error('[GlobalData] firstAscentYearResource error', e);
+        return null;
+      }
+    },
+  });
+
+  readonly effectiveStartingClimbingYear = computed(() => {
+    const firstAscentYear = this.firstAscentYearResource.value();
+    const profileYear =
+      this.supabase.userProfileResource.value()?.starting_climbing_year;
+
+    if (firstAscentYear && profileYear) {
+      return Math.min(firstAscentYear, profileYear);
+    }
+
+    return firstAscentYear || profileYear || new Date().getFullYear();
+  });
+
   // ---- Pagination for Ascents Table ----
   readonly ascentsPage = signal(0);
   readonly ascentsSize = signal(10);
@@ -1272,16 +1309,8 @@ export class GlobalData {
       sort: this.ascentsSort(),
     }),
     loader: async ({ params }): Promise<PaginatedAscents> => {
-      const {
-        userId,
-        page,
-        size,
-        dateFilter,
-        query: queryText,
-        grades,
-        categories,
-        sort,
-      } = params;
+      const { userId, page, size, dateFilter, grades, categories, sort } =
+        params;
       if (!userId || !isPlatformBrowser(this.platformId))
         return { items: [], total: 0 };
       try {
@@ -1298,21 +1327,17 @@ export class GlobalData {
               id, name, slug, grade, climbing_kind,
               liked:route_likes(id),
               project:route_projects(id),
-              crag:crags(
+              crag:crags!inner(
                 slug,
                 name,
                 area_id,
-                area:areas(slug, name)
+                area:areas!inner(slug, name)
               )
             )
           `,
             { count: 'exact' },
           )
           .eq('user_id', userId);
-
-        if (queryText) {
-          query = query.ilike('route.name', `%${queryText}%`);
-        }
 
         if (dateFilter) {
           if (dateFilter === 'last12') {

@@ -49,7 +49,11 @@ import {
   UserProfileDto,
 } from '../../models';
 
-import { getAscentDateFilterOptions, processAscentsToFeed } from '../../utils';
+import {
+  getAscentDateFilterOptions,
+  matchesQuery,
+  processAscentsToFeed,
+} from '../../utils';
 
 @Component({
   selector: 'app-user-profile-ascents',
@@ -165,7 +169,7 @@ import { getAscentDateFilterOptions, processAscentsToFeed } from '../../utils';
         </div>
 
         <app-ascents-feed
-          [ascents]="accumulatedAscents()"
+          [ascents]="filteredAscents()"
           [isLoading]="isLoading() || ascentsResource.isLoading()"
           [hasMore]="hasMore()"
           [showUser]="false"
@@ -249,7 +253,7 @@ export class UserProfileAscentsComponent {
 
   protected readonly dateFilterOptions = computed(() => {
     return getAscentDateFilterOptions(
-      this.profile()?.starting_climbing_year || undefined,
+      this.global.effectiveStartingClimbingYear(),
     );
   });
 
@@ -272,12 +276,32 @@ export class UserProfileAscentsComponent {
   protected readonly accumulatedAscents = signal<FeedItem[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly followedIds = signal<Set<string>>(new Set());
+  protected readonly filteredAscents = computed(() => {
+    const query = this.query();
+    const items = this.accumulatedAscents();
+    if (!query) return items;
+
+    return items.filter((item) => {
+      if (item.kind !== 'ascent') return false;
+      const ascent = item as RouteAscentWithExtras;
+
+      return (
+        matchesQuery(ascent.route?.name, query) ||
+        matchesQuery(ascent.route?.crag_name, query) ||
+        matchesQuery(ascent.route?.area_name, query)
+      );
+    });
+  });
 
   readonly ascentsResource = this.global.userAscentsResource;
-  readonly totalAscents = computed(
-    () => this.ascentsResource.value()?.total ?? 0,
-  );
+  readonly totalAscents = computed(() => {
+    if (this.query()) {
+      return this.filteredAscents().length;
+    }
+    return this.ascentsResource.value()?.total ?? 0;
+  });
   readonly hasMore = computed(() => {
+    if (this.query()) return false;
     return this.accumulatedAscents().length < this.totalAscents();
   });
   readonly hasAscents = computed(
@@ -329,6 +353,7 @@ export class UserProfileAscentsComponent {
       this.global.ascentsDateFilter.set(dateFilter!);
       this.global.ascentsQuery.set(query || null);
       this.global.ascentsSort.set(sort as 'grade' | 'date');
+      this.global.ascentsSize.set(query ? 1000 : 10);
     });
   }
 
