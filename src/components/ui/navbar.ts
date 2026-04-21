@@ -365,17 +365,19 @@ import {
                     >
                       <div class="p-2">
                         <tui-tabs [(activeItemIndex)]="activeSearchTab">
-                          <button tuiTab>
-                            {{ 'all' | translate }}
-                            <span
-                              tuiBadge
-                              size="s"
-                              appearance="neutral"
-                              class="ml-2 inline-flex items-center"
-                            >
-                              {{ totalResults() }}
-                            </span>
-                          </button>
+                          @if (groupedResults().length > 1) {
+                            <button tuiTab>
+                              {{ 'all' | translate }}
+                              <span
+                                tuiBadge
+                                size="s"
+                                appearance="neutral"
+                                class="ml-2 inline-flex items-center"
+                              >
+                                {{ totalResults() }}
+                              </span>
+                            </button>
+                          }
                           @for (group of groupedResults(); track group.key) {
                             <button tuiTab>
                               {{ group.key | translate }}
@@ -402,7 +404,10 @@ import {
                             ) | translate
                           "
                         >
-                          @if (activeSearchTab() === 0) {
+                          @if (
+                            groupedResults().length > 1 &&
+                            activeSearchTab() === 0
+                          ) {
                             <!-- "All" Tab -->
                             @for (group of groupedResults(); track group.key) {
                               <tui-opt-group [label]="group.key | translate">
@@ -427,8 +432,10 @@ import {
                             }
                           } @else {
                             <!-- Category specific Tab -->
+                            @let tabOffset =
+                              groupedResults().length > 1 ? 1 : 0;
                             @let activeGroup =
-                              groupedResults()[activeSearchTab() - 1];
+                              groupedResults()[activeSearchTab() - tabOffset];
                             @if (activeGroup) {
                               @for (
                                 item of activeGroup.items;
@@ -595,6 +602,12 @@ export class NavbarComponent {
 
     effect(() => {
       if (this.searchOpen) {
+        this.activeSearchTab.set(0);
+      }
+    });
+
+    effect(() => {
+      if (this.groupedResults().length <= 1) {
         this.activeSearchTab.set(0);
       }
     });
