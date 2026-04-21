@@ -13,7 +13,6 @@ import { TuiDataListWrapper, TuiSelect } from '@taiga-ui/kit';
 import {
   TuiDataList,
   TuiLoader,
-  tuiHintOptionsProvider,
   TuiIcon,
   TuiPoint,
   TuiInput,
@@ -68,11 +67,6 @@ import {
   host: {
     class: 'block w-full min-w-0',
   },
-  providers: [
-    tuiHintOptionsProvider({
-      appearance: 'dark',
-    }),
-  ],
   template: `
     <div class="grid gap-4 max-w-7xl mx-auto">
       <!-- Header / Filter -->
