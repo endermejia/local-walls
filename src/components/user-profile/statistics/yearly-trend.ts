@@ -156,6 +156,7 @@ import { ContextIndexPipe } from '../../../pipes/context-index.pipe';
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
+      padding-right: 1.25rem;
     }
     .trend-route-row {
       display: flex;
