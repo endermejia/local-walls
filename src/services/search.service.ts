@@ -15,6 +15,8 @@ import {
   SearchAreaItem,
   SearchCragItem,
   SearchRouteItem,
+  LABEL_TO_VERTICAL_LIFE,
+  GradeLabel,
 } from '../models';
 
 interface DbArea {
@@ -58,6 +60,12 @@ export class SearchService {
   private readonly supabase = inject(SupabaseService);
   private readonly translate = inject(TranslateService);
   private readonly eightAnu = inject(EightAnuService);
+
+  private gradeToNumber(label: string | undefined): number {
+    if (!label) return 0;
+    const normalized = label.toLowerCase().replace(' ', '') as GradeLabel;
+    return LABEL_TO_VERTICAL_LIFE[normalized] || 0;
+  }
 
   search(query: string): Observable<SearchData | null> {
     const trimmedQuery = query.trim();
@@ -106,6 +114,7 @@ export class SearchService {
             icon: r.icon,
             difficulty:
               GRADE_NUMBER_TO_LABEL[r.difficulty as VERTICAL_LIFE_GRADES],
+            grade: r.difficulty,
           }));
         }
 
@@ -189,6 +198,7 @@ export class SearchService {
                     icon: '@tui.download',
                     type: 'import-route',
                     data: anuRoute,
+                    grade: this.gradeToNumber(anuRoute.difficulty),
                   } as SearchItem,
                 ]
               : []),

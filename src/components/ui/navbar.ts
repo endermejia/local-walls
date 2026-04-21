@@ -60,12 +60,13 @@ import { TourService } from '../../services/tour.service';
 import { TourStep } from '../../services/tour.service';
 
 import { ChatDialogComponent } from '../dialogs/chat-dialog';
+import { GradeComponent } from './avatar-grade';
 import { MenuOptionsButtonComponent } from './menu-options-button';
 import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
 import { TourHintComponent } from './tour-hint';
 
 import { GradeLabel, LABEL_TO_VERTICAL_LIFE } from '../../models/grade.model';
-import { SearchItem } from '../../models/search-item.model';
+import { SearchData, SearchItem } from '../../models/search-item.model';
 import {
   SearchAreaItem,
   SearchCragItem,
@@ -134,6 +135,7 @@ import {
     TuiTabs,
     TuiTextfield,
     TuiTitle,
+    GradeComponent,
   ],
   template: `
     <aside
@@ -463,6 +465,9 @@ import {
 
                   <ng-template #itemTemplate let-item>
                     <div class="flex items-center w-full">
+                      @if (item.grade !== undefined) {
+                        <app-grade [grade]="item.grade" class="mr-2" />
+                      }
                       @if (item.type === 'user') {
                         <span tuiAvatar size="xs" class="mr-2">
                           @if (item.icon && !item.icon.startsWith('@tui.')) {
@@ -471,7 +476,7 @@ import {
                             <tui-icon [icon]="item.icon || '@tui.user'" />
                           }
                         </span>
-                      } @else if (item.icon) {
+                      } @else if (item.icon && item.grade === undefined) {
                         <tui-icon [icon]="item.icon" class="mr-2" />
                       }
                       <span tuiTitle>
@@ -619,9 +624,9 @@ export class NavbarComponent {
       debounceTime(300),
       distinctUntilChanged(),
       switchMap((query) => this.searchService.search(query)),
-      startWith(null),
+      startWith(null as SearchData | null),
     ),
-    { initialValue: null },
+    { initialValue: null as SearchData | null },
   );
 
   protected readonly groupedResults = computed(() => {
@@ -629,7 +634,10 @@ export class NavbarComponent {
     if (!data) return [];
     return Object.entries(data)
       .filter(([, items]) => items.length > 0)
-      .map(([key, items]) => ({ key, items }));
+      .map(([key, items]) => ({
+        key,
+        items: items as readonly SearchItem[],
+      }));
   });
 
   protected readonly totalResults = computed(() =>
