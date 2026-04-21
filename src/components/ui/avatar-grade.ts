@@ -32,7 +32,7 @@ import {
       [attr.aria-label]="'grade' | translate"
       [tuiHint]="hint()"
     >
-      <strong>{{ gradeLabel() }}</strong>
+      <strong class="text-shadow-sm">{{ gradeLabel() }}</strong>
     </span>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

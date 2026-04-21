@@ -34,8 +34,8 @@ import { AscentType } from '../../models';
       class="text-(--tui-text-primary-on-accent-1)! rounded-full!"
       [tuiHint]="hasAttempts() ? hintTemplate : null"
     >
-      <tui-icon [icon]="info.icon" />
-      <span class="ml-1 uppercase font-bold">
+      <tui-icon [icon]="info.icon" class="text-shadow-sm" />
+      <span class="ml-1 uppercase font-bold text-shadow-sm">
         {{ 'ascentTypes.' + (type() || 'rp') | translate }}
       </span>
     </span>
