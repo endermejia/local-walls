@@ -39,6 +39,7 @@ import {
   AreaDto,
   AreaListItem,
   BreadcrumbItem,
+  ClimbingKind,
   ClimbingKinds,
   CragDetail,
   CragListItem,
@@ -1309,8 +1310,16 @@ export class GlobalData {
       sort: this.ascentsSort(),
     }),
     loader: async ({ params }): Promise<PaginatedAscents> => {
-      const { userId, page, size, dateFilter, grades, categories, sort } =
-        params;
+      const {
+        userId,
+        page,
+        size,
+        dateFilter,
+        query: queryText,
+        grades,
+        categories,
+        sort,
+      } = params;
       if (!userId || !isPlatformBrowser(this.platformId))
         return { items: [], total: 0 };
       try {
@@ -1323,21 +1332,25 @@ export class GlobalData {
           .select(
             `
             *,
-            route:routes!inner (
+            routes!inner (
               id, name, slug, grade, climbing_kind,
               liked:route_likes(id),
               project:route_projects(id),
-              crag:crags!inner(
+              crags!inner (
                 slug,
                 name,
                 area_id,
-                area:areas!inner(slug, name)
+                areas!inner (slug, name)
               )
             )
           `,
             { count: 'exact' },
           )
           .eq('user_id', userId);
+
+        if (queryText) {
+          query = query.ilike('routes.search_text', `%${queryText}%`);
+        }
 
         if (dateFilter) {
           if (dateFilter === 'last12') {
@@ -1375,7 +1388,10 @@ export class GlobalData {
           const allowedKinds = categories
             .map((i: number) => idxToKind[i])
             .filter(Boolean);
-          query = query.in('route.climbing_kind', allowedKinds);
+          query = query.in(
+            'routes.climbing_kind',
+            allowedKinds as ClimbingKind[],
+          );
         }
 
         let finalQuery = query;
@@ -1398,11 +1414,11 @@ export class GlobalData {
         }
 
         const items = data.map((a) => {
-          const { route, ...ascentRest } = a;
+          const { routes: route, ...ascentRest } = a;
           let mappedRoute: RouteWithExtras | undefined = undefined;
 
           if (route) {
-            const { crag, liked, project, ...routeRest } = route;
+            const { crags: crag, liked, project, ...routeRest } = route;
             mappedRoute = {
               ...routeRest,
               liked: (liked?.length ?? 0) > 0,
@@ -1410,8 +1426,8 @@ export class GlobalData {
               area_id: crag?.area_id,
               crag_slug: crag?.slug,
               crag_name: crag?.name,
-              area_slug: crag?.area?.slug,
-              area_name: crag?.area?.name,
+              area_slug: crag?.areas?.slug,
+              area_name: crag?.areas?.name,
             } as RouteWithExtras;
           }
 

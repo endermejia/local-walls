@@ -30,7 +30,7 @@ import {
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-import { startWith } from 'rxjs';
+import { debounceTime, startWith, Subject } from 'rxjs';
 
 import { FiltersService } from '../../services/filters.service';
 import { FollowsService } from '../../services/follows.service';
@@ -49,11 +49,7 @@ import {
   UserProfileDto,
 } from '../../models';
 
-import {
-  getAscentDateFilterOptions,
-  matchesQuery,
-  processAscentsToFeed,
-} from '../../utils';
+import { getAscentDateFilterOptions, processAscentsToFeed } from '../../utils';
 
 @Component({
   selector: 'app-user-profile-ascents',
@@ -169,7 +165,7 @@ import {
         </div>
 
         <app-ascents-feed
-          [ascents]="filteredAscents()"
+          [ascents]="accumulatedAscents()"
           [isLoading]="isLoading() || ascentsResource.isLoading()"
           [hasMore]="hasMore()"
           [showUser]="false"
@@ -218,7 +214,11 @@ export class UserProfileAscentsComponent {
   protected readonly dialogs = inject(TuiDialogService);
   private readonly platformId = inject(PLATFORM_ID);
 
-  protected readonly query = signal('');
+  private readonly querySubject = new Subject<string>();
+  protected readonly query = toSignal(
+    this.querySubject.pipe(debounceTime(400)),
+    { initialValue: '' },
+  );
   protected readonly dateFilterControl = new FormControl<string>('last12', {
     nonNullable: true,
   });
@@ -276,32 +276,12 @@ export class UserProfileAscentsComponent {
   protected readonly accumulatedAscents = signal<FeedItem[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly followedIds = signal<Set<string>>(new Set());
-  protected readonly filteredAscents = computed(() => {
-    const query = this.query();
-    const items = this.accumulatedAscents();
-    if (!query) return items;
-
-    return items.filter((item) => {
-      if (item.kind !== 'ascent') return false;
-      const ascent = item as RouteAscentWithExtras;
-
-      return (
-        matchesQuery(ascent.route?.name, query) ||
-        matchesQuery(ascent.route?.crag_name, query) ||
-        matchesQuery(ascent.route?.area_name, query)
-      );
-    });
-  });
 
   readonly ascentsResource = this.global.userAscentsResource;
-  readonly totalAscents = computed(() => {
-    if (this.query()) {
-      return this.filteredAscents().length;
-    }
-    return this.ascentsResource.value()?.total ?? 0;
-  });
+  readonly totalAscents = computed(
+    () => this.ascentsResource.value()?.total ?? 0,
+  );
   readonly hasMore = computed(() => {
-    if (this.query()) return false;
     return this.accumulatedAscents().length < this.totalAscents();
   });
   readonly hasAscents = computed(
@@ -353,7 +333,6 @@ export class UserProfileAscentsComponent {
       this.global.ascentsDateFilter.set(dateFilter!);
       this.global.ascentsQuery.set(query || null);
       this.global.ascentsSort.set(sort as 'grade' | 'date');
-      this.global.ascentsSize.set(query ? 1000 : 10);
     });
   }
 
@@ -365,7 +344,7 @@ export class UserProfileAscentsComponent {
   }
 
   onQuery(v: string) {
-    this.query.set(v);
+    this.querySubject.next(v);
   }
 
   onFollow(userId: string) {
