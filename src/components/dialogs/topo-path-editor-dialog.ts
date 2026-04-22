@@ -1,6 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
+  CdkDrag,
+  CdkDragDrop,
+  CdkDragHandle,
+  CdkDragPlaceholder,
+  CdkDropList,
+  moveItemInArray,
+} from '@angular/cdk/drag-drop';
+import {
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -77,6 +85,10 @@ export interface TopoPathEditorConfig {
     FormsModule,
 
     GradeComponent,
+    CdkDrag,
+    CdkDragHandle,
+    CdkDragPlaceholder,
+    CdkDropList,
     TopoHasPathPipe,
     TranslateModule,
     TuiButton,
@@ -95,10 +107,15 @@ export interface TopoPathEditorConfig {
           <div class="sidebar-inner">
             <p class="sidebar-label">{{ 'routes' | translate }}</p>
             <tui-scrollbar class="sidebar-scroll">
-              <div class="route-list">
-                @for (tr of topoRoutes; track tr.route_id) {
+              <div
+                class="route-list"
+                cdkDropList
+                (cdkDropListDropped)="dropRoute($event)"
+              >
+                @for (tr of topoRoutes; track $index; let idx = $index) {
                   @let hasPath = tr.route_id | topoHasPath: pathsMap;
                   <div
+                    cdkDrag
                     class="route-item"
                     role="button"
                     tabindex="0"
@@ -108,7 +125,13 @@ export interface TopoPathEditorConfig {
                     (click.zoneless)="selectRoute(tr, true)"
                     (keydown.enter.zoneless)="selectRoute(tr, true)"
                   >
-                    <div class="route-num">{{ tr.number }}</div>
+                    <tui-icon
+                      icon="@tui.grip-vertical"
+                      class="drag-handle opacity-30 shrink-0 cursor-grab active:cursor-grabbing"
+                      cdkDragHandle
+                      (click)="$event.stopPropagation()"
+                    />
+                    <div class="route-num">{{ idx + 1 }}</div>
                     <div class="route-info">
                       <div class="route-name">{{ tr.route.name }}</div>
                     </div>
@@ -137,6 +160,10 @@ export interface TopoPathEditorConfig {
                         }
                       }
                     </div>
+                    <div
+                      *cdkDragPlaceholder
+                      class="route-item route-item--placeholder"
+                    ></div>
                   </div>
                 }
               </div>
@@ -473,7 +500,7 @@ export interface TopoPathEditorConfig {
 
     /* ── Sidebar ── */
     .route-sidebar {
-      width: 19rem;
+      width: 26rem;
       flex-shrink: 0;
       border-right: 1px solid var(--tui-border-normal);
       background: var(--tui-background-base);
@@ -535,6 +562,22 @@ export interface TopoPathEditorConfig {
       transform: translateX(4px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       border-color: var(--tui-border-hover);
+    }
+
+    .route-item--placeholder {
+      background: var(--tui-background-neutral-1) !important;
+      border: 1.5px dashed var(--tui-border-normal) !important;
+      box-shadow: none !important;
+      transform: none !important;
+      opacity: 0.5;
+    }
+
+    .cdk-drag-preview .route-item,
+    .cdk-drag-preview {
+      background: var(--tui-background-base);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      border-radius: 1rem;
+      opacity: 0.95;
     }
 
     .route-item--active {
@@ -662,15 +705,15 @@ export interface TopoPathEditorConfig {
       color: var(--tui-text-accent-1);
     }
 
-    /* ── Mobile sidebar overlay ── */
-    @media (max-width: 767px) {
+    /* ── Mobile/tablet sidebar overlay (below xl) ── */
+    @media (max-width: 1279px) {
       .route-sidebar {
         position: absolute;
         top: 0;
         right: 0;
         bottom: 0;
-        width: 80vw;
-        max-width: 18rem;
+        width: 85vw;
+        max-width: 26rem;
         transform: translateX(100%);
         box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
       }
@@ -688,7 +731,7 @@ export interface TopoPathEditorConfig {
       }
     }
 
-    @media (min-width: 768px) {
+    @media (min-width: 1280px) {
       .route-sidebar {
         transform: none !important;
       }
@@ -1152,6 +1195,16 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     );
   }
 
+  dropRoute(event: CdkDragDrop<TopoRouteWithRoute[]>): void {
+    moveItemInArray(this.topoRoutes, event.previousIndex, event.currentIndex);
+    // Reassign numbers based on new order (1-based)
+    this.topoRoutes.forEach((tr, i) => {
+      tr.number = i + 1;
+    });
+    this.topoRoutes = [...this.topoRoutes];
+    this.cdr.markForCheck();
+  }
+
   removePoint(event: Event, routeId: number, index: number): void {
     removePoint(event, routeId, index, this.pathsMap);
     this.cdr.markForCheck();
@@ -1172,6 +1225,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     );
     if (confirmed) {
       this.pathsMap.delete(tr.route_id);
+      this.pathsMap = new Map(this.pathsMap);
       this.selectedRoute.set(null);
       this.cdr.markForCheck();
     }
