@@ -212,13 +212,27 @@ export class CartService {
               .from('merchandise_items')
               .select('id, name, price, image_urls')
               .in('id', merchandiseIds)
-          : Promise.resolve({ data: [] as any[] }),
+          : Promise.resolve({
+              data: [] as {
+                id: string;
+                name: string;
+                price: number;
+                image_urls: string[] | null;
+              }[],
+            }),
         areaPackIds.length > 0
           ? this.supabase.client
               .from('area_packs')
               .select('id, name, price, image_urls')
               .in('id', areaPackIds)
-          : Promise.resolve({ data: [] as any[] }),
+          : Promise.resolve({
+              data: [] as {
+                id: string;
+                name: string;
+                price: number;
+                image_urls: string[] | null;
+              }[],
+            }),
         areaIds.length > 0
           ? this.supabase.client
               .from('areas')

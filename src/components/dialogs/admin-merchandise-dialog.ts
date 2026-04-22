@@ -251,7 +251,11 @@ const MERCHANDISE_CATEGORIES = [
                 cdkDrag
                 class="relative aspect-square rounded-xl overflow-hidden border border-(--tui-border-normal) group cursor-grab active:cursor-grabbing"
               >
-                <img [src]="url" class="w-full h-full object-cover" />
+                <img
+                  [src]="url"
+                  [alt]="'merchandising.items.gallery' | translate"
+                  class="w-full h-full object-cover"
+                />
                 <div
                   class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 >
@@ -275,7 +279,11 @@ const MERCHANDISE_CATEGORIES = [
                 cdkDrag
                 class="relative aspect-square rounded-xl overflow-hidden border border-accent border-dashed group cursor-grab active:cursor-grabbing"
               >
-                <img [src]="item.preview" class="w-full h-full object-cover" />
+                <img
+                  [src]="item.preview"
+                  [alt]="'merchandising.items.newPhoto' | translate"
+                  class="w-full h-full object-cover"
+                />
                 <div
                   class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 >
@@ -386,8 +394,6 @@ export class AdminMerchandiseDialogComponent {
     available_colors: this.context.data?.available_colors || [],
   });
 
-  constructor() {}
-
   protected onSizesChange(sizes: string[]): void {
     this.updateModel('available_sizes', sizes);
     this.syncStockWithSizes(sizes);
@@ -475,11 +481,14 @@ export class AdminMerchandiseDialogComponent {
   }
 
   protected dropImage(event: CdkDragDrop<unknown[]>): void {
-    type ExistingItem = { type: 'existing'; url: string };
-    type NewItem = {
+    interface ExistingItem {
+      type: 'existing';
+      url: string;
+    }
+    interface NewItem {
       type: 'new';
       photo: { id: string; file: File; preview: string };
-    };
+    }
     type Item = ExistingItem | NewItem;
 
     const combined: Item[] = [
@@ -554,7 +563,7 @@ export class AdminMerchandiseDialogComponent {
     }
   }
 
-  protected async onDeleteExistingPhoto(): Promise<void> {}
+  protected onDeleteExistingPhoto(): void {}
 
   async save() {
     this.isSaving.set(true);
