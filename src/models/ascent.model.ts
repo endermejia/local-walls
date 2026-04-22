@@ -1,4 +1,4 @@
-import { AscentType, RouteAscentWithExtras } from '../models';
+import { AscentType, ClimbingKind, RouteAscentWithExtras } from '../models';
 
 export interface AscentListItem {
   ascentId: number;
@@ -88,4 +88,5 @@ export interface AscentDialogData {
   routeName?: string;
   ascentData?: RouteAscentWithExtras;
   grade?: number;
+  climbingKind?: ClimbingKind;
 }

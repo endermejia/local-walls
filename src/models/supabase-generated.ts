@@ -2419,6 +2419,7 @@ export interface Database {
           grade: number | null;
           hard: boolean | null;
           high_first_bolt: boolean | null;
+          highball: boolean | null;
           id: number;
           lose_rock: boolean | null;
           no_score: boolean | null;
@@ -2430,10 +2431,12 @@ export interface Database {
           recommended: boolean | null;
           roof: boolean | null;
           route_id: number;
+          sit_start: boolean | null;
           slab: boolean | null;
           sloper: boolean | null;
           soft: boolean | null;
           technical: boolean | null;
+          top_out: boolean | null;
           traditional: boolean | null;
           type: Database['public']['Enums']['ascent_type'] | null;
           user_id: string;
@@ -2460,6 +2463,7 @@ export interface Database {
           grade?: number | null;
           hard?: boolean | null;
           high_first_bolt?: boolean | null;
+          highball?: boolean | null;
           id?: number;
           lose_rock?: boolean | null;
           no_score?: boolean | null;
@@ -2471,10 +2475,12 @@ export interface Database {
           recommended?: boolean | null;
           roof?: boolean | null;
           route_id: number;
+          sit_start?: boolean | null;
           slab?: boolean | null;
           sloper?: boolean | null;
           soft?: boolean | null;
           technical?: boolean | null;
+          top_out?: boolean | null;
           traditional?: boolean | null;
           type?: Database['public']['Enums']['ascent_type'] | null;
           user_id: string;
@@ -2501,6 +2507,7 @@ export interface Database {
           grade?: number | null;
           hard?: boolean | null;
           high_first_bolt?: boolean | null;
+          highball?: boolean | null;
           id?: number;
           lose_rock?: boolean | null;
           no_score?: boolean | null;
@@ -2512,10 +2519,12 @@ export interface Database {
           recommended?: boolean | null;
           roof?: boolean | null;
           route_id?: number;
+          sit_start?: boolean | null;
           slab?: boolean | null;
           sloper?: boolean | null;
           soft?: boolean | null;
           technical?: boolean | null;
+          top_out?: boolean | null;
           traditional?: boolean | null;
           type?: Database['public']['Enums']['ascent_type'] | null;
           user_id?: string;

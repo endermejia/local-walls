@@ -531,6 +531,7 @@ export class RouteComponent {
         routeId: r.id,
         routeName: r.name,
         grade: r.grade,
+        climbingKind: r.climbing_kind,
       }),
       { defaultValue: undefined },
     );

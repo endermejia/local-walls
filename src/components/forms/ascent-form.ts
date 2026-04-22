@@ -455,6 +455,28 @@ import { handleErrorToast } from '../../utils';
               {{ 'ascent.moreInfo' | translate }}
             </h3>
 
+            @if (isBoulder()) {
+              <!-- BOULDER INFO -->
+              <div class="grid gap-3">
+                <span class="text-xs font-bold opacity-60 uppercase">{{
+                  'ascent.boulder.title' | translate
+                }}</span>
+                <div class="flex flex-wrap gap-2">
+                  @for (key of boulderInfo; track key) {
+                    <button
+                      tuiButton
+                      type="button"
+                      size="s"
+                      [appearance]="$any(model())[key] ? 'primary' : 'neutral'"
+                      (click)="toggleBool(key)"
+                    >
+                      {{ 'ascent.boulder.' + key | translate }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+
             <!-- TYPE OF CLIMBING -->
             <div class="grid gap-3">
               <span class="text-xs font-bold opacity-60 uppercase">{{
@@ -496,24 +518,26 @@ import { handleErrorToast } from '../../utils';
             </div>
 
             <!-- SAFETY -->
-            <div class="grid gap-3">
-              <span class="text-xs font-bold opacity-60 uppercase">{{
-                'ascent.safety.title' | translate
-              }}</span>
-              <div class="flex flex-wrap gap-2">
-                @for (key of safetyIssues; track key) {
-                  <button
-                    tuiButton
-                    type="button"
-                    size="s"
-                    [appearance]="$any(model())[key] ? 'primary' : 'neutral'"
-                    (click)="toggleBool(key)"
-                  >
-                    {{ 'ascent.safety.' + key | translate }}
-                  </button>
-                }
+            @if (!isBoulder()) {
+              <div class="grid gap-3">
+                <span class="text-xs font-bold opacity-60 uppercase">{{
+                  'ascent.safety.title' | translate
+                }}</span>
+                <div class="flex flex-wrap gap-2">
+                  @for (key of safetyIssues; track key) {
+                    <button
+                      tuiButton
+                      type="button"
+                      size="s"
+                      [appearance]="$any(model())[key] ? 'primary' : 'neutral'"
+                      (click)="toggleBool(key)"
+                    >
+                      {{ 'ascent.safety.' + key | translate }}
+                    </button>
+                  }
+                </div>
               </div>
-            </div>
+            }
 
             <!-- OTHER -->
             <div class="grid gap-3">
@@ -616,6 +640,13 @@ export default class AscentFormComponent {
   private readonly dialogRouteName = this._dialogCtx?.data?.routeName;
   private readonly dialogAscentData = this._dialogCtx?.data?.ascentData;
   private readonly dialogGrade = this._dialogCtx?.data?.grade;
+  private readonly dialogClimbingKind = this._dialogCtx?.data?.climbingKind;
+
+  readonly isBoulder = computed(() => {
+    const data = this.effectiveAscentData();
+    const kind = this.dialogClimbingKind || data?.route?.climbing_kind;
+    return kind === 'boulder';
+  });
 
   private readonly effectiveAscentData = computed(
     () => this.dialogAscentData ?? this.ascentData(),
@@ -694,6 +725,9 @@ export default class AscentFormComponent {
     traditional: false,
     video_url: null as string | null,
     photoControl: null as File | null,
+    sit_start: false,
+    top_out: false,
+    highball: false,
   });
 
   ascentForm = form(this.model, (path) => {
@@ -755,6 +789,11 @@ export default class AscentFormComponent {
     'with_kneepad',
     'first_ascent',
     'traditional',
+  ];
+  protected readonly boulderInfo: (keyof ReturnType<typeof this.model>)[] = [
+    'sit_start',
+    'top_out',
+    'highball',
   ];
 
   protected readonly gradeItems = Object.entries(GRADE_NUMBER_TO_LABEL)
@@ -918,6 +957,9 @@ export default class AscentFormComponent {
       video_url: data.video_url ?? null,
       date: dateObj,
       photoControl: null,
+      sit_start: !!data.sit_start,
+      top_out: !!data.top_out,
+      highball: !!data.highball,
     });
   }
 

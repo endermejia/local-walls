@@ -32,10 +32,8 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
   - Artículos
     - Administrar artículos y stock por tallas
     - Las compras deben ser por talla y debe gestionarse el stock
-    - Boton ver historial de compras en user-profile-config y en el botón menu del navbar
   - Admin
     - Gestionar pedidos, estado envio, etc
-  - **Dejar de usar starting_climbing_year, crear signal con api resource en global-data usando el año del primer ascent registrado por el usuario y si no, usar starting-climbing-year como default. **
 
 ## Future Features
 

@@ -920,6 +920,7 @@ export class RoutesTableComponent {
         routeId: item.id,
         routeName: item.name,
         grade: item.grade,
+        climbingKind: item.climbing_kind,
       }),
       { defaultValue: undefined },
     );

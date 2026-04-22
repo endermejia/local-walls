@@ -497,6 +497,9 @@ export class AscentCardComponent {
     { key: 'with_kneepad', label: 'ascent.other.with_kneepad' },
     { key: 'first_ascent', label: 'ascent.other.first_ascent' },
     { key: 'traditional', label: 'ascent.other.traditional' },
+    { key: 'sit_start', label: 'ascent.boulder.sit_start' },
+    { key: 'top_out', label: 'ascent.boulder.top_out' },
+    { key: 'highball', label: 'ascent.boulder.highball' },
   ];
 
   protected readonly activeMedia = computed(() => {

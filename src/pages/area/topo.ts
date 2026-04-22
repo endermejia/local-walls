@@ -1403,6 +1403,7 @@ export class TopoComponent {
         routeId: route.id,
         routeName: route.name,
         grade: route.grade,
+        climbingKind: route.climbing_kind,
       }),
       { defaultValue: undefined },
     );
