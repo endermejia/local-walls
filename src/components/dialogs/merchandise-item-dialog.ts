@@ -34,12 +34,7 @@ import { MerchandiseItemDetail } from '../../models';
       <div
         class="relative aspect-square rounded-[2.5rem] overflow-hidden bg-(--tui-background-neutral-1) border border-(--tui-border-normal) md:sticky md:top-0"
       >
-        @let images =
-          (item.image_urls?.length
-            ? item.image_urls
-            : item.image_url
-              ? [item.image_url]
-              : []) || [];
+        @let images = item.image_urls || [];
         @if (images.length > 0) {
           <tui-carousel #carousel [(index)]="index" class="w-full h-full">
             <ng-template tuiItem let-i>
@@ -302,7 +297,6 @@ export class MerchandiseItemDialogComponent {
       id: this.item.id,
       name: this.item.name,
       price: this.item.price,
-      image_url: this.item.image_url,
       image_urls: this.item.image_urls,
       type: 'merchandise',
       selectedSize: this.selectedSize(),

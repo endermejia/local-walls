@@ -43,12 +43,7 @@ import { MerchandiseItemDetail } from '../../models';
         class="relative aspect-square rounded-[2.5rem] overflow-hidden transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-1.5 border border-(--tui-border-normal)"
         style="background: var(--tui-background-neutral-1)"
       >
-        @let images =
-          item().image_urls?.length
-            ? item().image_urls
-            : item().image_url
-              ? [item().image_url]
-              : [];
+        @let images = item().image_urls || [];
 
         @if (images && images.length > 0) {
           <tui-carousel #carousel [(index)]="index" class="w-full h-full">

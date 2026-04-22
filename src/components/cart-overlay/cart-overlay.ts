@@ -109,9 +109,9 @@ import type { CartProduct } from '../../models';
                   <div
                     class="w-20 h-20 rounded-2xl overflow-hidden shrink-0 border border-(--tui-border-normal) bg-(--tui-background-neutral-1)"
                   >
-                    @if (item.image_url) {
+                    @if (item.image_urls?.[0]) {
                       <img
-                        [src]="item.image_url"
+                        [src]="item.image_urls![0]"
                         [alt]="item.name"
                         class="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
                       />

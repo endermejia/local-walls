@@ -29,7 +29,6 @@ export type MerchandiseStock =
 export interface OrderDetail extends Order {
   items: (OrderItem & {
     product_name?: string;
-    image_url?: string;
   })[];
 }
 
@@ -39,7 +38,6 @@ export interface CartProduct {
   id: string;
   name: string;
   price: number;
-  image_url: string | null;
   image_urls: string[] | null;
   type: 'merchandise' | 'area_pack' | 'area';
   quantity: number;

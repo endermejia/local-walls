@@ -38,7 +38,6 @@ import {
   TuiFiles,
   TuiInputFiles,
   TuiSwitch,
-  TUI_CONFIRM,
   TuiInputChip,
   TuiChevron,
   TuiMultiSelect,
@@ -336,7 +335,6 @@ export class AdminPackDialogComponent implements OnInit {
     name: this.context.data?.name || '',
     price: this.context.data?.price || 0,
     description: this.context.data?.description || '',
-    image_url: this.context.data?.image_url || '',
     image_urls: this.context.data?.image_urls || ([] as string[]),
     active: this.context.data?.active ?? true,
     selectedAreas: [] as SimpleArea[],
@@ -410,7 +408,6 @@ export class AdminPackDialogComponent implements OnInit {
     this.model.update((m) => ({
       ...m,
       image_urls: m.image_urls.filter((u) => u !== url),
-      image_url: m.image_url === url ? m.image_urls[0] || '' : m.image_url,
     }));
   }
 
@@ -498,28 +495,7 @@ export class AdminPackDialogComponent implements OnInit {
     }
   }
 
-  protected async onDeleteExistingPhoto(): Promise<void> {
-    const photoUrl = this.model().image_url;
-    if (!photoUrl) return;
-
-    const confirmed = await firstValueFrom(
-      this.dialogs.open<boolean>(TUI_CONFIRM, {
-        label: this.translate.instant('ascent.deletePhotoTitle'),
-        size: 's',
-        data: {
-          content: this.translate.instant('ascent.deletePhotoConfirm'),
-          yes: this.translate.instant('delete'),
-          no: this.translate.instant('cancel'),
-          appearance: 'negative',
-        },
-      }),
-      { defaultValue: false },
-    );
-
-    if (confirmed) {
-      this.updateModel('image_url', '');
-    }
-  }
+  protected async onDeleteExistingPhoto(): Promise<void> {}
 
   async save() {
     this.isSaving.set(true);
@@ -550,10 +526,6 @@ export class AdminPackDialogComponent implements OnInit {
           area: a,
         })) as AreaPackDetail['items'],
       };
-
-      if (!payload.image_url && payload.image_urls!.length > 0) {
-        payload.image_url = payload.image_urls![0];
-      }
 
       const result = await this.merchService.upsertAreaPack(payload);
       if (result) {

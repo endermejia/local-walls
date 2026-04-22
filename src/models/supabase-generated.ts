@@ -1284,7 +1284,6 @@ export interface Database {
           created_at: string | null;
           description: string | null;
           id: string;
-          image_url: string | null;
           image_urls: string[] | null;
           name: string;
           price: number;
@@ -1294,7 +1293,6 @@ export interface Database {
           created_at?: string | null;
           description?: string | null;
           id?: string;
-          image_url?: string | null;
           image_urls?: string[] | null;
           name: string;
           price?: number;
@@ -1304,7 +1302,6 @@ export interface Database {
           created_at?: string | null;
           description?: string | null;
           id?: string;
-          image_url?: string | null;
           image_urls?: string[] | null;
           name?: string;
           price?: number;
@@ -2012,7 +2009,6 @@ export interface Database {
           created_at: string | null;
           description: string | null;
           id: string;
-          image_url: string | null;
           image_urls: string[] | null;
           name: string;
           price: number;
@@ -2025,7 +2021,6 @@ export interface Database {
           created_at?: string | null;
           description?: string | null;
           id?: string;
-          image_url?: string | null;
           image_urls?: string[] | null;
           name: string;
           price?: number;
@@ -2038,7 +2033,6 @@ export interface Database {
           created_at?: string | null;
           description?: string | null;
           id?: string;
-          image_url?: string | null;
           image_urls?: string[] | null;
           name?: string;
           price?: number;

@@ -47,9 +47,7 @@ import { AreaPackDetail } from '../../models';
         @let images =
           pack().image_urls?.length
             ? pack().image_urls
-            : pack().image_url
-              ? [pack().image_url]
-              : ['/assets/images/area-pack-promo.png'];
+            : ['/assets/images/area-pack-promo.png'];
 
         @if (images && images.length > 0) {
           <tui-carousel #carousel [(index)]="index" class="w-full h-full">

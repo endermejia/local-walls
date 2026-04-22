@@ -35,7 +35,6 @@ import {
   TuiDataListWrapper,
   TuiChevron,
   TuiFiles,
-  TUI_CONFIRM,
 } from '@taiga-ui/kit';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -381,7 +380,6 @@ export class AdminMerchandiseDialogComponent {
     price: this.context.data?.price || 0,
     stock: this.context.data?.stock || ([] as MerchandiseStock[]),
     description: this.context.data?.description || '',
-    image_url: this.context.data?.image_url || '',
     image_urls: this.context.data?.image_urls || ([] as string[]),
     active: this.context.data?.active ?? true,
     available_sizes: this.context.data?.available_sizes || [],
@@ -469,8 +467,6 @@ export class AdminMerchandiseDialogComponent {
     this.model.update((m) => ({
       ...m,
       image_urls: m.image_urls.filter((u) => u !== url),
-      // If we deleted the main image_url, clear it or pick another
-      image_url: m.image_url === url ? m.image_urls[0] || '' : m.image_url,
     }));
   }
 
@@ -558,28 +554,7 @@ export class AdminMerchandiseDialogComponent {
     }
   }
 
-  protected async onDeleteExistingPhoto(): Promise<void> {
-    const photoUrl = this.model().image_url;
-    if (!photoUrl) return;
-
-    const confirmed = await firstValueFrom(
-      this.dialogs.open<boolean>(TUI_CONFIRM, {
-        label: this.translate.instant('ascent.deletePhotoTitle'),
-        size: 's',
-        data: {
-          content: this.translate.instant('ascent.deletePhotoConfirm'),
-          yes: this.translate.instant('delete'),
-          no: this.translate.instant('cancel'),
-          appearance: 'negative',
-        },
-      }),
-      { defaultValue: false },
-    );
-
-    if (confirmed) {
-      this.updateModel('image_url', '');
-    }
-  }
+  protected async onDeleteExistingPhoto(): Promise<void> {}
 
   async save() {
     this.isSaving.set(true);
@@ -604,11 +579,6 @@ export class AdminMerchandiseDialogComponent {
 
       payload.image_urls = [...(model.image_urls || []), ...newPhotoUrls];
 
-      // Update the main image_url if empty but we have images
-      if (!payload.image_url && payload.image_urls.length > 0) {
-        payload.image_url = payload.image_urls[0];
-      }
-
       const result = await this.merchService.upsertMerchandiseItem(payload);
       if (result) {
         this.toast.success(
@@ -621,10 +591,9 @@ export class AdminMerchandiseDialogComponent {
         );
       }
     } catch (e) {
+      const error = e as Error;
       this.toast.error(
-        e instanceof Error
-          ? e.message
-          : this.translate.instant('errors.unexpected'),
+        error.message || this.translate.instant('errors.unexpected'),
       );
     } finally {
       this.isSaving.set(false);

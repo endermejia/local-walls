@@ -45,9 +45,7 @@ import { AreaPackDetail } from '../../models';
         @let images =
           (pack.image_urls?.length
             ? pack.image_urls
-            : pack.image_url
-              ? [pack.image_url]
-              : ['/assets/images/area-pack-promo.png']) || [];
+            : ['/assets/images/area-pack-promo.png']) || [];
         @if (images.length > 0) {
           <tui-carousel #carousel [(index)]="index" class="w-full h-full">
             <ng-template tuiItem let-i>
@@ -199,7 +197,6 @@ export class MerchandisePackDialogComponent {
       id: this.pack.id,
       name: this.pack.name,
       price: this.pack.price,
-      image_url: this.pack.image_url,
       image_urls: this.pack.image_urls,
       type: 'area_pack',
     });
