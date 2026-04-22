@@ -28,6 +28,8 @@ import { map, merge, startWith } from 'rxjs';
 
 import { ORDERED_GRADE_VALUES } from '../../models';
 
+import { clamp } from '../../utils';
+
 export interface FilterDialog {
   categories: number[]; // 0=Sport, 1=Boulder, 2=Multipitch
   gradeRange: [number, number]; // indices into ORDERED_GRADE_VALUES
@@ -263,13 +265,9 @@ export class FilterDialogComponent {
     ) as Signal<[number, number]>;
   }
 
-  private clamp(v: number): number {
-    return Math.max(this.minIndex, Math.min(this.maxIndex, Math.round(v)));
-  }
-
   private sanitizeRange([a, b]: [number, number]): [number, number] {
-    const lo = this.clamp(a);
-    const hi = this.clamp(b);
+    const lo = clamp(Math.round(a), this.minIndex, this.maxIndex);
+    const hi = clamp(Math.round(b), this.minIndex, this.maxIndex);
     return [Math.min(lo, hi), Math.max(lo, hi)];
   }
 
@@ -282,7 +280,7 @@ export class FilterDialogComponent {
       number,
     ];
     const [lo, hi] = current;
-    const t = this.clamp(targetIdx);
+    const t = clamp(targetIdx, this.minIndex, this.maxIndex);
     // Move the nearest thumb to the clicked tick
     const moveMin = Math.abs(t - lo) <= Math.abs(t - hi);
     const next: [number, number] = moveMin ? [t, hi] : [lo, t];

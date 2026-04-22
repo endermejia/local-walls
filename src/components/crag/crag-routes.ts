@@ -40,7 +40,6 @@ import {
   ClimbingKinds,
   CragDetail,
   GRADE_NUMBER_TO_LABEL,
-  LABEL_TO_VERTICAL_LIFE,
   ORDERED_GRADE_VALUES,
   PROJECT_GRADE_LABEL,
   RouteDto,
@@ -50,7 +49,7 @@ import {
 } from '../../models';
 
 import { IconSrcPipe } from '../../pipes/icon-src.pipe';
-import { matchesQuery, slugify } from '../../utils';
+import { gradeToVerticalLife, matchesQuery, slugify } from '../../utils';
 
 @Component({
   selector: 'app-crag-routes',
@@ -432,16 +431,7 @@ export class CragRoutesComponent {
     return sorted[0][0] as ClimbingKind;
   });
 
-  protected mapEightAnuGrade(
-    difficulty: string | undefined,
-  ): VERTICAL_LIFE_GRADES {
-    if (!difficulty) return VERTICAL_LIFE_GRADES.G0;
-    const label = difficulty.toLowerCase().replace(' ', '');
-    return (
-      LABEL_TO_VERTICAL_LIFE[label as keyof typeof LABEL_TO_VERTICAL_LIFE] ??
-      VERTICAL_LIFE_GRADES.G0
-    );
-  }
+  protected readonly mapEightAnuGrade = gradeToVerticalLife;
 
   protected importRoute(item: SearchRouteItem): void {
     const crag = this.crag();

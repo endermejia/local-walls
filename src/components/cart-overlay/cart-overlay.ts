@@ -5,6 +5,7 @@ import {
   EventEmitter,
   inject,
   Output,
+  signal,
 } from '@angular/core';
 
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -13,12 +14,16 @@ import {
   TuiButton,
   TuiDialogService,
   TuiIcon,
+  TuiLoader,
   TuiScrollbar,
 } from '@taiga-ui/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { CartService } from '../../services/cart.service';
+import { MerchandiseService } from '../../services/merchandise.service';
+import { MerchandiseItemDialogComponent } from '../dialogs/merchandise-item-dialog';
+import { MerchandisePackDialogComponent } from '../dialogs/merchandise-pack-dialog';
 import { PurchaseHistoryDialogComponent } from '../dialogs/purchase-history-dialog';
 
 import type { CartProduct } from '../../models';
@@ -32,6 +37,7 @@ import type { CartProduct } from '../../models';
     TuiBadge,
     TuiButton,
     TuiIcon,
+    TuiLoader,
     TuiScrollbar,
   ],
   template: `
@@ -106,44 +112,52 @@ import type { CartProduct } from '../../models';
                 <div
                   class="flex gap-4 group animate-in fade-in slide-in-from-right-4 duration-300"
                 >
-                  <div
-                    class="w-20 h-20 rounded-2xl overflow-hidden shrink-0 border border-(--tui-border-normal) bg-(--tui-background-neutral-1)"
+                  <button
+                    type="button"
+                    class="w-20 h-20 rounded-2xl overflow-hidden shrink-0 border border-(--tui-border-normal) bg-(--tui-background-neutral-1) cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    (click)="openProduct(item)"
                   >
-                    @if (item.image_urls?.[0]) {
-                      <img
-                        [src]="item.image_urls![0]"
-                        [alt]="item.name"
-                        class="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
-                      />
-                    } @else {
-                      <div
-                        class="w-full h-full flex items-center justify-center p-4"
-                      >
-                        <tui-icon
-                          [icon]="
-                            item.type === 'merchandise'
-                              ? '@tui.shirt'
-                              : '@tui.map'
-                          "
-                          class="text-3xl opacity-50 text-(--tui-text-secondary)"
+                    <tui-loader
+                      [loading]="openingProductId() === item.id + item.type"
+                      [overlay]="true"
+                    >
+                      @if (item.image_urls?.[0]) {
+                        <img
+                          [src]="item.image_urls![0]"
+                          [alt]="item.name"
+                          class="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
                         />
-                      </div>
-                    }
-                  </div>
+                      } @else {
+                        <div
+                          class="w-full h-full flex items-center justify-center p-4"
+                        >
+                          <tui-icon
+                            [icon]="
+                              item.type === 'merchandise'
+                                ? '@tui.shirt'
+                                : '@tui.map'
+                            "
+                            class="text-3xl opacity-50 text-(--tui-text-secondary)"
+                          />
+                        </div>
+                      }
+                    </tui-loader>
+                  </button>
                   <div class="flex-1 min-w-0 flex flex-col">
                     <div class="flex justify-between items-start gap-2">
-                      <h3
-                        class="font-black text-sm truncate text-(--tui-text-primary)"
+                      <button
+                        type="button"
+                        class="font-black text-sm truncate text-(--tui-text-primary) text-left hover:underline focus:outline-none"
+                        (click)="openProduct(item)"
                       >
                         {{ item.name }}
-                      </h3>
+                      </button>
                       <button
                         tuiIconButton
                         type="button"
-                        appearance="flat"
+                        appearance="action-grayscale"
                         iconStart="@tui.trash-2"
                         size="xs"
-                        class="text-(--tui-text-tertiary) hover:text-(--tui-status-negative) transition-colors"
                         (click)="
                           removeItem(
                             item.id,
@@ -284,6 +298,7 @@ import type { CartProduct } from '../../models';
 export class CartOverlayComponent {
   private readonly cartService = inject(CartService);
   private readonly dialogs = inject(TuiDialogService);
+  private readonly merchService = inject(MerchandiseService);
 
   @Output() closeOverlay = new EventEmitter<void>();
   @Output() checkout = new EventEmitter<void>();
@@ -291,6 +306,39 @@ export class CartOverlayComponent {
   protected readonly items = this.cartService.items;
   protected readonly totalItems = this.cartService.totalItems;
   protected readonly totalPrice = this.cartService.totalPrice;
+  protected readonly openingProductId = signal<string | null>(null);
+
+  async openProduct(item: CartProduct): Promise<void> {
+    if (this.openingProductId()) return;
+    this.openingProductId.set(item.id + item.type);
+    try {
+      if (item.type === 'merchandise') {
+        const product = await this.merchService.getMerchandiseItemById(item.id);
+        if (product) {
+          this.dialogs
+            .open(new PolymorpheusComponent(MerchandiseItemDialogComponent), {
+              data: product,
+              label: product.name,
+              size: 'l',
+            })
+            .subscribe();
+        }
+      } else if (item.type === 'area_pack') {
+        const pack = await this.merchService.getAreaPackById(item.id);
+        if (pack) {
+          this.dialogs
+            .open(new PolymorpheusComponent(MerchandisePackDialogComponent), {
+              data: pack,
+              label: pack.name,
+              size: 'l',
+            })
+            .subscribe();
+        }
+      }
+    } finally {
+      this.openingProductId.set(null);
+    }
+  }
 
   protected openPurchaseHistory(): void {
     this.dialogs

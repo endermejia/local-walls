@@ -77,6 +77,36 @@ export class MerchandiseService {
     return (data || []) as unknown as AreaPackDetail[];
   }
 
+  async getMerchandiseItemById(
+    id: string,
+  ): Promise<MerchandiseItemDetail | null> {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    await this.supabase.whenReady();
+
+    const { data, error } = await this.supabase.client
+      .from('merchandise_items')
+      .select('*, stock:merchandise_stock(*)')
+      .eq('id', id)
+      .single();
+
+    if (error) return null;
+    return data as unknown as MerchandiseItemDetail;
+  }
+
+  async getAreaPackById(id: string): Promise<AreaPackDetail | null> {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    await this.supabase.whenReady();
+
+    const { data, error } = await this.supabase.client
+      .from('area_packs')
+      .select(`*, items:area_pack_items(area_id, area:areas(id, name, slug))`)
+      .eq('id', id)
+      .single();
+
+    if (error) return null;
+    return data as unknown as AreaPackDetail;
+  }
+
   async upsertMerchandiseItem(
     item: Partial<MerchandiseItemDetail>,
   ): Promise<MerchandiseItem | null> {

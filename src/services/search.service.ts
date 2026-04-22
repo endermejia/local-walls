@@ -15,10 +15,10 @@ import {
   SearchAreaItem,
   SearchCragItem,
   SearchRouteItem,
-  LABEL_TO_VERTICAL_LIFE,
-  GradeLabel,
   ClimbingKind,
 } from '../models';
+
+import { gradeToNumber } from '../utils';
 
 interface DbArea {
   title: string;
@@ -62,12 +62,6 @@ export class SearchService {
   private readonly supabase = inject(SupabaseService);
   private readonly translate = inject(TranslateService);
   private readonly eightAnu = inject(EightAnuService);
-
-  private gradeToNumber(label: string | undefined): number {
-    if (!label) return 0;
-    const normalized = label.toLowerCase().replace(' ', '') as GradeLabel;
-    return LABEL_TO_VERTICAL_LIFE[normalized] || 0;
-  }
 
   search(query: string): Observable<SearchData | null> {
     const trimmedQuery = query.trim();
@@ -201,7 +195,7 @@ export class SearchService {
                     icon: '@tui.download',
                     type: 'import-route',
                     data: anuRoute,
-                    grade: this.gradeToNumber(anuRoute.difficulty),
+                    grade: gradeToNumber(anuRoute.difficulty),
                     climbing_kind:
                       anuRoute.category === 0 ? 'sport' : 'boulder',
                   } as SearchItem,

@@ -16,6 +16,8 @@ import { ORDERED_GRADE_VALUES } from '../models';
 
 import { GlobalData } from './global-data';
 
+import { clamp } from '../utils';
+
 @Injectable({ providedIn: 'root' })
 export class FiltersService {
   private readonly dialogs = inject(TuiDialogService);
@@ -54,11 +56,8 @@ export class FiltersService {
 
       const [a, b] = result.gradeRange ?? [0, ORDERED_GRADE_VALUES.length - 1];
 
-      const clamp = (v: number) =>
-        Math.max(0, Math.min(ORDERED_GRADE_VALUES.length - 1, Math.round(v)));
-
-      const lo = clamp(a);
-      const hi = clamp(b);
+      const lo = clamp(Math.round(a), 0, ORDERED_GRADE_VALUES.length - 1);
+      const hi = clamp(Math.round(b), 0, ORDERED_GRADE_VALUES.length - 1);
 
       this.global.areaListGradeRange.set([Math.min(lo, hi), Math.max(lo, hi)]);
 

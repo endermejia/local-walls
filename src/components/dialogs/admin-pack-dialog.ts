@@ -8,12 +8,15 @@ import {
   OnInit,
 } from '@angular/core';
 
+import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
+
 import {
-  CdkDrag,
-  CdkDragDrop,
-  CdkDropList,
-  moveItemInArray,
-} from '@angular/cdk/drag-drop';
+  COMMON_IMAGE_EDITOR_CONFIG,
+  createNewPhoto,
+  fileToDataUrl,
+  NewPhoto,
+  reorderGallery,
+} from '../../utils';
 
 import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext } from '@taiga-ui/core';
@@ -332,9 +335,7 @@ export class AdminPackDialogComponent implements OnInit {
   readonly loadingAreas = signal(true);
   readonly areaIdsInOtherPacks = signal<Set<number>>(new Set());
 
-  protected readonly newPhotos = signal<
-    { id: string; file: File; preview: string }[]
-  >([]);
+  protected readonly newPhotos = signal<NewPhoto[]>([]);
   protected readonly isProcessingPhoto = signal(false);
   protected readonly fileInputModel = signal<File[] | null>(null);
 
@@ -422,50 +423,20 @@ export class AdminPackDialogComponent implements OnInit {
   }
 
   protected dropImage(event: CdkDragDrop<unknown[]>): void {
-    interface ExistingItem {
-      type: 'existing';
-      url: string;
-    }
-    interface NewItem {
-      type: 'new';
-      photo: { id: string; file: File; preview: string };
-    }
-    type Item = ExistingItem | NewItem;
-
-    const combined: Item[] = [
-      ...this.model().image_urls.map(
-        (url): ExistingItem => ({ type: 'existing', url }),
-      ),
-      ...this.newPhotos().map((p): NewItem => ({ type: 'new', photo: p })),
-    ];
-
-    moveItemInArray(combined, event.previousIndex, event.currentIndex);
-
-    this.updateModel(
-      'image_urls',
-      combined
-        .filter((i): i is ExistingItem => i.type === 'existing')
-        .map((i) => i.url),
+    const { imageUrls, newPhotos } = reorderGallery(
+      event,
+      this.model().image_urls,
+      this.newPhotos(),
     );
-    this.newPhotos.set(
-      combined
-        .filter((i): i is NewItem => i.type === 'new')
-        .map((i) => i.photo),
-    );
+    this.updateModel('image_urls', imageUrls);
+    this.newPhotos.set(newPhotos);
   }
 
   async editPhoto(file?: File | null, imageUrl?: string): Promise<void> {
     const data = {
+      ...COMMON_IMAGE_EDITOR_CONFIG,
       file: file ?? undefined,
       imageUrl: imageUrl ?? undefined,
-      aspectRatios: [
-        { titleKey: '1:1', descriptionKey: '1:1', ratio: 1 },
-        { titleKey: '4:3', descriptionKey: '4:3', ratio: 4 / 3 },
-        { titleKey: '16:9', descriptionKey: '16:9', ratio: 16 / 9 },
-      ],
-      allowFree: true,
-      resizeToWidth: 1000,
-      imageQuality: 75,
     };
 
     if (!data.file && !data.imageUrl) {
@@ -489,22 +460,13 @@ export class AdminPackDialogComponent implements OnInit {
     this.isProcessingPhoto.set(false);
 
     if (result) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.newPhotos.update((photos) => [
-          ...photos,
-          {
-            id: Math.random().toString(36).substring(2),
-            file: result,
-            preview: reader.result as string,
-          },
-        ]);
-      };
-      reader.readAsDataURL(result);
+      const preview = await fileToDataUrl(result);
+      this.newPhotos.update((photos) => [
+        ...photos,
+        createNewPhoto(result, preview),
+      ]);
     }
   }
-
-  protected onDeleteExistingPhoto(): void {}
 
   async save() {
     this.isSaving.set(true);

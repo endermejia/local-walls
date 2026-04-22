@@ -20,7 +20,10 @@
       "Bash(sed -i 's/\"purchaseHistory.empty\": \"Encara no has realitzat cap donació.\"/\"purchaseHistory.empty\": \"Encara no has realitzat cap compra.\"/' /d/git/local-walls/public/i18n/va.json)",
       "Bash(python3 -c ':*)",
       "Bash(node -e ':*)",
-      "Bash(node D:/git/local-walls/scripts/sync-translations.mjs)"
+      "Bash(node D:/git/local-walls/scripts/sync-translations.mjs)",
+      "Bash(grep -n \"toLowerCase\\(\\).*replace\\\\|toUpperCase\\(\\).*replace\" /d/git/local-walls/src/services/*.ts /d/git/local-walls/src/components/**/*.ts)",
+      "Bash(grep -rn \"map.*=>.*\\\\{$\" /d/git/local-walls/src/services --include=\"*.ts\" -A 5)",
+      "Bash(grep -rn \"progress\\\\$\\\\.next\\\\|BehaviorSubject\" /d/git/local-walls/src --include=\"*.ts\")"
     ]
   }
 }

@@ -64,9 +64,9 @@ import { MenuOptionsButtonComponent } from './menu-options-button';
 import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
 import { TourHintComponent } from './tour-hint';
 
+import { gradeToNumber } from '../../utils';
+
 import {
-  GradeLabel,
-  LABEL_TO_VERTICAL_LIFE,
   SearchAreaItem,
   SearchCragItem,
   SearchData,
@@ -704,7 +704,7 @@ export class NavbarComponent {
             routeData: {
               name: anuRoute.zlaggableName,
               slug: anuRoute.zlaggableSlug,
-              grade: this.gradeToNumber(anuRoute.difficulty),
+              grade: gradeToNumber(anuRoute.difficulty),
               eight_anu_route_slugs: [anuRoute.zlaggableSlug],
             },
           });
@@ -715,12 +715,6 @@ export class NavbarComponent {
 
     this.searchOpen = false;
     this.control.setValue('', { emitEvent: false });
-  }
-
-  protected gradeToNumber(label: string | undefined): number {
-    if (!label) return 0;
-    const normalized = label.toLowerCase().replace(' ', '') as GradeLabel;
-    return LABEL_TO_VERTICAL_LIFE[normalized] || 0;
   }
 
   protected scrollToTop(event: MouseEvent): void {

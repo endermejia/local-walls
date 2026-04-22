@@ -1,10 +1,29 @@
 import {
   bandForGradeLabel,
   GradeLabel,
+  LABEL_TO_VERTICAL_LIFE,
   ORDERED_GRADE_VALUES,
   RoutesByGrade,
   PROJECT_GRADE_LABEL,
+  VERTICAL_LIFE_GRADES,
 } from '../models';
+
+export function gradeToNumber(label: string | undefined): number {
+  if (!label) return 0;
+  const normalized = label.toLowerCase().replace(' ', '') as GradeLabel;
+  return LABEL_TO_VERTICAL_LIFE[normalized] || 0;
+}
+
+export function gradeToVerticalLife(
+  difficulty: string | undefined,
+): VERTICAL_LIFE_GRADES {
+  if (!difficulty) return VERTICAL_LIFE_GRADES.G0;
+  const label = difficulty.toLowerCase().replace(' ', '');
+  return (
+    LABEL_TO_VERTICAL_LIFE[label as keyof typeof LABEL_TO_VERTICAL_LIFE] ??
+    VERTICAL_LIFE_GRADES.G0
+  );
+}
 
 export interface GradeChartData {
   values: readonly number[];
