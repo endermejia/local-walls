@@ -40,6 +40,7 @@ export interface CartProduct {
   name: string;
   price: number;
   image_url: string | null;
+  image_urls: string[] | null;
   type: 'merchandise' | 'area_pack' | 'area';
   quantity: number;
   numericId?: number; // Used for areas (int)

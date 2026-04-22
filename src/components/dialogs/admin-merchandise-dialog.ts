@@ -3,11 +3,16 @@ import { FormsModule } from '@angular/forms';
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
-  effect,
   inject,
   signal,
 } from '@angular/core';
+
+import {
+  CdkDrag,
+  CdkDragDrop,
+  CdkDropList,
+  moveItemInArray,
+} from '@angular/cdk/drag-drop';
 
 import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext } from '@taiga-ui/core';
@@ -19,6 +24,7 @@ import {
   TuiDialogService,
   TuiLoader,
   TuiInput,
+  TuiHint,
 } from '@taiga-ui/core';
 import {
   TuiInputChip,
@@ -29,7 +35,6 @@ import {
   TuiDataListWrapper,
   TuiChevron,
   TuiFiles,
-  TuiFileRejectedPipe,
   TUI_CONFIRM,
 } from '@taiga-ui/kit';
 
@@ -64,12 +69,14 @@ const MERCHANDISE_CATEGORIES = [
     CommonModule,
     FormsModule,
     TranslatePipe,
+    CdkDrag,
+    CdkDropList,
     TuiButton,
     TuiChevron,
     TuiDataList,
     TuiDataListWrapper,
-    TuiFileRejectedPipe,
     TuiFiles,
+    TuiHint,
     TuiIcon,
     TuiInput,
     TuiInputChip,
@@ -208,109 +215,95 @@ const MERCHANDISE_CATEGORIES = [
           ></textarea>
         </tui-textfield>
 
-        <!-- Image -->
+        <!-- Images Gallery -->
         <div class="flex flex-col gap-3">
           <div class="flex items-center justify-between px-1">
             <span class="text-xs font-bold opacity-60 uppercase">{{
-              'ascent.photo' | translate
+              'merchandising.items.gallery' | translate
             }}</span>
-            <div class="flex items-center gap-2">
-              @if (model().image_url && !photoValue()) {
-                <button
-                  tuiButton
-                  type="button"
-                  appearance="negative"
-                  size="s"
-                  iconStart="@tui.trash"
-                  (click)="onDeleteExistingPhoto()"
-                >
-                  {{ 'ascent.deletePhoto' | translate }}
-                </button>
-              }
-            </div>
+            <label tuiInputFiles>
+              <input
+                accept="image/*"
+                tuiInputFiles
+                multiple
+                [ngModel]="fileInputModel()"
+                (ngModelChange)="onPhotoFileChange($event)"
+              />
+              <button
+                tuiButton
+                type="button"
+                appearance="flat"
+                size="s"
+                iconStart="@tui.plus"
+              >
+                {{ 'merchandising.items.addImage' | translate }}
+              </button>
+            </label>
           </div>
 
-          <div class="grid gap-2">
-            @if (!photoValue() && !model().image_url) {
-              <label tuiInputFiles>
-                <input
-                  accept="image/*"
-                  tuiInputFiles
-                  [ngModel]="model().photoControl"
-                  (ngModelChange)="onPhotoFileChange($event)"
-                  name="photoControl"
-                />
-              </label>
+          <div
+            class="grid grid-cols-2 sm:grid-cols-3 gap-3"
+            cdkDropList
+            cdkDropListOrientation="mixed"
+            (cdkDropListDropped)="dropImage($event)"
+          >
+            @for (url of model().image_urls; track url) {
+              <div
+                cdkDrag
+                class="relative aspect-square rounded-xl overflow-hidden border border-(--tui-border-normal) group cursor-grab active:cursor-grabbing"
+              >
+                <img [src]="url" class="w-full h-full object-cover" />
+                <div
+                  class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <div class="bg-(--tui-background-base) rounded-xl p-0.5">
+                    <button
+                      tuiButton
+                      type="button"
+                      appearance="destructive"
+                      size="s"
+                      (click)="removeExistingImage(url)"
+                    >
+                      <tui-icon icon="@tui.trash" />
+                    </button>
+                  </div>
+                </div>
+              </div>
             }
 
-            <tui-files class="mt-2">
-              @if (
-                photoValue()
-                  | tuiFileRejected
-                    : { accept: 'image/*', maxFileSize: 5 * 1024 * 1024 }
-                  | async;
-                as file
-              ) {
-                <tui-file
-                  state="error"
-                  [file]="file"
-                  (remove)="removePhotoFile()"
-                />
-              }
-
-              @if (photoValue(); as file) {
-                <div class="relative group">
-                  <tui-file
-                    [file]="file"
-                    (remove)="removePhotoFile()"
-                    (click.zoneless)="editPhoto(file)"
-                  />
-                  @if (previewUrl()) {
-                    <div
-                      class="mt-2 rounded-xl overflow-hidden relative group cursor-pointer"
-                      (click.zoneless)="editPhoto(file)"
+            @for (item of newPhotos(); track item.id) {
+              <div
+                cdkDrag
+                class="relative aspect-square rounded-xl overflow-hidden border border-accent border-dashed group cursor-grab active:cursor-grabbing"
+              >
+                <img [src]="item.preview" class="w-full h-full object-cover" />
+                <div
+                  class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <div class="bg-(--tui-background-base) rounded-xl p-0.5">
+                    <button
+                      tuiButton
+                      type="button"
+                      appearance="destructive"
+                      size="s"
+                      (click)="removeNewPhoto(item.id)"
                     >
-                      <img
-                        [src]="previewUrl()"
-                        class="w-full h-auto max-h-48 object-cover"
-                        alt="Preview"
-                      />
-                      <div
-                        class="absolute inset-0 bg-(--tui-background-neutral-1)/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <tui-icon
-                          icon="@tui.pencil"
-                          class="text-(--tui-text-primary-on-accent-1) text-3xl"
-                        />
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
-
-              @if (model().image_url; as photoUrl) {
-                @if (!photoValue()) {
-                  <div
-                    class="rounded-xl overflow-hidden relative group cursor-pointer"
-                    (click.zoneless)="editPhoto(null, photoUrl)"
-                  >
-                    <img
-                      [src]="photoUrl"
-                      class="w-full h-auto max-h-48 object-cover"
-                      alt="Existing photo"
-                    />
-                    <div
-                      class="absolute inset-0 bg-(--tui-background-neutral-1)/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <tui-icon
-                        icon="@tui.pencil"
-                        class="text-(--tui-text-primary-on-accent-1) text-3xl"
-                      />
-                    </div>
+                      <tui-icon icon="@tui.trash" />
+                    </button>
                   </div>
-                }
-              }
-            </tui-files>
+                </div>
+                <div
+                  class="absolute top-1 right-1 bg-(--tui-background-base) rounded-full p-0.5"
+                  [tuiHint]="'merchandising.items.newPhoto' | translate"
+                >
+                  <tui-icon
+                    icon="@tui.circle-check"
+                    class="text-sm"
+                    style="color: var(--tui-status-positive)"
+                  />
+                </div>
+              </div>
+            }
           </div>
         </div>
 
@@ -366,9 +359,11 @@ export class AdminMerchandiseDialogComponent {
   readonly isSaving = signal(false);
   readonly isUploading = signal(false);
 
-  protected readonly photoValue = computed(() => this.model().photoControl);
-  protected readonly previewUrl = signal<string | null>(null);
+  protected readonly newPhotos = signal<
+    { id: string; file: File; preview: string }[]
+  >([]);
   protected readonly isProcessingPhoto = signal(false);
+  protected readonly fileInputModel = signal<File[] | null>(null);
 
   readonly categories = [...MERCHANDISE_CATEGORIES];
 
@@ -387,26 +382,13 @@ export class AdminMerchandiseDialogComponent {
     stock: this.context.data?.stock || ([] as MerchandiseStock[]),
     description: this.context.data?.description || '',
     image_url: this.context.data?.image_url || '',
+    image_urls: this.context.data?.image_urls || ([] as string[]),
     active: this.context.data?.active ?? true,
     available_sizes: this.context.data?.available_sizes || [],
     available_colors: this.context.data?.available_colors || [],
-    photoControl: null as File | null,
   });
 
-  constructor() {
-    effect(() => {
-      const file = this.photoValue();
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          this.previewUrl.set(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        this.previewUrl.set(null);
-      }
-    });
-  }
+  constructor() {}
 
   protected onSizesChange(sizes: string[]): void {
     this.updateModel('available_sizes', sizes);
@@ -469,23 +451,61 @@ export class AdminMerchandiseDialogComponent {
     this.updateModel('stock', filteredStock);
   }
 
-  onPhotoFileChange(file: File | null): void {
-    if (file) {
+  async onPhotoFileChange(files: File | File[] | null): Promise<void> {
+    if (!files) return;
+
+    const fileArray = Array.isArray(files) ? files : [files];
+
+    // Reset the input model to avoid accumulating files and opening multiple dialogs next time
+    this.fileInputModel.set(null);
+
+    for (const file of fileArray) {
       this.isProcessingPhoto.set(true);
-      this.editPhoto(file, undefined);
-    } else {
-      this.model.update((m: ReturnType<typeof this.model>) => ({
-        ...m,
-        photoControl: null,
-      }));
+      await this.editPhoto(file);
     }
   }
 
-  removePhotoFile(): void {
-    this.model.update((m: ReturnType<typeof this.model>) => ({
+  protected removeExistingImage(url: string): void {
+    this.model.update((m) => ({
       ...m,
-      photoControl: null,
+      image_urls: m.image_urls.filter((u) => u !== url),
+      // If we deleted the main image_url, clear it or pick another
+      image_url: m.image_url === url ? m.image_urls[0] || '' : m.image_url,
     }));
+  }
+
+  protected removeNewPhoto(id: string): void {
+    this.newPhotos.update((photos) => photos.filter((p) => p.id !== id));
+  }
+
+  protected dropImage(event: CdkDragDrop<unknown[]>): void {
+    type ExistingItem = { type: 'existing'; url: string };
+    type NewItem = {
+      type: 'new';
+      photo: { id: string; file: File; preview: string };
+    };
+    type Item = ExistingItem | NewItem;
+
+    const combined: Item[] = [
+      ...this.model().image_urls.map(
+        (url): ExistingItem => ({ type: 'existing', url }),
+      ),
+      ...this.newPhotos().map((p): NewItem => ({ type: 'new', photo: p })),
+    ];
+
+    moveItemInArray(combined, event.previousIndex, event.currentIndex);
+
+    this.updateModel(
+      'image_urls',
+      combined
+        .filter((i): i is ExistingItem => i.type === 'existing')
+        .map((i) => i.url),
+    );
+    this.newPhotos.set(
+      combined
+        .filter((i): i is NewItem => i.type === 'new')
+        .map((i) => i.photo),
+    );
   }
 
   async editPhoto(file?: File | null, imageUrl?: string): Promise<void> {
@@ -523,17 +543,18 @@ export class AdminMerchandiseDialogComponent {
     this.isProcessingPhoto.set(false);
 
     if (result) {
-      this.model.update((m: ReturnType<typeof this.model>) => ({
-        ...m,
-        photoControl: result,
-      }));
-    } else if (file) {
-      // If we were editing a NEW file and cancelled, keep the file?
-      // AscentForm clears it. Let's follow AscentForm.
-      this.model.update((m: ReturnType<typeof this.model>) => ({
-        ...m,
-        photoControl: null,
-      }));
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.newPhotos.update((photos) => [
+          ...photos,
+          {
+            id: Math.random().toString(36).substring(2),
+            file: result,
+            preview: reader.result as string,
+          },
+        ]);
+      };
+      reader.readAsDataURL(result);
     }
   }
 
@@ -563,18 +584,29 @@ export class AdminMerchandiseDialogComponent {
   async save() {
     this.isSaving.set(true);
     try {
-      const { photoControl, ...payload } = this.model();
+      const model = this.model();
+      const payload: Partial<MerchandiseItemDetail> = { ...model };
 
-      if (photoControl) {
+      const newPhotoUrls: string[] = [];
+      if (this.newPhotos().length > 0) {
         this.isUploading.set(true);
-        const url = await this.merchService.uploadShopImage(photoControl);
-        if (url) {
-          payload.image_url = url;
-        } else {
-          throw new Error(
-            this.translate.instant('merchandising.items.uploadError'),
-          );
+        for (const item of this.newPhotos()) {
+          const url = await this.merchService.uploadShopImage(item.file);
+          if (url) {
+            newPhotoUrls.push(url);
+          } else {
+            throw new Error(
+              this.translate.instant('merchandising.items.uploadError'),
+            );
+          }
         }
+      }
+
+      payload.image_urls = [...(model.image_urls || []), ...newPhotoUrls];
+
+      // Update the main image_url if empty but we have images
+      if (!payload.image_url && payload.image_urls.length > 0) {
+        payload.image_url = payload.image_urls[0];
       }
 
       const result = await this.merchService.upsertMerchandiseItem(payload);

@@ -1285,6 +1285,7 @@ export interface Database {
           description: string | null;
           id: string;
           image_url: string | null;
+          image_urls: string[] | null;
           name: string;
           price: number;
         };
@@ -1294,6 +1295,7 @@ export interface Database {
           description?: string | null;
           id?: string;
           image_url?: string | null;
+          image_urls?: string[] | null;
           name: string;
           price?: number;
         };
@@ -1303,6 +1305,7 @@ export interface Database {
           description?: string | null;
           id?: string;
           image_url?: string | null;
+          image_urls?: string[] | null;
           name?: string;
           price?: number;
         };
@@ -2010,6 +2013,7 @@ export interface Database {
           description: string | null;
           id: string;
           image_url: string | null;
+          image_urls: string[] | null;
           name: string;
           price: number;
         };
@@ -2022,6 +2026,7 @@ export interface Database {
           description?: string | null;
           id?: string;
           image_url?: string | null;
+          image_urls?: string[] | null;
           name: string;
           price?: number;
         };
@@ -2034,6 +2039,7 @@ export interface Database {
           description?: string | null;
           id?: string;
           image_url?: string | null;
+          image_urls?: string[] | null;
           name?: string;
           price?: number;
         };

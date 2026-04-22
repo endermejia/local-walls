@@ -39,6 +39,7 @@ export interface SearchRouteItem {
   countryName: string;
   countrySlug: string;
   difficulty?: string;
+  category?: number;
 }
 
 export type SearchApiItem = SearchAreaItem | SearchCragItem | SearchRouteItem;

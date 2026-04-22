@@ -210,15 +210,15 @@ export class CartService {
         merchandiseIds.length > 0
           ? this.supabase.client
               .from('merchandise_items')
-              .select('id, name, price, image_url')
+              .select('id, name, price, image_url, image_urls')
               .in('id', merchandiseIds)
-          : Promise.resolve({ data: [] }),
+          : Promise.resolve({ data: [] as any[] }),
         areaPackIds.length > 0
           ? this.supabase.client
               .from('area_packs')
-              .select('id, name, price, image_url')
+              .select('id, name, price, image_url, image_urls')
               .in('id', areaPackIds)
-          : Promise.resolve({ data: [] }),
+          : Promise.resolve({ data: [] as any[] }),
         areaIds.length > 0
           ? this.supabase.client
               .from('areas')
@@ -247,6 +247,7 @@ export class CartService {
               name: item.name,
               price: item.price,
               image_url: item.image_url,
+              image_urls: item.image_urls,
               type: 'merchandise',
               quantity: row.quantity ?? 1,
               selectedSize: row.selected_size ?? undefined,
@@ -261,6 +262,7 @@ export class CartService {
               name: pack.name,
               price: pack.price,
               image_url: pack.image_url,
+              image_urls: pack.image_urls,
               type: 'area_pack',
               quantity: row.quantity ?? 1,
             };
@@ -274,6 +276,7 @@ export class CartService {
               name: area.name,
               price: area.price ?? 0,
               image_url: null,
+              image_urls: null,
               type: 'area',
               quantity: row.quantity ?? 1,
             };

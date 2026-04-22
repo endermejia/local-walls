@@ -100,11 +100,14 @@ export class MerchandiseService {
       // Handle stock upsert if provided
       if (stockToSave && data) {
         for (const s of stockToSave) {
-          await this.supabase.client.from('merchandise_stock').upsert({
-            item_id: data.id,
-            size: s.size,
-            stock: s.stock,
-          });
+          await this.supabase.client.from('merchandise_stock').upsert(
+            {
+              item_id: data.id,
+              size: s.size,
+              stock: s.stock,
+            },
+            { onConflict: 'item_id,size' },
+          );
         }
       }
 

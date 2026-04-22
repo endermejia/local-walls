@@ -1,4 +1,4 @@
-import { CommonModule, DecimalPipe, isPlatformBrowser } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -23,7 +23,6 @@ import {
   TuiTitle,
 } from '@taiga-ui/core';
 import {
-  TuiBadge,
   TuiFilter,
   TuiSkeleton,
   TuiBadgedContentComponent,
@@ -42,6 +41,8 @@ import { AdminMerchandiseDialogComponent } from '../../components/dialogs/admin-
 import { AdminPackDialogComponent } from '../../components/dialogs/admin-pack-dialog';
 import { MerchandiseItemDialogComponent } from '../../components/dialogs/merchandise-item-dialog';
 import { MerchandisePackDialogComponent } from '../../components/dialogs/merchandise-pack-dialog';
+import { MerchandiseCardComponent } from '../../components/merchandise/merchandise-card';
+import { PackCardComponent } from '../../components/merchandise/pack-card';
 
 import { AreaPackDetail, MerchandiseItemDetail } from '../../models';
 
@@ -50,11 +51,9 @@ import { AreaPackDetail, MerchandiseItemDetail } from '../../models';
   standalone: true,
   imports: [
     CommonModule,
-    DecimalPipe,
     ReactiveFormsModule,
     TranslatePipe,
     TuiAppearance,
-    TuiBadge,
     TuiBadgedContentComponent,
     TuiBadgeNotification,
     TuiButton,
@@ -65,6 +64,8 @@ import { AreaPackDetail, MerchandiseItemDetail } from '../../models';
     TuiScrollbar,
     TuiSkeleton,
     TuiTitle,
+    MerchandiseCardComponent,
+    PackCardComponent,
   ],
   template: `
     <tui-scrollbar class="h-full">
@@ -171,93 +172,11 @@ import { AreaPackDetail, MerchandiseItemDetail } from '../../models';
               }
             } @else {
               @for (pack of packs(); track pack.id) {
-                <article
-                  class="group relative flex flex-col rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-black/5 hover:-translate-y-1 cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-accent"
-                  style="background: var(--tui-background-base); border: 1px solid var(--tui-border-normal);"
-                  role="button"
-                  tabindex="0"
-                  [attr.aria-label]="pack.name"
-                  (click)="openPackDetail(pack)"
-                  (keydown.enter)="openPackDetail(pack)"
-                  (keydown.space)="
-                    openPackDetail(pack); $event.preventDefault()
-                  "
-                >
-                  <!-- Illustration / Image -->
-                  <div
-                    class="relative h-48 overflow-hidden bg-(--tui-background-neutral-1)"
-                  >
-                    <img
-                      [src]="pack.image_url"
-                      [alt]="pack.name"
-                      [class.grayscale]="pack.active === false"
-                      [class.opacity-50]="pack.active === false"
-                      class="w-full h-full object-cover group-hover:scale-105 transition-all duration-1000"
-                    />
-
-                    <div class="absolute top-4 right-4">
-                      <span
-                        tuiBadge
-                        appearance="primary"
-                        size="l"
-                        class="shadow-xl font-black rounded-xl! border border-white/20"
-                      >
-                        {{ pack.price | number: '1.2-2' }}€
-                      </span>
-                    </div>
-
-                    @if (isAdmin() && global.editingMode()) {
-                      <div class="absolute top-4 left-4 flex flex-col gap-2">
-                        <button
-                          tuiIconButton
-                          appearance="accent"
-                          size="s"
-                          type="button"
-                          class="rounded-xl! shadow-lg bg-(--tui-background-accent-1)! text-(--tui-background-base)!"
-                          (click)="editPack(pack); $event.stopPropagation()"
-                        >
-                          <tui-icon icon="@tui.pencil" />
-                        </button>
-
-                        @if (pack.active === false) {
-                          <span tuiBadge>
-                            {{ 'merchandising.items.inactive' | translate }}
-                          </span>
-                        }
-                      </div>
-                    }
-                  </div>
-
-                  <div class="flex flex-col p-8 gap-4">
-                    <h3
-                      class="font-black text-2xl leading-tight tracking-tight flex-1 text-balance"
-                    >
-                      {{ pack.name }}
-                    </h3>
-
-                    @if (pack.description) {
-                      <p
-                        class="text-sm text-(--tui-text-secondary) leading-relaxed"
-                      >
-                        {{ pack.description }}
-                      </p>
-                    }
-
-                    <!-- Area listing -->
-                    <div class="flex flex-wrap gap-2 pt-2">
-                      @for (item of pack.items; track item.area_id) {
-                        <span
-                          tuiBadge
-                          appearance="primary"
-                          size="m"
-                          class="font-semibold rounded-xl! opacity-90"
-                        >
-                          {{ item.area.name }}
-                        </span>
-                      }
-                    </div>
-                  </div>
-                </article>
+                <app-pack-card
+                  [pack]="pack"
+                  (clicked)="openPackDetail($event)"
+                  (edit)="editPack($event)"
+                />
               } @empty {
                 <div
                   class="col-span-full py-20 text-center text-sm text-(--tui-text-tertiary) rounded-[2.5rem]"
@@ -293,7 +212,7 @@ import { AreaPackDetail, MerchandiseItemDetail } from '../../models';
           <!-- 🏷️ Translated Filter chips -->
           <div class="flex items-center gap-3">
             @if (
-              !itemsResource.isLoading() && availableCategories().length > 0
+              !itemsResource.isLoading() && availableCategories().length > 1
             ) {
               <tui-filter
                 size="l"
@@ -314,90 +233,11 @@ import { AreaPackDetail, MerchandiseItemDetail } from '../../models';
               }
             } @else {
               @for (item of filteredItems(); track item.id) {
-                <article
-                  class="flex flex-col gap-4 group cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-accent rounded-[2.5rem]"
-                  role="button"
-                  tabindex="0"
-                  [attr.aria-label]="item.name"
-                  (click)="openItemDetail(item)"
-                  (keydown.enter)="openItemDetail(item)"
-                  (keydown.space)="
-                    openItemDetail(item); $event.preventDefault()
-                  "
-                >
-                  <div
-                    class="relative aspect-square rounded-[2.5rem] overflow-hidden transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-1.5 border border-(--tui-border-normal)"
-                    style="background: var(--tui-background-neutral-1)"
-                  >
-                    @if (item.image_url) {
-                      <img
-                        [src]="item.image_url"
-                        [alt]="item.name"
-                        [class.grayscale]="item.active === false"
-                        [class.opacity-50]="item.active === false"
-                        class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
-                      />
-                    } @else {
-                      <div
-                        class="w-full h-full flex items-center justify-center p-12"
-                      >
-                        <tui-icon
-                          icon="@tui.shirt"
-                          class="text-(--tui-text-tertiary) text-7xl opacity-20"
-                        />
-                      </div>
-                    }
-
-                    <!-- Price badge instead of buy button -->
-                    <div class="absolute top-4 right-4">
-                      <span
-                        tuiBadge
-                        appearance="primary"
-                        size="l"
-                        class="shadow-xl font-black rounded-xl! border border-white/20"
-                      >
-                        {{ item.price | number: '1.2-2' }}€
-                      </span>
-                    </div>
-
-                    @if (isAdmin() && global.editingMode()) {
-                      <div class="absolute top-4 left-4 flex flex-col gap-2">
-                        <button
-                          tuiIconButton
-                          appearance="accent"
-                          size="s"
-                          type="button"
-                          class="rounded-xl! shadow-lg bg-(--tui-background-accent-1)! text-(--tui-background-base)!"
-                          (click)="editItem(item); $event.stopPropagation()"
-                        >
-                          <tui-icon icon="@tui.pencil" />
-                        </button>
-
-                        @if (item.active === false) {
-                          <span tuiBadge>
-                            {{ 'merchandising.items.inactive' | translate }}
-                          </span>
-                        }
-                      </div>
-                    }
-                  </div>
-
-                  <div class="flex flex-col px-2 gap-1">
-                    <span class="font-black text-lg truncate leading-tight">{{
-                      item.name
-                    }}</span>
-                    @if (item.category) {
-                      <span
-                        class="text-[10px] font-bold uppercase tracking-widest text-(--tui-text-tertiary)"
-                      >
-                        {{
-                          'merchandising.filter.' + item.category.toLowerCase()
-                            | translate
-                        }}
-                      </span>
-                    }
-                  </div>
-                </article>
+                <app-merchandise-card
+                  [item]="item"
+                  (clicked)="openItemDetail($event)"
+                  (edit)="editItem($event)"
+                />
               } @empty {
                 <div
                   class="col-span-full py-20 text-center text-sm text-(--tui-text-tertiary) rounded-[2.5rem]"

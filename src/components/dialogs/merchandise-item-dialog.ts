@@ -8,7 +8,12 @@ import {
 } from '@angular/core';
 
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiButton, TuiDialogContext, TuiIcon } from '@taiga-ui/core';
+import {
+  TuiButton,
+  TuiCarousel,
+  TuiDialogContext,
+  TuiIcon,
+} from '@taiga-ui/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -20,7 +25,7 @@ import { MerchandiseItemDetail } from '../../models';
 @Component({
   selector: 'app-merchandise-item-dialog',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, TuiButton, TuiIcon],
+  imports: [CommonModule, TranslatePipe, TuiButton, TuiCarousel, TuiIcon],
   template: `
     <div
       class="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 md:gap-16 items-start"
@@ -29,12 +34,52 @@ import { MerchandiseItemDetail } from '../../models';
       <div
         class="relative aspect-square rounded-[2.5rem] overflow-hidden bg-(--tui-background-neutral-1) border border-(--tui-border-normal) md:sticky md:top-0"
       >
-        @if (item.image_url) {
-          <img
-            [src]="item.image_url"
-            [alt]="item.name"
-            class="w-full h-full object-cover"
-          />
+        @let images =
+          (item.image_urls?.length
+            ? item.image_urls
+            : item.image_url
+              ? [item.image_url]
+              : []) || [];
+        @if (images.length > 0) {
+          <tui-carousel #carousel [(index)]="index" class="w-full h-full">
+            <ng-template tuiItem let-i>
+              @let n = images.length;
+              <img
+                [src]="images[((i % n) + n) % n]"
+                [alt]="item.name"
+                class="w-full h-full object-cover"
+              />
+            </ng-template>
+          </tui-carousel>
+          @if (images.length > 1) {
+            @let ni =
+              ((index() % images.length) + images.length) % images.length;
+            <button
+              type="button"
+              class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center z-10 text-white hover:bg-black/70 transition-colors"
+              (click)="carousel.prev()"
+            >
+              <tui-icon icon="@tui.chevron-left" class="text-sm" />
+            </button>
+            <button
+              type="button"
+              class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center z-10 text-white hover:bg-black/70 transition-colors"
+              (click)="carousel.next()"
+            >
+              <tui-icon icon="@tui.chevron-right" class="text-sm" />
+            </button>
+            <div
+              class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 pointer-events-none bg-black/30 backdrop-blur-sm rounded-full px-2.5 py-1"
+            >
+              @for (_ of images; track $index; let i = $index) {
+                <div
+                  class="h-1.5 rounded-full bg-white transition-all duration-300"
+                  [style.width.rem]="ni === i ? 1 : 0.375"
+                  [style.opacity]="ni === i ? '1' : '0.45'"
+                ></div>
+              }
+            </div>
+          }
         } @else {
           <div class="w-full h-full flex items-center justify-center">
             <tui-icon
@@ -212,8 +257,17 @@ export class MerchandiseItemDialogComponent {
     return (stock?.stock ?? 0) > 0;
   }
 
-  protected readonly selectedSize = signal<string | undefined>(undefined);
-  protected readonly selectedColor = signal<string | undefined>(undefined);
+  protected readonly index = signal(0);
+  protected readonly selectedSize = signal<string | undefined>(
+    this.item.available_sizes?.length === 1
+      ? this.item.available_sizes[0]
+      : undefined,
+  );
+  protected readonly selectedColor = signal<string | undefined>(
+    this.item.available_colors?.length === 1
+      ? this.item.available_colors[0]
+      : undefined,
+  );
 
   private readonly stockForSelection = computed(() => {
     const size = this.selectedSize();
@@ -249,6 +303,7 @@ export class MerchandiseItemDialogComponent {
       name: this.item.name,
       price: this.item.price,
       image_url: this.item.image_url,
+      image_urls: this.item.image_urls,
       type: 'merchandise',
       selectedSize: this.selectedSize(),
       selectedColor: this.selectedColor(),

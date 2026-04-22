@@ -202,6 +202,8 @@ export class SearchService {
                     type: 'import-route',
                     data: anuRoute,
                     grade: this.gradeToNumber(anuRoute.difficulty),
+                    climbing_kind:
+                      anuRoute.category === 0 ? 'sport' : 'boulder',
                   } as SearchItem,
                 ]
               : []),
