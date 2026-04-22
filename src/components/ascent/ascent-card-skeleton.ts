@@ -59,16 +59,16 @@ import { TuiRating, TuiSkeleton } from '@taiga-ui/kit';
       <div class="flex flex-col gap-1">
         <div class="flex flex-col gap-1">
           @if (showRoute()) {
-            <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <div class="text-lg leading-tight">
               <tui-icon
                 [tuiSkeleton]="true"
-                class="w-5 h-5 opacity-40 rounded-full!"
+                class="w-5 h-5 opacity-40 rounded-full! align-text-bottom mr-1"
               />
-              <div [tuiSkeleton]="true" class="w-48 h-5 rounded-full"></div>
-              <span class="opacity-30">•</span>
+              <div [tuiSkeleton]="true" class="w-48 h-5 rounded-full inline-block align-middle"></div>
+              <span class="opacity-30 mx-1.5 inline-block align-middle text-sm">•</span>
               <div
                 [tuiSkeleton]="true"
-                class="w-24 h-3 rounded-full opacity-40"
+                class="w-24 h-3 rounded-full opacity-40 inline-block align-middle"
               ></div>
             </div>
           }
