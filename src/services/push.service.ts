@@ -41,9 +41,6 @@ export class PushService {
 
       await this.saveSubscription(subscription);
       this.isSubscribed.set(true);
-      console.log(
-        '[PushService] Successfully subscribed to push notifications',
-      );
     } catch (err: unknown) {
       console.error('[PushService] Could not subscribe to notifications', err);
       throw err;
