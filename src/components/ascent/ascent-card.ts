@@ -291,15 +291,16 @@ import { getEmbedUrl } from '../../utils/video-helpers';
       <div class="flex flex-col gap-1">
         <div class="flex flex-col gap-1">
           @if (ascent.route && showRoute()) {
-            <div class="flex flex-wrap items-center gap-x-2 gap-y-0">
+            <div class="text-lg leading-tight break-words">
               @if (ascent.route.climbing_kind; as kind) {
                 <tui-icon
                   [icon]="climbingIcons[kind] || '@tui.mountain'"
                   [tuiHint]="'climbingKinds.' + kind | translate"
+                  class="align-text-bottom mr-1"
                 />
               }
               <a
-                class="font-bold text-lg hover:underline cursor-pointer"
+                class="font-bold hover:underline cursor-pointer"
                 [routerLink]="[
                   '/area',
                   ascent.route.area_slug,
@@ -310,10 +311,8 @@ import { getEmbedUrl } from '../../utils/video-helpers';
                 {{ ascent.route.name }}
               </a>
               @if (ascent.route && showRoute()) {
-                <span>•</span>
-                <div
-                  class="inline-flex flex-wrap items-center gap-x-1 gap-y-0 text-sm opacity-70"
-                >
+                <span class="mx-1.5 opacity-70 text-sm">•</span>
+                <span class="text-sm opacity-70">
                   <a
                     class="hover:underline cursor-pointer"
                     [routerLink]="[
@@ -325,12 +324,12 @@ import { getEmbedUrl } from '../../utils/video-helpers';
                     {{ ascent.route.crag_name }}
                   </a>
                   <a
-                    class="hover:underline cursor-pointer"
+                    class="hover:underline cursor-pointer ml-1"
                     [routerLink]="['/area', ascent.route.area_slug]"
                   >
                     ({{ ascent.route.area_name }})
                   </a>
-                </div>
+                </span>
               }
             </div>
           }
