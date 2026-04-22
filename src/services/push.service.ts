@@ -57,7 +57,6 @@ export class PushService {
         await this.deleteSubscription(subscription);
         await this.swPush.unsubscribe();
         this.isSubscribed.set(false);
-        console.log('[PushService] Successfully unsubscribed');
       }
     } catch (err: unknown) {
       console.error('[PushService] Error unsubscribing', err);
