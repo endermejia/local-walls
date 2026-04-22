@@ -1,3 +1,5 @@
+import { ClimbingKind } from './supabase-interfaces';
+
 export interface SearchItem {
   href: string;
   title: string;
@@ -6,6 +8,7 @@ export interface SearchItem {
   type?: string;
   difficulty?: string;
   grade?: number;
+  climbing_kind?: ClimbingKind;
   data?: unknown;
 }
 

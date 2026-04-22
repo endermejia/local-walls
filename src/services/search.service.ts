@@ -17,6 +17,7 @@ import {
   SearchRouteItem,
   LABEL_TO_VERTICAL_LIFE,
   GradeLabel,
+  ClimbingKind,
 } from '../models';
 
 interface DbArea {
@@ -38,6 +39,7 @@ interface DbRoute {
   href: string;
   icon: string;
   difficulty: number;
+  climbing_kind: ClimbingKind;
 }
 
 interface DbUser {
@@ -115,6 +117,7 @@ export class SearchService {
             difficulty:
               GRADE_NUMBER_TO_LABEL[r.difficulty as VERTICAL_LIFE_GRADES],
             grade: r.difficulty,
+            climbing_kind: r.climbing_kind,
           }));
         }
 

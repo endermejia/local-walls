@@ -466,7 +466,11 @@ import {
                   <ng-template #itemTemplate let-item>
                     <div class="flex items-center w-full">
                       @if (item.grade !== undefined) {
-                        <app-grade [grade]="item.grade" class="mr-2" />
+                        <app-grade
+                          [grade]="item.grade"
+                          [kind]="item.climbing_kind"
+                          class="mr-2"
+                        />
                       }
                       @if (item.type === 'user') {
                         <span tuiAvatar size="xs" class="mr-2">
