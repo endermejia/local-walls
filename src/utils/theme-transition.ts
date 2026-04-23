@@ -2,13 +2,21 @@
  * Utility to trigger a smooth theme transition using the View Transitions API.
  * It creates a circular reveal effect starting from the user's click position.
  */
+
+interface ThemeTransition {
+  finished: Promise<void>;
+}
+
+interface ThemeTransitionDocument {
+  startViewTransition(callback: () => Promise<void> | void): ThemeTransition;
+}
+
 export async function triggerThemeTransition(
   event: MouseEvent | undefined,
   update: () => void | Promise<void>,
 ): Promise<void> {
   // Fallback for browsers that don't support View Transitions API
-  // @ts-expect-error: View Transitions API is not yet in standard TypeScript DOM types
-  if (!document.startViewTransition) {
+  if (!('startViewTransition' in document)) {
     await update();
     return;
   }
@@ -22,8 +30,9 @@ export async function triggerThemeTransition(
   document.documentElement.style.setProperty('--y', `${y}px`);
   document.documentElement.classList.add('theme-transitioning');
 
-  // @ts-expect-error: View Transitions API is not yet in standard TypeScript DOM types
-  const transition = document.startViewTransition(async () => {
+  const transition = (
+    document as unknown as ThemeTransitionDocument
+  ).startViewTransition(async () => {
     await update();
   });
 

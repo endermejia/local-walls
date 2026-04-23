@@ -613,7 +613,7 @@ interface Country {
                 profileForm.theme().value() === Themes.DARK ? 1 : 0
               "
               (activeItemIndexChange)="toggleTheme($event === 1)"
-              (click)="lastEvent = $event"
+              (mousedown)="lastEvent = $event"
             >
               <button title="light" type="button">
                 <tui-icon icon="@tui.sun" />
