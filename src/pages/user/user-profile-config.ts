@@ -613,6 +613,7 @@ interface Country {
                 profileForm.theme().value() === Themes.DARK ? 1 : 0
               "
               (activeItemIndexChange)="toggleTheme($event === 1)"
+              (click)="lastEvent = $event"
             >
               <button title="light" type="button">
                 <tui-icon icon="@tui.sun" />
@@ -1005,6 +1006,7 @@ export class UserProfileConfigComponent {
     ),
   );
 
+  protected lastEvent?: MouseEvent;
   readonly selectedEightAnuUser = resource<EightAnuUser | null, string | null>({
     params: () => this.profile()?.['8anu_user_slug'] || null,
     loader: async ({ params: slug }) => {
@@ -1335,7 +1337,7 @@ export class UserProfileConfigComponent {
       return;
     }
     this.model.update((m) => ({ ...m, theme: newTheme }));
-    this.global.theme.set(newTheme);
+    this.global.setTheme(newTheme, this.lastEvent);
     await this.updateProfile({ theme: newTheme });
   }
 

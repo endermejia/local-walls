@@ -338,3 +338,28 @@ tui-textfield:has(tui-input-chip) label[tuilabel] {
   -moz-user-select: none !important;
   -ms-user-select: none !important;
 }
+
+/* Theme transition effect using View Transitions API */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+.theme-transitioning::view-transition-old(root) {
+  z-index: 1;
+}
+
+.theme-transitioning::view-transition-new(root) {
+  z-index: 999;
+  animation: reveal 0.5s ease-out forwards;
+}
+
+@keyframes reveal {
+  from {
+    clip-path: circle(0% at var(--x) var(--y));
+  }
+  to {
+    clip-path: circle(150% at var(--x) var(--y));
+  }
+}

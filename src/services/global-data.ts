@@ -68,7 +68,7 @@ import {
 } from '../models';
 
 import { LocalStorage } from './local-storage';
-import { mapCragToDetail } from '../utils';
+import { mapCragToDetail, triggerThemeTransition } from '../utils';
 
 @Injectable({
   providedIn: 'root',
@@ -130,8 +130,14 @@ export class GlobalData {
 
   // ---- Theme ----
   readonly theme = signal<Theme>(Themes.LIGHT);
-
   readonly selectedTheme = this.theme.asReadonly();
+
+  setTheme(newTheme: Theme, event?: MouseEvent) {
+    if (this.theme() === newTheme) return;
+    void triggerThemeTransition(event, () => {
+      this.theme.set(newTheme);
+    });
+  }
 
   // ---- Breadcrumbs ----
   breadcrumbs: Signal<BreadcrumbItem[]> = computed<BreadcrumbItem[]>(() => {

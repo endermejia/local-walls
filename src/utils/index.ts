@@ -17,3 +17,4 @@ export * from './stats.utils';
 export * from './topo-styles.utils';
 export * from './video-helpers';
 export * from './zoom-pan.utils';
+export * from './theme-transition';

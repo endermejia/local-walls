@@ -121,6 +121,7 @@ import { Themes } from '../../models';
             size="s"
             [activeItemIndex]="global.theme() === Themes.DARK ? 1 : 0"
             (activeItemIndexChange)="toggleTheme($event === 1)"
+            (click)="lastEvent = $event"
           >
             <button title="light" type="button">
               <tui-icon icon="@tui.sun" />
@@ -148,6 +149,7 @@ export class MenuOptionsButtonComponent {
   icon = input<string>('@tui.menu');
 
   protected open = false;
+  protected lastEvent?: MouseEvent;
   protected readonly global = inject(GlobalData);
   protected readonly Themes = Themes;
   private readonly supabase = inject(SupabaseService);
@@ -222,7 +224,7 @@ export class MenuOptionsButtonComponent {
 
   protected toggleTheme(dark: boolean): void {
     const theme = dark ? Themes.DARK : Themes.LIGHT;
-    this.global.theme.set(theme);
+    this.global.setTheme(theme, this.lastEvent);
     void this.userProfilesService
       .updateUserProfile({
         theme,
