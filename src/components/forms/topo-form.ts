@@ -429,9 +429,6 @@ export class TopoFormComponent {
 
   topoForm = form(this.model, (path) => {
     required(path.name);
-    // Dynamic validation for shade_change_hour will be handled by schema or conditional logic
-    // but the original code used setValidators.
-    // In Signal Forms, we can use validation with 'when'.
     required(path.shade_change_hour, {
       when: () => this.showShadeChangeHour(),
     });
@@ -464,7 +461,7 @@ export class TopoFormComponent {
   protected readonly showShadeChangeHour = computed(() => {
     const morning = this.model().shade_morning;
     const afternoon = this.model().shade_afternoon;
-    return morning || afternoon;
+    return morning !== afternoon;
   });
 
   protected readonly availableRoutes = computed(
