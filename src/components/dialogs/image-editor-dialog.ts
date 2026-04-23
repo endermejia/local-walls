@@ -43,6 +43,8 @@ export interface ImageEditorConfig {
   resizeToWidth?: number;
   // Output image quality (0-100), defaults to 92
   imageQuality?: number;
+  // Maximum file size in bytes. If not provided, defaults to 5MB. Set to 0 for no limit.
+  maxFileSize?: number;
 }
 
 @Component({
@@ -457,7 +459,15 @@ export class ImageEditorDialogComponent {
       return;
     }
 
-    if (this.croppedImageBlob && this.croppedImageBlob.size > 5 * 1024 * 1024) {
+    const maxFileSize =
+      this.context.data.maxFileSize !== undefined
+        ? this.context.data.maxFileSize
+        : 5 * 1024 * 1024;
+    if (
+      this.croppedImageBlob &&
+      maxFileSize > 0 &&
+      this.croppedImageBlob.size > maxFileSize
+    ) {
       this.toast.error('profile.avatar.upload.tooLarge');
       return;
     }

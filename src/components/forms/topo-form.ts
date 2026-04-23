@@ -157,6 +157,7 @@ import { handleErrorToast, slugify } from '../../utils';
             [ngModel]="shadeChangeHourTime()"
             (ngModelChange)="onShadeChangeHourChange($event)"
             name="shade_change_hour"
+            [disabled]="!showShadeChangeHour()"
           />
         </tui-textfield>
       </div>
@@ -463,7 +464,7 @@ export class TopoFormComponent {
   protected readonly showShadeChangeHour = computed(() => {
     const morning = this.model().shade_morning;
     const afternoon = this.model().shade_afternoon;
-    return morning !== afternoon;
+    return morning || afternoon;
   });
 
   protected readonly availableRoutes = computed(
@@ -735,6 +736,7 @@ export class TopoFormComponent {
       allowFree: true,
       imageQuality: 100,
       resizeToWidth: 0,
+      maxFileSize: 0,
     };
 
     if (!data.file && !data.imageUrl) {
