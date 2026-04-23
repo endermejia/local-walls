@@ -105,6 +105,7 @@ import {
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <app-user-profile-stats-pyramid
               class="lg:col-span-2"
+              [(showAllGrades)]="showAllGrades"
               [distribution]="gradeDistribution()"
             />
             <app-user-profile-stats-styles

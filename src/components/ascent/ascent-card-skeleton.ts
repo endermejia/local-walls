@@ -64,8 +64,13 @@ import { TuiRating, TuiSkeleton } from '@taiga-ui/kit';
                 [tuiSkeleton]="true"
                 class="w-5 h-5 opacity-40 rounded-full! align-text-bottom mr-1"
               />
-              <div [tuiSkeleton]="true" class="w-48 h-5 rounded-full inline-block align-middle"></div>
-              <span class="opacity-30 mx-1.5 inline-block align-middle text-sm">•</span>
+              <div
+                [tuiSkeleton]="true"
+                class="w-48 h-5 rounded-full inline-block align-middle"
+              ></div>
+              <span class="opacity-30 mx-1.5 inline-block align-middle text-sm"
+                >•</span
+              >
               <div
                 [tuiSkeleton]="true"
                 class="w-24 h-3 rounded-full opacity-40 inline-block align-middle"

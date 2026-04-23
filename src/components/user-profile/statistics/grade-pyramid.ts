@@ -4,7 +4,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   input,
-  signal,
+  model,
 } from '@angular/core';
 
 import { TuiIcon, TuiHint, TuiScrollbar, TuiButton } from '@taiga-ui/core';
@@ -237,5 +237,5 @@ export class UserProfileStatsPyramidComponent {
   protected readonly AscentTypes = AscentTypes;
 
   distribution = input.required<GradeDistribution | null>();
-  showAllGrades = signal(false);
+  showAllGrades = model(false);
 }
