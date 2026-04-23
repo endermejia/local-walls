@@ -7,7 +7,7 @@ export async function triggerThemeTransition(
   update: () => void | Promise<void>,
 ): Promise<void> {
   // Fallback for browsers that don't support View Transitions API
-  // @ts-ignore
+  // @ts-expect-error: View Transitions API is not yet in standard TypeScript DOM types
   if (!document.startViewTransition) {
     await update();
     return;
@@ -22,7 +22,7 @@ export async function triggerThemeTransition(
   document.documentElement.style.setProperty('--y', `${y}px`);
   document.documentElement.classList.add('theme-transitioning');
 
-  // @ts-ignore
+  // @ts-expect-error: View Transitions API is not yet in standard TypeScript DOM types
   const transition = document.startViewTransition(async () => {
     await update();
   });
