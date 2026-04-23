@@ -504,7 +504,18 @@ export class RouteComponent {
         if (this.global.ascentsPage() === 0) {
           this.accumulatedAscents.set(items);
         } else {
-          this.accumulatedAscents.update((prev) => [...prev, ...items]);
+          this.accumulatedAscents.update((prev) => {
+            const newItems = [...prev];
+            for (const item of items) {
+              const idx = newItems.findIndex((i) => i.id === item.id);
+              if (idx !== -1) {
+                newItems[idx] = item;
+              } else {
+                newItems.push(item);
+              }
+            }
+            return newItems;
+          });
         }
         this.isLoading.set(false);
       } else if (this.global.routeAscentsResource.error()) {

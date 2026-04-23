@@ -307,11 +307,19 @@ export class UserProfileAscentsComponent {
         } else {
           this.accumulatedAscents.update((prev) => {
             const prevAscents = prev as RouteAscentWithExtras[];
-            const processed = processAscentsToFeed([
-              ...prevAscents,
-              ...res.items,
-            ]);
-            return processed;
+
+            // Merge res.items into prevAscents by id
+            const newItems = [...prevAscents];
+            for (const item of res.items) {
+              const idx = newItems.findIndex((i) => i.id === item.id);
+              if (idx !== -1) {
+                newItems[idx] = item;
+              } else {
+                newItems.push(item);
+              }
+            }
+
+            return processAscentsToFeed(newItems);
           });
         }
         this.isLoading.set(false);
