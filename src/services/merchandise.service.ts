@@ -198,7 +198,9 @@ export class MerchandiseService {
     return this.enrichOrdersWithNames(data || []);
   }
 
-  private async enrichOrdersWithNames(orders: any[]): Promise<OrderDetail[]> {
+  private async enrichOrdersWithNames(
+    orders: OrderDetail[],
+  ): Promise<OrderDetail[]> {
     if (orders.length === 0) return [];
 
     // Collect IDs to resolve names
@@ -206,24 +208,24 @@ export class MerchandiseService {
       ...new Set(
         orders
           .flatMap((o) => o.items ?? [])
-          .filter((i: any) => i.item_type === 'merchandise' && i.item_id)
-          .map((i: any) => i.item_id as string),
+          .filter((i: OrderItem) => i.item_type === 'merchandise' && i.item_id)
+          .map((i: OrderItem) => i.item_id as string),
       ),
     ];
     const packIds = [
       ...new Set(
         orders
           .flatMap((o) => o.items ?? [])
-          .filter((i: any) => i.item_type === 'area_pack' && i.item_id)
-          .map((i: any) => i.item_id as string),
+          .filter((i: OrderItem) => i.item_type === 'area_pack' && i.item_id)
+          .map((i: OrderItem) => i.item_id as string),
       ),
     ];
     const areaIds = [
       ...new Set(
         orders
           .flatMap((o) => o.items ?? [])
-          .filter((i: any) => i.item_type === 'area' && i.item_numeric_id)
-          .map((i: any) => i.item_numeric_id as number),
+          .filter((i: OrderItem) => i.item_type === 'area' && i.item_numeric_id)
+          .map((i: OrderItem) => i.item_numeric_id as number),
       ),
     ];
 
@@ -263,11 +265,11 @@ export class MerchandiseService {
 
     return orders.map((order) => ({
       ...order,
-      items: (order.items ?? []).map((item: any) => ({
+      items: (order.items ?? []).map((item: OrderItem) => ({
         ...item,
         product_name:
-          nameMap.get(item.item_id) ??
-          nameMap.get(item.item_numeric_id) ??
+          nameMap.get(item.item_id!) ??
+          nameMap.get(item.item_numeric_id!) ??
           undefined,
       })),
     }));
