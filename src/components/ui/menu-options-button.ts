@@ -223,7 +223,7 @@ export class MenuOptionsButtonComponent {
       this.global.editingMode.set(!enabled);
       return false;
     } else {
-      this.toast.success('profile.saveSuccess');
+      this.toast.success('profile.updated.editing_mode');
       return true;
     }
   }
@@ -237,7 +237,7 @@ export class MenuOptionsButtonComponent {
       })
       .then((res) => {
         if (res.success) {
-          this.toast.success('profile.saveSuccess');
+          this.toast.success('profile.updated.theme');
         } else {
           console.error(
             '[MenuOptionsButtonComponent] Error updating theme:',
