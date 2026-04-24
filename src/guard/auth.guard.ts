@@ -30,12 +30,27 @@ export const authGuard: CanMatchFn = async (
     let profileName = supabase.userProfile()?.name;
 
     if (!profileName) {
-      const { data } = await supabase.client
-        .from('user_profiles')
-        .select('name')
-        .eq('id', session.user.id)
-        .maybeSingle();
-      profileName = data?.name;
+      try {
+        const { data, error } = await supabase.client
+          .from('user_profiles')
+          .select('name')
+          .eq('id', session.user.id)
+          .maybeSingle();
+        if (error) throw error;
+        profileName = data?.name;
+      } catch (e) {
+        console.warn('[authGuard] Error fetching user profile name, falling back to cache', e);
+        try {
+          const cacheKey = `cached_user_profile_${session.user.id}_v1`;
+          const cached = localStorage.getItem(cacheKey);
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            profileName = parsed?.name;
+          }
+        } catch (cacheErr) {
+          console.warn('[authGuard] Error reading from cache', cacheErr);
+        }
+      }
     }
 
     if (profileName && profileName === session.user.email) {
@@ -43,15 +58,21 @@ export const authGuard: CanMatchFn = async (
     }
   } else {
     // When on the profile config route, always fetch fresh data to check if setup is complete
-    const { data } = await supabase.client
-      .from('user_profiles')
-      .select('name')
-      .eq('id', session.user.id)
-      .maybeSingle();
+    try {
+      const { data, error } = await supabase.client
+        .from('user_profiles')
+        .select('name')
+        .eq('id', session.user.id)
+        .maybeSingle();
 
-    // If profile is now complete (name != email), refresh the signal
-    if (data?.name && data.name !== session.user.email) {
-      supabase.userProfileResource.reload();
+      if (error) throw error;
+
+      // If profile is now complete (name != email), refresh the signal
+      if (data?.name && data.name !== session.user.email) {
+        supabase.userProfileResource.reload();
+      }
+    } catch (e) {
+      console.warn('[authGuard] Error fetching profile data on config route', e);
     }
   }
 
