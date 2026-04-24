@@ -1,6 +1,7 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -110,16 +111,22 @@ export interface ChatDialogData {
           >
             {{ 'back' | translate }}
           </button>
-          <span tuiAvatar size="s">
-            @if (room.participant?.avatar; as avatar) {
-              <img [src]="avatar | avatarUrl" alt="avatar" />
-            } @else {
-              <tui-icon icon="@tui.user" />
-            }
-          </span>
-          <span class="font-bold truncate text-sm">{{
-            room.participant?.name
-          }}</span>
+          <button
+            type="button"
+            class="flex items-center gap-2 min-w-0 flex-1 hover:opacity-70 transition-opacity cursor-pointer bg-transparent border-0 p-0 text-left"
+            (click)="goToParticipantProfile(room.participant?.id)"
+          >
+            <span tuiAvatar size="s">
+              @if (room.participant?.avatar; as avatar) {
+                <img [src]="avatar | avatarUrl" alt="avatar" />
+              } @else {
+                <tui-icon icon="@tui.user" />
+              }
+            </span>
+            <span class="font-bold truncate text-sm">{{
+              room.participant?.name
+            }}</span>
+          </button>
           <button
             tuiIconButton
             type="button"
@@ -362,6 +369,7 @@ export class ChatDialogComponent implements OnDestroy {
   protected readonly toast = inject(ToastService);
   protected readonly translate = inject(TranslateService);
   protected readonly dialogs = inject(TuiDialogService);
+  private readonly router = inject(Router);
   protected readonly context =
     injectContext<TuiDialogContext<void, ChatDialogData>>();
 
@@ -578,6 +586,12 @@ export class ChatDialogComponent implements OnDestroy {
           : 'messages.toasts.messagesUnblocked',
       );
     }
+  }
+
+  protected goToParticipantProfile(userId: string | undefined) {
+    if (!userId) return;
+    this.context.completeWith();
+    void this.router.navigate(['/profile', userId]);
   }
 
   protected onSelectUser(user: UserProfileBasicDto) {
