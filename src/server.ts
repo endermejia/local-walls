@@ -30,8 +30,8 @@ export async function netlifyAppEngineHandler(
   // Proxy 8a.nu calls to avoid browser CORS.
   // Example: /api/8anu/api/unification/... -> https://www.8a.nu/api/unification/...
   if (pathname.startsWith('/api/8anu/')) {
-    const upstream = 'https://www.8a.nu' + pathname.replace('/api/8anu', '');
-    const proxyUrl = new URL(upstream);
+    const proxyUrl = new URL('https://www.8a.nu');
+    proxyUrl.pathname = pathname.replace('/api/8anu', '');
     proxyUrl.search = url.search; // preserve query string
 
     try {
