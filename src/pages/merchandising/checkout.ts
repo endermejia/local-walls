@@ -20,6 +20,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 import { CartService } from '../../services/cart.service';
 import { CheckoutService } from '../../services/checkout.service';
+import { SupabaseService } from '../../services/supabase.service';
 
 @Component({
   selector: 'app-checkout',
@@ -255,6 +256,7 @@ export class CheckoutComponent {
   private readonly fb = inject(FormBuilder);
   private readonly cart = inject(CartService);
   private readonly checkoutService = inject(CheckoutService);
+  private readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
 
   protected readonly items = this.cart.items;
@@ -267,7 +269,10 @@ export class CheckoutComponent {
 
   protected readonly shippingForm = this.fb.group({
     name: ['', [Validators.required]],
-    email: ['', [Validators.required, Validators.email]],
+    email: [
+      { value: this.supabase.authUser()?.email ?? '', disabled: true },
+      [Validators.required, Validators.email],
+    ],
     phone: ['', [Validators.required]],
     address: ['', [Validators.required]],
     city: ['', [Validators.required]],

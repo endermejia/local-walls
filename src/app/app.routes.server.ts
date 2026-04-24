@@ -4,6 +4,8 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'home', renderMode: RenderMode.Prerender },
   { path: 'merchandising', renderMode: RenderMode.Server },
   { path: 'merchandising/checkout', renderMode: RenderMode.Server },
+  { path: 'order-success', renderMode: RenderMode.Server },
+  { path: 'order-failed', renderMode: RenderMode.Server },
   { path: 'login', renderMode: RenderMode.Prerender },
   { path: 'info', renderMode: RenderMode.Prerender },
   { path: 'explore', renderMode: RenderMode.Prerender },

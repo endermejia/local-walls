@@ -43,6 +43,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'order-failed',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/merchandising/order-failed').then(
+        (m) => m.OrderFailedComponent,
+      ),
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('../pages/auth/login').then((m) => m.LoginComponent),
