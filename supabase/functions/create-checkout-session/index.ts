@@ -4,7 +4,7 @@ import Stripe from 'https://esm.sh/stripe@13.10.0?target=deno';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type',
+    'authorization, x-client-info, apikey, content-type, ngsw-bypass',
 };
 
 Deno.serve(async (req) => {

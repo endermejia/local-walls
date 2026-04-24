@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     corsHeaders['Access-Control-Allow-Origin'] = origin;
     corsHeaders['Access-Control-Allow-Methods'] = 'POST, OPTIONS';
     corsHeaders['Access-Control-Allow-Headers'] =
-      'authorization, x-client-info, apikey, content-type';
+      'authorization, x-client-info, apikey, content-type, ngsw-bypass';
   }
 
   if (req.method === 'OPTIONS') {
