@@ -229,28 +229,36 @@ export class MerchandiseService {
       ),
     ];
 
-    const nameMap = new Map<string | number, string>();
+    const infoMap = new Map<
+      string | number,
+      {
+        name: string;
+        image?: string;
+        slug?: string;
+        data?: MerchandiseItemDetail | AreaPackDetail;
+      }
+    >();
 
     const queries = [];
     if (merchIds.length > 0) {
       queries.push(
         this.supabase.client
           .from('merchandise_items')
-          .select('id, name')
+          .select('*')
           .in('id', merchIds),
       );
     }
     if (packIds.length > 0) {
       queries.push(
-        this.supabase.client
-          .from('area_packs')
-          .select('id, name')
-          .in('id', packIds),
+        this.supabase.client.from('area_packs').select('*').in('id', packIds),
       );
     }
     if (areaIds.length > 0) {
       queries.push(
-        this.supabase.client.from('areas').select('id, name').in('id', areaIds),
+        this.supabase.client
+          .from('areas')
+          .select('id, name, slug')
+          .in('id', areaIds),
       );
     }
 
@@ -258,20 +266,31 @@ export class MerchandiseService {
     for (const res of results) {
       if (res.data) {
         for (const item of res.data) {
-          nameMap.set(item.id, item.name);
+          const image = (item as any).image_urls?.[0];
+          const slug = (item as any).slug;
+          infoMap.set(item.id, {
+            name: item.name,
+            image,
+            slug,
+            data: item as any,
+          });
         }
       }
     }
 
     return orders.map((order) => ({
       ...order,
-      items: (order.items ?? []).map((item: OrderItem) => ({
-        ...item,
-        product_name:
-          nameMap.get(item.item_id!) ??
-          nameMap.get(item.item_numeric_id!) ??
-          undefined,
-      })),
+      items: (order.items ?? []).map((item: OrderItem) => {
+        const info =
+          infoMap.get(item.item_id!) ?? infoMap.get(item.item_numeric_id!);
+        return {
+          ...item,
+          product_name: info?.name,
+          product_image: info?.image,
+          product_slug: info?.slug,
+          product_data: info?.data,
+        };
+      }),
     }));
   }
 

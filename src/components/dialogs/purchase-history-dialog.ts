@@ -68,7 +68,9 @@ interface PurchaseRecord {
               <div
                 class="flex flex-col gap-3 p-4 rounded-2xl bg-(--tui-background-neutral-1) border border-(--tui-border-normal) transition-colors"
               >
-                <div class="flex items-center justify-between">
+                <div
+                  class="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                >
                   <div class="flex items-center gap-3">
                     <div
                       class="w-10 h-10 rounded-xl bg-(--tui-background-base) flex items-center justify-center border border-(--tui-border-normal)"
@@ -99,7 +101,9 @@ interface PurchaseRecord {
                       </span>
                     </div>
                   </div>
-                  <div class="flex flex-col items-end gap-1">
+                  <div
+                    class="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto"
+                  >
                     <span class="font-bold text-lg">
                       {{
                         p.amount
@@ -134,7 +138,9 @@ interface PurchaseRecord {
                   </div>
                 </div>
 
-                <div class="flex items-center justify-end gap-2 mt-1">
+                <div
+                  class="flex flex-wrap items-center justify-end gap-2 mt-2 sm:mt-1"
+                >
                   @if (p.slug) {
                     <button
                       tuiButton
