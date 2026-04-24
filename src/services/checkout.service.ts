@@ -68,18 +68,32 @@ export class CheckoutService {
     }
   }
 
-  async verifyOrder(sessionId: string): Promise<OrderDetail | null> {
-    const { data, error } = await this.supabase.client
-      .from('orders')
-      .select('*, items:order_items(*)')
-      .eq('stripe_session_id', sessionId)
-      .single();
+  async verifyOrder(
+    sessionId: string,
+    retries = 5,
+    delay = 2000,
+  ): Promise<OrderDetail | null> {
+    for (let i = 0; i < retries; i++) {
+      const { data, error } = await this.supabase.client
+        .from('orders')
+        .select('*, items:order_items(*)')
+        .eq('stripe_session_id', sessionId)
+        .maybeSingle();
 
-    if (error) {
-      console.error('Error verifying order', error);
-      return null;
+      if (data) {
+        return data as OrderDetail;
+      }
+
+      if (error) {
+        console.error('Error verifying order', error);
+      }
+
+      // Wait before next retry
+      if (i < retries - 1) {
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
     }
 
-    return data as OrderDetail;
+    return null;
   }
 }

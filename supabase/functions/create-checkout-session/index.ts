@@ -83,50 +83,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 2. Create order in database (pending)
-    const total_amount = enrichedItems.reduce(
-      (acc: number, item: any) => acc + item.price * item.quantity,
-      0,
-    );
-
-    const { data: order, error: orderError } = await supabaseAdmin
-      .from('orders')
-      .insert({
-        user_id: user.id,
-        status: 'pending',
-        total_amount,
-        currency: 'eur',
-        shipping_name: shipping_info.name,
-        shipping_phone: shipping_info.phone,
-        shipping_address: shipping_info.address,
-        shipping_city: shipping_info.city,
-        shipping_zip: shipping_info.zip,
-        shipping_country: shipping_info.country,
-      })
-      .select()
-      .single();
-
-    if (orderError) throw orderError;
-
-    // 3. Create order items
-    const orderItems = enrichedItems.map((item: any) => ({
-      order_id: order.id,
-      item_type: item.type,
-      item_id: item.type === 'area' ? null : item.id,
-      item_numeric_id: item.type === 'area' ? item.id || item.numericId : null,
-      quantity: item.quantity,
-      unit_price: item.price,
-      selected_size: item.selectedSize || null,
-      selected_color: item.selectedColor || null,
-    }));
-
-    const { error: itemsError } = await supabaseAdmin
-      .from('order_items')
-      .insert(orderItems);
-
-    if (itemsError) throw itemsError;
-
-    // 4. Create Stripe line items
+    // 2. Create Stripe line items with metadata for reconstruction
     const line_items = enrichedItems.map((item: any) => ({
       price_data: {
         currency: 'eur',
@@ -134,8 +91,14 @@ Deno.serve(async (req) => {
           name: item.name,
           images: item.image_url ? [item.image_url] : [],
           metadata: {
-            item_id: item.id?.toString(),
+            item_id:
+              item.type === 'area'
+                ? item.id?.toString() || item.numericId?.toString()
+                : item.id,
             item_type: item.type,
+            selected_size: item.selectedSize || '',
+            selected_color: item.selectedColor || '',
+            unit_price: item.price.toString(),
           },
         },
         unit_amount: Math.round(item.price * 100),
@@ -143,7 +106,7 @@ Deno.serve(async (req) => {
       quantity: item.quantity,
     }));
 
-    // 5. Create Stripe Checkout Session
+    // 3. Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items,
@@ -155,17 +118,17 @@ Deno.serve(async (req) => {
         body.cancel_url ||
         `${req.headers.get('origin')}/merchandising/checkout`,
       customer_email: user.email,
-      client_reference_id: order.id,
+      client_reference_id: user.id,
       metadata: {
-        order_id: order.id,
+        user_id: user.id,
+        shipping_name: shipping_info.name,
+        shipping_phone: shipping_info.phone || '',
+        shipping_address: shipping_info.address,
+        shipping_city: shipping_info.city,
+        shipping_zip: shipping_info.zip,
+        shipping_country: shipping_info.country,
       },
     });
-
-    // 6. Update order with session id
-    await supabaseAdmin
-      .from('orders')
-      .update({ stripe_session_id: session.id })
-      .eq('id', order.id);
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

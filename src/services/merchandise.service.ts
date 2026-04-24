@@ -233,8 +233,8 @@ export class MerchandiseService {
       string | number,
       {
         name: string;
-        image?: string;
-        slug?: string;
+        image?: string | null;
+        slug?: string | null;
         data?: MerchandiseItemDetail | AreaPackDetail;
       }
     >();
@@ -266,13 +266,19 @@ export class MerchandiseService {
     for (const res of results) {
       if (res.data) {
         for (const item of res.data) {
-          const image = (item as any).image_urls?.[0];
-          const slug = (item as any).slug;
-          infoMap.set(item.id, {
-            name: item.name,
+          const row = item as {
+            id: string | number;
+            name: string;
+            image_urls?: string[] | null;
+            slug?: string | null;
+          };
+          const image = row.image_urls?.[0];
+          const slug = row.slug;
+          infoMap.set(row.id, {
+            name: row.name,
             image,
             slug,
-            data: item as any,
+            data: item as MerchandiseItemDetail | AreaPackDetail,
           });
         }
       }

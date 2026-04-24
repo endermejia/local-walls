@@ -29,8 +29,8 @@ export type MerchandiseStock =
 export interface OrderDetail extends Order {
   items: (OrderItem & {
     product_name?: string;
-    product_image?: string;
-    product_slug?: string;
+    product_image?: string | null;
+    product_slug?: string | null;
     product_data?: MerchandiseItemDetail | AreaPackDetail;
   })[];
 }

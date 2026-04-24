@@ -88,8 +88,9 @@ import { MerchandisePackDialogComponent } from './merchandise-pack-dialog';
         </h3>
         <div class="flex flex-col gap-3">
           @for (item of order.items; track item.id) {
-            <div
-              class="flex justify-between items-center gap-4 p-3 rounded-xl bg-(--tui-background-neutral-1) border border-(--tui-border-normal) cursor-pointer hover:bg-(--tui-background-neutral-2) transition-colors group"
+            <button
+              type="button"
+              class="w-full flex justify-between items-center gap-4 p-3 rounded-xl bg-(--tui-background-neutral-1) border border-(--tui-border-normal) cursor-pointer hover:bg-(--tui-background-neutral-2) transition-colors group text-left outline-none"
               (click)="openItemDetail(item)"
             >
               <div class="flex items-center gap-3 flex-1 min-w-0">
@@ -153,7 +154,7 @@ import { MerchandisePackDialogComponent } from './merchandise-pack-dialog';
                   {{ 'quantity' | translate }}: {{ item.quantity }}
                 </span>
               </div>
-            </div>
+            </button>
           }
         </div>
       </div>
@@ -170,7 +171,7 @@ export class OrderDetailsDialogComponent {
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
 
-  protected openItemDetail(item: any): void {
+  protected openItemDetail(item: OrderDetail['items'][number]): void {
     if (item.item_type === 'area' && item.product_slug) {
       this.context.completeWith();
       void this.router.navigate(['/area', item.product_slug]);
