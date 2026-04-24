@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
-import { Component, inject, resource } from '@angular/core';
+import { Component, inject, resource, Injector } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { injectContext } from '@taiga-ui/polymorpheus';
@@ -11,6 +11,7 @@ import {
   TuiLoader,
   TuiButton,
   TuiDialogService,
+  TuiTitle,
 } from '@taiga-ui/core';
 import { TUI_CONFIRM } from '@taiga-ui/kit';
 
@@ -20,6 +21,9 @@ import { firstValueFrom } from 'rxjs';
 import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
 import { MerchandiseService } from '../../services/merchandise.service';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { OrderDetailsDialogComponent } from './order-details-dialog';
+import { OrderDetail } from '../../models/merchandise.model';
 
 interface PurchaseRecord {
   id: string;
@@ -29,6 +33,7 @@ interface PurchaseRecord {
   type: 'area' | 'pack' | 'merchandise';
   status?: string;
   slug?: string;
+  order?: OrderDetail;
 }
 
 @Component({
@@ -44,6 +49,7 @@ interface PurchaseRecord {
     TuiLoader,
     TuiScrollbar,
     TuiButton,
+    TuiTitle,
   ],
   template: `
     <div class="flex flex-col gap-0 max-h-[85dvh] -m-4">
@@ -106,18 +112,18 @@ interface PurchaseRecord {
                     </span>
                     @if (p.status) {
                       <span
-                        class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
+                        class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm border"
                         [ngClass]="{
-                          'bg-yellow-500/20 text-yellow-600':
+                          'bg-yellow-500/10 text-yellow-600 border-yellow-500/20':
                             p.status === 'pending',
-                          'bg-blue-500/20 text-blue-600':
-                            p.status === 'en_proceso',
-                          'bg-purple-500/20 text-purple-600':
-                            p.status === 'enviado',
-                          'bg-green-500/20 text-green-600':
-                            p.status === 'recibido',
-                          'bg-red-500/20 text-red-600':
-                            p.status === 'cancelled',
+                          'bg-blue-500/10 text-blue-600 border-blue-500/20':
+                            p.status === 'paid',
+                          'bg-purple-500/10 text-purple-600 border-purple-500/20':
+                            p.status === 'shipped',
+                          'bg-green-500/10 text-green-600 border-green-500/20':
+                            p.status === 'delivered',
+                          'bg-red-500/10 text-red-600 border-red-500/20':
+                            p.status === 'cancelled' || p.status === 'refunded',
                         }"
                       >
                         {{
@@ -142,11 +148,25 @@ interface PurchaseRecord {
                     </button>
                   }
 
+                  @if (p.type === 'merchandise' && p.order) {
+                    <button
+                      tuiButton
+                      appearance="flat"
+                      size="s"
+                      type="button"
+                      class="rounded-xl!"
+                      (click)="viewOrderDetails(p.order)"
+                    >
+                      {{ 'merchandising.order.details' | translate }}
+                    </button>
+                  }
+
                   @if (
                     p.type === 'merchandise' &&
                     p.status !== 'cancelled' &&
-                    p.status !== 'enviado' &&
-                    p.status !== 'recibido'
+                    p.status !== 'shipped' &&
+                    p.status !== 'delivered' &&
+                    p.status !== 'refunded'
                   ) {
                     <button
                       tuiButton
@@ -192,6 +212,7 @@ export class PurchaseHistoryDialogComponent {
   private readonly dialogService = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   protected readonly context = injectContext<TuiDialogContext<void>>();
+  private readonly injector = inject(Injector);
 
   protected readonly purchasesResource = resource({
     loader: async () => {
@@ -264,6 +285,7 @@ export class PurchaseHistoryDialogComponent {
             name: `Pedido #${o.id.slice(0, 8)}`,
             type: 'merchandise' as const,
             status: o.status || undefined,
+            order: o,
           })),
         );
       }
@@ -280,6 +302,21 @@ export class PurchaseHistoryDialogComponent {
     if (!slug) return;
     this.context.completeWith();
     void this.router.navigate(['/area', slug]);
+  }
+
+  protected viewOrderDetails(order: OrderDetail): void {
+    this.dialogService
+      .open(
+        new PolymorpheusComponent(OrderDetailsDialogComponent, this.injector),
+        {
+          data: order,
+          label:
+            this.translate.instant('merchandising.order.details') +
+            ` #${order.id.slice(0, 8)}`,
+          size: 'm',
+        },
+      )
+      .subscribe();
   }
 
   async cancelOrder(orderId: string): Promise<void> {

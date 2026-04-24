@@ -97,6 +97,7 @@ Deno.serve(async (req) => {
         total_amount,
         currency: 'eur',
         shipping_name: shipping_info.name,
+        shipping_phone: shipping_info.phone,
         shipping_address: shipping_info.address,
         shipping_city: shipping_info.city,
         shipping_zip: shipping_info.zip,
@@ -115,6 +116,8 @@ Deno.serve(async (req) => {
       item_numeric_id: item.type === 'area' ? item.id || item.numericId : null,
       quantity: item.quantity,
       unit_price: item.price,
+      selected_size: item.selectedSize || null,
+      selected_color: item.selectedColor || null,
     }));
 
     const { error: itemsError } = await supabaseAdmin

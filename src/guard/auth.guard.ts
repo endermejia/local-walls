@@ -39,7 +39,10 @@ export const authGuard: CanMatchFn = async (
         if (error) throw error;
         profileName = data?.name;
       } catch (e) {
-        console.warn('[authGuard] Error fetching user profile name, falling back to cache', e);
+        console.warn(
+          '[authGuard] Error fetching user profile name, falling back to cache',
+          e,
+        );
         try {
           const cacheKey = `cached_user_profile_${session.user.id}_v1`;
           const cached = localStorage.getItem(cacheKey);
@@ -72,7 +75,10 @@ export const authGuard: CanMatchFn = async (
         supabase.userProfileResource.reload();
       }
     } catch (e) {
-      console.warn('[authGuard] Error fetching profile data on config route', e);
+      console.warn(
+        '[authGuard] Error fetching profile data on config route',
+        e,
+      );
     }
   }
 

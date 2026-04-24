@@ -100,6 +100,19 @@ import { CheckoutService } from '../../services/checkout.service';
                 </tui-textfield>
 
                 <tui-textfield class="w-full">
+                  <label tuiLabel for="phoneInput">{{
+                    'merchandising.checkout.phone' | translate
+                  }}</label>
+                  <input
+                    id="phoneInput"
+                    tuiInput
+                    placeholder="+34 600 000 000"
+                    type="tel"
+                    formControlName="phone"
+                  />
+                </tui-textfield>
+
+                <tui-textfield class="w-full">
                   <label tuiLabel for="addressInput">{{
                     'merchandising.checkout.address' | translate
                   }}</label>
@@ -255,6 +268,7 @@ export class CheckoutComponent {
   protected readonly shippingForm = this.fb.group({
     name: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
+    phone: ['', [Validators.required]],
     address: ['', [Validators.required]],
     city: ['', [Validators.required]],
     zip: ['', [Validators.required]],

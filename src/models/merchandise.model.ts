@@ -49,9 +49,9 @@ export interface CartProduct {
 
 export type OrderStatus =
   | 'pending'
-  | 'en_proceso' // Paid, being prepared
-  | 'enviado'
-  | 'recibido'
+  | 'paid'
+  | 'shipped'
+  | 'delivered'
   | 'cancelled'
   | 'refunded';
 

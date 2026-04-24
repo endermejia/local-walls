@@ -178,7 +178,7 @@ export class MerchandiseService {
       console.error('[MerchandiseService] getUserOrders error', error);
       return [];
     }
-    return data || [];
+    return this.enrichOrdersWithNames(data || []);
   }
 
   async getAllOrders(): Promise<OrderDetail[]> {
@@ -194,7 +194,83 @@ export class MerchandiseService {
       console.error('[MerchandiseService] getAllOrders error', error);
       return [];
     }
-    return data || [];
+
+    return this.enrichOrdersWithNames(data || []);
+  }
+
+  private async enrichOrdersWithNames(orders: any[]): Promise<OrderDetail[]> {
+    if (orders.length === 0) return [];
+
+    // Collect IDs to resolve names
+    const merchIds = [
+      ...new Set(
+        orders
+          .flatMap((o) => o.items ?? [])
+          .filter((i: any) => i.item_type === 'merchandise' && i.item_id)
+          .map((i: any) => i.item_id as string),
+      ),
+    ];
+    const packIds = [
+      ...new Set(
+        orders
+          .flatMap((o) => o.items ?? [])
+          .filter((i: any) => i.item_type === 'area_pack' && i.item_id)
+          .map((i: any) => i.item_id as string),
+      ),
+    ];
+    const areaIds = [
+      ...new Set(
+        orders
+          .flatMap((o) => o.items ?? [])
+          .filter((i: any) => i.item_type === 'area' && i.item_numeric_id)
+          .map((i: any) => i.item_numeric_id as number),
+      ),
+    ];
+
+    const nameMap = new Map<string | number, string>();
+
+    const queries = [];
+    if (merchIds.length > 0) {
+      queries.push(
+        this.supabase.client
+          .from('merchandise_items')
+          .select('id, name')
+          .in('id', merchIds),
+      );
+    }
+    if (packIds.length > 0) {
+      queries.push(
+        this.supabase.client
+          .from('area_packs')
+          .select('id, name')
+          .in('id', packIds),
+      );
+    }
+    if (areaIds.length > 0) {
+      queries.push(
+        this.supabase.client.from('areas').select('id, name').in('id', areaIds),
+      );
+    }
+
+    const results = await Promise.all(queries);
+    for (const res of results) {
+      if (res.data) {
+        for (const item of res.data) {
+          nameMap.set(item.id, item.name);
+        }
+      }
+    }
+
+    return orders.map((order) => ({
+      ...order,
+      items: (order.items ?? []).map((item: any) => ({
+        ...item,
+        product_name:
+          nameMap.get(item.item_id) ??
+          nameMap.get(item.item_numeric_id) ??
+          undefined,
+      })),
+    }));
   }
 
   async updateOrderStatus(

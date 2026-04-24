@@ -68,11 +68,25 @@ import { CheckoutService } from '../../services/checkout.service';
 
               <div class="flex flex-col gap-4">
                 @for (item of order.items; track item.id) {
-                  <div class="flex justify-between items-center text-sm">
-                    <span class="text-(--tui-text-secondary)"
-                      >{{ item.quantity || 1 }}x Item ID:
-                      {{ item.item_id }}</span
-                    >
+                  <div class="flex justify-between items-start text-sm">
+                    <div class="flex flex-col gap-0.5">
+                      <span class="text-(--tui-text-secondary)"
+                        >{{ item.quantity || 1 }}x Item ID:
+                        {{ item.item_id }}</span
+                      >
+                      @if (item.selected_size || item.selected_color) {
+                        <div
+                          class="flex gap-2 text-[10px] font-bold uppercase opacity-60"
+                        >
+                          @if (item.selected_size) {
+                            <span>{{ item.selected_size }}</span>
+                          }
+                          @if (item.selected_color) {
+                            <span>{{ item.selected_color }}</span>
+                          }
+                        </div>
+                      }
+                    </div>
                     <span class="font-medium">{{
                       item.unit_price * (item.quantity || 1) | currency: 'EUR'
                     }}</span>

@@ -40,6 +40,8 @@ export class CheckoutService {
               type: i.type,
               quantity: i.quantity,
               numericId: i.numericId,
+              selectedSize: i.selectedSize,
+              selectedColor: i.selectedColor,
             })),
             shippingInfo,
             success_url:

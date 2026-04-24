@@ -1,43 +1,52 @@
 import {
   CommonModule,
+  DatePipe,
   DecimalPipe,
   UpperCasePipe,
-  DatePipe,
 } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   inject,
+  Injector,
   resource,
+  signal,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TuiHeader } from '@taiga-ui/layout';
 import {
-  TuiAppearance,
   TuiButton,
   TuiDataList,
+  TuiDialogService,
   TuiDropdown,
   TuiIcon,
   TuiLoader,
-  TuiNotification,
-  TuiTextfield,
   TuiTitle,
 } from '@taiga-ui/core';
-import { TuiChevron, TuiDataListWrapper, TuiSelect } from '@taiga-ui/kit';
-import { TuiTable } from '@taiga-ui/addon-table';
+import { TuiDataListWrapper, TuiChevron } from '@taiga-ui/kit';
+import {
+  TuiTable,
+  TuiTableTbody,
+  TuiTableThGroup,
+  TuiTableTh,
+  TuiTableTr,
+  TuiTableTd,
+  TuiTableHead,
+  TuiTableCell,
+} from '@taiga-ui/addon-table';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { MerchandiseService } from '../../services/merchandise.service';
 import { OrderDetail, OrderStatus } from '../../models/merchandise.model';
+import { OrderDetailsDialogComponent } from '../../components/dialogs/order-details-dialog';
 
 @Component({
   selector: 'app-admin-shop-orders',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     DecimalPipe,
     UpperCasePipe,
     DatePipe,
@@ -47,15 +56,18 @@ import { OrderDetail, OrderStatus } from '../../models/merchandise.model';
     TuiIcon,
     TuiButton,
     TuiLoader,
-    TuiNotification,
     TuiTable,
-    TuiSelect,
-    TuiChevron,
+    TuiTableTbody,
+    TuiTableThGroup,
+    TuiTableTh,
+    TuiTableTr,
+    TuiTableTd,
+    TuiTableHead,
+    TuiTableCell,
     TuiDataList,
     TuiDataListWrapper,
-    TuiAppearance,
     TuiDropdown,
-    TuiTextfield,
+    TuiChevron,
   ],
   template: `
     <div class="p-4 flex flex-col gap-6 max-w-6xl mx-auto w-full">
@@ -65,7 +77,7 @@ import { OrderDetail, OrderStatus } from '../../models/merchandise.model';
 
       <tui-loader [overlay]="true" [loading]="ordersResource.isLoading()">
         @if (ordersResource.value(); as orders) {
-          <table tuiTable [columns]="columns" class="w-full">
+          <table tuiTable [columns]="columns()" class="w-full">
             <thead>
               <tr tuiThGroup>
                 <th tuiTh *tuiHead="'id'">ID</th>
@@ -91,6 +103,11 @@ import { OrderDetail, OrderStatus } from '../../models/merchandise.model';
                         >{{ order.shipping_city }},
                         {{ order.shipping_country }}</span
                       >
+                      @if (order.shipping_phone) {
+                        <span class="text-xs text-(--tui-text-secondary)">{{
+                          order.shipping_phone
+                        }}</span>
+                      }
                     </div>
                   </td>
                   <td tuiTd *tuiCell="'total'">
@@ -98,27 +115,60 @@ import { OrderDetail, OrderStatus } from '../../models/merchandise.model';
                     {{ order.currency | uppercase }}
                   </td>
                   <td tuiTd *tuiCell="'status'">
-                    <tui-textfield
+                    <button
+                      tuiButton
                       tuiChevron
-                      class="max-w-[160px]"
-                      [stringify]="stringifyStatus"
+                      type="button"
+                      size="xs"
+                      class="rounded-md! px-2!"
+                      [appearance]="getStatusAppearance(order.status)"
+                      [tuiDropdown]="statusDropdown"
+                      [tuiDropdownOpen]="openDropdownId() === order.id"
+                      (click)="toggleDropdown(order.id)"
                     >
-                      <input
-                        tuiSelect
-                        [ngModel]="order.status"
-                        (ngModelChange)="onStatusChange(order.id, $event)"
-                      />
-                      <tui-data-list *tuiDropdown>
-                        <tui-data-list-wrapper
-                          new
-                          [items]="statusOptions"
-                          [itemContent]="statusItem"
-                        />
+                      <span class="flex items-center gap-1">
+                        <span
+                          class="w-2 h-2 rounded-full"
+                          [ngClass]="getStatusColor(order.status)"
+                          style="background-color: currentColor;"
+                        ></span>
+                        <span
+                          class="text-[10px] font-bold uppercase tracking-wider"
+                        >
+                          {{
+                            'merchandising.order.status.' + order.status
+                              | translate
+                          }}
+                        </span>
+                      </span>
+                    </button>
+
+                    <ng-template #statusDropdown>
+                      <tui-data-list>
+                        @for (option of statusOptions; track option) {
+                          <button
+                            tuiOption
+                            new
+                            type="button"
+                            (click)="onStatusChange(order.id, option)"
+                          >
+                            <div class="flex items-center gap-2">
+                              <span
+                                class="w-2 h-2 rounded-full"
+                                [ngClass]="getStatusColor(option)"
+                                style="background-color: currentColor;"
+                              ></span>
+                              <span class="text-xs uppercase font-medium">
+                                {{
+                                  'merchandising.order.status.' + option
+                                    | translate
+                                }}
+                              </span>
+                            </div>
+                          </button>
+                        }
                       </tui-data-list>
-                      <ng-template #statusItem let-item>
-                        {{ 'merchandising.order.status.' + item | translate }}
-                      </ng-template>
-                    </tui-textfield>
+                    </ng-template>
                   </td>
                   <td tuiTd *tuiCell="'date'">
                     {{ order.created_at | date: 'short' }}
@@ -159,13 +209,23 @@ import { OrderDetail, OrderStatus } from '../../models/merchandise.model';
 export class AdminShopOrdersComponent {
   private readonly merchService = inject(MerchandiseService);
   private readonly translate = inject(TranslateService);
+  private readonly injector = inject(Injector);
+  private readonly dialogs = inject(TuiDialogService);
+  protected readonly columns = signal([
+    'id',
+    'user',
+    'total',
+    'status',
+    'date',
+    'actions',
+  ]);
+  protected readonly openDropdownId = signal<string | null>(null);
 
-  readonly columns = ['id', 'user', 'total', 'status', 'date', 'actions'];
   readonly statusOptions: OrderStatus[] = [
     'pending',
-    'en_proceso',
-    'enviado',
-    'recibido',
+    'paid',
+    'shipped',
+    'delivered',
     'cancelled',
     'refunded',
   ];
@@ -177,16 +237,69 @@ export class AdminShopOrdersComponent {
     loader: () => this.merchService.getAllOrders(),
   });
 
+  protected getStatusColor(status: OrderStatus | string | null): string {
+    if (!status) return 'text-gray-600 bg-gray-500/10 border-gray-500/20';
+    switch (status) {
+      case 'pending':
+        return 'text-yellow-600 bg-yellow-500/10 border-yellow-500/20';
+      case 'paid':
+        return 'text-blue-600 bg-blue-500/10 border-blue-500/20';
+      case 'shipped':
+        return 'text-purple-600 bg-purple-500/10 border-purple-500/20';
+      case 'delivered':
+        return 'text-green-600 bg-green-500/10 border-green-500/20';
+      case 'cancelled':
+      case 'refunded':
+        return 'text-red-600 bg-red-500/10 border-red-500/20';
+      default:
+        return 'text-gray-600 bg-gray-500/10 border-gray-500/20';
+    }
+  }
+
+  protected getStatusAppearance(status: OrderStatus | string | null): string {
+    if (!status) return 'neutral';
+    switch (status) {
+      case 'pending':
+        return 'warning';
+      case 'paid':
+        return 'primary';
+      case 'shipped':
+        return 'secondary';
+      case 'delivered':
+        return 'success';
+      case 'cancelled':
+      case 'refunded':
+        return 'error';
+      default:
+        return 'neutral';
+    }
+  }
+
   async onStatusChange(orderId: string, status: OrderStatus): Promise<void> {
+    this.openDropdownId.set(null);
     const success = await this.merchService.updateOrderStatus(orderId, status);
     if (success) {
       void this.ordersResource.reload();
     }
   }
 
+  protected toggleDropdown(orderId: string): void {
+    this.openDropdownId.set(this.openDropdownId() === orderId ? null : orderId);
+  }
+
   viewDetails(order: OrderDetail): void {
-    // TODO: Implement details dialog if needed
-    console.log('Order Details:', order);
+    this.dialogs
+      .open(
+        new PolymorpheusComponent(OrderDetailsDialogComponent, this.injector),
+        {
+          data: order,
+          label:
+            this.translate.instant('merchandising.order.details') +
+            ` #${order.id.slice(0, 8)}`,
+          size: 'm',
+        },
+      )
+      .subscribe();
   }
 }
 
