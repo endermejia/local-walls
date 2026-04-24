@@ -59,6 +59,7 @@ import { TourService } from '../../services/tour.service';
 import { TourStep } from '../../services/tour.service';
 
 import { ChatDialogComponent } from '../dialogs/chat-dialog';
+import { CartService } from '../../services/cart.service';
 import { GradeComponent } from './avatar-grade';
 import { MenuOptionsButtonComponent } from './menu-options-button';
 import { NotificationsDialogComponent } from '../dialogs/notifications-dialog';
@@ -533,7 +534,46 @@ import {
         </nav>
 
         <!-- Desktop Bottom Options -->
-        <div class="hidden md:block w-full shrink-0">
+        <div class="hidden md:flex flex-col gap-4 w-full shrink-0">
+          @if (global.isAdmin()) {
+            <!-- Shop -->
+            <a
+              #shop="routerLinkActive"
+              routerLink="/merchandising"
+              routerLinkActive
+              [tuiAppearance]="
+                shop.isActive ? 'flat-destructive' : 'flat-grayscale'
+              "
+              class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full group"
+              [attr.aria-label]="'nav.merchandising' | translate"
+            >
+              <tui-badged-content>
+                @if (cart.totalItems(); as totalItems) {
+                  <tui-badge-notification
+                    tuiAppearance="accent"
+                    size="s"
+                    tuiSlot="top"
+                  >
+                    {{ totalItems }}
+                  </tui-badge-notification>
+                }
+                <tui-icon
+                  icon="@tui.shopping-bag"
+                  class="transition-transform duration-300"
+                  [style.color]="
+                    shop.isActive
+                      ? 'var(--tui-text-negative)'
+                      : 'var(--tui-text-primary)'
+                  "
+                />
+              </tui-badged-content>
+              <span
+                class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden text-sm"
+              >
+                {{ 'nav.merchandising' | translate }}
+              </span>
+            </a>
+          }
           <app-menu-options-button
             appearance="flat-grayscale"
             [loading]="loading()"
@@ -559,6 +599,7 @@ export class NavbarComponent {
     () => this.isLoading() || this.global.isNavLoading(),
   );
   protected global = inject(GlobalData);
+  protected readonly cart = inject(CartService);
   protected readonly tourService = inject(TourService);
   protected readonly TourStep = TourStep;
   protected readonly tourDescription = computed(() => {

@@ -54,6 +54,7 @@ import { LocalStorage } from '../../services/local-storage';
 import { ScrollService } from '../../services/scroll.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { VisitedCragsService } from '../../services/visited-crags.service';
+import { CartService } from '../../services/cart.service';
 
 import { AscentsFeedComponent } from '../../components/ascent/ascents-feed';
 import { DropdownButtonComponent } from '../../components/ui/dropdown-button';
@@ -163,33 +164,61 @@ export type HomeFeedFilter =
                 class="w-10 h-10 rounded-full opacity-60 mt-1"
               ></div>
             } @else {
-              <tui-badged-content [style.--tui-radius.%]="50">
-                @if (
-                  global.unreadNotificationsCount();
-                  as unreadNotifications
-                ) {
-                  <tui-badge-notification
-                    tuiAppearance="accent"
-                    size="s"
-                    tuiSlot="top"
-                  >
-                    {{ unreadNotifications }}
-                  </tui-badge-notification>
+              <div class="flex items-center gap-2">
+                @if (global.isAdmin()) {
+                  <tui-badged-content [style.--tui-radius.%]="50">
+                    @if (cart.totalItems(); as totalItems) {
+                      <tui-badge-notification
+                        tuiAppearance="accent"
+                        size="s"
+                        tuiSlot="top"
+                      >
+                        {{ totalItems }}
+                      </tui-badge-notification>
+                    }
+                    <button
+                      tuiIconButton
+                      size="m"
+                      appearance="action-grayscale"
+                      iconStart="@tui.shopping-bag"
+                      [routerLink]="['/merchandising']"
+                      [attr.aria-label]="'nav.merchandising' | translate"
+                      title="Shop"
+                    >
+                      <span class="tui-sr-only">{{
+                        'nav.merchandising' | translate
+                      }}</span>
+                    </button>
+                  </tui-badged-content>
                 }
-                <button
-                  tuiIconButton
-                  size="m"
-                  appearance="action-grayscale"
-                  iconStart="@tui.heart"
-                  (click.zoneless)="openNotifications()"
-                  [attr.aria-label]="'notifications' | translate"
-                  title="Notifications"
-                >
-                  <span class="tui-sr-only">{{
-                    'notifications' | translate
-                  }}</span>
-                </button>
-              </tui-badged-content>
+                <tui-badged-content [style.--tui-radius.%]="50">
+                  @if (
+                    global.unreadNotificationsCount();
+                    as unreadNotifications
+                  ) {
+                    <tui-badge-notification
+                      tuiAppearance="accent"
+                      size="s"
+                      tuiSlot="top"
+                    >
+                      {{ unreadNotifications }}
+                    </tui-badge-notification>
+                  }
+                  <button
+                    tuiIconButton
+                    size="m"
+                    appearance="action-grayscale"
+                    iconStart="@tui.heart"
+                    (click.zoneless)="openNotifications()"
+                    [attr.aria-label]="'notifications' | translate"
+                    title="Notifications"
+                  >
+                    <span class="tui-sr-only">{{
+                      'notifications' | translate
+                    }}</span>
+                  </button>
+                </tui-badged-content>
+              </div>
             }
           </div>
           <!-- Crags -->
@@ -266,6 +295,7 @@ export type HomeFeedFilter =
 })
 export class HomeComponent implements OnDestroy {
   protected readonly global = inject(GlobalData);
+  protected readonly cart = inject(CartService);
   protected readonly supabase = inject(SupabaseService);
   private readonly desnivelService = inject(DesnivelService);
   private readonly dialogs = inject(TuiDialogService);
