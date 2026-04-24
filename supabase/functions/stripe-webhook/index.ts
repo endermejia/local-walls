@@ -41,7 +41,7 @@ serve(async (req) => {
         // Update order status
         const { data: order, error: updateError } = await supabaseAdmin
           .from('orders')
-          .update({ status: 'completed' })
+          .update({ status: 'paid' })
           .eq('id', orderId)
           .select('*, order_items(*)')
           .single();
