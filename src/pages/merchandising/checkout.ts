@@ -1,7 +1,15 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+  OnDestroy,
+  PLATFORM_ID,
+} from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 import { TuiDataListWrapper, TuiSelect, TuiChevron } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
@@ -252,12 +260,14 @@ import { SupabaseService } from '../../services/supabase.service';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CheckoutComponent {
+export class CheckoutComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly cart = inject(CartService);
   private readonly checkoutService = inject(CheckoutService);
   private readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
+  private readonly platformId = inject(PLATFORM_ID);
+  private formSub?: Subscription;
 
   protected readonly items = this.cart.items;
   protected readonly subtotal = this.cart.totalPrice;
@@ -279,6 +289,35 @@ export class CheckoutComponent {
     zip: ['', [Validators.required]],
     country: [{ value: 'España', disabled: true }, [Validators.required]],
   });
+
+  ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      const savedInfo = localStorage.getItem('checkout_shipping_info');
+      if (savedInfo) {
+        try {
+          const parsed = JSON.parse(savedInfo);
+          // Only patch fields we want to restore, don't override the disabled email or country
+          this.shippingForm.patchValue({
+            name: parsed.name,
+            phone: parsed.phone,
+            address: parsed.address,
+            city: parsed.city,
+            zip: parsed.zip,
+          });
+        } catch (e) {
+          console.error('Failed to parse checkout shipping info', e);
+        }
+      }
+
+      this.formSub = this.shippingForm.valueChanges.subscribe((val) => {
+        localStorage.setItem('checkout_shipping_info', JSON.stringify(val));
+      });
+    }
+  }
+
+  ngOnDestroy() {
+    this.formSub?.unsubscribe();
+  }
 
   async onSubmit(): Promise<void> {
     if (this.shippingForm.invalid) return;
