@@ -424,28 +424,28 @@
     "with_check_expression": "( SELECT is_area_equipper(crags.area_id) AS is_area_equipper)"
   },
   {
-    "policy_name": "admin_can_delete",
+    "policy_name": "admin_or_trusted_can_delete",
     "schema_name": "public",
     "table_name": "equippers",
     "for_command": "d",
-    "using_expression": "is_user_admin(auth.uid())",
+    "using_expression": "(is_user_admin(auth.uid()) OR (EXISTS ( SELECT 1 FROM public.routes WHERE (routes.user_creator_id = auth.uid()))) OR (EXISTS ( SELECT 1 FROM public.area_admins WHERE (area_admins.user_id = auth.uid()))))",
     "with_check_expression": null
   },
   {
-    "policy_name": "admin_can_insert",
+    "policy_name": "admin_or_trusted_can_insert",
     "schema_name": "public",
     "table_name": "equippers",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+    "with_check_expression": "(is_user_admin(auth.uid()) OR (EXISTS ( SELECT 1 FROM public.routes WHERE (routes.user_creator_id = auth.uid()))) OR (EXISTS ( SELECT 1 FROM public.area_admins WHERE (area_admins.user_id = auth.uid()))))"
   },
   {
-    "policy_name": "admin_can_update",
+    "policy_name": "admin_or_trusted_can_update",
     "schema_name": "public",
     "table_name": "equippers",
     "for_command": "w",
-    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
-    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+    "using_expression": "(is_user_admin(auth.uid()) OR (EXISTS ( SELECT 1 FROM public.routes WHERE (routes.user_creator_id = auth.uid()))) OR (EXISTS ( SELECT 1 FROM public.area_admins WHERE (area_admins.user_id = auth.uid()))))",
+    "with_check_expression": "(is_user_admin(auth.uid()) OR (EXISTS ( SELECT 1 FROM public.routes WHERE (routes.user_creator_id = auth.uid()))) OR (EXISTS ( SELECT 1 FROM public.area_admins WHERE (area_admins.user_id = auth.uid()))))"
   },
   {
     "policy_name": "auth_can_read",
@@ -736,28 +736,28 @@
     "with_check_expression": "(( SELECT auth.uid() AS uid) = user_id)"
   },
   {
-    "policy_name": "admin_can_delete",
+    "policy_name": "admin_or_creator_can_delete",
     "schema_name": "public",
     "table_name": "route_equippers",
     "for_command": "d",
-    "using_expression": "is_user_admin(auth.uid())",
+    "using_expression": "(is_user_admin(auth.uid()) OR (EXISTS ( SELECT 1 FROM public.routes WHERE ((routes.id = route_equippers.route_id) AND ((routes.user_creator_id = auth.uid()) OR is_crag_equipper(routes.crag_id))))))",
     "with_check_expression": null
   },
   {
-    "policy_name": "admin_can_insert",
+    "policy_name": "admin_or_creator_can_insert",
     "schema_name": "public",
     "table_name": "route_equippers",
     "for_command": "a",
     "using_expression": null,
-    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+    "with_check_expression": "(is_user_admin(auth.uid()) OR (EXISTS ( SELECT 1 FROM public.routes WHERE ((routes.id = route_equippers.route_id) AND ((routes.user_creator_id = auth.uid()) OR is_crag_equipper(routes.crag_id))))))"
   },
   {
-    "policy_name": "admin_can_update",
+    "policy_name": "admin_or_creator_can_update",
     "schema_name": "public",
     "table_name": "route_equippers",
     "for_command": "w",
-    "using_expression": "is_user_admin(( SELECT auth.uid() AS uid))",
-    "with_check_expression": "is_user_admin(( SELECT auth.uid() AS uid))"
+    "using_expression": "(is_user_admin(auth.uid()) OR (EXISTS ( SELECT 1 FROM public.routes WHERE ((routes.id = route_equippers.route_id) AND ((routes.user_creator_id = auth.uid()) OR is_crag_equipper(routes.crag_id))))))",
+    "with_check_expression": "(is_user_admin(auth.uid()) OR (EXISTS ( SELECT 1 FROM public.routes WHERE ((routes.id = route_equippers.route_id) AND ((routes.user_creator_id = auth.uid()) OR is_crag_equipper(routes.crag_id))))))"
   },
   {
     "policy_name": "auth_can_read",
