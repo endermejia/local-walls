@@ -91,6 +91,9 @@ export class PaywallComponent {
       const { data, error } = await this.supabase.client.functions.invoke(
         'stripe-checkout',
         {
+          headers: {
+            'ngsw-bypass': 'true',
+          },
           body: { area_id: this.areaId() },
         },
       );

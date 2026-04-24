@@ -148,6 +148,7 @@ export class ToposService {
       {
         headers: {
           'topo-id': topoId.toString(),
+          'ngsw-bypass': 'true',
         },
       },
     );
@@ -245,6 +246,7 @@ export class ToposService {
           },
           headers: {
             'Topo-Id': topoId.toString(),
+            'ngsw-bypass': 'true',
           },
         },
       );

@@ -399,6 +399,9 @@ export class SupabaseService {
 
     const response = await this.client.functions.invoke('delete-user', {
       method: 'POST',
+      headers: {
+        'ngsw-bypass': 'true',
+      },
     });
 
     if (response.error) {
@@ -439,6 +442,9 @@ export class SupabaseService {
 
     const response = await this.client.functions.invoke('upload-avatar', {
       body: payload,
+      headers: {
+        'ngsw-bypass': 'true',
+      },
     });
 
     if (response.error) {

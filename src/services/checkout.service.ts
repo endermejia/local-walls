@@ -31,6 +31,9 @@ export class CheckoutService {
       const { data, error } = await this.supabase.client.functions.invoke(
         'create-checkout-session',
         {
+          headers: {
+            'ngsw-bypass': 'true',
+          },
           body: {
             items: items.map((i) => ({
               id: i.id,

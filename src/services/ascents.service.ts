@@ -372,6 +372,7 @@ export class AscentsService {
           },
           headers: {
             'ascent-id': ascentId.toString(),
+            'ngsw-bypass': 'true',
           },
         },
       );
@@ -395,6 +396,7 @@ export class AscentsService {
       {
         headers: {
           'ascent-id': ascentId.toString(),
+          'ngsw-bypass': 'true',
         },
       },
     );

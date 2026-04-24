@@ -720,6 +720,9 @@ export class AreasService {
       const { data, error } = await this.supabase.client.functions.invoke(
         'stripe-onboarding',
         {
+          headers: {
+            'ngsw-bypass': 'true',
+          },
           body: {
             area_id: areaId,
             stripe_account_id: stripeAccountId,
