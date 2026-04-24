@@ -1272,7 +1272,7 @@ export class UserProfileConfigComponent {
       }
     }
 
-    await this.updateProfile({ private: isPrivate });
+    await this.updateProfile({ private: isPrivate }, 'profile.updated.private');
   }
 
   private async saveField<K extends keyof UserProfileDto, V = unknown>(
@@ -1308,7 +1308,10 @@ export class UserProfileConfigComponent {
       return;
     }
 
-    await this.updateProfile({ [field]: value });
+    await this.updateProfile(
+      { [field]: value },
+      `profile.updated.${String(field)}`,
+    );
   }
 
   async saveName(): Promise<void> {
@@ -1338,7 +1341,7 @@ export class UserProfileConfigComponent {
     }
     this.model.update((m) => ({ ...m, theme: newTheme }));
     this.global.setTheme(newTheme, this.lastEvent);
-    await this.updateProfile({ theme: newTheme });
+    await this.updateProfile({ theme: newTheme }, 'profile.updated.theme');
   }
 
   async saveLanguage(): Promise<void> {
@@ -1481,9 +1484,12 @@ export class UserProfileConfigComponent {
 
   async saveEightAnuUser(user: unknown): Promise<void> {
     const eightAnuUser = user as EightAnuUser | null;
-    await this.updateProfile({
-      '8anu_user_slug': eightAnuUser?.userSlug || null,
-    });
+    await this.updateProfile(
+      {
+        '8anu_user_slug': eightAnuUser?.userSlug || null,
+      },
+      'profile.updated.8anu_user_slug',
+    );
     void this.selectedEightAnuUser.reload();
   }
 
@@ -1560,7 +1566,7 @@ export class UserProfileConfigComponent {
 
     this.isUploadingAvatar.set(true);
     try {
-      await this.updateProfile({ avatar: null });
+      await this.updateProfile({ avatar: null }, null);
       this.toast.success('profile.avatar.delete.success');
       this.supabase.userProfileResource.reload();
     } catch (e) {
@@ -1598,7 +1604,10 @@ export class UserProfileConfigComponent {
 
     if (confirmed) {
       this.hasOpenedWelcome = false;
-      await this.updateProfile({ first_steps: true });
+      await this.updateProfile(
+        { first_steps: true },
+        'profile.updated.first_steps',
+      );
     }
 
     this.updateModel('restartFirstSteps', false);
@@ -1606,13 +1615,19 @@ export class UserProfileConfigComponent {
 
   async onMessageSoundChange(enabled: boolean): Promise<void> {
     this.updateModel('messageSound', enabled);
-    await this.updateProfile({ message_sound: enabled });
+    await this.updateProfile(
+      { message_sound: enabled },
+      'profile.updated.message_sound',
+    );
     this.global.messageSoundEnabled.set(enabled);
   }
 
   async onNotificationSoundChange(enabled: boolean): Promise<void> {
     this.updateModel('notificationSound', enabled);
-    await this.updateProfile({ notification_sound: enabled });
+    await this.updateProfile(
+      { notification_sound: enabled },
+      'profile.updated.notification_sound',
+    );
     this.global.notificationSoundEnabled.set(enabled);
   }
 
@@ -1622,7 +1637,10 @@ export class UserProfileConfigComponent {
       const confirmed = await this.toggleEditingMode(true);
       if (confirmed) {
         this.updateModel('editingMode', true);
-        await this.updateProfile({ editing_mode: true });
+        await this.updateProfile(
+          { editing_mode: true },
+          'profile.updated.editing_mode',
+        );
       } else {
         this.updateModel('editingMode', false);
       }
@@ -1630,7 +1648,10 @@ export class UserProfileConfigComponent {
       // Disabling is always allowed without confirmation
       this.updateModel('editingMode', false);
       this.global.editingMode.set(false);
-      await this.updateProfile({ editing_mode: false });
+      await this.updateProfile(
+        { editing_mode: false },
+        'profile.updated.editing_mode',
+      );
     }
   }
 
@@ -1639,15 +1660,18 @@ export class UserProfileConfigComponent {
     void this.togglePrivateProfile(enabled);
   }
 
-  private async updateProfile(updates: Partial<UserProfileDto>): Promise<void> {
+  private async updateProfile(
+    updates: Partial<UserProfileDto>,
+    toastKey: string | null = 'profile.saveSuccess',
+  ): Promise<void> {
     const result = await this.userProfilesService.updateUserProfile(updates);
 
     if (!result.success) {
       console.error('Error saving profile:', result.error);
       this.toast.error('profile.saveError');
-    } else {
+    } else if (toastKey) {
       this.pendingSuccessToast.set({
-        key: 'profile.saveSuccess',
+        key: toastKey,
         lang: updates.language || this.global.selectedLanguage(),
       });
     }
