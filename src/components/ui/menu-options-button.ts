@@ -14,13 +14,7 @@ import {
   TuiSkeleton,
   TuiSwitch,
 } from '@taiga-ui/kit';
-import {
-  TuiAppearance,
-  TuiButton,
-  TuiDataList,
-  TuiDropdown,
-  TuiIcon,
-} from '@taiga-ui/core';
+import { TuiAppearance, TuiButton, TuiDropdown, TuiIcon } from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -40,7 +34,6 @@ import { Themes } from '../../models';
     TranslatePipe,
     TuiAppearance,
     TuiButton,
-    TuiDataList,
     TuiDropdown,
     TuiIcon,
     TuiSegmented,
@@ -48,51 +41,66 @@ import { Themes } from '../../models';
     TuiSwitch,
   ],
   template: `
-    @if (iconOnly()) {
-      <button
-        [appearance]="appearance()"
-        [size]="size()"
-        tuiIconButton
-        [iconStart]="icon()"
-        [tuiSkeleton]="loading()"
-        [tuiDropdown]="optionsDropdown"
-        [(tuiDropdownOpen)]="open"
-        [tuiDropdownDirection]="direction()"
-        type="button"
-        class="transition-colors"
-      >
-        <span class="tui-sr-only">{{ 'more' | translate }}</span>
-      </button>
-    } @else {
-      <button
-        type="button"
-        [tuiAppearance]="appearance()"
-        class="flex items-center gap-4 transition-colors p-3 rounded-xl w-full cursor-pointer no-underline text-inherit"
-        [tuiSkeleton]="loading()"
-        [tuiDropdown]="optionsDropdown"
-        [(tuiDropdownOpen)]="open"
-        [tuiDropdownDirection]="direction()"
-      >
-        <tui-icon [icon]="icon()" />
-        <span
-          class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden text-sm"
+    <div
+      [tuiDropdown]="optionsDropdown"
+      [tuiDropdownDirection]="direction()"
+      [(tuiDropdownOpen)]="open"
+      class="block w-full"
+    >
+      @if (iconOnly()) {
+        <button
+          [appearance]="appearance()"
+          [size]="size()"
+          tuiIconButton
+          [iconStart]="icon()"
+          [tuiSkeleton]="loading()"
+          type="button"
+          class="transition-colors"
+          (click)="open = !open"
         >
-          {{ 'more' | translate }}
-        </span>
-      </button>
-    }
+          <span class="tui-sr-only">{{ 'more' | translate }}</span>
+        </button>
+      } @else {
+        <button
+          type="button"
+          [tuiAppearance]="appearance()"
+          class="flex items-center gap-4 transition-colors p-3 rounded-xl w-full cursor-pointer no-underline text-inherit"
+          [tuiSkeleton]="loading()"
+          (click)="open = !open"
+        >
+          <tui-icon [icon]="icon()" />
+          <span
+            class="hidden md:group-hover:block transition-opacity duration-300 whitespace-nowrap overflow-hidden text-sm"
+          >
+            {{ 'more' | translate }}
+          </span>
+        </button>
+      }
+    </div>
 
     <ng-template #optionsDropdown>
-      <tui-data-list>
-        <button tuiOption new (click)="openConfig(); open = false">
-          <tui-icon icon="@tui.settings" class="mr-2" />
+      <div
+        (click)="$event.stopPropagation()"
+        class="flex flex-col p-1.5 bg-(--tui-background-base) rounded-xl shadow-2xl min-w-56 border border-(--tui-border-normal)"
+      >
+        <!-- User Config -->
+        <button
+          type="button"
+          (click)="openConfig(); open = false"
+          class="flex items-center gap-3 px-3 py-2 text-sm hover:bg-(--tui-background-neutral-hover) rounded-lg transition-colors text-left text-inherit outline-none"
+        >
+          <tui-icon icon="@tui.settings" class="opacity-70" />
           {{ 'config' | translate }}
         </button>
+
+        <div class="h-px bg-(--tui-border-normal) my-1 mx-2"></div>
+
+        <!-- Editing Mode -->
         <label
-          class="flex items-center justify-between gap-4 p-2 w-full cursor-pointer hover:bg-(--tui-background-neutral-hover) rounded-lg"
+          class="flex items-center justify-between gap-4 px-3 py-2 w-full cursor-pointer hover:bg-(--tui-background-neutral-hover) rounded-lg transition-colors"
         >
-          <div class="flex items-center gap-2">
-            <tui-icon icon="@tui.pencil" />
+          <div class="flex items-center gap-3 text-sm">
+            <tui-icon icon="@tui.pencil" class="opacity-70" />
             {{ 'editingMode' | translate }}
           </div>
           <input
@@ -103,11 +111,13 @@ import { Themes } from '../../models';
             autocomplete="off"
           />
         </label>
+
+        <!-- Theme Selection -->
         <div
-          class="flex items-center justify-between gap-4 p-2 w-full hover:bg-(--tui-background-neutral-hover) rounded-lg"
+          class="flex items-center justify-between gap-4 px-3 py-2 w-full hover:bg-(--tui-background-neutral-hover) rounded-lg transition-colors"
         >
-          <div class="flex items-center gap-2">
-            <tui-icon icon="@tui.palette" />
+          <div class="flex items-center gap-3 text-sm">
+            <tui-icon icon="@tui.palette" class="opacity-70" />
             {{ 'theme' | translate }}
           </div>
           <tui-segmented
@@ -124,11 +134,19 @@ import { Themes } from '../../models';
             </button>
           </tui-segmented>
         </div>
-        <button tuiOption new (click)="logout()">
-          <tui-icon icon="@tui.log-out" class="mr-2" />
+
+        <div class="h-px bg-(--tui-border-normal) my-1 mx-2"></div>
+
+        <!-- Logout -->
+        <button
+          type="button"
+          (click)="logout(); open = false"
+          class="flex items-center gap-3 px-3 py-2 text-sm hover:bg-red-500/10 text-red-500 rounded-lg transition-colors text-left outline-none"
+        >
+          <tui-icon icon="@tui.log-out" class="opacity-70" />
           {{ 'auth.logout' | translate }}
         </button>
-      </tui-data-list>
+      </div>
     </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
