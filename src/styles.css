@@ -87,6 +87,10 @@ th[tuiTh] {
   }
 }
 
+tui-dialog {
+  contain: inline-size;
+}
+
 /* Merchandising Dialogs - Remove internal scrolling */
 tui-dialog:has(app-merchandise-item-dialog),
 tui-dialog:has(app-merchandise-pack-dialog) {
