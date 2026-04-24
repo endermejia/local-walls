@@ -62,7 +62,7 @@ import { CheckoutService } from '../../services/checkout.service';
             <div
               class="w-full bg-(--tui-background-neutral-1) rounded-3xl p-8 mt-8 text-left border border-(--tui-border-normal)"
             >
-              <h2 tuiTitle="m" class="mb-6">
+              <h2 tuiTitle="m" class="mb-6!">
                 {{ 'merchandising.success.summary' | translate }}
               </h2>
 

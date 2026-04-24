@@ -173,7 +173,7 @@ import { CheckoutService } from '../../services/checkout.service';
             <div
               class="bg-(--tui-background-neutral-1) rounded-3xl p-8 sticky top-8 border border-(--tui-border-normal)"
             >
-              <h2 tuiTitle="m" class="mb-6">
+              <h2 tuiTitle="m" class="mb-6!">
                 {{ 'merchandising.checkout.summary' | translate }}
               </h2>
 
