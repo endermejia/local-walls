@@ -5,6 +5,7 @@ import {
   MapAreaItem,
   MapBounds,
   MapCragItem,
+  MapIndoorCenterItem,
   MapOptions,
   ParkingDto,
 } from '../models';
@@ -16,6 +17,7 @@ import { LocalStorage } from './local-storage';
 export interface MapBuilderCallbacks {
   onSelectedCragChange: (mapCragItem: MapCragItem | null) => void;
   onSelectedParkingChange: (parking: ParkingDto | null) => void;
+  onSelectedIndoorCenterChange?: (item: MapIndoorCenterItem | null) => void;
   onMapClick: (lat: number, lng: number) => void;
   onInteractionStart: () => void;
   onViewportChange: (v: MapBounds) => void;
@@ -56,6 +58,7 @@ export class MapBuilder {
   private initialized = false;
   private L: LeafletNamespace | null = null;
   private mapCragItems: readonly MapCragItem[] = [];
+  private mapIndoorItems: readonly MapIndoorCenterItem[] = [];
   private markers: Marker[] = [];
   private parkingMarkers: Marker[] = [];
   private userMarker: Marker | null = null;
@@ -84,6 +87,8 @@ export class MapBuilder {
     options: MapOptions,
     mapCragItem: readonly MapCragItem[],
     selectedMapCragItem: MapCragItem | null,
+    mapIndoorItems: readonly MapIndoorCenterItem[],
+    _selectedMapIndoorItem: MapIndoorCenterItem | null,
     mapParkingItems: readonly ParkingDto[],
     selectedMapParkingItem: ParkingDto | null,
     mapAreaItems: readonly MapAreaItem[],
@@ -108,6 +113,7 @@ export class MapBuilder {
     }).addTo(this.map);
 
     this.mapCragItems = mapCragItem;
+    this.mapIndoorItems = mapIndoorItems;
 
     // Restore the last saved viewport (bounds and zoom) if available
     let savedViewport: MapBounds | null = null;
@@ -189,6 +195,8 @@ export class MapBuilder {
     await this.rebuildMarkers(
       mapCragItem,
       selectedMapCragItem,
+      [], // Initial empty array for indoor
+      null,
       mapParkingItems,
       selectedMapParkingItem,
       mapAreaItems,
@@ -268,25 +276,29 @@ export class MapBuilder {
     this.map.on('moveend', async () => {
       this.animateClustersOnNextBuild = false;
       await this.rebuildMarkers(
-        this.mapCragItems,
-        selectedMapCragItem,
-        mapParkingItems,
-        selectedMapParkingItem,
-        mapAreaItems,
-        cb,
-      );
+      this.mapCragItems,
+      selectedMapCragItem,
+      this.mapIndoorItems, // Indoor not bound in closure here easily, but updateData is called externally anyway
+      null,
+      mapParkingItems,
+      selectedMapParkingItem,
+      mapAreaItems,
+      cb,
+    );
       emitViewport();
     });
     this.map.on('zoomend', async () => {
       this.animateClustersOnNextBuild = false;
       await this.rebuildMarkers(
-        this.mapCragItems,
-        selectedMapCragItem,
-        mapParkingItems,
-        selectedMapParkingItem,
-        mapAreaItems,
-        cb,
-      );
+      this.mapCragItems,
+      selectedMapCragItem,
+      this.mapIndoorItems, // Indoor not bound in closure here easily, but updateData is called externally anyway
+      null,
+      mapParkingItems,
+      selectedMapParkingItem,
+      mapAreaItems,
+      cb,
+    );
       emitViewport();
     });
 
@@ -309,6 +321,8 @@ export class MapBuilder {
   async updateData(
     mapCragItem: readonly MapCragItem[],
     selectedMapCragItem: MapCragItem | null,
+    mapIndoorItems: readonly MapIndoorCenterItem[],
+    selectedMapIndoorItem: MapIndoorCenterItem | null,
     mapParkingItems: readonly ParkingDto[],
     selectedMapParkingItem: ParkingDto | null,
     mapAreaItems: readonly MapAreaItem[],
@@ -316,10 +330,13 @@ export class MapBuilder {
   ): Promise<void> {
     if (!this.map) return;
     this.mapCragItems = mapCragItem;
+    this.mapIndoorItems = mapIndoorItems;
 
     await this.rebuildMarkers(
       mapCragItem,
       selectedMapCragItem,
+      mapIndoorItems,
+      selectedMapIndoorItem,
       mapParkingItems,
       selectedMapParkingItem,
       mapAreaItems,
@@ -451,6 +468,8 @@ export class MapBuilder {
   private async rebuildMarkers(
     mapCragItems: readonly MapCragItem[],
     selectedMapCragItem: MapCragItem | null,
+    _mapIndoorItems: readonly MapIndoorCenterItem[],
+    _selectedMapIndoorItem: MapIndoorCenterItem | null,
     mapParkingItems: readonly ParkingDto[],
     selectedMapParkingItem: ParkingDto | null,
     mapAreaItems: readonly MapAreaItem[],

@@ -41,11 +41,25 @@ export interface MapCragItem {
   topos?: { id: number; name: string; slug: string }[];
 }
 
-export type MapItem = MapCragItem | MapAreaItem;
+
+export interface MapIndoorCenterItem {
+  id: string;
+  name: string;
+  slug: string;
+  latitude: number;
+  longitude: number;
+  description?: string;
+  city?: string;
+  country?: string;
+  avatar_url?: string;
+}
+
+export type MapItem = MapCragItem | MapAreaItem | MapIndoorCenterItem;
 
 export interface MapCounts {
   locations: number; // crags
   map_collections: number; // areas
+  indoor_centers?: number;
 }
 
 export interface MapResponse {

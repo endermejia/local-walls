@@ -45,6 +45,7 @@ import { TourStep } from '../../services/tour.service';
 import { AreaCardComponent } from '../../components/area/area-card';
 import { CragCardComponent } from '../../components/crag/crag-card';
 import { ParkingCardComponent } from '../../components/location/parking-card';
+import { IndoorCenterCardComponent } from '../indoor/components/indoor-center-card';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
 import { MapComponent } from '../../components/location/map';
 import { TourHintComponent } from '../../components/ui/tour-hint';
@@ -149,9 +150,9 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
         }
 
         @let hasMapResults =
-          mapAreaItems().length > 0 || mapCragItems().length > 0;
+          mapAreaItems().length > 0 || mapCragItems().length > 0 || mapIndoorItems().length > 0;
         @let hasSelection =
-          !!global.selectedMapCragItem() || !!global.selectedMapParkingItem();
+          !!global.selectedMapCragItem() || !!global.selectedMapParkingItem() || !!global.selectedMapIndoorItem();
 
         @let isExploreAreasTourStep =
           tourService.isActive() &&
@@ -211,6 +212,9 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
             [selectedMapCragItem]="global.selectedMapCragItem()"
             (selectedMapCragItemChange)="selectMapCragItem($event)"
             [mapParkingItems]="global.parkingsMapResource.value() || []"
+            [mapIndoorItems]="mapIndoorItems()"
+            [selectedMapIndoorItem]="global.selectedMapIndoorItem()"
+            (selectedMapIndoorItemChange)="selectMapIndoorItem($event)"
             [selectedMapParkingItem]="global.selectedMapParkingItem()"
             (selectedMapParkingItemChange)="selectMapParkingItem($event)"
             (mapClick)="closeAll()"
@@ -239,54 +243,24 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
             <app-parking-card
               [parking]="p"
               appearance="floating"
-              titleSize="l"
               class="pointer-events-auto"
-            >
-              <ng-container titleActions>
-                @if (global.canEditAsAdmin()) {
-                  <button
-                    size="s"
-                    appearance="neutral"
-                    iconStart="@tui.square-pen"
-                    tuiIconButton
-                    type="button"
-                    class="rounded-full!"
-                    (click.zoneless)="openEditParking(p)"
-                  >
-                    {{ 'edit' | translate }}
-                  </button>
-                }
-              </ng-container>
-
-              <ng-container actions>
-                @if (p.latitude && p.longitude) {
-                  <button
-                    appearance="flat"
-                    size="s"
-                    tuiButton
-                    type="button"
-                    [iconStart]="'/image/google-maps.svg'"
-                    class="[--tui-icon-size:1.25rem] rounded-full!"
-                    (click.zoneless)="
-                      openExternal(
-                        mapLocationUrl({
-                          latitude: p.latitude,
-                          longitude: p.longitude,
-                        })
-                      )
-                    "
-                  >
-                    Google Maps
-                  </button>
-                }
-              </ng-container>
-            </app-parking-card>
+            />
+          </div>
+        } @else if (global.selectedMapIndoorItem(); as i) {
+          <div
+            class="absolute w-full max-w-120 mx-auto z-50 pointer-events-none left-0 right-0 bottom-0 px-4 pb-4"
+          >
+            <app-indoor-center-card
+              [item]="i"
+              class="pointer-events-auto block"
+            />
           </div>
         }
 
         <!-- BottomSheet (Mobile) -->
         @let crags = mapCragItems();
         @let areas = mapAreaItems();
+        @let indoors = mapIndoorItems();
         @let loading =
           global.mapResource.isLoading() || global.areasMapResource.isLoading();
 
@@ -320,7 +294,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           class="flex flex-col shrink-0 h-full w-80 sm:w-96 border-l border-(--tui-border-normal)"
         >
           <tui-scrollbar class="h-full bg-(--tui-background-base)">
-            @if (mapCragItems().length || mapAreaItems().length) {
+            @if (mapCragItems().length || mapAreaItems().length || mapIndoorItems().length) {
               <ng-container *ngTemplateOutlet="listContent" />
             } @else {
               <app-empty-state icon="@tui.map-pin" />
@@ -338,6 +312,33 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
       </ng-template>
 
       <ng-template #listContent>
+        @if (indoors.length) {
+          <h3 tuiHeader id="indoors-title" class="justify-center sm:pt-4">
+            <div class="flex flex-row align-items-center justify-center gap-2">
+              <span
+                [tuiAvatar]="'home' | iconSrc"
+                tuiThumbnail
+                size="l"
+                [attr.aria-label]="'indoor' | translate"
+              ></span>
+              <span tuiTitle class="justify-center">
+                {{ indoors.length }}
+                {{
+                  (indoors.length === 1 ? 'indoorCenter' : 'indoorCenters')
+                    | translate
+                    | lowercase
+                }}
+              </span>
+            </div>
+          </h3>
+          <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-20">
+            <div class="grid gap-2">
+              @for (i of indoors; track i.id) {
+                <app-indoor-center-card [item]="i" />
+              }
+            </div>
+          </section>
+        }
         @if (areas.length) {
           <h3 tuiHeader id="areas-title" class="justify-center sm:pt-4">
             <div class="flex flex-row align-items-center justify-center gap-2">
@@ -467,6 +468,14 @@ export class ExploreComponent {
       .sort((a, b) => (a.liked === b.liked ? 0 : a.liked ? -1 : 1));
   });
 
+  protected mapIndoorItems: Signal<MapIndoorCenterItem[]> = computed(() => {
+    const items = this.global.mapItemsOnViewport();
+    return items.filter(
+      (it): it is MapIndoorCenterItem =>
+        !!it && 'latitude' in it && 'id' in it && typeof it.id === 'string'
+    );
+  });
+
   protected mapAreaItems: Signal<MapAreaItem[]> = computed(() => {
     const items = this.global.mapItemsOnViewport();
     const categories = this.global.areaListCategories();
@@ -515,10 +524,12 @@ export class ExploreComponent {
     if (loading) return false;
     const cragsCount = this.mapCragItems().length;
     const areasCount = this.mapAreaItems().length;
+    const indoorsCount = this.mapIndoorItems().length;
     return (
-      (areasCount > 0 || cragsCount > 0) &&
+      (areasCount > 0 || cragsCount > 0 || indoorsCount > 0) &&
       !this.global.selectedMapCragItem() &&
-      !this.global.selectedMapParkingItem()
+      !this.global.selectedMapParkingItem() &&
+      !this.global.selectedMapIndoorItem()
     );
   });
 
@@ -547,7 +558,8 @@ export class ExploreComponent {
     const hasSheet = this.hasBottomSheet();
     const hasSelection =
       !!this.global.selectedMapCragItem() ||
-      !!this.global.selectedMapParkingItem();
+      !!this.global.selectedMapParkingItem() ||
+      !!this.global.selectedMapIndoorItem();
 
     if (hasSelection) {
       return 'calc(100% - 6rem)';
@@ -623,6 +635,7 @@ export class ExploreComponent {
     if (hadSelectedMapItem && mode !== 'open') {
       this.global.selectedMapCragItem.set(null);
       this.global.selectedMapParkingItem.set(null);
+    this.global.selectedMapIndoorItem.set(null);
     }
 
     const el = this.sheetRef()?.nativeElement;
@@ -676,6 +689,7 @@ export class ExploreComponent {
   protected selectMapCragItem(mapCragItem: MapCragItem | null): void {
     if (!mapCragItem) return;
     this.global.selectedMapParkingItem.set(null);
+    this.global.selectedMapIndoorItem.set(null);
     this.global.selectedMapCragItem.set(mapCragItem);
     if (this.global.isMobile()) {
       this.setBottomSheet('open');

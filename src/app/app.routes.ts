@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { LandingComponent } from '../pages/marketing/landing';
 
 import { adminGuard, areaAdminGuard } from '../guard/admin.guard';
+import { indoorAdminGuard } from '../guard/indoor-admin.guard';
 import { authGuard } from '../guard/auth.guard';
 import { noAuthGuard } from '../guard/no-auth.guard';
 import { rootRedirectGuard } from '../guard/root-redirect.guard';
@@ -120,7 +121,65 @@ export const routes: Routes = [
     loadComponent: () =>
       import('../pages/area/route').then((m) => m.RouteComponent),
   },
-  // Admin and Equipper routes
+    {
+    path: 'indoor/:slug',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/indoor/center-detail/center-detail').then(
+        (m) => m.IndoorCenterDetailComponent,
+      ),
+  },
+  {
+    path: 'indoor/:slug/admin',
+    canMatch: [authGuard, indoorAdminGuard],
+    loadComponent: () =>
+      import('../pages/indoor/admin/admin-layout').then(
+        (m) => m.IndoorAdminLayoutComponent,
+      ),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'dashboard',
+      },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('../pages/indoor/admin/admin-dashboard').then(
+            (m) => m.IndoorAdminDashboardComponent,
+          ),
+      },
+      {
+        path: 'vouchers',
+        loadComponent: () =>
+          import('../pages/indoor/admin/admin-vouchers').then(
+            (m) => m.IndoorAdminVouchersComponent,
+          ),
+      },
+      {
+        path: 'sales',
+        loadComponent: () =>
+          import('../pages/indoor/admin/admin-sales').then(
+            (m) => m.IndoorAdminSalesComponent,
+          ),
+      },
+      {
+        path: 'users',
+        loadComponent: () =>
+          import('../pages/indoor/admin/admin-users').then(
+            (m) => m.IndoorAdminUsersComponent,
+          ),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('../pages/indoor/admin/admin-dashboard').then(
+            (m) => m.IndoorAdminDashboardComponent,
+          ),
+      },
+    ],
+  },
+// Admin and Equipper routes
   {
     path: 'admin',
     canMatch: [adminGuard],

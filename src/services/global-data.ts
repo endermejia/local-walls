@@ -468,6 +468,7 @@ export class GlobalData {
     ];
   });
   selectedMapCragItem: WritableSignal<MapCragItem | null> = signal(null);
+  selectedMapIndoorItem: WritableSignal<MapIndoorCenterItem | null> = signal(null);
   selectedMapParkingItem: WritableSignal<ParkingDto | null> = signal(null);
 
   /**
@@ -1924,6 +1925,7 @@ export class GlobalData {
         this.selectedCragSlug.set(null);
         this.selectedRouteSlug.set(null);
         this.selectedMapCragItem.set(null);
+        this.selectedMapIndoorItem.set(null);
         break;
       }
       case 'home': {

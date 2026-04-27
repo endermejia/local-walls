@@ -28,6 +28,7 @@ import type {
   MapAreaItem,
   MapBounds,
   MapCragItem,
+  MapIndoorCenterItem,
   MapOptions,
   ParkingDto,
 } from '../../models';
@@ -115,6 +116,9 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   >([]);
   public selectedMapParkingItem: InputSignal<ParkingDto | null> =
     input<ParkingDto | null>(null);
+  public selectedMapIndoorItemChange: OutputEmitterRef<MapIndoorCenterItem | null> = output<MapIndoorCenterItem | null>();
+  public mapIndoorItems: InputSignal<readonly MapIndoorCenterItem[]> = input<readonly MapIndoorCenterItem[]>([]);
+  public selectedMapIndoorItem: InputSignal<MapIndoorCenterItem | null> = input<MapIndoorCenterItem | null>(null);
   public selectedMapParkingItemChange: OutputEmitterRef<ParkingDto | null> =
     output<ParkingDto | null>();
 
@@ -159,11 +163,15 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       const selectedCrag = this.selectedMapCragItem();
       const parkings = this.mapParkingItems();
       const selectedParking = this.selectedMapParkingItem();
+      const indoorItems = this.mapIndoorItems();
+      const selectedIndoorItem = this.selectedMapIndoorItem();
 
       if (this.mapInitialized()) {
         void this.mapBuilder.updateData(
           crags,
           selectedCrag,
+          indoorItems,
+          selectedIndoorItem,
           parkings,
           selectedParking,
           areas,
@@ -229,6 +237,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.options(),
       this.mapCragItems(),
       this.selectedMapCragItem(),
+      this.mapIndoorItems(),
+      this.selectedMapIndoorItem(),
       this.mapParkingItems(),
       this.selectedMapParkingItem(),
       this.mapAreaItems(),
