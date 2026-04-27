@@ -648,7 +648,66 @@ export class AreasService {
     }[];
   }
 
+
+  async getAreaAdmins(areaId: number): Promise<
+    {
+      id: number;
+      user: { id: string; name: string | null; avatar_url: string | null };
+    }[]
+  > {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+    const { data, error } = await this.supabase.client
+      .from('area_admins')
+      .select('id, user:user_profiles(id, name, avatar_url)')
+      .eq('area_id', areaId);
+
+    if (error) {
+      console.error('[AreasService] getAreaAdmins error', error);
+      return [];
+    }
+    return (data || []) as unknown as {
+      id: number;
+      user: { id: string; name: string | null; avatar_url: string | null };
+    }[];
+  }
+
+  async removeAreaAdmin(adminId: number): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    await this.supabase.whenReady();
+    try {
+      const { error } = await this.supabase.client
+        .from('area_admins')
+        .delete()
+        .eq('id', adminId);
+      if (error) throw error;
+      return true;
+    } catch (e) {
+      console.error('[AreasService] removeAreaAdmin error', e);
+      return false;
+    }
+  }
+
+  async addAreaAdmin(areaId: number, userId: string): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    await this.supabase.whenReady();
+    try {
+      const { error } = await this.supabase.client
+        .from('area_admins')
+        .insert({ area_id: areaId, user_id: userId });
+
+      if (error) {
+        if (error.code !== '23505') throw error;
+      }
+      return true;
+    } catch (e) {
+      console.error('[AreasService] addAreaAdmin error', e);
+      return false;
+    }
+  }
+
   async approveAreaAdminRequest(
+
     requestId: number,
     areaId: number,
     userId: string,

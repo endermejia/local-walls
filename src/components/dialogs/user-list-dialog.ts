@@ -32,6 +32,7 @@ import { firstValueFrom } from 'rxjs';
 import { AscentsService } from '../../services/ascents.service';
 import { FollowsService } from '../../services/follows.service';
 import { SupabaseService } from '../../services/supabase.service';
+import { UserProfilesService } from '../../services/user-profiles.service';
 
 import { EmptyStateComponent } from '../ui/empty-state';
 
@@ -42,7 +43,8 @@ export type UserListType =
   | 'followers'
   | 'following'
   | 'ascent-likes'
-  | 'comment-likes';
+  | 'comment-likes'
+  | 'search';
 
 export interface UserListDialogData {
   userId?: string;
@@ -95,8 +97,8 @@ export interface UserListDialogData {
           @for (user of users(); track user.id) {
             <a
               class="flex items-center gap-3 p-3 hover:bg-(--tui-background-neutral-1) transition-colors rounded-xl cursor-pointer"
-              [routerLink]="['/profile', user.id]"
-              (click)="context.completeWith(true)"
+              [routerLink]="type === 'search' ? null : ['/profile', user.id]"
+              (click)="type === 'search' ? context.completeWith(user) : context.completeWith(true)"
             >
               <span tuiAvatar size="m" class="flex-none">
                 @if (user.avatar) {
@@ -116,7 +118,7 @@ export interface UserListDialogData {
                 }
               </div>
 
-              @if (user.id !== supabase.authUserId()) {
+              @if (type !== 'search' && user.id !== supabase.authUserId()) {
                 @if (followedIds().has(user.id)) {
                   <button
                     tuiButton
@@ -173,8 +175,9 @@ export class UserListDialogComponent {
   protected readonly supabase = inject(SupabaseService);
   private readonly followsService = inject(FollowsService);
   private readonly ascentsService = inject(AscentsService);
+  private readonly userProfilesService = inject(UserProfilesService);
   protected readonly context =
-    injectContext<TuiDialogContext<boolean, UserListDialogData>>();
+    injectContext<TuiDialogContext<boolean | UserProfileBasicDto, UserListDialogData>>();
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
 
@@ -234,6 +237,11 @@ export class UserListDialogComponent {
             this.pageSize,
             params.query,
           );
+
+        case 'search':
+          if (!params.query || params.query.length < 3) return { items: [], total: 0 };
+          const users = await this.userProfilesService.searchUsers(params.query);
+          return { items: users, total: users.length };
         default:
           return { items: [], total: 0 };
       }

@@ -1,3 +1,4 @@
+import { AvatarUrlPipe } from '../../pipes/avatar-url.pipe';
 import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import {
@@ -67,6 +68,7 @@ import { handleErrorToast, matchesQuery } from '../../utils';
 @Component({
   selector: 'app-area',
   imports: [
+    AvatarUrlPipe,
     ChartRoutesByGradeComponent,
     CragCardComponent,
     EmptyStateComponent,
@@ -152,7 +154,64 @@ import { handleErrorToast, matchesQuery } from '../../utils';
             </app-section-header>
           </div>
 
-          <div class="mb-4 flex flex-wrap justify-between items-center gap-2">
+
+          @if (areaAdmins().length > 0 || (canEditAsAdmin && global.editingMode())) {
+            <div class="mb-4">
+              <h3 class="text-lg font-bold mb-2">{{ 'administrators' | translate }}</h3>
+              <div class="flex flex-wrap gap-2 items-center">
+                @for (admin of areaAdmins(); track admin.id) {
+                  @if (canEditAsAdmin && global.editingMode()) {
+                    <tui-badged-content>
+                      <button
+                        tuiBadgeNotification
+                        tuiSlot="top"
+                        size="xs"
+                        tuiAppearance="negative"
+                        (click.zoneless)="removeAdmin(admin.id)"
+                      >
+                        <tui-icon icon="@tui.x" class="text-xs"></tui-icon>
+                      </button>
+                      <div class="flex items-center gap-2 bg-(--tui-background-neutral-1) rounded-full pl-1 pr-3 py-1">
+                        <span tuiAvatar size="s" class="flex-none">
+                          @if (admin.user.avatar_url) {
+                            <img [src]="admin.user.avatar_url | avatarUrl" [alt]="admin.user.name" />
+                          } @else {
+                            <tui-icon icon="@tui.user" />
+                          }
+                        </span>
+                        <span class="text-sm font-medium">{{ admin.user.name || 'User' }}</span>
+                      </div>
+                    </tui-badged-content>
+                  } @else {
+                    <div class="flex items-center gap-2 bg-(--tui-background-neutral-1) rounded-full pl-1 pr-3 py-1">
+                      <span tuiAvatar size="s" class="flex-none">
+                        @if (admin.user.avatar_url) {
+                          <img [src]="admin.user.avatar_url | avatarUrl" [alt]="admin.user.name" />
+                        } @else {
+                          <tui-icon icon="@tui.user" />
+                        }
+                      </span>
+                      <span class="text-sm font-medium">{{ admin.user.name || 'User' }}</span>
+                    </div>
+                  }
+                }
+                @if (canEditAsAdmin && global.editingMode()) {
+                  <button
+                    tuiButton
+                    size="s"
+                    appearance="secondary"
+                    iconStart="@tui.plus"
+                    type="button"
+                    class="rounded-full!"
+                    (click.zoneless)="addAdmin()"
+                  >
+                    {{ 'add' | translate }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+<div class="mb-4 flex flex-wrap justify-between items-center gap-2">
             <div class="flex gap-2">
               <button
                 tuiButton
@@ -419,7 +478,22 @@ export class AreaComponent {
     return (this.global.selectedArea()?.topos_count ?? 0) > 0;
   });
 
-  protected readonly areaDetailResource = resource({
+
+  protected readonly areaAdminsResource = resource({
+    params: () => {
+      const area = this.global.selectedArea();
+      if (!area) return null;
+      return area.id;
+    },
+    loader: async ({ params: id }) => {
+      if (!id) return [];
+      return await this.areas.getAreaAdmins(id);
+    },
+  });
+
+  protected readonly areaAdmins = computed(() => this.areaAdminsResource.value() ?? []);
+
+protected readonly areaDetailResource = resource({
     params: () => this.global.selectedArea()?.id,
     loader: async ({ params: id }) => {
       if (!id) return null;
@@ -740,4 +814,41 @@ export class AreaComponent {
       }),
     );
   }
+
+
+
+
+  async removeAdmin(adminId: number): Promise<void> {
+    const success = await this.areas.removeAreaAdmin(adminId);
+    if (success) {
+      this.areaAdminsResource.reload();
+    }
+  }
+
+  async addAdmin(): Promise<void> {
+    const area = this.global.selectedArea();
+    if (!area) return;
+
+    const { UserListDialogComponent } = await import('../../components/dialogs/user-list-dialog');
+
+    this.dialogs.open<any>(
+      new PolymorpheusComponent(UserListDialogComponent),
+      {
+        label: this.translate.instant('add'),
+        size: 's',
+        data: { type: 'search' },
+      }
+    ).subscribe(async (user: any) => {
+      if (user && user.id) {
+        const success = await this.areas.addAreaAdmin(area.id, user.id);
+        if (success) {
+           this.areaAdminsResource.reload();
+           this.toast.success(this.translate.instant('saved'));
+        } else {
+           this.toast.error(this.translate.instant('errors.unexpected'));
+        }
+      }
+    });
+  }
+
 }
