@@ -35,7 +35,7 @@ import { DropdownButtonComponent } from './dropdown-button';
       @let breadcrumbs = global.slicedBreadcrumbs();
       @let isMobile = global.isMobile();
 
-      <div class="flex items-start justify-between gap-3">
+      <div class="flex flex-wrap items-start justify-between gap-3">
         <!-- Breadcrumb -->
         @if (breadcrumbs.length) {
           <tui-breadcrumbs
@@ -56,7 +56,7 @@ import { DropdownButtonComponent } from './dropdown-button';
           </tui-breadcrumbs>
         }
         <!-- Actions container -->
-        <div class="flex flex-wrap items-center gap-2 shrink-0">
+        <div class="flex flex-wrap items-center gap-2 shrink-0 ms-auto">
           <!-- Like button -->
           @if (showLike()) {
             <button
