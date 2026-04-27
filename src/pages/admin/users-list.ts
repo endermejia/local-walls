@@ -154,7 +154,10 @@ interface UserWithRole {
         </tui-textfield>
       </div>
 
-      <tui-scrollbar waIntersectionRoot class="flex grow">
+      <tui-scrollbar
+        waIntersectionRoot
+        class="flex grow overflow-x-auto block w-full"
+      >
         @if (filteredUsers().length > 0) {
           <table
             [size]="global.isMobile() ? 's' : 'l'"
@@ -364,10 +367,7 @@ export class AdminUsersListComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
 
-  protected readonly columns = computed(() => {
-    const cols = ['user', 'role', 'areas'];
-    return this.global.isMobile() ? cols.filter((c) => c !== 'areas') : cols;
-  });
+  protected readonly columns = computed(() => ['user', 'role', 'areas']);
 
   protected readonly roleOptions = [false, true];
 
