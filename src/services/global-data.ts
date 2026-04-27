@@ -193,6 +193,8 @@ export class GlobalData {
   private readonly editingModeStorageKey = 'editing_mode_v2';
 
   readonly isAdmin = computed(() => !!this.userProfile()?.is_admin);
+  readonly merchandisingFeature = computed(() => this.isAdmin());
+  readonly indoorFeature = computed(() => false);
   readonly canEditAsAdmin = computed(
     () => this.editingMode() && this.isAdmin(),
   );
