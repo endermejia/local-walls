@@ -6,6 +6,8 @@ export function slugify(input: string | undefined | null): string {
   const value = (input ?? '').toString();
   if (!value) return '';
   let v = value
+    .replace(/ł/g, 'l')
+    .replace(/Ł/g, 'l')
     .normalize('NFD')
     // Remove combining diacritical marks
     .replace(/[\u0300-\u036f]/g, '')
@@ -25,9 +27,11 @@ export function normalizeNameStrict(input: string | undefined | null): string {
   const value = (input ?? '').toString();
   if (!value) return '';
   return value
+    .replace(/ł/g, 'l')
+    .replace(/Ł/g, 'l')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[''´`]/g, '')
+    .replace(/['’´`]/g, '')
     .toLowerCase()
     .trim()
     .replace(/\s+/g, ' ');
@@ -37,11 +41,13 @@ export function normalizeName(input: string | undefined | null): string {
   const value = (input ?? '').toString();
   if (!value) return '';
   return value
+    .replace(/ł/g, 'l')
+    .replace(/Ł/g, 'l')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/['’´`]/g, '')
-    .replace(/[^a-z0-9\s]/g, ' ')
     .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
     .trim()
     .replace(/\s+/g, ' ');
 }
