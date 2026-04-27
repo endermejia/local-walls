@@ -535,7 +535,7 @@ import {
 
         <!-- Desktop Bottom Options -->
         <div class="hidden md:flex flex-col gap-4 w-full shrink-0">
-          @if (global.isAdmin()) {
+          @if (global.merchandisingFeature()) {
             <!-- Shop -->
             <a
               #shop="routerLinkActive"
