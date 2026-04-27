@@ -9,6 +9,8 @@ export function slugify(input: string | undefined | null): string {
     .normalize('NFD')
     // Remove combining diacritical marks
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ł/g, 'l')
+    .replace(/Ł/g, 'l')
     .toLowerCase()
     .trim();
   // Replace non-alphanumeric with hyphens
@@ -27,6 +29,8 @@ export function normalizeNameStrict(input: string | undefined | null): string {
   return value
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ł/g, 'l')
+    .replace(/Ł/g, 'l')
     .replace(/[''´`]/g, '')
     .toLowerCase()
     .trim()
@@ -39,9 +43,11 @@ export function normalizeName(input: string | undefined | null): string {
   return value
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ł/g, 'l')
+    .replace(/Ł/g, 'l')
     .replace(/['’´`]/g, '')
-    .replace(/[^a-z0-9\s]/g, ' ')
     .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
     .trim()
     .replace(/\s+/g, ' ');
 }

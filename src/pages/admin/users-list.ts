@@ -55,7 +55,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
 
 import { AreaListItem } from '../../models';
 import { AvatarUrlPipe } from '../../pipes';
-import { matchesQuery } from '../../utils';
+import { matchesQuery, normalizeName } from '../../utils';
 
 interface UserWithRole {
   id: string;
@@ -396,7 +396,7 @@ export class AdminUsersListComponent {
     let list = this.users();
 
     if (query) {
-      list = list.filter((u) => matchesQuery(u.name, query));
+      list = list.filter((u) => normalizeName(u.name).includes(normalizeName(query)));
     }
 
     if (role !== 'ALL') {
