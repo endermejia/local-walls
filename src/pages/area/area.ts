@@ -27,7 +27,7 @@ import {
   TuiDataListWrapper,
 } from '@taiga-ui/kit';
 import { TuiDataList, TuiDropdown } from '@taiga-ui/core';
-import { UserProfileBasicDto } from '../../models/user.model';
+import { UserProfileBasicDto } from '../../models';
 import { UserProfilesService } from '../../services/user-profiles.service';
 import { AvatarUrlPipe } from '../../pipes';
 import {

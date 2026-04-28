@@ -181,6 +181,8 @@ export interface TopoRouteRow {
               <!-- Admin and utility action buttons -->
               <div actionButtons class="flex gap-2">
                 @if (global.canEditCrag()) {
+                  @let canAreaAdmin =
+                    global.areaAdminPermissions()[t.crag?.area_id || -1];
                   <button
                     tuiIconButton
                     size="s"
@@ -191,7 +193,7 @@ export interface TopoRouteRow {
                   >
                     {{ 'edit' | translate }}
                   </button>
-                  @if (canEditAsAdmin) {
+                  @if (canEditAsAdmin || canAreaAdmin) {
                     <button
                       tuiIconButton
                       size="s"

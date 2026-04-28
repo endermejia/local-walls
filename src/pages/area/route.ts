@@ -109,6 +109,7 @@ import { handleErrorToast } from '../../utils';
               titleInfo
             />
             @if (global.canEditRoute()) {
+              @let canAreaAdmin = global.areaAdminPermissions()[r.area_id];
               <div actionButtons class="flex gap-2">
                 <button
                   size="s"
@@ -121,7 +122,7 @@ import { handleErrorToast } from '../../utils';
                 >
                   {{ 'edit' | translate }}
                 </button>
-                @if (canEditAsAdmin) {
+                @if (canEditAsAdmin || canAreaAdmin) {
                   <button
                     size="s"
                     appearance="negative"

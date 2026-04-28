@@ -484,6 +484,10 @@ import {
                         @case ('admin_actions') {
                           <div tuiCell size="m">
                             @if (canEditRoute) {
+                              @let canAreaAdmin =
+                                global.areaAdminPermissions()[
+                                  item._ref.area_id || -1
+                                ];
                               <button
                                 size="s"
                                 appearance="neutral"
@@ -495,7 +499,7 @@ import {
                               >
                                 {{ 'edit' | translate }}
                               </button>
-                              @if (canEditAsAdmin) {
+                              @if (canEditAsAdmin || canAreaAdmin) {
                                 <button
                                   size="s"
                                   appearance="negative"

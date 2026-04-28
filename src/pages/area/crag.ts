@@ -22,7 +22,6 @@ import {
   type TuiConfirmData,
 } from '@taiga-ui/kit';
 import {
-  TuiAppearance,
   TuiButton,
   TuiDataList,
   TuiDropdown,
@@ -70,7 +69,6 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
     SectionHeaderComponent,
     TourHintComponent,
     TranslatePipe,
-    TuiAppearance,
     TuiButton,
     TuiDataList,
     TuiDropdown,
@@ -116,6 +114,9 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
               (toggleLike)="onToggleLike()"
             >
               @if (global.canEditCrag()) {
+                @let canAreaAdmin =
+                  global.areaAdminPermissions()[c.area_id || -1];
+                <!-- area_id: {{ c.area_id }} - canAreaAdmin: {{ canAreaAdmin }} - canEditAsAdmin: {{ canEditAsAdmin }} -->
                 <div actionButtons class="flex gap-2">
                   <button
                     size="s"
@@ -128,7 +129,7 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
                   >
                     {{ 'edit' | translate }}
                   </button>
-                  @if (canEditAsAdmin) {
+                  @if (canEditAsAdmin || canAreaAdmin) {
                     <button
                       size="s"
                       appearance="negative"
