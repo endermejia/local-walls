@@ -623,15 +623,31 @@ export class RouteFormComponent {
             eight_anu_route_slugs,
           });
         } else {
-          result = await this.routes.create({
-            crag_id,
-            name,
-            slug: slug || slugify(name),
-            grade,
-            climbing_kind,
-            height,
-            eight_anu_route_slugs,
-          });
+          const firstSlug = slug || slugify(name);
+          try {
+            result = await this.routes.create({
+              crag_id,
+              name,
+              slug: firstSlug,
+              grade,
+              climbing_kind,
+              height,
+              eight_anu_route_slugs,
+            });
+          } catch (firstError) {
+            if ((firstError as { code?: string })?.code !== '23505')
+              throw firstError;
+            // slug conflict – retry with route slug + crag slug
+            result = await this.routes.create({
+              crag_id,
+              name,
+              slug: `${firstSlug}-${crag!.slug}`,
+              grade,
+              climbing_kind,
+              height,
+              eight_anu_route_slugs,
+            });
+          }
         }
 
         if (result) {

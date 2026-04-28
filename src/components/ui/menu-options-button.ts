@@ -80,7 +80,10 @@ import { Themes } from '../../models';
 
     <ng-template #optionsDropdown>
       <div
+        role="menu"
+        tabindex="0"
         (click)="$event.stopPropagation()"
+        (keydown)="$event.stopPropagation()"
         class="flex flex-col p-1.5 bg-(--tui-background-base) rounded-xl shadow-2xl min-w-56 border border-(--tui-border-normal)"
       >
         <!-- User Config -->

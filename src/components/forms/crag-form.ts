@@ -506,11 +506,19 @@ export class CragFormComponent {
         } else {
           const area_id = value.area?.id;
           if (!area_id) return; // area required to create
-          await this.crags.create({
-            area_id,
-            ...base,
-            slug: slugify(name),
-          });
+          const firstSlug = slugify(name);
+          try {
+            await this.crags.create({ area_id, ...base, slug: firstSlug });
+          } catch (firstError) {
+            if ((firstError as { code?: string })?.code !== '23505')
+              throw firstError;
+            // slug conflict – retry with crag slug + area slug
+            await this.crags.create({
+              area_id,
+              ...base,
+              slug: `${firstSlug}-${value.area!.slug}`,
+            });
+          }
         }
         if (this._dialogCtx) {
           this._dialogCtx.completeWith(

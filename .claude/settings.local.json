@@ -25,7 +25,9 @@
       "Bash(grep -rn \"map.*=>.*\\\\{$\" /d/git/local-walls/src/services --include=\"*.ts\" -A 5)",
       "Bash(grep -rn \"progress\\\\$\\\\.next\\\\|BehaviorSubject\" /d/git/local-walls/src --include=\"*.ts\")",
       "Bash(wc -l /d/git/local-walls/public/i18n/*.json)",
-      "Bash(npx prettier:*)"
+      "Bash(npx prettier:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node_modules/.bin/tsc --noEmit)"
     ]
   }
 }

@@ -21,8 +21,15 @@ import {
   TuiAvatar,
   TuiBadgedContent,
   TuiBadgeNotification,
+  TuiComboBox,
+  TuiChevron,
   type TuiConfirmData,
+  TuiDataListWrapper,
 } from '@taiga-ui/kit';
+import { TuiDataList, TuiDropdown } from '@taiga-ui/core';
+import { UserProfileBasicDto } from '../../models/user.model';
+import { UserProfilesService } from '../../services/user-profiles.service';
+import { AvatarUrlPipe } from '../../pipes';
 import {
   TuiAppearance,
   TuiButton,
@@ -31,6 +38,7 @@ import {
   TuiLoader,
   TuiScrollbar,
   TuiInput,
+  TuiTextfield,
 } from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -53,6 +61,7 @@ import { GradeComponent } from '../../components/ui/avatar-grade';
 import { SectionHeaderComponent } from '../../components/ui/section-header';
 
 import { AreaDetail } from '../../models/area.model';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   ClimbingKinds,
   ClimbingKind,
@@ -67,12 +76,15 @@ import { handleErrorToast, matchesQuery } from '../../utils';
 @Component({
   selector: 'app-area',
   imports: [
+    AvatarUrlPipe,
     ChartRoutesByGradeComponent,
     CragCardComponent,
     EmptyStateComponent,
+    FormsModule,
     GradeComponent,
     IconSrcPipe,
     LowerCasePipe,
+    ReactiveFormsModule,
     RouterLink,
     SectionHeaderComponent,
     TranslatePipe,
@@ -81,11 +93,17 @@ import { handleErrorToast, matchesQuery } from '../../utils';
     TuiBadgedContent,
     TuiBadgeNotification,
     TuiButton,
+    TuiChevron,
+    TuiComboBox,
+    TuiDataList,
+    TuiDataListWrapper,
+    TuiDropdown,
     TuiIcon,
     TuiInput,
     TuiLabel,
     TuiLoader,
     TuiScrollbar,
+    TuiTextfield,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -149,6 +167,9 @@ import { handleErrorToast, matchesQuery } from '../../utils';
                   </button>
                 </div>
               }
+              @if (!isPublic()) {
+                <tui-icon icon="@tui.lock" />
+              }
             </app-section-header>
           </div>
 
@@ -209,6 +230,84 @@ import { handleErrorToast, matchesQuery } from '../../utils';
             </div>
             <app-chart-routes-by-grade [grades]="area.grades" />
           </div>
+
+          @let admins = areaAdmins();
+          @if (admins.length > 0 || canEditAsAdmin) {
+            <div class="flex flex-col gap-3 mb-8">
+              <span
+                class="text-xs uppercase opacity-60 font-semibold tracking-wider"
+              >
+                {{ 'admins' | translate }}
+              </span>
+              <div class="flex flex-wrap gap-4 items-center">
+                @for (admin of admins; track admin.user_id) {
+                  <a
+                    [routerLink]="['/profile', admin.user_id]"
+                    class="flex items-center gap-2 bg-(--tui-background-neutral-1) py-1 pr-3 rounded-full border border-(--tui-border-normal) group transition-all hover:bg-(--tui-background-neutral-1-hover) cursor-pointer no-underline text-inherit"
+                    [class.pl-1]="admin.user.avatar"
+                    [class.pl-3]="!admin.user.avatar"
+                  >
+                    @if (admin.user.avatar) {
+                      <span tuiAvatar size="s">
+                        <img
+                          [src]="admin.user.avatar | avatarUrl"
+                          [alt]="admin.user.name"
+                        />
+                      </span>
+                    }
+                    <span class="text-sm font-medium">{{
+                      admin.user.name
+                    }}</span>
+                    @if (canEditAsAdmin) {
+                      <button
+                        tuiIconButton
+                        appearance="flat"
+                        size="xs"
+                        type="button"
+                        iconStart="@tui.x"
+                        [attr.aria-label]="'delete' | translate"
+                        class="opacity-0 group-hover:opacity-50 hover:opacity-100! transition-opacity -mr-1"
+                        (click.zoneless)="
+                          $event.stopPropagation(); removeAdmin(admin.user_id)
+                        "
+                      ></button>
+                    }
+                  </a>
+                }
+
+                @if (canEditAsAdmin) {
+                  <div class="w-64">
+                    <tui-textfield
+                      size="s"
+                      tuiChevron
+                      [tuiTextfieldCleaner]="true"
+                      [stringify]="stringifyUser"
+                      class="rounded-full!"
+                    >
+                      <label tuiLabel for="admin-search-input">{{
+                        'addUser' | translate
+                      }}</label>
+                      <input
+                        id="admin-search-input"
+                        tuiComboBox
+                        [placeholder]="'searchPlaceholder' | translate"
+                        (ngModelChange)="onAdminSelected($event)"
+                        [ngModel]="null"
+                        (input.zoneless)="
+                          userSearchQuery.set(adminSearchInput.value)
+                        "
+                        #adminSearchInput
+                      />
+                      <tui-data-list-wrapper
+                        *tuiDropdown
+                        [items]="foundUsers()"
+                      />
+                    </tui-textfield>
+                  </div>
+                }
+              </div>
+            </div>
+          }
 
           <div class="flex items-center justify-between gap-2 mt-4">
             <div class="flex items-center w-full sm:w-auto gap-2">
@@ -398,9 +497,11 @@ export class AreaComponent {
   protected readonly translate = inject(TranslateService);
   protected readonly filtersService = inject(FiltersService);
   private readonly seo = inject(SeoService);
+  protected readonly userProfiles = inject(UserProfilesService);
 
   areaSlug: InputSignal<string> = input.required<string>();
   readonly query: WritableSignal<string> = signal('');
+  protected readonly userSearchQuery = signal('');
   readonly selectedGradeRange = this.global.areaListGradeRange;
   readonly selectedCategories = this.global.areaListCategories;
   readonly selectedShade = this.global.areaListShade;
@@ -430,6 +531,16 @@ export class AreaComponent {
 
   protected readonly areaDetail = computed(() =>
     this.areaDetailResource.value(),
+  );
+
+  protected readonly canEditAsAdmin = computed(() =>
+    this.global.canEditAsAdmin(),
+  );
+
+  protected readonly canEditArea = computed(() => this.global.canEditArea());
+
+  protected readonly isPublic = computed(
+    () => this.areaDetail()?.is_public ?? true,
   );
 
   protected readonly routesResource = resource({
@@ -532,6 +643,120 @@ export class AreaComponent {
   protected readonly areaToposCount = computed(() =>
     this.crags().reduce((acc, c) => acc + (c.topos_count || 0), 0),
   );
+
+  protected readonly areaAdminsResource = resource({
+    params: () => this.global.selectedArea()?.id,
+    loader: async ({ params: areaId }) => {
+      if (!areaId) return [];
+      await this.supabase.whenReady();
+
+      const { data: mappings, error: mappingError } = await this.supabase.client
+        .from('area_admins')
+        .select('user_id')
+        .eq('area_id', areaId);
+
+      if (mappingError || !mappings?.length) {
+        if (mappingError) {
+          console.error(
+            '[AreaComponent] Error fetching area admin mappings:',
+            mappingError,
+          );
+        }
+        return [];
+      }
+
+      const userIds = mappings.map((m) => m.user_id);
+      const { data: profiles, error: profilesError } =
+        await this.supabase.client
+          .from('user_profiles')
+          .select('id, name, avatar')
+          .in('id', userIds);
+
+      if (profilesError) {
+        console.error(
+          '[AreaComponent] Error fetching admin profiles:',
+          profilesError,
+        );
+        return [];
+      }
+
+      return mappings.map((m) => ({
+        user_id: m.user_id,
+        user: profiles.find((p) => p.id === m.user_id) || {
+          id: m.user_id,
+          name: 'Unknown',
+          avatar: null,
+        },
+      }));
+    },
+  });
+
+  protected readonly areaAdmins = computed(
+    () => this.areaAdminsResource.value() ?? [],
+  );
+
+  protected readonly foundUsersResource = resource({
+    params: () => this.userSearchQuery().trim(),
+    loader: async ({ params: query }) => {
+      if (query.length < 2) return [];
+      return await this.userProfiles.searchUsers(query);
+    },
+  });
+
+  protected readonly foundUsers = computed(
+    () => this.foundUsersResource.value() ?? [],
+  );
+
+  protected readonly stringifyUser = (u: UserProfileBasicDto) => u.name || '';
+
+  async addAdmin(user: UserProfileBasicDto): Promise<void> {
+    const areaId = this.global.selectedArea()?.id;
+    if (!areaId) return;
+
+    const { error } = await this.supabase.client
+      .from('area_admins')
+      .insert({ area_id: areaId, user_id: user.id });
+
+    if (error) {
+      if (error.code === '23505') {
+        this.toast.info('adminRequests.alreadyRequested');
+      } else {
+        console.error('[AreaComponent] Error adding admin:', error);
+        this.toast.error('errors.unexpected');
+      }
+      return;
+    }
+
+    this.toast.success('messages.toasts.adminAdded');
+    this.areaAdminsResource.reload();
+    this.userSearchQuery.set('');
+  }
+
+  async removeAdmin(userId: string): Promise<void> {
+    const areaId = this.global.selectedArea()?.id;
+    if (!areaId) return;
+
+    const { error } = await this.supabase.client
+      .from('area_admins')
+      .delete()
+      .eq('area_id', areaId)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('[AreaComponent] Error removing admin:', error);
+      this.toast.error('errors.unexpected');
+      return;
+    }
+
+    this.toast.success('messages.toasts.adminRemoved');
+    this.areaAdminsResource.reload();
+  }
+
+  protected onAdminSelected(user: UserProfileBasicDto | null): void {
+    if (user) {
+      void this.addAdmin(user);
+    }
+  }
 
   constructor() {
     effect(() => {
