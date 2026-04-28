@@ -241,23 +241,27 @@ import { handleErrorToast, matchesQuery } from '../../utils';
               </span>
               <div class="flex flex-wrap gap-4 items-center">
                 @for (admin of admins; track admin.user_id) {
-                  <a
-                    [routerLink]="['/profile', admin.user_id]"
-                    class="flex items-center gap-2 bg-(--tui-background-neutral-1) py-1 pr-3 rounded-full border border-(--tui-border-normal) group transition-all hover:bg-(--tui-background-neutral-1-hover) cursor-pointer no-underline text-inherit"
+                  <div
+                    class="flex items-center gap-2 bg-(--tui-background-neutral-1) py-1 pr-3 rounded-full border border-(--tui-border-normal) group transition-all hover:bg-(--tui-background-neutral-1-hover) no-underline text-inherit"
                     [class.pl-1]="admin.user.avatar"
                     [class.pl-3]="!admin.user.avatar"
                   >
-                    @if (admin.user.avatar) {
-                      <span tuiAvatar size="s">
-                        <img
-                          [src]="admin.user.avatar | avatarUrl"
-                          [alt]="admin.user.name"
-                        />
-                      </span>
-                    }
-                    <span class="text-sm font-medium">{{
-                      admin.user.name
-                    }}</span>
+                    <a
+                      [routerLink]="['/profile', admin.user_id]"
+                      class="flex items-center gap-2 no-underline text-inherit cursor-pointer"
+                    >
+                      @if (admin.user.avatar) {
+                        <span tuiAvatar size="s">
+                          <img
+                            [src]="admin.user.avatar | avatarUrl"
+                            [alt]="admin.user.name"
+                          />
+                        </span>
+                      }
+                      <span class="text-sm font-medium">{{
+                        admin.user.name
+                      }}</span>
+                    </a>
                     @if (canEditAsAdmin) {
                       <button
                         tuiIconButton
@@ -267,17 +271,16 @@ import { handleErrorToast, matchesQuery } from '../../utils';
                         iconStart="@tui.x"
                         [attr.aria-label]="'delete' | translate"
                         class="opacity-0 group-hover:opacity-50 hover:opacity-100! transition-opacity -mr-1"
-                        (click.zoneless)="
-                          $event.stopPropagation(); removeAdmin(admin.user_id)
-                        "
+                        (click.zoneless)="removeAdmin(admin.user_id)"
                       ></button>
                     }
-                  </a>
+                  </div>
                 }
 
                 @if (canEditAsAdmin) {
                   <div class="w-64">
                     <tui-textfield
+                      appearance="floating"
                       size="s"
                       tuiChevron
                       [tuiTextfieldCleaner]="true"
@@ -366,9 +369,12 @@ import { handleErrorToast, matchesQuery } from '../../utils';
             </div>
           </div>
 
-          <div class="sticky top-0 z-10 py-4 flex items-end gap-2">
+          <div
+            class="sticky top-0 z-10 py-4 flex items-end gap-2 bg-(--tui-background-base)"
+          >
             <tui-textfield
-              class="grow block bg-(--tui-background-base)"
+              appearance="floating"
+              class="grow block"
               tuiTextfieldSize="l"
             >
               <label tuiLabel for="crags-search">{{
@@ -383,7 +389,7 @@ import { handleErrorToast, matchesQuery } from '../../utils';
                 (input.zoneless)="onQuery(cragsSearch.value)"
               />
             </tui-textfield>
-            <tui-badged-content class="bg-(--tui-background-base) rounded-2xl">
+            <tui-badged-content class="rounded-2xl">
               @if (hasActiveFilters()) {
                 <tui-badge-notification
                   tuiAppearance="accent"

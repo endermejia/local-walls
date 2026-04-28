@@ -117,9 +117,12 @@ import { matchesQuery } from '../../utils';
             </div>
           </header>
 
-          <div class="sticky top-0 z-10 py-4 flex items-end gap-2">
+          <div
+            class="sticky top-0 z-10 py-4 flex items-end gap-2 bg-(--tui-background-base)"
+          >
             <tui-textfield
-              class="grow block bg-(--tui-background-base)"
+              appearance="floating"
+              class="grow block"
               tuiTextfieldSize="l"
             >
               <label tuiLabel for="areas-search">
@@ -134,7 +137,7 @@ import { matchesQuery } from '../../utils';
                 (input.zoneless)="onQuery(areasSearch.value)"
               />
             </tui-textfield>
-            <tui-badged-content class="bg-(--tui-background-base) rounded-2xl">
+            <tui-badged-content class="rounded-2xl">
               @if (hasActiveFilters()) {
                 <tui-badge-notification
                   tuiAppearance="accent"
