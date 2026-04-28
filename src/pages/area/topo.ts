@@ -149,6 +149,10 @@ export interface TopoRouteRow {
         @let isMobile = global.isMobile();
         @let canEditAsAdmin = global.canEditAsAdmin();
         @if (topo(); as t) {
+          @let canAreaAdmin =
+            t.crag
+              ? global.areaAdminPermissions()[t.crag.area_id || -1]
+              : false;
           <div class="mb-4 p-4 md:p-0">
             <app-section-header
               [title]="t.name"
@@ -181,8 +185,6 @@ export interface TopoRouteRow {
               <!-- Admin and utility action buttons -->
               <div actionButtons class="flex gap-2">
                 @if (global.canEditCrag()) {
-                  @let canAreaAdmin =
-                    global.areaAdminPermissions()[t.crag?.area_id || -1];
                   <button
                     tuiIconButton
                     size="s"
@@ -212,8 +214,6 @@ export interface TopoRouteRow {
 
           @let isPublic = t.crag?.area?.is_public;
           @let purchased = t.crag?.area?.purchased;
-          @let canAreaAdmin =
-            t.crag ? global.areaAdminPermissions()[t.crag.area_id] : false;
           @let isCreator = t.crag?.user_creator_id === global.userProfile()?.id;
           @let hasAccess =
             isPublic ||

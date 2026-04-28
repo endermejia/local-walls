@@ -113,11 +113,10 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
               [titleDropdown]="cragSwitcher"
               (toggleLike)="onToggleLike()"
             >
+              @let canAreaAdmin = global.areaAdminPermissions()[c.area_id];
               @if (global.canEditCrag()) {
-                @let canAreaAdmin =
-                  global.areaAdminPermissions()[c.area_id || -1];
-                <!-- area_id: {{ c.area_id }} - canAreaAdmin: {{ canAreaAdmin }} - canEditAsAdmin: {{ canEditAsAdmin }} -->
                 <div actionButtons class="flex gap-2">
+                  <!-- area_id: {{ c.area_id }} - canAreaAdmin: {{ canAreaAdmin }} - canEditAsAdmin: {{ canEditAsAdmin }} -->
                   <button
                     size="s"
                     appearance="neutral"

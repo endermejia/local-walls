@@ -109,8 +109,9 @@ import { handleErrorToast } from '../../utils';
               titleInfo
             />
             @if (global.canEditRoute()) {
-              @let canAreaAdmin = global.areaAdminPermissions()[r.area_id];
               <div actionButtons class="flex gap-2">
+                @let canAreaAdmin =
+                  global.areaAdminPermissions()[r.area_id ?? -1];
                 <button
                   size="s"
                   appearance="neutral"
