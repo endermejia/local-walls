@@ -59,10 +59,7 @@ import { AvatarUrlPipe } from '../../pipes/avatar-url.pipe';
               class="text-xl font-semibold wrap-anywhere min-w-0"
               [tuiSkeleton]="loading() ? 'name lastName' : false"
             >
-              <ng-content select="[name]" />
-              @if (!false) {
-                {{ name() }}
-              }
+              {{ name() }}
             </h1>
             <ng-content select="[nameActions]" />
           </div>

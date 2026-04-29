@@ -34,10 +34,11 @@ import { PushService } from './push.service';
 import { SupabaseService } from './supabase.service';
 
 import {
-  AscentTypes,
   AmountByEveryGrade,
   AreaDto,
   AreaListItem,
+  AscentType,
+  AscentTypes,
   BreadcrumbItem,
   ClimbingKind,
   ClimbingKinds,
@@ -45,6 +46,8 @@ import {
   CragDto,
   CragListItem,
   CragWithJoins,
+  EquipperDto,
+  LABEL_TO_VERTICAL_LIFE,
   Language,
   Languages,
   MapAreaItem,
@@ -55,20 +58,18 @@ import {
   ORDERED_GRADE_VALUES,
   PaginatedAscents,
   ParkingDto,
-  RouteAscentWithExtras,
   RouteAscentDto,
+  RouteAscentWithExtras,
   RouteDto,
-  TopoListItem,
   RouteWithExtras,
   Theme,
   Themes,
   TopoDetail,
+  TopoListItem,
   TopoPath,
   TopoRouteWithRoute,
-  VERTICAL_LIFE_GRADES,
-  LABEL_TO_VERTICAL_LIFE,
-  EquipperDto,
   UserProfileDto,
+  VERTICAL_LIFE_GRADES,
 } from '../models';
 
 import { LocalStorage } from './local-storage';
@@ -751,13 +752,16 @@ export class GlobalData {
     loader: async ({ params: id }) => {
       if (!id || !isPlatformBrowser(this.platformId)) return [];
       await this.supabase.whenReady();
+      const userId = this.supabase.authUser()?.id;
 
-      const { data, error } = await this.supabase.client
-        .from('route_equippers')
-        .select(
-          `
+      let query = this.supabase.client.from('route_equippers').select(
+        `
           route:routes (
             *,
+            liked:route_likes(id),
+            project:route_projects(id),
+            ascents:route_ascents(rate, type),
+            own_ascent:route_ascents(*),
             crag:crags (
               *,
               area:areas (*)
@@ -766,8 +770,16 @@ export class GlobalData {
             topo_routes(topo:topos(id, name, slug))
           )
         `,
-        )
-        .eq('equipper_id', id);
+      );
+
+      if (userId) {
+        query = query
+          .eq('route.own_ascent.user_id', userId)
+          .eq('route.project.user_id', userId)
+          .eq('route.liked.user_id', userId);
+      }
+
+      const { data, error } = await query.eq('equipper_id', id);
 
       if (error) {
         console.error('[GlobalData] equipperRoutesResource error', error);
@@ -778,7 +790,15 @@ export class GlobalData {
         .map((d) => {
           const r = d.route as
             | (RouteDto & {
-                crag: (CragDto & { area: AreaDto | null }) | null;
+                liked: { id: number }[];
+                project: { id: number }[];
+                ascents: { rate: number | null; type: AscentType }[];
+                own_ascent: RouteAscentDto[];
+                crag:
+                  | (CragDto & {
+                      area: { id: number; name: string; slug: string } | null;
+                    })
+                  | null;
                 route_equippers: { equipper: EquipperDto }[];
                 topo_routes: {
                   topo: { id: number; name: string; slug: string };
@@ -786,15 +806,39 @@ export class GlobalData {
               })
             | null;
           if (!r) return null;
+
+          const rates =
+            r.ascents
+              ?.map((a) => a.rate)
+              .filter((rate): rate is number => rate != null) ?? [];
+          const rating =
+            rates.length > 0
+              ? rates.reduce((a: number, b: number) => a + b, 0) / rates.length
+              : 0;
+
           return {
             ...r,
-            liked: false, // Default value as it's not in this query
-            project: false, // Default value as it's not in this query
+            liked: (r.liked?.length ?? 0) > 0,
+            project: (r.project?.length ?? 0) > 0,
             crag_name: r.crag?.name,
             crag_slug: r.crag?.slug,
             area_id: r.crag?.area?.id,
             area_name: r.crag?.area?.name,
             area_slug: r.crag?.area?.slug,
+            rating,
+            ascent_count:
+              r.ascents?.filter((a) => a.type !== AscentTypes.ATTEMPT).length ??
+              0,
+            climbed:
+              (r.own_ascent?.filter((a) => a.type !== AscentTypes.ATTEMPT)
+                .length ?? 0) > 0,
+            own_ascent: r.own_ascent?.sort((a, b) => {
+              const isAttemptA = a.type === AscentTypes.ATTEMPT;
+              const isAttemptB = b.type === AscentTypes.ATTEMPT;
+              if (isAttemptA && !isAttemptB) return 1;
+              if (!isAttemptA && isAttemptB) return -1;
+              return 0;
+            })[0],
             equippers:
               r.route_equippers
                 ?.map((re: { equipper: EquipperDto }) => re.equipper)
@@ -1216,7 +1260,10 @@ export class GlobalData {
           .eq('crag_id', cragId);
 
         if (userId) {
-          query = query.eq('own_ascent.user_id', userId);
+          query = query
+            .eq('own_ascent.user_id', userId)
+            .eq('project.user_id', userId)
+            .eq('liked.user_id', userId);
         }
 
         const { data, error } = await query;
@@ -1296,15 +1343,16 @@ export class GlobalData {
       if (!userId || !isPlatformBrowser(this.platformId)) return [];
       try {
         await this.supabase.whenReady();
+        const currentUserId = this.supabase.authUser()?.id;
+
         // Fetch routes that are projects for this specific user
-        const { data, error } = await this.supabase.client
-          .from('route_projects')
-          .select(
-            `
+        let query = this.supabase.client.from('route_projects').select(
+          `
             route:routes (
               *,
               liked:route_likes(id),
               project:route_projects(id),
+              own_ascent:route_ascents(*),
               crag:crags(
                 slug,
                 name,
@@ -1314,8 +1362,16 @@ export class GlobalData {
               ascents:route_ascents(rate, type)
             )
           `,
-          )
-          .eq('user_id', userId);
+        );
+
+        if (currentUserId) {
+          query = query
+            .eq('route.own_ascent.user_id', currentUserId)
+            .eq('route.project.user_id', currentUserId)
+            .eq('route.liked.user_id', currentUserId);
+        }
+
+        const { data, error } = await query.eq('user_id', userId);
 
         if (error) {
           console.error('[GlobalData] userProjectsResource error', error);
@@ -1324,7 +1380,19 @@ export class GlobalData {
 
         return data
           .map((item) => {
-            const r = item.route;
+            const r = item.route as
+              | (RouteDto & {
+                  liked: { id: number }[];
+                  project: { id: number }[];
+                  ascents: { rate: number | null; type: AscentType }[];
+                  own_ascent: RouteAscentDto[];
+                  crag:
+                    | (CragDto & {
+                        area: { slug: string; name: string } | null;
+                      })
+                    | null;
+                })
+              | null;
             if (!r) return null;
             const rates =
               r.ascents
@@ -1332,10 +1400,11 @@ export class GlobalData {
                 .filter((rate): rate is number => rate != null) ?? [];
             const rating =
               rates.length > 0
-                ? rates.reduce((a, b) => a + b, 0) / rates.length
+                ? rates.reduce((a: number, b: number) => a + b, 0) /
+                  rates.length
                 : 0;
 
-            const { crag, ascents, liked, project, ...rest } = r;
+            const { crag, ascents, liked, project, own_ascent, ...rest } = r;
             return {
               ...rest,
               liked: (liked?.length ?? 0) > 0,
@@ -1351,6 +1420,16 @@ export class GlobalData {
                   (a: Partial<RouteAscentDto>) =>
                     a.type !== AscentTypes.ATTEMPT,
                 ).length ?? 0,
+              climbed:
+                (own_ascent?.filter((a) => a.type !== AscentTypes.ATTEMPT)
+                  .length ?? 0) > 0,
+              own_ascent: own_ascent?.sort((a, b) => {
+                const isAttemptA = a.type === AscentTypes.ATTEMPT;
+                const isAttemptB = b.type === AscentTypes.ATTEMPT;
+                if (isAttemptA && !isAttemptB) return 1;
+                if (!isAttemptA && isAttemptB) return -1;
+                return 0;
+              })[0],
             } as RouteWithExtras;
           })
           .filter((r): r is RouteWithExtras => !!r);
@@ -1441,8 +1520,10 @@ export class GlobalData {
             *,
             routes!inner (
               id, name, slug, grade, climbing_kind,
+              crag_id, created_at, eight_anu_route_slugs, height, user_creator_id,
               liked:route_likes(id),
               project:route_projects(id),
+              ascents:route_ascents(rate, type),
               crags!inner (
                 slug,
                 name,
@@ -1501,6 +1582,13 @@ export class GlobalData {
           );
         }
 
+        const currentUserId = this.supabase.authUser()?.id;
+        if (currentUserId) {
+          query = query
+            .eq('routes.liked.user_id', currentUserId)
+            .eq('routes.project.user_id', currentUserId);
+        }
+
         let finalQuery = query;
         if (sort === 'grade') {
           finalQuery = finalQuery
@@ -1526,15 +1614,42 @@ export class GlobalData {
 
           if (route) {
             const { crags: crag, liked, project, ...routeRest } = route;
+            const rates =
+              (
+                route as RouteDto & {
+                  ascents: { rate: number | null }[];
+                }
+              ).ascents
+                ?.map((a) => a.rate)
+                .filter((rate): rate is number => rate != null) ?? [];
+            const rating =
+              rates.length > 0
+                ? rates.reduce((a: number, b: number) => a + b, 0) /
+                  rates.length
+                : 0;
+
             mappedRoute = {
               ...routeRest,
               liked: (liked?.length ?? 0) > 0,
               project: (project?.length ?? 0) > 0,
+              crag_id: route.crag_id,
+              created_at: route.created_at,
+              eight_anu_route_slugs: route.eight_anu_route_slugs,
+              height: route.height,
+              user_creator_id: route.user_creator_id,
               area_id: crag?.area_id,
               crag_slug: crag?.slug,
               crag_name: crag?.name,
               area_slug: crag?.areas?.slug,
               area_name: crag?.areas?.name,
+              rating,
+              ascent_count:
+                (
+                  route as RouteDto & {
+                    ascents: { type: AscentType }[];
+                  }
+                ).ascents?.filter((a) => a.type !== AscentTypes.ATTEMPT)
+                  .length ?? 0,
             } as RouteWithExtras;
           }
 
@@ -1616,7 +1731,10 @@ export class GlobalData {
           .eq('slug', routeSlug);
 
         if (userId) {
-          query = query.eq('own_ascent.user_id', userId);
+          query = query
+            .eq('own_ascent.user_id', userId)
+            .eq('project.user_id', userId)
+            .eq('liked.user_id', userId);
         }
 
         const { data, error } = await query.single();

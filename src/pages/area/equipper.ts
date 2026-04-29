@@ -51,16 +51,6 @@ import { UserInfoComponent } from '../../components/ui/user-info';
           [bio]="equipper?.description || profile?.bio"
           defaultIcon="@tui.hammer"
         >
-          <!--          <h1 tuiTitle class="text-2xl font-semibold" name>-->
-          <!--            @if (profile?.id; as id) {-->
-          <!--              <a tuiLink [routerLink]="['/profile', id]" class="text-inherit!">-->
-          <!--                {{ equipper?.name }}-->
-          <!--              </a>-->
-          <!--            } @else {-->
-          <!--              {{ equipper?.name }}-->
-          <!--            }-->
-          <!--          </h1>-->
-
           @if (profile?.id; as id) {
             <button
               tuiButton
