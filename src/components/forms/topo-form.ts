@@ -549,8 +549,9 @@ export class TopoFormComponent {
 
         let selected: RouteWithExtras[] = [];
         if (sortedIds.length) {
+          const availableMap = new Map(available.map((r) => [r.id, r]));
           selected = sortedIds
-            .map((id) => available.find((r) => r.id === id))
+            .map((id) => availableMap.get(id))
             .filter((r): r is RouteWithExtras => !!r);
         }
 
@@ -567,8 +568,9 @@ export class TopoFormComponent {
       }
 
       if (!this.isInitialized && this.initialRouteIds.length) {
+        const availableMap = new Map(available.map((r) => [r.id, r]));
         const selected = this.initialRouteIds
-          .map((id) => available.find((r) => r.id === id))
+          .map((id) => availableMap.get(id))
           .filter((r): r is RouteWithExtras => !!r);
         this.model.update((m) => ({ ...m, selectedRoutes: selected }));
         this.isInitialized = true;
