@@ -59,7 +59,7 @@ export const COMMON_IMAGE_EDITOR_CONFIG = {
 
 export function createNewPhoto(file: File, preview: string): NewPhoto {
   return {
-    id: Math.random().toString(36).substring(2),
+    id: crypto.randomUUID(),
     file,
     preview,
   };
