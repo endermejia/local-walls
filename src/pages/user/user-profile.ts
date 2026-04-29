@@ -132,49 +132,51 @@ import { UserInfoComponent } from '../../components/ui/user-info';
           } @else {
             @let blockMessages = blockState().blockMessages;
             @let blockAscents = blockState().blockAscents;
-            <ng-container nameActions>
-              <button
-                [appearance]="
-                  blockMessages || blockAscents
-                    ? 'negative'
-                    : 'action-grayscale'
-                "
-                iconStart="@tui.ellipsis-vertical"
-                size="s"
-                tuiIconButton
-                type="button"
-                [tuiSkeleton]="loading"
-                [tuiDropdown]="dropdownContent"
-                [(tuiDropdownOpen)]="dropdownOpen"
-              >
-                {{ 'options' | translate }}
-              </button>
-              <ng-template #dropdownContent>
-                <tui-data-list>
-                  <button
-                    tuiOption
-                    [tuiAppearance]="blockMessages ? 'negative' : 'neutral'"
-                    iconStart="@tui.message-circle-off"
-                    (click)="toggleBlockMessages(); dropdownOpen.set(false)"
-                  >
-                    {{
-                      (blockMessages ? 'messagesBlocked' : 'blockMessages')
-                        | translate
-                    }}
-                  </button>
-                  <button
-                    tuiOption
-                    [tuiAppearance]="blockAscents ? 'negative' : 'neutral'"
-                    iconStart="@tui.bell-off"
-                    (click)="toggleHideAscents(); dropdownOpen.set(false)"
-                  >
-                    {{
-                      (blockAscents ? 'ascentsHidden' : 'hideAscents')
-                        | translate
-                    }}
-                  </button>
-                </tui-data-list>
-              </ng-template>
+            <ng-container>
+              <ng-container nameActions>
+                <button
+                  [appearance]="
+                    blockMessages || blockAscents
+                      ? 'negative'
+                      : 'action-grayscale'
+                  "
+                  iconStart="@tui.ellipsis-vertical"
+                  size="s"
+                  tuiIconButton
+                  type="button"
+                  [tuiSkeleton]="loading"
+                  [tuiDropdown]="dropdownContent"
+                  [(tuiDropdownOpen)]="dropdownOpen"
+                >
+                  {{ 'options' | translate }}
+                </button>
+                <ng-template #dropdownContent>
+                  <tui-data-list>
+                    <button
+                      tuiOption
+                      [tuiAppearance]="blockMessages ? 'negative' : 'neutral'"
+                      iconStart="@tui.message-circle-off"
+                      (click)="toggleBlockMessages(); dropdownOpen.set(false)"
+                    >
+                      {{
+                        (blockMessages ? 'messagesBlocked' : 'blockMessages')
+                          | translate
+                      }}
+                    </button>
+                    <button
+                      tuiOption
+                      [tuiAppearance]="blockAscents ? 'negative' : 'neutral'"
+                      iconStart="@tui.bell-off"
+                      (click)="toggleHideAscents(); dropdownOpen.set(false)"
+                    >
+                      {{
+                        (blockAscents ? 'ascentsHidden' : 'hideAscents')
+                          | translate
+                      }}
+                    </button>
+                  </tui-data-list>
+                </ng-template>
+              </ng-container>
             </ng-container>
           }
 

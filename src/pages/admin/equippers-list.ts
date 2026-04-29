@@ -15,7 +15,6 @@ import { tuiDefaultSort } from '@taiga-ui/cdk';
 import {
   TuiAppearance,
   TuiButton,
-  TuiDataList,
   TuiDialogService,
   TuiFilterByInputPipe,
   TuiInput,
@@ -72,7 +71,6 @@ import { handleErrorToast, matchesQuery } from '../../utils';
     TuiComboBox,
     TuiDataListWrapper,
     TuiFilterByInputPipe,
-    TuiDataList,
   ],
   template: `
     <section class="flex flex-col w-full max-w-5xl mx-auto p-4">
@@ -285,13 +283,16 @@ export class AdminEquippersListComponent {
   ): string => {
     if (!user) return '';
     if (typeof user === 'string') {
-      const found = this.usersResource.value()?.find((u: any) => u.id === user);
+      const found = this.usersResource.value()?.find((u) => u.id === user);
       return found?.name || user;
     }
     return user.name || user.id;
   };
 
-  protected readonly userIdMatcher = (a: any, b: any) => {
+  protected readonly userIdMatcher = (
+    a: { id: string } | string | null,
+    b: { id: string } | string | null,
+  ) => {
     const idA = typeof a === 'string' ? a : a?.id;
     const idB = typeof b === 'string' ? b : b?.id;
     return idA === idB;
@@ -376,16 +377,18 @@ export class AdminEquippersListComponent {
 
   protected async updateEquipper(
     id: number,
-    patch: Partial<EquipperDto> | any,
+    patch: Partial<EquipperDto>,
   ): Promise<void> {
     const previousList = this.equippers();
 
-    const normalizedPatch = { ...patch };
+    const normalizedPatch: Partial<EquipperDto> = { ...patch };
     if (
       normalizedPatch.user_id &&
-      typeof normalizedPatch.user_id === 'object'
+      typeof (normalizedPatch.user_id as unknown) === 'object'
     ) {
-      normalizedPatch.user_id = normalizedPatch.user_id.id;
+      normalizedPatch.user_id = (
+        normalizedPatch.user_id as unknown as { id: string }
+      ).id;
     }
 
     try {

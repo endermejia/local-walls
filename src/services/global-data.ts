@@ -42,6 +42,7 @@ import {
   ClimbingKind,
   ClimbingKinds,
   CragDetail,
+  CragDto,
   CragListItem,
   CragWithJoins,
   Language,
@@ -56,6 +57,7 @@ import {
   ParkingDto,
   RouteAscentWithExtras,
   RouteAscentDto,
+  RouteDto,
   TopoListItem,
   RouteWithExtras,
   Theme,
@@ -738,7 +740,7 @@ export class GlobalData {
         return null;
       }
 
-      return data as any as EquipperDto & {
+      return data as unknown as EquipperDto & {
         user_profile: UserProfileDto | null;
       };
     },
@@ -773,11 +775,21 @@ export class GlobalData {
       }
 
       return (data || [])
-        .map((d: any) => {
-          const r = d.route;
+        .map((d) => {
+          const r = d.route as
+            | (RouteDto & {
+                crag: (CragDto & { area: AreaDto | null }) | null;
+                route_equippers: { equipper: EquipperDto }[];
+                topo_routes: {
+                  topo: { id: number; name: string; slug: string };
+                }[];
+              })
+            | null;
           if (!r) return null;
           return {
             ...r,
+            liked: false, // Default value as it's not in this query
+            project: false, // Default value as it's not in this query
             crag_name: r.crag?.name,
             crag_slug: r.crag?.slug,
             area_id: r.crag?.area?.id,
@@ -785,15 +797,20 @@ export class GlobalData {
             area_slug: r.crag?.area?.slug,
             equippers:
               r.route_equippers
-                ?.map((re: { equipper: unknown }) => re.equipper)
-                .filter(Boolean) || [],
+                ?.map((re: { equipper: EquipperDto }) => re.equipper)
+                .filter((e): e is EquipperDto => !!e) || [],
             topos:
               r.topo_routes
-                ?.map((tr: { topo: unknown }) => tr.topo)
-                .filter((t: unknown) => !!t) || [],
+                ?.map(
+                  (tr: { topo: { id: number; name: string; slug: string } }) =>
+                    tr.topo,
+                )
+                .filter(
+                  (t): t is { id: number; name: string; slug: string } => !!t,
+                ) || [],
           } as RouteWithExtras;
         })
-        .filter((r) => !!r) as RouteWithExtras[];
+        .filter((r): r is RouteWithExtras => !!r);
     },
   });
 

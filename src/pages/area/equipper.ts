@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
-import { TuiButton, TuiLink, TuiScrollbar, TuiTitle } from '@taiga-ui/core';
+import { TuiButton, TuiScrollbar } from '@taiga-ui/core';
 import { TUI_COUNTRIES, TuiSkeleton } from '@taiga-ui/kit';
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -29,11 +29,9 @@ import { UserInfoComponent } from '../../components/ui/user-info';
     RoutesTableComponent,
     TranslatePipe,
     TuiButton,
-    TuiLink,
     TuiScrollbar,
     TuiSkeleton,
     UserInfoComponent,
-    TuiTitle,
   ],
   template: `
     <tui-scrollbar class="flex grow">

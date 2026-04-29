@@ -60,7 +60,7 @@ import { AvatarUrlPipe } from '../../pipes/avatar-url.pipe';
               [tuiSkeleton]="loading() ? 'name lastName' : false"
             >
               <ng-content select="[name]" />
-              @if (!hasNameContent) {
+              @if (!false) {
                 {{ name() }}
               }
             </h1>
@@ -130,12 +130,4 @@ export class UserInfoComponent {
   avatarClick = output<void>();
 
   protected readonly countriesNames = inject(TUI_COUNTRIES);
-
-  // We can use a trick to detect if name content is provided or just use name input
-  get hasNameContent(): boolean {
-    // This is hard to detect in standalone template without ViewChild,
-    // but for simplicity we can just rely on the user providing either the input or the content.
-    // If name() is provided, we use it.
-    return false;
-  }
 }
