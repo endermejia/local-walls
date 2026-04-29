@@ -1635,23 +1635,31 @@ export interface Database {
           description: string | null;
           id: number;
           name: string;
-          photo: string | null;
+          user_id: string | null;
         };
         Insert: {
           created_at?: string;
           description?: string | null;
           id?: number;
           name: string;
-          photo?: string | null;
+          user_id?: string | null;
         };
         Update: {
           created_at?: string;
           description?: string | null;
           id?: number;
           name?: string;
-          photo?: string | null;
+          user_id?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'equippers_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'user_profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       follow_requests: {
         Row: {

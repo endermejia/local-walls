@@ -83,6 +83,12 @@ export const routes: Routes = [
       import('../pages/user/user-profile').then((m) => m.UserProfileComponent),
   },
   {
+    path: 'equipper/:id',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('../pages/area/equipper').then((m) => m.EquipperComponent),
+  },
+  {
     path: 'area',
     canMatch: [authGuard],
     loadComponent: () =>

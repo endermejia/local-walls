@@ -116,7 +116,6 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
               @let canAreaAdmin = global.areaAdminPermissions()[c.area_id];
               @if (global.canEditCrag()) {
                 <div actionButtons class="flex gap-2">
-                  <!-- area_id: {{ c.area_id }} - canAreaAdmin: {{ canAreaAdmin }} - canEditAsAdmin: {{ canEditAsAdmin }} -->
                   <button
                     size="s"
                     appearance="neutral"

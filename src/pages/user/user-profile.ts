@@ -1,6 +1,6 @@
 import { isPlatformBrowser, LowerCasePipe } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -22,7 +22,7 @@ import { TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
 import {
   TUI_COUNTRIES,
   TuiAvatar,
-  TuiBadgedContent,
+  TuiBadgedContentComponent,
   TuiConfirmData,
   TuiDataListWrapper,
   TuiSelect,
@@ -76,11 +76,12 @@ import { AvatarUrlPipe } from '../../pipes';
     LowerCasePipe,
     MenuOptionsButtonComponent,
     ReactiveFormsModule,
+    RouterLink,
     TourHintComponent,
     TranslatePipe,
     TuiAppearance,
     TuiAvatar,
-    TuiBadgedContent,
+    TuiBadgedContentComponent,
     TuiButton,
     TuiDataList,
     TuiDataListWrapper,
@@ -115,22 +116,40 @@ import { AvatarUrlPipe } from '../../pipes';
           ) {
             <tui-pulse />
           }
-          <span
-            tuiAvatar
+          <tui-badged-content
             [tuiSkeleton]="loading"
-            size="xxl"
-            class="cursor-pointer transition-transform hover:scale-105 active:scale-95 focus-visible:outline-(--tui-border-accent)"
-            tabindex="0"
-            (click)="showEnlargedPhoto()"
-            (keydown.enter)="showEnlargedPhoto()"
-            (keydown.space)="$event.preventDefault(); showEnlargedPhoto()"
+            [style.--tui-radius.%]="50"
           >
-            @if (profile()?.avatar; as avatar) {
-              <img [src]="avatar | avatarUrl" [alt]="profile()?.name || ''" />
-            } @else {
-              <tui-icon icon="@tui.user" />
+            @if (equipperResource.value(); as equipper) {
+              <div tuiSlot="top">
+                <a
+                  tuiIconButton
+                  appearance="action"
+                  size="s"
+                  iconStart="@tui.hammer"
+                  [routerLink]="['/equipper', equipper.id]"
+                  class="rounded-full!"
+                >
+                </a>
+              </div>
             }
-          </span>
+            <span
+              tuiAvatar
+              [tuiSkeleton]="loading"
+              size="xxl"
+              class="cursor-pointer transition-transform hover:scale-105 active:scale-95 focus-visible:outline-(--tui-border-accent)"
+              tabindex="0"
+              (click)="showEnlargedPhoto()"
+              (keydown.enter)="showEnlargedPhoto()"
+              (keydown.space)="$event.preventDefault(); showEnlargedPhoto()"
+            >
+              @if (profile()?.avatar; as avatar) {
+                <img [src]="avatar | avatarUrl" [alt]="profile()?.name || ''" />
+              } @else {
+                <tui-icon icon="@tui.user" />
+              }
+            </span>
+          </tui-badged-content>
           <div class="grow">
             <div class="flex flex-row gap-2 items-center">
               @let name = profile()?.name;
@@ -146,16 +165,6 @@ import { AvatarUrlPipe } from '../../pipes';
                   size="m"
                   [iconOnly]="true"
                 />
-                <!-- <a
-                  tuiIconButton
-                  size="m"
-                  appearance="action-grayscale"
-                  routerLink="/merchandising"
-                  [attr.aria-label]="'nav.merchandising' | translate"
-                  [tuiHint]="'nav.merchandising' | translate"
-                >
-                  <tui-icon icon="@tui.shopping-bag" />
-                </a> -->
               } @else {
                 @let blockMessages = blockState().blockMessages;
                 @let blockAscents = blockState().blockAscents;
@@ -213,7 +222,8 @@ import { AvatarUrlPipe } from '../../pipes';
                 class="flex items-center gap-2"
                 [tuiSkeleton]="loading ? 'country, city' : false"
               >
-                {{ countriesNames()[country] }}{{ city ? ', ' + city : '' }}
+                {{ country ? countriesNames()[country] : ''
+                }}{{ country && city ? ', ' : '' }}{{ city || '' }}
               </span>
               @if (profileAge(); as age) {
                 |
@@ -500,6 +510,24 @@ export class UserProfileComponent {
     },
   });
 
+  readonly equipperResource = resource({
+    params: () => this.profile()?.id,
+    loader: async ({ params: userId }) => {
+      if (!userId || !isPlatformBrowser(this.platformId)) return null;
+      const { data, error } = await this.supabase.client
+        .from('equippers')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('[UserProfile] equipperResource error', error);
+        return null;
+      }
+      return data;
+    },
+  });
+
   readonly profile = computed(() => {
     const paramId = this.id();
     const ownProfile = this.supabase.userProfile();
@@ -647,7 +675,7 @@ export class UserProfileComponent {
       this.id(); // Track the id signal to trigger on param change
 
       if (profileId && profileId !== this.global.profileUserId()) {
-        this.global.resetDataByPage('home');
+        this.global.resetDataByPage('profile');
         this.global.profileUserId.set(profileId);
       }
     });

@@ -290,15 +290,18 @@ import { handleErrorToast } from '../../utils';
                 >
                   {{ 'equippers' | translate }}
                 </span>
-                <div class="flex items-center gap-2">
-                  <span
-                    tuiAvatar="@tui.hammer"
-                    size="s"
-                    appearance="secondary"
-                  ></span>
-                  <span class="text-sm opacity-80 text-center">{{
-                    equippersNames()
-                  }}</span>
+                <div class="flex flex-wrap gap-2 justify-center">
+                  @for (e of equippers(); track e.id) {
+                    <button
+                      tuiButton
+                      appearance="secondary"
+                      size="s"
+                      class="min-w-fit!"
+                      (click)="router.navigate(['/equipper', e.id])"
+                    >
+                      {{ e.name }}
+                    </button>
+                  }
                 </div>
               </div>
             }

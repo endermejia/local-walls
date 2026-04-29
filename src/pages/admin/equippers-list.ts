@@ -6,27 +6,32 @@ import {
   computed,
   inject,
   PLATFORM_ID,
+  resource,
   signal,
   WritableSignal,
 } from '@angular/core';
 
 import { tuiDefaultSort } from '@taiga-ui/cdk';
-import { TuiDialogService } from '@taiga-ui/core';
+import {
+  TuiAppearance,
+  TuiButton,
+  TuiDataList,
+  TuiDialogService,
+  TuiFilterByInputPipe,
+  TuiInput,
+  TuiScrollbar,
+} from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
   TuiAvatar,
   TuiBadgeNotification,
   TuiBadgedContentComponent,
   TuiBadgedContentDirective,
+  TuiComboBox,
+  TuiDataListWrapper,
   TuiSkeleton,
   type TuiConfirmData,
 } from '@taiga-ui/kit';
-import {
-  TuiAppearance,
-  TuiButton,
-  TuiScrollbar,
-  TuiInput,
-} from '@taiga-ui/core';
 import {
   TuiSortDirection,
   TuiTable,
@@ -64,6 +69,10 @@ import { handleErrorToast, matchesQuery } from '../../utils';
     TuiScrollbar,
     TuiSkeleton,
     TuiTable,
+    TuiComboBox,
+    TuiDataListWrapper,
+    TuiFilterByInputPipe,
+    TuiDataList,
   ],
   template: `
     <section class="flex flex-col w-full max-w-5xl mx-auto p-4">
@@ -136,11 +145,14 @@ import { handleErrorToast, matchesQuery } from '../../utils';
                 <th *tuiHead="'name'" tuiTh [sorter]="nameSorter">
                   {{ 'name' | translate }}
                 </th>
+                <th *tuiHead="'user_id'" tuiTh [sorter]="null" class="w-64!">
+                  {{ 'user' | translate }}
+                </th>
                 <th
                   *tuiHead="'description'"
                   tuiTh
                   [sorter]="descriptionSorter"
-                  class="w-96!"
+                  class="w-64!"
                 >
                   {{ 'description' | translate }}
                 </th>
@@ -181,6 +193,29 @@ import { handleErrorToast, matchesQuery } from '../../utils';
                             updateEquipper(item.id, { name: $event })
                           "
                           autocomplete="off"
+                        />
+                      </tui-textfield>
+                    </td>
+                    <td *tuiCell="'user_id'" tuiTd>
+                      <tui-textfield
+                        [tuiTextfieldCleaner]="true"
+                        [stringify]="userStringify"
+                        [identityMatcher]="userIdMatcher"
+                      >
+                        <input
+                          tuiComboBox
+                          [placeholder]="'searchUser' | translate"
+                          [ngModel]="item.user_id"
+                          (ngModelChange)="
+                            updateEquipper(item.id, { user_id: $event })
+                          "
+                          autocomplete="off"
+                        />
+                        <tui-data-list-wrapper
+                          *tuiDropdown
+                          [items]="
+                            usersResource.value() || [] | tuiFilterByInput
+                          "
                         />
                       </tui-textfield>
                     </td>
@@ -232,10 +267,40 @@ export class AdminEquippersListComponent {
   private readonly dialogs = inject(TuiDialogService);
 
   protected readonly options = { updateOn: 'blur' } as const;
+
+  protected readonly usersResource = resource({
+    loader: async () => {
+      await this.supabase.whenReady();
+      const { data, error } = await this.supabase.client
+        .from('user_profiles')
+        .select('id, name')
+        .order('name');
+      if (error) return [];
+      return data || [];
+    },
+  });
+
+  protected readonly userStringify = (
+    user: { id: string; name: string | null } | string | null,
+  ): string => {
+    if (!user) return '';
+    if (typeof user === 'string') {
+      const found = this.usersResource.value()?.find((u: any) => u.id === user);
+      return found?.name || user;
+    }
+    return user.name || user.id;
+  };
+
+  protected readonly userIdMatcher = (a: any, b: any) => {
+    const idA = typeof a === 'string' ? a : a?.id;
+    const idB = typeof b === 'string' ? b : b?.id;
+    return idA === idB;
+  };
+
   protected readonly columns = computed(() => {
-    const cols = ['name', 'description', 'actions'];
+    const cols = ['name', 'user_id', 'description', 'actions'];
     return this.global.isMobile()
-      ? cols.filter((c) => c !== 'description')
+      ? cols.filter((c) => c !== 'description' && c !== 'user_id')
       : cols;
   });
 
@@ -311,18 +376,27 @@ export class AdminEquippersListComponent {
 
   protected async updateEquipper(
     id: number,
-    patch: Partial<EquipperDto>,
+    patch: Partial<EquipperDto> | any,
   ): Promise<void> {
     const previousList = this.equippers();
+
+    const normalizedPatch = { ...patch };
+    if (
+      normalizedPatch.user_id &&
+      typeof normalizedPatch.user_id === 'object'
+    ) {
+      normalizedPatch.user_id = normalizedPatch.user_id.id;
+    }
+
     try {
       // Optimistic update
       this.equippers.update((list) =>
-        list.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+        list.map((e) => (e.id === id ? { ...e, ...normalizedPatch } : e)),
       );
 
       const { error } = await this.supabase.client
         .from('equippers')
-        .update(patch)
+        .update(normalizedPatch)
         .eq('id', id);
 
       if (error) throw error;

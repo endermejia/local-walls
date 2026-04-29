@@ -426,6 +426,22 @@ import {
                           <div tuiCell size="m" class="h-full py-0">
                             @if (canEditRoute) {
                               <app-route-equippers-input [route]="item._ref" />
+                            } @else if (item._ref.equippers; as equippers) {
+                              <div class="flex flex-wrap gap-1">
+                                @for (e of equippers; track e.id) {
+                                  <button
+                                    tuiButton
+                                    appearance="secondary"
+                                    size="xs"
+                                    class="min-w-fit! px-2!"
+                                    (click)="
+                                      router.navigate(['/equipper', e.id])
+                                    "
+                                  >
+                                    {{ e.name }}
+                                  </button>
+                                }
+                              </div>
                             }
                           </div>
                         }

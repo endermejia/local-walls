@@ -65,6 +65,8 @@ import {
   TopoRouteWithRoute,
   VERTICAL_LIFE_GRADES,
   LABEL_TO_VERTICAL_LIFE,
+  EquipperDto,
+  UserProfileDto,
 } from '../models';
 
 import { LocalStorage } from './local-storage';
@@ -714,6 +716,86 @@ export class GlobalData {
   readonly likedRouteIds = computed(() =>
     this.likedRoutes().map((r: RouteWithExtras) => r.id),
   );
+
+  // ---- Equippers ----
+  selectedEquipperId: WritableSignal<number | null> = signal(null);
+
+  readonly equipperDetailResource = resource({
+    params: () => this.selectedEquipperId(),
+    loader: async ({ params: id }) => {
+      if (!id || !isPlatformBrowser(this.platformId)) return null;
+      await this.supabase.whenReady();
+
+      // Fetch equipper with user profile if available
+      const { data, error } = await this.supabase.client
+        .from('equippers')
+        .select('*, user_profile:user_profiles(*)')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('[GlobalData] equipperDetailResource error', error);
+        return null;
+      }
+
+      return data as any as EquipperDto & {
+        user_profile: UserProfileDto | null;
+      };
+    },
+  });
+
+  readonly equipperRoutesResource = resource({
+    params: () => this.selectedEquipperId(),
+    loader: async ({ params: id }) => {
+      if (!id || !isPlatformBrowser(this.platformId)) return [];
+      await this.supabase.whenReady();
+
+      const { data, error } = await this.supabase.client
+        .from('route_equippers')
+        .select(
+          `
+          route:routes (
+            *,
+            crag:crags (
+              *,
+              area:areas (*)
+            ),
+            route_equippers(equipper:equippers(*)),
+            topo_routes(topo:topos(id, name, slug))
+          )
+        `,
+        )
+        .eq('equipper_id', id);
+
+      if (error) {
+        console.error('[GlobalData] equipperRoutesResource error', error);
+        return [];
+      }
+
+      return (data || [])
+        .map((d: any) => {
+          const r = d.route;
+          if (!r) return null;
+          return {
+            ...r,
+            crag_name: r.crag?.name,
+            crag_slug: r.crag?.slug,
+            area_id: r.crag?.area?.id,
+            area_name: r.crag?.area?.name,
+            area_slug: r.crag?.area?.slug,
+            equippers:
+              r.route_equippers
+                ?.map((re: { equipper: unknown }) => re.equipper)
+                .filter(Boolean) || [],
+            topos:
+              r.topo_routes
+                ?.map((tr: { topo: unknown }) => tr.topo)
+                .filter((t: unknown) => !!t) || [],
+          } as RouteWithExtras;
+        })
+        .filter((r) => !!r) as RouteWithExtras[];
+    },
+  });
 
   // ---- Areas ----
   selectedAreaSlug: WritableSignal<string | null> = signal(null);
@@ -1912,7 +1994,16 @@ export class GlobalData {
   }
 
   resetDataByPage(
-    page: 'explore' | 'area-list' | 'area' | 'crag' | 'topo' | 'route' | 'home',
+    page:
+      | 'explore'
+      | 'area-list'
+      | 'area'
+      | 'crag'
+      | 'topo'
+      | 'route'
+      | 'home'
+      | 'profile'
+      | 'equipper',
   ): void {
     this.ascentsPage.set(0);
     this.ascentsSize.set(10);
@@ -1926,11 +2017,15 @@ export class GlobalData {
         this.selectedMapCragItem.set(null);
         break;
       }
-      case 'home': {
+      case 'home':
+      case 'profile':
+      case 'equipper': {
         this.selectedAreaSlug.set(null);
         this.selectedCragSlug.set(null);
         this.selectedRouteSlug.set(null);
-        this.profileActiveTab.set(0);
+        if (page === 'home' || page === 'profile') {
+          this.profileActiveTab.set(0);
+        }
         break;
       }
       case 'area': {
