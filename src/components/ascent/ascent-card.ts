@@ -16,23 +16,15 @@ import {
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TuiDialogService } from '@taiga-ui/core';
 import { TuiHeader } from '@taiga-ui/layout';
-import { TuiItem } from '@taiga-ui/cdk';
 import {
   TUI_CONFIRM,
   TuiAvatar,
   TuiBadge,
   TuiConfirmData,
-  TuiPagination,
   TuiRating,
   TuiSkeleton,
 } from '@taiga-ui/kit';
-import {
-  TuiAppearance,
-  TuiButton,
-  TuiCarousel,
-  TuiHint,
-  TuiIcon,
-} from '@taiga-ui/core';
+import { TuiAppearance, TuiButton, TuiHint, TuiIcon } from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -47,13 +39,14 @@ import { AscentCommentsComponent } from './ascent-comments';
 import { AscentLastCommentComponent } from './ascent-last-comment';
 import { AscentLikesComponent } from './ascent-likes';
 import { AscentTypeComponent } from './ascent-type';
+import { CustomCarouselComponent } from '../ui/custom-carousel';
 import { GradeComponent } from '../ui/avatar-grade';
 import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
 
 import { CLIMBING_ICONS, RouteAscentWithExtras } from '../../models';
 
 import { AvatarUrlPipe } from '../../pipes';
-import { getEmbedUrl } from '../../utils/video-helpers';
+import { getEmbedUrl } from '../../utils';
 
 @Component({
   selector: 'app-ascent-card',
@@ -64,6 +57,7 @@ import { getEmbedUrl } from '../../utils/video-helpers';
     AscentTypeComponent,
     AvatarUrlPipe,
     CommonModule,
+    CustomCarouselComponent,
     FormsModule,
     GradeComponent,
     ReactiveFormsModule,
@@ -73,12 +67,9 @@ import { getEmbedUrl } from '../../utils/video-helpers';
     TuiAvatar,
     TuiBadge,
     TuiButton,
-    TuiCarousel,
     TuiHeader,
     TuiHint,
     TuiIcon,
-    TuiItem,
-    TuiPagination,
     TuiRating,
     TuiSkeleton,
   ],
@@ -197,89 +188,17 @@ import { getEmbedUrl } from '../../utils/video-helpers';
       </header>
 
       @if (mediaItems(); as items) {
-        @if (items.length > 1) {
-          <div class="relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full">
-            <tui-carousel
-              [index]="index()"
-              (indexChange)="index.set($event)"
-              [draggable]="true"
-              class="w-full"
-            >
-              @for (item of items; track $index) {
-                <ng-container *tuiItem>
-                  @if (item.type === 'image') {
-                    <div
-                      class="overflow-hidden bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl"
-                    >
-                      <img
-                        [src]="item.url"
-                        class="w-full h-auto block cursor-pointer"
-                        [alt]="ascent.route?.name || 'Ascent photo'"
-                        [attr.loading]="priority() ? 'eager' : 'lazy'"
-                        (click)="showEnlargedPhoto(item.url)"
-                        (keydown.enter)="showEnlargedPhoto(item.url)"
-                        (keydown.space)="showEnlargedPhoto(item.url)"
-                        tabindex="0"
-                        role="button"
-                      />
-                    </div>
-                  } @else {
-                    <div
-                      class="overflow-hidden bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl aspect-video"
-                    >
-                      <iframe
-                        [src]="item.url"
-                        class="w-full h-full"
-                        frameborder="0"
-                        allowfullscreen
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      ></iframe>
-                    </div>
-                  }
-                </ng-container>
-              }
-            </tui-carousel>
-            <div class="px-4 sm:px-0">
-              <!-- TODO: (Taiga UI migration) use tui-pager instead -->
-              <tui-pagination
-                class="mt-2"
-                [length]="items.length"
-                [index]="index()"
-                (indexChange)="index.set($event)"
-              />
-            </div>
+        @if (items.length > 0) {
+          <div
+            class="relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full bg-(--tui-background-neutral-1) overflow-hidden sm:rounded-2xl"
+          >
+            <app-custom-carousel
+              [items]="items"
+              [(index)]="index"
+              [clickable]="true"
+              (imageClick)="showEnlargedPhoto($event)"
+            />
           </div>
-        } @else if (items.length === 1) {
-          @let item = items[0];
-          @if (item.type === 'image') {
-            <div
-              class="overflow-hidden bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl"
-            >
-              <img
-                [src]="item.url"
-                class="w-full h-auto block cursor-pointer"
-                [alt]="ascent.route?.name || 'Ascent photo'"
-                [attr.loading]="priority() ? 'eager' : 'lazy'"
-                (click)="showEnlargedPhoto(item.url)"
-                (keydown.enter)="showEnlargedPhoto(item.url)"
-                (keydown.space)="showEnlargedPhoto(item.url)"
-                tabindex="0"
-                role="button"
-              />
-            </div>
-          } @else {
-            <div
-              class="overflow-hidden bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl aspect-video"
-            >
-              <iframe
-                [src]="item.url"
-                class="w-full h-full"
-                frameborder="0"
-                allowfullscreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              ></iframe>
-            </div>
-          }
         } @else if (ascentPhotoResource.isLoading()) {
           <div
             class="aspect-video bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl"

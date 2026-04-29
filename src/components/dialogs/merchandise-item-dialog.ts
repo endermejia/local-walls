@@ -8,15 +8,11 @@ import {
 } from '@angular/core';
 
 import { injectContext } from '@taiga-ui/polymorpheus';
-import {
-  TuiButton,
-  TuiCarousel,
-  TuiDialogContext,
-  TuiIcon,
-} from '@taiga-ui/core';
+import { TuiButton, TuiDialogContext, TuiIcon } from '@taiga-ui/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { CustomCarouselComponent } from '../ui/custom-carousel';
 import { CartService } from '../../services/cart.service';
 import { GlobalData } from '../../services/global-data';
 
@@ -25,7 +21,13 @@ import { MerchandiseItemDetail } from '../../models';
 @Component({
   selector: 'app-merchandise-item-dialog',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, TuiButton, TuiCarousel, TuiIcon],
+  imports: [
+    CommonModule,
+    TranslatePipe,
+    TuiButton,
+    CustomCarouselComponent,
+    TuiIcon,
+  ],
   template: `
     <div
       class="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 md:gap-16 items-start"
@@ -36,45 +38,13 @@ import { MerchandiseItemDetail } from '../../models';
       >
         @let images = item.image_urls || [];
         @if (images.length > 0) {
-          <tui-carousel #carousel [(index)]="index" class="w-full h-full">
-            <ng-template tuiItem let-i>
-              @let n = images.length;
-              <img
-                [src]="images[((i % n) + n) % n]"
-                [alt]="item.name"
-                class="w-full h-full object-cover"
-              />
-            </ng-template>
-          </tui-carousel>
-          @if (images.length > 1) {
-            @let ni =
-              ((index() % images.length) + images.length) % images.length;
-            <button
-              type="button"
-              class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center z-10 text-white hover:bg-black/70 transition-colors"
-              (click)="carousel.prev()"
-            >
-              <tui-icon icon="@tui.chevron-left" class="text-sm" />
-            </button>
-            <button
-              type="button"
-              class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center z-10 text-white hover:bg-black/70 transition-colors"
-              (click)="carousel.next()"
-            >
-              <tui-icon icon="@tui.chevron-right" class="text-sm" />
-            </button>
-            <div
-              class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 pointer-events-none bg-black/30 backdrop-blur-sm rounded-full px-2.5 py-1"
-            >
-              @for (_ of images; track $index; let i = $index) {
-                <div
-                  class="h-1.5 rounded-full bg-white transition-all duration-300"
-                  [style.width.rem]="ni === i ? 1 : 0.375"
-                  [style.opacity]="ni === i ? '1' : '0.45'"
-                ></div>
-              }
-            </div>
-          }
+          @let carouselItems = getCarouselItems(images);
+          <app-custom-carousel
+            [items]="carouselItems"
+            [(index)]="index"
+            class="w-full h-full"
+            [objectCover]="true"
+          />
         } @else {
           <div class="w-full h-full flex items-center justify-center">
             <tui-icon
@@ -247,12 +217,20 @@ export class MerchandiseItemDialogComponent {
     injectContext<TuiDialogContext<void, MerchandiseItemDetail>>();
   protected readonly item: MerchandiseItemDetail = this.context.data;
 
+  protected getCarouselItems(images: string[]) {
+    return images.map((url) => ({
+      type: 'image' as const,
+      url,
+      alt: this.item.name,
+    }));
+  }
+
   protected isSizeInStock(size: string): boolean {
     const stock = this.item.stock?.find((s) => s.size === size);
     return (stock?.stock ?? 0) > 0;
   }
 
-  protected readonly index = signal(0);
+  protected index = signal(0);
   protected readonly selectedSize = signal<string | undefined>(
     this.item.available_sizes?.length === 1
       ? this.item.available_sizes[0]

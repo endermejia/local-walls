@@ -8,11 +8,12 @@ import {
   signal,
 } from '@angular/core';
 
-import { TuiAppearance, TuiButton, TuiCarousel, TuiIcon } from '@taiga-ui/core';
+import { TuiAppearance, TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { CustomCarouselComponent } from '../ui/custom-carousel';
 import { GlobalData } from '../../services/global-data';
 import { MerchandiseItemDetail } from '../../models';
 
@@ -26,7 +27,7 @@ import { MerchandiseItemDetail } from '../../models';
     TuiAppearance,
     TuiBadge,
     TuiButton,
-    TuiCarousel,
+    CustomCarouselComponent,
     TuiIcon,
   ],
   template: `
@@ -46,50 +47,14 @@ import { MerchandiseItemDetail } from '../../models';
         @let images = item().image_urls || [];
 
         @if (images && images.length > 0) {
-          <tui-carousel #carousel [(index)]="index" class="w-full h-full">
-            <ng-template tuiItem let-i>
-              @let n = images.length;
-              <div class="w-full h-full overflow-hidden">
-                <img
-                  [src]="images[((i % n) + n) % n]"
-                  [alt]="item().name"
-                  [class.grayscale]="item().active === false"
-                  [class.opacity-50]="item().active === false"
-                  class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
-                />
-              </div>
-            </ng-template>
-          </tui-carousel>
-
-          @if (images.length > 1) {
-            @let ni =
-              ((index() % images.length) + images.length) % images.length;
-            <button
-              type="button"
-              class="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 text-white"
-              (click)="carousel.prev(); $event.stopPropagation()"
-            >
-              <tui-icon icon="@tui.chevron-left" class="text-xs" />
-            </button>
-            <button
-              type="button"
-              class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 text-white"
-              (click)="carousel.next(); $event.stopPropagation()"
-            >
-              <tui-icon icon="@tui.chevron-right" class="text-xs" />
-            </button>
-            <div
-              class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 z-10 pointer-events-none bg-black/30 backdrop-blur-sm rounded-full px-2 py-1"
-            >
-              @for (_ of images; track $index; let i = $index) {
-                <div
-                  class="h-1.5 rounded-full bg-white transition-all duration-300"
-                  [style.width.rem]="ni === i ? 1 : 0.375"
-                  [style.opacity]="ni === i ? '1' : '0.45'"
-                ></div>
-              }
-            </div>
-          }
+          @let carouselItems = getCarouselItems(images);
+          <app-custom-carousel
+            [items]="carouselItems"
+            [(index)]="index"
+            [hideArrowsUntilHover]="true"
+            [hideDotsUntilHover]="true"
+            [objectCover]="true"
+          />
         } @else {
           <div class="w-full h-full flex items-center justify-center p-12">
             <tui-icon
@@ -161,4 +126,12 @@ export class MerchandiseCardComponent {
   edit = output<MerchandiseItemDetail>();
 
   protected readonly index = signal(0);
+
+  protected getCarouselItems(images: string[]) {
+    return images.map((url) => ({
+      type: 'image' as const,
+      url,
+      alt: this.item().name,
+    }));
+  }
 }
