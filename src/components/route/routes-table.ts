@@ -266,6 +266,7 @@ import {
                           <div tuiCell size="m" class="justify-center h-full">
                             @if (canEditRoute) {
                               <tui-textfield
+                                [tuiTextfieldCleaner]="false"
                                 tuiTextfieldSize="s"
                                 [class.w-16!]="!isMobile"
                                 [class.w-12!]="isMobile"
