@@ -37,8 +37,22 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Future Features
 
-- **Cambiar ascent-form dependiendo del climbing_kind**:
-  - Si es boulder deben aparecer los campos de "boulder" en vez de los de "sport"
+- **Planificador 'Viaje' con filtro**
+  - Por fecha para que no llueva en ese sector
+  - Por grados
+- **Mejorar boton profile**
+  - Pasar a sidebar derecho
+    - Repartir secciones por botones de sidebar o dropdown con iconos en desktop
+    - Incluir Botones del menu-button
+- **Nueva sección Entrenamientos**
+  - Planificar entrenamientos en calendario
+  - Realizar entrenamientos
+    - Fases del entrenamiento
+    - Temporizadores
+  - Nueva tabla de entrenadores y otra tabla relacionada con usuarios a los que entrena cada entrenador
+  - Tablas de entrenamientos con ejercicios etc
+  - Tabla de ejercicios
+  - Tabla de entrenamientos realizados, por usuario -
 - **8a.nu Integration**:
   - Copy 8a.nu ascents database.
   - Direct data import using 8a.nu user credentials.
