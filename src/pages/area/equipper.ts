@@ -1,4 +1,3 @@
-import { LowerCasePipe } from '@angular/common';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
 import {
   ChangeDetectionStrategy,
@@ -11,8 +10,8 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
-import { TuiAvatar, TUI_COUNTRIES, TuiSkeleton } from '@taiga-ui/kit';
-import { TuiButton, TuiIcon, TuiLink, TuiScrollbar } from '@taiga-ui/core';
+import { TuiButton, TuiLink, TuiScrollbar, TuiTitle } from '@taiga-ui/core';
+import { TUI_COUNTRIES, TuiSkeleton } from '@taiga-ui/kit';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { GlobalData } from '../../services/global-data';
@@ -20,23 +19,21 @@ import { SupabaseService } from '../../services/supabase.service';
 
 import { RoutesTableComponent } from '../../components/route/routes-table';
 
-import { AvatarUrlPipe } from '../../pipes/avatar-url.pipe';
+import { UserInfoComponent } from '../../components/ui/user-info';
 
 @Component({
   selector: 'app-equipper',
   standalone: true,
   imports: [
-    AvatarUrlPipe,
-    LowerCasePipe,
     RouterLink,
     RoutesTableComponent,
     TranslatePipe,
-    TuiAvatar,
     TuiButton,
-    TuiIcon,
     TuiLink,
     TuiScrollbar,
     TuiSkeleton,
+    UserInfoComponent,
+    TuiTitle,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -45,82 +42,40 @@ import { AvatarUrlPipe } from '../../pipes/avatar-url.pipe';
         @let profile = equipper?.user_profile;
         @let loading = global.equipperDetailResource.isLoading();
 
-        <div class="flex items-center gap-4">
-          <span tuiAvatar [tuiSkeleton]="loading" size="xxl">
-            @let photo = profile?.avatar;
-            @if (photo) {
-              <img [src]="photo | avatarUrl" [alt]="equipper?.name || ''" />
-            } @else {
-              <tui-icon icon="@tui.hammer" />
-            }
-          </span>
+        <app-user-info
+          [loading]="loading"
+          [avatar]="profile?.avatar"
+          [name]="equipper?.name"
+          [city]="profile?.city"
+          [country]="profileCountry()"
+          [age]="profileAge()"
+          [startingClimbingYear]="profile?.starting_climbing_year"
+          [bio]="equipper?.description || profile?.bio"
+          defaultIcon="@tui.hammer"
+        >
+          <!--          <h1 tuiTitle class="text-2xl font-semibold" name>-->
+          <!--            @if (profile?.id; as id) {-->
+          <!--              <a tuiLink [routerLink]="['/profile', id]" class="text-inherit!">-->
+          <!--                {{ equipper?.name }}-->
+          <!--              </a>-->
+          <!--            } @else {-->
+          <!--              {{ equipper?.name }}-->
+          <!--            }-->
+          <!--          </h1>-->
 
-          <div class="grow">
-            <div class="flex flex-row gap-2 items-center">
-              <h1 class="text-2xl font-semibold" [tuiSkeleton]="loading">
-                @if (profile?.id; as id) {
-                  <a
-                    tuiLink
-                    [routerLink]="['/profile', id]"
-                    class="text-inherit!"
-                  >
-                    {{ equipper?.name }}
-                  </a>
-                } @else {
-                  {{ equipper?.name }}
-                }
-              </h1>
-
-              @if (profile?.id; as id) {
-                <button
-                  tuiButton
-                  type="button"
-                  size="s"
-                  appearance="flat"
-                  [routerLink]="['/profile', id]"
-                >
-                  {{ 'nav.profile' | translate }}
-                </button>
-              }
-            </div>
-
-            <div class="flex items-center gap-x-2 flex-wrap">
-              @let city = profile?.city;
-              @if (profileCountry(); as country) {
-                <span
-                  class="flex items-center gap-2"
-                  [tuiSkeleton]="loading ? 'country, city' : false"
-                >
-                  {{ countriesNames()[country] }}{{ city ? ', ' + city : '' }}
-                </span>
-              } @else if (city) {
-                <span
-                  class="flex items-center gap-2"
-                  [tuiSkeleton]="loading ? 'country, city' : false"
-                >
-                  {{ city }}
-                </span>
-              }
-              @if (profileAge(); as age) {
-                |
-                <span>
-                  {{ age }}
-                  {{ 'years' | translate | lowercase }}
-                </span>
-              }
-              @if (profile?.starting_climbing_year; as since) {
-                |
-                <span [tuiSkeleton]="loading">
-                  {{ 'startingClimbingYear' | translate }} {{ since }}
-                </span>
-              }
-            </div>
-
-            <div class="mt-2 opacity-80" [tuiSkeleton]="loading">
-              {{ equipper?.description || profile?.bio }}
-            </div>
-          </div>
-        </div>
+          @if (profile?.id; as id) {
+            <button
+              tuiButton
+              type="button"
+              size="s"
+              appearance="flat"
+              [routerLink]="['/profile', id]"
+              nameActions
+            >
+              {{ 'nav.profile' | translate }}
+            </button>
+          }
+        </app-user-info>
 
         <div class="mt-4">
           <h2 class="text-xl font-semibold mb-2" [tuiSkeleton]="loading">

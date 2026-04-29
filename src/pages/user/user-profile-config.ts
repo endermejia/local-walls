@@ -205,7 +205,7 @@ interface Country {
                 (click)="!isUploadingAvatar() && uploadAvatar()"
                 (keydown.enter)="!isUploadingAvatar() && uploadAvatar()"
                 tabindex="0"
-                class="cursor-pointer"
+                class="cursor-pointer rounded-full!"
                 size="xxl"
                 [tuiShimmer]="isUploadingAvatar()"
                 [tuiSkeleton]="!userEmail()"

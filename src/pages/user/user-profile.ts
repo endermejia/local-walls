@@ -19,27 +19,14 @@ import { TUI_CONFIRM } from '@taiga-ui/kit';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
 import { TuiDialogService } from '@taiga-ui/core';
 import { TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
-import {
-  TUI_COUNTRIES,
-  TuiAvatar,
-  TuiBadgedContentComponent,
-  TuiConfirmData,
-  TuiDataListWrapper,
-  TuiSelect,
-  TuiSkeleton,
-  TuiTabs,
-  TuiPulse,
-} from '@taiga-ui/kit';
+import { TuiConfirmData, TuiTabs, TuiPulse, TuiSkeleton } from '@taiga-ui/kit';
 import {
   TuiAppearance,
   TuiButton,
   TuiDataList,
   TuiDropdown,
-  TuiHint,
   TuiLink,
   TuiScrollbar,
-  TuiInput,
-  TuiIcon,
 } from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -65,13 +52,12 @@ import { UserProfileAscentsComponent } from '../../components/user-profile/user-
 import { UserProfileLikesComponent } from '../../components/user-profile/user-profile-likes';
 import { UserProfileProjectsComponent } from '../../components/user-profile/user-profile-projects';
 import { UserProfileStatisticsComponent } from '../../components/user-profile/user-profile-statistics';
-import { AvatarUrlPipe } from '../../pipes';
+import { UserInfoComponent } from '../../components/ui/user-info';
 
 @Component({
   selector: 'app-user-profile',
   standalone: true,
   imports: [
-    AvatarUrlPipe,
     EmptyStateComponent,
     LowerCasePipe,
     MenuOptionsButtonComponent,
@@ -80,19 +66,13 @@ import { AvatarUrlPipe } from '../../pipes';
     TourHintComponent,
     TranslatePipe,
     TuiAppearance,
-    TuiAvatar,
-    TuiBadgedContentComponent,
     TuiButton,
     TuiDataList,
-    TuiDataListWrapper,
     TuiDropdown,
-    TuiHint,
-    TuiIcon,
-    TuiInput,
     TuiLink,
     TuiPulse,
     TuiScrollbar,
-    TuiSelect,
+    TuiScrollbar,
     TuiSkeleton,
     TuiSwipe,
     TuiTabs,
@@ -100,6 +80,7 @@ import { AvatarUrlPipe } from '../../pipes';
     UserProfileLikesComponent,
     UserProfileProjectsComponent,
     UserProfileStatisticsComponent,
+    UserInfoComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -110,236 +91,178 @@ import { AvatarUrlPipe } from '../../pipes';
         class="w-full max-w-5xl mx-auto p-4 grid gap-4"
       >
         @let loading = !profile();
-        <div class="flex items-center gap-4">
+        <app-user-info
+          [loading]="loading"
+          [avatar]="profile()?.avatar"
+          [name]="profile()?.name"
+          [city]="profile()?.city"
+          [country]="profileCountry()"
+          [age]="profileAge()"
+          [startingClimbingYear]="profile()?.starting_climbing_year"
+          [bio]="profile()?.bio"
+          [avatarClickable]="true"
+          (avatarClick)="showEnlargedPhoto()"
+        >
           @if (
             tourService.isActive() && tourService.step() === TourStep.PROFILE
           ) {
-            <tui-pulse />
+            <tui-pulse badge />
           }
-          <tui-badged-content
-            [tuiSkeleton]="loading"
-            [style.--tui-radius.%]="50"
-          >
-            @if (equipperResource.value(); as equipper) {
-              <div tuiSlot="top">
-                <a
-                  tuiIconButton
-                  appearance="action"
-                  size="s"
-                  iconStart="@tui.hammer"
-                  [routerLink]="['/equipper', equipper.id]"
-                  class="rounded-full!"
-                >
-                </a>
-              </div>
-            }
-            <span
-              tuiAvatar
-              [tuiSkeleton]="loading"
-              size="xxl"
-              class="cursor-pointer transition-transform hover:scale-105 active:scale-95 focus-visible:outline-(--tui-border-accent)"
-              tabindex="0"
-              (click)="showEnlargedPhoto()"
-              (keydown.enter)="showEnlargedPhoto()"
-              (keydown.space)="$event.preventDefault(); showEnlargedPhoto()"
+          @if (equipperResource.value(); as equipper) {
+            <a
+              tuiIconButton
+              appearance="action"
+              size="s"
+              iconStart="@tui.hammer"
+              [routerLink]="['/equipper', equipper.id]"
+              class="rounded-full!"
+              nameActions
             >
-              @if (profile()?.avatar; as avatar) {
-                <img [src]="avatar | avatarUrl" [alt]="profile()?.name || ''" />
-              } @else {
-                <tui-icon icon="@tui.user" />
-              }
-            </span>
-          </tui-badged-content>
-          <div class="grow">
-            <div class="flex flex-row gap-2 items-center">
-              @let name = profile()?.name;
-              <div class="text-xl font-semibold wrap-anywhere">
-                <span [tuiSkeleton]="loading ? 'name lastName' : false">
-                  {{ name }}
-                </span>
-              </div>
-              @if (isOwnProfile()) {
-                <app-menu-options-button
-                  appearance="action-grayscale"
-                  direction="bottom"
-                  size="m"
-                  [iconOnly]="true"
-                />
-              } @else {
-                @let blockMessages = blockState().blockMessages;
-                @let blockAscents = blockState().blockAscents;
-                <button
-                  [appearance]="
-                    blockMessages || blockAscents
-                      ? 'negative'
-                      : 'action-grayscale'
-                  "
-                  iconStart="@tui.ellipsis-vertical"
-                  size="m"
-                  tuiIconButton
-                  type="button"
-                  [tuiSkeleton]="loading"
-                  [tuiDropdown]="dropdownContent"
-                  [(tuiDropdownOpen)]="dropdownOpen"
-                >
-                  {{ 'options' | translate }}
-                </button>
-                <ng-template #dropdownContent>
-                  <tui-data-list>
-                    <button
-                      tuiOption
-                      new
-                      [tuiAppearance]="blockMessages ? 'negative' : 'neutral'"
-                      iconStart="@tui.message-circle-off"
-                      (click)="toggleBlockMessages(); dropdownOpen.set(false)"
-                    >
-                      {{
-                        (blockMessages ? 'messagesBlocked' : 'blockMessages')
-                          | translate
-                      }}
-                    </button>
-                    <button
-                      tuiOption
-                      new
-                      [tuiAppearance]="blockAscents ? 'negative' : 'neutral'"
-                      iconStart="@tui.bell-off"
-                      (click)="toggleHideAscents(); dropdownOpen.set(false)"
-                    >
-                      {{
-                        (blockAscents ? 'ascentsHidden' : 'hideAscents')
-                          | translate
-                      }}
-                    </button>
-                  </tui-data-list>
-                </ng-template>
-              }
-            </div>
+            </a>
+          }
 
-            <div class="flex items-center gap-x-2 flex-wrap">
-              @let country = profileCountry();
-              @let city = profile()?.city;
-              <span
-                class="flex items-center gap-2"
-                [tuiSkeleton]="loading ? 'country, city' : false"
-              >
-                {{ country ? countriesNames()[country] : ''
-                }}{{ country && city ? ', ' : '' }}{{ city || '' }}
-              </span>
-              @if (profileAge(); as age) {
-                |
-                <span>
-                  {{ age }}
-                  {{ 'years' | translate | lowercase }}
-                </span>
-              }
-
-              @if (profile()?.starting_climbing_year; as year) {
-                <span class="opacity-70">
-                  (
-                  {{ 'startingClimbingYear' | translate | lowercase }}
-                  {{ year }}
-                  )
-                </span>
-              }
-            </div>
-            <div class="opacity-70">
-              @let bio = profile()?.bio;
-              <span
-                class="wrap-anywhere"
-                [tuiSkeleton]="
-                  loading
-                    ? 'This text serves as the content behind the skeleton and adjusts the width.'
-                    : false
+          @if (isOwnProfile()) {
+            <app-menu-options-button
+              appearance="action-grayscale"
+              direction="bottom"
+              size="s"
+              [iconOnly]="true"
+              nameActions
+            />
+          } @else {
+            @let blockMessages = blockState().blockMessages;
+            @let blockAscents = blockState().blockAscents;
+            <ng-container nameActions>
+              <button
+                [appearance]="
+                  blockMessages || blockAscents
+                    ? 'negative'
+                    : 'action-grayscale'
                 "
+                iconStart="@tui.ellipsis-vertical"
+                size="s"
+                tuiIconButton
+                type="button"
+                [tuiSkeleton]="loading"
+                [tuiDropdown]="dropdownContent"
+                [(tuiDropdownOpen)]="dropdownOpen"
               >
-                {{ bio }}
-              </span>
-            </div>
+                {{ 'options' | translate }}
+              </button>
+              <ng-template #dropdownContent>
+                <tui-data-list>
+                  <button
+                    tuiOption
+                    [tuiAppearance]="blockMessages ? 'negative' : 'neutral'"
+                    iconStart="@tui.message-circle-off"
+                    (click)="toggleBlockMessages(); dropdownOpen.set(false)"
+                  >
+                    {{
+                      (blockMessages ? 'messagesBlocked' : 'blockMessages')
+                        | translate
+                    }}
+                  </button>
+                  <button
+                    tuiOption
+                    [tuiAppearance]="blockAscents ? 'negative' : 'neutral'"
+                    iconStart="@tui.bell-off"
+                    (click)="toggleHideAscents(); dropdownOpen.set(false)"
+                  >
+                    {{
+                      (blockAscents ? 'ascentsHidden' : 'hideAscents')
+                        | translate
+                    }}
+                  </button>
+                </tui-data-list>
+              </ng-template>
+            </ng-container>
+          }
 
-            <div class="flex gap-4 mt-2">
-              <button
-                tuiLink
-                type="button"
-                [tuiSkeleton]="loading"
-                (click)="openFollowsDialog('followers')"
-              >
-                <strong>{{ followersCount() }}</strong>
-                {{ 'followers' | translate | lowercase }}
-              </button>
-              <button
-                tuiLink
-                type="button"
-                [tuiSkeleton]="loading"
-                (click)="openFollowsDialog('following')"
-              >
-                <strong>{{ followingCount() }}</strong>
-                {{ 'following' | translate | lowercase }}
-              </button>
-            </div>
+          <div class="flex gap-4 mt-2" extraInfo>
+            <button
+              tuiLink
+              type="button"
+              [tuiSkeleton]="loading"
+              (click)="openFollowsDialog('followers')"
+            >
+              <strong>{{ followersCount() }}</strong>
+              {{ 'followers' | translate | lowercase }}
+            </button>
+            <button
+              tuiLink
+              type="button"
+              [tuiSkeleton]="loading"
+              (click)="openFollowsDialog('following')"
+            >
+              <strong>{{ followingCount() }}</strong>
+              {{ 'following' | translate | lowercase }}
+            </button>
           </div>
-        </div>
 
-        @if (!isOwnProfile()) {
-          <div class="flex gap-2">
-            @let following = isFollowing();
-            @let requested = isRequested();
-            @let hasIncomingRequest = hasIncomingFollowRequest();
-            @let isPrivate = profile()?.private;
+          <div class="flex gap-2" actions>
+            @if (!isOwnProfile()) {
+              @let following = isFollowing();
+              @let requested = isRequested();
+              @let hasIncomingRequest = hasIncomingFollowRequest();
+              @let isPrivate = profile()?.private;
 
-            @if (hasIncomingRequest) {
+              @if (hasIncomingRequest) {
+                <button
+                  tuiButton
+                  type="button"
+                  appearance="primary"
+                  size="s"
+                  [iconStart]="'@tui.check'"
+                  [tuiSkeleton]="loading || followLoading()"
+                  (click)="acceptFollowRequest()"
+                >
+                  {{ 'allowFollow' | translate }}
+                </button>
+              }
+
               <button
                 tuiButton
                 type="button"
-                appearance="primary"
-                size="m"
-                [iconStart]="'@tui.check'"
+                appearance="secondary"
+                size="s"
+                [iconStart]="
+                  following
+                    ? '@tui.bell-filled'
+                    : requested
+                      ? '@tui.clock'
+                      : '@tui.bell'
+                "
                 [tuiSkeleton]="loading || followLoading()"
-                (click)="acceptFollowRequest()"
+                (click)="toggleFollow()"
               >
-                {{ 'allowFollow' | translate }}
+                {{
+                  (following
+                    ? 'followingStatus'
+                    : requested
+                      ? 'requestedStatus'
+                      : isPrivate
+                        ? 'requestFollow'
+                        : 'follow'
+                  ) | translate
+                }}
               </button>
+
+              @if (following || !isPrivate) {
+                <button
+                  tuiButton
+                  type="button"
+                  appearance="secondary"
+                  size="s"
+                  iconStart="@tui.send"
+                  [tuiSkeleton]="loading"
+                  (click)="openChat()"
+                >
+                  {{ 'sendMessage' | translate }}
+                </button>
+              }
             }
-
-            <button
-              tuiButton
-              type="button"
-              appearance="secondary"
-              size="m"
-              [iconStart]="
-                following
-                  ? '@tui.bell-filled'
-                  : requested
-                    ? '@tui.clock'
-                    : '@tui.bell'
-              "
-              [tuiSkeleton]="loading || followLoading()"
-              (click)="toggleFollow()"
-            >
-              {{
-                (following
-                  ? 'followingStatus'
-                  : requested
-                    ? 'requestedStatus'
-                    : isPrivate
-                      ? 'requestFollow'
-                      : 'follow'
-                ) | translate
-              }}
-            </button>
-
-            <button
-              tuiButton
-              type="button"
-              appearance="secondary"
-              size="m"
-              iconStart="@tui.send"
-              [tuiSkeleton]="loading"
-              (click)="openChat()"
-            >
-              {{ 'sendMessage' | translate }}
-            </button>
           </div>
-        }
+        </app-user-info>
 
         @if (isOwnProfile() || !profile()?.private || isFollowing()) {
           <tui-tabs
@@ -455,7 +378,6 @@ export class UserProfileComponent {
   protected readonly router = inject(Router);
   protected readonly tourService = inject(TourService);
   protected readonly TourStep = TourStep;
-  protected readonly countriesNames = inject(TUI_COUNTRIES);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
   protected readonly followRequestsService = inject(FollowRequestsService);
