@@ -26,15 +26,6 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Next Steps
 
-- **Seccion merchandising**
-  - Packs de áreas
-    - Al comprar un pack se desbloquea el acceso a las áreas del pack, del mismo modo que con las donaciones (revisar como se hace por si hay que hacer cambios. revisar historial de donaciones de user-profile-config)
-  - Artículos
-    - Administrar artículos y stock por tallas
-    - Las compras deben ser por talla y debe gestionarse el stock
-  - Admin
-    - Gestionar pedidos, estado envio, etc
-
 ## Future Features
 
 - **Solicitudes para relacionar usuarios con equippers**

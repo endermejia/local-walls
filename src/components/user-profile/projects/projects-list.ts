@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 import { TuiSkeleton } from '@taiga-ui/kit';
+import { TuiSortDirection } from '@taiga-ui/addon-table';
 
 import { RoutesTableComponent } from '../../route/routes-table';
 
@@ -34,6 +35,8 @@ import { RouteWithExtras } from '../../../models/route.model';
         [showRowColors]="false"
         [expandableMobile]="false"
         [hiddenColumns]="['topo', 'height', 'rating', 'ascents']"
+        activeCol="grade"
+        [direction]="sortDesc"
       />
     }
   `,
@@ -45,4 +48,6 @@ import { RouteWithExtras } from '../../../models/route.model';
 export class UserProfileProjectsListComponent {
   projects = input.required<RouteWithExtras[]>();
   loading = input<boolean>(false);
+
+  protected readonly sortDesc = TuiSortDirection.Desc;
 }

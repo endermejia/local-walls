@@ -856,13 +856,14 @@ export class RoutesTableComponent {
   showAddRouteToTopo: InputSignal<boolean> = input(false);
   hiddenColumns: InputSignal<string[]> = input<string[]>([]);
   expandableMobile: InputSignal<boolean> = input(true);
+  activeCol: InputSignal<RoutesTableKey> = input<RoutesTableKey>('ascents');
 
   protected readonly sorters = ROUTE_TABLE_SORTERS;
 
   // Internal state for sorting
   protected currentSorter: TuiComparator<RoutesTableRow> =
-    this.sorters['ascents'];
-  protected currentDirection: TuiSortDirection = TuiSortDirection.Desc;
+    this.sorters[this.activeCol()];
+  protected currentDirection: TuiSortDirection = this.direction();
 
   protected readonly openDropdownId = signal<string | null>(null);
 
@@ -882,6 +883,7 @@ export class RoutesTableComponent {
   constructor() {
     effect(() => {
       this.currentDirection = this.direction();
+      this.currentSorter = this.sorters[this.activeCol()];
     });
   }
 

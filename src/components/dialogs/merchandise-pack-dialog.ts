@@ -45,7 +45,7 @@ import { AreaPackDetail } from '../../models';
         @let images =
           (pack.image_urls?.length
             ? pack.image_urls
-            : ['/assets/images/area-pack-promo.png']) || [];
+            : ['/logo/climbeast.svg']) || [];
         @if (images.length > 0) {
           <tui-carousel #carousel [(index)]="index" class="w-full h-full">
             <ng-template tuiItem let-i>

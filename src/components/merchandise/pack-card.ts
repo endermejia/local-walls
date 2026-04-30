@@ -136,9 +136,7 @@ export class PackCardComponent {
   protected readonly carouselItems = computed<CarouselItem[]>(() => {
     const imageUrls = this.pack().image_urls;
     const urls =
-      imageUrls && imageUrls.length > 0
-        ? imageUrls
-        : ['/assets/images/area-pack-promo.png'];
+      imageUrls && imageUrls.length > 0 ? imageUrls : ['/logo/climbeast.svg'];
 
     return urls.map((url) => ({ type: 'image', url }));
   });
