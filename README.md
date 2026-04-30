@@ -27,9 +27,8 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 ## Next Steps
 
 - **✨ Mejora del Menú de Perfil (UX)**:
-  - Migrar el botón de perfil a un **sidebar derecho** persistente o un dropdown avanzado con iconos en desktop.
+  - Modificar la vista de perfil. El boton **Perfil del navbar** por dropdown con iconos.
   - Centralizar accesos directos: Mis sectores, Logbook, Configuración y botones del `menu-button`.
-  - Implementar estados reactivos con Signals para mostrar notificaciones pendientes directamente en el avatar.
 - **🛡️ Sistema de Gestión de Permisos y Solicitudes**:
   - **Administradores de Áreas**: Refinar el flujo en `AdminAreaRequestsComponent`. Implementar notificaciones push al aprobar/rechazar.
   - **Relación con Equippers**: Crear un flujo para que los usuarios soliciten vincularse a un "Equipper" oficial, permitiendo la atribución correcta de nuevas vías.
