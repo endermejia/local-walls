@@ -52,7 +52,10 @@ export interface CarouselItem {
                 [class.cursor-pointer]="clickable()"
                 [class.object-cover]="objectCover()"
                 [class.h-full]="objectCover()"
-                (click)="imageClick.emit(item.url)"
+                [attr.tabindex]="clickable() ? 0 : null"
+                [attr.role]="clickable() ? 'button' : null"
+                (click)="clickable() && imageClick.emit(item.url)"
+                (keydown.enter)="clickable() && imageClick.emit(item.url)"
               />
             } @else {
               <div class="w-full aspect-video flex items-center justify-center">
