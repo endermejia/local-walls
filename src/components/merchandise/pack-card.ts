@@ -2,19 +2,21 @@ import { CommonModule, DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   input,
   output,
   signal,
 } from '@angular/core';
 
-import { TuiAppearance, TuiButton, TuiCarousel, TuiIcon } from '@taiga-ui/core';
+import { TuiAppearance, TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { GlobalData } from '../../services/global-data';
 import { AreaPackDetail } from '../../models';
+import { CarouselItem, CustomCarouselComponent } from '../ui/custom-carousel';
 
 @Component({
   selector: 'app-pack-card',
@@ -26,8 +28,10 @@ import { AreaPackDetail } from '../../models';
     TuiAppearance,
     TuiBadge,
     TuiButton,
-    TuiCarousel,
+    TuiBadge,
+    TuiButton,
     TuiIcon,
+    CustomCarouselComponent,
   ],
   template: `
     <article
@@ -44,57 +48,16 @@ import { AreaPackDetail } from '../../models';
       <div
         class="relative h-48 overflow-hidden bg-(--tui-background-neutral-1)"
       >
-        @let images =
-          pack().image_urls?.length
-            ? pack().image_urls
-            : ['/assets/images/area-pack-promo.png'];
-
-        @if (images && images.length > 0) {
-          <tui-carousel #carousel [(index)]="index" class="w-full h-full">
-            <ng-template tuiItem let-i>
-              @let n = images.length;
-              <div class="w-full h-full overflow-hidden">
-                <img
-                  [src]="images[((i % n) + n) % n]"
-                  [alt]="pack().name"
-                  [class.grayscale]="pack().active === false"
-                  [class.opacity-50]="pack().active === false"
-                  class="w-full h-full object-cover group-hover:scale-105 transition-all duration-1000"
-                />
-              </div>
-            </ng-template>
-          </tui-carousel>
-
-          @if (images.length > 1) {
-            @let ni =
-              ((index() % images.length) + images.length) % images.length;
-            <button
-              type="button"
-              class="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 text-white"
-              (click)="carousel.prev(); $event.stopPropagation()"
-            >
-              <tui-icon icon="@tui.chevron-left" class="text-xs" />
-            </button>
-            <button
-              type="button"
-              class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 text-white"
-              (click)="carousel.next(); $event.stopPropagation()"
-            >
-              <tui-icon icon="@tui.chevron-right" class="text-xs" />
-            </button>
-            <div
-              class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 z-10 pointer-events-none bg-black/30 backdrop-blur-sm rounded-full px-2 py-1"
-            >
-              @for (_ of images; track $index; let i = $index) {
-                <div
-                  class="h-1.5 rounded-full bg-white transition-all duration-300"
-                  [style.width.rem]="ni === i ? 1 : 0.375"
-                  [style.opacity]="ni === i ? '1' : '0.45'"
-                ></div>
-              }
-            </div>
-          }
-        }
+        <app-custom-carousel
+          [items]="carouselItems()"
+          [(index)]="index"
+          [objectCover]="true"
+          maxHeight="100%"
+          [hideArrowsUntilHover]="true"
+          class="w-full h-full"
+          [class.grayscale]="pack().active === false"
+          [class.opacity-50]="pack().active === false"
+        />
 
         <div class="absolute top-4 right-4 z-10">
           <span
@@ -169,4 +132,14 @@ export class PackCardComponent {
   edit = output<AreaPackDetail>();
 
   protected readonly index = signal(0);
+
+  protected readonly carouselItems = computed<CarouselItem[]>(() => {
+    const imageUrls = this.pack().image_urls;
+    const urls =
+      imageUrls && imageUrls.length > 0
+        ? imageUrls
+        : ['/assets/images/area-pack-promo.png'];
+
+    return urls.map((url) => ({ type: 'image', url }));
+  });
 }

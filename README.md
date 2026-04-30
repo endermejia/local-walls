@@ -37,6 +37,8 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Future Features
 
+- **Solicitudes para relacionar usuarios con equippers**
+- **Mejorar solicitudes para administradores de areas**
 - **Planificador 'Viaje' con filtro**
   - Por fecha para que no llueva en ese sector
   - Por grados

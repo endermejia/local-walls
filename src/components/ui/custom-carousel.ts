@@ -22,18 +22,26 @@ export interface CarouselItem {
   imports: [CommonModule, TuiIcon],
   template: `
     <div
-      class="relative w-full h-full overflow-hidden group rounded-inherit"
+      class="relative w-full h-full overflow-hidden group rounded-inherit touch-pan-y"
       (mouseenter)="isHovered.set(true)"
       (mouseleave)="isHovered.set(false)"
+      (touchstart)="onTouchStart($event)"
+      (touchmove)="onTouchMove($event)"
+      (touchend)="onTouchEnd()"
     >
       <!-- Carousel Track -->
       <div
-        class="flex transition-transform duration-500 ease-out h-full"
-        [style.transform]="'translateX(-' + index() * 100 + '%)'"
+        class="flex h-full"
+        [class.transition-transform]="!isDragging()"
+        [class.duration-500]="!isDragging()"
+        [class.ease-out]="!isDragging()"
+        [style.transform]="
+          'translateX(calc(-' + index() * 100 + '% + ' + touchOffset() + 'px))'
+        "
       >
         @for (item of items(); track $index) {
           <div
-            class="w-full flex-shrink-0 flex items-center justify-center min-h-[inherit]"
+            class="w-full shrink-0 flex items-center justify-center min-h-[inherit]"
           >
             @if (item.type === 'image') {
               <img
@@ -65,18 +73,20 @@ export interface CarouselItem {
       @if (items().length > 1) {
         <button
           type="button"
-          class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center z-10 text-white hover:bg-black/70 transition-all duration-300"
+          class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center z-10 text-white hover:bg-black/70 transition-all duration-300 disabled:opacity-0 disabled:pointer-events-none"
           [class.opacity-0]="!isHovered() && hideArrowsUntilHover()"
           [class.pointer-events-none]="!isHovered() && hideArrowsUntilHover()"
+          [disabled]="index() === 0"
           (click)="prev(); $event.stopPropagation()"
         >
           <tui-icon icon="@tui.chevron-left" class="text-sm" />
         </button>
         <button
           type="button"
-          class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center z-10 text-white hover:bg-black/70 transition-all duration-300"
+          class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center z-10 text-white hover:bg-black/70 transition-all duration-300 disabled:opacity-0 disabled:pointer-events-none"
           [class.opacity-0]="!isHovered() && hideArrowsUntilHover()"
           [class.pointer-events-none]="!isHovered() && hideArrowsUntilHover()"
+          [disabled]="index() === items().length - 1"
           (click)="next(); $event.stopPropagation()"
         >
           <tui-icon icon="@tui.chevron-right" class="text-sm" />
@@ -124,15 +134,60 @@ export class CustomCarouselComponent {
   imageClick = output<string | SafeResourceUrl>();
 
   protected readonly isHovered = signal(false);
+  protected readonly touchOffset = signal(0);
+  protected readonly isDragging = signal(false);
+
+  private touchStartX = 0;
+  private readonly swipeThreshold = 50;
 
   next(): void {
-    const nextIndex = (this.index() + 1) % this.items().length;
-    this.index.set(nextIndex);
+    if (this.index() < this.items().length - 1) {
+      this.index.update((i) => i + 1);
+    }
   }
 
   prev(): void {
-    const prevIndex =
-      (this.index() - 1 + this.items().length) % this.items().length;
-    this.index.set(prevIndex);
+    if (this.index() > 0) {
+      this.index.update((i) => i - 1);
+    }
+  }
+
+  protected onTouchStart(event: TouchEvent): void {
+    if (this.items().length <= 1) return;
+    this.touchStartX = event.touches[0].clientX;
+    this.isDragging.set(true);
+    this.touchOffset.set(0);
+  }
+
+  protected onTouchMove(event: TouchEvent): void {
+    if (!this.isDragging()) return;
+    const currentX = event.touches[0].clientX;
+    const offset = currentX - this.touchStartX;
+
+    // Resistance at the edges
+    const isAtStart = this.index() === 0 && offset > 0;
+    const isAtEnd = this.index() === this.items().length - 1 && offset < 0;
+
+    if (isAtStart || isAtEnd) {
+      this.touchOffset.set(offset * 0.3); // Apply 30% resistance
+    } else {
+      this.touchOffset.set(offset);
+    }
+  }
+
+  protected onTouchEnd(): void {
+    if (!this.isDragging()) return;
+
+    const offset = this.touchOffset();
+    this.isDragging.set(false);
+    this.touchOffset.set(0);
+
+    if (Math.abs(offset) > this.swipeThreshold) {
+      if (offset > 0) {
+        this.prev();
+      } else {
+        this.next();
+      }
+    }
   }
 }
