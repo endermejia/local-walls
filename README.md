@@ -26,29 +26,33 @@ It uses server-side rendering (SSR) for improved performance and SEO, and implem
 
 ## Next Steps
 
+- **✨ Mejora del Menú de Perfil (UX)**:
+  - Migrar el botón de perfil a un **sidebar derecho** persistente o un dropdown avanzado con iconos en desktop.
+  - Centralizar accesos directos: Mis sectores, Logbook, Configuración y botones del `menu-button`.
+  - Implementar estados reactivos con Signals para mostrar notificaciones pendientes directamente en el avatar.
+- **🛡️ Sistema de Gestión de Permisos y Solicitudes**:
+  - **Administradores de Áreas**: Refinar el flujo en `AdminAreaRequestsComponent`. Implementar notificaciones push al aprobar/rechazar.
+  - **Relación con Equippers**: Crear un flujo para que los usuarios soliciten vincularse a un "Equipper" oficial, permitiendo la atribución correcta de nuevas vías.
+  - **Validación por Roles**: Asegurar que las RLS de Supabase y los Guards de Angular cubran los nuevos estados de "pendiente de validación".
+- **📊 Integración Avanzada con 8a.nu**:
+  - Implementar la importación directa de ascensos usando las credenciales del usuario (vía `EightAnuService`).
+  - Sincronización automática de bases de datos: mapeo inteligente de sectores y vías entre ClimBeast y 8a.nu.
+  - Visualización de estadísticas comparativas (grado medio, pirámide de ascensos).
+
 ## Future Features
 
-- **Solicitudes para relacionar usuarios con equippers**
-- **Mejorar solicitudes para administradores de areas**
-- **Planificador 'Viaje' con filtro**
-  - Por fecha para que no llueva en ese sector
-  - Por grados
-- **Mejorar boton profile**
-  - Pasar a sidebar derecho
-    - Repartir secciones por botones de sidebar o dropdown con iconos en desktop
-    - Incluir Botones del menu-button
-- **Nueva sección Entrenamientos**
-  - Planificar entrenamientos en calendario
-  - Realizar entrenamientos
-    - Fases del entrenamiento
-    - Temporizadores
-  - Nueva tabla de entrenadores y otra tabla relacionada con usuarios a los que entrena cada entrenador
-  - Tablas de entrenamientos con ejercicios etc
-  - Tabla de ejercicios
-  - Tabla de entrenamientos realizados, por usuario -
-- **8a.nu Integration**:
-  - Copy 8a.nu ascents database.
-  - Direct data import using 8a.nu user credentials.
+- **🗓️ Planificador de Viajes Inteligente**:
+  - Filtros meteorológicos: Integración con API de clima para sugerir sectores donde no llueva en las fechas seleccionadas.
+  - Filtros por grado y estilo: Algoritmo de recomendación basado en el logbook del usuario y de sus acompañantes.
+  - Generación de itinerarios exportables y compartibles.
+- **🏋️ Ecosistema de Entrenamiento**:
+  - **Calendario y Planificación**: Interfaz tipo drag-and-drop para organizar sesiones de fuerza, resistencia y técnica.
+  - **Modo Ejecución**: Temporizadores específicos para series (Beastmaker, suspensiones) y fases de entrenamiento.
+  - **Red de Entrenadores**: Marketplace o sistema de vinculación donde entrenadores pueden asignar rutinas a sus alumnos y monitorizar progresos.
+  - **Analíticas**: Gráficos de carga de entrenamiento y fatiga.
+- **🧗 Sección Indoor (Gestión de Rocódromos)**:
+  - Implementar la hoja de ruta detallada abajo para centros de escalada.
+  - Sistema de check-in mediante QR y gestión de bonos en tiempo real.
 
 ## 🧗 Sección Indoor (Próxima fase)
 
