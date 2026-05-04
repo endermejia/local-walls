@@ -1,145 +1,40 @@
-import type { Database } from './supabase-generated';
+import type { Database, Json } from './supabase-generated';
 
 type Tables = Database['public']['Tables'];
 export type DatabaseTable = keyof Tables;
 
-// Enums
-export type AscentType = Database['public']['Enums']['ascent_type'];
-export const AscentTypes: Record<Uppercase<AscentType>, AscentType> = {
-  RP: 'rp',
-  OS: 'os',
-  F: 'f',
-  ATTEMPT: 'attempt',
-} as const;
-export type ClimbingKind = Database['public']['Enums']['climbing_kind'];
-export const ClimbingKinds: Record<Uppercase<ClimbingKind>, ClimbingKind> = {
-  SPORT: 'sport',
-  BOULDER: 'boulder',
-  MIXED: 'mixed',
-  MULTIPITCH: 'multipitch',
-  TRAD: 'trad',
-} as const;
+export type TableRow<T extends DatabaseTable> = Tables[T]['Row'];
+export type TableInsert<T extends DatabaseTable> = Tables[T]['Insert'];
+export type TableUpdate<T extends DatabaseTable> = Tables[T]['Update'];
 
-export const CLIMBING_ICONS: Record<ClimbingKind, string> = {
-  sport: '/image/sport.svg',
-  boulder: '/image/boulder.svg',
-  mixed: '@tui.mountain',
-  multipitch: '@tui.mountain',
-  trad: '@tui.mountain',
-};
-export type Language = Database['public']['Enums']['language'];
-export const Languages: Record<Uppercase<Language>, Language> = {
-  ES: 'es',
-  EN: 'en',
-  DE: 'de',
-  VA: 'va',
-  EU: 'eu',
-  FR: 'fr',
-  IT: 'it',
-} as const;
-export type Sex = Database['public']['Enums']['sex'];
-export const Sexes: Record<Uppercase<Sex>, Sex> = {
-  MALE: 'male',
-  FEMALE: 'female',
-  OTHER: 'other',
-} as const;
-export type Theme = Database['public']['Enums']['theme'];
-export const Themes: Record<Uppercase<Theme>, Theme> = {
-  LIGHT: 'light',
-  DARK: 'dark',
-} as const;
-
-// Generic utilities (optional) for use elsewhere
-export type TableRow<TTable extends keyof Tables> = Tables[TTable]['Row'];
-export type TableInsert<TTable extends keyof Tables> = Tables[TTable]['Insert'];
-export type TableUpdate<TTable extends keyof Tables> = Tables[TTable]['Update'];
-
-// Equippers
+// --- Common DTOs ---
+export type UserProfileDto = TableRow<'user_profiles'>;
+export type UserProfileUpdateDto = TableUpdate<'user_profiles'>;
+export type UserPyramidSlotDto = TableRow<'user_pyramid_slots'>;
+export type UserPyramidSlotInsertDto = TableInsert<'user_pyramid_slots'>;
+export type RouteDto = TableRow<'routes'>;
+export type RouteAscentDto = TableRow<'route_ascents'>;
 export type EquipperDto = TableRow<'equippers'>;
-export type EquipperInsertDto = TableInsert<'equippers'>;
-export type EquipperUpdateDto = TableUpdate<'equippers'>;
-
-// Parkings
 export type ParkingDto = TableRow<'parkings'>;
 export type ParkingInsertDto = TableInsert<'parkings'>;
 export type ParkingUpdateDto = TableUpdate<'parkings'>;
-
-// Route Ascents
-export type RouteAscentDto = TableRow<'route_ascents'>;
-export type RouteAscentInsertDto = TableInsert<'route_ascents'>;
-export type RouteAscentUpdateDto = TableUpdate<'route_ascents'>;
-
-// Route Equippers
-export type RouteEquipperDto = TableRow<'route_equippers'>;
-export type RouteEquipperInsertDto = TableInsert<'route_equippers'>;
-export type RouteEquipperUpdateDto = TableUpdate<'route_equippers'>;
-
-// Route Likes
-export type RouteLikeDto = TableRow<'route_likes'>;
-export type RouteLikeInsertDto = TableInsert<'route_likes'>;
-export type RouteLikeUpdateDto = TableUpdate<'route_likes'>;
-
-// Route Projects
-export type RouteProjectDto = TableRow<'route_projects'>;
-export type RouteProjectInsertDto = TableInsert<'route_projects'>;
-export type RouteProjectUpdateDto = TableUpdate<'route_projects'>;
-
-// Routes
-export type RouteDto = TableRow<'routes'>;
-export type RouteInsertDto = TableInsert<'routes'>;
-export type RouteUpdateDto = TableUpdate<'routes'>;
-
-// Topo Routes
-export type TopoRouteDto = TableRow<'topo_routes'>;
-export type TopoRouteInsertDto = TableInsert<'topo_routes'>;
-export type TopoRouteUpdateDto = TableUpdate<'topo_routes'>;
-
-// Topos
 export type TopoDto = TableRow<'topos'>;
 export type TopoInsertDto = TableInsert<'topos'>;
 export type TopoUpdateDto = TableUpdate<'topos'>;
-
-// User Profiles
-export type UserProfileDto = TableRow<'user_profiles'>;
-export type UserProfileInsertDto = TableInsert<'user_profiles'>;
-export type UserProfileUpdateDto = TableUpdate<'user_profiles'>;
-
-// Route Ascent Comments
+export type TopoRouteInsertDto = TableInsert<'topo_routes'>;
 export type RouteAscentCommentDto = TableRow<'route_ascent_comments'>;
-export type RouteAscentCommentInsertDto = TableInsert<'route_ascent_comments'>;
-export type RouteAscentCommentUpdateDto = TableUpdate<'route_ascent_comments'>;
-
-// Chat
-export type ChatRoomDto = TableRow<'chat_rooms'>;
-export type ChatRoomInsertDto = TableInsert<'chat_rooms'>;
-export type ChatRoomUpdateDto = TableUpdate<'chat_rooms'>;
-
-export type ChatParticipantDto = TableRow<'chat_participants'>;
-export type ChatParticipantInsertDto = TableInsert<'chat_participants'>;
-export type ChatParticipantUpdateDto = TableUpdate<'chat_participants'>;
-
 export type ChatMessageDto = TableRow<'chat_messages'>;
 export type ChatMessageInsertDto = TableInsert<'chat_messages'>;
-export type ChatMessageUpdateDto = TableUpdate<'chat_messages'>;
-
-// Route Ascent Comment Likes
-export type RouteAscentCommentLikeDto = TableRow<'route_ascent_comment_likes'>;
-export type RouteAscentCommentLikeInsertDto =
-  TableInsert<'route_ascent_comment_likes'>;
-export type RouteAscentCommentLikeUpdateDto =
-  TableUpdate<'route_ascent_comment_likes'>;
-
-// Notifications
+export type ChatRoomDto = TableRow<'chat_rooms'>;
 export type NotificationDto = TableRow<'notifications'>;
 export type NotificationInsertDto = TableInsert<'notifications'>;
-export type NotificationUpdateDto = TableUpdate<'notifications'>;
-
-// User Pyramid Slots
-export type UserPyramidSlotDto = TableRow<'user_pyramid_slots'>;
-export type UserPyramidSlotInsertDto = TableInsert<'user_pyramid_slots'>;
-export type UserPyramidSlotUpdateDto = TableUpdate<'user_pyramid_slots'>;
-
-// Follow Requests
 export type FollowRequestDto = TableRow<'follow_requests'>;
-export type FollowRequestInsertDto = TableInsert<'follow_requests'>;
-export type FollowRequestUpdateDto = TableUpdate<'follow_requests'>;
+
+export type RouteInsertDto = TableInsert<'routes'>;
+export type RouteUpdateDto = TableUpdate<'routes'>;
+export type RouteAscentInsertDto = TableInsert<'route_ascents'>;
+export type RouteAscentUpdateDto = TableUpdate<'route_ascents'>;
+export type RouteAscentCommentInsertDto = TableInsert<'route_ascent_comments'>;
+
+// --- Database Utilities ---
+export { Json };

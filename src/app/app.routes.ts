@@ -126,6 +126,26 @@ export const routes: Routes = [
     loadComponent: () =>
       import('../pages/area/route').then((m) => m.RouteComponent),
   },
+  {
+    path: 'indoor',
+    canMatch: [authGuard],
+    children: [
+      {
+        path: ':slug',
+        loadComponent: () =>
+          import('../pages/indoor/indoor-center').then(
+            (m) => m.IndoorCenterComponent,
+          ),
+      },
+      {
+        path: ':slug/admin',
+        loadComponent: () =>
+          import('../pages/indoor/indoor-admin').then(
+            (m) => m.IndoorAdminComponent,
+          ),
+      },
+    ],
+  },
   // Admin and Equipper routes
   {
     path: 'admin',

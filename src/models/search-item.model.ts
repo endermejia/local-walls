@@ -1,4 +1,4 @@
-import { ClimbingKind } from './supabase-interfaces';
+import { ClimbingKind } from './app-enums.model';
 
 export interface SearchItem {
   href: string;

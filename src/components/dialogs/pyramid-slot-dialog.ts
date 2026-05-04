@@ -12,8 +12,6 @@ import { POLYMORPHEUS_CONTEXT } from '@taiga-ui/polymorpheus';
 import { TuiDialogContext } from '@taiga-ui/core';
 import {
   TuiButton,
-  TuiDataList,
-  TuiHint,
   TuiIcon,
   TuiLoader,
   TuiScrollbar,
@@ -59,8 +57,6 @@ export interface PyramidSlotDialogData {
     GradeComponent,
     TranslatePipe,
     TuiButton,
-    TuiDataList,
-    TuiHint,
     TuiIcon,
     TuiInput,
     TuiLoader,

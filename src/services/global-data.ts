@@ -53,6 +53,7 @@ import {
   MapAreaItem,
   MapBounds,
   MapCragItem,
+  MapIndoorCenterItem,
   MapItem,
   MapResponse,
   ORDERED_GRADE_VALUES,
@@ -199,7 +200,7 @@ export class GlobalData {
 
   readonly isAdmin = computed(() => !!this.userProfile()?.is_admin);
   readonly merchandisingFeature = computed(() => this.isAdmin());
-  readonly indoorFeature = computed(() => false);
+  readonly indoorFeature = computed(() => this.isAdmin());
   readonly canEditAsAdmin = computed(
     () => this.editingMode() && this.isAdmin(),
   );
@@ -404,8 +405,8 @@ export class GlobalData {
           id: c.id,
           name: c.name,
           slug: c.slug,
-          latitude: c.latitude || 0,
-          longitude: c.longitude || 0,
+          latitude: Number(c.latitude) || 0,
+          longitude: Number(c.longitude) || 0,
           area_name: c.area?.name || '',
           area_slug: c.area?.slug || '',
           grades,
@@ -426,10 +427,41 @@ export class GlobalData {
         } as MapCragItem;
       });
 
+      let indoorItems: MapIndoorCenterItem[] = [];
+      if (this.indoorFeature()) {
+        const { data: sbIndoor, error: indoorError } =
+          await this.supabase.client
+            .from('indoor_centers')
+            .select('*')
+            .gte('latitude', bounds.south_west_latitude)
+            .lte('latitude', bounds.north_east_latitude)
+            .gte('longitude', bounds.south_west_longitude)
+            .lte('longitude', bounds.north_east_longitude);
+
+        if (!indoorError && sbIndoor) {
+          indoorItems = sbIndoor.map(
+            (c) =>
+              ({
+                id: c.id,
+                name: c.name,
+                slug: c.slug,
+                latitude: Number(c.latitude) || 0,
+                longitude: Number(c.longitude) || 0,
+                city: c.city || '',
+                country: c.country || '',
+                avatar_url: c.avatar_url || '',
+                is_indoor: true,
+              }) as MapIndoorCenterItem,
+          );
+        }
+      }
+
+      const combinedItems: MapItem[] = [...supabaseCragItems, ...indoorItems];
+
       return {
-        items: supabaseCragItems,
+        items: combinedItems,
         counts: {
-          locations: supabaseCragItems.length,
+          locations: combinedItems.length,
           map_collections: 0,
         },
       } as MapResponse;
@@ -461,13 +493,16 @@ export class GlobalData {
 
     return [
       ...items.filter((it) => {
-        const lat = (it as MapCragItem).latitude as number | undefined;
-        const lng = (it as MapCragItem).longitude as number | undefined;
-        return (
-          typeof lat === 'number' &&
-          typeof lng === 'number' &&
-          pointIn(lat, lng)
-        );
+        if ('latitude' in it && 'longitude' in it) {
+          const lat = it.latitude;
+          const lng = it.longitude;
+          return (
+            typeof lat === 'number' &&
+            typeof lng === 'number' &&
+            pointIn(lat, lng)
+          );
+        }
+        return false;
       }),
       ...(this.areasMapResource.value() || []),
     ];

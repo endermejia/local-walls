@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 
-import { TuiButton, TuiLoader, TuiAppearance } from '@taiga-ui/core';
+import { TuiButton, TuiLoader } from '@taiga-ui/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -18,7 +18,7 @@ import { handleErrorToast } from '../../utils';
 
 @Component({
   selector: 'app-paywall',
-  imports: [CommonModule, TranslatePipe, TuiAppearance, TuiButton, TuiLoader],
+  imports: [CommonModule, TranslatePipe, TuiButton, TuiLoader],
   template: `
     <div
       class="relative overflow-hidden flex flex-col items-center justify-center p-6 sm:p-10 rounded-4xl border border-(--tui-border-normal) text-center gap-6 shadow-xl bg-(--tui-background-elevated)"

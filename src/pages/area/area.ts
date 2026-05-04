@@ -26,7 +26,7 @@ import {
   type TuiConfirmData,
   TuiDataListWrapper,
 } from '@taiga-ui/kit';
-import { TuiDataList, TuiDropdown } from '@taiga-ui/core';
+import { TuiDropdown } from '@taiga-ui/core';
 import { UserProfileBasicDto } from '../../models';
 import { UserProfilesService } from '../../services/user-profiles.service';
 import { AvatarUrlPipe } from '../../pipes';
@@ -95,7 +95,6 @@ import { handleErrorToast, matchesQuery } from '../../utils';
     TuiButton,
     TuiChevron,
     TuiComboBox,
-    TuiDataList,
     TuiDataListWrapper,
     TuiDropdown,
     TuiIcon,

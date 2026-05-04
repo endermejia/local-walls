@@ -14,7 +14,6 @@ import {
 import { TuiCardLarge, TuiForm, TuiHeader } from '@taiga-ui/layout';
 import { TuiPassword } from '@taiga-ui/kit';
 import {
-  TuiAppearance,
   TuiButton,
   TuiIcon,
   TuiNotification,
@@ -33,7 +32,6 @@ import { SupabaseService } from '../../services/supabase.service';
   imports: [
     NgOptimizedImage,
     TranslatePipe,
-    TuiAppearance,
     TuiButton,
     TuiCardLarge,
     TuiForm,

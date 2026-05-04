@@ -12,8 +12,6 @@ import {
   PLATFORM_ID,
 } from '@angular/core';
 
-import { TuiBadgedContent } from '@taiga-ui/kit';
-
 import { TuiRoot } from '@taiga-ui/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -38,7 +36,6 @@ import { Themes } from '../models';
     NavbarComponent,
     RouterOutlet,
     TranslateModule,
-    TuiBadgedContent,
     TuiRoot,
   ],
   template: `

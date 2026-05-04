@@ -40,8 +40,19 @@ export interface MapCragItem {
   sun_all_day?: boolean;
   topos?: { id: number; name: string; slug: string }[];
 }
+export interface MapIndoorCenterItem {
+  id: string;
+  name: string;
+  slug: string;
+  latitude: number;
+  longitude: number;
+  city: string;
+  country?: string;
+  avatar_url?: string;
+  is_indoor: true;
+}
 
-export type MapItem = MapCragItem | MapAreaItem;
+export type MapItem = MapCragItem | MapAreaItem | MapIndoorCenterItem;
 
 export interface MapCounts {
   locations: number; // crags

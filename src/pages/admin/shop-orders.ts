@@ -24,7 +24,7 @@ import {
   TuiLoader,
   TuiTitle,
 } from '@taiga-ui/core';
-import { TuiDataListWrapper, TuiChevron } from '@taiga-ui/kit';
+import { TuiChevron } from '@taiga-ui/kit';
 import {
   TuiTable,
   TuiTableTbody,
@@ -65,7 +65,6 @@ import { OrderDetailsDialogComponent } from '../../components/dialogs/order-deta
     TuiTableHead,
     TuiTableCell,
     TuiDataList,
-    TuiDataListWrapper,
     TuiDropdown,
     TuiChevron,
   ],

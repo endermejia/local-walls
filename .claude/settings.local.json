@@ -27,7 +27,8 @@
       "Bash(wc -l /d/git/local-walls/public/i18n/*.json)",
       "Bash(npx prettier:*)",
       "Bash(npx tsc:*)",
-      "Bash(node_modules/.bin/tsc --noEmit)"
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(ls -la /d/git/local-walls/*.json)"
     ]
   }
 }

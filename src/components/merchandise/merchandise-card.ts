@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 
-import { TuiAppearance, TuiButton, TuiIcon } from '@taiga-ui/core';
+import { TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -24,7 +24,6 @@ import { MerchandiseItemDetail } from '../../models';
     CommonModule,
     DecimalPipe,
     TranslatePipe,
-    TuiAppearance,
     TuiBadge,
     TuiButton,
     CustomCarouselComponent,

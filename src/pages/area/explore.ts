@@ -171,17 +171,30 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           "
           [style.transform]="'translate(-50%, -' + _sheetScrollTop() + 'px)'"
         >
-          <button
-            tuiButton
-            size="m"
-            appearance="primary-grayscale"
-            iconStart="@tui.list"
-            routerLink="/area"
-            [tuiDropdown]="tourHint"
-            [tuiDropdownManual]="isExploreAreasTourStep"
-          >
-            {{ 'viewAllAreas' | translate }}
-          </button>
+          <div class="flex gap-2">
+            <button
+              tuiButton
+              size="m"
+              appearance="primary-grayscale"
+              iconStart="@tui.list"
+              routerLink="/area"
+              [tuiDropdown]="tourHint"
+              [tuiDropdownManual]="isExploreAreasTourStep"
+            >
+              {{ 'viewAllAreas' | translate }}
+            </button>
+            @if (global.indoorFeature()) {
+              <button
+                tuiButton
+                size="m"
+                appearance="primary-grayscale"
+                iconStart="@tui.house"
+                routerLink="/indoor"
+              >
+                {{ 'indoor.title' | translate }}
+              </button>
+            }
+          </div>
         </div>
 
         <!-- Top version (With selection) -->
@@ -190,15 +203,28 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           [style.opacity]="hasSelection ? 1 : 0"
           [style.visibility]="hasSelection ? 'visible' : 'hidden'"
         >
-          <button
-            tuiButton
-            size="m"
-            appearance="primary-grayscale"
-            iconStart="@tui.list"
-            routerLink="/area"
-          >
-            {{ 'viewAllAreas' | translate }}
-          </button>
+          <div class="flex gap-2">
+            <button
+              tuiButton
+              size="m"
+              appearance="primary-grayscale"
+              iconStart="@tui.list"
+              routerLink="/area"
+            >
+              {{ 'viewAllAreas' | translate }}
+            </button>
+            @if (global.indoorFeature()) {
+              <button
+                tuiButton
+                size="m"
+                appearance="primary-grayscale"
+                iconStart="@tui.house"
+                routerLink="/indoor"
+              >
+                {{ 'indoor.title' | translate }}
+              </button>
+            }
+          </div>
         </div>
 
         <!-- Map -->

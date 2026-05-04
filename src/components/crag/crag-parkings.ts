@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 
 import { TuiAvatar, TUI_CONFIRM, type TuiConfirmData } from '@taiga-ui/kit';
-import { TuiAppearance, TuiDialogService, TuiButton } from '@taiga-ui/core';
+import { TuiDialogService, TuiButton } from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -34,7 +34,6 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
     EmptyStateComponent,
     ParkingCardComponent,
     TranslatePipe,
-    TuiAppearance,
     TuiAvatar,
     TuiButton,
   ],

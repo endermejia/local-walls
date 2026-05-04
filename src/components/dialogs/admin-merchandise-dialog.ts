@@ -22,7 +22,6 @@ import { TuiDialogContext } from '@taiga-ui/core';
 import {
   TuiButton,
   TuiLabel,
-  TuiDataList,
   TuiIcon,
   TuiDialogService,
   TuiLoader,
@@ -75,7 +74,6 @@ const MERCHANDISE_CATEGORIES = [
     CdkDropList,
     TuiButton,
     TuiChevron,
-    TuiDataList,
     TuiDataListWrapper,
     TuiFiles,
     TuiHint,
@@ -123,7 +121,7 @@ const MERCHANDISE_CATEGORIES = [
               (ngModelChange)="updateModel('category', $event)"
               name="category"
             />
-            <tui-data-list-wrapper *tuiDropdown new [items]="categories" />
+            <tui-data-list-wrapper *tuiDropdown [items]="categories" />
           </tui-textfield>
 
           <tui-textfield class="w-full">

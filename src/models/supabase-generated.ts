@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export interface Database {
+export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
@@ -1091,7 +1091,9 @@ export interface Database {
         ];
       };
     };
-    Views: Record<never, never>;
+    Views: {
+      [_ in never]: never;
+    };
     Functions: {
       email: { Args: never; Returns: string };
       jwt: { Args: never; Returns: Json };
@@ -1115,7 +1117,9 @@ export interface Database {
         | 'email_change_token_current'
         | 'phone_change_token';
     };
-    CompositeTypes: Record<never, never>;
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
   public: {
     Tables: {
@@ -1856,67 +1860,123 @@ export interface Database {
       };
       indoor_centers: {
         Row: {
+          avatar_url: string | null;
           city: string | null;
           contact_info: Json | null;
           country: string | null;
           created_at: string;
           description: string | null;
+          gallery_urls: string[] | null;
           id: string;
+          latitude: number | null;
           location: unknown;
+          longitude: number | null;
           name: string;
+          schedule: Json | null;
           slug: string;
         };
         Insert: {
+          avatar_url?: string | null;
           city?: string | null;
           contact_info?: Json | null;
           country?: string | null;
           created_at?: string;
           description?: string | null;
+          gallery_urls?: string[] | null;
           id?: string;
+          latitude?: number | null;
           location?: unknown;
+          longitude?: number | null;
           name: string;
+          schedule?: Json | null;
           slug: string;
         };
         Update: {
+          avatar_url?: string | null;
           city?: string | null;
           contact_info?: Json | null;
           country?: string | null;
           created_at?: string;
           description?: string | null;
+          gallery_urls?: string[] | null;
           id?: string;
+          latitude?: number | null;
           location?: unknown;
+          longitude?: number | null;
           name?: string;
+          schedule?: Json | null;
           slug?: string;
         };
         Relationships: [];
       };
+      indoor_inventory: {
+        Row: {
+          center_id: string;
+          created_at: string | null;
+          id: string;
+          item_name: string;
+          price: number;
+          stock_quantity: number;
+        };
+        Insert: {
+          center_id: string;
+          created_at?: string | null;
+          id?: string;
+          item_name: string;
+          price?: number;
+          stock_quantity?: number;
+        };
+        Update: {
+          center_id?: string;
+          created_at?: string | null;
+          id?: string;
+          item_name?: string;
+          price?: number;
+          stock_quantity?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'indoor_inventory_center_id_fkey';
+            columns: ['center_id'];
+            isOneToOne: false;
+            referencedRelation: 'indoor_centers';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       indoor_routes: {
         Row: {
           center_id: string | null;
+          climbing_kind: Database['public']['Enums']['climbing_kind'] | null;
           color: string | null;
           created_at: string;
           grade: number | null;
           id: string;
+          legacy: boolean | null;
           name: string;
           slug: string;
           topo_id: string | null;
         };
         Insert: {
           center_id?: string | null;
+          climbing_kind?: Database['public']['Enums']['climbing_kind'] | null;
           color?: string | null;
           created_at?: string;
           grade?: number | null;
           id?: string;
+          legacy?: boolean | null;
           name: string;
           slug: string;
           topo_id?: string | null;
         };
         Update: {
           center_id?: string | null;
+          climbing_kind?: Database['public']['Enums']['climbing_kind'] | null;
           color?: string | null;
           created_at?: string;
           grade?: number | null;
           id?: string;
+          legacy?: boolean | null;
           name?: string;
           slug?: string;
           topo_id?: string | null;
@@ -1934,6 +1994,47 @@ export interface Database {
             columns: ['topo_id'];
             isOneToOne: false;
             referencedRelation: 'indoor_topos';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      indoor_sales: {
+        Row: {
+          amount: number;
+          category: string;
+          center_id: string;
+          created_at: string | null;
+          id: string;
+          item_name: string;
+          payment_method: string;
+          user_id: string | null;
+        };
+        Insert: {
+          amount: number;
+          category: string;
+          center_id: string;
+          created_at?: string | null;
+          id?: string;
+          item_name: string;
+          payment_method: string;
+          user_id?: string | null;
+        };
+        Update: {
+          amount?: number;
+          category?: string;
+          center_id?: string;
+          created_at?: string | null;
+          id?: string;
+          item_name?: string;
+          payment_method?: string;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'indoor_sales_center_id_fkey';
+            columns: ['center_id'];
+            isOneToOne: false;
+            referencedRelation: 'indoor_centers';
             referencedColumns: ['id'];
           },
         ];
@@ -1973,34 +2074,151 @@ export interface Database {
       indoor_topos: {
         Row: {
           center_id: string | null;
+          climbing_kind: Database['public']['Enums']['climbing_kind'] | null;
           created_at: string;
           end_date: string | null;
           id: string;
           image_url: string;
+          legacy: boolean | null;
           name: string;
           start_date: string | null;
         };
         Insert: {
           center_id?: string | null;
+          climbing_kind?: Database['public']['Enums']['climbing_kind'] | null;
           created_at?: string;
           end_date?: string | null;
           id?: string;
           image_url: string;
+          legacy?: boolean | null;
           name: string;
           start_date?: string | null;
         };
         Update: {
           center_id?: string | null;
+          climbing_kind?: Database['public']['Enums']['climbing_kind'] | null;
           created_at?: string;
           end_date?: string | null;
           id?: string;
           image_url?: string;
+          legacy?: boolean | null;
           name?: string;
           start_date?: string | null;
         };
         Relationships: [
           {
             foreignKeyName: 'indoor_topos_center_id_fkey';
+            columns: ['center_id'];
+            isOneToOne: false;
+            referencedRelation: 'indoor_centers';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      indoor_voucher_purchases: {
+        Row: {
+          created_at: string | null;
+          expiration_date: string;
+          id: string;
+          purchase_date: string | null;
+          remaining_sessions: number | null;
+          status: string | null;
+          user_id: string;
+          voucher_id: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          expiration_date: string;
+          id?: string;
+          purchase_date?: string | null;
+          remaining_sessions?: number | null;
+          status?: string | null;
+          user_id: string;
+          voucher_id: string;
+        };
+        Update: {
+          created_at?: string | null;
+          expiration_date?: string;
+          id?: string;
+          purchase_date?: string | null;
+          remaining_sessions?: number | null;
+          status?: string | null;
+          user_id?: string;
+          voucher_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'indoor_voucher_purchases_voucher_id_fkey';
+            columns: ['voucher_id'];
+            isOneToOne: false;
+            referencedRelation: 'indoor_vouchers';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      indoor_voucher_usage: {
+        Row: {
+          created_at: string | null;
+          id: string;
+          purchase_id: string;
+          usage_date: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          id?: string;
+          purchase_id: string;
+          usage_date?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          id?: string;
+          purchase_id?: string;
+          usage_date?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'indoor_voucher_usage_purchase_id_fkey';
+            columns: ['purchase_id'];
+            isOneToOne: false;
+            referencedRelation: 'indoor_voucher_purchases';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      indoor_vouchers: {
+        Row: {
+          active: boolean | null;
+          center_id: string;
+          created_at: string | null;
+          duration_days: number;
+          id: string;
+          name: string;
+          price: number;
+          sessions_count: number | null;
+        };
+        Insert: {
+          active?: boolean | null;
+          center_id: string;
+          created_at?: string | null;
+          duration_days: number;
+          id?: string;
+          name: string;
+          price?: number;
+          sessions_count?: number | null;
+        };
+        Update: {
+          active?: boolean | null;
+          center_id?: string;
+          created_at?: string | null;
+          duration_days?: number;
+          id?: string;
+          name?: string;
+          price?: number;
+          sessions_count?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'indoor_vouchers_center_id_fkey';
             columns: ['center_id'];
             isOneToOne: false;
             referencedRelation: 'indoor_centers';
@@ -4498,7 +4716,9 @@ export interface Database {
         ];
       };
     };
-    Views: Record<never, never>;
+    Views: {
+      [_ in never]: never;
+    };
     Functions: {
       allow_any_operation: {
         Args: { expected_operations: string[] };
@@ -4654,9 +4874,11 @@ export interface Database {
     Enums: {
       buckettype: 'STANDARD' | 'ANALYTICS' | 'VECTOR';
     };
-    CompositeTypes: Record<never, never>;
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
-}
+};
 
 type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>;
 

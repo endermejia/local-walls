@@ -1,6 +1,6 @@
 // Grade model: enum of French sport grades, type alias from enum values,
 // and ordered lists for convenience.
-import { ClimbingKind, ClimbingKinds } from './supabase-interfaces';
+import { ClimbingKind, ClimbingKinds } from './app-enums.model';
 
 export enum VERTICAL_LIFE_GRADES {
   G0 = 0, // unknown/lowest bucket

@@ -7,7 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 
-import { TuiAppearance, TuiButton } from '@taiga-ui/core';
+import { TuiButton } from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -15,13 +15,7 @@ import { SeoService } from '../../services/seo.service';
 
 @Component({
   selector: 'app-landing',
-  imports: [
-    NgOptimizedImage,
-    RouterLink,
-    TranslatePipe,
-    TuiAppearance,
-    TuiButton,
-  ],
+  imports: [NgOptimizedImage, RouterLink, TranslatePipe, TuiButton],
   template: `
     <div
       class="min-h-screen flex flex-col items-center justify-center p-6 bg-(--tui-background-base) text-center"
