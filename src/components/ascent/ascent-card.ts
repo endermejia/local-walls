@@ -196,12 +196,14 @@ import { getEmbedUrl } from '../../utils';
               [items]="items"
               [(index)]="index"
               [clickable]="true"
+              [priority]="priority()"
+              [loading]="priority() ? 'eager' : 'lazy'"
               (imageClick)="showEnlargedPhoto($event)"
             />
           </div>
         } @else if (ascentPhotoResource.isLoading()) {
           <div
-            class="aspect-video bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl"
+            class="aspect-4/3 bg-(--tui-background-neutral-1) -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full rounded-none sm:rounded-2xl"
             tuiSkeleton
           ></div>
         }
@@ -210,7 +212,7 @@ import { getEmbedUrl } from '../../utils';
       <div class="flex flex-col gap-1">
         <div class="flex flex-col gap-1">
           @if (ascent.route && showRoute()) {
-            <div class="text-lg leading-tight break-words">
+            <div class="text-lg leading-tight wrap-break-word">
               @if (ascent.route.climbing_kind; as kind) {
                 <tui-icon
                   [icon]="climbingIcons[kind] || '@tui.mountain'"

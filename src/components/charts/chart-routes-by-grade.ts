@@ -51,30 +51,43 @@ import { computeGradeChartData } from '../../utils';
   ],
   template: `
     @let c = chart();
-    @if (isBrowser && c.total > 0) {
-      <tui-ring-chart
-        [tuiSkeleton]="tuiSkeleton()"
-        [value]="c.values"
-        [activeItemIndex]="activeItemIndex()"
-        (activeItemIndexChange)="onActiveItemIndexChange($event)"
-      >
-        @if (c.hasActive) {
-          <span>
-            {{ c.activeBandTotal }}
-            {{ 'routes' | translate | lowercase }}
-          </span>
-          <div [innerHtml]="c.breakdownText"></div>
-        } @else {
-          <span class="text-xl font-semibold">
-            {{ c.total }}
-            {{ 'routes' | translate | lowercase }}
-          </span>
-          @if (c.gradeRange; as gradeRange) {
-            <div class="text-sm">{{ gradeRange }}</div>
+    <div class="w-20 h-20 flex items-center justify-center relative">
+      @if (isBrowser && c.total > 0) {
+        <tui-ring-chart
+          [tuiSkeleton]="tuiSkeleton()"
+          [value]="c.values"
+          [activeItemIndex]="activeItemIndex()"
+          (activeItemIndexChange)="onActiveItemIndexChange($event)"
+          class="w-full h-full"
+        >
+          @if (c.hasActive) {
+            <span>
+              {{ c.activeBandTotal }}
+              {{ 'routes' | translate | lowercase }}
+            </span>
+            <div [innerHtml]="c.breakdownText"></div>
+          } @else {
+            <span class="text-xl font-semibold">
+              {{ c.total }}
+              {{ 'routes' | translate | lowercase }}
+            </span>
+            @if (c.gradeRange; as gradeRange) {
+              <div class="text-sm">{{ gradeRange }}</div>
+            }
           }
-        }
-      </tui-ring-chart>
-    }
+        </tui-ring-chart>
+      } @else if (c.total > 0) {
+        <!-- Reserved space and placeholder for SSR/Loading -->
+        <div
+          class="w-full h-full rounded-full border-8 border-(--tui-border-normal) opacity-20"
+        ></div>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <span class="text-xl font-semibold opacity-40">
+            {{ c.total }}
+          </span>
+        </div>
+      }
+    </div>
   `,
 })
 export class ChartRoutesByGradeComponent {

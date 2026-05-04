@@ -56,22 +56,34 @@ import {
               </div>
             }
           }
-          @defer (on viewport) {
+          @if ($index === 0) {
             <app-ascent-card
               [data]="ascent"
               [showUser]="showUser()"
               [showRoute]="showRoute()"
               [isFollowed]="followedIds().has(ascent.user_id)"
-              [priority]="$index === 0"
+              [priority]="true"
               (followEvent)="follow.emit($event)"
               (unfollowEvent)="unfollow.emit($event)"
             />
-          } @placeholder {
-            <app-ascent-card-skeleton
-              [showUser]="showUser()"
-              [showRoute]="showRoute()"
-              [hasPhoto]="!!ascent.photo_path"
-            />
+          } @else {
+            @defer (on viewport) {
+              <app-ascent-card
+                [data]="ascent"
+                [showUser]="showUser()"
+                [showRoute]="showRoute()"
+                [isFollowed]="followedIds().has(ascent.user_id)"
+                [priority]="false"
+                (followEvent)="follow.emit($event)"
+                (unfollowEvent)="unfollow.emit($event)"
+              />
+            } @placeholder {
+              <app-ascent-card-skeleton
+                [showUser]="showUser()"
+                [showRoute]="showRoute()"
+                [hasPhoto]="!!ascent.photo_path"
+              />
+            }
           }
         }
       }

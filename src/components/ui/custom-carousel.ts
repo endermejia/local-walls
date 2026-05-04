@@ -54,6 +54,8 @@ export interface CarouselItem {
                 [class.h-full]="objectCover()"
                 [attr.tabindex]="clickable() ? 0 : null"
                 [attr.role]="clickable() ? 'button' : null"
+                [attr.fetchpriority]="priority() ? 'high' : null"
+                [attr.loading]="loading()"
                 (click)="clickable() && imageClick.emit(item.url)"
                 (keydown.enter)="clickable() && imageClick.emit(item.url)"
               />
@@ -133,6 +135,8 @@ export class CustomCarouselComponent {
   maxHeight = input('500px');
   hideArrowsUntilHover = input(false);
   hideDotsUntilHover = input(false);
+  priority = input(false);
+  loading = input<'lazy' | 'eager'>('lazy');
 
   imageClick = output<string | SafeResourceUrl>();
 

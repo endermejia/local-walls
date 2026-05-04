@@ -62,12 +62,13 @@ import { NewsItem } from '../../models';
         <a
           [href]="data.link"
           target="_blank"
-          class="-mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full bg-(--tui-background-neutral-1) sm:rounded-2xl overflow-hidden relative flex items-center justify-center"
+          class="-mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full bg-(--tui-background-neutral-1) sm:rounded-2xl overflow-hidden relative flex items-center justify-center aspect-video"
         >
           <img
             [src]="img"
             class="w-full h-auto object-contain transition-transform duration-500 hover:scale-105"
             [alt]="data.title"
+            loading="lazy"
           />
         </a>
       }
