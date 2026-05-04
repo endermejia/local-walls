@@ -40,6 +40,7 @@ import {
   TuiCheckbox,
   type TuiDialogContext,
   TuiDialogService,
+  TuiLoader,
 } from '@taiga-ui/core';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -94,6 +95,7 @@ import { handleErrorToast } from '../../utils';
     TuiInputDate,
     TuiInputFiles,
     TuiLabel,
+    TuiLoader,
     TuiRating,
     TuiSelect,
     TuiTextarea,
@@ -236,7 +238,11 @@ import { handleErrorToast } from '../../utils';
           </div>
 
           <div class="grid gap-2">
-            @if (!photoValue() && !existingPhotoUrl()) {
+            @if (isLoadingExistingPhoto()) {
+              <div class="flex items-center justify-center p-8">
+                <tui-loader size="m"></tui-loader>
+              </div>
+            } @else if (!photoValue() && !existingPhotoUrl()) {
               <label tuiInputFiles>
                 <input
                   accept="image/*"
@@ -253,7 +259,7 @@ import { handleErrorToast } from '../../utils';
               @if (
                 photoValue()
                   | tuiFileRejected
-                    : { accept: 'image/*', maxFileSize: 5 * 1024 * 1024 }
+                    : { accept: 'image/*', maxFileSize: 15 * 1024 * 1024 }
                   | async;
                 as file
               ) {
@@ -678,16 +684,14 @@ export default class AscentFormComponent {
       const data = this.effectiveAscentData();
       return data?.photo_path || null;
     },
-    loader: async ({ params: path }) => {
-      if (!path) return null;
-      // Optimize for form preview: resize to 300px width
-      return this.supabase.getAscentSignedUrl(path, {
-        transform: { width: 300, quality: 60 },
-      });
-    },
+    loader: ({ params: path }) => this.supabase.getAscentSignedUrl(path),
   });
-  protected readonly existingPhotoUrl = computed(() =>
-    this.isExistingPhotoDeleted() ? null : this.existingPhotoResource.value(),
+  protected readonly existingPhotoUrl = computed(() => {
+    const value = this.existingPhotoResource.value();
+    return this.isExistingPhotoDeleted() || !value ? null : value;
+  });
+  protected readonly isLoadingExistingPhoto = computed(() =>
+    this.existingPhotoResource.isLoading(),
   );
 
   readonly today = TuiDay.currentLocal();
@@ -1097,8 +1101,8 @@ export default class AscentFormComponent {
         { titleKey: '16:9', descriptionKey: '16:9', ratio: 16 / 9 },
       ],
       allowFree: false,
-      resizeToWidth: 0,
-      imageQuality: 100,
+      resizeToWidth: 1200,
+      imageQuality: 80,
     };
 
     if (!data.file && !data.imageUrl) {

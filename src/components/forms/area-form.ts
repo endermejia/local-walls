@@ -12,6 +12,7 @@ import {
   Signal,
   signal,
   TemplateRef,
+  untracked,
   viewChild,
 } from '@angular/core';
 
@@ -37,6 +38,7 @@ import { ToastService } from '../../services/toast.service';
 
 import { CounterComponent } from '../ui/counter';
 
+import { SupabaseService } from '../../services/supabase.service';
 import { handleErrorToast, slugify } from '../../utils';
 
 interface MinimalArea {
@@ -339,6 +341,7 @@ export class AreaFormComponent {
   private readonly areas = inject(AreasService);
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
+  private readonly supabase = inject(SupabaseService);
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly accountDialogTemplate =
@@ -430,6 +433,23 @@ export class AreaFormComponent {
         this.fetchFullAreaData(data.id);
       }
     });
+
+    // Auto-slug generation
+    effect(async () => {
+      if (this.isEdit()) return;
+      const name = this.model().name;
+      if (!name) return;
+
+      const baseSlug = slugify(name);
+      const uniqueSlug = await this.supabase.getUniqueSlug('areas', baseSlug);
+
+      untracked(() => {
+        const currentSlug = this.model().slug;
+        if (currentSlug !== uniqueSlug) {
+          this.model.update((m) => ({ ...m, slug: uniqueSlug }));
+        }
+      });
+    });
   }
 
   private async fetchFullAreaData(id: number) {
@@ -455,7 +475,7 @@ export class AreaFormComponent {
       const model = this.model();
       const payload = {
         name: model.name,
-        slug: this.isEdit() ? model.slug : slugify(model.name),
+        slug: model.slug,
         is_public: model.is_public,
         price: model.price,
         eight_anu_crag_slugs: model.eight_anu_crag_slugs,

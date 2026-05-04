@@ -46,6 +46,7 @@ import {
 
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { GlobalData } from '../../services/global-data';
 import { CragsService } from '../../services/crags.service';
 
 import { MapService } from '../../services/map.service';
@@ -149,7 +150,7 @@ interface CragFormModel {
         <tui-error [error]="'errors.required' | translate" />
       }
 
-      @if (isEdit()) {
+      @if (isEdit() || global.isAdmin()) {
         <tui-textfield [tuiTextfieldCleaner]="false">
           <label tuiLabel for="crag-slug">{{ 'slug' | translate }}</label>
           <input
@@ -304,6 +305,7 @@ interface CragFormModel {
 })
 export class CragFormComponent {
   protected readonly mapService = inject(MapService);
+  protected readonly global = inject(GlobalData);
   private readonly crags = inject(CragsService);
 
   private readonly supabase = inject(SupabaseService);
@@ -464,6 +466,28 @@ export class CragFormComponent {
 
       this.isInitialized = true;
     });
+
+    // Auto-slug generation
+    effect(async () => {
+      if (this.isEdit()) return;
+      const name = this.model().name;
+      const area = this.model().area;
+      if (!name) return;
+
+      const baseSlug = slugify(name);
+      const uniqueSlug = await this.supabase.getUniqueSlug(
+        'crags',
+        baseSlug,
+        area?.slug || undefined,
+      );
+
+      untracked(() => {
+        const currentSlug = this.model().slug;
+        if (currentSlug !== uniqueSlug) {
+          this.model.update((m) => ({ ...m, slug: uniqueSlug }));
+        }
+      });
+    });
   }
 
   private async fetchFullCragData(id: number) {
@@ -506,19 +530,7 @@ export class CragFormComponent {
         } else {
           const area_id = value.area?.id;
           if (!area_id) return; // area required to create
-          const firstSlug = slugify(name);
-          try {
-            await this.crags.create({ area_id, ...base, slug: firstSlug });
-          } catch (firstError) {
-            if ((firstError as { code?: string })?.code !== '23505')
-              throw firstError;
-            // slug conflict – retry with crag slug + area slug
-            await this.crags.create({
-              area_id,
-              ...base,
-              slug: `${firstSlug}-${value.area!.slug}`,
-            });
-          }
+          await this.crags.create({ area_id, ...base, slug: value.slug });
         }
         if (this._dialogCtx) {
           this._dialogCtx.completeWith(
