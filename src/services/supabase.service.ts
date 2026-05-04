@@ -170,6 +170,8 @@ export class SupabaseService {
     if (path.startsWith('http')) return path;
 
     const cacheKey = `topo-url:${path}${version ? `:${version}` : ''}`;
+    const lastValidKey = `topo-last-valid:${path}`;
+
     try {
       const cached = this.localStorage.getItem(cacheKey);
       if (cached) {
@@ -189,7 +191,21 @@ export class SupabaseService {
       .createSignedUrl(path, 31536000); // 1 year
 
     if (error) {
-      console.error('[SupabaseService] getTopoSignedUrl error', error);
+      console.warn(
+        '[SupabaseService] getTopoSignedUrl error, trying fallback',
+        error,
+      );
+      const lastValid = this.localStorage.getItem(lastValidKey);
+      if (lastValid) {
+        try {
+          const { url, expiresAt } = JSON.parse(lastValid);
+          if (Date.now() < expiresAt) {
+            return url;
+          }
+        } catch {
+          // ignore
+        }
+      }
       return '';
     }
 
@@ -206,10 +222,9 @@ export class SupabaseService {
 
     try {
       const expiresAt = Date.now() + 31536000 * 1000 - 86400000; // 1 year - 1 day
-      this.localStorage.setItem(
-        cacheKey,
-        JSON.stringify({ url: finalUrl, expiresAt }),
-      );
+      const cacheData = JSON.stringify({ url: finalUrl, expiresAt });
+      this.localStorage.setItem(cacheKey, cacheData);
+      this.localStorage.setItem(lastValidKey, cacheData);
     } catch (e) {
       console.warn('[SupabaseService] Error caching topo url', e);
     }
