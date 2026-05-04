@@ -7,71 +7,59 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { TuiAppearance, TuiButton } from '@taiga-ui/core';
 import { TuiAvatar } from '@taiga-ui/kit';
-import { TuiHeader } from '@taiga-ui/layout';
+import { TuiLink } from '@taiga-ui/core';
 
 import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
 import { IndoorCenterDto } from '../../models';
 import { TranslateModule } from '@ngx-translate/core';
+import { AppCardComponent } from '../ui/card';
 
 @Component({
   selector: 'app-indoor-center-card',
   standalone: true,
   imports: [
     CommonModule,
-    TuiAppearance,
     TuiAvatar,
-    TuiButton,
-    TuiHeader,
     RouterLink,
     TranslateModule,
+    AppCardComponent,
+    TuiLink,
   ],
   template: `
     @let data = item();
-    <div
-      tuiAppearance="flat-grayscale"
-      class="flex flex-col gap-1 p-4 sm:rounded-3xl rounded-none relative -mx-4 sm:mx-0 w-[calc(100%+2rem)] sm:w-full text-left overflow-hidden h-full shadow-sm hover:shadow-md transition-shadow"
-    >
-      <header tuiHeader class="mt-0! flex justify-between items-center">
-        <div class="flex items-center gap-3">
-          <span
-            [tuiAvatar]="
-              supabase.getPublicUrl('indoor-centers', data.avatar_url)
-            "
-            size="l"
-            class="rounded-2xl"
-          ></span>
-          <div class="flex flex-col">
-            <span class="font-bold text-lg leading-tight">
-              {{ data.name }}
-            </span>
-            <span class="text-xs text-(--tui-text-secondary)">
-              {{ data.city }}{{ data.country ? ', ' + data.country : '' }}
-            </span>
-          </div>
-        </div>
-      </header>
+    <app-card appearance="outline">
+      <ng-container title>
+        <a
+          tuiLink
+          [routerLink]="['/indoor', data.slug]"
+          class="font-bold! block text-2xl! text-(--tui-text-primary)! whitespace-normal!"
+        >
+          {{ data.name }}
+        </a>
+      </ng-container>
 
-      <div class="flex flex-col gap-2 mt-2 grow">
+      <div subtitle class="flex items-center gap-1 opacity-60">
+        <span class="text-xs">
+          {{ data.city }}{{ data.country ? ', ' + data.country : '' }}
+        </span>
+      </div>
+
+      <div content class="flex flex-col gap-2 mt-1">
         <p class="text-sm text-(--tui-text-secondary) line-clamp-2">
           {{ data.description }}
         </p>
       </div>
 
-      <div class="flex gap-2 mt-4">
-        <a
-          tuiButton
-          size="s"
-          appearance="primary"
-          class="grow rounded-xl!"
-          [routerLink]="['/indoor', data.slug]"
-        >
-          {{ 'indoor.view_center' | translate }}
-        </a>
+      <div extra class="flex items-center">
+        <span
+          [tuiAvatar]="supabase.getPublicUrl('indoor-centers', data.avatar_url)"
+          size="l"
+          class="rounded-2xl"
+        ></span>
       </div>
-    </div>
+    </app-card>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -54,6 +54,7 @@ import {
   isGradeRangeOverlap,
   MapAreaItem,
   MapCragItem,
+  MapIndoorCenterItem,
   matchesShadeFilter,
   normalizeRoutesByGrade,
   ORDERED_GRADE_VALUES,
@@ -172,28 +173,28 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           [style.transform]="'translate(-50%, -' + _sheetScrollTop() + 'px)'"
         >
           <div class="flex gap-2">
-            <button
-              tuiButton
-              size="m"
-              appearance="primary-grayscale"
-              iconStart="@tui.list"
-              routerLink="/area"
-              [tuiDropdown]="tourHint"
-              [tuiDropdownManual]="isExploreAreasTourStep"
-            >
-              {{ 'viewAllAreas' | translate }}
-            </button>
             @if (global.indoorFeature()) {
               <button
                 tuiButton
                 size="m"
                 appearance="primary-grayscale"
-                iconStart="@tui.house"
+                iconStart="@tui.dumbbell"
                 routerLink="/indoor"
               >
-                {{ 'indoor.title' | translate }}
+                {{ 'indoor.button' | translate }}
               </button>
             }
+            <button
+              tuiButton
+              size="m"
+              appearance="primary-grayscale"
+              iconStart="@tui.mountain"
+              routerLink="/area"
+              [tuiDropdown]="tourHint"
+              [tuiDropdownManual]="isExploreAreasTourStep"
+            >
+              {{ 'outdoor.button' | translate }}
+            </button>
           </div>
         </div>
 
@@ -204,26 +205,26 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           [style.visibility]="hasSelection ? 'visible' : 'hidden'"
         >
           <div class="flex gap-2">
-            <button
-              tuiButton
-              size="m"
-              appearance="primary-grayscale"
-              iconStart="@tui.list"
-              routerLink="/area"
-            >
-              {{ 'viewAllAreas' | translate }}
-            </button>
             @if (global.indoorFeature()) {
               <button
                 tuiButton
                 size="m"
                 appearance="primary-grayscale"
-                iconStart="@tui.house"
+                iconStart="@tui.dumbbell"
                 routerLink="/indoor"
               >
-                {{ 'indoor.title' | translate }}
+                {{ 'indoor.button' | translate }}
               </button>
             }
+            <button
+              tuiButton
+              size="m"
+              appearance="primary-grayscale"
+              iconStart="@tui.mountain"
+              routerLink="/area"
+            >
+              {{ 'outdoor.button' | translate }}
+            </button>
           </div>
         </div>
 
@@ -234,6 +235,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
             class="w-full h-full"
             [mapCragItems]="mapCragItems()"
             [mapAreaItems]="global.areasMapResource.value() || []"
+            [mapIndoorItems]="mapIndoorItems()"
             [selectedMapCragItem]="global.selectedMapCragItem()"
             (selectedMapCragItemChange)="selectMapCragItem($event)"
             [mapParkingItems]="global.parkingsMapResource.value() || []"
@@ -532,6 +534,12 @@ export class ExploreComponent {
         );
       })
       .sort((a, b) => (a.liked === b.liked ? 0 : a.liked ? -1 : 1));
+  });
+  protected mapIndoorItems: Signal<MapIndoorCenterItem[]> = computed(() => {
+    const items = this.global.mapItemsOnViewport();
+    return items.filter((item): item is MapIndoorCenterItem => {
+      return (item as MapIndoorCenterItem).is_indoor === true;
+    });
   });
 
   protected readonly hasBottomSheet = computed(() => {

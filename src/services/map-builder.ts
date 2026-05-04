@@ -5,6 +5,7 @@ import {
   MapAreaItem,
   MapBounds,
   MapCragItem,
+  MapIndoorCenterItem,
   MapOptions,
   ParkingDto,
 } from '../models';
@@ -26,9 +27,10 @@ interface ClusterItem {
   longitude: number;
   name: string;
   key: string;
-  markerType: 'api' | 'crag';
+  markerType: 'api' | 'crag' | 'indoor';
   liked?: boolean;
   apiItem?: MapCragItem;
+  indoorItem?: MapIndoorCenterItem;
   areaKeys?: string[];
   areaName?: string;
 }
@@ -56,6 +58,7 @@ export class MapBuilder {
   private initialized = false;
   private L: LeafletNamespace | null = null;
   private mapCragItems: readonly MapCragItem[] = [];
+  private mapIndoorItems: readonly MapIndoorCenterItem[] = [];
   private markers: Marker[] = [];
   private parkingMarkers: Marker[] = [];
   private userMarker: Marker | null = null;
@@ -82,11 +85,12 @@ export class MapBuilder {
   async init(
     el: HTMLElement,
     options: MapOptions,
-    mapCragItem: readonly MapCragItem[],
+    mapCragItems: readonly MapCragItem[],
     selectedMapCragItem: MapCragItem | null,
     mapParkingItems: readonly ParkingDto[],
     selectedMapParkingItem: ParkingDto | null,
     mapAreaItems: readonly MapAreaItem[],
+    mapIndoorItems: readonly MapIndoorCenterItem[],
     cb: MapBuilderCallbacks,
   ): Promise<void> {
     if (this.initialized || !this.isBrowser()) return;
@@ -107,7 +111,8 @@ export class MapBuilder {
       minZoom: options.minZoom ?? 4,
     }).addTo(this.map);
 
-    this.mapCragItems = mapCragItem;
+    this.mapCragItems = mapCragItems;
+    this.mapIndoorItems = mapIndoorItems;
 
     // Restore the last saved viewport (bounds and zoom) if available
     let savedViewport: MapBounds | null = null;
@@ -187,11 +192,12 @@ export class MapBuilder {
     }
 
     await this.rebuildMarkers(
-      mapCragItem,
+      mapCragItems,
       selectedMapCragItem,
       mapParkingItems,
       selectedMapParkingItem,
       mapAreaItems,
+      mapIndoorItems,
       cb,
     );
     // Disable cluster spawn animation after the first render to avoid flicker on pans
@@ -214,9 +220,9 @@ export class MapBuilder {
           await this.goToCurrentLocation();
         } else if (isMobileClient) {
           await this.goToCurrentLocation();
-        } else if (mapCragItem && mapCragItem.length) {
+        } else if (mapCragItems && mapCragItems.length) {
           // Fallback: fit bounds to show all crags
-          const latLngs: [number, number][] = mapCragItem.map(
+          const latLngs: [number, number][] = mapCragItems.map(
             (mapItem: MapCragItem) => [mapItem.latitude, mapItem.longitude],
           );
           const bounds = new L.LatLngBounds(latLngs);
@@ -227,8 +233,8 @@ export class MapBuilder {
         }
       } catch {
         // Fallback to showing all crags if geolocation fails
-        if (mapCragItem && mapCragItem.length) {
-          const latLngs: [number, number][] = mapCragItem.map(
+        if (mapCragItems && mapCragItems.length) {
+          const latLngs: [number, number][] = mapCragItems.map(
             (mapItem: MapCragItem) => [mapItem.latitude, mapItem.longitude],
           );
           const bounds = new L.LatLngBounds(latLngs);
@@ -273,6 +279,7 @@ export class MapBuilder {
         mapParkingItems,
         selectedMapParkingItem,
         mapAreaItems,
+        this.mapIndoorItems,
         cb,
       );
       emitViewport();
@@ -285,6 +292,7 @@ export class MapBuilder {
         mapParkingItems,
         selectedMapParkingItem,
         mapAreaItems,
+        this.mapIndoorItems,
         cb,
       );
       emitViewport();
@@ -307,22 +315,25 @@ export class MapBuilder {
    * Updates map data (crag items and selection) and triggers a marker rebuild.
    */
   async updateData(
-    mapCragItem: readonly MapCragItem[],
+    mapCragItems: readonly MapCragItem[],
     selectedMapCragItem: MapCragItem | null,
     mapParkingItems: readonly ParkingDto[],
     selectedMapParkingItem: ParkingDto | null,
     mapAreaItems: readonly MapAreaItem[],
+    mapIndoorItems: readonly MapIndoorCenterItem[],
     cb: MapBuilderCallbacks,
   ): Promise<void> {
     if (!this.map) return;
-    this.mapCragItems = mapCragItem;
+    this.mapCragItems = mapCragItems;
+    this.mapIndoorItems = mapIndoorItems;
 
     await this.rebuildMarkers(
-      mapCragItem,
+      mapCragItems,
       selectedMapCragItem,
       mapParkingItems,
       selectedMapParkingItem,
       mapAreaItems,
+      mapIndoorItems,
       cb,
     );
   }
@@ -364,6 +375,7 @@ export class MapBuilder {
   // Build a unified list of clusterable items across API crags and area labels
   private buildVisibleClusterItems(
     apiItems: readonly MapCragItem[],
+    indoorItems: readonly MapIndoorCenterItem[],
   ): ClusterItem[] {
     if (!this.map || !this.L) return [];
     const L = this.L!;
@@ -383,6 +395,20 @@ export class MapBuilder {
         liked: c.liked,
         apiItem: c,
         areaName: c.area_name,
+      });
+    }
+
+    // Indoor items
+    for (const c of indoorItems) {
+      const latlng = new L.LatLng(c.latitude, c.longitude);
+      if (!bounds.contains(latlng)) continue;
+      items.push({
+        latitude: c.latitude,
+        longitude: c.longitude,
+        name: c.name,
+        key: `indoor:${c.id}:${c.latitude.toFixed(5)},${c.longitude.toFixed(5)}`,
+        markerType: 'indoor',
+        indoorItem: c,
       });
     }
 
@@ -454,6 +480,7 @@ export class MapBuilder {
     mapParkingItems: readonly ParkingDto[],
     selectedMapParkingItem: ParkingDto | null,
     mapAreaItems: readonly MapAreaItem[],
+    mapIndoorItems: readonly MapIndoorCenterItem[],
     cb: MapBuilderCallbacks,
   ): Promise<void> {
     if (!this.map || !this.L) return;
@@ -525,7 +552,7 @@ export class MapBuilder {
     }
 
     if (clustering) {
-      const items = this.buildVisibleClusterItems(mapCragItems);
+      const items = this.buildVisibleClusterItems(mapCragItems, mapIndoorItems);
       if (!items.length) return;
       const groups = this.groupMarkersByProximity(items);
 
@@ -557,6 +584,9 @@ export class MapBuilder {
             this.centerOn(it.latitude, it.longitude, minZoomForParkings);
             if (it.apiItem) {
               cb.onSelectedCragChange(it.apiItem);
+            } else if (it.indoorItem) {
+              // Redirect to indoor center page
+              window.open(`/indoor/${it.indoorItem.slug}`, '_self');
             }
           };
 
@@ -675,7 +705,7 @@ export class MapBuilder {
     name: string,
     isSelected: boolean,
     isFavorite: boolean,
-    markerType: 'api' | 'area' | 'crag' = 'api',
+    markerType: 'api' | 'area' | 'crag' | 'indoor' = 'api',
   ): string {
     let backgroundColorClass = isFavorite
       ? 'lw-marker--accent'
@@ -683,6 +713,9 @@ export class MapBuilder {
     switch (markerType) {
       case 'area':
         backgroundColorClass = 'lw-marker--secondary';
+        break;
+      case 'indoor':
+        backgroundColorClass = 'lw-marker--glass';
         break;
     }
     // The rest of the code remains the same

@@ -28,6 +28,7 @@ import type {
   MapAreaItem,
   MapBounds,
   MapCragItem,
+  MapIndoorCenterItem,
   MapOptions,
   ParkingDto,
 } from '../../models';
@@ -104,6 +105,9 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   public mapAreaItems: InputSignal<readonly MapAreaItem[]> = input<
     readonly MapAreaItem[]
   >([]);
+  public mapIndoorItems: InputSignal<readonly MapIndoorCenterItem[]> = input<
+    readonly MapIndoorCenterItem[]
+  >([]);
 
   public selectedMapCragItem: InputSignal<MapCragItem | null> =
     input<MapCragItem | null>(null);
@@ -167,6 +171,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
           parkings,
           selectedParking,
           areas,
+          this.mapIndoorItems(),
           this.callbacks,
         );
       }
@@ -232,6 +237,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.mapParkingItems(),
       this.selectedMapParkingItem(),
       this.mapAreaItems(),
+      this.mapIndoorItems(),
       this.callbacks,
     );
     this.mapInitialized.set(true);

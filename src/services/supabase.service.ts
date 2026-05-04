@@ -486,7 +486,7 @@ export class SupabaseService {
   }
 
   async checkSlugExists(
-    table: 'routes' | 'crags' | 'areas',
+    table: 'routes' | 'crags' | 'areas' | 'indoor_centers',
     slug: string,
   ): Promise<boolean> {
     await this.whenReady();
@@ -499,7 +499,7 @@ export class SupabaseService {
   }
 
   async getUniqueSlug(
-    table: 'routes' | 'crags' | 'areas',
+    table: 'routes' | 'crags' | 'areas' | 'indoor_centers',
     baseSlug: string,
     fallbackSuffix?: string,
   ): Promise<string> {

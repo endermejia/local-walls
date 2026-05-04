@@ -131,6 +131,13 @@ export const routes: Routes = [
     canMatch: [authGuard],
     children: [
       {
+        path: '',
+        loadComponent: () =>
+          import('../pages/indoor/indoor-list').then(
+            (m) => m.IndoorListComponent,
+          ),
+      },
+      {
         path: ':slug',
         loadComponent: () =>
           import('../pages/indoor/indoor-center').then(

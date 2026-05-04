@@ -1,5 +1,11 @@
 import { inject, Injectable, signal } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { TuiDialogService } from '@taiga-ui/core';
+import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
+import { firstValueFrom } from 'rxjs';
+import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
+import { IndoorCenterFormComponent } from '../components/forms/indoor-center-form';
 import {
   IndoorCenterDto,
   IndoorVoucherDto,
@@ -15,7 +21,61 @@ import {
 })
 export class IndoorService {
   private readonly supabase = inject(SupabaseService);
+  private readonly global = inject(GlobalData);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
+
   loading = signal(false);
+
+  async getAllCenters(): Promise<IndoorCenterDto[]> {
+    this.loading.set(true);
+    try {
+      const { data, error } = await this.supabase.client
+        .from('indoor_centers')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      return data as IndoorCenterDto[];
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  openIndoorCenterForm(data?: { centerData?: Partial<IndoorCenterDto> }): void {
+    const isEdit = !!data?.centerData?.id;
+    void firstValueFrom(
+      this.dialogs.open<string | boolean | null>(
+        new PolymorpheusComponent(IndoorCenterFormComponent),
+        {
+          label: this.translate.instant(
+            isEdit ? 'indoor.editTitle' : 'indoor.newTitle',
+          ),
+          size: 'l',
+          data,
+          dismissible: false,
+        },
+      ),
+      { defaultValue: null },
+    ).then((result) => {
+      if (result) {
+        this.global.indoorCentersResource.reload();
+      }
+    });
+  }
+
+  async createCenter(
+    payload: Omit<IndoorCenterDto, 'id' | 'created_at'>,
+  ): Promise<IndoorCenterDto | null> {
+    const { data, error } = await this.supabase.client
+      .from('indoor_centers')
+      .insert(payload)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    return data as IndoorCenterDto;
+  }
 
   async getCenterBySlug(slug: string): Promise<IndoorCenterDto | null> {
     this.loading.set(true);

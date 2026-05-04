@@ -71,6 +71,7 @@ import {
   TopoRouteWithRoute,
   UserProfileDto,
   VERTICAL_LIFE_GRADES,
+  IndoorCenterDto,
 } from '../models';
 
 import { LocalStorage } from './local-storage';
@@ -200,7 +201,7 @@ export class GlobalData {
 
   readonly isAdmin = computed(() => !!this.userProfile()?.is_admin);
   readonly merchandisingFeature = computed(() => this.isAdmin());
-  readonly indoorFeature = computed(() => this.isAdmin());
+  readonly indoorFeature = signal(true);
   readonly canEditAsAdmin = computed(
     () => this.editingMode() && this.isAdmin(),
   );
@@ -939,6 +940,33 @@ export class GlobalData {
   });
   areaList: Signal<AreaListItem[]> = computed(
     () => this.areasListResource.value() ?? [],
+  );
+
+  // ---- Indoor Centers ----
+  readonly indoorCentersResource = resource({
+    params: () => ({ user: this.userProfile() }),
+    loader: async () => {
+      if (!isPlatformBrowser(this.platformId)) {
+        return [] as IndoorCenterDto[];
+      }
+      try {
+        await this.supabase.whenReady();
+        const { data, error } = await this.supabase.client
+          .from('indoor_centers')
+          .select('*')
+          .order('name');
+
+        if (error) throw error;
+        return (data as IndoorCenterDto[]) ?? [];
+      } catch (e) {
+        console.error('[GlobalData] indoorCentersResource error', e);
+        return [];
+      }
+    },
+  });
+
+  indoorCentersList: Signal<IndoorCenterDto[]> = computed(
+    () => this.indoorCentersResource.value() ?? [],
   );
 
   // ---- Crags list by selected area ----
