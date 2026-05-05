@@ -21,6 +21,10 @@ import {
 } from '@taiga-ui/core';
 import { TuiAvatar, TuiTabs } from '@taiga-ui/kit';
 import { TuiPagination } from '@taiga-ui/kit';
+import {
+  CustomCarouselComponent,
+  CarouselItem,
+} from '../../components/ui/custom-carousel';
 
 import { GlobalData } from '../../services/global-data';
 import { IndoorService } from '../../services/indoor.service';
@@ -53,6 +57,7 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
     IndoorRoutesComponent,
     IndoorToposComponent,
     AnyToSchedulePipe,
+    CustomCarouselComponent,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -60,8 +65,21 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
         @if (center(); as c) {
           <div class="mb-6">
             <app-section-header [title]="c.name" [liked]="false">
-              @if (isAdmin()) {
-                <div actionButtons class="flex gap-2">
+              <div actionButtons class="flex gap-2">
+                @if (canEdit()) {
+                  <button
+                    tuiIconButton
+                    size="s"
+                    appearance="neutral"
+                    iconStart="@tui.square-pen"
+                    class="rounded-full!"
+                    type="button"
+                    (click)="openEditCenter()"
+                  >
+                    {{ 'edit' | translate }}
+                  </button>
+                }
+                @if (isAdmin()) {
                   <a
                     tuiButton
                     size="s"
@@ -72,8 +90,8 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
                   >
                     {{ 'admin.title' | translate }}
                   </a>
-                </div>
-              }
+                }
+              </div>
             </app-section-header>
           </div>
 
@@ -83,24 +101,13 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
               <div
                 class="relative rounded-3xl overflow-hidden aspect-video bg-neutral-100 dark:bg-neutral-800"
               >
-                @if (c.gallery_urls && c.gallery_urls.length > 0) {
-                  <tui-carousel [(index)]="galleryIndex" class="h-full w-full">
-                    @for (img of c.gallery_urls; track img) {
-                      <ng-container *tuiItem>
-                        <img
-                          [src]="supabase.getPublicUrl('indoor-assets', img)"
-                          class="w-full h-full object-cover"
-                          alt="Gallery image"
-                        />
-                      </ng-container>
-                    }
-                  </tui-carousel>
-                  <tui-pagination
-                    size="m"
-                    class="absolute bottom-4 left-1/2 -translate-x-1/2"
-                    [length]="c.gallery_urls.length"
+                @if (carouselItems().length > 0) {
+                  <app-custom-carousel
+                    [items]="carouselItems()"
                     [(index)]="galleryIndex"
-                  ></tui-pagination>
+                    [objectCover]="true"
+                    class="h-full w-full"
+                  />
                 } @else {
                   <div class="flex items-center justify-center h-full">
                     <span
@@ -158,7 +165,9 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
                       <span>{{
                         s?.closed
                           ? ('indoor.closed' | translate)
-                          : s?.open + ' - ' + s?.close
+                          : s?.open && s?.close
+                            ? s.open + ' - ' + s.close
+                            : '-'
                       }}</span>
                     </div>
                   }
@@ -226,6 +235,15 @@ export class IndoorCenterComponent {
   protected readonly activeTabIndex = signal(0);
   protected readonly galleryIndex = signal(0);
 
+  protected readonly carouselItems = computed<CarouselItem[]>(() => {
+    const c = this.center();
+    if (!c?.gallery_urls) return [];
+    return c.gallery_urls.map((url) => ({
+      type: 'image',
+      url: this.supabase.getPublicUrl('indoor-assets', url),
+    }));
+  });
+
   protected readonly center = computed<IndoorCenterDto | null>(
     () => this.centerResource.value() ?? null,
   );
@@ -236,8 +254,20 @@ export class IndoorCenterComponent {
   });
 
   protected readonly isAdmin = computed(() => {
-    const user = this.global.userProfile();
-    // Simplified: in reality check indoor_center_admins
-    return user?.is_admin || false;
+    return this.global.isAdmin();
   });
+
+  protected readonly canEdit = computed(() => {
+    const center = this.center();
+    if (!center) return false;
+    return this.global.indoorAdminPermissions()[center.id];
+  });
+
+  protected openEditCenter(): void {
+    const center = this.center();
+    if (!center) return;
+    this.indoor.openIndoorCenterForm({
+      centerData: center,
+    });
+  }
 }

@@ -53,9 +53,10 @@ import { SupabaseService } from '../../services/supabase.service';
 
 import { EmptyStateComponent } from '../../components/ui/empty-state';
 
-import { AreaListItem } from '../../models';
+import { AreaListItem, IndoorCenterDto } from '../../models';
 import { AvatarUrlPipe } from '../../pipes';
 import { matchesQuery } from '../../utils';
+import { IndoorService } from '../../services/indoor.service';
 
 interface UserWithRole {
   id: string;
@@ -64,6 +65,8 @@ interface UserWithRole {
   is_admin: boolean;
   assignedAreas: AreaListItem[];
   areasControl: FormControl<AreaListItem[]>;
+  assignedCenters: IndoorCenterDto[];
+  centersControl: FormControl<IndoorCenterDto[]>;
 }
 
 @Component({
@@ -192,6 +195,14 @@ interface UserWithRole {
                 >
                   {{ 'areas' | translate }}
                 </th>
+                <th
+                  *tuiHead="'centers'"
+                  tuiTh
+                  class="centers-column w-80!"
+                  [sorter]="null"
+                >
+                  {{ 'indoor.title' | translate }}
+                </th>
               </tr>
             </thead>
 
@@ -212,6 +223,9 @@ interface UserWithRole {
                       <div [tuiSkeleton]="true" class="w-full h-10"></div>
                     </td>
                     <td *tuiCell="'areas'" tuiTd class="areas-column">
+                      <div [tuiSkeleton]="true" class="w-full h-10"></div>
+                    </td>
+                    <td *tuiCell="'centers'" tuiTd class="centers-column">
                       <div [tuiSkeleton]="true" class="w-full h-10"></div>
                     </td>
                   </tr>
@@ -312,6 +326,51 @@ interface UserWithRole {
                         </tui-textfield>
                       }
                     </td>
+                    <td *tuiCell="'centers'" tuiTd class="centers-column">
+                      @if (!user.is_admin) {
+                        <tui-textfield
+                          multi
+                          tuiChevron
+                          [stringify]="stringifyCenter"
+                          [disabledItemHandler]="strings"
+                          [identityMatcher]="centerIdentityMatcher"
+                          [tuiTextfieldCleaner]="false"
+                        >
+                          <input
+                            tuiInputChip
+                            id="centers-select-{{ user.id }}"
+                            [formControl]="user.centersControl"
+                            [placeholder]="'select' | translate"
+                            autocomplete="off"
+                          />
+                          <tui-input-chip *tuiItem />
+                          <tui-data-list *tuiDropdown>
+                            <tui-opt-group
+                              [label]="'indoor.title' | translate"
+                              tuiMultiSelectGroup
+                            >
+                              @for (
+                                center of availableCenters() | tuiFilterByInput;
+                                track center.id
+                              ) {
+                                <button
+                                  type="button"
+                                  new
+                                  tuiOption
+                                  [value]="center"
+                                >
+                                  <div tuiCell size="s">
+                                    <div tuiTitle>
+                                      {{ center.name }}
+                                    </div>
+                                  </div>
+                                </button>
+                              }
+                            </tui-opt-group>
+                          </tui-data-list>
+                        </tui-textfield>
+                      }
+                    </td>
                   </tr>
                 }
               }
@@ -341,6 +400,10 @@ interface UserWithRole {
         min-width: 300px;
       }
 
+      .centers-column {
+        min-width: 300px;
+      }
+
       .user-cell {
         padding: 1rem 0.5rem;
       }
@@ -361,11 +424,12 @@ interface UserWithRole {
 export class AdminUsersListComponent {
   protected readonly global = inject(GlobalData);
   protected readonly supabase = inject(SupabaseService);
+  private readonly indoor = inject(IndoorService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translate = inject(TranslateService);
 
-  protected readonly columns = ['user', 'role', 'areas'];
+  protected readonly columns = ['user', 'role', 'areas', 'centers'];
 
   protected readonly roleOptions = [false, true];
 
@@ -416,6 +480,11 @@ export class AdminUsersListComponent {
     a,
     b,
   ) => a.id === b.id;
+
+  protected readonly availableCenters = signal<IndoorCenterDto[]>([]);
+  protected readonly stringifyCenter = (c: IndoorCenterDto) => c.name;
+  protected readonly centerIdentityMatcher: TuiIdentityMatcher<IndoorCenterDto> =
+    (a, b) => a.id === b.id;
 
   protected readonly strings = tuiIsString;
 
@@ -484,6 +553,27 @@ export class AdminUsersListComponent {
         mappingsByEquipper.set(m.user_id, list);
       });
 
+      // 4. Fetch indoor center admins
+      const { data: centerMappings, error: centerMappingsError } =
+        await this.supabase.client.from('indoor_center_admins').select('*');
+
+      if (centerMappingsError) throw centerMappingsError;
+
+      const centerMappingsByEquipper = new Map<string, string[]>();
+      (centerMappings || []).forEach(
+        (m: { user_id: string | null; center_id: string | null }) => {
+          if (!m.user_id || !m.center_id) return;
+          const list = centerMappingsByEquipper.get(m.user_id) || [];
+          list.push(m.center_id);
+          centerMappingsByEquipper.set(m.user_id, list);
+        },
+      );
+
+      // 5. Fetch available centers
+      const centers = await this.indoor.getAllCenters();
+      this.availableCenters.set(centers);
+      const centersMap = new Map(centers.map((c) => [c.id, c]));
+
       const usersWithRoles: UserWithRole[] = profiles.map(
         (profile: {
           id: string;
@@ -496,11 +586,28 @@ export class AdminUsersListComponent {
             .map((id) => areasMap.get(id))
             .filter((a): a is AreaListItem => !!a);
 
-          const control = new FormControl(assignedAreas, { nonNullable: true });
-          control.valueChanges
+          const areasControl = new FormControl(assignedAreas, {
+            nonNullable: true,
+          });
+          areasControl.valueChanges
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe((newAreas: AreaListItem[]) => {
               void this.onAreasChange(profile.id, newAreas);
+            });
+
+          const assignedCenterIds =
+            centerMappingsByEquipper.get(profile.id) || [];
+          const assignedCenters = assignedCenterIds
+            .map((id) => centersMap.get(id))
+            .filter((c): c is IndoorCenterDto => !!c);
+
+          const centersControl = new FormControl(assignedCenters, {
+            nonNullable: true,
+          });
+          centersControl.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((newCenters: IndoorCenterDto[]) => {
+              void this.onCentersChange(profile.id, newCenters);
             });
 
           return {
@@ -509,7 +616,9 @@ export class AdminUsersListComponent {
             avatar: profile.avatar,
             is_admin: !!profile.is_admin,
             assignedAreas,
-            areasControl: control,
+            areasControl,
+            assignedCenters,
+            centersControl,
           };
         },
       );
@@ -590,8 +699,49 @@ export class AdminUsersListComponent {
       user.assignedAreas = newAreas;
     } catch (e) {
       console.error('[UsersListAdmin] Exception updating areas:', e);
-      // We should probably reload to be safe, but it might create an infinite loop with control.valueChanges
-      // Better way: just log and maybe alert user.
+    }
+  }
+
+  protected async onCentersChange(
+    userId: string,
+    newCenters: IndoorCenterDto[],
+  ): Promise<void> {
+    try {
+      const user = this.users().find((u) => u.id === userId);
+      if (!user) return;
+
+      const oldCenterIds = user.assignedCenters.map((c) => c.id);
+      const newCenterIds = newCenters.map((c) => c.id);
+
+      const toAdd = newCenterIds.filter((id) => !oldCenterIds.includes(id));
+      const toRemove = oldCenterIds.filter((id) => !newCenterIds.includes(id));
+
+      if (toAdd.length === 0 && toRemove.length === 0) return;
+
+      if (toAdd.length > 0) {
+        const { error: addError } = await this.supabase.client
+          .from('indoor_center_admins')
+          .insert(
+            toAdd.map((center_id) => ({
+              user_id: userId,
+              center_id,
+            })),
+          );
+        if (addError) throw addError;
+      }
+
+      if (toRemove.length > 0) {
+        const { error: removeError } = await this.supabase.client
+          .from('indoor_center_admins')
+          .delete()
+          .eq('user_id', userId)
+          .in('center_id', toRemove);
+        if (removeError) throw removeError;
+      }
+
+      user.assignedCenters = newCenters;
+    } catch (e) {
+      console.error('[UsersListAdmin] Exception updating centers:', e);
     }
   }
 }

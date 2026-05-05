@@ -206,8 +206,12 @@ export class GlobalData {
     () => this.editingMode() && this.isAdmin(),
   );
   readonly isAreaAdmin = computed(() => this.adminAreas().length > 0);
+  readonly isIndoorAdmin = computed(() => this.adminIndoorCenters().length > 0);
 
   readonly adminAreas = computed(() => this.supabase.adminAreas());
+  readonly adminIndoorCenters = computed(() =>
+    this.supabase.adminIndoorCenters(),
+  );
 
   /** Resource that fetches the area IDs for which the current user has a pending admin request */
   readonly pendingAdminRequestsResource = resource({
@@ -244,6 +248,19 @@ export class GlobalData {
     const res: Record<number, boolean> = {};
     if (isEditing) {
       areas.forEach((id) => (res[id] = true));
+    }
+
+    return isAdmin ? new Proxy(res, { get: () => true }) : res;
+  });
+
+  readonly indoorAdminPermissions = computed(() => {
+    const isAdmin = this.canEditAsAdmin();
+    const isEditing = this.editingMode();
+    const centers = this.adminIndoorCenters();
+
+    const res: Record<string, boolean> = {};
+    if (isEditing) {
+      centers.forEach((id) => (res[id] = true));
     }
 
     return isAdmin ? new Proxy(res, { get: () => true }) : res;

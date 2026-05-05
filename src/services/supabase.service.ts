@@ -123,6 +123,31 @@ export class SupabaseService {
 
   readonly adminAreas = computed(() => this.adminAreasResource.value() ?? []);
 
+  readonly adminIndoorCentersResource = resource({
+    params: () => ({
+      userId: this.authUserId(),
+    }),
+    loader: async ({ params: { userId } }) => {
+      if (!userId) return [];
+      const { data, error } = await this.client
+        .from('indoor_center_admins')
+        .select('center_id')
+        .eq('user_id', userId);
+      if (error) {
+        console.error(
+          '[SupabaseService] adminIndoorCentersResource error',
+          error,
+        );
+        return [];
+      }
+      return data.map((d) => d.center_id).filter((id): id is string => !!id);
+    },
+  });
+
+  readonly adminIndoorCenters = computed(
+    () => this.adminIndoorCentersResource.value() ?? [],
+  );
+
   /**
    * Builds a complete public URL for an avatar stored in the Supabase "avatar" bucket
    * from a relative path (e.g.: "avatars/xyz.jpg").

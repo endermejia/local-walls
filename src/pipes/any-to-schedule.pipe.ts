@@ -7,6 +7,10 @@ import { IndoorSchedule } from '../models';
 })
 export class AnyToSchedulePipe implements PipeTransform {
   transform(val: unknown): IndoorSchedule {
-    return (val as IndoorSchedule) || { normal: {}, exceptions: [] };
+    const s = val as IndoorSchedule;
+    return {
+      normal: s?.normal || {},
+      exceptions: s?.exceptions || [],
+    };
   }
 }

@@ -1,4 +1,5 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { TuiDialogService } from '@taiga-ui/core';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -25,9 +26,12 @@ export class IndoorService {
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
 
+  private readonly platformId = inject(PLATFORM_ID);
   loading = signal(false);
 
   async getAllCenters(): Promise<IndoorCenterDto[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
     this.loading.set(true);
     try {
       const { data, error } = await this.supabase.client
@@ -78,6 +82,8 @@ export class IndoorService {
   }
 
   async getCenterBySlug(slug: string): Promise<IndoorCenterDto | null> {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    await this.supabase.whenReady();
     this.loading.set(true);
     try {
       const { data, error } = await this.supabase.client
@@ -94,6 +100,8 @@ export class IndoorService {
   }
 
   async getCenterVouchers(centerId: string): Promise<IndoorVoucherDto[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
     const { data, error } = await this.supabase.client
       .from('indoor_vouchers')
       .select('*')
@@ -120,6 +128,8 @@ export class IndoorService {
   }
 
   async getCenterRoutes(centerId: string): Promise<IndoorRouteDto[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
     const { data, error } = await this.supabase.client
       .from('indoor_routes')
       .select('*')
@@ -130,6 +140,8 @@ export class IndoorService {
   }
 
   async getCenterTopos(centerId: string): Promise<IndoorTopoDto[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
     const { data, error } = await this.supabase.client
       .from('indoor_topos')
       .select('*')
@@ -210,5 +222,19 @@ export class IndoorService {
 
     if (error) throw error;
     return data || [];
+  }
+
+  async uploadAsset(centerId: string, file: File): Promise<string | null> {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    await this.supabase.whenReady();
+    const fileName = `${Date.now()}_${file.name}`;
+    const filePath = `centers/${centerId}/${fileName}`;
+
+    const { data, error } = await this.supabase.client.storage
+      .from('indoor-assets')
+      .upload(filePath, file);
+
+    if (error) throw error;
+    return data.path;
   }
 }
