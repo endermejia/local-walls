@@ -4,7 +4,7 @@ export * from './grade-label.pipe';
 export * from './icon-src.pipe';
 export * from './includes-id.pipe';
 export * from './map-get.pipe';
-export * from './mention-link.pipe';
+export * from './mentions.pipe';
 export * from './points-to-svg.pipe';
 export * from './shade-info.pipe';
 export * from './topo-image.pipe';

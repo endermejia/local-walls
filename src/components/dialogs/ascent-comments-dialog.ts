@@ -40,7 +40,7 @@ import { EmptyStateComponent } from '../ui/empty-state';
 import { UserProfileBasicDto } from '../../models';
 
 import { AvatarUrlPipe } from '../../pipes';
-import { MentionLinkPipe } from '../../pipes/mention-link.pipe';
+import { MentionsPipe } from '../../pipes/mentions.pipe';
 
 export interface AscentCommentsDialogData {
   ascentId: number;
@@ -56,7 +56,7 @@ export interface AscentCommentsDialogData {
     DatePipe,
     EmptyStateComponent,
     FormsModule,
-    MentionLinkPipe,
+    MentionsPipe,
     RouterLink,
     TranslatePipe,
     TuiAvatar,
@@ -100,10 +100,20 @@ export interface AscentCommentsDialogData {
                     {{ comment.created_at | date: 'd/M/yy, HH:mm' }}
                   </span>
                 </div>
-                <p
-                  class="text-sm whitespace-pre-wrap wrap-break-word"
-                  [innerHTML]="comment.comment | mentionLink"
-                ></p>
+                <p class="text-sm whitespace-pre-wrap wrap-break-word">
+                  @for (segment of comment.comment | mentions; track $index) {
+                    @if (segment.mention; as mention) {
+                      <a
+                        class="mention-link font-bold hover:underline cursor-pointer text-(--tui-text-action)"
+                        [routerLink]="['/profile', mention.id]"
+                        (click)="context.completeWith()"
+                        >@{{ mention.name }}</a
+                      >
+                    } @else {
+                      {{ segment.text }}
+                    }
+                  }
+                </p>
                 <div class="flex items-center justify-end mt-1">
                   <button
                     tuiButton
@@ -563,20 +573,6 @@ export class AscentCommentsDialogComponent {
       }
     } finally {
       this.sending.set(false);
-    }
-  }
-
-  @HostListener('click', ['$event'])
-  onClick(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    const link = target.closest('.mention-link');
-    if (link) {
-      event.preventDefault();
-      const id = link.getAttribute('data-id');
-      if (id) {
-        void this.router.navigate(['/profile', id]);
-        this.context.completeWith();
-      }
     }
   }
 

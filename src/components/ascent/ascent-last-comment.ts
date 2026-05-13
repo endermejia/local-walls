@@ -7,6 +7,7 @@ import {
   input,
   resource,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { TuiAvatar } from '@taiga-ui/kit';
 import { TuiIcon } from '@taiga-ui/core';
@@ -19,7 +20,7 @@ import { SupabaseService } from '../../services/supabase.service';
 import { CommentLikesComponent } from '../social/comment-likes';
 
 import { AvatarUrlPipe } from '../../pipes';
-import { MentionLinkPipe } from '../../pipes/mention-link.pipe';
+import { MentionsPipe } from '../../pipes/mentions.pipe';
 
 @Component({
   selector: 'app-ascent-last-comment',
@@ -28,7 +29,8 @@ import { MentionLinkPipe } from '../../pipes/mention-link.pipe';
     AvatarUrlPipe,
     CommentLikesComponent,
     CommonModule,
-    MentionLinkPipe,
+    MentionsPipe,
+    RouterLink,
     TuiAvatar,
     TuiIcon,
   ],
@@ -54,10 +56,20 @@ import { MentionLinkPipe } from '../../pipes/mention-link.pipe';
               {{ comment.user_profiles.name }}
             </span>
           </div>
-          <p
-            class="text-xs line-clamp-2 wrap-break-word pl-1 opacity-90"
-            [innerHTML]="comment.comment | mentionLink"
-          ></p>
+          <p class="text-xs line-clamp-2 wrap-break-word pl-1 opacity-90">
+            @for (segment of comment.comment | mentions; track $index) {
+              @if (segment.mention; as mention) {
+                <a
+                  class="mention-link font-bold hover:underline cursor-pointer text-(--tui-text-action)"
+                  [routerLink]="['/profile', mention.id]"
+                  (click)="$event.stopPropagation()"
+                  >@{{ mention.name }}</a
+                >
+              } @else {
+                {{ segment.text }}
+              }
+            }
+          </p>
         </div>
 
         <div class="flex flex-col items-center self-start">
