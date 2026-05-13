@@ -190,7 +190,7 @@ export class MyAreasComponent {
   readonly myAreaIds = this.global.adminAreas;
   readonly areas = computed(() => {
     const ids = this.myAreaIds();
-    return this.global.areaList().filter((a) => ids.includes(a.id));
+    return this.global.areasList().filter((a) => ids.includes(a.id));
   });
 
   readonly query: WritableSignal<string> = signal('');

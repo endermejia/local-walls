@@ -397,11 +397,11 @@ export class CragComponent {
   });
 
   protected readonly cragDetail = computed<CragDetail | null>(() => {
-    const c = this.global.cragDetailResource.value();
+    const c = this.global.cragDetail();
     if (!c) return null;
 
     // Compute grades from routes
-    const routes = this.global.cragRoutesResource.value() ?? [];
+    const routes = this.global.cragRoutes() ?? [];
     const gradesVal: AmountByEveryGrade = {};
     for (const r of routes) {
       if (r.grade >= 0) {
@@ -418,7 +418,7 @@ export class CragComponent {
 
   protected readonly routesCount = computed(() => {
     const detail = this.cragDetail();
-    const routes = this.global.cragRoutesResource.value();
+    const routes = this.global.cragRoutes();
     return routes
       ? routes.length
       : Object.values(detail?.grades || {}).reduce(
