@@ -388,7 +388,7 @@ import {
                               <ng-template #toposMenu>
                                 <tui-data-list>
                                   @for (
-                                    topo of global.cragDetailResource.value()
+                                    topo of global.cragDetail()
                                       ?.topos || [];
                                     track topo.id
                                   ) {
@@ -647,7 +647,7 @@ import {
                                 <ng-template #toposMenuExpanded>
                                   <tui-data-list>
                                     @for (
-                                      topo of global.cragDetailResource.value()
+                                      topo of global.cragDetail()
                                         ?.topos || [];
                                       track topo.id
                                     ) {

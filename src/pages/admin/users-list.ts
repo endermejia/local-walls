@@ -410,7 +410,7 @@ export class AdminUsersListComponent {
   protected readonly loading: WritableSignal<boolean> = signal(true);
   protected readonly users: WritableSignal<UserWithRole[]> = signal([]);
 
-  protected readonly availableAreas = computed(() => this.global.areaList());
+  protected readonly availableAreas = computed(() => this.global.areasList());
   protected readonly stringifyArea = (a: AreaListItem) => a.name;
   protected readonly areaIdentityMatcher: TuiIdentityMatcher<AreaListItem> = (
     a,
@@ -450,13 +450,13 @@ export class AdminUsersListComponent {
       await this.supabase.whenReady();
 
       // 1. Load areas if not already loaded
-      if (this.global.areaList().length === 0) {
+      if (this.global.areasList().length === 0) {
         // Wait for areas to load if needed
         while (this.global.areasListResource.isLoading()) {
           await new Promise((resolve) => setTimeout(resolve, 100));
         }
       }
-      const areas = this.global.areaList();
+      const areas = this.global.areasList();
       const areasMap = new Map(areas.map((a) => [a.id, a]));
 
       // 2. Fetch user profiles (including is_admin)

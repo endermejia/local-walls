@@ -938,7 +938,7 @@ export class AreaComponent {
   }
 
   viewFirstTopo(): void {
-    const topos = this.global.areaToposResource.value();
+    const topos = this.global.areaTopos();
     if (!topos || topos.length === 0) return;
     const area = this.global.selectedArea();
     if (!area) return;

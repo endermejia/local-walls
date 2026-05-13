@@ -250,7 +250,7 @@ import { handleErrorToast } from '../../utils';
                 <div class="flex items-center gap-2">
                   <span
                     [tuiAvatar]="
-                      climbingIcons[r.climbing_kind] || '@tui.mountain'
+                      $any(climbingIcons)[r.climbing_kind] || '@tui.mountain'
                     "
                     size="s"
                     appearance="secondary"

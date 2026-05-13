@@ -66,6 +66,6 @@ export class AreaPaywallDialogComponent {
     );
   protected readonly global = inject(GlobalData);
   protected readonly topos = computed(
-    () => this.global.areaToposResource.value() || [],
+    () => this.global.areaTopos() || [],
   );
 }

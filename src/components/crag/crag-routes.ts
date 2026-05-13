@@ -286,7 +286,7 @@ export class CragRoutesComponent {
     const allowedLabels = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1);
     const categories = this.selectedCategories();
     const crag = this.crag();
-    const localList = this.global.cragRoutesResource.value() ?? [];
+    const localList = this.global.cragRoutes() ?? [];
 
     const textMatches = (r: Partial<RouteWithExtras>) => {
       const nameMatch = matchesQuery(r.name, query);
@@ -371,7 +371,7 @@ export class CragRoutesComponent {
         if (existingSlugs.has(itemSlug) || existingEightAnuSlugs.has(itemSlug))
           continue;
 
-        const currentCragRoutes = this.global.cragRoutesResource.value() || [];
+        const currentCragRoutes = this.global.cragRoutes() || [];
         const matchingLocals = currentCragRoutes.filter(
           (r) => slugify(r.name) === itemSlug,
         );
@@ -413,7 +413,7 @@ export class CragRoutesComponent {
   protected readonly routesCount = computed(() => this.filteredRoutes().length);
 
   protected readonly cragKind = computed(() => {
-    const routes = this.global.cragRoutesResource.value() ?? [];
+    const routes = this.global.cragRoutes() ?? [];
     if (routes.length === 0) return ClimbingKinds.SPORT;
 
     const counts: Record<string, number> = {

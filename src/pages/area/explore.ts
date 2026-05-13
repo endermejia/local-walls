@@ -565,7 +565,7 @@ export class ExploreComponent {
       this.global.areasMapResource.value()?.map((ma) => ma.id),
     );
     const visibleAreas = this.global
-      .areaList()
+      .areasList()
       .filter((a) => visibleAreaIds.has(a.id));
     this.areasService.openUnifyAreas(visibleAreas);
   }
