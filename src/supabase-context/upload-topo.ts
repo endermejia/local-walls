@@ -24,8 +24,6 @@ const supabaseAdminClient = createClient(
   { auth: { persistSession: false } },
 );
 
-console.info('Upload-topo-photo function started');
-
 Deno.serve(async (req: Request) => {
   const ALLOWED_ORIGINS = ['http://localhost:4200', 'https://climbeast.com'];
 
