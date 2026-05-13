@@ -84,14 +84,16 @@ Deno.serve(async (req: Request) => {
 
     if (userAscents && userAscents.length > 0) {
       const ascentIds = userAscents.map((a: { id: number }) => a.id);
-      await supabaseAdminClient
-        .from('route_ascent_comments')
-        .delete()
-        .in('route_ascent_id', ascentIds);
-      await supabaseAdminClient
-        .from('route_ascent_likes')
-        .delete()
-        .in('route_ascent_id', ascentIds);
+      await Promise.all([
+        supabaseAdminClient
+          .from('route_ascent_comments')
+          .delete()
+          .in('route_ascent_id', ascentIds),
+        supabaseAdminClient
+          .from('route_ascent_likes')
+          .delete()
+          .in('route_ascent_id', ascentIds),
+      ]);
     }
 
     // 2. Comprehensive table cleanup
@@ -112,21 +114,35 @@ Deno.serve(async (req: Request) => {
       { table: 'route_ascent_comments', column: 'user_id' },
       { table: 'route_ascent_likes', column: 'user_id' },
       { table: 'route_ascents', column: 'user_id' },
-      { table: 'user_profiles', column: 'id' },
     ];
 
-    for (const { table, column } of tablesToClean) {
-      const { error: cleanupError } = await supabaseAdminClient
-        .from(table)
-        .delete()
-        .eq(column, userId);
+    await Promise.all(
+      tablesToClean.map(async ({ table, column }) => {
+        const { error: cleanupError } = await supabaseAdminClient
+          .from(table)
+          .delete()
+          .eq(column, userId);
 
-      if (cleanupError) {
-        console.warn(
-          `[delete-user] Cleanup warning for ${table} (${column}):`,
-          cleanupError.message,
-        );
-      }
+        if (cleanupError) {
+          console.warn(
+            `[delete-user] Cleanup warning for ${table} (${column}):`,
+            cleanupError.message,
+          );
+        }
+      }),
+    );
+
+    // 3. Delete user profile (must be last)
+    const { error: profileError } = await supabaseAdminClient
+      .from('user_profiles')
+      .delete()
+      .eq('id', userId);
+
+    if (profileError) {
+      console.warn(
+        `[delete-user] Cleanup warning for user_profiles (id):`,
+        profileError.message,
+      );
     }
 
     // ─────────────────────────────
