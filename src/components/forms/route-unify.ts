@@ -205,7 +205,7 @@ export class RouteUnifyComponent {
     if (candidates && candidates.length > 0) {
       return candidates;
     }
-    return this.global.cragRoutesResource.value() ?? [];
+    return this.global.cragRoutes() ?? [];
   });
 
   protected readonly isInvalidRoute = (item: RouteDto): boolean =>

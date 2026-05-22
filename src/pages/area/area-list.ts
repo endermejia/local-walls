@@ -212,7 +212,7 @@ export class AreaListComponent {
   private readonly filtersService = inject(FiltersService);
 
   readonly loading = computed(() => this.areasService.loading());
-  readonly areas = computed(() => this.global.areaList());
+  readonly areas = computed(() => this.global.areasList());
 
   readonly query: WritableSignal<string> = signal('');
   readonly selectedGradeRange = this.global.areaListGradeRange;

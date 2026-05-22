@@ -155,8 +155,8 @@ export class GlobalData {
 
     const area = this.selectedArea();
     const crag = this.selectedCrag();
-    const topo = this.topoDetailResource.value();
-    const route = this.routeDetailResource.value();
+    const topo = this.topoDetail();
+    const route = this.routeDetail();
 
     if (area) {
       items.push({
@@ -232,6 +232,20 @@ export class GlobalData {
   });
 
   /** Set of area IDs for which the current user already has a pending admin request */
+
+  private getCachedData<T>(key: string, defaultValue: T): T {
+    if (!isPlatformBrowser(this.platformId)) return defaultValue;
+    const cached = this.localStorage.getItem(key);
+    if (cached) {
+      try {
+        return JSON.parse(cached) as T;
+      } catch {
+        console.error('[GlobalData] Cache parse error for key:', key);
+      }
+    }
+    return defaultValue;
+  }
+
   readonly pendingAdminRequestAreaIds = computed(
     () => new Set(this.pendingAdminRequestsResource.value() ?? []),
   );
@@ -300,7 +314,7 @@ export class GlobalData {
 
   /** Computed for the currently selected crag */
   readonly canEditCrag = computed(() =>
-    this.checkCragEditPermission(this.cragDetailResource.value()),
+    this.checkCragEditPermission(this.cragDetail()),
   );
 
   /** Helper to check if any route can be edited by current user */
@@ -320,12 +334,12 @@ export class GlobalData {
 
   /** Computed for the currently selected route */
   readonly canEditRoute = computed(() =>
-    this.checkRouteEditPermission(this.routeDetailResource.value()),
+    this.checkRouteEditPermission(this.routeDetail()),
   );
 
   readonly canEditCragRoutes = computed(() => {
     const res: Record<number, boolean> = {};
-    const routes = this.cragRoutesResource.value() ?? [];
+    const routes = this.cragRoutes() ?? [];
     routes.forEach((r: RouteWithExtras) => {
       res[r.id] = this.checkRouteEditPermission(r);
     });
@@ -759,9 +773,27 @@ export class GlobalData {
     },
   });
 
-  readonly likedAreas = computed(() => this.likedAreasResource.value() ?? []);
-  readonly likedCrags = computed(() => this.likedCragsResource.value() ?? []);
-  readonly likedRoutes = computed(() => this.likedRoutesResource.value() ?? []);
+  readonly likedAreas = computed(() => {
+    const val = this.likedAreasResource.value();
+    if (val !== undefined) return val;
+    const userId = this.supabase.authUserId();
+    if (!userId) return [];
+    return this.getCachedData<any[]>(`cached_liked_areas_${userId}_v2`, []);
+  });
+  readonly likedCrags = computed(() => {
+    const val = this.likedCragsResource.value();
+    if (val !== undefined) return val;
+    const userId = this.supabase.authUserId();
+    if (!userId) return [];
+    return this.getCachedData<any[]>(`cached_liked_crags_${userId}_v2`, []);
+  });
+  readonly likedRoutes = computed(() => {
+    const val = this.likedRoutesResource.value();
+    if (val !== undefined) return val;
+    const userId = this.supabase.authUserId();
+    if (!userId) return [];
+    return this.getCachedData<any[]>(`cached_liked_routes_${userId}_v2`, []);
+  });
 
   readonly likedAreaIds = computed(() =>
     this.likedAreas().map((a: AreaListItem) => a.id),
@@ -915,7 +947,7 @@ export class GlobalData {
   selectedAreaSlug: WritableSignal<string | null> = signal(null);
   selectedArea: Signal<AreaListItem | null> = computed(() => {
     const slug = this.selectedAreaSlug();
-    return slug ? this.areaList().find((a) => a.slug === slug) || null : null;
+    return slug ? this.areasList().find((a) => a.slug === slug) || null : null;
   });
   /**
    * List of areas (RPC get_areas_list)
@@ -955,9 +987,11 @@ export class GlobalData {
       }
     },
   });
-  areaList: Signal<AreaListItem[]> = computed(
-    () => this.areasListResource.value() ?? [],
-  );
+  readonly areasList: Signal<AreaListItem[]> = computed(() => {
+    const val = this.areasListResource.value();
+    if (val !== undefined) return val;
+    return this.getCachedData<AreaListItem[]>('cached_areas_list_v2', []);
+  });
 
   // ---- Indoor Centers ----
   readonly indoorCentersResource = resource({
@@ -1038,9 +1072,16 @@ export class GlobalData {
       }
     },
   });
-  readonly cragsList: Signal<CragListItem[]> = computed(
-    () => this.cragsListResource.value() ?? [],
-  );
+  readonly cragsList: Signal<CragListItem[]> = computed(() => {
+    const val = this.cragsListResource.value();
+    if (val !== undefined) return val;
+    const areaSlug = this.selectedAreaSlug();
+    if (!areaSlug) return [];
+    return this.getCachedData<CragListItem[]>(
+      `cached_crags_list_${areaSlug}_v2`,
+      [],
+    );
+  });
 
   /**
    * Selection of crag (by slug) dependent on the selected area.
@@ -1305,7 +1346,7 @@ export class GlobalData {
 
   readonly cragRoutesResource = resource({
     params: () => {
-      const crag = this.cragDetailResource.value();
+      const crag = this.cragDetail();
       return {
         cragId: crag?.id,
         cragSlug: crag?.slug,
@@ -1778,7 +1819,7 @@ export class GlobalData {
 
   readonly routeDetailResource = resource({
     params: () => ({
-      cragId: this.cragDetailResource.value()?.id,
+      cragId: this.cragDetail()?.id,
       routeSlug: this.selectedRouteSlug(),
     }),
     loader: async ({
@@ -1873,7 +1914,7 @@ export class GlobalData {
 
   readonly routeAscentsResource = resource({
     params: () => ({
-      routeId: this.routeDetailResource.value()?.id,
+      routeId: this.routeDetail()?.id,
       page: this.ascentsPage(),
       size: this.ascentsSize(),
     }),
@@ -1931,7 +1972,7 @@ export class GlobalData {
 
         // 3. Map profiles back to ascents
         const profileMap = new Map(profiles?.map((p) => [p.id, p]));
-        const currentRoute = this.routeDetailResource.value();
+        const currentRoute = this.routeDetail();
         const items = ascents.map(
           (a) =>
             ({
@@ -1968,6 +2009,62 @@ export class GlobalData {
         return [];
       }
     },
+  });
+  // ---- Computed wrappers for SWR caching ----
+
+  readonly areaTopos = computed(() => {
+    const val = this.areaToposResource.value();
+    if (val !== undefined)
+      return val as (TopoListItem & { crag_slug: string })[];
+    return this.getCachedData<(TopoListItem & { crag_slug: string })[]>(
+      `cached_area_topos_${this.selectedAreaSlug()}_v2`,
+      [],
+    );
+  });
+
+  readonly topoDetail = computed(() => {
+    const val = this.topoDetailResource.value();
+    if (val !== undefined) return val as TopoDetail | null;
+    return this.getCachedData<TopoDetail | null>(
+      `cached_topo_detail_${this.selectedTopoId()}_v1`,
+      null,
+    );
+  });
+
+  readonly cragDetail = computed(() => {
+    const val = this.cragDetailResource.value();
+    if (val !== undefined) return val as CragDetail | null;
+    return this.getCachedData<CragDetail | null>(
+      `cached_crag_detail_${this.selectedAreaSlug()}_${this.selectedCragSlug()}_v2`,
+      null,
+    );
+  });
+
+  readonly cragRoutes = computed(() => {
+    const val = this.cragRoutesResource.value();
+    if (val !== undefined) return val as RouteWithExtras[];
+    return this.getCachedData<RouteWithExtras[]>(
+      `cached_crag_routes_${this.selectedCragSlug()}_v2`,
+      [],
+    );
+  });
+
+  readonly userProjects = computed(() => {
+    const val = this.userProjectsResource.value();
+    if (val !== undefined) return val as any[];
+    return this.getCachedData<any[]>(
+      `cached_user_projects_${this.supabase.authUserId()}_v2`,
+      [],
+    );
+  });
+
+  readonly routeDetail = computed(() => {
+    const val = this.routeDetailResource.value();
+    if (val !== undefined) return val as any | null;
+    return this.getCachedData<any | null>(
+      `cached_route_detail_${this.selectedRouteSlug()}_v2`,
+      null,
+    );
   });
 
   // ---- Error state for interceptor ----

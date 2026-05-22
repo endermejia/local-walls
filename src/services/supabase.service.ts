@@ -101,7 +101,16 @@ export class SupabaseService {
       }
     },
   });
-  readonly userProfile = computed(() => this.userProfileResource.value());
+  readonly userProfile = computed(() => {
+    const val = this.userProfileResource.value();
+    if (val !== undefined) return val;
+    const userId = this.authUserId();
+    if (!userId) return null;
+    return this.getCachedData<UserProfileDto | null>(
+      `cached_user_profile_${userId}_v1`,
+      null,
+    );
+  });
 
   readonly adminAreasResource = resource({
     params: () => ({
@@ -314,6 +323,19 @@ export class SupabaseService {
     return data.signedUrl;
   }
 
+  private getCachedData<T>(key: string, defaultValue: T): T {
+    if (!isPlatformBrowser(this.platformId)) return defaultValue;
+    const cached = this.localStorage.getItem(key);
+    if (cached) {
+      try {
+        return JSON.parse(cached) as T;
+      } catch {
+        console.error('[SupabaseService] Cache parse error for key:', key);
+      }
+    }
+    return defaultValue;
+  }
+
   constructor() {
     this._ready = new Promise<void>(
       (resolve) => (this._readyResolve = resolve),
@@ -341,6 +363,31 @@ export class SupabaseService {
     try {
       const { createClient } = await import('@supabase/supabase-js');
       this._client = createClient<Database>(this.url, this.anonKey, {
+        global: {
+          fetch: async (url, options) => {
+            if (typeof navigator !== 'undefined' && !navigator.onLine) {
+              return Promise.reject(new TypeError('Failed to fetch')); // Fast offline fail
+            }
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8-second timeout for poor connections
+            if (options?.signal) {
+              options.signal.addEventListener('abort', () =>
+                controller.abort(),
+              );
+            }
+            try {
+              const response = await fetch(url, {
+                ...options,
+                signal: controller.signal,
+              });
+              clearTimeout(timeoutId);
+              return response;
+            } catch (err) {
+              clearTimeout(timeoutId);
+              throw err;
+            }
+          },
+        },
         auth: {
           storage: this.localStorage,
           autoRefreshToken: true,

@@ -465,12 +465,12 @@ export class TopoFormComponent {
   });
 
   protected readonly availableRoutes = computed(
-    () => this.global.cragRoutesResource.value() ?? [],
+    () => this.global.cragRoutes() ?? [],
   );
 
   /** Route IDs that already appear in other topos of the same crag */
   protected readonly routeIdsInOtherTopos = computed(() => {
-    const crag = this.global.cragDetailResource.value();
+    const crag = this.global.cragDetail();
     const currentTopoId = this.effectiveTopoData()?.id;
     if (!crag?.topos) return new Set<number>();
     const ids = new Set<number>();

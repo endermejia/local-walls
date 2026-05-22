@@ -204,7 +204,7 @@ export class AreaUnifyComponent {
 
   protected readonly availableAreas = computed(() => {
     const candidates = this.context.data;
-    const globalList = this.global.areaList();
+    const globalList = this.global.areasList();
     const map = new Map();
     // Prioritize candidates
     if (candidates && candidates.length > 0) {
