@@ -479,46 +479,67 @@ export class HomeComponent implements OnDestroy {
 
   private async fetchActiveCrags() {
     if (!this.isBrowser) return [];
-    await this.supabase.whenReady();
-    const { data } = await this.supabase.client
-      .from('route_ascents')
-      .select(
-        `
-        route:routes!inner(
-          crag:crags(
-            id, name, slug, area:areas(slug)
-          )
-        )
-      `,
-      )
-      .order('date', { ascending: false })
-      .limit(30);
 
-    const cragsMap = new Map<
-      number,
-      { id: number; name: string; slug: string; area_slug: string }
-    >();
-    data?.forEach((d) => {
-      const route = d.route as unknown as {
-        crag: {
-          id: number;
-          name: string;
-          slug: string;
-          area: { slug: string }[] | { slug: string };
-        }[];
-      };
-      const c = Array.isArray(route?.crag) ? route?.crag[0] : route?.crag;
-      if (c && !cragsMap.has(c.id)) {
-        const area = Array.isArray(c.area) ? c.area[0] : c.area;
-        cragsMap.set(c.id, {
-          id: c.id,
-          name: c.name,
-          slug: c.slug,
-          area_slug: area?.slug,
-        });
+    const cacheKey = 'cached_active_crags_v1';
+
+    try {
+      await this.supabase.whenReady();
+      const { data, error } = await this.supabase.client
+        .from('route_ascents')
+        .select(
+          `
+          route:routes!inner(
+            crag:crags(
+              id, name, slug, area:areas(slug)
+            )
+          )
+        `,
+        )
+        .order('date', { ascending: false })
+        .limit(30);
+
+      if (error) throw error;
+
+      const cragsMap = new Map<
+        number,
+        { id: number; name: string; slug: string; area_slug: string }
+      >();
+      data?.forEach((d) => {
+        const route = d.route as unknown as {
+          crag: {
+            id: number;
+            name: string;
+            slug: string;
+            area: { slug: string }[] | { slug: string };
+          }[];
+        };
+        const c = Array.isArray(route?.crag) ? route?.crag[0] : route?.crag;
+        if (c && !cragsMap.has(c.id)) {
+          const area = Array.isArray(c.area) ? c.area[0] : c.area;
+          cragsMap.set(c.id, {
+            id: c.id,
+            name: c.name,
+            slug: c.slug,
+            area_slug: area?.slug,
+          });
+        }
+      });
+
+      const result = Array.from(cragsMap.values()).slice(0, 8);
+      this.storage.setItem(cacheKey, JSON.stringify(result));
+      return result;
+    } catch (e) {
+      console.warn('[Home] fetchActiveCrags error/offline, trying cache', e);
+      const cached = this.storage.getItem(cacheKey);
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch {
+          console.error('[Home] Cache parse error');
+        }
       }
-    });
-    return Array.from(cragsMap.values()).slice(0, 8);
+      return [];
+    }
   }
 
   // Infinite Scroll & Async Pipe for Ascents
@@ -610,52 +631,81 @@ export class HomeComponent implements OnDestroy {
       query = query.in('grade', allowedDbGrades);
     }
 
-    const { data: ascents } = await query
-      .order('date', { ascending: false })
-      .order('id', { ascending: false })
-      .range(fromIdx, toIdx)
-      .overrideTypes<RouteAscentWithExtras[]>();
+    const cacheKey = `cached_home_feed_${filter}_${page}_v1`;
 
-    if (!ascents || ascents.length === 0) {
+    try {
+      const { data: ascents, error } = await query
+        .order('date', { ascending: false })
+        .order('id', { ascending: false })
+        .range(fromIdx, toIdx)
+        .overrideTypes<RouteAscentWithExtras[]>();
+
+      if (error) throw error;
+
+      if (!ascents || ascents.length === 0) {
+        this.hasMore.set(false);
+        return [];
+      }
+
+      if (ascents.length < size) {
+        this.hasMore.set(false);
+      }
+
+      const userIds = [...new Set(ascents.map((a) => a.user_id))];
+      const { data: profiles } = await this.supabase.client
+        .from('user_profiles')
+        .select('*')
+        .in('id', userIds);
+
+      const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
+
+      const result = ascents.map((a) => {
+        const { route, ...ascentRest } = a;
+        let mappedRoute: RouteAscentWithExtras['route'] = undefined;
+        if (route) {
+          const crag = Array.isArray(route.crag) ? route.crag[0] : route.crag;
+          const area = Array.isArray(crag?.area) ? crag?.area[0] : crag?.area;
+          mappedRoute = {
+            ...route,
+            crag_slug: crag?.slug,
+            crag_name: crag?.name,
+            area_slug: area?.slug,
+            area_name: area?.name,
+            liked: false,
+            project: false,
+          };
+        }
+        return {
+          ...ascentRest,
+          kind: 'ascent',
+          user: profileMap.get(a.user_id),
+          route: mappedRoute,
+        } as RouteAscentWithExtras & { kind: 'ascent' };
+      });
+
+      this.storage.setItem(cacheKey, JSON.stringify(result));
+      return result;
+    } catch (e) {
+      console.warn('[Home] fetchAscents error/offline, trying cache', e);
+      const cached = this.storage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (!parsed || parsed.length === 0) {
+            this.hasMore.set(false);
+            return [];
+          }
+          if (parsed.length < size) {
+            this.hasMore.set(false);
+          }
+          return parsed;
+        } catch {
+          console.error('[Home] Cache parse error');
+        }
+      }
       this.hasMore.set(false);
       return [];
     }
-
-    if (ascents.length < size) {
-      this.hasMore.set(false);
-    }
-
-    const userIds = [...new Set(ascents.map((a) => a.user_id))];
-    const { data: profiles } = await this.supabase.client
-      .from('user_profiles')
-      .select('*')
-      .in('id', userIds);
-
-    const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
-
-    return ascents.map((a) => {
-      const { route, ...ascentRest } = a;
-      let mappedRoute: RouteAscentWithExtras['route'] = undefined;
-      if (route) {
-        const crag = Array.isArray(route.crag) ? route.crag[0] : route.crag;
-        const area = Array.isArray(crag?.area) ? crag?.area[0] : crag?.area;
-        mappedRoute = {
-          ...route,
-          crag_slug: crag?.slug,
-          crag_name: crag?.name,
-          area_slug: area?.slug,
-          area_name: area?.name,
-          liked: false,
-          project: false,
-        };
-      }
-      return {
-        ...ascentRest,
-        kind: 'ascent',
-        user: profileMap.get(a.user_id),
-        route: mappedRoute,
-      } as RouteAscentWithExtras & { kind: 'ascent' };
-    });
   }
 
   onFollow(userId: string) {
