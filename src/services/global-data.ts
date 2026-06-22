@@ -725,21 +725,30 @@ export class GlobalData {
     if (val !== undefined) return val;
     const userId = this.supabase.authUserId();
     if (!userId) return [];
-    return this.getCachedData<any[]>(`cached_liked_areas_${userId}_v2`, []);
+    return this.getCachedData<AreaListItem[]>(
+      `cached_liked_areas_${userId}_v2`,
+      [],
+    );
   });
   readonly likedCrags = computed(() => {
     const val = this.likedCragsResource.value();
     if (val !== undefined) return val;
     const userId = this.supabase.authUserId();
     if (!userId) return [];
-    return this.getCachedData<any[]>(`cached_liked_crags_${userId}_v2`, []);
+    return this.getCachedData<CragListItem[]>(
+      `cached_liked_crags_${userId}_v2`,
+      [],
+    );
   });
   readonly likedRoutes = computed(() => {
     const val = this.likedRoutesResource.value();
     if (val !== undefined) return val;
     const userId = this.supabase.authUserId();
     if (!userId) return [];
-    return this.getCachedData<any[]>(`cached_liked_routes_${userId}_v2`, []);
+    return this.getCachedData<RouteWithExtras[]>(
+      `cached_liked_routes_${userId}_v2`,
+      [],
+    );
   });
 
   readonly likedAreaIds = computed(() =>
