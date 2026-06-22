@@ -68,7 +68,7 @@ import {
     class: 'block w-full min-w-0',
   },
   template: `
-    <div class="grid gap-4 max-w-7xl mx-auto">
+    <div class="grid gap-4 w-full">
       <!-- Header / Filter -->
       <div class="flex justify-between items-center flex-wrap gap-4">
         <h2 class="text-2xl font-bold hidden sm:flex items-center gap-2">
@@ -93,35 +93,59 @@ import {
       </div>
 
       <tui-loader [loading]="statsResource.isLoading()">
-        <div class="grid gap-6">
-          <app-user-profile-stats-score
-            [totalScore]="totalScore()"
-            [totalAscents]="gradeDistribution().total"
-            [maxRedpoint]="maxRedpoint()"
-            [maxOnsight]="maxOnsight()"
-            [maxFlash]="maxFlash()"
-          />
+        <!-- Mobile Score Card (Top on Mobile, Hidden on Desktop) -->
+        <app-user-profile-stats-score
+          class="block lg:hidden mb-6"
+          [totalScore]="totalScore()"
+          [totalAscents]="gradeDistribution().total"
+          [maxRedpoint]="maxRedpoint()"
+          [maxOnsight]="maxOnsight()"
+          [maxFlash]="maxFlash()"
+        />
 
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          <!-- Left Column (Pyramid & Trends) - 2/3 width on Desktop, full width on Mobile -->
+          <div class="lg:col-span-2 flex flex-col gap-6">
+            <!-- Grade Pyramid -->
             <app-user-profile-stats-pyramid
-              class="lg:col-span-2"
               [(showAllGrades)]="showAllGrades"
               [distribution]="gradeDistribution()"
             />
+
+            <!-- Sport Climbing Trend -->
+            <app-user-profile-stats-trends
+              [trendData]="trendData()"
+              [trendDetails]="trendDetails()"
+              [trendXLabels]="trendXLabels()"
+              [trendYLabels]="trendYLabels()"
+              [width]="width"
+              [height]="height"
+            />
+          </div>
+
+          <!-- Right Column (Desktop Score & Styles) - 1/3 width on Desktop, Hidden on Mobile -->
+          <div class="lg:col-span-1 hidden lg:flex flex-col gap-6">
+            <!-- Score Card & Key Stats -->
+            <app-user-profile-stats-score
+              [totalScore]="totalScore()"
+              [totalAscents]="gradeDistribution().total"
+              [maxRedpoint]="maxRedpoint()"
+              [maxOnsight]="maxOnsight()"
+              [maxFlash]="maxFlash()"
+            />
+
+            <!-- Style Distribution -->
             <app-user-profile-stats-styles
               [distribution]="ascentTypeDistribution()"
             />
           </div>
-
-          <app-user-profile-stats-trends
-            [trendData]="trendData()"
-            [trendDetails]="trendDetails()"
-            [trendXLabels]="trendXLabels()"
-            [trendYLabels]="trendYLabels()"
-            [width]="width"
-            [height]="height"
-          />
         </div>
+
+        <!-- Mobile Style Distribution (Bottom on Mobile, Hidden on Desktop) -->
+        <app-user-profile-stats-styles
+          class="block lg:hidden mt-6"
+          [distribution]="ascentTypeDistribution()"
+        />
       </tui-loader>
     </div>
   `,

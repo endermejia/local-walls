@@ -88,7 +88,7 @@ import { UserInfoComponent } from '../../components/ui/user-info';
       <section
         (tuiSwipe)="onSwipe($event)"
         (touchstart.zoneless)="lastTouchTarget = $event.target"
-        class="w-full max-w-5xl mx-auto p-4 grid gap-4"
+        class="w-full max-w-7xl mx-auto p-4 grid gap-4"
       >
         @let loading = !profile();
         <app-user-info

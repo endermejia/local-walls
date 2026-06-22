@@ -31,11 +31,16 @@ import {
     <div
       class="grid gap-6 mt-4"
       [class.grid-cols-1]="true"
-      [class.xl:grid-cols-2]="columns() >= 2"
+      [class.md:grid-cols-2]="columns() >= 2"
+      [class.lg:grid-cols-3]="columns() >= 3"
     >
       @for (item of ascents(); track $index) {
         @if (item.kind === 'news') {
-          <app-news-card [item]="item" [class.xl:col-span-2]="columns() >= 2" />
+          <app-news-card
+            [item]="item"
+            [class.md:col-span-2]="columns() >= 2"
+            [class.lg:col-span-3]="columns() >= 3"
+          />
         } @else if (item.kind === 'ascent') {
           @let ascent = item;
           @if (groupByGrade()) {
@@ -47,7 +52,8 @@ import {
             ) {
               <div
                 class="mt-10 mb-4 flex items-center gap-4"
-                [class.xl:col-span-2]="columns() >= 2"
+                [class.md:col-span-2]="columns() >= 2"
+                [class.lg:col-span-3]="columns() >= 3"
               >
                 <span class="text-2xl font-black shrink-0">
                   {{ gradeLabelByNumber[asGrade(grade)] }}
@@ -100,7 +106,8 @@ import {
       @if (ascents().length > 0 && !isLoading() && hasMore()) {
         <div
           class="flex justify-center py-4"
-          [class.xl:col-span-2]="columns() >= 2"
+          [class.md:col-span-2]="columns() >= 2"
+          [class.lg:col-span-3]="columns() >= 3"
         >
           <app-infinite-scroll-trigger (intersect)="loadMore.emit()" />
         </div>

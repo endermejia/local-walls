@@ -1,3 +1,4 @@
+export * from './ascent-date.pipe';
 export * from './avatar-url.pipe';
 export * from './context-index.pipe';
 export * from './grade-label.pipe';

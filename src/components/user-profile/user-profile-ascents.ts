@@ -170,7 +170,7 @@ import { getAscentDateFilterOptions, processAscentsToFeed } from '../../utils';
           [hasMore]="hasMore()"
           [showUser]="false"
           [followedIds]="followedIds()"
-          [columns]="2"
+          [columns]="3"
           [groupByGrade]="sortFilter() === 'grade'"
           (loadMore)="loadMore()"
           (follow)="onFollow($event)"

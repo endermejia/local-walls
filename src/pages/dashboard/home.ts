@@ -104,7 +104,7 @@ export type HomeFeedFilter =
   ],
   template: `
     <tui-scrollbar class="h-full">
-      <div class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-32 pt-2">
+      <div class="flex flex-col gap-4 max-w-5xl mx-auto w-full pb-32 pt-2">
         <div class="px-4 flex flex-col gap-4 relative">
           <!-- Filter Segmented -->
           <div class="flex justify-between items-center gap-2">
@@ -270,6 +270,7 @@ export type HomeFeedFilter =
             [isLoading]="isLoading()"
             [hasMore]="hasMore()"
             [followedIds]="followedIds()"
+            [columns]="2"
             (loadMore)="loadMore()"
             (follow)="onFollow($event)"
             (unfollow)="onUnfollow($event)"

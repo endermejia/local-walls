@@ -45,7 +45,7 @@ import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
 
 import { CLIMBING_ICONS, RouteAscentWithExtras } from '../../models';
 
-import { AvatarUrlPipe } from '../../pipes';
+import { AscentDatePipe, AvatarUrlPipe } from '../../pipes';
 import { getEmbedUrl } from '../../utils';
 
 @Component({
@@ -55,6 +55,7 @@ import { getEmbedUrl } from '../../utils';
     AscentLastCommentComponent,
     AscentLikesComponent,
     AscentTypeComponent,
+    AscentDatePipe,
     AvatarUrlPipe,
     CommonModule,
     CustomCarouselComponent,
@@ -103,10 +104,7 @@ import { getEmbedUrl } from '../../utils';
                 {{ ascent.user?.name || 'User' }}
               </span>
               <span class="text-xs">
-                {{
-                  ascent.date
-                    | date: 'longDate' : undefined : global.selectedLanguage()
-                }}
+                {{ ascent.date | ascentDate }}
               </span>
             </div>
           </a>
@@ -159,10 +157,7 @@ import { getEmbedUrl } from '../../utils';
           <div class="flex justify-between items-center w-full">
             <div class="flex flex-col">
               <span class="text-xs text-gray-400">
-                {{
-                  ascent.date
-                    | date: 'longDate' : undefined : global.selectedLanguage()
-                }}
+                {{ ascent.date | ascentDate }}
               </span>
             </div>
             @if (ascent.user_id === supabase.authUserId()) {
