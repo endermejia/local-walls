@@ -469,7 +469,7 @@ export class HomeComponent implements OnDestroy {
       if (ids.length === 0) {
         this.feedFilter.set('all');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error loading followed ids:', error);
       this.feedFilter.set('all');
     } finally {
@@ -528,7 +528,7 @@ export class HomeComponent implements OnDestroy {
       const result = Array.from(cragsMap.values()).slice(0, 8);
       this.storage.setItem(cacheKey, JSON.stringify(result));
       return result;
-    } catch (e) {
+    } catch (e: unknown) {
       console.warn('[Home] fetchActiveCrags error/offline, trying cache', e);
       const cached = this.storage.getItem(cacheKey);
       if (cached) {
@@ -685,7 +685,7 @@ export class HomeComponent implements OnDestroy {
 
       this.storage.setItem(cacheKey, JSON.stringify(result));
       return result;
-    } catch (e) {
+    } catch (e: unknown) {
       console.warn('[Home] fetchAscents error/offline, trying cache', e);
       const cached = this.storage.getItem(cacheKey);
       if (cached) {
