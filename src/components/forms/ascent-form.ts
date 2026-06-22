@@ -1065,8 +1065,7 @@ export default class AscentFormComponent {
         if (savedAscent && photoFile) {
           await this.ascents.uploadPhoto(savedAscent.id, photoFile);
         }
-      } catch (e) {
-        const error = e as Error;
+      } catch (error) {
         handleErrorToast(error, this.toast);
       } finally {
         this._dialogCtx?.completeWith(true);
@@ -1185,8 +1184,7 @@ export default class AscentFormComponent {
 
     try {
       await this.ascents.delete(data.id);
-    } catch (e) {
-      const error = e as Error;
+    } catch (error) {
       handleErrorToast(error, this.toast);
     } finally {
       this._dialogCtx?.completeWith(true);

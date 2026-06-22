@@ -803,7 +803,7 @@ export class TopoFormComponent {
         this.global.topoDetailResource.reload();
       } catch (e) {
         console.error('[TopoFormComponent] Error deleting photo', e);
-        handleErrorToast(e as Error, this.toast);
+        handleErrorToast(e, this.toast);
       }
     }
   }

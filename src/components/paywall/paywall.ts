@@ -104,7 +104,7 @@ export class PaywallComponent {
       }
     } catch (e) {
       console.error('[PaywallComponent] Error starting checkout:', e);
-      handleErrorToast(e as Error, this.toast);
+      handleErrorToast(e, this.toast);
     } finally {
       this.loading.set(false);
     }

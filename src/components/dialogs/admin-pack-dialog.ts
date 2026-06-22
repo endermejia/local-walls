@@ -16,6 +16,7 @@ import {
   fileToDataUrl,
   NewPhoto,
   reorderGallery,
+  extractErrorMessage,
 } from '../../utils';
 
 import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -509,11 +510,11 @@ export class AdminPackDialogComponent implements OnInit {
           this.translate.instant('merchandising.packs.saveError'),
         );
       }
-    } catch (e) {
-      const error = e as Error;
-      console.error('[AdminPackDialogComponent] Error saving pack:', e);
+    } catch (error) {
+      console.error('[AdminPackDialogComponent] Error saving pack:', error);
       this.toast.error(
-        error.message || this.translate.instant('errors.unexpected'),
+        extractErrorMessage(error) ||
+          this.translate.instant('errors.unexpected'),
       );
     } finally {
       this.isSaving.set(false);

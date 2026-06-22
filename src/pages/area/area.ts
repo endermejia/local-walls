@@ -833,8 +833,7 @@ export class AreaComponent {
     try {
       await this.areas.delete(area.id);
       await this.router.navigateByUrl('/area');
-    } catch (e) {
-      const error = e as Error;
+    } catch (error) {
       console.error('[AreaComponent] Error deleting area:', error);
       handleErrorToast(error, this.toast);
     }

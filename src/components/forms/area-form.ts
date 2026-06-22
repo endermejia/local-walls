@@ -496,9 +496,8 @@ export class AreaFormComponent {
         } else {
           this.goBack();
         }
-      } catch (e) {
-        const error = e as Error;
-        console.error('[AreaFormComponent] Error submitting area:', e);
+      } catch (error) {
+        console.error('[AreaFormComponent] Error submitting area:', error);
         handleErrorToast(error, this.toast);
       }
     });
