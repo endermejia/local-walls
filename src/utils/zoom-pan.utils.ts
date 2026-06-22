@@ -62,29 +62,24 @@ export function handleWheelZoom(
   const restingLeft = containerEl.offsetLeft;
   const restingTop = containerEl.offsetTop;
 
+  const oldScale = state.scale();
+
   // Mouse position relative to the element's top-left at scale 1:
   const mouseRelX =
     (wheelEvent.clientX -
       containerRect.left -
       restingLeft -
       state.translateX()) /
-    state.scale();
+    oldScale;
   const mouseRelY =
     (wheelEvent.clientY - containerRect.top - restingTop - state.translateY()) /
-    state.scale();
+    oldScale;
 
   state.scale.set(newScale);
 
   // New translation to keep the same point under the mouse:
-  state.translateX.set(
-    wheelEvent.clientX -
-      containerRect.left -
-      restingLeft -
-      mouseRelX * newScale,
-  );
-  state.translateY.set(
-    wheelEvent.clientY - containerRect.top - restingTop - mouseRelY * newScale,
-  );
+  state.translateX.set(state.translateX() - mouseRelX * (newScale - oldScale));
+  state.translateY.set(state.translateY() - mouseRelY * (newScale - oldScale));
 
   callbacks?.afterZoom?.();
 }
@@ -340,28 +335,22 @@ export function handleViewerWheelZoom(
   const restingLeft = zoomContainer.offsetLeft;
   const restingTop = zoomContainer.offsetTop;
 
+  const oldScale = state.zoomScale();
+
   // Mouse position relative to the element's top-left at scale 1:
   const mouseRelX =
     (wheelEvent.clientX - containerRect.left - restingLeft - currentPos.x) /
-    state.zoomScale();
+    oldScale;
   const mouseRelY =
     (wheelEvent.clientY - containerRect.top - restingTop - currentPos.y) /
-    state.zoomScale();
+    oldScale;
 
   state.zoomScale.set(newScale);
 
   // New logical position to keep the same point under the mouse:
   const newPos = {
-    x:
-      wheelEvent.clientX -
-      containerRect.left -
-      restingLeft -
-      mouseRelX * newScale,
-    y:
-      wheelEvent.clientY -
-      containerRect.top -
-      restingTop -
-      mouseRelY * newScale,
+    x: currentPos.x - mouseRelX * (newScale - oldScale),
+    y: currentPos.y - mouseRelY * (newScale - oldScale),
   };
 
   const constrained = calculateConstrainedPosition(newPos, newScale, elements);
