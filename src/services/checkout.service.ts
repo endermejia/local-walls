@@ -1,3 +1,4 @@
+import { extractErrorMessage } from '../utils';
 import { inject, Injectable, signal } from '@angular/core';
 
 import { CartService } from './cart.service';
@@ -62,7 +63,7 @@ export class CheckoutService {
       }
     } catch (e: unknown) {
       console.error('[CheckoutService] Stripe error', e);
-      this.error.set((e as Error).message || 'Error redirecting to Stripe');
+      this.error.set(extractErrorMessage(e) || 'Error redirecting to Stripe');
     } finally {
       this.loading.set(false);
     }

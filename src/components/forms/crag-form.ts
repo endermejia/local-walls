@@ -539,8 +539,7 @@ export class CragFormComponent {
         } else {
           this.goBack();
         }
-      } catch (e) {
-        const error = e as Error;
+      } catch (error) {
         console.error('[CragFormComponent] Error submitting crag:', error);
         handleErrorToast(error, this.toast);
       }

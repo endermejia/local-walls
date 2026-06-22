@@ -584,8 +584,7 @@ export class CragComponent {
       if (ok) {
         await this.router.navigateByUrl(`/area/${c.area_slug}`);
       }
-    } catch (e) {
-      const error = e as Error;
+    } catch (error) {
       handleErrorToast(error, this.toast);
     }
   }

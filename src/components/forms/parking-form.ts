@@ -304,8 +304,7 @@ export class ParkingFormComponent {
         } else {
           this.goBack();
         }
-      } catch (e) {
-        const error = e as Error;
+      } catch (error) {
         console.error(
           '[ParkingFormComponent] Error submitting parking:',
           error,

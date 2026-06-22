@@ -1057,7 +1057,7 @@ export class RoutesTableComponent {
       await this.global.cragDetailResource.reload();
     } catch (e: unknown) {
       console.error('[RoutesTable] error toggling route on topo', e);
-      handleErrorToast(e as Error, this.toast);
+      handleErrorToast(e, this.toast);
     }
   }
 }

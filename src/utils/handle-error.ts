@@ -5,16 +5,17 @@ import { ToastService } from '../services/toast.service';
  * @param error The error object (usually from Supabase)
  * @param toast The ToastService instance
  */
-export function handleErrorToast(
-  error: { code?: string; message?: string },
-  toast: ToastService,
-): void {
+export function handleErrorToast(error: unknown, toast: ToastService): void {
   let messageKey = 'errors.unexpected';
 
   // Specific PostgreSQL / Supabase error codes
-  if (error?.code === '23503') {
+  const code =
+    typeof error === 'object' && error !== null
+      ? (error as any).code
+      : undefined;
+  if (code === '23503') {
     messageKey = 'errors.database.foreign_key_violation';
-  } else if (error?.code === '23505') {
+  } else if (code === '23505') {
     messageKey = 'errors.database.unique_violation';
   }
 
