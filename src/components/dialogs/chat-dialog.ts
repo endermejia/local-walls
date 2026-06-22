@@ -506,7 +506,6 @@ export class ChatDialogComponent implements OnDestroy {
     } else {
       // If we still don't have it, we try to fetch this specific room directly if service allows
       // or at least stay in rooms view.
-      console.warn('[ChatDialog] Room not found in list:', roomId);
     }
   }
 
