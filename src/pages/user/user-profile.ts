@@ -108,18 +108,6 @@ import { UserInfoComponent } from '../../components/ui/user-info';
           ) {
             <tui-pulse badge />
           }
-          @if (equipperResource.value(); as equipper) {
-            <a
-              tuiIconButton
-              appearance="action"
-              size="s"
-              iconStart="@tui.hammer"
-              [routerLink]="['/equipper', equipper.id]"
-              class="rounded-full!"
-              nameActions
-            >
-            </a>
-          }
 
           @if (isOwnProfile()) {
             <app-menu-options-button
@@ -180,7 +168,7 @@ import { UserInfoComponent } from '../../components/ui/user-info';
             </ng-container>
           }
 
-          <div class="flex gap-4 mt-2" extraInfo>
+          <div class="flex flex-wrap gap-4 mt-2" extraInfo>
             <button
               tuiLink
               type="button"
@@ -199,6 +187,16 @@ import { UserInfoComponent } from '../../components/ui/user-info';
               <strong>{{ followingCount() }}</strong>
               {{ 'following' | translate | lowercase }}
             </button>
+            @if (equipperResource.value(); as equipper) {
+              <a
+                tuiLink
+                [tuiSkeleton]="loading"
+                [routerLink]="['/equipper', equipper.id]"
+              >
+                <strong>{{ equipper.routesCount }}</strong>
+                {{ 'equippedRoutes' | translate | lowercase }}
+              </a>
+            }
           </div>
 
           <div class="flex gap-2" actions>
@@ -438,17 +436,31 @@ export class UserProfileComponent {
     params: () => this.profile()?.id,
     loader: async ({ params: userId }) => {
       if (!userId || !isPlatformBrowser(this.platformId)) return null;
-      const { data, error } = await this.supabase.client
+      const { data: equipper, error } = await this.supabase.client
         .from('equippers')
         .select('id')
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (error) {
-        console.error('[UserProfile] equipperResource error', error);
+      if (error || !equipper) {
+        if (error) {
+          console.error('[UserProfile] equipperResource error', error);
+        }
         return null;
       }
-      return data;
+
+      // Query count of routes from route_equippers
+      const { count, error: countError } = await this.supabase.client
+        .from('route_equippers')
+        .select('*', { count: 'exact', head: true })
+        .eq('equipper_id', equipper.id);
+
+      if (countError) {
+        console.error('[UserProfile] equipper routes count error', countError);
+        return { id: equipper.id, routesCount: 0 };
+      }
+
+      return { id: equipper.id, routesCount: count ?? 0 };
     },
   });
 
