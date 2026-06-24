@@ -463,16 +463,29 @@ export class HomeComponent implements OnDestroy {
     if (!this.isBrowser) {
       return;
     }
+    const cacheKey = 'cached_followed_ids_v1';
     try {
       await this.supabase.whenReady();
       const ids = await this.followsService.getFollowedIds();
       this.followedIds.set(new Set(ids));
+      this.storage.setItem(cacheKey, JSON.stringify(ids));
       if (ids.length === 0) {
         this.feedFilter.set('all');
       }
     } catch (error: unknown) {
       console.error('Error loading followed ids:', error);
-      this.feedFilter.set('all');
+      // Offline fallback: try to restore from cache
+      try {
+        const cached = this.storage.getItem(cacheKey);
+        if (cached) {
+          const ids = JSON.parse(cached) as string[];
+          this.followedIds.set(new Set(ids));
+        } else {
+          this.feedFilter.set('all');
+        }
+      } catch {
+        this.feedFilter.set('all');
+      }
     } finally {
       this.followsLoaded.set(true);
     }
