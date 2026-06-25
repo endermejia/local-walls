@@ -91,9 +91,7 @@ export interface PyramidLevel {
     TuiSkeleton,
   ],
   template: `
-    <div
-      class="flex flex-col gap-6 p-6 rounded-2xl bg-(--tui-background-base) shadow-md border border-(--tui-border-normal)"
-    >
+    <div class="flex flex-col gap-6">
       <!-- Header with Year Selector -->
       <div class="flex items-center justify-between gap-4 flex-wrap">
         <h2 class="text-xl font-bold flex items-center gap-2">

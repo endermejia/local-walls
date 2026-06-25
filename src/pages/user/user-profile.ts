@@ -101,6 +101,7 @@ import { UserInfoComponent } from '../../components/ui/user-info';
           [startingClimbingYear]="profile()?.starting_climbing_year"
           [bio]="profile()?.bio"
           [avatarClickable]="true"
+          [hasActions]="!isOwnProfile()"
           (avatarClick)="showEnlargedPhoto()"
         >
           @if (
@@ -168,7 +169,7 @@ import { UserInfoComponent } from '../../components/ui/user-info';
             </ng-container>
           }
 
-          <div class="flex flex-wrap gap-4 mt-2" extraInfo>
+          <div class="flex flex-wrap gap-x-4 gap-y-2 mt-2" extraInfo>
             <button
               tuiLink
               type="button"

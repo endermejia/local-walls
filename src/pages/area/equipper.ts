@@ -53,7 +53,7 @@ import { UserInfoComponent } from '../../components/ui/user-info';
           [bio]="equipper?.description || profile?.bio"
           defaultIcon="@tui.hammer"
         >
-          <div class="flex flex-wrap gap-4 mt-2" extraInfo>
+          <div class="flex flex-wrap gap-x-4 gap-y-2 mt-2" extraInfo>
             @if (profile?.id; as id) {
               <a
                 tuiLink
