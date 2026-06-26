@@ -11,6 +11,7 @@ import {
   PLATFORM_ID,
   resource,
   signal,
+  untracked,
 } from '@angular/core';
 import {
   DecimalPipe,
@@ -506,7 +507,8 @@ export class RouteComponent {
       const res = this.global.routeAscentsResource.value();
       if (res) {
         const items = res.items.map((i) => ({ ...i, kind: 'ascent' as const }));
-        if (this.global.ascentsPage() === 0) {
+        const page = untracked(() => this.global.ascentsPage());
+        if (page === 0) {
           this.accumulatedAscents.set(items);
         } else {
           this.accumulatedAscents.update((prev) => [...prev, ...items]);

@@ -10,6 +10,7 @@ import {
   input,
   PLATFORM_ID,
   signal,
+  untracked,
 } from '@angular/core';
 
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -71,102 +72,113 @@ import { getAscentDateFilterOptions, processAscentsToFeed } from '../../utils';
     TuiSelect,
   ],
   template: `
-    @if (hasAscents() || query() || hasActiveFilters()) {
+    @if (
+      global.userTotalAscentsCountResource.isLoading() ||
+      hasAscents() ||
+      query() ||
+      hasActiveFilters()
+    ) {
       <div class="min-w-0">
-        <div class="flex flex-wrap items-center gap-2 mb-4">
-          <tui-textfield
-            class="grow min-w-48"
-            [tuiTextfieldCleaner]="true"
-            tuiTextfieldSize="l"
-          >
-            <label tuiLabel for="route-search">{{
-              'searchPlaceholder' | translate
-            }}</label>
-            <input
-              tuiInput
-              #routeSearch
-              id="route-search"
-              autocomplete="off"
-              [value]="query()"
-              (input.zoneless)="onQuery(routeSearch.value)"
-            />
-          </tui-textfield>
-
-          <tui-badged-content>
-            @if (hasActiveFilters()) {
-              <tui-badge-notification
-                tuiAppearance="accent"
-                size="s"
-                tuiSlot="top"
-              />
-            }
-            <button
-              tuiButton
-              appearance="textfield"
-              size="l"
-              type="button"
-              iconStart="@tui.sliders-horizontal"
-              [attr.aria-label]="'filters' | translate"
-              (click.zoneless)="openFilters()"
-            ></button>
-          </tui-badged-content>
-
-          <tui-textfield
-            class="flex-1 min-w-[calc(50%-0.25rem)] sm:w-48 sm:flex-none"
-            [tuiTextfieldCleaner]="false"
-            [stringify]="dateValueContent"
-            tuiTextfieldSize="l"
-          >
-            <label tuiLabel for="date-filter">
-              {{ 'filterByDate' | translate }}
-            </label>
-            <input
-              tuiSelect
-              id="date-filter"
-              [formControl]="dateFilterControl"
-              autocomplete="off"
-            />
-            <tui-data-list *tuiDropdown>
-              <tui-data-list-wrapper new [items]="dateFilterOptions()" />
-            </tui-data-list>
-          </tui-textfield>
-
-          <tui-textfield
-            class="flex-1 min-w-[calc(50%-0.25rem)] sm:w-48 sm:flex-none"
-            [tuiTextfieldCleaner]="false"
-            [stringify]="sortValueContent"
-            tuiTextfieldSize="l"
-          >
-            <label tuiLabel for="sort-filter">
-              {{ 'sortBy' | translate }}
-            </label>
-            <input
-              tuiSelect
-              id="sort-filter"
-              [formControl]="sortFilterControl"
-              autocomplete="off"
-            />
-            <tui-data-list *tuiDropdown>
-              <tui-data-list-wrapper new [items]="['grade', 'date']" />
-            </tui-data-list>
-          </tui-textfield>
-
-          @if (hasAscents()) {
-            <button
-              tuiButton
-              appearance="secondary"
-              iconStart="@tui.calendar"
-              class="w-full sm:w-auto sm:ml-auto"
-              (click)="openCalendar()"
+        @if (!global.userTotalAscentsCountResource.isLoading()) {
+          <div class="flex flex-wrap items-center gap-2 mb-4">
+            <tui-textfield
+              class="grow min-w-48"
+              [tuiTextfieldCleaner]="true"
+              tuiTextfieldSize="l"
             >
-              {{ 'statistics.openCalendar' | translate }}
-            </button>
-          }
-        </div>
+              <label tuiLabel for="route-search">{{
+                'searchPlaceholder' | translate
+              }}</label>
+              <input
+                tuiInput
+                #routeSearch
+                id="route-search"
+                autocomplete="off"
+                [value]="query()"
+                (input.zoneless)="onQuery(routeSearch.value)"
+              />
+            </tui-textfield>
+
+            <tui-badged-content>
+              @if (hasActiveFilters()) {
+                <tui-badge-notification
+                  tuiAppearance="accent"
+                  size="s"
+                  tuiSlot="top"
+                />
+              }
+              <button
+                tuiButton
+                appearance="textfield"
+                size="l"
+                type="button"
+                iconStart="@tui.sliders-horizontal"
+                [attr.aria-label]="'filters' | translate"
+                (click.zoneless)="openFilters()"
+              ></button>
+            </tui-badged-content>
+
+            <tui-textfield
+              class="flex-1 min-w-[calc(50%-0.25rem)] sm:w-48 sm:flex-none"
+              [tuiTextfieldCleaner]="false"
+              [stringify]="dateValueContent"
+              tuiTextfieldSize="l"
+            >
+              <label tuiLabel for="date-filter">
+                {{ 'filterByDate' | translate }}
+              </label>
+              <input
+                tuiSelect
+                id="date-filter"
+                [formControl]="dateFilterControl"
+                autocomplete="off"
+              />
+              <tui-data-list *tuiDropdown>
+                <tui-data-list-wrapper new [items]="dateFilterOptions()" />
+              </tui-data-list>
+            </tui-textfield>
+
+            <tui-textfield
+              class="flex-1 min-w-[calc(50%-0.25rem)] sm:w-48 sm:flex-none"
+              [tuiTextfieldCleaner]="false"
+              [stringify]="sortValueContent"
+              tuiTextfieldSize="l"
+            >
+              <label tuiLabel for="sort-filter">
+                {{ 'sortBy' | translate }}
+              </label>
+              <input
+                tuiSelect
+                id="sort-filter"
+                [formControl]="sortFilterControl"
+                autocomplete="off"
+              />
+              <tui-data-list *tuiDropdown>
+                <tui-data-list-wrapper new [items]="['grade', 'date']" />
+              </tui-data-list>
+            </tui-textfield>
+
+            @if (hasAscents()) {
+              <button
+                tuiButton
+                appearance="secondary"
+                iconStart="@tui.calendar"
+                class="w-full sm:w-auto sm:ml-auto"
+                (click)="openCalendar()"
+              >
+                {{ 'statistics.openCalendar' | translate }}
+              </button>
+            }
+          </div>
+        }
 
         <app-ascents-feed
           [ascents]="accumulatedAscents()"
-          [isLoading]="isLoading() || ascentsResource.isLoading()"
+          [isLoading]="
+            isLoading() ||
+            ascentsResource.isLoading() ||
+            global.userTotalAscentsCountResource.isLoading()
+          "
           [hasMore]="hasMore()"
           [showUser]="false"
           [followedIds]="followedIds()"
@@ -284,9 +296,10 @@ export class UserProfileAscentsComponent {
   readonly hasMore = computed(() => {
     return this.accumulatedAscents().length < this.totalAscents();
   });
-  readonly hasAscents = computed(
-    () => this.global.userTotalAscentsCountResource.value() !== 0,
-  );
+  readonly hasAscents = computed(() => {
+    const count = this.global.userTotalAscentsCountResource.value();
+    return count !== undefined && count !== 0;
+  });
 
   constructor() {
     effect(() => {
@@ -301,7 +314,8 @@ export class UserProfileAscentsComponent {
     effect(() => {
       const res = this.ascentsResource.value();
       if (res) {
-        if (this.global.ascentsPage() === 0) {
+        const page = untracked(() => this.global.ascentsPage());
+        if (page === 0) {
           const processed = processAscentsToFeed(res.items);
           this.accumulatedAscents.set(processed);
         } else {

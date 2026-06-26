@@ -90,6 +90,10 @@ export interface PyramidLevel {
     TuiSelect,
     TuiSkeleton,
   ],
+  host: {
+    class: 'block w-full',
+    '[class.hidden]': '!(isOwner() || hasData() || isLoading())',
+  },
   template: `
     <div class="flex flex-col gap-6">
       <!-- Header with Year Selector -->
@@ -218,6 +222,10 @@ export interface PyramidLevel {
       width: 100%;
     }
 
+    :host.hidden {
+      display: none !important;
+    }
+
     .pyramid-container {
       perspective: 1000px;
       width: 100%;
@@ -283,6 +291,15 @@ export interface PyramidLevel {
 export class PyramidComponent implements AfterViewInit {
   userId = input.required<string>();
   startingYear = input<number | null | undefined>(null);
+
+  readonly isOwner = computed(
+    () => this.userId() === this.supabase.authUserId(),
+  );
+
+  readonly hasData = computed(() => {
+    const data = this.slotsResource.value() || [];
+    return data.some((slot) => !!slot.route_id);
+  });
 
   private userProfilesService = inject(UserProfilesService);
   protected supabase = inject(SupabaseService);
@@ -501,10 +518,6 @@ export class PyramidComponent implements AfterViewInit {
     const prevLevelSlots =
       this.pyramidLevels().find((l) => l.level === level - 1)?.slots || [];
     return prevLevelSlots.some((s) => !!s.route_id);
-  }
-
-  isOwner(): boolean {
-    return this.userId() === this.supabase.authUserId();
   }
 
   protected readonly pyramidKind = computed(() => {

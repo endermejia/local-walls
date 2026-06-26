@@ -739,7 +739,8 @@ export class HomeComponent implements OnDestroy {
   }
 
   loadMore() {
-    if (this.isBrowser && !this.isLoading()) {
+    if (this.isBrowser && !this.isLoading() && this.hasMore()) {
+      this.isLoading.set(true);
       this.loadMore$.next();
     }
   }
