@@ -10,3 +10,4 @@ export * from './points-to-svg.pipe';
 export * from './shade-info.pipe';
 export * from './topo-image.pipe';
 export * from './topo-path.pipe';
+export * from './sanitize-html.pipe';

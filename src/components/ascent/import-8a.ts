@@ -51,6 +51,7 @@ import { NotificationService } from '../../services/notification.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 
+import { SanitizeHtmlPipe } from '../../pipes/sanitize-html.pipe';
 import { GradeComponent } from '../ui/avatar-grade';
 
 import { Json } from '../../models/supabase-generated';
@@ -128,6 +129,7 @@ interface ExistingUserAscentKey {
 @Component({
   selector: 'app-import-8a',
   imports: [
+    SanitizeHtmlPipe,
     AsyncPipe,
     DatePipe,
     FormsModule,
@@ -165,7 +167,7 @@ interface ExistingUserAscentKey {
           @if (index === 0) {
             <div class="grid gap-4">
               <div tuiNotification appearance="info" class="mt-4">
-                <div [innerHTML]="'import8a.csvInstructions' | translate"></div>
+                <div [innerHTML]="'import8a.csvInstructions' | translate | sanitizeHtml"></div>
               </div>
 
               <div class="mt-6">
