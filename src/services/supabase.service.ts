@@ -93,8 +93,8 @@ export class SupabaseService {
         if (cached) {
           try {
             return JSON.parse(cached) as UserProfileDto;
-          } catch {
-            console.error('[SupabaseService] Cache parse error');
+          } catch (e: unknown) {
+            console.error('[SupabaseService] Cache parse error', e);
           }
         }
         return null;
@@ -214,8 +214,11 @@ export class SupabaseService {
           if (isOffline || Date.now() < expiresAt) {
             return url;
           }
-        } catch {
-          // ignore
+        } catch (e: unknown) {
+          console.warn(
+            '[SupabaseService] Error parsing offline cache for topo URL',
+            e,
+          );
         }
       }
       return '';
@@ -227,8 +230,11 @@ export class SupabaseService {
         const u = new URL(finalUrl);
         u.searchParams.set('v', version.toString());
         finalUrl = u.toString();
-      } catch {
-        // ignore invalid URL
+      } catch (e: unknown) {
+        console.warn(
+          '[SupabaseService] Invalid topo URL when setting version',
+          e,
+        );
       }
     }
 
@@ -295,8 +301,11 @@ export class SupabaseService {
             const { url } = JSON.parse(cached);
             return url;
           }
-        } catch {
-          // ignore
+        } catch (e: unknown) {
+          console.warn(
+            '[SupabaseService] Error parsing offline cache for ascent URL',
+            e,
+          );
         }
       }
       return '';
@@ -321,8 +330,8 @@ export class SupabaseService {
     if (cached) {
       try {
         return JSON.parse(cached) as T;
-      } catch {
-        console.error('[SupabaseService] Cache parse error for key:', key);
+      } catch (e: unknown) {
+        console.error('[SupabaseService] Cache parse error for key:', key, e);
       }
     }
     return defaultValue;
