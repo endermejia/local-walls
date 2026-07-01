@@ -223,7 +223,7 @@
   "followingStatus": "Abonné",
   "free": "Libre",
   "fullscreen": "Plein écran",
-  "gdpr.fullPolicy": "Notre politique de confidentialité détaille comment nous collectons, utilisons et protégeons vos données personnelles.<br><br>En utilisant <strong>ClimBeast</strong>, vous acceptez le stockage des cookies techniques nécessaires au fonctionnement de l'application, ainsi que le traitement de vos données de profil pour vous offrir une expérience personnalisée dans la gestion de vos zones et ascensions d'escalade.<br><br>Nous ne partageons pas vos données avec des tiers à des fins publicitaires. Vous pouvez retirer votre consentement à tout moment en supprimant votre compte depuis les réglages du profil.",
+  "gdpr.fullPolicy": "Notre politique de confidentialité détaille comment nous collectons, utilisons et protégeons vos données personnelles.\n\nEn utilisant ClimBeast, vous acceptez le stockage des cookies techniques nécessaires au fonctionnement de l'application, ainsi que le traitement de vos données de profil pour vous offrir une expérience personnalisée dans la gestion de vos zones et ascensions d'escalade.\n\nNous ne partageons pas vos données avec des tiers à des fins publicitaires. Vous pouvez retirer votre consentement à tout moment en supprimant votre compte depuis les réglages du profil.",
   "gdpr.message": "Pour continuer à utiliser notre application, vous devez accepter notre politique de confidentialité et l'utilisation de cookies pour améliorer votre expérience.",
   "gdpr.readMore": "Lire la politique de confidentialité",
   "gdpr.title": "Confidentialité",

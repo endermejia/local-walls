@@ -223,7 +223,7 @@
   "followingStatus": "Jarraitzen",
   "free": "Doan",
   "fullscreen": "Pantaila osoa",
-  "gdpr.fullPolicy": "Gure pribatutasun-politikak zehatz-mehatz azaltzen du nola biltzen, erabiltzen eta babesten ditugun zure datu pertsonalak.<br><br><strong>ClimBeast</strong> erabiltzean, onartzen duzu aplikazioaren funtzionamendurako beharrezkoak diren cookie teknikoak gordetzea, baita zure profil-datuak tratatzea ere, zure eskalada-eremuen eta igoeren kudeaketan esperientzia pertsonalizatua eskaintzeko.<br><br>Ez ditugu zure datuak hirugarrenekin partekatzen helburu publizitarioetarako. Zure adostasuna edozein unetan kendu dezakezu profileko ezarpenetatik kontua ezabatuz.",
+  "gdpr.fullPolicy": "Gure pribatutasun-politikak zehatz-mehatz azaltzen du nola biltzen, erabiltzen eta babesten ditugun zure datu pertsonalak.\n\nClimBeast erabiltzean, onartzen duzu aplikazioaren funtzionamendurako beharrezkoak diren cookie teknikoak gordetzea, baita zure profil-datuak tratatzea ere, zure eskalada-eremuen eta igoeren kudeaketan esperientzia pertsonalizatua eskaintzeko.\n\nEz ditugu zure datuak hirugarrenekin partekatzen helburu publizitarioetarako. Zure adostasuna edozein unetan kendu dezakezu profileko ezarpenetatik kontua ezabatuz.",
   "gdpr.message": "Gure aplikazioa erabiltzen jarraitzeko, gure pribatutasun-politika eta cookie-en erabilera onartu behar dituzu.",
   "gdpr.readMore": "Irakurri pribatutasun-politika",
   "gdpr.title": "Pribatutasuna",

@@ -223,7 +223,7 @@
   "followingStatus": "Following",
   "free": "Free",
   "fullscreen": "Fullscreen",
-  "gdpr.fullPolicy": "Our privacy policy details how we collect, use, and protect your personal data.<br><br>By using <strong>ClimBeast</strong>, you agree to the storage of technical cookies necessary for the application's operation, as well as the processing of your profile data to offer you a personalized experience in managing your climbing areas and ascents.<br><br>We do not share your data with third parties for advertising purposes. You can withdraw your consent at any time by deleting your account from the profile settings.",
+  "gdpr.fullPolicy": "Our privacy policy details how we collect, use, and protect your personal data.\n\nBy using ClimBeast, you agree to the storage of technical cookies necessary for the application's operation, as well as the processing of your profile data to offer you a personalized experience in managing your climbing areas and ascents.\n\nWe do not share your data with third parties for advertising purposes. You can withdraw your consent at any time by deleting your account from the profile settings.",
   "gdpr.message": "To continue using our application, you must accept our privacy policy and the use of cookies to improve your experience.",
   "gdpr.readMore": "View privacy policy",
   "gdpr.title": "Privacy Policy",
