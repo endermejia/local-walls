@@ -461,10 +461,6 @@ export class SupabaseService {
       return;
     }
     try {
-      // Use local scope to clear client-side session without hitting the global logout endpoint.
-      // Supabase global sign-out (`scope: 'global'`) may return 403 in some environments
-      // (e.g., missing/expired tokens or restricted cookies during SSR/Edge). Local is enough
-      // for this SPA to clear the current device session.
       const { error } = await this._client.auth.signOut({
         scope: 'local' as const,
       });
