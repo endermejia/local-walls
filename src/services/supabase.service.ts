@@ -362,7 +362,7 @@ export class SupabaseService {
             // dataGroups (supabase-api / supabase-storage).
             const controller = new AbortController();
             // Use shorter timeout when offline so the request fails quickly
-            // if the NGSW has no cached response. When online, allow up to
+            // when the NGSW has no cached response. When online, allow up to
             // 8 seconds for slow connections.
             const isOffline =
               typeof navigator !== 'undefined' && !navigator.onLine;
