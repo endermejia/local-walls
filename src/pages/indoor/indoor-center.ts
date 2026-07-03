@@ -20,7 +20,7 @@ import {
   TuiScrollbar,
 } from '@taiga-ui/core';
 import { TuiAvatar, TuiTabs } from '@taiga-ui/kit';
-import { TuiPagination } from '@taiga-ui/kit';
+
 import {
   CustomCarouselComponent,
   CarouselItem,
@@ -50,7 +50,6 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
     TuiScrollbar,
     TuiTabs,
     TuiCarousel,
-    TuiPagination,
     RouterLink,
     SectionHeaderComponent,
     IndoorVouchersComponent,
