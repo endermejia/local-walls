@@ -50,6 +50,9 @@ export interface MapIndoorCenterItem {
   country?: string;
   avatar_url?: string;
   is_indoor: true;
+  grades?: AmountByEveryGrade;
+  routes_count?: number;
+  topos?: { id: string; name: string }[];
 }
 
 export type MapItem = MapCragItem | MapAreaItem | MapIndoorCenterItem;

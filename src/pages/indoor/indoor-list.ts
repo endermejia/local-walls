@@ -24,7 +24,6 @@ import { IndoorService } from '../../services/indoor.service';
 import { GlobalData } from '../../services/global-data';
 import { IndoorCenterCardComponent } from '../../components/indoor/indoor-center-card';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
-import { IconSrcPipe } from '../../pipes/icon-src.pipe';
 import { matchesQuery } from '../../utils';
 
 @Component({
@@ -33,7 +32,6 @@ import { matchesQuery } from '../../utils';
   imports: [
     IndoorCenterCardComponent,
     EmptyStateComponent,
-    IconSrcPipe,
     LowerCasePipe,
     TranslatePipe,
     TuiAppearance,
@@ -54,7 +52,7 @@ import { matchesQuery } from '../../utils';
             @let count = filtered().length;
             <h1 class="text-2xl font-bold w-full sm:w-auto">
               <span
-                [tuiAvatar]="'indoor' | iconSrc"
+                tuiAvatar="@tui.dumbbell"
                 tuiThumbnail
                 size="l"
                 class="self-center"

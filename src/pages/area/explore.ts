@@ -48,6 +48,7 @@ import { ParkingCardComponent } from '../../components/location/parking-card';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
 import { MapComponent } from '../../components/location/map';
 import { TourHintComponent } from '../../components/ui/tour-hint';
+import { IndoorCenterCardComponent } from '../../components/indoor/indoor-center-card';
 
 import {
   ClimbingKinds,
@@ -89,6 +90,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
     TuiLoader,
     TuiScrollbar,
     TuiTitle,
+    IndoorCenterCardComponent,
   ],
   template: ` @let isMobile = global.isMobile();
     <div class="h-full w-full flex min-h-0">
@@ -150,7 +152,9 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
         }
 
         @let hasMapResults =
-          mapAreaItems().length > 0 || mapCragItems().length > 0;
+          mapAreaItems().length > 0 ||
+          mapCragItems().length > 0 ||
+          mapIndoorItems().length > 0;
         @let hasSelection =
           !!global.selectedMapCragItem() || !!global.selectedMapParkingItem();
 
@@ -173,7 +177,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           [style.transform]="'translate(-50%, -' + _sheetScrollTop() + 'px)'"
         >
           <div class="flex gap-2">
-            @if (global.indoorFeature()) {
+            @if (global.indoorFeature() && global.areaListShowIndoor()) {
               <button
                 tuiButton
                 size="m"
@@ -184,17 +188,19 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
                 {{ 'indoor.button' | translate }}
               </button>
             }
-            <button
-              tuiButton
-              size="m"
-              appearance="primary-grayscale"
-              iconStart="@tui.mountain"
-              routerLink="/area"
-              [tuiDropdown]="tourHint"
-              [tuiDropdownManual]="isExploreAreasTourStep"
-            >
-              {{ 'outdoor.button' | translate }}
-            </button>
+            @if (global.areaListShowOutdoor()) {
+              <button
+                tuiButton
+                size="m"
+                appearance="primary-grayscale"
+                iconStart="@tui.mountain"
+                routerLink="/area"
+                [tuiDropdown]="tourHint"
+                [tuiDropdownManual]="isExploreAreasTourStep"
+              >
+                {{ 'outdoor.button' | translate }}
+              </button>
+            }
           </div>
         </div>
 
@@ -234,7 +240,11 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           <app-map
             class="w-full h-full"
             [mapCragItems]="mapCragItems()"
-            [mapAreaItems]="global.areasMapResource.value() || []"
+            [mapAreaItems]="
+              global.areaListShowOutdoor()
+                ? global.areasMapResource.value() || []
+                : []
+            "
             [mapIndoorItems]="mapIndoorItems()"
             [selectedMapCragItem]="global.selectedMapCragItem()"
             (selectedMapCragItemChange)="selectMapCragItem($event)"
@@ -327,7 +337,10 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
             >
               <tui-loader size="xxl" />
             </div>
-          } @else if (isMobile && (areas.length || crags.length)) {
+          } @else if (
+            isMobile &&
+            (areas.length || crags.length || mapIndoorItems().length)
+          ) {
             <tui-bottom-sheet
               #sheet
               [stops]="stops"
@@ -348,7 +361,11 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           class="flex flex-col shrink-0 h-full w-80 sm:w-96 border-l border-(--tui-border-normal)"
         >
           <tui-scrollbar class="h-full bg-(--tui-background-base)">
-            @if (mapCragItems().length || mapAreaItems().length) {
+            @if (
+              mapCragItems().length ||
+              mapAreaItems().length ||
+              mapIndoorItems().length
+            ) {
               <ng-container *ngTemplateOutlet="listContent" />
             } @else {
               <app-empty-state icon="@tui.map-pin" />
@@ -366,8 +383,49 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
       </ng-template>
 
       <ng-template #listContent>
+        @let indoorCenters = mapIndoorItems();
+        @if (indoorCenters.length) {
+          <h3
+            tuiHeader
+            id="indoor-centers-title"
+            class="justify-center sm:pt-4"
+          >
+            <div class="flex flex-row align-items-center justify-center gap-2">
+              <span
+                tuiAvatar="@tui.dumbbell"
+                tuiThumbnail
+                size="l"
+                class="self-center"
+                [attr.aria-label]="'indoor.title' | translate"
+              ></span>
+              <span tuiTitle class="justify-center">
+                {{ indoorCenters.length }}
+                {{
+                  (indoorCenters.length === 1
+                    ? 'indoor.singular'
+                    : 'indoor.title'
+                  )
+                    | translate
+                    | lowercase
+                }}
+              </span>
+            </div>
+          </h3>
+          <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-10">
+            <div class="grid gap-2">
+              @for (c of indoorCenters; track c.id) {
+                <app-indoor-center-card [item]="$any(c)" />
+              }
+            </div>
+          </section>
+        }
         @if (areas.length) {
-          <h3 tuiHeader id="areas-title" class="justify-center sm:pt-4">
+          <h3
+            tuiHeader
+            id="areas-title"
+            class="justify-center"
+            [class.sm:pt-4]="!indoorCenters.length"
+          >
             <div class="flex flex-row align-items-center justify-center gap-2">
               <span
                 [tuiAvatar]="'zone' | iconSrc"
@@ -462,6 +520,7 @@ export class ExploreComponent {
   protected readonly _sheetScrollTop: WritableSignal<number> = signal(0);
 
   protected mapCragItems: Signal<MapCragItem[]> = computed(() => {
+    if (!this.global.areaListShowOutdoor()) return [];
     const items = this.global.mapItemsOnViewport();
     const categories = this.global.areaListCategories();
     const [selMin, selMax] = this.global.areaListGradeRange();
@@ -496,6 +555,7 @@ export class ExploreComponent {
   });
 
   protected mapAreaItems: Signal<MapAreaItem[]> = computed(() => {
+    if (!this.global.areaListShowOutdoor()) return [];
     const items = this.global.mapItemsOnViewport();
     const categories = this.global.areaListCategories();
     const [selMin, selMax] = this.global.areaListGradeRange();
@@ -536,6 +596,7 @@ export class ExploreComponent {
       .sort((a, b) => (a.liked === b.liked ? 0 : a.liked ? -1 : 1));
   });
   protected mapIndoorItems: Signal<MapIndoorCenterItem[]> = computed(() => {
+    if (!this.global.areaListShowIndoor()) return [];
     const items = this.global.mapItemsOnViewport();
     return items.filter((item): item is MapIndoorCenterItem => {
       return (item as MapIndoorCenterItem).is_indoor === true;
@@ -549,8 +610,9 @@ export class ExploreComponent {
     if (loading) return false;
     const cragsCount = this.mapCragItems().length;
     const areasCount = this.mapAreaItems().length;
+    const indoorCount = this.mapIndoorItems().length;
     return (
-      (areasCount > 0 || cragsCount > 0) &&
+      (areasCount > 0 || cragsCount > 0 || indoorCount > 0) &&
       !this.global.selectedMapCragItem() &&
       !this.global.selectedMapParkingItem()
     );
@@ -744,7 +806,7 @@ export class ExploreComponent {
   }
 
   protected openFilters(): void {
-    this.filtersService.openFilters();
+    this.filtersService.openFilters({ showIndoorOutdoor: true });
     this.closeAll();
   }
 }

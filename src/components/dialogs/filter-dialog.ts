@@ -40,10 +40,13 @@ export interface FilterDialog {
     | 'shade_all_day'
     | 'sun_all_day'
   )[];
+  indoor?: boolean;
+  outdoor?: boolean;
   // Optional flags to control visibility from the caller
   showCategories?: boolean;
   showShade?: boolean;
   showGradeRange?: boolean;
+  showIndoorOutdoor?: boolean;
 }
 
 @Component({
@@ -60,8 +63,18 @@ export interface FilterDialog {
   ],
   template: `
     <form tuiForm [formGroup]="form">
-      @if (showCategories) {
+      @if (showIndoorOutdoor) {
         <section>
+          <tui-filter
+            formControlName="indoorOutdoor"
+            size="l"
+            [items]="indoorOutdoorItems()"
+          />
+        </section>
+      }
+
+      @if (showCategories) {
+        <section class="tui-space_top-3">
           <tui-filter
             formControlName="filters"
             size="l"
@@ -146,6 +159,10 @@ export class FilterDialogComponent {
     return this.context.data?.showGradeRange ?? true;
   }
 
+  protected get showIndoorOutdoor(): boolean {
+    return this.context.data?.showIndoorOutdoor ?? false;
+  }
+
   // Items for TuiFilter (types) as signals
   readonly climbingKindItems: Signal<string[]> = computed(() => {
     // read to establish dependency
@@ -168,10 +185,19 @@ export class FilterDialogComponent {
     ];
   });
 
+  readonly indoorOutdoorItems: Signal<string[]> = computed(() => {
+    this._i18nTick();
+    return [
+      this.translate.instant('indoor.button'),
+      this.translate.instant('outdoor.button'),
+    ];
+  });
+
   // Reactive form for types (and shade placeholder)
   protected readonly form = new FormGroup({
     filters: new FormControl<string[]>([]),
     shade: new FormControl<string[]>([]),
+    indoorOutdoor: new FormControl<string[]>([]),
     gradeRange: new FormControl<[number, number]>([0, 0], {
       nonNullable: true,
     }),
@@ -236,6 +262,14 @@ export class FilterDialogComponent {
       if (Array.isArray(d.gradeRange) && d.gradeRange.length === 2) {
         const sanitized = this.sanitizeRange(d.gradeRange as [number, number]);
         this.form.patchValue({ gradeRange: sanitized });
+      }
+
+      if (d.showIndoorOutdoor) {
+        const ioNow = this.indoorOutdoorItems();
+        const selectedIO: string[] = [];
+        if (d.indoor !== false) selectedIO.push(ioNow[0]);
+        if (d.outdoor !== false) selectedIO.push(ioNow[1]);
+        this.form.patchValue({ indoorOutdoor: selectedIO });
       }
     }
 
@@ -323,6 +357,11 @@ export class FilterDialogComponent {
         )
         .filter((v): v is Exclude<typeof v, undefined> => !!v);
 
+    const selectedIO = this.form.value.indoorOutdoor ?? [];
+    const ioNow = this.indoorOutdoorItems();
+    const indoor = selectedIO.includes(ioNow[0]);
+    const outdoor = selectedIO.includes(ioNow[1]);
+
     const rawGradeRange = this.sanitizeRange(
       (this.form.value.gradeRange as [number, number]) ?? [
         this.minIndex,
@@ -339,24 +378,32 @@ export class FilterDialogComponent {
           : rawGradeRange[1],
       ],
       selectedShade,
+      indoor,
+      outdoor,
       showCategories: this.context.data?.showCategories,
       showShade: this.context.data?.showShade,
       showGradeRange: this.context.data?.showGradeRange,
+      showIndoorOutdoor: this.context.data?.showIndoorOutdoor,
     };
     this.context.completeWith(payload);
   }
 
   protected clear(): void {
+    const ioNow = this.indoorOutdoorItems();
     this.form.reset({
       gradeRange: [this.minIndex, this.maxIndex],
+      indoorOutdoor: [ioNow[0], ioNow[1]],
     });
     this.context.completeWith({
       categories: [],
       gradeRange: [this.minIndex, ORDERED_GRADE_VALUES.length - 1],
       selectedShade: [],
+      indoor: true,
+      outdoor: true,
       showCategories: this.context.data?.showCategories,
       showShade: this.context.data?.showShade,
       showGradeRange: this.context.data?.showGradeRange,
+      showIndoorOutdoor: this.context.data?.showIndoorOutdoor,
     });
   }
 }

@@ -18,8 +18,8 @@ export const ClimbingKinds = {
 } as const;
 
 export const CLIMBING_ICONS: Record<ClimbingKind, string> = {
-  sport: '@tui.mountain',
-  boulder: '@tui.mountain',
+  sport: '/image/sport.svg',
+  boulder: '/image/boulder.svg',
   trad: '@tui.mountain',
   multipitch: '@tui.mountain',
   mixed: '@tui.mountain',

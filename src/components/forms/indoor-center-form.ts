@@ -25,8 +25,10 @@ import {
   TuiInput,
   TuiTextfield,
   TuiNumberFormat,
+  TuiCheckbox,
+  TuiAppearance,
 } from '@taiga-ui/core';
-import { TuiTextarea, TuiInputNumber, TuiFiles } from '@taiga-ui/kit';
+import { TuiTextarea, TuiInputNumber, TuiFiles, TuiTabs } from '@taiga-ui/kit';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -44,7 +46,7 @@ import {
   NewPhoto,
   reorderGallery,
 } from '../../utils';
-import { IndoorCenterDto } from '../../models';
+import { IndoorCenterDto, IndoorSchedule } from '../../models';
 import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
 import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
 
@@ -67,185 +69,402 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
     TuiFiles,
     TuiIcon,
     TuiLoader,
+    TuiTabs,
+    TuiCheckbox,
+    TuiAppearance,
     CdkDrag,
     CdkDropList,
   ],
   template: `
-    <form class="grid gap-4" (submit.zoneless)="onSubmit($event)">
-      <tui-textfield class="block">
-        <label tuiLabel for="center-name">{{ 'name' | translate }}</label>
-        <input
-          tuiInput
-          id="center-name"
-          [formField]="centerForm.name"
-          type="text"
-          autocomplete="off"
-        />
-      </tui-textfield>
-      @if (centerForm.name().invalid() && centerForm.name().touched()) {
-        <tui-error [error]="'errors.required' | translate" />
-      }
+    @if (isEdit()) {
+      <tui-tabs [(activeItemIndex)]="activeTabIndex" class="mb-4">
+        <button tuiTab>{{ 'details' | translate }}</button>
+        <button tuiTab>{{ 'indoor.schedule' | translate }}</button>
+        <button tuiTab>{{ 'indoor.vouchers' | translate }}</button>
+      </tui-tabs>
+    }
 
-      <tui-textfield class="block">
-        <label tuiLabel for="center-city">{{ 'city' | translate }}</label>
-        <input
-          tuiInput
-          id="center-city"
-          [formField]="centerForm.city"
-          type="text"
-          autocomplete="off"
-        />
-      </tui-textfield>
+    <form class="flex flex-col grow" (submit.zoneless)="onSubmit($event)">
+      <div class="grow min-h-[400px]">
+        @switch (activeTabIndex()) {
+          @case (0) {
+            <div class="grid gap-4">
+              <tui-textfield class="block">
+                <label tuiLabel for="center-name">{{
+                  'name' | translate
+                }}</label>
+                <input
+                  tuiInput
+                  id="center-name"
+                  [formField]="centerForm.name"
+                  type="text"
+                  autocomplete="off"
+                />
+              </tui-textfield>
+              @if (centerForm.name().invalid() && centerForm.name().touched()) {
+                <tui-error [error]="'errors.required' | translate" />
+              }
 
-      <tui-textfield class="block">
-        <label tuiLabel for="center-desc">{{
-          'description' | translate
-        }}</label>
-        <textarea
-          tuiTextarea
-          id="center-desc"
-          [formField]="$any(centerForm.description)"
-          class="h-32"
-        ></textarea>
-      </tui-textfield>
+              <tui-textfield class="block">
+                <label tuiLabel for="center-city">{{
+                  'city' | translate
+                }}</label>
+                <input
+                  tuiInput
+                  id="center-city"
+                  [formField]="centerForm.city"
+                  type="text"
+                  autocomplete="off"
+                />
+              </tui-textfield>
 
-      <div class="flex flex-wrap items-center gap-4">
-        <h3 class="font-bold text-lg">{{ 'location' | translate }}</h3>
-        <button
-          tuiButton
-          appearance="secondary-grayscale"
-          size="s"
-          type="button"
-          iconStart="@tui.map-pin"
-          (click.zoneless)="pickLocation()"
-        >
-          {{ 'pickOnMap' | translate }}
-        </button>
-      </div>
+              <tui-textfield class="block">
+                <label tuiLabel for="center-desc">{{
+                  'description' | translate
+                }}</label>
+                <textarea
+                  tuiTextarea
+                  id="center-desc"
+                  [formField]="$any(centerForm.description)"
+                  class="h-32"
+                ></textarea>
+              </tui-textfield>
 
-      <div class="grid grid-cols-2 gap-4">
-        <tui-textfield [tuiTextfieldCleaner]="false">
-          <label tuiLabel for="lat">{{ 'lat' | translate }}</label>
-          <input
-            tuiInputNumber
-            id="lat"
-            [ngModel]="model().latitude"
-            (ngModelChange)="onLatChange($event)"
-            name="latitude"
-            [tuiNumberFormat]="{ precision: 6 }"
-            (paste)="onPasteLocation($event)"
-            (change.zoneless)="sanitizeCoordinates()"
-            autocomplete="off"
-          />
-        </tui-textfield>
-        <tui-textfield [tuiTextfieldCleaner]="false">
-          <label tuiLabel for="lng">{{ 'lng' | translate }}</label>
-          <input
-            tuiInputNumber
-            id="lng"
-            [tuiNumberFormat]="{ precision: 6 }"
-            [ngModel]="model().longitude"
-            (ngModelChange)="onLngChange($event)"
-            name="longitude"
-            (change.zoneless)="sanitizeCoordinates()"
-            autocomplete="off"
-          />
-        </tui-textfield>
-      </div>
+              <div class="flex flex-wrap items-center gap-4">
+                <h3 class="font-bold text-lg">{{ 'location' | translate }}</h3>
+                <button
+                  tuiButton
+                  appearance="secondary-grayscale"
+                  size="s"
+                  type="button"
+                  iconStart="@tui.map-pin"
+                  (click.zoneless)="pickLocation()"
+                >
+                  {{ 'pickOnMap' | translate }}
+                </button>
+              </div>
 
-      <!-- Gallery -->
-      <div class="flex flex-col gap-3">
-        <div class="flex items-center justify-between px-1">
-          <h3 class="font-bold text-lg">
-            {{ 'merchandising.items.gallery' | translate }}
-          </h3>
-          <label tuiInputFiles>
-            <input
-              accept="image/*"
-              type="file"
-              tuiInputFiles
-              multiple
-              [ngModel]="null"
-              [ngModelOptions]="{ standalone: true }"
-              (change)="onFilesChange($event)"
-            />
-            <button
-              tuiButton
-              type="button"
-              appearance="secondary-grayscale"
-              size="s"
-              iconStart="@tui.plus"
-            >
-              {{ 'merchandising.items.addImage' | translate }}
-            </button>
-          </label>
-        </div>
+              <div class="grid grid-cols-2 gap-4">
+                <tui-textfield [tuiTextfieldCleaner]="false">
+                  <label tuiLabel for="lat">{{ 'lat' | translate }}</label>
+                  <input
+                    tuiInputNumber
+                    id="lat"
+                    [ngModel]="model().latitude"
+                    (ngModelChange)="onLatChange($event)"
+                    name="latitude"
+                    [tuiNumberFormat]="{ precision: 6 }"
+                    (paste)="onPasteLocation($event)"
+                    (change.zoneless)="sanitizeCoordinates()"
+                    autocomplete="off"
+                  />
+                </tui-textfield>
+                <tui-textfield [tuiTextfieldCleaner]="false">
+                  <label tuiLabel for="lng">{{ 'lng' | translate }}</label>
+                  <input
+                    tuiInputNumber
+                    id="lng"
+                    [tuiNumberFormat]="{ precision: 6 }"
+                    [ngModel]="model().longitude"
+                    (ngModelChange)="onLngChange($event)"
+                    name="longitude"
+                    (change.zoneless)="sanitizeCoordinates()"
+                    autocomplete="off"
+                  />
+                </tui-textfield>
+              </div>
 
-        <div
-          class="grid grid-cols-2 sm:grid-cols-4 gap-3"
-          cdkDropList
-          cdkDropListOrientation="mixed"
-          (cdkDropListDropped)="dropImage($event)"
-        >
-          @for (img of model().gallery_urls; track img) {
-            <div
-              cdkDrag
-              class="relative aspect-square rounded-xl overflow-hidden border border-(--tui-border-normal) group cursor-grab active:cursor-grabbing"
-            >
-              <img
-                [src]="supabase.getPublicUrl('indoor-assets', img)"
-                class="w-full h-full object-cover"
-                alt="Gallery image"
-              />
-              <div
-                class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <div class="bg-(--tui-background-base) rounded-xl p-0.5">
-                  <button
-                    tuiButton
-                    type="button"
-                    appearance="destructive"
-                    size="s"
-                    (click)="removeExistingImage(img)"
-                  >
-                    <tui-icon icon="@tui.trash" />
-                  </button>
+              <!-- Gallery -->
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center justify-between px-1">
+                  <h3 class="font-bold text-lg">
+                    {{ 'merchandising.items.gallery' | translate }}
+                  </h3>
+                  <label tuiInputFiles>
+                    <input
+                      accept="image/*"
+                      type="file"
+                      tuiInputFiles
+                      multiple
+                      [ngModel]="null"
+                      [ngModelOptions]="{ standalone: true }"
+                      (change)="onFilesChange($event)"
+                    />
+                    <button
+                      tuiButton
+                      type="button"
+                      appearance="secondary-grayscale"
+                      size="s"
+                      iconStart="@tui.plus"
+                    >
+                      {{ 'merchandising.items.addImage' | translate }}
+                    </button>
+                  </label>
+                </div>
+
+                <div
+                  class="grid grid-cols-2 sm:grid-cols-4 gap-3"
+                  cdkDropList
+                  cdkDropListOrientation="mixed"
+                  (cdkDropListDropped)="dropImage($event)"
+                >
+                  @for (img of model().gallery_urls; track img) {
+                    <div
+                      cdkDrag
+                      class="relative aspect-square rounded-xl overflow-hidden border border-(--tui-border-normal) group cursor-grab active:cursor-grabbing"
+                    >
+                      <img
+                        [src]="supabase.getPublicUrl('indoor-assets', img)"
+                        class="w-full h-full object-cover"
+                        alt="Gallery image"
+                      />
+                      <div
+                        class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <div
+                          class="bg-(--tui-background-base) rounded-xl p-0.5"
+                        >
+                          <button
+                            tuiButton
+                            type="button"
+                            appearance="destructive"
+                            size="s"
+                            (click)="removeExistingImage(img)"
+                          >
+                            <tui-icon icon="@tui.trash" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  }
+
+                  @for (item of newPhotos(); track item.id) {
+                    <div
+                      cdkDrag
+                      class="relative aspect-square rounded-xl overflow-hidden border border-accent border-dashed group cursor-grab active:cursor-grabbing"
+                    >
+                      <img
+                        [src]="item.preview"
+                        class="w-full h-full object-cover"
+                        alt="New photo"
+                      />
+                      <div
+                        class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <div
+                          class="bg-(--tui-background-base) rounded-xl p-0.5"
+                        >
+                          <button
+                            tuiButton
+                            type="button"
+                            appearance="destructive"
+                            size="s"
+                            (click)="removeNewPhoto(item.id)"
+                          >
+                            <tui-icon icon="@tui.trash" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  }
                 </div>
               </div>
             </div>
           }
 
-          @for (item of newPhotos(); track item.id) {
-            <div
-              cdkDrag
-              class="relative aspect-square rounded-xl overflow-hidden border border-accent border-dashed group cursor-grab active:cursor-grabbing"
-            >
-              <img
-                [src]="item.preview"
-                class="w-full h-full object-cover"
-                alt="New photo"
-              />
-              <div
-                class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <div class="bg-(--tui-background-base) rounded-xl p-0.5">
-                  <button
-                    tuiButton
-                    type="button"
-                    appearance="destructive"
-                    size="s"
-                    (click)="removeNewPhoto(item.id)"
-                  >
-                    <tui-icon icon="@tui.trash" />
-                  </button>
+          @case (1) {
+            <div class="flex flex-col gap-4">
+              @for (d of scheduleDays(); track d.day) {
+                <div
+                  class="flex flex-wrap items-center gap-4 p-3 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-(--tui-border-normal)"
+                >
+                  <span class="font-bold w-24 capitalize">{{
+                    d.day | translate
+                  }}</span>
+
+                  <label class="flex items-center gap-2">
+                    <input
+                      tuiCheckbox
+                      type="checkbox"
+                      [ngModel]="d.closed"
+                      (ngModelChange)="onClosedChange(d.day, $event)"
+                      [ngModelOptions]="{ standalone: true }"
+                    />
+                    <span>{{ 'indoor.closed' | translate }}</span>
+                  </label>
+
+                  @if (!d.closed) {
+                    <div class="flex items-center gap-2">
+                      <tui-textfield tuiTextfieldSize="s" class="w-36">
+                        <input
+                          tuiInput
+                          type="time"
+                          [ngModel]="d.open"
+                          (ngModelChange)="onTimeChange(d.day, 'open', $event)"
+                          [ngModelOptions]="{ standalone: true }"
+                        />
+                      </tui-textfield>
+                      <span>-</span>
+                      <tui-textfield tuiTextfieldSize="s" class="w-36">
+                        <input
+                          tuiInput
+                          type="time"
+                          [ngModel]="d.close"
+                          (ngModelChange)="onTimeChange(d.day, 'close', $event)"
+                          [ngModelOptions]="{ standalone: true }"
+                        />
+                      </tui-textfield>
+                    </div>
+
+                    <label class="flex items-center gap-2 ml-4">
+                      <input
+                        tuiCheckbox
+                        type="checkbox"
+                        [ngModel]="d.hasSplit"
+                        (ngModelChange)="onSplitChange(d.day, $event)"
+                        [ngModelOptions]="{ standalone: true }"
+                      />
+                      <span>Jornada partida</span>
+                    </label>
+
+                    @if (d.hasSplit) {
+                      <div class="flex items-center gap-2">
+                        <tui-textfield tuiTextfieldSize="s" class="w-36">
+                          <input
+                            tuiInput
+                            type="time"
+                            [ngModel]="d.open2"
+                            (ngModelChange)="
+                              onTimeChange(d.day, 'open2', $event)
+                            "
+                            [ngModelOptions]="{ standalone: true }"
+                          />
+                        </tui-textfield>
+                        <span>-</span>
+                        <tui-textfield tuiTextfieldSize="s" class="w-36">
+                          <input
+                            tuiInput
+                            type="time"
+                            [ngModel]="d.close2"
+                            (ngModelChange)="
+                              onTimeChange(d.day, 'close2', $event)
+                            "
+                            [ngModelOptions]="{ standalone: true }"
+                          />
+                        </tui-textfield>
+                      </div>
+                    }
+                  }
                 </div>
-              </div>
+              }
             </div>
           }
-        </div>
+
+          @case (2) {
+            <div class="flex flex-col gap-6 max-w-2xl">
+              <!-- Compact single-row Create Voucher Form -->
+              <div
+                class="flex flex-col sm:flex-row gap-3 items-end p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-850"
+              >
+                <tui-textfield class="grow min-w-0">
+                  <label tuiLabel for="new-v-name">{{
+                    'name' | translate
+                  }}</label>
+                  <input
+                    tuiInput
+                    id="new-v-name"
+                    [(ngModel)]="newVoucherName"
+                    name="newVoucherName"
+                    autocomplete="off"
+                    placeholder="Ej. Pase diario, Bono de 10"
+                  />
+                </tui-textfield>
+                <tui-textfield
+                  class="w-full sm:w-44 shrink-0"
+                  tuiTextfieldSuffix="€"
+                >
+                  <label tuiLabel for="new-v-price">{{
+                    'price' | translate
+                  }}</label>
+                  <input
+                    tuiInputNumber
+                    id="new-v-price"
+                    [(ngModel)]="newVoucherPrice"
+                    name="newVoucherPrice"
+                    [tuiNumberFormat]="{ precision: 2 }"
+                    autocomplete="off"
+                    placeholder="0.00"
+                  />
+                </tui-textfield>
+                <button
+                  tuiButton
+                  type="button"
+                  appearance="primary"
+                  class="w-full sm:w-auto shrink-0 font-bold"
+                  [disabled]="!newVoucherName"
+                  (click.zoneless)="addLocalVoucher()"
+                >
+                  <tui-icon icon="@tui.plus" />
+                  {{ 'add' | translate }}
+                </button>
+              </div>
+
+              <!-- Sleek Vouchers List -->
+              @if (activeLocalVouchers().length > 0) {
+                <div class="flex flex-col gap-2">
+                  @for (v of activeLocalVouchers(); track $index) {
+                    <div
+                      class="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-850 shadow-sm hover:border-neutral-200 dark:hover:border-neutral-800 transition-colors"
+                    >
+                      <div class="flex items-center gap-3">
+                        <div
+                          class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"
+                        >
+                          <tui-icon icon="@tui.ticket" class="text-lg" />
+                        </div>
+                        <div class="flex flex-col">
+                          <span
+                            class="font-bold text-base text-neutral-800 dark:text-neutral-200"
+                            >{{ v.name }}</span
+                          >
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-4">
+                        <span
+                          class="text-base font-extrabold text-neutral-900 dark:text-neutral-100 bg-neutral-50 dark:bg-neutral-900 px-3 py-1.5 rounded-xl border border-neutral-100 dark:border-neutral-850"
+                        >
+                          {{ v.price | currency: 'EUR' }}
+                        </span>
+                        <button
+                          tuiIconButton
+                          appearance="flat-grayscale"
+                          size="s"
+                          iconStart="@tui.trash"
+                          class="rounded-full! text-red-550 hover:bg-red-50 dark:hover:bg-red-950/20"
+                          [attr.aria-label]="'delete' | translate"
+                          (click.zoneless)="deleteLocalVoucher(v)"
+                        ></button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div
+                  class="p-10 text-center opacity-50 border border-dashed border-neutral-200 dark:border-neutral-800 rounded-2xl"
+                >
+                  {{ 'empty' | translate }}
+                </div>
+              }
+            </div>
+          }
+        }
       </div>
 
-      <div class="flex flex-wrap gap-2 justify-end mt-4">
+      <!-- Unified Footer Action Buttons -->
+      <div
+        class="flex flex-wrap gap-2 justify-end mt-6 pt-4 border-t border-(--tui-border-normal)"
+      >
         <button
           tuiButton
           appearance="secondary"
@@ -306,6 +525,9 @@ export class IndoorCenterFormComponent {
     () => !!this.effectiveCenterData()?.id,
   );
 
+  protected readonly activeTabIndex = signal(0);
+  protected readonly centerId = computed(() => this.effectiveCenterData()?.id);
+
   readonly isSaving = signal(false);
   readonly isUploading = signal(false);
   protected readonly newPhotos = signal<NewPhoto[]>([]);
@@ -336,6 +558,47 @@ export class IndoorCenterFormComponent {
 
   private editingId: string | null = null;
 
+  protected readonly weekDays = [
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday',
+  ];
+  protected readonly scheduleForm = signal<
+    Record<
+      string,
+      {
+        closed: boolean;
+        open: string;
+        close: string;
+        hasSplit: boolean;
+        open2: string;
+        close2: string;
+      }
+    >
+  >({});
+
+  protected readonly scheduleDays = computed(() => {
+    const formVal = this.scheduleForm();
+    return this.weekDays.map((day) => ({
+      day,
+      ...formVal[day],
+    }));
+  });
+
+  // Local Vouchers configuration
+  protected readonly localVouchers = signal<
+    { id?: string; name: string; price: number; is_deleted?: boolean }[]
+  >([]);
+  protected readonly activeLocalVouchers = computed(() =>
+    this.localVouchers().filter((v) => !v.is_deleted),
+  );
+  protected newVoucherName = '';
+  protected newVoucherPrice: number | null = null;
+
   constructor() {
     effect(() => {
       const data = this.effectiveCenterData();
@@ -351,6 +614,50 @@ export class IndoorCenterFormComponent {
         longitude: data.longitude ?? null,
         gallery_urls: data.gallery_urls || [],
       }));
+
+      // Initialize Schedule
+      const schedule = (data.schedule as unknown as IndoorSchedule) || {
+        normal: {},
+      };
+      const defaultSchedule = this.weekDays.reduce(
+        (acc, day) => {
+          const s = schedule.normal?.[day] || {
+            closed: true,
+            open: '09:00',
+            close: '21:00',
+          };
+          acc[day] = {
+            closed: !!s.closed,
+            open: s.open || '09:00',
+            close: s.close || '21:00',
+            hasSplit: !!(s.open2 && s.close2),
+            open2: s.open2 || '16:00',
+            close2: s.close2 || '21:00',
+          };
+          return acc;
+        },
+        {} as Record<string, any>,
+      );
+      this.scheduleForm.set(defaultSchedule);
+    });
+
+    // Fetch existing vouchers on edit
+    effect(async () => {
+      const id = this.centerId();
+      if (!id) {
+        this.localVouchers.set([]);
+        return;
+      }
+      try {
+        const list = await this.indoor.getCenterVouchers(id);
+        untracked(() => {
+          this.localVouchers.set(
+            list.map((v) => ({ id: v.id, name: v.name, price: v.price })),
+          );
+        });
+      } catch (e) {
+        console.error('[IndoorCenterFormComponent] Error loading vouchers:', e);
+      }
     });
 
     // Auto-slug generation
@@ -374,14 +681,70 @@ export class IndoorCenterFormComponent {
     });
   }
 
-  async onFilesChange(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    if (!input.files || input.files.length === 0) return;
+  protected addLocalVoucher(): void {
+    if (!this.newVoucherName) return;
+    const name = this.newVoucherName;
+    const price = Number(this.newVoucherPrice) || 0;
+    this.localVouchers.update((list) => [...list, { name, price }]);
+    this.newVoucherName = '';
+    this.newVoucherPrice = null;
+  }
 
-    const fileArray = Array.from(input.files);
-    // Reset the input value so the change event triggers even for the same file
-    // and to clear the internal state of the input
-    input.value = '';
+  protected deleteLocalVoucher(v: {
+    id?: string;
+    name: string;
+    price: number;
+  }): void {
+    this.localVouchers.update((list) => {
+      return list.map((item) => {
+        if (item === v || (v.id && item.id === v.id)) {
+          return { ...item, is_deleted: true };
+        }
+        return item;
+      });
+    });
+  }
+
+  protected onClosedChange(day: string, closed: boolean): void {
+    this.scheduleForm.update((sf) => ({
+      ...sf,
+      [day]: {
+        ...sf[day],
+        closed,
+      },
+    }));
+  }
+
+  protected onSplitChange(day: string, hasSplit: boolean): void {
+    this.scheduleForm.update((sf) => ({
+      ...sf,
+      [day]: {
+        ...sf[day],
+        hasSplit,
+      },
+    }));
+  }
+
+  protected onTimeChange(
+    day: string,
+    field: 'open' | 'close' | 'open2' | 'close2',
+    value: string,
+  ): void {
+    this.scheduleForm.update((sf) => ({
+      ...sf,
+      [day]: {
+        ...sf[day],
+        [field]: value,
+      },
+    }));
+  }
+
+  async onFilesChange(event: Event): Promise<void> {
+    const inputVal = event.target as HTMLInputElement;
+    if (!inputVal.files || inputVal.files.length === 0) return;
+
+    const fileArray = Array.from(inputVal.files);
+    inputVal.value = '';
 
     for (const file of fileArray) {
       await this.editPhoto(file);
@@ -397,9 +760,6 @@ export class IndoorCenterFormComponent {
 
     if (!data.file && !data.imageUrl) return;
 
-    console.log(
-      '[IndoorCenterFormComponent] Opening ImageEditorDialogComponent',
-    );
     const result = await firstValueFrom(
       this.dialogs.open<File | null>(
         new PolymorpheusComponent(ImageEditorDialogComponent),
@@ -413,21 +773,12 @@ export class IndoorCenterFormComponent {
       { defaultValue: null },
     );
 
-    console.log(
-      '[IndoorCenterFormComponent] ImageEditorDialogComponent result:',
-      result,
-    );
-
     if (result) {
       const preview = await fileToDataUrl(result);
       this.newPhotos.update((photos) => [
         ...photos,
         createNewPhoto(result, preview),
       ]);
-      console.log(
-        '[IndoorCenterFormComponent] Added new photo. Total new photos:',
-        this.newPhotos().length,
-      );
     }
   }
 
@@ -459,43 +810,95 @@ export class IndoorCenterFormComponent {
     submit(this.centerForm, async () => {
       this.isSaving.set(true);
       try {
-        const model = this.model();
+        const modelVal = this.model();
         const newPhotoUrls: string[] = [];
 
+        // 1. Save new photos if any
         if (this.newPhotos().length > 0) {
           this.isUploading.set(true);
-          const centerId = this.editingId;
-          if (!centerId)
+          const centerIdVal = this.editingId;
+          if (!centerIdVal)
             throw new Error('Cannot upload photos without a center ID');
 
           for (const item of this.newPhotos()) {
-            const path = await this.indoor.uploadAsset(centerId, item.file);
+            const path = await this.indoor.uploadAsset(centerIdVal, item.file);
             if (path) {
               newPhotoUrls.push(path);
             }
           }
         }
 
+        // 2. Prepare Center Details and Schedule payload
+        const normalSchedule: Record<string, any> = {};
+        const sf = this.scheduleForm();
+        for (const day of this.weekDays) {
+          const d = sf[day];
+          normalSchedule[day] = {
+            closed: d.closed,
+            open: d.closed ? null : d.open,
+            close: d.closed ? null : d.close,
+            open2: !d.closed && d.hasSplit ? d.open2 : null,
+            close2: !d.closed && d.hasSplit ? d.close2 : null,
+          };
+        }
+        const schedulePayload = { normal: normalSchedule };
+
         const payload: Omit<IndoorCenterDto, 'id' | 'created_at'> = {
-          name: model.name,
-          slug: model.slug,
-          city: model.city || null,
-          description: model.description || null,
+          name: modelVal.name,
+          slug: modelVal.slug,
+          city: modelVal.city || null,
+          description: modelVal.description || null,
           avatar_url: this.effectiveCenterData()?.avatar_url ?? null,
-          latitude: model.latitude,
-          longitude: model.longitude,
+          latitude: modelVal.latitude,
+          longitude: modelVal.longitude,
           contact_info: this.effectiveCenterData()?.contact_info ?? null,
           country: this.effectiveCenterData()?.country ?? null,
-          gallery_urls: [...model.gallery_urls, ...newPhotoUrls],
-          schedule: this.effectiveCenterData()?.schedule ?? null,
+          gallery_urls: [...modelVal.gallery_urls, ...newPhotoUrls],
+          schedule: schedulePayload as any,
           location: this.effectiveCenterData()?.location ?? null,
         };
 
+        // 3. Save center and retrieve center ID
+        let savedCenterId = this.editingId;
         if (this.isEdit()) {
           if (this.editingId == null) return;
           await this.indoor.updateCenter(this.editingId, payload);
         } else {
-          await this.indoor.createCenter(payload);
+          const newCenter = await this.indoor.createCenter(payload);
+          if (!newCenter) throw new Error('Failed to create center');
+          savedCenterId = newCenter.id;
+        }
+
+        if (!savedCenterId) {
+          throw new Error('Failed to get center ID after save');
+        }
+
+        // 4. Save/Sync Vouchers in database
+        const vouchersToSync = this.localVouchers();
+        for (const v of vouchersToSync) {
+          if (v.is_deleted) {
+            if (v.id) {
+              await this.indoor.deleteVoucher(v.id);
+            }
+          } else if (v.id) {
+            await this.indoor.updateVoucher(v.id, {
+              center_id: savedCenterId,
+              name: v.name,
+              price: v.price,
+              duration_days: 0,
+              sessions_count: null,
+              active: true,
+            });
+          } else {
+            await this.indoor.createVoucher({
+              center_id: savedCenterId,
+              name: v.name,
+              price: v.price,
+              duration_days: 0,
+              sessions_count: null,
+              active: true,
+            });
+          }
         }
 
         this.toast.success(
@@ -527,14 +930,6 @@ export class IndoorCenterFormComponent {
     }
   }
 
-  onLatChange(value: number | null): void {
-    this.model.update((m) => ({ ...m, latitude: value }));
-  }
-
-  onLngChange(value: number | null): void {
-    this.model.update((m) => ({ ...m, longitude: value }));
-  }
-
   async pickLocation(): Promise<void> {
     const result = await import('rxjs').then((m) =>
       m.firstValueFrom(
@@ -551,6 +946,14 @@ export class IndoorCenterFormComponent {
         longitude: result.lng,
       }));
     }
+  }
+
+  onLatChange(value: number | null): void {
+    this.model.update((m) => ({ ...m, latitude: value }));
+  }
+
+  onLngChange(value: number | null): void {
+    this.model.update((m) => ({ ...m, longitude: value }));
   }
 
   onPasteLocation(event: ClipboardEvent): void {

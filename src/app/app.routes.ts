@@ -144,13 +144,6 @@ export const routes: Routes = [
             (m) => m.IndoorCenterComponent,
           ),
       },
-      {
-        path: ':slug/admin',
-        loadComponent: () =>
-          import('../pages/indoor/indoor-admin').then(
-            (m) => m.IndoorAdminComponent,
-          ),
-      },
     ],
   },
   // Admin and Equipper routes

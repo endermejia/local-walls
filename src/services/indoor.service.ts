@@ -7,6 +7,8 @@ import { firstValueFrom } from 'rxjs';
 import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { IndoorCenterFormComponent } from '../components/forms/indoor-center-form';
+import IndoorRouteFormComponent from '../components/forms/indoor-route-form';
+import IndoorTopoFormComponent from '../components/forms/indoor-topo-form';
 import {
   IndoorCenterDto,
   IndoorVoucherDto,
@@ -46,9 +48,11 @@ export class IndoorService {
     }
   }
 
-  openIndoorCenterForm(data?: { centerData?: Partial<IndoorCenterDto> }): void {
+  openIndoorCenterForm(data?: {
+    centerData?: Partial<IndoorCenterDto>;
+  }): Promise<boolean> {
     const isEdit = !!data?.centerData?.id;
-    void firstValueFrom(
+    return firstValueFrom(
       this.dialogs.open<string | boolean | null>(
         new PolymorpheusComponent(IndoorCenterFormComponent),
         {
@@ -64,7 +68,9 @@ export class IndoorService {
     ).then((result) => {
       if (result) {
         this.global.indoorCentersResource.reload();
+        return true;
       }
+      return false;
     });
   }
 
@@ -236,5 +242,152 @@ export class IndoorService {
 
     if (error) throw error;
     return data.path;
+  }
+
+  // Indoor Routes management
+  async createRoute(
+    payload: Omit<IndoorRouteDto, 'id' | 'created_at'>,
+  ): Promise<IndoorRouteDto | null> {
+    const { data, error } = await this.supabase.client
+      .from('indoor_routes')
+      .insert(payload)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    return data as IndoorRouteDto;
+  }
+
+  async updateRoute(
+    id: string,
+    updates: Partial<IndoorRouteDto>,
+  ): Promise<boolean> {
+    const { error } = await this.supabase.client
+      .from('indoor_routes')
+      .update(updates)
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  }
+
+  async deleteRoute(id: string): Promise<boolean> {
+    const { error } = await this.supabase.client
+      .from('indoor_routes')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  }
+
+  // Indoor Topos management
+  async createTopo(
+    payload: Omit<IndoorTopoDto, 'id' | 'created_at'>,
+  ): Promise<IndoorTopoDto | null> {
+    const { data, error } = await this.supabase.client
+      .from('indoor_topos')
+      .insert(payload)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    return data as IndoorTopoDto;
+  }
+
+  async updateTopo(
+    id: string,
+    updates: Partial<IndoorTopoDto>,
+  ): Promise<boolean> {
+    const { error } = await this.supabase.client
+      .from('indoor_topos')
+      .update(updates)
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  }
+
+  async deleteTopo(id: string): Promise<boolean> {
+    const { error } = await this.supabase.client
+      .from('indoor_topos')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  }
+
+  openIndoorRouteForm(
+    centerId: string,
+    routeData?: IndoorRouteDto,
+  ): Promise<boolean> {
+    return firstValueFrom(
+      this.dialogs.open<boolean>(
+        new PolymorpheusComponent(IndoorRouteFormComponent),
+        {
+          label: this.translate.instant(routeData ? 'edit' : 'create'),
+          size: 'm',
+          data: { centerId, routeData },
+          dismissible: false,
+        },
+      ),
+      { defaultValue: false },
+    );
+  }
+
+  openIndoorTopoForm(
+    centerId: string,
+    topoData?: IndoorTopoDto,
+  ): Promise<boolean> {
+    return firstValueFrom(
+      this.dialogs.open<boolean>(
+        new PolymorpheusComponent(IndoorTopoFormComponent),
+        {
+          label: this.translate.instant(topoData ? 'edit' : 'create'),
+          size: 'm',
+          data: { centerId, topoData },
+          dismissible: false,
+        },
+      ),
+      { defaultValue: false },
+    );
+  }
+
+  // Indoor Vouchers management
+  async createVoucher(
+    payload: Omit<IndoorVoucherDto, 'id' | 'created_at'>,
+  ): Promise<IndoorVoucherDto | null> {
+    const { data, error } = await this.supabase.client
+      .from('indoor_vouchers')
+      .insert(payload)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    return data as IndoorVoucherDto;
+  }
+
+  async updateVoucher(
+    id: string,
+    updates: Partial<IndoorVoucherDto>,
+  ): Promise<boolean> {
+    const { error } = await this.supabase.client
+      .from('indoor_vouchers')
+      .update(updates)
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  }
+
+  async deleteVoucher(id: string): Promise<boolean> {
+    const { error } = await this.supabase.client
+      .from('indoor_vouchers')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
   }
 }

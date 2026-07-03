@@ -29,15 +29,19 @@ export class FiltersService {
       showShade?: boolean;
       showCategories?: boolean;
       showGradeRange?: boolean;
+      showIndoorOutdoor?: boolean;
     } = {},
   ): void {
     const data: FilterDialog = {
       categories: this.global.areaListCategories(),
       gradeRange: this.global.areaListGradeRange(),
       selectedShade: this.global.areaListShade(),
+      indoor: this.global.areaListShowIndoor(),
+      outdoor: this.global.areaListShowOutdoor(),
       showCategories: options.showCategories ?? true,
       showShade: options.showShade ?? true,
       showGradeRange: options.showGradeRange ?? true,
+      showIndoorOutdoor: options.showIndoorOutdoor ?? false,
     };
 
     void firstValueFrom(
@@ -63,6 +67,13 @@ export class FiltersService {
 
       this.global.areaListCategories.set(result.categories ?? []);
       this.global.areaListShade.set(result.selectedShade ?? []);
+
+      if (result.indoor !== undefined) {
+        this.global.areaListShowIndoor.set(result.indoor);
+      }
+      if (result.outdoor !== undefined) {
+        this.global.areaListShowOutdoor.set(result.outdoor);
+      }
     });
   }
 }

@@ -7,9 +7,12 @@ import {
   resource,
   signal,
   computed,
+  effect,
+  OnDestroy,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { FormsModule } from '@angular/forms';
 
 import {
   TuiAppearance,
@@ -18,8 +21,20 @@ import {
   TuiIcon,
   TuiLoader,
   TuiScrollbar,
+  TuiTextfield,
 } from '@taiga-ui/core';
-import { TuiAvatar, TuiTabs } from '@taiga-ui/kit';
+import {
+  TuiAvatar,
+  TuiTabs,
+  TuiComboBox,
+  TuiDataListWrapper,
+  TuiChevron,
+} from '@taiga-ui/kit';
+import { AvatarUrlPipe } from '../../pipes/avatar-url.pipe';
+import { UserProfilesService } from '../../services/user-profiles.service';
+import { ToastService } from '../../services/toast.service';
+import { UserProfileBasicDto } from '../../models';
+import { mapLocationUrl } from '../../utils';
 
 import {
   CustomCarouselComponent,
@@ -41,6 +56,7 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     TranslateModule,
     TuiAppearance,
     TuiAvatar,
@@ -50,6 +66,10 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
     TuiScrollbar,
     TuiTabs,
     TuiCarousel,
+    TuiTextfield,
+    TuiComboBox,
+    TuiDataListWrapper,
+    TuiChevron,
     RouterLink,
     SectionHeaderComponent,
     IndoorVouchersComponent,
@@ -57,6 +77,7 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
     IndoorToposComponent,
     AnyToSchedulePipe,
     CustomCarouselComponent,
+    AvatarUrlPipe,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -64,6 +85,14 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
         @if (center(); as c) {
           <div class="mb-6">
             <app-section-header [title]="c.name" [liked]="false">
+              <span
+                titleInfo
+                class="flex items-center gap-1 text-sm font-normal text-(--tui-text-secondary) mt-1.5 select-none"
+              >
+                <tui-icon icon="@tui.map-pin" />
+                <span>{{ c.city }}</span>
+              </span>
+
               <div actionButtons class="flex gap-2">
                 @if (canEdit()) {
                   <button
@@ -77,18 +106,6 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
                   >
                     {{ 'edit' | translate }}
                   </button>
-                }
-                @if (isAdmin()) {
-                  <a
-                    tuiButton
-                    size="s"
-                    appearance="neutral"
-                    iconStart="@tui.settings"
-                    class="rounded-full!"
-                    [routerLink]="['/indoor', c.slug, 'admin']"
-                  >
-                    {{ 'admin.title' | translate }}
-                  </a>
                 }
               </div>
             </app-section-header>
@@ -122,14 +139,40 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
 
               <div class="flex flex-col gap-2">
                 <p class="text-lg">{{ c.description }}</p>
-                <div
-                  class="flex items-center gap-2 text-(--tui-text-secondary)"
-                >
-                  <tui-icon icon="@tui.map-pin" />
-                  <span
-                    >{{ c.city }}{{ c.country ? ', ' + c.country : '' }}</span
-                  >
-                </div>
+
+                @if (c.latitude && c.longitude) {
+                  <div class="flex flex-row flex-wrap gap-2 mt-2">
+                    <button
+                      tuiButton
+                      appearance="flat"
+                      size="m"
+                      type="button"
+                      (click.zoneless)="viewOnMap(c.latitude, c.longitude)"
+                      [iconStart]="'@tui.map-pin'"
+                    >
+                      {{ 'viewOnMap' | translate }}
+                    </button>
+                    <button
+                      appearance="flat"
+                      size="m"
+                      tuiButton
+                      type="button"
+                      [iconStart]="'/image/google-maps.svg'"
+                      class="[--tui-icon-size:1.25rem]"
+                      (click.zoneless)="
+                        openExternal(
+                          mapLocationUrl({
+                            latitude: c.latitude,
+                            longitude: c.longitude,
+                          })
+                        )
+                      "
+                      [attr.aria-label]="'openGoogleMaps' | translate"
+                    >
+                      {{ 'openGoogleMaps' | translate }}
+                    </button>
+                  </div>
+                }
               </div>
             </div>
 
@@ -158,14 +201,24 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
                     ];
                     track day
                   ) {
-                    <div class="flex justify-between">
+                    <div
+                      class="flex justify-between p-1 rounded-lg transition-all"
+                      [class.bg-primary/10]="day === currentDay"
+                      [class.font-bold]="day === currentDay"
+                      [class.text-primary]="day === currentDay"
+                    >
                       <span class="capitalize">{{ day | translate }}</span>
                       @let s = schedule.normal[day];
                       <span>{{
                         s?.closed
                           ? ('indoor.closed' | translate)
                           : s?.open && s?.close
-                            ? s.open + ' - ' + s.close
+                            ? s.open +
+                              ' - ' +
+                              s.close +
+                              (s.open2 && s.close2
+                                ? ' / ' + s.open2 + ' - ' + s.close2
+                                : '')
                             : '-'
                       }}</span>
                     </div>
@@ -181,6 +234,88 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
               </div>
             </div>
           </div>
+
+          <!-- Admins Section -->
+          @let admins = centerAdmins();
+          @if (admins.length > 0 || (isAdmin() && global.editingMode())) {
+            <div class="flex flex-col gap-3 mb-8 mt-6">
+              <span
+                class="text-xs uppercase opacity-60 font-semibold tracking-wider"
+              >
+                {{ 'admins' | translate }}
+              </span>
+              <div class="flex flex-wrap gap-4 items-center">
+                @for (admin of admins; track admin.user_id) {
+                  <div
+                    class="flex items-center gap-2 bg-(--tui-background-neutral-1) py-1 pr-3 rounded-full border border-(--tui-border-normal) group transition-all hover:bg-(--tui-background-neutral-1-hover) no-underline text-inherit"
+                    [class.pl-1]="admin.user.avatar"
+                    [class.pl-3]="!admin.user.avatar"
+                  >
+                    <a
+                      [routerLink]="['/profile', admin.user_id]"
+                      class="flex items-center gap-2 no-underline text-inherit cursor-pointer"
+                    >
+                      @if (admin.user.avatar) {
+                        <span tuiAvatar size="s">
+                          <img
+                            [src]="admin.user.avatar | avatarUrl"
+                            [alt]="admin.user.name"
+                          />
+                        </span>
+                      }
+                      <span class="text-sm font-medium">{{
+                        admin.user.name
+                      }}</span>
+                    </a>
+                    @if (isAdmin() && global.editingMode()) {
+                      <button
+                        tuiIconButton
+                        appearance="flat"
+                        size="xs"
+                        type="button"
+                        iconStart="@tui.x"
+                        [attr.aria-label]="'delete' | translate"
+                        class="opacity-0 group-hover:opacity-50 hover:opacity-100! transition-opacity -mr-1"
+                        (click.zoneless)="removeAdmin(admin.user_id || '')"
+                      ></button>
+                    }
+                  </div>
+                }
+
+                @if (isAdmin() && global.editingMode()) {
+                  <div class="w-64">
+                    <tui-textfield
+                      appearance="floating"
+                      size="s"
+                      tuiChevron
+                      [tuiTextfieldCleaner]="true"
+                      [stringify]="stringifyUser"
+                      class="rounded-full!"
+                    >
+                      <label tuiLabel for="admin-search-input">{{
+                        'addUser' | translate
+                      }}</label>
+                      <input
+                        id="admin-search-input"
+                        tuiComboBox
+                        [placeholder]="'searchPlaceholder' | translate"
+                        (ngModelChange)="onAdminSelected($event)"
+                        [ngModel]="null"
+                        (input.zoneless)="
+                          userSearchQuery.set(adminSearchInput.value)
+                        "
+                        #adminSearchInput
+                      />
+                      <tui-data-list-wrapper
+                        *tuiDropdown
+                        [items]="foundUsers()"
+                      />
+                    </tui-textfield>
+                  </div>
+                }
+              </div>
+            </div>
+          }
 
           <tui-tabs [(activeItemIndex)]="activeTabIndex" class="mt-8">
             <button tuiTab>{{ 'indoor.routes' | translate }}</button>
@@ -223,13 +358,15 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex grow min-h-0' },
 })
-export class IndoorCenterComponent {
+export class IndoorCenterComponent implements OnDestroy {
   slug = input.required<string>();
 
   protected readonly global = inject(GlobalData);
   protected readonly indoor = inject(IndoorService);
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
+  protected readonly userProfiles = inject(UserProfilesService);
+  private readonly toast = inject(ToastService);
 
   protected readonly activeTabIndex = signal(0);
   protected readonly galleryIndex = signal(0);
@@ -262,11 +399,171 @@ export class IndoorCenterComponent {
     return this.global.indoorAdminPermissions()[center.id];
   });
 
-  protected openEditCenter(): void {
+  protected async openEditCenter(): Promise<void> {
     const center = this.center();
     if (!center) return;
-    this.indoor.openIndoorCenterForm({
+    const success = await this.indoor.openIndoorCenterForm({
       centerData: center,
     });
+    if (success) {
+      this.centerResource.reload();
+    }
   }
+
+  protected readonly userSearchQuery = signal('');
+
+  protected readonly centerAdminsResource = resource({
+    params: () => this.center()?.id,
+    loader: async ({ params: centerId }) => {
+      if (!centerId) return [];
+      await this.supabase.whenReady();
+
+      const { data: mappings, error: mappingError } = await this.supabase.client
+        .from('indoor_center_admins')
+        .select('user_id')
+        .eq('center_id', centerId);
+
+      if (mappingError || !mappings?.length) {
+        if (mappingError) {
+          console.error(
+            '[IndoorCenterComponent] Error fetching center admin mappings:',
+            mappingError,
+          );
+        }
+        return [];
+      }
+
+      const userIds = mappings
+        .map((m) => m.user_id)
+        .filter((id): id is string => !!id);
+      const { data: profiles, error: profilesError } =
+        await this.supabase.client
+          .from('user_profiles')
+          .select('id, name, avatar')
+          .in('id', userIds);
+
+      if (profilesError) {
+        console.error(
+          '[IndoorCenterComponent] Error fetching admin profiles:',
+          profilesError,
+        );
+        return [];
+      }
+
+      return mappings.map((m) => ({
+        user_id: m.user_id,
+        user: profiles.find((p) => p.id === m.user_id) || {
+          id: m.user_id || '',
+          name: 'Unknown',
+          avatar: null,
+        },
+      }));
+    },
+  });
+
+  protected readonly centerAdmins = computed(
+    () => this.centerAdminsResource.value() ?? [],
+  );
+
+  protected readonly foundUsersResource = resource({
+    params: () => this.userSearchQuery().trim(),
+    loader: async ({ params: query }) => {
+      if (query.length < 2) return [];
+      return await this.userProfiles.searchUsers(query);
+    },
+  });
+
+  protected readonly foundUsers = computed(
+    () => this.foundUsersResource.value() ?? [],
+  );
+
+  protected readonly stringifyUser = (u: UserProfileBasicDto) => u.name || '';
+
+  constructor() {
+    effect(() => {
+      const c = this.center();
+      this.global.selectedIndoorCenter.set(c);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.global.selectedIndoorCenter.set(null);
+  }
+
+  async addAdmin(user: UserProfileBasicDto): Promise<void> {
+    const centerId = this.center()?.id;
+    if (!centerId) return;
+
+    const { error } = await this.supabase.client
+      .from('indoor_center_admins')
+      .insert({ center_id: centerId, user_id: user.id });
+
+    if (error) {
+      if (error.code === '23505') {
+        this.toast.info('adminRequests.alreadyRequested');
+      } else {
+        console.error('[IndoorCenterComponent] Error adding admin:', error);
+        this.toast.error('errors.unexpected');
+      }
+      return;
+    }
+
+    this.toast.success('messages.toasts.adminAdded');
+    this.centerAdminsResource.reload();
+    this.userSearchQuery.set('');
+  }
+
+  async removeAdmin(userId: string): Promise<void> {
+    const centerId = this.center()?.id;
+    if (!centerId) return;
+
+    const { error } = await this.supabase.client
+      .from('indoor_center_admins')
+      .delete()
+      .eq('center_id', centerId)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('[IndoorCenterComponent] Error removing admin:', error);
+      this.toast.error('errors.unexpected');
+      return;
+    }
+
+    this.toast.success('messages.toasts.adminRemoved');
+    this.centerAdminsResource.reload();
+  }
+
+  protected onAdminSelected(user: UserProfileBasicDto | null): void {
+    if (user) {
+      this.addAdmin(user);
+    }
+  }
+
+  protected readonly mapLocationUrl = mapLocationUrl;
+
+  async viewOnMap(lat: number, lng: number): Promise<void> {
+    this.global.areaListShowIndoor.set(true);
+    this.global.mapBounds.set({
+      south_west_latitude: lat - 0.005,
+      south_west_longitude: lng - 0.005,
+      north_east_latitude: lat + 0.005,
+      north_east_longitude: lng + 0.005,
+    });
+    void this.router.navigateByUrl('/explore');
+  }
+
+  openExternal(url?: string): void {
+    if (!url) return;
+    window.open(url, '_blank');
+  }
+
+  protected readonly currentDay = [
+    'sunday',
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+  ][new Date().getDay()];
 }

@@ -149,6 +149,17 @@ export class GlobalData {
   // ---- Breadcrumbs ----
   breadcrumbs: Signal<BreadcrumbItem[]> = computed<BreadcrumbItem[]>(() => {
     this.i18nTick();
+    const indoorCenter = this.selectedIndoorCenter();
+    if (indoorCenter) {
+      return [
+        { caption: 'indoor.title', routerLink: ['/indoor'] },
+        {
+          caption: indoorCenter.name,
+          routerLink: ['/indoor', indoorCenter.slug],
+        },
+      ];
+    }
+
     const items: BreadcrumbItem[] = [
       { caption: 'areas', routerLink: ['/area'] },
     ];
@@ -464,27 +475,49 @@ export class GlobalData {
         const { data: sbIndoor, error: indoorError } =
           await this.supabase.client
             .from('indoor_centers')
-            .select('*')
+            .select(
+              `
+              id, name, slug, latitude, longitude, city, country, avatar_url,
+              routes:indoor_routes(grade, climbing_kind, legacy),
+              topos:indoor_topos(id, name)
+            `,
+            )
             .gte('latitude', bounds.south_west_latitude)
             .lte('latitude', bounds.north_east_latitude)
             .gte('longitude', bounds.south_west_longitude)
             .lte('longitude', bounds.north_east_longitude);
 
         if (!indoorError && sbIndoor) {
-          indoorItems = sbIndoor.map(
-            (c) =>
-              ({
-                id: c.id,
-                name: c.name,
-                slug: c.slug,
-                latitude: Number(c.latitude) || 0,
-                longitude: Number(c.longitude) || 0,
-                city: c.city || '',
-                country: c.country || '',
-                avatar_url: c.avatar_url || '',
-                is_indoor: true,
-              }) as MapIndoorCenterItem,
-          );
+          indoorItems = sbIndoor.map((c: any) => {
+            const grades: Record<number, number> = {};
+            let activeRoutesCount = 0;
+            (c.routes || []).forEach((r: any) => {
+              if (!r.legacy) {
+                activeRoutesCount++;
+                if (r.grade != null) {
+                  grades[r.grade] = (grades[r.grade] || 0) + 1;
+                }
+              }
+            });
+
+            return {
+              id: c.id,
+              name: c.name,
+              slug: c.slug,
+              latitude: Number(c.latitude) || 0,
+              longitude: Number(c.longitude) || 0,
+              city: c.city || '',
+              country: c.country || '',
+              avatar_url: c.avatar_url || '',
+              is_indoor: true,
+              grades,
+              routes_count: activeRoutesCount,
+              topos: (c.topos || []).map((t: any) => ({
+                id: t.id,
+                name: t.name,
+              })),
+            } as MapIndoorCenterItem;
+          });
         }
       }
 
@@ -668,6 +701,8 @@ export class GlobalData {
   private readonly areaListGradeRangeKey = 'area_list_grade_range_v1';
   private readonly areaListCategoriesKey = 'area_list_categories_v1';
   private readonly areaListShadeKey = 'area_list_shade_v1';
+  private readonly areaListShowIndoorKey = 'area_list_show_indoor_v1';
+  private readonly areaListShowOutdoorKey = 'area_list_show_outdoor_v1';
 
   areaListGradeRange: WritableSignal<[number, number]> = signal([
     0,
@@ -677,6 +712,9 @@ export class GlobalData {
   areaListShade: WritableSignal<
     ('shade_morning' | 'shade_afternoon' | 'shade_all_day' | 'sun_all_day')[]
   > = signal([]);
+  areaListShowIndoor: WritableSignal<boolean> = signal(false);
+  areaListShowOutdoor: WritableSignal<boolean> = signal(true);
+  selectedIndoorCenter: WritableSignal<IndoorCenterDto | null> = signal(null);
 
   // ---- Feed List Filters (Persisted per session) ----
   private readonly feedGradeRangeKey = 'feed_grade_range_v1';
@@ -2153,6 +2191,20 @@ export class GlobalData {
         this.areaListShade.set(JSON.parse(rawShade));
       }
 
+      const rawShowIndoor = this.localStorage.getItem(
+        this.areaListShowIndoorKey,
+      );
+      if (rawShowIndoor !== null) {
+        this.areaListShowIndoor.set(rawShowIndoor === 'true');
+      }
+
+      const rawShowOutdoor = this.localStorage.getItem(
+        this.areaListShowOutdoorKey,
+      );
+      if (rawShowOutdoor !== null) {
+        this.areaListShowOutdoor.set(rawShowOutdoor === 'true');
+      }
+
       const rawFeedGradeRange = this.localStorage.getItem(
         this.feedGradeRangeKey,
       );
@@ -2221,6 +2273,20 @@ export class GlobalData {
       this.localStorage.setItem(
         this.areaListShadeKey,
         JSON.stringify(this.areaListShade()),
+      );
+    });
+
+    effect(() => {
+      this.localStorage.setItem(
+        this.areaListShowIndoorKey,
+        String(this.areaListShowIndoor()),
+      );
+    });
+
+    effect(() => {
+      this.localStorage.setItem(
+        this.areaListShowOutdoorKey,
+        String(this.areaListShowOutdoor()),
       );
     });
 

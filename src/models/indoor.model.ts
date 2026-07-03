@@ -48,7 +48,16 @@ export interface IndoorCenterWithExtras extends IndoorCenterDto {
 }
 
 export interface IndoorSchedule {
-  normal: Record<string, { open: string; close: string; closed?: boolean }>;
+  normal: Record<
+    string,
+    {
+      open: string;
+      close: string;
+      closed?: boolean;
+      open2?: string | null;
+      close2?: string | null;
+    }
+  >;
   exceptions: {
     date: string;
     open?: string;

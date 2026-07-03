@@ -7,7 +7,8 @@ import {
   resource,
   computed,
 } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GlobalData } from '../../services/global-data';
 
 import { TuiLoader, TuiButton } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
@@ -29,6 +30,20 @@ import { GradeComponent } from '../ui/avatar-grade';
   ],
   template: `
     <div class="flex flex-col gap-4">
+      @if (canEdit()) {
+        <div class="flex justify-end px-3">
+          <button
+            tuiButton
+            appearance="primary"
+            size="s"
+            iconStart="@tui.plus"
+            (click.zoneless)="createRoute()"
+          >
+            {{ 'routes.create' | translate }}
+          </button>
+        </div>
+      }
+
       @if (routes().length > 0) {
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
@@ -70,14 +85,36 @@ import { GradeComponent } from '../ui/avatar-grade';
                     {{ route.climbing_kind }}
                   </td>
                   <td class="p-3 text-right">
-                    <button
-                      tuiButton
-                      appearance="flat"
-                      size="s"
-                      class="rounded-full!"
-                    >
-                      {{ 'ascent.new' | translate }}
-                    </button>
+                    <div class="flex gap-1 justify-end items-center">
+                      @if (canEdit()) {
+                        <button
+                          tuiIconButton
+                          appearance="flat"
+                          size="s"
+                          iconStart="@tui.square-pen"
+                          class="rounded-full!"
+                          [attr.aria-label]="'edit' | translate"
+                          (click.zoneless)="editRoute(route)"
+                        ></button>
+                        <button
+                          tuiIconButton
+                          appearance="flat"
+                          size="s"
+                          iconStart="@tui.trash"
+                          class="rounded-full! text-red-500"
+                          [attr.aria-label]="'delete' | translate"
+                          (click.zoneless)="deleteRoute(route)"
+                        ></button>
+                      }
+                      <button
+                        tuiButton
+                        appearance="flat"
+                        size="s"
+                        class="rounded-full!"
+                      >
+                        {{ 'ascent.new' | translate }}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               }
@@ -95,6 +132,13 @@ export class IndoorRoutesComponent {
   centerId = input.required<string>();
 
   protected readonly indoor = inject(IndoorService);
+  protected readonly global = inject(GlobalData);
+  private readonly translate = inject(TranslateService);
+
+  protected readonly canEdit = computed(() => {
+    return this.global.indoorAdminPermissions()[this.centerId()];
+  });
+
   protected readonly routes = computed<IndoorRouteDto[]>(
     () => this.routesResource.value() || [],
   );
@@ -103,4 +147,28 @@ export class IndoorRoutesComponent {
     params: () => this.centerId(),
     loader: ({ params: id }) => this.indoor.getCenterRoutes(id),
   });
+
+  async createRoute(): Promise<void> {
+    const success = await this.indoor.openIndoorRouteForm(this.centerId());
+    if (success) {
+      this.routesResource.reload();
+    }
+  }
+
+  async editRoute(route: IndoorRouteDto): Promise<void> {
+    const success = await this.indoor.openIndoorRouteForm(
+      this.centerId(),
+      route,
+    );
+    if (success) {
+      this.routesResource.reload();
+    }
+  }
+
+  async deleteRoute(route: IndoorRouteDto): Promise<void> {
+    if (confirm(this.translate.instant('deleteCommentConfirm'))) {
+      await this.indoor.deleteRoute(route.id);
+      this.routesResource.reload();
+    }
+  }
 }
