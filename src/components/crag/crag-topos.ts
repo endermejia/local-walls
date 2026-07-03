@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 
 import { TuiAvatar } from '@taiga-ui/kit';
-import { TuiButton } from '@taiga-ui/core';
+import { TuiButton, TuiIcon } from '@taiga-ui/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -34,6 +34,7 @@ import { CragDetail } from '../../models';
     TranslatePipe,
     TuiAvatar,
     TuiButton,
+    TuiIcon,
   ],
   template: `
     @let toposCount = topos().length;
@@ -84,12 +85,28 @@ import { CragDetail } from '../../models';
           </div>
         }
       } @else {
-        <div class="col-span-full">
-          <app-paywall
-            [areaId]="crag()?.area_id || 0"
-            [price]="crag()?.price || 0"
-          />
-        </div>
+        @let isSecret =
+          !crag()?.is_public && (crag()?.price === null || crag()?.price === 0);
+        @if (!isSecret) {
+          <div class="col-span-full">
+            <app-paywall
+              [areaId]="crag()?.area_id || 0"
+              [price]="crag()?.price || 0"
+            />
+          </div>
+        } @else {
+          <div
+            class="col-span-full flex flex-col items-center justify-center p-8 text-center gap-2"
+          >
+            <tui-icon icon="@tui.lock" class="text-4xl opacity-50" />
+            <p class="text-sm font-semibold opacity-70">
+              {{ 'topos.restricted' | translate }}
+            </p>
+            <p class="text-xs opacity-50">
+              {{ 'topos.restrictedMessage' | translate }}
+            </p>
+          </div>
+        }
       }
     </div>
   `,

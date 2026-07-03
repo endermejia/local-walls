@@ -111,6 +111,34 @@ import { handleErrorToast, slugify } from '../../utils';
         />
       </tui-textfield>
 
+      <!-- Visibility indicator -->
+      @let crag = global.cragDetail();
+      @if (crag) {
+        @let isSecret =
+          !crag.is_public && (crag.price === null || crag.price === 0);
+        <div class="flex items-center gap-2 px-1 text-xs opacity-75">
+          <tui-icon
+            [icon]="
+              isSecret
+                ? '@tui.lock'
+                : crag.is_public
+                  ? '@tui.globe'
+                  : '@tui.credit-card'
+            "
+          />
+          <span>
+            {{
+              (isSecret
+                ? 'topos.visibility.secret'
+                : crag.is_public
+                  ? 'topos.visibility.public'
+                  : 'topos.visibility.paywalled'
+              ) | translate
+            }}
+          </span>
+        </div>
+      }
+
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label class="flex items-center gap-2 cursor-pointer">
@@ -366,7 +394,7 @@ import { handleErrorToast, slugify } from '../../utils';
 })
 export class TopoFormComponent {
   private readonly topos = inject(ToposService);
-  private readonly global = inject(GlobalData);
+  protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);

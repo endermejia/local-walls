@@ -221,188 +221,39 @@ export interface TopoRouteRow {
             canEditAsAdmin ||
             canAreaAdmin ||
             isCreator;
+          @let isSecret =
+            !isPublic &&
+            (t.crag?.area?.price === null || t.crag?.area?.price === 0);
 
-          <div
-            class="grid grid-cols-1 grid-rows-2 lg:grid-cols-3 lg:grid-rows-1 w-full h-full gap-4 overflow-hidden"
-          >
-            <!-- Topo image container -->
-            @let topoImage = topoImageResource.value();
+          @if (isSecret && !hasAccess) {
             <div
-              class="relative w-full h-full lg:col-span-2 bg-(--tui-background-neutral-1) md:rounded-xl md:border md:border-(--tui-border-normal) overflow-hidden cursor-grab active:cursor-grabbing touch-none"
-              #scrollContainer
-              (wheel.zoneless)="onWheel($event)"
-              (touchstart.zoneless)="onTouchStart($any($event))"
-              (touchmove.zoneless)="onTouchMove($any($event))"
-              (touchend.zoneless)="onTouchEnd()"
-              (mousedown.zoneless)="onMouseDown($any($event))"
-              (mousemove.zoneless)="onMouseMove($any($event))"
-              (mouseup.zoneless)="onMouseUp()"
-              (mouseleave.zoneless)="onMouseUp()"
+              class="flex flex-col items-center justify-center grow gap-4 p-8 text-center h-[50vh] w-full"
             >
-              <div
-                class="h-full w-full flex items-center justify-center min-w-full"
+              <tui-icon icon="@tui.lock" class="text-6xl opacity-50" />
+              <h2 class="text-2xl font-bold">
+                {{ 'topos.restricted' | translate }}
+              </h2>
+              <p class="max-w-md opacity-70">
+                {{ 'topos.restrictedMessage' | translate }}
+              </p>
+              <button
+                tuiButton
+                appearance="secondary"
+                (click)="router.navigate(['/area', t.crag?.area?.slug])"
               >
-                <div
-                  #zoomContainerNormal
-                  class="relative h-full transition-transform duration-75 ease-out zoom-container origin-top-left"
-                  [class.duration-0!]="dragState.isDragging"
-                  [style.transform]="
-                    'translate(' +
-                    zoomPosition().x +
-                    'px, ' +
-                    zoomPosition().y +
-                    'px) scale(' +
-                    zoomScale() +
-                    ')'
-                  "
-                  (click.zoneless)="onImageClick()"
-                >
-                  <img
-                    #topoImgNormal
-                    [src]="topoImage || ('topo' | iconSrc)"
-                    [alt]="t.name"
-                    class="w-auto h-full max-w-none block object-cover"
-                    draggable="false"
-                    decoding="async"
-                    tabindex="0"
-                    (keydown.enter)="toggleFullscreen(!!topoImage)"
-                    (load)="onImageLoad($event)"
-                  />
-                  <!-- SVG Paths Overlay -->
-                  @if (topoImage && hasAccess) {
-                    @let ratio = imageRatio();
-                    @let hScale = 1000 / ratio;
-                    <svg
-                      class="absolute inset-0 w-full h-full pointer-events-none"
-                      [attr.viewBox]="'0 0 1000 ' + hScale"
-                      preserveAspectRatio="none"
-                    >
-                      <!-- Layer 1: Hit Areas (Bottom) -->
-                      @for (tr of renderedTopoRoutes(); track tr.route_id) {
-                        @if (tr.path && tr.path.points.length > 0) {
-                          <polyline
-                            class="pointer-events-auto cursor-pointer"
-                            (click)="
-                              onPathClick($event, tr); $event.stopPropagation()
-                            "
-                            (mouseenter)="hoveredRouteId.set(tr.route_id)"
-                            (mouseleave)="hoveredRouteId.set(null)"
-                            [attr.points]="tr.pointsString"
-                            fill="none"
-                            stroke="transparent"
-                            [attr.stroke-width]="
-                              (selectedRouteId() === tr.route_id
-                                ? 0.06
-                                : 0.025) * 1000
-                            "
-                            stroke-linejoin="round"
-                            stroke-linecap="round"
-                          />
-                        }
-                      }
-
-                      <!-- Layer 2: Visuals (Lines) -->
-                      @for (tr of renderedTopoRoutes(); track tr.route_id) {
-                        @if (tr.path && tr.path.points.length > 0) {
-                          <!-- Border/Shadow Line -->
-                          <polyline
-                            [attr.points]="tr.pointsString"
-                            fill="none"
-                            stroke="white"
-                            [style.opacity]="tr.style.isDashed ? 1 : 0.7"
-                            [attr.stroke-width]="
-                              tr.width * 1000 + (tr.style.isDashed ? 2.5 : 1.5)
-                            "
-                            [attr.stroke-dasharray]="
-                              tr.style.isDashed ? '10, 10' : 'none'
-                            "
-                            stroke-linejoin="round"
-                            stroke-linecap="round"
-                            class="transition-all duration-300"
-                          />
-
-                          <!-- Main Line -->
-                          <polyline
-                            [attr.points]="tr.pointsString"
-                            fill="none"
-                            [attr.stroke]="tr.style.stroke"
-                            [style.opacity]="tr.style.opacity"
-                            [attr.stroke-width]="tr.width * 1000"
-                            [attr.stroke-dasharray]="
-                              tr.style.isDashed ? '10, 10' : 'none'
-                            "
-                            stroke-linejoin="round"
-                            stroke-linecap="round"
-                            class="transition-all duration-300"
-                          />
-
-                          <!-- End Circle (Small White) -->
-                          @if (
-                            tr.path.points[tr.path.points.length - 1];
-                            as last
-                          ) {
-                            <circle
-                              [attr.cx]="last.x * 1000"
-                              [attr.cy]="last.y * hScale"
-                              [attr.r]="tr.width * 1000"
-                              fill="white"
-                              [style.opacity]="tr.style.opacity"
-                              stroke="black"
-                              [attr.stroke-width]="0.5"
-                            />
-                          }
-                        }
-                      }
-
-                      <!-- Layer 3: Indicators (Top) -->
-                      @for (tr of renderedTopoRoutes(); track tr.route_id) {
-                        @if (tr.path && tr.path.points.length > 0) {
-                          @if (tr.path.points[0]; as first) {
-                            <circle
-                              class="pointer-events-auto cursor-pointer"
-                              (click)="
-                                onPathClick($event, tr);
-                                $event.stopPropagation()
-                              "
-                              (mouseenter)="hoveredRouteId.set(tr.route_id)"
-                              (mouseleave)="hoveredRouteId.set(null)"
-                              [attr.cx]="first.x * 1000"
-                              [attr.cy]="first.y * hScale"
-                              [attr.r]="tr.width * 2000"
-                              [attr.fill]="tr.style.stroke"
-                              stroke="white"
-                              stroke-width="1"
-                            />
-                            <text
-                              class="pointer-events-none"
-                              [attr.x]="first.x * 1000"
-                              [attr.y]="first.y * hScale + tr.width * 600"
-                              text-anchor="middle"
-                              fill="white"
-                              style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
-                              [attr.font-size]="tr.width * 1600"
-                              font-weight="bold"
-                              font-family="sans-serif"
-                            >
-                              {{ tr.route.grade | gradeLabel }}
-                            </text>
-                          }
-                        }
-                      }
-                    </svg>
-                  }
-                </div>
-              </div>
+                {{ 'back' | translate }}
+              </button>
             </div>
-            <!-- Topo fullscreen -->
-            @if (isFullscreen()) {
+          } @else {
+            <div
+              class="grid grid-cols-1 grid-rows-2 lg:grid-cols-3 lg:grid-rows-1 w-full h-full gap-4 overflow-hidden"
+            >
+              <!-- Topo image container -->
+              @let topoImage = topoImageResource.value();
               <div
-                #fullscreenContainer
-                class="fixed inset-0 z-1000 flex items-center justify-center overflow-hidden touch-none backdrop-blur-xl cursor-grab active:cursor-grabbing"
-                tabindex="0"
-                (keydown.enter)="toggleFullscreen(false)"
-                (click)="toggleFullscreen(false)"
-                (wheel.zoneless)="onWheel($any($event))"
+                class="relative w-full h-full lg:col-span-2 bg-(--tui-background-neutral-1) md:rounded-xl md:border md:border-(--tui-border-normal) overflow-hidden cursor-grab active:cursor-grabbing touch-none"
+                #scrollContainer
+                (wheel.zoneless)="onWheel($event)"
                 (touchstart.zoneless)="onTouchStart($any($event))"
                 (touchmove.zoneless)="onTouchMove($any($event))"
                 (touchend.zoneless)="onTouchEnd()"
@@ -410,148 +261,136 @@ export interface TopoRouteRow {
                 (mousemove.zoneless)="onMouseMove($any($event))"
                 (mouseup.zoneless)="onMouseUp()"
                 (mouseleave.zoneless)="onMouseUp()"
-                (window:keydown.arrowLeft)="selectPrevRoute()"
-                (window:keydown.arrowRight)="selectNextRoute()"
-                (window:keydown.escape)="toggleFullscreen(false)"
               >
-                <!-- Close button -->
-                <div class="absolute top-4 right-4 z-1001">
-                  <button
-                    tuiIconButton
-                    appearance="floating"
-                    [size]="isMobile ? 'm' : 'l'"
-                    class="bg-(--tui-background-base)"
-                    (click)="toggleFullscreen(false); $event.stopPropagation()"
-                  >
-                    <tui-icon icon="@tui.x" />
-                  </button>
-                </div>
-
                 <div
-                  #fullscreenZoomContainer
-                  class="relative transition-transform duration-75 ease-out zoom-container origin-top-left"
-                  [class.duration-0!]="dragState.isDragging"
-                  (click)="onImageClick(); $event.stopPropagation()"
-                  (keydown.enter)="$event.stopPropagation()"
-                  tabindex="-1"
-                  [style.transform]="
-                    'translate(' +
-                    zoomPosition().x +
-                    'px, ' +
-                    zoomPosition().y +
-                    'px) scale(' +
-                    zoomScale() +
-                    ')'
-                  "
+                  class="h-full w-full flex items-center justify-center min-w-full"
                 >
-                  <img
-                    #topoImgFullscreen
-                    [src]="topoImage || ('topo' | iconSrc)"
-                    [alt]="t.name"
-                    class="w-full h-auto block max-w-none"
-                    draggable="false"
-                    (load)="onImageLoad($event)"
-                  />
-                  <!-- SVG Paths Overlay in Fullscreen -->
-                  @if (topoImage && hasAccess) {
-                    @let ratio = imageRatio();
-                    @let hScale = 1000 / ratio;
-                    <svg
-                      class="absolute inset-0 w-full h-full pointer-events-none"
-                      [attr.viewBox]="'0 0 1000 ' + hScale"
-                      preserveAspectRatio="none"
-                    >
-                      <!-- Layer 1: Hit Areas (Bottom) -->
-                      @for (tr of renderedTopoRoutes(); track tr.route_id) {
-                        @if (tr.path && tr.path.points.length > 0) {
-                          <polyline
-                            class="pointer-events-auto cursor-pointer"
-                            (click)="
-                              onPathClick($event, tr); $event.stopPropagation()
-                            "
-                            (mouseenter)="hoveredRouteId.set(tr.route_id)"
-                            (mouseleave)="hoveredRouteId.set(null)"
-                            [attr.points]="tr.pointsString"
-                            fill="none"
-                            stroke="transparent"
-                            [attr.stroke-width]="
-                              (selectedRouteId() === tr.route_id
-                                ? 0.06
-                                : 0.025) * 1000
-                            "
-                            stroke-linejoin="round"
-                            stroke-linecap="round"
-                          />
-                        }
-                      }
-
-                      <!-- Layer 2: Visuals (Lines) -->
-                      @for (tr of renderedTopoRoutes(); track tr.route_id) {
-                        @if (tr.path && tr.path.points.length > 0) {
-                          <!-- Border/Shadow Line -->
-                          <polyline
-                            [attr.points]="tr.pointsString"
-                            fill="none"
-                            stroke="white"
-                            [style.opacity]="tr.style.isDashed ? 1 : 0.7"
-                            [attr.stroke-width]="
-                              tr.width * 1000 + (tr.style.isDashed ? 2.5 : 1.5)
-                            "
-                            [attr.stroke-dasharray]="
-                              tr.style.isDashed ? '10, 10' : 'none'
-                            "
-                            stroke-linejoin="round"
-                            stroke-linecap="round"
-                            class="transition-all duration-300"
-                          />
-
-                          <!-- Main Line -->
-                          <polyline
-                            [attr.points]="tr.pointsString"
-                            fill="none"
-                            [attr.stroke]="tr.style.stroke"
-                            [style.opacity]="tr.style.opacity"
-                            [attr.stroke-width]="tr.width * 1000"
-                            [attr.stroke-dasharray]="
-                              tr.style.isDashed ? '10, 10' : 'none'
-                            "
-                            stroke-linejoin="round"
-                            stroke-linecap="round"
-                            class="transition-all duration-300"
-                          />
-
-                          <!-- End Circle (Small White) -->
-                          @if (
-                            tr.path.points[tr.path.points.length - 1];
-                            as last
-                          ) {
-                            <circle
-                              [attr.cx]="last.x * 1000"
-                              [attr.cy]="last.y * hScale"
-                              [attr.r]="tr.width * 1000"
-                              fill="white"
-                              [style.opacity]="tr.style.opacity"
-                              stroke="black"
-                              [attr.stroke-width]="0.5"
+                  <div
+                    #zoomContainerNormal
+                    class="relative h-full transition-transform duration-75 ease-out zoom-container origin-top-left"
+                    [class.duration-0!]="dragState.isDragging"
+                    [style.transform]="
+                      'translate(' +
+                      zoomPosition().x +
+                      'px, ' +
+                      zoomPosition().y +
+                      'px) scale(' +
+                      zoomScale() +
+                      ')'
+                    "
+                    (click.zoneless)="onImageClick()"
+                  >
+                    <img
+                      #topoImgNormal
+                      [src]="topoImage || ('topo' | iconSrc)"
+                      [alt]="t.name"
+                      class="w-auto h-full max-w-none block object-cover"
+                      draggable="false"
+                      decoding="async"
+                      tabindex="0"
+                      (keydown.enter)="toggleFullscreen(!!topoImage)"
+                      (load)="onImageLoad($event)"
+                    />
+                    <!-- SVG Paths Overlay -->
+                    @if (topoImage && hasAccess) {
+                      @let ratio = imageRatio();
+                      @let hScale = 1000 / ratio;
+                      <svg
+                        class="absolute inset-0 w-full h-full pointer-events-none"
+                        [attr.viewBox]="'0 0 1000 ' + hScale"
+                        preserveAspectRatio="none"
+                      >
+                        <!-- Layer 1: Hit Areas (Bottom) -->
+                        @for (tr of renderedTopoRoutes(); track tr.route_id) {
+                          @if (tr.path && tr.path.points.length > 0) {
+                            <polyline
+                              class="pointer-events-auto cursor-pointer"
+                              (click)="
+                                onPathClick($event, tr);
+                                $event.stopPropagation()
+                              "
+                              (mouseenter)="hoveredRouteId.set(tr.route_id)"
+                              (mouseleave)="hoveredRouteId.set(null)"
+                              [attr.points]="tr.pointsString"
+                              fill="none"
+                              stroke="transparent"
+                              [attr.stroke-width]="
+                                (selectedRouteId() === tr.route_id
+                                  ? 0.06
+                                  : 0.025) * 1000
+                              "
+                              stroke-linejoin="round"
+                              stroke-linecap="round"
                             />
                           }
                         }
-                      }
 
-                      <!-- Layer 3: Visuals (Indicators/Circles) -->
-                      @for (tr of renderedTopoRoutes(); track tr.route_id) {
-                        @if (tr.path && tr.path.points.length > 0) {
-                          <g
-                            class="pointer-events-auto cursor-pointer"
-                            (click)="
-                              onPathClick($event, tr); $event.stopPropagation()
-                            "
-                            (mouseenter)="hoveredRouteId.set(tr.route_id)"
-                            (mouseleave)="hoveredRouteId.set(null)"
-                          >
-                            <!-- Start Point: Colored Circle -->
+                        <!-- Layer 2: Visuals (Lines) -->
+                        @for (tr of renderedTopoRoutes(); track tr.route_id) {
+                          @if (tr.path && tr.path.points.length > 0) {
+                            <!-- Border/Shadow Line -->
+                            <polyline
+                              [attr.points]="tr.pointsString"
+                              fill="none"
+                              stroke="white"
+                              [style.opacity]="tr.style.isDashed ? 1 : 0.7"
+                              [attr.stroke-width]="
+                                tr.width * 1000 +
+                                (tr.style.isDashed ? 2.5 : 1.5)
+                              "
+                              [attr.stroke-dasharray]="
+                                tr.style.isDashed ? '10, 10' : 'none'
+                              "
+                              stroke-linejoin="round"
+                              stroke-linecap="round"
+                              class="transition-all duration-300"
+                            />
+
+                            <!-- Main Line -->
+                            <polyline
+                              [attr.points]="tr.pointsString"
+                              fill="none"
+                              [attr.stroke]="tr.style.stroke"
+                              [style.opacity]="tr.style.opacity"
+                              [attr.stroke-width]="tr.width * 1000"
+                              [attr.stroke-dasharray]="
+                                tr.style.isDashed ? '10, 10' : 'none'
+                              "
+                              stroke-linejoin="round"
+                              stroke-linecap="round"
+                              class="transition-all duration-300"
+                            />
+
+                            <!-- End Circle (Small White) -->
+                            @if (
+                              tr.path.points[tr.path.points.length - 1];
+                              as last
+                            ) {
+                              <circle
+                                [attr.cx]="last.x * 1000"
+                                [attr.cy]="last.y * hScale"
+                                [attr.r]="tr.width * 1000"
+                                fill="white"
+                                [style.opacity]="tr.style.opacity"
+                                stroke="black"
+                                [attr.stroke-width]="0.5"
+                              />
+                            }
+                          }
+                        }
+
+                        <!-- Layer 3: Indicators (Top) -->
+                        @for (tr of renderedTopoRoutes(); track tr.route_id) {
+                          @if (tr.path && tr.path.points.length > 0) {
                             @if (tr.path.points[0]; as first) {
                               <circle
+                                class="pointer-events-auto cursor-pointer"
+                                (click)="
+                                  onPathClick($event, tr);
+                                  $event.stopPropagation()
+                                "
+                                (mouseenter)="hoveredRouteId.set(tr.route_id)"
+                                (mouseleave)="hoveredRouteId.set(null)"
                                 [attr.cx]="first.x * 1000"
                                 [attr.cy]="first.y * hScale"
                                 [attr.r]="tr.width * 2000"
@@ -560,6 +399,7 @@ export interface TopoRouteRow {
                                 stroke-width="1"
                               />
                               <text
+                                class="pointer-events-none"
                                 [attr.x]="first.x * 1000"
                                 [attr.y]="first.y * hScale + tr.width * 600"
                                 text-anchor="middle"
@@ -572,408 +412,604 @@ export interface TopoRouteRow {
                                 {{ tr.route.grade | gradeLabel }}
                               </text>
                             }
-                          </g>
+                          }
                         }
-                      }
-                    </svg>
-                  }
+                      </svg>
+                    }
+                  </div>
                 </div>
+              </div>
+              <!-- Topo fullscreen -->
+              @if (isFullscreen()) {
+                <div
+                  #fullscreenContainer
+                  class="fixed inset-0 z-1000 flex items-center justify-center overflow-hidden touch-none backdrop-blur-xl cursor-grab active:cursor-grabbing"
+                  tabindex="0"
+                  (keydown.enter)="toggleFullscreen(false)"
+                  (click)="toggleFullscreen(false)"
+                  (wheel.zoneless)="onWheel($any($event))"
+                  (touchstart.zoneless)="onTouchStart($any($event))"
+                  (touchmove.zoneless)="onTouchMove($any($event))"
+                  (touchend.zoneless)="onTouchEnd()"
+                  (mousedown.zoneless)="onMouseDown($any($event))"
+                  (mousemove.zoneless)="onMouseMove($any($event))"
+                  (mouseup.zoneless)="onMouseUp()"
+                  (mouseleave.zoneless)="onMouseUp()"
+                  (window:keydown.arrowLeft)="selectPrevRoute()"
+                  (window:keydown.arrowRight)="selectNextRoute()"
+                  (window:keydown.escape)="toggleFullscreen(false)"
+                >
+                  <!-- Close button -->
+                  <div class="absolute top-4 right-4 z-1001">
+                    <button
+                      tuiIconButton
+                      appearance="floating"
+                      [size]="isMobile ? 'm' : 'l'"
+                      class="bg-(--tui-background-base)"
+                      (click)="
+                        toggleFullscreen(false); $event.stopPropagation()
+                      "
+                    >
+                      <tui-icon icon="@tui.x" />
+                    </button>
+                  </div>
 
-                <!-- Route Info Tooltip -->
-                @if (hasAccess && selectedRouteInfo(); as selectedRoute) {
                   <div
-                    class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-(--tui-background-base) border border-(--tui-border-normal) rounded-2xl shadow-2xl p-4 w-[90vw] md:w-auto md:min-w-80 max-w-[95vw] z-10"
-                    (click)="$event.stopPropagation()"
+                    #fullscreenZoomContainer
+                    class="relative transition-transform duration-75 ease-out zoom-container origin-top-left"
+                    [class.duration-0!]="dragState.isDragging"
+                    (click)="onImageClick(); $event.stopPropagation()"
                     (keydown.enter)="$event.stopPropagation()"
                     tabindex="-1"
+                    [style.transform]="
+                      'translate(' +
+                      zoomPosition().x +
+                      'px, ' +
+                      zoomPosition().y +
+                      'px) scale(' +
+                      zoomScale() +
+                      ')'
+                    "
                   >
-                    <div class="flex items-center gap-3">
-                      <button
-                        tuiIconButton
-                        appearance="flat"
-                        size="s"
-                        iconStart="@tui.chevron-left"
-                        class="rounded-full!"
-                        (click)="selectPrevRoute(); $event.stopPropagation()"
+                    <img
+                      #topoImgFullscreen
+                      [src]="topoImage || ('topo' | iconSrc)"
+                      [alt]="t.name"
+                      class="w-full h-auto block max-w-none"
+                      draggable="false"
+                      (load)="onImageLoad($event)"
+                    />
+                    <!-- SVG Paths Overlay in Fullscreen -->
+                    @if (topoImage && hasAccess) {
+                      @let ratio = imageRatio();
+                      @let hScale = 1000 / ratio;
+                      <svg
+                        class="absolute inset-0 w-full h-full pointer-events-none"
+                        [attr.viewBox]="'0 0 1000 ' + hScale"
+                        preserveAspectRatio="none"
                       >
-                        {{ 'previous' | translate }}
-                      </button>
-
-                      <div class="flex flex-1 items-center gap-3 min-w-0">
-                        <div class="flex-1 min-w-0">
-                          <div
-                            class="font-bold text-lg wrap-break-word line-clamp-2 text-center"
-                          >
-                            {{ selectedRoute.route.name }}
-                          </div>
-                          <div class="mt-2 text-center">
-                            <app-grade
-                              [grade]="selectedRoute.route.grade"
-                              [kind]="selectedRoute.route.climbing_kind"
-                              size="m"
+                        <!-- Layer 1: Hit Areas (Bottom) -->
+                        @for (tr of renderedTopoRoutes(); track tr.route_id) {
+                          @if (tr.path && tr.path.points.length > 0) {
+                            <polyline
+                              class="pointer-events-auto cursor-pointer"
+                              (click)="
+                                onPathClick($event, tr);
+                                $event.stopPropagation()
+                              "
+                              (mouseenter)="hoveredRouteId.set(tr.route_id)"
+                              (mouseleave)="hoveredRouteId.set(null)"
+                              [attr.points]="tr.pointsString"
+                              fill="none"
+                              stroke="transparent"
+                              [attr.stroke-width]="
+                                (selectedRouteId() === tr.route_id
+                                  ? 0.06
+                                  : 0.025) * 1000
+                              "
+                              stroke-linejoin="round"
+                              stroke-linecap="round"
                             />
+                          }
+                        }
+
+                        <!-- Layer 2: Visuals (Lines) -->
+                        @for (tr of renderedTopoRoutes(); track tr.route_id) {
+                          @if (tr.path && tr.path.points.length > 0) {
+                            <!-- Border/Shadow Line -->
+                            <polyline
+                              [attr.points]="tr.pointsString"
+                              fill="none"
+                              stroke="white"
+                              [style.opacity]="tr.style.isDashed ? 1 : 0.7"
+                              [attr.stroke-width]="
+                                tr.width * 1000 +
+                                (tr.style.isDashed ? 2.5 : 1.5)
+                              "
+                              [attr.stroke-dasharray]="
+                                tr.style.isDashed ? '10, 10' : 'none'
+                              "
+                              stroke-linejoin="round"
+                              stroke-linecap="round"
+                              class="transition-all duration-300"
+                            />
+
+                            <!-- Main Line -->
+                            <polyline
+                              [attr.points]="tr.pointsString"
+                              fill="none"
+                              [attr.stroke]="tr.style.stroke"
+                              [style.opacity]="tr.style.opacity"
+                              [attr.stroke-width]="tr.width * 1000"
+                              [attr.stroke-dasharray]="
+                                tr.style.isDashed ? '10, 10' : 'none'
+                              "
+                              stroke-linejoin="round"
+                              stroke-linecap="round"
+                              class="transition-all duration-300"
+                            />
+
+                            <!-- End Circle (Small White) -->
+                            @if (
+                              tr.path.points[tr.path.points.length - 1];
+                              as last
+                            ) {
+                              <circle
+                                [attr.cx]="last.x * 1000"
+                                [attr.cy]="last.y * hScale"
+                                [attr.r]="tr.width * 1000"
+                                fill="white"
+                                [style.opacity]="tr.style.opacity"
+                                stroke="black"
+                                [attr.stroke-width]="0.5"
+                              />
+                            }
+                          }
+                        }
+
+                        <!-- Layer 3: Visuals (Indicators/Circles) -->
+                        @for (tr of renderedTopoRoutes(); track tr.route_id) {
+                          @if (tr.path && tr.path.points.length > 0) {
+                            <g
+                              class="pointer-events-auto cursor-pointer"
+                              (click)="
+                                onPathClick($event, tr);
+                                $event.stopPropagation()
+                              "
+                              (mouseenter)="hoveredRouteId.set(tr.route_id)"
+                              (mouseleave)="hoveredRouteId.set(null)"
+                            >
+                              <!-- Start Point: Colored Circle -->
+                              @if (tr.path.points[0]; as first) {
+                                <circle
+                                  [attr.cx]="first.x * 1000"
+                                  [attr.cy]="first.y * hScale"
+                                  [attr.r]="tr.width * 2000"
+                                  [attr.fill]="tr.style.stroke"
+                                  stroke="white"
+                                  stroke-width="1"
+                                />
+                                <text
+                                  [attr.x]="first.x * 1000"
+                                  [attr.y]="first.y * hScale + tr.width * 600"
+                                  text-anchor="middle"
+                                  fill="white"
+                                  style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
+                                  [attr.font-size]="tr.width * 1600"
+                                  font-weight="bold"
+                                  font-family="sans-serif"
+                                >
+                                  {{ tr.route.grade | gradeLabel }}
+                                </text>
+                              }
+                            </g>
+                          }
+                        }
+                      </svg>
+                    }
+                  </div>
+
+                  <!-- Route Info Tooltip -->
+                  @if (hasAccess && selectedRouteInfo(); as selectedRoute) {
+                    <div
+                      class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-(--tui-background-base) border border-(--tui-border-normal) rounded-2xl shadow-2xl p-4 w-[90vw] md:w-auto md:min-w-80 max-w-[95vw] z-10"
+                      (click)="$event.stopPropagation()"
+                      (keydown.enter)="$event.stopPropagation()"
+                      tabindex="-1"
+                    >
+                      <div class="flex items-center gap-3">
+                        <button
+                          tuiIconButton
+                          appearance="flat"
+                          size="s"
+                          iconStart="@tui.chevron-left"
+                          class="rounded-full!"
+                          (click)="selectPrevRoute(); $event.stopPropagation()"
+                        >
+                          {{ 'previous' | translate }}
+                        </button>
+
+                        <div class="flex flex-1 items-center gap-3 min-w-0">
+                          <div class="flex-1 min-w-0">
+                            <div
+                              class="font-bold text-lg wrap-break-word line-clamp-2 text-center"
+                            >
+                              {{ selectedRoute.route.name }}
+                            </div>
+                            <div class="mt-2 text-center">
+                              <app-grade
+                                [grade]="selectedRoute.route.grade"
+                                [kind]="selectedRoute.route.climbing_kind"
+                                size="m"
+                              />
+                            </div>
                           </div>
                         </div>
+
+                        <button
+                          tuiIconButton
+                          appearance="flat"
+                          size="s"
+                          iconStart="@tui.chevron-right"
+                          class="rounded-full! mr-1"
+                          (click)="selectNextRoute(); $event.stopPropagation()"
+                        >
+                          {{ 'next' | translate }}
+                        </button>
                       </div>
-
-                      <button
-                        tuiIconButton
-                        appearance="flat"
-                        size="s"
-                        iconStart="@tui.chevron-right"
-                        class="rounded-full! mr-1"
-                        (click)="selectNextRoute(); $event.stopPropagation()"
-                      >
-                        {{ 'next' | translate }}
-                      </button>
                     </div>
-                  </div>
-                }
-              </div>
-            }
+                  }
+                </div>
+              }
 
-            <!-- Routes table container -->
-            <div
-              class="w-full h-full overflow-hidden px-4 md:px-0 lg:col-span-1 focus:outline-none"
-              tabindex="0"
-              (keydown)="onTableKeyDown($event)"
-            >
-              <tui-scrollbar class="h-full">
-                @if (hasAccess) {
-                  @let sortedData = sortedTableData();
-                  @if (sortedData.length > 0) {
-                    <table
-                      tuiTable
-                      [size]="isMobile ? 's' : 'm'"
-                      class="w-full"
-                      [class.table-fixed]="isMobile"
-                      [columns]="columns()"
-                      [direction]="direction()"
-                      [sorter]="sorter()"
-                      (sortChange)="onSortChange($event)"
-                    >
-                      <thead tuiThead>
-                        <tr tuiThGroup>
-                          @for (col of columns(); track col) {
-                            <th
-                              *tuiHead="col"
-                              tuiTh
-                              [sorter]="col | tableSorter"
-                              [class.text-center]="col !== 'name'"
-                              [class.w-10!]="isMobile && col === 'index'"
-                              [class.w-12!]="
-                                (!isMobile && col === 'index') ||
-                                (isMobile && col === 'grade')
-                              "
-                              [class.w-20!]="!isMobile && col === 'grade'"
-                              [class.w-24!]="
-                                (isMobile &&
-                                  (col === 'actions' ||
-                                    col === 'admin_actions')) ||
-                                (!isMobile &&
-                                  (col === 'height' || col === 'admin_actions'))
-                              "
-                              [class.w-28!]="!isMobile && col === 'actions'"
-                            >
-                              <div class="items-center justify-center gap-1">
-                                @switch (col) {
-                                  @case ('index') {
-                                    #
-                                  }
-                                  @case ('name') {
-                                    {{ 'routes.name' | translate }}
-                                  }
-                                  @case ('grade') {
-                                    {{ 'grade' | translate }}
-                                  }
-                                  @case ('height') {
-                                    {{ 'routes.height' | translate }}
-                                  }
-                                }
-                              </div>
-                            </th>
-                          }
-                        </tr>
-                      </thead>
-                      @for (
-                        item of sortedTableData();
-                        track item._ref.topo_id + '-' + item._ref.route_id;
-                        let i = $index
-                      ) {
-                        <tbody tuiTbody>
-                          <tr
-                            #routeRow
-                            tuiTr
-                            [id]="
-                              'route-row-' +
-                              item._ref.topo_id +
-                              '-' +
-                              item._ref.route_id
-                            "
-                            [class.bg-(--tui-background-accent-1-hover)!]="
-                              item._ref.route_id === selectedRouteId()
-                            "
-                            [style.background]="
-                              item.climbed
-                                ? (
-                                    item._ref.route.own_ascent?.type
-                                    | ascentInfo
-                                  ).backgroundSubtle
-                                : item.project
-                                  ? 'var(--tui-status-info-pale)'
-                                  : ''
-                            "
-                            class="group cursor-pointer"
-                            (mouseenter)="
-                              hoveredRouteId.set(item._ref.route_id)
-                            "
-                            (mouseleave)="hoveredRouteId.set(null)"
-                            (click)="
-                              selectedRouteId.set(
-                                selectedRouteId() === item._ref.route_id
-                                  ? null
-                                  : item._ref.route_id
-                              )
-                            "
-                          >
+              <!-- Routes table container -->
+              <div
+                class="w-full h-full overflow-hidden px-4 md:px-0 lg:col-span-1 focus:outline-none"
+                tabindex="0"
+                (keydown)="onTableKeyDown($event)"
+              >
+                <tui-scrollbar class="h-full">
+                  @if (hasAccess) {
+                    @let sortedData = sortedTableData();
+                    @if (sortedData.length > 0) {
+                      <table
+                        tuiTable
+                        [size]="isMobile ? 's' : 'm'"
+                        class="w-full"
+                        [class.table-fixed]="isMobile"
+                        [columns]="columns()"
+                        [direction]="direction()"
+                        [sorter]="sorter()"
+                        (sortChange)="onSortChange($event)"
+                      >
+                        <thead tuiThead>
+                          <tr tuiThGroup>
                             @for (col of columns(); track col) {
-                              <td
-                                *tuiCell="col"
-                                tuiTd
+                              <th
+                                *tuiHead="col"
+                                tuiTh
+                                [sorter]="col | tableSorter"
                                 [class.text-center]="col !== 'name'"
+                                [class.w-10!]="isMobile && col === 'index'"
+                                [class.w-12!]="
+                                  (!isMobile && col === 'index') ||
+                                  (isMobile && col === 'grade')
+                                "
+                                [class.w-20!]="!isMobile && col === 'grade'"
+                                [class.w-24!]="
+                                  (isMobile &&
+                                    (col === 'actions' ||
+                                      col === 'admin_actions')) ||
+                                  (!isMobile &&
+                                    (col === 'height' ||
+                                      col === 'admin_actions'))
+                                "
+                                [class.w-28!]="!isMobile && col === 'actions'"
                               >
-                                @switch (col) {
-                                  @case ('index') {
-                                    <div
-                                      tuiCell
-                                      size="m"
-                                      class="justify-center h-full"
-                                    >
-                                      @if (global.canEditCrag()) {
-                                        <tui-textfield
-                                          tuiTextfieldSize="s"
-                                          [class.w-16!]="!isMobile"
-                                          [class.w-10!]="isMobile"
-                                          class="h-8!"
-                                        >
-                                          <input
-                                            #indexInput
-                                            tuiInputNumber
-                                            class="text-center h-full! border-none! p-0! route-index-input"
-                                            [ngModel]="item.index + 1"
-                                            (blur.zoneless)="
-                                              onUpdateRouteNumber(
-                                                item._ref,
-                                                $any($event.target).value
-                                              )
-                                            "
-                                            (keydown.enter)="
-                                              onUpdateRouteNumber(
-                                                item._ref,
-                                                $any($event.target).value
-                                              );
-                                              $event.stopPropagation()
-                                            "
-                                            (keydown)="
-                                              onTableKeyDown($event, i)
-                                            "
-                                            autocomplete="off"
-                                          />
-                                        </tui-textfield>
-                                      } @else {
-                                        {{ item.index + 1 }}
-                                      }
-                                    </div>
+                                <div class="items-center justify-center gap-1">
+                                  @switch (col) {
+                                    @case ('index') {
+                                      #
+                                    }
+                                    @case ('name') {
+                                      {{ 'routes.name' | translate }}
+                                    }
+                                    @case ('grade') {
+                                      {{ 'grade' | translate }}
+                                    }
+                                    @case ('height') {
+                                      {{ 'routes.height' | translate }}
+                                    }
                                   }
-                                  @case ('name') {
-                                    <div tuiCell size="m" class="h-full">
-                                      <a
-                                        tuiLink
-                                        [routerLink]="item.link"
-                                        class="text-left"
-                                      >
-                                        {{ item.name }}
-                                      </a>
-                                    </div>
-                                  }
-                                  @case ('grade') {
-                                    <div
-                                      tuiCell
-                                      size="m"
-                                      class="justify-center h-full"
-                                    >
-                                      <app-grade
-                                        [grade]="item.grade"
-                                        [kind]="item._ref.route.climbing_kind"
-                                      />
-                                    </div>
-                                  }
-                                  @case ('height') {
-                                    <div
-                                      tuiCell
-                                      size="m"
-                                      class="justify-center h-full"
-                                    >
-                                      @if (global.canEditCrag()) {
-                                        <tui-textfield
-                                          tuiTextfieldSize="s"
-                                          [class.w-16!]="!isMobile"
-                                          [class.w-12!]="isMobile"
-                                          class="h-8!"
-                                        >
-                                          <input
-                                            #heightInput
-                                            tuiInputNumber
-                                            class="text-center h-full! border-none! p-0! route-height-input"
-                                            [ngModel]="item.height"
-                                            (blur.zoneless)="
-                                              onUpdateRouteHeight(
-                                                item._ref,
-                                                $any($event.target).value
-                                              )
-                                            "
-                                            (keydown.enter)="
-                                              onUpdateRouteHeight(
-                                                item._ref,
-                                                $any($event.target).value
-                                              );
-                                              $event.stopPropagation()
-                                            "
-                                            (keydown)="
-                                              onTableKeyDown($event, i)
-                                            "
-                                            autocomplete="off"
-                                          />
-                                          <span class="tui-textfield__suffix"
-                                            >m</span
-                                          >
-                                        </tui-textfield>
-                                      } @else {
-                                        {{
-                                          item.height ? item.height + 'm' : '-'
-                                        }}
-                                      }
-                                    </div>
-                                  }
-                                  @case ('actions') {
-                                    <div
-                                      tuiCell
-                                      size="m"
-                                      class="justify-center h-full"
-                                    >
-                                      @if (!item.climbed) {
-                                        <button
-                                          tuiIconButton
-                                          size="m"
-                                          appearance="neutral"
-                                          iconStart="@tui.circle-plus"
-                                          class="rounded-full!"
-                                          (click.zoneless)="
-                                            onLogAscent(item._ref);
-                                            $event.stopPropagation()
-                                          "
-                                        >
-                                          {{ 'ascent.new' | translate }}
-                                        </button>
-                                      } @else if (
-                                        item._ref.route.own_ascent;
-                                        as ascentToEdit
-                                      ) {
-                                        <span
-                                          tuiAvatar
-                                          class="cursor-pointer text-(--tui-text-primary-on-accent-1)!"
-                                          [style.background]="
-                                            (ascentToEdit?.type | ascentInfo)
-                                              .background
-                                          "
-                                          tabindex="0"
-                                          (click.zoneless)="
-                                            onEditAscent(
-                                              ascentToEdit,
-                                              item.name
-                                            );
-                                            $event.stopPropagation()
-                                          "
-                                          (keydown.enter)="
-                                            onEditAscent(
-                                              ascentToEdit,
-                                              item.name
-                                            );
-                                            $event.stopPropagation()
-                                          "
-                                        >
-                                          <tui-icon
-                                            [icon]="
-                                              (ascentToEdit?.type | ascentInfo)
-                                                .icon
-                                            "
-                                          />
-                                        </span>
-                                      }
-                                      @if (!item.climbed) {
-                                        <button
-                                          tuiIconButton
-                                          size="m"
-                                          [appearance]="
-                                            item.project ? 'info' : 'neutral'
-                                          "
-                                          iconStart="@tui.bookmark"
-                                          class="rounded-full!"
-                                          (click.zoneless)="
-                                            onToggleProject(item);
-                                            $event.stopPropagation()
-                                          "
-                                        >
-                                          {{ 'project' | translate }}
-                                        </button>
-                                      }
-                                    </div>
-                                  }
-                                  @case ('admin_actions') {
-                                    <div
-                                      tuiCell
-                                      size="m"
-                                      class="justify-center h-full"
-                                    >
-                                      @if (global.canEditCrag()) {
-                                        <button
-                                          tuiIconButton
-                                          size="s"
-                                          appearance="negative"
-                                          iconStart="@tui.unlink"
-                                          class="rounded-full!"
-                                          (click.zoneless)="
-                                            deleteTopoRoute(item._ref);
-                                            $event.stopPropagation()
-                                          "
-                                        >
-                                          {{ 'unlink' | translate }}
-                                        </button>
-                                      }
-                                    </div>
-                                  }
-                                }
-                              </td>
+                                </div>
+                              </th>
                             }
                           </tr>
-                        </tbody>
-                      }
-                    </table>
+                        </thead>
+                        @for (
+                          item of sortedTableData();
+                          track item._ref.topo_id + '-' + item._ref.route_id;
+                          let i = $index
+                        ) {
+                          <tbody tuiTbody>
+                            <tr
+                              #routeRow
+                              tuiTr
+                              [id]="
+                                'route-row-' +
+                                item._ref.topo_id +
+                                '-' +
+                                item._ref.route_id
+                              "
+                              [class.bg-(--tui-background-accent-1-hover)!]="
+                                item._ref.route_id === selectedRouteId()
+                              "
+                              [style.background]="
+                                item.climbed
+                                  ? (
+                                      item._ref.route.own_ascent?.type
+                                      | ascentInfo
+                                    ).backgroundSubtle
+                                  : item.project
+                                    ? 'var(--tui-status-info-pale)'
+                                    : ''
+                              "
+                              class="group cursor-pointer"
+                              (mouseenter)="
+                                hoveredRouteId.set(item._ref.route_id)
+                              "
+                              (mouseleave)="hoveredRouteId.set(null)"
+                              (click)="
+                                selectedRouteId.set(
+                                  selectedRouteId() === item._ref.route_id
+                                    ? null
+                                    : item._ref.route_id
+                                )
+                              "
+                            >
+                              @for (col of columns(); track col) {
+                                <td
+                                  *tuiCell="col"
+                                  tuiTd
+                                  [class.text-center]="col !== 'name'"
+                                >
+                                  @switch (col) {
+                                    @case ('index') {
+                                      <div
+                                        tuiCell
+                                        size="m"
+                                        class="justify-center h-full"
+                                      >
+                                        @if (global.canEditCrag()) {
+                                          <tui-textfield
+                                            tuiTextfieldSize="s"
+                                            [class.w-16!]="!isMobile"
+                                            [class.w-10!]="isMobile"
+                                            class="h-8!"
+                                          >
+                                            <input
+                                              #indexInput
+                                              tuiInputNumber
+                                              class="text-center h-full! border-none! p-0! route-index-input"
+                                              [ngModel]="item.index + 1"
+                                              (blur.zoneless)="
+                                                onUpdateRouteNumber(
+                                                  item._ref,
+                                                  $any($event.target).value
+                                                )
+                                              "
+                                              (keydown.enter)="
+                                                onUpdateRouteNumber(
+                                                  item._ref,
+                                                  $any($event.target).value
+                                                );
+                                                $event.stopPropagation()
+                                              "
+                                              (keydown)="
+                                                onTableKeyDown($event, i)
+                                              "
+                                              autocomplete="off"
+                                            />
+                                          </tui-textfield>
+                                        } @else {
+                                          {{ item.index + 1 }}
+                                        }
+                                      </div>
+                                    }
+                                    @case ('name') {
+                                      <div tuiCell size="m" class="h-full">
+                                        <a
+                                          tuiLink
+                                          [routerLink]="item.link"
+                                          class="text-left"
+                                        >
+                                          {{ item.name }}
+                                        </a>
+                                      </div>
+                                    }
+                                    @case ('grade') {
+                                      <div
+                                        tuiCell
+                                        size="m"
+                                        class="justify-center h-full"
+                                      >
+                                        <app-grade
+                                          [grade]="item.grade"
+                                          [kind]="item._ref.route.climbing_kind"
+                                        />
+                                      </div>
+                                    }
+                                    @case ('height') {
+                                      <div
+                                        tuiCell
+                                        size="m"
+                                        class="justify-center h-full"
+                                      >
+                                        @if (global.canEditCrag()) {
+                                          <tui-textfield
+                                            tuiTextfieldSize="s"
+                                            [class.w-16!]="!isMobile"
+                                            [class.w-12!]="isMobile"
+                                            class="h-8!"
+                                          >
+                                            <input
+                                              #heightInput
+                                              tuiInputNumber
+                                              class="text-center h-full! border-none! p-0! route-height-input"
+                                              [ngModel]="item.height"
+                                              (blur.zoneless)="
+                                                onUpdateRouteHeight(
+                                                  item._ref,
+                                                  $any($event.target).value
+                                                )
+                                              "
+                                              (keydown.enter)="
+                                                onUpdateRouteHeight(
+                                                  item._ref,
+                                                  $any($event.target).value
+                                                );
+                                                $event.stopPropagation()
+                                              "
+                                              (keydown)="
+                                                onTableKeyDown($event, i)
+                                              "
+                                              autocomplete="off"
+                                            />
+                                            <span class="tui-textfield__suffix"
+                                              >m</span
+                                            >
+                                          </tui-textfield>
+                                        } @else {
+                                          {{
+                                            item.height
+                                              ? item.height + 'm'
+                                              : '-'
+                                          }}
+                                        }
+                                      </div>
+                                    }
+                                    @case ('actions') {
+                                      <div
+                                        tuiCell
+                                        size="m"
+                                        class="justify-center h-full"
+                                      >
+                                        @if (!item.climbed) {
+                                          <button
+                                            tuiIconButton
+                                            size="m"
+                                            appearance="neutral"
+                                            iconStart="@tui.circle-plus"
+                                            class="rounded-full!"
+                                            (click.zoneless)="
+                                              onLogAscent(item._ref);
+                                              $event.stopPropagation()
+                                            "
+                                          >
+                                            {{ 'ascent.new' | translate }}
+                                          </button>
+                                        } @else if (
+                                          item._ref.route.own_ascent;
+                                          as ascentToEdit
+                                        ) {
+                                          <span
+                                            tuiAvatar
+                                            class="cursor-pointer text-(--tui-text-primary-on-accent-1)!"
+                                            [style.background]="
+                                              (ascentToEdit?.type | ascentInfo)
+                                                .background
+                                            "
+                                            tabindex="0"
+                                            (click.zoneless)="
+                                              onEditAscent(
+                                                ascentToEdit,
+                                                item.name
+                                              );
+                                              $event.stopPropagation()
+                                            "
+                                            (keydown.enter)="
+                                              onEditAscent(
+                                                ascentToEdit,
+                                                item.name
+                                              );
+                                              $event.stopPropagation()
+                                            "
+                                          >
+                                            <tui-icon
+                                              [icon]="
+                                                (
+                                                  ascentToEdit?.type
+                                                  | ascentInfo
+                                                ).icon
+                                              "
+                                            />
+                                          </span>
+                                        }
+                                        @if (!item.climbed) {
+                                          <button
+                                            tuiIconButton
+                                            size="m"
+                                            [appearance]="
+                                              item.project ? 'info' : 'neutral'
+                                            "
+                                            iconStart="@tui.bookmark"
+                                            class="rounded-full!"
+                                            (click.zoneless)="
+                                              onToggleProject(item);
+                                              $event.stopPropagation()
+                                            "
+                                          >
+                                            {{ 'project' | translate }}
+                                          </button>
+                                        }
+                                      </div>
+                                    }
+                                    @case ('admin_actions') {
+                                      <div
+                                        tuiCell
+                                        size="m"
+                                        class="justify-center h-full"
+                                      >
+                                        @if (global.canEditCrag()) {
+                                          <button
+                                            tuiIconButton
+                                            size="s"
+                                            appearance="negative"
+                                            iconStart="@tui.unlink"
+                                            class="rounded-full!"
+                                            (click.zoneless)="
+                                              deleteTopoRoute(item._ref);
+                                              $event.stopPropagation()
+                                            "
+                                          >
+                                            {{ 'unlink' | translate }}
+                                          </button>
+                                        }
+                                      </div>
+                                    }
+                                  }
+                                </td>
+                              }
+                            </tr>
+                          </tbody>
+                        }
+                      </table>
+                    } @else {
+                      <app-empty-state icon="@tui.route" />
+                    }
                   } @else {
-                    <app-empty-state icon="@tui.route" />
+                    <div class="flex h-full items-center justify-center p-4">
+                      <app-paywall
+                        [areaId]="t.crag?.area?.id || 0"
+                        [price]="t.crag?.area?.price || 0"
+                        [hideTitle]="true"
+                      />
+                    </div>
                   }
-                } @else {
-                  <div class="flex h-full items-center justify-center p-4">
-                    <app-paywall
-                      [areaId]="t.crag?.area?.id || 0"
-                      [price]="t.crag?.area?.price || 0"
-                      [hideTitle]="true"
-                    />
-                  </div>
-                }
-              </tui-scrollbar>
+                </tui-scrollbar>
+              </div>
             </div>
-          </div>
+          }
         } @else {
           <div class="flex items-center justify-center h-full">
             <tui-loader size="xxl" />
@@ -1245,6 +1281,26 @@ export class TopoComponent {
     params: () => {
       const t = this.topo();
       if (!t?.photo) return null;
+
+      const area = t.crag?.area;
+      const isSecret =
+        area && !area.is_public && (area.price === null || area.price === 0);
+      const isPublic = area?.is_public;
+      const purchased = area?.purchased;
+      const isCreator =
+        t.crag?.user_creator_id === this.global.userProfile()?.id;
+      const canEditAsAdmin = this.global.canEditAsAdmin();
+      const crag = this.crag();
+      const canAreaAdmin = crag
+        ? this.global.areaAdminPermissions()[crag.area_id || -1]
+        : false;
+
+      const hasAccess =
+        isPublic || purchased || canEditAsAdmin || canAreaAdmin || isCreator;
+      if (isSecret && !hasAccess) {
+        return null;
+      }
+
       return { path: t.photo, version: this.global.topoPhotoVersion() };
     },
     loader: async ({ params }) => {

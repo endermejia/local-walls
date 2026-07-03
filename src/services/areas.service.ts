@@ -22,6 +22,7 @@ import { ToastService } from './toast.service';
 
 import { AreaFormComponent } from '../components/forms/area-form';
 import { AreaUnifyComponent } from '../components/forms/area-unify';
+import { AreaAccessManagerDialogComponent } from '../components/dialogs/area-access-manager-dialog';
 
 import { ClimbingKinds, LABEL_TO_VERTICAL_LIFE } from '../models';
 import type {
@@ -96,6 +97,23 @@ export class AreasService {
         }
       }
     });
+  }
+
+  openAreaAccessManager(areaId: number, areaName: string): Promise<boolean> {
+    return firstValueFrom(
+      this.dialogs.open<boolean>(
+        new PolymorpheusComponent(AreaAccessManagerDialogComponent),
+        {
+          label: this.translate.instant('areas.accessManagerTitle', {
+            name: areaName,
+          }),
+          size: 'm',
+          data: { areaId, areaName },
+          dismissible: true,
+        },
+      ),
+      { defaultValue: false },
+    );
   }
 
   openUnifyAreas(areas?: AreaDto[] | AreaListItem[]): Promise<boolean> {

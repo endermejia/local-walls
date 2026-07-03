@@ -13,6 +13,9 @@ export interface AreaListItem extends Omit<
 > {
   grades: AmountByEveryGrade;
   topos_count: number;
+  is_public?: boolean | null;
+  price?: number | null;
+  purchased?: boolean;
 }
 
 // Area Likes

@@ -1276,13 +1276,26 @@ export class GlobalData {
   readonly cragRoutesResource = resource({
     params: () => {
       const crag = this.cragDetail();
+      const hasAccess = crag
+        ? crag.is_public ||
+          crag.purchased ||
+          this.canEditAsAdmin() ||
+          this.areaAdminPermissions()[crag.area_id]
+        : false;
       return {
         cragId: crag?.id,
         cragSlug: crag?.slug,
         areaSlug: crag?.area_slug,
+        filterTopos: crag
+          ? !crag.is_public &&
+            (crag.price === null || crag.price === 0) &&
+            !hasAccess
+          : false,
       };
     },
-    loader: async ({ params: { cragId } }): Promise<RouteWithExtras[]> => {
+    loader: async ({
+      params: { cragId, filterTopos },
+    }): Promise<RouteWithExtras[]> => {
       if (!cragId) return [];
       if (!isPlatformBrowser(this.platformId)) return [];
       try {
@@ -1363,10 +1376,11 @@ export class GlobalData {
                   if (!isAttemptA && isAttemptB) return -1;
                   return 0;
                 })[0],
-                topos:
-                  r.topo_routes
-                    ?.map((tr: { topo: unknown }) => tr.topo)
-                    .filter((t: unknown) => !!t) || [],
+                topos: filterTopos
+                  ? []
+                  : r.topo_routes
+                      ?.map((tr: { topo: unknown }) => tr.topo)
+                      .filter((t: unknown) => !!t) || [],
                 equippers:
                   r.route_equippers
                     ?.map((re: { equipper: unknown }) => re.equipper)
