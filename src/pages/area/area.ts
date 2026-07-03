@@ -121,6 +121,19 @@ import { handleErrorToast, matchesQuery } from '../../utils';
             >
               @if (global.canEditArea()) {
                 <div actionButtons class="flex gap-2">
+                  @if (!isPublic()) {
+                    <button
+                      size="s"
+                      appearance="neutral"
+                      iconStart="@tui.users"
+                      tuiButton
+                      type="button"
+                      class="rounded-full!"
+                      (click.zoneless)="openAccessManager()"
+                    >
+                      {{ 'areas.manageAccess' | translate }}
+                    </button>
+                  }
                   <button
                     size="s"
                     appearance="neutral"
@@ -205,25 +218,38 @@ import { handleErrorToast, matchesQuery } from '../../utils';
                     {{ 'topos' | translate }}
                   </button>
                 } @else if (!areaDetailResource.isLoading()) {
-                  <div class="flex flex-col gap-2">
-                    <button
-                      tuiButton
-                      appearance="accent"
-                      size="m"
-                      type="button"
-                      (click.zoneless)="buyTopo()"
-                      [iconStart]="'@tui.hand-heart'"
+                  @let isSecret =
+                    details &&
+                    !details.is_public &&
+                    (details.price === null || details.price === 0);
+                  @if (!isSecret) {
+                    <div class="flex flex-col gap-2">
+                      <button
+                        tuiButton
+                        appearance="accent"
+                        size="m"
+                        type="button"
+                        (click.zoneless)="buyTopo()"
+                        [iconStart]="'@tui.hand-heart'"
+                      >
+                        {{ 'payments.getTopos' | translate }}
+                      </button>
+                      <a
+                        routerLink="/merchandising"
+                        fragment="packs"
+                        class="text-[10px] opacity-60 hover:opacity-100 hover:text-indigo-400 text-center no-underline transition-all font-bold uppercase tracking-wider"
+                      >
+                        {{ 'merchandising.packs.subtitle' | translate }}
+                      </a>
+                    </div>
+                  } @else {
+                    <div
+                      class="flex items-center gap-1.5 opacity-60 text-xs py-2"
                     >
-                      {{ 'payments.getTopos' | translate }}
-                    </button>
-                    <a
-                      routerLink="/merchandising"
-                      fragment="packs"
-                      class="text-[10px] opacity-60 hover:opacity-100 hover:text-indigo-400 text-center no-underline transition-all font-bold uppercase tracking-wider"
-                    >
-                      {{ 'merchandising.packs.subtitle' | translate }}
-                    </a>
-                  </div>
+                      <tui-icon icon="@tui.lock" />
+                      <span>{{ 'topos.secretText' | translate }}</span>
+                    </div>
+                  }
                 }
               }
             </div>
@@ -832,8 +858,7 @@ export class AreaComponent {
     try {
       await this.areas.delete(area.id);
       await this.router.navigateByUrl('/area');
-    } catch (e) {
-      const error = e as Error;
+    } catch (error) {
       console.error('[AreaComponent] Error deleting area:', error);
       handleErrorToast(error, this.toast);
     }
@@ -845,6 +870,12 @@ export class AreaComponent {
     this.areas.openAreaForm({
       areaData: { id: area.id, name: area.name, slug: area.slug },
     });
+  }
+
+  openAccessManager(): void {
+    const area = this.global.selectedArea();
+    if (!area) return;
+    this.areas.openAreaAccessManager(area.id, area.name);
   }
 
   openCreateCrag(): void {

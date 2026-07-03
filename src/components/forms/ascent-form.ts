@@ -126,7 +126,7 @@ import { handleErrorToast } from '../../utils';
           <div class="flex flex-wrap gap-2">
             <button
               tuiButton
-              appearance="secondary"
+              [appearance]="isYesterdaySelected() ? 'primary' : 'secondary'"
               size="s"
               type="button"
               (click)="quickDate('yesterday')"
@@ -135,7 +135,7 @@ import { handleErrorToast } from '../../utils';
             </button>
             <button
               tuiButton
-              appearance="secondary"
+              [appearance]="isLastSaturdaySelected() ? 'primary' : 'secondary'"
               size="s"
               type="button"
               (click)="quickDate('lastSaturday')"
@@ -144,7 +144,7 @@ import { handleErrorToast } from '../../utils';
             </button>
             <button
               tuiButton
-              appearance="secondary"
+              [appearance]="isLastSundaySelected() ? 'primary' : 'secondary'"
               size="s"
               type="button"
               (click)="quickDate('lastSunday')"
@@ -1005,7 +1005,9 @@ export default class AscentFormComponent {
     }
   }
 
-  protected quickDate(mode: 'yesterday' | 'lastSaturday' | 'lastSunday'): void {
+  private getQuickDate(
+    mode: 'yesterday' | 'lastSaturday' | 'lastSunday',
+  ): TuiDay {
     const d = new Date();
     if (mode === 'yesterday') {
       d.setDate(d.getDate() - 1);
@@ -1017,9 +1019,38 @@ export default class AscentFormComponent {
       const day = d.getDay();
       d.setDate(d.getDate() - day);
     }
+    return new TuiDay(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  protected readonly yesterdayDate = this.getQuickDate('yesterday');
+  protected readonly lastSaturdayDate = this.getQuickDate('lastSaturday');
+  protected readonly lastSundayDate = this.getQuickDate('lastSunday');
+
+  private isSameDay(day1: TuiDay | null | undefined, day2: TuiDay): boolean {
+    return (
+      !!day1 &&
+      day1.year === day2.year &&
+      day1.month === day2.month &&
+      day1.day === day2.day
+    );
+  }
+
+  protected readonly isYesterdaySelected = computed(() =>
+    this.isSameDay(this.model().date, this.yesterdayDate),
+  );
+
+  protected readonly isLastSaturdaySelected = computed(() =>
+    this.isSameDay(this.model().date, this.lastSaturdayDate),
+  );
+
+  protected readonly isLastSundaySelected = computed(() =>
+    this.isSameDay(this.model().date, this.lastSundayDate),
+  );
+
+  protected quickDate(mode: 'yesterday' | 'lastSaturday' | 'lastSunday'): void {
     this.model.update((m) => ({
       ...m,
-      date: new TuiDay(d.getFullYear(), d.getMonth(), d.getDate()),
+      date: this.getQuickDate(mode),
     }));
   }
 
@@ -1065,8 +1096,7 @@ export default class AscentFormComponent {
         if (savedAscent && photoFile) {
           await this.ascents.uploadPhoto(savedAscent.id, photoFile);
         }
-      } catch (e) {
-        const error = e as Error;
+      } catch (error) {
         handleErrorToast(error, this.toast);
       } finally {
         this._dialogCtx?.completeWith(true);
@@ -1185,8 +1215,7 @@ export default class AscentFormComponent {
 
     try {
       await this.ascents.delete(data.id);
-    } catch (e) {
-      const error = e as Error;
+    } catch (error) {
       handleErrorToast(error, this.toast);
     } finally {
       this._dialogCtx?.completeWith(true);

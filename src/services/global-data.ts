@@ -778,21 +778,30 @@ export class GlobalData {
     if (val !== undefined) return val;
     const userId = this.supabase.authUserId();
     if (!userId) return [];
-    return this.getCachedData<any[]>(`cached_liked_areas_${userId}_v2`, []);
+    return this.getCachedData<AreaListItem[]>(
+      `cached_liked_areas_${userId}_v2`,
+      [],
+    );
   });
   readonly likedCrags = computed(() => {
     const val = this.likedCragsResource.value();
     if (val !== undefined) return val;
     const userId = this.supabase.authUserId();
     if (!userId) return [];
-    return this.getCachedData<any[]>(`cached_liked_crags_${userId}_v2`, []);
+    return this.getCachedData<CragListItem[]>(
+      `cached_liked_crags_${userId}_v2`,
+      [],
+    );
   });
   readonly likedRoutes = computed(() => {
     const val = this.likedRoutesResource.value();
     if (val !== undefined) return val;
     const userId = this.supabase.authUserId();
     if (!userId) return [];
-    return this.getCachedData<any[]>(`cached_liked_routes_${userId}_v2`, []);
+    return this.getCachedData<RouteWithExtras[]>(
+      `cached_liked_routes_${userId}_v2`,
+      [],
+    );
   });
 
   readonly likedAreaIds = computed(() =>
@@ -1347,13 +1356,26 @@ export class GlobalData {
   readonly cragRoutesResource = resource({
     params: () => {
       const crag = this.cragDetail();
+      const hasAccess = crag
+        ? crag.is_public ||
+          crag.purchased ||
+          this.canEditAsAdmin() ||
+          this.areaAdminPermissions()[crag.area_id]
+        : false;
       return {
         cragId: crag?.id,
         cragSlug: crag?.slug,
         areaSlug: crag?.area_slug,
+        filterTopos: crag
+          ? !crag.is_public &&
+            (crag.price === null || crag.price === 0) &&
+            !hasAccess
+          : false,
       };
     },
-    loader: async ({ params: { cragId } }): Promise<RouteWithExtras[]> => {
+    loader: async ({
+      params: { cragId, filterTopos },
+    }): Promise<RouteWithExtras[]> => {
       if (!cragId) return [];
       if (!isPlatformBrowser(this.platformId)) return [];
       try {
@@ -1434,10 +1456,11 @@ export class GlobalData {
                   if (!isAttemptA && isAttemptB) return -1;
                   return 0;
                 })[0],
-                topos:
-                  r.topo_routes
-                    ?.map((tr: { topo: unknown }) => tr.topo)
-                    .filter((t: unknown) => !!t) || [],
+                topos: filterTopos
+                  ? []
+                  : r.topo_routes
+                      ?.map((tr: { topo: unknown }) => tr.topo)
+                      .filter((t: unknown) => !!t) || [],
                 equippers:
                   r.route_equippers
                     ?.map((re: { equipper: unknown }) => re.equipper)

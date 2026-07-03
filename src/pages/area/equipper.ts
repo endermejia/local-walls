@@ -8,9 +8,10 @@ import {
   input,
   untracked,
 } from '@angular/core';
+import { LowerCasePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 
-import { TuiButton, TuiScrollbar } from '@taiga-ui/core';
+import { TuiLink, TuiScrollbar } from '@taiga-ui/core';
 import { TUI_COUNTRIES, TuiSkeleton } from '@taiga-ui/kit';
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -25,10 +26,11 @@ import { UserInfoComponent } from '../../components/ui/user-info';
   selector: 'app-equipper',
   standalone: true,
   imports: [
+    LowerCasePipe,
     RouterLink,
     RoutesTableComponent,
     TranslatePipe,
-    TuiButton,
+    TuiLink,
     TuiScrollbar,
     TuiSkeleton,
     UserInfoComponent,
@@ -51,23 +53,23 @@ import { UserInfoComponent } from '../../components/ui/user-info';
           [bio]="equipper?.description || profile?.bio"
           defaultIcon="@tui.hammer"
         >
-          @if (profile?.id; as id) {
-            <button
-              tuiButton
-              type="button"
-              size="s"
-              appearance="flat"
-              [routerLink]="['/profile', id]"
-              nameActions
-            >
-              {{ 'nav.profile' | translate }}
-            </button>
-          }
+          <div class="flex flex-wrap gap-x-4 gap-y-2 mt-2" extraInfo>
+            @if (profile?.id; as id) {
+              <a
+                tuiLink
+                [tuiSkeleton]="loading"
+                [routerLink]="['/profile', id]"
+              >
+                {{ 'nav.viewProfile' | translate }}
+              </a>
+            }
+          </div>
         </app-user-info>
 
         <div class="mt-4">
           <h2 class="text-xl font-semibold mb-2" [tuiSkeleton]="loading">
-            {{ 'routes' | translate }}
+            {{ global.equipperRoutesResource.value()?.length || 0 }}
+            {{ 'routes' | translate | lowercase }}
           </h2>
 
           <app-routes-table

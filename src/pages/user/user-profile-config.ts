@@ -259,7 +259,7 @@ interface Country {
                 [tuiSkeleton]="!userEmail()"
               />
             </tui-textfield>
-            <tui-error [error]="getFieldError('name')" />
+            <tui-error [error]="fullNameError()" />
             @if (
               tourService.isActive() && tourService.step() === TourStep.WELCOME
             ) {
@@ -311,7 +311,7 @@ interface Country {
               [tuiSkeleton]="!userEmail()"
             ></textarea>
           </tui-textfield>
-          <tui-error [error]="getFieldError('bio')" />
+          <tui-error [error]="bioError()" />
         </div>
         <!-- 8a.nu User -->
         <!-- Temporarily hidden
@@ -423,7 +423,7 @@ interface Country {
                 {{ countryDictionary()[item] || item }}
               </ng-template>
             </tui-textfield>
-            <tui-error [error]="getFieldError('country')" />
+            <tui-error [error]="countryError()" />
           </div>
           <!-- City -->
           <div>
@@ -445,7 +445,7 @@ interface Country {
                 [tuiSkeleton]="!userEmail()"
               />
             </tui-textfield>
-            <tui-error [error]="getFieldError('city')" />
+            <tui-error [error]="cityError()" />
           </div>
         </div>
         <!-- Birth Date & Starting Climbing Year -->
@@ -476,7 +476,7 @@ interface Country {
               />
               <tui-calendar *tuiDropdown />
             </tui-textfield>
-            <tui-error [error]="getFieldError('birth_date')" />
+            <tui-error [error]="birthDateError()" />
           </div>
           <!-- Starting Climbing Year -->
           <div class="grid gap-2">
@@ -511,7 +511,7 @@ interface Country {
                 "
               />
             </tui-textfield>
-            <tui-error [error]="getFieldError('starting_climbing_year')" />
+            <tui-error [error]="startingClimbingYearError()" />
           </div>
         </div>
         <!-- Size & Sex -->
@@ -538,7 +538,7 @@ interface Country {
               />
               <span class="tui-textfield__suffix">cm</span>
             </tui-textfield>
-            <tui-error [error]="getFieldError('size')" />
+            <tui-error [error]="sizeError()" />
           </div>
           <!-- Sex -->
           <div>
@@ -564,7 +564,7 @@ interface Country {
               />
               <tui-data-list-wrapper *tuiDropdown new [items]="sexes" />
             </tui-textfield>
-            <tui-error [error]="getFieldError('sex')" />
+            <tui-error [error]="sexError()" />
           </div>
         </div>
 
@@ -603,7 +603,7 @@ interface Country {
               />
               <tui-data-list-wrapper *tuiDropdown new [items]="languages()" />
             </tui-textfield>
-            <tui-error [error]="getFieldError('language')" />
+            <tui-error [error]="languageError()" />
 
             <!-- Theme -->
             <tui-segmented
@@ -912,7 +912,7 @@ interface Country {
             placeholder="email@example.com"
           />
         </tui-textfield>
-        <tui-error [error]="getFieldError('deleteEmail')" />
+        <tui-error [error]="deleteEmailError()" />
 
         <div class="flex justify-end gap-2">
           <button
@@ -1070,6 +1070,29 @@ export class UserProfileConfigComponent {
 
     required(schemaPath.deleteEmail, { message: 'errors.required' });
   });
+
+  protected readonly fullNameError = computed(() =>
+    this.getFieldError('fullName'),
+  );
+  protected readonly bioError = computed(() => this.getFieldError('bio'));
+  protected readonly countryError = computed(() =>
+    this.getFieldError('country'),
+  );
+  protected readonly cityError = computed(() => this.getFieldError('city'));
+  protected readonly birthDateError = computed(() =>
+    this.getFieldError('birth_date'),
+  );
+  protected readonly startingClimbingYearError = computed(() =>
+    this.getFieldError('starting_climbing_year'),
+  );
+  protected readonly sizeError = computed(() => this.getFieldError('size'));
+  protected readonly sexError = computed(() => this.getFieldError('sex'));
+  protected readonly languageError = computed(() =>
+    this.getFieldError('language'),
+  );
+  protected readonly deleteEmailError = computed(() =>
+    this.getFieldError('deleteEmail'),
+  );
 
   // Validation helpers and bounds
   readonly today: TuiDay = TuiDay.currentLocal();

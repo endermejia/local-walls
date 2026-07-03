@@ -662,8 +662,7 @@ export class RouteFormComponent {
             this._dialogCtx.completeWith(result.slug || true);
           }
         }
-      } catch (e) {
-        const error = e as Error;
+      } catch (error) {
         console.error('[RouteFormComponent] Error submitting route:', error);
         handleErrorToast(error, this.toast);
       }

@@ -12,6 +12,7 @@ import {
   PLATFORM_ID,
   resource,
   signal,
+  untracked,
 } from '@angular/core';
 
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -88,7 +89,7 @@ import { UserInfoComponent } from '../../components/ui/user-info';
       <section
         (tuiSwipe)="onSwipe($event)"
         (touchstart.zoneless)="lastTouchTarget = $event.target"
-        class="w-full max-w-5xl mx-auto p-4 grid gap-4"
+        class="w-full max-w-7xl mx-auto p-4 grid gap-4"
       >
         @let loading = !profile();
         <app-user-info
@@ -101,24 +102,13 @@ import { UserInfoComponent } from '../../components/ui/user-info';
           [startingClimbingYear]="profile()?.starting_climbing_year"
           [bio]="profile()?.bio"
           [avatarClickable]="true"
+          [hasActions]="!isOwnProfile()"
           (avatarClick)="showEnlargedPhoto()"
         >
           @if (
             tourService.isActive() && tourService.step() === TourStep.PROFILE
           ) {
             <tui-pulse badge />
-          }
-          @if (equipperResource.value(); as equipper) {
-            <a
-              tuiIconButton
-              appearance="action"
-              size="s"
-              iconStart="@tui.hammer"
-              [routerLink]="['/equipper', equipper.id]"
-              class="rounded-full!"
-              nameActions
-            >
-            </a>
           }
 
           @if (isOwnProfile()) {
@@ -180,7 +170,7 @@ import { UserInfoComponent } from '../../components/ui/user-info';
             </ng-container>
           }
 
-          <div class="flex gap-4 mt-2" extraInfo>
+          <div class="flex flex-wrap gap-x-4 gap-y-2 mt-2" extraInfo>
             <button
               tuiLink
               type="button"
@@ -199,6 +189,16 @@ import { UserInfoComponent } from '../../components/ui/user-info';
               <strong>{{ followingCount() }}</strong>
               {{ 'following' | translate | lowercase }}
             </button>
+            @if (equipperResource.value(); as equipper) {
+              <a
+                tuiLink
+                [tuiSkeleton]="loading"
+                [routerLink]="['/equipper', equipper.id]"
+              >
+                <strong>{{ equipper.routesCount }}</strong>
+                {{ 'equippedRoutes' | translate | lowercase }}
+              </a>
+            }
           </div>
 
           <div class="flex gap-2" actions>
@@ -267,84 +267,62 @@ import { UserInfoComponent } from '../../components/ui/user-info';
         </app-user-info>
 
         @if (isOwnProfile() || !profile()?.private || isFollowing()) {
-          <tui-tabs
-            [activeItemIndex]="activeTab()"
-            (activeItemIndexChange)="activeTab.set($event)"
-            class="w-full"
-            [tuiDropdown]="tourHint"
-            [tuiDropdownManual]="
-              tourService.isActive() &&
-              (tourService.step() === TourStep.PROFILE ||
-                tourService.step() === TourStep.PROFILE_PROJECTS ||
-                tourService.step() === TourStep.PROFILE_STATISTICS ||
-                tourService.step() === TourStep.PROFILE_LIKES)
-            "
-            tuiDropdownDirection="top"
-          >
-            <button tuiTab class="relative">
-              @if (
+          @if (visibleTabs().length > 0) {
+            <tui-tabs
+              [activeItemIndex]="activeTab()"
+              (activeItemIndexChange)="activeTab.set($event)"
+              class="w-full"
+              [tuiDropdown]="tourHint"
+              [tuiDropdownManual]="
                 tourService.isActive() &&
-                tourService.step() === TourStep.PROFILE
-              ) {
-                <tui-pulse />
+                (tourService.step() === TourStep.PROFILE ||
+                  tourService.step() === TourStep.PROFILE_PROJECTS ||
+                  tourService.step() === TourStep.PROFILE_STATISTICS ||
+                  tourService.step() === TourStep.PROFILE_LIKES)
+              "
+              tuiDropdownDirection="top"
+            >
+              @for (tab of visibleTabs(); track tab) {
+                <button tuiTab class="relative">
+                  @if (tabPulseStates()[tab]) {
+                    <tui-pulse />
+                  }
+                  {{ tab | translate }}
+                </button>
               }
-              {{ 'ascents' | translate }}
-            </button>
-            <button tuiTab class="relative">
-              @if (
-                tourService.isActive() &&
-                tourService.step() === TourStep.PROFILE_PROJECTS
-              ) {
-                <tui-pulse />
+            </tui-tabs>
+
+            @switch (visibleTabs()[activeTab()]) {
+              @case ('ascents') {
+                <app-user-profile-ascents
+                  [userId]="profile()?.id || id() || ''"
+                  [isOwnProfile]="isOwnProfile()"
+                  [profile]="profile()"
+                />
               }
-              {{ 'projects' | translate }}
-            </button>
-            <button tuiTab class="relative">
-              @if (
-                tourService.isActive() &&
-                tourService.step() === TourStep.PROFILE_STATISTICS
-              ) {
-                <tui-pulse />
+
+              @case ('projects') {
+                <app-user-profile-projects
+                  [userId]="profile()?.id || id() || ''"
+                  [startingYear]="profile()?.starting_climbing_year"
+                />
               }
-              {{ 'statistics' | translate }}
-            </button>
-            @if (isOwnProfile()) {
-              <button tuiTab class="relative">
-                @if (
-                  tourService.isActive() &&
-                  tourService.step() === TourStep.PROFILE_LIKES
-                ) {
-                  <tui-pulse />
-                }
-                {{ 'likes' | translate }}
-              </button>
-            }
-          </tui-tabs>
 
-          @switch (activeTab()) {
-            @case (0) {
-              <app-user-profile-ascents
-                [userId]="profile()?.id || id() || ''"
-                [isOwnProfile]="isOwnProfile()"
-                [profile]="profile()"
-              />
+              @case ('statistics') {
+                <app-user-profile-statistics
+                  [userId]="id() || supabase.authUserId() || ''"
+                />
+              }
+              @case ('likes') {
+                <app-user-profile-likes
+                  [userId]="profile()?.id || id() || ''"
+                />
+              }
             }
-
-            @case (1) {
-              <app-user-profile-projects
-                [userId]="profile()?.id || id() || ''"
-                [startingYear]="profile()?.starting_climbing_year"
-              />
-            }
-
-            @case (2) {
-              <app-user-profile-statistics
-                [userId]="id() || supabase.authUserId() || ''"
-              />
-            }
-            @case (3) {
-              <app-user-profile-likes [userId]="profile()?.id || id() || ''" />
-            }
+          } @else {
+            <div class="mt-8 flex flex-col items-center gap-3">
+              <app-empty-state icon="@tui.list" />
+            </div>
           }
         } @else {
           <div class="mt-8">
@@ -438,17 +416,31 @@ export class UserProfileComponent {
     params: () => this.profile()?.id,
     loader: async ({ params: userId }) => {
       if (!userId || !isPlatformBrowser(this.platformId)) return null;
-      const { data, error } = await this.supabase.client
+      const { data: equipper, error } = await this.supabase.client
         .from('equippers')
         .select('id')
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (error) {
-        console.error('[UserProfile] equipperResource error', error);
+      if (error || !equipper) {
+        if (error) {
+          console.error('[UserProfile] equipperResource error', error);
+        }
         return null;
       }
-      return data;
+
+      // Query count of routes from route_equippers
+      const { count, error: countError } = await this.supabase.client
+        .from('route_equippers')
+        .select('*', { count: 'exact', head: true })
+        .eq('equipper_id', equipper.id);
+
+      if (countError) {
+        console.error('[UserProfile] equipper routes count error', countError);
+        return { id: equipper.id, routesCount: 0 };
+      }
+
+      return { id: equipper.id, routesCount: count ?? 0 };
     },
   });
 
@@ -504,6 +496,70 @@ export class UserProfileComponent {
         blockAscents: false,
       },
   );
+
+  readonly hasProjectsDataResource = resource({
+    params: () => this.profile()?.id,
+    loader: async ({ params: userId }) => {
+      if (!userId || !isPlatformBrowser(this.platformId)) return false;
+      await this.supabase.whenReady();
+
+      const { count: pyramidCount } = await this.supabase.client
+        .from('user_pyramid_slots')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .limit(1);
+
+      if (pyramidCount && pyramidCount > 0) return true;
+
+      const { count: projectCount } = await this.supabase.client
+        .from('route_projects')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .limit(1);
+
+      return (projectCount && projectCount > 0) || false;
+    },
+  });
+
+  readonly hasProjects = computed(() => {
+    if (this.isOwnProfile()) return true;
+    const value = this.hasProjectsDataResource.value();
+    return value === undefined || value !== false;
+  });
+
+  readonly hasAscents = computed(() => {
+    if (this.isOwnProfile()) return true;
+    const count = this.global.userTotalAscentsCountResource.value();
+    return count === undefined || count !== 0;
+  });
+
+  readonly visibleTabs = computed(() => {
+    const tabs = [];
+    if (this.hasAscents()) {
+      tabs.push('ascents');
+    }
+    if (this.hasProjects()) {
+      tabs.push('projects');
+    }
+    if (this.hasAscents()) {
+      tabs.push('statistics');
+    }
+    if (this.isOwnProfile()) {
+      tabs.push('likes');
+    }
+    return tabs;
+  });
+
+  readonly tabPulseStates = computed(() => {
+    const step = this.tourService.step();
+    const isActive = this.tourService.isActive();
+    return {
+      ascents: isActive && step === TourStep.PROFILE,
+      projects: isActive && step === TourStep.PROFILE_PROJECTS,
+      statistics: isActive && step === TourStep.PROFILE_STATISTICS,
+      likes: isActive && step === TourStep.PROFILE_LIKES,
+    } as Record<string, boolean>;
+  });
 
   readonly profileAvatarSrc = computed(() =>
     this.supabase.buildAvatarUrl(this.profile()?.avatar),
@@ -570,26 +626,28 @@ export class UserProfileComponent {
       if (!this.tourService.isActive()) return;
 
       const step = this.tourService.step();
+      const tabs = untracked(() => this.visibleTabs());
+      let targetIndex = -1;
       if (step === TourStep.PROFILE) {
-        this.activeTab.set(0);
+        targetIndex = tabs.indexOf('ascents');
       } else if (step === TourStep.PROFILE_PROJECTS) {
-        this.activeTab.set(1);
+        targetIndex = tabs.indexOf('projects');
       } else if (step === TourStep.PROFILE_STATISTICS) {
-        this.activeTab.set(2);
+        targetIndex = tabs.indexOf('statistics');
       } else if (step === TourStep.PROFILE_LIKES) {
-        if (this.isOwnProfile()) {
-          this.activeTab.set(3);
-        } else {
-          this.activeTab.set(2); // If not own profile, stay on stats
-        }
+        targetIndex = tabs.indexOf('likes');
+      }
+      if (targetIndex !== -1) {
+        untracked(() => this.activeTab.set(targetIndex));
       }
     });
 
-    // Guard for activeTab index when switching between own profile and others
+    // Guard for activeTab index when visibleTabs change
     effect(() => {
-      const isOwn = this.isOwnProfile();
-      if (!isOwn && this.activeTab() > 2) {
-        this.activeTab.set(0);
+      const tabs = this.visibleTabs();
+      const currentTab = untracked(() => this.activeTab());
+      if (currentTab >= tabs.length) {
+        untracked(() => this.activeTab.set(0));
       }
     });
 
@@ -633,7 +691,7 @@ export class UserProfileComponent {
 
     const direction = event.direction;
     const currentIndex = this.activeTab();
-    const maxIndex = this.isOwnProfile() ? 3 : 2;
+    const maxIndex = this.visibleTabs().length - 1;
     if (direction === 'left' && currentIndex < maxIndex) {
       this.activeTab.set(currentIndex + 1);
     } else if (direction === 'right' && currentIndex > 0) {

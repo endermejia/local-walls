@@ -352,7 +352,7 @@ export class AdminEquippersListComponent {
       this.equippers.set(data || []);
     } catch (e) {
       console.error('[AdminEquippersList] Error loading equippers:', e);
-      handleErrorToast(e as Error, this.toast);
+      handleErrorToast(e, this.toast);
     } finally {
       this.loading.set(false);
     }
@@ -371,7 +371,7 @@ export class AdminEquippersListComponent {
         this.equippers.update((list) => [...list, data as EquipperDto]);
       }
     } catch (e) {
-      handleErrorToast(e as Error, this.toast);
+      handleErrorToast(e, this.toast);
     }
   }
 
@@ -404,7 +404,7 @@ export class AdminEquippersListComponent {
 
       if (error) throw error;
     } catch (e) {
-      handleErrorToast(e as Error, this.toast);
+      handleErrorToast(e, this.toast);
       // Revert to previous state
       this.equippers.set(previousList);
       // Force a second update with a new reference to ensure Angular detects the change
@@ -447,7 +447,7 @@ export class AdminEquippersListComponent {
       if (error) throw error;
       this.equippers.update((list) => list.filter((e) => e.id !== id));
     } catch (e) {
-      handleErrorToast(e as Error, this.toast);
+      handleErrorToast(e, this.toast);
     }
   }
 }

@@ -15,6 +15,7 @@ import {
   fileToDataUrl,
   NewPhoto,
   reorderGallery,
+  extractErrorMessage,
 } from '../../utils';
 
 import { injectContext, PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -559,10 +560,10 @@ export class AdminMerchandiseDialogComponent {
           this.translate.instant('merchandising.items.saveError'),
         );
       }
-    } catch (e) {
-      const error = e as Error;
+    } catch (error) {
       this.toast.error(
-        error.message || this.translate.instant('errors.unexpected'),
+        extractErrorMessage(error) ||
+          this.translate.instant('errors.unexpected'),
       );
     } finally {
       this.isSaving.set(false);

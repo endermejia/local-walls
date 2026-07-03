@@ -15,12 +15,9 @@ import { LocalStorage } from '../../services/local-storage';
     <div class="flex flex-col gap-4">
       <div class="max-h-[40vh] flex flex-col">
         <tui-scrollbar class="h-full">
-          <div
-            class="text-sm leading-relaxed"
-            [innerHTML]="
-              (showFull() ? 'gdpr.fullPolicy' : 'gdpr.message') | translate
-            "
-          ></div>
+          <div class="text-sm leading-relaxed whitespace-pre-wrap">
+            {{ (showFull() ? 'gdpr.fullPolicy' : 'gdpr.message') | translate }}
+          </div>
         </tui-scrollbar>
       </div>
       <div class="flex flex-wrap items-center justify-between gap-3 pt-2">

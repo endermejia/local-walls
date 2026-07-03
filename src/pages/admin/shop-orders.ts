@@ -9,6 +9,8 @@ import {
   Component,
   inject,
   Injector,
+  Pipe,
+  PipeTransform,
   resource,
   signal,
 } from '@angular/core';
@@ -42,6 +44,56 @@ import { MerchandiseService } from '../../services/merchandise.service';
 import { OrderDetail, OrderStatus } from '../../models/merchandise.model';
 import { OrderDetailsDialogComponent } from '../../components/dialogs/order-details-dialog';
 
+@Pipe({
+  name: 'orderStatusColor',
+  standalone: true,
+})
+export class OrderStatusColorPipe implements PipeTransform {
+  transform(status: OrderStatus | string | null): string {
+    if (!status) return 'text-gray-600 bg-gray-500/10 border-gray-500/20';
+    switch (status) {
+      case 'pending':
+        return 'text-yellow-600 bg-yellow-500/10 border-yellow-500/20';
+      case 'paid':
+        return 'text-blue-600 bg-blue-500/10 border-blue-500/20';
+      case 'shipped':
+        return 'text-purple-600 bg-purple-500/10 border-purple-500/20';
+      case 'delivered':
+        return 'text-green-600 bg-green-500/10 border-green-500/20';
+      case 'cancelled':
+      case 'refunded':
+        return 'text-red-600 bg-red-500/10 border-red-500/20';
+      default:
+        return 'text-gray-600 bg-gray-500/10 border-gray-500/20';
+    }
+  }
+}
+
+@Pipe({
+  name: 'orderStatusAppearance',
+  standalone: true,
+})
+export class OrderStatusAppearancePipe implements PipeTransform {
+  transform(status: OrderStatus | string | null): string {
+    if (!status) return 'neutral';
+    switch (status) {
+      case 'pending':
+        return 'warning';
+      case 'paid':
+        return 'primary';
+      case 'shipped':
+        return 'secondary';
+      case 'delivered':
+        return 'success';
+      case 'cancelled':
+      case 'refunded':
+        return 'error';
+      default:
+        return 'neutral';
+    }
+  }
+}
+
 @Component({
   selector: 'app-admin-shop-orders',
   standalone: true,
@@ -67,6 +119,8 @@ import { OrderDetailsDialogComponent } from '../../components/dialogs/order-deta
     TuiDataList,
     TuiDropdown,
     TuiChevron,
+    OrderStatusColorPipe,
+    OrderStatusAppearancePipe,
   ],
   template: `
     <div class="p-4 flex flex-col gap-6 max-w-6xl mx-auto w-full">
@@ -92,7 +146,7 @@ import { OrderDetailsDialogComponent } from '../../components/dialogs/order-deta
                 <tr tuiTr>
                   <td tuiTd *tuiCell="'id'">
                     <span class="text-xs font-mono">{{
-                      order.id.slice(0, 8)
+                      order.id | slice: 0 : 8
                     }}</span>
                   </td>
                   <td tuiTd *tuiCell="'user'">
@@ -120,7 +174,7 @@ import { OrderDetailsDialogComponent } from '../../components/dialogs/order-deta
                       type="button"
                       size="xs"
                       class="rounded-md! px-2!"
-                      [appearance]="getStatusAppearance(order.status)"
+                      [appearance]="order.status | orderStatusAppearance"
                       [tuiDropdown]="statusDropdown"
                       [tuiDropdownOpen]="openDropdownId() === order.id"
                       (click)="toggleDropdown(order.id)"
@@ -128,7 +182,7 @@ import { OrderDetailsDialogComponent } from '../../components/dialogs/order-deta
                       <span class="flex items-center gap-1">
                         <span
                           class="w-2 h-2 rounded-full"
-                          [ngClass]="getStatusColor(order.status)"
+                          [ngClass]="order.status | orderStatusColor"
                           style="background-color: currentColor;"
                         ></span>
                         <span
@@ -154,7 +208,7 @@ import { OrderDetailsDialogComponent } from '../../components/dialogs/order-deta
                             <div class="flex items-center gap-2">
                               <span
                                 class="w-2 h-2 rounded-full"
-                                [ngClass]="getStatusColor(option)"
+                                [ngClass]="option | orderStatusColor"
                                 style="background-color: currentColor;"
                               ></span>
                               <span class="text-xs uppercase font-medium">
@@ -235,44 +289,6 @@ export class AdminShopOrdersComponent {
   readonly ordersResource = resource({
     loader: () => this.merchService.getAllOrders(),
   });
-
-  protected getStatusColor(status: OrderStatus | string | null): string {
-    if (!status) return 'text-gray-600 bg-gray-500/10 border-gray-500/20';
-    switch (status) {
-      case 'pending':
-        return 'text-yellow-600 bg-yellow-500/10 border-yellow-500/20';
-      case 'paid':
-        return 'text-blue-600 bg-blue-500/10 border-blue-500/20';
-      case 'shipped':
-        return 'text-purple-600 bg-purple-500/10 border-purple-500/20';
-      case 'delivered':
-        return 'text-green-600 bg-green-500/10 border-green-500/20';
-      case 'cancelled':
-      case 'refunded':
-        return 'text-red-600 bg-red-500/10 border-red-500/20';
-      default:
-        return 'text-gray-600 bg-gray-500/10 border-gray-500/20';
-    }
-  }
-
-  protected getStatusAppearance(status: OrderStatus | string | null): string {
-    if (!status) return 'neutral';
-    switch (status) {
-      case 'pending':
-        return 'warning';
-      case 'paid':
-        return 'primary';
-      case 'shipped':
-        return 'secondary';
-      case 'delivered':
-        return 'success';
-      case 'cancelled':
-      case 'refunded':
-        return 'error';
-      default:
-        return 'neutral';
-    }
-  }
 
   async onStatusChange(orderId: string, status: OrderStatus): Promise<void> {
     this.openDropdownId.set(null);

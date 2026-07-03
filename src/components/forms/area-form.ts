@@ -27,7 +27,7 @@ import {
   TuiLoader,
   TuiDialogService,
   TuiInput,
-  TuiCheckbox,
+  TuiRadio,
 } from '@taiga-ui/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -57,7 +57,7 @@ interface MinimalArea {
     FormsModule,
     TranslatePipe,
     TuiButton,
-    TuiCheckbox,
+    TuiRadio,
     TuiError,
     TuiIcon,
     TuiInput,
@@ -124,17 +124,18 @@ interface MinimalArea {
             class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 items-start"
           >
             <div class="flex flex-col gap-4 lg:gap-6">
-              <!-- Public Toggle -->
+              <!-- Public Option -->
               <label
                 tuiLabel
                 class="flex items-center gap-3 p-4 bg-(--tui-background-neutral-1) rounded-2xl border border-(--tui-border-normal) cursor-pointer hover:bg-(--tui-background-neutral-1-hover) transition-colors"
               >
                 <input
-                  tuiCheckbox
-                  type="checkbox"
-                  [ngModel]="model().is_public"
-                  (ngModelChange)="onIsPublicChange($event)"
-                  name="is_public"
+                  tuiRadio
+                  type="radio"
+                  [ngModel]="visibilityMode()"
+                  (ngModelChange)="onVisibilityModeChange($event)"
+                  value="public"
+                  name="visibility_mode"
                 />
                 <div class="flex flex-col">
                   <span class="font-bold text-sm lg:text-base">{{
@@ -143,21 +144,63 @@ interface MinimalArea {
                 </div>
               </label>
 
-              @if (!model().is_public) {
+              <!-- Paywalled Option -->
+              <label
+                tuiLabel
+                class="flex items-center gap-3 p-4 bg-(--tui-background-neutral-1) rounded-2xl border border-(--tui-border-normal) cursor-pointer hover:bg-(--tui-background-neutral-1-hover) transition-colors"
+              >
+                <input
+                  tuiRadio
+                  type="radio"
+                  [ngModel]="visibilityMode()"
+                  (ngModelChange)="onVisibilityModeChange($event)"
+                  value="paywalled"
+                  name="visibility_mode"
+                />
+                <div class="flex flex-col">
+                  <span class="font-bold text-sm lg:text-base">{{
+                    'payments.isPaywalled' | translate
+                  }}</span>
+                </div>
+              </label>
+
+              <!-- Secret Option -->
+              <label
+                tuiLabel
+                class="flex items-center gap-3 p-4 bg-(--tui-background-neutral-1) rounded-2xl border border-(--tui-border-normal) cursor-pointer hover:bg-(--tui-background-neutral-1-hover) transition-colors"
+              >
+                <input
+                  tuiRadio
+                  type="radio"
+                  [ngModel]="visibilityMode()"
+                  (ngModelChange)="onVisibilityModeChange($event)"
+                  value="secret"
+                  name="visibility_mode"
+                />
+                <div class="flex flex-col">
+                  <span class="font-bold text-sm lg:text-base">{{
+                    'payments.isSecret' | translate
+                  }}</span>
+                </div>
+              </label>
+
+              @if (visibilityMode() === 'paywalled') {
                 <app-counter
                   label="payments.price"
                   suffix="€"
                   [step]="0.5"
                   [min]="2"
                   [max]="20"
-                  [ngModel]="model().price"
+                  [ngModel]="model().price || 2"
                   (ngModelChange)="onPriceChange($event)"
                   name="price"
                 />
                 <p class="text-[10px] opacity-60 mt-1">
                   {{ 'payments.priceHelp' | translate }}
                 </p>
+              }
 
+              @if (visibilityMode() === 'paywalled') {
                 <div class="flex flex-col gap-3">
                   <span
                     class="text-xs font-semibold opacity-60 uppercase tracking-wider"
@@ -212,7 +255,7 @@ interface MinimalArea {
               }
             </div>
 
-            @if (!model().is_public) {
+            @if (visibilityMode() === 'paywalled') {
               <div class="flex flex-col h-full">
                 <div
                   class="bg-(--tui-background-neutral-1) p-4 lg:p-6 rounded-2xl border border-(--tui-border-normal) flex flex-col gap-4"
@@ -391,7 +434,7 @@ export class AreaFormComponent {
     slug: string;
     eight_anu_crag_slugs: string[];
     is_public: boolean;
-    price: number;
+    price: number | null;
     stripe_account_id: string | null;
   }>({
     name: '',
@@ -400,6 +443,24 @@ export class AreaFormComponent {
     is_public: true,
     price: 0,
     stripe_account_id: null,
+  });
+
+  readonly isSecretArea = computed(() => {
+    return (
+      !this.model().is_public &&
+      (this.model().price === null || this.model().price === 0)
+    );
+  });
+
+  readonly visibilityMode = computed<'public' | 'secret' | 'paywalled'>(() => {
+    const m = this.model();
+    if (m.is_public) {
+      return 'public';
+    }
+    if (m.price === null || m.price === 0) {
+      return 'secret';
+    }
+    return 'paywalled';
   });
 
   areaForm = form(this.model, (path) => {
@@ -477,7 +538,7 @@ export class AreaFormComponent {
         name: model.name,
         slug: model.slug,
         is_public: model.is_public,
-        price: model.price,
+        price: model.is_public ? null : model.price,
         eight_anu_crag_slugs: model.eight_anu_crag_slugs,
         stripe_account_id: model.stripe_account_id,
       };
@@ -496,9 +557,8 @@ export class AreaFormComponent {
         } else {
           this.goBack();
         }
-      } catch (e) {
-        const error = e as Error;
-        console.error('[AreaFormComponent] Error submitting area:', e);
+      } catch (error) {
+        console.error('[AreaFormComponent] Error submitting area:', error);
         handleErrorToast(error, this.toast);
       }
     });
@@ -516,12 +576,22 @@ export class AreaFormComponent {
     this.model.update((m) => ({ ...m, eight_anu_crag_slugs: slugs }));
   }
 
-  onIsPublicChange(value: boolean): void {
-    this.model.update((m) => ({ ...m, is_public: value }));
+  onVisibilityModeChange(mode: 'public' | 'secret' | 'paywalled'): void {
+    if (mode === 'public') {
+      this.model.update((m) => ({ ...m, is_public: true, price: null }));
+    } else if (mode === 'secret') {
+      this.model.update((m) => ({ ...m, is_public: false, price: null }));
+    } else if (mode === 'paywalled') {
+      this.model.update((m) => ({
+        ...m,
+        is_public: false,
+        price: m.price || 2,
+      }));
+    }
   }
 
   onPriceChange(value: number | null): void {
-    this.model.update((m) => ({ ...m, price: value ?? 0 }));
+    this.model.update((m) => ({ ...m, price: value }));
   }
 
   onStripeAccountChange(value: string | null): void {

@@ -79,7 +79,7 @@ import { CountUpDirective } from '../../../directives/count-up.directive';
             text="{{ 'ascentTypes.os' | translate }}"
             class="cursor-pointer transition-opacity"
             [color]="'var(--tui-status-positive)'"
-            [active]="isItemActive(0)"
+            [active]="isOsActive()"
             (tuiHoveredChange)="onHover(0, $event)"
           >
             <span class="font-mono ml-auto"
@@ -93,7 +93,7 @@ import { CountUpDirective } from '../../../directives/count-up.directive';
             text="{{ 'ascentTypes.f' | translate }}"
             class="cursor-pointer transition-opacity"
             [color]="'var(--tui-status-warning)'"
-            [active]="isItemActive(1)"
+            [active]="isFlashActive()"
             (tuiHoveredChange)="onHover(1, $event)"
           >
             <span class="font-mono ml-auto"
@@ -107,7 +107,7 @@ import { CountUpDirective } from '../../../directives/count-up.directive';
             text="{{ 'ascentTypes.rp' | translate }}"
             class="cursor-pointer transition-opacity"
             [color]="'var(--tui-status-negative)'"
-            [active]="isItemActive(2)"
+            [active]="isRpActive()"
             (tuiHoveredChange)="onHover(2, $event)"
           >
             <span class="font-mono ml-auto"
@@ -150,10 +150,20 @@ export class UserProfileStatsStylesComponent {
     return [dist.os, dist.flash, dist.rp][idx];
   });
 
-  isItemActive(index: number): boolean {
+  isOsActive = computed(() => {
     const activeIdx = this.activeItemIndex();
-    return isNaN(activeIdx) || activeIdx === index;
-  }
+    return isNaN(activeIdx) || activeIdx === 0;
+  });
+
+  isFlashActive = computed(() => {
+    const activeIdx = this.activeItemIndex();
+    return isNaN(activeIdx) || activeIdx === 1;
+  });
+
+  isRpActive = computed(() => {
+    const activeIdx = this.activeItemIndex();
+    return isNaN(activeIdx) || activeIdx === 2;
+  });
 
   onHover(index: number, hovered: boolean): void {
     this.activeItemIndex.set(hovered ? index : NaN);

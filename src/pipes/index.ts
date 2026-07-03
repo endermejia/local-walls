@@ -1,3 +1,4 @@
+export * from './ascent-date.pipe';
 export * from './avatar-url.pipe';
 export * from './context-index.pipe';
 export * from './grade-label.pipe';
@@ -9,3 +10,4 @@ export * from './points-to-svg.pipe';
 export * from './shade-info.pipe';
 export * from './topo-image.pipe';
 export * from './topo-path.pipe';
+export * from './sanitize-html.pipe';

@@ -105,13 +105,16 @@ import { AvatarUrlPipe } from '../../pipes/avatar-url.pipe';
       </div>
     </div>
 
-    <div class="flex flex-wrap gap-2 mt-4">
-      <ng-content select="[actions]" />
-    </div>
+    @if (hasActions()) {
+      <div class="flex flex-wrap gap-2 mt-4">
+        <ng-content select="[actions]" />
+      </div>
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserInfoComponent {
+  hasActions = input<boolean>(false);
   loading = input<boolean>(false);
   avatar = input<string | null | undefined>();
   name = input<string | null | undefined>();

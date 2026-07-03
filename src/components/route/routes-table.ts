@@ -388,8 +388,7 @@ import {
                               <ng-template #toposMenu>
                                 <tui-data-list>
                                   @for (
-                                    topo of global.cragDetail()
-                                      ?.topos || [];
+                                    topo of global.cragDetail()?.topos || [];
                                     track topo.id
                                   ) {
                                     @let isAttached =
@@ -647,8 +646,7 @@ import {
                                 <ng-template #toposMenuExpanded>
                                   <tui-data-list>
                                     @for (
-                                      topo of global.cragDetail()
-                                        ?.topos || [];
+                                      topo of global.cragDetail()?.topos || [];
                                       track topo.id
                                     ) {
                                       @let isAttached =
@@ -1057,7 +1055,7 @@ export class RoutesTableComponent {
       await this.global.cragDetailResource.reload();
     } catch (e: unknown) {
       console.error('[RoutesTable] error toggling route on topo', e);
-      handleErrorToast(e as Error, this.toast);
+      handleErrorToast(e, this.toast);
     }
   }
 }

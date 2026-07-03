@@ -354,13 +354,23 @@ export class CragComponent {
   }
 
   readonly showToposTab = computed(() => {
+    const c = this.cragDetail();
+    if (!c) return false;
+
     const canEditAsAdmin = this.global.canEditAsAdmin();
     const canEditAsAllowedEquipper =
-      this.global.areaAdminPermissions()[this.cragDetail()?.area_id ?? -1];
+      this.global.areaAdminPermissions()[c.area_id];
+
+    const isSecret = !c.is_public && (c.price === null || c.price === 0);
+    const hasAccess =
+      c.is_public || c.purchased || canEditAsAdmin || canEditAsAllowedEquipper;
+
+    if (isSecret && !hasAccess) {
+      return false;
+    }
+
     return (
-      (this.cragDetail()?.topos?.length ?? 0) > 0 ||
-      canEditAsAdmin ||
-      canEditAsAllowedEquipper
+      (c.topos?.length ?? 0) > 0 || canEditAsAdmin || canEditAsAllowedEquipper
     );
   });
   readonly showParkingsTab = computed(() => {
@@ -584,8 +594,7 @@ export class CragComponent {
       if (ok) {
         await this.router.navigateByUrl(`/area/${c.area_slug}`);
       }
-    } catch (e) {
-      const error = e as Error;
+    } catch (error) {
       handleErrorToast(error, this.toast);
     }
   }

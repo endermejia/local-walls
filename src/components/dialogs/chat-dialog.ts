@@ -382,6 +382,9 @@ export class ChatDialogComponent implements OnDestroy {
   private roomSubscription?: RealtimeChannel | null;
   private roomsSubscription?: RealtimeChannel | null;
 
+  private scrollTimeout?: ReturnType<typeof setTimeout>;
+  private focusTimeout?: ReturnType<typeof setTimeout>;
+
   protected readonly selectedRoom = signal<ChatRoomWithParticipant | null>(
     null,
   );
@@ -506,7 +509,6 @@ export class ChatDialogComponent implements OnDestroy {
     } else {
       // If we still don't have it, we try to fetch this specific room directly if service allows
       // or at least stay in rooms view.
-      console.warn('[ChatDialog] Room not found in list:', roomId);
     }
   }
 
@@ -649,7 +651,8 @@ export class ChatDialogComponent implements OnDestroy {
     if (!window.matchMedia('(pointer: fine)').matches) {
       return;
     }
-    setTimeout(() => {
+    clearTimeout(this.focusTimeout);
+    this.focusTimeout = setTimeout(() => {
       this.messageTextarea()?.nativeElement.focus();
     }, 200);
   }
@@ -668,7 +671,8 @@ export class ChatDialogComponent implements OnDestroy {
   }
 
   private scrollToBottom() {
-    setTimeout(() => {
+    clearTimeout(this.scrollTimeout);
+    this.scrollTimeout = setTimeout(() => {
       const el = this.scrollbar()?.nativeElement;
       if (el) {
         el.scrollTop = el.scrollHeight;
@@ -679,6 +683,8 @@ export class ChatDialogComponent implements OnDestroy {
   ngOnDestroy() {
     this.roomSubscription?.unsubscribe();
     this.roomsSubscription?.unsubscribe();
+    if (this.scrollTimeout) clearTimeout(this.scrollTimeout);
+    if (this.focusTimeout) clearTimeout(this.focusTimeout);
   }
 }
 

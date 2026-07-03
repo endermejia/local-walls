@@ -93,8 +93,8 @@ export class SupabaseService {
         if (cached) {
           try {
             return JSON.parse(cached) as UserProfileDto;
-          } catch {
-            console.error('[SupabaseService] Cache parse error');
+          } catch (e: unknown) {
+            console.error('[SupabaseService] Cache parse error', e);
           }
         }
         return null;
@@ -229,15 +229,21 @@ export class SupabaseService {
         '[SupabaseService] getTopoSignedUrl error, trying fallback',
         error,
       );
+      // When offline, serve expired URLs — the NGSW supabase-storage cache
+      // may still have the actual image data even if the signed URL has expired.
+      const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
       const lastValid = this.localStorage.getItem(lastValidKey);
       if (lastValid) {
         try {
           const { url, expiresAt } = JSON.parse(lastValid);
-          if (Date.now() < expiresAt) {
+          if (isOffline || Date.now() < expiresAt) {
             return url;
           }
-        } catch {
-          // ignore
+        } catch (e: unknown) {
+          console.warn(
+            '[SupabaseService] Error parsing last valid topo url cache',
+            e,
+          );
         }
       }
       return '';
@@ -249,8 +255,8 @@ export class SupabaseService {
         const u = new URL(finalUrl);
         u.searchParams.set('v', version.toString());
         finalUrl = u.toString();
-      } catch {
-        // ignore invalid URL
+      } catch (e: unknown) {
+        console.warn('[SupabaseService] Invalid URL when setting version:', e);
       }
     }
 
@@ -307,6 +313,23 @@ export class SupabaseService {
 
     if (error) {
       console.warn('[SupabaseService] getAscentSignedUrl error', error);
+      // When offline, try returning the expired cached URL — the NGSW
+      // supabase-storage cache may still have the image data.
+      const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+      if (isOffline) {
+        try {
+          const cached = this.localStorage.getItem(cacheKey);
+          if (cached) {
+            const { url } = JSON.parse(cached);
+            return url;
+          }
+        } catch (e: unknown) {
+          console.warn(
+            '[SupabaseService] Error parsing cached ascent url during offline fallback',
+            e,
+          );
+        }
+      }
       return '';
     }
 
@@ -329,8 +352,8 @@ export class SupabaseService {
     if (cached) {
       try {
         return JSON.parse(cached) as T;
-      } catch {
-        console.error('[SupabaseService] Cache parse error for key:', key);
+      } catch (e: unknown) {
+        console.error('[SupabaseService] Cache parse error for key:', key, e);
       }
     }
     return defaultValue;
@@ -365,11 +388,17 @@ export class SupabaseService {
       this._client = createClient<Database>(this.url, this.anonKey, {
         global: {
           fetch: async (url, options) => {
-            if (typeof navigator !== 'undefined' && !navigator.onLine) {
-              return Promise.reject(new TypeError('Failed to fetch')); // Fast offline fail
-            }
+            // Do NOT reject immediately when offline — let the request reach
+            // the Service Worker so it can serve a cached response from its
+            // dataGroups (supabase-api / supabase-storage).
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8-second timeout for poor connections
+            // Use shorter timeout when offline so the request fails quickly
+            // when the NGSW has no cached response. When online, allow up to
+            // 8 seconds for slow connections.
+            const isOffline =
+              typeof navigator !== 'undefined' && !navigator.onLine;
+            const timeoutMs = isOffline ? 3000 : 8000;
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
             if (options?.signal) {
               options.signal.addEventListener('abort', () =>
                 controller.abort(),
@@ -463,10 +492,6 @@ export class SupabaseService {
       return;
     }
     try {
-      // Use local scope to clear client-side session without hitting the global logout endpoint.
-      // Supabase global sign-out (`scope: 'global'`) may return 403 in some environments
-      // (e.g., missing/expired tokens or restricted cookies during SSR/Edge). Local is enough
-      // for this SPA to clear the current device session.
       const { error } = await this._client.auth.signOut({
         scope: 'local' as const,
       });

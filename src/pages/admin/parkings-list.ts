@@ -309,7 +309,7 @@ export class AdminParkingsListComponent {
     try {
       await this.parkingsService.delete(id);
     } catch (e) {
-      handleErrorToast(e as Error, this.toast);
+      handleErrorToast(e, this.toast);
     }
   }
 }
