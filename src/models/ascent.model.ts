@@ -84,9 +84,10 @@ export interface UserAscentsQuery {
 }
 
 export interface AscentDialogData {
-  routeId?: number;
+  routeId?: number | string;
   routeName?: string;
   ascentData?: RouteAscentWithExtras;
   grade?: number;
   climbingKind?: ClimbingKind;
+  isIndoor?: boolean;
 }

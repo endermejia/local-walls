@@ -15,23 +15,31 @@ import { TuiAppearance, TuiLoader, TuiButton } from '@taiga-ui/core';
 import { IndoorService } from '../../services/indoor.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { IndoorTopoDto } from '../../models';
+import { EmptyStateComponent } from '../ui/empty-state';
 
 @Component({
   selector: 'app-indoor-topos',
   standalone: true,
-  imports: [CommonModule, TranslateModule, TuiAppearance, TuiLoader, TuiButton],
+  imports: [
+    CommonModule,
+    TranslateModule,
+    TuiAppearance,
+    TuiLoader,
+    TuiButton,
+    EmptyStateComponent,
+  ],
   template: `
     <div class="flex flex-col gap-6">
       @if (canEdit()) {
         <div class="flex justify-end px-3">
           <button
             tuiButton
-            appearance="primary"
+            appearance="textfield"
             size="s"
             iconStart="@tui.plus"
             (click.zoneless)="createTopo()"
           >
-            {{ 'merchandising.items.addImage' | translate }}
+            {{ 'new' | translate }}
           </button>
         </div>
       }
@@ -86,9 +94,7 @@ import { IndoorTopoDto } from '../../models';
             }
           </div>
         } @else {
-          <div class="p-20 text-center opacity-50">
-            {{ 'empty' | translate }}
-          </div>
+          <app-empty-state />
         }
       } @else if (toposResource.isLoading()) {
         <tui-loader />

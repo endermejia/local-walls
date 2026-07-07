@@ -50,6 +50,7 @@ import { IndoorVouchersComponent } from '../../components/indoor/indoor-vouchers
 import { IndoorRoutesComponent } from '../../components/indoor/indoor-routes';
 import { IndoorToposComponent } from '../../components/indoor/indoor-topos';
 import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
+import { EmptyStateComponent } from '../../components/ui/empty-state';
 
 @Component({
   selector: 'app-indoor-center',
@@ -78,13 +79,14 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
     AnyToSchedulePipe,
     CustomCarouselComponent,
     AvatarUrlPipe,
+    EmptyStateComponent,
   ],
   template: `
     <tui-scrollbar class="flex grow">
       <section class="w-full max-w-5xl mx-auto p-4 flex flex-col min-h-full">
         @if (center(); as c) {
           <div class="mb-6">
-            <app-section-header [title]="c.name" [liked]="false">
+            <app-section-header [title]="c.name" [showLike]="false">
               <span
                 titleInfo
                 class="flex items-center gap-1 text-sm font-normal text-(--tui-text-secondary) mt-1.5 select-none"
@@ -326,15 +328,13 @@ import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
           <div class="mt-6">
             @switch (activeTabIndex()) {
               @case (0) {
-                <app-indoor-routes [centerId]="c.id" />
+                <app-indoor-routes [centerId]="c.id" [centerSlug]="c.slug" />
               }
               @case (1) {
                 <app-indoor-topos [centerId]="c.id" />
               }
               @case (2) {
-                <div class="p-10 text-center opacity-50">
-                  {{ 'indoor.ascents' | translate }} (WIP)
-                </div>
+                <app-empty-state />
               }
             }
           </div>

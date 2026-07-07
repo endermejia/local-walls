@@ -21,7 +21,7 @@ import {
 import { TuiTextarea } from '@taiga-ui/kit';
 
 import { IndoorService } from '../../services/indoor.service';
-import { IndoorCenterDto, IndoorSchedule } from '../../models';
+import { IndoorCenterDto, IndoorSchedule, Json } from '../../models';
 
 @Component({
   selector: 'app-indoor-admin-info',
@@ -251,7 +251,17 @@ export class IndoorAdminInfoComponent implements OnInit {
         };
         return acc;
       },
-      {} as Record<string, any>,
+      {} as Record<
+        string,
+        {
+          closed: boolean;
+          open: string;
+          close: string;
+          hasSplit: boolean;
+          open2: string;
+          close2: string;
+        }
+      >,
     );
 
     this.scheduleForm.set(defaultSchedule);
@@ -294,7 +304,16 @@ export class IndoorAdminInfoComponent implements OnInit {
   async onSave() {
     this.loading.set(true);
     try {
-      const normalSchedule: Record<string, any> = {};
+      const normalSchedule: Record<
+        string,
+        {
+          closed: boolean;
+          open: string | null;
+          close: string | null;
+          open2: string | null;
+          close2: string | null;
+        }
+      > = {};
       const sf = this.scheduleForm();
       for (const day of this.weekDays) {
         const d = sf[day];
@@ -308,7 +327,7 @@ export class IndoorAdminInfoComponent implements OnInit {
       }
       const payload = {
         ...this.form(),
-        schedule: { normal: normalSchedule },
+        schedule: { normal: normalSchedule } as unknown as Json,
       };
       await this.indoor.updateCenter(this.center().id, payload);
       void this.router.navigate(['/indoor', this.center().slug]);

@@ -215,18 +215,39 @@ import { getEmbedUrl } from '../../utils';
                   class="align-text-bottom mr-1"
                 />
               }
-              <a
-                class="font-bold hover:underline cursor-pointer"
-                [routerLink]="[
-                  '/area',
-                  ascent.route.area_slug,
-                  ascent.route.crag_slug,
-                  ascent.route.slug,
-                ]"
-              >
-                {{ ascent.route.name }}
-              </a>
-              @if (ascent.route && showRoute()) {
+              @if (isIndoor()) {
+                <a
+                  class="font-bold hover:underline cursor-pointer"
+                  [routerLink]="[
+                    '/indoor',
+                    $any(ascent.route).center_slug,
+                    'route',
+                    ascent.route.slug,
+                  ]"
+                >
+                  {{ ascent.route.name }}
+                </a>
+                <span class="mx-1.5 opacity-70 text-sm">•</span>
+                <span class="text-sm opacity-70">
+                  <a
+                    class="hover:underline cursor-pointer"
+                    [routerLink]="['/indoor', $any(ascent.route).center_slug]"
+                  >
+                    {{ $any(ascent.route).center_name }}
+                  </a>
+                </span>
+              } @else {
+                <a
+                  class="font-bold hover:underline cursor-pointer"
+                  [routerLink]="[
+                    '/area',
+                    ascent.route.area_slug,
+                    ascent.route.crag_slug,
+                    ascent.route.slug,
+                  ]"
+                >
+                  {{ ascent.route.name }}
+                </a>
                 <span class="mx-1.5 opacity-70 text-sm">•</span>
                 <span class="text-sm opacity-70">
                   <a
@@ -322,19 +343,21 @@ import { getEmbedUrl } from '../../utils';
         </div>
       }
 
-      <footer class="flex flex-col gap-1 mt-2">
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <app-ascent-likes
-            [ascentId]="ascent.id"
-            [isPrivate]="!!ascent.private_ascent"
-          />
-          <app-ascent-comments
-            [ascentId]="ascent.id"
-            [isPrivate]="!!ascent.private_ascent"
-          />
-        </div>
-        <app-ascent-last-comment [ascentId]="ascent.id" />
-      </footer>
+      @if (!isIndoor()) {
+        <footer class="flex flex-col gap-1 mt-2">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <app-ascent-likes
+              [ascentId]="ascent.id"
+              [isPrivate]="!!ascent.private_ascent"
+            />
+            <app-ascent-comments
+              [ascentId]="ascent.id"
+              [isPrivate]="!!ascent.private_ascent"
+            />
+          </div>
+          <app-ascent-last-comment [ascentId]="ascent.id" />
+        </footer>
+      }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -343,6 +366,11 @@ export class AscentCardComponent {
   protected readonly global = inject(GlobalData);
   protected readonly climbingIcons = CLIMBING_ICONS;
   protected readonly supabase = inject(SupabaseService);
+
+  protected readonly isIndoor = computed(() => {
+    const r = this.data().route;
+    return !!(r && (r as any).center_slug);
+  });
   protected readonly router = inject(Router);
   protected readonly sanitizer = inject(DomSanitizer);
   private readonly ascentsService = inject(AscentsService);
@@ -452,7 +480,14 @@ export class AscentCardComponent {
 
   async editAscent() {
     await firstValueFrom(
-      this.ascentsService.openAscentForm({ ascentData: this.data() }),
+      this.ascentsService.openAscentForm({
+        ascentData: this.data(),
+        isIndoor: this.isIndoor(),
+        routeId: this.data().route_id as any,
+        routeName: this.data().route?.name,
+        climbingKind: this.data().route?.climbing_kind as any,
+        grade: this.data().route?.grade || undefined,
+      }),
       { defaultValue: false },
     );
   }

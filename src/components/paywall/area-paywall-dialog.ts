@@ -65,7 +65,5 @@ export class AreaPaywallDialogComponent {
       POLYMORPHEUS_CONTEXT,
     );
   protected readonly global = inject(GlobalData);
-  protected readonly topos = computed(
-    () => this.global.areaTopos() || [],
-  );
+  protected readonly topos = computed(() => this.global.areaTopos() || []);
 }

@@ -72,6 +72,7 @@ import {
   UserProfileDto,
   VERTICAL_LIFE_GRADES,
   IndoorCenterDto,
+  IndoorRouteWithExtras,
 } from '../models';
 
 import { LocalStorage } from './local-storage';
@@ -150,14 +151,22 @@ export class GlobalData {
   breadcrumbs: Signal<BreadcrumbItem[]> = computed<BreadcrumbItem[]>(() => {
     this.i18nTick();
     const indoorCenter = this.selectedIndoorCenter();
+    const indoorRoute = this.selectedIndoorRoute();
     if (indoorCenter) {
-      return [
+      const items: BreadcrumbItem[] = [
         { caption: 'indoor.title', routerLink: ['/indoor'] },
         {
           caption: indoorCenter.name,
           routerLink: ['/indoor', indoorCenter.slug],
         },
       ];
+      if (indoorRoute) {
+        items.push({
+          caption: indoorRoute.name,
+          routerLink: ['/indoor', indoorCenter.slug, 'route', indoorRoute.slug],
+        });
+      }
+      return items;
     }
 
     const items: BreadcrumbItem[] = [
@@ -715,6 +724,8 @@ export class GlobalData {
   areaListShowIndoor: WritableSignal<boolean> = signal(false);
   areaListShowOutdoor: WritableSignal<boolean> = signal(true);
   selectedIndoorCenter: WritableSignal<IndoorCenterDto | null> = signal(null);
+  selectedIndoorRoute: WritableSignal<IndoorRouteWithExtras | null> =
+    signal(null);
 
   // ---- Feed List Filters (Persisted per session) ----
   private readonly feedGradeRangeKey = 'feed_grade_range_v1';
@@ -990,6 +1001,51 @@ export class GlobalData {
     },
   });
 
+  readonly equipperIndoorRoutesResource = resource({
+    params: () => this.selectedEquipperId(),
+    loader: async ({ params: id }) => {
+      if (!id || !isPlatformBrowser(this.platformId)) return [];
+      await this.supabase.whenReady();
+      try {
+        const { data, error } = await (this.supabase.client as any)
+          .from('indoor_route_equippers')
+          .select(
+            `
+            route:indoor_routes (
+              *,
+              center:indoor_centers (
+                name,
+                slug
+              ),
+              equippers:indoor_route_equippers(equipper:equippers(*))
+            )
+          `,
+          )
+          .eq('equipper_id', id);
+
+        if (error) throw error;
+
+        return (data || [])
+          .map((d: any) => {
+            const r = d.route;
+            if (!r) return null;
+            return {
+              ...r,
+              center_name: r.center?.name || '',
+              center_slug: r.center?.slug || '',
+              equippers: (r.equippers || [])
+                .map((e: any) => e.equipper)
+                .filter(Boolean),
+            } as IndoorRouteWithExtras;
+          })
+          .filter((r: any): r is IndoorRouteWithExtras => r !== null);
+      } catch (e) {
+        console.error('[GlobalData] equipperIndoorRoutesResource error', e);
+        return [];
+      }
+    },
+  });
+
   // ---- Areas ----
   selectedAreaSlug: WritableSignal<string | null> = signal(null);
   selectedArea: Signal<AreaListItem | null> = computed(() => {
@@ -1045,17 +1101,34 @@ export class GlobalData {
     params: () => ({ user: this.userProfile() }),
     loader: async () => {
       if (!isPlatformBrowser(this.platformId)) {
-        return [] as IndoorCenterDto[];
+        return [] as any[];
       }
       try {
         await this.supabase.whenReady();
         const { data, error } = await this.supabase.client
           .from('indoor_centers')
-          .select('*')
+          .select(
+            '*, topos:indoor_topos(id, name), routes:indoor_routes(grade)',
+          )
           .order('name');
 
         if (error) throw error;
-        return (data as IndoorCenterDto[]) ?? [];
+
+        return (data || []).map((c: any) => {
+          const grades: AmountByEveryGrade = {};
+          (c.routes || []).forEach((r: any) => {
+            const g = r.grade;
+            if (g >= 0) {
+              grades[g as VERTICAL_LIFE_GRADES] =
+                (grades[g as VERTICAL_LIFE_GRADES] ?? 0) + 1;
+            }
+          });
+          return {
+            ...c,
+            routes_count: c.routes?.length || 0,
+            grades,
+          };
+        });
       } catch (e) {
         console.error('[GlobalData] indoorCentersResource error', e);
         return [];
@@ -1063,7 +1136,7 @@ export class GlobalData {
     },
   });
 
-  indoorCentersList: Signal<IndoorCenterDto[]> = computed(
+  indoorCentersList: Signal<any[]> = computed(
     () => this.indoorCentersResource.value() ?? [],
   );
 

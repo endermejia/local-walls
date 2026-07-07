@@ -52,14 +52,14 @@ export interface IndoorCenterCardItem {
         </a>
       </ng-container>
 
-      <div content class="flex flex-col min-h-32 relative">
+      <div content class="flex flex-col min-h-32">
         <div class="flex items-center gap-1 opacity-60 text-xs mb-2">
           <span>
             {{ data.city }}{{ data.country ? ', ' + data.country : '' }}
           </span>
         </div>
 
-        <div class="grow flex flex-col justify-center gap-2 pr-28">
+        <div class="grow flex flex-col justify-center gap-2">
           <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
             <a
               tuiLink
@@ -91,14 +91,11 @@ export interface IndoorCenterCardItem {
             }
           </div>
         </div>
-
-        @if (data.grades) {
-          <app-chart-routes-by-grade
-            class="absolute bottom-4 right-4"
-            [grades]="data.grades"
-          />
-        }
       </div>
+
+      @if (data.grades) {
+        <app-chart-routes-by-grade extra [grades]="data.grades" />
+      }
     </app-card>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

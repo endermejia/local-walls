@@ -1,4 +1,9 @@
-import { TableInsert, TableRow, TableUpdate } from './supabase-interfaces';
+import {
+  TableInsert,
+  TableRow,
+  TableUpdate,
+  EquipperDto,
+} from './supabase-interfaces';
 
 // --- Indoor DTOs ---
 export type IndoorCenterDto = TableRow<'indoor_centers'>;
@@ -75,4 +80,10 @@ export interface IndoorVoucherPurchaseWithDetails extends IndoorVoucherPurchaseD
   voucher_name?: string;
   center_id?: string;
   center_name?: string;
+}
+
+export interface IndoorRouteWithExtras extends IndoorRouteDto {
+  equippers?: EquipperDto[];
+  center_name?: string;
+  center_slug?: string;
 }

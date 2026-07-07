@@ -46,7 +46,7 @@ import {
   NewPhoto,
   reorderGallery,
 } from '../../utils';
-import { IndoorCenterDto, IndoorSchedule } from '../../models';
+import { IndoorCenterDto, IndoorSchedule, Json } from '../../models';
 import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
 import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
 
@@ -379,10 +379,7 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                     placeholder="Ej. Pase diario, Bono de 10"
                   />
                 </tui-textfield>
-                <tui-textfield
-                  class="w-full sm:w-44 shrink-0"
-                  tuiTextfieldSuffix="€"
-                >
+                <tui-textfield class="w-full sm:w-44 shrink-0">
                   <label tuiLabel for="new-v-price">{{
                     'price' | translate
                   }}</label>
@@ -395,6 +392,7 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                     autocomplete="off"
                     placeholder="0.00"
                   />
+                  <span class="tui-textfield__suffix">€</span>
                 </tui-textfield>
                 <button
                   tuiButton
@@ -636,7 +634,17 @@ export class IndoorCenterFormComponent {
           };
           return acc;
         },
-        {} as Record<string, any>,
+        {} as Record<
+          string,
+          {
+            closed: boolean;
+            open: string;
+            close: string;
+            hasSplit: boolean;
+            open2: string;
+            close2: string;
+          }
+        >,
       );
       this.scheduleForm.set(defaultSchedule);
     });
@@ -829,7 +837,16 @@ export class IndoorCenterFormComponent {
         }
 
         // 2. Prepare Center Details and Schedule payload
-        const normalSchedule: Record<string, any> = {};
+        const normalSchedule: Record<
+          string,
+          {
+            closed: boolean;
+            open: string | null;
+            close: string | null;
+            open2: string | null;
+            close2: string | null;
+          }
+        > = {};
         const sf = this.scheduleForm();
         for (const day of this.weekDays) {
           const d = sf[day];
@@ -854,7 +871,7 @@ export class IndoorCenterFormComponent {
           contact_info: this.effectiveCenterData()?.contact_info ?? null,
           country: this.effectiveCenterData()?.country ?? null,
           gallery_urls: [...modelVal.gallery_urls, ...newPhotoUrls],
-          schedule: schedulePayload as any,
+          schedule: schedulePayload as unknown as Json,
           location: this.effectiveCenterData()?.location ?? null,
         };
 

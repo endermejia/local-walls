@@ -17,6 +17,8 @@ import {
   IndoorTopoDto,
   IndoorSaleDto,
   IndoorInventoryDto,
+  IndoorRouteWithExtras,
+  EquipperDto,
 } from '../models';
 
 @Injectable({
@@ -133,16 +135,30 @@ export class IndoorService {
     return data || [];
   }
 
-  async getCenterRoutes(centerId: string): Promise<IndoorRouteDto[]> {
+  async getCenterRoutes(
+    centerId: string,
+    showLegacy: boolean = false,
+  ): Promise<IndoorRouteWithExtras[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
-    const { data, error } = await this.supabase.client
+    let query = this.supabase.client
       .from('indoor_routes')
-      .select('*')
+      .select('*, equippers:indoor_route_equippers(equipper:equippers(*))')
       .eq('center_id', centerId);
 
+    if (!showLegacy) {
+      query = query.or('legacy.eq.false,legacy.is.null');
+    }
+
+    const { data, error } = await query;
+
     if (error) throw error;
-    return data || [];
+    if (!data) return [];
+
+    return data.map((route: any) => ({
+      ...route,
+      equippers: route.equippers?.map((e: any) => e.equipper) || [],
+    })) as IndoorRouteWithExtras[];
   }
 
   async getCenterTopos(centerId: string): Promise<IndoorTopoDto[]> {
@@ -389,5 +405,184 @@ export class IndoorService {
 
     if (error) throw error;
     return true;
+  }
+
+  // Equipper & Ascent methods for Indoor Routes
+  async getRouteBySlug(
+    centerSlug: string,
+    routeSlug: string,
+  ): Promise<IndoorRouteWithExtras | null> {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    await this.supabase.whenReady();
+    const { data, error } = await this.supabase.client
+      .from('indoor_routes')
+      .select('*, center:indoor_centers!inner(name, slug)')
+      .eq('slug', routeSlug)
+      .eq('center.slug', centerSlug)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return null;
+
+    const route = data as any;
+    const equippers = await this.getRouteEquippers(route.id);
+    return {
+      ...route,
+      center_name: route.center?.name,
+      center_slug: route.center?.slug,
+      equippers,
+    } as IndoorRouteWithExtras;
+  }
+
+  async getRouteEquippers(routeId: string): Promise<EquipperDto[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+    const { data, error } = await (this.supabase.client as any)
+      .from('indoor_route_equippers')
+      .select('equipper:equippers(*)')
+      .eq('route_id', routeId);
+    if (error) throw error;
+    return (data?.map((d: any) => d.equipper) || []) as EquipperDto[];
+  }
+
+  async setRouteEquippers(
+    routeId: string,
+    equippers: readonly (EquipperDto | string)[],
+  ): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    await this.supabase.whenReady();
+
+    try {
+      const equipperIds: number[] = [];
+      const stringEquippers = equippers
+        .filter((e): e is string => typeof e === 'string')
+        .map((e) => e.trim());
+
+      const existingEquipperMap = new Map<string, number>();
+
+      if (stringEquippers.length > 0) {
+        const orQuery = stringEquippers
+          .map((name) => `name.ilike.${name.replace(/,/g, '\\,')}`)
+          .join(',');
+
+        const { data: existing, error: existingError } =
+          await this.supabase.client
+            .from('equippers')
+            .select('id, name')
+            .or(orQuery);
+
+        if (existingError) throw existingError;
+
+        if (existing) {
+          for (const eq of existing) {
+            existingEquipperMap.set(eq.name.toLowerCase(), eq.id);
+          }
+        }
+
+        const toCreateNames = Array.from(
+          new Set(
+            stringEquippers.filter(
+              (name) => !existingEquipperMap.has(name.toLowerCase()),
+            ),
+          ),
+        );
+
+        if (toCreateNames.length > 0) {
+          const payloads = toCreateNames.map((name) => ({ name }));
+          const { data: created, error: createError } =
+            await this.supabase.client
+              .from('equippers')
+              .insert(payloads)
+              .select('id, name');
+
+          if (createError) throw createError;
+
+          if (created) {
+            for (const eq of created) {
+              existingEquipperMap.set(eq.name.toLowerCase(), eq.id);
+            }
+          }
+        }
+      }
+
+      for (const item of equippers) {
+        if (typeof item === 'string') {
+          const id = existingEquipperMap.get(item.trim().toLowerCase());
+          if (id !== undefined) equipperIds.push(id);
+        } else {
+          equipperIds.push(Number(item.id));
+        }
+      }
+
+      // Sync junction table
+      await (this.supabase.client as any)
+        .from('indoor_route_equippers')
+        .delete()
+        .eq('route_id', routeId);
+
+      if (equipperIds.length > 0) {
+        const { error: insertError } = await (this.supabase.client as any)
+          .from('indoor_route_equippers')
+          .insert(
+            equipperIds.map((id) => ({ route_id: routeId, equipper_id: id })),
+          );
+
+        if (insertError) throw insertError;
+      }
+    } catch (e) {
+      console.error('[IndoorService] setRouteEquippers error', e);
+      throw e;
+    }
+  }
+
+  async getRouteAscents(routeId: string): Promise<any[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+    const { data, error } = await this.supabase.client
+      .from('indoor_ascents')
+      .select('*, user_profile:user_profiles(id, name, avatar)')
+      .eq('route_id', routeId)
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  async createRouteAscent(payload: {
+    route_id: string;
+    user_id: string;
+    type: string;
+    date: string;
+    notes?: string;
+  }): Promise<any> {
+    const { data, error } = await this.supabase.client
+      .from('indoor_ascents')
+      .insert(payload)
+      .select('*, user_profile:user_profiles(id, name, avatar)')
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async updateRouteAscent(
+    id: string,
+    updates: { type: string; date: string; notes?: string },
+  ): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('indoor_ascents')
+      .update(updates)
+      .eq('id', id);
+
+    if (error) throw error;
+  }
+
+  async deleteRouteAscent(ascentId: string): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('indoor_ascents')
+      .delete()
+      .eq('id', ascentId);
+
+    if (error) throw error;
   }
 }

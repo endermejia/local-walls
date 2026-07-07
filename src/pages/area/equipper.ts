@@ -19,6 +19,7 @@ import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
 
 import { RoutesTableComponent } from '../../components/route/routes-table';
+import { IndoorRoutesComponent } from '../../components/indoor/indoor-routes';
 
 import { UserInfoComponent } from '../../components/ui/user-info';
 
@@ -29,6 +30,7 @@ import { UserInfoComponent } from '../../components/ui/user-info';
     LowerCasePipe,
     RouterLink,
     RoutesTableComponent,
+    IndoorRoutesComponent,
     TranslatePipe,
     TuiLink,
     TuiScrollbar,
@@ -77,6 +79,18 @@ import { UserInfoComponent } from '../../components/ui/user-info';
             [showLocation]="true"
           />
         </div>
+
+        @let indoorRoutes = global.equipperIndoorRoutesResource.value() || [];
+        @if (indoorRoutes.length > 0) {
+          <div class="mt-6">
+            <h2 class="text-xl font-semibold mb-2">
+              {{ indoorRoutes.length }}
+              {{ 'indoor.routes' | translate | lowercase }}
+            </h2>
+
+            <app-indoor-routes [customRoutes]="indoorRoutes" />
+          </div>
+        }
       </section>
     </tui-scrollbar>
   `,

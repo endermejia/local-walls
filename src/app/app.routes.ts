@@ -144,6 +144,11 @@ export const routes: Routes = [
             (m) => m.IndoorCenterComponent,
           ),
       },
+      {
+        path: ':centerSlug/route/:routeSlug',
+        loadComponent: () =>
+          import('../pages/indoor/route').then((m) => m.IndoorRouteComponent),
+      },
     ],
   },
   // Admin and Equipper routes

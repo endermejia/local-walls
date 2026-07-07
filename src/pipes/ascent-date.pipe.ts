@@ -29,7 +29,7 @@ export class AscentDatePipe implements PipeTransform {
           month: 'long',
         }).format(date);
         return formatted.replace(',', '');
-      } catch (e) {
+      } catch {
         // Fallback
       }
     }
@@ -40,7 +40,7 @@ export class AscentDatePipe implements PipeTransform {
         month: 'long',
         year: 'numeric',
       }).format(date);
-    } catch (e) {
+    } catch {
       return dateStr;
     }
   }

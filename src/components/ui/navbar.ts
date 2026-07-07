@@ -473,12 +473,19 @@ import {
                           class="mr-2"
                         />
                       }
-                      @if (item.type === 'user') {
+                      @if (item.type === 'user' || item.type === 'indoor') {
                         <span tuiAvatar size="xs" class="mr-2">
                           @if (item.icon && !item.icon.startsWith('@tui.')) {
                             <img [src]="item.icon" [alt]="item.title" />
                           } @else {
-                            <tui-icon [icon]="item.icon || '@tui.user'" />
+                            <tui-icon
+                              [icon]="
+                                item.icon ||
+                                (item.type === 'user'
+                                  ? '@tui.user'
+                                  : '@tui.map-pin')
+                              "
+                            />
                           }
                         </span>
                       } @else if (item.icon && item.grade === undefined) {

@@ -48,11 +48,19 @@ interface DbUser {
   icon: string;
 }
 
+interface DbIndoor {
+  title: string;
+  href: string;
+  icon: string;
+  subtitle: string;
+}
+
 interface DbSearchResponse {
   areas?: DbArea[];
   crags?: DbCrag[];
   routes?: DbRoute[];
   users?: DbUser[];
+  indoors?: DbIndoor[];
 }
 
 @Injectable({
@@ -126,12 +134,25 @@ export class SearchService {
           }));
         }
 
+        // Process Indoor Centers
+        const indoors = dbData?.indoors || [];
+        if (indoors.length > 0) {
+          results['indoor.title'] = indoors.map((i) => ({
+            title: i.title,
+            href: i.href,
+            icon: this.supabase.buildAvatarUrl(i.icon) || '@tui.map-pin',
+            type: 'indoor',
+            subtitle: i.subtitle,
+          }));
+        }
+
         // Only show create/import options when there are no results at all
         const hasAnyResults =
           areas.length > 0 ||
           crags.length > 0 ||
           routes.length > 0 ||
-          users.length > 0;
+          users.length > 0 ||
+          indoors.length > 0;
 
         if (!hasAnyResults) {
           const anuArea = eightAnuItems?.find(
