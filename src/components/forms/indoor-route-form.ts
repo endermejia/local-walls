@@ -483,13 +483,13 @@ export default class IndoorRouteFormComponent {
             this.context.data.routeData.id,
             payload,
           );
-          this.toast.success('routes.updateSuccess');
+          this.toast.success('messages.toasts.routeUpdated');
         } else {
           const result = await this.indoor.createRoute(payload);
           if (result) {
             savedRouteId = result.id;
           }
-          this.toast.success('routes.createSuccess');
+          this.toast.success('messages.toasts.routeCreated');
         }
 
         if (savedRouteId) {

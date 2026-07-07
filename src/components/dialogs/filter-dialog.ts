@@ -17,7 +17,7 @@ import {
 } from '@angular/forms';
 
 import { injectContext } from '@taiga-ui/polymorpheus';
-import { TuiButton, TuiLink, TuiKeySteps } from '@taiga-ui/core';
+import { TuiButton, TuiLink, TuiKeySteps, TuiCheckbox } from '@taiga-ui/core';
 import { TuiFilter, TuiRange } from '@taiga-ui/kit';
 import { TuiForm } from '@taiga-ui/layout';
 import { type TuiDialogContext } from '@taiga-ui/core';
@@ -47,6 +47,7 @@ export interface FilterDialog {
   showShade?: boolean;
   showGradeRange?: boolean;
   showIndoorOutdoor?: boolean;
+  showIndoorAscents?: boolean;
 }
 
 @Component({
@@ -58,6 +59,7 @@ export interface FilterDialog {
     TuiButton,
     TuiFilter,
     TuiForm,
+    TuiCheckbox,
     TuiLink,
     TuiRange,
   ],
@@ -105,6 +107,18 @@ export interface FilterDialog {
             [keySteps]="keySteps"
             formControlName="gradeRange"
           />
+          <div class="flex items-center gap-2 mt-4">
+            <input
+              tuiCheckbox
+              type="checkbox"
+              formControlName="showIndoorAscents"
+              id="showIndoorAscents"
+            />
+            <label for="showIndoorAscents">{{
+              'indoor.showIndoorAscents' | translate
+            }}</label>
+          </div>
+
           <div class="hidden sm:flex flex-wrap gap-2 justify-between">
             @for (label of tickLabels; track label; let i = $index) {
               <a
@@ -201,6 +215,7 @@ export class FilterDialogComponent {
     gradeRange: new FormControl<[number, number]>([0, 0], {
       nonNullable: true,
     }),
+    showIndoorAscents: new FormControl<boolean>(false, { nonNullable: true }),
   });
 
   // Bounds for indices
@@ -262,6 +277,9 @@ export class FilterDialogComponent {
       if (Array.isArray(d.gradeRange) && d.gradeRange.length === 2) {
         const sanitized = this.sanitizeRange(d.gradeRange as [number, number]);
         this.form.patchValue({ gradeRange: sanitized });
+      }
+      if (d.showIndoorAscents !== undefined) {
+        this.form.patchValue({ showIndoorAscents: d.showIndoorAscents });
       }
 
       if (d.showIndoorOutdoor) {
@@ -384,6 +402,7 @@ export class FilterDialogComponent {
       showShade: this.context.data?.showShade,
       showGradeRange: this.context.data?.showGradeRange,
       showIndoorOutdoor: this.context.data?.showIndoorOutdoor,
+      showIndoorAscents: this.form.value.showIndoorAscents,
     };
     this.context.completeWith(payload);
   }
@@ -393,6 +412,7 @@ export class FilterDialogComponent {
     this.form.reset({
       gradeRange: [this.minIndex, this.maxIndex],
       indoorOutdoor: [ioNow[0], ioNow[1]],
+      showIndoorAscents: false,
     });
     this.context.completeWith({
       categories: [],
@@ -404,6 +424,7 @@ export class FilterDialogComponent {
       showShade: this.context.data?.showShade,
       showGradeRange: this.context.data?.showGradeRange,
       showIndoorOutdoor: this.context.data?.showIndoorOutdoor,
+      showIndoorAscents: false,
     });
   }
 }

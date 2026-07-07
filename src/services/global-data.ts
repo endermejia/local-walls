@@ -730,12 +730,14 @@ export class GlobalData {
   // ---- Feed List Filters (Persisted per session) ----
   private readonly feedGradeRangeKey = 'feed_grade_range_v1';
   private readonly feedCategoriesKey = 'feed_categories_v1';
+  private readonly feedShowIndoorAscentsKey = 'feed_show_indoor_ascents_v1';
 
   feedGradeRange: WritableSignal<[number, number]> = signal([
     0,
     ORDERED_GRADE_VALUES.length - 1,
   ]);
   feedCategories: WritableSignal<number[]> = signal([]);
+  feedShowIndoorAscents: WritableSignal<boolean> = signal(false);
 
   // ---- Liked / Favorites (Shared) ----
   readonly likedAreasResource = resource({
@@ -2295,6 +2297,13 @@ export class GlobalData {
         this.feedCategories.set(JSON.parse(rawFeedCategories));
       }
 
+      const rawIndoor = this.localStorage.getItem(
+        this.feedShowIndoorAscentsKey,
+      );
+      if (rawIndoor !== null) {
+        this.feedShowIndoorAscents.set(rawIndoor === 'true');
+      }
+
       const msgSound = this.localStorage.getItem('message_sound_enabled_v1');
       if (msgSound !== null) {
         this.messageSoundEnabled.set(msgSound === 'true');
@@ -2374,6 +2383,13 @@ export class GlobalData {
       this.localStorage.setItem(
         this.feedCategoriesKey,
         JSON.stringify(this.feedCategories()),
+      );
+    });
+
+    effect(() => {
+      this.localStorage.setItem(
+        this.feedShowIndoorAscentsKey,
+        String(this.feedShowIndoorAscents()),
       );
     });
 

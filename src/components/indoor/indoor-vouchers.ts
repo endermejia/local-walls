@@ -82,22 +82,18 @@ import { IndoorVoucherDto, IndoorVoucherPurchaseDto } from '../../models';
       <!-- Available to Buy -->
       @if (availableVouchers().length > 0) {
         <div class="flex flex-col gap-3">
-          <h3 class="font-bold text-lg">
-            {{ 'indoor.buy_voucher' | translate }}
-          </h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             @for (v of availableVouchers(); track v.id) {
               <div
-                tuiAppearance="flat-grayscale"
-                class="p-4 rounded-3xl flex flex-col gap-4"
+                class="p-4 rounded-3xl flex flex-col gap-4 relative overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-xl"
               >
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center z-10">
                   <span class="font-bold text-lg">{{ v.name }}</span>
                   <span class="text-xl font-bold">{{
                     v.price | currency: 'EUR'
                   }}</span>
                 </div>
-                <div class="flex flex-col text-sm text-(--tui-text-secondary)">
+                <div class="flex flex-col text-sm text-white/80 z-10">
                   @if (v.sessions_count) {
                     <span>
                       {{ v.sessions_count }} {{ 'indoor.sessions' | translate }}
@@ -105,14 +101,11 @@ import { IndoorVoucherDto, IndoorVoucherPurchaseDto } from '../../models';
                   }
                   <span>{{ v.duration_days }} {{ 'days' | translate }}</span>
                 </div>
-                <button
-                  tuiButton
-                  size="m"
-                  appearance="secondary"
-                  class="rounded-xl!"
-                >
-                  {{ 'buy' | translate }}
-                </button>
+                <tui-icon
+                  icon="@tui.ticket"
+                  class="absolute -bottom-4 -right-4 text-white/20 scale-150"
+                  [style.fontSize.px]="120"
+                />
               </div>
             }
           </div>

@@ -406,12 +406,13 @@ export class HomeComponent implements OnDestroy {
       toObservable(this.global.likedAreaIds),
       toObservable(this.global.likedCragIds),
       toObservable(this.global.likedRouteIds),
+      toObservable(this.global.feedShowIndoorAscents),
     ])
       .pipe(
         takeUntilDestroyed(),
         filter(([, , , loaded]) => loaded),
         map(
-          ([f, cat, grades, , areas, crags, routes]) =>
+          ([f, cat, grades, , areas, crags, routes, showIndoor]) =>
             ({
               filter: f,
               categories: cat,
@@ -419,10 +420,11 @@ export class HomeComponent implements OnDestroy {
               areas,
               crags,
               routes,
+              showIndoor,
             }) as const,
         ),
         distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
-        switchMap(({ filter }) => {
+        switchMap(({ filter, showIndoor }) => {
           this.ascents.set([]);
           this.hasMore.set(true);
           this.isLoading.set(true);
@@ -430,7 +432,15 @@ export class HomeComponent implements OnDestroy {
             startWith(void 0),
             scan((acc) => acc + 1, -1),
             concatMap(async (page) => {
-              const ascents = await this.fetchAscents(page, filter);
+              let ascents = await this.fetchAscents(page, filter);
+              if (showIndoor) {
+                const indoor = await this.fetchIndoorAscents(page, filter);
+                ascents = [...ascents, ...indoor].sort((a, b) => {
+                  const dateA = a.date ? new Date(a.date).getTime() : 0;
+                  const dateB = b.date ? new Date(b.date).getTime() : 0;
+                  return dateB - dateA;
+                });
+              }
               if (filter === 'all') {
                 const lastItem = this.ascents().slice(-1)[0];
                 const beforeDate =
@@ -455,7 +465,17 @@ export class HomeComponent implements OnDestroy {
         }),
       )
       .subscribe((newAscents) => {
-        this.ascents.update((current) => [...current, ...newAscents]);
+        this.ascents.update((current) => {
+          const all = [...current, ...newAscents];
+          // Since we might be merging two separate paginated streams (indoor and outdoor),
+          // a simple append could lead to out-of-order items across page boundaries.
+          // Sorting the entire accumulated array guarantees chronological order.
+          return all.sort((a, b) => {
+            const dateA = a.date ? new Date(a.date).getTime() : 0;
+            const dateB = b.date ? new Date(b.date).getTime() : 0;
+            return dateB - dateA;
+          });
+        });
       });
   }
 
@@ -562,6 +582,114 @@ export class HomeComponent implements OnDestroy {
   protected readonly hasMore = signal(true);
   protected readonly ascents = signal<FeedItem[]>([]);
 
+  private async fetchIndoorAscents(
+    page: number,
+    filter: HomeFeedFilter = this.feedFilter(),
+  ): Promise<(RouteAscentWithExtras & { kind: 'ascent' })[]> {
+    if (!this.isBrowser) return [];
+    await this.supabase.whenReady();
+    const userId = this.supabase.authUserId();
+    if (!userId) return [];
+
+    const size = 10;
+    const fromIdx = page * size;
+    const toIdx = fromIdx + size - 1;
+
+    let query = this.supabase.client.from('indoor_ascents').select(
+      `
+          *,
+          route:indoor_routes!inner(
+            *,
+            center:indoor_centers!inner(*)
+          )
+        `,
+    );
+
+    if (filter !== 'all') {
+      query = query.neq('user_id', userId);
+    }
+
+    if (filter === 'following') {
+      const followed = Array.from(this.followedIds());
+      if (followed.length === 0) return [];
+      query = query.in('user_id', followed);
+    } else if (filter === 'favorite_crags') {
+      return []; // outdoor crags don't apply to indoor
+    } else if (filter === 'favorite_routes') {
+      return []; // outdoor liked routes don't apply to indoor
+    } else if (filter === 'favorite_areas') {
+      return []; // indoor centers don't belong to areas
+    }
+
+    const categories = this.global.feedCategories();
+    if (categories.length > 0) {
+      const kindsArray: ClimbingKind[] = [];
+      if (categories.includes(0)) kindsArray.push(ClimbingKinds.SPORT);
+      if (categories.includes(1)) kindsArray.push(ClimbingKinds.BOULDER);
+      if (kindsArray.length > 0) {
+        query = query.in('route.climbing_kind', kindsArray);
+      }
+    }
+
+    const [loIdx, hiIdx] = this.global.feedGradeRange();
+    if (loIdx > 0 || hiIdx < ORDERED_GRADE_VALUES.length - 1) {
+      const allowedLabels = ORDERED_GRADE_VALUES.slice(loIdx, hiIdx + 1);
+      const allowedDbGrades = allowedLabels
+        .map((label) => LABEL_TO_VERTICAL_LIFE[label])
+        .filter((g): g is number => g !== undefined);
+      if (!allowedDbGrades.includes(0)) {
+        allowedDbGrades.push(0);
+      }
+      query = query.in('route.grade', allowedDbGrades);
+    }
+
+    try {
+      const { data: ascents, error } = await query
+        .order('date', { ascending: false })
+        .order('id', { ascending: false })
+        .range(fromIdx, toIdx);
+
+      if (error) throw error;
+      if (!ascents || ascents.length === 0) return [];
+
+      const userIds = [...new Set(ascents.map((a) => a.user_id))].filter(
+        (id): id is string => id !== null,
+      );
+      const { data: profiles } = await this.supabase.client
+        .from('user_profiles')
+        .select('*')
+        .in('id', userIds);
+
+      const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
+
+      return ascents.map((a: any) => {
+        const { route, ...ascentRest } = a;
+        let mappedRoute: RouteAscentWithExtras['route'] = undefined;
+        if (route) {
+          const center = Array.isArray(route.center)
+            ? route.center[0]
+            : route.center;
+          mappedRoute = {
+            ...route,
+            crag_slug: center?.slug,
+            crag_name: center?.name,
+            liked: false,
+            project: false,
+          } as any;
+        }
+        return {
+          ...ascentRest,
+          kind: 'ascent',
+          user: profileMap.get(a.user_id),
+          route: mappedRoute,
+        } as RouteAscentWithExtras & { kind: 'ascent' };
+      });
+    } catch (e: unknown) {
+      console.warn('[Home] fetchIndoorAscents error', e);
+      return [];
+    }
+  }
+
   private async fetchAscents(
     page: number,
     filter: HomeFeedFilter = this.feedFilter(),
@@ -575,10 +703,8 @@ export class HomeComponent implements OnDestroy {
     const fromIdx = page * size;
     const toIdx = fromIdx + size - 1;
 
-    let query = this.supabase.client
-      .from('route_ascents')
-      .select(
-        `
+    let query = this.supabase.client.from('route_ascents').select(
+      `
           *,
           route:routes!inner(
             *,
@@ -588,8 +714,11 @@ export class HomeComponent implements OnDestroy {
             )
           )
         `,
-      )
-      .neq('user_id', userId);
+    );
+
+    if (filter !== 'all') {
+      query = query.neq('user_id', userId);
+    }
 
     if (filter === 'following') {
       const followed = Array.from(this.followedIds());
@@ -752,6 +881,7 @@ export class HomeComponent implements OnDestroy {
       showCategories: true,
       showGradeRange: true,
       showShade: false,
+      showIndoorAscents: this.global.feedShowIndoorAscents(),
     };
 
     const result = await firstValueFrom(
@@ -771,6 +901,9 @@ export class HomeComponent implements OnDestroy {
     this.global.feedCategories.set(result.categories ?? []);
     if (result.gradeRange) {
       this.global.feedGradeRange.set(result.gradeRange);
+    }
+    if (result.showIndoorAscents !== undefined) {
+      this.global.feedShowIndoorAscents.set(result.showIndoorAscents);
     }
   }
 
