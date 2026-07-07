@@ -227,13 +227,6 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
                   }
                 </div>
               </div>
-
-              <div
-                tuiAppearance="flat-grayscale"
-                class="p-4 rounded-3xl flex flex-col gap-4"
-              >
-                <app-indoor-vouchers [centerId]="c.id" />
-              </div>
             </div>
           </div>
 
@@ -319,11 +312,14 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
             </div>
           }
 
-          <tui-tabs [(activeItemIndex)]="activeTabIndex" class="mt-8">
-            <button tuiTab>{{ 'indoor.routes' | translate }}</button>
-            <button tuiTab>{{ 'indoor.topos' | translate }}</button>
-            <button tuiTab>{{ 'indoor.ascents' | translate }}</button>
-          </tui-tabs>
+          <div class="overflow-x-auto no-scrollbar">
+            <tui-tabs [(activeItemIndex)]="activeTabIndex" class="mt-8">
+              <button tuiTab>{{ 'indoor.routes' | translate }}</button>
+              <button tuiTab>{{ 'indoor.topos' | translate }}</button>
+              <button tuiTab>{{ 'indoor.ascents' | translate }}</button>
+              <button tuiTab>{{ 'indoor.vouchers' | translate }}</button>
+            </tui-tabs>
+          </div>
 
           <div class="mt-6">
             @switch (activeTabIndex()) {
@@ -335,6 +331,9 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
               }
               @case (2) {
                 <app-empty-state />
+              }
+              @case (3) {
+                <app-indoor-vouchers [centerId]="c.id" />
               }
             }
           </div>

@@ -37,24 +37,21 @@ import { IndoorVoucherDto, IndoorVoucherPurchaseDto } from '../../models';
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             @for (p of activeVouchers(); track p.id) {
               <div
-                tuiAppearance="flat-grayscale"
-                class="p-4 rounded-3xl flex flex-col gap-2 relative overflow-hidden"
+                class="p-4 rounded-3xl flex flex-col gap-2 relative overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md max-w-sm w-full mx-auto"
               >
                 <div class="flex justify-between items-start z-10">
                   <div class="flex flex-col">
-                    <span class="font-bold text-lg">{{
-                      getVoucherName(p)
-                    }}</span>
-                    <span class="text-sm text-(--tui-text-secondary)">
+                    <span class="font-bold">{{ getVoucherName(p) }}</span>
+                    <span class="text-xs text-white/80">
                       {{ 'expires' | translate }}:
                       {{ p.expiration_date | date: 'shortDate' }}
                     </span>
                   </div>
                   <div class="flex flex-col items-end">
-                    <span class="text-2xl font-black">{{
+                    <span class="text-xl font-black">{{
                       p.remaining_sessions
                     }}</span>
-                    <span class="text-xs uppercase">{{
+                    <span class="text-[10px] uppercase text-white/80">{{
                       'indoor.sessions' | translate
                     }}</span>
                   </div>
@@ -63,14 +60,14 @@ import { IndoorVoucherDto, IndoorVoucherPurchaseDto } from '../../models';
                   tuiButton
                   size="s"
                   appearance="primary"
-                  class="mt-2 rounded-xl! z-10"
+                  class="mt-2 rounded-xl! z-10 self-start"
                   (click)="onCheckIn(p.id)"
                 >
                   Check-in
                 </button>
                 <tui-icon
                   icon="@tui.ticket"
-                  class="absolute -bottom-4 -right-4 text-neutral-200 dark:text-neutral-800 scale-150"
+                  class="absolute -bottom-4 -right-4 text-white/20 scale-150"
                   [style.fontSize.px]="120"
                 />
               </div>
@@ -85,26 +82,25 @@ import { IndoorVoucherDto, IndoorVoucherPurchaseDto } from '../../models';
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             @for (v of availableVouchers(); track v.id) {
               <div
-                class="p-4 rounded-3xl flex flex-col gap-4 relative overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-xl"
+                class="p-3 rounded-2xl flex flex-col relative overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md max-w-sm w-full mx-auto justify-center min-h-[90px]"
               >
                 <div class="flex justify-between items-center z-10">
-                  <span class="font-bold text-lg">{{ v.name }}</span>
-                  <span class="text-xl font-bold">{{
+                  <div class="flex flex-col">
+                    <span class="font-bold text-sm">{{ v.name }}</span>
+                    @if (v.duration_days) {
+                      <span class="text-xs text-white/80"
+                        >{{ v.duration_days }} {{ 'days' | translate }}</span
+                      >
+                    }
+                  </div>
+                  <span class="text-lg font-black">{{
                     v.price | currency: 'EUR'
                   }}</span>
                 </div>
-                <div class="flex flex-col text-sm text-white/80 z-10">
-                  @if (v.sessions_count) {
-                    <span>
-                      {{ v.sessions_count }} {{ 'indoor.sessions' | translate }}
-                    </span>
-                  }
-                  <span>{{ v.duration_days }} {{ 'days' | translate }}</span>
-                </div>
                 <tui-icon
                   icon="@tui.ticket"
-                  class="absolute -bottom-4 -right-4 text-white/20 scale-150"
-                  [style.fontSize.px]="120"
+                  class="absolute -bottom-2 -right-2 text-white/20 scale-[2]"
+                  [style.fontSize.px]="80"
                 />
               </div>
             }
