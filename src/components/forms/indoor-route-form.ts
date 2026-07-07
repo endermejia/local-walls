@@ -97,7 +97,7 @@ export interface IndoorRouteFormData {
           name="climbing_kind"
         >
           @for (kind of kindOptions; track kind) {
-            <option [value]="kind">
+            <option [ngValue]="kind">
               {{ 'climbingKinds.' + kind | translate }}
             </option>
           }
@@ -132,7 +132,7 @@ export interface IndoorRouteFormData {
             name="grade"
           >
             @for (grade of gradeOptions; track grade) {
-              <option [value]="grade">
+              <option [ngValue]="grade">
                 {{ gradeStringify(grade) }}
               </option>
             }
