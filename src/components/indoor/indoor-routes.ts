@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   ChangeDetectionStrategy,
@@ -9,6 +9,8 @@ import {
   computed,
   signal,
   effect,
+  viewChildren,
+  PLATFORM_ID,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -22,8 +24,15 @@ import {
   TuiLink,
   TuiHint,
   TuiCheckbox,
+  TuiDialogService,
 } from '@taiga-ui/core';
-import { TuiBadge, TuiPin } from '@taiga-ui/kit';
+import {
+  TuiBadge,
+  TuiPin,
+  TuiChevron,
+  TUI_CONFIRM,
+  TuiConfirmData,
+} from '@taiga-ui/kit';
 import {
   TuiTable,
   TuiTableTbody,
@@ -33,7 +42,11 @@ import {
   TuiTableTd,
   TuiTableCell,
   TuiTableHead,
+  TuiTableExpand,
+  TuiTableSortChange,
+  TuiSortDirection,
 } from '@taiga-ui/addon-table';
+import type { TuiComparator } from '@taiga-ui/addon-table/types';
 
 import { IndoorService } from '../../services/indoor.service';
 import { AscentsService } from '../../services/ascents.service';
@@ -64,11 +77,13 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
     TuiTableTd,
     TuiTableCell,
     TuiTableHead,
+    TuiTableExpand,
     GradeComponent,
     EmptyStateComponent,
     IndoorRouteEquippersInputComponent,
     TuiCheckbox,
     TuiPin,
+    TuiChevron,
   ],
   template: `
     <div class="flex flex-col gap-4">
@@ -121,6 +136,9 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
             [size]="isMobile ? 's' : 'm'"
             class="w-full"
             [columns]="columns()"
+            [direction]="currentDirection"
+            [sorter]="currentSorter"
+            (sortChange)="onSortChange($event)"
           >
             <thead tuiThead>
               <tr tuiThGroup>
@@ -128,27 +146,43 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
                   <th
                     *tuiHead="col"
                     tuiTh
-                    [sorter]="null"
+                    [sorter]="getSorter(col)"
                     [class.text-right]="
                       col === 'actions' || col === 'admin_actions'
                     "
+                    [class.w-12!]="col === 'expand'"
                     [class.w-20!]="col === 'grade'"
                     [class.w-24!]="col === 'color'"
                     [class.w-64!]="col === 'equippers'"
                     [class.w-16!]="col === 'actions'"
                     [class.w-28!]="col === 'admin_actions'"
                   >
-                    {{
-                      col === 'actions' || col === 'admin_actions'
-                        ? ''
-                        : (col | translate)
-                    }}
+                    @if (col === 'expand') {
+                      <button
+                        appearance="flat-grayscale"
+                        size="xs"
+                        tuiIconButton
+                        type="button"
+                        class="rounded-full!"
+                        [tuiChevron]="allExpanded()"
+                        (click.zoneless)="toggleAllExpanded()"
+                      >
+                        Toggle All
+                      </button>
+                    } @else {
+                      {{
+                        col === 'actions' || col === 'admin_actions'
+                          ? ''
+                          : (col | translate)
+                      }}
+                    }
                   </th>
                 }
               </tr>
             </thead>
+            @let sortedData = routes() | tuiTableSort;
             <tbody tuiTbody>
-              @for (item of routes(); track item.id) {
+              @for (item of sortedData; track item.id) {
                 <tr tuiTr>
                   @for (col of columns(); track col) {
                     <td
@@ -159,6 +193,19 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
                       "
                     >
                       @switch (col) {
+                        @case ('expand') {
+                          <button
+                            appearance="flat-grayscale"
+                            size="xs"
+                            tuiIconButton
+                            type="button"
+                            class="rounded-full!"
+                            [tuiChevron]="exp.expanded()"
+                            (click.zoneless)="exp.toggle()"
+                          >
+                            Toggle
+                          </button>
+                        }
                         @case ('grade') {
                           <div tuiCell size="m">
                             <app-grade
@@ -204,7 +251,8 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
                                 <div
                                   tuiPin
                                   [style.backgroundColor]="item.color"
-                                  class="shrink-0 scale-75 origin-left"
+                                  style="position: static; transform: scale(0.75); margin: 0;"
+                                  class="shrink-0"
                                 ></div>
                                 <span class="text-sm truncate">
                                   {{ getColorName(item.color) }}
@@ -289,6 +337,110 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
                     </td>
                   }
                 </tr>
+                <tui-table-expand #exp [expanded]="false">
+                  <tr>
+                    <td
+                      [colSpan]="columns().length"
+                      class="p-0! border-none! w-full! max-w-full!"
+                    >
+                      <div class="w-full box-border px-1 py-2">
+                        <div
+                          class="flex flex-col gap-3 p-3 bg-(--tui-background-neutral-1) rounded-2xl border border-(--tui-border-normal) w-full overflow-hidden"
+                        >
+                          <div class="flex items-center justify-between">
+                            <!-- Color -->
+                            @if (item.color) {
+                              <div class="flex items-center gap-2">
+                                <div
+                                  tuiPin
+                                  [style.backgroundColor]="item.color"
+                                  style="position: static; transform: scale(0.75); margin: 0;"
+                                  class="shrink-0"
+                                ></div>
+                                <span class="text-sm font-semibold">
+                                  {{ getColorName(item.color) }}
+                                </span>
+                              </div>
+                            } @else {
+                              <span class="opacity-50 text-xs">-</span>
+                            }
+
+                            <!-- Actions -->
+                            <div class="flex items-center gap-3">
+                              @if (centerSlug() || item.center_slug) {
+                                <button
+                                  size="m"
+                                  appearance="neutral"
+                                  iconStart="@tui.circle-plus"
+                                  tuiIconButton
+                                  type="button"
+                                  class="rounded-full!"
+                                  [tuiHint]="'ascent.new' | translate"
+                                  (click.zoneless)="
+                                    logAscent(item); $event.stopPropagation()
+                                  "
+                                >
+                                  {{ 'ascent.new' | translate }}
+                                </button>
+                              }
+
+                              @if (canEdit()) {
+                                <button
+                                  size="s"
+                                  appearance="neutral"
+                                  iconStart="@tui.square-pen"
+                                  tuiIconButton
+                                  type="button"
+                                  class="rounded-full!"
+                                  [tuiHint]="'edit' | translate"
+                                  (click.zoneless)="
+                                    editRoute(item); $event.stopPropagation()
+                                  "
+                                >
+                                  {{ 'edit' | translate }}
+                                </button>
+                                <button
+                                  size="s"
+                                  appearance="negative"
+                                  iconStart="@tui.trash"
+                                  tuiIconButton
+                                  type="button"
+                                  class="rounded-full!"
+                                  [tuiHint]="'delete' | translate"
+                                  (click.zoneless)="
+                                    deleteRoute(item); $event.stopPropagation()
+                                  "
+                                >
+                                  {{ 'delete' | translate }}
+                                </button>
+                              }
+                            </div>
+                          </div>
+
+                          <!-- Equippers -->
+                          @if (item.equippers && item.equippers.length > 0) {
+                            <div class="flex flex-wrap gap-1 items-center">
+                              <span class="text-xs opacity-60 mr-1"
+                                >{{ 'equippers' | translate }}:</span
+                              >
+                              @for (eq of item.equippers; track eq.id) {
+                                <button
+                                  tuiButton
+                                  appearance="secondary"
+                                  size="xs"
+                                  class="min-w-fit! px-2!"
+                                  [routerLink]="['/equipper', eq.id]"
+                                >
+                                  {{ eq.name }}
+                                </button>
+                              }
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tui-table-expand>
               }
             </tbody>
           </table>
@@ -311,8 +463,13 @@ export class IndoorRoutesComponent {
   protected readonly global = inject(GlobalData);
   private readonly translate = inject(TranslateService);
   private readonly ascentsService = inject(AscentsService);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly dialogs = inject(TuiDialogService);
 
   protected readonly columns = computed(() => {
+    if (this.global.isMobile()) {
+      return ['expand', 'grade', 'route'];
+    }
     const cols = ['grade', 'route', 'color', 'equippers'];
     if (this.centerSlug() || this.routes().some((r) => r.center_slug)) {
       cols.push('actions');
@@ -396,12 +553,28 @@ export class IndoorRoutesComponent {
   }
 
   async deleteRoute(route: IndoorRouteWithExtras): Promise<void> {
-    if (confirm(this.translate.instant('deleteCommentConfirm'))) {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    void firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('routes.deleteTitle'),
+        size: 's',
+        data: {
+          content: this.translate.instant('routes.deleteConfirm', {
+            name: route.name || this.translate.instant('route'),
+          }),
+          yes: this.translate.instant('delete'),
+          no: this.translate.instant('cancel'),
+        } as TuiConfirmData,
+      }),
+      { defaultValue: false },
+    ).then(async (confirmed) => {
+      if (!confirmed) return;
       await this.indoor.deleteRoute(route.id);
       if (this.centerId()) {
         this.routesResource.reload();
       }
-    }
+    });
   }
 
   protected readonly getColorName = (colorValue: string): string => {
@@ -427,6 +600,55 @@ export class IndoorRoutesComponent {
       ? this.translate.instant('colors.' + colorObj.name)
       : colorValue;
   };
+
+  protected readonly expanders = viewChildren(TuiTableExpand);
+  protected readonly allExpanded = signal(false);
+
+  protected toggleAllExpanded() {
+    this.allExpanded.update((v) => !v);
+    const expandState = this.allExpanded();
+    for (const exp of this.expanders()) {
+      if (exp.expanded() !== expandState) {
+        exp.expanded.set(expandState);
+      }
+    }
+  }
+
+  protected currentDirection: TuiSortDirection = 1;
+  protected currentSorter: TuiComparator<IndoorRouteWithExtras> = (_a, _b) => 0;
+
+  protected readonly sorters: Record<
+    string,
+    TuiComparator<IndoorRouteWithExtras>
+  > = {
+    grade: (a, b) => (a.grade || 0) - (b.grade || 0),
+    route: (a, b) => (a.name || '').localeCompare(b.name || ''),
+    color: (a, b) => {
+      const aName = this.getColorName(a.color || '');
+      const bName = this.getColorName(b.color || '');
+      return aName.localeCompare(bName);
+    },
+  };
+
+  protected getSorter(
+    col: string,
+  ): TuiComparator<IndoorRouteWithExtras> | null {
+    if (
+      col === 'actions' ||
+      col === 'admin_actions' ||
+      col === 'expand' ||
+      col === 'equippers'
+    )
+      return null;
+    return this.sorters[col] ?? null;
+  }
+
+  protected onSortChange(
+    sort: TuiTableSortChange<IndoorRouteWithExtras>,
+  ): void {
+    this.currentSorter = sort.sortComparator || ((_a, _b) => 0);
+    this.currentDirection = sort.sortDirection;
+  }
 
   async logAscent(route: IndoorRouteWithExtras): Promise<void> {
     const success = await firstValueFrom(

@@ -87,23 +87,23 @@ export interface IndoorRouteFormData {
         <tui-error [error]="'errors.required' | translate" />
       }
 
-      <tui-textfield tuiChevron [tuiTextfieldCleaner]="false">
+      <tui-textfield
+        tuiChevron
+        [tuiTextfieldCleaner]="false"
+        [stringify]="kindStringify"
+      >
         <label tuiLabel for="climbing_kind">
           {{ 'climbing_kind' | translate }}
         </label>
-        <select
+        <input
           tuiSelect
           id="climbing_kind"
           [ngModel]="model().climbing_kind"
           (ngModelChange)="updateModel('climbing_kind', $event)"
           name="climbing_kind"
-        >
-          @for (kind of kindOptions; track kind) {
-            <option [ngValue]="kind">
-              {{ 'climbingKinds.' + kind | translate }}
-            </option>
-          }
-        </select>
+          autocomplete="off"
+        />
+        <tui-data-list-wrapper *tuiDropdown new [items]="kindOptions" />
       </tui-textfield>
 
       <div class="flex items-center gap-2">
@@ -121,24 +121,21 @@ export interface IndoorRouteFormData {
         <tui-textfield
           tuiChevron
           [tuiTextfieldCleaner]="false"
+          [stringify]="gradeStringify"
           class="grow min-w-0"
         >
           <label tuiLabel for="grade">
             {{ 'grade' | translate }}
           </label>
-          <select
+          <input
             tuiSelect
             id="grade"
             [ngModel]="model().grade"
             (ngModelChange)="updateModel('grade', $event)"
             name="grade"
-          >
-            @for (grade of gradeOptions; track grade) {
-              <option [ngValue]="grade">
-                {{ gradeStringify(grade) }}
-              </option>
-            }
-          </select>
+            autocomplete="off"
+          />
+          <tui-data-list-wrapper *tuiDropdown new [items]="gradeOptions" />
         </tui-textfield>
         <button
           tuiIconButton
@@ -176,7 +173,8 @@ export interface IndoorRouteFormData {
                 <div
                   tuiPin
                   [style.backgroundColor]="color.value"
-                  class="shrink-0 scale-75 origin-left"
+                  style="position: static; transform: scale(0.75); margin: 0;"
+                  class="shrink-0"
                 ></div>
                 <span>{{ 'colors.' + color.name | translate }}</span>
               </div>
@@ -359,7 +357,7 @@ export default class IndoorRouteFormComponent {
     name: '',
     climbing_kind: 'sport',
     grade: 6,
-    color: 'red',
+    color: '#EF4444',
     topo: null,
     legacy: false,
     equippers: [],

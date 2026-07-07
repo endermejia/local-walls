@@ -76,7 +76,17 @@ export const errorInterceptor: HttpInterceptorFn = (
         url.endsWith('.css') ||
         url.endsWith('.js');
 
-      if (isBrowser && !isStatic && (status === 401 || status === 403)) {
+      const isExternalNonSupabase =
+        url.includes('/api/8anu') ||
+        url.includes('8a.nu') ||
+        url.includes('vertical-life.info');
+
+      if (
+        isBrowser &&
+        !isStatic &&
+        !isExternalNonSupabase &&
+        (status === 401 || status === 403)
+      ) {
         // Prefer a local logout to clear client session and navigate to /login.
         // This avoids SSR/Edge issues and 403 from Supabase global scope.
         try {

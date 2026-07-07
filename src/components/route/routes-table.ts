@@ -786,6 +786,35 @@ import {
                             </div>
                           </div>
 
+                          <!-- Equippers -->
+                          @if (canEditRoute) {
+                            <div class="w-full">
+                              <app-route-equippers-input [route]="item._ref" />
+                            </div>
+                          } @else if (item._ref.equippers; as equippers) {
+                            @if (equippers.length > 0) {
+                              <div class="flex flex-wrap gap-1 items-center">
+                                <span class="text-xs opacity-60 mr-1"
+                                  >{{ 'equippers' | translate }}:</span
+                                >
+                                @for (e of equippers; track e.id) {
+                                  <button
+                                    tuiButton
+                                    appearance="secondary"
+                                    size="xs"
+                                    class="min-w-fit! px-2!"
+                                    (click)="
+                                      router.navigate(['/equipper', e.id]);
+                                      $event.stopPropagation()
+                                    "
+                                  >
+                                    {{ e.name }}
+                                  </button>
+                                }
+                              </div>
+                            }
+                          }
+
                           @if (showLocation()) {
                             <div
                               class="text-xs opacity-60 flex gap-1 items-center border-t border-(--tui-border-normal) pt-2"
