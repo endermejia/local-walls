@@ -219,12 +219,14 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
                         }
                         @case ('equippers') {
                           <div tuiCell size="m" class="grow min-w-0">
-                            @if (canEdit()) {
-                              <app-indoor-route-equippers-input
-                                [route]="item"
-                                (equippersChanged)="routesResource.reload()"
-                              />
-                            } @else {
+                            <div class="flex flex-col gap-1 w-full">
+                              @if (canEdit()) {
+                                <app-indoor-route-equippers-input
+                                  [route]="item"
+                                  (equippersChanged)="routesResource.reload()"
+                                />
+                              }
+
                               <div class="flex flex-wrap gap-1 items-center">
                                 @for (eq of item.equippers; track eq.id) {
                                   <button
@@ -237,10 +239,12 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
                                     {{ eq.name }}
                                   </button>
                                 } @empty {
-                                  <span class="opacity-50 text-xs">-</span>
+                                  @if (!canEdit()) {
+                                    <span class="opacity-50 text-xs">-</span>
+                                  }
                                 }
                               </div>
-                            }
+                            </div>
                           </div>
                         }
                         @case ('actions') {

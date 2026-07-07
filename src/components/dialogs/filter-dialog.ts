@@ -107,17 +107,6 @@ export interface FilterDialog {
             [keySteps]="keySteps"
             formControlName="gradeRange"
           />
-          <div class="flex items-center gap-2 mt-4">
-            <input
-              tuiCheckbox
-              type="checkbox"
-              formControlName="showIndoorAscents"
-              id="showIndoorAscents"
-            />
-            <label for="showIndoorAscents">{{
-              'indoor.showIndoorAscents' | translate
-            }}</label>
-          </div>
 
           <div class="hidden sm:flex flex-wrap gap-2 justify-between">
             @for (label of tickLabels; track label; let i = $index) {
@@ -134,6 +123,17 @@ export interface FilterDialog {
           </div>
         </section>
       }
+
+      <section class="flex flex-col gap-3">
+        <label class="flex items-center gap-2">
+          <input
+            tuiCheckbox
+            type="checkbox"
+            formControlName="showIndoorAscents"
+          />
+          <span>{{ 'indoor.showIndoorAscents' | translate }}</span>
+        </label>
+      </section>
 
       <footer class="flex flex-wrap gap-2 justify-end items-center">
         <button
