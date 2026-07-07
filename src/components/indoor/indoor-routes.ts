@@ -225,25 +225,23 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
                                   [route]="item"
                                   (equippersChanged)="routesResource.reload()"
                                 />
-                              }
-
-                              <div class="flex flex-wrap gap-1 items-center">
-                                @for (eq of item.equippers; track eq.id) {
-                                  <button
-                                    tuiButton
-                                    appearance="secondary"
-                                    size="xs"
-                                    class="min-w-fit! px-2!"
-                                    [routerLink]="['/equipper', eq.id]"
-                                  >
-                                    {{ eq.name }}
-                                  </button>
-                                } @empty {
-                                  @if (!canEdit()) {
+                              } @else {
+                                <div class="flex flex-wrap gap-1 items-center">
+                                  @for (eq of item.equippers; track eq.id) {
+                                    <button
+                                      tuiButton
+                                      appearance="secondary"
+                                      size="xs"
+                                      class="min-w-fit! px-2!"
+                                      [routerLink]="['/equipper', eq.id]"
+                                    >
+                                      {{ eq.name }}
+                                    </button>
+                                  } @empty {
                                     <span class="opacity-50 text-xs">-</span>
                                   }
-                                }
-                              </div>
+                                </div>
+                              }
                             </div>
                           </div>
                         }
