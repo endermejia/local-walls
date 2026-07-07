@@ -222,7 +222,9 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
                             @if (canEdit()) {
                               <app-indoor-route-equippers-input
                                 [route]="item"
+                                (equippersChanged)="routesResource.reload()"
                               />
+                            } @else {
                               <div class="flex flex-wrap gap-1 items-center">
                                 @for (eq of item.equippers; track eq.id) {
                                   <button
