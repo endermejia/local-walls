@@ -31,6 +31,7 @@ import {
   TuiDataListWrapper,
   TuiHideSelectedPipe,
   TuiInputChip,
+  TuiPin,
 } from '@taiga-ui/kit';
 import { TuiIdentityMatcher } from '@taiga-ui/cdk';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -73,6 +74,7 @@ export interface IndoorRouteFormData {
     TuiFilterByInputPipe,
     TuiHideSelectedPipe,
     TuiInputChip,
+    TuiPin,
     FormField,
   ],
   template: `
@@ -171,10 +173,7 @@ export interface IndoorRouteFormData {
           @for (color of routeColors; track color) {
             <button tuiOption [value]="color">
               <div class="flex items-center gap-2">
-                <span
-                  class="w-3.5 h-3.5 rounded-full border border-neutral-300 dark:border-neutral-700 block shrink-0"
-                  [style.backgroundColor]="color"
-                ></span>
+                <div tuiPin [style.backgroundColor]="color"></div>
                 <span>{{ 'colors.' + color | translate }}</span>
               </div>
             </button>
@@ -300,32 +299,25 @@ export default class IndoorRouteFormComponent {
   protected readonly kindStringify = (kind: ClimbingKind): string =>
     this.translate.instant(`climbingKinds.${kind}`);
 
-  protected readonly colorStringify = (color: string): string =>
-    this.translate.instant(`colors.${color}`);
+  protected readonly colorStringify = (color: string): string => color;
 
   protected readonly routeColors = [
-    'red',
-    'blue',
-    'orange',
-    'cyan',
-    'aquamarine',
-    'yellow',
-    'green',
-    'pink',
-    'purple',
-    'white',
-    'black',
-    'grey',
-    'brown',
-    'beige',
-    'gold',
-    'silver',
-    'lime',
-    'magenta',
-    'crimson',
-    'teal',
-    'indigo',
-    'violet',
+    '#EF4444', // Red 500
+    '#3B82F6', // Blue 500
+    '#F97316', // Orange 500
+    '#06B6D4', // Cyan 500
+    '#EAB308', // Yellow 500
+    '#22C55E', // Green 500
+    '#EC4899', // Pink 500
+    '#A855F7', // Fuchsia 500
+    '#ffffff', // White
+    '#000000', // Black
+    '#6B7280', // Gray 500
+    '#84CC16', // Lime 500
+    '#14B8A6', // Teal 500
+    '#6366F1', // Emerald 500
+    '#8B5CF6', // Indigo 500
+    '#D946EF', // Rose 500
   ];
 
   protected readonly stringifyTopo = (t: IndoorTopoDto) => t.name;

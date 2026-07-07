@@ -23,7 +23,7 @@ import {
   TuiHint,
   TuiCheckbox,
 } from '@taiga-ui/core';
-import { TuiBadge } from '@taiga-ui/kit';
+import { TuiBadge, TuiPin } from '@taiga-ui/kit';
 import {
   TuiTable,
   TuiTableTbody,
@@ -68,6 +68,7 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
     EmptyStateComponent,
     IndoorRouteEquippersInputComponent,
     TuiCheckbox,
+    TuiPin,
   ],
   template: `
     <div class="flex flex-col gap-4">
@@ -200,16 +201,12 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
                           <div tuiCell size="m">
                             <div class="flex items-center gap-2 min-w-0">
                               @if (item.color) {
-                                <span
-                                  class="w-3.5 h-3.5 rounded-full border border-neutral-300 dark:border-neutral-700 block shrink-0"
+                                <div
+                                  tuiPin
                                   [style.backgroundColor]="item.color"
-                                ></span>
+                                ></div>
                                 <span class="text-sm truncate">
-                                  {{
-                                    item.color.startsWith('#')
-                                      ? item.color
-                                      : ('colors.' + item.color | translate)
-                                  }}
+                                  {{ item.color }}
                                 </span>
                               } @else {
                                 <span class="opacity-50 text-xs">-</span>
