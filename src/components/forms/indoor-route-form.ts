@@ -171,10 +171,14 @@ export interface IndoorRouteFormData {
         />
         <tui-data-list *tuiDropdown>
           @for (color of routeColors; track color) {
-            <button tuiOption [value]="color">
+            <button tuiOption [value]="color.value">
               <div class="flex items-center gap-2">
-                <div tuiPin [style.backgroundColor]="color"></div>
-                <span>{{ 'colors.' + color | translate }}</span>
+                <div
+                  tuiPin
+                  [style.backgroundColor]="color.value"
+                  class="shrink-0 scale-75 origin-left"
+                ></div>
+                <span>{{ 'colors.' + color.name | translate }}</span>
               </div>
             </button>
           }
@@ -299,25 +303,29 @@ export default class IndoorRouteFormComponent {
   protected readonly kindStringify = (kind: ClimbingKind): string =>
     this.translate.instant(`climbingKinds.${kind}`);
 
-  protected readonly colorStringify = (color: string): string => color;
+  protected readonly colorStringify = (colorValue: string): string => {
+    const colorObj = this.routeColors.find((c) => c.value === colorValue);
+    return colorObj
+      ? this.translate.instant('colors.' + colorObj.name)
+      : colorValue;
+  };
 
   protected readonly routeColors = [
-    '#EF4444', // Red 500
-    '#3B82F6', // Blue 500
-    '#F97316', // Orange 500
-    '#06B6D4', // Cyan 500
-    '#EAB308', // Yellow 500
-    '#22C55E', // Green 500
-    '#EC4899', // Pink 500
-    '#A855F7', // Fuchsia 500
-    '#ffffff', // White
-    '#000000', // Black
-    '#6B7280', // Gray 500
-    '#84CC16', // Lime 500
-    '#14B8A6', // Teal 500
-    '#6366F1', // Emerald 500
-    '#8B5CF6', // Indigo 500
-    '#D946EF', // Rose 500
+    { value: '#EF4444', name: 'red' },
+    { value: '#3B82F6', name: 'blue' },
+    { value: '#F97316', name: 'orange' },
+    { value: '#06B6D4', name: 'cyan' },
+    { value: '#EAB308', name: 'yellow' },
+    { value: '#22C55E', name: 'green' },
+    { value: '#EC4899', name: 'pink' },
+    { value: '#A855F7', name: 'purple' },
+    { value: '#ffffff', name: 'white' },
+    { value: '#000000', name: 'black' },
+    { value: '#6B7280', name: 'grey' },
+    { value: '#84CC16', name: 'lime' },
+    { value: '#14B8A6', name: 'teal' },
+    { value: '#6366F1', name: 'indigo' },
+    { value: '#D946EF', name: 'magenta' },
   ];
 
   protected readonly stringifyTopo = (t: IndoorTopoDto) => t.name;

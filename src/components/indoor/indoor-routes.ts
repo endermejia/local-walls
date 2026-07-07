@@ -204,9 +204,10 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
                                 <div
                                   tuiPin
                                   [style.backgroundColor]="item.color"
+                                  class="shrink-0 scale-75 origin-left"
                                 ></div>
                                 <span class="text-sm truncate">
-                                  {{ item.color }}
+                                  {{ getColorName(item.color) }}
                                 </span>
                               } @else {
                                 <span class="opacity-50 text-xs">-</span>
@@ -402,6 +403,30 @@ export class IndoorRoutesComponent {
       }
     }
   }
+
+  protected readonly getColorName = (colorValue: string): string => {
+    const colors = [
+      { value: '#EF4444', name: 'red' },
+      { value: '#3B82F6', name: 'blue' },
+      { value: '#F97316', name: 'orange' },
+      { value: '#06B6D4', name: 'cyan' },
+      { value: '#EAB308', name: 'yellow' },
+      { value: '#22C55E', name: 'green' },
+      { value: '#EC4899', name: 'pink' },
+      { value: '#A855F7', name: 'purple' },
+      { value: '#ffffff', name: 'white' },
+      { value: '#000000', name: 'black' },
+      { value: '#6B7280', name: 'grey' },
+      { value: '#84CC16', name: 'lime' },
+      { value: '#14B8A6', name: 'teal' },
+      { value: '#6366F1', name: 'indigo' },
+      { value: '#D946EF', name: 'magenta' },
+    ];
+    const colorObj = colors.find((c) => c.value === colorValue);
+    return colorObj
+      ? this.translate.instant('colors.' + colorObj.name)
+      : colorValue;
+  };
 
   async logAscent(route: IndoorRouteWithExtras): Promise<void> {
     const success = await firstValueFrom(
