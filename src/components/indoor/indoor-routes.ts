@@ -98,7 +98,7 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
               autocomplete="off"
             />
             <span class="text-xs opacity-75 select-none">{{
-              'indoor.showLegacy' | translate
+              'indoor.showLegacyRoutes' | translate
             }}</span>
           </label>
 

@@ -49,21 +49,33 @@ import { TopoListItem } from '../../models';
         </header>
         <section class="flex flex-col gap-2">
           @if (item.photo; as photo) {
-            <img
-              [src]="
-                ({
-                  path: photo,
-                  version: global.topoPhotoVersion(),
-                  isIndoor: isIndoor(),
-                }
-                  | topoImage
-                  | async) || ('topo' | iconSrc)
-              "
-              alt="topo"
-              class="w-full h-40 object-cover rounded shadow-sm"
-              loading="lazy"
-              decoding="async"
-            />
+            <div class="relative">
+              <img
+                [src]="
+                  ({
+                    path: photo,
+                    version: global.topoPhotoVersion(),
+                    isIndoor: isIndoor(),
+                  }
+                    | topoImage
+                    | async) || ('topo' | iconSrc)
+                "
+                alt="topo"
+                class="w-full h-40 object-cover rounded shadow-sm"
+                loading="lazy"
+                decoding="async"
+              />
+              @if (item.total_routes && item.total_routes > 0) {
+                <div class="absolute bottom-2 left-2 px-2 py-1 bg-black/60 backdrop-blur-sm rounded text-xs font-medium text-white shadow-sm flex items-center gap-1">
+                  @if (item.unclimbed_routes === 0) {
+                    <span style="color: var(--tui-text-positive)">{{ 'topos.allClimbed' | translate }} 💪</span>
+                  } @else {
+                    <tui-icon icon="@tui.circle-dashed" class="text-xs" />
+                    <span>{{ item.unclimbed_routes }} {{ 'topos.unclimbed' | translate }}</span>
+                  }
+                </div>
+              }
+            </div>
           }
           <div class="flex items-center justify-between gap-2 mt-auto">
             @if (!isIndoor()) {

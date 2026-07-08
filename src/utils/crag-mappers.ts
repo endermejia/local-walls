@@ -21,6 +21,24 @@ export function mapCragToDetail(rawData: CragWithJoins): CragDetail {
         }
       });
 
+      let unclimbed_routes = 0;
+      let total_routes = 0;
+      const seenRouteIdsForAscents = new Set<number>();
+
+      t.topo_routes.forEach((tr) => {
+        if (tr.route_id && !seenRouteIdsForAscents.has(tr.route_id)) {
+          seenRouteIdsForAscents.add(tr.route_id);
+          total_routes++;
+
+          const ascents = (tr.route as any)?.own_ascent || [];
+          const hasClimbed = ascents.some((a: any) => a.type !== 'attempt');
+
+          if (!hasClimbed) {
+            unclimbed_routes++;
+          }
+        }
+      });
+
       return {
         id: t.id,
         name: t.name,
@@ -31,6 +49,8 @@ export function mapCragToDetail(rawData: CragWithJoins): CragDetail {
         shade_change_hour: t.shade_change_hour,
         shade_morning: t.shade_morning,
         route_ids: t.topo_routes.map((tr) => tr.route_id),
+        unclimbed_routes,
+        total_routes,
       };
     }) ?? [];
 

@@ -1585,14 +1585,16 @@ export class GlobalData {
                topo_routes (
                  route_id,
                  route: routes (
-                   grade
+                   grade,
+                   own_ascent:route_ascents(*)
                  )
                )
              )
           `,
           )
           .eq('slug', cragSlug)
-          .eq('area.slug', areaSlug);
+          .eq('area.slug', areaSlug)
+          .eq('topos.topo_routes.route.own_ascent.user_id', userId || '00000000-0000-0000-0000-000000000000');
 
         if (userId) {
           query = query.eq('liked.user_id', userId);

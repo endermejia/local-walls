@@ -54,7 +54,7 @@ import { TopoCardComponent } from '../topo/topo-card';
               (ngModelChange)="showLegacy.set($event)"
             />
             <span class="text-xs opacity-75">
-              {{ 'indoor.showLegacy' | translate }}
+              {{ 'indoor.showLegacyTopos' | translate }}
             </span>
           </label>
         </div>

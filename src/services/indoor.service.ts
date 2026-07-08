@@ -167,10 +167,12 @@ export class IndoorService {
   ): Promise<any[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
+    const userId = this.supabase.authUser()?.id;
     let query = this.supabase.client
       .from('indoor_topos')
-      .select('*, indoor_topo_routes ( route:indoor_routes ( grade ) )')
-      .eq('center_id', centerId);
+      .select('*, indoor_topo_routes ( route:indoor_routes ( grade, own_ascent:indoor_ascents(*) ) )')
+      .eq('center_id', centerId)
+      .eq('indoor_topo_routes.route.own_ascent.user_id', userId || '00000000-0000-0000-0000-000000000000');
 
     if (!showLegacy) {
       query = query.or('legacy.eq.false,legacy.is.null');
@@ -182,16 +184,34 @@ export class IndoorService {
     return (data || []).map((t) => {
       const grades: Record<number, number> = {};
       const topoRoutes = (t as any).indoor_topo_routes || [];
+      let unclimbed_routes = 0;
+      let total_routes = 0;
+      const seenRouteIdsForAscents = new Set<string>();
+
       for (const tr of topoRoutes) {
         const grade = tr.route?.grade;
         if (grade !== undefined && grade !== null) {
           grades[grade] = (grades[grade] || 0) + 1;
+        }
+
+        if (tr.route?.id && !seenRouteIdsForAscents.has(tr.route?.id)) {
+          seenRouteIdsForAscents.add(tr.route.id);
+          total_routes++;
+
+          const ascents = tr.route?.own_ascent || [];
+          const hasClimbed = ascents.some((a: any) => a.type !== 'attempt');
+
+          if (!hasClimbed) {
+            unclimbed_routes++;
+          }
         }
       }
       return {
         ...t,
         photo: t.image_url,
         grades,
+        unclimbed_routes,
+        total_routes,
       };
     });
   }
