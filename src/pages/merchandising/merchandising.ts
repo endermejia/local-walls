@@ -145,50 +145,6 @@ import { AreaPackDetail, MerchandiseItemDetail } from '../../models';
           </div>
         </header>
 
-        <!-- ─── Area Packs ─── -->
-        <section class="flex flex-col gap-6">
-          <header tuiHeader class="flex items-center justify-between">
-            <h2 tuiTitle size="xl" class="font-black tracking-tight">
-              {{ 'merchandising.packs.title' | translate }}
-            </h2>
-            @if (isAdmin() && global.editingMode()) {
-              <button
-                tuiIconButton
-                appearance="accent"
-                size="s"
-                type="button"
-                class="rounded-xl! bg-(--tui-background-accent-1)! text-(--tui-background-base)!"
-                (click)="editPack()"
-              >
-                <tui-icon icon="@tui.plus" />
-              </button>
-            }
-          </header>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            @if (packsResource.isLoading()) {
-              @for (_ of [1, 2]; track $index) {
-                <div [tuiSkeleton]="true" class="h-64 rounded-[2.5rem]"></div>
-              }
-            } @else {
-              @for (pack of packs(); track pack.id) {
-                <app-pack-card
-                  [pack]="pack"
-                  (clicked)="openPackDetail($event)"
-                  (edit)="editPack($event)"
-                />
-              } @empty {
-                <div
-                  class="col-span-full py-20 text-center text-sm text-(--tui-text-tertiary) rounded-[2.5rem]"
-                  style="border: 2px dashed var(--tui-border-normal)"
-                >
-                  {{ 'merchandising.packs.empty' | translate }}
-                </div>
-              }
-            }
-          </div>
-        </section>
-
         <!-- ─── Merch Items ─── -->
         <section class="flex flex-col gap-6">
           <header tuiHeader class="flex items-center justify-between">
@@ -249,6 +205,72 @@ import { AreaPackDetail, MerchandiseItemDetail } from '../../models';
             }
           </div>
         </section>
+
+        <!-- ─── Area Packs ─── -->
+        <section class="flex flex-col gap-6">
+          <header tuiHeader class="flex items-center justify-between">
+            <h2 tuiTitle size="xl" class="font-black tracking-tight">
+              {{ 'merchandising.packs.title' | translate }}
+            </h2>
+            @if (isAdmin() && global.editingMode()) {
+              <button
+                tuiIconButton
+                appearance="accent"
+                size="s"
+                type="button"
+                class="rounded-xl! bg-(--tui-background-accent-1)! text-(--tui-background-base)!"
+                (click)="editPack()"
+              >
+                <tui-icon icon="@tui.plus" />
+              </button>
+            }
+          </header>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            @if (packsResource.isLoading()) {
+              @for (_ of [1, 2]; track $index) {
+                <div [tuiSkeleton]="true" class="h-64 rounded-[2.5rem]"></div>
+              }
+            } @else {
+              @for (pack of packs(); track pack.id) {
+                <app-pack-card
+                  [pack]="pack"
+                  (clicked)="openPackDetail($event)"
+                  (edit)="editPack($event)"
+                />
+              } @empty {
+                <div
+                  tuiAppearance="floating"
+                  class="col-span-full flex flex-col md:flex-row items-center gap-6 p-8 sm:p-12 text-center md:text-left rounded-[2.5rem]"
+                >
+                  <img
+                    src="image/zone-light.svg"
+                    alt="Empty packs"
+                    class="w-32 h-32 opacity-80"
+                  />
+                  <div class="flex flex-col items-center md:items-start gap-4">
+                    <h3
+                      class="text-xl sm:text-2xl font-black uppercase tracking-tight m-0"
+                    >
+                      {{ 'merchandising.packs.empty' | translate }}
+                    </h3>
+                    <p class="text-(--tui-text-secondary) m-0 text-balance">
+                      {{ 'merchandising.packs.emptySubtitle' | translate }}
+                    </p>
+                    <button
+                      tuiButton
+                      appearance="outline"
+                      size="m"
+                      class="mt-2 rounded-full!"
+                    >
+                      {{ 'merchandising.packs.notify' | translate }}
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </section>
       </div>
     </tui-scrollbar>
   `,
@@ -261,6 +283,18 @@ import { AreaPackDetail, MerchandiseItemDetail } from '../../models';
         flex: 1;
         height: 100%;
         min-height: 0;
+        background-image: url('/image/topo-light.svg');
+        background-repeat: no-repeat;
+        background-position: left center;
+        background-size: 50% auto;
+        background-attachment: fixed;
+      }
+
+      @media (max-width: 768px) {
+        :host {
+          background-size: cover;
+          background-position: center;
+        }
       }
     `,
   ],
