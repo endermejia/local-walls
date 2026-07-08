@@ -52,6 +52,8 @@ import { IndoorService } from '../../services/indoor.service';
 import { AscentsService } from '../../services/ascents.service';
 import { IndoorRouteWithExtras } from '../../models';
 import { GradeComponent } from '../ui/avatar-grade';
+import { ChartRoutesByGradeComponent } from '../ui/chart-routes-by-grade';
+import { TuiRating } from '@taiga-ui/kit';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equippers-input';
 import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
@@ -79,7 +81,9 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
     TuiTableCell,
     TuiTableHead,
     TuiTableExpand,
+    TuiRating,
     GradeComponent,
+    ChartRoutesByGradeComponent,
     EmptyStateComponent,
     IndoorRouteEquippersInputComponent,
     ButtonAscentTypeComponent,
@@ -90,6 +94,27 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
   template: `
     <div class="flex flex-col gap-4">
       @if (hasAnyRoutes()) {
+        <div class="flex items-center justify-between px-3">
+          @if (totalRoutes() > 0) {
+            <div
+              class="flex items-center gap-2 text-xs font-semibold opacity-70 mb-2"
+            >
+              @if (allCompleted()) {
+                {{ 'indoor.allCompleted' | translate }}
+              } @else {
+                {{
+                  'indoor.partialCompleted'
+                    | translate
+                      : {
+                          completed: totalRoutes() - pendingRoutes(),
+                          total: totalRoutes(),
+                        }
+                }}
+              }
+            </div>
+          }
+        </div>
+
         <div class="flex items-center justify-between px-3">
           <label class="flex items-center gap-2 cursor-pointer">
             <input
@@ -132,12 +157,13 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
 
       @if (routes().length > 0) {
         @let isMobile = global.isMobile();
-        <tui-scrollbar class="grow min-h-0 no-scrollbar">
+        <tui-scrollbar
+          class="grow min-h-0 block w-full overflow-x-auto no-scrollbar"
+        >
           <table
             tuiTable
-            [size]="isMobile ? 's' : 'm'"
+            [size]="'m'"
             class="w-full"
-            [class.table-fixed]="isMobile"
             [columns]="columns()"
             [direction]="currentDirection"
             [sorter]="currentSorter"
@@ -251,6 +277,21 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
                                 </span>
                               }
                             </div>
+                          </div>
+                        }
+                        @case ('rating') {
+                          <div tuiCell size="m">
+                            <tui-rating
+                              [max]="5"
+                              [ngModel]="item.rating"
+                              [readOnly]="true"
+                              [style.font-size.rem]="1"
+                            />
+                          </div>
+                        }
+                        @case ('ascents') {
+                          <div tuiCell size="m">
+                            <span>{{ item.ascents }}</span>
                           </div>
                         }
                         @case ('topo') {
@@ -541,9 +582,29 @@ export class IndoorRoutesComponent {
 
   protected readonly columns = computed(() => {
     if (this.global.isMobile()) {
-      return ['expand', 'grade', 'route'];
+      const cols = [
+        'expand',
+        'grade',
+        'route',
+        'rating',
+        'ascents',
+        'topo',
+        'color',
+      ];
+      if (this.centerSlug() || this.routes().some((r) => r.center_slug)) {
+        cols.push('actions');
+      }
+      return cols;
     }
-    const cols = ['grade', 'route', 'topo', 'color', 'equippers'];
+    const cols = [
+      'grade',
+      'route',
+      'rating',
+      'ascents',
+      'topo',
+      'color',
+      'equippers',
+    ];
     if (this.centerSlug() || this.routes().some((r) => r.center_slug)) {
       cols.push('actions');
     }
@@ -597,6 +658,19 @@ export class IndoorRoutesComponent {
       return list.filter((r) => !r.legacy);
     }
     return list;
+  });
+
+  protected readonly totalRoutes = computed(() => {
+    return this.routes().length;
+  });
+
+  protected readonly pendingRoutes = computed(() => {
+    return this.routes().filter((r) => !r.own_ascent).length;
+  });
+
+  protected readonly allCompleted = computed(() => {
+    const total = this.totalRoutes();
+    return total > 0 && this.pendingRoutes() === 0;
   });
 
   protected readonly routesResource = resource<

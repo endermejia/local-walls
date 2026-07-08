@@ -274,7 +274,7 @@
   "imageEditor.uploadImageError": "Error uploading image.",
   "import": "Import",
   "import8a.button": "Import from 8a.nu",
-  "import8a.confirmSubtitle": "We found {{count}} ascents in the CSV. Only those matching our database will be imported.",
+  "import8a.confirmSubtitle": "We have found {{count}} ascents in the CSV. Only those that match routes in our database will be imported.",
   "import8a.csvInstructions": "Go to your profile at <a href=\"https://www.8a.nu\" target=\"_blank\">8a.nu</a>, click on <strong>Edit profile</strong> and download the <strong>CSV</strong> file with your ascents.",
   "import8a.errors.emptyCSV": "The uploaded CSV file is empty or contains no valid ascents",
   "import8a.errors.fetchAscents": "Error fetching 8a.nu ascents",
@@ -794,5 +794,8 @@
   "years": "Years",
   "you": "you",
   "zoomIn": "Zoom In",
-  "zoomOut": "Zoom Out"
+  "zoomOut": "Zoom Out",
+  "indoor.deleteTitle": "Delete indoor route",
+  "indoor.deleteConfirm": "Are you sure you want to delete the indoor route \"{{name}}\"? This action cannot be undone.",
+  "selectAll": "Select all"
 }

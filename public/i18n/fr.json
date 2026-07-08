@@ -274,7 +274,7 @@
   "imageEditor.uploadImageError": "Erreur lors du chargement des images.",
   "import": "Importer",
   "import8a.button": "Importer depuis 8a.nu",
-  "import8a.confirmSubtitle": "Nous avons trouvé {{count}} ascensions dans le CSV. Seules celles correspondant à des voies de notre base de données seront importées.",
+  "import8a.confirmSubtitle": "Nous avons trouvé {{count}} ascensions dans le CSV. Seules celles qui correspondent aux voies de notre base de données seront importées.",
   "import8a.csvInstructions": "Accédez à votre profil sur <strong><a href=\"https://www.8a.nu\" target=\"_blank\">8a.nu</a></strong>, cliquez sur <strong>Modifier le profil</strong> et téléchargez le fichier <strong>CSV</strong> avec vos ascensions.",
   "import8a.errors.emptyCSV": "Le fichier CSV téléchargé est vide ou ne contient aucune ascension valide",
   "import8a.errors.fetchAscents": "Erreur lors de la récupération des ascensions depuis 8a.nu",
@@ -794,5 +794,8 @@
   "years": "Ans",
   "you": "toi",
   "zoomIn": "Zoomer",
-  "zoomOut": "Dézoomer"
+  "zoomOut": "Dézoomer",
+  "indoor.deleteTitle": "Supprimer la voie indoor",
+  "indoor.deleteConfirm": "Êtes-vous sûr de vouloir supprimer la voie indoor \"{{name}}\" ? Cette action ne peut pas être annulée.",
+  "selectAll": "Tout sélectionner"
 }

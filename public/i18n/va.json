@@ -274,7 +274,7 @@
   "imageEditor.uploadImageError": "Error en carregar imatges.",
   "import": "Importar",
   "import8a.button": "Importar des de 8a.nu",
-  "import8a.confirmSubtitle": "Hem trobat {{count}} encadenaments en el CSV. Només s'importaran els que coincidisquen amb vies de la nostra base de dades.",
+  "import8a.confirmSubtitle": "Hem trobat {{count}} ascensions al CSV. Només s'importaran aquelles que coincidisquen amb les vies de la nostra base de dades.",
   "import8a.csvInstructions": "Accedeix al teu perfil en <strong><a href=\"https://www.8a.nu\" target=\"_blank\">8a.nu</a></strong>, fes clic en <strong>Editar perfil</strong> i descarrega l'arxiu <strong>CSV</strong> amb els teus encadenaments.",
   "import8a.errors.emptyCSV": "L'arxiu CSV pujat està buit o no conté ascensions vàlides",
   "import8a.errors.fetchAscents": "Error en obtindre els encadenaments de 8a.nu",
@@ -794,5 +794,8 @@
   "years": "Anys",
   "you": "tu",
   "zoomIn": "Acostar",
-  "zoomOut": "Allunyar"
+  "zoomOut": "Allunyar",
+  "indoor.deleteTitle": "Eliminar via indoor",
+  "indoor.deleteConfirm": "Segur que vols eliminar la via indoor \"{{name}}\"? Esta acció no es pot desfer.",
+  "selectAll": "Seleccionar tot"
 }

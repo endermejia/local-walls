@@ -794,5 +794,8 @@
   "years": "Años",
   "you": "tú",
   "zoomIn": "Acercar",
-  "zoomOut": "Alejar"
+  "zoomOut": "Alejar",
+  "indoor.deleteTitle": "Eliminar vía indoor",
+  "indoor.deleteConfirm": "¿Seguro que quieres eliminar la vía indoor \"{{name}}\"? Esta acción no se puede deshacer.",
+  "selectAll": "Seleccionar todo"
 }

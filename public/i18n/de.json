@@ -274,7 +274,7 @@
   "imageEditor.uploadImageError": "Fehler beim Laden von Bildern.",
   "import": "Importieren",
   "import8a.button": "Von 8a.nu importieren",
-  "import8a.confirmSubtitle": "Wir haben {{count}} Begehungen im CSV gefunden. Nur die, die mit Routen in unserer Datenbank übereinstimmen, werden importiert.",
+  "import8a.confirmSubtitle": "Wir haben {{count}} Begehungen im CSV gefunden. Nur diejenigen, die mit Routen in unserer Datenbank übereinstimmen, werden importiert.",
   "import8a.csvInstructions": "Gehen Sie zu Ihrem Profil auf <strong><a href=\"https://www.8a.nu\" target=\"_blank\">8a.nu</a></strong>, klicken Sie auf <strong>Profil bearbeiten</strong> und laden Sie die <strong>CSV</strong>-Datei mit Ihren Begehungen herunter.",
   "import8a.errors.emptyCSV": "Die hochgeladene CSV-Datei ist leer oder enthält keine gültigen Begehungen",
   "import8a.errors.fetchAscents": "Fehler beim Abrufen der Begehungen von 8a.nu",
@@ -794,5 +794,8 @@
   "years": "Jahre",
   "you": "du",
   "zoomIn": "Heranzoomen",
-  "zoomOut": "Herauszoomen"
+  "zoomOut": "Herauszoomen",
+  "indoor.deleteTitle": "Indoor-Route löschen",
+  "indoor.deleteConfirm": "Sind Sie sicher, dass Sie die Indoor-Route \"{{name}}\" löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+  "selectAll": "Alles auswählen"
 }

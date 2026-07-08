@@ -233,8 +233,7 @@ interface ExistingUserAscentKey {
                     'import8a.confirmSubtitle'
                       | translate: { count: selectedIndices().size }
                   }}
-                  / {{ ascents().length }}</span
-                >
+                </span>
                 <label
                   class="text-xs opacity-60 flex items-center gap-1.5 select-none hover:opacity-100 transition-opacity cursor-pointer"
                 >
@@ -245,7 +244,7 @@ interface ExistingUserAscentKey {
                       selectedIndices().size === ascents().length &&
                       ascents().length > 0
                     "
-                    (click)="toggleAll()"
+                    (change)="toggleAll()"
                   />
                   <span>{{ 'selectAll' | translate }}</span>
                 </label>
@@ -268,7 +267,7 @@ interface ExistingUserAscentKey {
                             tuiCheckbox
                             type="checkbox"
                             [checked]="isSelected(idx)"
-                            (click)="toggleSelect(idx)"
+                            (change)="toggleSelect(idx)"
                           />
                         </label>
                         <app-grade

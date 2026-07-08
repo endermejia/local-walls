@@ -274,7 +274,7 @@
   "imageEditor.uploadImageError": "Errorea irudiak igotzean.",
   "import": "Inportatu",
   "import8a.button": "Inportatu 8a.nu-tik",
-  "import8a.confirmSubtitle": "{{count}} igoera aurkitu ditugu CSVan. Gure datu-baseko bideekin bat datozenak bakarrik inportatuko dira.",
+  "import8a.confirmSubtitle": "CSV artxiboan {{count}} igoera aurkitu ditugu. Gure datu-baseko bideekin bat datozenak bakarrik inportatuko dira.",
   "import8a.csvInstructions": "Joan zure profilera <strong><a href=\"https://www.8a.nu\" target=\"_blank\">8a.nu</a></strong> helbidean, egin klik <strong>Editatu profila</strong>-n eta deskargatu zure igoerak dituen <strong>CSV</strong> fitxategia.",
   "import8a.errors.emptyCSV": "Kargatutako CSV fitxategia hutsik dago edo ez du igoera baliozkorik",
   "import8a.errors.fetchAscents": "Errorea 8a.nu-ko igoerak lortzean",
@@ -794,5 +794,8 @@
   "years": "Urteak",
   "you": "zu",
   "zoomIn": "Gerturatu",
-  "zoomOut": "Urrundu"
+  "zoomOut": "Urrundu",
+  "indoor.deleteTitle": "Indoor bidea ezabatu",
+  "indoor.deleteConfirm": "Ziur zaude \"{{name}}\" indoor bidea ezabatu nahi duzula? Ekintza hau ezin da desegin.",
+  "selectAll": "Hautatu dena"
 }
