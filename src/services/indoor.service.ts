@@ -144,7 +144,7 @@ export class IndoorService {
     let query = this.supabase.client
       .from('indoor_routes')
       .select(
-        '*, equippers:indoor_route_equippers(equipper:equippers(*)), ascents:indoor_ascents(id, type, user_id)',
+        '*, equippers:indoor_route_equippers(equipper:equippers(*)), ascents:indoor_ascents(id, type, user_id), topo_routes:indoor_topo_routes(topo:indoor_topos(id, name, legacy))',
       )
       .eq('center_id', centerId);
 
@@ -161,6 +161,9 @@ export class IndoorService {
     return data.map((route: any) => ({
       ...route,
       equippers: route.equippers?.map((e: any) => e.equipper) || [],
+      topos:
+        route.topo_routes?.map((tr: any) => tr.topo).filter((t: any) => !!t) ||
+        [],
       own_ascent: userId
         ? (route.ascents?.find((a: any) => a.user_id === userId) ?? null)
         : null,
@@ -263,6 +266,17 @@ export class IndoorService {
       .eq('id', centerId);
 
     if (error) throw error;
+    return true;
+  }
+
+  async deleteCenter(centerId: string): Promise<boolean> {
+    const { error } = await this.supabase.client
+      .from('indoor_centers')
+      .delete()
+      .eq('id', centerId);
+
+    if (error) throw error;
+    this.global.indoorCentersResource.reload();
     return true;
   }
 
@@ -612,17 +626,72 @@ export class IndoorService {
     await this.supabase.whenReady();
     const { data, error } = await this.supabase.client
       .from('indoor_ascents')
-      .select('*, user_profile:user_profiles(id, name, avatar)')
+      .select(
+        '*, route:indoor_routes(id, name, color, climbing_kind, grade, center:indoor_centers(id, name, slug)), user_profile:user_profiles(id, name, avatar)',
+      )
       .eq('route_id', routeId)
       .order('date', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+
+    return (data || []).map((ascent: any) => ({
+      ...ascent,
+      route: {
+        ...ascent.route,
+        center_slug: ascent.route?.center?.slug,
+        center_name: ascent.route?.center?.name,
+      },
+      user: ascent.user_profile,
+    }));
+  }
+
+  async getCenterAscents(centerId: string): Promise<any[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    await this.supabase.whenReady();
+
+    // First, let's get all route IDs for this center
+    const { data: routes, error: routesError } = await this.supabase.client
+      .from('indoor_routes')
+      .select('id')
+      .eq('center_id', centerId);
+
+    if (routesError) throw routesError;
+    if (!routes || routes.length === 0) return [];
+
+    const routeIds = routes.map((r) => r.id);
+
+    // Then get all ascents for these route IDs
+    const { data, error } = await this.supabase.client
+      .from('indoor_ascents')
+      .select(
+        '*, route:indoor_routes(id, name, color, climbing_kind, grade, center:indoor_centers(id, name, slug)), user_profile:user_profiles(id, name, avatar)',
+      )
+      .in('route_id', routeIds)
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+
+    return (data || []).map((ascent: any) => ({
+      ...ascent,
+      route: {
+        ...ascent.route,
+        center_slug: ascent.route?.center?.slug,
+        center_name: ascent.route?.center?.name,
+      },
+      user: ascent.user_profile,
+    }));
   }
 
   async createRouteAscent(payload: {
     route_id: string;
     user_id: string;
+    attempts?: number | null;
+    private_ascent?: boolean | null;
+    rate?: number | null;
+    recommended?: boolean | null;
+    grade?: number | null;
+    video_url?: string | null;
+    photo_path?: string | null;
     type: string;
     date: string;
     notes?: string;
@@ -630,16 +699,37 @@ export class IndoorService {
     const { data, error } = await this.supabase.client
       .from('indoor_ascents')
       .insert(payload)
-      .select('*, user_profile:user_profiles(id, name, avatar)')
+      .select(
+        '*, route:indoor_routes(id, name, color, climbing_kind, grade, center:indoor_centers(id, name, slug)), user_profile:user_profiles(id, name, avatar)',
+      )
       .single();
 
     if (error) throw error;
-    return data;
+    return {
+      ...data,
+      route: {
+        ...(data as any).route,
+        center_slug: (data as any).route?.center?.slug,
+        center_name: (data as any).route?.center?.name,
+      },
+      user: (data as any).user_profile,
+    };
   }
 
   async updateRouteAscent(
     id: string,
-    updates: { type: string; date: string; notes?: string },
+    updates: {
+      type?: string;
+      date?: string;
+      notes?: string;
+      attempts?: number | null;
+      private_ascent?: boolean | null;
+      rate?: number | null;
+      recommended?: boolean | null;
+      grade?: number | null;
+      video_url?: string | null;
+      photo_path?: string | null;
+    },
   ): Promise<void> {
     const { error } = await this.supabase.client
       .from('indoor_ascents')
@@ -647,6 +737,21 @@ export class IndoorService {
       .eq('id', id);
 
     if (error) throw error;
+  }
+
+  async uploadAscentPhoto(userId: string, file: File): Promise<string | null> {
+    await this.supabase.whenReady();
+    const ext = file.name.split('.').pop();
+    const fileName = `ascents/${userId}_${Date.now()}.${ext}`;
+    const { error } = await this.supabase.client.storage
+      .from('indoor-assets')
+      .upload(fileName, file);
+
+    if (error) {
+      console.error('[IndoorService] error uploading photo:', error);
+      throw error;
+    }
+    return fileName;
   }
 
   async deleteRouteAscent(ascentId: string): Promise<void> {

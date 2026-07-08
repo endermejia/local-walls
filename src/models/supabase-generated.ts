@@ -681,31 +681,52 @@ export type Database = {
       };
       indoor_ascents: {
         Row: {
+          attempts: number | null;
           created_at: string;
           date: string;
+          grade: number | null;
           id: string;
           notes: string | null;
+          photo_path: string | null;
+          private_ascent: boolean | null;
+          rate: number | null;
+          recommended: boolean | null;
           route_id: string | null;
           type: string;
           user_id: string | null;
+          video_url: string | null;
         };
         Insert: {
+          attempts?: number | null;
           created_at?: string;
           date?: string;
+          grade?: number | null;
           id?: string;
           notes?: string | null;
+          photo_path?: string | null;
+          private_ascent?: boolean | null;
+          rate?: number | null;
+          recommended?: boolean | null;
           route_id?: string | null;
           type: string;
           user_id?: string | null;
+          video_url?: string | null;
         };
         Update: {
+          attempts?: number | null;
           created_at?: string;
           date?: string;
+          grade?: number | null;
           id?: string;
           notes?: string | null;
+          photo_path?: string | null;
+          private_ascent?: boolean | null;
+          rate?: number | null;
+          recommended?: boolean | null;
           route_id?: string | null;
           type?: string;
           user_id?: string | null;
+          video_url?: string | null;
         };
         Relationships: [
           {
@@ -772,6 +793,7 @@ export type Database = {
           name: string;
           schedule: Json | null;
           slug: string;
+          warning: string | null;
         };
         Insert: {
           avatar_url?: string | null;
@@ -788,6 +810,7 @@ export type Database = {
           name: string;
           schedule?: Json | null;
           slug: string;
+          warning?: string | null;
         };
         Update: {
           avatar_url?: string | null;
@@ -804,6 +827,7 @@ export type Database = {
           name?: string;
           schedule?: Json | null;
           slug?: string;
+          warning?: string | null;
         };
         Relationships: [];
       };
@@ -1160,8 +1184,10 @@ export type Database = {
           active: boolean | null;
           center_id: string;
           created_at: string | null;
+          description: string | null;
           duration_days: number;
           id: string;
+          kind: string | null;
           name: string;
           price: number;
           sessions_count: number | null;
@@ -1170,8 +1196,10 @@ export type Database = {
           active?: boolean | null;
           center_id: string;
           created_at?: string | null;
+          description?: string | null;
           duration_days: number;
           id?: string;
+          kind?: string | null;
           name: string;
           price?: number;
           sessions_count?: number | null;
@@ -1180,8 +1208,10 @@ export type Database = {
           active?: boolean | null;
           center_id?: string;
           created_at?: string | null;
+          description?: string | null;
           duration_days?: number;
           id?: string;
+          kind?: string | null;
           name?: string;
           price?: number;
           sessions_count?: number | null;

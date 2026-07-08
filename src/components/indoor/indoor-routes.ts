@@ -137,6 +137,7 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
             tuiTable
             [size]="isMobile ? 's' : 'm'"
             class="w-full"
+            [class.table-fixed]="isMobile"
             [columns]="columns()"
             [direction]="currentDirection"
             [sorter]="currentSorter"
@@ -155,9 +156,8 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
                     [class.w-12!]="col === 'expand'"
                     [class.w-20!]="col === 'grade'"
                     [class.w-24!]="col === 'color'"
+                    [class.w-32!]="col === 'actions' || col === 'admin_actions'"
                     [class.w-64!]="col === 'equippers'"
-                    [class.w-16!]="col === 'actions'"
-                    [class.w-28!]="col === 'admin_actions'"
                   >
                     @if (col === 'expand') {
                       <button
@@ -249,6 +249,29 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
                                 >
                                   {{ 'indoor.legacy' | translate }}
                                 </span>
+                              }
+                            </div>
+                          </div>
+                        }
+                        @case ('topo') {
+                          <div tuiCell size="m">
+                            <div class="flex flex-wrap gap-1 min-w-0">
+                              @for (t of item.topos; track t.id) {
+                                <a
+                                  tuiLink
+                                  [routerLink]="[
+                                    '/indoor',
+                                    centerSlug() || item.center_slug,
+                                    'topo',
+                                    t.id,
+                                  ]"
+                                  class="text-xs bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 px-2 py-0.5 rounded-md transition-colors truncate max-w-full font-medium"
+                                  [class.opacity-50]="t.legacy"
+                                >
+                                  {{ t.name }}
+                                </a>
+                              } @empty {
+                                <span class="opacity-50 text-xs">-</span>
                               }
                             </div>
                           </div>
@@ -452,9 +475,6 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
                           <!-- Equippers -->
                           @if (item.equippers && item.equippers.length > 0) {
                             <div class="flex flex-wrap gap-1 items-center">
-                              <span class="text-xs opacity-60 mr-1"
-                                >{{ 'equippers' | translate }}:</span
-                              >
                               @for (eq of item.equippers; track eq.id) {
                                 <button
                                   tuiButton
@@ -465,6 +485,27 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
                                 >
                                   {{ eq.name }}
                                 </button>
+                              }
+                            </div>
+                          }
+
+                          <!-- Topos (Mobile expanded view) -->
+                          @if (item.topos && item.topos.length > 0) {
+                            <div class="flex flex-wrap gap-1 items-center">
+                              @for (t of item.topos; track t.id) {
+                                <a
+                                  tuiLink
+                                  [routerLink]="[
+                                    '/indoor',
+                                    centerSlug() || item.center_slug,
+                                    'topo',
+                                    t.id,
+                                  ]"
+                                  class="text-xs bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700 px-2 py-0.5 rounded-md transition-colors"
+                                  [class.opacity-50]="t.legacy"
+                                >
+                                  {{ t.name }}
+                                </a>
                               }
                             </div>
                           }
@@ -502,7 +543,7 @@ export class IndoorRoutesComponent {
     if (this.global.isMobile()) {
       return ['expand', 'grade', 'route'];
     }
-    const cols = ['grade', 'route', 'color', 'equippers'];
+    const cols = ['grade', 'route', 'topo', 'color', 'equippers'];
     if (this.centerSlug() || this.routes().some((r) => r.center_slug)) {
       cols.push('actions');
     }

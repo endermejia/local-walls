@@ -10,7 +10,6 @@ import {
 
 import { TuiAppearance, TuiIcon, TuiTitle } from '@taiga-ui/core';
 import { TuiHeader } from '@taiga-ui/layout';
-import { TuiBadge } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -33,7 +32,6 @@ import { TopoListItem } from '../../models';
     TopoImagePipe,
     TranslatePipe,
     TuiAppearance,
-    TuiBadge,
     TuiHeader,
     TuiIcon,
     TuiTitle,
@@ -68,17 +66,6 @@ import { TopoListItem } from '../../models';
               decoding="async"
             />
           }
-          @if (totalRoutes() !== null && totalRoutes()! > 0) {
-            @if (allCompleted()) {
-              <span tuiBadge size="m" appearance="positive" class="self-start">
-                {{ 'indoor.allCompleted' | translate }}
-              </span>
-            } @else {
-              <span tuiBadge size="m" appearance="neutral" class="self-start">
-                {{ pendingRoutes() }} / {{ totalRoutes() }}
-              </span>
-            }
-          }
           <div class="flex items-center justify-between gap-2 mt-auto">
             @if (!isIndoor()) {
               <div class="flex items-center justify-between gap-2">
@@ -93,6 +80,32 @@ import { TopoListItem } from '../../models';
                     }
                   </span>
                 }
+              </div>
+            } @else if (totalRoutes() !== null && totalRoutes()! > 0) {
+              <div class="flex items-center gap-2">
+                <tui-icon
+                  [icon]="'@tui.circle-check'"
+                  class="text-xl"
+                  [class.text-(--tui-text-positive)]="allCompleted()"
+                  [class.opacity-70]="!allCompleted()"
+                />
+                <span
+                  class="text-sm font-semibold"
+                  [class.opacity-80]="!allCompleted()"
+                >
+                  @if (allCompleted()) {
+                    {{ 'indoor.allCompleted' | translate }}
+                  } @else {
+                    {{
+                      'indoor.partialCompleted'
+                        | translate
+                          : {
+                              completed: totalRoutes()! - pendingRoutes()!,
+                              total: totalRoutes(),
+                            }
+                    }}
+                  }
+                </span>
               </div>
             } @else {
               <div></div>

@@ -476,7 +476,27 @@ export class TopoFormComponent {
   );
 
   private readonly dialogCragId = this._dialogCtx?.data?.cragId;
-  private readonly dialogTopoData = this._dialogCtx?.data?.topoData;
+  private readonly dialogTopoData = computed(() => {
+    const data = this._dialogCtx?.data;
+    if (!data) return undefined;
+    if (data.type === 'indoor' && data.indoorTopoData) {
+      return {
+        id: data.indoorTopoData.id,
+        name: data.indoorTopoData.name,
+        photo: data.indoorTopoData.image_url || data.indoorTopoData.photo,
+        climbing_kind: data.indoorTopoData.climbing_kind,
+        legacy: data.indoorTopoData.legacy,
+        center_id: data.centerId,
+        topo_routes: (data.initialRoutes || []).map((r: any, idx: number) => ({
+          route_id: r.id,
+          number: idx + 1,
+          path: r.path,
+          route: r,
+        })),
+      } as any;
+    }
+    return data.topoData;
+  });
   private readonly initialRouteIds =
     this._dialogCtx?.data?.initialRouteIds ?? [];
 
@@ -484,7 +504,7 @@ export class TopoFormComponent {
     () => this.dialogCragId ?? this.cragId(),
   );
   protected readonly effectiveTopoData: Signal<TopoDetail | undefined> =
-    computed(() => this.dialogTopoData ?? this.topoData());
+    computed(() => this.dialogTopoData() ?? this.topoData());
 
   readonly isEdit: Signal<boolean> = computed(() => {
     if (this.isIndoor()) {
@@ -553,18 +573,12 @@ export class TopoFormComponent {
 
   protected readonly existingPhotoUrl = resource({
     params: () => {
-      if (this.isIndoor()) {
-        const indoorTopo = this._dialogCtx?.data?.indoorTopoData;
-        if (!indoorTopo?.image_url || this.isExistingPhotoDeleted())
-          return null;
-        return { path: indoorTopo.image_url, isIndoor: true, version: 1 };
-      }
       const data = this.effectiveTopoData();
       if (!data?.photo || this.isExistingPhotoDeleted()) return null;
       return {
         path: data.photo,
-        version: this.global.topoPhotoVersion(),
-        isIndoor: false,
+        isIndoor: this.isIndoor(),
+        version: this.isIndoor() ? 1 : this.global.topoPhotoVersion(),
       };
     },
     loader: async ({ params }) => {
@@ -677,7 +691,7 @@ export class TopoFormComponent {
           const initialRoutes = this._dialogCtx?.data?.initialRoutes || [];
           this.model.set({
             name: data.name,
-            photo: data.image_url,
+            photo: data.image_url || data.photo,
             shade_morning: false,
             shade_afternoon: false,
             shade_change_hour: null,
@@ -777,17 +791,18 @@ export class TopoFormComponent {
         };
 
         try {
-          let topo;
+          let topoId: string | undefined;
           if (indoorTopoData) {
-            topo = await this.indoor.updateTopo(indoorTopoData.id, payload);
+            await this.indoor.updateTopo(indoorTopoData.id, payload);
+            topoId = indoorTopoData.id;
             this.toast.success('topos.updateSuccess');
           } else {
-            topo = await this.indoor.createTopo(payload);
+            const topo = await this.indoor.createTopo(payload);
+            topoId = topo?.id;
             this.toast.success('topos.createSuccess');
           }
 
-          if (topo) {
-            const topoId = (topo as any).id;
+          if (topoId) {
             const initialIds = this.initialRouteIds as string[];
             const currentIds = selectedRoutes.map((r) => r.id as string);
 

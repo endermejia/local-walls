@@ -21,6 +21,7 @@ import {
   TuiDialogContext,
   TuiIcon,
   TuiNotification,
+  TuiCheckbox,
 } from '@taiga-ui/core';
 import {
   type TuiFileLike,
@@ -147,6 +148,7 @@ interface ExistingUserAscentKey {
     TuiSkeleton,
     TuiSlides,
     TuiStepper,
+    TuiCheckbox,
   ],
   template: `
     <div class="flex justify-center">
@@ -225,23 +227,50 @@ interface ExistingUserAscentKey {
           <!-- Step 1: Preview & Confirm -->
           @if (index === 1) {
             <div class="grid gap-4">
-              <header tuiHeader>
-                <span tuiSubtitle>{{
-                  'import8a.confirmSubtitle'
-                    | translate: { count: ascents().length }
-                }}</span>
+              <header tuiHeader class="flex justify-between items-center">
+                <span tuiSubtitle
+                  >{{
+                    'import8a.confirmSubtitle'
+                      | translate: { count: selectedIndices().size }
+                  }}
+                  / {{ ascents().length }}</span
+                >
+                <label
+                  class="text-xs opacity-60 flex items-center gap-1.5 select-none hover:opacity-100 transition-opacity cursor-pointer"
+                >
+                  <input
+                    tuiCheckbox
+                    type="checkbox"
+                    [checked]="
+                      selectedIndices().size === ascents().length &&
+                      ascents().length > 0
+                    "
+                    (click)="toggleAll()"
+                  />
+                  <span>{{ 'selectAll' | translate }}</span>
+                </label>
               </header>
 
               <div class="max-h-[35dvh] overflow-auto border rounded p-2">
                 @for (
                   ascent of ascents();
-                  track ascent.name + ascent.sector_name + ascent.date
+                  track ascent.name + ascent.sector_name + ascent.date;
+                  let idx = $index
                 ) {
                   @defer (on viewport) {
                     <div
-                      class="p-2 border-b last:border-0 flex justify-between items-center gap-4"
+                      class="p-2 border-b last:border-0 flex justify-between items-center gap-4 transition-all duration-150"
+                      [class.opacity-40]="!isSelected(idx)"
                     >
                       <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                          <input
+                            tuiCheckbox
+                            type="checkbox"
+                            [checked]="isSelected(idx)"
+                            (click)="toggleSelect(idx)"
+                          />
+                        </label>
                         <app-grade
                           [grade]="
                             this.LABEL_TO_VERTICAL_LIFE[ascent.difficulty] ?? 0
@@ -364,6 +393,34 @@ export class Import8aComponent {
   protected searching = signal(false);
   protected importing = signal(false);
   protected ascents = signal<EightAnuAscent[]>([]);
+  protected selectedIndices = signal<Set<number>>(new Set());
+
+  protected toggleSelect(index: number): void {
+    this.selectedIndices.update((set) => {
+      const newSet = new Set(set);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  }
+
+  protected isSelected(index: number): boolean {
+    return this.selectedIndices().has(index);
+  }
+
+  protected toggleAll(): void {
+    const current = this.ascents();
+    this.selectedIndices.update((set) => {
+      if (set.size === current.length) {
+        return new Set();
+      } else {
+        return new Set(current.map((_, i) => i));
+      }
+    });
+  }
   protected readonly LABEL_TO_VERTICAL_LIFE = LABEL_TO_VERTICAL_LIFE;
 
   private loaderClose$?: Subject<void>;
@@ -419,6 +476,7 @@ export class Import8aComponent {
   protected removeFile(): void {
     this.control.setValue(null);
     this.ascents.set([]);
+    this.selectedIndices.set(new Set());
     this.loadedFile.set(null);
     this.existingAscentKeysCache = null;
     this.existingAscentKeysCacheRange = null;
@@ -458,6 +516,7 @@ export class Import8aComponent {
               await this.deduplicateCsvAscentsAgainstExisting(parsedAscents);
 
             this.ascents.set(ascents);
+            this.selectedIndices.set(new Set(ascents.map((_, i) => i)));
             return f;
           }
           return null;
@@ -641,7 +700,9 @@ export class Import8aComponent {
   }
 
   async onImport(): Promise<void> {
-    const ascents = this.ascents();
+    const allAscents = this.ascents();
+    const selected = this.selectedIndices();
+    const ascents = allAscents.filter((_, i) => selected.has(i));
     if (ascents.length === 0) return;
 
     this.importing.set(true);

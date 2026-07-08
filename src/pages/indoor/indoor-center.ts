@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,10 +9,12 @@ import {
   computed,
   effect,
   OnDestroy,
+  PLATFORM_ID,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 
 import {
   TuiAppearance,
@@ -22,6 +24,8 @@ import {
   TuiLoader,
   TuiScrollbar,
   TuiTextfield,
+  TuiNotification,
+  TuiDialogService,
 } from '@taiga-ui/core';
 import {
   TuiAvatar,
@@ -29,12 +33,15 @@ import {
   TuiComboBox,
   TuiDataListWrapper,
   TuiChevron,
+  TUI_CONFIRM,
+  TuiConfirmData,
 } from '@taiga-ui/kit';
 import { AvatarUrlPipe } from '../../pipes/avatar-url.pipe';
+import { AscentCardComponent } from '../../components/ascent/ascent-card';
 import { UserProfilesService } from '../../services/user-profiles.service';
 import { ToastService } from '../../services/toast.service';
 import { UserProfileBasicDto } from '../../models';
-import { mapLocationUrl } from '../../utils';
+import { handleErrorToast, mapLocationUrl } from '../../utils';
 
 import {
   CustomCarouselComponent,
@@ -71,6 +78,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
     TuiComboBox,
     TuiDataListWrapper,
     TuiChevron,
+    TuiNotification,
     RouterLink,
     SectionHeaderComponent,
     IndoorVouchersComponent,
@@ -80,6 +88,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
     CustomCarouselComponent,
     AvatarUrlPipe,
     EmptyStateComponent,
+    AscentCardComponent,
   ],
   template: `
     <tui-scrollbar class="flex grow">
@@ -107,6 +116,19 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
                     (click)="openEditCenter()"
                   >
                     {{ 'edit' | translate }}
+                  </button>
+                }
+                @if (isAdmin()) {
+                  <button
+                    tuiIconButton
+                    size="s"
+                    appearance="negative"
+                    iconStart="@tui.trash"
+                    class="rounded-full!"
+                    type="button"
+                    (click.zoneless)="deleteCenter()"
+                  >
+                    {{ 'delete' | translate }}
                   </button>
                 }
               </div>
@@ -204,10 +226,14 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
                     track day
                   ) {
                     <div
-                      class="flex justify-between p-1 rounded-lg transition-all"
-                      [class.bg-primary/10]="day === currentDay"
+                      class="flex justify-between p-1 px-2.5 rounded-lg transition-all"
+                      [class.bg-(--tui-background-accent-1)]="
+                        day === currentDay
+                      "
+                      [class.text-(--tui-text-primary-on-accent-1)]="
+                        day === currentDay
+                      "
                       [class.font-bold]="day === currentDay"
-                      [class.text-primary]="day === currentDay"
                     >
                       <span class="capitalize">{{ day | translate }}</span>
                       @let s = schedule.normal[day];
@@ -312,6 +338,14 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
             </div>
           }
 
+          @if (c.warning) {
+            <div class="mb-4">
+              <div tuiNotification appearance="warning" class="rounded-2xl">
+                {{ c.warning }}
+              </div>
+            </div>
+          }
+
           <div class="overflow-x-auto no-scrollbar">
             <tui-tabs [(activeItemIndex)]="activeTabIndex">
               <button tuiTab>{{ 'indoor.routes' | translate }}</button>
@@ -330,7 +364,27 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
                 <app-indoor-topos [centerId]="c.id" [centerSlug]="c.slug" />
               }
               @case (2) {
-                <app-empty-state />
+                @if (centerAscentsResource.value(); as ascents) {
+                  @if (ascents.length > 0) {
+                    <div
+                      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                    >
+                      @for (ascent of ascents; track ascent.id) {
+                        <app-ascent-card
+                          [data]="ascent"
+                          [showRoute]="true"
+                          [showUser]="true"
+                        />
+                      }
+                    </div>
+                  } @else {
+                    <app-empty-state />
+                  }
+                } @else if (centerAscentsResource.isLoading()) {
+                  <div class="flex items-center justify-center p-8">
+                    <tui-loader size="m"></tui-loader>
+                  </div>
+                }
               }
               @case (3) {
                 <app-indoor-vouchers [centerId]="c.id" />
@@ -366,6 +420,9 @@ export class IndoorCenterComponent implements OnDestroy {
   protected readonly router = inject(Router);
   protected readonly userProfiles = inject(UserProfilesService);
   private readonly toast = inject(ToastService);
+  private readonly translate = inject(TranslateService);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   protected readonly activeTabIndex = signal(0);
   protected readonly galleryIndex = signal(0);
@@ -386,6 +443,12 @@ export class IndoorCenterComponent implements OnDestroy {
   protected readonly centerResource = resource<IndoorCenterDto | null, string>({
     params: () => this.slug(),
     loader: ({ params: slug }) => this.indoor.getCenterBySlug(slug),
+  });
+
+  protected readonly centerAscentsResource = resource({
+    params: () => this.center()?.id,
+    loader: ({ params: id }) =>
+      id ? this.indoor.getCenterAscents(id) : Promise.resolve([]),
   });
 
   protected readonly isAdmin = computed(() => {
@@ -554,6 +617,43 @@ export class IndoorCenterComponent implements OnDestroy {
   openExternal(url?: string): void {
     if (!url) return;
     window.open(url, '_blank');
+  }
+
+  async deleteCenter(): Promise<void> {
+    const c = this.center();
+    if (!c) return;
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const t = await firstValueFrom(
+      this.translate.get(['indoor.deleteTitle', 'indoor.deleteConfirm'], {
+        name: c.name,
+      }),
+    );
+    const title = t['indoor.deleteTitle'];
+    const message = t['indoor.deleteConfirm'];
+    const data: TuiConfirmData = {
+      content: message,
+      yes: this.translate.instant('delete'),
+      no: this.translate.instant('cancel'),
+      appearance: 'accent',
+    };
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: title,
+        size: 's',
+        data,
+      }),
+      { defaultValue: false },
+    );
+    if (!confirmed) return;
+    try {
+      const ok = await this.indoor.deleteCenter(c.id);
+      if (ok) {
+        await this.router.navigateByUrl('/explore');
+      }
+    } catch (error) {
+      handleErrorToast(error, this.toast);
+    }
   }
 
   protected readonly currentDay = [

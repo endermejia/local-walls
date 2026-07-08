@@ -66,7 +66,11 @@ import { IndoorVoucherDto, IndoorVoucherPurchaseDto } from '../../models';
                   Check-in
                 </button>
                 <tui-icon
-                  icon="@tui.ticket"
+                  [icon]="
+                    getVoucherKind(p) === 'subscription'
+                      ? '@tui.id-card'
+                      : '@tui.ticket'
+                  "
                   class="absolute -bottom-4 -right-4 text-white/20 scale-150"
                   [style.fontSize.px]="120"
                 />
@@ -84,21 +88,28 @@ import { IndoorVoucherDto, IndoorVoucherPurchaseDto } from '../../models';
               <div
                 class="p-3 rounded-2xl flex flex-col relative overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md max-w-sm w-full mx-auto justify-center min-h-[90px]"
               >
-                <div class="flex justify-between items-center z-10">
+                <div class="flex justify-between items-center z-10 w-full mb-1">
                   <div class="flex flex-col">
                     <span class="font-bold text-sm">{{ v.name }}</span>
+                    @if (v.description) {
+                      <span class="text-xs text-white/90 my-0.5">{{
+                        v.description
+                      }}</span>
+                    }
                     @if (v.duration_days) {
                       <span class="text-xs text-white/80"
                         >{{ v.duration_days }} {{ 'days' | translate }}</span
                       >
                     }
                   </div>
-                  <span class="text-lg font-black">{{
+                  <span class="text-lg font-black shrink-0">{{
                     v.price | currency: 'EUR'
                   }}</span>
                 </div>
                 <tui-icon
-                  icon="@tui.ticket"
+                  [icon]="
+                    v.kind === 'subscription' ? '@tui.id-card' : '@tui.ticket'
+                  "
                   class="absolute -bottom-2 -right-2 text-white/20 scale-[2]"
                   [style.fontSize.px]="80"
                 />
@@ -155,6 +166,13 @@ export class IndoorVouchersComponent {
       voucher?: { name: string };
     };
     return p.voucher?.name || '';
+  }
+
+  protected getVoucherKind(purchase: IndoorVoucherPurchaseDto): string {
+    const p = purchase as IndoorVoucherPurchaseDto & {
+      voucher?: { kind: string };
+    };
+    return p.voucher?.kind || 'pass';
   }
 
   async onCheckIn(purchaseId: string) {

@@ -27,8 +27,17 @@ import {
   TuiNumberFormat,
   TuiCheckbox,
   TuiAppearance,
+  TuiDropdown,
 } from '@taiga-ui/core';
-import { TuiTextarea, TuiInputNumber, TuiFiles, TuiTabs } from '@taiga-ui/kit';
+import {
+  TuiTextarea,
+  TuiInputNumber,
+  TuiFiles,
+  TuiTabs,
+  TuiSelect,
+  TuiDataListWrapper,
+  TuiChevron,
+} from '@taiga-ui/kit';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -72,6 +81,10 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
     TuiTabs,
     TuiCheckbox,
     TuiAppearance,
+    TuiDropdown,
+    TuiSelect,
+    TuiDataListWrapper,
+    TuiChevron,
     CdkDrag,
     CdkDropList,
   ],
@@ -127,6 +140,18 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                   id="center-desc"
                   [formField]="$any(centerForm.description)"
                   class="h-32"
+                ></textarea>
+              </tui-textfield>
+
+              <tui-textfield class="block">
+                <label tuiLabel for="center-warning">{{
+                  'indoor.warning' | translate
+                }}</label>
+                <textarea
+                  tuiTextarea
+                  id="center-warning"
+                  [formField]="$any(centerForm.warning)"
+                  class="h-24"
                 ></textarea>
               </tui-textfield>
 
@@ -362,49 +387,95 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
 
           @case (2) {
             <div class="flex flex-col gap-6 max-w-2xl">
-              <!-- Compact single-row Create Voucher Form -->
+              <!-- Compact Create Voucher Form -->
               <div
-                class="flex flex-col sm:flex-row gap-3 items-end p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-850"
+                class="flex flex-col gap-4 p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-850"
               >
-                <tui-textfield class="grow min-w-0">
-                  <label tuiLabel for="new-v-name">{{
-                    'name' | translate
-                  }}</label>
-                  <input
-                    tuiInput
-                    id="new-v-name"
-                    [(ngModel)]="newVoucherName"
-                    name="newVoucherName"
-                    autocomplete="off"
-                    placeholder="Ej. Pase diario, Bono de 10"
-                  />
-                </tui-textfield>
-                <tui-textfield class="w-full sm:w-44 shrink-0">
-                  <label tuiLabel for="new-v-price">{{
-                    'price' | translate
-                  }}</label>
-                  <input
-                    tuiInputNumber
-                    id="new-v-price"
-                    [(ngModel)]="newVoucherPrice"
-                    name="newVoucherPrice"
-                    [tuiNumberFormat]="{ precision: 2 }"
-                    autocomplete="off"
-                    placeholder="0.00"
-                  />
-                  <span class="tui-textfield__suffix">€</span>
-                </tui-textfield>
-                <button
-                  tuiButton
-                  type="button"
-                  appearance="primary"
-                  class="w-full sm:w-auto shrink-0 font-bold"
-                  [disabled]="!newVoucherName"
-                  (click.zoneless)="addLocalVoucher()"
-                >
-                  <tui-icon icon="@tui.plus" />
-                  {{ 'add' | translate }}
-                </button>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <!-- Name -->
+                  <tui-textfield class="sm:col-span-2">
+                    <label tuiLabel for="new-v-name">{{
+                      'name' | translate
+                    }}</label>
+                    <input
+                      tuiInput
+                      id="new-v-name"
+                      [(ngModel)]="newVoucherName"
+                      name="newVoucherName"
+                      autocomplete="off"
+                      placeholder="Ej. Pase diario, Bono de 10"
+                    />
+                  </tui-textfield>
+
+                  <!-- Price -->
+                  <tui-textfield>
+                    <label tuiLabel for="new-v-price">{{
+                      'price' | translate
+                    }}</label>
+                    <input
+                      tuiInputNumber
+                      id="new-v-price"
+                      [(ngModel)]="newVoucherPrice"
+                      name="newVoucherPrice"
+                      [tuiNumberFormat]="{ precision: 2 }"
+                      autocomplete="off"
+                      placeholder="0.00"
+                    />
+                    <span class="tui-textfield__suffix">€</span>
+                  </tui-textfield>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                  <!-- Kind -->
+                  <tui-textfield
+                    class="w-full"
+                    tuiChevron
+                    [stringify]="stringifyVoucherKind"
+                  >
+                    <label tuiLabel for="new-v-kind">{{
+                      'indoor.voucherKind' | translate
+                    }}</label>
+                    <input
+                      tuiSelect
+                      id="new-v-kind"
+                      [(ngModel)]="newVoucherKind"
+                      name="newVoucherKind"
+                      autocomplete="off"
+                    />
+                    <tui-data-list-wrapper
+                      *tuiDropdown
+                      [items]="['pass', 'subscription']"
+                    ></tui-data-list-wrapper>
+                  </tui-textfield>
+
+                  <!-- Description -->
+                  <tui-textfield>
+                    <label tuiLabel for="new-v-desc">{{
+                      'description' | translate
+                    }}</label>
+                    <input
+                      tuiInput
+                      id="new-v-desc"
+                      [(ngModel)]="newVoucherDescription"
+                      name="newVoucherDescription"
+                      placeholder="Ej. Acceso libre por un día"
+                      autocomplete="off"
+                    />
+                  </tui-textfield>
+
+                  <!-- Add Button -->
+                  <button
+                    tuiButton
+                    type="button"
+                    appearance="primary"
+                    class="w-full font-bold"
+                    [disabled]="!newVoucherName"
+                    (click.zoneless)="addLocalVoucher()"
+                  >
+                    <tui-icon icon="@tui.plus" />
+                    {{ 'add' | translate }}
+                  </button>
+                </div>
               </div>
 
               <!-- Sleek Vouchers List -->
@@ -418,13 +489,25 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                         <div
                           class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"
                         >
-                          <tui-icon icon="@tui.ticket" class="text-lg" />
+                          <tui-icon
+                            [icon]="
+                              v.kind === 'subscription'
+                                ? '@tui.id-card'
+                                : '@tui.ticket'
+                            "
+                            class="text-lg"
+                          />
                         </div>
                         <div class="flex flex-col">
                           <span
                             class="font-bold text-base text-neutral-800 dark:text-neutral-200"
                             >{{ v.name }}</span
                           >
+                          @if (v.description) {
+                            <span class="text-xs opacity-60">{{
+                              v.description
+                            }}</span>
+                          }
                         </div>
                       </div>
 
@@ -537,6 +620,7 @@ export class IndoorCenterFormComponent {
     slug: string;
     city: string;
     description: string;
+    warning: string;
     latitude: number | null;
     longitude: number | null;
     gallery_urls: string[];
@@ -545,6 +629,7 @@ export class IndoorCenterFormComponent {
     slug: '',
     city: '',
     description: '',
+    warning: '',
     latitude: null,
     longitude: null,
     gallery_urls: [],
@@ -589,13 +674,25 @@ export class IndoorCenterFormComponent {
 
   // Local Vouchers configuration
   protected readonly localVouchers = signal<
-    { id?: string; name: string; price: number; is_deleted?: boolean }[]
+    {
+      id?: string;
+      name: string;
+      price: number;
+      kind?: string;
+      description?: string | null;
+      is_deleted?: boolean;
+    }[]
   >([]);
   protected readonly activeLocalVouchers = computed(() =>
     this.localVouchers().filter((v) => !v.is_deleted),
   );
   protected newVoucherName = '';
   protected newVoucherPrice: number | null = null;
+  protected newVoucherKind = 'pass';
+  protected newVoucherDescription = '';
+  protected readonly stringifyVoucherKind = (kind: string): string => {
+    return this.translate.instant('indoor.voucherKinds.' + kind);
+  };
 
   constructor() {
     effect(() => {
@@ -608,6 +705,7 @@ export class IndoorCenterFormComponent {
         slug: data.slug || '',
         city: data.city || '',
         description: data.description || '',
+        warning: (data as any).warning || '',
         latitude: data.latitude ?? null,
         longitude: data.longitude ?? null,
         gallery_urls: data.gallery_urls || [],
@@ -660,7 +758,13 @@ export class IndoorCenterFormComponent {
         const list = await this.indoor.getCenterVouchers(id);
         untracked(() => {
           this.localVouchers.set(
-            list.map((v) => ({ id: v.id, name: v.name, price: v.price })),
+            list.map((v) => ({
+              id: v.id,
+              name: v.name,
+              price: v.price,
+              kind: v.kind || 'pass',
+              description: v.description,
+            })),
           );
         });
       } catch (e) {
@@ -693,15 +797,24 @@ export class IndoorCenterFormComponent {
     if (!this.newVoucherName) return;
     const name = this.newVoucherName;
     const price = Number(this.newVoucherPrice) || 0;
-    this.localVouchers.update((list) => [...list, { name, price }]);
+    const kind = this.newVoucherKind;
+    const description = this.newVoucherDescription || null;
+    this.localVouchers.update((list) => [
+      ...list,
+      { name, price, kind, description },
+    ]);
     this.newVoucherName = '';
     this.newVoucherPrice = null;
+    this.newVoucherKind = 'pass';
+    this.newVoucherDescription = '';
   }
 
   protected deleteLocalVoucher(v: {
     id?: string;
     name: string;
     price: number;
+    kind?: string;
+    description?: string | null;
   }): void {
     this.localVouchers.update((list) => {
       return list.map((item) => {
@@ -865,6 +978,7 @@ export class IndoorCenterFormComponent {
           slug: modelVal.slug,
           city: modelVal.city || null,
           description: modelVal.description || null,
+          warning: modelVal.warning || null,
           avatar_url: this.effectiveCenterData()?.avatar_url ?? null,
           latitude: modelVal.latitude,
           longitude: modelVal.longitude,
@@ -902,6 +1016,8 @@ export class IndoorCenterFormComponent {
               center_id: savedCenterId,
               name: v.name,
               price: v.price,
+              kind: v.kind || 'pass',
+              description: v.description || null,
               duration_days: 0,
               sessions_count: null,
               active: true,
@@ -911,6 +1027,8 @@ export class IndoorCenterFormComponent {
               center_id: savedCenterId,
               name: v.name,
               price: v.price,
+              kind: v.kind || 'pass',
+              description: v.description || null,
               duration_days: 0,
               sessions_count: null,
               active: true,

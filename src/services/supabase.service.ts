@@ -307,8 +307,12 @@ export class SupabaseService {
 
     await this.whenReady();
 
+    const bucket =
+      path.startsWith('ascents/') || path.startsWith('centers/')
+        ? 'indoor-assets'
+        : 'route-ascent-photos';
     const { data, error } = await this.client.storage
-      .from('route-ascent-photos')
+      .from(bucket)
       .createSignedUrl(path, 3600, options); // 1 hour
 
     if (error) {

@@ -20,8 +20,14 @@ import {
   TuiLoader,
   TuiHint,
   TuiAppearance,
+  TuiDialogService,
 } from '@taiga-ui/core';
-import { TuiBadge, TuiAvatar } from '@taiga-ui/kit';
+import {
+  TuiBadge,
+  TuiAvatar,
+  TUI_CONFIRM,
+  TuiConfirmData,
+} from '@taiga-ui/kit';
 
 import { IndoorService } from '../../services/indoor.service';
 import { GlobalData } from '../../services/global-data';
@@ -294,6 +300,7 @@ export class IndoorRouteComponent implements OnDestroy {
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly dialogs = inject(TuiDialogService);
 
   protected readonly climbingIcons = CLIMBING_ICONS;
 
@@ -442,7 +449,21 @@ export class IndoorRouteComponent implements OnDestroy {
   }
 
   async onDeleteAscent(ascentId: string): Promise<void> {
-    if (confirm(this.translate.instant('deleteCommentConfirm'))) {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    void firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('ascent.deleteTitle'),
+        size: 's',
+        data: {
+          content: this.translate.instant('ascent.deleteConfirm'),
+          yes: this.translate.instant('delete'),
+          no: this.translate.instant('cancel'),
+        } as TuiConfirmData,
+      }),
+      { defaultValue: false },
+    ).then(async (confirmed) => {
+      if (!confirmed) return;
       try {
         await this.indoor.deleteRouteAscent(ascentId);
         this.toast.success('ascent.deleteSuccess');
@@ -451,7 +472,7 @@ export class IndoorRouteComponent implements OnDestroy {
         console.error(e);
         this.toast.error('errors.unexpected');
       }
-    }
+    });
   }
 
   protected getColorName(colorValue: string): string {
@@ -491,15 +512,29 @@ export class IndoorRouteComponent implements OnDestroy {
     const r = this.route();
     if (!r || !isPlatformBrowser(this.platformId)) return;
 
-    if (confirm(this.translate.instant('deleteCommentConfirm'))) {
+    void firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('routes.deleteTitle'),
+        size: 's',
+        data: {
+          content: this.translate.instant('routes.deleteConfirm', {
+            name: r.name || this.translate.instant('route'),
+          }),
+          yes: this.translate.instant('delete'),
+          no: this.translate.instant('cancel'),
+        } as TuiConfirmData,
+      }),
+      { defaultValue: false },
+    ).then(async (confirmed) => {
+      if (!confirmed) return;
       try {
         await this.indoor.deleteRoute(r.id);
         this.toast.success('routes.deleteSuccess');
-        this.router.navigate(['/indoor', r.center_slug]);
+        void this.router.navigate(['/indoor', r.center_slug]);
       } catch (e) {
         console.error(e);
         this.toast.error('errors.unexpected');
       }
-    }
+    });
   }
 }

@@ -179,14 +179,12 @@ import { handleErrorToast } from '../../utils';
             }
           </div>
 
-          @if (!isIndoor()) {
-            <app-counter
-              [ngModel]="model().attempts"
-              (ngModelChange)="onAttemptsChange($event)"
-              name="attempts"
-              label="ascentTypes.attempts"
-            />
-          }
+          <app-counter
+            [ngModel]="model().attempts"
+            (ngModelChange)="onAttemptsChange($event)"
+            name="attempts"
+            label="ascentTypes.attempts"
+          />
         </section>
 
         <!-- SHARE YOUR THOUGHTS -->
@@ -206,115 +204,88 @@ import { handleErrorToast } from '../../utils';
               rows="5"
             ></textarea>
           </tui-textfield>
-          @if (!isIndoor()) {
-            <label class="flex items-center gap-2 cursor-pointer self-start">
-              <input
-                tuiCheckbox
-                type="checkbox"
-                [formField]="$any(ascentForm.private_ascent)"
-                (click)="onPrivateClick($event)"
-                autocomplete="off"
-              />
-              <span class="text-sm">{{ 'ascent.private' | translate }}</span>
-            </label>
-          }
+          <label class="flex items-center gap-2 cursor-pointer self-start">
+            <input
+              tuiCheckbox
+              type="checkbox"
+              [formField]="$any(ascentForm.private_ascent)"
+              (click)="onPrivateClick($event)"
+              autocomplete="off"
+            />
+            <span class="text-sm">{{ 'ascent.private' | translate }}</span>
+          </label>
         </section>
 
-        @if (!isIndoor()) {
-          <section class="grid gap-3">
-            <div class="flex items-center justify-between px-1">
-              <span class="text-xs font-bold opacity-60 uppercase">{{
-                'ascent.photo' | translate
-              }}</span>
-              <div class="flex items-center gap-2">
-                @if (existingPhotoUrl()) {
-                  <button
-                    tuiButton
-                    type="button"
-                    appearance="negative"
-                    size="s"
-                    iconStart="@tui.trash"
-                    (click)="onDeleteExistingPhoto()"
-                  >
-                    {{ 'ascent.deletePhoto' | translate }}
-                  </button>
-                }
-              </div>
+        <section class="grid gap-3">
+          <div class="flex items-center justify-between px-1">
+            <span class="text-xs font-bold opacity-60 uppercase">{{
+              'ascent.photo' | translate
+            }}</span>
+            <div class="flex items-center gap-2">
+              @if (existingPhotoUrl()) {
+                <button
+                  tuiButton
+                  type="button"
+                  appearance="negative"
+                  size="s"
+                  iconStart="@tui.trash"
+                  (click)="onDeleteExistingPhoto()"
+                >
+                  {{ 'ascent.deletePhoto' | translate }}
+                </button>
+              }
             </div>
+          </div>
 
-            <div class="grid gap-2">
-              @if (isLoadingExistingPhoto()) {
-                <div class="flex items-center justify-center p-8">
-                  <tui-loader size="m"></tui-loader>
-                </div>
-              } @else if (!photoValue() && !existingPhotoUrl()) {
-                <label tuiInputFiles>
-                  <input
-                    accept="image/*"
-                    tuiInputFiles
-                    [ngModel]="model().photoControl"
-                    (ngModelChange)="onPhotoFileChange($event)"
-                    name="photoControl"
-                    autocomplete="off"
-                  />
-                </label>
+          <div class="grid gap-2">
+            @if (isLoadingExistingPhoto()) {
+              <div class="flex items-center justify-center p-8">
+                <tui-loader size="m"></tui-loader>
+              </div>
+            } @else if (!photoValue() && !existingPhotoUrl()) {
+              <label tuiInputFiles>
+                <input
+                  accept="image/*"
+                  tuiInputFiles
+                  [ngModel]="model().photoControl"
+                  (ngModelChange)="onPhotoFileChange($event)"
+                  name="photoControl"
+                  autocomplete="off"
+                />
+              </label>
+            }
+
+            <tui-files class="mt-2">
+              @if (
+                photoValue()
+                  | tuiFileRejected
+                    : { accept: 'image/*', maxFileSize: 15 * 1024 * 1024 }
+                  | async;
+                as file
+              ) {
+                <tui-file
+                  state="error"
+                  [file]="file"
+                  (remove)="removePhotoFile()"
+                />
               }
 
-              <tui-files class="mt-2">
-                @if (
-                  photoValue()
-                    | tuiFileRejected
-                      : { accept: 'image/*', maxFileSize: 15 * 1024 * 1024 }
-                    | async;
-                  as file
-                ) {
+              @if (photoValue(); as file) {
+                <div class="relative group">
                   <tui-file
-                    state="error"
                     [file]="file"
                     (remove)="removePhotoFile()"
+                    (click.zoneless)="editPhoto(file)"
                   />
-                }
-
-                @if (photoValue(); as file) {
-                  <div class="relative group">
-                    <tui-file
-                      [file]="file"
-                      (remove)="removePhotoFile()"
-                      (click.zoneless)="editPhoto(file)"
-                    />
-                    @if (previewUrl()) {
-                      <div
-                        class="mt-2 rounded-xl overflow-hidden relative group cursor-pointer"
-                        (click.zoneless)="editPhoto(file)"
-                      >
-                        <img
-                          [src]="previewUrl()"
-                          class="w-full h-auto max-h-48 object-cover"
-                          alt="Preview"
-                        />
-                        <div
-                          class="absolute inset-0 bg-(--tui-background-neutral-1)/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <tui-icon
-                            icon="@tui.pencil"
-                            class="text-(--tui-text-primary-on-accent-1) text-3xl"
-                          />
-                        </div>
-                      </div>
-                    }
-                  </div>
-                }
-
-                @if (existingPhotoUrl(); as photoUrl) {
-                  @if (!photoValue()) {
+                  @if (previewUrl()) {
                     <div
-                      class="rounded-xl overflow-hidden relative group cursor-pointer"
-                      (click.zoneless)="editPhoto(null, photoUrl)"
+                      class="mt-2 rounded-xl overflow-hidden relative group cursor-pointer"
+                      (click.zoneless)="editPhoto(file)"
                     >
                       <img
-                        [src]="photoUrl"
+                        [src]="previewUrl()"
                         class="w-full h-auto max-h-48 object-cover"
-                        alt="Existing photo"
+                        alt="Preview"
                       />
                       <div
                         class="absolute inset-0 bg-(--tui-background-neutral-1)/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -326,140 +297,165 @@ import { handleErrorToast } from '../../utils';
                       </div>
                     </div>
                   }
+                </div>
+              }
+
+              @if (existingPhotoUrl(); as photoUrl) {
+                @if (!photoValue()) {
+                  <div
+                    class="rounded-xl overflow-hidden relative group cursor-pointer"
+                    (click.zoneless)="editPhoto(null, photoUrl)"
+                  >
+                    <img
+                      [src]="photoUrl"
+                      class="w-full h-auto max-h-48 object-cover"
+                      alt="Existing photo"
+                    />
+                    <div
+                      class="absolute inset-0 bg-(--tui-background-neutral-1)/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <tui-icon
+                        icon="@tui.pencil"
+                        class="text-(--tui-text-primary-on-accent-1) text-3xl"
+                      />
+                    </div>
+                  </div>
                 }
-              </tui-files>
-            </div>
-          </section>
+              }
+            </tui-files>
+          </div>
+        </section>
 
-          <!-- VIDEO URL -->
-          <section class="grid gap-3">
-            <tui-textfield
-              [tuiTextfieldCleaner]="true"
-              class="max-w-full overflow-hidden"
+        <!-- VIDEO URL -->
+        <section class="grid gap-3">
+          <tui-textfield
+            [tuiTextfieldCleaner]="true"
+            class="max-w-full overflow-hidden"
+          >
+            <label tuiLabel for="ascentVideo">Video URL (YouTube)</label>
+            <input
+              id="ascentVideo"
+              tuiInput
+              [formField]="$any(ascentForm.video_url)"
+              placeholder="https://youtube.com/..."
+              autocomplete="off"
+            />
+          </tui-textfield>
+        </section>
+
+        <!-- DID YOU LIKE IT? -->
+        <section class="grid gap-3">
+          <span class="text-sm font-semibold opacity-70 px-1">{{
+            'ascent.didYouLikeIt' | translate
+          }}</span>
+          <div class="flex flex-wrap items-center gap-4">
+            <tui-rating
+              [max]="5"
+              [ngModel]="model().rate"
+              (ngModelChange)="onRateChange($event)"
+              name="rate"
+              class="text-primary"
+            />
+            <button
+              tuiIconButton
+              type="button"
+              [appearance]="model().recommended ? 'primary' : 'secondary'"
+              size="m"
+              (click)="toggleBool('recommended')"
             >
-              <label tuiLabel for="ascentVideo">Video URL (YouTube)</label>
-              <input
-                id="ascentVideo"
-                tuiInput
-                [formField]="$any(ascentForm.video_url)"
-                placeholder="https://youtube.com/..."
-                autocomplete="off"
+              <tui-icon
+                [icon]="
+                  model().recommended ? '@tui.thumbs-up' : '@tui.thumbs-up'
+                "
               />
-            </tui-textfield>
-          </section>
+            </button>
+          </div>
+        </section>
 
-          <!-- DID YOU LIKE IT? -->
-          <section class="grid gap-3">
-            <span class="text-sm font-semibold opacity-70 px-1">{{
-              'ascent.didYouLikeIt' | translate
-            }}</span>
-            <div class="flex flex-wrap items-center gap-4">
-              <tui-rating
-                [max]="5"
-                [ngModel]="model().rate"
-                (ngModelChange)="onRateChange($event)"
-                name="rate"
-                class="text-primary"
-              />
+        <!-- GRADE SELECTOR -->
+        <section class="grid gap-3">
+          <span class="text-sm font-semibold opacity-70 px-1">{{
+            'ascent.howWouldYouGrade' | translate
+          }}</span>
+          <div
+            class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
+          >
+            <button
+              tuiButton
+              type="button"
+              size="m"
+              [appearance]="model().soft ? 'primary' : 'neutral'"
+              (click)="toggleBool('soft')"
+              class="rounded-xl! grow sm:grow-0"
+            >
+              {{ 'ascent.soft' | translate }}
+            </button>
+
+            <div class="flex items-center gap-2 grow min-w-0">
               <button
                 tuiIconButton
                 type="button"
-                [appearance]="model().recommended ? 'primary' : 'secondary'"
                 size="m"
-                (click)="toggleBool('recommended')"
+                appearance="secondary"
+                iconStart="@tui.minus"
+                class="rounded-full! shrink-0"
+                (click)="changeGrade(-1)"
               >
-                <tui-icon
-                  [icon]="
-                    model().recommended ? '@tui.thumbs-up' : '@tui.thumbs-up'
-                  "
+                -
+              </button>
+
+              <tui-textfield
+                tuiChevron
+                [tuiTextfieldCleaner]="false"
+                [stringify]="gradeStringify"
+                tuiTextfieldSize="m"
+                class="grow min-w-0"
+              >
+                <label tuiLabel for="ascentGrade">{{
+                  'grade' | translate
+                }}</label>
+                <input
+                  tuiSelect
+                  id="ascentGrade"
+                  [ngModel]="model().grade"
+                  (ngModelChange)="onGradeChange($event)"
+                  name="grade"
+                  autocomplete="off"
                 />
+                <tui-data-list-wrapper
+                  *tuiDropdown
+                  new
+                  [items]="gradeOptions"
+                ></tui-data-list-wrapper>
+              </tui-textfield>
+
+              <button
+                tuiIconButton
+                type="button"
+                size="m"
+                appearance="secondary"
+                iconStart="@tui.plus"
+                class="rounded-full! shrink-0"
+                (click)="changeGrade(1)"
+              >
+                +
               </button>
             </div>
-          </section>
 
-          <!-- GRADE SELECTOR -->
-          <section class="grid gap-3">
-            <span class="text-sm font-semibold opacity-70 px-1">{{
-              'ascent.howWouldYouGrade' | translate
-            }}</span>
-            <div
-              class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
+            <button
+              tuiButton
+              type="button"
+              size="m"
+              [appearance]="model().hard ? 'primary' : 'neutral'"
+              (click)="toggleBool('hard')"
+              class="rounded-xl! grow sm:grow-0"
             >
-              <button
-                tuiButton
-                type="button"
-                size="m"
-                [appearance]="model().soft ? 'primary' : 'neutral'"
-                (click)="toggleBool('soft')"
-                class="rounded-xl! grow sm:grow-0"
-              >
-                {{ 'ascent.soft' | translate }}
-              </button>
+              {{ 'ascent.hard' | translate }}
+            </button>
+          </div>
+        </section>
 
-              <div class="flex items-center gap-2 grow min-w-0">
-                <button
-                  tuiIconButton
-                  type="button"
-                  size="m"
-                  appearance="secondary"
-                  iconStart="@tui.minus"
-                  class="rounded-full! shrink-0"
-                  (click)="changeGrade(-1)"
-                >
-                  -
-                </button>
-
-                <tui-textfield
-                  tuiChevron
-                  [tuiTextfieldCleaner]="false"
-                  [stringify]="gradeStringify"
-                  tuiTextfieldSize="m"
-                  class="grow min-w-0"
-                >
-                  <label tuiLabel for="ascentGrade">{{
-                    'grade' | translate
-                  }}</label>
-                  <input
-                    tuiSelect
-                    id="ascentGrade"
-                    [ngModel]="model().grade"
-                    (ngModelChange)="onGradeChange($event)"
-                    name="grade"
-                    autocomplete="off"
-                  />
-                  <tui-data-list-wrapper
-                    *tuiDropdown
-                    new
-                    [items]="gradeOptions"
-                  ></tui-data-list-wrapper>
-                </tui-textfield>
-
-                <button
-                  tuiIconButton
-                  type="button"
-                  size="m"
-                  appearance="secondary"
-                  iconStart="@tui.plus"
-                  class="rounded-full! shrink-0"
-                  (click)="changeGrade(1)"
-                >
-                  +
-                </button>
-              </div>
-
-              <button
-                tuiButton
-                type="button"
-                size="m"
-                [appearance]="model().hard ? 'primary' : 'neutral'"
-                (click)="toggleBool('hard')"
-                class="rounded-xl! grow sm:grow-0"
-              >
-                {{ 'ascent.hard' | translate }}
-              </button>
-            </div>
-          </section>
-
+        @if (!isIndoor()) {
           @if (showMore()) {
             <section tuiAppearance="neutral" class="grid gap-6 p-4 rounded-xl">
               <h3 class="text-sm font-bold opacity-50 uppercase tracking-wider">
@@ -1090,15 +1086,48 @@ export default class AscentFormComponent {
             type: otherValues.type,
             date: formattedDate,
             notes: otherValues.comment || undefined,
+            attempts: otherValues.attempts || null,
+            private_ascent: otherValues.private_ascent || false,
+            rate: otherValues.rate === 0 ? null : otherValues.rate,
+            recommended: otherValues.recommended || false,
+            grade: otherValues.grade === 0 ? null : otherValues.grade,
+            video_url: otherValues.video_url || null,
           };
+
+          let savedAscentId = ascentData?.id;
           if (ascentData) {
             await this.indoorService.updateRouteAscent(ascentData.id, {
               type: payload.type,
               date: payload.date,
               notes: payload.notes || '',
+              attempts: payload.attempts,
+              private_ascent: payload.private_ascent,
+              rate: payload.rate,
+              recommended: payload.recommended,
+              grade: payload.grade,
+              video_url: payload.video_url,
             });
           } else {
-            await this.indoorService.createRouteAscent(payload);
+            const res = await this.indoorService.createRouteAscent(payload);
+            savedAscentId = res.id;
+          }
+
+          // Handle photo upload if a new file was selected
+          const photoFile = photoControl;
+          if (savedAscentId && photoFile) {
+            const uploadedPath = await this.indoorService.uploadAscentPhoto(
+              user_id,
+              photoFile,
+            );
+            if (uploadedPath) {
+              await this.indoorService.updateRouteAscent(savedAscentId, {
+                photo_path: uploadedPath,
+              });
+            }
+          } else if (savedAscentId && this.isExistingPhotoDeleted()) {
+            await this.indoorService.updateRouteAscent(savedAscentId, {
+              photo_path: null,
+            });
           }
         } else {
           const payload: RouteAscentInsertDto = {
@@ -1219,7 +1248,13 @@ export default class AscentFormComponent {
 
     if (confirmed) {
       try {
-        await this.ascents.deletePhoto(data.id);
+        if (this.isIndoor()) {
+          await this.indoorService.updateRouteAscent(data.id, {
+            photo_path: null,
+          });
+        } else {
+          await this.ascents.deletePhoto(data.id);
+        }
         this.isExistingPhotoDeleted.set(true);
       } catch (e) {
         console.error('[AscentForm] Error deleting photo', e);
