@@ -91,9 +91,22 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
     <div class="flex flex-col gap-4">
       @if (hasAnyRoutes()) {
         <div class="flex items-center justify-between px-3">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input
+              tuiCheckbox
+              type="checkbox"
+              [ngModel]="showLegacyRoutes()"
+              (ngModelChange)="showLegacyRoutes.set($event)"
+              autocomplete="off"
+            />
+            <span class="text-xs opacity-75 select-none">{{
+              'indoor.showLegacyRoutes' | translate
+            }}</span>
+          </label>
+
           @if (totalRoutes() > 0) {
             <div
-              class="flex items-center gap-2 text-xs font-semibold opacity-70 mb-2"
+              class="flex items-center gap-2 text-xs font-semibold opacity-70"
             >
               @if (allCompleted()) {
                 {{ 'indoor.allCompleted' | translate }}
@@ -109,21 +122,6 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
               }
             </div>
           }
-        </div>
-
-        <div class="flex items-center justify-between px-3">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input
-              tuiCheckbox
-              type="checkbox"
-              [ngModel]="showLegacyRoutes()"
-              (ngModelChange)="showLegacyRoutes.set($event)"
-              autocomplete="off"
-            />
-            <span class="text-xs opacity-75 select-none">{{
-              'indoor.showLegacyRoutes' | translate
-            }}</span>
-          </label>
 
           @if (canEdit()) {
             <button
