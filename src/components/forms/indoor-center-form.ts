@@ -391,9 +391,9 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
               <div
                 class="flex flex-col gap-4 p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-850"
               >
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <!-- Name -->
-                  <tui-textfield class="sm:col-span-2">
+                <!-- First line: Name -->
+                <div class="w-full">
+                  <tui-textfield>
                     <label tuiLabel for="new-v-name">{{
                       'name' | translate
                     }}</label>
@@ -406,27 +406,28 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                       placeholder="Ej. Pase diario, Bono de 10"
                     />
                   </tui-textfield>
+                </div>
 
-                  <!-- Price -->
-                  <tui-textfield>
-                    <label tuiLabel for="new-v-price">{{
-                      'price' | translate
+                <!-- Second line: Description (Textarea) -->
+                <div class="w-full">
+                  <tui-textfield class="block">
+                    <label tuiLabel for="new-v-desc">{{
+                      'description' | translate
                     }}</label>
-                    <input
-                      tuiInputNumber
-                      id="new-v-price"
-                      [(ngModel)]="newVoucherPrice"
-                      name="newVoucherPrice"
-                      [tuiNumberFormat]="{ precision: 2 }"
-                      autocomplete="off"
-                      placeholder="0.00"
-                    />
-                    <span class="tui-textfield__suffix">€</span>
+                    <textarea
+                      tuiTextarea
+                      id="new-v-desc"
+                      [(ngModel)]="newVoucherDescription"
+                      name="newVoucherDescription"
+                      placeholder="Ej. Acceso libre por un día"
+                      class="h-20"
+                    ></textarea>
                   </tui-textfield>
                 </div>
 
+                <!-- Third line: Type and Price together, plus Add button -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-                  <!-- Kind -->
+                  <!-- Kind (Type) -->
                   <tui-textfield
                     class="w-full"
                     tuiChevron
@@ -448,19 +449,21 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                     ></tui-data-list-wrapper>
                   </tui-textfield>
 
-                  <!-- Description -->
-                  <tui-textfield>
-                    <label tuiLabel for="new-v-desc">{{
-                      'description' | translate
+                  <!-- Price -->
+                  <tui-textfield class="w-full">
+                    <label tuiLabel for="new-v-price">{{
+                      'price' | translate
                     }}</label>
                     <input
-                      tuiInput
-                      id="new-v-desc"
-                      [(ngModel)]="newVoucherDescription"
-                      name="newVoucherDescription"
-                      placeholder="Ej. Acceso libre por un día"
+                      tuiInputNumber
+                      id="new-v-price"
+                      [(ngModel)]="newVoucherPrice"
+                      name="newVoucherPrice"
+                      [tuiNumberFormat]="{ precision: 2 }"
                       autocomplete="off"
+                      placeholder="0.00"
                     />
+                    <span class="tui-textfield__suffix">€</span>
                   </tui-textfield>
 
                   <!-- Add Button -->
@@ -470,7 +473,7 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                     appearance="primary"
                     class="w-full font-bold"
                     [disabled]="!newVoucherName"
-                    (click.zoneless)="addLocalVoucher()"
+                    (click.zoneless)="addLocalVoucher($event)"
                   >
                     <tui-icon icon="@tui.plus" />
                     {{ 'add' | translate }}
@@ -488,7 +491,7 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                     >
                       <div class="flex items-center gap-3">
                         <div
-                          class="w-10 h-10 rounded-xl tui-appearance-primary"
+                          class="w-10 h-10 rounded-xl tui-appearance-primary flex items-center justify-center"
                           tuiAppearance="primary"
                         >
                           <tui-icon
@@ -525,7 +528,7 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                           type="button"
                           class="rounded-full! text-neutral-500"
                           [attr.aria-label]="'edit' | translate"
-                          (click.zoneless)="editLocalVoucher(v)"
+                          (click.zoneless)="editLocalVoucher(v, $event)"
                         ></button>
                         <button
                           tuiIconButton
@@ -535,7 +538,7 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                           type="button"
                           class="rounded-full! text-red-550"
                           [attr.aria-label]="'delete' | translate"
-                          (click.zoneless)="deleteLocalVoucher(v)"
+                          (click.zoneless)="deleteLocalVoucher(v, $event)"
                         ></button>
                       </div>
                     </div>
@@ -716,7 +719,7 @@ export class IndoorCenterFormComponent {
         slug: data.slug || '',
         city: data.city || '',
         description: data.description || '',
-        warning: (data as any).warning || '',
+        warning: data.warning || '',
         latitude: data.latitude ?? null,
         longitude: data.longitude ?? null,
         gallery_urls: data.gallery_urls || [],
@@ -804,7 +807,11 @@ export class IndoorCenterFormComponent {
     });
   }
 
-  protected addLocalVoucher(): void {
+  protected addLocalVoucher(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     if (!this.newVoucherName) return;
     const name = this.newVoucherName;
     const price = Number(this.newVoucherPrice) || 0;
@@ -820,13 +827,20 @@ export class IndoorCenterFormComponent {
     this.newVoucherDescription = '';
   }
 
-  protected editLocalVoucher(v: {
-    id?: string;
-    name: string;
-    price: number;
-    kind?: string;
-    description?: string | null;
-  }): void {
+  protected editLocalVoucher(
+    v: {
+      id?: string;
+      name: string;
+      price: number;
+      kind?: string;
+      description?: string | null;
+    },
+    event?: Event,
+  ): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     // Populate form fields with the voucher details to edit
     this.newVoucherName = v.name;
     this.newVoucherPrice = v.price;
@@ -837,13 +851,20 @@ export class IndoorCenterFormComponent {
     this.deleteLocalVoucher(v);
   }
 
-  protected deleteLocalVoucher(v: {
-    id?: string;
-    name: string;
-    price: number;
-    kind?: string;
-    description?: string | null;
-  }): void {
+  protected deleteLocalVoucher(
+    v: {
+      id?: string;
+      name: string;
+      price: number;
+      kind?: string;
+      description?: string | null;
+    },
+    event?: Event,
+  ): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     this.localVouchers.update((list) => {
       return list.map((item) => {
         if (item === v || (v.id && item.id === v.id)) {
