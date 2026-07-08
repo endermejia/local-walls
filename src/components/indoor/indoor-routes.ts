@@ -52,7 +52,6 @@ import { IndoorService } from '../../services/indoor.service';
 import { AscentsService } from '../../services/ascents.service';
 import { IndoorRouteWithExtras } from '../../models';
 import { GradeComponent } from '../ui/avatar-grade';
-import { TuiRating } from '@taiga-ui/kit';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equippers-input';
 import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
@@ -80,7 +79,6 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
     TuiTableCell,
     TuiTableHead,
     TuiTableExpand,
-    TuiRating,
     GradeComponent,
     EmptyStateComponent,
     IndoorRouteEquippersInputComponent,
@@ -154,7 +152,6 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
       }
 
       @if (routes().length > 0) {
-        @let isMobile = global.isMobile();
         <tui-scrollbar
           class="grow min-h-0 block w-full overflow-x-auto no-scrollbar"
         >
@@ -277,21 +274,7 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
                             </div>
                           </div>
                         }
-                        @case ('rating') {
-                          <div tuiCell size="m">
-                            <tui-rating
-                              [max]="5"
-                              [ngModel]="item.rating"
-                              [readOnly]="true"
-                              [style.font-size.rem]="1"
-                            />
-                          </div>
-                        }
-                        @case ('ascents') {
-                          <div tuiCell size="m">
-                            <span>{{ item.ascents }}</span>
-                          </div>
-                        }
+
                         @case ('topo') {
                           <div tuiCell size="m">
                             <div class="flex flex-wrap gap-1 min-w-0">
