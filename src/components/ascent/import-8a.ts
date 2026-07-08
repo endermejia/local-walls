@@ -227,28 +227,33 @@ interface ExistingUserAscentKey {
           <!-- Step 1: Preview & Confirm -->
           @if (index === 1) {
             <div class="grid gap-4">
-              <header tuiHeader class="flex justify-between items-center">
+              <header tuiHeader class="flex flex-col gap-2">
                 <span tuiSubtitle
                   >{{
                     'import8a.confirmSubtitle'
-                      | translate: { count: selectedIndices().size }
+                      | translate: { count: ascents().length }
                   }}
-                  / {{ ascents().length }}</span
-                >
-                <label
-                  class="text-xs opacity-60 flex items-center gap-1.5 select-none hover:opacity-100 transition-opacity cursor-pointer"
-                >
-                  <input
-                    tuiCheckbox
-                    type="checkbox"
-                    [checked]="
-                      selectedIndices().size === ascents().length &&
-                      ascents().length > 0
-                    "
-                    (click)="toggleAll()"
-                  />
-                  <span>{{ 'selectAll' | translate }}</span>
-                </label>
+                </span>
+                <div class="flex justify-between items-center w-full mt-2">
+                  <label
+                    class="text-xs opacity-60 flex items-center gap-1.5 select-none hover:opacity-100 transition-opacity cursor-pointer"
+                  >
+                    <input
+                      tuiCheckbox
+                      type="checkbox"
+                      [ngModel]="
+                        selectedIndices().size === ascents().length &&
+                        ascents().length > 0
+                      "
+                      (ngModelChange)="toggleAll($event)"
+                    />
+                    <span>{{ 'selectAll' | translate }}</span>
+                  </label>
+                  <span class="text-xs font-semibold opacity-70"
+                    >{{ selectedIndices().size }} / {{ ascents().length }}
+                    {{ 'selected' | translate }}</span
+                  >
+                </div>
               </header>
 
               <div class="max-h-[35dvh] overflow-auto border rounded p-2">
@@ -267,8 +272,8 @@ interface ExistingUserAscentKey {
                           <input
                             tuiCheckbox
                             type="checkbox"
-                            [checked]="isSelected(idx)"
-                            (click)="toggleSelect(idx)"
+                            [ngModel]="isSelected(idx)"
+                            (ngModelChange)="toggleSelect(idx, $event)"
                           />
                         </label>
                         <app-grade
@@ -395,13 +400,13 @@ export class Import8aComponent {
   protected ascents = signal<EightAnuAscent[]>([]);
   protected selectedIndices = signal<Set<number>>(new Set());
 
-  protected toggleSelect(index: number): void {
+  protected toggleSelect(index: number, checked: boolean): void {
     this.selectedIndices.update((set) => {
       const newSet = new Set(set);
-      if (newSet.has(index)) {
-        newSet.delete(index);
-      } else {
+      if (checked) {
         newSet.add(index);
+      } else {
+        newSet.delete(index);
       }
       return newSet;
     });
@@ -411,15 +416,13 @@ export class Import8aComponent {
     return this.selectedIndices().has(index);
   }
 
-  protected toggleAll(): void {
+  protected toggleAll(checked: boolean): void {
     const current = this.ascents();
-    this.selectedIndices.update((set) => {
-      if (set.size === current.length) {
-        return new Set();
-      } else {
-        return new Set(current.map((_, i) => i));
-      }
-    });
+    if (checked) {
+      this.selectedIndices.set(new Set(current.map((_, i) => i)));
+    } else {
+      this.selectedIndices.set(new Set());
+    }
   }
   protected readonly LABEL_TO_VERTICAL_LIFE = LABEL_TO_VERTICAL_LIFE;
 

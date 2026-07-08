@@ -274,7 +274,7 @@
   "imageEditor.uploadImageError": "Errore nel caricamento delle immagini.",
   "import": "Importa",
   "import8a.button": "Importa da 8a.nu",
-  "import8a.confirmSubtitle": "Abbiamo trovato {{count}} salite nel CSV. Verranno importate solo quelle che corrispondono ai tiri nel nostro database.",
+  "import8a.confirmSubtitle": "Abbiamo trovato {{count}} salite nel CSV. Verranno importate solo quelle che corrispondono alle vie nel nostro database.",
   "import8a.csvInstructions": "Accedi al tuo profilo su <strong><a href=\"https://www.8a.nu\" target=\"_blank\">8a.nu</a></strong>, clicca su <strong>Modifica profilo</strong> e scarica il file <strong>CSV</strong> con le tue salite.",
   "import8a.errors.emptyCSV": "Il file CSV caricato è vuoto o non contiene salite valide",
   "import8a.errors.fetchAscents": "Errore nel recupero delle salite da 8a.nu",
@@ -794,5 +794,9 @@
   "years": "Anni",
   "you": "tu",
   "zoomIn": "Avvicina",
-  "zoomOut": "Allontana"
+  "zoomOut": "Allontana",
+  "indoor.deleteTitle": "Elimina via indoor",
+  "indoor.deleteConfirm": "Sei sicuro di voler eliminare la via indoor \"{{name}}\"? Questa azione non può essere annullata.",
+  "selectAll": "Seleziona tutto",
+  "selected": "selezionati"
 }

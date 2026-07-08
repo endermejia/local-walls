@@ -745,7 +745,13 @@ export interface TopoRouteRow {
                                 '-' +
                                 item._ref.route_id
                               "
-                              [class.bg-(--tui-background-accent-1-hover)!]="
+                              [class.outline-2]="
+                                item._ref.route_id === selectedRouteId()
+                              "
+                              [class.outline-[var(--tui-border-focus)]]="
+                                item._ref.route_id === selectedRouteId()
+                              "
+                              [class.-outline-offset-1]="
                                 item._ref.route_id === selectedRouteId()
                               "
                               [style.background]="
