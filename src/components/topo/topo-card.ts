@@ -54,6 +54,7 @@ import { TopoListItem } from '../../models';
                 ({
                   path: photo,
                   version: global.topoPhotoVersion(),
+                  isIndoor: isIndoor(),
                 }
                   | topoImage
                   | async) || ('topo' | iconSrc)
@@ -65,19 +66,23 @@ import { TopoListItem } from '../../models';
             />
           }
           <div class="flex items-center justify-between gap-2 mt-auto">
-            <div class="flex items-center justify-between gap-2">
-              @let shade = item | shadeInfo;
-              @if (shade) {
-                <tui-icon [icon]="shade.icon" class="opacity-70 text-xl" />
-                <span class="text-sm opacity-80">
-                  {{ shade.label | translate }}
-                  @if (item.shade_change_hour) {
-                    · {{ 'filters.shade.changeAt' | translate }}
-                    {{ item.shade_change_hour }}
-                  }
-                </span>
-              }
-            </div>
+            @if (!isIndoor()) {
+              <div class="flex items-center justify-between gap-2">
+                @let shade = item | shadeInfo;
+                @if (shade) {
+                  <tui-icon [icon]="shade.icon" class="opacity-70 text-xl" />
+                  <span class="text-sm opacity-80">
+                    {{ shade.label | translate }}
+                    @if (item.shade_change_hour) {
+                      · {{ 'filters.shade.changeAt' | translate }}
+                      {{ item.shade_change_hour }}
+                    }
+                  </span>
+                }
+              </div>
+            } @else {
+              <div></div>
+            }
             <app-chart-routes-by-grade
               [grades]="item.grades"
               (click)="$event.stopPropagation()"
@@ -92,5 +97,6 @@ import { TopoListItem } from '../../models';
 export class TopoCardComponent {
   protected readonly global = inject(GlobalData);
   topo = input.required<TopoListItem>();
+  isIndoor = input<boolean>(false);
   selected = output<void>();
 }

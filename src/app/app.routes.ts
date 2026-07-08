@@ -149,6 +149,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('../pages/indoor/route').then((m) => m.IndoorRouteComponent),
       },
+      {
+        path: ':centerSlug/topo/:id',
+        loadComponent: () =>
+          import('../pages/area/topo').then((m) => m.TopoComponent),
+        data: { type: 'indoor' },
+      },
     ],
   },
   // Admin and Equipper routes

@@ -327,7 +327,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
                 <app-indoor-routes [centerId]="c.id" [centerSlug]="c.slug" />
               }
               @case (1) {
-                <app-indoor-topos [centerId]="c.id" />
+                <app-indoor-topos [centerId]="c.id" [centerSlug]="c.slug" />
               }
               @case (2) {
                 <app-empty-state />

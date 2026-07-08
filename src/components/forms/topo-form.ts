@@ -30,6 +30,7 @@ import {
   TuiInput,
   TuiCheckbox,
   TuiFilterByInputPipe,
+  TuiDropdown,
 } from '@taiga-ui/core';
 import {
   TuiChevron,
@@ -39,6 +40,8 @@ import {
   TuiMultiSelect,
   TuiFiles,
   TuiInputFiles,
+  TuiSelect,
+  TuiDataListWrapper,
 } from '@taiga-ui/kit';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -49,6 +52,7 @@ import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 import { ToposService } from '../../services/topos.service';
+import { IndoorService } from '../../services/indoor.service';
 import { ShadeInfoPipe } from '../../pipes/shade-info.pipe';
 
 import { GradeComponent } from '../ui/avatar-grade';
@@ -84,6 +88,7 @@ import { handleErrorToast, slugify } from '../../utils';
     TuiCheckbox,
     TuiChevron,
     TuiDataList,
+    TuiDropdown,
     TuiFiles,
     TuiFilterByInputPipe,
     TuiIcon,
@@ -91,10 +96,12 @@ import { handleErrorToast, slugify } from '../../utils';
     TuiInputChip,
     TuiInputFiles,
     TuiInputTime,
-    TuiLabel,
     TuiMultiSelect,
     TuiOptGroup,
     TuiTitle,
+    TuiSelect,
+    TuiLabel,
+    TuiDataListWrapper,
   ],
   template: `
     <form
@@ -113,7 +120,7 @@ import { handleErrorToast, slugify } from '../../utils';
 
       <!-- Visibility indicator -->
       @let crag = global.cragDetail();
-      @if (crag) {
+      @if (!isIndoor() && crag) {
         @let isSecret =
           !crag.is_public && (crag.price === null || crag.price === 0);
         <div class="flex items-center gap-2 px-1 text-xs opacity-75">
@@ -139,56 +146,73 @@ import { handleErrorToast, slugify } from '../../utils';
         </div>
       }
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input
-              tuiCheckbox
-              type="checkbox"
-              [formField]="topoForm.shade_morning"
-              autocomplete="off"
-            />
-            <tui-icon
-              [icon]="
-                ({ shade_morning: true, shade_afternoon: false } | shadeInfo)
-                  ?.icon
-              "
-            />
-            {{ 'filters.shade.morning' | translate }}
-          </label>
+      @if (isIndoor()) {
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center">
+          <tui-select [formField]="topoForm.climbing_kind">
+            {{ 'routes.climbingKind' | translate }}
+            <tui-data-list-wrapper
+              *tuiDropdown
+              [items]="['sport', 'boulder']"
+            ></tui-data-list-wrapper>
+          </tui-select>
 
           <label class="flex items-center gap-2 cursor-pointer">
-            <input
-              tuiCheckbox
-              type="checkbox"
-              [formField]="topoForm.shade_afternoon"
-              autocomplete="off"
-            />
-            <tui-icon
-              [icon]="
-                ({ shade_morning: false, shade_afternoon: true } | shadeInfo)
-                  ?.icon
-              "
-            />
-            {{ 'filters.shade.afternoon' | translate }}
+            <input tuiCheckbox type="checkbox" [formField]="topoForm.legacy" />
+            <span>{{ 'routes.legacy' | translate }}</span>
           </label>
         </div>
+      } @else {
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                tuiCheckbox
+                type="checkbox"
+                [formField]="topoForm.shade_morning"
+                autocomplete="off"
+              />
+              <tui-icon
+                [icon]="
+                  ({ shade_morning: true, shade_afternoon: false } | shadeInfo)
+                    ?.icon
+                "
+              />
+              {{ 'filters.shade.morning' | translate }}
+            </label>
 
-        <tui-textfield [style.opacity]="showShadeChangeHour() ? '1' : '0.5'">
-          <label tuiLabel for="shade_change_hour">{{
-            'topos.shadeChangeHour' | translate
-          }}</label>
-          <input
-            tuiInputTime
-            id="shade_change_hour"
-            autocomplete="off"
-            [ngModel]="shadeChangeHourTime()"
-            (ngModelChange)="onShadeChangeHourChange($event)"
-            name="shade_change_hour"
-            [disabled]="!showShadeChangeHour()"
-          />
-        </tui-textfield>
-      </div>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                tuiCheckbox
+                type="checkbox"
+                [formField]="topoForm.shade_afternoon"
+                autocomplete="off"
+              />
+              <tui-icon
+                [icon]="
+                  ({ shade_morning: false, shade_afternoon: true } | shadeInfo)
+                    ?.icon
+                "
+              />
+              {{ 'filters.shade.afternoon' | translate }}
+            </label>
+          </div>
+
+          <tui-textfield [style.opacity]="showShadeChangeHour() ? '1' : '0.5'">
+            <label tuiLabel for="shade_change_hour">{{
+              'topos.shadeChangeHour' | translate
+            }}</label>
+            <input
+              tuiInputTime
+              id="shade_change_hour"
+              autocomplete="off"
+              [ngModel]="shadeChangeHourTime()"
+              (ngModelChange)="onShadeChangeHourChange($event)"
+              name="shade_change_hour"
+              [disabled]="!showShadeChangeHour()"
+            />
+          </tui-textfield>
+        </div>
+      }
 
       <section class="grid gap-3">
         <!-- Header -->
@@ -400,16 +424,33 @@ export class TopoFormComponent {
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   private readonly supabase = inject(SupabaseService);
+  protected readonly indoor = inject(IndoorService);
 
   private readonly _dialogCtx: TuiDialogContext<
     string | boolean | null,
-    { cragId?: number; topoData?: TopoDetail; initialRouteIds?: number[] }
+    {
+      cragId?: number;
+      topoData?: TopoDetail;
+      initialRouteIds?: (number | string)[];
+      type?: 'indoor' | 'outdoor';
+      centerId?: string;
+      indoorTopoData?: any;
+      initialRoutes?: any[];
+    }
   > | null = (() => {
     try {
       return injectContext<
         TuiDialogContext<
           string | boolean | null,
-          { cragId?: number; topoData?: TopoDetail; initialRouteIds?: number[] }
+          {
+            cragId?: number;
+            topoData?: TopoDetail;
+            initialRouteIds?: (number | string)[];
+            type?: 'indoor' | 'outdoor';
+            centerId?: string;
+            indoorTopoData?: any;
+            initialRoutes?: any[];
+          }
         >
       >();
     } catch {
@@ -424,6 +465,16 @@ export class TopoFormComponent {
     undefined,
   );
 
+  typeInput = input<'indoor' | 'outdoor'>('outdoor');
+
+  protected readonly type: Signal<'indoor' | 'outdoor'> = computed(
+    () => this._dialogCtx?.data?.type ?? this.typeInput(),
+  );
+
+  protected readonly isIndoor: Signal<boolean> = computed(
+    () => this.type() === 'indoor',
+  );
+
   private readonly dialogCragId = this._dialogCtx?.data?.cragId;
   private readonly dialogTopoData = this._dialogCtx?.data?.topoData;
   private readonly initialRouteIds =
@@ -435,7 +486,12 @@ export class TopoFormComponent {
   protected readonly effectiveTopoData: Signal<TopoDetail | undefined> =
     computed(() => this.dialogTopoData ?? this.topoData());
 
-  readonly isEdit: Signal<boolean> = computed(() => !!this.effectiveTopoData());
+  readonly isEdit: Signal<boolean> = computed(() => {
+    if (this.isIndoor()) {
+      return !!this._dialogCtx?.data?.indoorTopoData;
+    }
+    return !!this.effectiveTopoData();
+  });
 
   model = signal<{
     name: string;
@@ -443,8 +499,10 @@ export class TopoFormComponent {
     shade_morning: boolean;
     shade_afternoon: boolean;
     shade_change_hour: string | null;
-    selectedRoutes: RouteDto[];
+    selectedRoutes: any[];
     photoControl: File | null;
+    climbing_kind: 'sport' | 'boulder';
+    legacy: boolean;
   }>({
     name: '',
     photo: null,
@@ -453,12 +511,14 @@ export class TopoFormComponent {
     shade_change_hour: null,
     selectedRoutes: [],
     photoControl: null,
+    climbing_kind: 'sport',
+    legacy: false,
   });
 
   topoForm = form(this.model, (path) => {
     required(path.name);
     required(path.shade_change_hour, {
-      when: () => this.showShadeChangeHour(),
+      when: () => !this.isIndoor() && this.showShadeChangeHour(),
     });
   });
 
@@ -468,20 +528,50 @@ export class TopoFormComponent {
   protected readonly isExistingPhotoDeleted = signal(false);
   protected pendingPaths = signal<
     {
-      routeId: number;
+      routeId: number | string;
       path: { points: { x: number; y: number }[]; color?: string };
     }[]
   >([]);
   private isInitialized = false;
 
+  protected readonly indoorRoutes = resource({
+    params: () => {
+      const data = this._dialogCtx?.data;
+      return data?.type === 'indoor' && data.centerId ? data.centerId : null;
+    },
+    loader: async ({ params: centerId }) => {
+      if (!centerId) return [];
+      await this.supabase.whenReady();
+      const { data, error } = await this.supabase.client
+        .from('indoor_routes')
+        .select('*')
+        .eq('center_id', centerId);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   protected readonly existingPhotoUrl = resource({
     params: () => {
+      if (this.isIndoor()) {
+        const indoorTopo = this._dialogCtx?.data?.indoorTopoData;
+        if (!indoorTopo?.image_url || this.isExistingPhotoDeleted())
+          return null;
+        return { path: indoorTopo.image_url, isIndoor: true, version: 1 };
+      }
       const data = this.effectiveTopoData();
       if (!data?.photo || this.isExistingPhotoDeleted()) return null;
-      return { path: data.photo, version: this.global.topoPhotoVersion() };
+      return {
+        path: data.photo,
+        version: this.global.topoPhotoVersion(),
+        isIndoor: false,
+      };
     },
     loader: async ({ params }) => {
       if (!params) return null;
+      if (params.isIndoor) {
+        return this.supabase.getPublicUrl('indoor-assets', params.path);
+      }
       return await this.supabase.getTopoSignedUrl(params.path, params.version);
     },
   }).value;
@@ -492,16 +582,30 @@ export class TopoFormComponent {
     return morning !== afternoon;
   });
 
-  protected readonly availableRoutes = computed(
-    () => this.global.cragRoutes() ?? [],
-  );
+  protected readonly availableRoutes = computed<any[]>(() => {
+    if (this.isIndoor()) {
+      return this.indoorRoutes.value() ?? [];
+    }
+    return this.global.cragRoutes() ?? [];
+  });
 
-  /** Route IDs that already appear in other topos of the same crag */
+  /** Route IDs that already appear in other topos of the same crag/center */
   protected readonly routeIdsInOtherTopos = computed(() => {
+    if (this.isIndoor()) {
+      const currentTopoId = this._dialogCtx?.data?.indoorTopoData?.id;
+      const allRoutes = this.indoorRoutes.value() ?? [];
+      const ids = new Set<string | number>();
+      for (const r of allRoutes) {
+        if (r.topo_id && r.topo_id !== currentTopoId) {
+          ids.add(r.id);
+        }
+      }
+      return ids;
+    }
     const crag = this.global.cragDetail();
     const currentTopoId = this.effectiveTopoData()?.id;
     if (!crag?.topos) return new Set<number>();
-    const ids = new Set<number>();
+    const ids = new Set<string | number>();
     for (const topo of crag.topos) {
       if (topo.id === currentTopoId) continue;
       for (const rid of topo.route_ids ?? []) {
@@ -511,13 +615,11 @@ export class TopoFormComponent {
     return ids;
   });
 
-  protected readonly stringifyRoute = (route: RouteDto): string =>
+  protected readonly stringifyRoute = (route: any): string =>
     `${route.name} (${this.gradeStringify(route.grade)})`;
 
-  protected readonly routeIdentityMatcher: TuiIdentityMatcher<RouteDto> = (
-    a,
-    b,
-  ) => a.id === b.id;
+  protected readonly routeIdentityMatcher: TuiIdentityMatcher<any> = (a, b) =>
+    a.id === b.id;
 
   protected gradeStringify(grade: number): string {
     return (
@@ -566,42 +668,67 @@ export class TopoFormComponent {
     });
 
     effect(() => {
-      const data = this.effectiveTopoData();
       const available = this.availableRoutes();
       if (!available.length || this.isInitialized) return;
 
-      if (data) {
-        const sortedIds = (data.topo_routes || [])
-          .sort((a, b) => a.number - b.number)
-          .map((tr) => tr.route_id);
+      if (this.isIndoor()) {
+        const data = this._dialogCtx?.data?.indoorTopoData;
+        if (data) {
+          const initialRoutes = this._dialogCtx?.data?.initialRoutes || [];
+          this.model.set({
+            name: data.name,
+            photo: data.image_url,
+            shade_morning: false,
+            shade_afternoon: false,
+            shade_change_hour: null,
+            selectedRoutes: initialRoutes,
+            photoControl: null,
+            climbing_kind: data.climbing_kind || 'sport',
+            legacy: data.legacy || false,
+          });
+          this.isInitialized = true;
+        } else if (this._dialogCtx?.data?.initialRoutes?.length) {
+          const initialRoutes = this._dialogCtx?.data?.initialRoutes || [];
+          this.model.update((m) => ({ ...m, selectedRoutes: initialRoutes }));
+          this.isInitialized = true;
+        }
+      } else {
+        const data = this.effectiveTopoData();
+        if (data) {
+          const sortedIds = (data.topo_routes || [])
+            .sort((a, b) => a.number - b.number)
+            .map((tr) => tr.route_id);
 
-        let selected: RouteWithExtras[] = [];
-        if (sortedIds.length) {
-          const availableMap = new Map(available.map((r) => [r.id, r]));
-          selected = sortedIds
-            .map((id) => availableMap.get(id))
-            .filter((r): r is RouteWithExtras => !!r);
+          let selected: RouteWithExtras[] = [];
+          if (sortedIds.length) {
+            const availableMap = new Map(available.map((r) => [r.id, r]));
+            selected = sortedIds
+              .map((id) => availableMap.get(id))
+              .filter((r): r is RouteWithExtras => !!r);
+          }
+
+          this.model.set({
+            name: data.name,
+            photo: data.photo,
+            shade_morning: data.shade_morning,
+            shade_afternoon: data.shade_afternoon,
+            shade_change_hour: data.shade_change_hour,
+            selectedRoutes: selected,
+            photoControl: null,
+            climbing_kind: 'sport',
+            legacy: false,
+          });
+          this.isInitialized = true;
         }
 
-        this.model.set({
-          name: data.name,
-          photo: data.photo,
-          shade_morning: data.shade_morning,
-          shade_afternoon: data.shade_afternoon,
-          shade_change_hour: data.shade_change_hour,
-          selectedRoutes: selected,
-          photoControl: null,
-        });
-        this.isInitialized = true;
-      }
-
-      if (!this.isInitialized && this.initialRouteIds.length) {
-        const availableMap = new Map(available.map((r) => [r.id, r]));
-        const selected = this.initialRouteIds
-          .map((id) => availableMap.get(id))
-          .filter((r): r is RouteWithExtras => !!r);
-        this.model.update((m) => ({ ...m, selectedRoutes: selected }));
-        this.isInitialized = true;
+        if (!this.isInitialized && this.initialRouteIds.length) {
+          const availableMap = new Map(available.map((r) => [r.id, r]));
+          const selected = this.initialRouteIds
+            .map((id) => availableMap.get(id))
+            .filter((r): r is RouteWithExtras => !!r);
+          this.model.update((m) => ({ ...m, selectedRoutes: selected }));
+          this.isInitialized = true;
+        }
       }
     });
 
@@ -619,6 +746,89 @@ export class TopoFormComponent {
   async onSubmit(event: Event): Promise<void> {
     event.preventDefault();
     submit(this.topoForm, async () => {
+      if (this.isIndoor()) {
+        const centerId = this._dialogCtx?.data?.centerId;
+        if (!centerId) return;
+
+        const { name, photo, selectedRoutes, climbing_kind, legacy } =
+          this.model();
+        const indoorTopoData = this._dialogCtx?.data?.indoorTopoData;
+
+        let finalImageUrl = photo || '';
+        const photoFile = this.model().photoControl;
+        if (photoFile) {
+          const uploadedPath = await this.indoor.uploadAsset(
+            centerId,
+            photoFile,
+          );
+          if (uploadedPath) {
+            finalImageUrl = uploadedPath;
+          }
+        }
+
+        const payload = {
+          center_id: centerId,
+          name,
+          climbing_kind: climbing_kind || 'sport',
+          image_url: finalImageUrl,
+          legacy: legacy || false,
+          start_date: null,
+          end_date: null,
+        };
+
+        try {
+          let topo;
+          if (indoorTopoData) {
+            topo = await this.indoor.updateTopo(indoorTopoData.id, payload);
+            this.toast.success('topos.updateSuccess');
+          } else {
+            topo = await this.indoor.createTopo(payload);
+            this.toast.success('topos.createSuccess');
+          }
+
+          if (topo) {
+            const topoId = (topo as any).id;
+            const initialIds = this.initialRouteIds as string[];
+            const currentIds = selectedRoutes.map((r) => r.id as string);
+
+            // 1. Remove route associations that are no longer selected
+            const removedIds = initialIds.filter(
+              (id) => !currentIds.includes(id),
+            );
+            if (removedIds.length > 0) {
+              await this.supabase.client
+                .from('indoor_topo_routes')
+                .delete()
+                .eq('topo_id', topoId)
+                .in('route_id', removedIds);
+            }
+
+            // 2. Add or update route associations
+            const upsertPromises = selectedRoutes.map((r, idx) => {
+              const pendingPath =
+                this.pendingPaths().find((p) => p.routeId === r.id)?.path ||
+                null;
+              const existingPath = (r as any).path || null;
+              return this.supabase.client.from('indoor_topo_routes').upsert({
+                topo_id: topoId,
+                route_id: r.id,
+                number: idx + 1,
+                path: pendingPath || existingPath,
+              });
+            });
+            await Promise.all(upsertPromises);
+          }
+
+          if (this._dialogCtx) {
+            this._dialogCtx.completeWith(true);
+          }
+        } catch (e) {
+          console.error('[TopoFormComponent] Error submitting indoor topo:', e);
+          this.handleSubmitError(e);
+        }
+        return;
+      }
+
       const crag_id = this.effectiveCragId();
       if (!crag_id && !this.isEdit()) return;
 
@@ -685,7 +895,7 @@ export class TopoFormComponent {
   private async handleTopoRoutes(topo: TopoDto | null): Promise<void> {
     if (!topo) return;
 
-    const initial = new Set(this.initialRouteIds);
+    const initial = new Set(this.initialRouteIds as number[]);
     const selectedRoutes = this.model().selectedRoutes;
 
     // 1. Remove routes that are no longer selected
@@ -730,7 +940,7 @@ export class TopoFormComponent {
     const paths = this.pendingPaths();
     if (!paths.length) return;
 
-    await this.topos.bulkUpdateRoutePaths(topo.id, paths);
+    await this.topos.bulkUpdateRoutePaths(topo.id, paths as any);
     this.pendingPaths.set([]);
   }
 
@@ -807,6 +1017,33 @@ export class TopoFormComponent {
   }
 
   protected async onDeleteExistingPhoto(): Promise<void> {
+    if (this.isIndoor()) {
+      const indoorTopo = this._dialogCtx?.data?.indoorTopoData;
+      if (!indoorTopo) return;
+      const confirmed = await firstValueFrom(
+        this.dialogs.open<boolean>(TUI_CONFIRM, {
+          label: this.translate.instant('topos.deletePhotoTitle'),
+          size: 's',
+          data: {
+            content: this.translate.instant('topos.deletePhotoConfirm'),
+            yes: this.translate.instant('delete'),
+            no: this.translate.instant('cancel'),
+          },
+        }),
+        { defaultValue: false },
+      );
+      if (confirmed) {
+        try {
+          await this.indoor.updateTopo(indoorTopo.id, { image_url: '' });
+          this.isExistingPhotoDeleted.set(true);
+        } catch (e) {
+          console.error('[TopoFormComponent] Error deleting photo', e);
+          handleErrorToast(e, this.toast);
+        }
+      }
+      return;
+    }
+
     const data = this.effectiveTopoData();
     if (!data || !data.photo) return;
 
@@ -854,17 +1091,24 @@ export class TopoFormComponent {
 
     const routes = [...this.model().selectedRoutes];
     const pending = this.pendingPaths();
-    const existing = this.effectiveTopoData()?.topo_routes || [];
+
+    let existingMap: Map<string | number, any>;
+    if (this.isIndoor()) {
+      const initial = this._dialogCtx?.data?.initialRoutes || [];
+      existingMap = new Map(initial.map((e: any) => [e.id, e]));
+    } else {
+      const existing = this.effectiveTopoData()?.topo_routes || [];
+      existingMap = new Map(existing.map((e) => [e.route_id, e]));
+    }
 
     const pendingMap = new Map(pending.map((p) => [p.routeId, p]));
-    const existingMap = new Map(existing.map((e) => [e.route_id, e]));
 
     const routesWithX = routes.map((r) => {
       const p = pendingMap.get(r.id);
       const e = existingMap.get(r.id);
       const points = p?.path?.points || e?.path?.points || [];
       const minX =
-        points.length > 0 ? Math.min(...points.map((pt) => pt.x)) : 999;
+        points.length > 0 ? Math.min(...points.map((pt: any) => pt.x)) : 999;
       return { r, minX };
     });
 
@@ -882,11 +1126,23 @@ export class TopoFormComponent {
     if (!activeUrl) return;
 
     const routes = (this.model().selectedRoutes || []).map((r, i) => {
-      const existing = this.effectiveTopoData()?.topo_routes?.find(
-        (tr) => tr.route_id === r.id,
-      );
+      let existing: any = null;
+      if (this.isIndoor()) {
+        const initial = this._dialogCtx?.data?.initialRoutes || [];
+        existing = initial.find((ir: any) => ir.id === r.id);
+      } else {
+        existing = this.effectiveTopoData()?.topo_routes?.find(
+          (tr) => tr.route_id === r.id,
+        );
+      }
+
+      const topo_id = (
+        this.isIndoor()
+          ? this._dialogCtx?.data?.indoorTopoData?.id || ''
+          : topo?.id || 0
+      ) as any;
       return {
-        topo_id: this.effectiveTopoData()?.id || 0,
+        topo_id,
         route_id: r.id,
         number: (existing?.number || i) + 1,
         route: { ...r, own_ascent: null, project: false },
@@ -899,8 +1155,11 @@ export class TopoFormComponent {
 
     const result = await this.topos.openTopoPathEditor({
       imageUrl: activeUrl,
-      topoRoutes: routes,
-      topoName: topo?.name || this.model().name,
+      topoRoutes: routes as any[],
+      topoName:
+        (this.isIndoor()
+          ? this._dialogCtx?.data?.indoorTopoData?.name
+          : topo?.name) || this.model().name,
       standalone: false, // Don't save to DB directly, return the paths
     });
 
@@ -911,8 +1170,8 @@ export class TopoFormComponent {
       if (result.routeIds) {
         const current = this.model().selectedRoutes;
         const sorted = result.routeIds
-          .map((id: number) => current.find((r) => r.id === id))
-          .filter(Boolean) as RouteWithExtras[];
+          .map((id: any) => current.find((r) => r.id === id))
+          .filter(Boolean) as any[];
         this.model.update((m) => ({ ...m, selectedRoutes: sorted }));
       }
     }

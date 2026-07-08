@@ -97,7 +97,7 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
               (ngModelChange)="showLegacy.set($event)"
               autocomplete="off"
             />
-            <span class="text-sm select-none">{{
+            <span class="text-xs opacity-75 select-none">{{
               'indoor.showLegacy' | translate
             }}</span>
           </label>

@@ -152,6 +152,7 @@ export class GlobalData {
     this.i18nTick();
     const indoorCenter = this.selectedIndoorCenter();
     const indoorRoute = this.selectedIndoorRoute();
+    const topo = this.topoDetail();
     if (indoorCenter) {
       const items: BreadcrumbItem[] = [
         { caption: 'indoor.title', routerLink: ['/indoor'] },
@@ -160,6 +161,12 @@ export class GlobalData {
           routerLink: ['/indoor', indoorCenter.slug],
         },
       ];
+      if (topo && (topo as any).center_id === indoorCenter.id) {
+        items.push({
+          caption: topo.name,
+          routerLink: ['/indoor', indoorCenter.slug, 'topo', topo.id],
+        });
+      }
       if (indoorRoute) {
         items.push({
           caption: indoorRoute.name,
@@ -175,7 +182,6 @@ export class GlobalData {
 
     const area = this.selectedArea();
     const crag = this.selectedCrag();
-    const topo = this.topoDetail();
     const route = this.routeDetail();
 
     if (area) {
@@ -1217,13 +1223,61 @@ export class GlobalData {
   });
 
   selectedTopoId: WritableSignal<string | null> = signal(null);
+  selectedCenterSlug: WritableSignal<string | null> = signal(null);
 
   readonly areaToposResource = resource({
-    params: () => this.selectedAreaSlug(),
+    params: () => ({
+      areaSlug: this.selectedAreaSlug(),
+      centerSlug: this.selectedCenterSlug(),
+    }),
     loader: async ({
-      params: areaSlug,
+      params,
     }): Promise<(TopoListItem & { crag_slug: string })[]> => {
-      if (!areaSlug || !isPlatformBrowser(this.platformId)) return [];
+      const { areaSlug, centerSlug } = params;
+      if (!isPlatformBrowser(this.platformId)) return [];
+
+      if (centerSlug) {
+        try {
+          await this.supabase.whenReady();
+          const { data: center } = await this.supabase.client
+            .from('indoor_centers')
+            .select('id')
+            .eq('slug', centerSlug)
+            .single();
+          if (!center) return [];
+
+          const { data, error } = await this.supabase.client
+            .from('indoor_topos')
+            .select('*, indoor_topo_routes ( route:indoor_routes ( grade ) )')
+            .eq('center_id', center.id);
+
+          if (error) throw error;
+
+          return (data || []).map((t) => {
+            const grades: Record<number, number> = {};
+            const topoRoutes = (t as any).indoor_topo_routes || [];
+            for (const tr of topoRoutes) {
+              const grade = tr.route?.grade;
+              if (grade !== undefined && grade !== null) {
+                grades[grade] = (grades[grade] || 0) + 1;
+              }
+            }
+            return {
+              id: t.id,
+              name: t.name,
+              slug: t.id,
+              crag_slug: '',
+              photo: t.image_url,
+              grades,
+            };
+          }) as any;
+        } catch (e) {
+          console.error('[GlobalData] areaToposResource indoor error', e);
+          return [];
+        }
+      }
+
+      if (!areaSlug) return [];
       const cacheKey = `cached_area_topos_${areaSlug}_v2`;
       try {
         await this.supabase.whenReady();
@@ -1253,14 +1307,16 @@ export class GlobalData {
             id: t.id,
             name: t.name,
             slug: t.slug,
+            crag_slug: t.crags?.slug || '',
+            grades,
             photo: t.photo,
             shade_morning: t.shade_morning,
             shade_afternoon: t.shade_afternoon,
             shade_change_hour: t.shade_change_hour,
-            grades,
-            crag_slug: t.crags.slug,
+            route_ids: (t.topo_routes || []).map((tr: any) => tr.route_id),
           };
         });
+
         this.localStorage.setItem(cacheKey, JSON.stringify(result));
         return result;
       } catch (e) {
@@ -1275,7 +1331,7 @@ export class GlobalData {
               crag_slug: string;
             })[];
           } catch {
-            console.error('[GlobalData] Cache parse error');
+            return [];
           }
         }
         return [];
@@ -1292,6 +1348,110 @@ export class GlobalData {
       try {
         await this.supabase.whenReady();
         const userId = this.supabase.authUser()?.id;
+        const isIndoor = isNaN(Number(id));
+
+        if (isIndoor) {
+          // 1. Fetch indoor topo
+          const { data: topo, error: topoErr } = await this.supabase.client
+            .from('indoor_topos')
+            .select(
+              `
+              *,
+              center: indoor_centers!inner (
+                id, name, slug
+              )
+            `,
+            )
+            .eq('id', id)
+            .single();
+          if (topoErr) throw topoErr;
+
+          // 2. Fetch indoor_topo_routes mapped to their indoor_routes details and user ascents
+          const { data: trs, error: trsErr } = await this.supabase.client
+            .from('indoor_topo_routes')
+            .select(
+              `
+              *,
+              route: indoor_routes!inner (
+                id, name, slug, grade, climbing_kind, color,
+                own_ascent: indoor_ascents!left (*)
+              )
+            `,
+            )
+            .eq('topo_id', id)
+            .eq('route.own_ascent.user_id', userId ?? '')
+            .order('number', { ascending: true });
+
+          if (trsErr) throw trsErr;
+
+          const topo_routes: any[] = [];
+          const seenRouteIds = new Set<string>();
+
+          if (trs) {
+            for (const tr of trs) {
+              if (!seenRouteIds.has(tr.route_id)) {
+                seenRouteIds.add(tr.route_id);
+
+                // Sort ascents to prioritize real ascents over attempts
+                const ascents = (tr.route.own_ascent || []) as any[];
+                ascents.sort((a, b) => {
+                  const isAttemptA = a.type === 'attempt';
+                  const isAttemptB = b.type === 'attempt';
+                  if (isAttemptA && !isAttemptB) return 1;
+                  if (!isAttemptA && isAttemptB) return -1;
+                  return (
+                    new Date(b.date || 0).getTime() -
+                    new Date(a.date || 0).getTime()
+                  );
+                });
+                const bestAscent = ascents[0] || null;
+
+                topo_routes.push({
+                  topo_id: tr.topo_id,
+                  route_id: tr.route_id,
+                  number: tr.number,
+                  path: tr.path,
+                  route: {
+                    id: tr.route.id,
+                    name: tr.route.name,
+                    slug: tr.route.slug,
+                    grade: tr.route.grade,
+                    climbing_kind: tr.route.climbing_kind,
+                    color: tr.route.color,
+                    own_ascent: bestAscent,
+                    project: false,
+                  },
+                });
+              }
+            }
+          }
+
+          const result: any = {
+            id: topo.id,
+            name: topo.name,
+            photo: topo.image_url,
+            climbing_kind: topo.climbing_kind,
+            center_id: topo.center_id,
+            topo_routes,
+            crag: topo.center
+              ? {
+                  id: 0,
+                  name: topo.center.name,
+                  slug: topo.center.slug,
+                  area_id: 0,
+                  user_creator_id: null,
+                  area: {
+                    is_public: true,
+                    price: null,
+                    purchased: true,
+                  },
+                }
+              : undefined,
+          };
+          this.localStorage.setItem(cacheKey, JSON.stringify(result));
+          return result;
+        }
+
         const { data, error } = await this.supabase.client
           .from('topos')
           .select(
@@ -1340,7 +1500,7 @@ export class GlobalData {
                   const isAttemptB = b.type === AscentTypes.ATTEMPT;
                   if (isAttemptA && !isAttemptB) return 1;
                   if (!isAttemptA && isAttemptB) return -1;
-                  return 0; // Maintain order otherwise (or sort by date/type preference)
+                  return 0; // Maintain order otherwise (or sort by type/date preference)
                 })[0] || null;
 
               topo_routes.push({
@@ -1383,7 +1543,7 @@ export class GlobalData {
           try {
             return JSON.parse(cached) as TopoDetail;
           } catch {
-            console.error('[GlobalData] Cache parse error');
+            return null;
           }
         }
         return null;

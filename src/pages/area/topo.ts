@@ -17,6 +17,7 @@ import {
   Signal,
   viewChild,
   viewChildren,
+  OnDestroy,
 } from '@angular/core';
 
 import { TuiDialogService } from '@taiga-ui/core';
@@ -60,6 +61,7 @@ import { RoutesService } from '../../services/routes.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 import { ToposService } from '../../services/topos.service';
+import { IndoorService } from '../../services/indoor.service';
 
 import { EmptyStateComponent } from '../../components/ui/empty-state';
 import { GradeComponent } from '../../components/ui/avatar-grade';
@@ -184,7 +186,7 @@ export interface TopoRouteRow {
 
               <!-- Admin and utility action buttons -->
               <div actionButtons class="flex gap-2">
-                @if (global.canEditCrag()) {
+                @if (canEdit()) {
                   <button
                     tuiIconButton
                     size="s"
@@ -195,7 +197,7 @@ export interface TopoRouteRow {
                   >
                     {{ 'edit' | translate }}
                   </button>
-                  @if (canEditAsAdmin || canAreaAdmin) {
+                  @if (isIndoor() || canEditAsAdmin || canAreaAdmin) {
                     <button
                       tuiIconButton
                       size="s"
@@ -212,16 +214,18 @@ export interface TopoRouteRow {
             </app-section-header>
           </div>
 
-          @let isPublic = t.crag?.area?.is_public;
+          @let isPublic = isIndoor() || t.crag?.area?.is_public;
           @let purchased = t.crag?.area?.purchased;
           @let isCreator = t.crag?.user_creator_id === global.userProfile()?.id;
           @let hasAccess =
+            isIndoor() ||
             isPublic ||
             purchased ||
             canEditAsAdmin ||
             canAreaAdmin ||
             isCreator;
           @let isSecret =
+            !isIndoor() &&
             !isPublic &&
             (t.crag?.area?.price === null || t.crag?.area?.price === 0);
 
@@ -780,7 +784,7 @@ export interface TopoRouteRow {
                                         size="m"
                                         class="justify-center h-full"
                                       >
-                                        @if (global.canEditCrag()) {
+                                        @if (canEdit()) {
                                           <tui-textfield
                                             tuiTextfieldSize="s"
                                             [class.w-16!]="!isMobile"
@@ -845,7 +849,7 @@ export interface TopoRouteRow {
                                         size="m"
                                         class="justify-center h-full"
                                       >
-                                        @if (global.canEditCrag()) {
+                                        @if (canEdit()) {
                                           <tui-textfield
                                             tuiTextfieldSize="s"
                                             [class.w-16!]="!isMobile"
@@ -970,7 +974,7 @@ export interface TopoRouteRow {
                                         size="m"
                                         class="justify-center h-full"
                                       >
-                                        @if (global.canEditCrag()) {
+                                        @if (canEdit()) {
                                           <button
                                             tuiIconButton
                                             size="s"
@@ -1024,11 +1028,12 @@ export interface TopoRouteRow {
     style: 'touch-action: auto',
   },
 })
-export class TopoComponent {
+export class TopoComponent implements OnDestroy {
   protected readonly global = inject(GlobalData);
   private readonly supabase = inject(SupabaseService);
   protected readonly ascentsService = inject(AscentsService);
   private readonly toposService = inject(ToposService);
+  private readonly indoorService = inject(IndoorService);
   protected readonly routesService = inject(RoutesService);
   protected readonly router = inject(Router);
   private readonly dialogs = inject(TuiDialogService);
@@ -1211,9 +1216,13 @@ export class TopoComponent {
   }
 
   // Route params
-  countrySlug: InputSignal<string> = input.required();
-  areaSlug: InputSignal<string> = input.required();
-  cragSlug: InputSignal<string> = input.required();
+  type = input<'indoor' | 'outdoor'>('outdoor');
+  isIndoor = computed(() => this.type() === 'indoor');
+
+  countrySlug = input<string | undefined>(undefined);
+  areaSlug = input<string | undefined>(undefined);
+  cragSlug = input<string | undefined>(undefined);
+  centerSlug = input<string | undefined>(undefined);
   id: InputSignal<string | undefined> = input();
   sectorSlug: InputSignal<string | undefined> = input();
 
@@ -1282,6 +1291,10 @@ export class TopoComponent {
       const t = this.topo();
       if (!t?.photo) return null;
 
+      if (this.isIndoor()) {
+        return { path: t.photo, version: 1, isIndoor: true };
+      }
+
       const area = t.crag?.area;
       const isSecret =
         area && !area.is_public && (area.price === null || area.price === 0);
@@ -1301,16 +1314,35 @@ export class TopoComponent {
         return null;
       }
 
-      return { path: t.photo, version: this.global.topoPhotoVersion() };
+      return {
+        path: t.photo,
+        version: this.global.topoPhotoVersion(),
+        isIndoor: false,
+      };
     },
     loader: async ({ params }) => {
       if (!params) return null;
+      if (params.isIndoor) {
+        return this.supabase.getPublicUrl('indoor-assets', params.path);
+      }
       return await this.supabase.getTopoSignedUrl(params.path, params.version);
     },
   });
 
   protected readonly columns = computed(() => {
     const isMobile = this.global.isMobile();
+    if (this.isIndoor()) {
+      const base = isMobile
+        ? ['index', 'grade', 'name']
+        : ['index', 'grade', 'name', 'actions'];
+      const t = this.topo();
+      const centerId = (t as any)?.center_id ?? '';
+      if (!isMobile && this.global.indoorAdminPermissions()[centerId]) {
+        base.push('admin_actions');
+      }
+      return base;
+    }
+
     const base = isMobile
       ? ['index', 'grade', 'name']
       : ['index', 'grade', 'name', 'height', 'actions'];
@@ -1335,7 +1367,9 @@ export class TopoComponent {
         grade: tr.route.grade,
         height: tr.route.height || null,
         slug: tr.route.slug,
-        link: ['/area', this.areaSlug(), this.cragSlug(), tr.route.slug],
+        link: this.isIndoor()
+          ? ['/indoor', this.centerSlug()!, 'route', tr.route.slug]
+          : ['/area', this.areaSlug()!, this.cragSlug()!, tr.route.slug],
         climbed,
         project,
         _ref: tr,
@@ -1369,13 +1403,32 @@ export class TopoComponent {
   constructor() {
     effect(() => {
       this.global.resetDataByPage('topo');
-      const aSlug = this.areaSlug();
-      const cSlug = this.cragSlug();
       const topoId = this.id();
-      this.global.selectedAreaSlug.set(aSlug);
-      this.global.selectedCragSlug.set(cSlug);
+      if (this.isIndoor()) {
+        const center = this.centerSlug();
+        this.global.selectedCenterSlug.set(center || null);
+        this.global.selectedAreaSlug.set(null);
+        this.global.selectedCragSlug.set(null);
+      } else {
+        const aSlug = this.areaSlug();
+        const cSlug = this.cragSlug();
+        this.global.selectedAreaSlug.set(aSlug || null);
+        this.global.selectedCragSlug.set(cSlug || null);
+        this.global.selectedCenterSlug.set(null);
+      }
       if (topoId) {
         this.global.selectedTopoId.set(topoId);
+      }
+    });
+
+    effect(() => {
+      const t = this.topo();
+      if (this.isIndoor() && t) {
+        this.global.selectedIndoorCenter.set({
+          id: (t as any).center_id,
+          name: t.crag?.name || '',
+          slug: t.crag?.slug || '',
+        } as any);
       }
     });
 
@@ -1462,6 +1515,7 @@ export class TopoComponent {
         routeName: route.name,
         grade: route.grade,
         climbingKind: route.climbing_kind,
+        isIndoor: this.isIndoor(),
       }),
       { defaultValue: undefined },
     );
@@ -1476,6 +1530,7 @@ export class TopoComponent {
         routeId: ascent.route_id,
         routeName,
         ascentData: ascent,
+        isIndoor: this.isIndoor(),
       }),
       { defaultValue: undefined },
     );
@@ -1498,7 +1553,22 @@ export class TopoComponent {
   ): void {
     const val =
       typeof newNumber === 'string' ? parseInt(newNumber, 10) : newNumber;
-    if (val === null || isNaN(val) || val === tr.number + 1) return;
+    if (val === null || isNaN(val) || val === tr.number) return;
+    if (this.isIndoor()) {
+      this.supabase.client
+        .from('indoor_topo_routes')
+        .update({ number: val })
+        .eq('topo_id', tr.topo_id as any)
+        .eq('route_id', tr.route_id as any)
+        .then(({ error }) => {
+          if (error) {
+            handleErrorToast(error, this.toast);
+          } else {
+            this.global.topoDetailResource.reload();
+          }
+        });
+      return;
+    }
     this.toposService
       .updateRouteOrder(tr.topo_id, tr.route_id, val - 1)
       .then(() => this.global.topoDetailResource.reload())
@@ -1524,8 +1594,27 @@ export class TopoComponent {
       .catch((err) => handleErrorToast(err, this.toast));
   }
 
+  protected readonly canEdit = computed(() => {
+    if (this.isIndoor()) {
+      const centerId = (this.topo() as any)?.center_id ?? '';
+      return !!this.global.indoorAdminPermissions()[centerId];
+    }
+    return this.global.canEditCrag();
+  });
+
   openEditTopo(topo: TopoDetail): void {
     if (!isPlatformBrowser(this.platformId)) return;
+    if (this.isIndoor()) {
+      const centerId = (topo as any).center_id as string;
+      this.indoorService
+        .openIndoorTopoForm(centerId, topo as any)
+        .then((success) => {
+          if (success) {
+            this.global.topoDetailResource.reload();
+          }
+        });
+      return;
+    }
     const initialRouteIds = topo.topo_routes.map((tr) => tr.route_id);
     this.toposService.openTopoForm({
       cragId: topo.crag_id,
@@ -1552,12 +1641,19 @@ export class TopoComponent {
       { defaultValue: false },
     ).then((confirmed) => {
       if (!confirmed) return;
-      this.toposService
-        .delete(topo.id)
-        .then(() =>
-          this.router.navigate(['/area', this.areaSlug(), this.cragSlug()]),
-        )
-        .catch((err) => handleErrorToast(err, this.toast));
+      if (this.isIndoor()) {
+        this.indoorService
+          .deleteTopo(topo.id as any)
+          .then(() => this.router.navigate(['/indoor', this.centerSlug()]))
+          .catch((err) => handleErrorToast(err, this.toast));
+      } else {
+        this.toposService
+          .delete(topo.id)
+          .then(() =>
+            this.router.navigate(['/area', this.areaSlug()!, this.cragSlug()!]),
+          )
+          .catch((err) => handleErrorToast(err, this.toast));
+      }
     });
   }
 
@@ -1579,21 +1675,51 @@ export class TopoComponent {
       { defaultValue: false },
     ).then((confirmed) => {
       if (!confirmed) return;
-      this.toposService
-        .removeRoute(topoRoute.topo_id, topoRoute.route_id)
-        .then(() => this.global.topoDetailResource.reload())
-        .catch((err) => handleErrorToast(err, this.toast));
+      if (this.isIndoor()) {
+        this.supabase.client
+          .from('indoor_topo_routes')
+          .delete()
+          .eq('topo_id', topoRoute.topo_id as any)
+          .eq('route_id', topoRoute.route_id as any)
+          .then(({ error }) => {
+            if (error) {
+              handleErrorToast(error, this.toast);
+            } else {
+              this.global.topoDetailResource.reload();
+            }
+          });
+      } else {
+        this.toposService
+          .removeRoute(topoRoute.topo_id, topoRoute.route_id)
+          .then(() => this.global.topoDetailResource.reload())
+          .catch((err) => handleErrorToast(err, this.toast));
+      }
     });
   }
 
-  protected navigateToTopo(topo: { id: number; crag_slug?: string }): void {
-    void this.router.navigate([
-      '/area',
-      this.areaSlug(),
-      topo.crag_slug || this.cragSlug(),
-      'topo',
-      topo.id,
-    ]);
+  protected navigateToTopo(topo: any): void {
+    if (this.isIndoor()) {
+      void this.router.navigate([
+        '/indoor',
+        this.centerSlug()!,
+        'topo',
+        topo.id,
+      ]);
+    } else {
+      void this.router.navigate([
+        '/area',
+        this.areaSlug()!,
+        topo.crag_slug || this.cragSlug()!,
+        'topo',
+        topo.id,
+      ]);
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.isIndoor()) {
+      this.global.selectedIndoorCenter.set(null);
+    }
   }
 
   protected selectNextRoute(): void {

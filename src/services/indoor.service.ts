@@ -8,7 +8,7 @@ import { GlobalData } from './global-data';
 import { SupabaseService } from './supabase.service';
 import { IndoorCenterFormComponent } from '../components/forms/indoor-center-form';
 import IndoorRouteFormComponent from '../components/forms/indoor-route-form';
-import IndoorTopoFormComponent from '../components/forms/indoor-topo-form';
+import TopoFormComponent from '../components/forms/topo-form';
 import {
   IndoorCenterDto,
   IndoorVoucherDto,
@@ -161,16 +161,39 @@ export class IndoorService {
     })) as IndoorRouteWithExtras[];
   }
 
-  async getCenterTopos(centerId: string): Promise<IndoorTopoDto[]> {
+  async getCenterTopos(
+    centerId: string,
+    showLegacy: boolean = false,
+  ): Promise<any[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
-    const { data, error } = await this.supabase.client
+    let query = this.supabase.client
       .from('indoor_topos')
-      .select('*')
+      .select('*, indoor_topo_routes ( route:indoor_routes ( grade ) )')
       .eq('center_id', centerId);
 
+    if (!showLegacy) {
+      query = query.or('legacy.eq.false,legacy.is.null');
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
-    return data || [];
+
+    return (data || []).map((t) => {
+      const grades: Record<number, number> = {};
+      const topoRoutes = (t as any).indoor_topo_routes || [];
+      for (const tr of topoRoutes) {
+        const grade = tr.route?.grade;
+        if (grade !== undefined && grade !== null) {
+          grades[grade] = (grades[grade] || 0) + 1;
+        }
+      }
+      return {
+        ...t,
+        photo: t.image_url,
+        grades,
+      };
+    });
   }
 
   async checkIn(purchaseId: string): Promise<boolean> {
@@ -352,20 +375,51 @@ export class IndoorService {
     );
   }
 
-  openIndoorTopoForm(
+  async openIndoorTopoForm(
     centerId: string,
     topoData?: IndoorTopoDto,
   ): Promise<boolean> {
+    let initialRoutes: any[] = [];
+    if (topoData) {
+      try {
+        await this.supabase.whenReady();
+        const { data } = await this.supabase.client
+          .from('indoor_topo_routes')
+          .select(
+            `
+            *,
+            route: indoor_routes!inner (*)
+          `,
+          )
+          .eq('topo_id', topoData.id)
+          .order('number', { ascending: true });
+
+        if (data) {
+          initialRoutes = data.map((tr: any) => ({
+            ...tr.route,
+            path: tr.path,
+          }));
+        }
+      } catch (e) {
+        console.error('[IndoorService] Error loading initial topo routes:', e);
+      }
+    }
+
     return firstValueFrom(
-      this.dialogs.open<boolean>(
-        new PolymorpheusComponent(IndoorTopoFormComponent),
-        {
-          label: this.translate.instant(topoData ? 'edit' : 'create'),
-          size: 'm',
-          data: { centerId, topoData },
-          dismissible: false,
+      this.dialogs.open<boolean>(new PolymorpheusComponent(TopoFormComponent), {
+        label: this.translate.instant(
+          topoData ? 'topos.editTitle' : 'topos.newTitle',
+        ),
+        size: 'l',
+        data: {
+          type: 'indoor',
+          centerId,
+          indoorTopoData: topoData,
+          initialRoutes,
+          initialRouteIds: initialRoutes.map((r) => r.id),
         },
-      ),
+        dismissible: false,
+      }),
       { defaultValue: false },
     );
   }
