@@ -86,34 +86,34 @@ import { IndoorVoucherDto, IndoorVoucherPurchaseDto } from '../../models';
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             @for (v of availableVouchers(); track v.id) {
               <div
-                class="p-4 rounded-2xl flex flex-col relative overflow-hidden bg-white shadow-md max-w-sm w-full mx-auto justify-center min-h-[110px] border border-primary/20 transition-all hover:shadow-lg hover:border-primary/40 cursor-pointer"
+                class="p-4 rounded-2xl flex flex-col relative overflow-hidden max-w-sm w-full mx-auto justify-center min-h-[110px]"
+                tuiAppearance="floating"
               >
                 <div class="flex justify-between items-center z-10 w-full mb-1">
-                  <div class="flex flex-col text-left">
-                    <span class="font-bold text-lg text-slate-800">{{
-                      v.name
-                    }}</span>
+                  <div class="flex flex-col text-left gap-1">
+                    <span class="font-bold text-xl">{{ v.name }}</span>
                     @if (v.description) {
-                      <span class="text-sm text-slate-500 my-0.5">{{
+                      <span class="text-sm opacity-70">{{
                         v.description
                       }}</span>
                     }
                     @if (v.duration_days) {
-                      <span class="text-xs text-slate-400 mt-1"
+                      <span class="text-xs opacity-50"
                         >{{ v.duration_days }} {{ 'days' | translate }}</span
                       >
                     }
                   </div>
                   <span
-                    class="text-4xl font-black text-primary shrink-0 pl-2"
-                    >{{ v.price | currency: 'EUR' }}</span
+                    class="text-4xl font-black shrink-0 pl-2"
+                    tuiAppearance="primary"
+                    >{{ v.price | number: '1.2-2' }} €</span
                   >
                 </div>
                 <tui-icon
                   [icon]="
                     v.kind === 'subscription' ? '@tui.id-card' : '@tui.ticket'
                   "
-                  class="absolute -bottom-2 -right-2 text-primary opacity-5 scale-[2]"
+                  class="absolute -bottom-2 -right-2 opacity-5 scale-[2]"
                   [style.fontSize.px]="100"
                 />
               </div>
