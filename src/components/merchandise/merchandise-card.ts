@@ -10,6 +10,7 @@ import {
 
 import { TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TuiBadge } from '@taiga-ui/kit';
+import { TuiCardLarge } from '@taiga-ui/layout';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -28,20 +29,20 @@ import { MerchandiseItemDetail } from '../../models';
     TuiButton,
     CustomCarouselComponent,
     TuiIcon,
+    TuiCardLarge,
   ],
   template: `
-    <article
-      class="flex flex-col gap-4 group cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-accent rounded-[2.5rem]"
-      role="button"
-      tabindex="0"
+    <button
+      tuiCardLarge
+      appearance="floating"
+      class="w-full h-full flex flex-col gap-4 text-start rounded-[2.5rem]! p-4! overflow-hidden focus:outline-none focus-visible:ring-4 focus-visible:ring-accent group relative border border-(--tui-border-normal)"
+      type="button"
       [attr.aria-label]="item().name"
       (click)="clicked.emit(item())"
-      (keydown.enter)="clicked.emit(item())"
-      (keydown.space)="clicked.emit(item()); $event.preventDefault()"
     >
+      <!-- Image Container -->
       <div
-        class="relative aspect-square rounded-[2.5rem] overflow-hidden transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-1.5 border border-(--tui-border-normal)"
-        style="background: var(--tui-background-neutral-1)"
+        class="relative aspect-square w-full rounded-[1.8rem] overflow-hidden border border-(--tui-border-normal) shrink-0 bg-(--tui-background-neutral-1)"
       >
         @let images = item().image_urls || [];
 
@@ -64,19 +65,19 @@ import { MerchandiseItemDetail } from '../../models';
         }
 
         <!-- Price badge -->
-        <div class="absolute top-4 right-4 z-10">
+        <div class="absolute top-3 right-3 z-10">
           <span
             tuiBadge
             appearance="primary"
-            size="l"
-            class="shadow-xl font-black rounded-xl! border border-white/20"
+            size="m"
+            class="shadow-md font-black rounded-lg! border border-white/20"
           >
             {{ item().price | number: '1.2-2' }}€
           </span>
         </div>
 
         @if (isAdmin() && global.editingMode()) {
-          <div class="absolute top-4 left-4 flex flex-col gap-2 z-10">
+          <div class="absolute top-3 left-3 flex flex-col gap-2 z-10">
             <button
               tuiIconButton
               appearance="accent"
@@ -89,7 +90,7 @@ import { MerchandiseItemDetail } from '../../models';
             </button>
 
             @if (item().active === false) {
-              <span tuiBadge>
+              <span tuiBadge size="s">
                 {{ 'merchandising.items.inactive' | translate }}
               </span>
             }
@@ -97,10 +98,13 @@ import { MerchandiseItemDetail } from '../../models';
         }
       </div>
 
-      <div class="flex flex-col px-2 gap-1">
-        <span class="font-black text-lg truncate leading-tight">{{
-          item().name
-        }}</span>
+      <!-- Info Container -->
+      <div class="flex flex-col gap-1 w-full px-1 pb-1">
+        <span
+          class="font-black text-lg truncate leading-tight text-(--tui-text-primary)"
+        >
+          {{ item().name }}
+        </span>
         @if (item().category) {
           <span
             class="text-[10px] font-bold uppercase tracking-widest text-(--tui-text-tertiary)"
@@ -112,7 +116,7 @@ import { MerchandiseItemDetail } from '../../models';
           </span>
         }
       </div>
-    </article>
+    </button>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
