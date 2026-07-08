@@ -86,4 +86,5 @@ export interface IndoorRouteWithExtras extends IndoorRouteDto {
   equippers?: EquipperDto[];
   center_name?: string;
   center_slug?: string;
+  own_ascent?: { id: string; type: string | null } | null;
 }

@@ -164,17 +164,6 @@ import { AscentCardComponent } from '../../components/ascent/ascent-card';
                       'ascent.new' | translate
                     }}</span>
                   </button>
-                  <button
-                    tuiIconButton
-                    appearance="negative"
-                    size="m"
-                    iconStart="@tui.trash"
-                    class="rounded-full! shrink-0"
-                    [tuiHint]="'delete' | translate"
-                    (click.zoneless)="onDeleteAscent(ownAscent()!.id)"
-                  >
-                    <span class="tui-sr-only">{{ 'delete' | translate }}</span>
-                  </button>
                 </div>
               }
             </div>
@@ -219,11 +208,7 @@ import { AscentCardComponent } from '../../components/ascent/ascent-card';
                       [style.backgroundColor]="r.color"
                     ></span>
                     <span class="text-xl font-semibold">
-                      {{
-                        r.color.startsWith('#')
-                          ? r.color
-                          : ('colors.' + r.color | translate)
-                      }}
+                      {{ getColorName(r.color) }}
                     </span>
                   } @else {
                     <span class="opacity-50 text-base">-</span>
@@ -467,6 +452,30 @@ export class IndoorRouteComponent implements OnDestroy {
         this.toast.error('errors.unexpected');
       }
     }
+  }
+
+  protected getColorName(colorValue: string): string {
+    const colors = [
+      { value: '#EF4444', name: 'red' },
+      { value: '#3B82F6', name: 'blue' },
+      { value: '#F97316', name: 'orange' },
+      { value: '#06B6D4', name: 'cyan' },
+      { value: '#EAB308', name: 'yellow' },
+      { value: '#22C55E', name: 'green' },
+      { value: '#EC4899', name: 'pink' },
+      { value: '#A855F7', name: 'purple' },
+      { value: '#ffffff', name: 'white' },
+      { value: '#000000', name: 'black' },
+      { value: '#6B7280', name: 'grey' },
+      { value: '#84CC16', name: 'lime' },
+      { value: '#14B8A6', name: 'teal' },
+      { value: '#6366F1', name: 'indigo' },
+      { value: '#D946EF', name: 'magenta' },
+    ];
+    const colorObj = colors.find((c) => c.value === colorValue);
+    return colorObj
+      ? this.translate.instant('colors.' + colorObj.name)
+      : colorValue;
   }
 
   async openEditRoute(): Promise<void> {

@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   input,
   output,
@@ -9,6 +10,7 @@ import {
 
 import { TuiAppearance, TuiIcon, TuiTitle } from '@taiga-ui/core';
 import { TuiHeader } from '@taiga-ui/layout';
+import { TuiBadge } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -31,6 +33,7 @@ import { TopoListItem } from '../../models';
     TopoImagePipe,
     TranslatePipe,
     TuiAppearance,
+    TuiBadge,
     TuiHeader,
     TuiIcon,
     TuiTitle,
@@ -65,6 +68,17 @@ import { TopoListItem } from '../../models';
               decoding="async"
             />
           }
+          @if (totalRoutes() !== null && totalRoutes()! > 0) {
+            @if (allCompleted()) {
+              <span tuiBadge size="m" appearance="positive" class="self-start">
+                {{ 'indoor.allCompleted' | translate }}
+              </span>
+            } @else {
+              <span tuiBadge size="m" appearance="neutral" class="self-start">
+                {{ pendingRoutes() }} / {{ totalRoutes() }}
+              </span>
+            }
+          }
           <div class="flex items-center justify-between gap-2 mt-auto">
             @if (!isIndoor()) {
               <div class="flex items-center justify-between gap-2">
@@ -98,5 +112,11 @@ export class TopoCardComponent {
   protected readonly global = inject(GlobalData);
   topo = input.required<TopoListItem>();
   isIndoor = input<boolean>(false);
+  pendingRoutes = input<number | null>(null);
+  totalRoutes = input<number | null>(null);
   selected = output<void>();
+
+  protected readonly allCompleted = computed(
+    () => this.totalRoutes() !== null && this.pendingRoutes() === 0,
+  );
 }

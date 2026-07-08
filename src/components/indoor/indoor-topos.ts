@@ -50,11 +50,11 @@ import { TopoCardComponent } from '../topo/topo-card';
             <input
               tuiCheckbox
               type="checkbox"
-              [ngModel]="showLegacy()"
-              (ngModelChange)="showLegacy.set($event)"
+              [ngModel]="showLegacyTopos()"
+              (ngModelChange)="showLegacyTopos.set($event)"
             />
             <span class="text-xs opacity-75">
-              {{ 'indoor.showLegacy' | translate }}
+              {{ 'indoor.showLegacyTopos' | translate }}
             </span>
           </label>
         </div>
@@ -78,6 +78,8 @@ import { TopoCardComponent } from '../topo/topo-card';
               <app-topo-card
                 [topo]="topo"
                 [isIndoor]="true"
+                [pendingRoutes]="topo.total_routes - topo.own_ascents_count"
+                [totalRoutes]="topo.total_routes"
                 (selected)="onCardClick(topo)"
               />
             }
@@ -107,12 +109,15 @@ export class IndoorToposComponent {
     return this.global.indoorAdminPermissions()[this.centerId()];
   });
 
-  protected readonly showLegacy = signal<boolean>(false);
+  protected readonly showLegacyTopos = signal<boolean>(false);
 
   protected readonly toposResource = resource({
-    params: () => ({ id: this.centerId(), showLegacy: this.showLegacy() }),
+    params: () => ({
+      id: this.centerId(),
+      showLegacyTopos: this.showLegacyTopos(),
+    }),
     loader: ({ params }): Promise<any[]> =>
-      this.indoor.getCenterTopos(params.id, params.showLegacy),
+      this.indoor.getCenterTopos(params.id, params.showLegacyTopos),
   });
 
   onCardClick(topo: any): void {

@@ -143,7 +143,9 @@ export class IndoorService {
     await this.supabase.whenReady();
     let query = this.supabase.client
       .from('indoor_routes')
-      .select('*, equippers:indoor_route_equippers(equipper:equippers(*))')
+      .select(
+        '*, equippers:indoor_route_equippers(equipper:equippers(*)), ascents:indoor_ascents(id, type, user_id)',
+      )
       .eq('center_id', centerId);
 
     if (!showLegacy) {
@@ -155,43 +157,59 @@ export class IndoorService {
     if (error) throw error;
     if (!data) return [];
 
+    const userId = this.global.userProfile()?.id;
     return data.map((route: any) => ({
       ...route,
       equippers: route.equippers?.map((e: any) => e.equipper) || [],
+      own_ascent: userId
+        ? (route.ascents?.find((a: any) => a.user_id === userId) ?? null)
+        : null,
     })) as IndoorRouteWithExtras[];
   }
 
   async getCenterTopos(
     centerId: string,
-    showLegacy: boolean = false,
+    showLegacyTopos: boolean = false,
   ): Promise<any[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
     let query = this.supabase.client
       .from('indoor_topos')
-      .select('*, indoor_topo_routes ( route:indoor_routes ( grade ) )')
+      .select(
+        '*, indoor_topo_routes ( route:indoor_routes ( id, grade, ascents:indoor_ascents(id, user_id) ) )',
+      )
       .eq('center_id', centerId);
 
-    if (!showLegacy) {
+    if (!showLegacyTopos) {
       query = query.or('legacy.eq.false,legacy.is.null');
     }
 
     const { data, error } = await query;
     if (error) throw error;
 
+    const userId = this.global.userProfile()?.id;
     return (data || []).map((t) => {
       const grades: Record<number, number> = {};
       const topoRoutes = (t as any).indoor_topo_routes || [];
+      let ownAscentsCount = 0;
       for (const tr of topoRoutes) {
         const grade = tr.route?.grade;
         if (grade !== undefined && grade !== null) {
           grades[grade] = (grades[grade] || 0) + 1;
+        }
+        if (
+          userId &&
+          tr.route?.ascents?.some((a: any) => a.user_id === userId)
+        ) {
+          ownAscentsCount++;
         }
       }
       return {
         ...t,
         photo: t.image_url,
         grades,
+        total_routes: topoRoutes.length,
+        own_ascents_count: ownAscentsCount,
       };
     });
   }

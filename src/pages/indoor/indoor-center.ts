@@ -232,8 +232,8 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
 
           <!-- Admins Section -->
           @let admins = centerAdmins();
-          @if (admins.length > 0 || (isAdmin() && global.editingMode())) {
-            <div class="flex flex-col gap-3 mb-8 mt-6">
+          @if (global.editingMode() && isAdmin()) {
+            <div class="flex flex-col gap-3 mt-6">
               <span
                 class="text-xs uppercase opacity-60 font-semibold tracking-wider"
               >
@@ -313,7 +313,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
           }
 
           <div class="overflow-x-auto no-scrollbar">
-            <tui-tabs [(activeItemIndex)]="activeTabIndex" class="mt-8">
+            <tui-tabs [(activeItemIndex)]="activeTabIndex">
               <button tuiTab>{{ 'indoor.routes' | translate }}</button>
               <button tuiTab>{{ 'indoor.topos' | translate }}</button>
               <button tuiTab>{{ 'indoor.ascents' | translate }}</button>

@@ -54,6 +54,7 @@ import { IndoorRouteWithExtras } from '../../models';
 import { GradeComponent } from '../ui/avatar-grade';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equippers-input';
+import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
 
 @Component({
   selector: 'app-indoor-routes',
@@ -81,6 +82,7 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
     GradeComponent,
     EmptyStateComponent,
     IndoorRouteEquippersInputComponent,
+    ButtonAscentTypeComponent,
     TuiCheckbox,
     TuiPin,
     TuiChevron,
@@ -93,12 +95,12 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
             <input
               tuiCheckbox
               type="checkbox"
-              [ngModel]="showLegacy()"
-              (ngModelChange)="showLegacy.set($event)"
+              [ngModel]="showLegacyRoutes()"
+              (ngModelChange)="showLegacyRoutes.set($event)"
               autocomplete="off"
             />
             <span class="text-xs opacity-75 select-none">{{
-              'indoor.showLegacy' | translate
+              'indoor.showLegacyRoutes' | translate
             }}</span>
           </label>
 
@@ -183,7 +185,14 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
             @let sortedData = routes() | tuiTableSort;
             <tbody tuiTbody>
               @for (item of sortedData; track item.id) {
-                <tr tuiTr>
+                <tr
+                  tuiTr
+                  [style.background]="
+                    item.own_ascent
+                      ? getAscentBackground(item.own_ascent.type)
+                      : ''
+                  "
+                >
                   @for (col of columns(); track col) {
                     <td
                       *tuiCell="col"
@@ -292,18 +301,28 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
                           </div>
                         }
                         @case ('actions') {
-                          <button
-                            size="m"
-                            appearance="neutral"
-                            iconStart="@tui.circle-plus"
-                            tuiIconButton
-                            type="button"
-                            class="rounded-full!"
-                            [tuiHint]="'ascent.new' | translate"
-                            (click.zoneless)="logAscent(item)"
-                          >
-                            {{ 'ascent.new' | translate }}
-                          </button>
+                          @if (item.own_ascent; as ascent) {
+                            <app-button-ascent-type
+                              [type]="$any(ascent.type)"
+                              [active]="true"
+                              class="cursor-pointer"
+                              [tuiHint]="'ascent.edit' | translate"
+                              (click.zoneless)="editAscent(item, ascent)"
+                            />
+                          } @else {
+                            <button
+                              size="m"
+                              appearance="neutral"
+                              iconStart="@tui.circle-plus"
+                              tuiIconButton
+                              type="button"
+                              class="rounded-full!"
+                              [tuiHint]="'ascent.new' | translate"
+                              (click.zoneless)="logAscent(item)"
+                            >
+                              {{ 'ascent.new' | translate }}
+                            </button>
+                          }
                         }
                         @case ('admin_actions') {
                           <div class="flex gap-1 justify-end items-center">
@@ -368,20 +387,33 @@ import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equipp
                             <!-- Actions -->
                             <div class="flex items-center gap-3">
                               @if (centerSlug() || item.center_slug) {
-                                <button
-                                  size="m"
-                                  appearance="neutral"
-                                  iconStart="@tui.circle-plus"
-                                  tuiIconButton
-                                  type="button"
-                                  class="rounded-full!"
-                                  [tuiHint]="'ascent.new' | translate"
-                                  (click.zoneless)="
-                                    logAscent(item); $event.stopPropagation()
-                                  "
-                                >
-                                  {{ 'ascent.new' | translate }}
-                                </button>
+                                @if (item.own_ascent; as ascent) {
+                                  <app-button-ascent-type
+                                    [type]="$any(ascent.type)"
+                                    [active]="true"
+                                    class="cursor-pointer"
+                                    [tuiHint]="'ascent.edit' | translate"
+                                    (click.zoneless)="
+                                      editAscent(item, ascent);
+                                      $event.stopPropagation()
+                                    "
+                                  />
+                                } @else {
+                                  <button
+                                    size="m"
+                                    appearance="neutral"
+                                    iconStart="@tui.circle-plus"
+                                    tuiIconButton
+                                    type="button"
+                                    class="rounded-full!"
+                                    [tuiHint]="'ascent.new' | translate"
+                                    (click.zoneless)="
+                                      logAscent(item); $event.stopPropagation()
+                                    "
+                                  >
+                                    {{ 'ascent.new' | translate }}
+                                  </button>
+                                }
                               }
 
                               @if (canEdit()) {
@@ -462,7 +494,7 @@ export class IndoorRoutesComponent {
   protected readonly indoor = inject(IndoorService);
   protected readonly global = inject(GlobalData);
   private readonly translate = inject(TranslateService);
-  private readonly ascentsService = inject(AscentsService);
+  protected readonly ascentsService = inject(AscentsService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly dialogs = inject(TuiDialogService);
 
@@ -485,7 +517,7 @@ export class IndoorRoutesComponent {
     return id ? !!this.global.indoorAdminPermissions()[id] : false;
   });
 
-  protected readonly showLegacy = signal<boolean>(
+  protected readonly showLegacyRoutes = signal<boolean>(
     (() => {
       try {
         return (
@@ -502,7 +534,10 @@ export class IndoorRoutesComponent {
     effect(() => {
       try {
         if (typeof window !== 'undefined') {
-          localStorage.setItem('show_legacy_routes', String(this.showLegacy()));
+          localStorage.setItem(
+            'show_legacy_routes',
+            String(this.showLegacyRoutes()),
+          );
         }
       } catch {}
     });
@@ -517,7 +552,7 @@ export class IndoorRoutesComponent {
   protected readonly routes = computed<IndoorRouteWithExtras[]>(() => {
     const custom = this.customRoutes();
     const list = custom !== null ? custom : this.routesResource.value() || [];
-    if (custom !== null && !this.showLegacy()) {
+    if (custom !== null && !this.showLegacyRoutes()) {
       return list.filter((r) => !r.legacy);
     }
     return list;
@@ -525,12 +560,15 @@ export class IndoorRoutesComponent {
 
   protected readonly routesResource = resource<
     IndoorRouteWithExtras[],
-    { id: string | undefined; showLegacy: boolean }
+    { id: string | undefined; showLegacyRoutes: boolean }
   >({
-    params: () => ({ id: this.centerId(), showLegacy: this.showLegacy() }),
+    params: () => ({
+      id: this.centerId(),
+      showLegacyRoutes: this.showLegacyRoutes(),
+    }),
     loader: ({ params }) =>
       params.id
-        ? this.indoor.getCenterRoutes(params.id, params.showLegacy)
+        ? this.indoor.getCenterRoutes(params.id, params.showLegacyRoutes)
         : Promise.resolve([]),
   });
 
@@ -665,6 +703,41 @@ export class IndoorRoutesComponent {
       if (this.centerId()) {
         this.routesResource.reload();
       }
+    }
+  }
+
+  protected getAscentBackground(type: string | null): string {
+    const info = (this.ascentsService.ascentInfo() as any)[type || 'default'];
+    return info?.backgroundSubtle ?? '';
+  }
+
+  async editAscent(
+    route: IndoorRouteWithExtras,
+    ascent: { id: string; type: string | null },
+  ): Promise<void> {
+    const success = await firstValueFrom(
+      this.ascentsService.openAscentForm({
+        ascentData: {
+          ...ascent,
+          route: {
+            id: route.id,
+            name: route.name,
+            climbing_kind: route.climbing_kind,
+            grade: route.grade,
+            center_name: route.center_name,
+            center_slug: route.center_slug,
+          },
+        } as any,
+        routeId: route.id,
+        routeName: route.name,
+        isIndoor: true,
+        climbingKind: route.climbing_kind as any,
+        grade: route.grade || undefined,
+      }),
+      { defaultValue: false },
+    );
+    if (success && this.centerId()) {
+      this.routesResource.reload();
     }
   }
 }
