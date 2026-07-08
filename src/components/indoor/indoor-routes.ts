@@ -52,7 +52,6 @@ import { IndoorService } from '../../services/indoor.service';
 import { AscentsService } from '../../services/ascents.service';
 import { IndoorRouteWithExtras } from '../../models';
 import { GradeComponent } from '../ui/avatar-grade';
-import { ChartRoutesByGradeComponent } from '../ui/chart-routes-by-grade';
 import { TuiRating } from '@taiga-ui/kit';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equippers-input';
@@ -83,7 +82,6 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
     TuiTableExpand,
     TuiRating,
     GradeComponent,
-    ChartRoutesByGradeComponent,
     EmptyStateComponent,
     IndoorRouteEquippersInputComponent,
     ButtonAscentTypeComponent,
