@@ -797,5 +797,6 @@
   "zoomOut": "Allontana",
   "indoor.deleteTitle": "Elimina via indoor",
   "indoor.deleteConfirm": "Sei sicuro di voler eliminare la via indoor \"{{name}}\"? Questa azione non può essere annullata.",
-  "selectAll": "Seleziona tutto"
+  "selectAll": "Seleziona tutto",
+  "selected": "selezionati"
 }

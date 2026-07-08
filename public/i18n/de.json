@@ -797,5 +797,6 @@
   "zoomOut": "Herauszoomen",
   "indoor.deleteTitle": "Indoor-Route löschen",
   "indoor.deleteConfirm": "Sind Sie sicher, dass Sie die Indoor-Route \"{{name}}\" löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
-  "selectAll": "Alles auswählen"
+  "selectAll": "Alles auswählen",
+  "selected": "ausgewählt"
 }

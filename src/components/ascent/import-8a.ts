@@ -234,7 +234,10 @@ interface ExistingUserAscentKey {
                       | translate: { count: ascents().length }
                   }}
                 </span>
-                <span class="text-xs font-semibold opacity-70">{{ selectedIndices().size }} / {{ ascents().length }} {{ 'selected' | translate }}</span>
+                <span class="text-xs font-semibold opacity-70"
+                  >{{ selectedIndices().size }} / {{ ascents().length }}
+                  {{ 'selected' | translate }}</span
+                >
                 <label
                   class="text-xs opacity-60 flex items-center gap-1.5 select-none hover:opacity-100 transition-opacity cursor-pointer"
                 >

@@ -797,5 +797,6 @@
   "zoomOut": "Dézoomer",
   "indoor.deleteTitle": "Supprimer la voie indoor",
   "indoor.deleteConfirm": "Êtes-vous sûr de vouloir supprimer la voie indoor \"{{name}}\" ? Cette action ne peut pas être annulée.",
-  "selectAll": "Tout sélectionner"
+  "selectAll": "Tout sélectionner",
+  "selected": "sélectionnés"
 }

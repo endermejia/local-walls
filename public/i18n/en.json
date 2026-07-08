@@ -797,5 +797,6 @@
   "zoomOut": "Zoom Out",
   "indoor.deleteTitle": "Delete indoor route",
   "indoor.deleteConfirm": "Are you sure you want to delete the indoor route \"{{name}}\"? This action cannot be undone.",
-  "selectAll": "Select all"
+  "selectAll": "Select all",
+  "selected": "selected"
 }

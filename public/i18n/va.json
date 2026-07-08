@@ -797,5 +797,6 @@
   "zoomOut": "Allunyar",
   "indoor.deleteTitle": "Eliminar via indoor",
   "indoor.deleteConfirm": "Segur que vols eliminar la via indoor \"{{name}}\"? Esta acció no es pot desfer.",
-  "selectAll": "Seleccionar tot"
+  "selectAll": "Seleccionar tot",
+  "selected": "seleccionats"
 }

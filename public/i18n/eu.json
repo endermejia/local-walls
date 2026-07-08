@@ -797,5 +797,6 @@
   "zoomOut": "Urrundu",
   "indoor.deleteTitle": "Indoor bidea ezabatu",
   "indoor.deleteConfirm": "Ziur zaude \"{{name}}\" indoor bidea ezabatu nahi duzula? Ekintza hau ezin da desegin.",
-  "selectAll": "Hautatu dena"
+  "selectAll": "Hautatu dena",
+  "selected": "hautatuta"
 }
