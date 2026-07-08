@@ -15,6 +15,7 @@
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
     "format": "prettier --write ./src",
+    "check:i18n": "node scripts/check-translations.mjs",
     "prepare": "husky"
   },
   "lint-staged": {
