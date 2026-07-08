@@ -483,11 +483,13 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                 <div class="flex flex-col gap-2">
                   @for (v of activeLocalVouchers(); track $index) {
                     <div
-                      class="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-850 shadow-sm hover:border-neutral-200 dark:hover:border-neutral-800 transition-colors"
+                      class="flex items-center justify-between p-4 rounded-2xl tui-appearance-floating"
+                      tuiAppearance="floating"
                     >
                       <div class="flex items-center gap-3">
                         <div
-                          class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"
+                          class="w-10 h-10 rounded-xl tui-appearance-primary"
+                          tuiAppearance="primary"
                         >
                           <tui-icon
                             [icon]="
@@ -499,10 +501,7 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                           />
                         </div>
                         <div class="flex flex-col">
-                          <span
-                            class="font-bold text-base text-neutral-800 dark:text-neutral-200"
-                            >{{ v.name }}</span
-                          >
+                          <span class="font-bold text-base">{{ v.name }}</span>
                           @if (v.description) {
                             <span class="text-xs opacity-60">{{
                               v.description
@@ -513,16 +512,26 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
 
                       <div class="flex items-center gap-4">
                         <span
-                          class="text-base font-extrabold text-neutral-900 dark:text-neutral-100 bg-neutral-50 dark:bg-neutral-900 px-3 py-1.5 rounded-xl border border-neutral-100 dark:border-neutral-850"
+                          class="text-base font-extrabold px-3 py-1.5 rounded-xl"
+                          tuiAppearance="primary"
                         >
-                          {{ v.price | currency: 'EUR' }}
+                          {{ v.price | number: '1.2-2' }} €
                         </span>
                         <button
                           tuiIconButton
                           appearance="flat-grayscale"
                           size="s"
+                          iconStart="@tui.edit"
+                          class="rounded-full! text-neutral-500"
+                          [attr.aria-label]="'edit' | translate"
+                          (click.zoneless)="editLocalVoucher(v)"
+                        ></button>
+                        <button
+                          tuiIconButton
+                          appearance="flat-grayscale"
+                          size="s"
                           iconStart="@tui.trash"
-                          class="rounded-full! text-red-550 hover:bg-red-50 dark:hover:bg-red-950/20"
+                          class="rounded-full! text-red-550"
                           [attr.aria-label]="'delete' | translate"
                           (click.zoneless)="deleteLocalVoucher(v)"
                         ></button>
@@ -807,6 +816,23 @@ export class IndoorCenterFormComponent {
     this.newVoucherPrice = null;
     this.newVoucherKind = 'pass';
     this.newVoucherDescription = '';
+  }
+
+  protected editLocalVoucher(v: {
+    id?: string;
+    name: string;
+    price: number;
+    kind?: string;
+    description?: string | null;
+  }): void {
+    // Populate form fields with the voucher details to edit
+    this.newVoucherName = v.name;
+    this.newVoucherPrice = v.price;
+    this.newVoucherKind = v.kind || 'pass';
+    this.newVoucherDescription = v.description || '';
+
+    // Mark as deleted so it gets removed from the list when the new one is added
+    this.deleteLocalVoucher(v);
   }
 
   protected deleteLocalVoucher(v: {
