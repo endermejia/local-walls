@@ -372,7 +372,7 @@
   "merchandising.checkout.total": "Totale",
   "merchandising.checkout.zip": "Codice Postale",
   "merchandising.color": "Colore",
-  "merchandising.croquisDisclaimer": "Nota: il 100% dei proventi dei Topos e dei Pack di zone viene consegnato ai chiodatori locali per la manutenzione e il riattrezzaggio delle vie.",
+  "merchandising.croquisDisclaimer": "Il 100% dei proventi dei Topos e dei Pack di zone viene consegnato ai chiodatori locali per la manutenzione e il riattrezzaggio delle vie.",
   "merchandising.description": "Progetto indipendente. Senza pubblicità. Ogni acquisto sostiene lo sviluppo di ClimBeast e mantiene la piattaforma gratuita e senza pubblicità.",
   "merchandising.failed.description": "Sembra che il tuo pagamento sia stato annullato o non sia andato a buon fine. Il tuo carrello è ancora salvato nel caso tu voglia riprovare.",
   "merchandising.failed.title": "Pagamento annullato",
@@ -429,11 +429,9 @@
   "merchandising.packs.alreadyInPack": "Incluso in un altro pack",
   "merchandising.packs.areas": "Aree incluse",
   "merchandising.packs.edit": "Modifica pack",
-  "merchandising.packs.empty": "NUOVI PACK IN ARRIVO!",
-  "merchandising.packs.emptySubtitle": "Stiamo chiodando nuove aree. Iscriviti per essere il primo a saperlo.",
+  "merchandising.packs.empty": "NESSUN PACCHETTO DISPONIBILE AL MOMENTO",
   "merchandising.packs.includes": "Include {{count}} zone:",
   "merchandising.packs.new": "Nuovo pack",
-  "merchandising.packs.notify": "AVVISAMI DEI NUOVI PACK",
   "merchandising.packs.saveError": "Errore durante il salvataggio del pack",
   "merchandising.packs.saveSuccess": "Pack salvato correttamente",
   "merchandising.packs.selectCategory": "Seleziona categoria",
@@ -796,5 +794,6 @@
   "years": "Anni",
   "you": "tu",
   "zoomIn": "Avvicina",
-  "zoomOut": "Allontana"
+  "zoomOut": "Allontana",
+  "merchandising.noPacksAvailable": "NESSUN PACCHETTO DISPONIBILE AL MOMENTO"
 }

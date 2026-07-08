@@ -372,7 +372,7 @@
   "merchandising.checkout.total": "Guztira",
   "merchandising.checkout.zip": "Posta kodea",
   "merchandising.color": "Kolorea",
-  "merchandising.croquisDisclaimer": "Oharra: Krokisen eta Area Packen diru-sarreren %100 tokiko ekipatzailentzat da, bideak mantendu eta berriro ekipatu ditzaten.",
+  "merchandising.croquisDisclaimer": "Krokisen eta Area Packen diru-sarreren %100 tokiko ekipatzailentzat da, bideak mantendu eta berriro ekipatu ditzaten.",
   "merchandising.description": "Proiektu independentea. Publizitaterik gabe. Erosketa bakoitzak ClimBeast garatzen laguntzen du eta plataforma doan eta iragarkirik gabe mantentzen du.",
   "merchandising.failed.description": "Badirudi zure ordainketa bertan behera utzi dela edo huts egin duela. Zure saskia gorde egin da berriro saiatu nahi baduzu.",
   "merchandising.failed.title": "Ordainketa bertan behera utzita",
@@ -429,11 +429,9 @@
   "merchandising.packs.alreadyInPack": "Beste pack batean sartuta",
   "merchandising.packs.areas": "Sartutako eremuak",
   "merchandising.packs.edit": "Editatu paketea",
-  "merchandising.packs.empty": "PACK BERRIAK LAISTER!",
-  "merchandising.packs.emptySubtitle": "Eremu berriak ekipatzen ari gara. Harpidetu lehena izateko.",
+  "merchandising.packs.empty": "UNE HONETAN EZ DAGO PAKETERIK ESKURAGARRI",
   "merchandising.packs.includes": "{{count}} eremu barne:",
   "merchandising.packs.new": "Pakete berria",
-  "merchandising.packs.notify": "JAKINARAZI PACK BERRIAZ",
   "merchandising.packs.saveError": "Errorea packa gordetzean",
   "merchandising.packs.saveSuccess": "Packa ondo gorde da",
   "merchandising.packs.selectCategory": "Hautatu kategoria",
@@ -796,5 +794,6 @@
   "years": "Urteak",
   "you": "zu",
   "zoomIn": "Gerturatu",
-  "zoomOut": "Urrundu"
+  "zoomOut": "Urrundu",
+  "merchandising.noPacksAvailable": "UNE HONETAN EZ DAGO PAKETERIK ESKURAGARRI"
 }

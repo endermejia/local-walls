@@ -372,7 +372,7 @@
   "merchandising.checkout.total": "Total",
   "merchandising.checkout.zip": "Código Postal",
   "merchandising.color": "Color",
-  "merchandising.croquisDisclaimer": "Nota: El 100% de los ingresos de los Croquis y Packs de Áreas se entrega a los equipadores locales para el mantenimiento y re-equipación de las vías.",
+  "merchandising.croquisDisclaimer": "El 100% de los ingresos de los Croquis y Packs de Áreas se entrega a los equipadores locales para el mantenimiento y re-equipación de las vías.",
   "merchandising.description": "Proyecto independiente. Sin publicidad. Cada compra impulsa el desarrollo de ClimBeast y mantiene la plataforma gratuita y libre de anuncios.",
   "merchandising.failed.description": "Parece que tu pago se ha cancelado o ha fallado. Tu carrito sigue guardado por si quieres volver a intentarlo.",
   "merchandising.failed.title": "Pago cancelado",
@@ -429,11 +429,9 @@
   "merchandising.packs.alreadyInPack": "Incluido en otro pack",
   "merchandising.packs.areas": "Áreas incluidas",
   "merchandising.packs.edit": "Editar pack",
-  "merchandising.packs.empty": "¡NUEVOS PACKS PRÓXIMAMENTE!",
-  "merchandising.packs.emptySubtitle": "Estamos equipando nuevas áreas. Suscríbete para ser el primero en saberlo.",
+  "merchandising.packs.empty": "NO HAY PACKS DISPONIBLES EN ESTOS MOMENTOS",
   "merchandising.packs.includes": "Incluye {{count}} zonas:",
   "merchandising.packs.new": "Nuevo pack",
-  "merchandising.packs.notify": "AVISARME DE NUEVOS PACKS",
   "merchandising.packs.saveError": "Error al guardar el pack",
   "merchandising.packs.saveSuccess": "Pack guardado correctamente",
   "merchandising.packs.selectCategory": "Seleccionar categoría",
@@ -796,5 +794,6 @@
   "years": "Años",
   "you": "tú",
   "zoomIn": "Acercar",
-  "zoomOut": "Alejar"
+  "zoomOut": "Alejar",
+  "merchandising.noPacksAvailable": "NO HAY PACKS DISPONIBLES EN ESTOS MOMENTOS"
 }

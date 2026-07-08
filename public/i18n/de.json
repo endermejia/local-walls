@@ -372,7 +372,7 @@
   "merchandising.checkout.total": "Gesamt",
   "merchandising.checkout.zip": "Postleitzahl",
   "merchandising.color": "Farbe",
-  "merchandising.croquisDisclaimer": "Hinweis: 100% der Einnahmen aus Topos und Gebiets-Packs gehen an lokale Erschließer für die Instandhaltung und Sanierung der Routen.",
+  "merchandising.croquisDisclaimer": "100% der Einnahmen aus Topos und Gebiets-Packs gehen an lokale Erschließer für die Instandhaltung und Sanierung der Routen.",
   "merchandising.description": "Unabhängiges Projekt. Ohne Werbung. Jeder Kauf unterstützt die Entwicklung von ClimBeast und hält die Plattform kostenlos und werbefrei.",
   "merchandising.failed.description": "Es scheint, als wäre Ihre Zahlung storniert worden oder fehlgeschlagen. Ihr Warenkorb wartet noch auf Sie.",
   "merchandising.failed.title": "Zahlung fehlgeschlagen",
@@ -429,11 +429,9 @@
   "merchandising.packs.alreadyInPack": "Bereits in einem anderen Pack enthalten",
   "merchandising.packs.areas": "Enthaltene Gebiete",
   "merchandising.packs.edit": "Pack bearbeiten",
-  "merchandising.packs.empty": "NEUE PACKS KOMMEN BALD!",
-  "merchandising.packs.emptySubtitle": "Wir bohren neue Gebiete ein. Abonnieren Sie, um als Erster informiert zu werden.",
+  "merchandising.packs.empty": "DERZEIT SIND KEINE PAKETE VERFÜGBAR",
   "merchandising.packs.includes": "Beinhaltet {{count}} Gebiete:",
   "merchandising.packs.new": "Neues Pack",
-  "merchandising.packs.notify": "MICH ÜBER NEUE PACKS INFORMIEREN",
   "merchandising.packs.saveError": "Fehler beim Speichern des Packs",
   "merchandising.packs.saveSuccess": "Pack erfolgreich gespeichert",
   "merchandising.packs.selectCategory": "Kategorie auswählen",
@@ -796,5 +794,6 @@
   "years": "Jahre",
   "you": "du",
   "zoomIn": "Heranzoomen",
-  "zoomOut": "Herauszoomen"
+  "zoomOut": "Herauszoomen",
+  "merchandising.noPacksAvailable": "DERZEIT SIND KEINE PAKETE VERFÜGBAR"
 }

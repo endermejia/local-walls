@@ -372,7 +372,7 @@
   "merchandising.checkout.total": "Total",
   "merchandising.checkout.zip": "Code postal",
   "merchandising.color": "Couleur",
-  "merchandising.croquisDisclaimer": "Note : 100% des revenus des Topos et Packs de zones sont reversés aux équipeurs locaux pour l'entretien et le rééquipement des voies.",
+  "merchandising.croquisDisclaimer": "100% des revenus des Topos et Packs de zones sont reversés aux équipeurs locaux pour l'entretien et le rééquipement des voies.",
   "merchandising.description": "Projet indépendant. Sans publicité. Chaque achat soutient le développement de ClimBeast et maintient la plateforme gratuite et sans publicités.",
   "merchandising.failed.description": "Il semble que votre paiement ait été annulé ou ait échoué. Votre panier vous attend toujours.",
   "merchandising.failed.title": "Paiement annulé",
@@ -429,11 +429,9 @@
   "merchandising.packs.alreadyInPack": "Inclus dans un autre pack",
   "merchandising.packs.areas": "Zones incluses",
   "merchandising.packs.edit": "Modifier le pack",
-  "merchandising.packs.empty": "NOUVEAUX PACKS BIENTÔT !",
-  "merchandising.packs.emptySubtitle": "Nous équipons de nouvelles zones. Abonnez-vous pour être le premier informé.",
+  "merchandising.packs.empty": "AUCUN PACK DISPONIBLE POUR LE MOMENT",
   "merchandising.packs.includes": "Inclut {{count}} zones :",
   "merchandising.packs.new": "Nouveau pack",
-  "merchandising.packs.notify": "M'INFORMER DES NOUVEAUX PACKS",
   "merchandising.packs.saveError": "Erreur lors de l'enregistrement du pack",
   "merchandising.packs.saveSuccess": "Pack enregistré avec succès",
   "merchandising.packs.selectCategory": "Sélectionner une catégorie",
@@ -796,5 +794,6 @@
   "years": "Ans",
   "you": "toi",
   "zoomIn": "Zoomer",
-  "zoomOut": "Dézoomer"
+  "zoomOut": "Dézoomer",
+  "merchandising.noPacksAvailable": "AUCUN PACK DISPONIBLE POUR LE MOMENT"
 }

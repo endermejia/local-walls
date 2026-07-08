@@ -372,7 +372,7 @@
   "merchandising.checkout.total": "Total",
   "merchandising.checkout.zip": "Codi Postal",
   "merchandising.color": "Color",
-  "merchandising.croquisDisclaimer": "Nota: El 100% dels ingressos dels Croquis i Packs d'Àrees s'entrega als equipadors locals per al manteniment i re-equipament de les vies.",
+  "merchandising.croquisDisclaimer": "El 100% dels ingressos dels Croquis i Packs d'Àrees s'entrega als equipadors locals per al manteniment i re-equipament de les vies.",
   "merchandising.description": "Projecte independent. Sense publicitat. Cada compra recolza el desenvolupament de ClimBeast i manté la plataforma gratuïta i sense fardatxos ni anuncis.",
   "merchandising.failed.description": "Pareix que el teu pagament s'ha cancel·lat o ha fallat. El teu carret seguix guardat per si vols tornar-ho a intentar.",
   "merchandising.failed.title": "Pagament cancel·lat",
@@ -429,11 +429,9 @@
   "merchandising.packs.alreadyInPack": "Inclòs en un altre pack",
   "merchandising.packs.areas": "Zones incloses",
   "merchandising.packs.edit": "Editar pack",
-  "merchandising.packs.empty": "NOUS PACKS PRÒXIMAMENT!",
-  "merchandising.packs.emptySubtitle": "Estem equipant noves zones. Subscriu-te per a ser el primer en saber-ho.",
+  "merchandising.packs.empty": "NO HI HA PACKS DISPONIBLES EN AQUESTS MOMENTS",
   "merchandising.packs.includes": "Inclou {{count}} zones:",
   "merchandising.packs.new": "Nou pack",
-  "merchandising.packs.notify": "AVISA'M DE NOUS PACKS",
   "merchandising.packs.saveError": "Error en guardar el pack",
   "merchandising.packs.saveSuccess": "Pack guardat correctament",
   "merchandising.packs.selectCategory": "Seleccionar categoria",
@@ -796,5 +794,6 @@
   "years": "Anys",
   "you": "tu",
   "zoomIn": "Acostar",
-  "zoomOut": "Allunyar"
+  "zoomOut": "Allunyar",
+  "merchandising.noPacksAvailable": "NO HI HA PACKS DISPONIBLES EN AQUESTS MOMENTS"
 }

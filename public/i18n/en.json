@@ -372,7 +372,7 @@
   "merchandising.checkout.total": "Total",
   "merchandising.checkout.zip": "Zip Code",
   "merchandising.color": "Color",
-  "merchandising.croquisDisclaimer": "Note: 100% of the revenue from Topos and Area Packs is given to local developers for route maintenance and bolt replacement.",
+  "merchandising.croquisDisclaimer": "100% of the revenue from Topos and Area Packs is given to local developers for route maintenance and bolt replacement.",
   "merchandising.description": "Independent project. Ad-free. Every purchase fuels ClimBeast's development and keeps the platform free for everyone.",
   "merchandising.failed.description": "It seems your payment was cancelled or failed. Your cart is still waiting for you.",
   "merchandising.failed.title": "Order failed",
@@ -429,11 +429,9 @@
   "merchandising.packs.alreadyInPack": "Included in another pack",
   "merchandising.packs.areas": "Included areas",
   "merchandising.packs.edit": "Edit pack",
-  "merchandising.packs.empty": "NEW PACKS COMING SOON!",
-  "merchandising.packs.emptySubtitle": "We are bolting new areas. Subscribe to be the first to know.",
+  "merchandising.packs.empty": "NO PACKS AVAILABLE AT THE MOMENT",
   "merchandising.packs.includes": "Includes {{count}} areas:",
   "merchandising.packs.new": "New pack",
-  "merchandising.packs.notify": "NOTIFY ME OF NEW PACKS",
   "merchandising.packs.saveError": "Failed to save pack",
   "merchandising.packs.saveSuccess": "Pack saved successfully",
   "merchandising.packs.selectCategory": "Select category",
@@ -796,5 +794,6 @@
   "years": "Years",
   "you": "you",
   "zoomIn": "Zoom In",
-  "zoomOut": "Zoom Out"
+  "zoomOut": "Zoom Out",
+  "merchandising.noPacksAvailable": "NO PACKS AVAILABLE AT THE MOMENT"
 }

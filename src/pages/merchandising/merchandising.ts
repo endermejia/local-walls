@@ -254,17 +254,6 @@ import { AreaPackDetail, MerchandiseItemDetail } from '../../models';
                     >
                       {{ 'merchandising.packs.empty' | translate }}
                     </h3>
-                    <p class="text-(--tui-text-secondary) m-0 text-balance">
-                      {{ 'merchandising.packs.emptySubtitle' | translate }}
-                    </p>
-                    <button
-                      tuiButton
-                      appearance="outline"
-                      size="m"
-                      class="mt-2 rounded-full!"
-                    >
-                      {{ 'merchandising.packs.notify' | translate }}
-                    </button>
                   </div>
                 </div>
               }
@@ -283,7 +272,8 @@ import { AreaPackDetail, MerchandiseItemDetail } from '../../models';
         flex: 1;
         height: 100%;
         min-height: 0;
-        background-image: url('/image/topo-light.svg');
+        background-color: var(--tui-background-base-alt);
+        background-image: url('/image/cartography-lines.svg');
         background-repeat: no-repeat;
         background-position: left center;
         background-size: 50% auto;
