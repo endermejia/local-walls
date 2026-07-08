@@ -227,31 +227,33 @@ interface ExistingUserAscentKey {
           <!-- Step 1: Preview & Confirm -->
           @if (index === 1) {
             <div class="grid gap-4">
-              <header tuiHeader class="flex justify-between items-center">
+              <header tuiHeader class="flex flex-col gap-2">
                 <span tuiSubtitle
                   >{{
                     'import8a.confirmSubtitle'
                       | translate: { count: ascents().length }
                   }}
                 </span>
-                <span class="text-xs font-semibold opacity-70"
-                  >{{ selectedIndices().size }} / {{ ascents().length }}
-                  {{ 'selected' | translate }}</span
-                >
-                <label
-                  class="text-xs opacity-60 flex items-center gap-1.5 select-none hover:opacity-100 transition-opacity cursor-pointer"
-                >
-                  <input
-                    tuiCheckbox
-                    type="checkbox"
-                    [ngModel]="
-                      selectedIndices().size === ascents().length &&
-                      ascents().length > 0
-                    "
-                    (ngModelChange)="toggleAll($event)"
-                  />
-                  <span>{{ 'selectAll' | translate }}</span>
-                </label>
+                <div class="flex justify-between items-center w-full mt-2">
+                  <label
+                    class="text-xs opacity-60 flex items-center gap-1.5 select-none hover:opacity-100 transition-opacity cursor-pointer"
+                  >
+                    <input
+                      tuiCheckbox
+                      type="checkbox"
+                      [ngModel]="
+                        selectedIndices().size === ascents().length &&
+                        ascents().length > 0
+                      "
+                      (ngModelChange)="toggleAll($event)"
+                    />
+                    <span>{{ 'selectAll' | translate }}</span>
+                  </label>
+                  <span class="text-xs font-semibold opacity-70"
+                    >{{ selectedIndices().size }} / {{ ascents().length }}
+                    {{ 'selected' | translate }}</span
+                  >
+                </div>
               </header>
 
               <div class="max-h-[35dvh] overflow-auto border rounded p-2">
