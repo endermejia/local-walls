@@ -137,7 +137,7 @@ export class IndoorService {
 
   async getCenterRoutes(
     centerId: string,
-    showLegacy: boolean = false,
+    showLegacy = false,
   ): Promise<IndoorRouteWithExtras[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
@@ -172,7 +172,7 @@ export class IndoorService {
 
   async getCenterTopos(
     centerId: string,
-    showLegacyTopos: boolean = false,
+    showLegacyTopos = false,
   ): Promise<any[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
