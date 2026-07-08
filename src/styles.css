@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --breakpoint-md: 980px;
+}
+
 html,
 body {
   position: fixed;
@@ -61,7 +65,7 @@ th[tuiTh] {
   background: var(--tui-background-base) !important;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 980px) {
   /* Adjust this breakpoint as needed */
   tui-dialog._closable {
     width: calc(100% - 1.5rem) !important;

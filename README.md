@@ -1,57 +1,59 @@
 # ClimBeast
 
-A modern climbing guide application built with Angular 21 that helps climbers discover and navigate climbing locations.
-The app features an interactive map interface for exploring climbing spots, detailed route information, and mobile-friendly design.
-It uses server-side rendering (SSR) for improved performance and SEO, and implements a fully reactive architecture with Angular Signals for state management.
+Una moderna aplicación web diseñada para ayudar a los escaladores a descubrir y navegar zonas de escalada.
+Desarrollada para Sergio Solbes Ferri.
 
-## Features
+La aplicación incluye un mapa interactivo para explorar spots de escalada, información detallada de las vías, y un diseño responsive orientado a dispositivos móviles.
+Utiliza Server-Side Rendering (SSR) para un mejor rendimiento y SEO, implementando una arquitectura totalmente reactiva con Angular Signals para la gestión del estado.
 
-- 🗺️ Interactive map with climbing locations
-- 📱 Mobile-first responsive design
-- 🚀 Fast loading with SSR and lazy loading
-- 🔍 Search and filter climbing spots
-- 📍 Geolocation support
-- 🌐 Multilingual support
-- 📶 Progressive Web App (PWA) with offline support
+## Funcionalidades
 
-## Tech Stack
+- 🗺️ Mapa interactivo con zonas de escalada
+- 📱 Diseño responsive "mobile-first"
+- 🚀 Carga rápida con SSR y carga diferida (lazy loading)
+- 🔍 Búsqueda y filtrado de spots de escalada
+- 📍 Soporte para geolocalización
+- 🌐 Soporte multilingüe
+- 📶 Aplicación Web Progresiva (PWA) con soporte offline
+
+## Tecnologías Utilizadas
 
 - [Angular 21](https://github.com/angular/angular-cli)
   - SSR (Server-Side Rendering)
-  - Zoneless change detection
-  - Signals for state management
+  - Change detection sin Zone.js (Zoneless)
+  - Signals para gestión de estado
 - [Taiga UI](https://taiga-ui.dev/)
 - [Tailwind CSS 4](https://tailwindcss.com/)
-- [Supabase](https://supabase.com/) (PostgreSQL + Auth + RLS)
+- [Supabase](https://supabase.com/) (PostgreSQL + Autenticación + RLS)
 
-## Next Steps
+## Próximos Pasos
 
 - **✨ Mejora del Menú de Perfil (UX)**:
-  - Modificar la vista de perfil. El boton **Perfil del navbar** por dropdown con iconos.
+  - Modificar la vista del perfil. Sustituir el botón de **Perfil del navbar** por un desplegable con iconos.
   - Centralizar accesos directos: Mis sectores, Logbook, Configuración y botones del `menu-button`.
 - **🛡️ Sistema de Gestión de Permisos y Solicitudes**:
   - **Administradores de Áreas**: Refinar el flujo en `AdminAreaRequestsComponent`. Implementar notificaciones push al aprobar/rechazar.
-  - **Relación con Equippers**: Crear un flujo para que los usuarios soliciten vincularse a un "Equipper" oficial, permitiendo la atribución correcta de nuevas vías.
+  - **Relación con Equipadores**: Crear un flujo para que los usuarios soliciten vincularse a un "Equipador" oficial, permitiendo la atribución correcta de nuevas vías.
   - **Validación por Roles**: Asegurar que las RLS de Supabase y los Guards de Angular cubran los nuevos estados de "pendiente de validación".
 - **📊 Integración Avanzada con 8a.nu**:
   - Implementar la importación directa de ascensos usando las credenciales del usuario (vía `EightAnuService`).
   - Sincronización automática de bases de datos: mapeo inteligente de sectores y vías entre ClimBeast y 8a.nu.
   - Visualización de estadísticas comparativas (grado medio, pirámide de ascensos).
 
-## Future Features
+## Funcionalidades Futuras
 
 - **🗓️ Planificador de Viajes Inteligente**:
-  - Filtros meteorológicos: Integración con API de clima para sugerir sectores donde no llueva en las fechas seleccionadas.
+  - Filtros meteorológicos: Integración con API de clima para sugerir sectores sin lluvia en las fechas seleccionadas.
   - Filtros por grado y estilo: Algoritmo de recomendación basado en el logbook del usuario y de sus acompañantes.
   - Generación de itinerarios exportables y compartibles.
 - **🏋️ Ecosistema de Entrenamiento**:
-  - **Calendario y Planificación**: Interfaz tipo drag-and-drop para organizar sesiones de fuerza, resistencia y técnica.
+  - **Calendario y Planificación**: Interfaz "drag-and-drop" para organizar sesiones de fuerza, resistencia y técnica.
   - **Modo Ejecución**: Temporizadores específicos para series (Beastmaker, suspensiones) y fases de entrenamiento.
   - **Red de Entrenadores**: Marketplace o sistema de vinculación donde entrenadores pueden asignar rutinas a sus alumnos y monitorizar progresos.
   - **Analíticas**: Gráficos de carga de entrenamiento y fatiga.
 - **🧗 Sección Indoor (Gestión de Rocódromos)**:
   - Implementar la hoja de ruta detallada abajo para centros de escalada.
-  - Sistema de check-in mediante QR y gestión de bonos en tiempo real.
+  - Sistema de check-in mediante código QR y gestión de bonos en tiempo real.
 
 ## 🧗 Sección Indoor (Próxima fase)
 
@@ -89,13 +91,13 @@ Se requieren los siguientes buckets:
 ### 2. 🏗️ Componentes de Angular a Crear
 
 - **Administración (`/src/pages/indoor/admin`)**:
-  - `IndoorAdminDashboard`: Vista general con métricas rápidas (ventas hoy, usuarios activos).
+  - `IndoorAdminDashboard`: Vista general con métricas rápidas (ventas de hoy, usuarios activos).
   - `IndoorUserManagement`: Buscador de usuarios del centro, visualización de sus bonos activos e historial de compras.
   - `IndoorVoucherEditor`: CRUD para los tipos de bonos que ofrece el centro.
   - `IndoorSalesPanel`: Interfaz de "punto de venta" (POS) simplificada para registrar ventas rápidas en mostrador.
   - `IndoorAccountingView`: Tablas y gráficos de balances, exportación a CSV/PDF.
 - **Usuario (`/src/pages/indoor/center-detail`)**:
-  - `IndoorVoucherCard`: Componente para mostrar el estado del bono actual del usuario (sesiones restantes, fecha fin).
+  - `IndoorVoucherCard`: Componente para mostrar el estado del bono actual del usuario (sesiones restantes, fecha de fin).
   - `IndoorVoucherStore`: Lista de bonos disponibles para compra online.
   - `IndoorCheckInHistory`: Listado de días que el usuario ha asistido al centro.
 
@@ -111,66 +113,66 @@ Se requieren los siguientes buckets:
 
 #### Para Usuarios (Escaladores):
 
-- **Dashboard Personal Indoor**: Ver cuántas sesiones le quedan en su bono de 10 o cuándo caduca su mensualidad.
-- **Notificaciones**: Avisos cuando un bono está a punto de caducar o le quedan pocas sesiones.
+- **Dashboard Personal Indoor**: Ver cuántas sesiones quedan en su bono de 10 o cuándo caduca su mensualidad.
+- **Notificaciones**: Avisos cuando un bono está a punto de caducar o quedan pocas sesiones.
 - **Compra Online**: Poder renovar el bono directamente desde la app (integración con Stripe).
 - **Filtro Indoor**: Integración total en el mapa y feed de la app para descubrir centros y ver sus rutas actuales.
 
 ---
 
-## Navigation
+## Navegación
 
-The application uses a responsive navigation system that adapts to the device's screen size. On desktop, it features a collapsible sidebar, while on mobile, it transitions to a bottom navigation bar.
+La aplicación utiliza un sistema de navegación responsivo que se adapta al tamaño de la pantalla del dispositivo. En escritorio, cuenta con una barra lateral colapsable, mientras que en móvil, cambia a una barra de navegación inferior.
 
-### Core Sections
+### Secciones Principales
 
-- **🏠 Home**: Personalized dashboard with recent activity and updates.
-- **🗺️ Explore**: Interactive map for discovering climbing spots with advanced filtering (grade, style, shade, etc.).
-- **📜 Areas**: A comprehensive list view of all climbing areas for quick access.
-- **⚙️ Admin / My Areas**: Management panel for administrators and equippers to curate crag data.
-- **👤 User Profile**: Access to your logbook, personal statistics, and account settings.
+- **🏠 Inicio**: Panel personalizado con actividad reciente y actualizaciones.
+- **🗺️ Explorar**: Mapa interactivo para descubrir zonas de escalada con filtrado avanzado (grado, estilo, sombra, etc.).
+- **📜 Áreas**: Una vista de lista completa de todas las áreas de escalada para un acceso rápido.
+- **⚙️ Admin / Mis Áreas**: Panel de gestión para administradores y equipadores para organizar la información de los sectores.
+- **👤 Perfil de Usuario**: Acceso a tu logbook, estadísticas personales y configuración de cuenta.
 
-### Content Hierarchy
+### Jerarquía de Contenido
 
-- **Area Details**: Overview of a climbing region, including its crags and general info.
-- **Crag Details**: Detailed view of a specific sector, featuring route lists, grade charts, and approach info.
-- **Topo Viewer**: Interactive topo images with route overlays for precise navigation.
-- **Route Details**: Technical specifications, grade distribution, and user ascent history.
+- **Detalles del Área**: Descripción general de una región de escalada, incluyendo sus sectores e información general.
+- **Detalles del Sector**: Vista detallada de un sector específico, con listas de vías, gráficos de grado e información de aproximación.
+- **Visor de Topos**: Imágenes interactivas de croquis con superposiciones de las vías para una navegación precisa.
+- **Detalles de la Vía**: Especificaciones técnicas, distribución de grados e historial de ascensiones de usuarios.
 
 ## PWA & Service Worker
 
-The app is configured as a PWA using Angular Service Worker. It provides:
+La aplicación está configurada como una PWA utilizando Angular Service Worker. Proporciona:
 
-- Offline caching of the app shell and static assets.
-- Installable manifest for mobile and desktop.
+- Caché offline de la "app shell" y los recursos estáticos.
+- Manifiesto instalable para móvil y escritorio.
 
-## Development
+## Desarrollo
 
-### Prerequisites
+### Requisitos previos
 
 - Node.js & npm
-- Supabase account (for database and auth)
+- Cuenta de Supabase (para base de datos y autenticación)
 
-### Local Setup
+### Configuración Local
 
 ```bash
 bun install
 bun start
 ```
 
-### SSR Testing
+### Pruebas SSR
 
 ```bash
 bun run build
 bun run serve:ssr:climbeast
 ```
 
-## Contributing
+## Contribuir
 
-This repo runs Prettier automatically before each commit via Husky + lint-staged.
+Este repositorio ejecuta Prettier automáticamente antes de cada commit mediante Husky + lint-staged.
 
 ---
 
-With love, by Gabri Mejía ❤
+Desarrollado para Sergio Solbes Ferri.
 
 [ClimBeast](https://climbeast.com) 🚀
