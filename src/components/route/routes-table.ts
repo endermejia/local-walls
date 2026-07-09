@@ -72,6 +72,7 @@ import {
   RoutesTableKey,
   RoutesTableRow,
   RouteItem,
+  IndoorRouteWithExtras,
 } from '../../models';
 
 import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
@@ -686,34 +687,37 @@ export class RoutesTableComponent {
     this.currentDirection = sort.sortDirection;
   }
 
-  protected onLogAscent(item: RouteItem): void {
+  protected onLogAscent(item: RouteItem | IndoorRouteWithExtras): void {
+    const r = item as RouteItem;
     void firstValueFrom(
       this.ascentsService.openAscentForm({
-        routeId: item.id,
-        routeName: item.name,
-        grade: item.grade,
-        climbingKind: item.climbing_kind,
+        routeId: r.id,
+        routeName: r.name,
+        grade: r.grade,
+        climbingKind: r.climbing_kind,
       }),
       { defaultValue: undefined },
     );
   }
 
   protected onEditAscent(
-    ascent: RouteAscentWithExtras,
+    ascent: RouteAscentWithExtras | { id: string; type: string | null },
     routeName: string,
   ): void {
+    const a = ascent as RouteAscentWithExtras;
     void firstValueFrom(
       this.ascentsService.openAscentForm({
-        routeId: ascent.route_id,
+        routeId: a.route_id,
         routeName: routeName,
-        ascentData: ascent,
+        ascentData: a,
       }),
       { defaultValue: undefined },
     );
   }
 
-  protected deleteRoute(route: RouteItem): void {
+  protected deleteRoute(route: RouteItem | IndoorRouteWithExtras): void {
     if (!isPlatformBrowser(this.platformId)) return;
+    const r = route as RouteItem;
 
     void firstValueFrom(
       this.dialogs.open<boolean>(TUI_CONFIRM, {
@@ -721,7 +725,7 @@ export class RoutesTableComponent {
         size: 's',
         data: {
           content: this.translate.instant('routes.deleteConfirm', {
-            name: route.name,
+            name: r.name,
           }),
           yes: this.translate.instant('delete'),
           no: this.translate.instant('cancel'),
@@ -731,22 +735,23 @@ export class RoutesTableComponent {
     ).then((confirmed) => {
       if (!confirmed) return;
       this.routesService
-        .delete(route.id)
+        .delete(r.id)
         .catch((err) => handleErrorToast(err, this.toast));
     });
   }
 
-  protected openEditRoute(route: RouteItem): void {
+  protected openEditRoute(route: RouteItem | IndoorRouteWithExtras): void {
+    const r = route as RouteItem;
     this.routesService.openRouteForm({
-      cragId: route.crag_id,
+      cragId: r.crag_id,
       routeData: {
-        id: route.id,
-        crag_id: route.crag_id,
-        name: route.name,
-        slug: route.slug,
-        grade: Number(route.grade),
-        climbing_kind: route.climbing_kind,
-        height: route.height || null,
+        id: r.id,
+        crag_id: r.crag_id,
+        name: r.name,
+        slug: r.slug,
+        grade: Number(r.grade),
+        climbing_kind: r.climbing_kind,
+        height: r.height || null,
       },
     });
   }

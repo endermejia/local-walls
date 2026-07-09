@@ -50,7 +50,7 @@ import type { TuiComparator } from '@taiga-ui/addon-table/types';
 
 import { IndoorService } from '../../services/indoor.service';
 import { AscentsService } from '../../services/ascents.service';
-import { IndoorRouteWithExtras } from '../../models';
+import { IndoorRouteWithExtras, RouteItem } from '../../models';
 import { GradeComponent } from '../ui/avatar-grade';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equippers-input';
@@ -414,7 +414,7 @@ import { RouteRowExpandedComponent } from '../route/route-row-expanded';
                         [centerSlug]="centerSlug()"
                         (logAscent)="logAscent($event)"
                         (editAscent)="
-                          editAscent($event.route, $event.own_ascent)
+                          editAscent($event.route, $any($event.own_ascent))
                         "
                         (editRoute)="editRoute($event)"
                         (deleteRoute)="deleteRoute($event)"
@@ -563,17 +563,19 @@ export class IndoorRoutesComponent {
     }
   }
 
-  async editRoute(route: IndoorRouteWithExtras): Promise<void> {
+  async editRoute(route: IndoorRouteWithExtras | RouteItem): Promise<void> {
     const id = this.centerId();
     if (!id) return;
-    const success = await this.indoor.openIndoorRouteForm(id, route);
+    const r = route as IndoorRouteWithExtras;
+    const success = await this.indoor.openIndoorRouteForm(id, r);
     if (success) {
       this.routesResource.reload();
     }
   }
 
-  async deleteRoute(route: IndoorRouteWithExtras): Promise<void> {
+  async deleteRoute(route: IndoorRouteWithExtras | RouteItem): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
+    const r = route as IndoorRouteWithExtras;
 
     void firstValueFrom(
       this.dialogs.open<boolean>(TUI_CONFIRM, {
@@ -581,7 +583,7 @@ export class IndoorRoutesComponent {
         size: 's',
         data: {
           content: this.translate.instant('routes.deleteConfirm', {
-            name: route.name || this.translate.instant('route'),
+            name: r.name || this.translate.instant('route'),
           }),
           yes: this.translate.instant('delete'),
           no: this.translate.instant('cancel'),
@@ -590,7 +592,7 @@ export class IndoorRoutesComponent {
       { defaultValue: false },
     ).then(async (confirmed) => {
       if (!confirmed) return;
-      await this.indoor.deleteRoute(route.id);
+      await this.indoor.deleteRoute(r.id);
       if (this.centerId()) {
         this.routesResource.reload();
       }
@@ -670,14 +672,15 @@ export class IndoorRoutesComponent {
     this.currentDirection = sort.sortDirection;
   }
 
-  async logAscent(route: IndoorRouteWithExtras): Promise<void> {
+  async logAscent(route: IndoorRouteWithExtras | RouteItem): Promise<void> {
+    const r = route as IndoorRouteWithExtras;
     const success = await firstValueFrom(
       this.ascentsService.openAscentForm({
-        routeId: route.id,
-        routeName: route.name,
+        routeId: r.id,
+        routeName: r.name,
         isIndoor: true,
-        climbingKind: route.climbing_kind as any,
-        grade: route.grade || undefined,
+        climbingKind: r.climbing_kind as any,
+        grade: r.grade || undefined,
       }),
       { defaultValue: false },
     );
@@ -694,27 +697,28 @@ export class IndoorRoutesComponent {
   }
 
   async editAscent(
-    route: IndoorRouteWithExtras,
+    route: IndoorRouteWithExtras | RouteItem,
     ascent: { id: string; type: string | null },
   ): Promise<void> {
+    const r = route as IndoorRouteWithExtras;
     const success = await firstValueFrom(
       this.ascentsService.openAscentForm({
         ascentData: {
           ...ascent,
           route: {
-            id: route.id,
-            name: route.name,
-            climbing_kind: route.climbing_kind,
-            grade: route.grade,
-            center_name: route.center_name,
-            center_slug: route.center_slug,
+            id: r.id,
+            name: r.name,
+            climbing_kind: r.climbing_kind,
+            grade: r.grade,
+            center_name: r.center_name,
+            center_slug: r.center_slug,
           },
         } as any,
-        routeId: route.id,
-        routeName: route.name,
+        routeId: r.id,
+        routeName: r.name,
         isIndoor: true,
-        climbingKind: route.climbing_kind as any,
-        grade: route.grade || undefined,
+        climbingKind: r.climbing_kind as any,
+        grade: r.grade || undefined,
       }),
       { defaultValue: false },
     );
