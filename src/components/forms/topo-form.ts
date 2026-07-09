@@ -681,6 +681,24 @@ export class TopoFormComponent {
       }
     });
 
+    // Eagerly initialize metadata fields for indoor topo editing
+    // without waiting for availableRoutes (which may load slowly)
+    effect(
+      () => {
+        if (!this.isIndoor()) return;
+        const data = this._dialogCtx?.data?.indoorTopoData;
+        if (!data) return;
+        this.model.update((m) => ({
+          ...m,
+          name: data.name,
+          photo: data.image_url || data.photo,
+          climbing_kind: data.climbing_kind || 'sport',
+          legacy: data.legacy || false,
+        }));
+      },
+      { allowSignalWrites: true },
+    );
+
     effect(() => {
       const available = this.availableRoutes();
       if (!available.length || this.isInitialized) return;
@@ -689,17 +707,7 @@ export class TopoFormComponent {
         const data = this._dialogCtx?.data?.indoorTopoData;
         if (data) {
           const initialRoutes = this._dialogCtx?.data?.initialRoutes || [];
-          this.model.set({
-            name: data.name,
-            photo: data.image_url || data.photo,
-            shade_morning: false,
-            shade_afternoon: false,
-            shade_change_hour: null,
-            selectedRoutes: initialRoutes,
-            photoControl: null,
-            climbing_kind: data.climbing_kind || 'sport',
-            legacy: data.legacy || false,
-          });
+          this.model.update((m) => ({ ...m, selectedRoutes: initialRoutes }));
           this.isInitialized = true;
         } else if (this._dialogCtx?.data?.initialRoutes?.length) {
           const initialRoutes = this._dialogCtx?.data?.initialRoutes || [];
