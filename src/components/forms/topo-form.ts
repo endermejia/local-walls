@@ -155,11 +155,6 @@ import { handleErrorToast, slugify } from '../../utils';
               [items]="['sport', 'boulder']"
             ></tui-data-list-wrapper>
           </tui-select>
-
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input tuiCheckbox type="checkbox" [formField]="topoForm.legacy" />
-            <span>{{ 'routes.legacy' | translate }}</span>
-          </label>
         </div>
       } @else {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center">
@@ -213,6 +208,11 @@ import { handleErrorToast, slugify } from '../../utils';
           </tui-textfield>
         </div>
       }
+
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input tuiCheckbox type="checkbox" [formField]="topoForm.legacy" />
+        <span>{{ 'routes.legacy' | translate }}</span>
+      </label>
 
       <section class="grid gap-3">
         <!-- Header -->
