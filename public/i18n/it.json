@@ -739,6 +739,7 @@
   "topos.editor.sortConfirm": "Sei sicuro di voler ordinare i tiri da sinistra a destra in base alla loro posizione sullo schermo?",
   "topos.editTitle": "Modifica schizzo",
   "topos.legacy": "Mostra topo obsoleti",
+  "topos.markAsLegacy": "Schizzo obsoleto",
   "topos.manageRoutes": "Gestisci tiri associati",
   "topos.name": "Nome dello schizzo",
   "topos.newTitle": "Nuovo schizzo",

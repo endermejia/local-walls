@@ -739,6 +739,7 @@
   "topos.editor.sortConfirm": "Bist du sicher, dass du die Routen von links nach rechts anhand ihrer Position auf dem Bildschirm sortieren möchtest?",
   "topos.editTitle": "Topo bearbeiten",
   "topos.legacy": "Alte Topos anzeigen",
+  "topos.markAsLegacy": "Alter Topo",
   "topos.manageRoutes": "Zugehörige Routen verwalten",
   "topos.name": "Topo-Name",
   "topos.newTitle": "Neues Topo",

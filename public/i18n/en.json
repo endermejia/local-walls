@@ -739,6 +739,7 @@
   "topos.editor.sortConfirm": "Are you sure you want to sort routes from left to right based on their position on the screen?",
   "topos.editTitle": "Edit topo",
   "topos.legacy": "Show legacy topos",
+  "topos.markAsLegacy": "Legacy topo",
   "topos.manageRoutes": "Manage linked routes",
   "topos.name": "Topo name",
   "topos.newTitle": "Create new topo",

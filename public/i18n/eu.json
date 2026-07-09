@@ -739,6 +739,7 @@
   "topos.editor.sortConfirm": "Ziur al zaude bideak ezkerretik eskuinera ordenatu nahi dituzula pantailako posizioaren arabera?",
   "topos.editTitle": "Editatu krokisa",
   "topos.legacy": "Erakutsi croquis zaharrak",
+  "topos.markAsLegacy": "Krokis zaharra",
   "topos.manageRoutes": "Kudeatu lotutako bideak",
   "topos.name": "Krokisaren izena",
   "topos.newTitle": "Krokis berria",

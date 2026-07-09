@@ -211,7 +211,7 @@ import { handleErrorToast, slugify } from '../../utils';
 
       <label class="flex items-center gap-2 cursor-pointer">
         <input tuiCheckbox type="checkbox" [formField]="topoForm.legacy" />
-        <span>{{ 'routes.legacy' | translate }}</span>
+        <span>{{ 'topos.markAsLegacy' | translate }}</span>
       </label>
 
       <section class="grid gap-3">

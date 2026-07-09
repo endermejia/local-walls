@@ -739,6 +739,7 @@
   "topos.editor.sortConfirm": "Estàs segur que vols ordenar les vies d'esquerra a dreta segons la seua posició en pantalla?",
   "topos.editTitle": "Editar croquis",
   "topos.legacy": "Mostrar croquis antics",
+  "topos.markAsLegacy": "Croquis antic",
   "topos.manageRoutes": "Gestionar vies associades",
   "topos.name": "Nom del croquis",
   "topos.newTitle": "Nou croquis",

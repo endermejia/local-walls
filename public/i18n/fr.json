@@ -739,6 +739,7 @@
   "topos.editor.sortConfirm": "Êtes-vous sûr de vouloir trier les voies de gauche à droite selon leur position à l'écran ?",
   "topos.editTitle": "Modifier le topo",
   "topos.legacy": "Afficher les anciens topos",
+  "topos.markAsLegacy": "Ancien topo",
   "topos.manageRoutes": "Gérer les voies associées",
   "topos.name": "Nom du topo",
   "topos.newTitle": "Nouveau topo",
