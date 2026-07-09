@@ -6,7 +6,6 @@ import {
   Component,
   computed,
   effect,
-  inject,
   input,
   output,
   signal,
@@ -49,7 +48,7 @@ import {
 } from '@taiga-ui/addon-table';
 import type { TuiComparator } from '@taiga-ui/addon-table/types';
 
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
 import { EmptyStateComponent } from '../ui/empty-state';
@@ -123,7 +122,7 @@ import { ROUTE_TABLE_SORTERS } from '../../utils';
                   <th
                     *tuiHead="col"
                     tuiTh
-                    [sorter]="getSorter(col)"
+                    [sorter]="sorters[col]"
                     [class.text-right]="
                       col === 'actions' || col === 'admin_actions'
                     "
@@ -309,7 +308,15 @@ import { ROUTE_TABLE_SORTERS } from '../../utils';
                                   class="shrink-0"
                                 ></div>
                                 <span class="text-sm truncate">
-                                  {{ indoorColorName(item.color) }}
+                                  @let colorName =
+                                    item.color
+                                      ? indoorRouteColors[item.color] || ''
+                                      : '';
+                                  @if (colorName) {
+                                    {{ 'colors.' + colorName | translate }}
+                                  } @else {
+                                    {{ item.color }}
+                                  }
                                 </span>
                               } @else {
                                 <span class="opacity-50 text-xs">-</span>
@@ -561,8 +568,6 @@ import { ROUTE_TABLE_SORTERS } from '../../utils';
   host: { class: 'flex flex-col min-h-0 min-w-0' },
 })
 export class RoutesTableComponent {
-  private readonly translate = inject(TranslateService);
-
   // Inputs
   tableData = input<RoutesTableRow[]>([], { alias: 'data' });
   inputColumns = input<string[]>([], { alias: 'columns' });
@@ -638,10 +643,7 @@ export class RoutesTableComponent {
     });
   }
 
-  protected getSorter(key: string): TuiComparator<RoutesTableRow> | null {
-    const s = this.sorters[key as RoutesTableKey];
-    return s || null;
-  }
+  protected readonly indoorRouteColors = INDOOR_ROUTE_COLORS;
 
   protected onSortChange(sort: TuiTableSortChange<RoutesTableRow>): void {
     if (!sort) return;
@@ -652,11 +654,5 @@ export class RoutesTableComponent {
       key: this.activeCol(), // wrapper can use activeCol or computed col
       direction: sort.sortDirection,
     });
-  }
-
-  protected indoorColorName(colorValue: string | null): string {
-    if (!colorValue) return '';
-    const name = INDOOR_ROUTE_COLORS[colorValue];
-    return name ? this.translate.instant('colors.' + name) : colorValue;
   }
 }
