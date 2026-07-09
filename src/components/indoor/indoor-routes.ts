@@ -55,6 +55,7 @@ import { GradeComponent } from '../ui/avatar-grade';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equippers-input';
 import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
+import { RouteRowExpandedComponent } from '../route/route-row-expanded';
 
 @Component({
   selector: 'app-indoor-routes',
@@ -83,6 +84,7 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
     EmptyStateComponent,
     IndoorRouteEquippersInputComponent,
     ButtonAscentTypeComponent,
+    RouteRowExpandedComponent,
     TuiCheckbox,
     TuiPin,
     TuiChevron,
@@ -405,132 +407,18 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
                       [colSpan]="columns().length"
                       class="p-0! border-none! w-full! max-w-full!"
                     >
-                      <div class="w-full box-border px-1 py-2">
-                        <div
-                          class="flex flex-col gap-3 p-3 bg-(--tui-background-neutral-1) rounded-2xl border border-(--tui-border-normal) w-full overflow-hidden"
-                        >
-                          <div class="flex items-center justify-between">
-                            <!-- Color -->
-                            @if (item.color) {
-                              <div class="flex items-center gap-2">
-                                <div
-                                  tuiPin
-                                  [style.backgroundColor]="item.color"
-                                  style="position: static; transform: scale(0.75); margin: 0;"
-                                  class="shrink-0"
-                                ></div>
-                                <span class="text-sm font-semibold">
-                                  {{ getColorName(item.color) }}
-                                </span>
-                              </div>
-                            } @else {
-                              <span class="opacity-50 text-xs">-</span>
-                            }
-
-                            <!-- Actions -->
-                            <div class="flex items-center gap-3">
-                              @if (centerSlug() || item.center_slug) {
-                                @if (item.own_ascent; as ascent) {
-                                  <app-button-ascent-type
-                                    [type]="$any(ascent.type)"
-                                    [active]="true"
-                                    class="cursor-pointer"
-                                    [tuiHint]="'ascent.edit' | translate"
-                                    (click.zoneless)="
-                                      editAscent(item, ascent);
-                                      $event.stopPropagation()
-                                    "
-                                  />
-                                } @else {
-                                  <button
-                                    size="m"
-                                    appearance="neutral"
-                                    iconStart="@tui.circle-plus"
-                                    tuiIconButton
-                                    type="button"
-                                    class="rounded-full!"
-                                    [tuiHint]="'ascent.new' | translate"
-                                    (click.zoneless)="
-                                      logAscent(item); $event.stopPropagation()
-                                    "
-                                  >
-                                    {{ 'ascent.new' | translate }}
-                                  </button>
-                                }
-                              }
-
-                              @if (canEdit()) {
-                                <button
-                                  size="s"
-                                  appearance="neutral"
-                                  iconStart="@tui.square-pen"
-                                  tuiIconButton
-                                  type="button"
-                                  class="rounded-full!"
-                                  [tuiHint]="'edit' | translate"
-                                  (click.zoneless)="
-                                    editRoute(item); $event.stopPropagation()
-                                  "
-                                >
-                                  {{ 'edit' | translate }}
-                                </button>
-                                <button
-                                  size="s"
-                                  appearance="negative"
-                                  iconStart="@tui.trash"
-                                  tuiIconButton
-                                  type="button"
-                                  class="rounded-full!"
-                                  [tuiHint]="'delete' | translate"
-                                  (click.zoneless)="
-                                    deleteRoute(item); $event.stopPropagation()
-                                  "
-                                >
-                                  {{ 'delete' | translate }}
-                                </button>
-                              }
-                            </div>
-                          </div>
-
-                          <!-- Equippers -->
-                          @if (item.equippers && item.equippers.length > 0) {
-                            <div class="flex flex-wrap gap-1 items-center">
-                              @for (eq of item.equippers; track eq.id) {
-                                <button
-                                  tuiButton
-                                  appearance="secondary"
-                                  size="xs"
-                                  class="min-w-fit! px-2!"
-                                  [routerLink]="['/equipper', eq.id]"
-                                >
-                                  {{ eq.name }}
-                                </button>
-                              }
-                            </div>
-                          }
-
-                          <!-- Topos (Mobile expanded view) -->
-                          @if (item.topos && item.topos.length > 0) {
-                            <div class="flex flex-wrap gap-1 items-center">
-                              @for (t of item.topos; track t.id) {
-                                <a
-                                  tuiLink
-                                  [routerLink]="[
-                                    '/indoor',
-                                    centerSlug() || item.center_slug,
-                                    'topo',
-                                    t.id,
-                                  ]"
-                                  class="text-xs bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700 px-2 py-0.5 rounded-md transition-colors"
-                                  [class.opacity-50]="t.legacy"
-                                >
-                                  {{ t.name }}
-                                </a>
-                              }
-                            </div>
-                          }
-                        </div>
-                      </div>
+                      <app-route-row-expanded
+                        [isIndoor]="true"
+                        [route]="item"
+                        [canEdit]="canEdit()"
+                        [centerSlug]="centerSlug()"
+                        (logAscent)="logAscent($event)"
+                        (editAscent)="
+                          editAscent($event.route, $event.own_ascent)
+                        "
+                        (editRoute)="editRoute($event)"
+                        (deleteRoute)="deleteRoute($event)"
+                      />
                     </td>
                   </tr>
                 </tui-table-expand>
