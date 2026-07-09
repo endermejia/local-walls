@@ -56,8 +56,10 @@ import {
   AscentType,
   RouteAscentWithExtras,
   INDOOR_ROUTE_COLORS,
+  RoutesTableRow,
 } from '../../models';
 import { GradeComponent } from '../ui/avatar-grade';
+import { mapRouteToTableRow } from '../../utils';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equippers-input';
 import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
@@ -414,10 +416,7 @@ import { RouteRowExpandedComponent } from '../route/route-row-expanded';
                       class="p-0! border-none! w-full! max-w-full!"
                     >
                       <app-route-row-expanded
-                        [isIndoor]="true"
-                        [route]="item"
-                        [canEdit]="canEdit()"
-                        [centerSlug]="centerSlug()"
+                        [route]="mapRoute(item)"
                         (logAscent)="logAscent($event)"
                         (editAscent)="
                           editAscent($event.route, $event.own_ascent)
@@ -668,6 +667,15 @@ export class IndoorRoutesComponent {
     }
   }
 
+  protected mapRoute(r: IndoorRouteWithExtras): RoutesTableRow {
+    const row = mapRouteToTableRow(r);
+    const isEdit = this.canEdit();
+    row.canEdit = isEdit;
+    row.canDelete = isEdit;
+    row.canAddTopo = isEdit;
+    return row;
+  }
+
   protected getAscentBackground(type: string | null): string {
     const info = (this.ascentsService.ascentInfo() as any)[type || 'default'];
     return info?.backgroundSubtle ?? '';
@@ -675,10 +683,12 @@ export class IndoorRoutesComponent {
 
   async editAscent(
     route: IndoorRouteWithExtras | RouteItem,
-    ascent: RouteAscentWithExtras | { id: string; type: AscentType | null },
+    ascent:
+      | RouteAscentWithExtras
+      | { id: string | number; type: AscentType | null },
   ): Promise<void> {
     const r = route as IndoorRouteWithExtras;
-    const asc = ascent as { id: string; type: AscentType | null };
+    const asc = ascent as { id: string | number; type: AscentType | null };
     const success = await firstValueFrom(
       this.ascentsService.openAscentForm({
         ascentData: {

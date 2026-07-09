@@ -8,8 +8,8 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { RouterLink } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import {
   TuiButton,
   TuiDataList,
@@ -26,10 +26,11 @@ import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
 import { RouteEquippersInputComponent } from './route-equippers-input';
 import { IndoorRouteEquippersInputComponent } from './indoor-route-equippers-input';
 import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
+
 import {
   RoutesTableRow,
-  IndoorRouteWithExtras,
   RouteItem,
+  IndoorRouteWithExtras,
   RouteAscentWithExtras,
   AscentType,
   INDOOR_ROUTE_COLORS,
@@ -57,9 +58,7 @@ import {
     IncludesIdPipe,
   ],
   template: `
-    @let isEditing = global.editingMode();
-    @let outdoor = outdoorRoute();
-    @let indoor = indoorRoute();
+    @let item = route();
 
     <div class="w-full box-border px-1 py-2">
       <div
@@ -71,179 +70,104 @@ import {
         >
           <!-- Left section: Metadata -->
           <div class="flex items-center gap-3">
-            @if (outdoor) {
-              @if (outdoor.height) {
-                <div class="flex items-center gap-1 opacity-70">
-                  <tui-icon icon="@tui.arrow-up-right" class="text-xs" />
-                  <span class="font-medium">{{ outdoor.height }}m</span>
-                </div>
-              }
-              @if (outdoor.rating) {
-                <div class="flex items-center gap-1 opacity-70">
-                  <tui-icon icon="@tui.star" class="text-xs" />
-                  <span class="font-medium">{{
-                    outdoor.rating | number: '1.1-1'
-                  }}</span>
-                </div>
-              }
-            } @else if (indoor) {
-              @if (indoor.color) {
-                <div class="flex items-center gap-2">
-                  <div
-                    tuiPin
-                    [style.backgroundColor]="indoor.color"
-                    style="position: static; transform: scale(0.75); margin: 0;"
-                    class="shrink-0"
-                  ></div>
-                  <span class="text-sm font-semibold">
-                    {{ colorName() }}
-                  </span>
-                </div>
-              }
-              @if (indoor.rating) {
-                <div class="flex items-center gap-1 opacity-70">
-                  <tui-icon icon="@tui.star" class="text-xs" />
-                  <span class="font-medium">{{
-                    indoor.rating | number: '1.1-1'
-                  }}</span>
-                </div>
-              }
+            @if (item.height) {
+              <div class="flex items-center gap-1 opacity-70">
+                <tui-icon icon="@tui.arrow-up-right" class="text-xs" />
+                <span class="font-medium">{{ item.height }}m</span>
+              </div>
+            }
+            @if (item.color) {
+              <div class="flex items-center gap-2">
+                <div
+                  tuiPin
+                  [style.backgroundColor]="item.color"
+                  style="position: static; transform: scale(0.75); margin: 0;"
+                  class="shrink-0"
+                ></div>
+                <span class="text-sm font-semibold">
+                  @let colorNameKey =
+                    item.color ? indoorRouteColors[item.color] || '' : '';
+                  @if (colorNameKey) {
+                    {{ 'colors.' + colorNameKey | translate }}
+                  } @else {
+                    {{ item.color }}
+                  }
+                </span>
+              </div>
+            }
+            @if (item.rating) {
+              <div class="flex items-center gap-1 opacity-70">
+                <tui-icon icon="@tui.star" class="text-xs" />
+                <span class="font-medium">{{
+                  item.rating | number: '1.1-1'
+                }}</span>
+              </div>
             }
           </div>
 
           <!-- Right section: Actions -->
           <div class="flex items-center gap-3">
-            @if (outdoor) {
-              @if (!outdoor.climbed) {
-                <button
-                  size="m"
-                  appearance="neutral"
-                  iconStart="@tui.circle-plus"
-                  tuiIconButton
-                  type="button"
-                  class="rounded-full!"
-                  [tuiHint]="'ascent.new' | translate"
-                  (click.zoneless)="
-                    logAscent.emit(outdoor._ref); $event.stopPropagation()
-                  "
-                >
-                  {{ 'ascent.new' | translate }}
-                </button>
-              } @else if (outdoor._ref.own_ascent; as ascentToEdit) {
-                <app-button-ascent-type
-                  [type]="$any(ascentToEdit.type)"
-                  [active]="true"
-                  class="cursor-pointer"
-                  tabindex="0"
-                  [tuiHint]="'ascent.edit' | translate"
-                  (click.zoneless)="
-                    editAscent.emit({
-                      route: outdoor._ref,
-                      own_ascent: ascentToEdit,
-                    });
-                    $event.stopPropagation()
-                  "
-                  (keydown.enter)="
-                    editAscent.emit({
-                      route: outdoor._ref,
-                      own_ascent: ascentToEdit,
-                    });
-                    $event.stopPropagation()
-                  "
-                />
-              }
+            @if (item.own_ascent; as ascent) {
+              <app-button-ascent-type
+                [type]="$any(ascent.type)"
+                [active]="true"
+                class="cursor-pointer"
+                [tuiHint]="'ascent.edit' | translate"
+                (click.zoneless)="
+                  editAscent.emit({ route: item._ref, own_ascent: ascent });
+                  $event.stopPropagation()
+                "
+              />
+            } @else {
+              <button
+                size="m"
+                appearance="neutral"
+                iconStart="@tui.circle-plus"
+                tuiIconButton
+                type="button"
+                class="rounded-full!"
+                [tuiHint]="'ascent.new' | translate"
+                (click.zoneless)="
+                  logAscent.emit(item._ref); $event.stopPropagation()
+                "
+              >
+                {{ 'ascent.new' | translate }}
+              </button>
+            }
 
-              @if (!outdoor.climbed) {
-                <button
-                  size="m"
-                  [appearance]="outdoor.project ? 'info' : 'neutral'"
-                  iconStart="@tui.bookmark"
-                  tuiIconButton
-                  type="button"
-                  class="rounded-full!"
-                  [tuiHint]="'project' | translate"
-                  (click.zoneless)="
-                    toggleProject.emit(outdoor); $event.stopPropagation()
-                  "
-                >
-                  {{ 'project' | translate }}
-                </button>
-              }
+            @if (!item.isIndoor && !item.climbed) {
+              <button
+                size="m"
+                [appearance]="item.project ? 'info' : 'neutral'"
+                iconStart="@tui.bookmark"
+                tuiIconButton
+                type="button"
+                class="rounded-full!"
+                [tuiHint]="'project' | translate"
+                (click.zoneless)="
+                  toggleProject.emit(item); $event.stopPropagation()
+                "
+              >
+                {{ 'project' | translate }}
+              </button>
+            }
 
-              @if (canEdit() && showAdminActions()) {
-                <button
-                  size="s"
-                  appearance="neutral"
-                  iconStart="@tui.square-pen"
-                  tuiIconButton
-                  type="button"
-                  class="rounded-full!"
-                  (click.zoneless)="
-                    editRoute.emit(outdoor._ref); $event.stopPropagation()
-                  "
-                >
-                  {{ 'edit' | translate }}
-                </button>
-                <button
-                  size="s"
-                  appearance="negative"
-                  iconStart="@tui.trash"
-                  tuiIconButton
-                  type="button"
-                  class="rounded-full!"
-                  (click.zoneless)="
-                    deleteRoute.emit(outdoor._ref); $event.stopPropagation()
-                  "
-                >
-                  {{ 'delete' | translate }}
-                </button>
-              }
-            } @else if (indoor) {
-              @if (centerSlug() || indoor.center_slug) {
-                @if (indoor.own_ascent; as ascent) {
-                  <app-button-ascent-type
-                    [type]="ascent.type"
-                    [active]="true"
-                    class="cursor-pointer"
-                    [tuiHint]="'ascent.edit' | translate"
-                    (click.zoneless)="
-                      editAscent.emit({ route: indoor, own_ascent: ascent });
-                      $event.stopPropagation()
-                    "
-                  />
-                } @else {
-                  <button
-                    size="m"
-                    appearance="neutral"
-                    iconStart="@tui.circle-plus"
-                    tuiIconButton
-                    type="button"
-                    class="rounded-full!"
-                    [tuiHint]="'ascent.new' | translate"
-                    (click.zoneless)="
-                      logAscent.emit(indoor); $event.stopPropagation()
-                    "
-                  >
-                    {{ 'ascent.new' | translate }}
-                  </button>
-                }
-              }
-
-              @if (canEdit()) {
-                <button
-                  size="s"
-                  appearance="neutral"
-                  iconStart="@tui.square-pen"
-                  tuiIconButton
-                  type="button"
-                  class="rounded-full!"
-                  [tuiHint]="'edit' | translate"
-                  (click.zoneless)="
-                    editRoute.emit(indoor); $event.stopPropagation()
-                  "
-                >
-                  {{ 'edit' | translate }}
-                </button>
+            @if (item.canEdit && showAdminActions()) {
+              <button
+                size="s"
+                appearance="neutral"
+                iconStart="@tui.square-pen"
+                tuiIconButton
+                type="button"
+                class="rounded-full!"
+                [tuiHint]="'edit' | translate"
+                (click.zoneless)="
+                  editRoute.emit(item._ref); $event.stopPropagation()
+                "
+              >
+                {{ 'edit' | translate }}
+              </button>
+              @if (item.canDelete) {
                 <button
                   size="s"
                   appearance="negative"
@@ -253,7 +177,7 @@ import {
                   class="rounded-full!"
                   [tuiHint]="'delete' | translate"
                   (click.zoneless)="
-                    deleteRoute.emit(indoor); $event.stopPropagation()
+                    deleteRoute.emit(item._ref); $event.stopPropagation()
                   "
                 >
                   {{ 'delete' | translate }}
@@ -264,43 +188,39 @@ import {
         </div>
 
         <!-- Second Row: Equippers -->
-        @if (canEdit()) {
+        @if (item.canEdit) {
           <div class="w-full">
             @if (outdoorRouteRef(); as outRef) {
               <app-route-equippers-input [route]="outRef" />
-            } @else if (indoor) {
-              <app-indoor-route-equippers-input [route]="indoor" />
+            } @else if (indoorRoute(); as inRef) {
+              <app-indoor-route-equippers-input [route]="inRef" />
             }
           </div>
         } @else {
-          @let equippers =
-            outdoor ? outdoor._ref.equippers : indoor?.equippers || [];
+          @let equippers = item.equippers;
           @if (equippers && equippers.length > 0) {
             <div class="flex flex-wrap gap-1 items-center">
               <span class="text-xs opacity-60 mr-1"
                 >{{ 'equippers' | translate }}:</span
               >
               @for (e of equippers; track e.id) {
-                <button
-                  tuiButton
-                  appearance="secondary"
-                  size="xs"
-                  class="min-w-fit! px-2!"
-                  (click)="navigateToEquipper(e.id); $event.stopPropagation()"
+                <a
+                  tuiLink
+                  [routerLink]="['/equipper', e.id]"
+                  class="text-xs bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 px-2 py-0.5 rounded-md transition-colors truncate max-w-full font-medium"
+                  (click)="$event.stopPropagation()"
                 >
                   {{ e.name }}
-                </button>
+                </a>
               }
             </div>
           }
         }
 
         <!-- Third Row: Croquis (Topos) -->
-        @let outdoorTopos = outdoor?.topos || [];
-        @let indoorTopos = indoor?.topos || [];
-        @let toposList = isIndoor() ? indoorTopos : outdoorTopos;
+        @let toposList = item.topos;
         @let toposCount = toposList.length;
-        @let canAddTopo = isEditing && showAddRouteToTopo();
+        @let canAddTopo = item.canAddTopo && showAddRouteToTopo();
 
         @if (toposCount > 0 || canAddTopo) {
           <div
@@ -313,20 +233,14 @@ import {
             @if (toposList.length > 0) {
               <div tuiGroup [collapsed]="true">
                 @for (t of toposList; track t.id) {
-                  <button
-                    tuiButton
-                    appearance="secondary"
-                    class="min-w-fit!"
-                    size="xs"
-                    [class.opacity-50]="t.legacy"
-                    (click.zoneless)="
-                      isIndoor()
-                        ? navigateToIndoorTopo('' + t.id)
-                        : navigateToTopo(t.id)
-                    "
+                  <a
+                    tuiLink
+                    [routerLink]="t.link"
+                    class="text-xs bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 px-2 py-0.5 rounded-md transition-colors truncate max-w-full font-medium"
+                    (click)="$event.stopPropagation()"
                   >
                     {{ t.name }}
-                  </button>
+                  </a>
                 }
                 @if (canAddTopo) {
                   <button
@@ -363,22 +277,16 @@ import {
 
             <ng-template #toposMenuExpanded>
               <tui-data-list>
-                @let list =
-                  isIndoor()
-                    ? availableTopos()
-                    : global.cragDetail()?.topos || [];
+                @let list = availableTopos();
                 @for (topo of list; track topo.id) {
-                  @let isAttached =
-                    isIndoor()
-                      ? (indoorRoute()?.topos | includesId: topo.id)
-                      : (outdoorRouteRef()?.topos | includesId: topo.id);
+                  @let isAttached = item.topos | includesId: topo.id;
                   <button
                     tuiOption
                     new
                     (click)="
                       toggleRouteOnTopo.emit({
                         topoId: topo.id,
-                        routeId: currentRouteId()!,
+                        routeId: item.id,
                         isAttached: isAttached,
                       });
                       isDropdownOpen.set(false)
@@ -397,25 +305,25 @@ import {
         }
 
         <!-- Fourth Row: Location -->
-        @if (outdoor && showLocation()) {
+        @if (!item.isIndoor && showLocation() && item.area_slug) {
           <div
             class="text-xs opacity-60 flex gap-1 items-center border-t border-(--tui-border-normal) pt-2"
           >
             <tui-icon icon="@tui.map-pin" class="text-[10px]" />
             <a
               tuiLink
-              [routerLink]="['/area', outdoor.area_slug]"
+              [routerLink]="['/area', item.area_slug]"
               (click)="$event.stopPropagation()"
             >
-              {{ outdoor.area_name }}
+              {{ item.area_name }}
             </a>
             <span>/</span>
             <a
               tuiLink
-              [routerLink]="['/area', outdoor.area_slug, outdoor.crag_slug]"
+              [routerLink]="['/area', item.area_slug, item.crag_slug]"
               (click)="$event.stopPropagation()"
             >
-              {{ outdoor.crag_name }}
+              {{ item.crag_name }}
             </a>
           </div>
         }
@@ -425,19 +333,18 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RouteRowExpandedComponent {
-  isIndoor = input<boolean>(false);
-  route = input.required<RoutesTableRow | IndoorRouteWithExtras>();
-  canEdit = input<boolean>(false);
+  route = input.required<RoutesTableRow>();
   showAdminActions = input<boolean>(true);
   showLocation = input<boolean>(false);
   showAddRouteToTopo = input<boolean>(false);
-  centerSlug = input<string | null | undefined>(undefined);
   availableTopos = input<{ id: number | string; name: string }[]>([]);
 
   logAscent = output<RouteItem | IndoorRouteWithExtras>();
   editAscent = output<{
     route: RouteItem | IndoorRouteWithExtras;
-    own_ascent: RouteAscentWithExtras | { id: string; type: AscentType | null };
+    own_ascent:
+      | RouteAscentWithExtras
+      | { id: string | number; type: AscentType | null };
   }>();
   toggleProject = output<RoutesTableRow>();
   editRoute = output<RouteItem | IndoorRouteWithExtras>();
@@ -449,70 +356,20 @@ export class RouteRowExpandedComponent {
   }>();
 
   protected readonly global = inject(GlobalData);
-  private readonly router = inject(Router);
-  private readonly translate = inject(TranslateService);
 
   protected readonly isDropdownOpen = signal(false);
 
-  protected readonly currentRouteId = computed<number | string | null>(() => {
-    if (this.isIndoor()) {
-      return this.indoorRoute()?.id ?? null;
-    }
-    return this.outdoorRouteId();
-  });
-
-  protected readonly outdoorRoute = computed<RoutesTableRow | null>(() => {
-    return this.isIndoor() ? null : (this.route() as RoutesTableRow);
-  });
-
   protected readonly outdoorRouteRef = computed<RouteItem | null>(() => {
-    const r = this.outdoorRoute();
-    return r ? (r._ref as RouteItem) : null;
-  });
-
-  protected readonly outdoorRouteId = computed<number | null>(() => {
-    const ref = this.outdoorRouteRef();
-    return ref ? ref.id : null;
+    const r = this.route();
+    return r && !r.isIndoor ? (r._ref as RouteItem) : null;
   });
 
   protected readonly indoorRoute = computed<IndoorRouteWithExtras | null>(
     () => {
-      return this.isIndoor() ? (this.route() as IndoorRouteWithExtras) : null;
+      const r = this.route();
+      return r && r.isIndoor ? (r._ref as IndoorRouteWithExtras) : null;
     },
   );
 
-  protected readonly colorName = computed(() => {
-    const routeVal = this.indoorRoute();
-    if (!routeVal || !routeVal.color) return '';
-    return this.getColorName(routeVal.color);
-  });
-
-  protected navigateToTopo(topoId: number | string): void {
-    const r = this.outdoorRoute();
-    if (!r || !r.area_slug || !r.crag_slug) return;
-    const tid = typeof topoId === 'string' ? parseInt(topoId, 10) : topoId;
-    void this.router.navigate(['/area', r.area_slug, r.crag_slug, 'topo', tid]);
-  }
-
-  protected navigateToIndoorTopo(topoId: string): void {
-    const r = this.indoorRoute();
-    if (!r) return;
-    void this.router.navigate([
-      '/indoor',
-      this.centerSlug() || r.center_slug,
-      'topo',
-      topoId,
-    ]);
-  }
-
-  protected navigateToEquipper(id: string | number): void {
-    void this.router.navigate(['/equipper', String(id)]);
-  }
-
-  private getColorName(colorValue: string): string {
-    const colorName = INDOOR_ROUTE_COLORS[colorValue];
-    return colorName
-      ? this.translate.instant('colors.' + colorName)
-      : colorValue;
-  }
+  protected readonly indoorRouteColors = INDOOR_ROUTE_COLORS;
 }
