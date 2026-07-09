@@ -18,9 +18,11 @@ import {
 import { TuiDialogService } from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
+  TuiBadge,
   TuiChevron,
   type TuiConfirmData,
   TuiInputNumber,
+  TuiPin,
   TuiRating,
 } from '@taiga-ui/kit';
 import {
@@ -57,6 +59,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { AscentsService } from '../../services/ascents.service';
 import { GlobalData } from '../../services/global-data';
+import { IndoorService } from '../../services/indoor.service';
 import { RoutesService } from '../../services/routes.service';
 import { ToastService } from '../../services/toast.service';
 import { ToposService } from '../../services/topos.service';
@@ -64,6 +67,7 @@ import { ToposService } from '../../services/topos.service';
 import { ButtonAscentTypeComponent } from '../ascent/button-ascent-type';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { GradeComponent } from '../ui/avatar-grade';
+import { IndoorRouteEquippersInputComponent } from './indoor-route-equippers-input';
 import { RouteEquippersInputComponent } from './route-equippers-input';
 import { RouteRowExpandedComponent } from './route-row-expanded';
 
@@ -73,6 +77,8 @@ import {
   RoutesTableRow,
   RouteItem,
   IndoorRouteWithExtras,
+  AscentType,
+  INDOOR_ROUTE_COLORS,
 } from '../../models';
 
 import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
@@ -90,10 +96,12 @@ import {
     FormsModule,
     GradeComponent,
     IncludesIdPipe,
+    IndoorRouteEquippersInputComponent,
     RouteEquippersInputComponent,
     RouteRowExpandedComponent,
     RouterLink,
     TranslatePipe,
+    TuiBadge,
     TuiButton,
     TuiCell,
     TuiChevron,
@@ -105,6 +113,7 @@ import {
     TuiInput,
     TuiInputNumber,
     TuiLink,
+    TuiPin,
     TuiRating,
     TuiScrollbar,
     TuiTable,
@@ -119,10 +128,12 @@ import {
     TuiTableSortPipe,
   ],
   template: `
-    @if (tableData(); as data) {
-      @if (data.length > 0) {
-        @let isMobile = global.isMobile();
-        @let canEditAsAdmin = global.canEditAsAdmin();
+    @let isMobile = global.isMobile();
+    @let canEditAsAdmin = global.canEditAsAdmin();
+
+    @if (isIndoor()) {
+      @let indoorRoutes = indoorData() ?? [];
+      @if (indoorRoutes.length > 0) {
         <tui-scrollbar class="grow min-h-0 no-scrollbar">
           <table
             tuiTable
@@ -130,9 +141,9 @@ import {
             class="w-full"
             [class.table-fixed]="isMobile"
             [columns]="columns()"
-            [direction]="currentDirection"
-            [sorter]="currentSorter"
-            (sortChange)="onSortChange($event)"
+            [direction]="currentIndoorDirection"
+            [sorter]="currentIndoorSorter"
+            (sortChange)="onIndoorSortChange($event)"
           >
             <thead tuiThead>
               <tr tuiThGroup>
@@ -140,14 +151,13 @@ import {
                   <th
                     *tuiHead="col"
                     tuiTh
-                    [sorter]="getSorter(col)"
+                    [sorter]="getIndoorSorter(col)"
                     [class.text-right]="
                       col === 'actions' || col === 'admin_actions'
                     "
                     [class.w-12!]="col === 'expand'"
-                    [class.w-16!]="col === 'height'"
-                    [class.w-20!]="col === 'grade' || col === 'ascents'"
-                    [class.w-24!]="col === 'rating'"
+                    [class.w-20!]="col === 'grade'"
+                    [class.w-24!]="col === 'color' || col === 'rating'"
                     [class.w-32!]="col === 'actions' || col === 'admin_actions'"
                     [class.w-64!]="col === 'equippers'"
                   >
@@ -176,21 +186,16 @@ import {
                 }
               </tr>
             </thead>
-            @let sortedData = data | tuiTableSort;
-            @for (item of sortedData; track item.key) {
-              @let canEditRoute = global.canEditCragRoutes()[item._ref.id];
+            @let sortedIndoor = indoorRoutes | tuiTableSort;
+            @for (item of sortedIndoor; track item.id) {
               <tbody tuiTbody>
                 <tr
                   tuiTr
                   [style.background]="
-                    showRowColors()
-                      ? item.climbed
-                        ? ascentsService.ascentInfo()[
-                            item._ref.own_ascent?.type || 'default'
-                          ].backgroundSubtle
-                        : item.project
-                          ? 'var(--tui-status-info-pale)'
-                          : ''
+                    item.own_ascent
+                      ? (ascentsService.ascentInfo()[
+                          item.own_ascent.type || 'default'
+                        ]?.backgroundSubtle ?? '')
                       : ''
                   "
                 >
@@ -219,90 +224,87 @@ import {
                         @case ('grade') {
                           <div tuiCell size="m">
                             <app-grade
-                              [grade]="item._ref.grade"
-                              [kind]="item._ref.climbing_kind"
+                              [grade]="item.grade || 0"
+                              [kind]="item.climbing_kind"
                             />
                           </div>
                         }
                         @case ('route') {
                           <div tuiCell size="m">
-                            <div class="flex flex-col min-w-0">
+                            <div
+                              class="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0"
+                            >
                               <a
                                 tuiLink
-                                [routerLink]="item.link"
-                                [style.color]="
-                                  item.liked ? 'var(--tui-status-negative)' : ''
-                                "
-                                class="align-self-start font-bold text-base truncate max-w-full block"
+                                [routerLink]="[
+                                  '/indoor',
+                                  item.center_slug || centerSlug(),
+                                  'route',
+                                  item.slug,
+                                ]"
+                                class="font-bold text-base truncate max-w-full"
                               >
-                                {{ item.route || ('route' | translate) }}
+                                {{ item.name || ('route' | translate) }}
                               </a>
-                              @if (showLocation() && !isMobile) {
-                                <div
-                                  class="text-xs opacity-70 flex gap-1 items-center whitespace-nowrap"
+                              @if (item.legacy) {
+                                <span
+                                  tuiBadge
+                                  size="s"
+                                  appearance="neutral"
+                                  class="uppercase text-[10px] shrink-0"
                                 >
-                                  <a
-                                    tuiLink
-                                    [routerLink]="['/area', item.area_slug]"
-                                  >
-                                    {{ item.area_name }}
-                                  </a>
-                                  <span>/</span>
-                                  <a
-                                    tuiLink
-                                    [routerLink]="[
-                                      '/area',
-                                      item.area_slug,
-                                      item.crag_slug,
-                                    ]"
-                                  >
-                                    {{ item.crag_name }}
-                                  </a>
-                                </div>
+                                  {{ 'indoor.legacy' | translate }}
+                                </span>
                               }
                             </div>
                           </div>
                         }
-                        @case ('height') {
-                          <div tuiCell size="m" class="justify-center h-full">
-                            @if (canEditRoute) {
-                              <tui-textfield
-                                [tuiTextfieldCleaner]="false"
-                                tuiTextfieldSize="s"
-                                [class.w-16!]="!isMobile"
-                                [class.w-12!]="isMobile"
-                                class="h-8!"
-                              >
-                                <input
-                                  tuiInputNumber
-                                  class="text-center h-full! border-none! p-0! route-height-input"
-                                  [ngModel]="item.height"
-                                  (blur.zoneless)="
-                                    onUpdateRouteHeight(
-                                      item._ref,
-                                      $any($event.target).value
-                                    )
-                                  "
-                                  (keydown.enter)="
-                                    onUpdateRouteHeight(
-                                      item._ref,
-                                      $any($event.target).value
-                                    )
-                                  "
-                                  autocomplete="off"
-                                />
-                                <span class="tui-textfield__suffix">m</span>
-                              </tui-textfield>
-                            } @else {
-                              {{ item.height ? item.height + 'm' : '-' }}
-                            }
+                        @case ('topo') {
+                          <div tuiCell size="m">
+                            <div class="flex flex-wrap gap-1 min-w-0">
+                              @for (t of item.topos; track t.id) {
+                                <a
+                                  tuiLink
+                                  [routerLink]="[
+                                    '/indoor',
+                                    centerSlug() || item.center_slug,
+                                    'topo',
+                                    t.id,
+                                  ]"
+                                  class="text-xs bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 px-2 py-0.5 rounded-md transition-colors truncate max-w-full font-medium"
+                                >
+                                  {{ t.name }}
+                                </a>
+                              } @empty {
+                                <span class="opacity-50 text-xs">-</span>
+                              }
+                            </div>
+                          </div>
+                        }
+                        @case ('color') {
+                          <div tuiCell size="m">
+                            <div class="flex items-center gap-2 min-w-0">
+                              @if (item.color) {
+                                <div
+                                  tuiPin
+                                  [style.backgroundColor]="item.color"
+                                  style="position: static; transform: scale(0.75); margin: 0;"
+                                  class="shrink-0"
+                                ></div>
+                                <span class="text-sm truncate">
+                                  {{ indoorColorName(item.color) }}
+                                </span>
+                              } @else {
+                                <span class="opacity-50 text-xs">-</span>
+                              }
+                            </div>
                           </div>
                         }
                         @case ('rating') {
                           <div tuiCell size="m">
                             <tui-rating
                               [max]="5"
-                              [ngModel]="item.rating"
+                              [ngModel]="item.rating ?? 0"
                               [readOnly]="true"
                               [style.font-size.rem]="1"
                             />
@@ -310,137 +312,32 @@ import {
                         }
                         @case ('ascents') {
                           <div tuiCell size="m">
-                            <span>{{ item.ascents }}</span>
-                          </div>
-                        }
-                        @case ('topo') {
-                          <div tuiCell size="m">
-                            <div class="flex flex-wrap gap-x-1 gap-y-0">
-                              @let toposCount = item.topos.length;
-                              @if (toposCount > 0) {
-                                <div tuiGroup [collapsed]="true">
-                                  @for (t of item.topos; track t.id) {
-                                    <button
-                                      tuiButton
-                                      appearance="secondary"
-                                      class="min-w-fit!"
-                                      size="xs"
-                                      (click.zoneless)="
-                                        router.navigate([
-                                          '/area',
-                                          item.area_slug,
-                                          item.crag_slug,
-                                          'topo',
-                                          t.id,
-                                        ])
-                                      "
-                                    >
-                                      {{ t.name }}
-                                    </button>
-                                  }
-                                  @if (
-                                    global.editingMode() &&
-                                    canEditRoute &&
-                                    showAddRouteToTopo()
-                                  ) {
-                                    <button
-                                      appearance="secondary"
-                                      size="xs"
-                                      tuiIconButton
-                                      type="button"
-                                      iconStart="@tui.chevron-down"
-                                      [tuiDropdown]="toposMenu"
-                                      [tuiDropdownOpen]="
-                                        openDropdownId() === item.key
-                                      "
-                                      (tuiDropdownOpenChange)="
-                                        openDropdownId.set(
-                                          $event ? item.key : null
-                                        )
-                                      "
-                                    >
-                                      {{ 'addRouteToTopo' | translate }}
-                                    </button>
-                                  }
-                                </div>
-                              } @else if (
-                                global.editingMode() &&
-                                canEditRoute &&
-                                showAddRouteToTopo()
-                              ) {
-                                <button
-                                  appearance="flat-grayscale"
-                                  size="xs"
-                                  tuiButton
-                                  type="button"
-                                  class="rounded-full!"
-                                  iconStart="@tui.plus"
-                                  [tuiDropdown]="toposMenu"
-                                  [tuiDropdownOpen]="
-                                    openDropdownId() === item.key
-                                  "
-                                  (tuiDropdownOpenChange)="
-                                    openDropdownId.set($event ? item.key : null)
-                                  "
-                                >
-                                  {{ 'addRouteToTopo' | translate }}
-                                </button>
-                              }
-                              <ng-template #toposMenu>
-                                <tui-data-list>
-                                  @for (
-                                    topo of global.cragDetail()?.topos || [];
-                                    track topo.id
-                                  ) {
-                                    @let isAttached =
-                                      item.topos | includesId: topo.id;
-
-                                    <button
-                                      tuiOption
-                                      new
-                                      (click)="
-                                        toggleRouteOnTopo(
-                                          topo.id,
-                                          item._ref.id,
-                                          isAttached
-                                        );
-                                        openDropdownId.set(null)
-                                      "
-                                    >
-                                      <tui-icon
-                                        [icon]="
-                                          isAttached
-                                            ? '@tui.check'
-                                            : '@tui.image'
-                                        "
-                                        class="mr-2"
-                                      />
-                                      {{ topo.name }}
-                                    </button>
-                                  }
-                                </tui-data-list>
-                              </ng-template>
-                            </div>
+                            <span>{{ item.ascent_count ?? 0 }}</span>
                           </div>
                         }
                         @case ('equippers') {
-                          <div tuiCell size="m" class="h-full py-0">
-                            @if (canEditRoute) {
-                              <app-route-equippers-input [route]="item._ref" />
-                            } @else if (item._ref.equippers; as equippers) {
-                              <div class="flex flex-wrap gap-1">
-                                @for (e of equippers; track e.id) {
+                          <div tuiCell size="m" class="grow min-w-0">
+                            @if (canEditIndoor()) {
+                              <app-indoor-route-equippers-input
+                                [route]="item"
+                                (equippersChanged)="
+                                  indoorService.reloadCenterRoutes()
+                                "
+                              />
+                            } @else {
+                              <div class="flex flex-wrap gap-1 items-center">
+                                @for (eq of item.equippers; track eq.id) {
                                   <button
                                     tuiButton
                                     appearance="secondary"
                                     size="xs"
                                     class="min-w-fit! px-2!"
-                                    (click)="
-                                      router.navigate(['/equipper', e.id])
-                                    "
+                                    [routerLink]="['/equipper', eq.id]"
                                   >
-                                    {{ e.name }}
+                                    {{ eq.name }}
                                   </button>
+                                } @empty {
+                                  <span class="opacity-50 text-xs">-</span>
                                 }
                               </div>
                             }
@@ -448,7 +345,17 @@ import {
                         }
                         @case ('actions') {
                           <div tuiCell size="m">
-                            @if (!item.climbed) {
+                            @if (item.own_ascent; as ascent) {
+                              <app-button-ascent-type
+                                [type]="ascent.type"
+                                [active]="true"
+                                class="cursor-pointer"
+                                [tuiHint]="'ascent.edit' | translate"
+                                (click.zoneless)="
+                                  editIndoorAscent(item, ascent)
+                                "
+                              />
+                            } @else {
                               <button
                                 size="m"
                                 appearance="neutral"
@@ -457,79 +364,39 @@ import {
                                 type="button"
                                 class="rounded-full!"
                                 [tuiHint]="'ascent.new' | translate"
-                                (click.zoneless)="onLogAscent(item._ref)"
+                                (click.zoneless)="logIndoorAscent(item)"
                               >
                                 {{ 'ascent.new' | translate }}
-                              </button>
-                            } @else if (item._ref.own_ascent; as ascentToEdit) {
-                              <app-button-ascent-type
-                                [type]="ascentToEdit?.type"
-                                [active]="true"
-                                class="cursor-pointer"
-                                tabindex="0"
-                                [tuiHint]="'ascent.edit' | translate"
-                                (click.zoneless)="
-                                  onEditAscent(ascentToEdit, item._ref.name)
-                                "
-                                (keydown.enter)="
-                                  onEditAscent(ascentToEdit, item._ref.name)
-                                "
-                              />
-                            }
-
-                            @if (!item.climbed) {
-                              <button
-                                size="m"
-                                [appearance]="item.project ? 'info' : 'neutral'"
-                                iconStart="@tui.bookmark"
-                                tuiIconButton
-                                type="button"
-                                class="rounded-full!"
-                                [tuiHint]="'project' | translate"
-                                (click.zoneless)="
-                                  routesService.toggleRouteProject(
-                                    item._ref.id,
-                                    item._ref
-                                  )
-                                "
-                              >
-                                {{ 'project' | translate }}
                               </button>
                             }
                           </div>
                         }
                         @case ('admin_actions') {
-                          <div tuiCell size="m">
-                            @if (canEditRoute) {
-                              @let canAreaAdmin =
-                                global.areaAdminPermissions()[
-                                  item._ref.area_id || -1
-                                ];
-                              <button
-                                size="s"
-                                appearance="neutral"
-                                iconStart="@tui.square-pen"
-                                tuiIconButton
-                                type="button"
-                                class="rounded-full!"
-                                (click.zoneless)="openEditRoute(item._ref)"
-                              >
-                                {{ 'edit' | translate }}
-                              </button>
-                              @if (canEditAsAdmin || canAreaAdmin) {
-                                <button
-                                  size="s"
-                                  appearance="negative"
-                                  iconStart="@tui.trash"
-                                  tuiIconButton
-                                  type="button"
-                                  class="rounded-full!"
-                                  (click.zoneless)="deleteRoute(item._ref)"
-                                >
-                                  {{ 'delete' | translate }}
-                                </button>
-                              }
-                            }
+                          <div class="flex gap-1 justify-end items-center">
+                            <button
+                              size="s"
+                              appearance="neutral"
+                              iconStart="@tui.square-pen"
+                              tuiIconButton
+                              type="button"
+                              class="rounded-full!"
+                              [tuiHint]="'edit' | translate"
+                              (click.zoneless)="editIndoorRoute(item)"
+                            >
+                              {{ 'edit' | translate }}
+                            </button>
+                            <button
+                              size="s"
+                              appearance="negative"
+                              iconStart="@tui.trash"
+                              tuiIconButton
+                              type="button"
+                              class="rounded-full!"
+                              [tuiHint]="'delete' | translate"
+                              (click.zoneless)="deleteIndoorRoute(item)"
+                            >
+                              {{ 'delete' | translate }}
+                            </button>
                           </div>
                         }
                       }
@@ -543,31 +410,16 @@ import {
                       class="p-0! border-none! w-full! max-w-full!"
                     >
                       <app-route-row-expanded
-                        [isIndoor]="false"
+                        [isIndoor]="true"
                         [route]="item"
-                        [canEdit]="canEditRoute"
-                        [showAdminActions]="showAdminActions()"
-                        [showLocation]="showLocation()"
-                        [showAddRouteToTopo]="showAddRouteToTopo()"
-                        (logAscent)="onLogAscent($event)"
+                        [canEdit]="canEditIndoor()"
+                        [centerSlug]="centerSlug()"
+                        (logAscent)="logIndoorAscent($event)"
                         (editAscent)="
-                          onEditAscent($event.own_ascent, $event.route.name)
+                          editIndoorAscent($event.route, $event.own_ascent)
                         "
-                        (toggleProject)="
-                          routesService.toggleRouteProject(
-                            $event._ref.id,
-                            $event._ref
-                          )
-                        "
-                        (editRoute)="openEditRoute($event)"
-                        (deleteRoute)="deleteRoute($event)"
-                        (toggleRouteOnTopo)="
-                          toggleRouteOnTopo(
-                            $event.topoId,
-                            $event.routeId,
-                            $event.isAttached
-                          )
-                        "
+                        (editRoute)="editIndoorRoute($event)"
+                        (deleteRoute)="deleteIndoorRoute($event)"
                       />
                     </td>
                   </tr>
@@ -578,6 +430,479 @@ import {
         </tui-scrollbar>
       } @else {
         <app-empty-state icon="@tui.list" />
+      }
+    } @else {
+      @if (tableData(); as data) {
+        @if (data.length > 0) {
+          <tui-scrollbar class="grow min-h-0 no-scrollbar">
+            <table
+              tuiTable
+              [size]="isMobile ? 's' : 'm'"
+              class="w-full"
+              [class.table-fixed]="isMobile"
+              [columns]="columns()"
+              [direction]="currentDirection"
+              [sorter]="currentSorter"
+              (sortChange)="onSortChange($event)"
+            >
+              <thead tuiThead>
+                <tr tuiThGroup>
+                  @for (col of columns(); track col) {
+                    <th
+                      *tuiHead="col"
+                      tuiTh
+                      [sorter]="getSorter(col)"
+                      [class.text-right]="
+                        col === 'actions' || col === 'admin_actions'
+                      "
+                      [class.w-12!]="col === 'expand'"
+                      [class.w-16!]="col === 'height'"
+                      [class.w-20!]="col === 'grade' || col === 'ascents'"
+                      [class.w-24!]="col === 'rating'"
+                      [class.w-32!]="
+                        col === 'actions' || col === 'admin_actions'
+                      "
+                      [class.w-64!]="col === 'equippers'"
+                    >
+                      <div class="flex items-center gap-1">
+                        @if (col === 'expand') {
+                          <button
+                            appearance="flat-grayscale"
+                            size="xs"
+                            tuiIconButton
+                            type="button"
+                            class="rounded-full!"
+                            [tuiChevron]="allExpanded()"
+                            (click.zoneless)="toggleAllExpanded()"
+                          >
+                            Toggle All
+                          </button>
+                        } @else {
+                          {{
+                            col === 'actions' || col === 'admin_actions'
+                              ? ''
+                              : (col | translate)
+                          }}
+                        }
+                      </div>
+                    </th>
+                  }
+                </tr>
+              </thead>
+              @let sortedData = data | tuiTableSort;
+              @for (item of sortedData; track item.key) {
+                @let canEditRoute = global.canEditCragRoutes()[item._ref.id];
+                <tbody tuiTbody>
+                  <tr
+                    tuiTr
+                    [style.background]="
+                      showRowColors()
+                        ? item.climbed
+                          ? ascentsService.ascentInfo()[
+                              item._ref.own_ascent?.type || 'default'
+                            ].backgroundSubtle
+                          : item.project
+                            ? 'var(--tui-status-info-pale)'
+                            : ''
+                        : ''
+                    "
+                  >
+                    @for (col of columns(); track col) {
+                      <td
+                        *tuiCell="col"
+                        tuiTd
+                        [class.text-right]="
+                          col === 'actions' || col === 'admin_actions'
+                        "
+                      >
+                        @switch (col) {
+                          @case ('expand') {
+                            <button
+                              appearance="flat-grayscale"
+                              size="xs"
+                              tuiIconButton
+                              type="button"
+                              class="rounded-full!"
+                              [tuiChevron]="exp.expanded()"
+                              (click.zoneless)="exp.toggle()"
+                            >
+                              Toggle
+                            </button>
+                          }
+                          @case ('grade') {
+                            <div tuiCell size="m">
+                              <app-grade
+                                [grade]="item._ref.grade"
+                                [kind]="item._ref.climbing_kind"
+                              />
+                            </div>
+                          }
+                          @case ('route') {
+                            <div tuiCell size="m">
+                              <div class="flex flex-col min-w-0">
+                                <a
+                                  tuiLink
+                                  [routerLink]="item.link"
+                                  [style.color]="
+                                    item.liked
+                                      ? 'var(--tui-status-negative)'
+                                      : ''
+                                  "
+                                  class="align-self-start font-bold text-base truncate max-w-full block"
+                                >
+                                  {{ item.route || ('route' | translate) }}
+                                </a>
+                                @if (showLocation() && !isMobile) {
+                                  <div
+                                    class="text-xs opacity-70 flex gap-1 items-center whitespace-nowrap"
+                                  >
+                                    <a
+                                      tuiLink
+                                      [routerLink]="['/area', item.area_slug]"
+                                    >
+                                      {{ item.area_name }}
+                                    </a>
+                                    <span>/</span>
+                                    <a
+                                      tuiLink
+                                      [routerLink]="[
+                                        '/area',
+                                        item.area_slug,
+                                        item.crag_slug,
+                                      ]"
+                                    >
+                                      {{ item.crag_name }}
+                                    </a>
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          }
+                          @case ('height') {
+                            <div tuiCell size="m" class="justify-center h-full">
+                              @if (canEditRoute) {
+                                <tui-textfield
+                                  [tuiTextfieldCleaner]="false"
+                                  tuiTextfieldSize="s"
+                                  [class.w-16!]="!isMobile"
+                                  [class.w-12!]="isMobile"
+                                  class="h-8!"
+                                >
+                                  <input
+                                    tuiInputNumber
+                                    class="text-center h-full! border-none! p-0! route-height-input"
+                                    [ngModel]="item.height"
+                                    (blur.zoneless)="
+                                      onUpdateRouteHeight(
+                                        item._ref,
+                                        $any($event.target).value
+                                      )
+                                    "
+                                    (keydown.enter)="
+                                      onUpdateRouteHeight(
+                                        item._ref,
+                                        $any($event.target).value
+                                      )
+                                    "
+                                    autocomplete="off"
+                                  />
+                                  <span class="tui-textfield__suffix">m</span>
+                                </tui-textfield>
+                              } @else {
+                                {{ item.height ? item.height + 'm' : '-' }}
+                              }
+                            </div>
+                          }
+                          @case ('rating') {
+                            <div tuiCell size="m">
+                              <tui-rating
+                                [max]="5"
+                                [ngModel]="item.rating"
+                                [readOnly]="true"
+                                [style.font-size.rem]="1"
+                              />
+                            </div>
+                          }
+                          @case ('ascents') {
+                            <div tuiCell size="m">
+                              <span>{{ item.ascents }}</span>
+                            </div>
+                          }
+                          @case ('topo') {
+                            <div tuiCell size="m">
+                              <div class="flex flex-wrap gap-x-1 gap-y-0">
+                                @let toposCount = item.topos.length;
+                                @if (toposCount > 0) {
+                                  <div tuiGroup [collapsed]="true">
+                                    @for (t of item.topos; track t.id) {
+                                      <button
+                                        tuiButton
+                                        appearance="secondary"
+                                        class="min-w-fit!"
+                                        size="xs"
+                                        (click.zoneless)="
+                                          router.navigate([
+                                            '/area',
+                                            item.area_slug,
+                                            item.crag_slug,
+                                            'topo',
+                                            t.id,
+                                          ])
+                                        "
+                                      >
+                                        {{ t.name }}
+                                      </button>
+                                    }
+                                    @if (
+                                      global.editingMode() &&
+                                      canEditRoute &&
+                                      showAddRouteToTopo()
+                                    ) {
+                                      <button
+                                        appearance="secondary"
+                                        size="xs"
+                                        tuiIconButton
+                                        type="button"
+                                        iconStart="@tui.chevron-down"
+                                        [tuiDropdown]="toposMenu"
+                                        [tuiDropdownOpen]="
+                                          openDropdownId() === item.key
+                                        "
+                                        (tuiDropdownOpenChange)="
+                                          openDropdownId.set(
+                                            $event ? item.key : null
+                                          )
+                                        "
+                                      >
+                                        {{ 'addRouteToTopo' | translate }}
+                                      </button>
+                                    }
+                                  </div>
+                                } @else if (
+                                  global.editingMode() &&
+                                  canEditRoute &&
+                                  showAddRouteToTopo()
+                                ) {
+                                  <button
+                                    appearance="flat-grayscale"
+                                    size="xs"
+                                    tuiButton
+                                    type="button"
+                                    class="rounded-full!"
+                                    iconStart="@tui.plus"
+                                    [tuiDropdown]="toposMenu"
+                                    [tuiDropdownOpen]="
+                                      openDropdownId() === item.key
+                                    "
+                                    (tuiDropdownOpenChange)="
+                                      openDropdownId.set(
+                                        $event ? item.key : null
+                                      )
+                                    "
+                                  >
+                                    {{ 'addRouteToTopo' | translate }}
+                                  </button>
+                                }
+                                <ng-template #toposMenu>
+                                  <tui-data-list>
+                                    @for (
+                                      topo of global.cragDetail()?.topos || [];
+                                      track topo.id
+                                    ) {
+                                      @let isAttached =
+                                        item.topos | includesId: topo.id;
+
+                                      <button
+                                        tuiOption
+                                        new
+                                        (click)="
+                                          toggleRouteOnTopo(
+                                            topo.id,
+                                            item._ref.id,
+                                            isAttached
+                                          );
+                                          openDropdownId.set(null)
+                                        "
+                                      >
+                                        <tui-icon
+                                          [icon]="
+                                            isAttached
+                                              ? '@tui.check'
+                                              : '@tui.image'
+                                          "
+                                          class="mr-2"
+                                        />
+                                        {{ topo.name }}
+                                      </button>
+                                    }
+                                  </tui-data-list>
+                                </ng-template>
+                              </div>
+                            </div>
+                          }
+                          @case ('equippers') {
+                            <div tuiCell size="m" class="h-full py-0">
+                              @if (canEditRoute) {
+                                <app-route-equippers-input
+                                  [route]="item._ref"
+                                />
+                              } @else if (item._ref.equippers; as equippers) {
+                                <div class="flex flex-wrap gap-1">
+                                  @for (e of equippers; track e.id) {
+                                    <button
+                                      tuiButton
+                                      appearance="secondary"
+                                      size="xs"
+                                      class="min-w-fit! px-2!"
+                                      (click)="
+                                        router.navigate(['/equipper', e.id])
+                                      "
+                                    >
+                                      {{ e.name }}
+                                    </button>
+                                  }
+                                </div>
+                              }
+                            </div>
+                          }
+                          @case ('actions') {
+                            <div tuiCell size="m">
+                              @if (!item.climbed) {
+                                <button
+                                  size="m"
+                                  appearance="neutral"
+                                  iconStart="@tui.circle-plus"
+                                  tuiIconButton
+                                  type="button"
+                                  class="rounded-full!"
+                                  [tuiHint]="'ascent.new' | translate"
+                                  (click.zoneless)="onLogAscent(item._ref)"
+                                >
+                                  {{ 'ascent.new' | translate }}
+                                </button>
+                              } @else if (
+                                item._ref.own_ascent;
+                                as ascentToEdit
+                              ) {
+                                <app-button-ascent-type
+                                  [type]="ascentToEdit?.type"
+                                  [active]="true"
+                                  class="cursor-pointer"
+                                  tabindex="0"
+                                  [tuiHint]="'ascent.edit' | translate"
+                                  (click.zoneless)="
+                                    onEditAscent(ascentToEdit, item._ref.name)
+                                  "
+                                  (keydown.enter)="
+                                    onEditAscent(ascentToEdit, item._ref.name)
+                                  "
+                                />
+                              }
+
+                              @if (!item.climbed) {
+                                <button
+                                  size="m"
+                                  [appearance]="
+                                    item.project ? 'info' : 'neutral'
+                                  "
+                                  iconStart="@tui.bookmark"
+                                  tuiIconButton
+                                  type="button"
+                                  class="rounded-full!"
+                                  [tuiHint]="'project' | translate"
+                                  (click.zoneless)="
+                                    routesService.toggleRouteProject(
+                                      item._ref.id,
+                                      item._ref
+                                    )
+                                  "
+                                >
+                                  {{ 'project' | translate }}
+                                </button>
+                              }
+                            </div>
+                          }
+                          @case ('admin_actions') {
+                            <div tuiCell size="m">
+                              @if (canEditRoute) {
+                                @let canAreaAdmin =
+                                  global.areaAdminPermissions()[
+                                    item._ref.area_id || -1
+                                  ];
+                                <button
+                                  size="s"
+                                  appearance="neutral"
+                                  iconStart="@tui.square-pen"
+                                  tuiIconButton
+                                  type="button"
+                                  class="rounded-full!"
+                                  (click.zoneless)="openEditRoute(item._ref)"
+                                >
+                                  {{ 'edit' | translate }}
+                                </button>
+                                @if (canEditAsAdmin || canAreaAdmin) {
+                                  <button
+                                    size="s"
+                                    appearance="negative"
+                                    iconStart="@tui.trash"
+                                    tuiIconButton
+                                    type="button"
+                                    class="rounded-full!"
+                                    (click.zoneless)="deleteRoute(item._ref)"
+                                  >
+                                    {{ 'delete' | translate }}
+                                  </button>
+                                }
+                              }
+                            </div>
+                          }
+                        }
+                      </td>
+                    }
+                  </tr>
+                  <tui-table-expand #exp [expanded]="false">
+                    <tr>
+                      <td
+                        [colSpan]="columns().length"
+                        class="p-0! border-none! w-full! max-w-full!"
+                      >
+                        <app-route-row-expanded
+                          [isIndoor]="false"
+                          [route]="item"
+                          [canEdit]="canEditRoute"
+                          [showAdminActions]="showAdminActions()"
+                          [showLocation]="showLocation()"
+                          [showAddRouteToTopo]="showAddRouteToTopo()"
+                          (logAscent)="onLogAscent($event)"
+                          (editAscent)="
+                            onEditAscent($event.own_ascent, $event.route.name)
+                          "
+                          (toggleProject)="
+                            routesService.toggleRouteProject(
+                              $event._ref.id,
+                              $event._ref
+                            )
+                          "
+                          (editRoute)="openEditRoute($event)"
+                          (deleteRoute)="deleteRoute($event)"
+                          (toggleRouteOnTopo)="
+                            toggleRouteOnTopo(
+                              $event.topoId,
+                              $event.routeId,
+                              $event.isAttached
+                            )
+                          "
+                        />
+                      </td>
+                    </tr>
+                  </tui-table-expand>
+                </tbody>
+              }
+            </table>
+          </tui-scrollbar>
+        } @else {
+          <app-empty-state icon="@tui.list" />
+        }
       }
     }
   `,
@@ -590,13 +915,15 @@ export class RoutesTableComponent {
   protected readonly routesService = inject(RoutesService);
   protected readonly toposService = inject(ToposService);
   protected readonly ascentsService = inject(AscentsService);
+  protected readonly indoorService = inject(IndoorService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
 
   // Inputs
-  data: InputSignal<RouteItem[]> = input.required<RouteItem[]>();
+  // Outdoor inputs
+  data: InputSignal<RouteItem[]> = input<RouteItem[]>([]);
   direction: InputSignal<TuiSortDirection> = input<TuiSortDirection>(
     TuiSortDirection.Desc,
   );
@@ -607,6 +934,19 @@ export class RoutesTableComponent {
   hiddenColumns: InputSignal<string[]> = input<string[]>([]);
   expandableMobile: InputSignal<boolean> = input(true);
   activeCol: InputSignal<RoutesTableKey> = input<RoutesTableKey>('ascents');
+
+  // Indoor inputs
+  indoorData: InputSignal<IndoorRouteWithExtras[] | null> = input<
+    IndoorRouteWithExtras[] | null
+  >(null);
+  centerId: InputSignal<string | undefined> = input<string | undefined>(
+    undefined,
+  );
+  centerSlug: InputSignal<string | undefined> = input<string | undefined>(
+    undefined,
+  );
+
+  protected readonly isIndoor = computed(() => this.indoorData() !== null);
 
   protected readonly sorters = ROUTE_TABLE_SORTERS;
 
@@ -643,6 +983,27 @@ export class RoutesTableComponent {
       return ['expand', 'grade', 'route'];
     }
 
+    if (this.isIndoor()) {
+      const cols = [
+        'expand',
+        'grade',
+        'route',
+        'topo',
+        'color',
+        'rating',
+        'ascents',
+        'actions',
+      ];
+      if (this.canEditIndoor()) {
+        cols.splice(cols.indexOf('rating'), 1);
+        cols.splice(cols.indexOf('ascents'), 1);
+        cols.splice(cols.indexOf('actions'), 1);
+        cols.push('equippers');
+        cols.push('admin_actions');
+      }
+      return cols;
+    }
+
     const cols = [
       'grade',
       'route',
@@ -672,9 +1033,33 @@ export class RoutesTableComponent {
     return cols.filter((c) => !this.hiddenColumns().includes(c));
   });
 
-  protected readonly tableData: Signal<RoutesTableRow[]> = computed(() =>
-    this.data().map(mapRouteToTableRow),
+  protected readonly canEditIndoor = computed(() => {
+    const id = this.centerId();
+    return id ? !!this.global.indoorAdminPermissions()[id] : false;
+  });
+
+  protected readonly tableData: Signal<RoutesTableRow[] | null> = computed(
+    () => (this.isIndoor() ? null : this.data().map(mapRouteToTableRow)),
   );
+
+  protected readonly indoorSorters: Record<
+    string,
+    TuiComparator<IndoorRouteWithExtras>
+  > = {
+    grade: (a, b) => (a.grade ?? 0) - (b.grade ?? 0),
+    route: (a, b) => (a.name ?? '').localeCompare(b.name ?? ''),
+    color: (a, b) => {
+      const aName = INDOOR_ROUTE_COLORS[a.color ?? ''] ?? '';
+      const bName = INDOOR_ROUTE_COLORS[b.color ?? ''] ?? '';
+      return aName.localeCompare(bName);
+    },
+  };
+
+  protected currentIndoorSorter: TuiComparator<IndoorRouteWithExtras> = (
+    _a,
+    _b,
+  ) => 0;
+  protected currentIndoorDirection: TuiSortDirection = TuiSortDirection.Asc;
 
   protected getSorter(col: string): TuiComparator<RoutesTableRow> | null {
     if (col === 'actions' || col === 'admin_actions' || col === 'expand')
@@ -682,9 +1067,24 @@ export class RoutesTableComponent {
     return this.sorters[col as RoutesTableKey] ?? null;
   }
 
+  protected getIndoorSorter(
+    col: string,
+  ): TuiComparator<IndoorRouteWithExtras> | null {
+    if (col === 'actions' || col === 'admin_actions' || col === 'expand')
+      return null;
+    return this.indoorSorters[col] ?? null;
+  }
+
   protected onSortChange(sort: TuiTableSortChange<RoutesTableRow>): void {
     this.currentSorter = sort.sortComparator || this.sorters['grade'];
     this.currentDirection = sort.sortDirection;
+  }
+
+  protected onIndoorSortChange(
+    sort: TuiTableSortChange<IndoorRouteWithExtras>,
+  ): void {
+    this.currentIndoorSorter = sort.sortComparator ?? ((_a, _b) => 0);
+    this.currentIndoorDirection = sort.sortDirection;
   }
 
   protected onLogAscent(item: RouteItem | IndoorRouteWithExtras): void {
@@ -813,5 +1213,98 @@ export class RoutesTableComponent {
       console.error('[RoutesTable] error toggling route on topo', e);
       handleErrorToast(e, this.toast);
     }
+  }
+
+  // ── Indoor actions ──────────────────────────────────────────────────────
+
+  protected indoorColorName(colorValue: string | null): string {
+    if (!colorValue) return '';
+    const name = INDOOR_ROUTE_COLORS[colorValue];
+    return name ? this.translate.instant('colors.' + name) : colorValue;
+  }
+
+  protected async logIndoorAscent(
+    item: RouteItem | IndoorRouteWithExtras,
+  ): Promise<void> {
+    const r = item as IndoorRouteWithExtras;
+    const success = await firstValueFrom(
+      this.ascentsService.openAscentForm({
+        routeId: r.id,
+        routeName: r.name,
+        isIndoor: true,
+        grade: r.grade ?? undefined,
+      }),
+      { defaultValue: false },
+    );
+    if (success) {
+      this.indoorService.reloadCenterRoutes();
+    }
+  }
+
+  protected async editIndoorAscent(
+    item: RouteItem | IndoorRouteWithExtras,
+    ascent: RouteAscentWithExtras | { id: string; type: AscentType | null },
+  ): Promise<void> {
+    const r = item as IndoorRouteWithExtras;
+    const asc = ascent as { id: string; type: AscentType | null };
+    const success = await firstValueFrom(
+      this.ascentsService.openAscentForm({
+        ascentData: {
+          ...asc,
+          route: {
+            id: r.id,
+            name: r.name,
+            climbing_kind: r.climbing_kind,
+            grade: r.grade,
+            center_name: r.center_name,
+            center_slug: r.center_slug,
+          },
+        } as unknown as RouteAscentWithExtras,
+        routeId: r.id,
+        routeName: r.name,
+        isIndoor: true,
+        grade: r.grade ?? undefined,
+      }),
+      { defaultValue: false },
+    );
+    if (success) {
+      this.indoorService.reloadCenterRoutes();
+    }
+  }
+
+  protected async editIndoorRoute(
+    item: RouteItem | IndoorRouteWithExtras,
+  ): Promise<void> {
+    const r = item as IndoorRouteWithExtras;
+    const id = this.centerId();
+    if (!id) return;
+    const success = await this.indoorService.openIndoorRouteForm(id, r);
+    if (success) {
+      this.indoorService.reloadCenterRoutes();
+    }
+  }
+
+  protected async deleteIndoorRoute(
+    item: RouteItem | IndoorRouteWithExtras,
+  ): Promise<void> {
+    const r = item as IndoorRouteWithExtras;
+    if (!isPlatformBrowser(this.platformId)) return;
+    const confirmed = await firstValueFrom(
+      this.dialogs.open<boolean>(TUI_CONFIRM, {
+        label: this.translate.instant('routes.deleteTitle'),
+        size: 's',
+        data: {
+          content: this.translate.instant('routes.deleteConfirm', {
+            name: r.name,
+          }),
+          yes: this.translate.instant('delete'),
+          no: this.translate.instant('cancel'),
+        } as TuiConfirmData,
+      }),
+      { defaultValue: false },
+    );
+    if (!confirmed) return;
+    await this.indoorService.deleteRoute(r.id);
+    this.indoorService.reloadCenterRoutes();
   }
 }

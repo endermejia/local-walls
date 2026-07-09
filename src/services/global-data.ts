@@ -732,6 +732,8 @@ export class GlobalData {
   selectedIndoorCenter: WritableSignal<IndoorCenterDto | null> = signal(null);
   selectedIndoorRoute: WritableSignal<IndoorRouteWithExtras | null> =
     signal(null);
+  /** Increment to trigger indoor routes reload in the parent component */
+  indoorRoutesReloadTick: WritableSignal<number> = signal(0);
 
   // ---- Feed List Filters (Persisted per session) ----
   private readonly feedGradeRangeKey = 'feed_grade_range_v1';

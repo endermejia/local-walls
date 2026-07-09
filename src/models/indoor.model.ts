@@ -90,4 +90,5 @@ export interface IndoorRouteWithExtras extends IndoorRouteDto {
   own_ascent?: { id: string; type: AscentType | null } | null;
   topos?: { id: string; name: string; legacy?: boolean }[];
   rating?: number | null;
+  ascent_count?: number | null;
 }

@@ -26,6 +26,7 @@ import {
   TuiTextfield,
   TuiNotification,
   TuiDialogService,
+  TuiCheckbox,
 } from '@taiga-ui/core';
 import {
   TuiAvatar,
@@ -54,7 +55,7 @@ import { SupabaseService } from '../../services/supabase.service';
 import { IndoorCenterDto } from '../../models';
 import { SectionHeaderComponent } from '../../components/ui/section-header';
 import { IndoorVouchersComponent } from '../../components/indoor/indoor-vouchers';
-import { IndoorRoutesComponent } from '../../components/indoor/indoor-routes';
+import { RoutesTableComponent } from '../../components/route/routes-table';
 import { IndoorToposComponent } from '../../components/indoor/indoor-topos';
 import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
@@ -79,10 +80,11 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
     TuiDataListWrapper,
     TuiChevron,
     TuiNotification,
+    TuiCheckbox,
     RouterLink,
     SectionHeaderComponent,
     IndoorVouchersComponent,
-    IndoorRoutesComponent,
+    RoutesTableComponent,
     IndoorToposComponent,
     AnyToSchedulePipe,
     CustomCarouselComponent,
@@ -360,7 +362,59 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
           <div class="mt-6">
             @switch (activeTabIndex()) {
               @case (0) {
-                <app-indoor-routes [centerId]="c.id" [centerSlug]="c.slug" />
+                <div class="flex flex-col gap-4">
+                  <div class="flex items-center justify-between px-3">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input
+                        tuiCheckbox
+                        type="checkbox"
+                        [ngModel]="showLegacyRoutes()"
+                        (ngModelChange)="showLegacyRoutes.set($event)"
+                        autocomplete="off"
+                      />
+                      <span class="text-xs opacity-75 select-none">{{
+                        'indoor.showLegacyRoutes' | translate
+                      }}</span>
+                    </label>
+
+                    @if (totalRoutes() > 0) {
+                      <div
+                        class="flex items-center gap-2 text-xs font-semibold opacity-70"
+                      >
+                        @if (allCompleted()) {
+                          {{ 'indoor.allCompleted' | translate }}
+                        } @else {
+                          {{
+                            'indoor.partialCompleted'
+                              | translate
+                                : {
+                                    completed: totalRoutes() - pendingRoutes(),
+                                    total: totalRoutes(),
+                                  }
+                          }}
+                        }
+                      </div>
+                    }
+
+                    @if (canEdit()) {
+                      <button
+                        tuiButton
+                        appearance="textfield"
+                        size="s"
+                        iconStart="@tui.plus"
+                        (click.zoneless)="createRoute()"
+                      >
+                        {{ 'new' | translate }}
+                      </button>
+                    }
+                  </div>
+
+                  <app-routes-table
+                    [indoorData]="centerRoutes()"
+                    [centerId]="c.id"
+                    [centerSlug]="c.slug"
+                  />
+                </div>
               }
               @case (1) {
                 <app-indoor-topos [centerId]="c.id" [centerSlug]="c.slug" />
@@ -445,6 +499,41 @@ export class IndoorCenterComponent implements OnDestroy {
   protected readonly centerResource = resource<IndoorCenterDto | null, string>({
     params: () => this.slug(),
     loader: ({ params: slug }) => this.indoor.getCenterBySlug(slug),
+  });
+
+  protected readonly showLegacyRoutes = signal<boolean>(
+    typeof window !== 'undefined'
+      ? localStorage.getItem('show_legacy_routes') === 'true'
+      : false,
+  );
+
+  protected readonly centerRoutesResource = resource({
+    params: () => ({
+      id: this.center()?.id,
+      showLegacy: this.showLegacyRoutes(),
+      reloadTick: this.global.indoorRoutesReloadTick(),
+    }),
+    loader: ({ params }) => {
+      if (!params.id) return Promise.resolve([]);
+      return this.indoor.getCenterRoutes(params.id, params.showLegacy);
+    },
+  });
+
+  protected readonly centerRoutes = computed(
+    () => this.centerRoutesResource.value() ?? [],
+  );
+
+  protected readonly totalRoutes = computed(() => {
+    return this.centerRoutes().length;
+  });
+
+  protected readonly pendingRoutes = computed(() => {
+    return this.centerRoutes().filter((r) => !r.own_ascent).length;
+  });
+
+  protected readonly allCompleted = computed(() => {
+    const total = this.totalRoutes();
+    return total > 0 && this.pendingRoutes() === 0;
   });
 
   protected readonly centerAscentsResource = resource({
@@ -547,6 +636,19 @@ export class IndoorCenterComponent implements OnDestroy {
     effect(() => {
       const c = this.center();
       this.global.selectedIndoorCenter.set(c);
+    });
+
+    effect(() => {
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(
+            'show_legacy_routes',
+            String(this.showLegacyRoutes()),
+          );
+        }
+      } catch {
+        // Ignored
+      }
     });
   }
 
@@ -667,4 +769,13 @@ export class IndoorCenterComponent implements OnDestroy {
     'friday',
     'saturday',
   ][new Date().getDay()];
+
+  async createRoute(): Promise<void> {
+    const id = this.center()?.id;
+    if (!id) return;
+    const success = await this.indoor.openIndoorRouteForm(id);
+    if (success) {
+      this.centerRoutesResource.reload();
+    }
+  }
 }

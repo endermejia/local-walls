@@ -33,6 +33,11 @@ export class IndoorService {
   private readonly platformId = inject(PLATFORM_ID);
   loading = signal(false);
 
+  /** Signals to outdoor/indoor consumers that routes should be reloaded */
+  reloadCenterRoutes(): void {
+    this.global.indoorRoutesReloadTick.update((v) => v + 1);
+  }
+
   async getAllCenters(): Promise<IndoorCenterDto[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
@@ -144,7 +149,7 @@ export class IndoorService {
     let query = this.supabase.client
       .from('indoor_routes')
       .select(
-        '*, equippers:indoor_route_equippers(equipper:equippers(*)), ascents:indoor_ascents(id, type, user_id), topo_routes:indoor_topo_routes(topo:indoor_topos(id, name, legacy))',
+        '*, equippers:indoor_route_equippers(equipper:equippers(*)), ascents:indoor_ascents(id, type, user_id, rate), topo_routes:indoor_topo_routes(topo:indoor_topos(id, name, legacy))',
       )
       .eq('center_id', centerId);
 
@@ -158,16 +163,30 @@ export class IndoorService {
     if (!data) return [];
 
     const userId = this.global.userProfile()?.id;
-    return data.map((route: any) => ({
-      ...route,
-      equippers: route.equippers?.map((e: any) => e.equipper) || [],
-      topos:
-        route.topo_routes?.map((tr: any) => tr.topo).filter((t: any) => !!t) ||
-        [],
-      own_ascent: userId
-        ? (route.ascents?.find((a: any) => a.user_id === userId) ?? null)
-        : null,
-    })) as IndoorRouteWithExtras[];
+    return data.map((route: any) => {
+      const ratedAscents =
+        route.ascents?.filter((a: any) => a.rate !== null && a.rate > 0) || [];
+      const totalRating = ratedAscents.reduce(
+        (sum: number, a: any) => sum + (a.rate || 0),
+        0,
+      );
+      const rating =
+        ratedAscents.length > 0 ? totalRating / ratedAscents.length : 0;
+
+      return {
+        ...route,
+        equippers: route.equippers?.map((e: any) => e.equipper) || [],
+        topos:
+          route.topo_routes
+            ?.map((tr: any) => tr.topo)
+            .filter((t: any) => !!t) || [],
+        own_ascent: userId
+          ? (route.ascents?.find((a: any) => a.user_id === userId) ?? null)
+          : null,
+        ascent_count: route.ascents?.length || 0,
+        rating: rating || null,
+      };
+    }) as IndoorRouteWithExtras[];
   }
 
   async getCenterTopos(
