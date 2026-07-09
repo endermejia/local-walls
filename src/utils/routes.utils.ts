@@ -55,7 +55,9 @@ export function mapRouteToTableRow(
       own_ascent: indoor.own_ascent || null,
       isIndoor: true,
       _ref: r,
-    };
+    canEdit: false,
+    canDelete: false,
+  };
   } else {
     const outdoor = r as RouteWithExtras;
     const grade =
@@ -110,7 +112,9 @@ export function mapRouteToTableRow(
       own_ascent: outdoor.own_ascent || null,
       isIndoor: false,
       _ref: r,
-    };
+    canEdit: false,
+    canDelete: false,
+  };
   }
 }
 

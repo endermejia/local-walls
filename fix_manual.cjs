@@ -1,4 +1,10 @@
-import { EquipperDto, RouteAscentDto, RouteDto } from './supabase-interfaces';
+const fs = require('fs');
+
+// We have the commit `d01ce37` checked out, which is before the `routes-table` refactoring started.
+// Let's just create `routes-table.ts`, `indoor-routes-table.ts`, `outdoor-routes-table.ts`, `route.model.ts`, `routes.utils.ts` and the pages properly.
+// The easiest is to just write the new file contents directly!
+
+fs.writeFileSync('src/models/route.model.ts', `import { EquipperDto, RouteAscentDto, RouteDto } from './supabase-interfaces';
 import { IndoorRouteWithExtras } from './indoor.model';
 import { AscentType } from './app-enums.model';
 
@@ -78,3 +84,9 @@ export interface RoutesTableRow {
   canDelete: boolean;
   _ref: RouteItem | IndoorRouteWithExtras;
 }
+`);
+
+
+let routesUtils = fs.readFileSync('src/utils/routes.utils.ts', 'utf8');
+routesUtils = routesUtils.replace(/_ref: r,\n\s*\};/g, '_ref: r,\n    canEdit: false,\n    canDelete: false,\n  };');
+fs.writeFileSync('src/utils/routes.utils.ts', routesUtils);

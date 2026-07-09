@@ -1,4 +1,7 @@
-import { FormsModule } from '@angular/forms';
+const fs = require('fs');
+
+const path = 'src/components/route/routes-table.ts';
+const content = `import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
   ChangeDetectionStrategy,
@@ -112,7 +115,7 @@ import {
     TuiTableExpand,
     TuiTableSortPipe,
   ],
-  template: `
+  template: \`
     @if (tableData(); as data) {
       @if (data.length > 0) {
         @let isMobile = expandableMobile();
@@ -507,7 +510,7 @@ import {
         <app-empty-state icon="@tui.route" />
       }
     }
-  `,
+  \`,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-col min-h-0 min-w-0' },
 })
@@ -617,3 +620,5 @@ export class RoutesTableComponent {
     return name ? colorValue : colorValue;
   }
 }
+`;
+fs.writeFileSync(path, content);
