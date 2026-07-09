@@ -1,4 +1,6 @@
 import { EquipperDto, RouteAscentDto, RouteDto } from './supabase-interfaces';
+import { IndoorRouteWithExtras } from './indoor.model';
+import { AscentType } from './app-enums.model';
 
 export interface RouteBasicDto extends Pick<
   RouteDto,
@@ -40,23 +42,37 @@ export type RoutesTableKey =
   | 'actions'
   | 'equippers'
   | 'admin_actions'
-  | 'expand';
+  | 'expand'
+  | 'color';
 
 export interface RoutesTableRow {
+  id: string | number;
   key: string;
   grade: string;
+  gradeValue: number;
+  climbing_kind: RouteDto['climbing_kind'] | null;
   route: string;
   area_name?: string;
   crag_name?: string;
   area_slug?: string;
   crag_slug?: string;
   height: number | null;
+  color: string | null;
+  legacy?: boolean;
   rating: number;
   ascents: number;
   liked: boolean;
   project: boolean;
   climbed: boolean;
   link: string[];
-  topos: { id: number; name: string }[];
-  _ref: RouteItem;
+  topos: {
+    id: number | string;
+    name: string;
+    legacy?: boolean;
+    link: string[];
+  }[];
+  equippers: EquipperDto[];
+  own_ascent: { id: number | string; type: AscentType | null } | null;
+  isIndoor: boolean;
+  _ref: RouteItem | IndoorRouteWithExtras;
 }

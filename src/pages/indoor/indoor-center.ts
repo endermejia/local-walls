@@ -410,7 +410,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
                   </div>
 
                   <app-routes-table
-                    [indoorData]="centerRoutes()"
+                    [data]="centerRoutes()"
                     [centerId]="c.id"
                     [centerSlug]="c.slug"
                   />

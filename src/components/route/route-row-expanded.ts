@@ -266,8 +266,8 @@ import {
         <!-- Second Row: Equippers -->
         @if (canEdit()) {
           <div class="w-full">
-            @if (outdoor) {
-              <app-route-equippers-input [route]="outdoor._ref" />
+            @if (outdoorRouteRef(); as outRef) {
+              <app-route-equippers-input [route]="outRef" />
             } @else if (indoor) {
               <app-indoor-route-equippers-input [route]="indoor" />
             }
@@ -381,7 +381,7 @@ import {
                     (click)="
                       toggleRouteOnTopo.emit({
                         topoId: topo.id,
-                        routeId: outdoor!._ref.id,
+                        routeId: outdoorRouteId()!,
                         isAttached: isAttached,
                       });
                       isDropdownOpen.set(false)
@@ -460,6 +460,16 @@ export class RouteRowExpandedComponent {
     return this.isIndoor() ? null : (this.route() as RoutesTableRow);
   });
 
+  protected readonly outdoorRouteRef = computed<RouteItem | null>(() => {
+    const r = this.outdoorRoute();
+    return r ? (r._ref as RouteItem) : null;
+  });
+
+  protected readonly outdoorRouteId = computed<number | null>(() => {
+    const ref = this.outdoorRouteRef();
+    return ref ? ref.id : null;
+  });
+
   protected readonly indoorRoute = computed<IndoorRouteWithExtras | null>(
     () => {
       return this.isIndoor() ? (this.route() as IndoorRouteWithExtras) : null;
@@ -472,16 +482,11 @@ export class RouteRowExpandedComponent {
     return this.getColorName(routeVal.color);
   });
 
-  protected navigateToTopo(topoId: number): void {
+  protected navigateToTopo(topoId: number | string): void {
     const r = this.outdoorRoute();
     if (!r || !r.area_slug || !r.crag_slug) return;
-    void this.router.navigate([
-      '/area',
-      r.area_slug,
-      r.crag_slug,
-      'topo',
-      topoId,
-    ]);
+    const tid = typeof topoId === 'string' ? parseInt(topoId, 10) : topoId;
+    void this.router.navigate(['/area', r.area_slug, r.crag_slug, 'topo', tid]);
   }
 
   protected navigateToIndoorTopo(topoId: string): void {

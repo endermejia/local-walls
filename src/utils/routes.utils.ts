@@ -8,45 +8,117 @@ import {
   PROJECT_GRADE_LABEL,
   VERTICAL_LIFE_GRADES,
   RouteDto,
+  IndoorRouteWithExtras,
+  INDOOR_ROUTE_COLORS,
 } from '../models';
 
 import { normalizeName } from './index';
 
-export function mapRouteToTableRow(r: RouteWithExtras): RoutesTableRow {
-  const grade =
-    GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES] ??
-    PROJECT_GRADE_LABEL;
+export function mapRouteToTableRow(
+  r: RouteWithExtras | IndoorRouteWithExtras,
+): RoutesTableRow {
+  const isIndoor = typeof r.id === 'string';
 
-  const rating = r.rating || 0;
-  const ascents = r.ascent_count || 0;
+  if (isIndoor) {
+    const indoor = r as IndoorRouteWithExtras;
+    const rating = indoor.rating || 0;
+    const ascents = indoor.ascent_count || 0;
 
-  return {
-    key: r.id.toString(),
-    grade,
-    route: r.name,
-    area_name: r.area_name,
-    crag_name: r.crag_name,
-    area_slug: r.area_slug,
-    crag_slug: r.crag_slug,
-    height: r.height || null,
-    rating,
-    ascents,
-    liked: r.liked,
-    project: r.project,
-    climbed: r.climbed ?? false,
-    link: ['/area', r.area_slug || 'unknown', r.crag_slug || 'unknown', r.slug],
-    topos: (r.topos || []).sort((a, b) =>
-      tuiDefaultSort(normalizeName(a.name), normalizeName(b.name)),
-    ),
-    _ref: r,
-  };
+    return {
+      id: indoor.id,
+      key: indoor.id,
+      grade: indoor.grade?.toString() || '0',
+      gradeValue: indoor.grade || 0,
+      climbing_kind: indoor.climbing_kind || null,
+      route: indoor.name || '',
+      height: null,
+      color: indoor.color || null,
+      legacy: indoor.legacy || false,
+      rating,
+      ascents,
+      liked: false,
+      project: false,
+      climbed: !!indoor.own_ascent,
+      link: [
+        '/indoor',
+        indoor.center_slug || 'unknown',
+        'route',
+        indoor.slug || '',
+      ],
+      topos: (indoor.topos || []).map((t) => ({
+        id: t.id,
+        name: t.name,
+        legacy: t.legacy,
+        link: ['/indoor', indoor.center_slug || 'unknown', 'topo', t.id],
+      })),
+      equippers: indoor.equippers || [],
+      own_ascent: indoor.own_ascent || null,
+      isIndoor: true,
+      _ref: r,
+    };
+  } else {
+    const outdoor = r as RouteWithExtras;
+    const grade =
+      GRADE_NUMBER_TO_LABEL[outdoor.grade as VERTICAL_LIFE_GRADES] ??
+      PROJECT_GRADE_LABEL;
+    const rating = outdoor.rating || 0;
+    const ascents = outdoor.ascent_count || 0;
+
+    return {
+      id: outdoor.id,
+      key: outdoor.id.toString(),
+      grade,
+      gradeValue:
+        typeof outdoor.grade === 'number'
+          ? outdoor.grade
+          : parseInt(outdoor.grade as string, 10) || 0,
+      climbing_kind: outdoor.climbing_kind || null,
+      route: outdoor.name,
+      area_name: outdoor.area_name,
+      crag_name: outdoor.crag_name,
+      area_slug: outdoor.area_slug,
+      crag_slug: outdoor.crag_slug,
+      height: outdoor.height || null,
+      color: null,
+      rating,
+      ascents,
+      liked: outdoor.liked,
+      project: outdoor.project,
+      climbed: outdoor.climbed ?? false,
+      link: [
+        '/area',
+        outdoor.area_slug || 'unknown',
+        outdoor.crag_slug || 'unknown',
+        outdoor.slug,
+      ],
+      topos: (outdoor.topos || [])
+        .map((t) => ({
+          id: t.id,
+          name: t.name,
+          link: [
+            '/area',
+            outdoor.area_slug || 'unknown',
+            outdoor.crag_slug || 'unknown',
+            'topo',
+            t.id.toString(),
+          ],
+        }))
+        .sort((a, b) =>
+          tuiDefaultSort(normalizeName(a.name), normalizeName(b.name)),
+        ),
+      equippers: outdoor.equippers || [],
+      own_ascent: outdoor.own_ascent || null,
+      isIndoor: false,
+      _ref: r,
+    };
+  }
 }
 
 export const ROUTE_TABLE_SORTERS: Record<
   string,
   TuiComparator<RoutesTableRow>
 > = {
-  grade: (a, b) => tuiDefaultSort(a._ref.grade, b._ref.grade),
+  grade: (a, b) => tuiDefaultSort(a.gradeValue, b.gradeValue),
   route: (a, b) => tuiDefaultSort(a.route, b.route),
   height: (a, b) => tuiDefaultSort(a.height ?? 0, b.height ?? 0),
   rating: (a, b) => tuiDefaultSort(a.rating, b.rating),
@@ -55,6 +127,11 @@ export const ROUTE_TABLE_SORTERS: Record<
     const aVal = a.topos.map((t) => normalizeName(t.name)).join(', ');
     const bVal = b.topos.map((t) => normalizeName(t.name)).join(', ');
     return tuiDefaultSort(aVal, bVal) || tuiDefaultSort(a.route, b.route);
+  },
+  color: (a, b) => {
+    const aName = a.color ? INDOOR_ROUTE_COLORS[a.color] || '' : '';
+    const bName = b.color ? INDOOR_ROUTE_COLORS[b.color] || '' : '';
+    return tuiDefaultSort(aName, bName);
   },
 };
 
