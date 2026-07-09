@@ -455,19 +455,7 @@ export class IndoorRoutesComponent {
 
   protected readonly columns = computed(() => {
     if (this.global.isMobile()) {
-      const cols = [
-        'expand',
-        'grade',
-        'route',
-        'rating',
-        'ascents',
-        'topo',
-        'color',
-      ];
-      if (this.centerSlug() || this.routes().some((r) => r.center_slug)) {
-        cols.push('actions');
-      }
-      return cols;
+      return ['expand', 'grade', 'route'];
     }
     const cols = [
       'grade',
