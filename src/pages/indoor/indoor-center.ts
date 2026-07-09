@@ -94,6 +94,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
     <tui-scrollbar class="flex grow">
       <section class="w-full max-w-5xl mx-auto p-4 flex flex-col min-h-full">
         @if (center(); as c) {
+          @let editingMode = global.editingMode();
           <div class="mb-6">
             <app-section-header [title]="c.name" [showLike]="false">
               <span
@@ -126,6 +127,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
                     iconStart="@tui.trash"
                     class="rounded-full!"
                     type="button"
+                    [disabled]="!editingMode"
                     (click.zoneless)="deleteCenter()"
                   >
                     {{ 'delete' | translate }}
@@ -258,7 +260,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
 
           <!-- Admins Section -->
           @let admins = centerAdmins();
-          @if (global.editingMode() && isAdmin()) {
+          @if (editingMode && isAdmin()) {
             <div class="flex flex-col gap-3 mt-6">
               <span
                 class="text-xs uppercase opacity-60 font-semibold tracking-wider"
@@ -288,7 +290,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
                         admin.user.name
                       }}</span>
                     </a>
-                    @if (isAdmin() && global.editingMode()) {
+                    @if (isAdmin() && editingMode) {
                       <button
                         tuiIconButton
                         appearance="flat"
@@ -303,7 +305,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
                   </div>
                 }
 
-                @if (isAdmin() && global.editingMode()) {
+                @if (isAdmin() && editingMode) {
                   <div class="w-64">
                     <tui-textfield
                       appearance="floating"
