@@ -75,6 +75,7 @@ import { mapRouteToTableRow, handleErrorToast } from '../../utils';
         [showAdminActions]="showAdminActions()"
         [showLocation]="showLocation()"
         [showAddRouteToTopo]="showAddRouteToTopo()"
+        [availableTopos]="availableTopos()"
         (logAscent)="onLogAscent($event)"
         (editAscent)="onEditAscent($event.route, $event.own_ascent)"
         (toggleProject)="onToggleProject($event)"

@@ -298,8 +298,9 @@ import {
         <!-- Third Row: Croquis (Topos) -->
         @let outdoorTopos = outdoor?.topos || [];
         @let indoorTopos = indoor?.topos || [];
-        @let toposCount = outdoorTopos.length + indoorTopos.length;
-        @let canAddTopo = outdoor && isEditing && showAddRouteToTopo();
+        @let toposList = isIndoor() ? indoorTopos : outdoorTopos;
+        @let toposCount = toposList.length;
+        @let canAddTopo = isEditing && showAddRouteToTopo();
 
         @if (toposCount > 0 || canAddTopo) {
           <div
@@ -309,15 +310,20 @@ import {
               >{{ 'topos' | translate }}:</span
             >
 
-            @if (outdoorTopos.length > 0) {
+            @if (toposList.length > 0) {
               <div tuiGroup [collapsed]="true">
-                @for (t of outdoorTopos; track t.id) {
+                @for (t of toposList; track t.id) {
                   <button
                     tuiButton
                     appearance="secondary"
                     class="min-w-fit!"
                     size="xs"
-                    (click.zoneless)="navigateToTopo(t.id)"
+                    [class.opacity-50]="t.legacy"
+                    (click.zoneless)="
+                      isIndoor()
+                        ? navigateToIndoorTopo('' + t.id)
+                        : navigateToTopo(t.id)
+                    "
                   >
                     {{ t.name }}
                   </button>
@@ -335,21 +341,6 @@ import {
                     (click.zoneless)="$event.stopPropagation()"
                   >
                     {{ 'addRouteToTopo' | translate }}
-                  </button>
-                }
-              </div>
-            } @else if (indoorTopos.length > 0) {
-              <div tuiGroup [collapsed]="true">
-                @for (t of indoorTopos; track t.id) {
-                  <button
-                    tuiButton
-                    appearance="secondary"
-                    class="min-w-fit!"
-                    size="xs"
-                    [class.opacity-50]="t.legacy"
-                    (click.zoneless)="navigateToIndoorTopo(t.id)"
-                  >
-                    {{ t.name }}
                   </button>
                 }
               </div>
@@ -372,16 +363,22 @@ import {
 
             <ng-template #toposMenuExpanded>
               <tui-data-list>
-                @let cragDetail = global.cragDetail();
-                @for (topo of cragDetail?.topos || []; track topo.id) {
-                  @let isAttached = outdoor?.topos | includesId: topo.id;
+                @let list =
+                  isIndoor()
+                    ? availableTopos()
+                    : global.cragDetail()?.topos || [];
+                @for (topo of list; track topo.id) {
+                  @let isAttached =
+                    isIndoor()
+                      ? (indoorRoute()?.topos | includesId: topo.id)
+                      : (outdoorRouteRef()?.topos | includesId: topo.id);
                   <button
                     tuiOption
                     new
                     (click)="
                       toggleRouteOnTopo.emit({
                         topoId: topo.id,
-                        routeId: outdoorRouteId()!,
+                        routeId: currentRouteId()!,
                         isAttached: isAttached,
                       });
                       isDropdownOpen.set(false)
@@ -435,6 +432,7 @@ export class RouteRowExpandedComponent {
   showLocation = input<boolean>(false);
   showAddRouteToTopo = input<boolean>(false);
   centerSlug = input<string | null | undefined>(undefined);
+  availableTopos = input<{ id: number | string; name: string }[]>([]);
 
   logAscent = output<RouteItem | IndoorRouteWithExtras>();
   editAscent = output<{
@@ -445,8 +443,8 @@ export class RouteRowExpandedComponent {
   editRoute = output<RouteItem | IndoorRouteWithExtras>();
   deleteRoute = output<RouteItem | IndoorRouteWithExtras>();
   toggleRouteOnTopo = output<{
-    topoId: number;
-    routeId: number;
+    topoId: number | string;
+    routeId: number | string;
     isAttached: boolean;
   }>();
 
@@ -455,6 +453,13 @@ export class RouteRowExpandedComponent {
   private readonly translate = inject(TranslateService);
 
   protected readonly isDropdownOpen = signal(false);
+
+  protected readonly currentRouteId = computed<number | string | null>(() => {
+    if (this.isIndoor()) {
+      return this.indoorRoute()?.id ?? null;
+    }
+    return this.outdoorRouteId();
+  });
 
   protected readonly outdoorRoute = computed<RoutesTableRow | null>(() => {
     return this.isIndoor() ? null : (this.route() as RoutesTableRow);

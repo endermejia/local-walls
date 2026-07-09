@@ -98,6 +98,7 @@ import { mapRouteToTableRow, handleErrorToast } from '../../utils';
         [showAdminActions]="true"
         [showLocation]="false"
         [showAddRouteToTopo]="true"
+        [availableTopos]="availableTopos()"
         (logAscent)="logIndoorAscent($event)"
         (editAscent)="editIndoorAscent($event.route, $event.own_ascent)"
         (editRoute)="editIndoorRoute($event)"
