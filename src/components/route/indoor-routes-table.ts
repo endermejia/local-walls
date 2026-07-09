@@ -144,7 +144,6 @@ export class IndoorRoutesTableComponent {
 
   protected readonly columns = computed(() => {
     const cols = [
-      'expand',
       'grade',
       'route',
       'topo',
