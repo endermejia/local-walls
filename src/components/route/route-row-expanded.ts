@@ -100,6 +100,14 @@ import {
                   </span>
                 </div>
               }
+              @if (indoor.rating) {
+                <div class="flex items-center gap-1 opacity-70">
+                  <tui-icon icon="@tui.star" class="text-xs" />
+                  <span class="font-medium">{{
+                    indoor.rating | number: '1.1-1'
+                  }}</span>
+                </div>
+              }
             }
           </div>
 
