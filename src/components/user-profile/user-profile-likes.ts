@@ -20,7 +20,7 @@ import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
 
 import { EmptyStateComponent } from '../ui/empty-state';
-import { RoutesTableComponent } from '../route/routes-table';
+import { OutdoorRoutesTableComponent } from '../route/outdoor-routes-table';
 
 import { AreaListItem, CragListItem, RouteWithExtras } from '../../models';
 
@@ -30,7 +30,7 @@ import { AreaListItem, CragListItem, RouteWithExtras } from '../../models';
   imports: [
     CommonModule,
     EmptyStateComponent,
-    RoutesTableComponent,
+    OutdoorRoutesTableComponent,
     TranslatePipe,
     TuiAppearance,
     TuiHeader,
@@ -170,7 +170,7 @@ import { AreaListItem, CragListItem, RouteWithExtras } from '../../models';
               }
             </div>
           } @else if (likedRoutes().length) {
-            <app-routes-table
+            <app-outdoor-routes-table
               [data]="likedRoutes()"
               [showAdminActions]="false"
               [showLocation]="true"

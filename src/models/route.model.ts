@@ -74,5 +74,8 @@ export interface RoutesTableRow {
   equippers: EquipperDto[];
   own_ascent: { id: number | string; type: AscentType | null } | null;
   isIndoor: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  canAddTopo?: boolean;
   _ref: RouteItem | IndoorRouteWithExtras;
 }

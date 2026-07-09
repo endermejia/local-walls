@@ -44,21 +44,20 @@ import { ToastService } from '../../services/toast.service';
 import { UserProfileBasicDto } from '../../models';
 import { handleErrorToast, mapLocationUrl } from '../../utils';
 
-import {
-  CustomCarouselComponent,
-  CarouselItem,
-} from '../../components/ui/custom-carousel';
-
 import { GlobalData } from '../../services/global-data';
 import { IndoorService } from '../../services/indoor.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { IndoorCenterDto } from '../../models';
+import { IndoorToposComponent } from '../../components/indoor/indoor-topos';
+import { IndoorRoutesTableComponent } from '../../components/route/indoor-routes-table';
+import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
+import {
+  CustomCarouselComponent,
+  CarouselItem,
+} from '../../components/ui/custom-carousel';
+import { EmptyStateComponent } from '../../components/ui/empty-state';
 import { SectionHeaderComponent } from '../../components/ui/section-header';
 import { IndoorVouchersComponent } from '../../components/indoor/indoor-vouchers';
-import { RoutesTableComponent } from '../../components/route/routes-table';
-import { IndoorToposComponent } from '../../components/indoor/indoor-topos';
-import { AnyToSchedulePipe } from '../../pipes/any-to-schedule.pipe';
-import { EmptyStateComponent } from '../../components/ui/empty-state';
 
 @Component({
   selector: 'app-indoor-center',
@@ -84,7 +83,7 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
     RouterLink,
     SectionHeaderComponent,
     IndoorVouchersComponent,
-    RoutesTableComponent,
+    IndoorRoutesTableComponent,
     IndoorToposComponent,
     AnyToSchedulePipe,
     CustomCarouselComponent,
@@ -409,10 +408,11 @@ import { EmptyStateComponent } from '../../components/ui/empty-state';
                     }
                   </div>
 
-                  <app-routes-table
+                  <app-indoor-routes-table
                     [data]="centerRoutes()"
                     [centerId]="c.id"
                     [centerSlug]="c.slug"
+                    [availableTopos]="toposResource.value() || []"
                   />
                 </div>
               }
@@ -499,6 +499,12 @@ export class IndoorCenterComponent implements OnDestroy {
   protected readonly centerResource = resource<IndoorCenterDto | null, string>({
     params: () => this.slug(),
     loader: ({ params: slug }) => this.indoor.getCenterBySlug(slug),
+  });
+
+  protected readonly toposResource = resource({
+    params: () => this.center()?.id,
+    loader: ({ params: id }) =>
+      id ? this.indoor.getCenterTopos(id) : Promise.resolve([]),
   });
 
   protected readonly showLegacyRoutes = signal<boolean>(

@@ -18,7 +18,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { GlobalData } from '../../services/global-data';
 import { SupabaseService } from '../../services/supabase.service';
 
-import { RoutesTableComponent } from '../../components/route/routes-table';
+import { OutdoorRoutesTableComponent } from '../../components/route/outdoor-routes-table';
 import { IndoorRoutesComponent } from '../../components/indoor/indoor-routes';
 
 import { UserInfoComponent } from '../../components/ui/user-info';
@@ -29,7 +29,7 @@ import { UserInfoComponent } from '../../components/ui/user-info';
   imports: [
     LowerCasePipe,
     RouterLink,
-    RoutesTableComponent,
+    OutdoorRoutesTableComponent,
     IndoorRoutesComponent,
     TranslatePipe,
     TuiLink,
@@ -74,7 +74,7 @@ import { UserInfoComponent } from '../../components/ui/user-info';
             {{ 'routes' | translate | lowercase }}
           </h2>
 
-          <app-routes-table
+          <app-outdoor-routes-table
             [data]="global.equipperRoutesResource.value() || []"
             [showLocation]="true"
           />

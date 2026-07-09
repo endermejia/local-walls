@@ -3,14 +3,14 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { TuiSkeleton } from '@taiga-ui/kit';
 import { TuiSortDirection } from '@taiga-ui/addon-table';
 
-import { RoutesTableComponent } from '../../route/routes-table';
+import { OutdoorRoutesTableComponent } from '../../route/outdoor-routes-table';
 
 import { RouteWithExtras } from '../../../models/route.model';
 
 @Component({
   selector: 'app-user-profile-projects-list',
   standalone: true,
-  imports: [RoutesTableComponent, TuiSkeleton],
+  imports: [OutdoorRoutesTableComponent, TuiSkeleton],
   template: `
     @if (loading()) {
       <div class="grid gap-6 grid-cols-1 xl:grid-cols-2">
@@ -28,7 +28,7 @@ import { RouteWithExtras } from '../../../models/route.model';
         }
       </div>
     } @else {
-      <app-routes-table
+      <app-outdoor-routes-table
         [data]="projects()"
         [showAdminActions]="false"
         [showLocation]="true"

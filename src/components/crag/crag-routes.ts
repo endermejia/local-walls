@@ -33,7 +33,7 @@ import { RoutesService } from '../../services/routes.service';
 
 import { EmptyStateComponent } from '../ui/empty-state';
 import { GradeComponent } from '../ui/avatar-grade';
-import { RoutesTableComponent } from '../route/routes-table';
+import { OutdoorRoutesTableComponent } from '../route/outdoor-routes-table';
 
 import {
   ClimbingKind,
@@ -59,7 +59,7 @@ import { gradeToVerticalLife, matchesQuery, slugify } from '../../utils';
     GradeComponent,
     IconSrcPipe,
     LowerCasePipe,
-    RoutesTableComponent,
+    OutdoorRoutesTableComponent,
     TranslatePipe,
     TuiAppearance,
     TuiAvatar,
@@ -151,7 +151,7 @@ import { gradeToVerticalLife, matchesQuery, slugify } from '../../utils';
     @let anuResults = eightAnuResource.value() || [];
 
     @if (routesList.length > 0) {
-      <app-routes-table
+      <app-outdoor-routes-table
         [data]="routesList"
         [showAddRouteToTopo]="true"
         [showLocation]="query().trim().length >= 2"
