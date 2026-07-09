@@ -30,6 +30,7 @@ import {
   IndoorRouteWithExtras,
   RouteItem,
   RouteAscentWithExtras,
+  AscentType,
 } from '../../models';
 
 @Component({
@@ -336,7 +337,7 @@ import {
                 @if (centerSlug() || r.center_slug) {
                   @if (r.own_ascent; as ascent) {
                     <app-button-ascent-type
-                      [type]="$any(ascent.type)"
+                      [type]="ascent.type"
                       [active]="true"
                       class="cursor-pointer"
                       [tuiHint]="'ascent.edit' | translate"
@@ -456,7 +457,7 @@ export class RouteRowExpandedComponent {
   logAscent = output<RouteItem | IndoorRouteWithExtras>();
   editAscent = output<{
     route: RouteItem | IndoorRouteWithExtras;
-    own_ascent: RouteAscentWithExtras | { id: string; type: string | null };
+    own_ascent: RouteAscentWithExtras | { id: string; type: AscentType | null };
   }>();
   toggleProject = output<RoutesTableRow>();
   editRoute = output<RouteItem | IndoorRouteWithExtras>();

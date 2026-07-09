@@ -4,6 +4,7 @@ import {
   TableUpdate,
   EquipperDto,
 } from './supabase-interfaces';
+import { AscentType } from './app-enums.model';
 
 // --- Indoor DTOs ---
 export type IndoorCenterDto = TableRow<'indoor_centers'>;
@@ -86,6 +87,6 @@ export interface IndoorRouteWithExtras extends IndoorRouteDto {
   equippers?: EquipperDto[];
   center_name?: string;
   center_slug?: string;
-  own_ascent?: { id: string; type: string | null } | null;
+  own_ascent?: { id: string; type: AscentType | null } | null;
   topos?: { id: string; name: string; legacy?: boolean }[];
 }

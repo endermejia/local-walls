@@ -50,7 +50,12 @@ import type { TuiComparator } from '@taiga-ui/addon-table/types';
 
 import { IndoorService } from '../../services/indoor.service';
 import { AscentsService } from '../../services/ascents.service';
-import { IndoorRouteWithExtras, RouteItem } from '../../models';
+import {
+  IndoorRouteWithExtras,
+  RouteItem,
+  AscentType,
+  RouteAscentWithExtras,
+} from '../../models';
 import { GradeComponent } from '../ui/avatar-grade';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { IndoorRouteEquippersInputComponent } from '../route/indoor-route-equippers-input';
@@ -348,7 +353,7 @@ import { RouteRowExpandedComponent } from '../route/route-row-expanded';
                         @case ('actions') {
                           @if (item.own_ascent; as ascent) {
                             <app-button-ascent-type
-                              [type]="$any(ascent.type)"
+                              [type]="ascent.type"
                               [active]="true"
                               class="cursor-pointer"
                               [tuiHint]="'ascent.edit' | translate"
@@ -414,7 +419,7 @@ import { RouteRowExpandedComponent } from '../route/route-row-expanded';
                         [centerSlug]="centerSlug()"
                         (logAscent)="logAscent($event)"
                         (editAscent)="
-                          editAscent($event.route, $any($event.own_ascent))
+                          editAscent($event.route, $event.own_ascent)
                         "
                         (editRoute)="editRoute($event)"
                         (deleteRoute)="deleteRoute($event)"
@@ -698,13 +703,14 @@ export class IndoorRoutesComponent {
 
   async editAscent(
     route: IndoorRouteWithExtras | RouteItem,
-    ascent: { id: string; type: string | null },
+    ascent: RouteAscentWithExtras | { id: string; type: AscentType | null },
   ): Promise<void> {
     const r = route as IndoorRouteWithExtras;
+    const asc = ascent as { id: string; type: AscentType | null };
     const success = await firstValueFrom(
       this.ascentsService.openAscentForm({
         ascentData: {
-          ...ascent,
+          ...asc,
           route: {
             id: r.id,
             name: r.name,
