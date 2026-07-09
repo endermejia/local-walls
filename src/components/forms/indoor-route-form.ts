@@ -46,6 +46,8 @@ import {
   EquipperDto,
   ClimbingKind,
   ClimbingKinds,
+  INDOOR_ROUTE_COLORS,
+  INDOOR_ROUTE_COLORS_LIST,
 } from '../../models';
 import { slugify } from '../../utils/slugify';
 
@@ -167,7 +169,7 @@ export interface IndoorRouteFormData {
           autocomplete="off"
         />
         <tui-data-list *tuiDropdown>
-          @for (color of routeColors; track color) {
+          @for (color of routeColorsList; track color.value) {
             <button tuiOption [value]="color.value">
               <div class="flex items-center gap-2">
                 <div
@@ -302,29 +304,11 @@ export default class IndoorRouteFormComponent {
     this.translate.instant(`climbingKinds.${kind}`);
 
   protected readonly colorStringify = (colorValue: string): string => {
-    const colorObj = this.routeColors.find((c) => c.value === colorValue);
-    return colorObj
-      ? this.translate.instant('colors.' + colorObj.name)
-      : colorValue;
+    const name = INDOOR_ROUTE_COLORS[colorValue];
+    return name ? this.translate.instant('colors.' + name) : colorValue;
   };
 
-  protected readonly routeColors = [
-    { value: '#EF4444', name: 'red' },
-    { value: '#3B82F6', name: 'blue' },
-    { value: '#F97316', name: 'orange' },
-    { value: '#06B6D4', name: 'cyan' },
-    { value: '#EAB308', name: 'yellow' },
-    { value: '#22C55E', name: 'green' },
-    { value: '#EC4899', name: 'pink' },
-    { value: '#A855F7', name: 'purple' },
-    { value: '#ffffff', name: 'white' },
-    { value: '#000000', name: 'black' },
-    { value: '#6B7280', name: 'grey' },
-    { value: '#84CC16', name: 'lime' },
-    { value: '#14B8A6', name: 'teal' },
-    { value: '#6366F1', name: 'indigo' },
-    { value: '#D946EF', name: 'magenta' },
-  ];
+  protected readonly routeColorsList = INDOOR_ROUTE_COLORS_LIST;
 
   protected readonly stringifyTopo = (t: IndoorTopoDto) => t.name;
 
@@ -336,9 +320,9 @@ export default class IndoorRouteFormComponent {
       if (!id) return [];
       try {
         return await this.indoor.getCenterTopos(id);
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('[IndoorRouteFormComponent] Error loading topos:', e);
-        throw new Error(e?.message || 'Error loading topos');
+        throw new Error(e instanceof Error ? e.message : 'Error loading topos');
       }
     },
   });
@@ -412,9 +396,11 @@ export default class IndoorRouteFormComponent {
           .limit(20);
         if (error) throw error;
         return (data as EquipperDto[]) || [];
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('[IndoorRouteFormComponent] Error loading equippers:', e);
-        throw new Error(e?.message || 'Error loading equippers');
+        throw new Error(
+          e instanceof Error ? e.message : 'Error loading equippers',
+        );
       }
     },
   });

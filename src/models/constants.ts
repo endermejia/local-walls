@@ -20,3 +20,11 @@ export const INDOOR_ROUTE_COLORS: Record<string, string> = {
   '#6366F1': 'indigo',
   '#D946EF': 'magenta',
 };
+
+export const INDOOR_ROUTE_COLORS_LIST: readonly {
+  value: string;
+  name: string;
+}[] = Object.entries(INDOOR_ROUTE_COLORS).map(([value, name]) => ({
+  value,
+  name,
+}));
