@@ -1433,6 +1433,7 @@ export class GlobalData {
             name: topo.name,
             photo: topo.image_url,
             climbing_kind: topo.climbing_kind,
+            legacy: topo.legacy,
             center_id: topo.center_id,
             topo_routes,
             crag: topo.center

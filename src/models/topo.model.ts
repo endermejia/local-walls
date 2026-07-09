@@ -37,6 +37,7 @@ export interface TopoRouteWithRoute {
 
 export interface TopoDetail extends TopoDto {
   topo_routes: TopoRouteWithRoute[];
+  legacy?: boolean | null;
   crag?: {
     id: number;
     name: string;
