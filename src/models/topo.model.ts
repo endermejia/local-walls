@@ -28,14 +28,15 @@ export interface TopoPath {
 }
 
 export interface TopoRouteWithRoute {
-  topo_id: number;
-  route_id: number;
+  topo_id: string | number;
+  route_id: string | number;
   number: number;
   route: RouteBasicWithOwnData;
   path?: TopoPath | null;
 }
 
-export interface TopoDetail extends TopoDto {
+export interface TopoDetail extends Omit<TopoDto, 'id'> {
+  id: string | number;
   topo_routes: TopoRouteWithRoute[];
   legacy?: boolean | null;
   center_id?: string | null;
@@ -59,8 +60,8 @@ export interface TopoDetail extends TopoDto {
 export interface TopoPathEditorResult {
   saved?: boolean;
   paths?: {
-    routeId: number;
+    routeId: string | number;
     path: TopoPath;
   }[];
-  routeIds?: number[];
+  routeIds?: (string | number)[];
 }

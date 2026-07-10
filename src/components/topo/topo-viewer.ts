@@ -418,11 +418,11 @@ export class TopoViewerComponent {
   topoName = input<string>('');
   renderedRoutes = input<RenderedRoute[]>([]);
   hasAccess = input(false);
-  selectedRouteId = input<number | null>(null);
-  hoveredRouteId = input<number | null>(null);
+  selectedRouteId = input<string | number | null>(null);
+  hoveredRouteId = input<string | number | null>(null);
 
-  selectedRouteIdChange = output<number | null>();
-  hoveredRouteIdChange = output<number | null>();
+  selectedRouteIdChange = output<string | number | null>();
+  hoveredRouteIdChange = output<string | number | null>();
 
   protected readonly scrollContainer =
     viewChild<ElementRef<HTMLDivElement>>('scrollContainer');
@@ -480,7 +480,7 @@ export class TopoViewerComponent {
     return Math.max(0.1, Math.min(1, containerRatio / ratio));
   });
 
-  protected onHoverRoute(routeId: number): void {
+  protected onHoverRoute(routeId: string | number): void {
     this.hoveredRouteIdChange.emit(routeId);
   }
 
@@ -498,7 +498,7 @@ export class TopoViewerComponent {
 
   protected onPathClick(event: Event, route: TopoRouteWithRoute): void {
     event.stopPropagation();
-    const next =
+    const next: string | number | null =
       this.selectedRouteId() === route.route_id ? null : route.route_id;
     this.selectedRouteIdChange.emit(next);
   }

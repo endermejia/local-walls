@@ -4,8 +4,9 @@ import { AscentType } from './app-enums.model';
 
 export interface RouteBasicDto extends Pick<
   RouteDto,
-  'id' | 'name' | 'slug' | 'grade' | 'climbing_kind'
+  'name' | 'slug' | 'grade' | 'climbing_kind'
 > {
+  id: string | number;
   height?: number | null;
 }
 

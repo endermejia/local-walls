@@ -42,7 +42,7 @@ export class ToposService {
   openTopoForm(data: {
     cragId?: number;
     topoData?: TopoDetail;
-    initialRouteIds?: number[];
+    initialRouteIds?: (string | number)[];
   }): void {
     const isEdit = !!data.topoData;
     void firstValueFrom(
@@ -88,7 +88,7 @@ export class ToposService {
   }
 
   async update(
-    id: number,
+    id: string | number,
     payload: Partial<Omit<TopoUpdateDto, 'id' | 'created_at'>>,
   ): Promise<TopoDto | null> {
     if (!isPlatformBrowser(this.platformId)) return null;
@@ -96,7 +96,7 @@ export class ToposService {
     const { data, error } = await this.supabase.client
       .from('topos')
       .update(payload)
-      .eq('id', id)
+      .eq('id', id as number)
       .select('*')
       .single();
     if (error) {
@@ -109,7 +109,7 @@ export class ToposService {
     return data as TopoDto;
   }
 
-  async delete(id: number): Promise<boolean> {
+  async delete(id: string | number): Promise<boolean> {
     if (!isPlatformBrowser(this.platformId)) return false;
     await this.supabase.whenReady();
 
@@ -127,7 +127,7 @@ export class ToposService {
     const { error } = await this.supabase.client
       .from('topos')
       .delete()
-      .eq('id', id);
+      .eq('id', id as number);
 
     if (error) {
       console.error('[ToposService] delete error', error);
@@ -139,7 +139,7 @@ export class ToposService {
     return true;
   }
 
-  async deletePhoto(topoId: number): Promise<void> {
+  async deletePhoto(topoId: string | number): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     await this.supabase.whenReady();
 
@@ -180,8 +180,8 @@ export class ToposService {
   }
 
   async removeRoute(
-    topoId: number,
-    routeId: number,
+    topoId: string | number,
+    routeId: string | number,
     reload = true,
   ): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -201,8 +201,8 @@ export class ToposService {
   }
 
   async updateRouteOrder(
-    topoId: number,
-    routeId: number,
+    topoId: string | number,
+    routeId: string | number,
     number: number,
     reload = true,
   ): Promise<void> {
@@ -222,7 +222,7 @@ export class ToposService {
     }
   }
 
-  async uploadPhoto(topoId: number, file: File): Promise<void> {
+  async uploadPhoto(topoId: string | number, file: File): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
 
     const toBase64 = (f: File) =>
@@ -293,8 +293,8 @@ export class ToposService {
   }
 
   async updateRoutePath(
-    topoId: number,
-    routeId: number,
+    topoId: string | number,
+    routeId: string | number,
     path: TopoPath,
     reload = true,
   ): Promise<void> {
@@ -316,8 +316,8 @@ export class ToposService {
   }
 
   async bulkUpdateRoutePaths(
-    topoId: number,
-    paths: { routeId: number; path: TopoPath }[],
+    topoId: string | number,
+    paths: { routeId: string | number; path: TopoPath }[],
     reload = true,
   ): Promise<void> {
     if (!isPlatformBrowser(this.platformId) || !paths.length) return;

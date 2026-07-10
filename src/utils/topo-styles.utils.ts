@@ -76,8 +76,8 @@ export function getPointsString(
  * Check whether a route has a non-empty path in the given paths map.
  */
 export function hasPath(
-  routeId: number,
-  pathsMap: Map<number, { points: { x: number; y: number }[] }>,
+  routeId: string | number,
+  pathsMap: Map<string | number, { points: { x: number; y: number }[] }>,
 ): boolean {
   const pathData = pathsMap.get(routeId);
   return !!pathData && pathData.points.length > 0;
@@ -89,9 +89,9 @@ export function hasPath(
  */
 export function getRouteStyleForId(
   grade: string | number,
-  routeId: number,
-  selectedRouteId: number | null,
-  hoveredRouteId: number | null = null,
+  routeId: string | number,
+  selectedRouteId: string | number | null,
+  hoveredRouteId: string | number | null = null,
 ): { stroke: string; opacity: number; isDashed: boolean } {
   const isSelected = selectedRouteId === routeId;
   const isHovered = hoveredRouteId === routeId;

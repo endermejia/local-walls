@@ -257,7 +257,9 @@ export interface TopoPathEditorConfig {
                     [attr.points]="pointsStringMap()[entry.key]"
                     fill="none"
                     stroke="transparent"
-                    [attr.stroke-width]="routeStrokeWidthMap()[entry.key] * width() * 5"
+                    [attr.stroke-width]="
+                      routeStrokeWidthMap()[entry.key] * width() * 5
+                    "
                     stroke-linejoin="round"
                     stroke-linecap="round"
                   />
@@ -267,7 +269,10 @@ export interface TopoPathEditorConfig {
                     fill="none"
                     stroke="white"
                     [style.opacity]="style.isDashed ? 1 : 0.7"
-                    [attr.stroke-width]="routeStrokeWidthMap()[entry.key] * width() + (style.isDashed ? 2.5 : 1.5)"
+                    [attr.stroke-width]="
+                      routeStrokeWidthMap()[entry.key] * width() +
+                      (style.isDashed ? 2.5 : 1.5)
+                    "
                     [attr.stroke-dasharray]="
                       style.isDashed
                         ? width() * 0.01 + ' ' + width() * 0.01
@@ -282,7 +287,9 @@ export interface TopoPathEditorConfig {
                     fill="none"
                     [attr.stroke]="style.stroke"
                     [style.opacity]="style.opacity"
-                    [attr.stroke-width]="routeStrokeWidthMap()[entry.key] * width()"
+                    [attr.stroke-width]="
+                      routeStrokeWidthMap()[entry.key] * width()
+                    "
                     [attr.stroke-dasharray]="
                       style.isDashed
                         ? width() * 0.01 + ' ' + width() * 0.01
@@ -814,7 +821,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
   sidebarOpen = signal(false);
   topoRoutes: TopoRouteWithRoute[] = [];
   pathsMap = new Map<
-    number,
+    string | number,
     {
       points: { x: number; y: number }[];
       color?: string;
@@ -844,7 +851,11 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     const map: Record<string, ReturnType<typeof getRouteStyleProperties>> = {};
     for (const [key, entry] of this.pathsMap) {
       const isSelected = selected?.route_id === +key;
-      map[key] = getRouteStyleProperties(isSelected, false, entry._ref.route.grade.toString());
+      map[key] = getRouteStyleProperties(
+        isSelected,
+        false,
+        entry._ref.route.grade.toString(),
+      );
     }
     return map;
   });
@@ -1122,7 +1133,11 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     this.cdr.markForCheck();
   }
 
-  startDragging(event: MouseEvent, routeId: number, index: number): void {
+  startDragging(
+    event: MouseEvent,
+    routeId: string | number,
+    index: number,
+  ): void {
     const numericRouteId = +routeId;
     this.draggingPoint = { routeId: numericRouteId, index };
 
@@ -1142,7 +1157,11 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     );
   }
 
-  startDraggingTouch(event: TouchEvent, routeId: number, index: number): void {
+  startDraggingTouch(
+    event: TouchEvent,
+    routeId: string | number,
+    index: number,
+  ): void {
     const numericRouteId = +routeId;
     this.draggingPoint = { routeId: numericRouteId, index };
 
@@ -1185,7 +1204,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     this.cdr.markForCheck();
   }
 
-  removePoint(event: Event, routeId: number, index: number): void {
+  removePoint(event: Event, routeId: string | number, index: number): void {
     removePoint(event, routeId, index, this.pathsMap);
     this.cdr.markForCheck();
   }

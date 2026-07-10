@@ -1041,12 +1041,17 @@ export class GlobalData {
 
         return (data || [])
           .map((d) => {
-            const r = d.route as Record<string, unknown> & { equippers?: { equipper: EquipperDto }[]; center?: { name: string; slug: string } } | null;
+            const r = d.route as
+              | (Record<string, unknown> & {
+                  equippers?: { equipper: EquipperDto }[];
+                  center?: { name: string; slug: string };
+                })
+              | null;
             if (!r) return null;
             return {
               ...r,
-              center_name: (r.center?.name) || '',
-              center_slug: (r.center?.slug) || '',
+              center_name: r.center?.name || '',
+              center_slug: r.center?.slug || '',
               equippers: (r.equippers || [])
                 .map((e) => e.equipper)
                 .filter(Boolean),
@@ -1404,7 +1409,8 @@ export class GlobalData {
                 seenRouteIds.add(tr.route_id);
 
                 // Sort ascents to prioritize real ascents over attempts
-                const ascents = (tr.route.own_ascent || []) as unknown as RouteAscentDto[];
+                const ascents = (tr.route.own_ascent ||
+                  []) as unknown as RouteAscentDto[];
                 ascents.sort((a, b) => {
                   const isAttemptA = a.type === 'attempt';
                   const isAttemptB = b.type === 'attempt';
@@ -1418,16 +1424,17 @@ export class GlobalData {
                 const bestAscent = ascents[0] || null;
 
                 topo_routes.push({
-                  topo_id: Number(tr.topo_id),
-                  route_id: Number(tr.route_id),
+                  topo_id: tr.topo_id,
+                  route_id: tr.route_id,
                   number: tr.number ?? 0,
                   path: tr.path as TopoPath | null,
                   route: {
-                    id: Number(tr.route.id),
+                    id: tr.route.id,
                     name: tr.route.name,
                     slug: tr.route.slug,
                     grade: tr.route.grade ?? 0,
-                    climbing_kind: (tr.route.climbing_kind ?? 'sport') as ClimbingKind,
+                    climbing_kind: (tr.route.climbing_kind ??
+                      'sport') as ClimbingKind,
                     own_ascent: bestAscent,
                     project: false,
                   },
@@ -1437,7 +1444,7 @@ export class GlobalData {
           }
 
           const result: TopoDetail = {
-            id: Number(topo.id),
+            id: topo.id,
             name: topo.name,
             photo: topo.image_url,
             crag_id: 0,

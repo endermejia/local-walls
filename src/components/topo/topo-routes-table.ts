@@ -384,7 +384,7 @@ export class TopoRoutesTableComponent {
   columns = input.required<string[]>();
   canEdit = input(false);
   isMobile = input(false);
-  selectedRouteId = input<number | null>(null);
+  selectedRouteId = input<string | number | null>(null);
   hasAccess = input(false);
   isIndoor = input(false);
   direction = input<TuiSortDirection>(TuiSortDirection.Asc);
@@ -393,8 +393,8 @@ export class TopoRoutesTableComponent {
   areaId = input(0);
   areaPrice = input(0);
 
-  selectedRouteIdChange = output<number | null>();
-  hoveredRouteIdChange = output<number | null>();
+  selectedRouteIdChange = output<string | number | null>();
+  hoveredRouteIdChange = output<string | number | null>();
   sortChange = output<TuiTableSortChange<TopoRouteRow>>();
 
   protected readonly indexInputs =
@@ -402,7 +402,7 @@ export class TopoRoutesTableComponent {
   protected readonly heightInputs =
     viewChildren<ElementRef<HTMLInputElement>>('heightInput');
 
-  protected selectRoute(routeId: number): void {
+  protected selectRoute(routeId: string | number): void {
     this.selectedRouteIdChange.emit(
       this.selectedRouteId() === routeId ? null : routeId,
     );
@@ -443,10 +443,11 @@ export class TopoRoutesTableComponent {
   protected async onToggleProject(item: TopoRouteRow): Promise<void> {
     const routeToSync = {
       ...item._ref.route,
+      id: item._ref.route.id as number,
       project: !!item._ref.route.project,
     };
     await this.routesService.toggleRouteProject(
-      item._ref.route_id,
+      item._ref.route_id as number,
       routeToSync,
     );
   }
@@ -482,7 +483,7 @@ export class TopoRoutesTableComponent {
           : newHeight;
     if (val === tr.route?.height) return;
     this.routesService
-      .update(tr.route_id, { height: val })
+      .update(tr.route_id as number, { height: val })
       .catch((err) => handleErrorToast(err, this.toast));
   }
 

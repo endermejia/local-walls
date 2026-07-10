@@ -34,8 +34,8 @@ export class TopoPathPointsPipe implements PipeTransform {
 })
 export class TopoHasPathPipe implements PipeTransform {
   transform(
-    routeId: number,
-    pathsMap: Map<number, { points: { x: number; y: number }[] }>,
+    routeId: string | number,
+    pathsMap: Map<string | number, { points: { x: number; y: number }[] }>,
   ): boolean {
     return hasPathUtil(routeId, pathsMap);
   }

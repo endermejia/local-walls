@@ -57,8 +57,8 @@ export abstract class TopoPageBase implements OnDestroy {
   protected readonly crag = this.global.cragDetailResource.value;
   protected readonly allAreaTopos = this.global.areaToposResource.value;
 
-  protected readonly selectedRouteId = signal<number | null>(null);
-  protected readonly hoveredRouteId = signal<number | null>(null);
+  protected readonly selectedRouteId = signal<string | number | null>(null);
+  protected readonly hoveredRouteId = signal<string | number | null>(null);
 
   protected readonly selectedRouteInfo = computed(() => {
     const routeId = this.selectedRouteId();
@@ -78,7 +78,7 @@ export abstract class TopoPageBase implements OnDestroy {
     const hScale = 1000 / ratio;
     const routes = [...t.topo_routes];
     routes.sort((a, b) => {
-      const getPriority = (id: number) => {
+      const getPriority = (id: string | number) => {
         if (id === selectedId) return 2;
         if (id === hoveredId) return 1;
         return 0;

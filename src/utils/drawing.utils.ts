@@ -114,9 +114,9 @@ export function setupTouchDrag(
 
 export function removePoint(
   event: Event,
-  routeId: number,
+  routeId: string | number,
   index: number,
-  pathsMap: Map<number, { points: NormalizedPoint[] }>,
+  pathsMap: Map<string | number, { points: NormalizedPoint[] }>,
 ): void {
   if (event instanceof MouseEvent || event.cancelable) {
     event.preventDefault();
@@ -135,10 +135,10 @@ export function removePoint(
  */
 export function addPointToPath(
   event: MouseEvent,
-  routeId: number,
+  routeId: string | number,
   containerEl: HTMLElement,
   pathsMap: Map<
-    number,
+    string | number,
     { points: NormalizedPoint[]; color?: string; [key: string]: unknown }
   >,
   defaults?: { color?: string; [key: string]: unknown },
@@ -165,10 +165,13 @@ export function addPointToPath(
  */
 export function startDragPointMouse(
   event: MouseEvent,
-  routeId: number,
+  routeId: string | number,
   index: number,
   containerEl: HTMLElement,
-  pathsMap: Map<number, { points: NormalizedPoint[]; [key: string]: unknown }>,
+  pathsMap: Map<
+    string | number,
+    { points: NormalizedPoint[]; [key: string]: unknown }
+  >,
   callbacks?: {
     onUpdate?: () => void;
     onEnd?: () => void;
@@ -214,10 +217,13 @@ export function startDragPointMouse(
  */
 export function startDragPointTouch(
   event: TouchEvent,
-  routeId: number,
+  routeId: string | number,
   index: number,
   containerEl: HTMLElement,
-  pathsMap: Map<number, { points: NormalizedPoint[]; [key: string]: unknown }>,
+  pathsMap: Map<
+    string | number,
+    { points: NormalizedPoint[]; [key: string]: unknown }
+  >,
   callbacks?: {
     onUpdate?: () => void;
     onEnd?: () => void;
