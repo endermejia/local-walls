@@ -233,14 +233,16 @@ import {
             @if (toposList.length > 0) {
               <div tuiGroup [collapsed]="true">
                 @for (t of toposList; track t.id) {
-                  <a
-                    tuiLink
+                  <button
+                    tuiButton
                     [routerLink]="t.link"
-                    class="text-xs bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 px-2 py-0.5 rounded-md transition-colors truncate max-w-full font-medium"
+                    appearance="secondary"
+                    size="xs"
+                    class="min-w-fit!"
                     (click)="$event.stopPropagation()"
                   >
                     {{ t.name }}
-                  </a>
+                  </button>
                 }
                 @if (canAddTopo) {
                   <button
