@@ -119,20 +119,19 @@ import { IndoorVouchersComponent } from '../../components/indoor/indoor-vouchers
                   >
                     {{ 'edit' | translate }}
                   </button>
-                }
-                @if (isAdmin()) {
-                  <button
-                    tuiIconButton
-                    size="s"
-                    appearance="negative"
-                    iconStart="@tui.trash"
-                    class="rounded-full!"
-                    type="button"
-                    [disabled]="!editingMode"
-                    (click.zoneless)="deleteCenter()"
-                  >
-                    {{ 'delete' | translate }}
-                  </button>
+                  @if (isAdmin()) {
+                    <button
+                      tuiIconButton
+                      size="s"
+                      appearance="negative"
+                      iconStart="@tui.trash"
+                      class="rounded-full!"
+                      type="button"
+                      (click.zoneless)="deleteCenter()"
+                    >
+                      {{ 'delete' | translate }}
+                    </button>
+                  }
                 }
               </div>
             </app-section-header>
