@@ -19,6 +19,10 @@ export type IndoorRouteDto = TableRow<'indoor_routes'>;
 export type IndoorRouteInsertDto = TableInsert<'indoor_routes'>;
 export type IndoorRouteUpdateDto = TableUpdate<'indoor_routes'>;
 
+export type IndoorAscentDto = TableRow<'indoor_ascents'>;
+export type IndoorAscentInsertDto = TableInsert<'indoor_ascents'>;
+export type IndoorAscentUpdateDto = TableUpdate<'indoor_ascents'>;
+
 export type IndoorTopoDto = TableRow<'indoor_topos'>;
 export type IndoorTopoInsertDto = TableInsert<'indoor_topos'>;
 export type IndoorTopoUpdateDto = TableUpdate<'indoor_topos'>;
@@ -91,4 +95,11 @@ export interface IndoorRouteWithExtras extends IndoorRouteDto {
   topos?: { id: string; name: string; legacy?: boolean }[];
   rating?: number | null;
   ascent_count?: number | null;
+}
+
+export interface IndoorAscentWithExtras extends IndoorAscentDto {
+  route?: Pick<
+    IndoorRouteWithExtras,
+    'id' | 'name' | 'grade' | 'climbing_kind' | 'center_name' | 'center_slug'
+  >;
 }

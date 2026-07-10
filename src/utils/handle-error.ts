@@ -10,8 +10,8 @@ export function handleErrorToast(error: unknown, toast: ToastService): void {
 
   // Specific PostgreSQL / Supabase error codes
   const code =
-    typeof error === 'object' && error !== null
-      ? (error as any).code
+    typeof error === 'object' && error !== null && 'code' in error
+      ? error.code
       : undefined;
   if (code === '23503') {
     messageKey = 'errors.database.foreign_key_violation';

@@ -18,8 +18,15 @@ import {
   IndoorSaleDto,
   IndoorInventoryDto,
   IndoorRouteWithExtras,
+  IndoorAscentDto,
   EquipperDto,
 } from '../models';
+
+type CenterRouteQuery = IndoorRouteDto & {
+  ascents: Pick<IndoorAscentDto, 'id' | 'type' | 'user_id' | 'rate'>[];
+  equippers: { equipper: EquipperDto | null }[];
+  topo_routes: { topo: Pick<IndoorTopoDto, 'id' | 'name' | 'legacy'> | null }[];
+};
 
 @Injectable({
   providedIn: 'root',
@@ -163,11 +170,13 @@ export class IndoorService {
     if (!data) return [];
 
     const userId = this.global.userProfile()?.id;
-    return data.map((route: any) => {
-      const ratedAscents =
-        route.ascents?.filter((a: any) => a.rate !== null && a.rate > 0) || [];
+    const routes = data as unknown as CenterRouteQuery[];
+    return routes.map((route) => {
+      const ratedAscents = route.ascents.filter(
+        (ascent) => ascent.rate !== null && ascent.rate > 0,
+      );
       const totalRating = ratedAscents.reduce(
-        (sum: number, a: any) => sum + (a.rate || 0),
+        (sum, ascent) => sum + (ascent.rate || 0),
         0,
       );
       const rating =
@@ -175,15 +184,19 @@ export class IndoorService {
 
       return {
         ...route,
-        equippers: route.equippers?.map((e: any) => e.equipper) || [],
-        topos:
-          route.topo_routes
-            ?.map((tr: any) => tr.topo)
-            .filter((t: any) => !!t) || [],
+        equippers: route.equippers
+          .map((entry) => entry.equipper)
+          .filter((equipper): equipper is EquipperDto => equipper !== null),
+        topos: route.topo_routes
+          .map((entry) => entry.topo)
+          .filter(
+            (topo): topo is Pick<IndoorTopoDto, 'id' | 'name' | 'legacy'> =>
+              topo !== null,
+          ),
         own_ascent: userId
-          ? (route.ascents?.find((a: any) => a.user_id === userId) ?? null)
+          ? (route.ascents.find((ascent) => ascent.user_id === userId) ?? null)
           : null,
-        ascent_count: route.ascents?.length || 0,
+        ascent_count: route.ascents.length,
         rating: rating || null,
       };
     }) as IndoorRouteWithExtras[];
@@ -542,12 +555,14 @@ export class IndoorService {
   async getRouteEquippers(routeId: string): Promise<EquipperDto[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
-    const { data, error } = await (this.supabase.client as any)
+    const { data, error } = await this.supabase.client
       .from('indoor_route_equippers')
       .select('equipper:equippers(*)')
       .eq('route_id', routeId);
     if (error) throw error;
-    return (data?.map((d: any) => d.equipper) || []) as EquipperDto[];
+    return (data ?? [])
+      .map((item) => item.equipper)
+      .filter((equipper): equipper is EquipperDto => equipper !== null);
   }
 
   async setRouteEquippers(
@@ -620,13 +635,13 @@ export class IndoorService {
       }
 
       // Sync junction table
-      await (this.supabase.client as any)
+      await this.supabase.client
         .from('indoor_route_equippers')
         .delete()
         .eq('route_id', routeId);
 
       if (equipperIds.length > 0) {
-        const { error: insertError } = await (this.supabase.client as any)
+        const { error: insertError } = await this.supabase.client
           .from('indoor_route_equippers')
           .insert(
             equipperIds.map((id) => ({ route_id: routeId, equipper_id: id })),

@@ -501,7 +501,9 @@ export class IndoorRoutesComponent {
             String(this.showLegacyRoutes()),
           );
         }
-      } catch {}
+      } catch {
+        // localStorage can be unavailable (SSR or privacy-restricted browsers).
+      }
     });
   }
 
